@@ -36,7 +36,7 @@ public class ScenarioTests
             {
                 foreach (var diff in diffs)
                 {
-                    var verifiedDiff = verified.PageDiffs.FirstOrDefault(v => v.Page == diff.Page);
+                    var verifiedDiff = verified.PageDiffs.FirstOrDefault(_ => _.Page == diff.Page);
                     if (verifiedDiff != null && diff.ErrorMetric > verifiedDiff.ErrorMetric)
                     {
                         metricFailures.Add(directory);

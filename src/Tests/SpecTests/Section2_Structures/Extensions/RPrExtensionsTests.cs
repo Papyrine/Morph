@@ -146,7 +146,7 @@ public class RPrExtensionsTests
         var run = new Run
         {
             Text = "Formatted Text",
-            Properties = new RunProperties
+            Properties = new()
             {
                 Bold = true,
                 FontFamily = "Impact",

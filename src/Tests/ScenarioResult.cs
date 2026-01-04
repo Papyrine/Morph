@@ -11,7 +11,7 @@ public class ScenarioResult
     {
         if (!File.Exists(path))
         {
-            return new ScenarioResult();
+            return new();
         }
         var json = await File.ReadAllTextAsync(path);
         return JsonSerializer.Deserialize(json, ScenarioResultContext.Default.ScenarioResult)!;
