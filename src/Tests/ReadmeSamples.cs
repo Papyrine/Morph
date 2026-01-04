@@ -1,5 +1,7 @@
-using WordRender;
+using System.Diagnostics.CodeAnalysis;
+// ReSharper disable UnusedVariable
 
+[SuppressMessage("Style", "IDE0059:Unnecessary assignment of a value")]
 public class ReadmeSamples
 {
     public static void BasicUsage()

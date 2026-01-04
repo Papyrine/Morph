@@ -387,11 +387,6 @@ sealed class TextRenderer(RenderContext context)
                 var imageWidth = (float)run.InlineImageWidthPoints;
                 var imageHeight = (float)run.InlineImageHeightPoints;
 
-                // Get baseline from run's font properties for proper alignment
-                using var font = context.CreateFont(run.Properties);
-                var metrics = font.Metrics;
-                var textBaseline = -metrics.Ascent / context.Scale;
-
                 // Check if we need to wrap before the image
                 if (currentLineWidth + imageWidth > effectiveWidth && currentFragments.Count > 0)
                 {
@@ -898,11 +893,6 @@ sealed class TextRenderer(RenderContext context)
             {
                 var imageWidth = (float)run.InlineImageWidthPoints;
                 var imageHeight = (float)run.InlineImageHeightPoints;
-
-                // Get baseline from run's font properties for proper alignment
-                using var font = context.CreateFont(run.Properties);
-                var metrics = font.Metrics;
-                var textBaseline = -metrics.Ascent / context.Scale;
 
                 // Check if we need to wrap before the image
                 if (currentLineWidth + imageWidth > effectiveWidth && currentFragments.Count > 0)

@@ -2752,8 +2752,6 @@ sealed class PageRenderer : IDisposable
         // Render content at the absolute position
         // Save current position and set to text box position
         var savedY = context.CurrentY;
-        var savedContentLeft = context.ContentLeft;
-        var savedContentWidth = context.ContentWidth;
 
         // Temporarily adjust context for text box rendering
         context.CurrentY = y;
@@ -2761,14 +2759,9 @@ sealed class PageRenderer : IDisposable
         // Render each content element
         foreach (var element in textBox.Content)
         {
-            switch (element)
+            if (element is ParagraphElement para)
             {
-                case ParagraphElement para:
-                    textRenderer.RenderParagraphInBounds(currentCanvas, para, x, (float) textBox.WidthPoints);
-                    break;
-                case TableElement table:
-                    // Tables in text boxes - simplified rendering
-                    break;
+                textRenderer.RenderParagraphInBounds(currentCanvas, para, x, (float) textBox.WidthPoints);
             }
         }
 
