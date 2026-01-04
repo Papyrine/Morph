@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="Morph/Morph.csproj" />
+  <Folder Name="/SolutionItems/">
+    <File Path="../.gitattributes" />
+  </Folder>
+  <Project Path="RenderHelper/RenderHelper.csproj" />
+  <Project Path="Tests/Tests.csproj" />
+</Solution>

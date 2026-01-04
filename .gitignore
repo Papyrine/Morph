@@ -1,0 +1,14 @@
+*.suo
+*.user
+bin/
+obj/
+.vs/
+*.DotSettings.user
+.idea/
+*.received.*
+nugets/
+.claude/settings.local.json
+*~$*.docx
+nul
+*.trx
+src/.claude/settings.local.json

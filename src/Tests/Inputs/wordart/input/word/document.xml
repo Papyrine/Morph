@@ -1,0 +1,647 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document mc:Ignorable="w14 w15 wp14" xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex" xmlns:cx1="http://schemas.microsoft.com/office/drawing/2015/9/8/chartex" xmlns:cx2="http://schemas.microsoft.com/office/drawing/2015/10/21/chartex" xmlns:cx3="http://schemas.microsoft.com/office/drawing/2016/5/9/chartex" xmlns:cx4="http://schemas.microsoft.com/office/drawing/2016/5/10/chartex" xmlns:cx5="http://schemas.microsoft.com/office/drawing/2016/5/11/chartex" xmlns:cx6="http://schemas.microsoft.com/office/drawing/2016/5/12/chartex" xmlns:cx7="http://schemas.microsoft.com/office/drawing/2016/5/13/chartex" xmlns:cx8="http://schemas.microsoft.com/office/drawing/2016/5/14/chartex" xmlns:aink="http://schemas.microsoft.com/office/drawing/2016/ink" xmlns:am3d="http://schemas.microsoft.com/office/drawing/2017/model3d" xmlns:w16cex="http://schemas.microsoft.com/office/word/2018/wordml/cex" xmlns:w16cid="http://schemas.microsoft.com/office/word/2016/wordml/cid" xmlns:w16="http://schemas.microsoft.com/office/word/2018/wordml" xmlns:w16sdtdh="http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash" xmlns:w16se="http://schemas.microsoft.com/office/word/2015/wordml/symex"><w:body><w:p><w:pPr><w:spacing w:after="400"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="1F4E79"/><w:sz w:val="56"/><w:szCs w:val="56"/></w:rPr><w:t xml:space="preserve">WordArt Test Document</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:i/><w:iCs/><w:color w:val="666666"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><w:t xml:space="preserve">For Renderer Testing</w:t></w:r></w:p><w:p><w:r><w:br w:type="page"/></w:r></w:p>
+            <w:p><w:pPr><w:jc w:val="center"/><w:spacing w:before="400" w:after="300"/></w:pPr>
+                <w:r><w:rPr><w:b/><w:sz w:val="72"/><w:color w:val="1F4E79"/><w:rFonts w:ascii="Impact" w:hAnsi="Impact"/></w:rPr>
+                <w:t>ACTUAL WORDART SHAPES</w:t></w:r>
+            </w:p>
+            <w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="200"/></w:pPr>
+                <w:r><w:rPr><w:i/><w:sz w:val="28"/><w:color w:val="666666"/></w:rPr>
+                <w:t>These use DrawingML WordArt transforms</w:t></w:r>
+            </w:p>
+            
+    <w:p>
+        <w:pPr><w:jc w:val="center"/><w:spacing w:after="200"/></w:pPr>
+        <w:r>
+            <w:drawing>
+                <wp:inline distT="0" distB="0" distL="114300" distR="114300">
+                    <wp:extent cx="5486400" cy="1371600"/>
+                    <wp:effectExtent l="0" t="0" r="0" b="0"/>
+                    <wp:docPr id="100" name="WordArt 1"/>
+                    <wp:cNvGraphicFramePr/>
+                    <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                        <a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">
+                            <wps:wsp>
+                                <wps:cNvSpPr txBox="1"/>
+                                <wps:spPr>
+                                    <a:xfrm>
+                                        <a:off x="0" y="0"/>
+                                        <a:ext cx="5486400" cy="1371600"/>
+                                    </a:xfrm>
+                                    <a:prstGeom prst="rect">
+                                        <a:avLst/>
+                                    </a:prstGeom>
+                                    <a:noFill/>
+                                </wps:spPr>
+                                <wps:txbx>
+                                    <w:txbxContent>
+                                        <w:p>
+                                            <w:pPr><w:jc w:val="center"/></w:pPr>
+                                            <w:r>
+                                                <w:rPr>
+                                                    <w:b/>
+                                                    <w:sz w:val="72"/>
+                                                    <w:color w:val="4472C4"/>
+                                                    <w:rFonts w:ascii="Impact" w:hAnsi="Impact"/>
+                                                </w:rPr>
+                                                <w:t>Arc Text Up</w:t>
+                                            </w:r>
+                                        </w:p>
+                                    </w:txbxContent>
+                                </wps:txbx>
+                                <wps:bodyPr rot="0" spcFirstLastPara="0" vertOverflow="overflow" horzOverflow="overflow" vert="horz" wrap="square" lIns="91440" tIns="45720" rIns="91440" bIns="45720" numCol="1" spcCol="0" rtlCol="0" fromWordArt="1" anchor="ctr" anchorCtr="0" forceAA="0" compatLnSpc="1">
+                                    <a:prstTxWarp prst="textArchUp">
+                                        <a:avLst/>
+                                    </a:prstTxWarp>
+                                    <a:noAutofit/>
+                                </wps:bodyPr>
+                            </wps:wsp>
+                        </a:graphicData>
+                    </a:graphic>
+                </wp:inline>
+            </w:drawing>
+        </w:r>
+    </w:p>
+
+    <w:p>
+        <w:pPr><w:jc w:val="center"/><w:spacing w:after="200"/></w:pPr>
+        <w:r>
+            <w:drawing>
+                <wp:inline distT="0" distB="0" distL="114300" distR="114300">
+                    <wp:extent cx="5486400" cy="1371600"/>
+                    <wp:effectExtent l="0" t="0" r="0" b="0"/>
+                    <wp:docPr id="101" name="WordArt 2"/>
+                    <wp:cNvGraphicFramePr/>
+                    <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                        <a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">
+                            <wps:wsp>
+                                <wps:cNvSpPr txBox="1"/>
+                                <wps:spPr>
+                                    <a:xfrm>
+                                        <a:off x="0" y="0"/>
+                                        <a:ext cx="5486400" cy="1371600"/>
+                                    </a:xfrm>
+                                    <a:prstGeom prst="rect">
+                                        <a:avLst/>
+                                    </a:prstGeom>
+                                    <a:noFill/>
+                                </wps:spPr>
+                                <wps:txbx>
+                                    <w:txbxContent>
+                                        <w:p>
+                                            <w:pPr><w:jc w:val="center"/></w:pPr>
+                                            <w:r>
+                                                <w:rPr>
+                                                    <w:b/>
+                                                    <w:sz w:val="72"/>
+                                                    <w:color w:val="70AD47"/>
+                                                    <w:rFonts w:ascii="Impact" w:hAnsi="Impact"/>
+                                                </w:rPr>
+                                                <w:t>Arc Text Down</w:t>
+                                            </w:r>
+                                        </w:p>
+                                    </w:txbxContent>
+                                </wps:txbx>
+                                <wps:bodyPr rot="0" spcFirstLastPara="0" vertOverflow="overflow" horzOverflow="overflow" vert="horz" wrap="square" lIns="91440" tIns="45720" rIns="91440" bIns="45720" numCol="1" spcCol="0" rtlCol="0" fromWordArt="1" anchor="ctr" anchorCtr="0" forceAA="0" compatLnSpc="1">
+                                    <a:prstTxWarp prst="textArchDown">
+                                        <a:avLst/>
+                                    </a:prstTxWarp>
+                                    <a:noAutofit/>
+                                </wps:bodyPr>
+                            </wps:wsp>
+                        </a:graphicData>
+                    </a:graphic>
+                </wp:inline>
+            </w:drawing>
+        </w:r>
+    </w:p>
+
+    <w:p>
+        <w:pPr><w:jc w:val="center"/><w:spacing w:after="200"/></w:pPr>
+        <w:r>
+            <w:drawing>
+                <wp:inline distT="0" distB="0" distL="114300" distR="114300">
+                    <wp:extent cx="3657600" cy="3657600"/>
+                    <wp:effectExtent l="0" t="0" r="0" b="0"/>
+                    <wp:docPr id="102" name="WordArt 3"/>
+                    <wp:cNvGraphicFramePr/>
+                    <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                        <a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">
+                            <wps:wsp>
+                                <wps:cNvSpPr txBox="1"/>
+                                <wps:spPr>
+                                    <a:xfrm>
+                                        <a:off x="0" y="0"/>
+                                        <a:ext cx="3657600" cy="3657600"/>
+                                    </a:xfrm>
+                                    <a:prstGeom prst="rect">
+                                        <a:avLst/>
+                                    </a:prstGeom>
+                                    <a:noFill/>
+                                </wps:spPr>
+                                <wps:txbx>
+                                    <w:txbxContent>
+                                        <w:p>
+                                            <w:pPr><w:jc w:val="center"/></w:pPr>
+                                            <w:r>
+                                                <w:rPr>
+                                                    <w:b/>
+                                                    <w:sz w:val="72"/>
+                                                    <w:color w:val="ED7D31"/>
+                                                    <w:rFonts w:ascii="Impact" w:hAnsi="Impact"/>
+                                                </w:rPr>
+                                                <w:t>Circle Text</w:t>
+                                            </w:r>
+                                        </w:p>
+                                    </w:txbxContent>
+                                </wps:txbx>
+                                <wps:bodyPr rot="0" spcFirstLastPara="0" vertOverflow="overflow" horzOverflow="overflow" vert="horz" wrap="square" lIns="91440" tIns="45720" rIns="91440" bIns="45720" numCol="1" spcCol="0" rtlCol="0" fromWordArt="1" anchor="ctr" anchorCtr="0" forceAA="0" compatLnSpc="1">
+                                    <a:prstTxWarp prst="textCircle">
+                                        <a:avLst/>
+                                    </a:prstTxWarp>
+                                    <a:noAutofit/>
+                                </wps:bodyPr>
+                            </wps:wsp>
+                        </a:graphicData>
+                    </a:graphic>
+                </wp:inline>
+            </w:drawing>
+        </w:r>
+    </w:p>
+
+    <w:p>
+        <w:pPr><w:jc w:val="center"/><w:spacing w:after="200"/></w:pPr>
+        <w:r>
+            <w:drawing>
+                <wp:inline distT="0" distB="0" distL="114300" distR="114300">
+                    <wp:extent cx="5486400" cy="1371600"/>
+                    <wp:effectExtent l="0" t="0" r="0" b="0"/>
+                    <wp:docPr id="103" name="WordArt 4"/>
+                    <wp:cNvGraphicFramePr/>
+                    <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                        <a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">
+                            <wps:wsp>
+                                <wps:cNvSpPr txBox="1"/>
+                                <wps:spPr>
+                                    <a:xfrm>
+                                        <a:off x="0" y="0"/>
+                                        <a:ext cx="5486400" cy="1371600"/>
+                                    </a:xfrm>
+                                    <a:prstGeom prst="rect">
+                                        <a:avLst/>
+                                    </a:prstGeom>
+                                    <a:noFill/>
+                                </wps:spPr>
+                                <wps:txbx>
+                                    <w:txbxContent>
+                                        <w:p>
+                                            <w:pPr><w:jc w:val="center"/></w:pPr>
+                                            <w:r>
+                                                <w:rPr>
+                                                    <w:b/>
+                                                    <w:sz w:val="72"/>
+                                                    <w:color w:val="7030A0"/>
+                                                    <w:rFonts w:ascii="Impact" w:hAnsi="Impact"/>
+                                                </w:rPr>
+                                                <w:t>Wavy WordArt</w:t>
+                                            </w:r>
+                                        </w:p>
+                                    </w:txbxContent>
+                                </wps:txbx>
+                                <wps:bodyPr rot="0" spcFirstLastPara="0" vertOverflow="overflow" horzOverflow="overflow" vert="horz" wrap="square" lIns="91440" tIns="45720" rIns="91440" bIns="45720" numCol="1" spcCol="0" rtlCol="0" fromWordArt="1" anchor="ctr" anchorCtr="0" forceAA="0" compatLnSpc="1">
+                                    <a:prstTxWarp prst="textWave1">
+                                        <a:avLst/>
+                                    </a:prstTxWarp>
+                                    <a:noAutofit/>
+                                </wps:bodyPr>
+                            </wps:wsp>
+                        </a:graphicData>
+                    </a:graphic>
+                </wp:inline>
+            </w:drawing>
+        </w:r>
+    </w:p>
+
+    <w:p>
+        <w:pPr><w:jc w:val="center"/><w:spacing w:after="200"/></w:pPr>
+        <w:r>
+            <w:drawing>
+                <wp:inline distT="0" distB="0" distL="114300" distR="114300">
+                    <wp:extent cx="5486400" cy="1828800"/>
+                    <wp:effectExtent l="0" t="0" r="0" b="0"/>
+                    <wp:docPr id="104" name="WordArt 5"/>
+                    <wp:cNvGraphicFramePr/>
+                    <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                        <a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">
+                            <wps:wsp>
+                                <wps:cNvSpPr txBox="1"/>
+                                <wps:spPr>
+                                    <a:xfrm>
+                                        <a:off x="0" y="0"/>
+                                        <a:ext cx="5486400" cy="1828800"/>
+                                    </a:xfrm>
+                                    <a:prstGeom prst="rect">
+                                        <a:avLst/>
+                                    </a:prstGeom>
+                                    <a:noFill/>
+                                </wps:spPr>
+                                <wps:txbx>
+                                    <w:txbxContent>
+                                        <w:p>
+                                            <w:pPr><w:jc w:val="center"/></w:pPr>
+                                            <w:r>
+                                                <w:rPr>
+                                                    <w:b/>
+                                                    <w:sz w:val="72"/>
+                                                    <w:color w:val="00B0F0"/>
+                                                    <w:rFonts w:ascii="Impact" w:hAnsi="Impact"/>
+                                                </w:rPr>
+                                                <w:t>Chevron Up</w:t>
+                                            </w:r>
+                                        </w:p>
+                                    </w:txbxContent>
+                                </wps:txbx>
+                                <wps:bodyPr rot="0" spcFirstLastPara="0" vertOverflow="overflow" horzOverflow="overflow" vert="horz" wrap="square" lIns="91440" tIns="45720" rIns="91440" bIns="45720" numCol="1" spcCol="0" rtlCol="0" fromWordArt="1" anchor="ctr" anchorCtr="0" forceAA="0" compatLnSpc="1">
+                                    <a:prstTxWarp prst="textChevron">
+                                        <a:avLst/>
+                                    </a:prstTxWarp>
+                                    <a:noAutofit/>
+                                </wps:bodyPr>
+                            </wps:wsp>
+                        </a:graphicData>
+                    </a:graphic>
+                </wp:inline>
+            </w:drawing>
+        </w:r>
+    </w:p>
+
+    <w:p>
+        <w:pPr><w:jc w:val="center"/><w:spacing w:after="200"/></w:pPr>
+        <w:r>
+            <w:drawing>
+                <wp:inline distT="0" distB="0" distL="114300" distR="114300">
+                    <wp:extent cx="5486400" cy="1828800"/>
+                    <wp:effectExtent l="0" t="0" r="0" b="0"/>
+                    <wp:docPr id="105" name="WordArt 6"/>
+                    <wp:cNvGraphicFramePr/>
+                    <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                        <a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">
+                            <wps:wsp>
+                                <wps:cNvSpPr txBox="1"/>
+                                <wps:spPr>
+                                    <a:xfrm>
+                                        <a:off x="0" y="0"/>
+                                        <a:ext cx="5486400" cy="1828800"/>
+                                    </a:xfrm>
+                                    <a:prstGeom prst="rect">
+                                        <a:avLst/>
+                                    </a:prstGeom>
+                                    <a:noFill/>
+                                </wps:spPr>
+                                <wps:txbx>
+                                    <w:txbxContent>
+                                        <w:p>
+                                            <w:pPr><w:jc w:val="center"/></w:pPr>
+                                            <w:r>
+                                                <w:rPr>
+                                                    <w:b/>
+                                                    <w:sz w:val="72"/>
+                                                    <w:color w:val="FF0000"/>
+                                                    <w:rFonts w:ascii="Impact" w:hAnsi="Impact"/>
+                                                </w:rPr>
+                                                <w:t>Chevron Down</w:t>
+                                            </w:r>
+                                        </w:p>
+                                    </w:txbxContent>
+                                </wps:txbx>
+                                <wps:bodyPr rot="0" spcFirstLastPara="0" vertOverflow="overflow" horzOverflow="overflow" vert="horz" wrap="square" lIns="91440" tIns="45720" rIns="91440" bIns="45720" numCol="1" spcCol="0" rtlCol="0" fromWordArt="1" anchor="ctr" anchorCtr="0" forceAA="0" compatLnSpc="1">
+                                    <a:prstTxWarp prst="textChevronInverted">
+                                        <a:avLst/>
+                                    </a:prstTxWarp>
+                                    <a:noAutofit/>
+                                </wps:bodyPr>
+                            </wps:wsp>
+                        </a:graphicData>
+                    </a:graphic>
+                </wp:inline>
+            </w:drawing>
+        </w:r>
+    </w:p>
+
+    <w:p>
+        <w:pPr><w:jc w:val="center"/><w:spacing w:after="200"/></w:pPr>
+        <w:r>
+            <w:drawing>
+                <wp:inline distT="0" distB="0" distL="114300" distR="114300">
+                    <wp:extent cx="5486400" cy="1371600"/>
+                    <wp:effectExtent l="0" t="0" r="0" b="0"/>
+                    <wp:docPr id="106" name="WordArt 7"/>
+                    <wp:cNvGraphicFramePr/>
+                    <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                        <a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">
+                            <wps:wsp>
+                                <wps:cNvSpPr txBox="1"/>
+                                <wps:spPr>
+                                    <a:xfrm>
+                                        <a:off x="0" y="0"/>
+                                        <a:ext cx="5486400" cy="1371600"/>
+                                    </a:xfrm>
+                                    <a:prstGeom prst="rect">
+                                        <a:avLst/>
+                                    </a:prstGeom>
+                                    <a:noFill/>
+                                </wps:spPr>
+                                <wps:txbx>
+                                    <w:txbxContent>
+                                        <w:p>
+                                            <w:pPr><w:jc w:val="center"/></w:pPr>
+                                            <w:r>
+                                                <w:rPr>
+                                                    <w:b/>
+                                                    <w:sz w:val="72"/>
+                                                    <w:color w:val="FFC000"/>
+                                                    <w:rFonts w:ascii="Impact" w:hAnsi="Impact"/>
+                                                </w:rPr>
+                                                <w:t>Fade Effect</w:t>
+                                            </w:r>
+                                        </w:p>
+                                    </w:txbxContent>
+                                </wps:txbx>
+                                <wps:bodyPr rot="0" spcFirstLastPara="0" vertOverflow="overflow" horzOverflow="overflow" vert="horz" wrap="square" lIns="91440" tIns="45720" rIns="91440" bIns="45720" numCol="1" spcCol="0" rtlCol="0" fromWordArt="1" anchor="ctr" anchorCtr="0" forceAA="0" compatLnSpc="1">
+                                    <a:prstTxWarp prst="textFadeRight">
+                                        <a:avLst/>
+                                    </a:prstTxWarp>
+                                    <a:noAutofit/>
+                                </wps:bodyPr>
+                            </wps:wsp>
+                        </a:graphicData>
+                    </a:graphic>
+                </wp:inline>
+            </w:drawing>
+        </w:r>
+    </w:p>
+
+    <w:p>
+        <w:pPr><w:jc w:val="center"/><w:spacing w:after="200"/></w:pPr>
+        <w:r>
+            <w:drawing>
+                <wp:inline distT="0" distB="0" distL="114300" distR="114300">
+                    <wp:extent cx="5486400" cy="1371600"/>
+                    <wp:effectExtent l="0" t="0" r="0" b="0"/>
+                    <wp:docPr id="107" name="WordArt 8"/>
+                    <wp:cNvGraphicFramePr/>
+                    <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                        <a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">
+                            <wps:wsp>
+                                <wps:cNvSpPr txBox="1"/>
+                                <wps:spPr>
+                                    <a:xfrm>
+                                        <a:off x="0" y="0"/>
+                                        <a:ext cx="5486400" cy="1371600"/>
+                                    </a:xfrm>
+                                    <a:prstGeom prst="rect">
+                                        <a:avLst/>
+                                    </a:prstGeom>
+                                    <a:noFill/>
+                                </wps:spPr>
+                                <wps:txbx>
+                                    <w:txbxContent>
+                                        <w:p>
+                                            <w:pPr><w:jc w:val="center"/></w:pPr>
+                                            <w:r>
+                                                <w:rPr>
+                                                    <w:b/>
+                                                    <w:sz w:val="72"/>
+                                                    <w:color w:val="00B050"/>
+                                                    <w:rFonts w:ascii="Impact" w:hAnsi="Impact"/>
+                                                </w:rPr>
+                                                <w:t>Slanted Up</w:t>
+                                            </w:r>
+                                        </w:p>
+                                    </w:txbxContent>
+                                </wps:txbx>
+                                <wps:bodyPr rot="0" spcFirstLastPara="0" vertOverflow="overflow" horzOverflow="overflow" vert="horz" wrap="square" lIns="91440" tIns="45720" rIns="91440" bIns="45720" numCol="1" spcCol="0" rtlCol="0" fromWordArt="1" anchor="ctr" anchorCtr="0" forceAA="0" compatLnSpc="1">
+                                    <a:prstTxWarp prst="textSlantUp">
+                                        <a:avLst/>
+                                    </a:prstTxWarp>
+                                    <a:noAutofit/>
+                                </wps:bodyPr>
+                            </wps:wsp>
+                        </a:graphicData>
+                    </a:graphic>
+                </wp:inline>
+            </w:drawing>
+        </w:r>
+    </w:p>
+
+    <w:p>
+        <w:pPr><w:jc w:val="center"/><w:spacing w:after="200"/></w:pPr>
+        <w:r>
+            <w:drawing>
+                <wp:inline distT="0" distB="0" distL="114300" distR="114300">
+                    <wp:extent cx="5486400" cy="1371600"/>
+                    <wp:effectExtent l="0" t="0" r="0" b="0"/>
+                    <wp:docPr id="108" name="WordArt 9"/>
+                    <wp:cNvGraphicFramePr/>
+                    <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                        <a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">
+                            <wps:wsp>
+                                <wps:cNvSpPr txBox="1"/>
+                                <wps:spPr>
+                                    <a:xfrm>
+                                        <a:off x="0" y="0"/>
+                                        <a:ext cx="5486400" cy="1371600"/>
+                                    </a:xfrm>
+                                    <a:prstGeom prst="rect">
+                                        <a:avLst/>
+                                    </a:prstGeom>
+                                    <a:noFill/>
+                                </wps:spPr>
+                                <wps:txbx>
+                                    <w:txbxContent>
+                                        <w:p>
+                                            <w:pPr><w:jc w:val="center"/></w:pPr>
+                                            <w:r>
+                                                <w:rPr>
+                                                    <w:b/>
+                                                    <w:sz w:val="72"/>
+                                                    <w:color w:val="5B9BD5"/>
+                                                    <w:rFonts w:ascii="Impact" w:hAnsi="Impact"/>
+                                                </w:rPr>
+                                                <w:t>Slanted Down</w:t>
+                                            </w:r>
+                                        </w:p>
+                                    </w:txbxContent>
+                                </wps:txbx>
+                                <wps:bodyPr rot="0" spcFirstLastPara="0" vertOverflow="overflow" horzOverflow="overflow" vert="horz" wrap="square" lIns="91440" tIns="45720" rIns="91440" bIns="45720" numCol="1" spcCol="0" rtlCol="0" fromWordArt="1" anchor="ctr" anchorCtr="0" forceAA="0" compatLnSpc="1">
+                                    <a:prstTxWarp prst="textSlantDown">
+                                        <a:avLst/>
+                                    </a:prstTxWarp>
+                                    <a:noAutofit/>
+                                </wps:bodyPr>
+                            </wps:wsp>
+                        </a:graphicData>
+                    </a:graphic>
+                </wp:inline>
+            </w:drawing>
+        </w:r>
+    </w:p>
+
+    <w:p>
+        <w:pPr><w:jc w:val="center"/><w:spacing w:after="200"/></w:pPr>
+        <w:r>
+            <w:drawing>
+                <wp:inline distT="0" distB="0" distL="114300" distR="114300">
+                    <wp:extent cx="4572000" cy="1828800"/>
+                    <wp:effectExtent l="0" t="0" r="0" b="0"/>
+                    <wp:docPr id="109" name="WordArt 10"/>
+                    <wp:cNvGraphicFramePr/>
+                    <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                        <a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">
+                            <wps:wsp>
+                                <wps:cNvSpPr txBox="1"/>
+                                <wps:spPr>
+                                    <a:xfrm>
+                                        <a:off x="0" y="0"/>
+                                        <a:ext cx="4572000" cy="1828800"/>
+                                    </a:xfrm>
+                                    <a:prstGeom prst="rect">
+                                        <a:avLst/>
+                                    </a:prstGeom>
+                                    <a:noFill/>
+                                </wps:spPr>
+                                <wps:txbx>
+                                    <w:txbxContent>
+                                        <w:p>
+                                            <w:pPr><w:jc w:val="center"/></w:pPr>
+                                            <w:r>
+                                                <w:rPr>
+                                                    <w:b/>
+                                                    <w:sz w:val="72"/>
+                                                    <w:color w:val="C00000"/>
+                                                    <w:rFonts w:ascii="Impact" w:hAnsi="Impact"/>
+                                                </w:rPr>
+                                                <w:t>Can Shape</w:t>
+                                            </w:r>
+                                        </w:p>
+                                    </w:txbxContent>
+                                </wps:txbx>
+                                <wps:bodyPr rot="0" spcFirstLastPara="0" vertOverflow="overflow" horzOverflow="overflow" vert="horz" wrap="square" lIns="91440" tIns="45720" rIns="91440" bIns="45720" numCol="1" spcCol="0" rtlCol="0" fromWordArt="1" anchor="ctr" anchorCtr="0" forceAA="0" compatLnSpc="1">
+                                    <a:prstTxWarp prst="textCanUp">
+                                        <a:avLst/>
+                                    </a:prstTxWarp>
+                                    <a:noAutofit/>
+                                </wps:bodyPr>
+                            </wps:wsp>
+                        </a:graphicData>
+                    </a:graphic>
+                </wp:inline>
+            </w:drawing>
+        </w:r>
+    </w:p>
+
+    <w:p>
+        <w:pPr><w:jc w:val="center"/><w:spacing w:after="200"/></w:pPr>
+        <w:r>
+            <w:drawing>
+                <wp:inline distT="0" distB="0" distL="114300" distR="114300">
+                    <wp:extent cx="5486400" cy="1828800"/>
+                    <wp:effectExtent l="0" t="0" r="0" b="0"/>
+                    <wp:docPr id="110" name="WordArt 11"/>
+                    <wp:cNvGraphicFramePr/>
+                    <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                        <a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">
+                            <wps:wsp>
+                                <wps:cNvSpPr txBox="1"/>
+                                <wps:spPr>
+                                    <a:xfrm>
+                                        <a:off x="0" y="0"/>
+                                        <a:ext cx="5486400" cy="1828800"/>
+                                    </a:xfrm>
+                                    <a:prstGeom prst="rect">
+                                        <a:avLst/>
+                                    </a:prstGeom>
+                                    <a:noFill/>
+                                </wps:spPr>
+                                <wps:txbx>
+                                    <w:txbxContent>
+                                        <w:p>
+                                            <w:pPr><w:jc w:val="center"/></w:pPr>
+                                            <w:r>
+                                                <w:rPr>
+                                                    <w:b/>
+                                                    <w:sz w:val="72"/>
+                                                    <w:color w:val="9933FF"/>
+                                                    <w:rFonts w:ascii="Impact" w:hAnsi="Impact"/>
+                                                </w:rPr>
+                                                <w:t>Inflated</w:t>
+                                            </w:r>
+                                        </w:p>
+                                    </w:txbxContent>
+                                </wps:txbx>
+                                <wps:bodyPr rot="0" spcFirstLastPara="0" vertOverflow="overflow" horzOverflow="overflow" vert="horz" wrap="square" lIns="91440" tIns="45720" rIns="91440" bIns="45720" numCol="1" spcCol="0" rtlCol="0" fromWordArt="1" anchor="ctr" anchorCtr="0" forceAA="0" compatLnSpc="1">
+                                    <a:prstTxWarp prst="textInflate">
+                                        <a:avLst/>
+                                    </a:prstTxWarp>
+                                    <a:noAutofit/>
+                                </wps:bodyPr>
+                            </wps:wsp>
+                        </a:graphicData>
+                    </a:graphic>
+                </wp:inline>
+            </w:drawing>
+        </w:r>
+    </w:p>
+
+    <w:p>
+        <w:pPr><w:jc w:val="center"/><w:spacing w:after="200"/></w:pPr>
+        <w:r>
+            <w:drawing>
+                <wp:inline distT="0" distB="0" distL="114300" distR="114300">
+                    <wp:extent cx="5486400" cy="1828800"/>
+                    <wp:effectExtent l="0" t="0" r="0" b="0"/>
+                    <wp:docPr id="111" name="WordArt 12"/>
+                    <wp:cNvGraphicFramePr/>
+                    <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                        <a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">
+                            <wps:wsp>
+                                <wps:cNvSpPr txBox="1"/>
+                                <wps:spPr>
+                                    <a:xfrm>
+                                        <a:off x="0" y="0"/>
+                                        <a:ext cx="5486400" cy="1828800"/>
+                                    </a:xfrm>
+                                    <a:prstGeom prst="rect">
+                                        <a:avLst/>
+                                    </a:prstGeom>
+                                    <a:noFill/>
+                                </wps:spPr>
+                                <wps:txbx>
+                                    <w:txbxContent>
+                                        <w:p>
+                                            <w:pPr><w:jc w:val="center"/></w:pPr>
+                                            <w:r>
+                                                <w:rPr>
+                                                    <w:b/>
+                                                    <w:sz w:val="72"/>
+                                                    <w:color w:val="FF6699"/>
+                                                    <w:rFonts w:ascii="Impact" w:hAnsi="Impact"/>
+                                                </w:rPr>
+                                                <w:t>Deflated</w:t>
+                                            </w:r>
+                                        </w:p>
+                                    </w:txbxContent>
+                                </wps:txbx>
+                                <wps:bodyPr rot="0" spcFirstLastPara="0" vertOverflow="overflow" horzOverflow="overflow" vert="horz" wrap="square" lIns="91440" tIns="45720" rIns="91440" bIns="45720" numCol="1" spcCol="0" rtlCol="0" fromWordArt="1" anchor="ctr" anchorCtr="0" forceAA="0" compatLnSpc="1">
+                                    <a:prstTxWarp prst="textDeflate">
+                                        <a:avLst/>
+                                    </a:prstTxWarp>
+                                    <a:noAutofit/>
+                                </wps:bodyPr>
+                            </wps:wsp>
+                        </a:graphicData>
+                    </a:graphic>
+                </wp:inline>
+            </w:drawing>
+        </w:r>
+    </w:p>
+            <w:p><w:r><w:br w:type="page"/></w:r></w:p>
+        <w:p><w:pPr><w:spacing w:before="400" w:after="300"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:bCs/><w:color w:val="C00000"/><w:sz w:val="36"/><w:szCs w:val="36"/></w:rPr><w:t xml:space="preserve">Section 1: Text Effects</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="FF6600"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">BOLD IMPACT TEXT</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Georgia" w:cs="Georgia" w:eastAsia="Georgia" w:hAnsi="Georgia"/><w:i/><w:iCs/><w:color w:val="663399"/><w:sz w:val="56"/><w:szCs w:val="56"/></w:rPr><w:t xml:space="preserve">Elegant Script Style</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="FF0000"/><w:sz w:val="64"/><w:szCs w:val="64"/></w:rPr><w:t xml:space="preserve">R</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="FF7F00"/><w:sz w:val="64"/><w:szCs w:val="64"/></w:rPr><w:t xml:space="preserve">A</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="FFFF00"/><w:sz w:val="64"/><w:szCs w:val="64"/></w:rPr><w:t xml:space="preserve">I</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="00FF00"/><w:sz w:val="64"/><w:szCs w:val="64"/></w:rPr><w:t xml:space="preserve">N</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="0000FF"/><w:sz w:val="64"/><w:szCs w:val="64"/></w:rPr><w:t xml:space="preserve">B</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="4B0082"/><w:sz w:val="64"/><w:szCs w:val="64"/></w:rPr><w:t xml:space="preserve">O</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="9400D3"/><w:sz w:val="64"/><w:szCs w:val="64"/></w:rPr><w:t xml:space="preserve">W</w:t></w:r></w:p><w:p><w:r><w:br w:type="page"/></w:r></w:p><w:p><w:pPr><w:spacing w:before="400" w:after="300"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:bCs/><w:color w:val="C00000"/><w:sz w:val="36"/><w:szCs w:val="36"/></w:rPr><w:t xml:space="preserve">Section 2: Size Variations</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="100"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="333333"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t xml:space="preserve">TINY</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="100"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="333333"/><w:sz w:val="32"/><w:szCs w:val="32"/></w:rPr><w:t xml:space="preserve">SMALL</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="100"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="333333"/><w:sz w:val="48"/><w:szCs w:val="48"/></w:rPr><w:t xml:space="preserve">MEDIUM</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="100"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="333333"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">LARGE</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="100"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="333333"/><w:sz w:val="96"/><w:szCs w:val="96"/></w:rPr><w:t xml:space="preserve">HUGE</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="333333"/><w:sz w:val="144"/><w:szCs w:val="144"/></w:rPr><w:t xml:space="preserve">GIANT</w:t></w:r></w:p><w:p><w:r><w:br w:type="page"/></w:r></w:p><w:p><w:pPr><w:spacing w:before="400" w:after="300"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:bCs/><w:color w:val="C00000"/><w:sz w:val="36"/><w:szCs w:val="36"/></w:rPr><w:t xml:space="preserve">Section 3: Font Variety</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="0066CC"/><w:sz w:val="56"/><w:szCs w:val="56"/></w:rPr><w:t xml:space="preserve">Arial Black Style</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/><w:b/><w:bCs/><w:color w:val="006633"/><w:sz w:val="56"/><w:szCs w:val="56"/></w:rPr><w:t xml:space="preserve">Times New Roman</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Georgia" w:cs="Georgia" w:eastAsia="Georgia" w:hAnsi="Georgia"/><w:b/><w:bCs/><w:i/><w:iCs/><w:color w:val="990066"/><w:sz w:val="56"/><w:szCs w:val="56"/></w:rPr><w:t xml:space="preserve">Georgia Elegance</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Verdana" w:cs="Verdana" w:eastAsia="Verdana" w:hAnsi="Verdana"/><w:b/><w:bCs/><w:color w:val="336699"/><w:sz w:val="56"/><w:szCs w:val="56"/></w:rPr><w:t xml:space="preserve">Verdana Clean</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Trebuchet MS" w:cs="Trebuchet MS" w:eastAsia="Trebuchet MS" w:hAnsi="Trebuchet MS"/><w:b/><w:bCs/><w:color w:val="CC3300"/><w:sz w:val="56"/><w:szCs w:val="56"/></w:rPr><w:t xml:space="preserve">Trebuchet MS</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:cs="Courier New" w:eastAsia="Courier New" w:hAnsi="Courier New"/><w:b/><w:bCs/><w:color w:val="666666"/><w:sz w:val="48"/><w:szCs w:val="48"/></w:rPr><w:t xml:space="preserve">Courier New Mono</w:t></w:r></w:p><w:p><w:r><w:br w:type="page"/></w:r></w:p><w:p><w:pPr><w:spacing w:before="400" w:after="300"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:bCs/><w:color w:val="C00000"/><w:sz w:val="36"/><w:szCs w:val="36"/></w:rPr><w:t xml:space="preserve">Section 4: Color Themes</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="0077B6"/><w:sz w:val="64"/><w:szCs w:val="64"/></w:rPr><w:t xml:space="preserve">Ocean Blue</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="228B22"/><w:sz w:val="64"/><w:szCs w:val="64"/></w:rPr><w:t xml:space="preserve">Forest Green</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="FF4500"/><w:sz w:val="64"/><w:szCs w:val="64"/></w:rPr><w:t xml:space="preserve">Sunset Orange</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="7B68EE"/><w:sz w:val="64"/><w:szCs w:val="64"/></w:rPr><w:t xml:space="preserve">Royal Purple</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="DC143C"/><w:sz w:val="64"/><w:szCs w:val="64"/></w:rPr><w:t xml:space="preserve">Cherry Red</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="FFD700"/><w:sz w:val="64"/><w:szCs w:val="64"/></w:rPr><w:t xml:space="preserve">Golden Yellow</w:t></w:r></w:p><w:p><w:r><w:br w:type="page"/></w:r></w:p><w:p><w:pPr><w:spacing w:before="400" w:after="300"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:bCs/><w:color w:val="C00000"/><w:sz w:val="36"/><w:szCs w:val="36"/></w:rPr><w:t xml:space="preserve">Section 5: Text Decorations</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="333333"/><w:sz w:val="48"/><w:szCs w:val="48"/><w:u w:val="single" w:color="FF0000"/></w:rPr><w:t xml:space="preserve">UNDERLINED TEXT</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="333333"/><w:sz w:val="48"/><w:szCs w:val="48"/><w:u w:val="double" w:color="0000FF"/></w:rPr><w:t xml:space="preserve">DOUBLE UNDERLINE</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:strike/><w:color w:val="666666"/><w:sz w:val="48"/><w:szCs w:val="48"/></w:rPr><w:t xml:space="preserve">STRIKETHROUGH</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Georgia" w:cs="Georgia" w:eastAsia="Georgia" w:hAnsi="Georgia"/><w:b/><w:bCs/><w:smallCaps/><w:color w:val="444444"/><w:sz w:val="48"/><w:szCs w:val="48"/></w:rPr><w:t xml:space="preserve">SMALL CAPS STYLE</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:caps/><w:color w:val="444444"/><w:sz w:val="48"/><w:szCs w:val="48"/></w:rPr><w:t xml:space="preserve">ALL CAPS STYLE</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:sz w:val="40"/><w:szCs w:val="40"/></w:rPr><w:t xml:space="preserve">Superscript</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:sz w:val="40"/><w:szCs w:val="40"/><w:vertAlign w:val="superscript"/></w:rPr><w:t xml:space="preserve">2</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:sz w:val="40"/><w:szCs w:val="40"/></w:rPr><w:t xml:space="preserve"> and Subscript</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:sz w:val="40"/><w:szCs w:val="40"/><w:vertAlign w:val="subscript"/></w:rPr><w:t xml:space="preserve">2</w:t></w:r></w:p><w:p><w:r><w:br w:type="page"/></w:r></w:p><w:p><w:pPr><w:spacing w:before="400" w:after="300"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:bCs/><w:color w:val="C00000"/><w:sz w:val="36"/><w:szCs w:val="36"/></w:rPr><w:t xml:space="preserve">Section 6: Highlighted Text</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:sz w:val="48"/><w:szCs w:val="48"/><w:highlight w:val="yellow"/><w:highlightCs w:val="yellow"/></w:rPr><w:t xml:space="preserve">Yellow Highlight</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:sz w:val="48"/><w:szCs w:val="48"/><w:highlight w:val="cyan"/><w:highlightCs w:val="cyan"/></w:rPr><w:t xml:space="preserve">Cyan Highlight</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:sz w:val="48"/><w:szCs w:val="48"/><w:highlight w:val="green"/><w:highlightCs w:val="green"/></w:rPr><w:t xml:space="preserve">Green Highlight</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:sz w:val="48"/><w:szCs w:val="48"/><w:highlight w:val="magenta"/><w:highlightCs w:val="magenta"/></w:rPr><w:t xml:space="preserve">Magenta Highlight</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:sz w:val="48"/><w:szCs w:val="48"/><w:highlight w:val="red"/><w:highlightCs w:val="red"/></w:rPr><w:t xml:space="preserve">Red Highlight</w:t></w:r></w:p><w:p><w:r><w:br w:type="page"/></w:r></w:p><w:p><w:pPr><w:spacing w:before="400" w:after="300"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:bCs/><w:color w:val="C00000"/><w:sz w:val="36"/><w:szCs w:val="36"/></w:rPr><w:t xml:space="preserve">Section 7: Combined Effects</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Georgia" w:cs="Georgia" w:eastAsia="Georgia" w:hAnsi="Georgia"/><w:b/><w:bCs/><w:i/><w:iCs/><w:color w:val="8B0000"/><w:sz w:val="56"/><w:szCs w:val="56"/></w:rPr><w:t xml:space="preserve">Bold + Italic + Color</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/><w:b/><w:bCs/><w:color w:val="000080"/><w:sz w:val="48"/><w:szCs w:val="48"/><w:highlight w:val="yellow"/><w:highlightCs w:val="yellow"/><w:u w:val="single"/></w:rPr><w:t xml:space="preserve">Underline + Highlight</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="FF0000"/><w:sz w:val="56"/><w:szCs w:val="56"/></w:rPr><w:t xml:space="preserve">Multi</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="000000"/><w:sz w:val="56"/><w:szCs w:val="56"/></w:rPr><w:t xml:space="preserve">-</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="00FF00"/><w:sz w:val="56"/><w:szCs w:val="56"/></w:rPr><w:t xml:space="preserve">Color</w:t></w:r><w:r><w:rPr><w:b/><w:bCs/><w:sz w:val="56"/><w:szCs w:val="56"/></w:rPr><w:t xml:space="preserve"> </w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="0000FF"/><w:sz w:val="56"/><w:szCs w:val="56"/></w:rPr><w:t xml:space="preserve">Word</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="4285F4"/><w:sz w:val="80"/><w:szCs w:val="80"/></w:rPr><w:t xml:space="preserve">G</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="EA4335"/><w:sz w:val="80"/><w:szCs w:val="80"/></w:rPr><w:t xml:space="preserve">o</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="FBBC05"/><w:sz w:val="80"/><w:szCs w:val="80"/></w:rPr><w:t xml:space="preserve">o</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="4285F4"/><w:sz w:val="80"/><w:szCs w:val="80"/></w:rPr><w:t xml:space="preserve">g</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="34A853"/><w:sz w:val="80"/><w:szCs w:val="80"/></w:rPr><w:t xml:space="preserve">l</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="EA4335"/><w:sz w:val="80"/><w:szCs w:val="80"/></w:rPr><w:t xml:space="preserve">e</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="666666"/><w:sz w:val="80"/><w:szCs w:val="80"/></w:rPr><w:t xml:space="preserve"> Style</w:t></w:r></w:p><w:p><w:r><w:br w:type="page"/></w:r></w:p><w:p><w:pPr><w:spacing w:before="400" w:after="300"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:bCs/><w:color w:val="C00000"/><w:sz w:val="36"/><w:szCs w:val="36"/></w:rPr><w:t xml:space="preserve">Section 8: Gradient-Like Effects</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="001F3F"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">B</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="003366"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">L</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="004C99"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">U</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="0066CC"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">E</w:t></w:r><w:r><w:rPr><w:b/><w:bCs/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve"> </w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="0080FF"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">G</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="3399FF"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">R</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="66B2FF"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">A</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="99CCFF"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">D</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="FF0000"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">F</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="FF3300"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">I</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="FF6600"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">R</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="FF9900"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">E</w:t></w:r><w:r><w:rPr><w:b/><w:bCs/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve"> </w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="FFCC00"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">T</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="FFFF00"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">E</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="FFFF66"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">X</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="FFFFCC"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">T</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="4B0082"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">P</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="6B238E"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">U</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="8B008B"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">R</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="9932CC"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">P</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="BA55D3"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">L</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="DA70D6"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">E</w:t></w:r></w:p><w:p><w:r><w:br w:type="page"/></w:r></w:p><w:p><w:pPr><w:spacing w:before="400" w:after="300"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:bCs/><w:color w:val="C00000"/><w:sz w:val="36"/><w:szCs w:val="36"/></w:rPr><w:t xml:space="preserve">Section 9: Wave Effect (Size)</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="0066CC"/><w:sz w:val="48"/><w:szCs w:val="48"/></w:rPr><w:t xml:space="preserve">W</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="0066CC"/><w:sz w:val="56"/><w:szCs w:val="56"/></w:rPr><w:t xml:space="preserve">A</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="0066CC"/><w:sz w:val="64"/><w:szCs w:val="64"/></w:rPr><w:t xml:space="preserve">V</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="0066CC"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">Y</w:t></w:r><w:r><w:rPr><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve"> </w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="0066CC"/><w:sz w:val="64"/><w:szCs w:val="64"/></w:rPr><w:t xml:space="preserve">T</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="0066CC"/><w:sz w:val="56"/><w:szCs w:val="56"/></w:rPr><w:t xml:space="preserve">E</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="0066CC"/><w:sz w:val="48"/><w:szCs w:val="48"/></w:rPr><w:t xml:space="preserve">X</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="0066CC"/><w:sz w:val="56"/><w:szCs w:val="56"/></w:rPr><w:t xml:space="preserve">T</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="0066CC"/><w:sz w:val="64"/><w:szCs w:val="64"/></w:rPr><w:t xml:space="preserve">!</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="FF6600"/><w:sz w:val="36"/><w:szCs w:val="36"/></w:rPr><w:t xml:space="preserve">B</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="FF6600"/><w:sz w:val="48"/><w:szCs w:val="48"/></w:rPr><w:t xml:space="preserve">O</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="FF6600"/><w:sz w:val="60"/><w:szCs w:val="60"/></w:rPr><w:t xml:space="preserve">U</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="FF6600"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">N</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="FF6600"/><w:sz w:val="84"/><w:szCs w:val="84"/></w:rPr><w:t xml:space="preserve">C</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="FF6600"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">Y</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial Black" w:cs="Arial Black" w:eastAsia="Arial Black" w:hAnsi="Arial Black"/><w:b/><w:bCs/><w:color w:val="FF6600"/><w:sz w:val="60"/><w:szCs w:val="60"/></w:rPr><w:t xml:space="preserve">!</w:t></w:r></w:p><w:p><w:r><w:br w:type="page"/></w:r></w:p><w:p><w:pPr><w:spacing w:before="400" w:after="300"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:bCs/><w:color w:val="C00000"/><w:sz w:val="36"/><w:szCs w:val="36"/></w:rPr><w:t xml:space="preserve">Section 10: Emboss Simulation</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="50"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="CCCCCC"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">EMBOSSED</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:emboss/><w:color w:val="333333"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">EMBOSSED</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:imprint/><w:color w:val="666666"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">IMPRINTED</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="000000"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">OUTLINED</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="333333"/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t xml:space="preserve">SHADOWED</w:t></w:r></w:p><w:p><w:r><w:br w:type="page"/></w:r></w:p><w:p><w:pPr><w:spacing w:before="600" w:after="300"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Impact" w:cs="Impact" w:eastAsia="Impact" w:hAnsi="Impact"/><w:b/><w:bCs/><w:color w:val="1F4E79"/><w:sz w:val="48"/><w:szCs w:val="48"/></w:rPr><w:t xml:space="preserve">End of WordArt Test Document</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:i/><w:iCs/><w:color w:val="666666"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><w:t xml:space="preserve">This document contains various text effects for testing docx renderers</w:t></w:r></w:p><w:p><w:pPr><w:spacing w:after="100"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:bCs/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Sections covered:</w:t></w:r></w:p><w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:color w:val="444444"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Text Effects • Size Variations • Font Variety • Color Themes</w:t></w:r></w:p><w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:color w:val="444444"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">Text Decorations • Highlights • Combined Effects • Gradients • Waves • Emboss</w:t></w:r></w:p><w:sectPr><w:pgSz w:w="11906" w:h="16838" w:orient="portrait"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/><w:pgNumType/><w:docGrid w:linePitch="360"/></w:sectPr></w:body></w:document>

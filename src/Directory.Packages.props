@@ -1,0 +1,23 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="DocumentFormat.OpenXml" Version="3.3.0" />
+    <PackageVersion Include="Magick.NET-Q16-AnyCPU" Version="14.10.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageVersion Include="Microsoft.Office.Interop.Word" Version="15.0.4797.1004" />
+    <PackageVersion Include="NUnit" Version="4.4.0" />
+    <PackageVersion Include="NUnit3TestAdapter" Version="6.0.1" />
+    <PackageVersion Include="ProjectDefaults" Version="1.0.170" />
+    <PackageVersion Include="ProjectFiles" Version="0.4.0" />
+    <PackageVersion Include="SkiaSharp" Version="3.119.1" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.1" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.macOS" Version="3.119.1" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.Win32" Version="3.119.1" />
+    <PackageVersion Include="Svg.Skia" Version="3.2.1" />
+    <PackageVersion Include="TUnit" Version="1.6.28" />
+    <PackageVersion Include="Verify.TUnit" Version="31.9.3" />
+  </ItemGroup>
+</Project>
