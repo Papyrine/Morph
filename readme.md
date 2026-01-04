@@ -14,10 +14,10 @@ A .NET library that converts Microsoft Word DOCX documents into PNG images.
 
 ## Dependencies
 
-- **DocumentFormat.OpenXml** - DOCX file parsing
-- **SkiaSharp** - Cross-platform graphics rendering
-- **Svg.Skia** - SVG rendering support
-- **AngleSharp** - HTML content parsing (for AltChunk support)
+- **[DocumentFormat.OpenXml](https://www.nuget.org/packages/DocumentFormat.OpenXml)** - DOCX file parsing
+- **[SkiaSharp](https://www.nuget.org/packages/SkiaSharp)** - Cross-platform graphics rendering
+- **[Svg.Skia](https://www.nuget.org/packages/Svg.Skia)** - SVG rendering support
+- **[AngleSharp](https://www.nuget.org/packages/AngleSharp)** - HTML content parsing (for AltChunk support)
 
 
 ## NuGet package
