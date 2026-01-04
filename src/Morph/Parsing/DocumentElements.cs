@@ -159,7 +159,7 @@ public sealed class CompatibilitySettings
 
     /// <summary>
     /// Whether to use legacy line spacing in table cells.
-    /// For compatibility mode <= 14, table cells may use different line spacing rules.
+    /// For compatibility mode 14 or lower, table cells may use different line spacing rules.
     /// </summary>
     public bool UseLegacyTableLineSpacing => CompatibilityMode <= 14;
 

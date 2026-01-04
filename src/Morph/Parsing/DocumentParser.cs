@@ -1985,6 +1985,29 @@ public sealed class DocumentParser
             {
                 case SdtRun sdtRun:
                     // Content control (structured document tag)
+                    // Check if this is a specific control type that should be rendered as a ContentControlElement
+                    if (IsContentControlType(sdtRun))
+                    {
+                        // Emit current paragraph content before the content control
+                        if (runs.Count > 0)
+                        {
+                            result.Add(new ParagraphElement
+                            {
+                                Runs = new List<Run>(runs),
+                                Properties = props
+                            });
+                            runs.Clear();
+                        }
+
+                        var contentControl = ParseSdtRun(sdtRun, mainPart, paragraphStyleId);
+                        if (contentControl != null)
+                        {
+                            result.Add(contentControl);
+                        }
+
+                        break;
+                    }
+
                     // SdtRun is an inline (run-level) content control - extract its runs inline
                     var sdtRunContent = sdtRun.SdtContentRun;
                     if (sdtRunContent != null)
@@ -4493,6 +4516,33 @@ public sealed class DocumentParser
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Checks if an SdtRun is a specific content control type that should be rendered as a ContentControlElement.
+    /// Returns true for checkboxes, combo boxes, dropdowns, date pickers, and plain text controls.
+    /// Returns false for generic rich text containers that should just have their runs extracted.
+    /// </summary>
+    static bool IsContentControlType(SdtRun sdtRun)
+    {
+        var props = sdtRun.SdtProperties;
+        if (props == null)
+        {
+            return false;
+        }
+
+        // Check for Office 2010 checkbox (w14:checkbox)
+        if (props.Descendants().Any(e => e.LocalName == "checkbox"))
+        {
+            return true;
+        }
+
+        // Check for combo box, dropdown, date, text, or picture controls
+        return props.GetFirstChild<SdtContentComboBox>() != null ||
+               props.GetFirstChild<SdtContentDropDownList>() != null ||
+               props.GetFirstChild<SdtContentDate>() != null ||
+               props.GetFirstChild<SdtContentText>() != null ||
+               props.GetFirstChild<SdtContentPicture>() != null;
     }
 
     /// <summary>
