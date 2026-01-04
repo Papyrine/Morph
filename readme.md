@@ -1,6 +1,6 @@
 # <img src='/src/icon.png' height='30px'> Morph
 
-[![Build status](https://img.shields.io/appveyor/build/morph)](https://ci.appveyor.com/project/SimonCropp/morph)
+[![Build status](https://img.shields.io/appveyor/build/SimonCropp/morph)](https://ci.appveyor.com/project/SimonCropp/morph)
 [![NuGet Status](https://img.shields.io/nuget/v/Morph.svg?label=PackageShader)](https://www.nuget.org/packages/Morph/)
 
 A .NET library that converts Microsoft Word DOCX documents into PNG images.
