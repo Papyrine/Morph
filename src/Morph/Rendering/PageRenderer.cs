@@ -77,6 +77,7 @@ sealed class PageRenderer(RenderContext context) :
         return pages;
     }
 
+    // ReSharper disable once UnusedParameter.Local
     static float MeasureHeaderFooterHeight(HeaderFooterContent? content) =>
         // For now, return 0 to not adjust body content area based on header/footer.
         // Headers and footers render in their own areas (HeaderDistance/FooterDistance)

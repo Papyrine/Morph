@@ -39,9 +39,17 @@ internal sealed class HtmlParser
                 {
                     elements.Add(new ParagraphElement
                     {
-                        Runs = [new() { Text = text, Properties = new() }]
+                        Runs =
+                        [
+                            new()
+                            {
+                                Text = text,
+                                Properties = new()
+                            }
+                        ]
                     });
                 }
+
                 break;
 
             case IElement element:
@@ -85,13 +93,24 @@ internal sealed class HtmlParser
                 {
                     elements.Add(table);
                 }
+
                 break;
 
             case "br":
                 elements.Add(new ParagraphElement
                 {
-                    Runs = [new() { Text = "", Properties = new() }],
-                    Properties = new() { SpacingAfterPoints = 0 }
+                    Runs =
+                    [
+                        new()
+                        {
+                            Text = "",
+                            Properties = new()
+                        }
+                    ],
+                    Properties = new()
+                    {
+                        SpacingAfterPoints = 0
+                    }
                 });
                 break;
 
@@ -115,22 +134,37 @@ internal sealed class HtmlParser
                     var defaultPara = CreateParagraph(element, 11, false);
                     elements.Add(defaultPara);
                 }
+
                 break;
         }
     }
 
     static ParagraphElement CreateParagraph(IElement element, double fontSize, bool bold, InlineStyle? style = null)
     {
-        var runs = ParseInlineElements(element, new RunProperties
-        {
-            FontSizePoints = fontSize,
-            Bold = bold,
-            ColorHex = style?.Color
-        });
+        var runs = ParseInlineElements(
+            element,
+            new()
+            {
+                FontSizePoints = fontSize,
+                Bold = bold,
+                ColorHex = style?.Color
+            });
 
         return new()
         {
-            Runs = runs.Count > 0 ? runs : [new() { Text = "", Properties = new() { FontSizePoints = fontSize } }],
+            Runs = runs.Count > 0
+                ? runs
+                :
+                [
+                    new()
+                    {
+                        Text = "",
+                        Properties = new()
+                        {
+                            FontSizePoints = fontSize
+                        }
+                    }
+                ],
             Properties = new()
             {
                 Alignment = style?.Alignment ?? TextAlignment.Left,
@@ -156,8 +190,13 @@ internal sealed class HtmlParser
                     var text = textNode.TextContent;
                     if (!string.IsNullOrEmpty(text))
                     {
-                        runs.Add(new() { Text = text, Properties = props });
+                        runs.Add(new()
+                        {
+                            Text = text,
+                            Properties = props
+                        });
                     }
+
                     break;
 
                 case IElement element:
@@ -173,22 +212,34 @@ internal sealed class HtmlParser
         {
             case "b":
             case "strong":
-                ParseInlineNodes(element.ChildNodes, runs, props with { Bold = true });
+                ParseInlineNodes(element.ChildNodes, runs, props with
+                {
+                    Bold = true
+                });
                 break;
 
             case "i":
             case "em":
-                ParseInlineNodes(element.ChildNodes, runs, props with { Italic = true });
+                ParseInlineNodes(element.ChildNodes, runs, props with
+                {
+                    Italic = true
+                });
                 break;
 
             case "u":
-                ParseInlineNodes(element.ChildNodes, runs, props with { Underline = true });
+                ParseInlineNodes(element.ChildNodes, runs, props with
+                {
+                    Underline = true
+                });
                 break;
 
             case "s":
             case "strike":
             case "del":
-                ParseInlineNodes(element.ChildNodes, runs, props with { Strikethrough = true });
+                ParseInlineNodes(element.ChildNodes, runs, props with
+                {
+                    Strikethrough = true
+                });
                 break;
 
             case "font":
@@ -203,17 +254,28 @@ internal sealed class HtmlParser
 
             case "a":
                 // Render links as blue underlined text
-                ParseInlineNodes(element.ChildNodes, runs, props with { ColorHex = "0000FF", Underline = true });
+                ParseInlineNodes(element.ChildNodes, runs, props with
+                {
+                    ColorHex = "0000FF",
+                    Underline = true
+                });
                 break;
 
             case "br":
-                runs.Add(new() { Text = "\n", Properties = props });
+                runs.Add(new()
+                {
+                    Text = "\n",
+                    Properties = props
+                });
                 break;
 
             case "sub":
             case "sup":
                 // Render sub/sup as smaller text
-                ParseInlineNodes(element.ChildNodes, runs, props with { FontSizePoints = props.FontSizePoints * 0.7 });
+                ParseInlineNodes(element.ChildNodes, runs, props with
+                {
+                    FontSizePoints = props.FontSizePoints * 0.7
+                });
                 break;
 
             default:
@@ -230,13 +292,19 @@ internal sealed class HtmlParser
         var face = element.GetAttribute("face");
         if (!string.IsNullOrEmpty(face))
         {
-            props = props with { FontFamily = face };
+            props = props with
+            {
+                FontFamily = face
+            };
         }
 
         var color = element.GetAttribute("color");
         if (!string.IsNullOrEmpty(color))
         {
-            props = props with { ColorHex = NormalizeColor(color) };
+            props = props with
+            {
+                ColorHex = NormalizeColor(color)
+            };
         }
 
         var size = element.GetAttribute("size");
@@ -244,7 +312,10 @@ internal sealed class HtmlParser
         {
             double[] fontSizes = [8, 10, 12, 14, 18, 24, 36];
             var idx = Math.Clamp(sizeValue - 1, 0, 6);
-            props = props with { FontSizePoints = fontSizes[idx] };
+            props = props with
+            {
+                FontSizePoints = fontSizes[idx]
+            };
         }
 
         return props;
@@ -267,19 +338,28 @@ internal sealed class HtmlParser
 
         if (styles.TryGetValue("color", out var color))
         {
-            props = props with { ColorHex = NormalizeColor(color) };
+            props = props with
+            {
+                ColorHex = NormalizeColor(color)
+            };
         }
 
         if (styles.TryGetValue("font-family", out var fontFamily))
         {
-            props = props with { FontFamily = fontFamily.Trim('\'', '"') };
+            props = props with
+            {
+                FontFamily = fontFamily.Trim('\'', '"')
+            };
         }
 
         if (styles.TryGetValue("font-size", out var fontSize))
         {
             if (double.TryParse(fontSize.Replace("px", "").Replace("pt", ""), out var size))
             {
-                props = props with { FontSizePoints = size };
+                props = props with
+                {
+                    FontSizePoints = size
+                };
             }
         }
 
@@ -287,7 +367,10 @@ internal sealed class HtmlParser
         {
             if (fontWeight.Contains("bold", StringComparison.OrdinalIgnoreCase) || fontWeight == "700")
             {
-                props = props with { Bold = true };
+                props = props with
+                {
+                    Bold = true
+                };
             }
         }
 
@@ -295,7 +378,10 @@ internal sealed class HtmlParser
         {
             if (fontStyle.Contains("italic", StringComparison.OrdinalIgnoreCase))
             {
-                props = props with { Italic = true };
+                props = props with
+                {
+                    Italic = true
+                };
             }
         }
 
@@ -303,11 +389,18 @@ internal sealed class HtmlParser
         {
             if (textDecoration.Contains("underline", StringComparison.OrdinalIgnoreCase))
             {
-                props = props with { Underline = true };
+                props = props with
+                {
+                    Underline = true
+                };
             }
+
             if (textDecoration.Contains("line-through", StringComparison.OrdinalIgnoreCase))
             {
-                props = props with { Strikethrough = true };
+                props = props with
+                {
+                    Strikethrough = true
+                };
             }
         }
 
@@ -398,8 +491,19 @@ internal sealed class HtmlParser
                 var indent = 18 * (level + 1);
                 elements.Add(new ParagraphElement
                 {
-                    Runs = [new() { Text = bulletPrefix + itemText, Properties = new() }],
-                    Properties = new() { LeftIndentPoints = indent, SpacingAfterPoints = 4 }
+                    Runs =
+                    [
+                        new()
+                        {
+                            Text = bulletPrefix + itemText,
+                            Properties = new()
+                        }
+                    ],
+                    Properties = new()
+                    {
+                        LeftIndentPoints = indent,
+                        SpacingAfterPoints = 4
+                    }
                 });
             }
 
@@ -433,8 +537,19 @@ internal sealed class HtmlParser
                 var indent = 18 * (level + 1);
                 elements.Add(new ParagraphElement
                 {
-                    Runs = [new() { Text = $"{num}. {text}", Properties = new() }],
-                    Properties = new() { LeftIndentPoints = indent, SpacingAfterPoints = 4 }
+                    Runs =
+                    [
+                        new()
+                        {
+                            Text = $"{num}. {text}",
+                            Properties = new()
+                        }
+                    ],
+                    Properties = new()
+                    {
+                        LeftIndentPoints = indent,
+                        SpacingAfterPoints = 4
+                    }
                 });
                 num++;
             }
@@ -493,7 +608,17 @@ internal sealed class HtmlParser
                 {
                     cellElements.Add(new ParagraphElement
                     {
-                        Runs = [new() { Text = text, Properties = new() { Bold = isHeader } }]
+                        Runs =
+                        [
+                            new()
+                            {
+                                Text = text,
+                                Properties = new()
+                                {
+                                    Bold = isHeader
+                                }
+                            }
+                        ]
                     });
                 }
 
@@ -510,7 +635,10 @@ internal sealed class HtmlParser
 
             if (cells.Count > 0)
             {
-                rows.Add(new() { Cells = cells });
+                rows.Add(new()
+                {
+                    Cells = cells
+                });
             }
         }
 
@@ -624,6 +752,7 @@ internal sealed class HtmlParser
             {
                 return $"{hexValue[0]}{hexValue[0]}{hexValue[1]}{hexValue[1]}{hexValue[2]}{hexValue[2]}";
             }
+
             if (hexValue.Length == 6)
             {
                 return hexValue.ToUpperInvariant();
