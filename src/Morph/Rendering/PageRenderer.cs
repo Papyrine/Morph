@@ -1905,7 +1905,7 @@ sealed class PageRenderer(RenderContext context) :
         currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, borderPaint);
 
         // Draw the text value
-        var displayText = !string.IsNullOrEmpty(textField.Value) ? textField.Value : textField.DefaultText ?? "";
+        var displayText = string.IsNullOrEmpty(textField.Value) ? textField.DefaultText ?? "" : textField.Value;
         if (!string.IsNullOrEmpty(displayText))
         {
             using var typeface = SKTypeface.FromFamilyName("Aptos", SKFontStyle.Normal);
@@ -2246,7 +2246,7 @@ sealed class PageRenderer(RenderContext context) :
             }
             else
             {
-                var displayText = !string.IsNullOrEmpty(control.Content) ? control.Content : control.PlaceholderText ?? "";
+                var displayText = string.IsNullOrEmpty(control.Content) ? control.PlaceholderText ?? "" : control.Content;
                 if (!string.IsNullOrEmpty(displayText))
                 {
                     var simplePara = new ParagraphElement
@@ -2304,7 +2304,7 @@ sealed class PageRenderer(RenderContext context) :
         currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, borderPaint);
 
         // Draw the content or placeholder
-        var text = !string.IsNullOrEmpty(control.Content) ? control.Content : control.PlaceholderText ?? "";
+        var text = string.IsNullOrEmpty(control.Content) ? control.PlaceholderText ?? "" : control.Content;
         var isPlaceholder = string.IsNullOrEmpty(control.Content) && !string.IsNullOrEmpty(control.PlaceholderText);
 
         if (!string.IsNullOrEmpty(text))
@@ -2374,9 +2374,9 @@ sealed class PageRenderer(RenderContext context) :
             break;
         }
 
-        var displayText = !string.IsNullOrEmpty(control.Content)
-            ? control.Content
-            : first ?? control.PlaceholderText ?? "";
+        var displayText = string.IsNullOrEmpty(control.Content)
+            ? first ?? control.PlaceholderText ?? ""
+            : control.Content;
 
         if (!string.IsNullOrEmpty(displayText))
         {
