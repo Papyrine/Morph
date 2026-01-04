@@ -1,3 +1,5 @@
+#if DEBUG
+
 public class ScenarioTests
 {
     static ConcurrentBag<string> pageCountFailures = new ();
@@ -109,3 +111,4 @@ public class ScenarioTests
         }
     }
 }
+#endif

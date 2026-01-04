@@ -18,4 +18,10 @@
     <ProjectReference Include="..\Morph\Morph.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="sample.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

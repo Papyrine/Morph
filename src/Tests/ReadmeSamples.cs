@@ -1,9 +1,18 @@
-using System.Diagnostics.CodeAnalysis;
 // ReSharper disable UnusedVariable
 
 [SuppressMessage("Style", "IDE0059:Unnecessary assignment of a value")]
-public class ReadmeSamples
+public class Samples
 {
+    [Test]
+    public Task Simple()
+    {
+        var converter = new DocumentConverter();
+
+        var imageData = converter.ConvertToImageData("sample.docx");
+
+        return Verify(imageData.Select(_ => new Target("png", new MemoryStream(_))));
+    }
+
     public static void BasicUsage()
     {
         #region BasicUsage
