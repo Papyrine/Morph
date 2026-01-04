@@ -27,10 +27,9 @@ Morph parses OpenXML-based Word documents and renders them to images that closel
 - **Svg.Skia** - SVG rendering support
 
 
-
 ## NuGet package
 
-https://nuget.org/packages/Naiad/
+https://nuget.org/packages/Morph/
 
 
 ## Features
@@ -106,14 +105,14 @@ https://nuget.org/packages/Naiad/
 
 ### Basic Usage - Save to Files
 
-```csharp
-using WordRender;
+<!-- snippet: BasicUsage -->
+<a id='snippet-BasicUsage'></a>
+```cs
+var converter = new DocumentConverter();
 
-// Convert DOCX to PNG files
-var result = DocumentConverter.ConvertToImages(
+var result = converter.ConvertToImages(
     "document.docx",
-    "output-folder"
-);
+    "output-folder");
 
 Console.WriteLine($"Generated {result.PageCount} pages");
 foreach (var path in result.ImagePaths)
@@ -121,56 +120,67 @@ foreach (var path in result.ImagePaths)
     Console.WriteLine($"Created: {path}");
 }
 ```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L7-L21' title='Snippet source file'>snippet source</a> | <a href='#snippet-BasicUsage' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
 
 
 ### In-Memory Conversion
 
-```csharp
-using WordRender;
+<!-- snippet: InMemoryConversion -->
+<a id='snippet-InMemoryConversion'></a>
+```cs
+var converter = new DocumentConverter();
 
-// Convert DOCX to byte arrays (no files written)
-var result = DocumentConverter.ConvertToImageData("document.docx");
+var imageData = converter.ConvertToImageData("document.docx");
 
-foreach (var imageData in result.ImageData)
+foreach (var pngBytes in imageData)
 {
     // Use the PNG byte array as needed
-    // e.g., save to cloud storage, send via API, etc.
 }
 ```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L26-L37' title='Snippet source file'>snippet source</a> | <a href='#snippet-InMemoryConversion' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
 
 
 ### Stream-Based Conversion
 
-```csharp
-using WordRender;
+<!-- snippet: StreamBasedConversion -->
+<a id='snippet-StreamBasedConversion'></a>
+```cs
+var converter = new DocumentConverter();
 
 using var stream = File.OpenRead("document.docx");
 
 // From stream to files
-var result = DocumentConverter.ConvertToImages(stream, "output-folder");
+var result = converter.ConvertToImages(stream, "output-folder");
 
 // Or from stream to memory
-var memoryResult = DocumentConverter.ConvertToImageData(stream);
+var imageData = converter.ConvertToImageData(stream);
 ```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L42-L54' title='Snippet source file'>snippet source</a> | <a href='#snippet-StreamBasedConversion' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
 
 
 ### With Custom Options
 
-```csharp
-using WordRender;
+<!-- snippet: CustomOptions -->
+<a id='snippet-CustomOptions'></a>
+```cs
+var converter = new DocumentConverter();
 
 var options = new ConversionOptions
 {
-    Dpi = 300,           // Higher resolution (default: 150)
-    FontWidthScale = 1.07 // Adjust font width to match Word rendering
+    Dpi = 300,
+    FontWidthScale = 1.07
 };
 
-var result = DocumentConverter.ConvertToImages(
+var result = converter.ConvertToImages(
     "document.docx",
     "output-folder",
-    options
-);
+    options);
 ```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L59-L74' title='Snippet source file'>snippet source</a> | <a href='#snippet-CustomOptions' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
 
 
 ## Configuration Options
@@ -179,3 +189,8 @@ var result = DocumentConverter.ConvertToImages(
 |--------|------|---------|-------------|
 | `Dpi` | int | 150 | Image resolution in dots per inch |
 | `FontWidthScale` | double | 1.0 | Font width adjustment factor (1.07 recommended for Word matching) |
+
+
+## Icon
+
+[Impossible Star](https://thenounproject.com/icon/impossible-star-3612694/) designed by [Rflor](https://thenounproject.com/creator/rflor/) from [The Noun Project](https://thenounproject.com).

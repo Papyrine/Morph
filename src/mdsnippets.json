@@ -4,5 +4,5 @@
   "MaxWidth": 120,
   "ValidateContent": true,
   "Convention": "InPlaceOverwrite",
-  "ExcludeDirectories": "Inputs"
+  "ExcludeDirectories": ["Inputs"]
 }

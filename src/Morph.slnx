@@ -2,8 +2,10 @@
   <Project Path="Morph/Morph.csproj" />
   <Folder Name="/SolutionItems/">
     <File Path="../.gitattributes" />
+    <File Path="../README.md" />
     <File Path="appveyor.yml" />
     <File Path="Directory.Packages.props" />
+    <File Path="mdsnippets.json" />
   </Folder>
   <Project Path="RenderHelper/RenderHelper.csproj">
     <Build Solution="Release|*" Project="false" />
