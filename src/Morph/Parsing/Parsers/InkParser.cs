@@ -105,7 +105,7 @@ public static class InkParser
                                 // Color can be #RRGGBB format
                                 if (value.StartsWith('#') && value.Length == 7)
                                 {
-                                    color = value.Substring(1);
+                                    color = value[1..];
                                 }
 
                                 break;
@@ -172,7 +172,7 @@ public static class InkParser
 
                 // Parse trace points
                 // Format: "x1 y1, x2 y2, x3 y3" or "x1 y1 x2 y2 x3 y3"
-                var points = ParseTracePoints(traceData, canvasWidth, canvasHeight);
+                var points = ParseTracePoints(traceData);
                 if (points.Count < 2)
                 {
                     continue;
@@ -189,13 +189,86 @@ public static class InkParser
             }
         }
 
+        // Scale all stroke points to fit within the canvas bounds
+        ScaleStrokesToCanvas(strokes, canvasWidth, canvasHeight);
+
         return strokes;
+    }
+
+    /// <summary>
+    /// Scales all stroke points to fit within the canvas dimensions.
+    /// Translates points to origin (0,0) and scales uniformly to fit within the canvas while preserving aspect ratio.
+    /// </summary>
+    /// <param name="strokes">The strokes to scale (modified in place).</param>
+    /// <param name="canvasWidth">Target canvas width in points.</param>
+    /// <param name="canvasHeight">Target canvas height in points.</param>
+    public static void ScaleStrokesToCanvas(List<InkStroke> strokes, double canvasWidth, double canvasHeight)
+    {
+        if (strokes.Count == 0)
+        {
+            return;
+        }
+
+        // Find bounding box of all points across all strokes
+        var allPoints = strokes.SelectMany(s => s.Points).ToList();
+        if (allPoints.Count == 0)
+        {
+            return;
+        }
+
+        var minX = allPoints.Min(p => p.X);
+        var maxX = allPoints.Max(p => p.X);
+        var minY = allPoints.Min(p => p.Y);
+        var maxY = allPoints.Max(p => p.Y);
+
+        var rawWidth = maxX - minX;
+        var rawHeight = maxY - minY;
+
+        // If ink has no extent, nothing to scale
+        if (rawWidth <= 0 && rawHeight <= 0)
+        {
+            return;
+        }
+
+        // Calculate scale factor to fit within canvas while preserving aspect ratio
+        var scaleX = rawWidth > 0 ? canvasWidth / rawWidth : 1.0;
+        var scaleY = rawHeight > 0 ? canvasHeight / rawHeight : 1.0;
+        var scale = Math.Min(scaleX, scaleY);
+
+        // Scale and translate all points (translate to origin first, then scale)
+        for (var i = 0; i < strokes.Count; i++)
+        {
+            var stroke = strokes[i];
+            var scaledPoints = new List<InkPoint>(stroke.Points.Count);
+
+            foreach (var point in stroke.Points)
+            {
+                scaledPoints.Add(
+                    new()
+                    {
+                        X = (point.X - minX) * scale,
+                        Y = (point.Y - minY) * scale,
+                        Pressure = point.Pressure
+                    });
+            }
+
+            // Replace stroke with scaled points
+            strokes[i] = new()
+            {
+                Points = scaledPoints,
+                ColorHex = stroke.ColorHex,
+                WidthPoints = stroke.WidthPoints,
+                Transparency = stroke.Transparency,
+                PenTip = stroke.PenTip,
+                IsHighlighter = stroke.IsHighlighter
+            };
+        }
     }
 
     /// <summary>
     /// Parses trace point data from InkML trace element.
     /// </summary>
-    static List<InkPoint> ParseTracePoints(string traceData, double canvasWidth, double canvasHeight)
+    static List<InkPoint> ParseTracePoints(string traceData)
     {
         var points = new List<InkPoint>();
 
