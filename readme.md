@@ -25,6 +25,7 @@ Morph parses OpenXML-based Word documents and renders them to images that closel
 - **DocumentFormat.OpenXml** - DOCX file parsing
 - **SkiaSharp** - Cross-platform graphics rendering
 - **Svg.Skia** - SVG rendering support
+- **AngleSharp** - HTML content parsing (for AltChunk support)
 
 
 ## NuGet package
