@@ -527,7 +527,8 @@ sealed class TextRenderer(RenderContext context)
         // Handle empty paragraph - use font metrics from runs or paragraph mark font size
         if (lines.Count == 0)
         {
-            float emptyHeight = 12; // Fallback default
+            // Fallback default
+            float emptyHeight = 12;
             float emptyBaseline = 10;
 
             if (paragraph.Runs.Count > 0)
@@ -740,7 +741,8 @@ sealed class TextRenderer(RenderContext context)
 
             var textWidth = context.PointsToPixels(fragment.Width);
             var metrics = font.Metrics;
-            var textTop = pixelY + metrics.Ascent; // Ascent is negative
+            // Ascent is negative
+            var textTop = pixelY + metrics.Ascent;
             var textBottom = pixelY + metrics.Descent;
 
             using var bgPaint = new SKPaint
@@ -1035,7 +1037,8 @@ sealed class TextRenderer(RenderContext context)
         // Handle empty paragraph - use font metrics from runs if available
         if (lines.Count == 0)
         {
-            float emptyHeight = 12; // Fallback default
+            // Fallback default
+            float emptyHeight = 12;
             float emptyBaseline = 10;
 
             // Get height from first run's font if available
@@ -1163,7 +1166,8 @@ sealed class TextRenderer(RenderContext context)
             {
                 // Non-breaking hyphen: render as regular hyphen but don't break here
                 // Keep it as part of the current word
-                currentWord.Append('-'); // Render as visible hyphen
+                // Render as visible hyphen
+                currentWord.Append('-');
             }
             else
             {

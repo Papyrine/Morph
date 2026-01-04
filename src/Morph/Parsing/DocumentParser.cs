@@ -15,7 +15,8 @@ sealed class DocumentParser
 {
     // Conversion constants
     const double twipsPerPoint = 20.0;
-    const double emusPerPoint = 914400.0 / 72.0; // EMUs per point
+    // EMUs per point
+    const double emusPerPoint = 914400.0 / 72.0;
 
     // Theme colors for the current document being parsed
     ThemeColors? currentThemeColors;
@@ -47,7 +48,8 @@ sealed class DocumentParser
     string? documentBackgroundColor;
 
     // Document default paragraph spacing (from docDefaults/pPrDefault or Word built-in defaults)
-    double defaultSpacingAfterPoints = 8; // Word's built-in default when no styles.xml
+    // Word's built-in default when no styles.xml
+    double defaultSpacingAfterPoints = 8;
 
     public ParsedDocument Parse(string filePath)
     {
@@ -1028,7 +1030,8 @@ sealed class DocumentParser
         var settings = settingsPart.Settings;
 
         var autoHyphenation = false;
-        double hyphenationZonePoints = 18; // Default 0.25 inch
+        // Default 0.25 inch
+        double hyphenationZonePoints = 18;
         var consecutiveHyphenLimit = 0;
         var doNotHyphenateCaps = false;
 
@@ -1085,7 +1088,8 @@ sealed class DocumentParser
         }
 
         // Look for compatibilityMode in CompatSetting elements
-        var compatMode = 15; // Default to Word 2013+ mode
+        // Default to Word 2013+ mode
+        var compatMode = 15;
 
         foreach (var compatSetting in compat.Elements<CompatibilitySetting>())
         {
@@ -1237,7 +1241,8 @@ sealed class DocumentParser
 
         var start = 1;
         var countBy = 1;
-        double distancePoints = 18; // Default 0.25 inch
+        // Default 0.25 inch
+        double distancePoints = 18;
         var restart = LineNumberRestart.NewPage;
 
         if (lnNumType.Start?.HasValue == true)
@@ -1344,7 +1349,8 @@ sealed class DocumentParser
         var docDefaults = stylesPart.Styles.DocDefaults;
         if (docDefaults == null)
         {
-            return 0; // styles.xml exists but no docDefaults - use 0
+            // styles.xml exists but no docDefaults - use 0
+            return 0;
         }
 
         var pPrDefault = docDefaults.ParagraphPropertiesDefault;

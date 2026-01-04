@@ -820,7 +820,8 @@ sealed class PageRenderer(RenderContext context) :
                 currentCanvas.Translate(centerX, centerY);
                 currentCanvas.Scale(1, 0.8f);
                 currentCanvas.RotateDegrees(180);
-                currentCanvas.Scale(1, -1); // Flip back to readable
+                // Flip back to readable
+                currentCanvas.Scale(1, -1);
                 currentCanvas.Translate(-centerX, -centerY);
                 break;
 
@@ -1017,7 +1018,8 @@ sealed class PageRenderer(RenderContext context) :
         // Only use row-by-row rendering for tables that significantly exceed a full page
         // Allow tolerance since table height measurements can be slightly conservative
         // Tables that are close to page height should use simpler single-page rendering
-        var tableTolerance = context.ContentHeight * 0.10f; // 10% tolerance
+        // 10% tolerance
+        var tableTolerance = context.ContentHeight * 0.10f;
         var needsRowByRowRendering = totalHeight > context.ContentHeight + tableTolerance;
 
         if (!needsRowByRowRendering)
@@ -1178,7 +1180,8 @@ sealed class PageRenderer(RenderContext context) :
         var rowHeight = rowHeights[rowIndex];
 
         var currentX = tableX;
-        var gridColIndex = 0; // Track actual grid column position
+        // Track actual grid column position
+        var gridColIndex = 0;
 
         for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
         {
@@ -1273,7 +1276,8 @@ sealed class PageRenderer(RenderContext context) :
 
         foreach (var row in table.Rows)
         {
-            var gridColIndex = 0; // Track actual grid column position
+            // Track actual grid column position
+            var gridColIndex = 0;
             for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
             {
                 var cell = row.Cells[cellIndex];
@@ -1287,7 +1291,8 @@ sealed class PageRenderer(RenderContext context) :
                     hasExplicitWidths = true;
                 }
 
-                gridColIndex += span; // Advance by the number of columns this cell spans
+                // Advance by the number of columns this cell spans
+                gridColIndex += span;
             }
         }
 
@@ -1373,7 +1378,8 @@ sealed class PageRenderer(RenderContext context) :
         for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
         {
             var row = table.Rows[rowIndex];
-            float maxHeight = 20; // Minimum row height
+            // Minimum row height
+            float maxHeight = 20;
 
             var gridColIndex = 0;
             for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
@@ -1746,7 +1752,8 @@ sealed class PageRenderer(RenderContext context) :
         if (cell.Properties is {VerticalMerge: VerticalMergeType.Restart, VerticalAlignment: CellVerticalAlignment.Center})
         {
             // Use a maximum offset to prevent too much whitespace above content
-            const float maxCenterOffset = 12f; // ~0.17 inches
+            // ~0.17 inches
+            const float maxCenterOffset = 12f;
             verticalOffset = Math.Min(verticalOffset, maxCenterOffset);
         }
 
@@ -1869,7 +1876,8 @@ sealed class PageRenderer(RenderContext context) :
         }
 
         var fieldWidth = (float) textField.WidthPoints;
-        float fieldHeight = 18; // Standard form field height
+        // Standard form field height
+        float fieldHeight = 18;
         var x = context.ContentLeft;
         var y = context.CurrentY;
 
@@ -1921,7 +1929,8 @@ sealed class PageRenderer(RenderContext context) :
             currentCanvas.DrawText(displayText, textX, textY, SKTextAlign.Left, font, textPaint);
         }
 
-        context.CurrentY += fieldHeight + 4; // Add some spacing after
+        // Add some spacing after
+        context.CurrentY += fieldHeight + 4;
     }
 
     /// <summary>
@@ -1992,7 +2001,8 @@ sealed class PageRenderer(RenderContext context) :
             currentCanvas.DrawLine(midX, bottom, right, top, checkPaint);
         }
 
-        context.CurrentY += boxSize + 4; // Add some spacing after
+        // Add some spacing after
+        context.CurrentY += boxSize + 4;
     }
 
     /// <summary>
@@ -2006,7 +2016,8 @@ sealed class PageRenderer(RenderContext context) :
         }
 
         var fieldWidth = (float) dropDown.WidthPoints;
-        float fieldHeight = 18; // Standard form field height
+        // Standard form field height
+        float fieldHeight = 18;
         var x = context.ContentLeft;
         var y = context.CurrentY;
 
@@ -2080,7 +2091,8 @@ sealed class PageRenderer(RenderContext context) :
         arrowPath.Close();
         currentCanvas.DrawPath(arrowPath, arrowPaint);
 
-        context.CurrentY += fieldHeight + 4; // Add some spacing after
+        // Add some spacing after
+        context.CurrentY += fieldHeight + 4;
     }
 
     /// <summary>

@@ -344,7 +344,8 @@ static class ShapeParser
             var alphaEl = schemeClr.GetFirstChild<A.Alpha>();
             if (alphaEl?.Val is { HasValue: true, Value: < 5000 })
             {
-                return null; // Skip nearly invisible shapes
+                // Skip nearly invisible shapes
+                return null;
             }
 
             // Extract all color transforms

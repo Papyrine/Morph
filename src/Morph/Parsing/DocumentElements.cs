@@ -456,13 +456,14 @@ sealed class HeaderFooterContent
 internal sealed record PageSettings
 {
     /// <summary>Page width in points (1/72 inch). Defaults to A4; use DefaultPageSize for region-based defaults.</summary>
-    public double WidthPoints { get; init; } = 595.28; // A4 width (international standard default)
+    public double WidthPoints { get; init; } = 595.28;
 
     /// <summary>Page height in points (1/72 inch). Defaults to A4; use DefaultPageSize for region-based defaults.</summary>
-    public double HeightPoints { get; init; } = 841.89; // A4 height (international standard default)
+    public double HeightPoints { get; init; } = 841.89;
 
     /// <summary>Top margin in points.</summary>
-    public double MarginTop { get; init; } = 72; // 1 inch
+    // 1 inch
+    public double MarginTop { get; init; } = 72;
 
     /// <summary>Bottom margin in points.</summary>
     public double MarginBottom { get; init; } = 72;
@@ -474,16 +475,19 @@ internal sealed record PageSettings
     public double MarginRight { get; init; } = 72;
 
     /// <summary>Distance from top edge to header in points.</summary>
-    public double HeaderDistance { get; init; } = 36; // 0.5 inch
+    // 0.5 inch
+    public double HeaderDistance { get; init; } = 36;
 
     /// <summary>Distance from bottom edge to footer in points.</summary>
-    public double FooterDistance { get; init; } = 36; // 0.5 inch
+    // 0.5 inch
+    public double FooterDistance { get; init; } = 36;
 
     /// <summary>Number of columns (1 = single column layout).</summary>
     public int ColumnCount { get; init; } = 1;
 
     /// <summary>Space between columns in points.</summary>
-    public double ColumnSpacing { get; init; } = 36; // 0.5 inch default
+    // 0.5 inch default
+    public double ColumnSpacing { get; init; } = 36;
 
     /// <summary>Line numbering settings for this section. Null if line numbers are disabled.</summary>
     public LineNumberSettings? LineNumbers { get; init; }
@@ -669,7 +673,8 @@ internal sealed record ParagraphProperties
     /// A widow is the last line of a paragraph appearing alone at the top of a page.
     /// An orphan is the first line of a paragraph appearing alone at the bottom of a page.
     /// </summary>
-    public bool WidowControl { get; init; } = true; // Default is true per OpenXML spec
+    // Default is true per OpenXML spec
+    public bool WidowControl { get; init; } = true;
 
     /// <summary>
     /// When true, forces a page break before this paragraph.

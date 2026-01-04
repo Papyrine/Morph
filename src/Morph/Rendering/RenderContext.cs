@@ -202,7 +202,8 @@ sealed class RenderContext : IDisposable
         PageSettings = pageSettings;
         Compatibility = compatibility ?? new CompatibilitySettings();
         Dpi = dpi;
-        Scale = dpi / 72f; // Points to pixels
+        // Points to pixels
+        Scale = dpi / 72f;
         FontWidthScale = (float) fontWidthScale;
 
         PageWidthPixels = (int) (pageSettings.WidthPoints * Scale);
@@ -227,7 +228,8 @@ sealed class RenderContext : IDisposable
         }
         else
         {
-            headerSpace = 0; // Header fits within the margin area or is empty
+            // Header fits within the margin area or is empty
+            headerSpace = 0;
         }
 
         // Footer ends at FooterDistance from bottom (measured from bottom edge)
@@ -240,7 +242,8 @@ sealed class RenderContext : IDisposable
         }
         else
         {
-            footerSpace = 0; // Footer fits within the margin area or is empty
+            // Footer fits within the margin area or is empty
+            footerSpace = 0;
         }
 
         // Reset CurrentY to account for new header space
