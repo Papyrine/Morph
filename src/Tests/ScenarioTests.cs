@@ -49,7 +49,7 @@ public class ScenarioTests
         for (var index = 0; index < data.Count; index++)
         {
             var item = data[index];
-            targets.Add(new("png", new MemoryStream(item),$"page_{index+1:0000}"));
+            targets.Add(new("png", new MemoryStream(item), $"page_{index + 1:0000}"));
         }
 
         var result = new ScenarioResult

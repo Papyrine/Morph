@@ -617,15 +617,9 @@ sealed class TextRenderer(RenderContext context)
             colorHex = paragraph.Runs[0].Properties.ColorHex;
         }
 
-        // Use a standard font for bullets since they've been mapped to Unicode characters
-        // Symbol and Wingdings fonts don't have proper Unicode mappings in SkiaSharp
-        var fontFamily = numbering.FontFamily;
-        if (fontFamily is null or "Symbol" or "Wingdings" or "Wingdings 2" or "Wingdings 3")
-        {
-            fontFamily = "Aptos";
-        }
-
-        using var typeface = SKTypeface.FromFamilyName(fontFamily, SKFontStyle.Normal);
+        // Use Arial for bullets since Symbol/Wingdings characters have been mapped to Unicode equivalents
+        // Arial is available on all platforms and has good Unicode coverage including bullet characters
+        using var typeface = SKTypeface.FromFamilyName("Arial") ?? SKTypeface.Default;
         using var font = context.CreateFontFromTypeface(typeface, fontSize);
         using var paint = new SKPaint
         {
@@ -650,14 +644,9 @@ sealed class TextRenderer(RenderContext context)
             colorHex = paragraph.Runs[0].Properties.ColorHex;
         }
 
-        // Use a standard font for bullets since they've been mapped to Unicode characters
-        var fontFamily = numbering.FontFamily;
-        if (fontFamily is null or "Symbol" or "Wingdings" or "Wingdings 2" or "Wingdings 3")
-        {
-            fontFamily = "Aptos";
-        }
-
-        using var typeface = SKTypeface.FromFamilyName(fontFamily, SKFontStyle.Normal);
+        // Use Arial for bullets since Symbol/Wingdings characters have been mapped to Unicode equivalents
+        // Arial is available on all platforms and has good Unicode coverage including bullet characters
+        using var typeface = SKTypeface.FromFamilyName("Arial") ?? SKTypeface.Default;
         using var font = context.CreateFontFromTypeface(typeface, fontSize);
         using var paint = new SKPaint
         {

@@ -8,9 +8,9 @@ public class Samples
     {
         var converter = new DocumentConverter();
 
-        var imageData = converter.ConvertToImageData("sample.docx");
+        var data = converter.ConvertToImageData("sample.docx");
 
-        return Verify(imageData.Select(_ => new Target("png", new MemoryStream(_))));
+        return Verify(data.Select(_ => new Target("png", new MemoryStream(_))));
     }
 
     public static void BasicUsage()

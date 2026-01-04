@@ -1973,9 +1973,12 @@ sealed class DocumentParser
         var numberingInfo = GetNumberingInfo(paraProps, paragraphStyleId);
         if (numberingInfo != null)
         {
+            // Apply numbering indentation to paragraph if not already set
+            // The numbering defines where text starts (IndentPoints) and how far back the bullet hangs (HangingIndentPoints)
             props = props with
             {
-                Numbering = numberingInfo
+                Numbering = numberingInfo,
+                LeftIndentPoints = props.LeftIndentPoints == 0 ? numberingInfo.IndentPoints : props.LeftIndentPoints
             };
         }
 
