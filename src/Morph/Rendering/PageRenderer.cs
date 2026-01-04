@@ -2567,7 +2567,7 @@ sealed class PageRenderer : IDisposable
         // Only remove if there's more than one page and the last page is blank
         if (pages.Count > 1 && !hasSignificantContentOnCurrentPage && !currentPageFromExplicitBreak)
         {
-            var lastPage = pages[pages.Count - 1];
+            var lastPage = pages[^1];
             pages.RemoveAt(pages.Count - 1);
             lastPage.Dispose();
         }

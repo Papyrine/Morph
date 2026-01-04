@@ -348,7 +348,7 @@ sealed class DocumentParser
 
                         // Use IEnumValue.Value instead of ToString() to get actual enum value string
                         var themeColorValue = ((IEnumValue) themeColor).Value;
-                        color = currentThemeColors.ResolveColor(themeColorValue ?? "", shade, tint);
+                        color = currentThemeColors.ResolveColor(themeColorValue, shade, tint);
                     }
 
                     // Fall back to direct value if theme resolution failed or no theme color
@@ -3729,7 +3729,7 @@ sealed class DocumentParser
     static string? ResolveSchemeColor(A.SchemeColorValues schemeColor, MainDocumentPart mainPart)
     {
         var themePart = mainPart.ThemePart;
-        if (themePart?.Theme?.ThemeElements?.ColorScheme == null)
+        if (themePart?.Theme.ThemeElements?.ColorScheme == null)
         {
             return null;
         }

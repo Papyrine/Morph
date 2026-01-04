@@ -9,6 +9,7 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="Microsoft.Office.Interop.Word" Version="15.0.4797.1004" />
     <PackageVersion Include="NUnit" Version="4.4.0" />
+    <PackageVersion Include="MarkdownSnippets.MsBuild" Version="27.0.2" />
     <PackageVersion Include="NUnit3TestAdapter" Version="6.0.1" />
     <PackageVersion Include="ProjectDefaults" Version="1.0.170" />
     <PackageVersion Include="ProjectFiles" Version="0.4.0" />

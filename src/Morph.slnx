@@ -2,7 +2,11 @@
   <Project Path="Morph/Morph.csproj" />
   <Folder Name="/SolutionItems/">
     <File Path="../.gitattributes" />
+    <File Path="appveyor.yml" />
+    <File Path="Directory.Packages.props" />
   </Folder>
-  <Project Path="RenderHelper/RenderHelper.csproj" />
+  <Project Path="RenderHelper/RenderHelper.csproj">
+    <Build Solution="Release|*" Project="false" />
+  </Project>
   <Project Path="Tests/Tests.csproj" />
 </Solution>
