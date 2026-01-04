@@ -1,5 +1,3 @@
-namespace WordRender;
-
 /// <summary>
 /// Renders document pages to PNG images.
 /// </summary>

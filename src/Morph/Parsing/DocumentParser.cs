@@ -8,8 +8,6 @@ using OoxmlTableProperties = DocumentFormat.OpenXml.Wordprocessing.TableProperti
 using WPG = DocumentFormat.OpenXml.Office2010.Word.DrawingGroup;
 using WPS = DocumentFormat.OpenXml.Office2010.Word.DrawingShape;
 
-namespace WordRender;
-
 /// <summary>
 /// Parses DOCX files using OpenXML.
 /// </summary>

@@ -1,11 +1,9 @@
 using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 
-namespace WordRender;
-
 /// <summary>
 /// Extension methods for OpenXML types to reduce code duplication in parsers.
 /// </summary>
-internal static class OpenXmlExtensions
+static class OpenXmlExtensions
 {
     /// <summary>
     /// Conversion constant: EMUs per point.

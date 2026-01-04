@@ -1,9 +1,7 @@
-namespace WordRender;
-
 /// <summary>
 /// Parses ink/handwriting content from Word documents.
 /// </summary>
-internal static class InkParser
+static class InkParser
 {
     /// <summary>
     /// Parses a Drawing element to extract ink content.

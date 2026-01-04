@@ -1,5 +1,3 @@
-namespace WordRender;
-
 /// <summary>
 /// Renders text content with formatting using SkiaSharp.
 /// </summary>

@@ -1,11 +1,9 @@
 using A = DocumentFormat.OpenXml.Drawing;
 
-namespace WordRender;
-
 /// <summary>
 /// Parses theme information (colors and fonts) from Word documents.
 /// </summary>
-internal static class ThemeParser
+static class ThemeParser
 {
     /// <summary>
     /// Extracts theme fonts from the document.

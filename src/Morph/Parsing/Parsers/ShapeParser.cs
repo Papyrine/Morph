@@ -3,12 +3,10 @@ using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using WPG = DocumentFormat.OpenXml.Office2010.Word.DrawingGroup;
 using WPS = DocumentFormat.OpenXml.Office2010.Word.DrawingShape;
 
-namespace WordRender;
-
 /// <summary>
 /// Parses shape elements from Word documents.
 /// </summary>
-internal static class ShapeParser
+static class ShapeParser
 {
     /// <summary>
     /// Parses a Drawing element to extract background shapes (solid fill or image fill shapes behind text).

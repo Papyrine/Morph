@@ -1,169 +1,127 @@
-namespace WordRender;
+using AngleSharp.Dom;
 
 /// <summary>
 /// Parses HTML content embedded in DOCX via AltChunk.
 /// </summary>
-internal sealed partial class HtmlParser
+internal sealed class HtmlParser
 {
     public static List<DocumentElement> Parse(string html)
     {
         var elements = new List<DocumentElement>();
+        var parser = new AngleSharp.Html.Parser.HtmlParser();
+        var document = parser.ParseDocument(html);
 
-        // Extract body content if present
-        var bodyMatch = BodyRegex().Match(html);
-        var content = bodyMatch.Success ? bodyMatch.Groups[1].Value : html;
+        var body = document.Body;
+        if (body == null)
+        {
+            return elements;
+        }
 
-        // Parse block-level elements
-        ParseContent(content, elements);
-
+        ParseNodes(body.ChildNodes, elements);
         return elements;
     }
 
-    static void ParseContent(string content, List<DocumentElement> elements)
+    static void ParseNodes(INodeList nodes, List<DocumentElement> elements)
     {
-        // Process block elements: headings, paragraphs, lists, tables
-        var pos = 0;
-        while (pos < content.Length)
+        foreach (var node in nodes)
         {
-            // Skip whitespace
-            while (pos < content.Length && char.IsWhiteSpace(content[pos]))
-            {
-                pos++;
-            }
+            ParseNode(node, elements);
+        }
+    }
 
-            if (pos >= content.Length)
-            {
+    static void ParseNode(INode node, List<DocumentElement> elements)
+    {
+        switch (node)
+        {
+            case IText textNode:
+                var text = textNode.TextContent.Trim();
+                if (!string.IsNullOrEmpty(text))
+                {
+                    elements.Add(new ParagraphElement
+                    {
+                        Runs = [new() { Text = text, Properties = new() }]
+                    });
+                }
                 break;
-            }
 
-            // Try to match block elements
-            var remaining = content[pos..];
+            case IElement element:
+                ParseElement(element, elements);
+                break;
+        }
+    }
 
-            // Headings h1-h6
-            var headingMatch = HeadingRegex().Match(remaining);
-            if (headingMatch is {Success: true, Index: 0})
-            {
-                var level = int.Parse(headingMatch.Groups[1].Value);
-                var innerHtml = headingMatch.Groups[2].Value;
-                var para = CreateParagraphFromInlineHtml(innerHtml, GetHeadingFontSize(level), true);
+    static void ParseElement(IElement element, List<DocumentElement> elements)
+    {
+        switch (element.TagName.ToLowerInvariant())
+        {
+            case "h1":
+            case "h2":
+            case "h3":
+            case "h4":
+            case "h5":
+            case "h6":
+                var level = int.Parse(element.TagName[1..]);
+                var headingPara = CreateParagraph(element, GetHeadingFontSize(level), true);
+                elements.Add(headingPara);
+                break;
+
+            case "p":
+                var style = ParseInlineStyle(element);
+                var para = CreateParagraph(element, 11, false, style);
                 elements.Add(para);
-                pos += headingMatch.Length;
-                continue;
-            }
+                break;
 
-            // Paragraph
-            var paraMatch = ParagraphRegex().Match(remaining);
-            if (paraMatch is {Success: true, Index: 0})
-            {
-                var style = paraMatch.Groups[1].Value;
-                var innerHtml = paraMatch.Groups[2].Value;
-                var para = CreateParagraphFromInlineHtml(innerHtml, 11, false, ParseInlineStyle(style));
-                elements.Add(para);
-                pos += paraMatch.Length;
-                continue;
-            }
+            case "ul":
+                ParseList(element, elements, "\u2022 ");
+                break;
 
-            // Unordered list
-            var ulMatch = UlRegex().Match(remaining);
-            if (ulMatch is {Success: true, Index: 0})
-            {
-                ParseList(ulMatch.Groups[1].Value, elements, "\u2022 "); // bullet
-                pos += ulMatch.Length;
-                continue;
-            }
+            case "ol":
+                ParseOrderedList(element, elements);
+                break;
 
-            // Ordered list
-            var olMatch = OlRegex().Match(remaining);
-            if (olMatch is {Success: true, Index: 0})
-            {
-                ParseOrderedList(olMatch.Groups[1].Value, elements);
-                pos += olMatch.Length;
-                continue;
-            }
-
-            // Table
-            var tableMatch = TableRegex().Match(remaining);
-            if (tableMatch is {Success: true, Index: 0})
-            {
-                var table = ParseTable(tableMatch.Value);
+            case "table":
+                var table = ParseTable(element);
                 if (table != null)
                 {
                     elements.Add(table);
                 }
+                break;
 
-                pos += tableMatch.Length;
-                continue;
-            }
-
-            // Line break
-            if (remaining.StartsWith("<br", StringComparison.OrdinalIgnoreCase))
-            {
-                var brMatch = BrRegex().Match(remaining);
-                if (brMatch.Success)
+            case "br":
+                elements.Add(new ParagraphElement
                 {
-                    elements.Add(new ParagraphElement
-                    {
-                        Runs = new List<Run> { new() { Text = "", Properties = new() } },
-                        Properties = new()
-                            { SpacingAfterPoints = 0 }
-                    });
-                    pos += brMatch.Length;
-                    continue;
-                }
-            }
+                    Runs = [new() { Text = "", Properties = new() }],
+                    Properties = new() { SpacingAfterPoints = 0 }
+                });
+                break;
 
-            // Any other tag - try to extract text content
-            var anyTagMatch = AnyTagRegex().Match(remaining);
-            if (anyTagMatch is {Success: true, Index: 0})
-            {
-                var innerHtml = anyTagMatch.Groups[2].Value;
-                if (!string.IsNullOrWhiteSpace(StripTags(innerHtml)))
-                {
-                    var para = CreateParagraphFromInlineHtml(innerHtml, 11, false);
-                    elements.Add(para);
-                }
-                pos += anyTagMatch.Length;
-                continue;
-            }
+            case "div":
+            case "section":
+            case "article":
+            case "main":
+            case "header":
+            case "footer":
+            case "nav":
+            case "aside":
+                // Container elements - process children
+                ParseNodes(element.ChildNodes, elements);
+                break;
 
-            // Plain text until next tag
-            var nextTag = remaining.IndexOf('<');
-            if (nextTag == -1)
-            {
-                // Rest is plain text
-                var text = HttpUtility.HtmlDecode(remaining.Trim());
-                if (!string.IsNullOrWhiteSpace(text))
+            default:
+                // For other elements, try to extract content
+                var text = element.TextContent.Trim();
+                if (!string.IsNullOrEmpty(text))
                 {
-                    elements.Add(new ParagraphElement
-                    {
-                        Runs = new List<Run> { new() { Text = text, Properties = new() } }
-                    });
+                    var defaultPara = CreateParagraph(element, 11, false);
+                    elements.Add(defaultPara);
                 }
                 break;
-            }
-
-            if (nextTag > 0)
-            {
-                var text = HttpUtility.HtmlDecode(remaining[..nextTag].Trim());
-                if (!string.IsNullOrWhiteSpace(text))
-                {
-                    elements.Add(new ParagraphElement
-                    {
-                        Runs = new List<Run> { new() { Text = text, Properties = new() } }
-                    });
-                }
-                pos += nextTag;
-            }
-            else
-            {
-                pos++; // Skip unrecognized character
-            }
         }
     }
 
-    static ParagraphElement CreateParagraphFromInlineHtml(string html, double fontSize, bool bold, InlineStyle? style = null)
+    static ParagraphElement CreateParagraph(IElement element, double fontSize, bool bold, InlineStyle? style = null)
     {
-        var runs = ParseInlineElements(html, new()
+        var runs = ParseInlineElements(element, new RunProperties
         {
             FontSizePoints = fontSize,
             Bold = bold,
@@ -172,17 +130,7 @@ internal sealed partial class HtmlParser
 
         return new()
         {
-            Runs = runs.Count > 0 ? runs :
-            [
-                new()
-                {
-                    Text = "",
-                    Properties = new()
-                    {
-                        FontSizePoints = fontSize
-                    }
-                }
-            ],
+            Runs = runs.Count > 0 ? runs : [new() { Text = "", Properties = new() { FontSizePoints = fontSize } }],
             Properties = new()
             {
                 Alignment = style?.Alignment ?? TextAlignment.Left,
@@ -191,320 +139,195 @@ internal sealed partial class HtmlParser
         };
     }
 
-    static List<Run> ParseInlineElements(string html, RunProperties baseProps)
+    static List<Run> ParseInlineElements(IElement element, RunProperties baseProps)
     {
         var runs = new List<Run>();
-        ParseInlineContent(html, runs, baseProps);
+        ParseInlineNodes(element.ChildNodes, runs, baseProps);
         return runs;
     }
 
-    static void ParseInlineContent(string html, List<Run> runs, RunProperties props)
+    static void ParseInlineNodes(INodeList nodes, List<Run> runs, RunProperties props)
     {
-        var pos = 0;
-        while (pos < html.Length)
+        foreach (var node in nodes)
         {
-            var tagStart = html.IndexOf('<', pos);
-            if (tagStart == -1)
+            switch (node)
             {
-                // Remaining is plain text
-                var text = HttpUtility.HtmlDecode(html[pos..]);
-                if (!string.IsNullOrEmpty(text))
-                {
-                    runs.Add(new()
-                        { Text = text, Properties = props });
-                }
+                case IText textNode:
+                    var text = textNode.TextContent;
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        runs.Add(new() { Text = text, Properties = props });
+                    }
+                    break;
 
-                break;
+                case IElement element:
+                    ParseInlineElement(element, runs, props);
+                    break;
             }
-
-            // Text before tag
-            if (tagStart > pos)
-            {
-                var text = HttpUtility.HtmlDecode(html[pos..tagStart]);
-                if (!string.IsNullOrEmpty(text))
-                {
-                    runs.Add(new()
-                        { Text = text, Properties = props });
-                }
-            }
-
-            // Find tag end
-            var tagEnd = html.IndexOf('>', tagStart);
-            if (tagEnd == -1)
-            {
-                break;
-            }
-
-            var tagContent = html[(tagStart + 1)..tagEnd];
-            var isClosing = tagContent.StartsWith('/');
-            if (isClosing)
-            {
-                pos = tagEnd + 1;
-                continue;
-            }
-
-            // Self-closing or opening tag
-            var tagName = tagContent.Split(' ', '/')[0].ToLowerInvariant();
-
-            // Handle inline formatting tags
-            switch (tagName)
-            {
-                case "b":
-                case "strong":
-                    var boldEnd = FindClosingTag(html, tagEnd + 1, tagName);
-                    if (boldEnd > tagEnd)
-                    {
-                        var innerHtml = html[(tagEnd + 1)..boldEnd];
-                        ParseInlineContent(innerHtml, runs, props with { Bold = true });
-                        pos = html.IndexOf('>', boldEnd) + 1;
-                    }
-                    else
-                    {
-                        pos = tagEnd + 1;
-                    }
-
-                    continue;
-
-                case "i":
-                case "em":
-                    var italicEnd = FindClosingTag(html, tagEnd + 1, tagName);
-                    if (italicEnd > tagEnd)
-                    {
-                        var innerHtml = html[(tagEnd + 1)..italicEnd];
-                        ParseInlineContent(innerHtml, runs, props with { Italic = true });
-                        pos = html.IndexOf('>', italicEnd) + 1;
-                    }
-                    else
-                    {
-                        pos = tagEnd + 1;
-                    }
-
-                    continue;
-
-                case "u":
-                    var underlineEnd = FindClosingTag(html, tagEnd + 1, tagName);
-                    if (underlineEnd > tagEnd)
-                    {
-                        var innerHtml = html[(tagEnd + 1)..underlineEnd];
-                        ParseInlineContent(innerHtml, runs, props with { Underline = true });
-                        pos = html.IndexOf('>', underlineEnd) + 1;
-                    }
-                    else
-                    {
-                        pos = tagEnd + 1;
-                    }
-
-                    continue;
-
-                case "s":
-                case "strike":
-                case "del":
-                    var strikeEnd = FindClosingTag(html, tagEnd + 1, tagName);
-                    if (strikeEnd > tagEnd)
-                    {
-                        var innerHtml = html[(tagEnd + 1)..strikeEnd];
-                        ParseInlineContent(innerHtml, runs, props with { Strikethrough = true });
-                        pos = html.IndexOf('>', strikeEnd) + 1;
-                    }
-                    else
-                    {
-                        pos = tagEnd + 1;
-                    }
-
-                    continue;
-
-                case "font":
-                    var fontEnd = FindClosingTag(html, tagEnd + 1, "font");
-                    if (fontEnd > tagEnd)
-                    {
-                        var fontProps = ParseFontTag(tagContent, props);
-                        var innerHtml = html[(tagEnd + 1)..fontEnd];
-                        ParseInlineContent(innerHtml, runs, fontProps);
-                        pos = html.IndexOf('>', fontEnd) + 1;
-                    }
-                    else
-                    {
-                        pos = tagEnd + 1;
-                    }
-
-                    continue;
-
-                case "span":
-                    var spanEnd = FindClosingTag(html, tagEnd + 1, "span");
-                    if (spanEnd > tagEnd)
-                    {
-                        var spanProps = ParseSpanStyle(tagContent, props);
-                        var innerHtml = html[(tagEnd + 1)..spanEnd];
-                        ParseInlineContent(innerHtml, runs, spanProps);
-                        pos = html.IndexOf('>', spanEnd) + 1;
-                    }
-                    else
-                    {
-                        pos = tagEnd + 1;
-                    }
-
-                    continue;
-
-                case "a":
-                    var linkEnd = FindClosingTag(html, tagEnd + 1, "a");
-                    if (linkEnd > tagEnd)
-                    {
-                        var innerHtml = html[(tagEnd + 1)..linkEnd];
-                        // Render links as blue underlined text
-                        ParseInlineContent(innerHtml, runs, props with { ColorHex = "0000FF", Underline = true });
-                        pos = html.IndexOf('>', linkEnd) + 1;
-                    }
-                    else
-                    {
-                        pos = tagEnd + 1;
-                    }
-
-                    continue;
-
-                case "br":
-                    runs.Add(new()
-                        { Text = "\n", Properties = props });
-                    pos = tagEnd + 1;
-                    continue;
-
-                case "sub":
-                case "sup":
-                    var scriptEnd = FindClosingTag(html, tagEnd + 1, tagName);
-                    if (scriptEnd > tagEnd)
-                    {
-                        var innerHtml = html[(tagEnd + 1)..scriptEnd];
-                        // Render sub/sup as smaller text (approximation)
-                        ParseInlineContent(innerHtml, runs, props with { FontSizePoints = props.FontSizePoints * 0.7 });
-                        pos = html.IndexOf('>', scriptEnd) + 1;
-                    }
-                    else
-                    {
-                        pos = tagEnd + 1;
-                    }
-
-                    continue;
-            }
-
-            pos = tagEnd + 1;
         }
     }
 
-    static int FindClosingTag(string html, int startPos, string tagName)
+    static void ParseInlineElement(IElement element, List<Run> runs, RunProperties props)
     {
-        var pattern = $"</{tagName}>";
-        var index = html.IndexOf(pattern, startPos, StringComparison.OrdinalIgnoreCase);
-        return index >= 0 ? index : -1;
+        switch (element.TagName.ToLowerInvariant())
+        {
+            case "b":
+            case "strong":
+                ParseInlineNodes(element.ChildNodes, runs, props with { Bold = true });
+                break;
+
+            case "i":
+            case "em":
+                ParseInlineNodes(element.ChildNodes, runs, props with { Italic = true });
+                break;
+
+            case "u":
+                ParseInlineNodes(element.ChildNodes, runs, props with { Underline = true });
+                break;
+
+            case "s":
+            case "strike":
+            case "del":
+                ParseInlineNodes(element.ChildNodes, runs, props with { Strikethrough = true });
+                break;
+
+            case "font":
+                var fontProps = ParseFontElement(element, props);
+                ParseInlineNodes(element.ChildNodes, runs, fontProps);
+                break;
+
+            case "span":
+                var spanProps = ParseSpanStyle(element, props);
+                ParseInlineNodes(element.ChildNodes, runs, spanProps);
+                break;
+
+            case "a":
+                // Render links as blue underlined text
+                ParseInlineNodes(element.ChildNodes, runs, props with { ColorHex = "0000FF", Underline = true });
+                break;
+
+            case "br":
+                runs.Add(new() { Text = "\n", Properties = props });
+                break;
+
+            case "sub":
+            case "sup":
+                // Render sub/sup as smaller text
+                ParseInlineNodes(element.ChildNodes, runs, props with { FontSizePoints = props.FontSizePoints * 0.7 });
+                break;
+
+            default:
+                // Process children for unknown inline elements
+                ParseInlineNodes(element.ChildNodes, runs, props);
+                break;
+        }
     }
 
-    static RunProperties ParseFontTag(string tagContent, RunProperties baseProps)
+    static RunProperties ParseFontElement(IElement element, RunProperties baseProps)
     {
         var props = baseProps;
 
-        // Parse face attribute
-        var faceMatch = Regex.Match(tagContent, """face\s*=\s*["']([^"']+)["']""", RegexOptions.IgnoreCase);
-        if (faceMatch.Success)
+        var face = element.GetAttribute("face");
+        if (!string.IsNullOrEmpty(face))
         {
-            props = props with { FontFamily = faceMatch.Groups[1].Value };
+            props = props with { FontFamily = face };
         }
 
-        // Parse color attribute
-        var colorMatch = Regex.Match(tagContent, """color\s*=\s*["']([^"']+)["']""", RegexOptions.IgnoreCase);
-        if (colorMatch.Success)
+        var color = element.GetAttribute("color");
+        if (!string.IsNullOrEmpty(color))
         {
-            props = props with { ColorHex = NormalizeColor(colorMatch.Groups[1].Value) };
+            props = props with { ColorHex = NormalizeColor(color) };
         }
 
-        // Parse size attribute (1-7, where 3 is normal ~11pt)
-        var sizeMatch = Regex.Match(tagContent, """size\s*=\s*["'](\d+)["']""", RegexOptions.IgnoreCase);
-        if (sizeMatch.Success && int.TryParse(sizeMatch.Groups[1].Value, out var size))
+        var size = element.GetAttribute("size");
+        if (!string.IsNullOrEmpty(size) && int.TryParse(size, out var sizeValue))
         {
             double[] fontSizes = [8, 10, 12, 14, 18, 24, 36];
-            var idx = Math.Clamp(size - 1, 0, 6);
+            var idx = Math.Clamp(sizeValue - 1, 0, 6);
             props = props with { FontSizePoints = fontSizes[idx] };
         }
 
         return props;
     }
 
-    static RunProperties ParseSpanStyle(string tagContent, RunProperties baseProps)
+    static RunProperties ParseSpanStyle(IElement element, RunProperties baseProps)
     {
-        var styleMatch = Regex.Match(tagContent, """style\s*=\s*["']([^"']+)["']""", RegexOptions.IgnoreCase);
-        if (!styleMatch.Success)
+        var style = element.GetAttribute("style");
+        if (string.IsNullOrEmpty(style))
         {
             return baseProps;
         }
 
-        var style = styleMatch.Groups[1].Value;
-        var props = baseProps;
+        return ApplyStyleToRunProps(style, baseProps);
+    }
 
-        // color
-        var colorMatch = Regex.Match(style, @"color\s*:\s*([^;]+)", RegexOptions.IgnoreCase);
-        if (colorMatch.Success)
+    static RunProperties ApplyStyleToRunProps(string style, RunProperties props)
+    {
+        var styles = ParseStyleAttribute(style);
+
+        if (styles.TryGetValue("color", out var color))
         {
-            props = props with { ColorHex = NormalizeColor(colorMatch.Groups[1].Value.Trim()) };
+            props = props with { ColorHex = NormalizeColor(color) };
         }
 
-        // font-family
-        var fontMatch = Regex.Match(style, @"font-family\s*:\s*([^;]+)", RegexOptions.IgnoreCase);
-        if (fontMatch.Success)
+        if (styles.TryGetValue("font-family", out var fontFamily))
         {
-            props = props with { FontFamily = fontMatch.Groups[1].Value.Trim().Trim('\'', '"') };
+            props = props with { FontFamily = fontFamily.Trim('\'', '"') };
         }
 
-        // font-size
-        var sizeMatch = Regex.Match(style, @"font-size\s*:\s*(\d+)", RegexOptions.IgnoreCase);
-        if (sizeMatch.Success && double.TryParse(sizeMatch.Groups[1].Value, out var size))
+        if (styles.TryGetValue("font-size", out var fontSize))
         {
-            props = props with { FontSizePoints = size };
+            if (double.TryParse(fontSize.Replace("px", "").Replace("pt", ""), out var size))
+            {
+                props = props with { FontSizePoints = size };
+            }
         }
 
-        // font-weight
-        if (style.Contains("font-weight") && (style.Contains("bold") || style.Contains("700")))
+        if (styles.TryGetValue("font-weight", out var fontWeight))
         {
-            props = props with { Bold = true };
+            if (fontWeight.Contains("bold", StringComparison.OrdinalIgnoreCase) || fontWeight == "700")
+            {
+                props = props with { Bold = true };
+            }
         }
 
-        // font-style
-        if (style.Contains("font-style") && style.Contains("italic"))
+        if (styles.TryGetValue("font-style", out var fontStyle))
         {
-            props = props with { Italic = true };
+            if (fontStyle.Contains("italic", StringComparison.OrdinalIgnoreCase))
+            {
+                props = props with { Italic = true };
+            }
         }
 
-        // text-decoration
-        if (style.Contains("text-decoration") && style.Contains("underline"))
+        if (styles.TryGetValue("text-decoration", out var textDecoration))
         {
-            props = props with { Underline = true };
-        }
-
-        if (style.Contains("text-decoration") && style.Contains("line-through"))
-        {
-            props = props with { Strikethrough = true };
+            if (textDecoration.Contains("underline", StringComparison.OrdinalIgnoreCase))
+            {
+                props = props with { Underline = true };
+            }
+            if (textDecoration.Contains("line-through", StringComparison.OrdinalIgnoreCase))
+            {
+                props = props with { Strikethrough = true };
+            }
         }
 
         return props;
     }
 
-    static InlineStyle? ParseInlineStyle(string style)
+    static InlineStyle? ParseInlineStyle(IElement element)
     {
+        var style = element.GetAttribute("style");
         if (string.IsNullOrEmpty(style))
         {
             return null;
         }
 
-        var styleMatch = Regex.Match(style, """style\s*=\s*["']([^"']+)["']""", RegexOptions.IgnoreCase);
-        if (!styleMatch.Success)
-        {
-            return null;
-        }
-
-        var styleValue = styleMatch.Groups[1].Value;
+        var styles = ParseStyleAttribute(style);
         var result = new InlineStyle();
 
-        // text-align
-        var alignMatch = Regex.Match(styleValue, @"text-align\s*:\s*(\w+)", RegexOptions.IgnoreCase);
-        if (alignMatch.Success)
+        if (styles.TryGetValue("text-align", out var textAlign))
         {
-            result.Alignment = alignMatch.Groups[1].Value.ToLowerInvariant() switch
+            result.Alignment = textAlign.ToLowerInvariant() switch
             {
                 "center" => TextAlignment.Center,
                 "right" => TextAlignment.Right,
@@ -513,129 +336,156 @@ internal sealed partial class HtmlParser
             };
         }
 
-        // color
-        var colorMatch = Regex.Match(styleValue, @"(?<!background-)color\s*:\s*([^;]+)", RegexOptions.IgnoreCase);
-        if (colorMatch.Success)
+        if (styles.TryGetValue("color", out var color))
         {
-            result.Color = NormalizeColor(colorMatch.Groups[1].Value.Trim());
+            result.Color = NormalizeColor(color);
         }
 
         return result;
     }
 
-    static void ParseList(string listContent, List<DocumentElement> elements, string bulletPrefix, int level = 0)
+    static Dictionary<string, string> ParseStyleAttribute(string style)
     {
-        var matches = LiRegex().Matches(listContent);
-        foreach (Match match in matches)
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var declarations = style.Split(';', StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var declaration in declarations)
         {
-            var itemContent = match.Groups[1].Value;
+            var colonIndex = declaration.IndexOf(':');
+            if (colonIndex > 0)
+            {
+                var property = declaration[..colonIndex].Trim();
+                var value = declaration[(colonIndex + 1)..].Trim();
+                result[property] = value;
+            }
+        }
 
-            // Check for nested lists
-            var nestedUl = UlRegex().Match(itemContent);
-            var nestedOl = OlRegex().Match(itemContent);
+        return result;
+    }
 
-            // Get text before nested list
-            var textEnd = nestedUl.Success ? nestedUl.Index : nestedOl.Success ? nestedOl.Index : itemContent.Length;
-            var text = StripTags(itemContent[..textEnd]).Trim();
+    static void ParseList(IElement listElement, List<DocumentElement> elements, string bulletPrefix, int level = 0)
+    {
+        foreach (var child in listElement.Children)
+        {
+            if (!child.TagName.Equals("li", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
 
-            if (!string.IsNullOrEmpty(text))
+            var textContent = new List<string>();
+            IElement? nestedList = null;
+
+            foreach (var node in child.ChildNodes)
+            {
+                if (node is IElement el && (el.TagName.Equals("ul", StringComparison.OrdinalIgnoreCase) ||
+                                            el.TagName.Equals("ol", StringComparison.OrdinalIgnoreCase)))
+                {
+                    nestedList = el;
+                }
+                else
+                {
+                    var text = node.TextContent.Trim();
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        textContent.Add(text);
+                    }
+                }
+            }
+
+            var itemText = string.Join(" ", textContent);
+            if (!string.IsNullOrEmpty(itemText))
             {
                 var indent = 18 * (level + 1);
-                var runs = new List<Run> { new() { Text = bulletPrefix + text, Properties = new() } };
                 elements.Add(new ParagraphElement
                 {
-                    Runs = runs,
-                    Properties = new()
-                        { LeftIndentPoints = indent, SpacingAfterPoints = 4 }
+                    Runs = [new() { Text = bulletPrefix + itemText, Properties = new() }],
+                    Properties = new() { LeftIndentPoints = indent, SpacingAfterPoints = 4 }
                 });
             }
 
-            // Process nested lists
-            if (nestedUl.Success)
+            if (nestedList != null)
             {
-                ParseList(nestedUl.Groups[1].Value, elements, "\u25E6 ", level + 1); // hollow bullet
-            }
-
-            if (nestedOl.Success)
-            {
-                ParseOrderedList(nestedOl.Groups[1].Value, elements, level + 1);
+                if (nestedList.TagName.Equals("ul", StringComparison.OrdinalIgnoreCase))
+                {
+                    ParseList(nestedList, elements, "\u25E6 ", level + 1);
+                }
+                else
+                {
+                    ParseOrderedList(nestedList, elements, level + 1);
+                }
             }
         }
     }
 
-    static void ParseOrderedList(string listContent, List<DocumentElement> elements, int level = 0)
+    static void ParseOrderedList(IElement listElement, List<DocumentElement> elements, int level = 0)
     {
-        var matches = LiRegex().Matches(listContent);
         var num = 1;
-        foreach (Match match in matches)
+        foreach (var child in listElement.Children)
         {
-            var itemContent = match.Groups[1].Value;
-            var text = StripTags(itemContent).Trim();
+            if (!child.TagName.Equals("li", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
 
+            var text = child.TextContent.Trim();
             if (!string.IsNullOrEmpty(text))
             {
                 var indent = 18 * (level + 1);
-                var runs = new List<Run> { new() { Text = $"{num}. {text}", Properties = new() } };
                 elements.Add(new ParagraphElement
                 {
-                    Runs = runs,
-                    Properties = new()
-                        { LeftIndentPoints = indent, SpacingAfterPoints = 4 }
+                    Runs = [new() { Text = $"{num}. {text}", Properties = new() }],
+                    Properties = new() { LeftIndentPoints = indent, SpacingAfterPoints = 4 }
                 });
                 num++;
             }
         }
     }
 
-    static TableElement? ParseTable(string tableHtml)
+    static TableElement? ParseTable(IElement tableElement)
     {
         var rows = new List<TableRow>();
 
-        // Parse table-level cellpadding attribute
+        // Parse table-level cellpadding
         CellSpacing? defaultCellPadding = null;
-        var cellpaddingMatch = Regex.Match(tableHtml, """<table[^>]*cellpadding\s*=\s*["']?(\d+)["']?""", RegexOptions.IgnoreCase);
-        if (cellpaddingMatch.Success && double.TryParse(cellpaddingMatch.Groups[1].Value, out var padding))
+        var cellpadding = tableElement.GetAttribute("cellpadding");
+        if (!string.IsNullOrEmpty(cellpadding) && double.TryParse(cellpadding, out var padding))
         {
             defaultCellPadding = new(padding);
         }
 
         // Parse table-level style for padding
-        var tableStyleMatch = Regex.Match(tableHtml, """<table[^>]*style\s*=\s*["']([^"']+)["']""", RegexOptions.IgnoreCase);
-        if (tableStyleMatch.Success)
+        var tableStyle = tableElement.GetAttribute("style");
+        if (!string.IsNullOrEmpty(tableStyle))
         {
-            var tablePadding = ParseCssSpacing(tableStyleMatch.Groups[1].Value, "padding");
+            var tablePadding = ParseCssSpacing(tableStyle, "padding");
             if (tablePadding != null)
             {
                 defaultCellPadding = tablePadding;
             }
         }
 
-        var trMatches = TrRegex().Matches(tableHtml);
-
-        foreach (Match trMatch in trMatches)
+        foreach (var tr in tableElement.QuerySelectorAll("tr"))
         {
-            var rowContent = trMatch.Groups[1].Value;
             var cells = new List<TableCell>();
 
-            // Match td and th with their full opening tag
-            var cellMatches = TdThFullRegex().Matches(rowContent);
-            foreach (Match cellMatch in cellMatches)
+            foreach (var cell in tr.Children)
             {
-                var tagName = cellMatch.Groups[1].Value;
-                var attrs = cellMatch.Groups[2].Value;
-                var cellContent = cellMatch.Groups[3].Value;
-                var isHeader = tagName.Equals("th", StringComparison.OrdinalIgnoreCase);
-                var text = StripTags(cellContent).Trim();
+                if (!cell.TagName.Equals("td", StringComparison.OrdinalIgnoreCase) &&
+                    !cell.TagName.Equals("th", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
 
-                // Parse cell-level padding and margin from style
+                var isHeader = cell.TagName.Equals("th", StringComparison.OrdinalIgnoreCase);
+                var text = cell.TextContent.Trim();
+
                 CellSpacing? cellPadding = null;
                 CellSpacing? cellMargin = null;
-                var styleMatch = Regex.Match(attrs, """style\s*=\s*["']([^"']+)["']""", RegexOptions.IgnoreCase);
-                if (styleMatch.Success)
+                var cellStyle = cell.GetAttribute("style");
+                if (!string.IsNullOrEmpty(cellStyle))
                 {
-                    var styleValue = styleMatch.Groups[1].Value;
-                    cellPadding = ParseCssSpacing(styleValue, "padding");
-                    cellMargin = ParseCssSpacing(styleValue, "margin");
+                    cellPadding = ParseCssSpacing(cellStyle, "padding");
+                    cellMargin = ParseCssSpacing(cellStyle, "margin");
                 }
 
                 var cellElements = new List<DocumentElement>();
@@ -643,15 +493,7 @@ internal sealed partial class HtmlParser
                 {
                     cellElements.Add(new ParagraphElement
                     {
-                        Runs = new List<Run>
-                        {
-                            new()
-                            {
-                                Text = text,
-                                Properties = new()
-                                    { Bold = isHeader }
-                            }
-                        }
+                        Runs = [new() { Text = text, Properties = new() { Bold = isHeader } }]
                     });
                 }
 
@@ -668,8 +510,7 @@ internal sealed partial class HtmlParser
 
             if (cells.Count > 0)
             {
-                rows.Add(new()
-                    { Cells = cells });
+                rows.Add(new() { Cells = cells });
             }
         }
 
@@ -691,55 +532,51 @@ internal sealed partial class HtmlParser
 
     static CellSpacing? ParseCssSpacing(string style, string property)
     {
-        // Try padding: X or margin: X (shorthand for all sides)
-        var allMatch = Regex.Match(style, $@"{property}\s*:\s*(\d+)(?:px|pt)?(?:\s|;|$)", RegexOptions.IgnoreCase);
-        if (allMatch.Success && double.TryParse(allMatch.Groups[1].Value, out var all))
+        var styles = ParseStyleAttribute(style);
+
+        // Try shorthand property
+        if (styles.TryGetValue(property, out var all))
         {
-            return new(all);
+            if (double.TryParse(all.Replace("px", "").Replace("pt", ""), out var value))
+            {
+                return new(value);
+            }
         }
 
         // Try individual properties
         double? top = null, right = null, bottom = null, left = null;
 
-        var topMatch = Regex.Match(style, $@"{property}-top\s*:\s*(\d+)(?:px|pt)?", RegexOptions.IgnoreCase);
-        if (topMatch.Success && double.TryParse(topMatch.Groups[1].Value, out var t))
+        if (styles.TryGetValue($"{property}-top", out var topStr) &&
+            double.TryParse(topStr.Replace("px", "").Replace("pt", ""), out var t))
         {
             top = t;
         }
 
-        var rightMatch = Regex.Match(style, $@"{property}-right\s*:\s*(\d+)(?:px|pt)?", RegexOptions.IgnoreCase);
-        if (rightMatch.Success && double.TryParse(rightMatch.Groups[1].Value, out var r))
+        if (styles.TryGetValue($"{property}-right", out var rightStr) &&
+            double.TryParse(rightStr.Replace("px", "").Replace("pt", ""), out var r))
         {
             right = r;
         }
 
-        var bottomMatch = Regex.Match(style, $@"{property}-bottom\s*:\s*(\d+)(?:px|pt)?", RegexOptions.IgnoreCase);
-        if (bottomMatch.Success && double.TryParse(bottomMatch.Groups[1].Value, out var b))
+        if (styles.TryGetValue($"{property}-bottom", out var bottomStr) &&
+            double.TryParse(bottomStr.Replace("px", "").Replace("pt", ""), out var b))
         {
             bottom = b;
         }
 
-        var leftMatch = Regex.Match(style, $@"{property}-left\s*:\s*(\d+)(?:px|pt)?", RegexOptions.IgnoreCase);
-        if (leftMatch.Success && double.TryParse(leftMatch.Groups[1].Value, out var l))
+        if (styles.TryGetValue($"{property}-left", out var leftStr) &&
+            double.TryParse(leftStr.Replace("px", "").Replace("pt", ""), out var l))
         {
             left = l;
         }
 
         if (top.HasValue || right.HasValue || bottom.HasValue || left.HasValue)
         {
-            return new(
-                top ?? 0,
-                right ?? 0,
-                bottom ?? 0,
-                left ?? 0
-            );
+            return new(top ?? 0, right ?? 0, bottom ?? 0, left ?? 0);
         }
 
         return null;
     }
-
-    static string StripTags(string html) =>
-        HttpUtility.HtmlDecode(TagRegex().Replace(html, ""));
 
     static double GetHeadingFontSize(int level) => level switch
     {
@@ -761,7 +598,6 @@ internal sealed partial class HtmlParser
 
         color = color.Trim();
 
-        // Named colors
         var namedColors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             ["red"] = "FF0000",
@@ -781,7 +617,6 @@ internal sealed partial class HtmlParser
             return hex;
         }
 
-        // #RGB or #RRGGBB
         if (color.StartsWith('#'))
         {
             var hexValue = color[1..];
@@ -789,7 +624,6 @@ internal sealed partial class HtmlParser
             {
                 return $"{hexValue[0]}{hexValue[0]}{hexValue[1]}{hexValue[1]}{hexValue[2]}{hexValue[2]}";
             }
-
             if (hexValue.Length == 6)
             {
                 return hexValue.ToUpperInvariant();
@@ -797,13 +631,16 @@ internal sealed partial class HtmlParser
         }
 
         // rgb(r, g, b)
-        var rgbMatch = Regex.Match(color, @"rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)", RegexOptions.IgnoreCase);
-        if (rgbMatch.Success)
+        if (color.StartsWith("rgb(", StringComparison.OrdinalIgnoreCase))
         {
-            var r = int.Parse(rgbMatch.Groups[1].Value);
-            var g = int.Parse(rgbMatch.Groups[2].Value);
-            var b = int.Parse(rgbMatch.Groups[3].Value);
-            return $"{r:X2}{g:X2}{b:X2}";
+            var values = color[4..^1].Split(',');
+            if (values.Length == 3 &&
+                int.TryParse(values[0].Trim(), out var r) &&
+                int.TryParse(values[1].Trim(), out var g) &&
+                int.TryParse(values[2].Trim(), out var b))
+            {
+                return $"{r:X2}{g:X2}{b:X2}";
+            }
         }
 
         return null;
@@ -814,40 +651,4 @@ internal sealed partial class HtmlParser
         public TextAlignment Alignment { get; set; } = TextAlignment.Left;
         public string? Color { get; set; }
     }
-
-    [GeneratedRegex("<body[^>]*>(.*?)</body>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
-    private static partial Regex BodyRegex();
-
-    [GeneratedRegex(@"<h([1-6])[^>]*>(.*?)</h\1>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
-    private static partial Regex HeadingRegex();
-
-    [GeneratedRegex("<p([^>]*)>(.*?)</p>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
-    private static partial Regex ParagraphRegex();
-
-    [GeneratedRegex("<ul[^>]*>(.*?)</ul>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
-    private static partial Regex UlRegex();
-
-    [GeneratedRegex("<ol[^>]*>(.*?)</ol>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
-    private static partial Regex OlRegex();
-
-    [GeneratedRegex("<li[^>]*>(.*?)</li>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
-    private static partial Regex LiRegex();
-
-    [GeneratedRegex("<table[^>]*>.*?</table>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
-    private static partial Regex TableRegex();
-
-    [GeneratedRegex("<tr[^>]*>(.*?)</tr>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
-    private static partial Regex TrRegex();
-
-    [GeneratedRegex(@"<(td|th)([^>]*)>(.*?)</\1>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
-    private static partial Regex TdThFullRegex();
-
-    [GeneratedRegex(@"<br\s*/?>", RegexOptions.IgnoreCase)]
-    private static partial Regex BrRegex();
-
-    [GeneratedRegex(@"<(\w+)[^>]*>(.*?)</\1>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
-    private static partial Regex AnyTagRegex();
-
-    [GeneratedRegex("<[^>]+>")]
-    private static partial Regex TagRegex();
 }
