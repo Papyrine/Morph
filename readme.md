@@ -6,14 +6,6 @@
 A .NET library that converts Microsoft Word DOCX documents into PNG images.
 
 
-## Overview
-
-Morph parses OpenXML-based Word documents and renders them to images that closely match the appearance of the original documents as they would appear in Microsoft Word. It uses a two-stage pipeline architecture:
-
-1. **Parsing Stage** - Converts DOCX to an intermediate representation using DocumentFormat.OpenXml
-2. **Rendering Stage** - Renders the intermediate representation to PNG images using SkiaSharp
-
-
 ## Requirements
 
 - .NET 10.0 or later
