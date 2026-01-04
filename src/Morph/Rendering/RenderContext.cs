@@ -72,10 +72,13 @@ sealed class RenderContext : IDisposable
     {
         var result = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
 
-        var officeFontsPath = @"C:\Program Files\Microsoft Office\root\vfs\Fonts\private";
-
-        if (Directory.Exists(officeFontsPath))
+        foreach (var officeFontsPath in GetOfficeFontPaths())
         {
+            if (!Directory.Exists(officeFontsPath))
+            {
+                continue;
+            }
+
             foreach (var fontFile in Directory.GetFiles(officeFontsPath, "*.ttf"))
             {
                 using var tf = SKTypeface.FromFile(fontFile);
@@ -95,6 +98,20 @@ sealed class RenderContext : IDisposable
         }
 
         return result.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToArray(), StringComparer.OrdinalIgnoreCase);
+    }
+
+    static IEnumerable<string> GetOfficeFontPaths()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Microsoft Office", "root", "vfs", "Fonts", "private");
+        }
+        else if (OperatingSystem.IsMacOS())
+        {
+            yield return "/Applications/Microsoft Word.app/Contents/Resources/DFonts";
+            yield return "/Applications/Microsoft Excel.app/Contents/Resources/DFonts";
+            yield return "/Applications/Microsoft PowerPoint.app/Contents/Resources/DFonts";
+        }
     }
 
     static Dictionary<string, string[]> LoadUserFontsCache()

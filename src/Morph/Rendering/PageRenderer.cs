@@ -1995,7 +1995,6 @@ sealed class PageRenderer : IDisposable
             var top = pixelY + padding;
             var bottom = pixelY + pixelSize - padding;
             var midX = pixelX + pixelSize * 0.4f;
-            var midY = pixelY + pixelSize * 0.7f;
 
             currentCanvas.DrawLine(left, top + (bottom - top) * 0.5f, midX, bottom, checkPaint);
             currentCanvas.DrawLine(midX, bottom, right, top, checkPaint);
