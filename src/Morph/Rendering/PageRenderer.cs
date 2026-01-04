@@ -1,10 +1,10 @@
 /// <summary>
 /// Renders document pages to PNG images.
 /// </summary>
-sealed class PageRenderer : IDisposable
+sealed class PageRenderer(RenderContext context) :
+    IDisposable
 {
-    readonly RenderContext context;
-    readonly TextRenderer textRenderer;
+    readonly TextRenderer textRenderer = new(context);
     readonly List<SKBitmap> pages = [];
 
     SKBitmap? currentPage;
@@ -21,12 +21,6 @@ sealed class PageRenderer : IDisposable
     // Track whether the current page was started due to an explicit break
     // (page break, section break) - such pages should not be discarded even if blank
     bool currentPageFromExplicitBreak;
-
-    public PageRenderer(RenderContext context)
-    {
-        this.context = context;
-        textRenderer = new(context);
-    }
 
     /// <summary>
     /// Renders a parsed document to a list of page bitmaps.
