@@ -3,7 +3,7 @@ namespace WordRender;
 /// <summary>
 /// Renders text content with formatting using SkiaSharp.
 /// </summary>
-public sealed class TextRenderer(RenderContext context)
+sealed class TextRenderer(RenderContext context)
 {
     /// <summary>
     /// Measures the height of a paragraph when rendered at the given width.
@@ -1213,7 +1213,7 @@ internal sealed record TextLine
     public bool IsLastLine { get; init; }
 }
 
-internal sealed class TextFragment
+sealed class TextFragment
 {
     public required string Text { get; init; }
     public required float Width { get; init; }

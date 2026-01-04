@@ -3,7 +3,7 @@ namespace WordRender;
 /// <summary>
 /// Renders document pages to PNG images.
 /// </summary>
-public sealed class PageRenderer : IDisposable
+sealed class PageRenderer : IDisposable
 {
     readonly RenderContext context;
     readonly TextRenderer textRenderer;
@@ -480,7 +480,9 @@ public sealed class PageRenderer : IDisposable
         // Remove class attributes from paths
         svgContent = Regex.Replace(
             svgContent,
-            @"\s+class=""[^""]*""",
+            """
+            \s+class="[^"]*"
+            """,
             "");
 
         var processedData = Encoding.UTF8.GetBytes(svgContent);

@@ -13,7 +13,7 @@ namespace WordRender;
 /// <summary>
 /// Parses DOCX files using OpenXML.
 /// </summary>
-public sealed class DocumentParser
+sealed class DocumentParser
 {
     // Conversion constants
     const double twipsPerPoint = 20.0;

@@ -4,7 +4,7 @@ namespace WordRender;
 /// Provides region-based default page sizes matching Microsoft Word behavior.
 /// Letter (8.5" x 11") in North America, A4 (210 x 297mm) elsewhere.
 /// </summary>
-public static class DefaultPageSize
+internal static class DefaultPageSize
 {
     // Letter: 8.5" x 11" = 612 x 792 points
     const double letterWidthPoints = 612.0;
@@ -61,7 +61,7 @@ public static class DefaultPageSize
 /// <summary>
 /// Provides configurable font rendering settings to better match Microsoft Word.
 /// </summary>
-public static class DefaultFontSettings
+internal static class DefaultFontSettings
 {
     static double fontWidthScale = 1.0;
 
@@ -86,7 +86,7 @@ public static class DefaultFontSettings
 /// Color transform parameters for theme colors.
 /// Shade and tint use the Word/OpenXML 0-255 scale.
 /// </summary>
-public sealed record ColorTransforms
+internal sealed record ColorTransforms
 {
     /// <summary>Shade value (0-255, darkens the color).</summary>
     public byte? Shade { get; init; }
@@ -116,7 +116,7 @@ public sealed record ColorTransforms
 /// <summary>
 /// Represents a parsed DOCX document.
 /// </summary>
-public sealed class ParsedDocument
+sealed class ParsedDocument
 {
     public required PageSettings PageSettings { get; init; }
     public required IReadOnlyList<DocumentElement> Elements { get; init; }
@@ -148,7 +148,7 @@ public sealed class ParsedDocument
 /// Word compatibility settings that affect layout behavior.
 /// Based on settings from settings.xml w:compat section.
 /// </summary>
-public sealed class CompatibilitySettings
+sealed class CompatibilitySettings
 {
     /// <summary>
     /// Word compatibility mode version.
@@ -173,7 +173,7 @@ public sealed class CompatibilitySettings
 /// <summary>
 /// Theme color definitions from the document theme.
 /// </summary>
-public sealed class ThemeColors
+sealed class ThemeColors
 {
     /// <summary>Dark 1 color (typically black).</summary>
     public string Dark1 { get; init; } = "000000";
@@ -445,7 +445,7 @@ public sealed class ThemeColors
 /// <summary>
 /// Theme font definitions from the document theme.
 /// </summary>
-public sealed class ThemeFonts
+sealed class ThemeFonts
 {
     /// <summary>Major font for headings (e.g., "Calibri Light").</summary>
     public string MajorFont { get; init; } = "Calibri Light";
@@ -471,7 +471,7 @@ public sealed class ThemeFonts
 /// <summary>
 /// Content for a header or footer.
 /// </summary>
-public sealed class HeaderFooterContent
+sealed class HeaderFooterContent
 {
     public required IReadOnlyList<DocumentElement> Elements { get; init; }
 }
@@ -479,7 +479,7 @@ public sealed class HeaderFooterContent
 /// <summary>
 /// Page settings extracted from the document.
 /// </summary>
-public sealed record PageSettings
+internal sealed record PageSettings
 {
     /// <summary>Page width in points (1/72 inch). Defaults to A4; use DefaultPageSize for region-based defaults.</summary>
     public double WidthPoints { get; init; } = 595.28; // A4 width (international standard default)
@@ -540,7 +540,7 @@ public sealed record PageSettings
 /// <summary>
 /// Settings for line numbering in a document section.
 /// </summary>
-public sealed record LineNumberSettings
+internal sealed record LineNumberSettings
 {
     /// <summary>
     /// Starting line number. Default is 1.
@@ -566,7 +566,7 @@ public sealed record LineNumberSettings
 /// <summary>
 /// Specifies when line numbering should restart.
 /// </summary>
-public enum LineNumberRestart
+internal enum LineNumberRestart
 {
     /// <summary>Line numbers restart at the beginning of each page.</summary>
     NewPage,
@@ -581,7 +581,7 @@ public enum LineNumberRestart
 /// <summary>
 /// Document-level hyphenation settings.
 /// </summary>
-public sealed record HyphenationSettings
+internal sealed record HyphenationSettings
 {
     /// <summary>
     /// When true, automatic hyphenation is enabled for the document.
@@ -609,12 +609,12 @@ public sealed record HyphenationSettings
 /// <summary>
 /// Base class for document elements.
 /// </summary>
-public abstract class DocumentElement;
+internal abstract class DocumentElement;
 
 /// <summary>
 /// Represents a paragraph in the document.
 /// </summary>
-public sealed class ParagraphElement : DocumentElement
+sealed class ParagraphElement : DocumentElement
 {
     public required IReadOnlyList<Run> Runs { get; init; }
     public ParagraphProperties Properties { get; init; } = new();
@@ -623,7 +623,7 @@ public sealed class ParagraphElement : DocumentElement
 /// <summary>
 /// Paragraph-level properties.
 /// </summary>
-public sealed record ParagraphProperties
+internal sealed record ParagraphProperties
 {
     public TextAlignment Alignment { get; init; } = TextAlignment.Left;
     public double SpacingBeforePoints { get; init; }
@@ -723,7 +723,7 @@ public sealed record ParagraphProperties
 /// <summary>
 /// Specifies how line spacing is calculated.
 /// </summary>
-public enum LineSpacingRule
+internal enum LineSpacingRule
 {
     /// <summary>
     /// Automatic/Multiple: Line spacing is a multiple of the line height (e.g., 1.0, 1.5, 2.0).
@@ -744,7 +744,7 @@ public enum LineSpacingRule
 /// <summary>
 /// Numbering/bullet information for a paragraph.
 /// </summary>
-public sealed record NumberingInfo
+internal sealed record NumberingInfo
 {
     /// <summary>
     /// The text to display before the paragraph content (e.g., "•", "1.", "A)").
@@ -767,7 +767,7 @@ public sealed record NumberingInfo
     public double HangingIndentPoints { get; init; }
 }
 
-public enum TextAlignment
+internal enum TextAlignment
 {
     Left,
     Center,
@@ -778,7 +778,7 @@ public enum TextAlignment
 /// <summary>
 /// A run of text with consistent formatting. Can also represent an inline image.
 /// </summary>
-public sealed class Run
+sealed class Run
 {
     public required string Text { get; init; }
     public RunProperties Properties { get; init; } = new();
@@ -799,7 +799,7 @@ public sealed class Run
 /// <summary>
 /// Run-level text properties.
 /// </summary>
-public sealed record RunProperties
+internal sealed record RunProperties
 {
     public string FontFamily { get; init; } = "Aptos";
     public double FontSizePoints { get; init; } = 11;
@@ -824,7 +824,7 @@ public sealed record RunProperties
 /// <summary>
 /// Vertical text alignment for subscript and superscript.
 /// </summary>
-public enum VerticalRunAlignment
+internal enum VerticalRunAlignment
 {
     /// <summary>Normal baseline alignment.</summary>
     Baseline,
@@ -839,22 +839,22 @@ public enum VerticalRunAlignment
 /// <summary>
 /// Represents an explicit page break.
 /// </summary>
-public sealed class PageBreakElement : DocumentElement;
+sealed class PageBreakElement : DocumentElement;
 
 /// <summary>
 /// Represents a column break (moves content to next column in multi-column layouts).
 /// </summary>
-public sealed class ColumnBreakElement : DocumentElement;
+sealed class ColumnBreakElement : DocumentElement;
 
 /// <summary>
 /// Represents a line break (soft return) within a paragraph.
 /// </summary>
-public sealed class LineBreakElement : DocumentElement;
+sealed class LineBreakElement : DocumentElement;
 
 /// <summary>
 /// Represents a section break with various types.
 /// </summary>
-public sealed class SectionBreakElement : DocumentElement
+sealed class SectionBreakElement : DocumentElement
 {
     public required SectionBreakType BreakType { get; init; }
 
@@ -867,7 +867,7 @@ public sealed class SectionBreakElement : DocumentElement
 /// <summary>
 /// Types of section breaks.
 /// </summary>
-public enum SectionBreakType
+internal enum SectionBreakType
 {
     /// <summary>Starts new section on the next page.</summary>
     NextPage,
@@ -888,7 +888,7 @@ public enum SectionBreakType
 /// <summary>
 /// Represents an inline image.
 /// </summary>
-public sealed class ImageElement : DocumentElement
+sealed class ImageElement : DocumentElement
 {
     public required byte[] ImageData { get; init; }
     public required double WidthPoints { get; init; }
@@ -899,7 +899,7 @@ public sealed class ImageElement : DocumentElement
 /// <summary>
 /// Represents a floating/anchored image positioned relative to page or paragraph.
 /// </summary>
-public sealed class FloatingImageElement : DocumentElement
+sealed class FloatingImageElement : DocumentElement
 {
     public required byte[] ImageData { get; init; }
     public required double WidthPoints { get; init; }
@@ -928,7 +928,7 @@ public sealed class FloatingImageElement : DocumentElement
 /// <summary>
 /// Horizontal anchor reference for floating elements.
 /// </summary>
-public enum HorizontalAnchor
+internal enum HorizontalAnchor
 {
     /// <summary>Position relative to page edge.</summary>
     Page,
@@ -943,7 +943,7 @@ public enum HorizontalAnchor
 /// <summary>
 /// Vertical anchor reference for floating elements.
 /// </summary>
-public enum VerticalAnchor
+internal enum VerticalAnchor
 {
     /// <summary>Position relative to page edge.</summary>
     Page,
@@ -958,7 +958,7 @@ public enum VerticalAnchor
 /// <summary>
 /// Text wrapping type for floating elements.
 /// </summary>
-public enum WrapType
+internal enum WrapType
 {
     /// <summary>No wrapping - image floats over/under text.</summary>
     None,
@@ -975,7 +975,7 @@ public enum WrapType
 /// <summary>
 /// Represents a floating/positioned text box (shape with text content).
 /// </summary>
-public sealed class FloatingTextBoxElement : DocumentElement
+sealed class FloatingTextBoxElement : DocumentElement
 {
     /// <summary>Text content of the text box.</summary>
     public required IReadOnlyList<DocumentElement> Content { get; init; }
@@ -1014,7 +1014,7 @@ public sealed class FloatingTextBoxElement : DocumentElement
 /// <summary>
 /// Represents a floating shape (solid-fill or image-fill, typically used as background).
 /// </summary>
-public sealed class FloatingShapeElement : DocumentElement
+sealed class FloatingShapeElement : DocumentElement
 {
     /// <summary>Width in points.</summary>
     public required double WidthPoints { get; init; }
@@ -1051,7 +1051,7 @@ public sealed class FloatingShapeElement : DocumentElement
 /// Represents a floating/positioned WordArt text element with special formatting.
 /// Unlike WordArtElement (inline), this is positioned at absolute coordinates and doesn't consume flow space.
 /// </summary>
-public sealed class FloatingWordArtElement : DocumentElement
+sealed class FloatingWordArtElement : DocumentElement
 {
     /// <summary>The text content of the WordArt.</summary>
     public required string Text { get; init; }
@@ -1114,7 +1114,7 @@ public sealed class FloatingWordArtElement : DocumentElement
 /// <summary>
 /// Represents a WordArt text element with special formatting.
 /// </summary>
-public sealed class WordArtElement : DocumentElement
+sealed class WordArtElement : DocumentElement
 {
     /// <summary>The text content of the WordArt.</summary>
     public required string Text { get; init; }
@@ -1162,7 +1162,7 @@ public sealed class WordArtElement : DocumentElement
 /// <summary>
 /// WordArt text transform/warp presets.
 /// </summary>
-public enum WordArtTransform
+internal enum WordArtTransform
 {
     /// <summary>No transform applied.</summary>
     None,
@@ -1204,7 +1204,7 @@ public enum WordArtTransform
 /// <summary>
 /// Represents an ink drawing (pen/handwriting annotation).
 /// </summary>
-public sealed class InkElement : DocumentElement
+sealed class InkElement : DocumentElement
 {
     /// <summary>Width of the ink drawing in points.</summary>
     public required double WidthPoints { get; init; }
@@ -1219,7 +1219,7 @@ public sealed class InkElement : DocumentElement
 /// <summary>
 /// Represents a single ink stroke (trace).
 /// </summary>
-public sealed class InkStroke
+sealed class InkStroke
 {
     /// <summary>Points that make up this stroke.</summary>
     public required IReadOnlyList<InkPoint> Points { get; init; }
@@ -1243,7 +1243,7 @@ public sealed class InkStroke
 /// <summary>
 /// Represents a point in an ink stroke.
 /// </summary>
-public sealed record InkPoint
+internal sealed record InkPoint
 {
     /// <summary>X coordinate in points.</summary>
     public required double X { get; init; }
@@ -1258,7 +1258,7 @@ public sealed record InkPoint
 /// <summary>
 /// Pen tip shapes for ink strokes.
 /// </summary>
-public enum InkPenTip
+internal enum InkPenTip
 {
     /// <summary>Elliptical pen tip (default).</summary>
     Ellipse,
@@ -1270,7 +1270,7 @@ public enum InkPenTip
 /// <summary>
 /// Base class for form field elements.
 /// </summary>
-public abstract class FormFieldElement : DocumentElement
+internal abstract class FormFieldElement : DocumentElement
 {
     /// <summary>Name/bookmark of the form field.</summary>
     public string? Name { get; init; }
@@ -1282,7 +1282,7 @@ public abstract class FormFieldElement : DocumentElement
 /// <summary>
 /// Represents a text input form field.
 /// </summary>
-public sealed class TextFormFieldElement : FormFieldElement
+sealed class TextFormFieldElement : FormFieldElement
 {
     /// <summary>The current text value.</summary>
     public string Value { get; init; } = "";
@@ -1303,7 +1303,7 @@ public sealed class TextFormFieldElement : FormFieldElement
 /// <summary>
 /// Types of text form fields.
 /// </summary>
-public enum TextFormFieldType
+internal enum TextFormFieldType
 {
     /// <summary>Regular text input.</summary>
     Regular,
@@ -1327,7 +1327,7 @@ public enum TextFormFieldType
 /// <summary>
 /// Represents a checkbox form field.
 /// </summary>
-public sealed class CheckBoxFormFieldElement : FormFieldElement
+sealed class CheckBoxFormFieldElement : FormFieldElement
 {
     /// <summary>Whether the checkbox is checked.</summary>
     public bool Checked { get; init; }
@@ -1342,7 +1342,7 @@ public sealed class CheckBoxFormFieldElement : FormFieldElement
 /// <summary>
 /// Represents a drop-down list form field.
 /// </summary>
-public sealed class DropDownFormFieldElement : FormFieldElement
+sealed class DropDownFormFieldElement : FormFieldElement
 {
     /// <summary>Available options in the drop-down.</summary>
     public required IReadOnlyList<string> Items { get; init; }
@@ -1357,7 +1357,7 @@ public sealed class DropDownFormFieldElement : FormFieldElement
 /// <summary>
 /// Represents a content control (structured document tag).
 /// </summary>
-public sealed class ContentControlElement : DocumentElement
+sealed class ContentControlElement : DocumentElement
 {
     /// <summary>The type of content control.</summary>
     public ContentControlType ControlType { get; init; } = ContentControlType.RichText;
@@ -1393,7 +1393,7 @@ public sealed class ContentControlElement : DocumentElement
 /// <summary>
 /// Types of content controls.
 /// </summary>
-public enum ContentControlType
+internal enum ContentControlType
 {
     /// <summary>Rich text content control (allows formatting).</summary>
     RichText,
@@ -1420,7 +1420,7 @@ public enum ContentControlType
 /// <summary>
 /// Represents a table in the document.
 /// </summary>
-public sealed class TableElement : DocumentElement
+sealed class TableElement : DocumentElement
 {
     public required IReadOnlyList<TableRow> Rows { get; init; }
     public TableProperties Properties { get; init; } = new();
@@ -1429,7 +1429,7 @@ public sealed class TableElement : DocumentElement
 /// <summary>
 /// Table-level properties.
 /// </summary>
-public sealed record TableProperties
+internal sealed record TableProperties
 {
     /// <summary>Whether this table is a floating table with absolute positioning (w:tblpPr).</summary>
     public bool IsFloating { get; init; }
@@ -1453,7 +1453,7 @@ public sealed record TableProperties
 /// <summary>
 /// Represents a row in a table.
 /// </summary>
-public sealed class TableRow
+sealed class TableRow
 {
     public required IReadOnlyList<TableCell> Cells { get; init; }
 
@@ -1474,7 +1474,7 @@ public sealed class TableRow
 /// <summary>
 /// Represents a cell in a table row.
 /// </summary>
-public sealed class TableCell
+sealed class TableCell
 {
     public required IReadOnlyList<DocumentElement> Content { get; init; }
     public TableCellProperties Properties { get; init; } = new();
@@ -1483,7 +1483,7 @@ public sealed class TableCell
 /// <summary>
 /// Vertical alignment options for table cells.
 /// </summary>
-public enum CellVerticalAlignment
+internal enum CellVerticalAlignment
 {
     Top,
     Center,
@@ -1493,7 +1493,7 @@ public enum CellVerticalAlignment
 /// <summary>
 /// Vertical merge state for table cells.
 /// </summary>
-public enum VerticalMergeType
+internal enum VerticalMergeType
 {
     /// <summary>Cell is not part of a vertical merge.</summary>
     None,
@@ -1506,7 +1506,7 @@ public enum VerticalMergeType
 /// <summary>
 /// Cell-level properties.
 /// </summary>
-public sealed record TableCellProperties
+internal sealed record TableCellProperties
 {
     public double? WidthPoints { get; init; }
     public string? BackgroundColorHex { get; init; }
@@ -1533,7 +1533,7 @@ public sealed record TableCellProperties
 /// <summary>
 /// Represents spacing (padding or margin) with individual values for each side.
 /// </summary>
-public sealed record CellSpacing
+internal sealed record CellSpacing
 {
     // Word's default cell margins are 0
     public double Top { get; init; }
@@ -1570,7 +1570,7 @@ public sealed record CellSpacing
 /// <summary>
 /// Represents a single border edge (top, right, bottom, or left).
 /// </summary>
-public sealed record BorderEdge
+internal sealed record BorderEdge
 {
     /// <summary>Whether this border edge should be rendered.</summary>
     public bool IsVisible { get; init; }
@@ -1588,7 +1588,7 @@ public sealed record BorderEdge
 /// <summary>
 /// Represents borders for all four edges of a cell.
 /// </summary>
-public sealed record CellBorders
+internal sealed record CellBorders
 {
     public BorderEdge Top { get; init; } = BorderEdge.None;
     public BorderEdge Right { get; init; } = BorderEdge.None;

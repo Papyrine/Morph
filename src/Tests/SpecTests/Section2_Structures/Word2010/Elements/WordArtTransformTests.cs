@@ -1,7 +1,7 @@
 /// <summary>
 /// Tests for WordArt text transforms (presetTextWarp) as specified in MS-DOCX.
 /// </summary>
-public class WordArtTransformTests
+internal class WordArtTransformTests
 {
     [Test]
     public async Task WordArtTransform_None_IsDefault()

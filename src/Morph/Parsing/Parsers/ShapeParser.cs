@@ -8,7 +8,7 @@ namespace WordRender;
 /// <summary>
 /// Parses shape elements from Word documents.
 /// </summary>
-public static class ShapeParser
+internal static class ShapeParser
 {
     /// <summary>
     /// Parses a Drawing element to extract background shapes (solid fill or image fill shapes behind text).
@@ -352,7 +352,7 @@ public static class ShapeParser
             // Extract all color transforms
             var transforms = ExtractColorTransforms(schemeClr);
 
-            return themeColors.ResolveColor(schemeValue ?? "", transforms);
+            return themeColors.ResolveColor(schemeValue, transforms);
         }
 
         return null;

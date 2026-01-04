@@ -3,7 +3,7 @@ namespace WordRender;
 /// <summary>
 /// Maintains rendering state during page layout and rendering.
 /// </summary>
-public sealed class RenderContext : IDisposable
+sealed class RenderContext : IDisposable
 {
     Dictionary<string, SKTypeface> typefaceCache = new();
 

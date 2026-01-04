@@ -5,7 +5,7 @@ namespace WordRender;
 /// <summary>
 /// Extension methods for OpenXML types to reduce code duplication in parsers.
 /// </summary>
-public static class OpenXmlExtensions
+internal static class OpenXmlExtensions
 {
     /// <summary>
     /// Conversion constant: EMUs per point.
@@ -152,7 +152,7 @@ public static class OpenXmlExtensions
 /// <summary>
 /// Positioning information extracted from an anchor element.
 /// </summary>
-public readonly struct AnchorPositioning
+internal readonly struct AnchorPositioning
 {
     public double HorizontalPositionPoints { get; init; }
     public double VerticalPositionPoints { get; init; }

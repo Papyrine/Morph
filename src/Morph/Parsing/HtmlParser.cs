@@ -401,21 +401,21 @@ internal sealed partial class HtmlParser
         var props = baseProps;
 
         // Parse face attribute
-        var faceMatch = Regex.Match(tagContent, @"face\s*=\s*[""']([^""']+)[""']", RegexOptions.IgnoreCase);
+        var faceMatch = Regex.Match(tagContent, """face\s*=\s*["']([^"']+)["']""", RegexOptions.IgnoreCase);
         if (faceMatch.Success)
         {
             props = props with { FontFamily = faceMatch.Groups[1].Value };
         }
 
         // Parse color attribute
-        var colorMatch = Regex.Match(tagContent, @"color\s*=\s*[""']([^""']+)[""']", RegexOptions.IgnoreCase);
+        var colorMatch = Regex.Match(tagContent, """color\s*=\s*["']([^"']+)["']""", RegexOptions.IgnoreCase);
         if (colorMatch.Success)
         {
             props = props with { ColorHex = NormalizeColor(colorMatch.Groups[1].Value) };
         }
 
         // Parse size attribute (1-7, where 3 is normal ~11pt)
-        var sizeMatch = Regex.Match(tagContent, @"size\s*=\s*[""'](\d+)[""']", RegexOptions.IgnoreCase);
+        var sizeMatch = Regex.Match(tagContent, """size\s*=\s*["'](\d+)["']""", RegexOptions.IgnoreCase);
         if (sizeMatch.Success && int.TryParse(sizeMatch.Groups[1].Value, out var size))
         {
             double[] fontSizes = [8, 10, 12, 14, 18, 24, 36];
@@ -428,7 +428,7 @@ internal sealed partial class HtmlParser
 
     static RunProperties ParseSpanStyle(string tagContent, RunProperties baseProps)
     {
-        var styleMatch = Regex.Match(tagContent, @"style\s*=\s*[""']([^""']+)[""']", RegexOptions.IgnoreCase);
+        var styleMatch = Regex.Match(tagContent, """style\s*=\s*["']([^"']+)["']""", RegexOptions.IgnoreCase);
         if (!styleMatch.Success)
         {
             return baseProps;
@@ -491,7 +491,7 @@ internal sealed partial class HtmlParser
             return null;
         }
 
-        var styleMatch = Regex.Match(style, @"style\s*=\s*[""']([^""']+)[""']", RegexOptions.IgnoreCase);
+        var styleMatch = Regex.Match(style, """style\s*=\s*["']([^"']+)["']""", RegexOptions.IgnoreCase);
         if (!styleMatch.Success)
         {
             return null;
@@ -593,14 +593,14 @@ internal sealed partial class HtmlParser
 
         // Parse table-level cellpadding attribute
         CellSpacing? defaultCellPadding = null;
-        var cellpaddingMatch = Regex.Match(tableHtml, @"<table[^>]*cellpadding\s*=\s*[""']?(\d+)[""']?", RegexOptions.IgnoreCase);
+        var cellpaddingMatch = Regex.Match(tableHtml, """<table[^>]*cellpadding\s*=\s*["']?(\d+)["']?""", RegexOptions.IgnoreCase);
         if (cellpaddingMatch.Success && double.TryParse(cellpaddingMatch.Groups[1].Value, out var padding))
         {
             defaultCellPadding = new(padding);
         }
 
         // Parse table-level style for padding
-        var tableStyleMatch = Regex.Match(tableHtml, @"<table[^>]*style\s*=\s*[""']([^""']+)[""']", RegexOptions.IgnoreCase);
+        var tableStyleMatch = Regex.Match(tableHtml, """<table[^>]*style\s*=\s*["']([^"']+)["']""", RegexOptions.IgnoreCase);
         if (tableStyleMatch.Success)
         {
             var tablePadding = ParseCssSpacing(tableStyleMatch.Groups[1].Value, "padding");
@@ -630,7 +630,7 @@ internal sealed partial class HtmlParser
                 // Parse cell-level padding and margin from style
                 CellSpacing? cellPadding = null;
                 CellSpacing? cellMargin = null;
-                var styleMatch = Regex.Match(attrs, @"style\s*=\s*[""']([^""']+)[""']", RegexOptions.IgnoreCase);
+                var styleMatch = Regex.Match(attrs, """style\s*=\s*["']([^"']+)["']""", RegexOptions.IgnoreCase);
                 if (styleMatch.Success)
                 {
                     var styleValue = styleMatch.Groups[1].Value;

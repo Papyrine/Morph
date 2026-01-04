@@ -107,23 +107,3 @@ public sealed class DocumentConverter
         return imageData;
     }
 }
-
-/// <summary>
-/// Options for document conversion.
-/// </summary>
-/// <param name="Dpi">Image resolution in dots per inch. Default is 150.</param>
-/// <param name="FontWidthScale">Scale factor for font width measurements. Default uses DefaultFontSettings.FontWidthScale.
-/// Use values > 1.0 to make text wider (causes earlier line wrapping).
-/// A value of 1.07 better matches Microsoft Word's text rendering.</param>
-public sealed record ConversionOptions
-{
-    public int Dpi { get; init; } = 150;
-    public double FontWidthScale { get; init; } = DefaultFontSettings.FontWidthScale;
-}
-
-/// <summary>
-/// Result of a document conversion.
-/// </summary>
-/// <param name="ImagePaths">Paths to the generated PNG images.</param>
-/// <param name="PageCount">Number of pages in the document.</param>
-public sealed record ConversionResult(IReadOnlyList<string> ImagePaths, int PageCount);

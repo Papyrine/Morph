@@ -5,7 +5,7 @@ namespace WordRender;
 /// <summary>
 /// Parses theme information (colors and fonts) from Word documents.
 /// </summary>
-public static class ThemeParser
+internal static class ThemeParser
 {
     /// <summary>
     /// Extracts theme fonts from the document.
@@ -13,7 +13,7 @@ public static class ThemeParser
     public static ThemeFonts? ExtractThemeFonts(MainDocumentPart mainPart)
     {
         var themePart = mainPart.ThemePart;
-        if (themePart?.Theme?.ThemeElements?.FontScheme == null)
+        if (themePart?.Theme.ThemeElements?.FontScheme == null)
         {
             return null;
         }
@@ -49,7 +49,7 @@ public static class ThemeParser
     public static ThemeColors? ExtractThemeColors(MainDocumentPart mainPart)
     {
         var themePart = mainPart.ThemePart;
-        if (themePart?.Theme?.ThemeElements?.ColorScheme == null)
+        if (themePart?.Theme.ThemeElements?.ColorScheme == null)
         {
             return null;
         }
