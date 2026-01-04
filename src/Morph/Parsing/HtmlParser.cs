@@ -141,7 +141,8 @@ internal sealed partial class HtmlParser
                 }
                 break;
             }
-            else if (nextTag > 0)
+
+            if (nextTag > 0)
             {
                 var text = HttpUtility.HtmlDecode(remaining[..nextTag].Trim());
                 if (!string.IsNullOrWhiteSpace(text))
@@ -837,9 +838,6 @@ internal sealed partial class HtmlParser
 
     [GeneratedRegex("<tr[^>]*>(.*?)</tr>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
     private static partial Regex TrRegex();
-
-    [GeneratedRegex(@"<(td|th)[^>]*>(.*?)</\1>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
-    private static partial Regex TdThRegex();
 
     [GeneratedRegex(@"<(td|th)([^>]*)>(.*?)</\1>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
     private static partial Regex TdThFullRegex();

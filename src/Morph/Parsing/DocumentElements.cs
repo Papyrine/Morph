@@ -529,10 +529,7 @@ public sealed record PageSettings
     /// </summary>
     public string? BackgroundColorHex { get; init; }
 
-    public bool HasLastRenderedPageBreaks => LastRenderedPageBreakCount > 0;
-
     public double ContentWidth => WidthPoints - MarginLeft - MarginRight;
-    public double ContentHeight => HeightPoints - MarginTop - MarginBottom;
 
     /// <summary>Width of a single column in points.</summary>
     public double ColumnWidth => ColumnCount > 1
@@ -926,9 +923,6 @@ public sealed class FloatingImageElement : DocumentElement
 
     /// <summary>Whether this image is behind text (vs in front).</summary>
     public bool BehindText { get; init; }
-
-    /// <summary>Z-order for layering (lower = further back).</summary>
-    public int ZOrder { get; init; }
 }
 
 /// <summary>
@@ -1051,9 +1045,6 @@ public sealed class FloatingShapeElement : DocumentElement
 
     /// <summary>Content type of the image (e.g., "image/jpeg"). Null if using solid color fill.</summary>
     public string? ImageContentType { get; init; }
-
-    /// <summary>Whether this shape has a valid fill (either color or image).</summary>
-    public bool HasFill => FillColorHex != null || ImageData != null;
 }
 
 /// <summary>
@@ -1085,9 +1076,6 @@ public sealed class FloatingWordArtElement : DocumentElement
 
     /// <summary>Whether this WordArt is behind text (vs in front).</summary>
     public bool BehindText { get; init; }
-
-    /// <summary>Z-order for layering (lower = further back).</summary>
-    public int ZOrder { get; init; }
 
     /// <summary>Font family for the text.</summary>
     public string FontFamily { get; init; } = "Aptos";
@@ -1460,14 +1448,6 @@ public sealed record TableProperties
 
     /// <summary>Column widths from the table grid (w:tblGrid), in points. Null if not specified.</summary>
     public IReadOnlyList<double>? GridColumnWidths { get; init; }
-
-    // Legacy properties for backward compatibility
-    [Obsolete("Use DefaultBorders instead")]
-    public bool HasBorders => DefaultBorders?.HasAnyBorder ?? false;
-    [Obsolete("Use DefaultBorders instead")]
-    public double BorderWidthPoints => DefaultBorders?.Top.WidthPoints ?? 0.5;
-    [Obsolete("Use DefaultBorders instead")]
-    public string? BorderColorHex => DefaultBorders?.Top.ColorHex ?? "000000";
 }
 
 /// <summary>
@@ -1548,14 +1528,6 @@ public sealed record TableCellProperties
 
     /// <summary>Vertical merge state for this cell. Default is None.</summary>
     public VerticalMergeType VerticalMerge { get; init; } = VerticalMergeType.None;
-
-    /// <summary>Legacy property for backward compatibility. Use Padding instead.</summary>
-    [Obsolete("Use Padding instead")]
-    public double PaddingPoints
-    {
-        get => Padding?.Top ?? 5;
-        init => Padding = new(value);
-    }
 }
 
 /// <summary>
@@ -1626,7 +1598,6 @@ public sealed record CellBorders
     /// <summary>Returns true if any border edge is visible.</summary>
     public bool HasAnyBorder => Top.IsVisible || Right.IsVisible || Bottom.IsVisible || Left.IsVisible;
 
-    public static CellBorders None => new();
     public static CellBorders All => new()
     {
         Top = BorderEdge.Default,

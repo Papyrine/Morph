@@ -317,16 +317,6 @@ public static class ShapeParser
     }
 
     /// <summary>
-    /// Parses a Drawing element to extract a background shape (solid fill rectangle behind text).
-    /// Legacy method - returns first valid shape only.
-    /// </summary>
-    public static FloatingShapeElement? ParseBackgroundShape(Drawing drawing, ThemeColors? themeColors)
-    {
-        var shapes = ParseBackgroundShapes(drawing, themeColors);
-        return shapes.Count > 0 ? shapes[0] : null;
-    }
-
-    /// <summary>
     /// Extracts the color from a solid fill element.
     /// </summary>
     public static string? ExtractSolidFillColor(A.SolidFill solidFill, ThemeColors? themeColors)

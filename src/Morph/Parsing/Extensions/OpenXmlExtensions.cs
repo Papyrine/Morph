@@ -13,11 +13,6 @@ public static class OpenXmlExtensions
     public const double EmusPerPoint = 914400.0 / 72.0;
 
     /// <summary>
-    /// Conversion constant: Twips per point.
-    /// </summary>
-    public const double TwipsPerPoint = 20.0;
-
-    /// <summary>
     /// Converts EMUs to points.
     /// </summary>
     public static double EmuToPoints(this long emus) => emus / EmusPerPoint;
@@ -26,16 +21,6 @@ public static class OpenXmlExtensions
     /// Converts EMUs (as double) to points. Used when EMU values have been scaled.
     /// </summary>
     public static double EmuToPoints(this double emus) => emus / EmusPerPoint;
-
-    /// <summary>
-    /// Converts twips to points.
-    /// </summary>
-    public static double TwipsToPoints(this double twips) => twips / TwipsPerPoint;
-
-    /// <summary>
-    /// Converts twips (as int) to points.
-    /// </summary>
-    public static double TwipsToPoints(this int twips) => twips / TwipsPerPoint;
 
     /// <summary>
     /// Extracts dimensions from a Drawing element (works with both Inline and Anchor).

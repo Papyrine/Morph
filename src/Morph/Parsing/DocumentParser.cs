@@ -367,7 +367,7 @@ public sealed class DocumentParser
                     if (themeFill != null && currentThemeColors != null)
                     {
                         var themeFillValue = ((IEnumValue) themeFill).Value;
-                        backgroundColor = currentThemeColors.ResolveColor(themeFillValue ?? "", null, null);
+                        backgroundColor = currentThemeColors.ResolveColor(themeFillValue);
                     }
 
                     // Fall back to direct fill value
@@ -625,7 +625,7 @@ public sealed class DocumentParser
                     if (themeFill != null && currentThemeColors != null)
                     {
                         var themeFillValue = ((IEnumValue) themeFill).Value;
-                        backgroundColor = currentThemeColors.ResolveColor(themeFillValue ?? "", null, null);
+                        backgroundColor = currentThemeColors.ResolveColor(themeFillValue);
                     }
 
                     // Fall back to direct fill value
@@ -1936,7 +1936,7 @@ public sealed class DocumentParser
         {
             // Try to resolve theme color - use IEnumValue.Value instead of ToString()
             var themeColorValue = ((IEnumValue) border.ThemeColor.Value).Value;
-            color = currentThemeColors.ResolveColor(themeColorValue ?? "");
+            color = currentThemeColors.ResolveColor(themeColorValue);
         }
 
         return new()
@@ -2448,7 +2448,7 @@ public sealed class DocumentParser
                                 result.Add(new PageBreakElement());
                             }
                         }
-                        else if (runChild is Text textElement)
+                        else if (runChild is Text)
                         {
                             // Regular text - will be handled by ParseRun
                         }
@@ -2833,7 +2833,6 @@ public sealed class DocumentParser
         var result = new List<DocumentElement>();
 
         var anchor = drawing.GetFirstChild<DW.Anchor>();
-        var inline = drawing.GetFirstChild<DW.Inline>();
 
         // Get the group transform if present (for coordinate system)
         long groupOffsetX = 0, groupOffsetY = 0;
@@ -3133,145 +3132,6 @@ public sealed class DocumentParser
             HorizontalAnchor = hAnchor,
             VerticalAnchor = vAnchor,
             BehindText = isBehindText
-        };
-    }
-
-    /// <summary>
-    /// Parses an anchored (floating) image with positioning information.
-    /// </summary>
-    static FloatingImageElement ParseAnchoredImage(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double imageOffsetYPoints = 0)
-    {
-        // Parse horizontal position
-        double hPosPoints = 0;
-        var hAnchor = HorizontalAnchor.Column;
-
-        var posH = anchor.GetFirstChild<DW.HorizontalPosition>();
-        if (posH != null)
-        {
-            // Parse relative from
-            if (posH.RelativeFrom?.HasValue == true)
-            {
-                var relFrom = posH.RelativeFrom.Value;
-                if (relFrom == DW.HorizontalRelativePositionValues.Page)
-                {
-                    hAnchor = HorizontalAnchor.Page;
-                }
-                else if (relFrom == DW.HorizontalRelativePositionValues.Margin)
-                {
-                    hAnchor = HorizontalAnchor.Margin;
-                }
-                else if (relFrom == DW.HorizontalRelativePositionValues.Column)
-                {
-                    hAnchor = HorizontalAnchor.Column;
-                }
-                else if (relFrom == DW.HorizontalRelativePositionValues.Character)
-                {
-                    hAnchor = HorizontalAnchor.Character;
-                }
-            }
-
-            // Parse position offset
-            var posOffset = posH.GetFirstChild<DW.PositionOffset>();
-            if (posOffset?.Text != null && long.TryParse(posOffset.Text, out var hOffsetEmu))
-            {
-                hPosPoints = hOffsetEmu / emusPerPoint;
-            }
-
-            // Handle alignment (center, left, right, etc.)
-            var align = posH.GetFirstChild<DW.HorizontalAlignment>();
-            if (align?.Text != null)
-            {
-                // For alignment, we'll calculate the position later during rendering
-                // Store a flag or calculate approximate position
-            }
-        }
-
-        // Parse vertical position
-        double vPosPoints = 0;
-        var vAnchor = VerticalAnchor.Paragraph;
-
-        var posV = anchor.GetFirstChild<DW.VerticalPosition>();
-        if (posV != null)
-        {
-            // Parse relative from
-            if (posV.RelativeFrom?.HasValue == true)
-            {
-                var relFrom = posV.RelativeFrom.Value;
-                if (relFrom == DW.VerticalRelativePositionValues.Page)
-                {
-                    vAnchor = VerticalAnchor.Page;
-                }
-                else if (relFrom == DW.VerticalRelativePositionValues.Margin)
-                {
-                    vAnchor = VerticalAnchor.Margin;
-                }
-                else if (relFrom == DW.VerticalRelativePositionValues.Paragraph)
-                {
-                    vAnchor = VerticalAnchor.Paragraph;
-                }
-                else if (relFrom == DW.VerticalRelativePositionValues.Line)
-                {
-                    vAnchor = VerticalAnchor.Line;
-                }
-            }
-
-            // Parse position offset
-            var posOffset = posV.GetFirstChild<DW.PositionOffset>();
-            if (posOffset?.Text != null && long.TryParse(posOffset.Text, out var vOffsetEmu))
-            {
-                vPosPoints = vOffsetEmu / emusPerPoint;
-            }
-        }
-
-        // Add the image's offset within its group (for images positioned within a group)
-        vPosPoints += imageOffsetYPoints;
-
-        // Parse wrap type
-        var wrapType = WrapType.None;
-        if (anchor.GetFirstChild<DW.WrapNone>() != null)
-        {
-            wrapType = WrapType.None;
-        }
-        else if (anchor.GetFirstChild<DW.WrapSquare>() != null)
-        {
-            wrapType = WrapType.Square;
-        }
-        else if (anchor.GetFirstChild<DW.WrapTight>() != null)
-        {
-            wrapType = WrapType.Tight;
-        }
-        else if (anchor.GetFirstChild<DW.WrapThrough>() != null)
-        {
-            wrapType = WrapType.Through;
-        }
-        else if (anchor.GetFirstChild<DW.WrapTopBottom>() != null)
-        {
-            wrapType = WrapType.TopAndBottom;
-        }
-
-        // Parse behind text flag
-        var behindText = anchor.BehindDoc?.Value ?? false;
-
-        // Parse z-order (relative z-ordering)
-        var zOrder = 0;
-        if (anchor.RelativeHeight?.HasValue == true)
-        {
-            zOrder = (int) anchor.RelativeHeight.Value;
-        }
-
-        return new()
-        {
-            ImageData = imageData,
-            WidthPoints = widthPoints,
-            HeightPoints = heightPoints,
-            ContentType = contentType,
-            HorizontalPositionPoints = hPosPoints,
-            VerticalPositionPoints = vPosPoints,
-            HorizontalAnchor = hAnchor,
-            VerticalAnchor = vAnchor,
-            WrapType = wrapType,
-            BehindText = behindText,
-            ZOrder = zOrder
         };
     }
 
@@ -3781,7 +3641,7 @@ public sealed class DocumentParser
                             Tint = hasTint ? (byte) (schemeClr.GetFirstChild<A.Tint>()!.Val!.Value / 392.157) : null,
                             Shade = hasShade ? (byte) (schemeClr.GetFirstChild<A.Shade>()!.Val!.Value / 392.157) : null
                         };
-                        fillColorHex = currentThemeColors.ResolveColor(schemeValue ?? "", transforms);
+                        fillColorHex = currentThemeColors.ResolveColor(schemeValue, transforms);
                     }
 
                     // Fallback to original method (no transforms or ResolveColor failed)
@@ -4717,7 +4577,7 @@ public sealed class DocumentParser
             var sizeElement = checkbox.GetFirstChild<FormFieldSize>();
 
             var isChecked = checkedElement != null &&
-                            (checkedElement.Val == null || checkedElement.Val.Value != false);
+                            (checkedElement.Val == null || checkedElement.Val.Value);
             var defaultChecked = false;
             if (defaultElement != null)
             {
@@ -5056,7 +4916,7 @@ public sealed class DocumentParser
             if (themeFill != null && currentThemeColors != null)
             {
                 var themeFillValue = ((IEnumValue) themeFill).Value;
-                inlineBgColor = currentThemeColors.ResolveColor(themeFillValue ?? "", null, null);
+                inlineBgColor = currentThemeColors.ResolveColor(themeFillValue);
             }
 
             // Fall back to direct fill value
@@ -5285,7 +5145,7 @@ public sealed class DocumentParser
 
                 // Use IEnumValue.Value instead of ToString() to get actual enum value string
                 var themeColorValue = ((IEnumValue) themeColor).Value;
-                inlineColor = currentThemeColors.ResolveColor(themeColorValue ?? "", shade, tint);
+                inlineColor = currentThemeColors.ResolveColor(themeColorValue, shade, tint);
             }
 
             // Fall back to direct value if theme resolution failed or no theme color
@@ -5310,7 +5170,7 @@ public sealed class DocumentParser
             if (themeFill != null && currentThemeColors != null)
             {
                 var themeFillValue = ((IEnumValue) themeFill).Value;
-                inlineBgColor = currentThemeColors.ResolveColor(themeFillValue ?? "", null, null);
+                inlineBgColor = currentThemeColors.ResolveColor(themeFillValue);
             }
 
             // Fall back to direct fill value

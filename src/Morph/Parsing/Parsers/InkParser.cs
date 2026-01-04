@@ -148,8 +148,8 @@ public static class InkParser
         {
             foreach (XmlNode traceNode in traceNodes)
             {
-                var brushRef = traceNode.Attributes?["brushRef"]?.Value?.TrimStart('#');
-                var traceData = traceNode.InnerText?.Trim();
+                var brushRef = traceNode.Attributes?["brushRef"]?.Value.TrimStart('#');
+                var traceData = traceNode.InnerText.Trim();
 
                 if (string.IsNullOrEmpty(traceData))
                 {

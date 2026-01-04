@@ -179,7 +179,6 @@ public sealed class RenderContext : IDisposable
     // Current column content area bounds in points
     public float ContentLeft => FullContentLeft + CurrentColumn * ((float) PageSettings.ColumnWidth + (float) PageSettings.ColumnSpacing);
     public float ContentTop => FullContentTop;
-    public float ContentRight => ContentLeft + (float) PageSettings.ColumnWidth;
     public float ContentBottom => FullContentBottom;
     public float ContentWidth => (float) PageSettings.ColumnWidth;
     public float ContentHeight => FullContentBottom - FullContentTop;
@@ -257,11 +256,6 @@ public sealed class RenderContext : IDisposable
     }
 
     /// <summary>
-    /// Checks if there are more columns available on this page.
-    /// </summary>
-    public bool HasMoreColumns => CurrentColumn < PageSettings.ColumnCount - 1;
-
-    /// <summary>
     /// Resets to the first column (used for continuous section breaks).
     /// Does not reset CurrentY since continuous sections flow without interruption.
     /// </summary>
@@ -287,8 +281,6 @@ public sealed class RenderContext : IDisposable
         var tolerance = ContentHeight * 0.02f;
         return CurrentY + heightPoints <= ContentBottom + tolerance;
     }
-
-    public float RemainingHeight => ContentBottom - CurrentY;
 
     public SKTypeface GetTypeface(string fontFamily, bool bold, bool italic)
     {
@@ -626,18 +618,12 @@ public sealed class RenderContext : IDisposable
     }
 
     public float PointsToPixels(float points) => points * Scale;
-    public float PixelsToPoints(float pixels) => pixels / Scale;
 
     /// <summary>
     /// Gets the current line number and increments for the next line.
     /// </summary>
     public int GetNextLineNumber() =>
         currentLineNumber++;
-
-    /// <summary>
-    /// Gets the current line number without incrementing.
-    /// </summary>
-    public int CurrentLineNumber => currentLineNumber;
 
     /// <summary>
     /// Resets line numbers for a new page (if restart mode is NewPage).

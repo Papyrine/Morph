@@ -6,46 +6,6 @@ namespace WordRender;
 public sealed class TextRenderer(RenderContext context)
 {
     /// <summary>
-    /// Gets layout information for widow/orphan control.
-    /// Returns the number of lines, height of first N lines, and height of last N lines.
-    /// </summary>
-    public (int LineCount, float FirstTwoLinesHeight, float TotalHeight) GetParagraphLayoutInfo(ParagraphElement paragraph)
-    {
-        var lines = LayoutParagraph(paragraph);
-        var props = paragraph.Properties;
-
-        if (lines.Count == 0)
-        {
-            return (0, 0, (float)(props.SpacingBeforePoints + props.SpacingAfterPoints));
-        }
-
-        // Contextual spacing only collapses spacing between paragraphs of the SAME STYLE
-        var sameStyle = props.StyleId != null && props.StyleId == context.LastParagraphStyleId;
-        var collapseSpacingBefore = props.ContextualSpacing && context.LastParagraphHadContextualSpacing && sameStyle;
-        var spacingBefore = collapseSpacingBefore ? 0 : (float)props.SpacingBeforePoints;
-
-        // Calculate height of first two lines (for orphan prevention)
-        var firstTwoLinesHeight = spacingBefore;
-        for (var i = 0; i < Math.Min(2, lines.Count); i++)
-        {
-            firstTwoLinesHeight += CalculateLineHeight(lines[i].Height, props);
-        }
-
-        // Calculate total height
-        var totalHeight = spacingBefore;
-        foreach (var line in lines)
-        {
-            totalHeight += CalculateLineHeight(line.Height, props);
-        }
-        if (!props.ContextualSpacing)
-        {
-            totalHeight += (float)props.SpacingAfterPoints;
-        }
-
-        return (lines.Count, firstTwoLinesHeight, totalHeight);
-    }
-
-    /// <summary>
     /// Measures the height of a paragraph when rendered at the given width.
     /// </summary>
     public float MeasureParagraphHeight(ParagraphElement paragraph)

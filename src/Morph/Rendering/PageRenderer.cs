@@ -16,10 +16,6 @@ public sealed class PageRenderer : IDisposable
     float headerHeight;
     float footerHeight;
 
-    // Floating images for current page - rendered at specific z-order positions
-    readonly List<FloatingImageElement> behindTextImages = [];
-    readonly List<FloatingImageElement> inFrontImages = [];
-
     // Track whether meaningful content (text/images/tables) was rendered on current page
     // Used to detect and discard spurious blank trailing pages
     bool hasSignificantContentOnCurrentPage;
@@ -2648,36 +2644,6 @@ public sealed class PageRenderer : IDisposable
         };
 
         return baseY + (float) shape.VerticalPositionPoints;
-    }
-
-    void RenderBehindTextImages()
-    {
-        if (currentCanvas == null || behindTextImages.Count == 0)
-        {
-            return;
-        }
-
-        // Sort by z-order (lower values = further back)
-        var sorted = behindTextImages.OrderBy(i => i.ZOrder).ToList();
-        foreach (var image in sorted)
-        {
-            RenderFloatingImage(image);
-        }
-    }
-
-    void RenderInFrontImages()
-    {
-        if (currentCanvas == null || inFrontImages.Count == 0)
-        {
-            return;
-        }
-
-        // Sort by z-order (lower values rendered first)
-        var sorted = inFrontImages.OrderBy(i => i.ZOrder).ToList();
-        foreach (var image in sorted)
-        {
-            RenderFloatingImage(image);
-        }
     }
 
     void RenderFloatingImage(FloatingImageElement image)
