@@ -13,9 +13,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="SkiaSharp" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Win32" />
-    <PackageReference Include="SkiaSharp.NativeAssets.macOS" />
     <PackageReference Include="Svg.Skia" />
   </ItemGroup>
 
