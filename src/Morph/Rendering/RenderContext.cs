@@ -149,7 +149,6 @@ sealed class RenderContext : IDisposable
 
     // Line numbering state
     int currentLineNumber = 1;
-    int sectionStartLineNumber = 1;
 
     // Contextual spacing state - tracks if the previous paragraph had contextual spacing
     public bool LastParagraphHadContextualSpacing { get; set; }
@@ -644,7 +643,6 @@ sealed class RenderContext : IDisposable
         if (PageSettings.LineNumbers?.Restart is LineNumberRestart.NewSection or LineNumberRestart.NewPage)
         {
             currentLineNumber = PageSettings.LineNumbers.Start;
-            sectionStartLineNumber = currentLineNumber;
         }
     }
 
@@ -656,7 +654,6 @@ sealed class RenderContext : IDisposable
         if (PageSettings.LineNumbers != null)
         {
             currentLineNumber = PageSettings.LineNumbers.Start;
-            sectionStartLineNumber = currentLineNumber;
         }
     }
 
