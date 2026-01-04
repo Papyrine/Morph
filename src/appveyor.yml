@@ -5,6 +5,14 @@ environment:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 build_script:
 - pwsh: |
+    # Install bundled fonts
+    $fontsPath = "src/Fonts"
+    $shell = New-Object -ComObject Shell.Application
+    $fontsFolder = $shell.Namespace(0x14)
+    Get-ChildItem -Path $fontsPath -Include *.ttf,*.otf -Recurse | ForEach-Object {
+        $fontsFolder.CopyHere($_.FullName, 0x10)
+    }
+- pwsh: |
     Invoke-WebRequest "https://dot.net/v1/dotnet-install.ps1" -OutFile "./dotnet-install.ps1"
     ./dotnet-install.ps1 -JSonFile src/global.json -Architecture x64 -InstallDir 'C:\Program Files\dotnet'
 - dotnet build src --configuration Release
