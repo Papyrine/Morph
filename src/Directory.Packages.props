@@ -19,7 +19,7 @@
     <PackageVersion Include="SkiaSharp.NativeAssets.macOS" Version="3.119.1" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Win32" Version="3.119.1" />
     <PackageVersion Include="Svg.Skia" Version="3.4.1" />
-    <PackageVersion Include="TUnit" Version="1.10.0" />
+    <PackageVersion Include="TUnit" Version="1.11.28" />
     <PackageVersion Include="Verify.TUnit" Version="31.9.4" />
   </ItemGroup>
 </Project>
