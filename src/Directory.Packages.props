@@ -12,14 +12,14 @@
     <PackageVersion Include="NUnit" Version="4.4.0" />
     <PackageVersion Include="MarkdownSnippets.MsBuild" Version="27.0.2" />
     <PackageVersion Include="NUnit3TestAdapter" Version="6.1.0" />
-    <PackageVersion Include="ProjectDefaults" Version="1.0.170" />
+    <PackageVersion Include="ProjectDefaults" Version="1.0.171" />
     <PackageVersion Include="ProjectFiles" Version="0.5.0" />
     <PackageVersion Include="SkiaSharp" Version="3.119.1" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.1" />
     <PackageVersion Include="SkiaSharp.NativeAssets.macOS" Version="3.119.1" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Win32" Version="3.119.1" />
     <PackageVersion Include="Svg.Skia" Version="3.4.1" />
-    <PackageVersion Include="TUnit" Version="1.12.125" />
-    <PackageVersion Include="Verify.TUnit" Version="31.10.0" />
+    <PackageVersion Include="TUnit" Version="1.12.139" />
+    <PackageVersion Include="Verify.TUnit" Version="31.11.0" />
   </ItemGroup>
 </Project>
