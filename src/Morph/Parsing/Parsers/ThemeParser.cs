@@ -11,7 +11,7 @@ static class ThemeParser
     public static ThemeFonts? ExtractThemeFonts(MainDocumentPart mainPart)
     {
         var themePart = mainPart.ThemePart;
-        if (themePart?.Theme.ThemeElements?.FontScheme == null)
+        if (themePart?.Theme?.ThemeElements?.FontScheme == null)
         {
             return null;
         }
@@ -47,7 +47,7 @@ static class ThemeParser
     public static ThemeColors? ExtractThemeColors(MainDocumentPart mainPart)
     {
         var themePart = mainPart.ThemePart;
-        if (themePart?.Theme.ThemeElements?.ColorScheme == null)
+        if (themePart?.Theme?.ThemeElements?.ColorScheme == null)
         {
             return null;
         }

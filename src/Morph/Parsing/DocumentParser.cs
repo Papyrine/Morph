@@ -68,7 +68,7 @@ sealed class DocumentParser
         var mainPart = doc.MainDocumentPart
                        ?? throw new InvalidOperationException("Document has no main part");
 
-        var body = mainPart.Document.Body
+        var body = mainPart.Document?.Body
                    ?? throw new InvalidOperationException("Document has no body");
 
         lastRenderedPageBreakCount = body.Descendants<LastRenderedPageBreak>().Count();
@@ -3736,7 +3736,7 @@ sealed class DocumentParser
     static string? ResolveSchemeColor(A.SchemeColorValues schemeColor, MainDocumentPart mainPart)
     {
         var themePart = mainPart.ThemePart;
-        if (themePart?.Theme.ThemeElements?.ColorScheme == null)
+        if (themePart?.Theme?.ThemeElements?.ColorScheme == null)
         {
             return null;
         }

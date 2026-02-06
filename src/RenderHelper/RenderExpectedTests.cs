@@ -22,7 +22,7 @@ public class RenderExpectedTests
             };
 
             var directories = Directory.GetDirectories(inputsPath, "*", SearchOption.AllDirectories)
-                .Where(d => Directory.GetFiles(d, "*.docx").Any())
+                .Where(_ => Directory.GetFiles(_, "*.docx").Any())
                 .ToList();
 
             foreach (var directory in directories)
