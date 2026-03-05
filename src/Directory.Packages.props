@@ -19,7 +19,7 @@
     <PackageVersion Include="SkiaSharp.NativeAssets.macOS" Version="3.119.2" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Win32" Version="3.119.2" />
     <PackageVersion Include="Svg.Skia" Version="3.4.1" />
-    <PackageVersion Include="TUnit" Version="1.17.54" />
+    <PackageVersion Include="TUnit" Version="1.18.21" />
     <PackageVersion Include="Verify.ImageMagick" Version="3.8.4" />
     <PackageVersion Include="Verify.TUnit" Version="31.13.2" />
   </ItemGroup>
