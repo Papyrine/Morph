@@ -1765,14 +1765,19 @@ sealed class PageRenderer(RenderContext context) :
     float CalculateShapeX(FloatingShapeElement shape) =>
         (shape.HorizontalAnchor switch
         {
-            HorizontalAnchor.Page => 0,
+            HorizontalAnchor.Page => 0f,
+            HorizontalAnchor.Margin => (float) context.PageSettings.MarginLeft,
+            HorizontalAnchor.Column => (float) context.PageSettings.MarginLeft,
             _ => (float) context.PageSettings.MarginLeft
         }) + (float) shape.HorizontalPositionPoints;
 
     float CalculateShapeY(FloatingShapeElement shape) =>
         (shape.VerticalAnchor switch
         {
-            VerticalAnchor.Page => 0,
+            VerticalAnchor.Page => 0f,
+            VerticalAnchor.Margin => (float) context.PageSettings.MarginTop,
+            VerticalAnchor.Paragraph => (float) context.PageSettings.MarginTop,
+            VerticalAnchor.Line => (float) context.PageSettings.MarginTop,
             _ => (float) context.PageSettings.MarginTop
         }) + (float) shape.VerticalPositionPoints;
 
@@ -1805,7 +1810,9 @@ sealed class PageRenderer(RenderContext context) :
         {
             HorizontalAnchor.Page => 0f,
             HorizontalAnchor.Margin => (float) context.PageSettings.MarginLeft,
-            _ => context.ContentLeft
+            HorizontalAnchor.Column => context.ContentLeft,
+            HorizontalAnchor.Character => context.ContentLeft,
+            _ => 0f
         }) + (float) image.HorizontalPositionPoints;
 
     float CalculateFloatingImageY(FloatingImageElement image) =>
@@ -1813,7 +1820,9 @@ sealed class PageRenderer(RenderContext context) :
         {
             VerticalAnchor.Page => 0f,
             VerticalAnchor.Margin => (float) context.PageSettings.MarginTop,
-            _ => context.CurrentY
+            VerticalAnchor.Paragraph => context.CurrentY,
+            VerticalAnchor.Line => context.CurrentY,
+            _ => 0f
         }) + (float) image.VerticalPositionPoints;
 
     void RenderFloatingTextBox(FloatingTextBoxElement textBox)
@@ -1830,24 +1839,67 @@ sealed class PageRenderer(RenderContext context) :
         var pixelWidth = context.PointsToPixels((float) textBox.WidthPoints);
         var pixelHeight = context.PointsToPixels((float) textBox.HeightPoints);
 
-        if (textBox.BackgroundColorHex != null)
+        if (Math.Abs(textBox.RotationDegrees) > 0.01)
         {
-            var bgFillColor = RenderContext.ParseColor(textBox.BackgroundColorHex);
-            currentPage.Mutate(ctx => ctx.Fill(bgFillColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
-        }
-
-        var savedY = context.CurrentY;
-        context.CurrentY = y;
-
-        foreach (var element in textBox.Content)
-        {
-            if (element is ParagraphElement para)
+            // Render to a temporary image, then rotate and compose onto the page
+            var tempW = (int) Math.Ceiling(pixelWidth);
+            var tempH = (int) Math.Ceiling(pixelHeight);
+            if (tempW <= 0 || tempH <= 0)
             {
-                textRenderer.RenderParagraphInBounds(currentPage, para, x, (float) textBox.WidthPoints);
+                return;
             }
-        }
 
-        context.CurrentY = savedY;
+            using var tempImage = new Image<Rgba32>(tempW, tempH);
+            if (textBox.BackgroundColorHex != null)
+            {
+                var bgColor = RenderContext.ParseColor(textBox.BackgroundColorHex);
+                tempImage.Mutate(ctx => ctx.Fill(bgColor));
+            }
+
+            var savedY = context.CurrentY;
+            context.CurrentY = 0;
+
+            foreach (var element in textBox.Content)
+            {
+                if (element is ParagraphElement para)
+                {
+                    textRenderer.RenderParagraphInBounds(tempImage, para, 0, (float) textBox.WidthPoints);
+                }
+            }
+
+            context.CurrentY = savedY;
+
+            tempImage.Mutate(ctx => ctx.Rotate((float) textBox.RotationDegrees));
+
+            // Center the rotated image at the original text box center
+            var centerX = pixelX + pixelWidth / 2;
+            var centerY = pixelY + pixelHeight / 2;
+            var drawX = (int) (centerX - tempImage.Width / 2f);
+            var drawY = (int) (centerY - tempImage.Height / 2f);
+
+            currentPage.Mutate(ctx => ctx.DrawImage(tempImage, new Point(drawX, drawY), 1f));
+        }
+        else
+        {
+            if (textBox.BackgroundColorHex != null)
+            {
+                var bgFillColor = RenderContext.ParseColor(textBox.BackgroundColorHex);
+                currentPage.Mutate(ctx => ctx.Fill(bgFillColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
+            }
+
+            var savedY = context.CurrentY;
+            context.CurrentY = y;
+
+            foreach (var element in textBox.Content)
+            {
+                if (element is ParagraphElement para)
+                {
+                    textRenderer.RenderParagraphInBounds(currentPage, para, x, (float) textBox.WidthPoints);
+                }
+            }
+
+            context.CurrentY = savedY;
+        }
     }
 
     float CalculateFloatingTextBoxX(FloatingTextBoxElement textBox) =>
@@ -1855,7 +1907,9 @@ sealed class PageRenderer(RenderContext context) :
         {
             HorizontalAnchor.Page => 0f,
             HorizontalAnchor.Margin => (float) context.PageSettings.MarginLeft,
-            _ => context.ContentLeft
+            HorizontalAnchor.Column => context.ContentLeft,
+            HorizontalAnchor.Character => context.ContentLeft,
+            _ => 0f
         }) + (float) textBox.HorizontalPositionPoints;
 
     float CalculateFloatingTextBoxY(FloatingTextBoxElement textBox) =>
@@ -1863,7 +1917,9 @@ sealed class PageRenderer(RenderContext context) :
         {
             VerticalAnchor.Page => 0f,
             VerticalAnchor.Margin => (float) context.PageSettings.MarginTop,
-            _ => context.CurrentY
+            VerticalAnchor.Paragraph => context.CurrentY,
+            VerticalAnchor.Line => context.CurrentY,
+            _ => 0f
         }) + (float) textBox.VerticalPositionPoints;
 
     public void Dispose() =>
