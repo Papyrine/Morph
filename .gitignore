@@ -12,3 +12,4 @@ nugets/
 nul
 *.trx
 src/.claude/settings.local.json
+/TestResults

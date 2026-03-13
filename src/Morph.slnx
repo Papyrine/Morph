@@ -1,5 +1,7 @@
 <Solution>
   <Project Path="Morph/Morph.csproj" />
+  <Project Path="Morph.Skia/Morph.Skia.csproj" />
+  <Project Path="Morph.ImageSharp/Morph.ImageSharp.csproj" />
   <Folder Name="/SolutionItems/">
     <File Path="../.gitattributes" />
     <File Path="../README.md" />
