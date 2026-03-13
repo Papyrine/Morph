@@ -15,7 +15,7 @@ public class ScenarioTests
     [MethodDataSource(nameof(GetScenarioDirectories))]
     public async Task Scenario(string directory)
     {
-        var converter = new DocumentConverter();
+        var converter = new WordRender.Skia.DocumentConverter();
         var inputFile = Path.Combine(directory, "input.docx");
         var expectedFiles = Directory.GetFiles(directory, "expected_*.png")
             .Order()

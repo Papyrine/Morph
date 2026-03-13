@@ -9,5 +9,3 @@ global using AngleSharp.Html.Parser;
 global using DocumentFormat.OpenXml;
 global using DocumentFormat.OpenXml.Packaging;
 global using DocumentFormat.OpenXml.Wordprocessing;
-global using SkiaSharp;
-global using Svg.Skia;

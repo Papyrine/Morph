@@ -3,7 +3,7 @@ namespace WordRender;
 /// <summary>
 /// Converts DOCX documents to PNG images.
 /// </summary>
-public sealed class DocumentConverter
+public abstract class DocumentConverter
 {
     DocumentParser parser = new();
 
@@ -32,34 +32,20 @@ public sealed class DocumentConverter
         options ??= new();
         Directory.CreateDirectory(outputDirectory);
 
-        // Parse the document
         var document = parser.Parse(docxStream);
+        var imageData = RenderToImageData(document, options);
 
-        // Render to bitmaps
-        using var context = new RenderContext(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale);
-        using var renderer = new PageRenderer(context);
-
-        var pages = renderer.RenderDocument(document);
-
-        // Save pages as PNGs
         var imagePaths = new List<string>();
 
-        for (var i = 0; i < pages.Count; i++)
+        for (var i = 0; i < imageData.Count; i++)
         {
-            var page = pages[i];
             var fileName = $"page_{i + 1:D4}.png";
             var filePath = Path.Combine(outputDirectory, fileName);
-
-            using var image = SKImage.FromBitmap(page);
-            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-            using var fileStream = File.OpenWrite(filePath);
-            data.SaveTo(fileStream);
-
+            File.WriteAllBytes(filePath, imageData[i]);
             imagePaths.Add(filePath);
-            page.Dispose();
         }
 
-        return new(imagePaths, pages.Count);
+        return new(imagePaths, imageData.Count);
     }
 
     /// <summary>
@@ -84,26 +70,12 @@ public sealed class DocumentConverter
     {
         options ??= new();
 
-        // Parse the document
         var document = parser.Parse(docxStream);
-
-        // Render to bitmaps
-        using var context = new RenderContext(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale);
-        using var renderer = new PageRenderer(context);
-
-        var pages = renderer.RenderDocument(document);
-
-        // Encode pages to PNG data
-        var imageData = new List<byte[]>();
-
-        foreach (var page in pages)
-        {
-            using var image = SKImage.FromBitmap(page);
-            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-            imageData.Add(data.ToArray());
-            page.Dispose();
-        }
-
-        return imageData;
+        return RenderToImageData(document, options);
     }
+
+    /// <summary>
+    /// Renders a parsed document to PNG image data. Implemented by backend-specific converters.
+    /// </summary>
+    private protected abstract IReadOnlyList<byte[]> RenderToImageData(ParsedDocument document, ConversionOptions options);
 }
