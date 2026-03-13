@@ -465,7 +465,7 @@ sealed class TextRenderer(RenderContext context)
                 }
 
                 // Measure word width in points
-                var wordWidth = context.MeasureText(font, word);
+                var wordWidth = RenderContext.MeasureText(font, word);
 
                 // Check if we need to wrap
                 if (currentLineWidth + wordWidth > effectiveWidth && currentFragments.Count > 0)
@@ -580,7 +580,7 @@ sealed class TextRenderer(RenderContext context)
         var numberText = lineNumber.ToString();
 
         // Measure text width so we can right-align it
-        var textWidth = context.MeasureText(font, numberText) * context.Scale;
+        var textWidth = RenderContext.MeasureText(font, numberText) * context.Scale;
 
         var textOptions = new RichTextOptions(font)
         {
@@ -927,7 +927,7 @@ sealed class TextRenderer(RenderContext context)
 
                 // Measure the display word (without soft hyphen)
                 // Apply FontWidthScale to better match Word's text rendering
-                var wordWidth = context.MeasureText(font, displayWord) * context.FontWidthScale;
+                var wordWidth = RenderContext.MeasureText(font, displayWord) * context.FontWidthScale;
 
                 // Check if we need to wrap to a new line
                 if (currentLineWidth + wordWidth > effectiveWidth && currentFragments.Count > 0)

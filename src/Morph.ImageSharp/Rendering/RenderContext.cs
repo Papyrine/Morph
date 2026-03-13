@@ -598,7 +598,7 @@ sealed class RenderContext : IDisposable
     /// <summary>
     /// Measures text width in points. Uses DPI=72 so pixels equal points.
     /// </summary>
-    public float MeasureText(Font font, string text)
+    public static float MeasureText(Font font, string text)
     {
         var options = new TextOptions(font)
         {
@@ -606,7 +606,7 @@ sealed class RenderContext : IDisposable
         };
 
         var advance = TextMeasurer.MeasureAdvance(text, options);
-        return advance.Width * FontWidthScale;
+        return advance.Width;
     }
 
     /// <summary>
