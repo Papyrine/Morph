@@ -96,6 +96,8 @@ sealed class ParsedDocument
     public required IReadOnlyList<DocumentElement> Elements { get; init; }
     public HeaderFooterContent? Header { get; init; }
     public HeaderFooterContent? Footer { get; init; }
+    public HeaderFooterContent? FirstPageHeader { get; init; }
+    public HeaderFooterContent? FirstPageFooter { get; init; }
 
     /// <summary>
     /// Document-level hyphenation settings.
@@ -506,6 +508,12 @@ internal sealed record PageSettings
     /// Page background color (hex). Null for white/transparent.
     /// </summary>
     public string? BackgroundColorHex { get; init; }
+
+    /// <summary>
+    /// Whether the first page has different header/footer (w:titlePg).
+    /// When true, the default header/footer should not appear on page 1.
+    /// </summary>
+    public bool DifferentFirstPage { get; init; }
 
     public double ContentWidth => WidthPoints - MarginLeft - MarginRight;
 
