@@ -14,4 +14,5 @@
     <Build Solution="Release|*" Project="false" />
   </Project>
   <Project Path="Tests/Tests.csproj" />
+  <Project Path="Benchmarks/Benchmarks.csproj" />
 </Solution>
