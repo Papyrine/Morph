@@ -12,6 +12,9 @@ sealed class PageRenderer(RenderContext context) :
     Image<Rgba32>? currentPage;
     HeaderFooterContent? header;
     HeaderFooterContent? footer;
+    HeaderFooterContent? firstPageHeader;
+    HeaderFooterContent? firstPageFooter;
+    bool differentFirstPage;
     float headerHeight;
     float footerHeight;
 
@@ -22,6 +25,9 @@ sealed class PageRenderer(RenderContext context) :
     {
         header = document.Header;
         footer = document.Footer;
+        firstPageHeader = document.FirstPageHeader;
+        firstPageFooter = document.FirstPageFooter;
+        differentFirstPage = document.PageSettings.DifferentFirstPage;
 
         headerHeight = MeasureHeaderFooterHeight(header);
         footerHeight = MeasureHeaderFooterHeight(footer);
@@ -67,7 +73,11 @@ sealed class PageRenderer(RenderContext context) :
 
     void RenderHeader()
     {
-        if (header == null || currentPage == null)
+        var activeHeader = differentFirstPage && context.CurrentPageNumber == 1
+            ? firstPageHeader
+            : header;
+
+        if (activeHeader == null || currentPage == null)
         {
             return;
         }
@@ -75,7 +85,7 @@ sealed class PageRenderer(RenderContext context) :
         var savedY = context.CurrentY;
         context.CurrentY = (float) context.PageSettings.HeaderDistance;
 
-        foreach (var element in header.Elements)
+        foreach (var element in activeHeader.Elements)
         {
             if (element is ParagraphElement para)
             {
@@ -88,7 +98,11 @@ sealed class PageRenderer(RenderContext context) :
 
     void RenderFooter()
     {
-        if (footer == null || currentPage == null)
+        var activeFooter = differentFirstPage && context.CurrentPageNumber == 1
+            ? firstPageFooter
+            : footer;
+
+        if (activeFooter == null || currentPage == null)
         {
             return;
         }
@@ -96,7 +110,7 @@ sealed class PageRenderer(RenderContext context) :
         var savedY = context.CurrentY;
         context.CurrentY = (float) (context.PageSettings.HeightPoints - context.PageSettings.FooterDistance - footerHeight);
 
-        foreach (var element in footer.Elements)
+        foreach (var element in activeFooter.Elements)
         {
             if (element is ParagraphElement para)
             {

@@ -13,6 +13,9 @@ sealed class PageRenderer(RenderContext context) :
     SKCanvas? currentCanvas;
     HeaderFooterContent? header;
     HeaderFooterContent? footer;
+    HeaderFooterContent? firstPageHeader;
+    HeaderFooterContent? firstPageFooter;
+    bool differentFirstPage;
     float headerHeight;
     float footerHeight;
 
@@ -31,6 +34,9 @@ sealed class PageRenderer(RenderContext context) :
     {
         header = document.Header;
         footer = document.Footer;
+        firstPageHeader = document.FirstPageHeader;
+        firstPageFooter = document.FirstPageFooter;
+        differentFirstPage = document.PageSettings.DifferentFirstPage;
 
         // Measure header and footer heights
         headerHeight = MeasureHeaderFooterHeight(header);
@@ -90,7 +96,12 @@ sealed class PageRenderer(RenderContext context) :
 
     void RenderHeader()
     {
-        if (header == null || currentCanvas == null)
+        // On page 1 with DifferentFirstPage, use first-page header instead of default
+        var activeHeader = differentFirstPage && context.CurrentPageNumber == 1
+            ? firstPageHeader
+            : header;
+
+        if (activeHeader == null || currentCanvas == null)
         {
             return;
         }
@@ -98,7 +109,7 @@ sealed class PageRenderer(RenderContext context) :
         var savedY = context.CurrentY;
         context.CurrentY = (float) context.PageSettings.HeaderDistance;
 
-        foreach (var element in header.Elements)
+        foreach (var element in activeHeader.Elements)
         {
             if (element is ParagraphElement para)
             {
@@ -111,7 +122,12 @@ sealed class PageRenderer(RenderContext context) :
 
     void RenderFooter()
     {
-        if (footer == null || currentCanvas == null)
+        // On page 1 with DifferentFirstPage, use first-page footer instead of default
+        var activeFooter = differentFirstPage && context.CurrentPageNumber == 1
+            ? firstPageFooter
+            : footer;
+
+        if (activeFooter == null || currentCanvas == null)
         {
             return;
         }
@@ -120,7 +136,7 @@ sealed class PageRenderer(RenderContext context) :
         // Position footer from bottom
         context.CurrentY = (float) (context.PageSettings.HeightPoints - context.PageSettings.FooterDistance - footerHeight);
 
-        foreach (var element in footer.Elements)
+        foreach (var element in activeFooter.Elements)
         {
             if (element is ParagraphElement para)
             {
