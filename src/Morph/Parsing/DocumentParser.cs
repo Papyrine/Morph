@@ -42,7 +42,7 @@ sealed class DocumentParser
     Dictionary<string, (int numId, int ilvl)>? styleNumbering;
 
     // Table style borders cached during parsing (styleId -> CellBorders)
-    Dictionary<string, CellBorders>? tableStyleBorders;
+    Dictionary<string, (CellBorders outer, BorderEdge insideH, BorderEdge insideV)>? tableStyleBorders;
 
     // Document-level background color (applies to all pages)
     string? documentBackgroundColor;
@@ -859,9 +859,9 @@ sealed class DocumentParser
         return result;
     }
 
-    Dictionary<string, CellBorders> ExtractTableStyleBorders(MainDocumentPart mainPart)
+    Dictionary<string, (CellBorders outer, BorderEdge insideH, BorderEdge insideV)> ExtractTableStyleBorders(MainDocumentPart mainPart)
     {
-        var result = new Dictionary<string, CellBorders>(StringComparer.OrdinalIgnoreCase);
+        var result = new Dictionary<string, (CellBorders, BorderEdge, BorderEdge)>(StringComparer.OrdinalIgnoreCase);
 
         var stylesPart = mainPart.StyleDefinitionsPart;
         if (stylesPart?.Styles == null)
@@ -905,27 +905,13 @@ sealed class DocumentParser
                 Left = ParseBorderEdge(borders.GetFirstChild<LeftBorder>())
             };
 
-            // Also check InsideHorizontalBorder and InsideVerticalBorder for internal cell borders
             var insideH = ParseBorderEdge(borders.GetFirstChild<InsideHorizontalBorder>());
             var insideV = ParseBorderEdge(borders.GetFirstChild<InsideVerticalBorder>());
 
-            // If inside borders are specified, they apply to internal cell edges
-            if (insideH.IsVisible || insideV.IsVisible)
+            // Store outer + inside borders together as a TableBorderSet
+            if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible)
             {
-                cellBorders = new()
-                {
-                    Top = cellBorders.Top.IsVisible ? cellBorders.Top : insideH,
-                    Right = cellBorders.Right.IsVisible ? cellBorders.Right : insideV,
-                    Bottom = cellBorders.Bottom.IsVisible ? cellBorders.Bottom : insideH,
-                    Left = cellBorders.Left.IsVisible ? cellBorders.Left : insideV
-                };
-            }
-
-            // Only add if at least one border is visible
-            if (cellBorders.Top.IsVisible || cellBorders.Right.IsVisible ||
-                cellBorders.Bottom.IsVisible || cellBorders.Left.IsVisible)
-            {
-                result[styleId] = cellBorders;
+                result[styleId] = (cellBorders, insideH, insideV);
             }
         }
 
@@ -1764,6 +1750,8 @@ sealed class DocumentParser
 
         // Parse table properties
         CellBorders? defaultBorders = null;
+        BorderEdge? insideHBorder = null;
+        BorderEdge? insideVBorder = null;
         double indentPoints = 0;
 
         if (tableProps != null)
@@ -1780,33 +1768,37 @@ sealed class DocumentParser
                     Left = ParseBorderEdge(borders.GetFirstChild<LeftBorder>())
                 };
 
-                // Also check InsideHorizontalBorder and InsideVerticalBorder for internal cell borders
                 var insideH = ParseBorderEdge(borders.GetFirstChild<InsideHorizontalBorder>());
                 var insideV = ParseBorderEdge(borders.GetFirstChild<InsideVerticalBorder>());
 
-                // If inside borders are specified, they apply to internal cell edges
-                // For now, we'll use these as defaults for all cells if they're more visible
-                if (insideH.IsVisible || insideV.IsVisible)
+                if (insideH.IsVisible)
                 {
-                    // Combine outside and inside borders
-                    defaultBorders = new()
-                    {
-                        Top = defaultBorders.Top.IsVisible ? defaultBorders.Top : insideH,
-                        Right = defaultBorders.Right.IsVisible ? defaultBorders.Right : insideV,
-                        Bottom = defaultBorders.Bottom.IsVisible ? defaultBorders.Bottom : insideH,
-                        Left = defaultBorders.Left.IsVisible ? defaultBorders.Left : insideV
-                    };
+                    insideHBorder = insideH;
+                }
+
+                if (insideV.IsVisible)
+                {
+                    insideVBorder = insideV;
                 }
             }
 
             // If no inline borders, try to get borders from the table style
-            if (defaultBorders == null)
+            if (defaultBorders == null && insideHBorder == null && insideVBorder == null)
             {
                 var tableStyle = tableProps.GetFirstChild<TableStyle>();
                 if (tableStyle?.Val?.Value != null && tableStyleBorders != null &&
                     tableStyleBorders.TryGetValue(tableStyle.Val.Value, out var styleBorders))
                 {
-                    defaultBorders = styleBorders;
+                    defaultBorders = styleBorders.outer;
+                    if (styleBorders.insideH.IsVisible)
+                    {
+                        insideHBorder = styleBorders.insideH;
+                    }
+
+                    if (styleBorders.insideV.IsVisible)
+                    {
+                        insideVBorder = styleBorders.insideV;
+                    }
                 }
             }
 
@@ -1825,6 +1817,8 @@ sealed class DocumentParser
             {
                 IsFloating = isFloating,
                 DefaultBorders = defaultBorders,
+                InsideHorizontalBorder = insideHBorder,
+                InsideVerticalBorder = insideVBorder,
                 DefaultCellPadding = defaultCellPadding ?? new CellSpacing(),
                 DefaultCellMargin = defaultCellMargin ?? new CellSpacing(0),
                 IndentPoints = indentPoints,
