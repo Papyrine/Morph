@@ -1594,28 +1594,39 @@ sealed class PageRenderer(RenderContext context) :
             }
         }
 
-        // Measure paragraphs, but don't add spacing before first paragraph
-        // or spacing after last paragraph (absorbed by cell padding)
         for (var i = 0; i < paragraphs.Count; i++)
         {
             var (para, bulletIndent) = paragraphs[i];
             var lines = textRenderer.LayoutParagraphForMeasurement(para, contentWidth - bulletIndent);
             var props = para.Properties;
 
-            // Add spacing before (skip for first paragraph - absorbed by cell padding)
-            if (i > 0)
+            if (i == 0)
+            {
+                var extra = (float) props.SpacingBeforePoints - (float) padding.Top;
+                if (extra > 0)
+                {
+                    height += extra;
+                }
+            }
+            else
             {
                 height += (float) props.SpacingBeforePoints;
             }
 
-            // Add line heights
             foreach (var lineHeight in lines)
             {
                 height += lineHeight;
             }
 
-            // Add spacing after (skip for last paragraph - absorbed by cell padding)
-            if (i < paragraphs.Count - 1)
+            if (i == paragraphs.Count - 1)
+            {
+                var extra = (float) props.SpacingAfterPoints - (float) padding.Bottom;
+                if (extra > 0)
+                {
+                    height += extra;
+                }
+            }
+            else
             {
                 height += (float) props.SpacingAfterPoints;
             }
