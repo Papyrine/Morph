@@ -709,7 +709,7 @@ sealed class PageRenderer(RenderContext context) :
                     cellHeight = contentHeight + (float) padding.Vertical;
                 }
 
-                RenderTableCell(cell, currentX, cellY, cellWidth, cellHeight, table.Properties);
+                RenderTableCell(cell, currentX, cellY, cellWidth, cellHeight, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount);
 
                 for (var i = 0; i < span && gridColIndex + i < colCount; i++)
                 {
@@ -768,7 +768,7 @@ sealed class PageRenderer(RenderContext context) :
                 cellHeight = CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
             }
 
-            RenderTableCell(cell, currentX, currentY, cellWidth, cellHeight, table.Properties);
+            RenderTableCell(cell, currentX, currentY, cellWidth, cellHeight, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount);
 
             currentX += cellWidth;
             gridColIndex += span;
@@ -1148,7 +1148,37 @@ sealed class PageRenderer(RenderContext context) :
     static CellSpacing GetEffectiveMargin(TableCellProperties cellProps, TableProperties tableProps) =>
         cellProps.Margin ?? tableProps.DefaultCellMargin;
 
-    void RenderTableCell(TableCell cell, float x, float y, float width, float height, TableProperties tableProps)
+    static CellBorders? ResolveCellBorders(TableCellProperties cellProps, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols)
+    {
+        if (cellProps.Borders != null)
+        {
+            return cellProps.Borders;
+        }
+
+        var outer = tableProps.DefaultBorders;
+        var insideH = tableProps.InsideHorizontalBorder;
+        var insideV = tableProps.InsideVerticalBorder;
+
+        if (outer == null && insideH == null && insideV == null)
+        {
+            return null;
+        }
+
+        var isFirstRow = rowIndex == 0;
+        var isLastRow = rowIndex == totalRows - 1;
+        var isFirstCol = colIndex == 0;
+        var isLastCol = colIndex == totalCols - 1;
+
+        return new CellBorders
+        {
+            Top = isFirstRow ? (outer?.Top ?? BorderEdge.None) : (insideH ?? BorderEdge.None),
+            Bottom = isLastRow ? (outer?.Bottom ?? BorderEdge.None) : (insideH ?? BorderEdge.None),
+            Left = isFirstCol ? (outer?.Left ?? BorderEdge.None) : (insideV ?? BorderEdge.None),
+            Right = isLastCol ? (outer?.Right ?? BorderEdge.None) : (insideV ?? BorderEdge.None)
+        };
+    }
+
+    void RenderTableCell(TableCell cell, float x, float y, float width, float height, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols)
     {
         if (currentPage == null)
         {
@@ -1174,7 +1204,7 @@ sealed class PageRenderer(RenderContext context) :
             currentPage.Mutate(ctx => ctx.Fill(bgColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
         }
 
-        var borders = cell.Properties.Borders ?? tableProps.DefaultBorders;
+        var borders = ResolveCellBorders(cell.Properties, tableProps, rowIndex, colIndex, totalRows, totalCols);
         if (borders != null)
         {
             if (borders.Top.IsVisible)

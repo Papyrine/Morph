@@ -1416,6 +1416,12 @@ internal sealed record TableProperties
     /// <summary>Default borders for cells (from w:tblBorders). Null means no borders.</summary>
     public CellBorders? DefaultBorders { get; init; }
 
+    /// <summary>Inside horizontal border (between rows). Null means none.</summary>
+    public BorderEdge? InsideHorizontalBorder { get; init; }
+
+    /// <summary>Inside vertical border (between columns). Null means none.</summary>
+    public BorderEdge? InsideVerticalBorder { get; init; }
+
     /// <summary>Default cell padding (used when cell doesn't specify its own).</summary>
     public CellSpacing DefaultCellPadding { get; init; } = new();
 

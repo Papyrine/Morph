@@ -1132,10 +1132,8 @@ sealed class PageRenderer(RenderContext context) :
                     cellHeight = contentHeight + (float) padding.Vertical;
                 }
 
-                // Render the cell
-                RenderTableCell(cell, currentX, cellY, cellWidth, cellHeight, table.Properties);
+                RenderTableCell(cell, currentX, cellY, cellWidth, cellHeight, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount);
 
-                // Update Y position for all columns this cell spans
                 for (var i = 0; i < span && gridColIndex + i < colCount; i++)
                 {
                     columnYPositions[gridColIndex + i] = cellY + cellHeight;
@@ -1213,7 +1211,7 @@ sealed class PageRenderer(RenderContext context) :
                 cellHeight = CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
             }
 
-            RenderTableCell(cell, currentX, currentY, cellWidth, cellHeight, table.Properties);
+            RenderTableCell(cell, currentX, currentY, cellWidth, cellHeight, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount);
 
             currentX += cellWidth;
             gridColIndex += span;
@@ -1641,7 +1639,37 @@ sealed class PageRenderer(RenderContext context) :
     static CellSpacing GetEffectiveMargin(TableCellProperties cellProps, TableProperties tableProps) =>
         cellProps.Margin ?? tableProps.DefaultCellMargin;
 
-    void RenderTableCell(TableCell cell, float x, float y, float width, float height, TableProperties tableProps)
+    static CellBorders? ResolveCellBorders(TableCellProperties cellProps, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols)
+    {
+        if (cellProps.Borders != null)
+        {
+            return cellProps.Borders;
+        }
+
+        var outer = tableProps.DefaultBorders;
+        var insideH = tableProps.InsideHorizontalBorder;
+        var insideV = tableProps.InsideVerticalBorder;
+
+        if (outer == null && insideH == null && insideV == null)
+        {
+            return null;
+        }
+
+        var isFirstRow = rowIndex == 0;
+        var isLastRow = rowIndex == totalRows - 1;
+        var isFirstCol = colIndex == 0;
+        var isLastCol = colIndex == totalCols - 1;
+
+        return new CellBorders
+        {
+            Top = isFirstRow ? (outer?.Top ?? BorderEdge.None) : (insideH ?? BorderEdge.None),
+            Bottom = isLastRow ? (outer?.Bottom ?? BorderEdge.None) : (insideH ?? BorderEdge.None),
+            Left = isFirstCol ? (outer?.Left ?? BorderEdge.None) : (insideV ?? BorderEdge.None),
+            Right = isLastCol ? (outer?.Right ?? BorderEdge.None) : (insideV ?? BorderEdge.None)
+        };
+    }
+
+    void RenderTableCell(TableCell cell, float x, float y, float width, float height, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols)
     {
         if (currentCanvas == null)
         {
@@ -1651,7 +1679,6 @@ sealed class PageRenderer(RenderContext context) :
         var padding = GetEffectivePadding(cell.Properties, tableProps);
         var margin = GetEffectiveMargin(cell.Properties, tableProps);
 
-        // Apply margin to position
         var cellX = x + (float) margin.Left;
         var cellY = y + (float) margin.Top;
         var cellWidth = width - (float) margin.Horizontal;
@@ -1662,7 +1689,6 @@ sealed class PageRenderer(RenderContext context) :
         var pixelWidth = context.PointsToPixels(cellWidth);
         var pixelHeight = context.PointsToPixels(cellHeight);
 
-        // Draw cell background
         if (cell.Properties.BackgroundColorHex != null)
         {
             using var bgPaint = new SKPaint
@@ -1673,8 +1699,7 @@ sealed class PageRenderer(RenderContext context) :
             currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, bgPaint);
         }
 
-        // Draw cell borders - use cell-level borders if specified, otherwise table defaults
-        var borders = cell.Properties.Borders ?? tableProps.DefaultBorders;
+        var borders = ResolveCellBorders(cell.Properties, tableProps, rowIndex, colIndex, totalRows, totalCols);
         if (borders != null)
         {
             // Draw top border
