@@ -1,3 +1,5 @@
+using WordRender.Rendering;
+
 /// <summary>
 /// Renders document pages to PNG images.
 /// </summary>
@@ -982,7 +984,7 @@ sealed class PageRenderer(RenderContext context) :
             colCount = table.Rows.Max(r => r.Cells.Sum(c => c.Properties.GridSpan));
         }
 
-        var colWidths = CalculateColumnWidths(table, colCount);
+        var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
         var rowHeights = CalculateRowHeights(table, colWidths);
 
         return rowHeights.Sum();
@@ -1008,7 +1010,7 @@ sealed class PageRenderer(RenderContext context) :
             colCount = table.Rows.Max(r => r.Cells.Sum(c => c.Properties.GridSpan));
         }
 
-        var colWidths = CalculateColumnWidths(table, colCount);
+        var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
 
         // Calculate row heights
         var rowHeights = CalculateRowHeights(table, colWidths);
@@ -1121,12 +1123,12 @@ sealed class PageRenderer(RenderContext context) :
                 if (cell.Properties.VerticalMerge == VerticalMergeType.Restart)
                 {
                     // For vertically merged cells, use the full merged height so background fills entire area
-                    cellHeight = CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
+                    cellHeight = TableLayout.CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
                 }
                 else
                 {
                     // For regular cells, use content-based height
-                    var padding = GetEffectivePadding(cell.Properties, table.Properties);
+                    var padding = TableLayout.GetEffectivePadding(cell.Properties, table.Properties);
                     var contentWidth = cellWidth - (float) padding.Horizontal;
                     var contentHeight = MeasureCellHeight(cell, contentWidth, table.Properties);
                     cellHeight = contentHeight + (float) padding.Vertical;
@@ -1208,7 +1210,7 @@ sealed class PageRenderer(RenderContext context) :
             if (cell.Properties.VerticalMerge == VerticalMergeType.Restart)
             {
                 // For vertically merged cells, use the full merged height so background fills entire area
-                cellHeight = CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
+                cellHeight = TableLayout.CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
             }
 
             RenderTableCell(cell, currentX, currentY, cellWidth, cellHeight, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount);
@@ -1216,155 +1218,6 @@ sealed class PageRenderer(RenderContext context) :
             currentX += cellWidth;
             gridColIndex += span;
         }
-    }
-
-    /// <summary>
-    /// Calculates the total height of a vertically merged cell starting at the given row and column.
-    /// </summary>
-    static float CalculateVerticalMergeHeight(TableElement table, int startRowIndex, int gridColIndex, float[] rowHeights)
-    {
-        var totalHeight = rowHeights[startRowIndex];
-
-        // Look at subsequent rows to find cells that continue the merge
-        for (var rowIndex = startRowIndex + 1; rowIndex < table.Rows.Count; rowIndex++)
-        {
-            var row = table.Rows[rowIndex];
-
-            // Find the cell at the same grid column position
-            var currentGridCol = 0;
-            TableCell? cellAtColumn = null;
-            foreach (var cell in row.Cells)
-            {
-                if (currentGridCol == gridColIndex)
-                {
-                    cellAtColumn = cell;
-                    break;
-                }
-
-                currentGridCol += cell.Properties.GridSpan;
-                if (currentGridCol > gridColIndex)
-                {
-                    break;
-                }
-            }
-
-            // If we found a cell that continues the merge, add its row height
-            if (cellAtColumn?.Properties.VerticalMerge == VerticalMergeType.Continue)
-            {
-                totalHeight += rowHeights[rowIndex];
-            }
-            else
-            {
-                // Merge ends here
-                break;
-            }
-        }
-
-        return totalHeight;
-    }
-
-    float[] CalculateColumnWidths(TableElement table, int colCount)
-    {
-        var widths = new float[colCount];
-        var availableWidth = context.ContentWidth;
-        var gridWidths = table.Properties.GridColumnWidths;
-
-        // First pass: gather explicit widths from cell properties
-        // Only consider cells that don't span multiple columns (gridSpan=1)
-        var hasExplicitWidths = false;
-
-        foreach (var row in table.Rows)
-        {
-            // Track actual grid column position
-            var gridColIndex = 0;
-            for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
-            {
-                var cell = row.Cells[cellIndex];
-                var props = cell.Properties;
-                var span = props.GridSpan;
-
-                // Only use explicit width from cells that don't span multiple columns
-                if (span == 1 && props.WidthPoints.HasValue)
-                {
-                    widths[gridColIndex] = Math.Max(widths[gridColIndex], (float) props.WidthPoints.Value);
-                    hasExplicitWidths = true;
-                }
-
-                // Advance by the number of columns this cell spans
-                gridColIndex += span;
-            }
-        }
-
-        if (hasExplicitWidths)
-        {
-            // Fill in any remaining columns without widths
-            var totalExplicitWidth = widths.Sum();
-            var columnsWithoutWidth = widths.Count(w => w == 0);
-
-            if (columnsWithoutWidth > 0 && totalExplicitWidth < availableWidth)
-            {
-                var remainingWidth = availableWidth - totalExplicitWidth;
-                var perColumnWidth = remainingWidth / columnsWithoutWidth;
-                for (var i = 0; i < colCount; i++)
-                {
-                    if (widths[i] == 0)
-                    {
-                        widths[i] = perColumnWidth;
-                    }
-                }
-            }
-
-            // Scale to fit if total exceeds available width
-            var totalWidth = widths.Sum();
-            if (totalWidth > availableWidth)
-            {
-                var scale = availableWidth / totalWidth;
-                for (var i = 0; i < colCount; i++)
-                {
-                    widths[i] *= scale;
-                }
-            }
-        }
-        else if (gridWidths is {Count: > 0})
-        {
-            // No cell widths - use grid column widths as fallback
-            for (var i = 0; i < colCount && i < gridWidths.Count; i++)
-            {
-                widths[i] = (float) gridWidths[i];
-            }
-
-            // Fill remaining columns if grid has fewer entries than actual columns
-            if (gridWidths.Count < colCount)
-            {
-                var avgWidth = (float) gridWidths.Average();
-                for (var i = gridWidths.Count; i < colCount; i++)
-                {
-                    widths[i] = avgWidth;
-                }
-            }
-
-            // Scale grid widths to fit available width while maintaining proportions
-            var totalWidth = widths.Sum();
-            if (totalWidth > availableWidth && totalWidth > 0)
-            {
-                var scale = availableWidth / totalWidth;
-                for (var i = 0; i < colCount; i++)
-                {
-                    widths[i] *= scale;
-                }
-            }
-        }
-        else
-        {
-            // Distribute evenly
-            var cellWidth = availableWidth / colCount;
-            for (var i = 0; i < colCount; i++)
-            {
-                widths[i] = cellWidth;
-            }
-        }
-
-        return widths;
     }
 
     float[] CalculateRowHeights(TableElement table, float[] colWidths)
@@ -1453,7 +1306,7 @@ sealed class PageRenderer(RenderContext context) :
                 if (cell.Properties.VerticalMerge == VerticalMergeType.Restart)
                 {
                     // Calculate how many rows this cell spans
-                    var rowSpan = CalculateVerticalMergeRowSpan(table, rowIndex, gridColIndex);
+                    var rowSpan = TableLayout.CalculateVerticalMergeRowSpan(table, rowIndex, gridColIndex);
 
                     // Calculate cell width
                     float cellWidth = 0;
@@ -1492,53 +1345,10 @@ sealed class PageRenderer(RenderContext context) :
         return heights;
     }
 
-    /// <summary>
-    /// Calculates how many rows a vertically merged cell spans.
-    /// </summary>
-    static int CalculateVerticalMergeRowSpan(TableElement table, int startRowIndex, int gridColIndex)
-    {
-        var rowSpan = 1;
-
-        for (var rowIndex = startRowIndex + 1; rowIndex < table.Rows.Count; rowIndex++)
-        {
-            var row = table.Rows[rowIndex];
-
-            // Find the cell at the same grid column position
-            var currentGridCol = 0;
-            TableCell? cellAtColumn = null;
-            foreach (var cell in row.Cells)
-            {
-                if (currentGridCol == gridColIndex)
-                {
-                    cellAtColumn = cell;
-                    break;
-                }
-
-                currentGridCol += cell.Properties.GridSpan;
-                if (currentGridCol > gridColIndex)
-                {
-                    break;
-                }
-            }
-
-            // If we found a cell that continues the merge, increment row span
-            if (cellAtColumn?.Properties.VerticalMerge == VerticalMergeType.Continue)
-            {
-                rowSpan++;
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        return rowSpan;
-    }
-
     float MeasureCellHeight(TableCell cell, float cellWidth, TableProperties tableProps)
     {
-        var padding = GetEffectivePadding(cell.Properties, tableProps);
-        var margin = GetEffectiveMargin(cell.Properties, tableProps);
+        var padding = TableLayout.GetEffectivePadding(cell.Properties, tableProps);
+        var margin = TableLayout.GetEffectiveMargin(cell.Properties, tableProps);
 
         // Calculate available content width within the cell
         var contentWidth = cellWidth - (float) (padding.Horizontal + margin.Horizontal);
@@ -1633,42 +1443,6 @@ sealed class PageRenderer(RenderContext context) :
         return height;
     }
 
-    static CellSpacing GetEffectivePadding(TableCellProperties cellProps, TableProperties tableProps) =>
-        cellProps.Padding ?? tableProps.DefaultCellPadding;
-
-    static CellSpacing GetEffectiveMargin(TableCellProperties cellProps, TableProperties tableProps) =>
-        cellProps.Margin ?? tableProps.DefaultCellMargin;
-
-    static CellBorders? ResolveCellBorders(TableCellProperties cellProps, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols)
-    {
-        if (cellProps.Borders != null)
-        {
-            return cellProps.Borders;
-        }
-
-        var outer = tableProps.DefaultBorders;
-        var insideH = tableProps.InsideHorizontalBorder;
-        var insideV = tableProps.InsideVerticalBorder;
-
-        if (outer == null && insideH == null && insideV == null)
-        {
-            return null;
-        }
-
-        var isFirstRow = rowIndex == 0;
-        var isLastRow = rowIndex == totalRows - 1;
-        var isFirstCol = colIndex == 0;
-        var isLastCol = colIndex == totalCols - 1;
-
-        return new CellBorders
-        {
-            Top = isFirstRow ? (outer?.Top ?? BorderEdge.None) : (insideH ?? BorderEdge.None),
-            Bottom = isLastRow ? (outer?.Bottom ?? BorderEdge.None) : (insideH ?? BorderEdge.None),
-            Left = isFirstCol ? (outer?.Left ?? BorderEdge.None) : (insideV ?? BorderEdge.None),
-            Right = isLastCol ? (outer?.Right ?? BorderEdge.None) : (insideV ?? BorderEdge.None)
-        };
-    }
-
     void RenderTableCell(TableCell cell, float x, float y, float width, float height, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols)
     {
         if (currentCanvas == null)
@@ -1676,8 +1450,8 @@ sealed class PageRenderer(RenderContext context) :
             return;
         }
 
-        var padding = GetEffectivePadding(cell.Properties, tableProps);
-        var margin = GetEffectiveMargin(cell.Properties, tableProps);
+        var padding = TableLayout.GetEffectivePadding(cell.Properties, tableProps);
+        var margin = TableLayout.GetEffectiveMargin(cell.Properties, tableProps);
 
         var cellX = x + (float) margin.Left;
         var cellY = y + (float) margin.Top;
@@ -1699,7 +1473,7 @@ sealed class PageRenderer(RenderContext context) :
             currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, bgPaint);
         }
 
-        var borders = ResolveCellBorders(cell.Properties, tableProps, rowIndex, colIndex, totalRows, totalCols);
+        var borders = TableLayout.ResolveCellBorders(cell.Properties, tableProps, rowIndex, colIndex, totalRows, totalCols);
         if (borders != null)
         {
             // Draw top border

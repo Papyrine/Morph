@@ -1,3 +1,5 @@
+using WordRender.Rendering;
+
 /// <summary>
 /// Renders text content with formatting using SixLabors.ImageSharp.
 /// </summary>
@@ -69,30 +71,14 @@ sealed class TextRenderer(RenderContext context)
         foreach (var line in lines)
         {
             // Use compact line height for table cells (no boost)
-            lineHeights.Add(CalculateCompactLineHeight(line.Height, props));
+            lineHeights.Add(TableLayout.CalculateCompactLineHeight(line.Height, props));
         }
 
         return lineHeights;
     }
 
-    /// <summary>
-    /// Calculates line height without the Word compatibility boost.
-    /// Used for table cell measurement to achieve more compact layout.
-    /// </summary>
-    static float CalculateCompactLineHeight(float naturalHeight, ParagraphProperties props)
-    {
-        var lineHeight = props.LineSpacingRule switch
-        {
-            LineSpacingRule.Exactly => (float)props.LineSpacingPoints,
-            LineSpacingRule.AtLeast => Math.Max(naturalHeight, (float)props.LineSpacingPoints),
-            _ => naturalHeight * (float)props.LineSpacingMultiplier // Auto
-        };
 
-        // Skip the Word compatibility boost for compact measurement
-        // This helps table cells fit their content more tightly
 
-        return lineHeight;
-    }
 
     /// <summary>
     /// Calculates the effective line height based on the line spacing rule.
