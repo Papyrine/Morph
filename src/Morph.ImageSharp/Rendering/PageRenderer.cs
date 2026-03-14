@@ -1107,7 +1107,15 @@ sealed class PageRenderer(RenderContext context) :
             var lines = textRenderer.LayoutParagraphForMeasurement(para, contentWidth - bulletIndent);
             var props = para.Properties;
 
-            if (i > 0)
+            if (i == 0)
+            {
+                var extra = (float) props.SpacingBeforePoints - (float) padding.Top;
+                if (extra > 0)
+                {
+                    height += extra;
+                }
+            }
+            else
             {
                 height += (float) props.SpacingBeforePoints;
             }
@@ -1117,7 +1125,15 @@ sealed class PageRenderer(RenderContext context) :
                 height += lineHeight;
             }
 
-            if (i < paragraphs.Count - 1)
+            if (i == paragraphs.Count - 1)
+            {
+                var extra = (float) props.SpacingAfterPoints - (float) padding.Bottom;
+                if (extra > 0)
+                {
+                    height += extra;
+                }
+            }
+            else
             {
                 height += (float) props.SpacingAfterPoints;
             }

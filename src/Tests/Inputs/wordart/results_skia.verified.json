@@ -1,0 +1,111 @@
+﻿{
+  "ExpectedPageCount": 15,
+  "ResultingPageCount": 15,
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0068,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "results_skia#page_0001.verified.png",
+      "ReceivedFile": "results_skia#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.111,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "results_skia#page_0002.verified.png",
+      "ReceivedFile": "results_skia#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.2211,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "results_skia#page_0003.verified.png",
+      "ReceivedFile": "results_skia#page_0003.received.png"
+    },
+    {
+      "Page": 4,
+      "ErrorMetric": 0.2091,
+      "ExpectedFile": "expected_0004.png",
+      "VerifiedFile": "results_skia#page_0004.verified.png",
+      "ReceivedFile": "results_skia#page_0004.received.png"
+    },
+    {
+      "Page": 5,
+      "ErrorMetric": 0.0346,
+      "ExpectedFile": "expected_0005.png",
+      "VerifiedFile": "results_skia#page_0005.verified.png",
+      "ReceivedFile": "results_skia#page_0005.received.png"
+    },
+    {
+      "Page": 6,
+      "ErrorMetric": 0.0504,
+      "ExpectedFile": "expected_0006.png",
+      "VerifiedFile": "results_skia#page_0006.verified.png",
+      "ReceivedFile": "results_skia#page_0006.received.png"
+    },
+    {
+      "Page": 7,
+      "ErrorMetric": 0.0466,
+      "ExpectedFile": "expected_0007.png",
+      "VerifiedFile": "results_skia#page_0007.verified.png",
+      "ReceivedFile": "results_skia#page_0007.received.png"
+    },
+    {
+      "Page": 8,
+      "ErrorMetric": 0.0764,
+      "ExpectedFile": "expected_0008.png",
+      "VerifiedFile": "results_skia#page_0008.verified.png",
+      "ReceivedFile": "results_skia#page_0008.received.png"
+    },
+    {
+      "Page": 9,
+      "ErrorMetric": 0.0517,
+      "ExpectedFile": "expected_0009.png",
+      "VerifiedFile": "results_skia#page_0009.verified.png",
+      "ReceivedFile": "results_skia#page_0009.received.png"
+    },
+    {
+      "Page": 10,
+      "ErrorMetric": 0.0669,
+      "ExpectedFile": "expected_0010.png",
+      "VerifiedFile": "results_skia#page_0010.verified.png",
+      "ReceivedFile": "results_skia#page_0010.received.png"
+    },
+    {
+      "Page": 11,
+      "ErrorMetric": 0.0577,
+      "ExpectedFile": "expected_0011.png",
+      "VerifiedFile": "results_skia#page_0011.verified.png",
+      "ReceivedFile": "results_skia#page_0011.received.png"
+    },
+    {
+      "Page": 12,
+      "ErrorMetric": 0.0324,
+      "ExpectedFile": "expected_0012.png",
+      "VerifiedFile": "results_skia#page_0012.verified.png",
+      "ReceivedFile": "results_skia#page_0012.received.png"
+    },
+    {
+      "Page": 13,
+      "ErrorMetric": 0.019,
+      "ExpectedFile": "expected_0013.png",
+      "VerifiedFile": "results_skia#page_0013.verified.png",
+      "ReceivedFile": "results_skia#page_0013.received.png"
+    },
+    {
+      "Page": 14,
+      "ErrorMetric": 0.0717,
+      "ExpectedFile": "expected_0014.png",
+      "VerifiedFile": "results_skia#page_0014.verified.png",
+      "ReceivedFile": "results_skia#page_0014.received.png"
+    },
+    {
+      "Page": 15,
+      "ErrorMetric": 0.0332,
+      "ExpectedFile": "expected_0015.png",
+      "VerifiedFile": "results_skia#page_0015.verified.png",
+      "ReceivedFile": "results_skia#page_0015.received.png"
+    }
+  ]
+}
