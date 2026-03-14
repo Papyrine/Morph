@@ -1,3 +1,5 @@
+using WordRender.Rendering;
+
 /// <summary>
 /// Renders document pages to PNG images using SixLabors.ImageSharp.
 /// </summary>
@@ -592,7 +594,7 @@ sealed class PageRenderer(RenderContext context) :
             colCount = table.Rows.Max(r => r.Cells.Sum(c => c.Properties.GridSpan));
         }
 
-        var colWidths = CalculateColumnWidths(table, colCount);
+        var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
         var rowHeights = CalculateRowHeights(table, colWidths);
 
         return rowHeights.Sum();
@@ -615,7 +617,7 @@ sealed class PageRenderer(RenderContext context) :
             colCount = table.Rows.Max(r => r.Cells.Sum(c => c.Properties.GridSpan));
         }
 
-        var colWidths = CalculateColumnWidths(table, colCount);
+        var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
         var rowHeights = CalculateRowHeights(table, colWidths);
         var totalHeight = rowHeights.Sum();
 
@@ -699,7 +701,7 @@ sealed class PageRenderer(RenderContext context) :
                 float cellHeight;
                 if (cell.Properties.VerticalMerge == VerticalMergeType.Restart)
                 {
-                    cellHeight = CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
+                    cellHeight = TableLayout.CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
                 }
                 else
                 {
@@ -765,7 +767,7 @@ sealed class PageRenderer(RenderContext context) :
             var cellHeight = rowHeight;
             if (cell.Properties.VerticalMerge == VerticalMergeType.Restart)
             {
-                cellHeight = CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
+                cellHeight = TableLayout.CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
             }
 
             RenderTableCell(cell, currentX, currentY, cellWidth, cellHeight, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount);
@@ -775,135 +777,8 @@ sealed class PageRenderer(RenderContext context) :
         }
     }
 
-    static float CalculateVerticalMergeHeight(TableElement table, int startRowIndex, int gridColIndex, float[] rowHeights)
-    {
-        var totalHeight = rowHeights[startRowIndex];
 
-        for (var rowIndex = startRowIndex + 1; rowIndex < table.Rows.Count; rowIndex++)
-        {
-            var row = table.Rows[rowIndex];
-            var currentGridCol = 0;
-            TableCell? cellAtColumn = null;
-            foreach (var cell in row.Cells)
-            {
-                if (currentGridCol == gridColIndex)
-                {
-                    cellAtColumn = cell;
-                    break;
-                }
 
-                currentGridCol += cell.Properties.GridSpan;
-                if (currentGridCol > gridColIndex)
-                {
-                    break;
-                }
-            }
-
-            if (cellAtColumn?.Properties.VerticalMerge == VerticalMergeType.Continue)
-            {
-                totalHeight += rowHeights[rowIndex];
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        return totalHeight;
-    }
-
-    float[] CalculateColumnWidths(TableElement table, int colCount)
-    {
-        var widths = new float[colCount];
-        var availableWidth = context.ContentWidth;
-        var gridWidths = table.Properties.GridColumnWidths;
-
-        var hasExplicitWidths = false;
-
-        foreach (var row in table.Rows)
-        {
-            var gridColIndex = 0;
-            for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
-            {
-                var cell = row.Cells[cellIndex];
-                var props = cell.Properties;
-                var span = props.GridSpan;
-
-                if (span == 1 && props.WidthPoints.HasValue)
-                {
-                    widths[gridColIndex] = Math.Max(widths[gridColIndex], (float) props.WidthPoints.Value);
-                    hasExplicitWidths = true;
-                }
-
-                gridColIndex += span;
-            }
-        }
-
-        if (hasExplicitWidths)
-        {
-            var totalExplicitWidth = widths.Sum();
-            var columnsWithoutWidth = widths.Count(w => w == 0);
-
-            if (columnsWithoutWidth > 0 && totalExplicitWidth < availableWidth)
-            {
-                var remainingWidth = availableWidth - totalExplicitWidth;
-                var perColumnWidth = remainingWidth / columnsWithoutWidth;
-                for (var i = 0; i < colCount; i++)
-                {
-                    if (widths[i] == 0)
-                    {
-                        widths[i] = perColumnWidth;
-                    }
-                }
-            }
-
-            var totalWidth = widths.Sum();
-            if (totalWidth > availableWidth)
-            {
-                var scale = availableWidth / totalWidth;
-                for (var i = 0; i < colCount; i++)
-                {
-                    widths[i] *= scale;
-                }
-            }
-        }
-        else if (gridWidths is {Count: > 0})
-        {
-            for (var i = 0; i < colCount && i < gridWidths.Count; i++)
-            {
-                widths[i] = (float) gridWidths[i];
-            }
-
-            if (gridWidths.Count < colCount)
-            {
-                var avgWidth = (float) gridWidths.Average();
-                for (var i = gridWidths.Count; i < colCount; i++)
-                {
-                    widths[i] = avgWidth;
-                }
-            }
-
-            var totalWidth = widths.Sum();
-            if (totalWidth > availableWidth && totalWidth > 0)
-            {
-                var scale = availableWidth / totalWidth;
-                for (var i = 0; i < colCount; i++)
-                {
-                    widths[i] *= scale;
-                }
-            }
-        }
-        else
-        {
-            var cellWidth = availableWidth / colCount;
-            for (var i = 0; i < colCount; i++)
-            {
-                widths[i] = cellWidth;
-            }
-        }
-
-        return widths;
-    }
 
     float[] CalculateRowHeights(TableElement table, float[] colWidths)
     {
@@ -976,7 +851,7 @@ sealed class PageRenderer(RenderContext context) :
 
                 if (cell.Properties.VerticalMerge == VerticalMergeType.Restart)
                 {
-                    var rowSpan = CalculateVerticalMergeRowSpan(table, rowIndex, gridColIndex);
+                    var rowSpan = TableLayout.CalculateVerticalMergeRowSpan(table, rowIndex, gridColIndex);
 
                     float cellWidth = 0;
                     for (var i = 0; i < span && gridColIndex + i < colCount; i++)
@@ -1011,42 +886,8 @@ sealed class PageRenderer(RenderContext context) :
         return heights;
     }
 
-    static int CalculateVerticalMergeRowSpan(TableElement table, int startRowIndex, int gridColIndex)
-    {
-        var rowSpan = 1;
 
-        for (var rowIndex = startRowIndex + 1; rowIndex < table.Rows.Count; rowIndex++)
-        {
-            var row = table.Rows[rowIndex];
-            var currentGridCol = 0;
-            TableCell? cellAtColumn = null;
-            foreach (var cell in row.Cells)
-            {
-                if (currentGridCol == gridColIndex)
-                {
-                    cellAtColumn = cell;
-                    break;
-                }
 
-                currentGridCol += cell.Properties.GridSpan;
-                if (currentGridCol > gridColIndex)
-                {
-                    break;
-                }
-            }
-
-            if (cellAtColumn?.Properties.VerticalMerge == VerticalMergeType.Continue)
-            {
-                rowSpan++;
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        return rowSpan;
-    }
 
     float MeasureCellHeight(TableCell cell, float cellWidth, TableProperties tableProps)
     {
@@ -1143,40 +984,10 @@ sealed class PageRenderer(RenderContext context) :
     }
 
     static CellSpacing GetEffectivePadding(TableCellProperties cellProps, TableProperties tableProps) =>
-        cellProps.Padding ?? tableProps.DefaultCellPadding;
+        TableLayout.GetEffectivePadding(cellProps, tableProps);
 
     static CellSpacing GetEffectiveMargin(TableCellProperties cellProps, TableProperties tableProps) =>
-        cellProps.Margin ?? tableProps.DefaultCellMargin;
-
-    static CellBorders? ResolveCellBorders(TableCellProperties cellProps, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols)
-    {
-        if (cellProps.Borders != null)
-        {
-            return cellProps.Borders;
-        }
-
-        var outer = tableProps.DefaultBorders;
-        var insideH = tableProps.InsideHorizontalBorder;
-        var insideV = tableProps.InsideVerticalBorder;
-
-        if (outer == null && insideH == null && insideV == null)
-        {
-            return null;
-        }
-
-        var isFirstRow = rowIndex == 0;
-        var isLastRow = rowIndex == totalRows - 1;
-        var isFirstCol = colIndex == 0;
-        var isLastCol = colIndex == totalCols - 1;
-
-        return new CellBorders
-        {
-            Top = isFirstRow ? (outer?.Top ?? BorderEdge.None) : (insideH ?? BorderEdge.None),
-            Bottom = isLastRow ? (outer?.Bottom ?? BorderEdge.None) : (insideH ?? BorderEdge.None),
-            Left = isFirstCol ? (outer?.Left ?? BorderEdge.None) : (insideV ?? BorderEdge.None),
-            Right = isLastCol ? (outer?.Right ?? BorderEdge.None) : (insideV ?? BorderEdge.None)
-        };
-    }
+        TableLayout.GetEffectiveMargin(cellProps, tableProps);
 
     void RenderTableCell(TableCell cell, float x, float y, float width, float height, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols)
     {
@@ -1204,7 +1015,7 @@ sealed class PageRenderer(RenderContext context) :
             currentPage.Mutate(ctx => ctx.Fill(bgColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
         }
 
-        var borders = ResolveCellBorders(cell.Properties, tableProps, rowIndex, colIndex, totalRows, totalCols);
+        var borders = TableLayout.ResolveCellBorders(cell.Properties, tableProps, rowIndex, colIndex, totalRows, totalCols);
         if (borders != null)
         {
             if (borders.Top.IsVisible)
