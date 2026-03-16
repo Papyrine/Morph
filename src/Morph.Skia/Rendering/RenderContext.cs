@@ -79,10 +79,24 @@ sealed class RenderContext : RenderContextBase, IDisposable
         {
             typeface = SKTypeface.FromFamilyName(effectiveFontFamily, style);
 
-            // If font wasn't found (fell back to default), try user fonts, Office fonts, then cloud cache
+            // If font wasn't found (fell back to default), try stripping style suffixes, then font caches
             // Compare against effectiveFontFamily since we may have stripped weight suffixes
             if (typeface.FamilyName != effectiveFontFamily && !typeface.FamilyName.StartsWith(effectiveFontFamily, StringComparison.OrdinalIgnoreCase))
             {
+                // Try stripping style suffixes (e.g. "Avenir Next LT Pro Light" → "Avenir Next LT Pro")
+                var strippedName = FontHelpers.StripWeightSuffixes(fontFamily);
+                if (!string.IsNullOrEmpty(strippedName) && strippedName != fontFamily && strippedName != effectiveFontFamily)
+                {
+                    var strippedTypeface = SKTypeface.FromFamilyName(strippedName, style);
+                    if (strippedTypeface.FamilyName.Equals(strippedName, StringComparison.OrdinalIgnoreCase)
+                        || strippedTypeface.FamilyName.StartsWith(strippedName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        typeface = strippedTypeface;
+                        typefaceCache[key] = typeface;
+                        return typeface;
+                    }
+                }
+
                 var userTypeface = TryLoadFromFontCache(userFontsCache.Value, effectiveFontFamily, style)
                                    ?? TryLoadFromFontCache(userFontsCache.Value, fontFamily, style);
                 if (userTypeface != null)
@@ -106,7 +120,8 @@ sealed class RenderContext : RenderContextBase, IDisposable
                             typeface = cloudTypeface;
                         }
                         else if (FontHelpers.FontFallbacks.TryGetValue(effectiveFontFamily, out var fallbackFont)
-                                 || FontHelpers.FontFallbacks.TryGetValue(fontFamily, out fallbackFont))
+                                 || FontHelpers.FontFallbacks.TryGetValue(fontFamily, out fallbackFont)
+                                 || (!string.IsNullOrEmpty(strippedName) && FontHelpers.FontFallbacks.TryGetValue(strippedName, out fallbackFont)))
                         {
                             // Try known fallback font
                             var fallbackTypeface = SKTypeface.FromFamilyName(fallbackFont, style);

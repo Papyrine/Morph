@@ -1,3 +1,6 @@
+extern alias ImageSharp;
+using ImageSharpRenderContext = ImageSharp::RenderContext;
+
 /// <summary>
 /// Tests that font names implying bold (e.g. "Arial Black") cause
 /// the font creation path to request bold style.
@@ -6,7 +9,7 @@
 /// </summary>
 public class FontStyleFromNameTests
 {
-    static RenderContext CreateContext() =>
+    static ImageSharpRenderContext CreateContext() =>
         new(new(), 96);
 
     [Test]
@@ -25,7 +28,6 @@ public class FontStyleFromNameTests
     [Test]
     public async Task GetFontForFamily_ExplicitBold_CreatesBoldFont()
     {
-        // Baseline: explicit bold on a font with a Bold variant works
         using var context = CreateContext();
         var font = context.GetFontForFamily("Calibri", 12f, true, false);
         await Assert.That(font.IsBold).IsTrue();
@@ -71,8 +73,22 @@ public class FontStyleFromNameTests
     [Arguments("Calibri Bold", "Calibri")]
     [Arguments("Arial Black", "Arial Black")]
     [Arguments("Avenir Next LT Pro Bold", "Avenir Next LT Pro")]
+    [Arguments("Avenir Next LT Pro Light", "Avenir Next LT Pro")]
+    [Arguments("Calibri Light", "Calibri Light")]
     public async Task GetFontFamily_StyleSuffixStripped_ResolvesBaseFamily(string fontFamily, string expectedFamily)
     {
+        using var context = CreateContext();
+        var family = context.GetFontFamily(fontFamily, false, false);
+        await Assert.That(family.Name).IsEqualTo(expectedFamily);
+    }
+
+    [Test]
+    [Arguments("AvenirNext LT Pro Bold", "Century Gothic")]
+    [Arguments("AvenirNext LT Pro Light", "Century Gothic")]
+    public async Task GetFontFamily_StrippedNameMatchesFallback_ResolvesFallback(string fontFamily, string expectedFamily)
+    {
+        // "AvenirNext LT Pro" (no space) has a fallback to "Century Gothic" in FontFallbacks.
+        // Stripping " Bold"/" Light" should find the fallback.
         using var context = CreateContext();
         var family = context.GetFontFamily(fontFamily, false, false);
         await Assert.That(family.Name).IsEqualTo(expectedFamily);
