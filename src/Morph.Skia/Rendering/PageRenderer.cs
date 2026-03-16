@@ -7,8 +7,10 @@ sealed class PageRenderer(RenderContext context) :
     IDisposable
 {
     readonly TextRenderer textRenderer = new(context);
-    readonly List<SKBitmap> pages = [];
 
+    Action<int, Action<Stream>>? pageCallback;
+    int pageCount;
+    SKBitmap? pendingPage;
     SKBitmap? currentPage;
     SKCanvas? currentCanvas;
     HeaderFooterContent? header;
@@ -28,10 +30,13 @@ sealed class PageRenderer(RenderContext context) :
     bool currentPageFromExplicitBreak;
 
     /// <summary>
-    /// Renders a parsed document to a list of page bitmaps.
+    /// Renders a parsed document, calling the callback for each page.
+    /// Returns the total page count.
     /// </summary>
-    public IReadOnlyList<SKBitmap> RenderDocument(ParsedDocument document)
+    public int RenderDocument(ParsedDocument document, Action<int, Action<Stream>> callback)
     {
+        pageCallback = callback;
+
         header = document.Header;
         footer = document.Footer;
         firstPageHeader = document.FirstPageHeader;
@@ -82,7 +87,7 @@ sealed class PageRenderer(RenderContext context) :
         // Remove any trailing blank page that was created by content overflow or section breaks.
         RemoveBlankTrailingPage();
 
-        return pages;
+        return pageCount;
     }
 
     // ReSharper disable once UnusedParameter.Local
@@ -2332,8 +2337,24 @@ sealed class PageRenderer(RenderContext context) :
         context.CurrentY += fieldHeight + 4;
     }
 
+    void FlushPendingPage()
+    {
+        if (pendingPage != null)
+        {
+            using var page = pendingPage;
+            pendingPage = null;
+            var index = pageCount;
+            pageCount++;
+            using var image = SKImage.FromBitmap(page);
+            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            pageCallback!(index, stream => data.SaveTo(stream));
+        }
+    }
+
     void StartNewPage()
     {
+        FlushPendingPage();
+
         currentPage = new(
             context.PageWidthPixels,
             context.PageHeightPixels,
@@ -2354,10 +2375,7 @@ sealed class PageRenderer(RenderContext context) :
             currentCanvas.Clear(SKColors.White);
         }
 
-        // Background shapes are now rendered inline when encountered in document flow
-        // (not repeated on every page)
-
-        if (pages.Count > 0)
+        if (pageCount > 0)
         {
             context.StartNewPage();
             // Reset line numbers for new page (if restart mode is NewPage)
@@ -2379,27 +2397,23 @@ sealed class PageRenderer(RenderContext context) :
             // Render footer before finishing
             RenderFooter();
 
-            pages.Add(currentPage);
+            pendingPage = currentPage;
             currentCanvas?.Dispose();
             currentCanvas = null;
             currentPage = null;
         }
     }
 
-    /// <summary>
-    /// Removes the last page if it has no significant content.
-    /// Called at the end of document rendering.
-    /// Trailing blank pages are almost always spurious, even from explicit breaks
-    /// (section breaks at document end don't create visible blank pages in Word).
-    /// </summary>
     void RemoveBlankTrailingPage()
     {
-        // Only remove if there's more than one page and the last page is blank
-        if (pages.Count > 1 && !hasSignificantContentOnCurrentPage && !currentPageFromExplicitBreak)
+        if (pageCount > 0 && !hasSignificantContentOnCurrentPage && !currentPageFromExplicitBreak)
         {
-            var lastPage = pages[^1];
-            pages.RemoveAt(pages.Count - 1);
-            lastPage.Dispose();
+            pendingPage?.Dispose();
+            pendingPage = null;
+        }
+        else
+        {
+            FlushPendingPage();
         }
     }
 
