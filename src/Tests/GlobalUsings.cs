@@ -7,3 +7,4 @@ global using ImageMagick;
 global using ProjectFilesGenerator;
 global using TUnit.Core.Interfaces;
 global using WordRender;
+global using WordRender.Rendering;

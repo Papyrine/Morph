@@ -101,6 +101,17 @@ sealed class RenderContext : RenderContextBase, IDisposable
                 return resolvedFamily;
             }
 
+            // Try stripping style suffixes (e.g. "Avenir Next LT Pro Bold" → "Avenir Next LT Pro")
+            var strippedName = FontHelpers.StripWeightSuffixes(fontFamily);
+            if (!string.IsNullOrEmpty(strippedName) && strippedName != fontFamily && strippedName != effectiveFontFamily)
+            {
+                if (SystemFonts.TryGet(strippedName, out resolvedFamily))
+                {
+                    fontFamilyCache[key] = resolvedFamily;
+                    return resolvedFamily;
+                }
+            }
+
             // Try shared collection (previously loaded from file caches)
             if (sharedFontCollection.TryGet(effectiveFontFamily, out resolvedFamily))
             {
@@ -114,20 +125,27 @@ sealed class RenderContext : RenderContextBase, IDisposable
                 return resolvedFamily;
             }
 
+            if (!string.IsNullOrEmpty(strippedName) && strippedName != fontFamily && strippedName != effectiveFontFamily
+                && sharedFontCollection.TryGet(strippedName, out resolvedFamily))
+            {
+                fontFamilyCache[key] = resolvedFamily;
+                return resolvedFamily;
+            }
+
             // Try user fonts, Office fonts, then cloud cache
-            var loaded = TryLoadFromFontCache(userFontsCache.Value, effectiveFontFamily, style)
-                         ?? TryLoadFromFontCache(userFontsCache.Value, fontFamily, style);
+            var loaded = TryLoadFromFontCache(userFontsCache.Value, effectiveFontFamily)
+                         ?? TryLoadFromFontCache(userFontsCache.Value, fontFamily);
 
             if (loaded == null)
             {
-                loaded = TryLoadFromFontCache(officeFontsCache.Value, effectiveFontFamily, style)
-                         ?? TryLoadFromFontCache(officeFontsCache.Value, fontFamily, style);
+                loaded = TryLoadFromFontCache(officeFontsCache.Value, effectiveFontFamily)
+                         ?? TryLoadFromFontCache(officeFontsCache.Value, fontFamily);
             }
 
             if (loaded == null)
             {
-                loaded = TryLoadFromFontCache(cloudFontsCache.Value, effectiveFontFamily, style)
-                         ?? TryLoadFromFontCache(cloudFontsCache.Value, fontFamily, style);
+                loaded = TryLoadFromFontCache(cloudFontsCache.Value, effectiveFontFamily)
+                         ?? TryLoadFromFontCache(cloudFontsCache.Value, fontFamily);
             }
 
             if (loaded != null)
@@ -135,7 +153,8 @@ sealed class RenderContext : RenderContextBase, IDisposable
                 resolvedFamily = loaded.Value;
             }
             else if (FontHelpers.FontFallbacks.TryGetValue(effectiveFontFamily, out var fallbackFont)
-                     || FontHelpers.FontFallbacks.TryGetValue(fontFamily, out fallbackFont))
+                     || FontHelpers.FontFallbacks.TryGetValue(fontFamily, out fallbackFont)
+                     || (!string.IsNullOrEmpty(strippedName) && FontHelpers.FontFallbacks.TryGetValue(strippedName, out fallbackFont)))
             {
                 // Try known fallback font
                 if (SystemFonts.TryGet(fallbackFont, out resolvedFamily))
@@ -164,7 +183,7 @@ sealed class RenderContext : RenderContextBase, IDisposable
 
     static string[] styleSuffixes => FontHelpers.StyleSuffixes;
 
-    FontFamily? TryLoadFromFontCache(Dictionary<string, string[]> fontCache, string fontFamily, FontStyle style)
+    FontFamily? TryLoadFromFontCache(Dictionary<string, string[]> fontCache, string fontFamily)
     {
         // Try exact match first
         if (!fontCache.TryGetValue(fontFamily, out var fontFiles))
@@ -188,21 +207,8 @@ sealed class RenderContext : RenderContextBase, IDisposable
                 }
             }
 
-            if (baseName != fontFamily &&
-                fontCache.TryGetValue(baseName, out fontFiles))
-            {
-                // Found base family, adjust style based on original name
-                // Determine if the original font name implies bold
-                if (FontHelpers.ImpliesBold(fontFamily))
-                {
-                    // If bold wasn't already requested, add it based on font name
-                    if (!style.HasFlag(FontStyle.Bold))
-                    {
-                        style |= FontStyle.Bold;
-                    }
-                }
-            }
-            else
+            if (baseName == fontFamily ||
+                !fontCache.TryGetValue(baseName, out fontFiles))
             {
                 return null;
             }
@@ -243,16 +249,19 @@ sealed class RenderContext : RenderContextBase, IDisposable
             fontSize *= 0.58f;
         }
 
+        var bold = props.Bold || FontHelpers.ImpliesBold(props.FontFamily);
+        var italic = props.Italic;
+
         var style = FontStyle.Regular;
-        if (props is { Bold: true, Italic: true })
+        if (bold && italic)
         {
             style = FontStyle.BoldItalic;
         }
-        else if (props.Bold)
+        else if (bold)
         {
             style = FontStyle.Bold;
         }
-        else if (props.Italic)
+        else if (italic)
         {
             style = FontStyle.Italic;
         }
@@ -267,12 +276,14 @@ sealed class RenderContext : RenderContextBase, IDisposable
     {
         var family = GetFontFamily(fontFamily, bold, italic);
 
+        var effectiveBold = bold || FontHelpers.ImpliesBold(fontFamily);
+
         var style = FontStyle.Regular;
-        if (bold && italic)
+        if (effectiveBold && italic)
         {
             style = FontStyle.BoldItalic;
         }
-        else if (bold)
+        else if (effectiveBold)
         {
             style = FontStyle.Bold;
         }
