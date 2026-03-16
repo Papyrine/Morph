@@ -1,11 +1,9 @@
-using WordRender.Rendering;
-
 /// <summary>
 /// Maintains rendering state during page layout and rendering.
 /// </summary>
 sealed class RenderContext : RenderContextBase, IDisposable
 {
-    Dictionary<string, SKTypeface> typefaceCache = new();
+    Dictionary<string, SKTypeface> typefaceCache = [];
 
     // Cloud fonts cache from Microsoft 365
     static Lazy<Dictionary<string, string[]>> cloudFontsCache = new(() => LoadFontCache(FontCacheLoader.GetCloudFontFiles()));
@@ -30,7 +28,7 @@ sealed class RenderContext : RenderContextBase, IDisposable
 
             if (!result.TryGetValue(tf.FamilyName, out var files))
             {
-                files = new();
+                files = [];
                 result[tf.FamilyName] = files;
             }
 

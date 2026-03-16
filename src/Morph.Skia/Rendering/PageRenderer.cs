@@ -1,11 +1,11 @@
-using WordRender.Rendering;
-
 /// <summary>
 /// Renders document pages to PNG images.
 /// </summary>
 sealed class PageRenderer(RenderContext context) :
     IDisposable
 {
+    static readonly SKTypeface aptosTypeface = SKTypeface.FromFamilyName("Aptos", SKFontStyle.Normal);
+
     readonly TextRenderer textRenderer = new(context);
 
     Action<Action<Stream>>? pageCallback;
@@ -1497,31 +1497,29 @@ sealed class PageRenderer(RenderContext context) :
         var borders = TableLayout.ResolveCellBorders(cell.Properties, tableProps, rowIndex, colIndex, totalRows, totalCols);
         if (borders != null)
         {
-            // Draw top border
+            using var paint = new SKPaint { Style = SKPaintStyle.Stroke, IsAntialias = true };
+
             if (borders.Top.IsVisible)
             {
-                using var paint = CreateBorderPaint(borders.Top);
+                ConfigureBorderPaint(paint, borders.Top);
                 currentCanvas.DrawLine(pixelX, pixelY, pixelX + pixelWidth, pixelY, paint);
             }
 
-            // Draw right border
             if (borders.Right.IsVisible)
             {
-                using var paint = CreateBorderPaint(borders.Right);
+                ConfigureBorderPaint(paint, borders.Right);
                 currentCanvas.DrawLine(pixelX + pixelWidth, pixelY, pixelX + pixelWidth, pixelY + pixelHeight, paint);
             }
 
-            // Draw bottom border
             if (borders.Bottom.IsVisible)
             {
-                using var paint = CreateBorderPaint(borders.Bottom);
+                ConfigureBorderPaint(paint, borders.Bottom);
                 currentCanvas.DrawLine(pixelX, pixelY + pixelHeight, pixelX + pixelWidth, pixelY + pixelHeight, paint);
             }
 
-            // Draw left border
             if (borders.Left.IsVisible)
             {
-                using var paint = CreateBorderPaint(borders.Left);
+                ConfigureBorderPaint(paint, borders.Left);
                 currentCanvas.DrawLine(pixelX, pixelY, pixelX, pixelY + pixelHeight, paint);
             }
         }
@@ -1697,6 +1695,12 @@ sealed class PageRenderer(RenderContext context) :
             IsAntialias = true
         };
 
+    void ConfigureBorderPaint(SKPaint paint, BorderEdge edge)
+    {
+        paint.Color = ParseColor(edge.ColorHex ?? "000000");
+        paint.StrokeWidth = context.PointsToPixels((float) edge.WidthPoints);
+    }
+
     /// <summary>
     /// Renders a text form field as a text box with border.
     /// </summary>
@@ -1748,8 +1752,7 @@ sealed class PageRenderer(RenderContext context) :
         var displayText = string.IsNullOrEmpty(textField.Value) ? textField.DefaultText ?? "" : textField.Value;
         if (!string.IsNullOrEmpty(displayText))
         {
-            using var typeface = SKTypeface.FromFamilyName("Aptos", SKFontStyle.Normal);
-            using var font = context.CreateFontFromTypeface(typeface, 10);
+            using var font = context.CreateFontFromTypeface(aptosTypeface, 10);
             using var textPaint = new SKPaint
             {
                 Color = textField.Enabled ? SKColors.Black : SKColors.Gray,
@@ -1891,8 +1894,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (!string.IsNullOrEmpty(selectedValue))
         {
-            using var typeface = SKTypeface.FromFamilyName("Aptos", SKFontStyle.Normal);
-            using var font = context.CreateFontFromTypeface(typeface, 10);
+            using var font = context.CreateFontFromTypeface(aptosTypeface, 10);
             using var textPaint = new SKPaint
             {
                 Color = dropDown.Enabled ? SKColors.Black : SKColors.Gray,
@@ -2153,8 +2155,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (!string.IsNullOrEmpty(text))
         {
-            using var typeface = SKTypeface.FromFamilyName("Aptos", SKFontStyle.Normal);
-            using var font = context.CreateFontFromTypeface(typeface, 10);
+            using var font = context.CreateFontFromTypeface(aptosTypeface, 10);
             using var textPaint = new SKPaint
             {
                 Color = isPlaceholder ? SKColors.Gray : SKColors.Black,
@@ -2224,8 +2225,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (!string.IsNullOrEmpty(displayText))
         {
-            using var typeface = SKTypeface.FromFamilyName("Aptos", SKFontStyle.Normal);
-            using var font = context.CreateFontFromTypeface(typeface, 10);
+            using var font = context.CreateFontFromTypeface(aptosTypeface, 10);
             using var textPaint = new SKPaint
             {
                 Color = SKColors.Black,
@@ -2307,8 +2307,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (!string.IsNullOrEmpty(displayText))
         {
-            using var typeface = SKTypeface.FromFamilyName("Aptos", SKFontStyle.Normal);
-            using var font = context.CreateFontFromTypeface(typeface, 10);
+            using var font = context.CreateFontFromTypeface(aptosTypeface, 10);
             using var textPaint = new SKPaint
             {
                 Color = control.DateValue.HasValue || !string.IsNullOrEmpty(control.Content) ? SKColors.Black : SKColors.Gray,

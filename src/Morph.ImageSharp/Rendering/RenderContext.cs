@@ -1,12 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
-using WordRender.Rendering;
 // ReSharper disable UseCollectionExpression
 
 /// <summary>
 /// Maintains rendering state during page layout and rendering.
 /// </summary>
 [SuppressMessage("Style", "IDE0028:Simplify collection initialization")]
-sealed class RenderContext : RenderContextBase, IDisposable
+sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0, Func<string, string?>? fontFallback = null)
+    : RenderContextBase(pageSettings, dpi, compatibility, fontWidthScale, fontFallback),
+        IDisposable
 {
     Dictionary<string, FontFamily> fontFamilyCache = [];
 
@@ -47,12 +48,7 @@ sealed class RenderContext : RenderContextBase, IDisposable
             }
         }
 
-        return result.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToArray(), StringComparer.OrdinalIgnoreCase);
-    }
-
-    public RenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0, Func<string, string?>? fontFallback = null)
-        : base(pageSettings, dpi, compatibility, fontWidthScale, fontFallback)
-    {
+        return result.ToDictionary(_ => _.Key, _ => _.Value.ToArray(), StringComparer.OrdinalIgnoreCase);
     }
 
     public FontFamily GetFontFamily(string fontFamily, bool bold, bool italic)

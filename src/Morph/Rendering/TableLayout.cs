@@ -1,5 +1,3 @@
-namespace WordRender.Rendering;
-
 /// <summary>
 /// Shared table layout calculations used by both rendering backends.
 /// </summary>

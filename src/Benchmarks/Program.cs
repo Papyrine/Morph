@@ -8,7 +8,8 @@ BenchmarkSwitcher.FromAssembly(typeof(ConversionBenchmarks).Assembly).Run(args);
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
 public class ConversionBenchmarks
 {
-    static readonly string inputsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "Tests", "Inputs"));
+    static string GetSourceDir([System.Runtime.CompilerServices.CallerFilePath] string path = "") => Path.GetDirectoryName(path)!;
+    static readonly string inputsDir = Path.GetFullPath(Path.Combine(GetSourceDir(), "..", "Tests", "Inputs"));
 
     // Small (~33KB) - simple resume
     static readonly string smallDoc = Path.Combine(inputsDir, "resumes", "01", "input.docx");
