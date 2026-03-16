@@ -157,7 +157,7 @@ sealed class TextRenderer(RenderContext context)
             var bgWidth = context.PointsToPixels(context.ContentWidth - (float)props.LeftIndentPoints - (float)props.RightIndentPoints);
             var bgHeight = context.PointsToPixels(paragraphHeight);
 
-            currentPage.Mutate(ctx => ctx.Fill(bgColor, new RectangleF(bgX, bgY, bgWidth, bgHeight)));
+            currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(bgX, bgY, bgWidth, bgHeight)));
         }
 
         var isFirstLine = true;
@@ -568,7 +568,7 @@ sealed class TextRenderer(RenderContext context)
             Dpi = context.Dpi,
             Origin = new PointF(pixelX - textWidth, pixelY - baseline * context.Scale)
         };
-        currentPage.Mutate(ctx => ctx.DrawText(textOptions, numberText, new SolidBrush(Color.Black)));
+        currentPage.Mutate(_ => _.DrawText(textOptions, numberText, new SolidBrush(Color.Black)));
     }
 
     /// <summary>
@@ -603,7 +603,7 @@ sealed class TextRenderer(RenderContext context)
             Dpi = context.Dpi,
             Origin = new PointF(pixelX, pixelY - baseline * context.Scale)
         };
-        currentPage.Mutate(ctx => ctx.DrawText(textOptions, numbering.Text, new SolidBrush(color)));
+        currentPage.Mutate(_ => _.DrawText(textOptions, numbering.Text, new SolidBrush(color)));
     }
 
     /// <summary>
@@ -637,7 +637,7 @@ sealed class TextRenderer(RenderContext context)
             Dpi = context.Dpi,
             Origin = new PointF(pixelX, pixelY - baseline * context.Scale)
         };
-        currentPage.Mutate(ctx => ctx.DrawText(textOptions, numbering.Text, new SolidBrush(color)));
+        currentPage.Mutate(_ => _.DrawText(textOptions, numbering.Text, new SolidBrush(color)));
     }
 
     float CalculateLineX(TextLine line, ParagraphProperties props)
@@ -723,7 +723,7 @@ sealed class TextRenderer(RenderContext context)
             var textTop = pixelY - runBaseline * context.Scale;
             var textBottom = pixelY + (runHeight - runBaseline) * context.Scale;
 
-            currentPage.Mutate(ctx => ctx.Fill(bgColor, new RectangleF(pixelX, textTop, textWidth, textBottom - textTop)));
+            currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(pixelX, textTop, textWidth, textBottom - textTop)));
         }
 
         // Get baseline for coordinate conversion (Skia uses baseline Y, ImageSharp uses top-left Y)
@@ -734,7 +734,7 @@ sealed class TextRenderer(RenderContext context)
             Dpi = context.Dpi,
             Origin = new PointF(pixelX, pixelY - baseline * context.Scale)
         };
-        currentPage.Mutate(ctx => ctx.DrawText(textOptions, fragment.Text, new SolidBrush(color)));
+        currentPage.Mutate(_ => _.DrawText(textOptions, fragment.Text, new SolidBrush(color)));
 
         // Draw underline if needed
         if (fragment.Properties.Underline)
@@ -742,7 +742,7 @@ sealed class TextRenderer(RenderContext context)
             var underlineY = pixelY + 2 * context.Scale;
             var width = context.PointsToPixels(fragment.Width);
             var strokeWidth = 1 * context.Scale;
-            currentPage.Mutate(ctx => ctx.DrawLine(new SolidPen(color, strokeWidth), new PointF(pixelX, underlineY), new PointF(pixelX + width, underlineY)));
+            currentPage.Mutate(_ => _.DrawLine(new SolidPen(color, strokeWidth), new PointF(pixelX, underlineY), new PointF(pixelX + width, underlineY)));
         }
 
         // Draw strikethrough if needed
@@ -751,7 +751,7 @@ sealed class TextRenderer(RenderContext context)
             var strikeY = pixelY - font.Size * 0.3f;
             var width = context.PointsToPixels(fragment.Width);
             var strokeWidth = 1 * context.Scale;
-            currentPage.Mutate(ctx => ctx.DrawLine(new SolidPen(color, strokeWidth), new PointF(pixelX, strikeY), new PointF(pixelX + width, strikeY)));
+            currentPage.Mutate(_ => _.DrawLine(new SolidPen(color, strokeWidth), new PointF(pixelX, strikeY), new PointF(pixelX + width, strikeY)));
         }
     }
 
@@ -774,8 +774,8 @@ sealed class TextRenderer(RenderContext context)
         try
         {
             using var img = Image.Load<Rgba32>(fragment.InlineImageData!);
-            img.Mutate(ix => ix.Resize(new Size((int)pixelWidth, (int)pixelHeight)));
-            currentPage.Mutate(ctx => ctx.DrawImage(img, new Point((int)pixelX, (int)pixelY), 1f));
+            img.Mutate(_ => _.Resize(new Size((int)pixelWidth, (int)pixelHeight)));
+            currentPage.Mutate(_ => _.DrawImage(img, new Point((int)pixelX, (int)pixelY), 1f));
         }
         catch
         {
