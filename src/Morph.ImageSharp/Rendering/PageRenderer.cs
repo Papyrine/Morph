@@ -522,9 +522,15 @@ sealed class PageRenderer(RenderContext context) :
         var textX = pixelX + (width - scaledSize.Width) / 2;
         var textY = pixelY + (pixelHeight - scaledSize.Height) / 2;
 
-        var fillColor = wordArt.FillColorHex != null
-            ? RenderContext.ParseColor(wordArt.FillColorHex)
-            : Color.Black;
+        Color fillColor;
+        if (wordArt.FillColorHex == null)
+        {
+            fillColor = Color.Black;
+        }
+        else
+        {
+            fillColor = RenderContext.ParseColor(wordArt.FillColorHex);
+        }
 
         if (wordArt.HasShadow)
         {
@@ -666,17 +672,17 @@ sealed class PageRenderer(RenderContext context) :
         var tableTolerance = context.ContentHeight * 0.10f;
         var needsRowByRowRendering = totalHeight > context.ContentHeight + tableTolerance;
 
-        if (!needsRowByRowRendering)
+        if (needsRowByRowRendering)
+        {
+            RenderTableRowByRow(table, colCount, colWidths, rowHeights);
+        }
+        else
         {
             var tolerancePercent = context.Compatibility.CompatibilityMode >= 15 ? 0.02f : 0.01f;
             var tolerance = context.ContentHeight * tolerancePercent;
             var requiredHeight = totalHeight - tolerance;
             EnsureSpaceFor(requiredHeight);
             RenderTableRows(table, colCount, colWidths, rowHeights);
-        }
-        else
-        {
-            RenderTableRowByRow(table, colCount, colWidths, rowHeights);
         }
     }
 
@@ -819,9 +825,6 @@ sealed class PageRenderer(RenderContext context) :
         }
     }
 
-
-
-
     float[] CalculateRowHeights(TableElement table, float[] colWidths)
     {
         var heights = new float[table.Rows.Count];
@@ -859,9 +862,9 @@ sealed class PageRenderer(RenderContext context) :
             heights[rowIndex] = maxHeight;
         }
 
-        var hasVMerge = table.Rows.Any(r => r.Cells.Any(c =>
-            c.Properties.VerticalMerge is VerticalMergeType.Restart or VerticalMergeType.Continue));
-        var allRowsHaveExplicitHeight = table.Rows.All(r => r.HeightPoints.HasValue);
+        var hasVMerge = table.Rows.Any(_ => _.Cells.Any(_ =>
+            _.Properties.VerticalMerge is VerticalMergeType.Restart or VerticalMergeType.Continue));
+        var allRowsHaveExplicitHeight = table.Rows.All(_ => _.HeightPoints.HasValue);
         var useStrictHeights = hasVMerge && allRowsHaveExplicitHeight;
 
         for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
@@ -927,9 +930,6 @@ sealed class PageRenderer(RenderContext context) :
 
         return heights;
     }
-
-
-
 
     float MeasureCellHeight(TableCell cell, float cellWidth, TableProperties tableProps)
     {
@@ -1635,7 +1635,16 @@ sealed class PageRenderer(RenderContext context) :
         currentPage = new(context.PageWidthPixels, context.PageHeightPixels);
 
         var bgColor = context.PageSettings.BackgroundColorHex;
-        var fillColor = !string.IsNullOrEmpty(bgColor) ? RenderContext.ParseColor(bgColor) : Color.White;
+        Color fillColor;
+        if (string.IsNullOrEmpty(bgColor))
+        {
+            fillColor = Color.White;
+        }
+        else
+        {
+            fillColor = RenderContext.ParseColor(bgColor);
+        }
+
         currentPage.Mutate(_ => _.Fill(fillColor, new RectangleF(0, 0, context.PageWidthPixels, context.PageHeightPixels)));
 
         if (pageCount > 0)
