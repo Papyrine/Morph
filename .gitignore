@@ -14,3 +14,4 @@ nul
 src/.claude/settings.local.json
 /TestResults
 /BenchmarkDotNet.Artifacts
+/src/Tests/TestResults

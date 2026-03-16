@@ -1046,7 +1046,12 @@ sealed class PageRenderer(RenderContext context) :
         var tableTolerance = context.ContentHeight * 0.10f;
         var needsRowByRowRendering = totalHeight > context.ContentHeight + tableTolerance;
 
-        if (!needsRowByRowRendering)
+        if (needsRowByRowRendering)
+        {
+            // Table is larger than a page - render row by row with page breaks
+            RenderTableRowByRow(table, colCount, colWidths, rowHeights);
+        }
+        else
         {
             // Table fits on a single page - use existing behavior
             // Apply a tolerance when checking if table fits on current page.
@@ -1057,11 +1062,6 @@ sealed class PageRenderer(RenderContext context) :
             var requiredHeight = totalHeight - tolerance;
             EnsureSpaceFor(requiredHeight);
             RenderTableRows(table, colCount, colWidths, rowHeights);
-        }
-        else
-        {
-            // Table is larger than a page - render row by row with page breaks
-            RenderTableRowByRow(table, colCount, colWidths, rowHeights);
         }
     }
 
@@ -1671,16 +1671,14 @@ sealed class PageRenderer(RenderContext context) :
             return SKColors.Black;
         }
 
-        if (hexColor.Length == 6)
+        if (hexColor.Length == 6 &&
+            uint.TryParse(hexColor, NumberStyles.HexNumber, null, out var rgb))
         {
-            if (uint.TryParse(hexColor, NumberStyles.HexNumber, null, out var rgb))
-            {
-                return new(
-                    (byte) ((rgb >> 16) & 0xFF),
-                    (byte) ((rgb >> 8) & 0xFF),
-                    (byte) (rgb & 0xFF)
-                );
-            }
+            return new(
+                (byte) ((rgb >> 16) & 0xFF),
+                (byte) ((rgb >> 8) & 0xFF),
+                (byte) (rgb & 0xFF)
+            );
         }
 
         return SKColors.Black;

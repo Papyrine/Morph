@@ -307,16 +307,14 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
         }
 
         // Handle colors like "000000" (6 chars) or "FF000000" (8 chars with alpha)
-        if (hexColor.Length == 6)
+        if (hexColor.Length == 6 &&
+            uint.TryParse(hexColor, NumberStyles.HexNumber, null, out var rgb))
         {
-            if (uint.TryParse(hexColor, NumberStyles.HexNumber, null, out var rgb))
-            {
-                return Color.FromRgb(
-                    (byte) ((rgb >> 16) & 0xFF),
-                    (byte) ((rgb >> 8) & 0xFF),
-                    (byte) (rgb & 0xFF)
-                );
-            }
+            return Color.FromRgb(
+                (byte) ((rgb >> 16) & 0xFF),
+                (byte) ((rgb >> 8) & 0xFF),
+                (byte) (rgb & 0xFF)
+            );
         }
 
         return Color.Black;
