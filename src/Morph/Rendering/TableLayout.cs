@@ -32,12 +32,12 @@ static class TableLayout
         var isFirstCol = colIndex == 0;
         var isLastCol = colIndex == totalCols - 1;
 
-        return new CellBorders
+        return new()
         {
-            Top = isFirstRow ? (outer?.Top ?? BorderEdge.None) : (insideH ?? BorderEdge.None),
-            Bottom = isLastRow ? (outer?.Bottom ?? BorderEdge.None) : (insideH ?? BorderEdge.None),
-            Left = isFirstCol ? (outer?.Left ?? BorderEdge.None) : (insideV ?? BorderEdge.None),
-            Right = isLastCol ? (outer?.Right ?? BorderEdge.None) : (insideV ?? BorderEdge.None)
+            Top = isFirstRow ? outer?.Top ?? BorderEdge.None : insideH ?? BorderEdge.None,
+            Bottom = isLastRow ? outer?.Bottom ?? BorderEdge.None : insideH ?? BorderEdge.None,
+            Left = isFirstCol ? outer?.Left ?? BorderEdge.None : insideV ?? BorderEdge.None,
+            Right = isLastCol ? outer?.Right ?? BorderEdge.None : insideV ?? BorderEdge.None
         };
     }
 
