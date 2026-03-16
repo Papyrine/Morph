@@ -93,4 +93,44 @@ public class FontStyleFromNameTests
         var family = context.GetFontFamily(fontFamily, false, false);
         await Assert.That(family.Name).IsEqualTo(expectedFamily);
     }
+
+    [Test]
+    public async Task GetFontFamily_UnknownFont_NoFallback_Throws()
+    {
+        using var context = CreateContext();
+        await Assert.That(() => context.GetFontFamily("NonExistentFont12345", false, false))
+            .Throws<InvalidOperationException>();
+    }
+
+    [Test]
+    public async Task GetFontFamily_UnknownFont_DelegateFallback_ResolvesToFallback()
+    {
+        using var context = new ImageSharpRenderContext(
+            new(), 96, fontFallback: _ => "Arial");
+        var family = context.GetFontFamily("NonExistentFont12345", false, false);
+        await Assert.That(family.Name).IsEqualTo("Arial");
+    }
+
+    [Test]
+    public async Task GetFontFamily_UnknownFont_DelegateReturnsNull_Throws()
+    {
+        using var context = new ImageSharpRenderContext(
+            new(), 96, fontFallback: _ => null);
+        await Assert.That(() => context.GetFontFamily("NonExistentFont12345", false, false))
+            .Throws<InvalidOperationException>();
+    }
+
+    [Test]
+    public async Task GetFontFamily_UnknownFont_DelegateReceivesCorrectName()
+    {
+        string? receivedName = null;
+        using var context = new ImageSharpRenderContext(
+            new(), 96, fontFallback: name =>
+            {
+                receivedName = name;
+                return "Arial";
+            });
+        context.GetFontFamily("NonExistentFont12345", false, false);
+        await Assert.That(receivedName).IsEqualTo("NonExistentFont12345");
+    }
 }

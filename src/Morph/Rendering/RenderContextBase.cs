@@ -15,6 +15,7 @@ abstract class RenderContextBase
     /// Scale factor for font width measurements. Values > 1.0 make text wider (earlier line wrapping).
     /// </summary>
     public float FontWidthScale { get; }
+    public Func<string, string?>? FontFallback { get; }
 
     // Header/footer space adjustments
     float headerSpace;
@@ -49,13 +50,14 @@ abstract class RenderContextBase
     public float ContentWidth => (float) PageSettings.ColumnWidth;
     public float ContentHeight => FullContentBottom - FullContentTop;
 
-    protected RenderContextBase(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility, double fontWidthScale)
+    protected RenderContextBase(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility, double fontWidthScale, Func<string, string?>? fontFallback = null)
     {
         PageSettings = pageSettings;
         Compatibility = compatibility ?? new CompatibilitySettings();
         Dpi = dpi;
         Scale = dpi / 72f;
         FontWidthScale = (float) fontWidthScale;
+        FontFallback = fontFallback;
 
         PageWidthPixels = (int) (pageSettings.WidthPoints * Scale);
         PageHeightPixels = (int) (pageSettings.HeightPoints * Scale);
