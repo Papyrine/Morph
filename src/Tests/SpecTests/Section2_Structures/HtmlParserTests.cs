@@ -276,4 +276,128 @@ public class HtmlParserTests
     [Test]
     public Task UnknownElement() =>
         Verify(HtmlParser.Parse("<custom>content</custom>"));
+
+    // Block elements
+
+    [Test]
+    public Task Blockquote() =>
+        Verify(HtmlParser.Parse("<blockquote>quoted text</blockquote>"));
+
+    [Test]
+    public Task Blockquote_WithParagraph() =>
+        Verify(HtmlParser.Parse("<blockquote><p>quoted paragraph</p></blockquote>"));
+
+    [Test]
+    public Task Blockquote_Nested() =>
+        Verify(HtmlParser.Parse("<blockquote><blockquote>deeply quoted</blockquote></blockquote>"));
+
+    [Test]
+    public Task Pre() =>
+        Verify(HtmlParser.Parse("<pre>  code\n  here  </pre>"));
+
+    [Test]
+    public Task Hr() =>
+        Verify(HtmlParser.Parse("<hr>"));
+
+    [Test]
+    public Task Hr_BetweenParagraphs() =>
+        Verify(HtmlParser.Parse("<p>before</p><hr><p>after</p>"));
+
+    [Test]
+    public Task DefinitionList() =>
+        Verify(HtmlParser.Parse("<dl><dt>Term</dt><dd>Definition</dd></dl>"));
+
+    [Test]
+    public Task DefinitionList_MultipleDd() =>
+        Verify(HtmlParser.Parse("<dl><dt>Term</dt><dd>Def1</dd><dd>Def2</dd></dl>"));
+
+    [Test]
+    public Task Figure_WithCaption() =>
+        Verify(HtmlParser.Parse("<figure><p>content</p><figcaption>caption</figcaption></figure>"));
+
+    [Test]
+    public Task Figcaption_Standalone() =>
+        Verify(HtmlParser.Parse("<figcaption>standalone caption</figcaption>"));
+
+    // Inline elements
+
+    [Test]
+    public Task Mark() =>
+        Verify(HtmlParser.Parse("<p><mark>highlighted</mark></p>"));
+
+    [Test]
+    public Task Small() =>
+        Verify(HtmlParser.Parse("<p><small>small text</small></p>"));
+
+    [Test]
+    public Task InlineCode() =>
+        Verify(HtmlParser.Parse("<p><code>monospace</code></p>"));
+
+    // Images
+
+    [Test]
+    public Task Img_DataUri() =>
+        Verify(HtmlParser.Parse("<img src=\"data:image/png;base64,iVBORw0KGgo=\">"));
+
+    [Test]
+    public Task Img_WithDimensions() =>
+        Verify(HtmlParser.Parse("<img src=\"data:image/png;base64,iVBORw0KGgo=\" width=\"200\" height=\"150\">"));
+
+    [Test]
+    public async Task Img_NoSrc_Skipped()
+    {
+        var result = HtmlParser.Parse("<img>");
+        await Assert.That(result).IsEmpty();
+    }
+
+    [Test]
+    public async Task Img_HttpSrc_Skipped()
+    {
+        var result = HtmlParser.Parse("<img src=\"https://example.com/image.png\">");
+        await Assert.That(result).IsEmpty();
+    }
+
+    // CSS
+
+    [Test]
+    public Task Span_BackgroundColor() =>
+        Verify(HtmlParser.Parse("<p><span style=\"background-color: #FFFF00\">highlighted</span></p>"));
+
+    [Test]
+    public Task Paragraph_TextIndent() =>
+        Verify(HtmlParser.Parse("<p style=\"text-indent: 36pt\">indented</p>"));
+
+    [Test]
+    public Task Paragraph_LineHeight() =>
+        Verify(HtmlParser.Parse("<p style=\"line-height: 2.0\">double spaced</p>"));
+
+    // Tables
+
+    [Test]
+    public Task Table_CellBackgroundColor() =>
+        Verify(HtmlParser.Parse("<table><tr><td style=\"background-color: yellow\">cell</td></tr></table>"));
+
+    [Test]
+    public Task Table_BorderAttribute() =>
+        Verify(HtmlParser.Parse("<table border=\"2\"><tr><td>cell</td></tr></table>"));
+
+    [Test]
+    public Task Table_BorderZero() =>
+        Verify(HtmlParser.Parse("<table border=\"0\"><tr><td>cell</td></tr></table>"));
+
+    [Test]
+    public Task Table_BorderCss() =>
+        Verify(HtmlParser.Parse("<table style=\"border: 2px solid red\"><tr><td>cell</td></tr></table>"));
+
+    [Test]
+    public Task Table_Colspan() =>
+        Verify(HtmlParser.Parse("<table><tr><td colspan=\"2\">wide</td></tr><tr><td>a</td><td>b</td></tr></table>"));
+
+    [Test]
+    public Task Table_Rowspan() =>
+        Verify(HtmlParser.Parse("<table><tr><td rowspan=\"2\">tall</td><td>right1</td></tr><tr><td>right2</td></tr></table>"));
+
+    [Test]
+    public Task Table_TheadTbodyTfoot() =>
+        Verify(HtmlParser.Parse("<table><thead><tr><th>H</th></tr></thead><tbody><tr><td>B</td></tr></tbody><tfoot><tr><td>F</td></tr></tfoot></table>"));
 }

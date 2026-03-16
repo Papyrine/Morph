@@ -873,6 +873,11 @@ internal enum SectionBreakType
 }
 
 /// <summary>
+/// Represents a horizontal rule (&lt;hr&gt;) element.
+/// </summary>
+sealed class HorizontalRuleElement : DocumentElement;
+
+/// <summary>
 /// Represents an inline image.
 /// </summary>
 sealed class ImageElement : DocumentElement

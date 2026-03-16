@@ -114,6 +114,142 @@ internal sealed class HtmlParser
                 });
                 break;
 
+            case "blockquote":
+                var bqElements = new List<DocumentElement>();
+                ParseNodes(element.ChildNodes, bqElements);
+                foreach (var el in bqElements)
+                {
+                    if (el is ParagraphElement p)
+                    {
+                        elements.Add(new ParagraphElement
+                        {
+                            Runs = p.Runs,
+                            Properties = p.Properties with
+                            {
+                                LeftIndentPoints = p.Properties.LeftIndentPoints + 36
+                            }
+                        });
+                    }
+                    else
+                    {
+                        elements.Add(el);
+                    }
+                }
+
+                break;
+
+            case "pre":
+                elements.Add(new ParagraphElement
+                {
+                    Runs =
+                    [
+                        new()
+                        {
+                            Text = element.TextContent,
+                            Properties = new()
+                            {
+                                FontFamily = "Courier New"
+                            }
+                        }
+                    ],
+                    Properties = new()
+                    {
+                        SpacingAfterPoints = 8
+                    }
+                });
+                break;
+
+            case "hr":
+                elements.Add(new HorizontalRuleElement());
+                break;
+
+            case "dl":
+                ParseDefinitionList(element, elements);
+                break;
+
+            case "figure":
+                foreach (var child in element.ChildNodes)
+                {
+                    if (child is IElement childEl &&
+                        childEl.TagName.Equals("figcaption", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var captionRuns = ParseInlineElements(
+                            childEl,
+                            new()
+                            {
+                                FontSizePoints = 11,
+                                Italic = true
+                            });
+                        elements.Add(new ParagraphElement
+                        {
+                            Runs = captionRuns.Count > 0
+                                ? captionRuns
+                                :
+                                [
+                                    new()
+                                    {
+                                        Text = "",
+                                        Properties = new()
+                                        {
+                                            FontSizePoints = 11,
+                                            Italic = true
+                                        }
+                                    }
+                                ],
+                            Properties = new()
+                            {
+                                SpacingAfterPoints = 8
+                            }
+                        });
+                    }
+                    else
+                    {
+                        ParseNode(child, elements);
+                    }
+                }
+
+                break;
+
+            case "figcaption":
+                var figRuns = ParseInlineElements(
+                    element,
+                    new()
+                    {
+                        FontSizePoints = 11,
+                        Italic = true
+                    });
+                elements.Add(new ParagraphElement
+                {
+                    Runs = figRuns.Count > 0
+                        ? figRuns
+                        :
+                        [
+                            new()
+                            {
+                                Text = "",
+                                Properties = new()
+                                {
+                                    FontSizePoints = 11,
+                                    Italic = true
+                                }
+                            }
+                        ],
+                    Properties = new()
+                    {
+                        SpacingAfterPoints = 8
+                    }
+                });
+                break;
+
+            case "img":
+                var imgElement = ParseImgElement(element);
+                if (imgElement != null)
+                {
+                    elements.Add(imgElement);
+                }
+
+                break;
+
             case "div":
             case "section":
             case "article":
@@ -168,7 +304,9 @@ internal sealed class HtmlParser
             Properties = new()
             {
                 Alignment = style?.Alignment ?? TextAlignment.Left,
-                SpacingAfterPoints = fontSize > 14 ? 12 : 8
+                SpacingAfterPoints = fontSize > 14 ? 12 : 8,
+                FirstLineIndentPoints = style?.TextIndent ?? 0,
+                LineSpacingMultiplier = style?.LineHeight ?? 1.08
             }
         };
     }
@@ -276,6 +414,46 @@ internal sealed class HtmlParser
                 {
                     FontSizePoints = props.FontSizePoints * 0.7
                 });
+                break;
+
+            case "mark":
+                ParseInlineNodes(element.ChildNodes, runs, props with
+                {
+                    BackgroundColorHex = "FFFF00"
+                });
+                break;
+
+            case "small":
+                ParseInlineNodes(element.ChildNodes, runs, props with
+                {
+                    FontSizePoints = props.FontSizePoints * 0.8
+                });
+                break;
+
+            case "code":
+                ParseInlineNodes(element.ChildNodes, runs, props with
+                {
+                    FontFamily = "Courier New"
+                });
+                break;
+
+            case "img":
+                var (imgData, imgContentType) = ParseDataUri(element.GetAttribute("src") ?? "");
+                if (imgData != null)
+                {
+                    var imgWidth = ParseDimensionAttribute(element, "width") ?? 100;
+                    var imgHeight = ParseDimensionAttribute(element, "height") ?? 100;
+                    runs.Add(new()
+                    {
+                        Text = "",
+                        Properties = props,
+                        InlineImageData = imgData,
+                        InlineImageWidthPoints = imgWidth,
+                        InlineImageHeightPoints = imgHeight,
+                        InlineImageContentType = imgContentType
+                    });
+                }
+
                 break;
 
             default:
@@ -404,6 +582,14 @@ internal sealed class HtmlParser
             }
         }
 
+        if (styles.TryGetValue("background-color", out var bgColor))
+        {
+            props = props with
+            {
+                BackgroundColorHex = NormalizeColor(bgColor)
+            };
+        }
+
         return props;
     }
 
@@ -432,6 +618,22 @@ internal sealed class HtmlParser
         if (styles.TryGetValue("color", out var color))
         {
             result.Color = NormalizeColor(color);
+        }
+
+        if (styles.TryGetValue("text-indent", out var textIndent))
+        {
+            if (double.TryParse(textIndent.Replace("px", "").Replace("pt", ""), out var indentValue))
+            {
+                result.TextIndent = indentValue;
+            }
+        }
+
+        if (styles.TryGetValue("line-height", out var lineHeight))
+        {
+            if (double.TryParse(lineHeight.Replace("px", "").Replace("pt", ""), out var lhValue))
+            {
+                result.LineHeight = lhValue;
+            }
         }
 
         return result;
@@ -568,7 +770,35 @@ internal sealed class HtmlParser
             defaultCellPadding = new(padding);
         }
 
-        // Parse table-level style for padding
+        // Parse borders from border attribute
+        var defaultBorders = CellBorders.All;
+        var borderAttr = tableElement.GetAttribute("border");
+        if (!string.IsNullOrEmpty(borderAttr) && double.TryParse(borderAttr, out var borderWidth))
+        {
+            if (borderWidth > 0)
+            {
+                var borderPt = borderWidth * 0.75;
+                var edge = new BorderEdge
+                {
+                    IsVisible = true,
+                    WidthPoints = borderPt,
+                    ColorHex = "000000"
+                };
+                defaultBorders = new()
+                {
+                    Top = edge,
+                    Right = edge,
+                    Bottom = edge,
+                    Left = edge
+                };
+            }
+            else
+            {
+                defaultBorders = new();
+            }
+        }
+
+        // Parse table-level style for padding and border CSS
         var tableStyle = tableElement.GetAttribute("style");
         if (!string.IsNullOrEmpty(tableStyle))
         {
@@ -577,11 +807,26 @@ internal sealed class HtmlParser
             {
                 defaultCellPadding = tablePadding;
             }
+
+            var tableStyles = ParseStyleAttribute(tableStyle);
+            if (tableStyles.TryGetValue("border", out var cssBorder))
+            {
+                var parsed = ParseCssBorderShorthand(cssBorder);
+                if (parsed != null)
+                {
+                    defaultBorders = parsed;
+                }
+            }
         }
+
+        // Track active rowspans: column index -> remaining rows
+        var activeRowspans = new Dictionary<int, int>();
 
         foreach (var tr in tableElement.QuerySelectorAll("tr"))
         {
             var cells = new List<TableCell>();
+            var newRowspans = new Dictionary<int, int>();
+            var colIndex = 0;
 
             foreach (var cell in tr.Children)
             {
@@ -591,16 +836,53 @@ internal sealed class HtmlParser
                     continue;
                 }
 
+                // Insert Continue cells for active rowspans
+                while (activeRowspans.ContainsKey(colIndex))
+                {
+                    cells.Add(new()
+                    {
+                        Content = [],
+                        Properties = new()
+                        {
+                            VerticalMerge = VerticalMergeType.Continue
+                        }
+                    });
+                    colIndex++;
+                }
+
                 var isHeader = cell.TagName.Equals("th", StringComparison.OrdinalIgnoreCase);
                 var text = cell.TextContent.Trim();
 
                 CellSpacing? cellPadding = null;
                 CellSpacing? cellMargin = null;
+                string? cellBgColor = null;
                 var cellStyle = cell.GetAttribute("style");
                 if (!string.IsNullOrEmpty(cellStyle))
                 {
                     cellPadding = ParseCssSpacing(cellStyle, "padding");
                     cellMargin = ParseCssSpacing(cellStyle, "margin");
+                    var cellStyles = ParseStyleAttribute(cellStyle);
+                    if (cellStyles.TryGetValue("background-color", out var bg))
+                    {
+                        cellBgColor = NormalizeColor(bg);
+                    }
+                }
+
+                // Handle colspan
+                var gridSpan = 1;
+                var colspanAttr = cell.GetAttribute("colspan");
+                if (!string.IsNullOrEmpty(colspanAttr) && int.TryParse(colspanAttr, out var cs) && cs > 1)
+                {
+                    gridSpan = cs;
+                }
+
+                // Handle rowspan
+                var verticalMerge = VerticalMergeType.None;
+                var rowspanAttr = cell.GetAttribute("rowspan");
+                if (!string.IsNullOrEmpty(rowspanAttr) && int.TryParse(rowspanAttr, out var rs) && rs > 1)
+                {
+                    verticalMerge = VerticalMergeType.Restart;
+                    newRowspans[colIndex] = rs - 1;
                 }
 
                 var cellElements = new List<DocumentElement>();
@@ -628,10 +910,47 @@ internal sealed class HtmlParser
                     Properties = new()
                     {
                         Padding = cellPadding,
-                        Margin = cellMargin
+                        Margin = cellMargin,
+                        BackgroundColorHex = cellBgColor,
+                        GridSpan = gridSpan,
+                        VerticalMerge = verticalMerge
                     }
                 });
+
+                colIndex += gridSpan;
             }
+
+            // Insert trailing Continue cells for active rowspans
+            while (activeRowspans.ContainsKey(colIndex))
+            {
+                cells.Add(new()
+                {
+                    Content = [],
+                    Properties = new()
+                    {
+                        VerticalMerge = VerticalMergeType.Continue
+                    }
+                });
+                colIndex++;
+            }
+
+            // Update active rowspans for next row
+            var nextRowspans = new Dictionary<int, int>();
+            foreach (var kvp in activeRowspans)
+            {
+                var remaining = kvp.Value - 1;
+                if (remaining > 0)
+                {
+                    nextRowspans[kvp.Key] = remaining;
+                }
+            }
+
+            foreach (var kvp in newRowspans)
+            {
+                nextRowspans[kvp.Key] = kvp.Value;
+            }
+
+            activeRowspans = nextRowspans;
 
             if (cells.Count > 0)
             {
@@ -652,7 +971,7 @@ internal sealed class HtmlParser
             Rows = rows,
             Properties = new()
             {
-                DefaultBorders = CellBorders.All,
+                DefaultBorders = defaultBorders,
                 DefaultCellPadding = defaultCellPadding ?? new CellSpacing()
             }
         };
@@ -775,9 +1094,169 @@ internal sealed class HtmlParser
         return null;
     }
 
+    static void ParseDefinitionList(IElement element, List<DocumentElement> elements)
+    {
+        foreach (var child in element.Children)
+        {
+            switch (child.TagName.ToLowerInvariant())
+            {
+                case "dt":
+                    elements.Add(CreateParagraph(child, 11, true));
+                    break;
+                case "dd":
+                    var ddPara = CreateParagraph(child, 11, false);
+                    elements.Add(new ParagraphElement
+                    {
+                        Runs = ddPara.Runs,
+                        Properties = ddPara.Properties with
+                        {
+                            LeftIndentPoints = 36
+                        }
+                    });
+                    break;
+            }
+        }
+    }
+
+    static ImageElement? ParseImgElement(IElement element)
+    {
+        var src = element.GetAttribute("src");
+        if (string.IsNullOrEmpty(src) || !src.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        var (data, contentType) = ParseDataUri(src);
+        if (data == null)
+        {
+            return null;
+        }
+
+        var width = ParseDimensionAttribute(element, "width") ?? 100;
+        var height = ParseDimensionAttribute(element, "height") ?? 100;
+
+        return new()
+        {
+            ImageData = data,
+            WidthPoints = width,
+            HeightPoints = height,
+            ContentType = contentType
+        };
+    }
+
+    static (byte[]? Data, string? ContentType) ParseDataUri(string src)
+    {
+        if (string.IsNullOrEmpty(src) || !src.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        {
+            return (null, null);
+        }
+
+        var commaIndex = src.IndexOf(',');
+        if (commaIndex < 0)
+        {
+            return (null, null);
+        }
+
+        var meta = src[5..commaIndex];
+        string? contentType = null;
+        var semiIndex = meta.IndexOf(';');
+        if (semiIndex >= 0)
+        {
+            contentType = meta[..semiIndex];
+        }
+        else
+        {
+            contentType = meta;
+        }
+
+        try
+        {
+            var data = Convert.FromBase64String(src[(commaIndex + 1)..]);
+            return (data, contentType);
+        }
+        catch
+        {
+            return (null, null);
+        }
+    }
+
+    static double? ParseDimensionAttribute(IElement element, string attr)
+    {
+        var value = element.GetAttribute(attr);
+        if (!string.IsNullOrEmpty(value) &&
+            double.TryParse(value.Replace("px", "").Replace("pt", ""), out var result))
+        {
+            return result;
+        }
+
+        return null;
+    }
+
+    static CellBorders? ParseCssBorderShorthand(string value)
+    {
+        var parts = value.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length < 1)
+        {
+            return null;
+        }
+
+        var widthPt = 0.75;
+        var color = (string?)"000000";
+
+        foreach (var part in parts)
+        {
+            if (part.EndsWith("px", StringComparison.OrdinalIgnoreCase))
+            {
+                if (double.TryParse(part.Replace("px", ""), out var px))
+                {
+                    widthPt = px * 0.75;
+                }
+            }
+            else if (part.EndsWith("pt", StringComparison.OrdinalIgnoreCase))
+            {
+                if (double.TryParse(part.Replace("pt", ""), out var pt))
+                {
+                    widthPt = pt;
+                }
+            }
+            else if (part is "solid" or "dashed" or "dotted" or "double" or "groove" or "ridge" or "inset" or "outset")
+            {
+                // Style token — skip (we treat all visible styles the same)
+            }
+            else if (part == "none")
+            {
+                return new();
+            }
+            else
+            {
+                var normalized = NormalizeColor(part);
+                if (normalized != null)
+                {
+                    color = normalized;
+                }
+            }
+        }
+
+        var edge = new BorderEdge
+        {
+            IsVisible = true,
+            WidthPoints = widthPt,
+            ColorHex = color
+        };
+        return new()
+        {
+            Top = edge,
+            Right = edge,
+            Bottom = edge,
+            Left = edge
+        };
+    }
+
     class InlineStyle
     {
         public TextAlignment Alignment { get; set; } = TextAlignment.Left;
         public string? Color { get; set; }
+        public double? TextIndent { get; set; }
+        public double? LineHeight { get; set; }
     }
 }

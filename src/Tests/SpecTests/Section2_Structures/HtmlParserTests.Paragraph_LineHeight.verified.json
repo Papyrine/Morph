@@ -1,0 +1,29 @@
+﻿[
+  {
+    "Runs": [
+      {
+        "Text": "double spaced",
+        "Properties": {
+          "FontFamily": "Aptos",
+          "FontSizePoints": 11.0,
+          "Bold": false,
+          "Italic": false,
+          "Underline": false,
+          "Strikethrough": false,
+          "AllCaps": false
+        }
+      }
+    ],
+    "Properties": {
+      "SpacingAfterPoints": 8.0,
+      "LineSpacingMultiplier": 2.0,
+      "ContextualSpacing": false,
+      "SuppressLineNumbers": false,
+      "SuppressAutoHyphens": false,
+      "KeepLines": false,
+      "KeepNext": false,
+      "WidowControl": true,
+      "PageBreakBefore": false
+    }
+  }
+]
