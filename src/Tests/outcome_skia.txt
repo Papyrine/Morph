@@ -9,16 +9,4 @@ C:\Code\Morph\src\Tests\Inputs\resumes\13
 C:\Code\Morph\src\Tests\Inputs\resumes\14
 C:\Code\Morph\src\Tests\Inputs\table_multipage
 
-# metricFailures 12
-C:\Code\Morph\src\Tests\Inputs\agendas-minutes\17
-C:\Code\Morph\src\Tests\Inputs\business\06
-C:\Code\Morph\src\Tests\Inputs\compatibility_mode_14
-C:\Code\Morph\src\Tests\Inputs\letters\07
-C:\Code\Morph\src\Tests\Inputs\menus\06
-C:\Code\Morph\src\Tests\Inputs\newsletters\05
-C:\Code\Morph\src\Tests\Inputs\newsletters\05
-C:\Code\Morph\src\Tests\Inputs\newsletters\10
-C:\Code\Morph\src\Tests\Inputs\resumes\01
-C:\Code\Morph\src\Tests\Inputs\resumes\12
-C:\Code\Morph\src\Tests\Inputs\wedding\06
-C:\Code\Morph\src\Tests\Inputs\wordart
+# metricFailures 0
