@@ -32,7 +32,7 @@
     },
     {
       "Page": 5,
-      "ErrorMetric": 0.0346,
+      "ErrorMetric": 0.0348,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "results_skia#page_0005.verified.png",
       "ReceivedFile": "results_skia#page_0005.received.png"
@@ -46,7 +46,7 @@
     },
     {
       "Page": 7,
-      "ErrorMetric": 0.0466,
+      "ErrorMetric": 0.0459,
       "ExpectedFile": "expected_0007.png",
       "VerifiedFile": "results_skia#page_0007.verified.png",
       "ReceivedFile": "results_skia#page_0007.received.png"
@@ -88,7 +88,7 @@
     },
     {
       "Page": 13,
-      "ErrorMetric": 0.019,
+      "ErrorMetric": 0.0188,
       "ExpectedFile": "expected_0013.png",
       "VerifiedFile": "results_skia#page_0013.verified.png",
       "ReceivedFile": "results_skia#page_0013.received.png"

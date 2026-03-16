@@ -71,114 +71,94 @@ sealed class RenderContext : RenderContextBase, IDisposable
             style = FontStyle.Italic;
         }
 
-        // If bold is requested and font name has a medium/semibold weight suffix,
-        // try to find the Bold variant of the base family instead
-        var effectiveFontFamily = fontFamily;
-        if (bold && FontHelpers.HasMediumWeightSuffix(fontFamily))
-        {
-            var baseName = FontHelpers.StripWeightSuffixes(fontFamily);
-            if (!string.IsNullOrEmpty(baseName) && baseName != fontFamily)
-            {
-                effectiveFontFamily = baseName;
-            }
-        }
-
-        var key = $"{effectiveFontFamily}_{style}";
+        var candidates = FontHelpers.GetCandidateNames(fontFamily, bold);
+        var key = $"{candidates.Effective}_{style}";
 
         if (!fontFamilyCache.TryGetValue(key, out var resolvedFamily))
         {
-            // Try system fonts first
-            if (SystemFonts.TryGet(effectiveFontFamily, out resolvedFamily))
-            {
-                fontFamilyCache[key] = resolvedFamily;
-                return resolvedFamily;
-            }
-
-            // If we stripped weight suffixes, also try the original family name in system fonts
-            if (effectiveFontFamily != fontFamily && SystemFonts.TryGet(fontFamily, out resolvedFamily))
-            {
-                fontFamilyCache[key] = resolvedFamily;
-                return resolvedFamily;
-            }
-
-            // Try stripping style suffixes (e.g. "Avenir Next LT Pro Bold" → "Avenir Next LT Pro")
-            var strippedName = FontHelpers.StripWeightSuffixes(fontFamily);
-            if (!string.IsNullOrEmpty(strippedName) && strippedName != fontFamily && strippedName != effectiveFontFamily)
-            {
-                if (SystemFonts.TryGet(strippedName, out resolvedFamily))
-                {
-                    fontFamilyCache[key] = resolvedFamily;
-                    return resolvedFamily;
-                }
-            }
-
-            // Try shared collection (previously loaded from file caches)
-            if (sharedFontCollection.TryGet(effectiveFontFamily, out resolvedFamily))
-            {
-                fontFamilyCache[key] = resolvedFamily;
-                return resolvedFamily;
-            }
-
-            if (effectiveFontFamily != fontFamily && sharedFontCollection.TryGet(fontFamily, out resolvedFamily))
-            {
-                fontFamilyCache[key] = resolvedFamily;
-                return resolvedFamily;
-            }
-
-            if (!string.IsNullOrEmpty(strippedName) && strippedName != fontFamily && strippedName != effectiveFontFamily
-                && sharedFontCollection.TryGet(strippedName, out resolvedFamily))
+            // Try system fonts and shared collection with each candidate name
+            if (TryResolveFromKnownSources(candidates, out resolvedFamily))
             {
                 fontFamilyCache[key] = resolvedFamily;
                 return resolvedFamily;
             }
 
             // Try user fonts, Office fonts, then cloud cache
-            var loaded = TryLoadFromFontCache(userFontsCache.Value, effectiveFontFamily)
-                         ?? TryLoadFromFontCache(userFontsCache.Value, fontFamily);
-
-            if (loaded == null)
-            {
-                loaded = TryLoadFromFontCache(officeFontsCache.Value, effectiveFontFamily)
-                         ?? TryLoadFromFontCache(officeFontsCache.Value, fontFamily);
-            }
-
-            if (loaded == null)
-            {
-                loaded = TryLoadFromFontCache(cloudFontsCache.Value, effectiveFontFamily)
-                         ?? TryLoadFromFontCache(cloudFontsCache.Value, fontFamily);
-            }
+            var loaded = TryLoadFromAnyCandidateName(userFontsCache.Value, candidates)
+                         ?? TryLoadFromAnyCandidateName(officeFontsCache.Value, candidates)
+                         ?? TryLoadFromAnyCandidateName(cloudFontsCache.Value, candidates);
 
             if (loaded != null)
             {
                 resolvedFamily = loaded.Value;
             }
-            else if (FontHelpers.FontFallbacks.TryGetValue(effectiveFontFamily, out var fallbackFont)
-                     || FontHelpers.FontFallbacks.TryGetValue(fontFamily, out fallbackFont)
-                     || (!string.IsNullOrEmpty(strippedName) && FontHelpers.FontFallbacks.TryGetValue(strippedName, out fallbackFont)))
+            else
             {
-                // Try known fallback font
-                if (SystemFonts.TryGet(fallbackFont, out resolvedFamily))
+                var fallbackFont = FontHelpers.FindFallback(candidates);
+                if (fallbackFont != null)
                 {
-                    // Found fallback in system fonts
-                }
-                else if (sharedFontCollection.TryGet(fallbackFont, out resolvedFamily))
-                {
-                    // Found fallback in shared collection
+                    if (SystemFonts.TryGet(fallbackFont, out resolvedFamily) ||
+                        sharedFontCollection.TryGet(fallbackFont, out resolvedFamily))
+                    {
+                        // Found fallback
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Font '{fontFamily}' not found and fallback '{fallbackFont}' also not available.");
+                    }
                 }
                 else
                 {
-                    throw new InvalidOperationException($"Font '{fontFamily}' not found and fallback '{fallbackFont}' also not available.");
+                    throw new InvalidOperationException($"Font '{fontFamily}' not found. Checked system fonts, user fonts, Office fonts, and cloud cache.");
                 }
-            }
-            else
-            {
-                throw new InvalidOperationException($"Font '{fontFamily}' not found. Checked system fonts, user fonts, Office fonts, and cloud cache.");
             }
 
             fontFamilyCache[key] = resolvedFamily;
         }
 
         return resolvedFamily;
+    }
+
+    bool TryResolveFromKnownSources(FontNameCandidates candidates, out FontFamily resolved)
+    {
+        foreach (var name in CandidateNames(candidates))
+        {
+            if (SystemFonts.TryGet(name, out resolved) || sharedFontCollection.TryGet(name, out resolved))
+            {
+                return true;
+            }
+        }
+
+        resolved = default;
+        return false;
+    }
+
+    FontFamily? TryLoadFromAnyCandidateName(Dictionary<string, string[]> fontCache, FontNameCandidates candidates)
+    {
+        foreach (var name in CandidateNames(candidates))
+        {
+            var result = TryLoadFromFontCache(fontCache, name);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+
+        return null;
+    }
+
+    static IEnumerable<string> CandidateNames(FontNameCandidates candidates)
+    {
+        yield return candidates.Effective;
+        if (candidates.Original != candidates.Effective)
+        {
+            yield return candidates.Original;
+        }
+
+        if (candidates.Stripped != null)
+        {
+            yield return candidates.Stripped;
+        }
     }
 
     static string[] styleSuffixes => FontHelpers.StyleSuffixes;

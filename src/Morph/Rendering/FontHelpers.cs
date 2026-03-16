@@ -81,4 +81,58 @@ static class FontHelpers
         fontFamily.Contains("Medium", StringComparison.OrdinalIgnoreCase) ||
         fontFamily.Contains("Demi", StringComparison.OrdinalIgnoreCase) ||
         fontFamily.Contains("Semibold", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Computes the candidate font family names to try when resolving a font.
+    /// Returns distinct names in priority order: effectiveFontFamily, original fontFamily, stripped name.
+    /// </summary>
+    internal static FontNameCandidates GetCandidateNames(string fontFamily, bool bold)
+    {
+        var effectiveFontFamily = fontFamily;
+        if (bold && HasMediumWeightSuffix(fontFamily))
+        {
+            var baseName = StripWeightSuffixes(fontFamily);
+            if (!string.IsNullOrEmpty(baseName) && baseName != fontFamily)
+            {
+                effectiveFontFamily = baseName;
+            }
+        }
+
+        var strippedName = StripWeightSuffixes(fontFamily);
+        if (string.IsNullOrEmpty(strippedName) || strippedName == fontFamily || strippedName == effectiveFontFamily)
+        {
+            strippedName = null;
+        }
+
+        return new(effectiveFontFamily, fontFamily, strippedName);
+    }
+
+    /// <summary>
+    /// Finds a fallback font name for any of the candidate names.
+    /// Returns null if no fallback is configured.
+    /// </summary>
+    internal static string? FindFallback(FontNameCandidates candidates)
+    {
+        if (FontFallbacks.TryGetValue(candidates.Effective, out var fallback))
+        {
+            return fallback;
+        }
+
+        if (candidates.Effective != candidates.Original && FontFallbacks.TryGetValue(candidates.Original, out fallback))
+        {
+            return fallback;
+        }
+
+        if (candidates.Stripped != null && FontFallbacks.TryGetValue(candidates.Stripped, out fallback))
+        {
+            return fallback;
+        }
+
+        return null;
+    }
 }
+
+/// <summary>
+/// Candidate font family names to try when resolving a font, in priority order.
+/// </summary>
+internal readonly record struct FontNameCandidates(string Effective, string Original, string? Stripped);
