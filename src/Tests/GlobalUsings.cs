@@ -2,9 +2,6 @@
 global using System.Diagnostics.CodeAnalysis;
 global using System.IO.Compression;
 global using System.Runtime.CompilerServices;
-global using DiffEngine;
 global using ImageMagick;
 global using ProjectFilesGenerator;
-global using TUnit.Core.Interfaces;
 global using WordRender;
-global using WordRender.Rendering;

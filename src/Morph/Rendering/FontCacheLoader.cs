@@ -1,5 +1,3 @@
-namespace WordRender.Rendering;
-
 /// <summary>
 /// Discovers font file paths from various system caches.
 /// Backends use these paths with their own font loading APIs.

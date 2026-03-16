@@ -1,5 +1,3 @@
-using WordRender.Rendering;
-
 /// <summary>
 /// Renders text content with formatting using SixLabors.ImageSharp.
 /// </summary>
@@ -404,14 +402,11 @@ sealed class TextRenderer(RenderContext context)
             // Apply AllCaps text transform if specified
             var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
             var words = SplitIntoWords(text);
+            var font = context.GetFont(run.Properties);
+            var (runHeight, baseline) = RenderContext.GetFontMetrics(font);
 
             foreach (var word in words)
             {
-                var font = context.GetFont(run.Properties);
-
-                // Get line metrics in points
-                var (runHeight, baseline) = RenderContext.GetFontMetrics(font);
-
                 // Handle explicit line break (newline character)
                 if (word is "\n" or "\r\n" or "\r")
                 {
@@ -860,14 +855,11 @@ sealed class TextRenderer(RenderContext context)
             // Apply AllCaps text transform if specified
             var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
             var words = SplitIntoWords(text);
+            var font = context.GetFont(run.Properties);
+            var (runHeight, runBaseline) = RenderContext.GetFontMetrics(font);
 
             foreach (var word in words)
             {
-                var font = context.GetFont(run.Properties);
-
-                // Get font metrics for line height (already in points)
-                var (runHeight, runBaseline) = RenderContext.GetFontMetrics(font);
-
                 // Handle explicit line break (newline character)
                 if (word is "\n" or "\r\n" or "\r")
                 {
@@ -1065,50 +1057,47 @@ sealed class TextRenderer(RenderContext context)
 
     static List<string> SplitIntoWords(string text)
     {
-        var words = new List<string>();
-        var currentWord = new StringBuilder();
-
-        foreach (var c in text)
+        if (text.Contains(nonBreakingHyphen))
         {
+            text = text.Replace(nonBreakingHyphen, '-');
+        }
+
+        var words = new List<string>();
+        var wordStart = -1;
+
+        for (var i = 0; i < text.Length; i++)
+        {
+            var c = text[i];
             if (char.IsWhiteSpace(c))
             {
-                if (currentWord.Length > 0)
+                if (wordStart >= 0)
                 {
-                    words.Add(currentWord.ToString());
-                    currentWord.Clear();
+                    words.Add(text[wordStart..i]);
+                    wordStart = -1;
                 }
-                // Preserve spaces as separate "words" for accurate width calculation
-                words.Add(c.ToString());
+
+                words.Add(text[i..(i + 1)]);
             }
             else if (c == softHyphen)
             {
-                // Soft hyphen is a potential break point
-                // Add current word fragment with trailing soft hyphen marker
-                if (currentWord.Length > 0)
+                if (wordStart >= 0)
                 {
-                    // Mark this fragment as having a soft hyphen at the end
-                    // We'll handle this in the layout logic
-                    currentWord.Append(c);
-                    words.Add(currentWord.ToString());
-                    currentWord.Clear();
+                    words.Add(text[wordStart..(i + 1)]);
+                    wordStart = -1;
                 }
-            }
-            else if (c == nonBreakingHyphen)
-            {
-                // Non-breaking hyphen: render as regular hyphen but don't break here
-                // Keep it as part of the current word
-                // Render as visible hyphen
-                currentWord.Append('-');
             }
             else
             {
-                currentWord.Append(c);
+                if (wordStart < 0)
+                {
+                    wordStart = i;
+                }
             }
         }
 
-        if (currentWord.Length > 0)
+        if (wordStart >= 0)
         {
-            words.Add(currentWord.ToString());
+            words.Add(text[wordStart..]);
         }
 
         return words;

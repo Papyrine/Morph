@@ -1,5 +1,3 @@
-namespace WordRender.Rendering;
-
 static class FontHelpers
 {
     // Font fallback mappings for fonts that may not be installed
@@ -131,8 +129,3 @@ static class FontHelpers
         return null;
     }
 }
-
-/// <summary>
-/// Candidate font family names to try when resolving a font, in priority order.
-/// </summary>
-internal readonly record struct FontNameCandidates(string Effective, string Original, string? Stripped);

@@ -1,5 +1,3 @@
-using WordRender.Rendering;
-
 /// <summary>
 /// Renders document pages to PNG images using SixLabors.ImageSharp.
 /// </summary>
@@ -448,9 +446,15 @@ sealed class PageRenderer(RenderContext context) :
         var textX = x + (width - scaledSize.Width) / 2;
         var textY = y + (pixelHeight - scaledSize.Height) / 2;
 
-        var fillColor = wordArt.FillColorHex != null
-            ? RenderContext.ParseColor(wordArt.FillColorHex)
-            : Color.Black;
+        Color fillColor;
+        if (wordArt.FillColorHex == null)
+        {
+            fillColor = Color.Black;
+        }
+        else
+        {
+            fillColor = RenderContext.ParseColor(wordArt.FillColorHex);
+        }
 
         if (wordArt.HasShadow)
         {
@@ -1054,27 +1058,30 @@ sealed class PageRenderer(RenderContext context) :
         }
 
         var borders = TableLayout.ResolveCellBorders(cell.Properties, tableProps, rowIndex, colIndex, totalRows, totalCols);
-        if (borders != null)
+        if (borders != null && currentPage != null)
         {
-            if (borders.Top.IsVisible)
+            currentPage.Mutate(ctx =>
             {
-                DrawBorderLine(pixelX, pixelY, pixelX + pixelWidth, pixelY, borders.Top);
-            }
+                if (borders.Top.IsVisible)
+                {
+                    DrawBorderLine(ctx, pixelX, pixelY, pixelX + pixelWidth, pixelY, borders.Top);
+                }
 
-            if (borders.Right.IsVisible)
-            {
-                DrawBorderLine(pixelX + pixelWidth, pixelY, pixelX + pixelWidth, pixelY + pixelHeight, borders.Right);
-            }
+                if (borders.Right.IsVisible)
+                {
+                    DrawBorderLine(ctx, pixelX + pixelWidth, pixelY, pixelX + pixelWidth, pixelY + pixelHeight, borders.Right);
+                }
 
-            if (borders.Bottom.IsVisible)
-            {
-                DrawBorderLine(pixelX, pixelY + pixelHeight, pixelX + pixelWidth, pixelY + pixelHeight, borders.Bottom);
-            }
+                if (borders.Bottom.IsVisible)
+                {
+                    DrawBorderLine(ctx, pixelX, pixelY + pixelHeight, pixelX + pixelWidth, pixelY + pixelHeight, borders.Bottom);
+                }
 
-            if (borders.Left.IsVisible)
-            {
-                DrawBorderLine(pixelX, pixelY, pixelX, pixelY + pixelHeight, borders.Left);
-            }
+                if (borders.Left.IsVisible)
+                {
+                    DrawBorderLine(ctx, pixelX, pixelY, pixelX, pixelY + pixelHeight, borders.Left);
+                }
+            });
         }
 
         var savedY = context.CurrentY;
@@ -1155,11 +1162,16 @@ sealed class PageRenderer(RenderContext context) :
             return;
         }
 
+        currentPage.Mutate(ctx => DrawBorderLine(ctx, x1, y1, x2, y2, edge));
+    }
+
+    void DrawBorderLine(IImageProcessingContext ctx, float x1, float y1, float x2, float y2, BorderEdge edge)
+    {
         var color = RenderContext.ParseColor(edge.ColorHex ?? "000000");
         var strokeWidth = context.PointsToPixels((float) edge.WidthPoints);
         var pen = Pens.Solid(color, strokeWidth);
 
-        currentPage.Mutate(_ => _.DrawLine(pen, new PointF(x1, y1), new PointF(x2, y2)));
+        ctx.DrawLine(pen, new PointF(x1, y1), new PointF(x2, y2));
     }
 
     void RenderParagraphInBounds(ParagraphElement paragraph, float x, float maxWidth)
@@ -1239,8 +1251,12 @@ sealed class PageRenderer(RenderContext context) :
         var pixelHeight = context.PointsToPixels(fieldHeight);
 
         var bgColor = textField.Enabled ? Color.White : Color.FromRgb(240, 240, 240);
-        currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
-        currentPage.Mutate(_ => _.Draw(Pens.Solid(Color.Gray, 1 * context.Scale), new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
+        var rect = new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight);
+        currentPage.Mutate(ctx =>
+        {
+            ctx.Fill(bgColor, rect);
+            ctx.Draw(Pens.Solid(Color.Gray, 1 * context.Scale), rect);
+        });
 
         var displayText = string.IsNullOrEmpty(textField.Value) ? textField.DefaultText ?? "" : textField.Value;
         if (!string.IsNullOrEmpty(displayText))
@@ -1278,8 +1294,12 @@ sealed class PageRenderer(RenderContext context) :
         var pixelSize = context.PointsToPixels(boxSize);
 
         var bgColor = checkBox.Enabled ? Color.White : Color.FromRgb(240, 240, 240);
-        currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(pixelX, pixelY, pixelSize, pixelSize)));
-        currentPage.Mutate(_ => _.Draw(Pens.Solid(Color.Black, 1 * context.Scale), new RectangleF(pixelX, pixelY, pixelSize, pixelSize)));
+        var rect = new RectangleF(pixelX, pixelY, pixelSize, pixelSize);
+        currentPage.Mutate(ctx =>
+        {
+            ctx.Fill(bgColor, rect);
+            ctx.Draw(Pens.Solid(Color.Black, 1 * context.Scale), rect);
+        });
 
         if (checkBox.Checked)
         {
@@ -1326,8 +1346,12 @@ sealed class PageRenderer(RenderContext context) :
         var pixelHeight = context.PointsToPixels(fieldHeight);
 
         var bgColor = dropDown.Enabled ? Color.White : Color.FromRgb(240, 240, 240);
-        currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
-        currentPage.Mutate(_ => _.Draw(Pens.Solid(Color.Gray, 1 * context.Scale), new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
+        var rect = new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight);
+        currentPage.Mutate(ctx =>
+        {
+            ctx.Fill(bgColor, rect);
+            ctx.Draw(Pens.Solid(Color.Gray, 1 * context.Scale), rect);
+        });
 
         var selectedValue = dropDown.SelectedIndex >= 0 && dropDown.SelectedIndex < dropDown.Items.Count
             ? dropDown.Items[dropDown.SelectedIndex]
@@ -1403,8 +1427,12 @@ sealed class PageRenderer(RenderContext context) :
         var pixelY = context.PointsToPixels(y);
         var pixelSize = context.PointsToPixels(boxSize);
 
-        currentPage.Mutate(_ => _.Fill(Color.White, new RectangleF(pixelX, pixelY, pixelSize, pixelSize)));
-        currentPage.Mutate(_ => _.Draw(Pens.Solid(Color.Black, 1 * context.Scale), new RectangleF(pixelX, pixelY, pixelSize, pixelSize)));
+        var rect = new RectangleF(pixelX, pixelY, pixelSize, pixelSize);
+        currentPage.Mutate(ctx =>
+        {
+            ctx.Fill(Color.White, rect);
+            ctx.Draw(Pens.Solid(Color.Black, 1 * context.Scale), rect);
+        });
 
         if (control.Checked == true)
         {
@@ -1596,7 +1624,7 @@ sealed class PageRenderer(RenderContext context) :
             using var page = pendingPage;
             pendingPage = null;
             pageCount++;
-            pageCallback!(stream => page.SaveAsPng(stream));
+            pageCallback!(page.SaveAsPng);
         }
     }
 

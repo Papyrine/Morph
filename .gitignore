@@ -13,3 +13,4 @@ nul
 *.trx
 src/.claude/settings.local.json
 /TestResults
+/BenchmarkDotNet.Artifacts
