@@ -61,84 +61,40 @@ sealed class RenderContext : RenderContextBase, IDisposable
             style = SKFontStyle.Italic;
         }
 
-        // If bold is requested and font name has a medium/semibold weight suffix,
-        // try to find the Bold variant of the base family instead
-        var effectiveFontFamily = fontFamily;
-        if (bold && FontHelpers.HasMediumWeightSuffix(fontFamily))
-        {
-            var baseName = FontHelpers.StripWeightSuffixes(fontFamily);
-            if (!string.IsNullOrEmpty(baseName) && baseName != fontFamily)
-            {
-                effectiveFontFamily = baseName;
-            }
-        }
-
-        var key = $"{effectiveFontFamily}_{style.Weight}_{style.Slant}";
+        var candidates = FontHelpers.GetCandidateNames(fontFamily, bold);
+        var key = $"{candidates.Effective}_{style.Weight}_{style.Slant}";
 
         if (!typefaceCache.TryGetValue(key, out var typeface))
         {
-            typeface = SKTypeface.FromFamilyName(effectiveFontFamily, style);
+            // Try each candidate name against system fonts
+            typeface = TryResolveFromSystem(candidates, style);
 
-            // If font wasn't found (fell back to default), try stripping style suffixes, then font caches
-            // Compare against effectiveFontFamily since we may have stripped weight suffixes
-            if (typeface.FamilyName != effectiveFontFamily && !typeface.FamilyName.StartsWith(effectiveFontFamily, StringComparison.OrdinalIgnoreCase))
+            if (typeface == null)
             {
-                // Try stripping style suffixes (e.g. "Avenir Next LT Pro Light" → "Avenir Next LT Pro")
-                var strippedName = FontHelpers.StripWeightSuffixes(fontFamily);
-                if (!string.IsNullOrEmpty(strippedName) && strippedName != fontFamily && strippedName != effectiveFontFamily)
-                {
-                    var strippedTypeface = SKTypeface.FromFamilyName(strippedName, style);
-                    if (strippedTypeface.FamilyName.Equals(strippedName, StringComparison.OrdinalIgnoreCase)
-                        || strippedTypeface.FamilyName.StartsWith(strippedName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        typeface = strippedTypeface;
-                        typefaceCache[key] = typeface;
-                        return typeface;
-                    }
-                }
+                // Try user fonts, Office fonts, then cloud cache
+                typeface = TryLoadFromAnyCandidateName(userFontsCache.Value, candidates, style)
+                           ?? TryLoadFromAnyCandidateName(officeFontsCache.Value, candidates, style)
+                           ?? TryLoadFromAnyCandidateName(cloudFontsCache.Value, candidates, style);
+            }
 
-                var userTypeface = TryLoadFromFontCache(userFontsCache.Value, effectiveFontFamily, style)
-                                   ?? TryLoadFromFontCache(userFontsCache.Value, fontFamily, style);
-                if (userTypeface != null)
+            if (typeface == null)
+            {
+                var fallbackFont = FontHelpers.FindFallback(candidates);
+                if (fallbackFont != null)
                 {
-                    typeface = userTypeface;
-                }
-                else
-                {
-                    var officeTypeface = TryLoadFromFontCache(officeFontsCache.Value, effectiveFontFamily, style)
-                                         ?? TryLoadFromFontCache(officeFontsCache.Value, fontFamily, style);
-                    if (officeTypeface != null)
+                    var fallbackTypeface = SKTypeface.FromFamilyName(fallbackFont, style);
+                    if (fallbackTypeface.FamilyName.Equals(fallbackFont, StringComparison.OrdinalIgnoreCase))
                     {
-                        typeface = officeTypeface;
+                        typeface = fallbackTypeface;
                     }
                     else
                     {
-                        var cloudTypeface = TryLoadFromFontCache(cloudFontsCache.Value, effectiveFontFamily, style)
-                                            ?? TryLoadFromFontCache(cloudFontsCache.Value, fontFamily, style);
-                        if (cloudTypeface != null)
-                        {
-                            typeface = cloudTypeface;
-                        }
-                        else if (FontHelpers.FontFallbacks.TryGetValue(effectiveFontFamily, out var fallbackFont)
-                                 || FontHelpers.FontFallbacks.TryGetValue(fontFamily, out fallbackFont)
-                                 || (!string.IsNullOrEmpty(strippedName) && FontHelpers.FontFallbacks.TryGetValue(strippedName, out fallbackFont)))
-                        {
-                            // Try known fallback font
-                            var fallbackTypeface = SKTypeface.FromFamilyName(fallbackFont, style);
-                            if (fallbackTypeface.FamilyName.Equals(fallbackFont, StringComparison.OrdinalIgnoreCase))
-                            {
-                                typeface = fallbackTypeface;
-                            }
-                            else
-                            {
-                                throw new InvalidOperationException($"Font '{fontFamily}' not found and fallback '{fallbackFont}' also not available.");
-                            }
-                        }
-                        else
-                        {
-                            throw new InvalidOperationException($"Font '{fontFamily}' not found. Checked system fonts, user fonts, Office fonts, and cloud cache.");
-                        }
+                        throw new InvalidOperationException($"Font '{fontFamily}' not found and fallback '{fallbackFont}' also not available.");
                     }
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Font '{fontFamily}' not found. Checked system fonts, user fonts, Office fonts, and cloud cache.");
                 }
             }
 
@@ -146,6 +102,49 @@ sealed class RenderContext : RenderContextBase, IDisposable
         }
 
         return typeface;
+    }
+
+    static SKTypeface? TryResolveFromSystem(FontNameCandidates candidates, SKFontStyle style)
+    {
+        foreach (var name in CandidateNames(candidates))
+        {
+            var typeface = SKTypeface.FromFamilyName(name, style);
+            if (typeface.FamilyName.Equals(name, StringComparison.OrdinalIgnoreCase)
+                || typeface.FamilyName.StartsWith(name, StringComparison.OrdinalIgnoreCase))
+            {
+                return typeface;
+            }
+        }
+
+        return null;
+    }
+
+    static SKTypeface? TryLoadFromAnyCandidateName(Dictionary<string, string[]> fontCache, FontNameCandidates candidates, SKFontStyle style)
+    {
+        foreach (var name in CandidateNames(candidates))
+        {
+            var result = TryLoadFromFontCache(fontCache, name, style);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+
+        return null;
+    }
+
+    static IEnumerable<string> CandidateNames(FontNameCandidates candidates)
+    {
+        yield return candidates.Effective;
+        if (candidates.Original != candidates.Effective)
+        {
+            yield return candidates.Original;
+        }
+
+        if (candidates.Stripped != null)
+        {
+            yield return candidates.Stripped;
+        }
     }
 
     static string[] styleSuffixes => FontHelpers.StyleSuffixes;
