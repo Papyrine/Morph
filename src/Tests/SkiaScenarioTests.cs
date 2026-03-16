@@ -1,9 +1,9 @@
 #if DEBUG
 
-public class ScenarioTests
+public class SkiaScenarioTests
 {
-    static ConcurrentBag<string> pageCountFailures = new ();
-    static ConcurrentBag<string> metricFailures = new ();
+    static ConcurrentBag<string> pageCountFailures = [];
+    static ConcurrentBag<string> metricFailures = [];
     public static IEnumerable<string> GetScenarioDirectories()
     {
         var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");

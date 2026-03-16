@@ -7,7 +7,7 @@ public sealed class DocumentConverter : WordRender.DocumentConverter
 {
     private protected override IReadOnlyList<byte[]> RenderToImageData(ParsedDocument document, ConversionOptions options)
     {
-        using var context = new RenderContext(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale);
+        using var context = new RenderContext(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale, options.FontFallback);
         using var renderer = new PageRenderer(context);
 
         var pages = renderer.RenderDocument(document);

@@ -35,4 +35,30 @@ public class SkiaFontResolutionTests
         using var typeface = context.GetTypeface(fontFamily, false, false);
         await Assert.That(typeface.FamilyName).IsEqualTo(expectedFamily);
     }
+
+    [Test]
+    public async Task GetTypeface_UnknownFont_NoFallback_Throws()
+    {
+        using var context = CreateContext();
+        await Assert.That(() => context.GetTypeface("NonExistentFont12345", false, false))
+            .Throws<InvalidOperationException>();
+    }
+
+    [Test]
+    public async Task GetTypeface_UnknownFont_DelegateFallback_ResolvesToFallback()
+    {
+        using var context = new SkiaRenderContext(
+            new(), 96, fontFallback: _ => "Arial");
+        using var typeface = context.GetTypeface("NonExistentFont12345", false, false);
+        await Assert.That(typeface.FamilyName).IsEqualTo("Arial");
+    }
+
+    [Test]
+    public async Task GetTypeface_UnknownFont_DelegateReturnsNull_Throws()
+    {
+        using var context = new SkiaRenderContext(
+            new(), 96, fontFallback: _ => null);
+        await Assert.That(() => context.GetTypeface("NonExistentFont12345", false, false))
+            .Throws<InvalidOperationException>();
+    }
 }

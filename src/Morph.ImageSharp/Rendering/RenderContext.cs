@@ -50,8 +50,8 @@ sealed class RenderContext : RenderContextBase, IDisposable
         return result.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToArray(), StringComparer.OrdinalIgnoreCase);
     }
 
-    public RenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0)
-        : base(pageSettings, dpi, compatibility, fontWidthScale)
+    public RenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0, Func<string, string?>? fontFallback = null)
+        : base(pageSettings, dpi, compatibility, fontWidthScale, fontFallback)
     {
     }
 
@@ -94,22 +94,16 @@ sealed class RenderContext : RenderContextBase, IDisposable
             }
             else
             {
-                var fallbackFont = FontHelpers.FindFallback(candidates);
-                if (fallbackFont != null)
-                {
-                    if (SystemFonts.TryGet(fallbackFont, out resolvedFamily) ||
-                        sharedFontCollection.TryGet(fallbackFont, out resolvedFamily))
-                    {
-                        // Found fallback
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException($"Font '{fontFamily}' not found and fallback '{fallbackFont}' also not available.");
-                    }
-                }
-                else
+                var fallbackFont = FontHelpers.FindFallback(candidates) ?? FontFallback?.Invoke(fontFamily);
+                if (fallbackFont == null)
                 {
                     throw new InvalidOperationException($"Font '{fontFamily}' not found. Checked system fonts, user fonts, Office fonts, and cloud cache.");
+                }
+
+                if (!SystemFonts.TryGet(fallbackFont, out resolvedFamily) &&
+                    !sharedFontCollection.TryGet(fallbackFont, out resolvedFamily))
+                {
+                    throw new InvalidOperationException($"Font '{fontFamily}' not found and fallback '{fallbackFont}' also not available.");
                 }
             }
 

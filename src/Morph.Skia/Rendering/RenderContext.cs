@@ -40,8 +40,8 @@ sealed class RenderContext : RenderContextBase, IDisposable
         return result.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToArray(), StringComparer.OrdinalIgnoreCase);
     }
 
-    public RenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0)
-        : base(pageSettings, dpi, compatibility, fontWidthScale)
+    public RenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0, Func<string, string?>? fontFallback = null)
+        : base(pageSettings, dpi, compatibility, fontWidthScale, fontFallback)
     {
     }
 
@@ -79,22 +79,20 @@ sealed class RenderContext : RenderContextBase, IDisposable
 
             if (typeface == null)
             {
-                var fallbackFont = FontHelpers.FindFallback(candidates);
-                if (fallbackFont != null)
+                var fallbackFont = FontHelpers.FindFallback(candidates) ?? FontFallback?.Invoke(fontFamily);
+                if (fallbackFont == null)
                 {
-                    var fallbackTypeface = SKTypeface.FromFamilyName(fallbackFont, style);
-                    if (fallbackTypeface.FamilyName.Equals(fallbackFont, StringComparison.OrdinalIgnoreCase))
-                    {
-                        typeface = fallbackTypeface;
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException($"Font '{fontFamily}' not found and fallback '{fallbackFont}' also not available.");
-                    }
+                    throw new InvalidOperationException($"Font '{fontFamily}' not found. Checked system fonts, user fonts, Office fonts, and cloud cache.");
+                }
+
+                var fallbackTypeface = SKTypeface.FromFamilyName(fallbackFont, style);
+                if (fallbackTypeface.FamilyName.Equals(fallbackFont, StringComparison.OrdinalIgnoreCase))
+                {
+                    typeface = fallbackTypeface;
                 }
                 else
                 {
-                    throw new InvalidOperationException($"Font '{fontFamily}' not found. Checked system fonts, user fonts, Office fonts, and cloud cache.");
+                    throw new InvalidOperationException($"Font '{fontFamily}' not found and fallback '{fallbackFont}' also not available.");
                 }
             }
 
