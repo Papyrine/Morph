@@ -385,8 +385,8 @@ sealed class PageRenderer(RenderContext context) :
         try
         {
             using var img = Image.Load<Rgba32>(image.ImageData);
-            img.Mutate(ctx => ctx.Resize((int) width, (int) pixelHeight));
-            currentPage.Mutate(ctx => ctx.DrawImage(img, new Point((int) x, (int) y), 1f));
+            img.Mutate(_ => _.Resize((int) width, (int) pixelHeight));
+            currentPage.Mutate(_ => _.DrawImage(img, new Point((int) x, (int) y), 1f));
         }
         catch
         {
@@ -417,7 +417,12 @@ sealed class PageRenderer(RenderContext context) :
             wordArt.Bold,
             wordArt.Italic);
 
-        var textSize = TextMeasurer.MeasureSize(wordArt.Text, new TextOptions(font) { Dpi = context.Dpi });
+        var textSize = TextMeasurer.MeasureSize(
+            wordArt.Text,
+            new(font)
+            {
+                Dpi = context.Dpi
+            });
 
         var scaleX = textSize.Width > 0 ? width / textSize.Width : 1;
         var scaleY = textSize.Height > 0 ? pixelHeight / textSize.Height : 1;
@@ -429,7 +434,12 @@ sealed class PageRenderer(RenderContext context) :
             wordArt.Bold,
             wordArt.Italic);
 
-        var scaledSize = TextMeasurer.MeasureSize(wordArt.Text, new TextOptions(scaledFont) { Dpi = context.Dpi });
+        var scaledSize = TextMeasurer.MeasureSize(
+            wordArt.Text,
+            new(scaledFont)
+            {
+                Dpi = context.Dpi
+            });
 
         var textX = x + (width - scaledSize.Width) / 2;
         var textY = y + (pixelHeight - scaledSize.Height) / 2;
@@ -441,17 +451,17 @@ sealed class PageRenderer(RenderContext context) :
         if (wordArt.HasShadow)
         {
             var shadowColor = Color.FromRgba(0, 0, 0, 80);
-            currentPage.Mutate(ctx => ctx.DrawText(wordArt.Text, scaledFont, shadowColor, new PointF(textX + 3, textY + 3)));
+            currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, shadowColor, new(textX + 3, textY + 3)));
         }
 
         if (wordArt is {OutlineColorHex: not null, OutlineWidthPoints: > 0})
         {
             var outlineColor = RenderContext.ParseColor(wordArt.OutlineColorHex);
             var outlinePen = Pens.Solid(outlineColor, context.PointsToPixels((float) wordArt.OutlineWidthPoints));
-            currentPage.Mutate(ctx => ctx.DrawText(wordArt.Text, scaledFont, outlinePen, new PointF(textX, textY)));
+            currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, outlinePen, new(textX, textY)));
         }
 
-        currentPage.Mutate(ctx => ctx.DrawText(wordArt.Text, scaledFont, fillColor, new PointF(textX, textY)));
+        currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, fillColor, new(textX, textY)));
 
         context.CurrentY += height;
     }
@@ -477,7 +487,12 @@ sealed class PageRenderer(RenderContext context) :
             wordArt.Bold,
             wordArt.Italic);
 
-        var textSize = TextMeasurer.MeasureSize(wordArt.Text, new TextOptions(font) { Dpi = context.Dpi });
+        var textSize = TextMeasurer.MeasureSize(
+            wordArt.Text,
+            new(font)
+            {
+                Dpi = context.Dpi
+            });
 
         var scaleX = textSize.Width > 0 ? width / textSize.Width : 1;
         var scaleY = textSize.Height > 0 ? pixelHeight / textSize.Height : 1;
@@ -489,7 +504,12 @@ sealed class PageRenderer(RenderContext context) :
             wordArt.Bold,
             wordArt.Italic);
 
-        var scaledSize = TextMeasurer.MeasureSize(wordArt.Text, new TextOptions(scaledFont) { Dpi = context.Dpi });
+        var scaledSize = TextMeasurer.MeasureSize(
+            wordArt.Text,
+            new(scaledFont)
+            {
+                Dpi = context.Dpi
+            });
 
         var textX = pixelX + (width - scaledSize.Width) / 2;
         var textY = pixelY + (pixelHeight - scaledSize.Height) / 2;
@@ -501,17 +521,17 @@ sealed class PageRenderer(RenderContext context) :
         if (wordArt.HasShadow)
         {
             var shadowColor = Color.FromRgba(0, 0, 0, 80);
-            currentPage.Mutate(ctx => ctx.DrawText(wordArt.Text, scaledFont, shadowColor, new PointF(textX + 3, textY + 3)));
+            currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, shadowColor, new(textX + 3, textY + 3)));
         }
 
         if (wordArt is {OutlineColorHex: not null, OutlineWidthPoints: > 0})
         {
             var outlineColor = RenderContext.ParseColor(wordArt.OutlineColorHex);
             var outlinePen = Pens.Solid(outlineColor, context.PointsToPixels((float) wordArt.OutlineWidthPoints));
-            currentPage.Mutate(ctx => ctx.DrawText(wordArt.Text, scaledFont, outlinePen, new PointF(textX, textY)));
+            currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, outlinePen, new(textX, textY)));
         }
 
-        currentPage.Mutate(ctx => ctx.DrawText(wordArt.Text, scaledFont, fillColor, new PointF(textX, textY)));
+        currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, fillColor, new(textX, textY)));
     }
 
     float CalculateFloatingWordArtX(FloatingWordArtElement wordArt)
@@ -580,12 +600,12 @@ sealed class PageRenderer(RenderContext context) :
             for (var i = 0; i < stroke.Points.Count; i++)
             {
                 var point = stroke.Points[i];
-                points[i] = new PointF(
+                points[i] = new(
                     baseX + context.PointsToPixels((float) point.X),
                     baseY + context.PointsToPixels((float) point.Y));
             }
 
-            currentPage.Mutate(ctx => ctx.DrawLine(pen, points));
+            currentPage.Mutate(_ => _.DrawLine(pen, points));
         }
 
         context.CurrentY += height;
@@ -1026,7 +1046,7 @@ sealed class PageRenderer(RenderContext context) :
         if (cell.Properties.BackgroundColorHex != null)
         {
             var bgColor = RenderContext.ParseColor(cell.Properties.BackgroundColorHex);
-            currentPage.Mutate(ctx => ctx.Fill(bgColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
+            currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
         }
 
         var borders = TableLayout.ResolveCellBorders(cell.Properties, tableProps, rowIndex, colIndex, totalRows, totalCols);
@@ -1135,7 +1155,7 @@ sealed class PageRenderer(RenderContext context) :
         var strokeWidth = context.PointsToPixels((float) edge.WidthPoints);
         var pen = Pens.Solid(color, strokeWidth);
 
-        currentPage.Mutate(ctx => ctx.DrawLine(pen, new PointF(x1, y1), new PointF(x2, y2)));
+        currentPage.Mutate(_ => _.DrawLine(pen, new PointF(x1, y1), new PointF(x2, y2)));
     }
 
     void RenderParagraphInBounds(ParagraphElement paragraph, float x, float maxWidth)
@@ -1179,8 +1199,8 @@ sealed class PageRenderer(RenderContext context) :
         try
         {
             using var img = Image.Load<Rgba32>(image.ImageData);
-            img.Mutate(ctx => ctx.Resize((int) pixelWidth, (int) pixelHeight));
-            currentPage.Mutate(ctx => ctx.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f));
+            img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
+            currentPage.Mutate(_ => _.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f));
         }
         catch
         {
@@ -1215,8 +1235,8 @@ sealed class PageRenderer(RenderContext context) :
         var pixelHeight = context.PointsToPixels(fieldHeight);
 
         var bgColor = textField.Enabled ? Color.White : Color.FromRgb(240, 240, 240);
-        currentPage.Mutate(ctx => ctx.Fill(bgColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
-        currentPage.Mutate(ctx => ctx.Draw(Pens.Solid(Color.Gray, 1 * context.Scale), new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
+        currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
+        currentPage.Mutate(_ => _.Draw(Pens.Solid(Color.Gray, 1 * context.Scale), new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
 
         var displayText = string.IsNullOrEmpty(textField.Value) ? textField.DefaultText ?? "" : textField.Value;
         if (!string.IsNullOrEmpty(displayText))
@@ -1225,7 +1245,7 @@ sealed class PageRenderer(RenderContext context) :
             var textColor = textField.Enabled ? Color.Black : Color.Gray;
             var textX = pixelX + 3 * context.Scale;
             var textY = pixelY + 2 * context.Scale;
-            currentPage.Mutate(ctx => ctx.DrawText(displayText, font, textColor, new PointF(textX, textY)));
+            currentPage.Mutate(_ => _.DrawText(displayText, font, textColor, new(textX, textY)));
         }
 
         context.CurrentY += fieldHeight + 4;
@@ -1254,8 +1274,8 @@ sealed class PageRenderer(RenderContext context) :
         var pixelSize = context.PointsToPixels(boxSize);
 
         var bgColor = checkBox.Enabled ? Color.White : Color.FromRgb(240, 240, 240);
-        currentPage.Mutate(ctx => ctx.Fill(bgColor, new RectangleF(pixelX, pixelY, pixelSize, pixelSize)));
-        currentPage.Mutate(ctx => ctx.Draw(Pens.Solid(Color.Black, 1 * context.Scale), new RectangleF(pixelX, pixelY, pixelSize, pixelSize)));
+        currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(pixelX, pixelY, pixelSize, pixelSize)));
+        currentPage.Mutate(_ => _.Draw(Pens.Solid(Color.Black, 1 * context.Scale), new RectangleF(pixelX, pixelY, pixelSize, pixelSize)));
 
         if (checkBox.Checked)
         {
@@ -1302,8 +1322,8 @@ sealed class PageRenderer(RenderContext context) :
         var pixelHeight = context.PointsToPixels(fieldHeight);
 
         var bgColor = dropDown.Enabled ? Color.White : Color.FromRgb(240, 240, 240);
-        currentPage.Mutate(ctx => ctx.Fill(bgColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
-        currentPage.Mutate(ctx => ctx.Draw(Pens.Solid(Color.Gray, 1 * context.Scale), new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
+        currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
+        currentPage.Mutate(_ => _.Draw(Pens.Solid(Color.Gray, 1 * context.Scale), new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
 
         var selectedValue = dropDown.SelectedIndex >= 0 && dropDown.SelectedIndex < dropDown.Items.Count
             ? dropDown.Items[dropDown.SelectedIndex]
@@ -1313,7 +1333,7 @@ sealed class PageRenderer(RenderContext context) :
         {
             var font = context.GetFontForFamily("Aptos", 10, false, false);
             var textColor = dropDown.Enabled ? Color.Black : Color.Gray;
-            currentPage.Mutate(ctx => ctx.DrawText(selectedValue, font, textColor, new PointF(pixelX + 3 * context.Scale, pixelY + 2 * context.Scale)));
+            currentPage.Mutate(_ => _.DrawText(selectedValue, font, textColor, new(pixelX + 3 * context.Scale, pixelY + 2 * context.Scale)));
         }
 
         var arrowSize = pixelHeight * 0.3f;
@@ -1321,10 +1341,10 @@ sealed class PageRenderer(RenderContext context) :
         var arrowY = pixelY + pixelHeight / 2;
 
         var arrowBuilder = new PathBuilder();
-        arrowBuilder.AddLine(new PointF(arrowX, arrowY - arrowSize / 2), new PointF(arrowX + arrowSize, arrowY - arrowSize / 2));
-        arrowBuilder.AddLine(new PointF(arrowX + arrowSize, arrowY - arrowSize / 2), new PointF(arrowX + arrowSize / 2, arrowY + arrowSize / 2));
+        arrowBuilder.AddLine(new(arrowX, arrowY - arrowSize / 2), new(arrowX + arrowSize, arrowY - arrowSize / 2));
+        arrowBuilder.AddLine(new(arrowX + arrowSize, arrowY - arrowSize / 2), new(arrowX + arrowSize / 2, arrowY + arrowSize / 2));
         arrowBuilder.CloseFigure();
-        currentPage.Mutate(ctx => ctx.Fill(Color.Black, arrowBuilder.Build()));
+        currentPage.Mutate(_ => _.Fill(Color.Black, arrowBuilder.Build()));
 
         context.CurrentY += fieldHeight + 4;
     }
@@ -1379,8 +1399,8 @@ sealed class PageRenderer(RenderContext context) :
         var pixelY = context.PointsToPixels(y);
         var pixelSize = context.PointsToPixels(boxSize);
 
-        currentPage.Mutate(ctx => ctx.Fill(Color.White, new RectangleF(pixelX, pixelY, pixelSize, pixelSize)));
-        currentPage.Mutate(ctx => ctx.Draw(Pens.Solid(Color.Black, 1 * context.Scale), new RectangleF(pixelX, pixelY, pixelSize, pixelSize)));
+        currentPage.Mutate(_ => _.Fill(Color.White, new RectangleF(pixelX, pixelY, pixelSize, pixelSize)));
+        currentPage.Mutate(_ => _.Draw(Pens.Solid(Color.Black, 1 * context.Scale), new RectangleF(pixelX, pixelY, pixelSize, pixelSize)));
 
         if (control.Checked == true)
         {
@@ -1447,14 +1467,20 @@ sealed class PageRenderer(RenderContext context) :
         {
             if (control.Runs is {Count: > 0})
             {
-                RenderParagraph(new ParagraphElement { Runs = control.Runs, Properties = new() });
+                RenderParagraph(
+                    new()
+                    {
+                        Runs = control.Runs,
+                        Properties = new()
+                    });
             }
             else
             {
                 var displayText = string.IsNullOrEmpty(control.Content) ? control.PlaceholderText ?? "" : control.Content;
                 if (!string.IsNullOrEmpty(displayText))
                 {
-                    RenderParagraph(new ParagraphElement
+                    RenderParagraph(
+                        new()
                     {
                         Runs = [new() { Text = displayText, Properties = new() }],
                         Properties = new()
@@ -1540,7 +1566,7 @@ sealed class PageRenderer(RenderContext context) :
         {
             var font = context.GetFontForFamily("Aptos", 10, false, false);
             var textColor = isPlaceholder ? Color.Gray : Color.Black;
-            currentPage.Mutate(ctx => ctx.DrawText(text, font, textColor, new PointF(pixelX + 3 * context.Scale, pixelY + 2 * context.Scale)));
+            currentPage.Mutate(_ => _.DrawText(text, font, textColor, new(pixelX + 3 * context.Scale, pixelY + 2 * context.Scale)));
         }
 
         if (drawDropdownArrow)
@@ -1550,10 +1576,10 @@ sealed class PageRenderer(RenderContext context) :
             var arrowY = pixelY + pixelHeight / 2;
 
             var arrowBuilder = new PathBuilder();
-            arrowBuilder.AddLine(new PointF(arrowX, arrowY - arrowSize / 2), new PointF(arrowX + arrowSize, arrowY - arrowSize / 2));
-            arrowBuilder.AddLine(new PointF(arrowX + arrowSize, arrowY - arrowSize / 2), new PointF(arrowX + arrowSize / 2, arrowY + arrowSize / 2));
+            arrowBuilder.AddLine(new(arrowX, arrowY - arrowSize / 2), new(arrowX + arrowSize, arrowY - arrowSize / 2));
+            arrowBuilder.AddLine(new(arrowX + arrowSize, arrowY - arrowSize / 2), new(arrowX + arrowSize / 2, arrowY + arrowSize / 2));
             arrowBuilder.CloseFigure();
-            currentPage.Mutate(ctx => ctx.Fill(Color.Black, arrowBuilder.Build()));
+            currentPage.Mutate(_ => _.Fill(Color.Black, arrowBuilder.Build()));
         }
 
         context.CurrentY += fieldHeight + 4;
@@ -1561,11 +1587,11 @@ sealed class PageRenderer(RenderContext context) :
 
     void StartNewPage()
     {
-        currentPage = new Image<Rgba32>(context.PageWidthPixels, context.PageHeightPixels);
+        currentPage = new(context.PageWidthPixels, context.PageHeightPixels);
 
         var bgColor = context.PageSettings.BackgroundColorHex;
         var fillColor = !string.IsNullOrEmpty(bgColor) ? RenderContext.ParseColor(bgColor) : Color.White;
-        currentPage.Mutate(ctx => ctx.Fill(fillColor, new RectangleF(0, 0, context.PageWidthPixels, context.PageHeightPixels)));
+        currentPage.Mutate(_ => _.Fill(fillColor, new RectangleF(0, 0, context.PageWidthPixels, context.PageHeightPixels)));
 
         if (pages.Count > 0)
         {
@@ -1618,8 +1644,8 @@ sealed class PageRenderer(RenderContext context) :
             try
             {
                 using var img = Image.Load<Rgba32>(shape.ImageData);
-                img.Mutate(ctx => ctx.Resize((int) pixelWidth, (int) pixelHeight));
-                currentPage.Mutate(ctx => ctx.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f));
+                img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
+                currentPage.Mutate(_ => _.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f));
             }
             catch
             {
@@ -1629,28 +1655,28 @@ sealed class PageRenderer(RenderContext context) :
         else if (shape.FillColorHex != null)
         {
             var fillColor = RenderContext.ParseColor(shape.FillColorHex);
-            currentPage.Mutate(ctx => ctx.Fill(fillColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
+            currentPage.Mutate(_ => _.Fill(fillColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
         }
     }
 
     float CalculateShapeX(FloatingShapeElement shape) =>
-        (shape.HorizontalAnchor switch
+        shape.HorizontalAnchor switch
         {
             HorizontalAnchor.Page => 0f,
             HorizontalAnchor.Margin => (float) context.PageSettings.MarginLeft,
             HorizontalAnchor.Column => (float) context.PageSettings.MarginLeft,
             _ => (float) context.PageSettings.MarginLeft
-        }) + (float) shape.HorizontalPositionPoints;
+        } + (float) shape.HorizontalPositionPoints;
 
     float CalculateShapeY(FloatingShapeElement shape) =>
-        (shape.VerticalAnchor switch
+        shape.VerticalAnchor switch
         {
             VerticalAnchor.Page => 0f,
             VerticalAnchor.Margin => (float) context.PageSettings.MarginTop,
             VerticalAnchor.Paragraph => (float) context.PageSettings.MarginTop,
             VerticalAnchor.Line => (float) context.PageSettings.MarginTop,
             _ => (float) context.PageSettings.MarginTop
-        }) + (float) shape.VerticalPositionPoints;
+        } + (float) shape.VerticalPositionPoints;
 
     void RenderFloatingImage(FloatingImageElement image)
     {
@@ -1667,8 +1693,8 @@ sealed class PageRenderer(RenderContext context) :
         try
         {
             using var img = Image.Load<Rgba32>(image.ImageData);
-            img.Mutate(ctx => ctx.Resize((int) pixelWidth, (int) pixelHeight));
-            currentPage.Mutate(ctx => ctx.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f));
+            img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
+            currentPage.Mutate(_ => _.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f));
         }
         catch
         {
@@ -1677,24 +1703,24 @@ sealed class PageRenderer(RenderContext context) :
     }
 
     float CalculateFloatingImageX(FloatingImageElement image) =>
-        (image.HorizontalAnchor switch
+        image.HorizontalAnchor switch
         {
             HorizontalAnchor.Page => 0f,
             HorizontalAnchor.Margin => (float) context.PageSettings.MarginLeft,
             HorizontalAnchor.Column => context.ContentLeft,
             HorizontalAnchor.Character => context.ContentLeft,
             _ => 0f
-        }) + (float) image.HorizontalPositionPoints;
+        } + (float) image.HorizontalPositionPoints;
 
     float CalculateFloatingImageY(FloatingImageElement image) =>
-        (image.VerticalAnchor switch
+        image.VerticalAnchor switch
         {
             VerticalAnchor.Page => 0f,
             VerticalAnchor.Margin => (float) context.PageSettings.MarginTop,
             VerticalAnchor.Paragraph => context.CurrentY,
             VerticalAnchor.Line => context.CurrentY,
             _ => 0f
-        }) + (float) image.VerticalPositionPoints;
+        } + (float) image.VerticalPositionPoints;
 
     void RenderFloatingTextBox(FloatingTextBoxElement textBox)
     {
@@ -1724,7 +1750,7 @@ sealed class PageRenderer(RenderContext context) :
             if (textBox.BackgroundColorHex != null)
             {
                 var bgColor = RenderContext.ParseColor(textBox.BackgroundColorHex);
-                tempImage.Mutate(ctx => ctx.Fill(bgColor));
+                tempImage.Mutate(_ => _.Fill(bgColor));
             }
 
             var savedY = context.CurrentY;
@@ -1740,7 +1766,7 @@ sealed class PageRenderer(RenderContext context) :
 
             context.CurrentY = savedY;
 
-            tempImage.Mutate(ctx => ctx.Rotate((float) textBox.RotationDegrees));
+            tempImage.Mutate(_ => _.Rotate((float) textBox.RotationDegrees));
 
             // Center the rotated image at the original text box center
             var centerX = pixelX + pixelWidth / 2;
@@ -1748,14 +1774,14 @@ sealed class PageRenderer(RenderContext context) :
             var drawX = (int) (centerX - tempImage.Width / 2f);
             var drawY = (int) (centerY - tempImage.Height / 2f);
 
-            currentPage.Mutate(ctx => ctx.DrawImage(tempImage, new Point(drawX, drawY), 1f));
+            currentPage.Mutate(_ => _.DrawImage(tempImage, new Point(drawX, drawY), 1f));
         }
         else
         {
             if (textBox.BackgroundColorHex != null)
             {
                 var bgFillColor = RenderContext.ParseColor(textBox.BackgroundColorHex);
-                currentPage.Mutate(ctx => ctx.Fill(bgFillColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
+                currentPage.Mutate(_ => _.Fill(bgFillColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
             }
 
             var savedY = context.CurrentY;
@@ -1774,24 +1800,24 @@ sealed class PageRenderer(RenderContext context) :
     }
 
     float CalculateFloatingTextBoxX(FloatingTextBoxElement textBox) =>
-        (textBox.HorizontalAnchor switch
+        textBox.HorizontalAnchor switch
         {
             HorizontalAnchor.Page => 0f,
             HorizontalAnchor.Margin => (float) context.PageSettings.MarginLeft,
             HorizontalAnchor.Column => context.ContentLeft,
             HorizontalAnchor.Character => context.ContentLeft,
             _ => 0f
-        }) + (float) textBox.HorizontalPositionPoints;
+        } + (float) textBox.HorizontalPositionPoints;
 
     float CalculateFloatingTextBoxY(FloatingTextBoxElement textBox) =>
-        (textBox.VerticalAnchor switch
+        textBox.VerticalAnchor switch
         {
             VerticalAnchor.Page => 0f,
             VerticalAnchor.Margin => (float) context.PageSettings.MarginTop,
             VerticalAnchor.Paragraph => context.CurrentY,
             VerticalAnchor.Line => context.CurrentY,
             _ => 0f
-        }) + (float) textBox.VerticalPositionPoints;
+        } + (float) textBox.VerticalPositionPoints;
 
     public void Dispose() =>
         currentPage?.Dispose();
