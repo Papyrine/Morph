@@ -1,11 +1,14 @@
+using System.Diagnostics.CodeAnalysis;
 using WordRender.Rendering;
+// ReSharper disable UseCollectionExpression
 
 /// <summary>
 /// Maintains rendering state during page layout and rendering.
 /// </summary>
+[SuppressMessage("Style", "IDE0028:Simplify collection initialization")]
 sealed class RenderContext : RenderContextBase, IDisposable
 {
-    Dictionary<string, FontFamily> fontFamilyCache = new();
+    Dictionary<string, FontFamily> fontFamilyCache = [];
 
     // Shared font collection for fonts loaded from file (cloud, Office, user caches)
     FontCollection sharedFontCollection = new();
@@ -185,7 +188,8 @@ sealed class RenderContext : RenderContextBase, IDisposable
                 }
             }
 
-            if (baseName != fontFamily && fontCache.TryGetValue(baseName, out fontFiles))
+            if (baseName != fontFamily &&
+                fontCache.TryGetValue(baseName, out fontFiles))
             {
                 // Found base family, adjust style based on original name
                 // Determine if the original font name implies bold

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using A = DocumentFormat.OpenXml.Drawing;
 using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using OoxmlParagraphProperties = DocumentFormat.OpenXml.Wordprocessing.ParagraphProperties;
@@ -21,6 +22,8 @@ sealed record TableStyleBorderInfo(
 /// <summary>
 /// Parses DOCX files using OpenXML.
 /// </summary>
+[SuppressMessage("Style", "IDE0028:Simplify collection initialization")]
+[SuppressMessage("Style", "IDE0306:Simplify collection initialization")]
 sealed class DocumentParser
 {
     // Conversion constants
@@ -1445,16 +1448,21 @@ sealed class DocumentParser
         // Fallback for default type only: try first part directly
         if (part == null && type == HeaderFooterValues.Default)
         {
-            part = isHeader
-                ? mainPart.HeaderParts.FirstOrDefault() as OpenXmlPart
-                : mainPart.FooterParts.FirstOrDefault() as OpenXmlPart;
+            if (isHeader)
+            {
+                part = mainPart.HeaderParts.FirstOrDefault();
+            }
+            else
+            {
+                part = mainPart.FooterParts.FirstOrDefault();
+            }
         }
 
         // Get the root element from the part
-        var rootElement = part switch
+        OpenXmlCompositeElement? rootElement = part switch
         {
-            HeaderPart hp => hp.Header as OpenXmlCompositeElement,
-            FooterPart fp => fp.Footer as OpenXmlCompositeElement,
+            HeaderPart hp => hp.Header,
+            FooterPart fp => fp.Footer,
             _ => null
         };
 
@@ -1579,7 +1587,7 @@ sealed class DocumentParser
         var tableGrid = table.GetFirstChild<TableGrid>();
         if (tableGrid != null)
         {
-            gridColumnWidths = new();
+            gridColumnWidths = [];
             foreach (var gridCol in tableGrid.Elements<GridColumn>())
             {
                 if (gridCol.Width?.HasValue == true &&
@@ -2222,7 +2230,8 @@ sealed class DocumentParser
                             {
                                 if (runs.Count > 0)
                                 {
-                                    result.Add(new ParagraphElement
+                                    result.Add(
+                                        new ParagraphElement
                                     {
                                         Runs = new List<Run>(runs),
                                         Properties = props
@@ -2303,7 +2312,8 @@ sealed class DocumentParser
                             // Emit current paragraph content before the shapes/group content
                             if (runs.Count > 0)
                             {
-                                result.Add(new ParagraphElement
+                                result.Add(
+                                    new ParagraphElement
                                 {
                                     Runs = new List<Run>(runs),
                                     Properties = props
@@ -2331,7 +2341,8 @@ sealed class DocumentParser
                             // Emit current paragraph content before the ink
                             if (runs.Count > 0)
                             {
-                                result.Add(new ParagraphElement
+                                result.Add(
+                                    new ParagraphElement
                                 {
                                     Runs = new List<Run>(runs),
                                     Properties = props
@@ -2349,7 +2360,8 @@ sealed class DocumentParser
                                 // Emit current paragraph content before the WordArt
                                 if (runs.Count > 0)
                                 {
-                                    result.Add(new ParagraphElement
+                                    result.Add(
+                                        new ParagraphElement
                                     {
                                         Runs = new List<Run>(runs),
                                         Properties = props
@@ -4725,7 +4737,7 @@ sealed class DocumentParser
         return null;
     }
 
-    SectionBreakElement? ParseSectionBreak(SectionProperties sectionProps)
+    SectionBreakElement ParseSectionBreak(SectionProperties sectionProps)
     {
         var typeElement = sectionProps.GetFirstChild<SectionType>();
         var breakType = SectionBreakType.NextPage; // Default
