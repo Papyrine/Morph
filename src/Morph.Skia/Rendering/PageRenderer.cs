@@ -181,6 +181,11 @@ sealed class PageRenderer(RenderContext context) :
                 RenderParagraph(paragraph, nextElement);
                 break;
 
+            case HorizontalRuleElement:
+                RenderHorizontalRule();
+                hasSignificantContentOnCurrentPage = true;
+                break;
+
             case ImageElement image:
                 RenderImage(image);
                 hasSignificantContentOnCurrentPage = true;
@@ -439,6 +444,30 @@ sealed class PageRenderer(RenderContext context) :
         {
             hasSignificantContentOnCurrentPage = true;
         }
+    }
+
+    void RenderHorizontalRule()
+    {
+        const float ruleHeight = 6; // spacing above + line + spacing below
+        EnsureSpaceFor(ruleHeight);
+
+        if (currentCanvas != null)
+        {
+            var y = context.PointsToPixels(context.CurrentY + 3);
+            var x1 = context.PointsToPixels(context.ContentLeft);
+            var x2 = context.PointsToPixels(context.ContentLeft + context.ContentWidth);
+
+            using var paint = new SKPaint
+            {
+                Style = SKPaintStyle.Stroke,
+                Color = new SKColor(0xA0, 0xA0, 0xA0),
+                StrokeWidth = context.PointsToPixels(0.75f),
+                IsAntialias = true
+            };
+            currentCanvas.DrawLine(x1, y, x2, y, paint);
+        }
+
+        context.CurrentY += ruleHeight;
     }
 
     void RenderImage(ImageElement image)

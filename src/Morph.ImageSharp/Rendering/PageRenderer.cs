@@ -151,6 +151,11 @@ sealed class PageRenderer(RenderContext context) :
                 RenderParagraph(paragraph, nextElement);
                 break;
 
+            case HorizontalRuleElement:
+                RenderHorizontalRule();
+                hasSignificantContentOnCurrentPage = true;
+                break;
+
             case ImageElement image:
                 RenderImage(image);
                 hasSignificantContentOnCurrentPage = true;
@@ -360,6 +365,23 @@ sealed class PageRenderer(RenderContext context) :
         {
             hasSignificantContentOnCurrentPage = true;
         }
+    }
+
+    void RenderHorizontalRule()
+    {
+        const float ruleHeight = 6;
+        EnsureSpaceFor(ruleHeight);
+
+        if (currentPage != null)
+        {
+            var y = context.PointsToPixels(context.CurrentY + 3);
+            var x1 = context.PointsToPixels(context.ContentLeft);
+            var x2 = context.PointsToPixels(context.ContentLeft + context.ContentWidth);
+            var pen = Pens.Solid(Color.FromRgb(0xA0, 0xA0, 0xA0), context.PointsToPixels(0.75f));
+            currentPage.Mutate(_ => _.DrawLine(pen, new PointF(x1, y), new PointF(x2, y)));
+        }
+
+        context.CurrentY += ruleHeight;
     }
 
     void RenderImage(ImageElement image)
