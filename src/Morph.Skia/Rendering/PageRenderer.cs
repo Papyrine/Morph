@@ -8,7 +8,7 @@ sealed class PageRenderer(RenderContext context) :
 {
     readonly TextRenderer textRenderer = new(context);
 
-    Action<int, Action<Stream>>? pageCallback;
+    Action<Action<Stream>>? pageCallback;
     int pageCount;
     SKBitmap? pendingPage;
     SKBitmap? currentPage;
@@ -33,7 +33,7 @@ sealed class PageRenderer(RenderContext context) :
     /// Renders a parsed document, calling the callback for each page.
     /// Returns the total page count.
     /// </summary>
-    public int RenderDocument(ParsedDocument document, Action<int, Action<Stream>> callback)
+    public int RenderDocument(ParsedDocument document, Action<Action<Stream>> callback)
     {
         pageCallback = callback;
 
@@ -2343,11 +2343,10 @@ sealed class PageRenderer(RenderContext context) :
         {
             using var page = pendingPage;
             pendingPage = null;
-            var index = pageCount;
             pageCount++;
             using var image = SKImage.FromBitmap(page);
             using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-            pageCallback!(index, stream => data.SaveTo(stream));
+            pageCallback!(stream => data.SaveTo(stream));
         }
     }
 

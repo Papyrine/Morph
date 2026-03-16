@@ -8,7 +8,7 @@ sealed class PageRenderer(RenderContext context) :
 {
     readonly TextRenderer textRenderer = new(context);
 
-    Action<int, Action<Stream>>? pageCallback;
+    Action<Action<Stream>>? pageCallback;
     int pageCount;
     Image<Rgba32>? pendingPage;
     Image<Rgba32>? currentPage;
@@ -23,7 +23,7 @@ sealed class PageRenderer(RenderContext context) :
     bool hasSignificantContentOnCurrentPage;
     bool currentPageFromExplicitBreak;
 
-    public int RenderDocument(ParsedDocument document, Action<int, Action<Stream>> callback)
+    public int RenderDocument(ParsedDocument document, Action<Action<Stream>> callback)
     {
         pageCallback = callback;
 
@@ -1595,9 +1595,8 @@ sealed class PageRenderer(RenderContext context) :
         {
             using var page = pendingPage;
             pendingPage = null;
-            var index = pageCount;
             pageCount++;
-            pageCallback!(index, stream => page.SaveAsPng(stream));
+            pageCallback!(stream => page.SaveAsPng(stream));
         }
     }
 

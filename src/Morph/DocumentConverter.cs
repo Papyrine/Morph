@@ -35,9 +35,13 @@ public abstract class DocumentConverter
         var document = parser.Parse(docxStream);
         var imagePaths = new List<string>();
 
-        var pageCount = RenderPages(document, options, (i, writePng) =>
+        var pageIndex = 0;
+        var pageCount = RenderPages(
+            document,
+            options,
+            writePng =>
         {
-            var filePath = Path.Combine(outputDirectory, $"page_{i + 1:D4}.png");
+            var filePath = Path.Combine(outputDirectory, $"page_{++pageIndex:D4}.png");
             imagePaths.Add(filePath);
             using var fs = File.Create(filePath);
             writePng(fs);
@@ -71,7 +75,7 @@ public abstract class DocumentConverter
         var document = parser.Parse(docxStream);
         var imageData = new List<byte[]>();
 
-        RenderPages(document, options, (_, writePng) =>
+        RenderPages(document, options, writePng =>
         {
             using var ms = new MemoryStream();
             writePng(ms);
@@ -83,8 +87,8 @@ public abstract class DocumentConverter
 
     /// <summary>
     /// Renders a parsed document by calling pageCallback for each page.
-    /// The callback receives the page index and an action that writes PNG data to a stream.
+    /// The callback receives an action that writes PNG data to a stream.
     /// Returns the total page count.
     /// </summary>
-    private protected abstract int RenderPages(ParsedDocument document, ConversionOptions options, Action<int, Action<Stream>> pageCallback);
+    private protected abstract int RenderPages(ParsedDocument document, ConversionOptions options, Action<Action<Stream>> pageCallback);
 }
