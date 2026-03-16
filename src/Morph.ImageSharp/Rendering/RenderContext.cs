@@ -240,7 +240,7 @@ sealed class RenderContext : RenderContextBase, IDisposable
         }
 
         var style = FontStyle.Regular;
-        if (props.Bold && props.Italic)
+        if (props is { Bold: true, Italic: true })
         {
             style = FontStyle.BoldItalic;
         }
