@@ -40,6 +40,7 @@ The conversion pipeline is **Parse → Render**:
 - No accessibility modifiers on internal members (`dotnet_style_require_accessibility_modifiers = never`)
 - Private fields/constants use camelCase (no underscore prefix)
 - Braces required for all control structures
+- Always use underscores (`_`) for unused lambda parameters (e.g., `_ => _.Method()`)
 - See `.editorconfig` for full rules
 
 ## Testing
