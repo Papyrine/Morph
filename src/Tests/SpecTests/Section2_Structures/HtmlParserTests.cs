@@ -43,8 +43,7 @@ public class HtmlParserTests
     [Arguments("h5")]
     [Arguments("h6")]
     public Task Headings(string tag) =>
-        Verify(HtmlParser.Parse($"<{tag}>Title</{tag}>"))
-            .UseParameters(tag);
+        Verify(HtmlParser.Parse($"<{tag}>Title</{tag}>"));
 
     [Test]
     public Task Paragraph() =>
@@ -79,8 +78,7 @@ public class HtmlParserTests
     [Arguments("strike")]
     [Arguments("del")]
     public Task Strikethrough(string tag) =>
-        Verify(HtmlParser.Parse($"<p><{tag}>struck</{tag}></p>"))
-            .UseParameters(tag);
+        Verify(HtmlParser.Parse($"<p><{tag}>struck</{tag}></p>"));
 
     [Test]
     public Task NestedFormatting_BoldItalic() =>
@@ -119,8 +117,7 @@ public class HtmlParserTests
     [Arguments("6")]
     [Arguments("7")]
     public Task FontTag_Size(string size) =>
-        Verify(HtmlParser.Parse($"<p><font size=\"{size}\">text</font></p>"))
-            .UseParameters(size);
+        Verify(HtmlParser.Parse($"<p><font size=\"{size}\">text</font></p>"));
 
     [Test]
     public Task FontTag_SizeClamped_Below1() =>
@@ -172,8 +169,7 @@ public class HtmlParserTests
     [Arguments("justify")]
     [Arguments("left")]
     public Task ParagraphAlignment(string align) =>
-        Verify(HtmlParser.Parse($"<p style=\"text-align: {align}\">text</p>"))
-            .UseParameters(align);
+        Verify(HtmlParser.Parse($"<p style=\"text-align: {align}\">text</p>"));
 
     [Test]
     public Task ParagraphStyle_Color() =>
@@ -191,8 +187,7 @@ public class HtmlParserTests
     [Arguments("gray")]
     [Arguments("grey")]
     public Task NormalizeColor_Named(string name) =>
-        Verify(HtmlParser.Parse($"<p><font color=\"{name}\">text</font></p>"))
-            .UseParameters(name);
+        Verify(HtmlParser.Parse($"<p><font color=\"{name}\">text</font></p>"));
 
     [Test]
     public Task NormalizeColor_Hex6() =>
