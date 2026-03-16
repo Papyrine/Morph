@@ -33,19 +33,17 @@ public abstract class DocumentConverter
         Directory.CreateDirectory(outputDirectory);
 
         var document = parser.Parse(docxStream);
-        var imageData = RenderToImageData(document, options);
-
         var imagePaths = new List<string>();
 
-        for (var i = 0; i < imageData.Count; i++)
+        var pageCount = RenderPages(document, options, (i, writePng) =>
         {
-            var fileName = $"page_{i + 1:D4}.png";
-            var filePath = Path.Combine(outputDirectory, fileName);
-            File.WriteAllBytes(filePath, imageData[i]);
+            var filePath = Path.Combine(outputDirectory, $"page_{i + 1:D4}.png");
             imagePaths.Add(filePath);
-        }
+            using var fs = File.Create(filePath);
+            writePng(fs);
+        });
 
-        return new(imagePaths, imageData.Count);
+        return new(imagePaths, pageCount);
     }
 
     /// <summary>
@@ -71,11 +69,22 @@ public abstract class DocumentConverter
         options ??= new();
 
         var document = parser.Parse(docxStream);
-        return RenderToImageData(document, options);
+        var imageData = new List<byte[]>();
+
+        RenderPages(document, options, (_, writePng) =>
+        {
+            using var ms = new MemoryStream();
+            writePng(ms);
+            imageData.Add(ms.ToArray());
+        });
+
+        return imageData;
     }
 
     /// <summary>
-    /// Renders a parsed document to PNG image data. Implemented by backend-specific converters.
+    /// Renders a parsed document by calling pageCallback for each page.
+    /// The callback receives the page index and an action that writes PNG data to a stream.
+    /// Returns the total page count.
     /// </summary>
-    private protected abstract IReadOnlyList<byte[]> RenderToImageData(ParsedDocument document, ConversionOptions options);
+    private protected abstract int RenderPages(ParsedDocument document, ConversionOptions options, Action<int, Action<Stream>> pageCallback);
 }

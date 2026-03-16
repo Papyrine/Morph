@@ -7,8 +7,10 @@ sealed class PageRenderer(RenderContext context) :
     IDisposable
 {
     readonly TextRenderer textRenderer = new(context);
-    readonly List<Image<Rgba32>> pages = [];
 
+    Action<int, Action<Stream>>? pageCallback;
+    int pageCount;
+    Image<Rgba32>? pendingPage;
     Image<Rgba32>? currentPage;
     HeaderFooterContent? header;
     HeaderFooterContent? footer;
@@ -21,8 +23,10 @@ sealed class PageRenderer(RenderContext context) :
     bool hasSignificantContentOnCurrentPage;
     bool currentPageFromExplicitBreak;
 
-    public IReadOnlyList<Image<Rgba32>> RenderDocument(ParsedDocument document)
+    public int RenderDocument(ParsedDocument document, Action<int, Action<Stream>> callback)
     {
+        pageCallback = callback;
+
         header = document.Header;
         footer = document.Footer;
         firstPageHeader = document.FirstPageHeader;
@@ -64,7 +68,7 @@ sealed class PageRenderer(RenderContext context) :
         FinishCurrentPage();
         RemoveBlankTrailingPage();
 
-        return pages;
+        return pageCount;
     }
 
     // ReSharper disable once UnusedParameter.Local
@@ -1585,15 +1589,29 @@ sealed class PageRenderer(RenderContext context) :
         context.CurrentY += fieldHeight + 4;
     }
 
+    void FlushPendingPage()
+    {
+        if (pendingPage != null)
+        {
+            using var page = pendingPage;
+            pendingPage = null;
+            var index = pageCount;
+            pageCount++;
+            pageCallback!(index, stream => page.SaveAsPng(stream));
+        }
+    }
+
     void StartNewPage()
     {
+        FlushPendingPage();
+
         currentPage = new(context.PageWidthPixels, context.PageHeightPixels);
 
         var bgColor = context.PageSettings.BackgroundColorHex;
         var fillColor = !string.IsNullOrEmpty(bgColor) ? RenderContext.ParseColor(bgColor) : Color.White;
         currentPage.Mutate(_ => _.Fill(fillColor, new RectangleF(0, 0, context.PageWidthPixels, context.PageHeightPixels)));
 
-        if (pages.Count > 0)
+        if (pageCount > 0)
         {
             context.StartNewPage();
             context.ResetLineNumbersForPage();
@@ -1610,18 +1628,21 @@ sealed class PageRenderer(RenderContext context) :
         if (currentPage != null)
         {
             RenderFooter();
-            pages.Add(currentPage);
+            pendingPage = currentPage;
             currentPage = null;
         }
     }
 
     void RemoveBlankTrailingPage()
     {
-        if (pages.Count > 1 && !hasSignificantContentOnCurrentPage && !currentPageFromExplicitBreak)
+        if (pageCount > 0 && !hasSignificantContentOnCurrentPage && !currentPageFromExplicitBreak)
         {
-            var lastPage = pages[^1];
-            pages.RemoveAt(pages.Count - 1);
-            lastPage.Dispose();
+            pendingPage?.Dispose();
+            pendingPage = null;
+        }
+        else
+        {
+            FlushPendingPage();
         }
     }
 
