@@ -21,6 +21,6 @@
     <PackageVersion Include="Svg.Skia" Version="3.6.0" />
     <PackageVersion Include="TUnit" Version="1.19.22" />
     <PackageVersion Include="Verify.ImageMagick" Version="3.8.5" />
-    <PackageVersion Include="Verify.TUnit" Version="31.13.2" />
+    <PackageVersion Include="Verify.TUnit" Version="31.13.5" />
   </ItemGroup>
 </Project>
