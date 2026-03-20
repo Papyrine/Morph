@@ -1158,7 +1158,7 @@ internal sealed class HtmlParser
         }
 
         var meta = src[5..commaIndex];
-        string? contentType = null;
+        string? contentType;
         var semiIndex = meta.IndexOf(';');
         if (semiIndex >= 0)
         {

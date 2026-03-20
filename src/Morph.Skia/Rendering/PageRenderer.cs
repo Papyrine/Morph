@@ -460,7 +460,7 @@ sealed class PageRenderer(RenderContext context) :
             using var paint = new SKPaint
             {
                 Style = SKPaintStyle.Stroke,
-                Color = new SKColor(0xA0, 0xA0, 0xA0),
+                Color = new(0xA0, 0xA0, 0xA0),
                 StrokeWidth = context.PointsToPixels(0.75f),
                 IsAntialias = true
             };
