@@ -384,7 +384,7 @@ public class ImageSharpHtmlElementRenderTests
     static byte[] CreateRedPixelPng()
     {
         using var bmp = new SkiaSharp.SKBitmap(1, 1);
-        bmp.SetPixel(0, 0, new SkiaSharp.SKColor(255, 0, 0));
+        bmp.SetPixel(0, 0, new(255, 0, 0));
         using var img = SkiaSharp.SKImage.FromBitmap(bmp);
         using var data = img.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
         return data.ToArray();
