@@ -4,13 +4,20 @@
 sealed class PageRenderer(RenderContext context) :
     IDisposable
 {
-    readonly TextRenderer textRenderer = new(context);
-    readonly List<SKBitmap> pages = [];
+    static readonly SKTypeface aptosTypeface = SKTypeface.FromFamilyName("Aptos", SKFontStyle.Normal);
 
+    readonly TextRenderer textRenderer = new(context);
+
+    Action<Action<Stream>>? pageCallback;
+    int pageCount;
+    SKBitmap? pendingPage;
     SKBitmap? currentPage;
     SKCanvas? currentCanvas;
     HeaderFooterContent? header;
     HeaderFooterContent? footer;
+    HeaderFooterContent? firstPageHeader;
+    HeaderFooterContent? firstPageFooter;
+    bool differentFirstPage;
     float headerHeight;
     float footerHeight;
 
@@ -23,12 +30,18 @@ sealed class PageRenderer(RenderContext context) :
     bool currentPageFromExplicitBreak;
 
     /// <summary>
-    /// Renders a parsed document to a list of page bitmaps.
+    /// Renders a parsed document, calling the callback for each page.
+    /// Returns the total page count.
     /// </summary>
-    public IReadOnlyList<SKBitmap> RenderDocument(ParsedDocument document)
+    public int RenderDocument(ParsedDocument document, Action<Action<Stream>> callback)
     {
+        pageCallback = callback;
+
         header = document.Header;
         footer = document.Footer;
+        firstPageHeader = document.FirstPageHeader;
+        firstPageFooter = document.FirstPageFooter;
+        differentFirstPage = document.PageSettings.DifferentFirstPage;
 
         // Measure header and footer heights
         headerHeight = MeasureHeaderFooterHeight(header);
@@ -74,7 +87,7 @@ sealed class PageRenderer(RenderContext context) :
         // Remove any trailing blank page that was created by content overflow or section breaks.
         RemoveBlankTrailingPage();
 
-        return pages;
+        return pageCount;
     }
 
     // ReSharper disable once UnusedParameter.Local
@@ -88,7 +101,12 @@ sealed class PageRenderer(RenderContext context) :
 
     void RenderHeader()
     {
-        if (header == null || currentCanvas == null)
+        // On page 1 with DifferentFirstPage, use first-page header instead of default
+        var activeHeader = differentFirstPage && context.CurrentPageNumber == 1
+            ? firstPageHeader
+            : header;
+
+        if (activeHeader == null || currentCanvas == null)
         {
             return;
         }
@@ -96,7 +114,7 @@ sealed class PageRenderer(RenderContext context) :
         var savedY = context.CurrentY;
         context.CurrentY = (float) context.PageSettings.HeaderDistance;
 
-        foreach (var element in header.Elements)
+        foreach (var element in activeHeader.Elements)
         {
             if (element is ParagraphElement para)
             {
@@ -109,7 +127,12 @@ sealed class PageRenderer(RenderContext context) :
 
     void RenderFooter()
     {
-        if (footer == null || currentCanvas == null)
+        // On page 1 with DifferentFirstPage, use first-page footer instead of default
+        var activeFooter = differentFirstPage && context.CurrentPageNumber == 1
+            ? firstPageFooter
+            : footer;
+
+        if (activeFooter == null || currentCanvas == null)
         {
             return;
         }
@@ -118,7 +141,7 @@ sealed class PageRenderer(RenderContext context) :
         // Position footer from bottom
         context.CurrentY = (float) (context.PageSettings.HeightPoints - context.PageSettings.FooterDistance - footerHeight);
 
-        foreach (var element in footer.Elements)
+        foreach (var element in activeFooter.Elements)
         {
             if (element is ParagraphElement para)
             {
@@ -156,6 +179,11 @@ sealed class PageRenderer(RenderContext context) :
 
             case ParagraphElement paragraph:
                 RenderParagraph(paragraph, nextElement);
+                break;
+
+            case HorizontalRuleElement:
+                RenderHorizontalRule();
+                hasSignificantContentOnCurrentPage = true;
                 break;
 
             case ImageElement image:
@@ -416,6 +444,30 @@ sealed class PageRenderer(RenderContext context) :
         {
             hasSignificantContentOnCurrentPage = true;
         }
+    }
+
+    void RenderHorizontalRule()
+    {
+        const float ruleHeight = 6; // spacing above + line + spacing below
+        EnsureSpaceFor(ruleHeight);
+
+        if (currentCanvas != null)
+        {
+            var y = context.PointsToPixels(context.CurrentY + 3);
+            var x1 = context.PointsToPixels(context.ContentLeft);
+            var x2 = context.PointsToPixels(context.ContentLeft + context.ContentWidth);
+
+            using var paint = new SKPaint
+            {
+                Style = SKPaintStyle.Stroke,
+                Color = new(0xA0, 0xA0, 0xA0),
+                StrokeWidth = context.PointsToPixels(0.75f),
+                IsAntialias = true
+            };
+            currentCanvas.DrawLine(x1, y, x2, y, paint);
+        }
+
+        context.CurrentY += ruleHeight;
     }
 
     void RenderImage(ImageElement image)
@@ -982,7 +1034,7 @@ sealed class PageRenderer(RenderContext context) :
             colCount = table.Rows.Max(r => r.Cells.Sum(c => c.Properties.GridSpan));
         }
 
-        var colWidths = CalculateColumnWidths(table, colCount);
+        var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
         var rowHeights = CalculateRowHeights(table, colWidths);
 
         return rowHeights.Sum();
@@ -1008,7 +1060,7 @@ sealed class PageRenderer(RenderContext context) :
             colCount = table.Rows.Max(r => r.Cells.Sum(c => c.Properties.GridSpan));
         }
 
-        var colWidths = CalculateColumnWidths(table, colCount);
+        var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
 
         // Calculate row heights
         var rowHeights = CalculateRowHeights(table, colWidths);
@@ -1023,7 +1075,12 @@ sealed class PageRenderer(RenderContext context) :
         var tableTolerance = context.ContentHeight * 0.10f;
         var needsRowByRowRendering = totalHeight > context.ContentHeight + tableTolerance;
 
-        if (!needsRowByRowRendering)
+        if (needsRowByRowRendering)
+        {
+            // Table is larger than a page - render row by row with page breaks
+            RenderTableRowByRow(table, colCount, colWidths, rowHeights);
+        }
+        else
         {
             // Table fits on a single page - use existing behavior
             // Apply a tolerance when checking if table fits on current page.
@@ -1034,11 +1091,6 @@ sealed class PageRenderer(RenderContext context) :
             var requiredHeight = totalHeight - tolerance;
             EnsureSpaceFor(requiredHeight);
             RenderTableRows(table, colCount, colWidths, rowHeights);
-        }
-        else
-        {
-            // Table is larger than a page - render row by row with page breaks
-            RenderTableRowByRow(table, colCount, colWidths, rowHeights);
         }
     }
 
@@ -1121,21 +1173,19 @@ sealed class PageRenderer(RenderContext context) :
                 if (cell.Properties.VerticalMerge == VerticalMergeType.Restart)
                 {
                     // For vertically merged cells, use the full merged height so background fills entire area
-                    cellHeight = CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
+                    cellHeight = TableLayout.CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
                 }
                 else
                 {
                     // For regular cells, use content-based height
-                    var padding = GetEffectivePadding(cell.Properties, table.Properties);
+                    var padding = TableLayout.GetEffectivePadding(cell.Properties, table.Properties);
                     var contentWidth = cellWidth - (float) padding.Horizontal;
                     var contentHeight = MeasureCellHeight(cell, contentWidth, table.Properties);
                     cellHeight = contentHeight + (float) padding.Vertical;
                 }
 
-                // Render the cell
-                RenderTableCell(cell, currentX, cellY, cellWidth, cellHeight, table.Properties);
+                RenderTableCell(cell, currentX, cellY, cellWidth, cellHeight, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount);
 
-                // Update Y position for all columns this cell spans
                 for (var i = 0; i < span && gridColIndex + i < colCount; i++)
                 {
                     columnYPositions[gridColIndex + i] = cellY + cellHeight;
@@ -1210,163 +1260,14 @@ sealed class PageRenderer(RenderContext context) :
             if (cell.Properties.VerticalMerge == VerticalMergeType.Restart)
             {
                 // For vertically merged cells, use the full merged height so background fills entire area
-                cellHeight = CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
+                cellHeight = TableLayout.CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
             }
 
-            RenderTableCell(cell, currentX, currentY, cellWidth, cellHeight, table.Properties);
+            RenderTableCell(cell, currentX, currentY, cellWidth, cellHeight, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount);
 
             currentX += cellWidth;
             gridColIndex += span;
         }
-    }
-
-    /// <summary>
-    /// Calculates the total height of a vertically merged cell starting at the given row and column.
-    /// </summary>
-    static float CalculateVerticalMergeHeight(TableElement table, int startRowIndex, int gridColIndex, float[] rowHeights)
-    {
-        var totalHeight = rowHeights[startRowIndex];
-
-        // Look at subsequent rows to find cells that continue the merge
-        for (var rowIndex = startRowIndex + 1; rowIndex < table.Rows.Count; rowIndex++)
-        {
-            var row = table.Rows[rowIndex];
-
-            // Find the cell at the same grid column position
-            var currentGridCol = 0;
-            TableCell? cellAtColumn = null;
-            foreach (var cell in row.Cells)
-            {
-                if (currentGridCol == gridColIndex)
-                {
-                    cellAtColumn = cell;
-                    break;
-                }
-
-                currentGridCol += cell.Properties.GridSpan;
-                if (currentGridCol > gridColIndex)
-                {
-                    break;
-                }
-            }
-
-            // If we found a cell that continues the merge, add its row height
-            if (cellAtColumn?.Properties.VerticalMerge == VerticalMergeType.Continue)
-            {
-                totalHeight += rowHeights[rowIndex];
-            }
-            else
-            {
-                // Merge ends here
-                break;
-            }
-        }
-
-        return totalHeight;
-    }
-
-    float[] CalculateColumnWidths(TableElement table, int colCount)
-    {
-        var widths = new float[colCount];
-        var availableWidth = context.ContentWidth;
-        var gridWidths = table.Properties.GridColumnWidths;
-
-        // First pass: gather explicit widths from cell properties
-        // Only consider cells that don't span multiple columns (gridSpan=1)
-        var hasExplicitWidths = false;
-
-        foreach (var row in table.Rows)
-        {
-            // Track actual grid column position
-            var gridColIndex = 0;
-            for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
-            {
-                var cell = row.Cells[cellIndex];
-                var props = cell.Properties;
-                var span = props.GridSpan;
-
-                // Only use explicit width from cells that don't span multiple columns
-                if (span == 1 && props.WidthPoints.HasValue)
-                {
-                    widths[gridColIndex] = Math.Max(widths[gridColIndex], (float) props.WidthPoints.Value);
-                    hasExplicitWidths = true;
-                }
-
-                // Advance by the number of columns this cell spans
-                gridColIndex += span;
-            }
-        }
-
-        if (hasExplicitWidths)
-        {
-            // Fill in any remaining columns without widths
-            var totalExplicitWidth = widths.Sum();
-            var columnsWithoutWidth = widths.Count(w => w == 0);
-
-            if (columnsWithoutWidth > 0 && totalExplicitWidth < availableWidth)
-            {
-                var remainingWidth = availableWidth - totalExplicitWidth;
-                var perColumnWidth = remainingWidth / columnsWithoutWidth;
-                for (var i = 0; i < colCount; i++)
-                {
-                    if (widths[i] == 0)
-                    {
-                        widths[i] = perColumnWidth;
-                    }
-                }
-            }
-
-            // Scale to fit if total exceeds available width
-            var totalWidth = widths.Sum();
-            if (totalWidth > availableWidth)
-            {
-                var scale = availableWidth / totalWidth;
-                for (var i = 0; i < colCount; i++)
-                {
-                    widths[i] *= scale;
-                }
-            }
-        }
-        else if (gridWidths is {Count: > 0})
-        {
-            // No cell widths - use grid column widths as fallback
-            for (var i = 0; i < colCount && i < gridWidths.Count; i++)
-            {
-                widths[i] = (float) gridWidths[i];
-            }
-
-            // Fill remaining columns if grid has fewer entries than actual columns
-            if (gridWidths.Count < colCount)
-            {
-                var avgWidth = (float) gridWidths.Average();
-                for (var i = gridWidths.Count; i < colCount; i++)
-                {
-                    widths[i] = avgWidth;
-                }
-            }
-
-            // Scale grid widths to fit available width while maintaining proportions
-            var totalWidth = widths.Sum();
-            if (totalWidth > availableWidth && totalWidth > 0)
-            {
-                var scale = availableWidth / totalWidth;
-                for (var i = 0; i < colCount; i++)
-                {
-                    widths[i] *= scale;
-                }
-            }
-        }
-        else
-        {
-            // Distribute evenly
-            var cellWidth = availableWidth / colCount;
-            for (var i = 0; i < colCount; i++)
-            {
-                widths[i] = cellWidth;
-            }
-        }
-
-        return widths;
     }
 
     float[] CalculateRowHeights(TableElement table, float[] colWidths)
@@ -1455,7 +1356,7 @@ sealed class PageRenderer(RenderContext context) :
                 if (cell.Properties.VerticalMerge == VerticalMergeType.Restart)
                 {
                     // Calculate how many rows this cell spans
-                    var rowSpan = CalculateVerticalMergeRowSpan(table, rowIndex, gridColIndex);
+                    var rowSpan = TableLayout.CalculateVerticalMergeRowSpan(table, rowIndex, gridColIndex);
 
                     // Calculate cell width
                     float cellWidth = 0;
@@ -1494,53 +1395,10 @@ sealed class PageRenderer(RenderContext context) :
         return heights;
     }
 
-    /// <summary>
-    /// Calculates how many rows a vertically merged cell spans.
-    /// </summary>
-    static int CalculateVerticalMergeRowSpan(TableElement table, int startRowIndex, int gridColIndex)
-    {
-        var rowSpan = 1;
-
-        for (var rowIndex = startRowIndex + 1; rowIndex < table.Rows.Count; rowIndex++)
-        {
-            var row = table.Rows[rowIndex];
-
-            // Find the cell at the same grid column position
-            var currentGridCol = 0;
-            TableCell? cellAtColumn = null;
-            foreach (var cell in row.Cells)
-            {
-                if (currentGridCol == gridColIndex)
-                {
-                    cellAtColumn = cell;
-                    break;
-                }
-
-                currentGridCol += cell.Properties.GridSpan;
-                if (currentGridCol > gridColIndex)
-                {
-                    break;
-                }
-            }
-
-            // If we found a cell that continues the merge, increment row span
-            if (cellAtColumn?.Properties.VerticalMerge == VerticalMergeType.Continue)
-            {
-                rowSpan++;
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        return rowSpan;
-    }
-
     float MeasureCellHeight(TableCell cell, float cellWidth, TableProperties tableProps)
     {
-        var padding = GetEffectivePadding(cell.Properties, tableProps);
-        var margin = GetEffectiveMargin(cell.Properties, tableProps);
+        var padding = TableLayout.GetEffectivePadding(cell.Properties, tableProps);
+        var margin = TableLayout.GetEffectiveMargin(cell.Properties, tableProps);
 
         // Calculate available content width within the cell
         var contentWidth = cellWidth - (float) (padding.Horizontal + margin.Horizontal);
@@ -1594,28 +1452,39 @@ sealed class PageRenderer(RenderContext context) :
             }
         }
 
-        // Measure paragraphs, but don't add spacing before first paragraph
-        // or spacing after last paragraph (absorbed by cell padding)
         for (var i = 0; i < paragraphs.Count; i++)
         {
             var (para, bulletIndent) = paragraphs[i];
             var lines = textRenderer.LayoutParagraphForMeasurement(para, contentWidth - bulletIndent);
             var props = para.Properties;
 
-            // Add spacing before (skip for first paragraph - absorbed by cell padding)
-            if (i > 0)
+            if (i == 0)
+            {
+                var extra = (float) props.SpacingBeforePoints - (float) padding.Top;
+                if (extra > 0)
+                {
+                    height += extra;
+                }
+            }
+            else
             {
                 height += (float) props.SpacingBeforePoints;
             }
 
-            // Add line heights
             foreach (var lineHeight in lines)
             {
                 height += lineHeight;
             }
 
-            // Add spacing after (skip for last paragraph - absorbed by cell padding)
-            if (i < paragraphs.Count - 1)
+            if (i == paragraphs.Count - 1)
+            {
+                var extra = (float) props.SpacingAfterPoints - (float) padding.Bottom;
+                if (extra > 0)
+                {
+                    height += extra;
+                }
+            }
+            else
             {
                 height += (float) props.SpacingAfterPoints;
             }
@@ -1624,23 +1493,16 @@ sealed class PageRenderer(RenderContext context) :
         return height;
     }
 
-    static CellSpacing GetEffectivePadding(TableCellProperties cellProps, TableProperties tableProps) =>
-        cellProps.Padding ?? tableProps.DefaultCellPadding;
-
-    static CellSpacing GetEffectiveMargin(TableCellProperties cellProps, TableProperties tableProps) =>
-        cellProps.Margin ?? tableProps.DefaultCellMargin;
-
-    void RenderTableCell(TableCell cell, float x, float y, float width, float height, TableProperties tableProps)
+    void RenderTableCell(TableCell cell, float x, float y, float width, float height, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols)
     {
         if (currentCanvas == null)
         {
             return;
         }
 
-        var padding = GetEffectivePadding(cell.Properties, tableProps);
-        var margin = GetEffectiveMargin(cell.Properties, tableProps);
+        var padding = TableLayout.GetEffectivePadding(cell.Properties, tableProps);
+        var margin = TableLayout.GetEffectiveMargin(cell.Properties, tableProps);
 
-        // Apply margin to position
         var cellX = x + (float) margin.Left;
         var cellY = y + (float) margin.Top;
         var cellWidth = width - (float) margin.Horizontal;
@@ -1651,7 +1513,6 @@ sealed class PageRenderer(RenderContext context) :
         var pixelWidth = context.PointsToPixels(cellWidth);
         var pixelHeight = context.PointsToPixels(cellHeight);
 
-        // Draw cell background
         if (cell.Properties.BackgroundColorHex != null)
         {
             using var bgPaint = new SKPaint
@@ -1662,35 +1523,32 @@ sealed class PageRenderer(RenderContext context) :
             currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, bgPaint);
         }
 
-        // Draw cell borders - use cell-level borders if specified, otherwise table defaults
-        var borders = cell.Properties.Borders ?? tableProps.DefaultBorders;
+        var borders = TableLayout.ResolveCellBorders(cell.Properties, tableProps, rowIndex, colIndex, totalRows, totalCols);
         if (borders != null)
         {
-            // Draw top border
+            using var paint = new SKPaint { Style = SKPaintStyle.Stroke, IsAntialias = true };
+
             if (borders.Top.IsVisible)
             {
-                using var paint = CreateBorderPaint(borders.Top);
+                ConfigureBorderPaint(paint, borders.Top);
                 currentCanvas.DrawLine(pixelX, pixelY, pixelX + pixelWidth, pixelY, paint);
             }
 
-            // Draw right border
             if (borders.Right.IsVisible)
             {
-                using var paint = CreateBorderPaint(borders.Right);
+                ConfigureBorderPaint(paint, borders.Right);
                 currentCanvas.DrawLine(pixelX + pixelWidth, pixelY, pixelX + pixelWidth, pixelY + pixelHeight, paint);
             }
 
-            // Draw bottom border
             if (borders.Bottom.IsVisible)
             {
-                using var paint = CreateBorderPaint(borders.Bottom);
+                ConfigureBorderPaint(paint, borders.Bottom);
                 currentCanvas.DrawLine(pixelX, pixelY + pixelHeight, pixelX + pixelWidth, pixelY + pixelHeight, paint);
             }
 
-            // Draw left border
             if (borders.Left.IsVisible)
             {
-                using var paint = CreateBorderPaint(borders.Left);
+                ConfigureBorderPaint(paint, borders.Left);
                 currentCanvas.DrawLine(pixelX, pixelY, pixelX, pixelY + pixelHeight, paint);
             }
         }
@@ -1842,16 +1700,14 @@ sealed class PageRenderer(RenderContext context) :
             return SKColors.Black;
         }
 
-        if (hexColor.Length == 6)
+        if (hexColor.Length == 6 &&
+            uint.TryParse(hexColor, NumberStyles.HexNumber, null, out var rgb))
         {
-            if (uint.TryParse(hexColor, NumberStyles.HexNumber, null, out var rgb))
-            {
-                return new(
-                    (byte) ((rgb >> 16) & 0xFF),
-                    (byte) ((rgb >> 8) & 0xFF),
-                    (byte) (rgb & 0xFF)
-                );
-            }
+            return new(
+                (byte) ((rgb >> 16) & 0xFF),
+                (byte) ((rgb >> 8) & 0xFF),
+                (byte) (rgb & 0xFF)
+            );
         }
 
         return SKColors.Black;
@@ -1865,6 +1721,12 @@ sealed class PageRenderer(RenderContext context) :
             StrokeWidth = context.PointsToPixels((float) edge.WidthPoints),
             IsAntialias = true
         };
+
+    void ConfigureBorderPaint(SKPaint paint, BorderEdge edge)
+    {
+        paint.Color = ParseColor(edge.ColorHex ?? "000000");
+        paint.StrokeWidth = context.PointsToPixels((float) edge.WidthPoints);
+    }
 
     /// <summary>
     /// Renders a text form field as a text box with border.
@@ -1917,8 +1779,7 @@ sealed class PageRenderer(RenderContext context) :
         var displayText = string.IsNullOrEmpty(textField.Value) ? textField.DefaultText ?? "" : textField.Value;
         if (!string.IsNullOrEmpty(displayText))
         {
-            using var typeface = SKTypeface.FromFamilyName("Aptos", SKFontStyle.Normal);
-            using var font = context.CreateFontFromTypeface(typeface, 10);
+            using var font = context.CreateFontFromTypeface(aptosTypeface, 10);
             using var textPaint = new SKPaint
             {
                 Color = textField.Enabled ? SKColors.Black : SKColors.Gray,
@@ -2060,8 +1921,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (!string.IsNullOrEmpty(selectedValue))
         {
-            using var typeface = SKTypeface.FromFamilyName("Aptos", SKFontStyle.Normal);
-            using var font = context.CreateFontFromTypeface(typeface, 10);
+            using var font = context.CreateFontFromTypeface(aptosTypeface, 10);
             using var textPaint = new SKPaint
             {
                 Color = dropDown.Enabled ? SKColors.Black : SKColors.Gray,
@@ -2322,8 +2182,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (!string.IsNullOrEmpty(text))
         {
-            using var typeface = SKTypeface.FromFamilyName("Aptos", SKFontStyle.Normal);
-            using var font = context.CreateFontFromTypeface(typeface, 10);
+            using var font = context.CreateFontFromTypeface(aptosTypeface, 10);
             using var textPaint = new SKPaint
             {
                 Color = isPlaceholder ? SKColors.Gray : SKColors.Black,
@@ -2393,8 +2252,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (!string.IsNullOrEmpty(displayText))
         {
-            using var typeface = SKTypeface.FromFamilyName("Aptos", SKFontStyle.Normal);
-            using var font = context.CreateFontFromTypeface(typeface, 10);
+            using var font = context.CreateFontFromTypeface(aptosTypeface, 10);
             using var textPaint = new SKPaint
             {
                 Color = SKColors.Black,
@@ -2476,8 +2334,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (!string.IsNullOrEmpty(displayText))
         {
-            using var typeface = SKTypeface.FromFamilyName("Aptos", SKFontStyle.Normal);
-            using var font = context.CreateFontFromTypeface(typeface, 10);
+            using var font = context.CreateFontFromTypeface(aptosTypeface, 10);
             using var textPaint = new SKPaint
             {
                 Color = control.DateValue.HasValue || !string.IsNullOrEmpty(control.Content) ? SKColors.Black : SKColors.Gray,
@@ -2506,8 +2363,23 @@ sealed class PageRenderer(RenderContext context) :
         context.CurrentY += fieldHeight + 4;
     }
 
+    void FlushPendingPage()
+    {
+        if (pendingPage != null)
+        {
+            using var page = pendingPage;
+            pendingPage = null;
+            pageCount++;
+            using var image = SKImage.FromBitmap(page);
+            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            pageCallback!(stream => data.SaveTo(stream));
+        }
+    }
+
     void StartNewPage()
     {
+        FlushPendingPage();
+
         currentPage = new(
             context.PageWidthPixels,
             context.PageHeightPixels,
@@ -2528,10 +2400,7 @@ sealed class PageRenderer(RenderContext context) :
             currentCanvas.Clear(SKColors.White);
         }
 
-        // Background shapes are now rendered inline when encountered in document flow
-        // (not repeated on every page)
-
-        if (pages.Count > 0)
+        if (pageCount > 0)
         {
             context.StartNewPage();
             // Reset line numbers for new page (if restart mode is NewPage)
@@ -2553,27 +2422,23 @@ sealed class PageRenderer(RenderContext context) :
             // Render footer before finishing
             RenderFooter();
 
-            pages.Add(currentPage);
+            pendingPage = currentPage;
             currentCanvas?.Dispose();
             currentCanvas = null;
             currentPage = null;
         }
     }
 
-    /// <summary>
-    /// Removes the last page if it has no significant content.
-    /// Called at the end of document rendering.
-    /// Trailing blank pages are almost always spurious, even from explicit breaks
-    /// (section breaks at document end don't create visible blank pages in Word).
-    /// </summary>
     void RemoveBlankTrailingPage()
     {
-        // Only remove if there's more than one page and the last page is blank
-        if (pages.Count > 1 && !hasSignificantContentOnCurrentPage && !currentPageFromExplicitBreak)
+        if (pageCount > 0 && !hasSignificantContentOnCurrentPage && !currentPageFromExplicitBreak)
         {
-            var lastPage = pages[^1];
-            pages.RemoveAt(pages.Count - 1);
-            lastPage.Dispose();
+            pendingPage?.Dispose();
+            pendingPage = null;
+        }
+        else
+        {
+            FlushPendingPage();
         }
     }
 

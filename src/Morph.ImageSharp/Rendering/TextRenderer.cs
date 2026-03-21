@@ -1,5 +1,5 @@
 /// <summary>
-/// Renders text content with formatting using SkiaSharp.
+/// Renders text content with formatting using SixLabors.ImageSharp.
 /// </summary>
 sealed class TextRenderer(RenderContext context)
 {
@@ -69,30 +69,14 @@ sealed class TextRenderer(RenderContext context)
         foreach (var line in lines)
         {
             // Use compact line height for table cells (no boost)
-            lineHeights.Add(CalculateCompactLineHeight(line.Height, props));
+            lineHeights.Add(TableLayout.CalculateCompactLineHeight(line.Height, props));
         }
 
         return lineHeights;
     }
 
-    /// <summary>
-    /// Calculates line height without the Word compatibility boost.
-    /// Used for table cell measurement to achieve more compact layout.
-    /// </summary>
-    static float CalculateCompactLineHeight(float naturalHeight, ParagraphProperties props)
-    {
-        var lineHeight = props.LineSpacingRule switch
-        {
-            LineSpacingRule.Exactly => (float)props.LineSpacingPoints,
-            LineSpacingRule.AtLeast => Math.Max(naturalHeight, (float)props.LineSpacingPoints),
-            _ => naturalHeight * (float)props.LineSpacingMultiplier // Auto
-        };
 
-        // Skip the Word compatibility boost for compact measurement
-        // This helps table cells fit their content more tightly
 
-        return lineHeight;
-    }
 
     /// <summary>
     /// Calculates the effective line height based on the line spacing rule.
@@ -130,9 +114,9 @@ sealed class TextRenderer(RenderContext context)
     }
 
     /// <summary>
-    /// Renders a paragraph to the canvas at the current position.
+    /// Renders a paragraph to the image at the current position.
     /// </summary>
-    public void RenderParagraph(SKCanvas canvas, ParagraphElement paragraph)
+    public void RenderParagraph(Image<Rgba32> currentPage, ParagraphElement paragraph)
     {
         var lines = LayoutParagraph(paragraph);
         var props = paragraph.Properties;
@@ -166,22 +150,14 @@ sealed class TextRenderer(RenderContext context)
                 paragraphHeight += CalculateLineHeight(line.Height, props);
             }
 
-            var bgColor = SKColor.TryParse(props.BackgroundColorHex, out var parsedBgColor)
-                ? parsedBgColor
-                : SKColor.Parse("#" + props.BackgroundColorHex);
+            var bgColor = RenderContext.ParseColor(props.BackgroundColorHex);
 
             var bgX = context.PointsToPixels(context.ContentLeft + (float)props.LeftIndentPoints);
             var bgY = context.PointsToPixels(context.CurrentY);
             var bgWidth = context.PointsToPixels(context.ContentWidth - (float)props.LeftIndentPoints - (float)props.RightIndentPoints);
             var bgHeight = context.PointsToPixels(paragraphHeight);
 
-            using var bgPaint = new SKPaint
-            {
-                Color = bgColor,
-                Style = SKPaintStyle.Fill,
-                IsAntialias = true
-            };
-            canvas.DrawRect(bgX, bgY, bgWidth, bgHeight, bgPaint);
+            currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(bgX, bgY, bgWidth, bgHeight)));
         }
 
         var isFirstLine = true;
@@ -197,13 +173,13 @@ sealed class TextRenderer(RenderContext context)
             if (showLineNumbers)
             {
                 var lineNumber = context.GetNextLineNumber();
-                RenderLineNumber(canvas, lineNumber, y, lineNumberSettings!);
+                RenderLineNumber(currentPage, lineNumber, y, lineNumberSettings!);
             }
 
             // Render bullet/number on first line
             if (isFirstLine && props.Numbering != null)
             {
-                RenderBullet(canvas, props.Numbering, y, paragraph);
+                RenderBullet(currentPage, props.Numbering, y, paragraph);
                 isFirstLine = false;
             }
 
@@ -236,7 +212,7 @@ sealed class TextRenderer(RenderContext context)
             for (var i = 0; i < line.Fragments.Count; i++)
             {
                 var fragment = line.Fragments[i];
-                RenderFragment(canvas, fragment, currentX, y);
+                RenderFragment(currentPage, fragment, currentX, y);
                 currentX += fragment.Width;
 
                 // Add extra space after whitespace fragments for justified text
@@ -270,7 +246,7 @@ sealed class TextRenderer(RenderContext context)
     /// <summary>
     /// Renders a paragraph at a specific position with a specific width (for floating text boxes).
     /// </summary>
-    public void RenderParagraphInBounds(SKCanvas canvas, ParagraphElement paragraph, float startX, float width)
+    public void RenderParagraphInBounds(Image<Rgba32> currentPage, ParagraphElement paragraph, float startX, float width)
     {
         var props = paragraph.Properties;
 
@@ -301,7 +277,7 @@ sealed class TextRenderer(RenderContext context)
             // Render bullet/number on first line
             if (isFirstLine && props.Numbering != null)
             {
-                RenderBulletInBounds(canvas, props.Numbering, y, paragraph, startX);
+                RenderBulletInBounds(currentPage, props.Numbering, y, paragraph, startX);
                 isFirstLine = false;
             }
 
@@ -328,7 +304,7 @@ sealed class TextRenderer(RenderContext context)
             for (var i = 0; i < line.Fragments.Count; i++)
             {
                 var fragment = line.Fragments[i];
-                RenderFragment(canvas, fragment, currentX, y);
+                RenderFragment(currentPage, fragment, currentX, y);
                 currentX += fragment.Width;
 
                 // Add extra space after whitespace fragments for justified text
@@ -426,16 +402,11 @@ sealed class TextRenderer(RenderContext context)
             // Apply AllCaps text transform if specified
             var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
             var words = SplitIntoWords(text);
+            var font = context.GetFont(run.Properties);
+            var (runHeight, baseline) = RenderContext.GetFontMetrics(font);
 
             foreach (var word in words)
             {
-                using var font = context.CreateFont(run.Properties);
-
-                // Get line metrics (convert from pixels to points)
-                var metrics = font.Metrics;
-                var runHeight = (-metrics.Ascent + metrics.Descent) / context.Scale;
-                var baseline = -metrics.Ascent / context.Scale;
-
                 // Handle explicit line break (newline character)
                 if (word is "\n" or "\r\n" or "\r")
                 {
@@ -474,8 +445,8 @@ sealed class TextRenderer(RenderContext context)
                     continue;
                 }
 
-                // Convert pixel measurements back to points
-                var wordWidth = font.MeasureText(word) / context.Scale;
+                // Measure word width in points
+                var wordWidth = RenderContext.MeasureText(font, word);
 
                 // Check if we need to wrap
                 if (currentLineWidth + wordWidth > effectiveWidth && currentFragments.Count > 0)
@@ -534,10 +505,8 @@ sealed class TextRenderer(RenderContext context)
             if (paragraph.Runs.Count > 0)
             {
                 var firstRun = paragraph.Runs[0];
-                using var font = context.CreateFont(firstRun.Properties);
-                var metrics = font.Metrics;
-                emptyHeight = (-metrics.Ascent + metrics.Descent) / context.Scale;
-                emptyBaseline = -metrics.Ascent / context.Scale;
+                var font = context.GetFont(firstRun.Properties);
+                (emptyHeight, emptyBaseline) = RenderContext.GetFontMetrics(font);
             }
             else if (props.ParagraphMarkFontSizePoints.HasValue)
             {
@@ -570,7 +539,7 @@ sealed class TextRenderer(RenderContext context)
     /// <summary>
     /// Renders a line number in the left margin.
     /// </summary>
-    void RenderLineNumber(SKCanvas canvas, int lineNumber, float baselineY, LineNumberSettings settings)
+    void RenderLineNumber(Image<Rgba32> currentPage, int lineNumber, float baselineY, LineNumberSettings settings)
     {
         // Only show line numbers at the countBy interval
         var adjustedNumber = lineNumber - settings.Start;
@@ -585,22 +554,27 @@ sealed class TextRenderer(RenderContext context)
         var pixelY = context.PointsToPixels(baselineY);
 
         // Use a standard font for line numbers (9pt, same as typical Word default)
-        using var typeface = SKTypeface.FromFamilyName("Aptos", SKFontStyle.Normal);
-        using var font = context.CreateFontFromTypeface(typeface, 9);
-        using var paint = new SKPaint
-        {
-            IsAntialias = true,
-            Color = SKColors.Black
-        };
+        var props = new RunProperties { FontFamily = "Aptos", FontSizePoints = 9 };
+        var font = context.GetFont(props);
+        var (_, baseline) = RenderContext.GetFontMetrics(font);
 
         var numberText = lineNumber.ToString();
-        canvas.DrawText(numberText, pixelX, pixelY, SKTextAlign.Right, font, paint);
+
+        // Measure text width so we can right-align it
+        var textWidth = RenderContext.MeasureText(font, numberText) * context.Scale;
+
+        var textOptions = new RichTextOptions(font)
+        {
+            Dpi = context.Dpi,
+            Origin = new PointF(pixelX - textWidth, pixelY - baseline * context.Scale)
+        };
+        currentPage.Mutate(_ => _.DrawText(textOptions, numberText, new SolidBrush(Color.Black)));
     }
 
     /// <summary>
     /// Renders a bullet or number for a list item.
     /// </summary>
-    void RenderBullet(SKCanvas canvas, NumberingInfo numbering, float baselineY, ParagraphElement paragraph)
+    void RenderBullet(Image<Rgba32> currentPage, NumberingInfo numbering, float baselineY, ParagraphElement paragraph)
     {
         // Position bullet at the indent position (before the hanging indent)
         var bulletX = context.ContentLeft + (float)numbering.IndentPoints - (float)numbering.HangingIndentPoints;
@@ -618,21 +592,24 @@ sealed class TextRenderer(RenderContext context)
 
         // Use Arial for bullets since Symbol/Wingdings characters have been mapped to Unicode equivalents
         // Arial is available on all platforms and has good Unicode coverage including bullet characters
-        using var typeface = SKTypeface.FromFamilyName("Arial") ?? SKTypeface.Default;
-        using var font = context.CreateFontFromTypeface(typeface, fontSize);
-        using var paint = new SKPaint
-        {
-            IsAntialias = true,
-            Color = colorHex != null ? SKColor.Parse("#" + colorHex) : SKColors.Black
-        };
+        var bulletProps = new RunProperties { FontFamily = "Arial", FontSizePoints = fontSize };
+        var font = context.GetFont(bulletProps);
+        var (_, baseline) = RenderContext.GetFontMetrics(font);
 
-        canvas.DrawText(numbering.Text, pixelX, pixelY, SKTextAlign.Left, font, paint);
+        var color = colorHex != null ? RenderContext.ParseColor(colorHex) : Color.Black;
+
+        var textOptions = new RichTextOptions(font)
+        {
+            Dpi = context.Dpi,
+            Origin = new PointF(pixelX, pixelY - baseline * context.Scale)
+        };
+        currentPage.Mutate(_ => _.DrawText(textOptions, numbering.Text, new SolidBrush(color)));
     }
 
     /// <summary>
     /// Renders a bullet or number for a list item within specific bounds (for table cells).
     /// </summary>
-    void RenderBulletInBounds(SKCanvas canvas, NumberingInfo numbering, float baselineY, ParagraphElement paragraph, float startX)
+    void RenderBulletInBounds(Image<Rgba32> currentPage, NumberingInfo numbering, float baselineY, ParagraphElement paragraph, float startX)
     {
         // Get font size from paragraph's first run, or use default
         float fontSize = 11;
@@ -645,19 +622,22 @@ sealed class TextRenderer(RenderContext context)
 
         // Use Arial for bullets since Symbol/Wingdings characters have been mapped to Unicode equivalents
         // Arial is available on all platforms and has good Unicode coverage including bullet characters
-        using var typeface = SKTypeface.FromFamilyName("Arial") ?? SKTypeface.Default;
-        using var font = context.CreateFontFromTypeface(typeface, fontSize);
-        using var paint = new SKPaint
-        {
-            IsAntialias = true,
-            Color = colorHex != null ? SKColor.Parse("#" + colorHex) : SKColors.Black
-        };
+        var bulletProps = new RunProperties { FontFamily = "Arial", FontSizePoints = fontSize };
+        var font = context.GetFont(bulletProps);
+        var (_, baseline) = RenderContext.GetFontMetrics(font);
+
+        var color = colorHex != null ? RenderContext.ParseColor(colorHex) : Color.Black;
 
         // Render bullet at the start of the content area (text is indented to the right)
         var pixelX = context.PointsToPixels(startX);
         var pixelY = context.PointsToPixels(baselineY);
 
-        canvas.DrawText(numbering.Text, pixelX, pixelY, SKTextAlign.Left, font, paint);
+        var textOptions = new RichTextOptions(font)
+        {
+            Dpi = context.Dpi,
+            Origin = new PointF(pixelX, pixelY - baseline * context.Scale)
+        };
+        currentPage.Mutate(_ => _.DrawText(textOptions, numbering.Text, new SolidBrush(color)));
     }
 
     float CalculateLineX(TextLine line, ParagraphProperties props)
@@ -702,17 +682,17 @@ sealed class TextRenderer(RenderContext context)
     static bool IsWhitespaceFragment(TextFragment fragment) =>
         fragment.Text.Length > 0 && fragment.Text.All(char.IsWhiteSpace);
 
-    void RenderFragment(SKCanvas canvas, TextFragment fragment, float x, float y)
+    void RenderFragment(Image<Rgba32> currentPage, TextFragment fragment, float x, float y)
     {
         // Handle inline images
         if (fragment.InlineImageData is {Length: > 0})
         {
-            RenderInlineImage(canvas, fragment, x, y);
+            RenderInlineImage(currentPage, fragment, x, y);
             return;
         }
 
-        using var font = context.CreateFont(fragment.Properties);
-        using var paint = RenderContext.CreateTextPaint(fragment.Properties);
+        var font = context.GetFont(fragment.Properties);
+        var color = RenderContext.ParseColor(fragment.Properties.ColorHex);
 
         // Convert to pixels
         var pixelX = context.PointsToPixels(x);
@@ -735,39 +715,34 @@ sealed class TextRenderer(RenderContext context)
         // Draw background/shading color if specified
         if (!string.IsNullOrEmpty(fragment.Properties.BackgroundColorHex))
         {
-            var bgColor = SKColor.TryParse(fragment.Properties.BackgroundColorHex, out var parsedBgColor)
-                ? parsedBgColor
-                : SKColor.Parse("#" + fragment.Properties.BackgroundColorHex);
+            var bgColor = RenderContext.ParseColor(fragment.Properties.BackgroundColorHex);
 
             var textWidth = context.PointsToPixels(fragment.Width);
-            var metrics = font.Metrics;
-            // Ascent is negative
-            var textTop = pixelY + metrics.Ascent;
-            var textBottom = pixelY + metrics.Descent;
+            var (runHeight, runBaseline) = RenderContext.GetFontMetrics(font);
+            // Top of text: baseline position minus ascent (in pixels)
+            var textTop = pixelY - runBaseline * context.Scale;
+            var textBottom = pixelY + (runHeight - runBaseline) * context.Scale;
 
-            using var bgPaint = new SKPaint
-            {
-                Color = bgColor,
-                Style = SKPaintStyle.Fill,
-                IsAntialias = true
-            };
-            canvas.DrawRect(pixelX, textTop, textWidth, textBottom - textTop, bgPaint);
+            currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(pixelX, textTop, textWidth, textBottom - textTop)));
         }
 
-        canvas.DrawText(fragment.Text, pixelX, pixelY, SKTextAlign.Left, font, paint);
+        // Get baseline for coordinate conversion (Skia uses baseline Y, ImageSharp uses top-left Y)
+        var (_, baseline) = RenderContext.GetFontMetrics(font);
+
+        var textOptions = new RichTextOptions(font)
+        {
+            Dpi = context.Dpi,
+            Origin = new PointF(pixelX, pixelY - baseline * context.Scale)
+        };
+        currentPage.Mutate(_ => _.DrawText(textOptions, fragment.Text, new SolidBrush(color)));
 
         // Draw underline if needed
         if (fragment.Properties.Underline)
         {
             var underlineY = pixelY + 2 * context.Scale;
             var width = context.PointsToPixels(fragment.Width);
-            using var linePaint = new SKPaint
-            {
-                Color = paint.Color,
-                StrokeWidth = 1 * context.Scale,
-                IsAntialias = true
-            };
-            canvas.DrawLine(pixelX, underlineY, pixelX + width, underlineY, linePaint);
+            var strokeWidth = 1 * context.Scale;
+            currentPage.Mutate(_ => _.DrawLine(new SolidPen(color, strokeWidth), new PointF(pixelX, underlineY), new PointF(pixelX + width, underlineY)));
         }
 
         // Draw strikethrough if needed
@@ -775,17 +750,12 @@ sealed class TextRenderer(RenderContext context)
         {
             var strikeY = pixelY - font.Size * 0.3f;
             var width = context.PointsToPixels(fragment.Width);
-            using var linePaint = new SKPaint
-            {
-                Color = paint.Color,
-                StrokeWidth = 1 * context.Scale,
-                IsAntialias = true
-            };
-            canvas.DrawLine(pixelX, strikeY, pixelX + width, strikeY, linePaint);
+            var strokeWidth = 1 * context.Scale;
+            currentPage.Mutate(_ => _.DrawLine(new SolidPen(color, strokeWidth), new PointF(pixelX, strikeY), new PointF(pixelX + width, strikeY)));
         }
     }
 
-    void RenderInlineImage(SKCanvas canvas, TextFragment fragment, float x, float y)
+    void RenderInlineImage(Image<Rgba32> currentPage, TextFragment fragment, float x, float y)
     {
         // Convert to pixels - y is the baseline, need to adjust for image height
         var pixelX = context.PointsToPixels(x);
@@ -794,62 +764,22 @@ sealed class TextRenderer(RenderContext context)
         // Position image so its bottom aligns with the baseline
         var pixelY = context.PointsToPixels(y) - pixelHeight;
 
-        var destRect = new SKRect(pixelX, pixelY, pixelX + pixelWidth, pixelY + pixelHeight);
-
         if (fragment.InlineImageContentType == "image/svg+xml")
         {
-            // Pre-process SVG to remove class attributes and style elements that Svg.Skia might not handle correctly
-            var svgContent = Encoding.UTF8.GetString(fragment.InlineImageData!);
-
-            // Remove style elements (CSS can interfere with fill processing in Svg.Skia)
-            svgContent = Regex.Replace(
-                svgContent,
-                "<style[^>]*>.*?</style>",
-                "",
-                RegexOptions.Singleline);
-
-            // Remove class attributes from paths
-            svgContent = Regex.Replace(
-                svgContent,
-                """
-                \s+class="[^"]*"
-                """,
-                "");
-
-            var processedData = Encoding.UTF8.GetBytes(svgContent);
-
-            // Render SVG
-            using var svg = new SKSvg();
-            using var stream = new MemoryStream(processedData);
-            var picture = svg.Load(stream);
-
-            if (picture != null)
-            {
-                var svgBounds = picture.CullRect;
-                if (svgBounds is {Width: > 0, Height: > 0})
-                {
-                    var scaleX = destRect.Width / svgBounds.Width;
-                    var scaleY = destRect.Height / svgBounds.Height;
-
-                    // Render SVG to a bitmap first (more reliable than DrawPicture on some canvases)
-                    using var bitmap = new SKBitmap((int) destRect.Width, (int) destRect.Height);
-                    using var tempCanvas = new SKCanvas(bitmap);
-                    tempCanvas.Clear(SKColors.Transparent);
-                    tempCanvas.Scale(scaleX, scaleY);
-                    tempCanvas.DrawPicture(picture);
-
-                    canvas.DrawBitmap(bitmap, destRect.Left, destRect.Top);
-                }
-            }
+            // SVG rendering not supported in ImageSharp - skip silently
+            return;
         }
-        else
+
+        // Render bitmap image
+        try
         {
-            // Render bitmap image
-            using var skImage = SKBitmap.Decode(fragment.InlineImageData);
-            if (skImage != null)
-            {
-                canvas.DrawBitmap(skImage, destRect);
-            }
+            using var img = Image.Load<Rgba32>(fragment.InlineImageData!);
+            img.Mutate(_ => _.Resize(new Size((int)pixelWidth, (int)pixelHeight)));
+            currentPage.Mutate(_ => _.DrawImage(img, new Point((int)pixelX, (int)pixelY), 1f));
+        }
+        catch
+        {
+            // Skip images that fail to decode
         }
     }
 
@@ -925,16 +855,11 @@ sealed class TextRenderer(RenderContext context)
             // Apply AllCaps text transform if specified
             var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
             var words = SplitIntoWords(text);
+            var font = context.GetFont(run.Properties);
+            var (runHeight, runBaseline) = RenderContext.GetFontMetrics(font);
 
             foreach (var word in words)
             {
-                using var font = context.CreateFont(run.Properties);
-
-                // Get font metrics for line height
-                var metrics = font.Metrics;
-                var runHeight = (-metrics.Ascent + metrics.Descent) / context.Scale;
-                var runBaseline = -metrics.Ascent / context.Scale;
-
                 // Handle explicit line break (newline character)
                 if (word is "\n" or "\r\n" or "\r")
                 {
@@ -980,7 +905,7 @@ sealed class TextRenderer(RenderContext context)
 
                 // Measure the display word (without soft hyphen)
                 // Apply FontWidthScale to better match Word's text rendering
-                var wordWidth = font.MeasureText(displayWord) / context.Scale * context.FontWidthScale;
+                var wordWidth = RenderContext.MeasureText(font, displayWord) * context.FontWidthScale;
 
                 // Check if we need to wrap to a new line
                 if (currentLineWidth + wordWidth > effectiveWidth && currentFragments.Count > 0)
@@ -1045,10 +970,8 @@ sealed class TextRenderer(RenderContext context)
             if (paragraph.Runs.Count > 0)
             {
                 var firstRun = paragraph.Runs[0];
-                using var font = context.CreateFont(firstRun.Properties);
-                var metrics = font.Metrics;
-                emptyHeight = (-metrics.Ascent + metrics.Descent) / context.Scale;
-                emptyBaseline = -metrics.Ascent / context.Scale;
+                var font = context.GetFont(firstRun.Properties);
+                (emptyHeight, emptyBaseline) = RenderContext.GetFontMetrics(font);
             }
             else if (props.ParagraphMarkFontSizePoints.HasValue)
             {
@@ -1134,57 +1057,54 @@ sealed class TextRenderer(RenderContext context)
 
     static List<string> SplitIntoWords(string text)
     {
-        var words = new List<string>();
-        var currentWord = new StringBuilder();
-
-        foreach (var c in text)
+        if (text.Contains(nonBreakingHyphen))
         {
+            text = text.Replace(nonBreakingHyphen, '-');
+        }
+
+        var words = new List<string>();
+        var wordStart = -1;
+
+        for (var i = 0; i < text.Length; i++)
+        {
+            var c = text[i];
             if (char.IsWhiteSpace(c))
             {
-                if (currentWord.Length > 0)
+                if (wordStart >= 0)
                 {
-                    words.Add(currentWord.ToString());
-                    currentWord.Clear();
+                    words.Add(text[wordStart..i]);
+                    wordStart = -1;
                 }
-                // Preserve spaces as separate "words" for accurate width calculation
-                words.Add(c.ToString());
+
+                words.Add(text[i..(i + 1)]);
             }
             else if (c == softHyphen)
             {
-                // Soft hyphen is a potential break point
-                // Add current word fragment with trailing soft hyphen marker
-                if (currentWord.Length > 0)
+                if (wordStart >= 0)
                 {
-                    // Mark this fragment as having a soft hyphen at the end
-                    // We'll handle this in the layout logic
-                    currentWord.Append(c);
-                    words.Add(currentWord.ToString());
-                    currentWord.Clear();
+                    words.Add(text[wordStart..(i + 1)]);
+                    wordStart = -1;
                 }
-            }
-            else if (c == nonBreakingHyphen)
-            {
-                // Non-breaking hyphen: render as regular hyphen but don't break here
-                // Keep it as part of the current word
-                // Render as visible hyphen
-                currentWord.Append('-');
             }
             else
             {
-                currentWord.Append(c);
+                if (wordStart < 0)
+                {
+                    wordStart = i;
+                }
             }
         }
 
-        if (currentWord.Length > 0)
+        if (wordStart >= 0)
         {
-            words.Add(currentWord.ToString());
+            words.Add(text[wordStart..]);
         }
 
         return words;
     }
 }
 
-internal sealed record TextLine
+sealed record TextLine
 {
     public required List<TextFragment> Fragments { get; init; }
     public required float Width { get; init; }

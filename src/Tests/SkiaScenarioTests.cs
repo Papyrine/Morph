@@ -1,9 +1,9 @@
 #if DEBUG
 
-public class ScenarioTests
+public class SkiaScenarioTests
 {
-    static ConcurrentBag<string> pageCountFailures = new ();
-    static ConcurrentBag<string> metricFailures = new ();
+    static ConcurrentBag<string> pageCountFailures = [];
+    static ConcurrentBag<string> metricFailures = [];
     public static IEnumerable<string> GetScenarioDirectories()
     {
         var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
@@ -15,7 +15,7 @@ public class ScenarioTests
     [MethodDataSource(nameof(GetScenarioDirectories))]
     public async Task Scenario(string directory)
     {
-        var converter = new DocumentConverter();
+        var converter = new WordRender.Skia.DocumentConverter();
         var inputFile = Path.Combine(directory, "input.docx");
         var expectedFiles = Directory.GetFiles(directory, "expected_*.png")
             .Order()
@@ -30,7 +30,7 @@ public class ScenarioTests
         }
         else
         {
-            var verifiedPath = Path.Combine(directory, "results.verified.json");
+            var verifiedPath = Path.Combine(directory, "results_skia.verified.json");
             var verified = await ScenarioResult.LoadFromFileAsync(verifiedPath);
             if (verified.PageDiffs != null && diffs != null)
             {
@@ -60,7 +60,7 @@ public class ScenarioTests
         };
         await Verify(result, targets)
             .UseDirectory(directory)
-            .UseFileName("results")
+            .UseFileName("results_skia")
             .IgnoreParameters();
     }
 
@@ -84,7 +84,7 @@ public class ScenarioTests
             expected.Compare(actual, ErrorMetric.Absolute, out var errorMetric);
 
             errorMetric = Math.Round(errorMetric, 4);
-            diffs.Add(new(i + 1, errorMetric, Path.GetFileName(expectedFile), $"results#page_{i+1:0000}.verified.png", $"results#page_{i+1:0000}.received.png"));
+            diffs.Add(new(i + 1, errorMetric, Path.GetFileName(expectedFile), $"results_skia#page_{i+1:0000}.verified.png", $"results_skia#page_{i+1:0000}.received.png"));
         }
 
         return diffs;
@@ -94,7 +94,7 @@ public class ScenarioTests
     [After(Class)]
     public static async Task AfterAllTests()
     {
-        var combine = Path.Combine(ProjectFiles.ProjectDirectory, "outcome.txt");
+        var combine = Path.Combine(ProjectFiles.ProjectDirectory, "outcome_skia.txt");
         File.Delete(combine);
         await using var writer = File.CreateText(combine);
         await writer.WriteLineAsync("# pageCountFailures " + pageCountFailures.Count);

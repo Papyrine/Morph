@@ -1,0 +1,11 @@
+# pageCountFailures 8
+C:\Code\Morph\src\Tests\Inputs\business-plans\10
+C:\Code\Morph\src\Tests\Inputs\business-plans\12
+C:\Code\Morph\src\Tests\Inputs\business-plans\13
+C:\Code\Morph\src\Tests\Inputs\complex_spacing
+C:\Code\Morph\src\Tests\Inputs\letters\05
+C:\Code\Morph\src\Tests\Inputs\resumes\13
+C:\Code\Morph\src\Tests\Inputs\resumes\14
+C:\Code\Morph\src\Tests\Inputs\table_multipage
+
+# metricFailures 0

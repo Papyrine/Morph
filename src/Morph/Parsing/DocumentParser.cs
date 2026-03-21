@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using A = DocumentFormat.OpenXml.Drawing;
 using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using OoxmlParagraphProperties = DocumentFormat.OpenXml.Wordprocessing.ParagraphProperties;
@@ -9,8 +10,20 @@ using WPG = DocumentFormat.OpenXml.Office2010.Word.DrawingGroup;
 using WPS = DocumentFormat.OpenXml.Office2010.Word.DrawingShape;
 
 /// <summary>
+/// Stores border information extracted from a table style, including conditional formatting overrides.
+/// </summary>
+sealed record TableStyleBorderInfo(
+    CellBorders Outer,
+    BorderEdge InsideH,
+    BorderEdge InsideV,
+    int ColBandSize,
+    Dictionary<TableStyleOverrideValues, CellBorders>? ConditionalBorders);
+
+/// <summary>
 /// Parses DOCX files using OpenXML.
 /// </summary>
+[SuppressMessage("Style", "IDE0028:Simplify collection initialization")]
+[SuppressMessage("Style", "IDE0306:Simplify collection initialization")]
 sealed class DocumentParser
 {
     // Conversion constants
@@ -41,8 +54,8 @@ sealed class DocumentParser
     // Style numbering: styleId -> (numId, ilvl) for styles that define numbering
     Dictionary<string, (int numId, int ilvl)>? styleNumbering;
 
-    // Table style borders cached during parsing (styleId -> CellBorders)
-    Dictionary<string, CellBorders>? tableStyleBorders;
+    // Table style borders cached during parsing (styleId -> borders + conditional formatting)
+    Dictionary<string, TableStyleBorderInfo>? tableStyleBorders;
 
     // Document-level background color (applies to all pages)
     string? documentBackgroundColor;
@@ -117,8 +130,14 @@ sealed class DocumentParser
         tableStyleBorders = ExtractTableStyleBorders(mainPart);
 
         var elements = ParseElements(body, mainPart);
-        var header = ExtractHeader(body, mainPart);
-        var footer = ExtractFooter(body, mainPart);
+        var header = ExtractHeaderFooter(body, mainPart, HeaderFooterValues.Default, isHeader: true);
+        var footer = ExtractHeaderFooter(body, mainPart, HeaderFooterValues.Default, isHeader: false);
+        var firstPageHeader = pageSettings.DifferentFirstPage
+            ? ExtractHeaderFooter(body, mainPart, HeaderFooterValues.First, isHeader: true)
+            : null;
+        var firstPageFooter = pageSettings.DifferentFirstPage
+            ? ExtractHeaderFooter(body, mainPart, HeaderFooterValues.First, isHeader: false)
+            : null;
         var hyphenation = ExtractHyphenationSettings(mainPart);
         var compatibility = ExtractCompatibilitySettings(mainPart);
 
@@ -128,6 +147,8 @@ sealed class DocumentParser
             Elements = elements,
             Header = header,
             Footer = footer,
+            FirstPageHeader = firstPageHeader,
+            FirstPageFooter = firstPageFooter,
             Hyphenation = hyphenation,
             ThemeColors = currentThemeColors,
             ThemeFonts = currentThemeFonts,
@@ -859,9 +880,9 @@ sealed class DocumentParser
         return result;
     }
 
-    Dictionary<string, CellBorders> ExtractTableStyleBorders(MainDocumentPart mainPart)
+    Dictionary<string, TableStyleBorderInfo> ExtractTableStyleBorders(MainDocumentPart mainPart)
     {
-        var result = new Dictionary<string, CellBorders>(StringComparer.OrdinalIgnoreCase);
+        var result = new Dictionary<string, TableStyleBorderInfo>(StringComparer.OrdinalIgnoreCase);
 
         var stylesPart = mainPart.StyleDefinitionsPart;
         if (stylesPart?.Styles == null)
@@ -885,47 +906,71 @@ sealed class DocumentParser
 
             // Look for table properties in the style
             var tblPr = style.StyleTableProperties;
-            if (tblPr == null)
-            {
-                continue;
-            }
 
-            // Look for tblBorders in the table properties
-            var borders = tblPr.GetFirstChild<TableBorders>();
-            if (borders == null)
-            {
-                continue;
-            }
+            CellBorders cellBorders = new();
+            var insideH = BorderEdge.None;
+            var insideV = BorderEdge.None;
+            var colBandSize = 1;
 
-            var cellBorders = new CellBorders
+            if (tblPr != null)
             {
-                Top = ParseBorderEdge(borders.GetFirstChild<TopBorder>()),
-                Right = ParseBorderEdge(borders.GetFirstChild<RightBorder>()),
-                Bottom = ParseBorderEdge(borders.GetFirstChild<BottomBorder>()),
-                Left = ParseBorderEdge(borders.GetFirstChild<LeftBorder>())
-            };
-
-            // Also check InsideHorizontalBorder and InsideVerticalBorder for internal cell borders
-            var insideH = ParseBorderEdge(borders.GetFirstChild<InsideHorizontalBorder>());
-            var insideV = ParseBorderEdge(borders.GetFirstChild<InsideVerticalBorder>());
-
-            // If inside borders are specified, they apply to internal cell edges
-            if (insideH.IsVisible || insideV.IsVisible)
-            {
-                cellBorders = new()
+                // Look for tblBorders in the table properties
+                var borders = tblPr.GetFirstChild<TableBorders>();
+                if (borders != null)
                 {
-                    Top = cellBorders.Top.IsVisible ? cellBorders.Top : insideH,
-                    Right = cellBorders.Right.IsVisible ? cellBorders.Right : insideV,
-                    Bottom = cellBorders.Bottom.IsVisible ? cellBorders.Bottom : insideH,
-                    Left = cellBorders.Left.IsVisible ? cellBorders.Left : insideV
-                };
+                    cellBorders = new()
+                    {
+                        Top = ParseBorderEdge(borders.GetFirstChild<TopBorder>()),
+                        Right = ParseBorderEdge(borders.GetFirstChild<RightBorder>()),
+                        Bottom = ParseBorderEdge(borders.GetFirstChild<BottomBorder>()),
+                        Left = ParseBorderEdge(borders.GetFirstChild<LeftBorder>())
+                    };
+
+                    insideH = ParseBorderEdge(borders.GetFirstChild<InsideHorizontalBorder>());
+                    insideV = ParseBorderEdge(borders.GetFirstChild<InsideVerticalBorder>());
+                }
+
+                // Parse column band size
+                var bandSize = tblPr.GetFirstChild<TableStyleColumnBandSize>();
+                if (bandSize?.Val?.HasValue == true)
+                {
+                    colBandSize = bandSize.Val.Value;
+                }
             }
 
-            // Only add if at least one border is visible
-            if (cellBorders.Top.IsVisible || cellBorders.Right.IsVisible ||
-                cellBorders.Bottom.IsVisible || cellBorders.Left.IsVisible)
+            // Parse conditional formatting (tblStylePr) for border overrides
+            Dictionary<TableStyleOverrideValues, CellBorders>? conditionalBorders = null;
+            foreach (var tblStylePr in style.Elements<TableStyleProperties>())
             {
-                result[styleId] = cellBorders;
+                var type = tblStylePr.Type?.Value;
+                if (type == null)
+                {
+                    continue;
+                }
+
+                // Extract cell borders from the conditional formatting
+                var tcPr = tblStylePr.TableStyleConditionalFormattingTableCellProperties;
+                var tcBorders = tcPr?.GetFirstChild<TableCellBorders>();
+                if (tcBorders == null)
+                {
+                    continue;
+                }
+
+                var condBorders = new CellBorders
+                {
+                    Top = ParseBorderEdge(tcBorders.GetFirstChild<TopBorder>()),
+                    Right = ParseBorderEdge(tcBorders.GetFirstChild<RightBorder>()),
+                    Bottom = ParseBorderEdge(tcBorders.GetFirstChild<BottomBorder>()),
+                    Left = ParseBorderEdge(tcBorders.GetFirstChild<LeftBorder>())
+                };
+
+                conditionalBorders ??= new();
+                conditionalBorders[type.Value] = condBorders;
+            }
+
+            if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || conditionalBorders != null)
+            {
+                result[styleId] = new(cellBorders, insideH, insideV, colBandSize, conditionalBorders);
             }
         }
 
@@ -1201,6 +1246,9 @@ sealed class DocumentParser
             }
         }
 
+        // Parse different first page setting (w:titlePg)
+        var differentFirstPage = sectionProps.GetFirstChild<TitlePage>() != null;
+
         // Parse line numbering settings
         var lineNumbers = ParseLineNumberSettings(sectionProps);
 
@@ -1227,7 +1275,8 @@ sealed class DocumentParser
             LineNumbers = lineNumbers,
             DocumentGridLinePitchPoints = documentGridLinePitchPoints,
             LastRenderedPageBreakCount = lastRenderedPageBreakCount,
-            BackgroundColorHex = documentBackgroundColor
+            BackgroundColorHex = documentBackgroundColor,
+            DifferentFirstPage = differentFirstPage
         };
     }
 
@@ -1369,36 +1418,61 @@ sealed class DocumentParser
         return 0; // pPrDefault exists but no spacing defined - use 0
     }
 
-    HeaderFooterContent? ExtractHeader(Body body, MainDocumentPart mainPart)
+    HeaderFooterContent? ExtractHeaderFooter(Body body, MainDocumentPart mainPart, HeaderFooterValues type, bool isHeader)
     {
-        // Try to find header from section properties reference
         var sectionProps = body.Descendants<SectionProperties>().LastOrDefault();
-        HeaderPart? headerPart = null;
+        OpenXmlPart? part = null;
 
         if (sectionProps != null)
         {
-            var headerRef = sectionProps.Descendants<HeaderReference>()
-                .FirstOrDefault(h => h.Type?.Value == HeaderFooterValues.Default);
-
-            if (headerRef?.Id?.Value != null)
+            if (isHeader)
             {
-                headerPart = mainPart.GetPartById(headerRef.Id.Value) as HeaderPart;
+                var headerRef = sectionProps.Descendants<HeaderReference>()
+                    .FirstOrDefault(h => h.Type?.Value == type);
+                if (headerRef?.Id?.Value != null)
+                {
+                    part = mainPart.GetPartById(headerRef.Id.Value);
+                }
+            }
+            else
+            {
+                var footerRef = sectionProps.Descendants<FooterReference>()
+                    .FirstOrDefault(f => f.Type?.Value == type);
+                if (footerRef?.Id?.Value != null)
+                {
+                    part = mainPart.GetPartById(footerRef.Id.Value);
+                }
             }
         }
 
-        // Fallback: try to get first header part directly
-        if (headerPart == null)
+        // Fallback for default type only: try first part directly
+        if (part == null && type == HeaderFooterValues.Default)
         {
-            headerPart = mainPart.HeaderParts.FirstOrDefault();
+            if (isHeader)
+            {
+                part = mainPart.HeaderParts.FirstOrDefault();
+            }
+            else
+            {
+                part = mainPart.FooterParts.FirstOrDefault();
+            }
         }
 
-        if (headerPart?.Header == null)
+        // Get the root element from the part
+        OpenXmlCompositeElement? rootElement = part switch
+        {
+            HeaderPart hp => hp.Header,
+            FooterPart fp => fp.Footer,
+            _ => null
+        };
+
+        if (rootElement == null)
         {
             return null;
         }
 
         var elements = new List<DocumentElement>();
-        foreach (var element in headerPart.Header.ChildElements)
+        foreach (var element in rootElement.ChildElements)
         {
             if (element is Paragraph para)
             {
@@ -1415,60 +1489,7 @@ sealed class DocumentParser
         }
 
         return elements.Count > 0
-            ? new HeaderFooterContent
-            {
-                Elements = elements
-            }
-            : null;
-    }
-
-    HeaderFooterContent? ExtractFooter(Body body, MainDocumentPart mainPart)
-    {
-        // Try to find footer from section properties reference
-        var sectionProps = body.Descendants<SectionProperties>().LastOrDefault();
-        FooterPart? footerPart = null;
-
-        if (sectionProps != null)
-        {
-            var footerRef = sectionProps.Descendants<FooterReference>()
-                .FirstOrDefault(f => f.Type?.Value == HeaderFooterValues.Default);
-
-            if (footerRef?.Id?.Value != null)
-            {
-                footerPart = mainPart.GetPartById(footerRef.Id.Value) as FooterPart;
-            }
-        }
-
-        // Fallback: try to get first footer part directly
-        footerPart ??= mainPart.FooterParts.FirstOrDefault();
-
-        if (footerPart?.Footer == null)
-        {
-            return null;
-        }
-
-        var elements = new List<DocumentElement>();
-        foreach (var element in footerPart.Footer.ChildElements)
-        {
-            if (element is Paragraph para)
-            {
-                elements.AddRange(ParseParagraph(para, mainPart));
-            }
-            else if (element is Table table)
-            {
-                var parsedTable = ParseTable(table, mainPart);
-                if (parsedTable != null)
-                {
-                    elements.Add(parsedTable);
-                }
-            }
-        }
-
-        return elements.Count > 0
-            ? new HeaderFooterContent
-            {
-                Elements = elements
-            }
+            ? new HeaderFooterContent { Elements = elements }
             : null;
     }
 
@@ -1549,12 +1570,24 @@ sealed class DocumentParser
         var rows = new List<TableRow>();
         var tableProps = table.GetFirstChild<OoxmlTableProperties>();
 
+        // Look up table style border info (including conditional formatting) early,
+        // so we can apply per-cell conditional borders during cell parsing
+        TableStyleBorderInfo? styleInfo = null;
+        if (tableProps != null)
+        {
+            var tableStyle = tableProps.GetFirstChild<TableStyle>();
+            if (tableStyle?.Val?.Value != null && tableStyleBorders != null)
+            {
+                tableStyleBorders.TryGetValue(tableStyle.Val.Value, out styleInfo);
+            }
+        }
+
         // Parse table grid (column widths)
         List<double>? gridColumnWidths = null;
         var tableGrid = table.GetFirstChild<TableGrid>();
         if (tableGrid != null)
         {
-            gridColumnWidths = new();
+            gridColumnWidths = [];
             foreach (var gridCol in tableGrid.Elements<GridColumn>())
             {
                 if (gridCol.Width?.HasValue == true &&
@@ -1590,6 +1623,7 @@ sealed class DocumentParser
         foreach (var row in table.Elements<DocumentFormat.OpenXml.Wordprocessing.TableRow>())
         {
             var cells = new List<TableCell>();
+            var gridColIndex = 0;
 
             foreach (var cell in row.Elements<DocumentFormat.OpenXml.Wordprocessing.TableCell>())
             {
@@ -1717,6 +1751,21 @@ sealed class DocumentParser
                     }
                 }
 
+                // Apply conditional formatting border overrides (e.g., band2Vert with nil borders)
+                // Only when cell doesn't have explicit borders from the document
+                if (cellBorders == null && styleInfo?.ConditionalBorders != null)
+                {
+                    var bandIndex = gridColIndex / styleInfo.ColBandSize;
+                    var bandType = bandIndex % 2 == 0
+                        ? TableStyleOverrideValues.Band1Vertical
+                        : TableStyleOverrideValues.Band2Vertical;
+
+                    if (styleInfo.ConditionalBorders.TryGetValue(bandType, out var condBorders))
+                    {
+                        cellBorders = condBorders;
+                    }
+                }
+
                 cells.Add(new()
                 {
                     Content = cellContent,
@@ -1732,6 +1781,8 @@ sealed class DocumentParser
                         VerticalMerge = verticalMerge
                     }
                 });
+
+                gridColIndex += gridSpan;
             }
 
             // Parse row properties for height
@@ -1764,6 +1815,8 @@ sealed class DocumentParser
 
         // Parse table properties
         CellBorders? defaultBorders = null;
+        BorderEdge? insideHBorder = null;
+        BorderEdge? insideVBorder = null;
         double indentPoints = 0;
 
         if (tableProps != null)
@@ -1780,33 +1833,32 @@ sealed class DocumentParser
                     Left = ParseBorderEdge(borders.GetFirstChild<LeftBorder>())
                 };
 
-                // Also check InsideHorizontalBorder and InsideVerticalBorder for internal cell borders
                 var insideH = ParseBorderEdge(borders.GetFirstChild<InsideHorizontalBorder>());
                 var insideV = ParseBorderEdge(borders.GetFirstChild<InsideVerticalBorder>());
 
-                // If inside borders are specified, they apply to internal cell edges
-                // For now, we'll use these as defaults for all cells if they're more visible
-                if (insideH.IsVisible || insideV.IsVisible)
+                if (insideH.IsVisible)
                 {
-                    // Combine outside and inside borders
-                    defaultBorders = new()
-                    {
-                        Top = defaultBorders.Top.IsVisible ? defaultBorders.Top : insideH,
-                        Right = defaultBorders.Right.IsVisible ? defaultBorders.Right : insideV,
-                        Bottom = defaultBorders.Bottom.IsVisible ? defaultBorders.Bottom : insideH,
-                        Left = defaultBorders.Left.IsVisible ? defaultBorders.Left : insideV
-                    };
+                    insideHBorder = insideH;
+                }
+
+                if (insideV.IsVisible)
+                {
+                    insideVBorder = insideV;
                 }
             }
 
             // If no inline borders, try to get borders from the table style
-            if (defaultBorders == null)
+            if (defaultBorders == null && insideHBorder == null && insideVBorder == null && styleInfo != null)
             {
-                var tableStyle = tableProps.GetFirstChild<TableStyle>();
-                if (tableStyle?.Val?.Value != null && tableStyleBorders != null &&
-                    tableStyleBorders.TryGetValue(tableStyle.Val.Value, out var styleBorders))
+                defaultBorders = styleInfo.Outer;
+                if (styleInfo.InsideH.IsVisible)
                 {
-                    defaultBorders = styleBorders;
+                    insideHBorder = styleInfo.InsideH;
+                }
+
+                if (styleInfo.InsideV.IsVisible)
+                {
+                    insideVBorder = styleInfo.InsideV;
                 }
             }
 
@@ -1825,6 +1877,8 @@ sealed class DocumentParser
             {
                 IsFloating = isFloating,
                 DefaultBorders = defaultBorders,
+                InsideHorizontalBorder = insideHBorder,
+                InsideVerticalBorder = insideVBorder,
                 DefaultCellPadding = defaultCellPadding ?? new CellSpacing(),
                 DefaultCellMargin = defaultCellMargin ?? new CellSpacing(0),
                 IndentPoints = indentPoints,
@@ -2176,7 +2230,8 @@ sealed class DocumentParser
                             {
                                 if (runs.Count > 0)
                                 {
-                                    result.Add(new ParagraphElement
+                                    result.Add(
+                                        new ParagraphElement
                                     {
                                         Runs = new List<Run>(runs),
                                         Properties = props
@@ -2257,7 +2312,8 @@ sealed class DocumentParser
                             // Emit current paragraph content before the shapes/group content
                             if (runs.Count > 0)
                             {
-                                result.Add(new ParagraphElement
+                                result.Add(
+                                    new ParagraphElement
                                 {
                                     Runs = new List<Run>(runs),
                                     Properties = props
@@ -2285,7 +2341,8 @@ sealed class DocumentParser
                             // Emit current paragraph content before the ink
                             if (runs.Count > 0)
                             {
-                                result.Add(new ParagraphElement
+                                result.Add(
+                                    new ParagraphElement
                                 {
                                     Runs = new List<Run>(runs),
                                     Properties = props
@@ -2303,7 +2360,8 @@ sealed class DocumentParser
                                 // Emit current paragraph content before the WordArt
                                 if (runs.Count > 0)
                                 {
-                                    result.Add(new ParagraphElement
+                                    result.Add(
+                                        new ParagraphElement
                                     {
                                         Runs = new List<Run>(runs),
                                         Properties = props
@@ -4679,7 +4737,7 @@ sealed class DocumentParser
         return null;
     }
 
-    SectionBreakElement? ParseSectionBreak(SectionProperties sectionProps)
+    SectionBreakElement ParseSectionBreak(SectionProperties sectionProps)
     {
         var typeElement = sectionProps.GetFirstChild<SectionType>();
         var breakType = SectionBreakType.NextPage; // Default

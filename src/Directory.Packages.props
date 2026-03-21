@@ -5,8 +5,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="AngleSharp" Version="1.4.0" />
-    <PackageVersion Include="DocumentFormat.OpenXml" Version="3.4.1" />
-    <PackageVersion Include="Magick.NET-Q16-AnyCPU" Version="14.10.4" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageVersion Include="DocumentFormat.OpenXml" Version="3.5.1" />
+    <PackageVersion Include="Magick.NET-Q16-AnyCPU" Version="14.11.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
     <PackageVersion Include="Microsoft.Office.Interop.Word" Version="15.0.4797.1004" />
     <PackageVersion Include="NUnit" Version="4.5.1" />
@@ -18,9 +19,12 @@
     <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.2" />
     <PackageVersion Include="SkiaSharp.NativeAssets.macOS" Version="3.119.2" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Win32" Version="3.119.2" />
+    <PackageVersion Include="SixLabors.Fonts" Version="2.1.3" />
+    <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageVersion Include="SixLabors.ImageSharp.Drawing" Version="2.1.7" />
     <PackageVersion Include="Svg.Skia" Version="3.6.0" />
-    <PackageVersion Include="TUnit" Version="1.19.22" />
-    <PackageVersion Include="Verify.ImageMagick" Version="3.8.5" />
-    <PackageVersion Include="Verify.TUnit" Version="31.13.2" />
+    <PackageVersion Include="TUnit" Version="1.19.74" />
+    <PackageVersion Include="Verify.ImageMagick" Version="3.8.6" />
+    <PackageVersion Include="Verify.TUnit" Version="31.13.5" />
   </ItemGroup>
 </Project>

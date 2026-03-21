@@ -3,7 +3,7 @@ namespace WordRender;
 /// <summary>
 /// Converts DOCX documents to PNG images.
 /// </summary>
-public sealed class DocumentConverter
+public abstract class DocumentConverter
 {
     DocumentParser parser = new();
 
@@ -32,34 +32,22 @@ public sealed class DocumentConverter
         options ??= new();
         Directory.CreateDirectory(outputDirectory);
 
-        // Parse the document
         var document = parser.Parse(docxStream);
-
-        // Render to bitmaps
-        using var context = new RenderContext(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale);
-        using var renderer = new PageRenderer(context);
-
-        var pages = renderer.RenderDocument(document);
-
-        // Save pages as PNGs
         var imagePaths = new List<string>();
 
-        for (var i = 0; i < pages.Count; i++)
+        var pageIndex = 0;
+        var pageCount = RenderPages(
+            document,
+            options,
+            writePng =>
         {
-            var page = pages[i];
-            var fileName = $"page_{i + 1:D4}.png";
-            var filePath = Path.Combine(outputDirectory, fileName);
-
-            using var image = SKImage.FromBitmap(page);
-            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-            using var fileStream = File.OpenWrite(filePath);
-            data.SaveTo(fileStream);
-
+            var filePath = Path.Combine(outputDirectory, $"page_{++pageIndex:D4}.png");
             imagePaths.Add(filePath);
-            page.Dispose();
-        }
+            using var fs = File.Create(filePath);
+            writePng(fs);
+        });
 
-        return new(imagePaths, pages.Count);
+        return new(imagePaths, pageCount);
     }
 
     /// <summary>
@@ -84,26 +72,23 @@ public sealed class DocumentConverter
     {
         options ??= new();
 
-        // Parse the document
         var document = parser.Parse(docxStream);
-
-        // Render to bitmaps
-        using var context = new RenderContext(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale);
-        using var renderer = new PageRenderer(context);
-
-        var pages = renderer.RenderDocument(document);
-
-        // Encode pages to PNG data
         var imageData = new List<byte[]>();
 
-        foreach (var page in pages)
+        RenderPages(document, options, writePng =>
         {
-            using var image = SKImage.FromBitmap(page);
-            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-            imageData.Add(data.ToArray());
-            page.Dispose();
-        }
+            using var ms = new MemoryStream();
+            writePng(ms);
+            imageData.Add(ms.ToArray());
+        });
 
         return imageData;
     }
+
+    /// <summary>
+    /// Renders a parsed document by calling pageCallback for each page.
+    /// The callback receives an action that writes PNG data to a stream.
+    /// Returns the total page count.
+    /// </summary>
+    private protected abstract int RenderPages(ParsedDocument document, ConversionOptions options, Action<Action<Stream>> pageCallback);
 }
