@@ -96,6 +96,8 @@ sealed class ParsedDocument
     public required IReadOnlyList<DocumentElement> Elements { get; init; }
     public HeaderFooterContent? Header { get; init; }
     public HeaderFooterContent? Footer { get; init; }
+    public HeaderFooterContent? FirstPageHeader { get; init; }
+    public HeaderFooterContent? FirstPageFooter { get; init; }
 
     /// <summary>
     /// Document-level hyphenation settings.
@@ -507,6 +509,12 @@ internal sealed record PageSettings
     /// </summary>
     public string? BackgroundColorHex { get; init; }
 
+    /// <summary>
+    /// Whether the first page has different header/footer (w:titlePg).
+    /// When true, the default header/footer should not appear on page 1.
+    /// </summary>
+    public bool DifferentFirstPage { get; init; }
+
     public double ContentWidth => WidthPoints - MarginLeft - MarginRight;
 
     /// <summary>Width of a single column in points.</summary>
@@ -863,6 +871,11 @@ internal enum SectionBreakType
     /// <summary>Starts new section in the next column (for multi-column layouts).</summary>
     NextColumn
 }
+
+/// <summary>
+/// Represents a horizontal rule (&lt;hr&gt;) element.
+/// </summary>
+sealed class HorizontalRuleElement : DocumentElement;
 
 /// <summary>
 /// Represents an inline image.
@@ -1415,6 +1428,12 @@ internal sealed record TableProperties
 
     /// <summary>Default borders for cells (from w:tblBorders). Null means no borders.</summary>
     public CellBorders? DefaultBorders { get; init; }
+
+    /// <summary>Inside horizontal border (between rows). Null means none.</summary>
+    public BorderEdge? InsideHorizontalBorder { get; init; }
+
+    /// <summary>Inside vertical border (between columns). Null means none.</summary>
+    public BorderEdge? InsideVerticalBorder { get; init; }
 
     /// <summary>Default cell padding (used when cell doesn't specify its own).</summary>
     public CellSpacing DefaultCellPadding { get; init; } = new();

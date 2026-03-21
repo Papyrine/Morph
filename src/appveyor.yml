@@ -5,12 +5,15 @@ environment:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 build_script:
 - pwsh: |
-    # Install bundled fonts
+    # Install bundled fonts (direct copy avoids COM Shell hangs on CI)
     $fontsPath = "src/Fonts"
-    $shell = New-Object -ComObject Shell.Application
-    $fontsFolder = $shell.Namespace(0x14)
+    $winFonts = "$env:WINDIR\Fonts"
+    $regKey = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts"
     Get-ChildItem -Path $fontsPath -Include *.ttf,*.otf -Recurse | ForEach-Object {
-        $fontsFolder.CopyHere($_.FullName, 0x10)
+        Copy-Item $_.FullName -Destination $winFonts -Force
+        $fontName = [System.IO.Path]::GetFileNameWithoutExtension($_.Name)
+        $fontType = if ($_.Extension -eq ".otf") { "OpenType" } else { "TrueType" }
+        New-ItemProperty -Path $regKey -Name "$fontName ($fontType)" -Value $_.Name -PropertyType String -Force | Out-Null
     }
 - pwsh: |
     Invoke-WebRequest "https://dot.net/v1/dotnet-install.ps1" -OutFile "./dotnet-install.ps1"

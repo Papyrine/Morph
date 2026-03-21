@@ -1,0 +1,57 @@
+﻿[
+  {
+    "Runs": [
+      {
+        "Text": "before",
+        "Properties": {
+          "FontFamily": "Aptos",
+          "FontSizePoints": 11.0,
+          "Bold": false,
+          "Italic": false,
+          "Underline": false,
+          "Strikethrough": false,
+          "AllCaps": false
+        }
+      }
+    ],
+    "Properties": {
+      "SpacingAfterPoints": 8.0,
+      "LineSpacingMultiplier": 1.08,
+      "ContextualSpacing": false,
+      "SuppressLineNumbers": false,
+      "SuppressAutoHyphens": false,
+      "KeepLines": false,
+      "KeepNext": false,
+      "WidowControl": true,
+      "PageBreakBefore": false
+    }
+  },
+  {},
+  {
+    "Runs": [
+      {
+        "Text": "after",
+        "Properties": {
+          "FontFamily": "Aptos",
+          "FontSizePoints": 11.0,
+          "Bold": false,
+          "Italic": false,
+          "Underline": false,
+          "Strikethrough": false,
+          "AllCaps": false
+        }
+      }
+    ],
+    "Properties": {
+      "SpacingAfterPoints": 8.0,
+      "LineSpacingMultiplier": 1.08,
+      "ContextualSpacing": false,
+      "SuppressLineNumbers": false,
+      "SuppressAutoHyphens": false,
+      "KeepLines": false,
+      "KeepNext": false,
+      "WidowControl": true,
+      "PageBreakBefore": false
+    }
+  }
+]

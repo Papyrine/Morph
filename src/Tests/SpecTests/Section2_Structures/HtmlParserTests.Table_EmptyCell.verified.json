@@ -1,0 +1,44 @@
+﻿[
+  {
+    "Rows": [
+      {
+        "Cells": [
+          {
+            "Properties": {
+              "GridSpan": 1
+            }
+          }
+        ],
+        "IsExactHeight": false
+      }
+    ],
+    "Properties": {
+      "IsFloating": false,
+      "DefaultBorders": {
+        "Top": {
+          "IsVisible": true,
+          "WidthPoints": 0.5,
+          "ColorHex": "000000"
+        },
+        "Right": {
+          "IsVisible": true,
+          "WidthPoints": 0.5,
+          "ColorHex": "000000"
+        },
+        "Bottom": {
+          "IsVisible": true,
+          "WidthPoints": 0.5,
+          "ColorHex": "000000"
+        },
+        "Left": {
+          "IsVisible": true,
+          "WidthPoints": 0.5,
+          "ColorHex": "000000"
+        },
+        "HasAnyBorder": true
+      },
+      "DefaultCellPadding": {},
+      "DefaultCellMargin": {}
+    }
+  }
+]

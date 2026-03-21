@@ -1,0 +1,20 @@
+﻿{
+  "ExpectedPageCount": 2,
+  "ResultingPageCount": 2,
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.1286,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "results_imagesharp#page_0001.verified.png",
+      "ReceivedFile": "results_imagesharp#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0182,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "results_imagesharp#page_0002.verified.png",
+      "ReceivedFile": "results_imagesharp#page_0002.received.png"
+    }
+  ]
+}

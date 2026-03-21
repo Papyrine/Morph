@@ -1,0 +1,84 @@
+﻿[
+  {
+    "Runs": [
+      {
+        "Text": "Title",
+        "Properties": {
+          "FontFamily": "Aptos",
+          "FontSizePoints": 24.0,
+          "Bold": true,
+          "Italic": false,
+          "Underline": false,
+          "Strikethrough": false,
+          "AllCaps": false
+        }
+      }
+    ],
+    "Properties": {
+      "SpacingAfterPoints": 12.0,
+      "LineSpacingMultiplier": 1.08,
+      "ContextualSpacing": false,
+      "SuppressLineNumbers": false,
+      "SuppressAutoHyphens": false,
+      "KeepLines": false,
+      "KeepNext": false,
+      "WidowControl": true,
+      "PageBreakBefore": false
+    }
+  },
+  {
+    "Runs": [
+      {
+        "Text": "Body",
+        "Properties": {
+          "FontFamily": "Aptos",
+          "FontSizePoints": 11.0,
+          "Bold": false,
+          "Italic": false,
+          "Underline": false,
+          "Strikethrough": false,
+          "AllCaps": false
+        }
+      }
+    ],
+    "Properties": {
+      "SpacingAfterPoints": 8.0,
+      "LineSpacingMultiplier": 1.08,
+      "ContextualSpacing": false,
+      "SuppressLineNumbers": false,
+      "SuppressAutoHyphens": false,
+      "KeepLines": false,
+      "KeepNext": false,
+      "WidowControl": true,
+      "PageBreakBefore": false
+    }
+  },
+  {
+    "Runs": [
+      {
+        "Text": "• Item",
+        "Properties": {
+          "FontFamily": "Aptos",
+          "FontSizePoints": 11.0,
+          "Bold": false,
+          "Italic": false,
+          "Underline": false,
+          "Strikethrough": false,
+          "AllCaps": false
+        }
+      }
+    ],
+    "Properties": {
+      "SpacingAfterPoints": 4.0,
+      "LineSpacingMultiplier": 1.08,
+      "LeftIndentPoints": 18.0,
+      "ContextualSpacing": false,
+      "SuppressLineNumbers": false,
+      "SuppressAutoHyphens": false,
+      "KeepLines": false,
+      "KeepNext": false,
+      "WidowControl": true,
+      "PageBreakBefore": false
+    }
+  }
+]
