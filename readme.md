@@ -1,7 +1,8 @@
 # <img src='/src/icon.png' height='30px'> Morph
 
 [![Build status](https://img.shields.io/appveyor/build/SimonCropp/morph)](https://ci.appveyor.com/project/SimonCropp/morph)
-[![NuGet Status](https://img.shields.io/nuget/v/Morph.svg?label=PackageShader)](https://www.nuget.org/packages/Morph/)
+[![NuGet Status](https://img.shields.io/nuget/v/Morph.Skia.svg?label=Morph.Skia)](https://www.nuget.org/packages/Morph.Skia/)
+[![NuGet Status](https://img.shields.io/nuget/v/Morph.ImageSharp.svg?label=Morph.ImageSharp)](https://www.nuget.org/packages/Morph.ImageSharp/)
 
 A .NET library that converts Microsoft Word DOCX documents into PNG images.
 
@@ -14,15 +15,25 @@ A .NET library that converts Microsoft Word DOCX documents into PNG images.
 
 ## Dependencies
 
+**Core:**
 - **[DocumentFormat.OpenXml](https://www.nuget.org/packages/DocumentFormat.OpenXml)** - DOCX file parsing
-- **[SkiaSharp](https://www.nuget.org/packages/SkiaSharp)** - Cross-platform graphics rendering
-- **[Svg.Skia](https://www.nuget.org/packages/Svg.Skia)** - SVG rendering support
 - **[AngleSharp](https://www.nuget.org/packages/AngleSharp)** - HTML content parsing (for AltChunk support)
 
+**Morph.Skia backend:**
+- **[SkiaSharp](https://www.nuget.org/packages/SkiaSharp)** - Cross-platform graphics rendering
+- **[Svg.Skia](https://www.nuget.org/packages/Svg.Skia)** - SVG rendering support
 
-## NuGet package
+**Morph.ImageSharp backend:**
+- **[SixLabors.ImageSharp](https://www.nuget.org/packages/SixLabors.ImageSharp)** - Cross-platform graphics rendering
+- **[SixLabors.ImageSharp.Drawing](https://www.nuget.org/packages/SixLabors.ImageSharp.Drawing)** - Drawing primitives
+- **[SixLabors.Fonts](https://www.nuget.org/packages/SixLabors.Fonts)** - Font handling
 
-https://nuget.org/packages/Morph/
+
+## NuGet packages
+
+https://nuget.org/packages/Morph.Skia/
+
+https://nuget.org/packages/Morph.ImageSharp/
 
 
 ## Features
@@ -93,7 +104,21 @@ https://nuget.org/packages/Morph/
 - HTML content via AltChunk
 
 
+## Rendering Backends
+
+Morph supports two rendering backends. Choose the one that best fits your needs:
+
+| Backend | Package | Pros |
+|---------|---------|------|
+| **SkiaSharp** | `Morph.Skia` | Mature, includes SVG support |
+| **ImageSharp** | `Morph.ImageSharp` | Fully managed (no native dependencies) |
+
+Both backends expose the same API via `WordRender.Skia.DocumentConverter` and `WordRender.ImageSharp.DocumentConverter`.
+
+
 ## Usage
+
+The examples below use the SkiaSharp backend. To use ImageSharp instead, replace `WordRender.Skia.DocumentConverter` with `WordRender.ImageSharp.DocumentConverter`.
 
 
 ### Basic Usage - Save to Files

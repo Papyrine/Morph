@@ -30,7 +30,12 @@ The conversion pipeline is **Parse → Render**:
 
 1. **Parsing** (`src/Morph/Parsing/`): `DocumentParser` reads OOXML via DocumentFormat.OpenXml and builds a `ParsedDocument` containing a tree of `DocumentElement` types (defined in `DocumentElements.cs`). Sub-parsers handle shapes, ink, themes, and HTML (AltChunk).
 
-2. **Rendering** (`src/Morph/Rendering/`): `PageRenderer` lays out elements into pages and draws them using SkiaSharp. `TextRenderer` handles typography. `RenderContext` holds rendering state (DPI, page settings, compatibility mode).
+2. **Rendering** — two interchangeable backends behind an abstract `DocumentConverter` base class:
+   - **SkiaSharp** (`src/Morph.Skia/`): `WordRender.Skia.DocumentConverter` — uses SkiaSharp + Svg.Skia
+   - **ImageSharp** (`src/Morph.ImageSharp/`): `WordRender.ImageSharp.DocumentConverter` — uses SixLabors.ImageSharp / ImageSharp.Drawing / Fonts
+   - **Shared rendering logic** (`src/Morph/Rendering/`): `RenderContextBase`, `FontCacheLoader`, `FontHelpers`, `TableLayout`
+
+   Each backend has its own `PageRenderer`, `TextRenderer`, and `RenderContext`.
 
 ## Code Style
 
@@ -46,7 +51,7 @@ The conversion pipeline is **Parse → Render**:
 ## Testing
 
 - **Framework:** TUnit (not xUnit/NUnit) with `[Test]` and `[MethodDataSource]` attributes
-- **Scenario tests** (`ScenarioTests.cs`, DEBUG-only): parameterized over 2000+ directories in `src/Tests/Inputs/`, each containing `input.docx` and `expected_*.png` reference images. Uses Verify + ImageMagick for pixel-level comparison
+- **Scenario tests** (`SkiaScenarioTests.cs` / `ImageSharpScenarioTests.cs`, DEBUG-only): parameterized over 2000+ directories in `src/Tests/Inputs/`, each containing `input.docx` and `expected_*.png` reference images. Uses Verify + ImageMagick for pixel-level comparison. Both backends are tested independently
 - **Spec tests** (`src/Tests/SpecTests/`): unit tests for specific OOXML specification features
 - **RenderHelper** (`src/RenderHelper/`): .NET Framework 4.8.1 project that generates reference images using Microsoft Word via COM interop (Windows-only, not part of normal test runs)
 
