@@ -106,7 +106,7 @@ https://nuget.org/packages/Morph.ImageSharp/
 
 ## Rendering Backends
 
-Morph supports two rendering backends. Choose the one that best fits your needs:
+Morph supports two rendering backends:
 
 | Backend | Package | Pros |
 |---------|---------|------|
