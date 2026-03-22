@@ -8,23 +8,4 @@ D:\Code\Morph\src\Tests\Inputs\resumes\13
 D:\Code\Morph\src\Tests\Inputs\resumes\14
 D:\Code\Morph\src\Tests\Inputs\table_multipage
 
-# metricFailures 19
-D:\Code\Morph\src\Tests\Inputs\agendas-minutes\06
-D:\Code\Morph\src\Tests\Inputs\business-plans\15
-D:\Code\Morph\src\Tests\Inputs\business-plans\15
-D:\Code\Morph\src\Tests\Inputs\business-plans\15
-D:\Code\Morph\src\Tests\Inputs\business-plans\15
-D:\Code\Morph\src\Tests\Inputs\business-plans\15
-D:\Code\Morph\src\Tests\Inputs\business-plans\15
-D:\Code\Morph\src\Tests\Inputs\business-plans\15
-D:\Code\Morph\src\Tests\Inputs\business-plans\15
-D:\Code\Morph\src\Tests\Inputs\business-plans\15
-D:\Code\Morph\src\Tests\Inputs\business-plans\15
-D:\Code\Morph\src\Tests\Inputs\business-plans\15
-D:\Code\Morph\src\Tests\Inputs\business-plans\15
-D:\Code\Morph\src\Tests\Inputs\business-plans\15
-D:\Code\Morph\src\Tests\Inputs\business-plans\15
-D:\Code\Morph\src\Tests\Inputs\html_complex
-D:\Code\Morph\src\Tests\Inputs\html_images
-D:\Code\Morph\src\Tests\Inputs\inline_image
-D:\Code\Morph\src\Tests\Inputs\multiple_images
+# metricFailures 0
