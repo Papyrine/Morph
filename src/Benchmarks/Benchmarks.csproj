@@ -7,9 +7,9 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" />
-    <ProjectReference Include="..\Morph\Morph.csproj" />
-    <ProjectReference Include="..\Morph.Skia\Morph.Skia.csproj" />
-    <ProjectReference Include="..\Morph.ImageSharp\Morph.ImageSharp.csproj" />
+    <ProjectReference Include="..\Morph.OpenXml\Morph.OpenXml.csproj" />
+    <ProjectReference Include="..\Morph.OpenXml.Skia\Morph.OpenXml.Skia.csproj" />
+    <ProjectReference Include="..\Morph.OpenXml.ImageSharp\Morph.OpenXml.ImageSharp.csproj" />
     <PackageReference Include="SkiaSharp.NativeAssets.Win32" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
     <PackageReference Include="SkiaSharp.NativeAssets.macOS" />
