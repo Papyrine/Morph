@@ -9,7 +9,7 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
     : RenderContextBase(pageSettings, dpi, compatibility, fontWidthScale, fontFallback),
         IDisposable
 {
-    Dictionary<string, FontFamily> fontFamilyCache = [];
+    Dictionary<(string, FontStyle), FontFamily> fontFamilyCache = [];
 
     // Shared font collection for fonts loaded from file (cloud, Office, user caches)
     FontCollection sharedFontCollection = new();
@@ -48,7 +48,13 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
             }
         }
 
-        return result.ToDictionary(_ => _.Key, _ => _.Value.ToArray(), StringComparer.OrdinalIgnoreCase);
+        var final = new Dictionary<string, string[]>(result.Count, StringComparer.OrdinalIgnoreCase);
+        foreach (var kvp in result)
+        {
+            final[kvp.Key] = kvp.Value.ToArray();
+        }
+
+        return final;
     }
 
     public FontFamily GetFontFamily(string fontFamily, bool bold, bool italic)
@@ -68,7 +74,7 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
         }
 
         var candidates = FontHelpers.GetCandidateNames(fontFamily, bold);
-        var key = $"{candidates.Effective}_{style}";
+        var key = (candidates.Effective, style);
 
         if (!fontFamilyCache.TryGetValue(key, out var resolvedFamily))
         {
@@ -151,31 +157,13 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
         }
     }
 
-    static string[] styleSuffixes => FontHelpers.StyleSuffixes;
-
     FontFamily? TryLoadFromFontCache(Dictionary<string, string[]> fontCache, string fontFamily)
     {
         // Try exact match first
         if (!fontCache.TryGetValue(fontFamily, out var fontFiles))
         {
             // Try stripping style suffixes to find base family
-            var baseName = fontFamily;
-            foreach (var suffix in styleSuffixes)
-            {
-                if (baseName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
-                {
-                    baseName = baseName[..^suffix.Length];
-                }
-            }
-
-            // Also try stripping common multi-word suffixes
-            foreach (var suffix in styleSuffixes)
-            {
-                if (baseName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
-                {
-                    baseName = baseName[..^suffix.Length];
-                }
-            }
+            var baseName = FontHelpers.StripWeightSuffixes(fontFamily);
 
             if (baseName == fontFamily ||
                 !fontCache.TryGetValue(baseName, out fontFiles))
