@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Morph is a .NET library that converts Microsoft Word DOCX documents into PNG images. The public API lives in the `WordRender` namespace. The main entry point is `DocumentConverter`, which exposes `ConvertToImages` (file/stream → PNG files) and `ConvertToImageData` (file/stream → byte arrays).
+Morph is a .NET library that converts Microsoft Word DOCX documents or HTML content into PNG images. The DOCX public API lives in the `WordRender` namespace (entry point: `DocumentConverter`). The HTML public API lives in the `HtmlRender` namespace (entry point: `HtmlConverter`). Both expose `ConvertToImages` and `ConvertToImageData`.
 
 ## Build & Test Commands
 
@@ -26,16 +26,25 @@ dotnet run --project src/Tests -- --filter "Name=Scenario"
 
 ## Architecture
 
-The conversion pipeline is **Parse → Render**:
+The conversion pipeline is **Parse → Render**, split across multiple assemblies:
 
-1. **Parsing** (`src/Morph/Parsing/`): `DocumentParser` reads OOXML via DocumentFormat.OpenXml and builds a `ParsedDocument` containing a tree of `DocumentElement` types (defined in `DocumentElements.cs`). Sub-parsers handle shapes, ink, themes, and HTML (AltChunk).
+**Core model** (`src/Morph/`): `ParsedDocument`, `DocumentElement` types (defined in `DocumentElements.cs`), shared rendering base (`RenderContextBase`, `FontCacheLoader`, `FontHelpers`, `TableLayout`), `ConversionOptions`, `ConversionResult`. No heavy dependencies.
 
-2. **Rendering** — two interchangeable backends behind an abstract `DocumentConverter` base class:
-   - **SkiaSharp** (`src/Morph.Skia/`): `WordRender.Skia.DocumentConverter` — uses SkiaSharp + Svg.Skia
-   - **ImageSharp** (`src/Morph.ImageSharp/`): `WordRender.ImageSharp.DocumentConverter` — uses SixLabors.ImageSharp / ImageSharp.Drawing / Fonts
-   - **Shared rendering logic** (`src/Morph/Rendering/`): `RenderContextBase`, `FontCacheLoader`, `FontHelpers`, `TableLayout`
+**Parsers:**
+- **DOCX** (`src/Morph.OpenXml/`): `DocumentParser` reads OOXML via DocumentFormat.OpenXml and builds a `ParsedDocument`. Sub-parsers handle shapes, ink, themes, and HTML (AltChunk).
+- **HTML** (`src/Morph.Html/`): `HtmlParser` converts HTML to `DocumentElement` trees via AngleSharp. `HtmlConverter` abstract base class.
 
-   Each backend has its own `PageRenderer`, `TextRenderer`, and `RenderContext`.
+**Rendering backends** — each has its own `PageRenderer`, `TextRenderer`, and `RenderContext`:
+- **SkiaSharp** (`src/Morph.Skia/`): rendering engine using SkiaSharp + Svg.Skia
+- **ImageSharp** (`src/Morph.ImageSharp/`): rendering engine using SixLabors.ImageSharp / ImageSharp.Drawing / Fonts
+
+**Entry points** (thin wrappers combining a parser with a rendering backend):
+- `src/Morph.OpenXml.Skia/` — `WordRender.Skia.DocumentConverter` (DOCX → PNG via SkiaSharp)
+- `src/Morph.OpenXml.ImageSharp/` — `WordRender.ImageSharp.DocumentConverter` (DOCX → PNG via ImageSharp)
+- `src/Morph.Html.Skia/` — `HtmlRender.Skia.HtmlConverter` (HTML → PNG via SkiaSharp)
+- `src/Morph.Html.ImageSharp/` — `HtmlRender.ImageSharp.HtmlConverter` (HTML → PNG via ImageSharp)
+
+The HTML packages have no transitive dependency on `DocumentFormat.OpenXml`.
 
 ## Code Style
 

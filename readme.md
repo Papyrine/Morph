@@ -1,10 +1,12 @@
 # <img src='/src/icon.png' height='30px'> Morph
 
 [![Build status](https://img.shields.io/appveyor/build/SimonCropp/morph)](https://ci.appveyor.com/project/SimonCropp/morph)
-[![NuGet Status](https://img.shields.io/nuget/v/Morph.Skia.svg?label=Morph.Skia)](https://www.nuget.org/packages/Morph.Skia/)
-[![NuGet Status](https://img.shields.io/nuget/v/Morph.ImageSharp.svg?label=Morph.ImageSharp)](https://www.nuget.org/packages/Morph.ImageSharp/)
+[![NuGet Status](https://img.shields.io/nuget/v/Morph.OpenXml.Skia.svg?label=Morph.OpenXml.Skia)](https://www.nuget.org/packages/Morph.OpenXml.Skia/)
+[![NuGet Status](https://img.shields.io/nuget/v/Morph.OpenXml.ImageSharp.svg?label=Morph.OpenXml.ImageSharp)](https://www.nuget.org/packages/Morph.OpenXml.ImageSharp/)
+[![NuGet Status](https://img.shields.io/nuget/v/Morph.Html.Skia.svg?label=Morph.Html.Skia)](https://www.nuget.org/packages/Morph.Html.Skia/)
+[![NuGet Status](https://img.shields.io/nuget/v/Morph.Html.ImageSharp.svg?label=Morph.Html.ImageSharp)](https://www.nuget.org/packages/Morph.Html.ImageSharp/)
 
-A .NET library that converts Microsoft Word DOCX documents into PNG images.
+A .NET library that converts Microsoft Word DOCX documents or HTML content into PNG images.
 
 
 ## Requirements
@@ -13,27 +15,23 @@ A .NET library that converts Microsoft Word DOCX documents into PNG images.
 - Cross-platform support: Windows, macOS, Linux
 
 
-## Dependencies
-
-**Core:**
-- **[DocumentFormat.OpenXml](https://www.nuget.org/packages/DocumentFormat.OpenXml)** - DOCX file parsing
-- **[AngleSharp](https://www.nuget.org/packages/AngleSharp)** - HTML content parsing (for AltChunk support)
-
-**Morph.Skia backend:**
-- **[SkiaSharp](https://www.nuget.org/packages/SkiaSharp)** - Cross-platform graphics rendering
-- **[Svg.Skia](https://www.nuget.org/packages/Svg.Skia)** - SVG rendering support
-
-**Morph.ImageSharp backend:**
-- **[SixLabors.ImageSharp](https://www.nuget.org/packages/SixLabors.ImageSharp)** - Cross-platform graphics rendering
-- **[SixLabors.ImageSharp.Drawing](https://www.nuget.org/packages/SixLabors.ImageSharp.Drawing)** - Drawing primitives
-- **[SixLabors.Fonts](https://www.nuget.org/packages/SixLabors.Fonts)** - Font handling
-
-
 ## NuGet packages
 
-https://nuget.org/packages/Morph.Skia/
+### DOCX to PNG
 
-https://nuget.org/packages/Morph.ImageSharp/
+For converting Word documents to images:
+
+https://nuget.org/packages/Morph.OpenXml.Skia/
+
+https://nuget.org/packages/Morph.OpenXml.ImageSharp/
+
+### HTML to PNG
+
+For converting HTML content to images (no Microsoft Word / OpenXml dependency):
+
+https://nuget.org/packages/Morph.Html.Skia/
+
+https://nuget.org/packages/Morph.Html.ImageSharp/
 
 
 ## Features
@@ -108,15 +106,16 @@ https://nuget.org/packages/Morph.ImageSharp/
 
 Morph supports two rendering backends:
 
-| Backend | Package | Pros |
-|---------|---------|------|
-| **SkiaSharp** | `Morph.Skia` | Mature, includes SVG support |
-| **ImageSharp** | `Morph.ImageSharp` | Fully managed (no native dependencies) |
-
-Both backends expose the same API via `WordRender.Skia.DocumentConverter` and `WordRender.ImageSharp.DocumentConverter`.
+| Backend | DOCX Package | HTML Package | Pros |
+|---------|-------------|-------------|------|
+| **SkiaSharp** | `Morph.OpenXml.Skia` | `Morph.Html.Skia` | Mature, includes SVG support |
+| **ImageSharp** | `Morph.OpenXml.ImageSharp` | `Morph.Html.ImageSharp` | Fully managed (no native dependencies) |
 
 
 ## Usage
+
+
+### DOCX to PNG
 
 The examples below use the SkiaSharp backend. To use ImageSharp instead, replace `WordRender.Skia.DocumentConverter` with `WordRender.ImageSharp.DocumentConverter`.
 
@@ -199,6 +198,42 @@ var result = converter.ConvertToImages(
 ```
 <sup><a href='/src/Tests/ReadmeSamples.cs#L70-L85' title='Snippet source file'>snippet source</a> | <a href='#snippet-CustomOptions' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
+
+
+### HTML to PNG
+
+To use ImageSharp instead, replace `HtmlRender.Skia.HtmlConverter` with `HtmlRender.ImageSharp.HtmlConverter`.
+
+
+#### Basic Usage - Save to Files
+
+```cs
+var converter = new HtmlRender.Skia.HtmlConverter();
+
+var result = converter.ConvertToImages(
+    "<h1>Hello</h1><p>World</p>",
+    "output-folder");
+
+Console.WriteLine($"Generated {result.PageCount} pages");
+foreach (var path in result.ImagePaths)
+{
+    Console.WriteLine($"Created: {path}");
+}
+```
+
+
+#### In-Memory Conversion
+
+```cs
+var converter = new HtmlRender.Skia.HtmlConverter();
+
+var imageData = converter.ConvertToImageData("<h1>Hello</h1><p>World</p>");
+
+foreach (var pngBytes in imageData)
+{
+    // Use the PNG byte array as needed
+}
+```
 
 
 ## Configuration Options
