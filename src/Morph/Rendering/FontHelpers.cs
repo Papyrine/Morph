@@ -72,13 +72,20 @@ static class FontHelpers
     /// <summary>
     /// Determines if a font name implies bold weight (for adjusting style when resolving from caches).
     /// </summary>
-    internal static bool ImpliesBold(string fontFamily) =>
-        fontFamily.Contains("Bold", StringComparison.OrdinalIgnoreCase) ||
-        fontFamily.Contains("Black", StringComparison.OrdinalIgnoreCase) ||
-        fontFamily.Contains("Heavy", StringComparison.OrdinalIgnoreCase) ||
-        fontFamily.Contains("Medium", StringComparison.OrdinalIgnoreCase) ||
-        fontFamily.Contains("Demi", StringComparison.OrdinalIgnoreCase) ||
-        fontFamily.Contains("Semibold", StringComparison.OrdinalIgnoreCase);
+    static readonly string[] boldKeywords = ["Bold", "Black", "Heavy", "Medium", "Demi", "Semibold"];
+
+    internal static bool ImpliesBold(string fontFamily)
+    {
+        foreach (var keyword in boldKeywords)
+        {
+            if (fontFamily.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// Computes the candidate font family names to try when resolving a font.

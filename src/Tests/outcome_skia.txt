@@ -1,12 +1,30 @@
 # pageCountFailures 9
-C:\Code\Morph\src\Tests\Inputs\business-plans\10
-C:\Code\Morph\src\Tests\Inputs\business-plans\12
-C:\Code\Morph\src\Tests\Inputs\business-plans\13
-C:\Code\Morph\src\Tests\Inputs\complex_spacing
-C:\Code\Morph\src\Tests\Inputs\cover-letters\09
-C:\Code\Morph\src\Tests\Inputs\letters\05
-C:\Code\Morph\src\Tests\Inputs\resumes\13
-C:\Code\Morph\src\Tests\Inputs\resumes\14
-C:\Code\Morph\src\Tests\Inputs\table_multipage
+D:\Code\Morph\src\Tests\Inputs\business-plans\10
+D:\Code\Morph\src\Tests\Inputs\business-plans\12
+D:\Code\Morph\src\Tests\Inputs\business-plans\13
+D:\Code\Morph\src\Tests\Inputs\complex_spacing
+D:\Code\Morph\src\Tests\Inputs\cover-letters\09
+D:\Code\Morph\src\Tests\Inputs\letters\05
+D:\Code\Morph\src\Tests\Inputs\resumes\13
+D:\Code\Morph\src\Tests\Inputs\resumes\14
+D:\Code\Morph\src\Tests\Inputs\table_multipage
 
-# metricFailures 0
+# metricFailures 18
+D:\Code\Morph\src\Tests\Inputs\agendas-minutes\06
+D:\Code\Morph\src\Tests\Inputs\business-plans\15
+D:\Code\Morph\src\Tests\Inputs\html_complex
+D:\Code\Morph\src\Tests\Inputs\html_css_alignment
+D:\Code\Morph\src\Tests\Inputs\html_css_borders
+D:\Code\Morph\src\Tests\Inputs\html_css_margin_padding
+D:\Code\Morph\src\Tests\Inputs\html_images
+D:\Code\Morph\src\Tests\Inputs\html_table_cell_margin_css
+D:\Code\Morph\src\Tests\Inputs\html_table_cellpadding
+D:\Code\Morph\src\Tests\Inputs\inline_image
+D:\Code\Morph\src\Tests\Inputs\letters\12
+D:\Code\Morph\src\Tests\Inputs\menus\06
+D:\Code\Morph\src\Tests\Inputs\menus\06
+D:\Code\Morph\src\Tests\Inputs\multiple_images
+D:\Code\Morph\src\Tests\Inputs\newsletters\09
+D:\Code\Morph\src\Tests\Inputs\newsletters\09
+D:\Code\Morph\src\Tests\Inputs\newsletters\09
+D:\Code\Morph\src\Tests\Inputs\newsletters\09

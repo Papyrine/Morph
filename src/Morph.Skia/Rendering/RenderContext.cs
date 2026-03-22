@@ -3,7 +3,7 @@
 /// </summary>
 sealed class RenderContext : RenderContextBase, IDisposable
 {
-    Dictionary<string, SKTypeface> typefaceCache = [];
+    Dictionary<(string, int, SKFontStyleSlant), SKTypeface> typefaceCache = [];
 
     // Cloud fonts cache from Microsoft 365
     static Lazy<Dictionary<string, string[]>> cloudFontsCache = new(() => LoadFontCache(FontCacheLoader.GetCloudFontFiles()));
@@ -16,7 +16,7 @@ sealed class RenderContext : RenderContextBase, IDisposable
 
     static Dictionary<string, string[]> LoadFontCache(IEnumerable<string> fontFiles)
     {
-        var result = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        var temp = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var fontFile in fontFiles)
         {
@@ -26,16 +26,22 @@ sealed class RenderContext : RenderContextBase, IDisposable
                 continue;
             }
 
-            if (!result.TryGetValue(tf.FamilyName, out var files))
+            if (!temp.TryGetValue(tf.FamilyName, out var files))
             {
                 files = [];
-                result[tf.FamilyName] = files;
+                temp[tf.FamilyName] = files;
             }
 
             files.Add(fontFile);
         }
 
-        return result.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToArray(), StringComparer.OrdinalIgnoreCase);
+        var result = new Dictionary<string, string[]>(temp.Count, StringComparer.OrdinalIgnoreCase);
+        foreach (var kvp in temp)
+        {
+            result[kvp.Key] = kvp.Value.ToArray();
+        }
+
+        return result;
     }
 
     public RenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0, Func<string, string?>? fontFallback = null)
@@ -60,7 +66,7 @@ sealed class RenderContext : RenderContextBase, IDisposable
         }
 
         var candidates = FontHelpers.GetCandidateNames(fontFamily, bold);
-        var key = $"{candidates.Effective}_{style.Weight}_{style.Slant}";
+        var key = (candidates.Effective, style.Weight, style.Slant);
 
         if (!typefaceCache.TryGetValue(key, out var typeface))
         {
@@ -143,31 +149,13 @@ sealed class RenderContext : RenderContextBase, IDisposable
         }
     }
 
-    static string[] styleSuffixes => FontHelpers.StyleSuffixes;
-
     static SKTypeface? TryLoadFromFontCache(Dictionary<string, string[]> fontCache, string fontFamily, SKFontStyle style)
     {
         // Try exact match first
         if (!fontCache.TryGetValue(fontFamily, out var fontFiles))
         {
             // Try stripping style suffixes to find base family
-            var baseName = fontFamily;
-            foreach (var suffix in styleSuffixes)
-            {
-                if (baseName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
-                {
-                    baseName = baseName[..^suffix.Length];
-                }
-            }
-
-            // Also try stripping common multi-word suffixes
-            foreach (var suffix in styleSuffixes)
-            {
-                if (baseName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
-                {
-                    baseName = baseName[..^suffix.Length];
-                }
-            }
+            var baseName = FontHelpers.StripWeightSuffixes(fontFamily);
 
             if (baseName != fontFamily && fontCache.TryGetValue(baseName, out fontFiles))
             {

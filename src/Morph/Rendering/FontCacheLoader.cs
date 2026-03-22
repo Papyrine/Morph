@@ -58,8 +58,9 @@ static class FontCacheLoader
             yield break;
         }
 
-        foreach (var fontFile in Directory.GetFiles(userFontsPath, "*.ttf")
-                     .Concat(Directory.GetFiles(userFontsPath, "*.otf")))
+        foreach (var fontFile in Directory.EnumerateFiles(userFontsPath)
+                     .Where(f => f.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase)
+                              || f.EndsWith(".otf", StringComparison.OrdinalIgnoreCase)))
         {
             yield return fontFile;
         }

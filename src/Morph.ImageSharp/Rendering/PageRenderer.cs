@@ -654,15 +654,7 @@ sealed class PageRenderer(RenderContext context) :
             return 0;
         }
 
-        int colCount;
-        if (table.Properties.GridColumnWidths?.Count > 0)
-        {
-            colCount = table.Properties.GridColumnWidths.Count;
-        }
-        else
-        {
-            colCount = table.Rows.Max(r => r.Cells.Sum(c => c.Properties.GridSpan));
-        }
+        var colCount = TableLayout.GetColumnCount(table);
 
         var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
         var rowHeights = CalculateRowHeights(table, colWidths);
@@ -677,15 +669,7 @@ sealed class PageRenderer(RenderContext context) :
             return;
         }
 
-        int colCount;
-        if (table.Properties.GridColumnWidths?.Count > 0)
-        {
-            colCount = table.Properties.GridColumnWidths.Count;
-        }
-        else
-        {
-            colCount = table.Rows.Max(r => r.Cells.Sum(c => c.Properties.GridSpan));
-        }
+        var colCount = TableLayout.GetColumnCount(table);
 
         var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
         var rowHeights = CalculateRowHeights(table, colWidths);
@@ -713,8 +697,7 @@ sealed class PageRenderer(RenderContext context) :
         var tableX = context.ContentLeft;
         var startY = context.CurrentY;
 
-        var hasVerticalMerge = table.Rows.Any(r => r.Cells.Any(c =>
-            c.Properties.VerticalMerge is VerticalMergeType.Restart or VerticalMergeType.Continue));
+        var hasVerticalMerge = TableLayout.HasVerticalMerge(table);
 
         if (hasVerticalMerge)
         {
@@ -884,8 +867,7 @@ sealed class PageRenderer(RenderContext context) :
             heights[rowIndex] = maxHeight;
         }
 
-        var hasVMerge = table.Rows.Any(_ => _.Cells.Any(_ =>
-            _.Properties.VerticalMerge is VerticalMergeType.Restart or VerticalMergeType.Continue));
+        var hasVMerge = TableLayout.HasVerticalMerge(table);
         var allRowsHaveExplicitHeight = table.Rows.All(_ => _.HeightPoints.HasValue);
         var useStrictHeights = hasVMerge && allRowsHaveExplicitHeight;
 

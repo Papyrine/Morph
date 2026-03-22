@@ -207,17 +207,44 @@ static class InkParser
             return;
         }
 
-        // Find bounding box of all points across all strokes
-        var allPoints = strokes.SelectMany(s => s.Points).ToList();
-        if (allPoints.Count == 0)
+        // Find bounding box of all points across all strokes (single pass)
+        var minX = double.MaxValue;
+        var maxX = double.MinValue;
+        var minY = double.MaxValue;
+        var maxY = double.MinValue;
+        var hasPoints = false;
+
+        foreach (var stroke in strokes)
+        {
+            foreach (var point in stroke.Points)
+            {
+                hasPoints = true;
+                if (point.X < minX)
+                {
+                    minX = point.X;
+                }
+
+                if (point.X > maxX)
+                {
+                    maxX = point.X;
+                }
+
+                if (point.Y < minY)
+                {
+                    minY = point.Y;
+                }
+
+                if (point.Y > maxY)
+                {
+                    maxY = point.Y;
+                }
+            }
+        }
+
+        if (!hasPoints)
         {
             return;
         }
-
-        var minX = allPoints.Min(p => p.X);
-        var maxX = allPoints.Max(p => p.X);
-        var minY = allPoints.Min(p => p.Y);
-        var maxY = allPoints.Max(p => p.Y);
 
         var rawWidth = maxX - minX;
         var rawHeight = maxY - minY;

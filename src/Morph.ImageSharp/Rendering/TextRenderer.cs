@@ -46,7 +46,7 @@ sealed class TextRenderer(RenderContext context)
         }
 
         // Don't add spacing after for empty paragraphs (they're typically just visual spacers)
-        var isEmpty = paragraph.Runs.Count == 0 || paragraph.Runs.All(r => string.IsNullOrEmpty(r.Text) && r.InlineImageData == null);
+        var isEmpty = IsParagraphEmpty(paragraph);
         if (!isEmpty)
         {
             totalHeight += (float)props.SpacingAfterPoints;
@@ -318,7 +318,7 @@ sealed class TextRenderer(RenderContext context)
         }
 
         // Add spacing after (but not for empty paragraphs which are typically just visual spacers)
-        var isEmpty = paragraph.Runs.Count == 0 || paragraph.Runs.All(r => string.IsNullOrEmpty(r.Text) && r.InlineImageData == null);
+        var isEmpty = IsParagraphEmpty(paragraph);
         if (!isEmpty)
         {
             context.CurrentY += (float)props.SpacingAfterPoints;
@@ -676,11 +676,45 @@ sealed class TextRenderer(RenderContext context)
         return count;
     }
 
+    static bool IsParagraphEmpty(ParagraphElement paragraph)
+    {
+        if (paragraph.Runs.Count == 0)
+        {
+            return true;
+        }
+
+        foreach (var r in paragraph.Runs)
+        {
+            if (!string.IsNullOrEmpty(r.Text) || r.InlineImageData != null)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /// <summary>
     /// Checks if a fragment is whitespace (space between words).
     /// </summary>
-    static bool IsWhitespaceFragment(TextFragment fragment) =>
-        fragment.Text.Length > 0 && fragment.Text.All(char.IsWhiteSpace);
+    static bool IsWhitespaceFragment(TextFragment fragment)
+    {
+        var text = fragment.Text;
+        if (text.Length == 0)
+        {
+            return false;
+        }
+
+        foreach (var c in text)
+        {
+            if (!char.IsWhiteSpace(c))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     void RenderFragment(Image<Rgba32> currentPage, TextFragment fragment, float x, float y)
     {
@@ -1024,15 +1058,19 @@ sealed class TextRenderer(RenderContext context)
                     Properties = fragment.Properties
                 });
             }
-            else
+            else if (fragment.Text.Contains(softHyphen))
             {
                 // Remove soft hyphen if not at end of line
                 result.Add(new()
                 {
-                    Text = fragment.Text.Replace(softHyphen.ToString(), ""),
+                    Text = fragment.Text.Replace(softHyphenString, ""),
                     Width = fragment.Width,
                     Properties = fragment.Properties
                 });
+            }
+            else
+            {
+                result.Add(fragment);
             }
         }
         return result;
@@ -1041,18 +1079,32 @@ sealed class TextRenderer(RenderContext context)
     /// <summary>
     /// Removes all soft hyphens from fragments (used for final line).
     /// </summary>
-    static List<TextFragment> RemoveSoftHyphens(List<TextFragment> fragments) =>
-        fragments.Select(f =>
-                new TextFragment
-        {
-            Text = f.Text.Replace(softHyphen.ToString(), ""),
-            Width = f.Width,
-            Properties = f.Properties
-        })
-            .ToList();
-
     // Unicode characters for hyphenation
     const char softHyphen = '\u00AD';
+    const string softHyphenString = "\u00AD";
+
+    static List<TextFragment> RemoveSoftHyphens(List<TextFragment> fragments)
+    {
+        var result = new List<TextFragment>(fragments.Count);
+        foreach (var f in fragments)
+        {
+            if (f.Text.Contains(softHyphen))
+            {
+                result.Add(new()
+                {
+                    Text = f.Text.Replace(softHyphenString, ""),
+                    Width = f.Width,
+                    Properties = f.Properties
+                });
+            }
+            else
+            {
+                result.Add(f);
+            }
+        }
+
+        return result;
+    }
     const char nonBreakingHyphen = '\u2011';
 
     static List<string> SplitIntoWords(string text)

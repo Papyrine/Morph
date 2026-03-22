@@ -3,6 +3,47 @@
 /// </summary>
 static class TableLayout
 {
+    internal static int GetColumnCount(TableElement table)
+    {
+        if (table.Properties.GridColumnWidths?.Count > 0)
+        {
+            return table.Properties.GridColumnWidths.Count;
+        }
+
+        var maxSpan = 0;
+        foreach (var row in table.Rows)
+        {
+            var rowSpan = 0;
+            foreach (var cell in row.Cells)
+            {
+                rowSpan += cell.Properties.GridSpan;
+            }
+
+            if (rowSpan > maxSpan)
+            {
+                maxSpan = rowSpan;
+            }
+        }
+
+        return maxSpan;
+    }
+
+    internal static bool HasVerticalMerge(TableElement table)
+    {
+        foreach (var row in table.Rows)
+        {
+            foreach (var cell in row.Cells)
+            {
+                if (cell.Properties.VerticalMerge is VerticalMergeType.Restart or VerticalMergeType.Continue)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     internal static CellSpacing GetEffectivePadding(TableCellProperties cellProps, TableProperties tableProps) =>
         cellProps.Padding ?? tableProps.DefaultCellPadding;
 
@@ -67,8 +108,16 @@ static class TableLayout
 
         if (hasExplicitWidths)
         {
-            var totalExplicitWidth = widths.Sum();
-            var columnsWithoutWidth = widths.Count(w => w == 0);
+            var totalExplicitWidth = 0f;
+            var columnsWithoutWidth = 0;
+            foreach (var w in widths)
+            {
+                totalExplicitWidth += w;
+                if (w == 0)
+                {
+                    columnsWithoutWidth++;
+                }
+            }
 
             if (columnsWithoutWidth > 0 && totalExplicitWidth < availableWidth)
             {
@@ -81,12 +130,14 @@ static class TableLayout
                         widths[i] = perColumnWidth;
                     }
                 }
+
+                // Recompute after filling in zero-width columns
+                totalExplicitWidth = availableWidth;
             }
 
-            var totalWidth = widths.Sum();
-            if (totalWidth > availableWidth)
+            if (totalExplicitWidth > availableWidth)
             {
-                var scale = availableWidth / totalWidth;
+                var scale = availableWidth / totalExplicitWidth;
                 for (var i = 0; i < colCount; i++)
                 {
                     widths[i] *= scale;
@@ -102,14 +153,25 @@ static class TableLayout
 
             if (gridWidths.Count < colCount)
             {
-                var avgWidth = (float) gridWidths.Average();
+                var avgWidth = 0f;
+                foreach (var gw in gridWidths)
+                {
+                    avgWidth += (float) gw;
+                }
+
+                avgWidth /= gridWidths.Count;
                 for (var i = gridWidths.Count; i < colCount; i++)
                 {
                     widths[i] = avgWidth;
                 }
             }
 
-            var totalWidth = widths.Sum();
+            var totalWidth = 0f;
+            foreach (var w in widths)
+            {
+                totalWidth += w;
+            }
+
             if (totalWidth > availableWidth && totalWidth > 0)
             {
                 var scale = availableWidth / totalWidth;

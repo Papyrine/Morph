@@ -6,6 +6,7 @@ sealed class PageRenderer(RenderContext context) :
 {
     static readonly SKTypeface aptosTypeface = SKTypeface.FromFamilyName("Aptos", SKFontStyle.Normal);
 
+
     readonly TextRenderer textRenderer = new(context);
 
     Action<Action<Stream>>? pageCallback;
@@ -1023,16 +1024,7 @@ sealed class PageRenderer(RenderContext context) :
             return 0;
         }
 
-        // Calculate column count and widths
-        int colCount;
-        if (table.Properties.GridColumnWidths?.Count > 0)
-        {
-            colCount = table.Properties.GridColumnWidths.Count;
-        }
-        else
-        {
-            colCount = table.Rows.Max(r => r.Cells.Sum(c => c.Properties.GridSpan));
-        }
+        var colCount = TableLayout.GetColumnCount(table);
 
         var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
         var rowHeights = CalculateRowHeights(table, colWidths);
@@ -1047,18 +1039,7 @@ sealed class PageRenderer(RenderContext context) :
             return;
         }
 
-        // Calculate column widths (accounting for table indent which can expand available width)
-        // Use grid column count if available, otherwise calculate from max gridSpan sum per row
-        int colCount;
-        if (table.Properties.GridColumnWidths?.Count > 0)
-        {
-            colCount = table.Properties.GridColumnWidths.Count;
-        }
-        else
-        {
-            // Calculate max grid columns by summing gridSpans across cells in each row
-            colCount = table.Rows.Max(r => r.Cells.Sum(c => c.Properties.GridSpan));
-        }
+        var colCount = TableLayout.GetColumnCount(table);
 
         var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
 
@@ -1103,8 +1084,7 @@ sealed class PageRenderer(RenderContext context) :
         var startY = context.CurrentY;
 
         // Check if table has vertical merges - if so, use column-based Y tracking
-        var hasVerticalMerge = table.Rows.Any(r => r.Cells.Any(c =>
-            c.Properties.VerticalMerge is VerticalMergeType.Restart or VerticalMergeType.Continue));
+        var hasVerticalMerge = TableLayout.HasVerticalMerge(table);
 
         if (hasVerticalMerge)
         {
@@ -1316,8 +1296,7 @@ sealed class PageRenderer(RenderContext context) :
         // For tables with vMerge AND all rows having explicit heights, use heights directly.
         // This pattern is common in letterheads where row heights define the layout precisely.
         // For other tables, use atLeast behavior (content can expand).
-        var hasVMerge = table.Rows.Any(r => r.Cells.Any(c =>
-            c.Properties.VerticalMerge is VerticalMergeType.Restart or VerticalMergeType.Continue));
+        var hasVMerge = TableLayout.HasVerticalMerge(table);
         var allRowsHaveExplicitHeight = table.Rows.All(r => r.HeightPoints.HasValue);
         var useStrictHeights = hasVMerge && allRowsHaveExplicitHeight;
 
