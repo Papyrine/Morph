@@ -13,13 +13,14 @@ public abstract class HtmlConverter
     /// <param name="html">The HTML content to render.</param>
     /// <param name="outputDirectory">Directory where PNG files will be saved.</param>
     /// <param name="options">Conversion options (optional).</param>
+    /// <param name="cancel">Cancellation token.</param>
     /// <returns>Result containing paths to generated images and page count.</returns>
-    public ConversionResult ConvertToImages(string html, string outputDirectory, ConversionOptions? options = null)
+    public async Task<ConversionResult> ConvertToImages(string html, string outputDirectory, ConversionOptions? options = null, CancellationToken cancel = default)
     {
         options ??= new();
         Directory.CreateDirectory(outputDirectory);
 
-        var document = ParseHtml(html);
+        var document = await ParseHtml(html, cancel);
         var imagePaths = new List<string>();
 
         var pageIndex = 0;
@@ -42,12 +43,13 @@ public abstract class HtmlConverter
     /// </summary>
     /// <param name="html">The HTML content to render.</param>
     /// <param name="options">Conversion options (optional).</param>
+    /// <param name="cancel">Cancellation token.</param>
     /// <returns>List of PNG image data for each page.</returns>
-    public IReadOnlyList<byte[]> ConvertToImageData(string html, ConversionOptions? options = null)
+    public async Task<IReadOnlyList<byte[]>> ConvertToImageData(string html, ConversionOptions? options = null, CancellationToken cancel = default)
     {
         options ??= new();
 
-        var document = ParseHtml(html);
+        var document = await ParseHtml(html, cancel);
         var imageData = new List<byte[]>();
 
         RenderPages(document, options, writePng =>
@@ -60,12 +62,12 @@ public abstract class HtmlConverter
         return imageData;
     }
 
-    static ParsedDocument ParseHtml(string html)
+    static async Task<ParsedDocument> ParseHtml(string html, CancellationToken cancel)
     {
-        var elements = HtmlParser.Parse(html);
-        return new ParsedDocument
+        var elements = await HtmlParser.Parse(html, cancel);
+        return new()
         {
-            PageSettings = new PageSettings
+            PageSettings = new()
             {
                 WidthPoints = DefaultPageSize.WidthPoints,
                 HeightPoints = DefaultPageSize.HeightPoints,

@@ -21,6 +21,16 @@ internal sealed class HtmlParser
         return elements;
     }
 
+    /// <summary>
+    /// Async version of Parse. Currently delegates to the sync implementation,
+    /// but will support async image fetching in the future.
+    /// </summary>
+    public static Task<List<DocumentElement>> Parse(string html, CancellationToken cancel)
+    {
+        cancel.ThrowIfCancellationRequested();
+        return Task.FromResult(Parse(html));
+    }
+
     static void ParseNodes(INodeList nodes, List<DocumentElement> elements)
     {
         foreach (var node in nodes)

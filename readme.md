@@ -210,7 +210,7 @@ To use ImageSharp instead, replace `HtmlRender.Skia.HtmlConverter` with `HtmlRen
 ```cs
 var converter = new HtmlRender.Skia.HtmlConverter();
 
-var result = converter.ConvertToImages(
+var result = await converter.ConvertToImages(
     "<h1>Hello</h1><p>World</p>",
     "output-folder");
 
@@ -227,7 +227,7 @@ foreach (var path in result.ImagePaths)
 ```cs
 var converter = new HtmlRender.Skia.HtmlConverter();
 
-var imageData = converter.ConvertToImageData("<h1>Hello</h1><p>World</p>");
+var imageData = await converter.ConvertToImageData("<h1>Hello</h1><p>World</p>");
 
 foreach (var pngBytes in imageData)
 {
