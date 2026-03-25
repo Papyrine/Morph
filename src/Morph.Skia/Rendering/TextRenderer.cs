@@ -857,10 +857,15 @@ sealed class TextRenderer(RenderContext context)
         else
         {
             // Render bitmap image
-            using var skImage = SKBitmap.Decode(fragment.InlineImageData);
-            if (skImage != null)
+            using var skData = SKData.CreateCopy(fragment.InlineImageData);
+            using var codec = SKCodec.Create(skData);
+            if (codec != null)
             {
-                canvas.DrawBitmap(skImage, destRect);
+                using var skImage = SKBitmap.Decode(codec);
+                if (skImage != null)
+                {
+                    canvas.DrawBitmap(skImage, destRect);
+                }
             }
         }
     }

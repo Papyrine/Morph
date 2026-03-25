@@ -6,6 +6,17 @@ sealed class PageRenderer(RenderContext context) :
 {
     static readonly SKTypeface aptosTypeface = SKTypeface.FromFamilyName("Aptos", SKFontStyle.Normal);
 
+    /// <summary>
+    /// Safely decodes image data, returning null for unsupported formats
+    /// instead of throwing when <see cref="SKCodec"/> cannot handle the data.
+    /// </summary>
+    static SKBitmap? DecodeBitmap(byte[] data)
+    {
+        using var skData = SKData.CreateCopy(data);
+        using var codec = SKCodec.Create(skData);
+        return codec != null ? SKBitmap.Decode(codec) : null;
+    }
+
 
     readonly TextRenderer textRenderer = new(context);
 
@@ -496,7 +507,7 @@ sealed class PageRenderer(RenderContext context) :
         else
         {
             // Regular bitmap image
-            using var skImage = SKBitmap.Decode(image.ImageData);
+            using var skImage = DecodeBitmap(image.ImageData);
             if (skImage != null)
             {
                 currentCanvas.DrawBitmap(skImage, destRect);
@@ -1662,7 +1673,7 @@ sealed class PageRenderer(RenderContext context) :
         }
         else
         {
-            using var skImage = SKBitmap.Decode(image.ImageData);
+            using var skImage = DecodeBitmap(image.ImageData);
             if (skImage != null)
             {
                 currentCanvas.DrawBitmap(skImage, destRect);
@@ -2440,7 +2451,7 @@ sealed class PageRenderer(RenderContext context) :
         // Check for image fill first
         if (shape.ImageData != null)
         {
-            using var bitmap = SKBitmap.Decode(shape.ImageData);
+            using var bitmap = DecodeBitmap(shape.ImageData);
             if (bitmap != null)
             {
                 var destRect = new SKRect(pixelX, pixelY, pixelX + pixelWidth, pixelY + pixelHeight);
@@ -2520,7 +2531,7 @@ sealed class PageRenderer(RenderContext context) :
         }
         else
         {
-            using var skImage = SKBitmap.Decode(image.ImageData);
+            using var skImage = DecodeBitmap(image.ImageData);
             if (skImage != null)
             {
                 currentCanvas.DrawBitmap(skImage, destRect);
