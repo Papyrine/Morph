@@ -73,7 +73,7 @@ public class FontStyleFromNameTests
     [Arguments("Calibri Bold", "Calibri")]
     [Arguments("Arial Black", "Arial Black")]
     [Arguments("Avenir Next LT Pro Bold", "Avenir Next LT Pro")]
-    [Arguments("Avenir Next LT Pro Light", "Avenir Next LT Pro")]
+    [Arguments("Avenir Next LT Pro Light", "Avenir Next LT Pro Light")]
     [Arguments("Calibri Light", "Calibri Light")]
     public async Task GetFontFamily_StyleSuffixStripped_ResolvesBaseFamily(string fontFamily, string expectedFamily)
     {
