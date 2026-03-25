@@ -15,7 +15,7 @@ public abstract class HtmlConverter
     /// <param name="options">Conversion options (optional).</param>
     /// <param name="cancel">Cancellation token.</param>
     /// <returns>Result containing paths to generated images and page count.</returns>
-    public async Task<ConversionResult> ConvertToImages(string html, string outputDirectory, ConversionOptions? options = null, CancellationToken cancel = default)
+    public async Task<ConversionResult> ConvertToImages(string html, string outputDirectory, ConversionOptions? options = null, Cancel cancel = default)
     {
         options ??= new();
         Directory.CreateDirectory(outputDirectory);
@@ -45,7 +45,7 @@ public abstract class HtmlConverter
     /// <param name="options">Conversion options (optional).</param>
     /// <param name="cancel">Cancellation token.</param>
     /// <returns>List of PNG image data for each page.</returns>
-    public async Task<IReadOnlyList<byte[]>> ConvertToImageData(string html, ConversionOptions? options = null, CancellationToken cancel = default)
+    public async Task<IReadOnlyList<byte[]>> ConvertToImageData(string html, ConversionOptions? options = null, Cancel cancel = default)
     {
         options ??= new();
 
@@ -62,7 +62,7 @@ public abstract class HtmlConverter
         return imageData;
     }
 
-    static async Task<ParsedDocument> ParseHtml(string html, CancellationToken cancel)
+    static async Task<ParsedDocument> ParseHtml(string html, Cancel cancel)
     {
         var elements = await HtmlParser.Parse(html, cancel);
         return new()

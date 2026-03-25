@@ -25,7 +25,7 @@ internal sealed class HtmlParser
     /// Async version of Parse. Currently delegates to the sync implementation,
     /// but will support async image fetching in the future.
     /// </summary>
-    public static Task<List<DocumentElement>> Parse(string html, CancellationToken cancel)
+    public static Task<List<DocumentElement>> Parse(string html, Cancel cancel)
     {
         cancel.ThrowIfCancellationRequested();
         return Task.FromResult(Parse(html));
