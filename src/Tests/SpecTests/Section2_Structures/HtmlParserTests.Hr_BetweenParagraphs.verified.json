@@ -4,7 +4,7 @@
       {
         "Text": "before",
         "Properties": {
-          "FontFamily": "Aptos",
+          "FontFamily": "Times New Roman",
           "FontSizePoints": 11.0,
           "Bold": false,
           "Italic": false,
@@ -32,7 +32,7 @@
       {
         "Text": "after",
         "Properties": {
-          "FontFamily": "Aptos",
+          "FontFamily": "Times New Roman",
           "FontSizePoints": 11.0,
           "Bold": false,
           "Italic": false,

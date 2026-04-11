@@ -4,7 +4,7 @@
       {
         "Text": "1. first",
         "Properties": {
-          "FontFamily": "Aptos",
+          "FontFamily": "Times New Roman",
           "FontSizePoints": 11.0,
           "Bold": false,
           "Italic": false,
@@ -32,7 +32,7 @@
       {
         "Text": "2. second",
         "Properties": {
-          "FontFamily": "Aptos",
+          "FontFamily": "Times New Roman",
           "FontSizePoints": 11.0,
           "Bold": false,
           "Italic": false,

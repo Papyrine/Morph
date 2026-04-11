@@ -4,7 +4,7 @@
       {
         "Text": "normal ",
         "Properties": {
-          "FontFamily": "Aptos",
+          "FontFamily": "Times New Roman",
           "FontSizePoints": 11.0,
           "Bold": false,
           "Italic": false,
@@ -16,7 +16,7 @@
       {
         "Text": "bold",
         "Properties": {
-          "FontFamily": "Aptos",
+          "FontFamily": "Times New Roman",
           "FontSizePoints": 11.0,
           "Bold": true,
           "Italic": false,
@@ -28,7 +28,7 @@
       {
         "Text": " ",
         "Properties": {
-          "FontFamily": "Aptos",
+          "FontFamily": "Times New Roman",
           "FontSizePoints": 11.0,
           "Bold": false,
           "Italic": false,
@@ -40,7 +40,7 @@
       {
         "Text": "italic",
         "Properties": {
-          "FontFamily": "Aptos",
+          "FontFamily": "Times New Roman",
           "FontSizePoints": 11.0,
           "Bold": false,
           "Italic": true,
