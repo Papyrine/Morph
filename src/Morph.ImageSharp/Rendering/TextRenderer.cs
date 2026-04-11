@@ -342,7 +342,7 @@ sealed class TextRenderer(RenderContext context)
     static float CalculateLineXInBounds(TextLine line, ParagraphProperties props, float startX, float width)
     {
         var contentLeft = startX + (float)props.LeftIndentPoints;
-        var availableWidth = width - (float)props.LeftIndentPoints;
+        var availableWidth = width - (float)props.LeftIndentPoints - (float)props.RightIndentPoints;
 
         return props.Alignment switch
         {
@@ -357,7 +357,7 @@ sealed class TextRenderer(RenderContext context)
         var lines = new List<TextLine>();
         var props = paragraph.Properties;
 
-        var adjustedMaxWidth = maxWidth - (float)props.LeftIndentPoints;
+        var adjustedMaxWidth = maxWidth - (float)props.LeftIndentPoints - (float)props.RightIndentPoints;
         float currentLineWidth = 0;
         float maxLineHeight = 0;
         float maxBaseline = 0;
