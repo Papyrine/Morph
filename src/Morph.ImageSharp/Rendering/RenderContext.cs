@@ -78,35 +78,29 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
 
         if (!fontFamilyCache.TryGetValue(key, out var resolvedFamily))
         {
-            // Try system fonts and shared collection with each candidate name
-            if (TryResolveFromKnownSources(candidates, out resolvedFamily))
+            // Load from all font caches into the shared collection so all style
+            // variants are available (e.g. Regular from user fonts + Italic from cloud)
+            TryLoadFromAnyCandidateName(userFontsCache.Value, candidates);
+            TryLoadFromAnyCandidateName(officeFontsCache.Value, candidates);
+            TryLoadFromAnyCandidateName(cloudFontsCache.Value, candidates);
+
+            // Try shared collection first (has all loaded variants), then system fonts
+            if (TryResolveFromKnownSources(candidates, style, out resolvedFamily))
             {
                 fontFamilyCache[key] = resolvedFamily;
                 return resolvedFamily;
             }
 
-            // Try user fonts, Office fonts, then cloud cache
-            var loaded = TryLoadFromAnyCandidateName(userFontsCache.Value, candidates)
-                         ?? TryLoadFromAnyCandidateName(officeFontsCache.Value, candidates)
-                         ?? TryLoadFromAnyCandidateName(cloudFontsCache.Value, candidates);
-
-            if (loaded != null)
+            var fallbackFont = FontHelpers.FindFallback(candidates) ?? FontFallback?.Invoke(fontFamily);
+            if (fallbackFont == null)
             {
-                resolvedFamily = loaded.Value;
+                throw new InvalidOperationException($"Font '{fontFamily}' not found. Checked system fonts, user fonts, Office fonts, and cloud cache.");
             }
-            else
-            {
-                var fallbackFont = FontHelpers.FindFallback(candidates) ?? FontFallback?.Invoke(fontFamily);
-                if (fallbackFont == null)
-                {
-                    throw new InvalidOperationException($"Font '{fontFamily}' not found. Checked system fonts, user fonts, Office fonts, and cloud cache.");
-                }
 
-                if (!SystemFonts.TryGet(fallbackFont, out resolvedFamily) &&
-                    !sharedFontCollection.TryGet(fallbackFont, out resolvedFamily))
-                {
-                    throw new InvalidOperationException($"Font '{fontFamily}' not found and fallback '{fallbackFont}' also not available.");
-                }
+            if (!SystemFonts.TryGet(fallbackFont, out resolvedFamily) &&
+                !sharedFontCollection.TryGet(fallbackFont, out resolvedFamily))
+            {
+                throw new InvalidOperationException($"Font '{fontFamily}' not found and fallback '{fallbackFont}' also not available.");
             }
 
             fontFamilyCache[key] = resolvedFamily;
@@ -115,13 +109,28 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
         return resolvedFamily;
     }
 
-    bool TryResolveFromKnownSources(FontNameCandidates candidates, out FontFamily resolved)
+    bool TryResolveFromKnownSources(FontNameCandidates candidates, FontStyle style, out FontFamily resolved)
     {
+        var needsItalic = style is FontStyle.Italic or FontStyle.BoldItalic;
+
         foreach (var name in CandidateNames(candidates))
         {
-            if (SystemFonts.TryGet(name, out resolved) || sharedFontCollection.TryGet(name, out resolved))
+            // Prefer shared collection (has fonts from all caches with proper style variants)
+            if (sharedFontCollection.TryGet(name, out resolved))
             {
-                return true;
+                if (!needsItalic || resolved.TryGetMetrics(style, out _))
+                {
+                    return true;
+                }
+            }
+
+            // Fall back to system fonts
+            if (SystemFonts.TryGet(name, out resolved))
+            {
+                if (!needsItalic || resolved.TryGetMetrics(style, out _))
+                {
+                    return true;
+                }
             }
         }
 
