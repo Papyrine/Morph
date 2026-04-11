@@ -1700,6 +1700,17 @@ sealed class PageRenderer(RenderContext context) :
             );
         }
 
+        if (hexColor.Length == 8 &&
+            uint.TryParse(hexColor, NumberStyles.HexNumber, null, out var argb))
+        {
+            return new(
+                (byte) ((argb >> 16) & 0xFF),
+                (byte) ((argb >> 8) & 0xFF),
+                (byte) (argb & 0xFF),
+                (byte) ((argb >> 24) & 0xFF)
+            );
+        }
+
         return SKColors.Black;
     }
 

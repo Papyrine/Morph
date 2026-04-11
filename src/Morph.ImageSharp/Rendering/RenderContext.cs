@@ -294,7 +294,6 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
             return Color.Black;
         }
 
-        // Handle colors like "000000" (6 chars) or "FF000000" (8 chars with alpha)
         if (hexColor.Length == 6 &&
             uint.TryParse(hexColor, NumberStyles.HexNumber, null, out var rgb))
         {
@@ -302,6 +301,17 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
                 (byte) ((rgb >> 16) & 0xFF),
                 (byte) ((rgb >> 8) & 0xFF),
                 (byte) (rgb & 0xFF)
+            );
+        }
+
+        if (hexColor.Length == 8 &&
+            uint.TryParse(hexColor, NumberStyles.HexNumber, null, out var argb))
+        {
+            return Color.FromRgba(
+                (byte) ((argb >> 16) & 0xFF),
+                (byte) ((argb >> 8) & 0xFF),
+                (byte) (argb & 0xFF),
+                (byte) ((argb >> 24) & 0xFF)
             );
         }
 
