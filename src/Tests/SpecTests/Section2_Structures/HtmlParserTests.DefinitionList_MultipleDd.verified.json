@@ -4,7 +4,7 @@
       {
         "Text": "Term",
         "Properties": {
-          "FontFamily": "Aptos",
+          "FontFamily": "Times New Roman",
           "FontSizePoints": 11.0,
           "Bold": true,
           "Italic": false,
@@ -31,7 +31,7 @@
       {
         "Text": "Def1",
         "Properties": {
-          "FontFamily": "Aptos",
+          "FontFamily": "Times New Roman",
           "FontSizePoints": 11.0,
           "Bold": false,
           "Italic": false,
@@ -59,7 +59,7 @@
       {
         "Text": "Def2",
         "Properties": {
-          "FontFamily": "Aptos",
+          "FontFamily": "Times New Roman",
           "FontSizePoints": 11.0,
           "Bold": false,
           "Italic": false,

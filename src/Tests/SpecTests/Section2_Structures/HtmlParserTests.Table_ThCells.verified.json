@@ -10,7 +10,7 @@
                   {
                     "Text": "header",
                     "Properties": {
-                      "FontFamily": "Aptos",
+                      "FontFamily": "Times New Roman",
                       "FontSizePoints": 11.0,
                       "Bold": true,
                       "Italic": false,

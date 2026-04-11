@@ -10,7 +10,7 @@
                   {
                     "Text": "tall",
                     "Properties": {
-                      "FontFamily": "Aptos",
+                      "FontFamily": "Times New Roman",
                       "FontSizePoints": 11.0,
                       "Bold": false,
                       "Italic": false,
@@ -44,7 +44,7 @@
                   {
                     "Text": "right1",
                     "Properties": {
-                      "FontFamily": "Aptos",
+                      "FontFamily": "Times New Roman",
                       "FontSizePoints": 11.0,
                       "Bold": false,
                       "Italic": false,
@@ -88,7 +88,7 @@
                   {
                     "Text": "right2",
                     "Properties": {
-                      "FontFamily": "Aptos",
+                      "FontFamily": "Times New Roman",
                       "FontSizePoints": 11.0,
                       "Bold": false,
                       "Italic": false,

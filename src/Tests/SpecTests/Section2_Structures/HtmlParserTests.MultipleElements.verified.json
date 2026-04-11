@@ -4,7 +4,7 @@
       {
         "Text": "Title",
         "Properties": {
-          "FontFamily": "Aptos",
+          "FontFamily": "Times New Roman",
           "FontSizePoints": 24.0,
           "Bold": true,
           "Italic": false,
@@ -31,7 +31,7 @@
       {
         "Text": "Body",
         "Properties": {
-          "FontFamily": "Aptos",
+          "FontFamily": "Times New Roman",
           "FontSizePoints": 11.0,
           "Bold": false,
           "Italic": false,
@@ -58,7 +58,7 @@
       {
         "Text": "• Item",
         "Properties": {
-          "FontFamily": "Aptos",
+          "FontFamily": "Times New Roman",
           "FontSizePoints": 11.0,
           "Bold": false,
           "Italic": false,
