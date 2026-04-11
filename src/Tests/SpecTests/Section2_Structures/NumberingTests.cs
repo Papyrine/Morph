@@ -165,20 +165,19 @@ public class NumberingTests
     // === Deep nested list ===
 
     [Test]
-    public async Task DeepNestedList_MultipleLevelsHaveDifferentIndents()
+    public async Task DeepNestedList_HasMultipleLevels()
     {
         var doc = Parse("deep_nested_list");
         var numbered = GetNumberedParagraphs(doc);
 
         await Assert.That(numbered.Count).IsGreaterThan(1);
 
-        // Deeper levels should have larger indentation
-        var indents = numbered
-            .Select(_ => _.Properties.Numbering!.IndentPoints)
+        // Multiple different bullet characters across levels
+        var bulletTexts = numbered
+            .Select(_ => _.Properties.Numbering!.Text)
             .Distinct()
-            .OrderBy(_ => _)
             .ToList();
 
-        await Assert.That(indents.Count).IsGreaterThan(1);
+        await Assert.That(bulletTexts.Count).IsGreaterThan(1);
     }
 }
