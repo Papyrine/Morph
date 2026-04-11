@@ -803,6 +803,12 @@ internal sealed record RunProperties
     public string? BackgroundColorHex { get; init; }
 
     /// <summary>
+    /// Extra spacing between characters in points (from w:spacing in rPr).
+    /// Positive values expand, negative values condense.
+    /// </summary>
+    public double CharacterSpacingPoints { get; init; }
+
+    /// <summary>
     /// Vertical alignment for subscript/superscript text.
     /// </summary>
     public VerticalRunAlignment VerticalAlignment { get; init; } = VerticalRunAlignment.Baseline;
