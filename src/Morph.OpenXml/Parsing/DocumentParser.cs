@@ -60,9 +60,11 @@ sealed class DocumentParser
     // Document-level background color (applies to all pages)
     string? documentBackgroundColor;
 
-    // Document default paragraph spacing (from docDefaults/pPrDefault or Word built-in defaults)
-    // Word's built-in default when no styles.xml
+    // Document default paragraph properties (from docDefaults/pPrDefault or Word built-in defaults)
     double defaultSpacingAfterPoints = 8;
+    double defaultSpacingBeforePoints;
+    double defaultLeftIndentPoints;
+    double defaultRightIndentPoints;
 
     public ParsedDocument Parse(string filePath)
     {
@@ -96,7 +98,7 @@ sealed class DocumentParser
         documentBackgroundColor = ExtractDocumentBackgroundColor(mainPart.Document);
 
         // Extract document default spacing from pPrDefault
-        defaultSpacingAfterPoints = ExtractDefaultSpacingAfter(mainPart);
+        ExtractDefaultParagraphProperties(mainPart);
 
         // SectionProperties (sectPr) describes the section it belongs to, and the section break is stored
         // on the last paragraph of the section. The next section's properties are stored in the next sectPr.
@@ -481,16 +483,16 @@ sealed class DocumentParser
                 // Check for paragraph properties in the style
                 var paraProps = style.StyleParagraphProperties;
 
-                // Start with base style properties or defaults
+                // Start with base style properties or document defaults (pPrDefault)
                 var alignment = baseProps?.Alignment ?? TextAlignment.Left;
-                var spacingBefore = baseProps?.SpacingBeforePoints ?? 0;
+                var spacingBefore = baseProps?.SpacingBeforePoints ?? defaultSpacingBeforePoints;
                 var spacingAfter = baseProps?.SpacingAfterPoints ?? defaultSpacingAfterPoints;
                 var lineSpacingMultiplier = baseProps?.LineSpacingMultiplier ?? 1.08;
                 var lineSpacingPoints = baseProps?.LineSpacingPoints ?? 0;
                 var lineSpacingRule = baseProps?.LineSpacingRule ?? LineSpacingRule.Auto;
                 var firstLineIndent = baseProps?.FirstLineIndentPoints ?? 0;
-                var leftIndent = baseProps?.LeftIndentPoints ?? 0;
-                var rightIndent = baseProps?.RightIndentPoints ?? 0;
+                var leftIndent = baseProps?.LeftIndentPoints ?? defaultLeftIndentPoints;
+                var rightIndent = baseProps?.RightIndentPoints ?? defaultRightIndentPoints;
                 var hangingIndent = baseProps?.HangingIndentPoints ?? 0;
                 var contextualSpacing = baseProps?.ContextualSpacing ?? false;
 
@@ -1400,38 +1402,64 @@ sealed class DocumentParser
         return null;
     }
 
-    static double ExtractDefaultSpacingAfter(MainDocumentPart mainPart)
+    void ExtractDefaultParagraphProperties(MainDocumentPart mainPart)
     {
         var stylesPart = mainPart.StyleDefinitionsPart;
 
         // No styles.xml at all - use Word's built-in defaults (8pt spacing after)
         if (stylesPart?.Styles == null)
         {
-            return 8;
+            defaultSpacingAfterPoints = 8;
+            return;
         }
 
         // Look for docDefaults/pPrDefault
         var docDefaults = stylesPart.Styles.DocDefaults;
         if (docDefaults == null)
         {
-            // styles.xml exists but no docDefaults - use 0
-            return 0;
+            defaultSpacingAfterPoints = 0;
+            return;
         }
 
         var pPrDefault = docDefaults.ParagraphPropertiesDefault;
         if (pPrDefault?.ParagraphPropertiesBaseStyle == null)
         {
-            return 0; // empty pPrDefault - use 0
+            defaultSpacingAfterPoints = 0;
+            return;
         }
 
-        // Check for spacing in pPrDefault
-        var spacing = pPrDefault.ParagraphPropertiesBaseStyle.SpacingBetweenLines;
-        if (spacing?.After?.HasValue == true)
+        var pPr = pPrDefault.ParagraphPropertiesBaseStyle;
+
+        // Spacing defaults
+        var spacing = pPr.SpacingBetweenLines;
+        if (spacing != null)
         {
-            return double.Parse(spacing.After.Value!) / twipsPerPoint;
+            if (spacing.After?.HasValue == true)
+            {
+                defaultSpacingAfterPoints = double.Parse(spacing.After.Value!) / twipsPerPoint;
+            }
+
+            if (spacing.Before?.HasValue == true)
+            {
+                defaultSpacingBeforePoints = double.Parse(spacing.Before.Value!) / twipsPerPoint;
+            }
         }
 
-        return 0; // pPrDefault exists but no spacing defined - use 0
+        // Indentation defaults
+        var indentation = pPr.Indentation;
+        if (indentation != null)
+        {
+            if (indentation.Left?.HasValue == true)
+            {
+                defaultLeftIndentPoints = double.Parse(indentation.Left.Value!) / twipsPerPoint;
+            }
+
+            if (indentation.Right?.HasValue == true)
+            {
+                defaultRightIndentPoints = double.Parse(indentation.Right.Value!) / twipsPerPoint;
+            }
+        }
+
     }
 
     HeaderFooterContent? ExtractHeaderFooter(Body body, MainDocumentPart mainPart, HeaderFooterValues type, bool isHeader)
@@ -4810,16 +4838,16 @@ sealed class DocumentParser
             styleParagraphProperties.TryGetValue(styleId, out styleDefaults);
         }
 
-        // Start with style defaults or system defaults
+        // Start with style defaults or document defaults (pPrDefault)
         var alignment = styleDefaults?.Alignment ?? TextAlignment.Left;
-        var spacingBefore = styleDefaults?.SpacingBeforePoints ?? 0;
+        var spacingBefore = styleDefaults?.SpacingBeforePoints ?? defaultSpacingBeforePoints;
         var spacingAfter = styleDefaults?.SpacingAfterPoints ?? defaultSpacingAfterPoints;
         var lineSpacingMultiplier = styleDefaults?.LineSpacingMultiplier ?? 1.08; // Slight leading for readability
         var lineSpacingPoints = styleDefaults?.LineSpacingPoints ?? 0;
         var lineSpacingRule = styleDefaults?.LineSpacingRule ?? LineSpacingRule.Auto;
         var firstLineIndent = styleDefaults?.FirstLineIndentPoints ?? 0;
-        var leftIndent = styleDefaults?.LeftIndentPoints ?? 0;
-        var rightIndent = styleDefaults?.RightIndentPoints ?? 0;
+        var leftIndent = styleDefaults?.LeftIndentPoints ?? defaultLeftIndentPoints;
+        var rightIndent = styleDefaults?.RightIndentPoints ?? defaultRightIndentPoints;
         var hangingIndent = styleDefaults?.HangingIndentPoints ?? 0;
         var contextualSpacing = styleDefaults?.ContextualSpacing ?? false;
         var suppressLineNumbers = false;
