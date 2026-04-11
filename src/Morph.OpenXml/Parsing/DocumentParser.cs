@@ -580,9 +580,15 @@ sealed class DocumentParser
                     }
                 }
 
-                // Parse indentation
+                // Parse indentation — but skip when the style has numPr without a numId.
+                // In Word, indentation in a style that has numPr is numbering-level indentation
+                // and only applies when the numbering is active. Without a numId the numbering
+                // is dormant, so the indent should fall back to the base style's value.
+                var styleNumPr = paraProps.GetFirstChild<NumberingProperties>();
+                var hasOrphanedNumPr = styleNumPr != null && (styleNumPr.NumberingId?.Val?.Value ?? 0) == 0;
+
                 var indentation = paraProps.GetFirstChild<Indentation>();
-                if (indentation != null)
+                if (indentation != null && !hasOrphanedNumPr)
                 {
                     if (indentation.FirstLine?.HasValue == true)
                     {
