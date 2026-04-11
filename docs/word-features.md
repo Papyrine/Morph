@@ -617,14 +617,16 @@ Different number representations: decimal, roman (upper/lower), letter (upper/lo
 > **Contributors**: `NumberFormatValues` stored on `NumberingLevelDefinition.NumberFormat`. `FormatNumber()` dispatches to `ToRoman()` or `ToLetter()` based on the format. Roman numerals support 1-3999. Letters support A-Z, then AA, AB, etc.
 
 
-#### List Restart / Continue `PARTIAL`
+#### List Restart / Continue `DONE`
 
 Restarting numbering or continuing from a previous list.
 
-- **OOXML**: `w:numId` change, `w:lvlRestart`, `w:startOverride`
+- **OOXML**: `w:numId` change, `w:startOverride` in `w:lvlOverride`
+- **Parse**: `DocumentParser.ExtractNumberingDefinitions()` — clones abstract levels and applies `StartOverrideNumberingValue`
+- **Test**: `numbered_list_tracking/`, `numbered_list_restart/`
 
-> **Contributors**: Different `numId` values naturally restart counters. `w:start` value is respected. `w:lvlRestart` and `w:startOverride` are not yet implemented.
-> **AI**: Parse `w:startOverride` from `w:num` instances. Parse `w:lvlRestart` from level definitions to reset child counters when parent increments.
+> **Contributors**: Different `numId` values restart counters independently. `w:lvlOverride` with `w:startOverride` in numbering instances overrides the abstract definition's start number. The override is applied during extraction by cloning the abstract level definition with the new start value.
+> **Consumers**: Lists restart correctly when Word creates separate numbering instances. Custom start values (e.g., starting at 10) are supported.
 
 
 ### 3.3 Multilevel Lists
@@ -1809,7 +1811,7 @@ Read-only mode, form protection, and editing restrictions.
 |----------|------|---------|------|-------|
 | 1. Text Formatting | 11 | 0 | 5 | 16 |
 | 2. Paragraph Formatting | 10 | 1 | 1 | 12 |
-| 3. Lists & Numbering | 5 | 1 | 0 | 6 |
+| 3. Lists & Numbering | 6 | 0 | 0 | 6 |
 | 4. Tables | 12 | 1 | 4 | 17 |
 | 5. Page Layout & Sections | 14 | 1 | 3 | 18 |
 | 6. Graphics & Media | 10 | 0 | 9 | 19 |
@@ -1819,15 +1821,15 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 0 | 5 | 6 |
 | 12. Advanced Content | 0 | 0 | 2 | 2 |
-| **Total** | **89** | **4** | **31** | **124** |
+| **Total** | **90** | **3** | **31** | **124** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 89
-    "Partial" : 4
+    "Done" : 90
+    "Partial" : 3
     "Todo" : 31
 ```
 
