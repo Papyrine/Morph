@@ -797,16 +797,48 @@ sealed class DocumentParser
             abstractNums[abstractNumId] = levels;
         }
 
-        // Now map numId to abstractNumId
+        // Now map numId to abstractNumId, applying any level overrides
         foreach (var numInstance in numbering.Elements<NumberingInstance>())
         {
             var numId = numInstance.NumberID?.Value ?? 0;
             var abstractNumIdRef = numInstance.AbstractNumId?.Val?.Value ?? 0;
 
-            if (abstractNums.TryGetValue(abstractNumIdRef, out var levels))
+            if (!abstractNums.TryGetValue(abstractNumIdRef, out var abstractLevels))
             {
-                result[numId] = levels;
+                continue;
             }
+
+            // Check for level overrides (w:lvlOverride with w:startOverride)
+            var overrides = numInstance.Elements<LevelOverride>().ToList();
+            if (overrides.Count == 0)
+            {
+                result[numId] = abstractLevels;
+                continue;
+            }
+
+            // Clone levels and apply overrides
+            var levels = new Dictionary<int, NumberingLevelDefinition>(abstractLevels);
+            foreach (var lvlOverride in overrides)
+            {
+                var overrideIlvl = lvlOverride.LevelIndex?.Value ?? 0;
+                var startOverride = lvlOverride.StartOverrideNumberingValue?.Val?.Value;
+
+                if (startOverride != null && levels.TryGetValue(overrideIlvl, out var baseDef))
+                {
+                    levels[overrideIlvl] = new()
+                    {
+                        LevelText = baseDef.LevelText,
+                        FontFamily = baseDef.FontFamily,
+                        LeftIndentPoints = baseDef.LeftIndentPoints,
+                        HangingIndentPoints = baseDef.HangingIndentPoints,
+                        IsBullet = baseDef.IsBullet,
+                        StartNumber = startOverride.Value,
+                        NumberFormat = baseDef.NumberFormat
+                    };
+                }
+            }
+
+            result[numId] = levels;
         }
 
         return result;

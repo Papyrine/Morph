@@ -21,8 +21,8 @@ dotnet test src/Tests
 # Run a single test by name
 dotnet run --project src/Tests -- --filter "Name=Scenario"
 
-# Limit test parallelism to half the CPU count (8) to avoid resource contention
-dotnet run --project src/Tests --configuration Debug -- --maximum-parallel-tests 8
+# Limit test parallelism to half the CPU count to avoid resource contention
+dotnet run --project src/Tests --configuration Debug -- --maximum-parallel-tests $(( $(nproc) / 2 ))
 ```
 
 **Prerequisites:** .NET SDK 10.0 (preview). See `global.json` for exact version. Bundled fonts in `src/Fonts/` must be installed on CI (see `src/appveyor.yml`).
