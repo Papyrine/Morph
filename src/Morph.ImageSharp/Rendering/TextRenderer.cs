@@ -222,6 +222,15 @@ sealed class TextRenderer(RenderContext context)
                 }
             }
 
+            // For the last line of a paragraph with compact auto spacing (< 1.0x),
+            // ensure the cursor advances by at least the natural line height to prevent
+            // overlap with the next paragraph. Compact spacing only compresses the
+            // distance between lines within the same paragraph.
+            if (line.IsLastLine && props is {LineSpacingRule: LineSpacingRule.Auto, LineSpacingMultiplier: < 1.0})
+            {
+                lineHeight = Math.Max(lineHeight, line.Height);
+            }
+
             context.CurrentY += lineHeight;
         }
 
@@ -312,6 +321,11 @@ sealed class TextRenderer(RenderContext context)
                 {
                     currentX += extraSpacePerGap;
                 }
+            }
+
+            if (line.IsLastLine && props is {LineSpacingRule: LineSpacingRule.Auto, LineSpacingMultiplier: < 1.0})
+            {
+                lineHeight = Math.Max(lineHeight, line.Height);
             }
 
             context.CurrentY += lineHeight;
