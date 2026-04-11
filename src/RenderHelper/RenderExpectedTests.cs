@@ -176,12 +176,23 @@ public class RenderExpectedTests
         return pageCount;
     }
 
+    static IEnumerable<string> GetScenarioNames()
+    {
+        var inputsDir = Path.Combine(ProjectFiles.SolutionDirectory, @"Tests\Inputs");
+        foreach (var docxPath in Directory.GetFiles(inputsDir, "input.docx", SearchOption.AllDirectories))
+        {
+            var dir = Path.GetDirectoryName(docxPath)!;
+            // Return relative path from Inputs/ as the scenario name (e.g. "numbered_list" or "agendas-minutes\01")
+            yield return dir.Substring(inputsDir.Length + 1);
+        }
+    }
+
     [Test]
     [Explicit]
-    public void GenerateSingleExpectedImage()
+    [TestCaseSource(nameof(GetScenarioNames))]
+    public void GenerateExpectedImage(string scenarioName)
     {
-        // Test with a single file for quick iteration
-        var testDir = Path.Combine(inputsPath, "agendas-minutes", "01");
+        var testDir = Path.Combine(inputsPath, scenarioName);
         var docxPath = Path.Combine(testDir, "input.docx");
 
         if (!File.Exists(docxPath))
@@ -199,11 +210,17 @@ public class RenderExpectedTests
                 DisplayAlerts = Word.WdAlertLevel.wdAlertsNone
             };
 
+            // Delete existing expected_*.png files
+            foreach (var file in Directory.GetFiles(testDir, "expected_*.png"))
+            {
+                File.Delete(file);
+            }
+
             var xpsPath = Path.Combine(testDir, "temp_output.xps");
             ConvertDocxToXps(wordApp, docxPath, xpsPath);
 
             var pageCount = ConvertXpsToPng(xpsPath, testDir);
-            Console.WriteLine($"Generated {pageCount} pages");
+            Console.WriteLine($"Generated {pageCount} pages for {scenarioName}");
 
             if (File.Exists(xpsPath))
             {

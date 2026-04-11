@@ -54,6 +54,9 @@ sealed class DocumentParser
     // Style numbering: styleId -> (numId, ilvl) for styles that define numbering
     Dictionary<string, (int numId, int ilvl)>? styleNumbering;
 
+    // Numbering counters: (numId, ilvl) -> current counter value
+    Dictionary<(int numId, int ilvl), int> numberingCounters = [];
+
     // Table style borders cached during parsing (styleId -> borders + conditional formatting)
     Dictionary<string, TableStyleBorderInfo>? tableStyleBorders;
 
@@ -712,6 +715,7 @@ sealed class DocumentParser
         public double HangingIndentPoints { get; init; }
         public bool IsBullet { get; init; }
         public int StartNumber { get; init; } = 1;
+        public NumberFormatValues NumberFormat { get; init; } = NumberFormatValues.Decimal;
     }
 
     static Dictionary<int, Dictionary<int, NumberingLevelDefinition>> ExtractNumberingDefinitions(MainDocumentPart mainPart)
@@ -785,7 +789,8 @@ sealed class DocumentParser
                     LeftIndentPoints = leftIndent,
                     HangingIndentPoints = hangingIndent,
                     IsBullet = isBullet,
-                    StartNumber = startNumber
+                    StartNumber = startNumber,
+                    NumberFormat = numFmt ?? NumberFormatValues.Decimal
                 };
             }
 
@@ -1068,9 +1073,50 @@ sealed class DocumentParser
         }
         else
         {
-            // For numbered lists, we'd need to track counters - for now just use placeholder
-            // Level text like "%1." means use the counter for level 1
-            text = levelDef.LevelText.Replace("%1", "1").Replace("%2", "2").Replace("%3", "3");
+            // Track counters per (numId, ilvl) pair
+            var counterKey = (numId, ilvl);
+            if (!numberingCounters.TryGetValue(counterKey, out var counter))
+            {
+                counter = levelDef.StartNumber;
+            }
+            else
+            {
+                counter++;
+            }
+
+            numberingCounters[counterKey] = counter;
+
+            // Replace %N placeholders with formatted counter values
+            text = levelDef.LevelText;
+            for (var lvl = 0; lvl <= ilvl; lvl++)
+            {
+                var placeholder = $"%{lvl + 1}";
+                if (!text.Contains(placeholder))
+                {
+                    continue;
+                }
+
+                int lvlCounter;
+                if (lvl == ilvl)
+                {
+                    lvlCounter = counter;
+                }
+                else
+                {
+                    // For parent levels, use the current counter (or start if not yet seen)
+                    var parentKey = (numId, lvl);
+                    lvlCounter = numberingCounters.GetValueOrDefault(parentKey, levelDef.StartNumber);
+                }
+
+                var numFmt = levelDef.NumberFormat;
+                // Try to get the actual format for parent levels
+                if (lvl != ilvl && levels.TryGetValue(lvl, out var parentLevelDef))
+                {
+                    numFmt = parentLevelDef.NumberFormat;
+                }
+
+                text = text.Replace(placeholder, FormatNumber(lvlCounter, numFmt));
+            }
         }
 
         return new()
@@ -1080,6 +1126,87 @@ sealed class DocumentParser
             IndentPoints = levelDef.LeftIndentPoints,
             HangingIndentPoints = levelDef.HangingIndentPoints
         };
+    }
+
+    static string FormatNumber(int number, NumberFormatValues format)
+    {
+        if (format == NumberFormatValues.UpperRoman)
+        {
+            return ToRoman(number);
+        }
+
+        if (format == NumberFormatValues.LowerRoman)
+        {
+            return ToRoman(number).ToLowerInvariant();
+        }
+
+        if (format == NumberFormatValues.UpperLetter)
+        {
+            return ToLetter(number);
+        }
+
+        if (format == NumberFormatValues.LowerLetter)
+        {
+            return ToLetter(number).ToLowerInvariant();
+        }
+
+        return number.ToString();
+    }
+
+    static string ToRoman(int number)
+    {
+        if (number is <= 0 or > 3999)
+        {
+            return number.ToString();
+        }
+
+        ReadOnlySpan<(int value, string numeral)> romanNumerals =
+        [
+            (1000, "M"),
+            (900, "CM"),
+            (500, "D"),
+            (400, "CD"),
+            (100, "C"),
+            (90, "XC"),
+            (50, "L"),
+            (40, "XL"),
+            (10, "X"),
+            (9, "IX"),
+            (5, "V"),
+            (4, "IV"),
+            (1, "I")
+        ];
+
+        var result = new StringBuilder();
+        foreach (var (value, numeral) in romanNumerals)
+        {
+            while (number >= value)
+            {
+                result.Append(numeral);
+                number -= value;
+            }
+        }
+
+        return result.ToString();
+    }
+
+    static string ToLetter(int number)
+    {
+        if (number <= 0)
+        {
+            return number.ToString();
+        }
+
+        // 1=A, 2=B, ..., 26=Z, 27=AA, 28=AB, ...
+        var result = new StringBuilder();
+        while (number > 0)
+        {
+            number--;
+            result.Insert(0, (char) ('A' + number % 26));
+            number /= 26;
+        }
+
+        return result.ToString();
     }
 
     static HyphenationSettings ExtractHyphenationSettings(MainDocumentPart mainPart)
