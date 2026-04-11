@@ -46,6 +46,8 @@ The conversion pipeline is **Parse → Render**, split across multiple assemblie
 
 The HTML packages have no transitive dependency on `DocumentFormat.OpenXml`.
 
+For a complete feature-by-feature mapping to code locations, see `docs/word-features.md`.
+
 ## Code Style
 
 - C# preview features enabled (`LangVersion: preview`), nullable enabled, implicit usings
@@ -63,6 +65,16 @@ The HTML packages have no transitive dependency on `DocumentFormat.OpenXml`.
 - **Scenario tests** (`SkiaScenarioTests.cs` / `ImageSharpScenarioTests.cs`, DEBUG-only): parameterized over 2000+ directories in `src/Tests/Inputs/`, each containing `input.docx` and `expected_*.png` reference images. Uses Verify + ImageMagick for pixel-level comparison. Both backends are tested independently
 - **Spec tests** (`src/Tests/SpecTests/`): unit tests for specific OOXML specification features
 - **RenderHelper** (`src/RenderHelper/`): .NET Framework 4.8.1 project that generates reference images using Microsoft Word via COM interop (Windows-only, not part of normal test runs)
+
+## Feature Documentation
+
+`docs/word-features.md` is the comprehensive feature matrix listing every DOCX feature with implementation status, code locations, and specification links.
+
+**When adding, modifying, or removing a DOCX feature, update the feature matrix:**
+1. Update the feature status (`DONE` / `PARTIAL` / `TODO`)
+2. Update parse/model/render locations and audience notes
+3. Update the summary statistics at the bottom
+4. Add new test directory name to the Test row
 
 ## Package Management
 
