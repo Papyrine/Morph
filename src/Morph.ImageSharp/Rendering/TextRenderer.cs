@@ -459,8 +459,9 @@ sealed class TextRenderer(RenderContext context)
                     continue;
                 }
 
-                // Measure word width in points
-                var wordWidth = RenderContext.MeasureText(font, word);
+                // Measure word width in points, including character spacing
+                var wordWidth = RenderContext.MeasureText(font, word)
+                                + (float)(run.Properties.CharacterSpacingPoints * word.Length);
 
                 // Check if we need to wrap
                 if (currentLineWidth + wordWidth > effectiveWidth && currentFragments.Count > 0)
@@ -952,8 +953,9 @@ sealed class TextRenderer(RenderContext context)
                 var displayWord = hasSoftHyphen ? word.TrimEnd(softHyphen) : word;
 
                 // Measure the display word (without soft hyphen)
-                // Apply FontWidthScale to better match Word's text rendering
-                var wordWidth = RenderContext.MeasureText(font, displayWord) * context.FontWidthScale;
+                // Apply FontWidthScale and character spacing to better match Word's text rendering
+                var wordWidth = RenderContext.MeasureText(font, displayWord) * context.FontWidthScale
+                                + (float)(run.Properties.CharacterSpacingPoints * displayWord.Length);
 
                 // Check if we need to wrap to a new line
                 if (currentLineWidth + wordWidth > effectiveWidth && currentFragments.Count > 0)

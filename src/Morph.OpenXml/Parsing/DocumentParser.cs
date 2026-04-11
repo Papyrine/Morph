@@ -257,6 +257,7 @@ sealed class DocumentParser
                 var allCaps = baseProps?.AllCaps ?? false;
                 var color = baseProps?.ColorHex;
                 var backgroundColor = baseProps?.BackgroundColorHex;
+                var characterSpacing = baseProps?.CharacterSpacingPoints ?? 0.0;
 
                 // If no run properties, still save inherited properties
                 if (runProps == null)
@@ -271,7 +272,8 @@ sealed class DocumentParser
                         Strikethrough = strikethrough,
                         AllCaps = allCaps,
                         ColorHex = color,
-                        BackgroundColorHex = backgroundColor
+                        BackgroundColorHex = backgroundColor,
+                        CharacterSpacingPoints = characterSpacing
                     };
                     processed.Add(styleId);
                     continue;
@@ -339,6 +341,13 @@ sealed class DocumentParser
                 if (capsElement != null)
                 {
                     allCaps = capsElement.Val?.Value != false;
+                }
+
+                // Character spacing (w:spacing in rPr)
+                var spacingElement = runProps.GetFirstChild<Spacing>();
+                if (spacingElement?.Val?.HasValue == true)
+                {
+                    characterSpacing = spacingElement.Val.Value / twipsPerPoint;
                 }
 
                 // Color - check for theme color first, then direct value as fallback
@@ -409,7 +418,8 @@ sealed class DocumentParser
                     Strikethrough = strikethrough,
                     AllCaps = allCaps,
                     ColorHex = color,
-                    BackgroundColorHex = backgroundColor
+                    BackgroundColorHex = backgroundColor,
+                    CharacterSpacingPoints = characterSpacing
                 };
                 processed.Add(styleId);
             }
@@ -5110,6 +5120,7 @@ sealed class DocumentParser
         var color = styleDefaults?.ColorHex;
         var backgroundColor = styleDefaults?.BackgroundColorHex;
         var verticalAlignment = styleDefaults?.VerticalAlignment ?? VerticalRunAlignment.Baseline;
+        var characterSpacing = styleDefaults?.CharacterSpacingPoints ?? 0.0;
 
         // Override with inline properties if specified
         var runFonts = props.GetFirstChild<RunFonts>();
@@ -5166,6 +5177,13 @@ sealed class DocumentParser
         if (capsElement != null)
         {
             allCaps = capsElement.Val?.Value != false;
+        }
+
+        // Character spacing (w:spacing in rPr — extra space between characters, in twips)
+        var spacingElement = props.GetFirstChild<Spacing>();
+        if (spacingElement?.Val?.HasValue == true)
+        {
+            characterSpacing = spacingElement.Val.Value / twipsPerPoint;
         }
 
         // Vertical alignment (subscript/superscript)
@@ -5306,6 +5324,11 @@ sealed class DocumentParser
                 allCaps = runStyleProps.AllCaps;
             }
 
+            if (props.GetFirstChild<Spacing>() == null && originalRPr?.GetFirstChild<Spacing>() != null)
+            {
+                characterSpacing = runStyleProps.CharacterSpacingPoints;
+            }
+
             if (props.GetFirstChild<Color>() == null && originalRPr?.GetFirstChild<Color>() != null)
             {
                 color = runStyleProps.ColorHex;
@@ -5333,6 +5356,7 @@ sealed class DocumentParser
             AllCaps = allCaps,
             ColorHex = color,
             BackgroundColorHex = backgroundColor,
+            CharacterSpacingPoints = characterSpacing,
             VerticalAlignment = verticalAlignment
         };
     }
