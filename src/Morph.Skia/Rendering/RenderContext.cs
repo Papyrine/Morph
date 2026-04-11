@@ -75,10 +75,14 @@ sealed class RenderContext : RenderContextBase, IDisposable
 
             if (typeface == null)
             {
-                // Try user fonts, Office fonts, then cloud cache
-                typeface = TryLoadFromAnyCandidateName(userFontsCache.Value, candidates, style)
-                           ?? TryLoadFromAnyCandidateName(officeFontsCache.Value, candidates, style)
-                           ?? TryLoadFromAnyCandidateName(cloudFontsCache.Value, candidates, style);
+                // Merge all font caches so all style variants are available
+                // (e.g. Regular from user fonts + Italic from cloud)
+                var mergedFiles = GetMergedFontFiles(candidates,
+                    userFontsCache.Value, officeFontsCache.Value, cloudFontsCache.Value);
+                if (mergedFiles != null)
+                {
+                    typeface = FindBestMatch(mergedFiles, style);
+                }
             }
 
             if (typeface == null)
@@ -114,11 +118,122 @@ sealed class RenderContext : RenderContextBase, IDisposable
             if (typeface.FamilyName.Equals(name, StringComparison.OrdinalIgnoreCase)
                 || typeface.FamilyName.StartsWith(name, StringComparison.OrdinalIgnoreCase))
             {
+                // Verify the returned typeface actually matches the requested style.
+                // System fonts may return a regular face when italic isn't available,
+                // causing us to miss italic variants in the cloud/Office font caches.
+                var wantItalic = style.Slant != SKFontStyleSlant.Upright;
+                var gotItalic = typeface.FontStyle.Slant != SKFontStyleSlant.Upright;
+                if (wantItalic != gotItalic)
+                {
+                    typeface.Dispose();
+                    continue;
+                }
+
                 return typeface;
             }
         }
 
         return null;
+    }
+
+    static string[]? GetMergedFontFiles(FontNameCandidates candidates, params Dictionary<string, string[]>[] caches)
+    {
+        List<string>? merged = null;
+        foreach (var cache in caches)
+        {
+            foreach (var name in CandidateNames(candidates))
+            {
+                if (cache.TryGetValue(name, out var files))
+                {
+                    merged ??= [];
+                    merged.AddRange(files);
+                }
+                else
+                {
+                    var baseName = FontHelpers.StripWeightSuffixes(name);
+                    if (baseName != name && cache.TryGetValue(baseName, out files))
+                    {
+                        merged ??= [];
+                        merged.AddRange(files);
+                    }
+                }
+            }
+        }
+
+        return merged?.ToArray();
+    }
+
+    static SKTypeface? FindBestMatch(string[] fontFiles, SKFontStyle style)
+    {
+        SKTypeface? bestMatch = null;
+        var bestScore = -1;
+
+        foreach (var fontFile in fontFiles)
+        {
+            try
+            {
+                var tf = SKTypeface.FromFile(fontFile);
+                if (tf == null)
+                {
+                    continue;
+                }
+
+                var score = ScoreTypeface(tf, style);
+
+                if (score > bestScore)
+                {
+                    bestMatch?.Dispose();
+                    bestMatch = tf;
+                    bestScore = score;
+                }
+                else
+                {
+                    tf.Dispose();
+                }
+            }
+            catch
+            {
+                // Ignore individual font load errors
+            }
+        }
+
+        return bestMatch;
+    }
+
+    static int ScoreTypeface(SKTypeface tf, SKFontStyle style)
+    {
+        var score = 0;
+        var isBold = tf.FontStyle.Weight >= 600;
+        var isItalic = tf.FontStyle.Slant != SKFontStyleSlant.Upright;
+        var isCondensed = tf.FontStyle.Width <= (int) SKFontStyleWidth.SemiCondensed;
+        var isExtended = tf.FontStyle.Width >= (int) SKFontStyleWidth.SemiExpanded;
+
+        var wantBold = style.Weight >= 600;
+        var wantItalic = style.Slant != SKFontStyleSlant.Upright;
+        var wantCondensed = style.Width <= (int) SKFontStyleWidth.SemiCondensed;
+        var wantExtended = style.Width >= (int) SKFontStyleWidth.SemiExpanded;
+
+        if (isCondensed == wantCondensed && isExtended == wantExtended)
+        {
+            score += 4;
+        }
+
+        if (isBold == wantBold)
+        {
+            score += 2;
+        }
+
+        if (isItalic == wantItalic)
+        {
+            score += 1;
+        }
+
+        if (!wantBold && tf.FontStyle.Weight is >= 400 and <= 500)
+        {
+            score += 1;
+        }
+
+        return score;
     }
 
     static SKTypeface? TryLoadFromAnyCandidateName(Dictionary<string, string[]> fontCache, FontNameCandidates candidates, SKFontStyle style)
