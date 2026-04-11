@@ -7,6 +7,9 @@ on:
     types: [opened, edited, closed, reopened, deleted, milestoned, demilestoned]
   pull_request:
     types: [opened, edited, closed, reopened, milestoned, demilestoned]
+  push:
+    tags:
+      - '*'
   workflow_dispatch:
     inputs:
       milestone:

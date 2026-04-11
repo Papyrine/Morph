@@ -105,6 +105,22 @@ public class HtmlParserTests
         Verify(HtmlParser.Parse("<p><font face=\"Arial\">text</font></p>"));
 
     [Test]
+    public async Task DefaultFontFamily_AppliedToRunsWithoutExplicitFont()
+    {
+        var result = HtmlParser.Parse("<p><font size=\"7\">large</font></p>", "Times New Roman");
+        var para = (ParagraphElement) result[0];
+        await Assert.That(para.Runs[0].Properties.FontFamily).IsEqualTo("Times New Roman");
+    }
+
+    [Test]
+    public async Task DefaultFontFamily_NotOverriddenWhenFontFaceSet()
+    {
+        var result = HtmlParser.Parse("<p><font face=\"Arial\">text</font></p>", "Times New Roman");
+        var para = (ParagraphElement) result[0];
+        await Assert.That(para.Runs[0].Properties.FontFamily).IsEqualTo("Arial");
+    }
+
+    [Test]
     public Task FontTag_Color() =>
         Verify(HtmlParser.Parse("<p><font color=\"red\">text</font></p>"));
 

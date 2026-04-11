@@ -5,8 +5,20 @@ using AngleSharp.Dom;
 /// </summary>
 internal sealed class HtmlParser
 {
-    public static List<DocumentElement> Parse(string html)
+    readonly string defaultFontFamily;
+
+    HtmlParser(string defaultFontFamily) =>
+        this.defaultFontFamily = defaultFontFamily;
+
+    RunProperties DefaultRunProps() =>
+        new() { FontFamily = defaultFontFamily };
+
+    public static List<DocumentElement> Parse(string html) =>
+        Parse(html, "Times New Roman");
+
+    public static List<DocumentElement> Parse(string html, string defaultFontFamily)
     {
+        var instance = new HtmlParser(defaultFontFamily);
         var elements = new List<DocumentElement>();
         var parser = new AngleSharp.Html.Parser.HtmlParser();
         var document = parser.ParseDocument(html);
@@ -17,7 +29,7 @@ internal sealed class HtmlParser
             return elements;
         }
 
-        ParseNodes(body.ChildNodes, elements);
+        instance.ParseNodes(body.ChildNodes, elements);
         return elements;
     }
 
@@ -25,13 +37,16 @@ internal sealed class HtmlParser
     /// Async version of Parse. Currently delegates to the sync implementation,
     /// but will support async image fetching in the future.
     /// </summary>
-    public static Task<List<DocumentElement>> Parse(string html, Cancel cancel)
+    public static Task<List<DocumentElement>> Parse(string html, Cancel cancel) =>
+        Parse(html, "Times New Roman", cancel);
+
+    public static Task<List<DocumentElement>> Parse(string html, string defaultFontFamily, Cancel cancel)
     {
         cancel.ThrowIfCancellationRequested();
-        return Task.FromResult(Parse(html));
+        return Task.FromResult(Parse(html, defaultFontFamily));
     }
 
-    static void ParseNodes(INodeList nodes, List<DocumentElement> elements)
+    void ParseNodes(INodeList nodes, List<DocumentElement> elements)
     {
         foreach (var node in nodes)
         {
@@ -39,7 +54,7 @@ internal sealed class HtmlParser
         }
     }
 
-    static void ParseNode(INode node, List<DocumentElement> elements)
+    void ParseNode(INode node, List<DocumentElement> elements)
     {
         switch (node)
         {
@@ -54,7 +69,7 @@ internal sealed class HtmlParser
                             new()
                             {
                                 Text = text,
-                                Properties = new()
+                                Properties = DefaultRunProps()
                             }
                         ]
                     });
@@ -68,7 +83,7 @@ internal sealed class HtmlParser
         }
     }
 
-    static void ParseElement(IElement element, List<DocumentElement> elements)
+    void ParseElement(IElement element, List<DocumentElement> elements)
     {
         switch (element.TagName.ToLowerInvariant())
         {
@@ -114,7 +129,7 @@ internal sealed class HtmlParser
                         new()
                         {
                             Text = "",
-                            Properties = new()
+                            Properties = DefaultRunProps()
                         }
                     ],
                     Properties = new()
@@ -185,7 +200,7 @@ internal sealed class HtmlParser
                     {
                         var captionRuns = ParseInlineElements(
                             childEl,
-                            new()
+                            DefaultRunProps() with
                             {
                                 FontSizePoints = 11,
                                 Italic = true
@@ -199,7 +214,7 @@ internal sealed class HtmlParser
                                     new()
                                     {
                                         Text = "",
-                                        Properties = new()
+                                        Properties = DefaultRunProps() with
                                         {
                                             FontSizePoints = 11,
                                             Italic = true
@@ -223,7 +238,7 @@ internal sealed class HtmlParser
             case "figcaption":
                 var figRuns = ParseInlineElements(
                     element,
-                    new()
+                    DefaultRunProps() with
                     {
                         FontSizePoints = 11,
                         Italic = true
@@ -237,7 +252,7 @@ internal sealed class HtmlParser
                             new()
                             {
                                 Text = "",
-                                Properties = new()
+                                Properties = DefaultRunProps() with
                                 {
                                     FontSizePoints = 11,
                                     Italic = true
@@ -285,11 +300,11 @@ internal sealed class HtmlParser
         }
     }
 
-    static ParagraphElement CreateParagraph(IElement element, double fontSize, bool bold, InlineStyle? style = null)
+    ParagraphElement CreateParagraph(IElement element, double fontSize, bool bold, InlineStyle? style = null)
     {
         var runs = ParseInlineElements(
             element,
-            new()
+            DefaultRunProps() with
             {
                 FontSizePoints = fontSize,
                 Bold = bold,
@@ -305,7 +320,7 @@ internal sealed class HtmlParser
                     new()
                     {
                         Text = "",
-                        Properties = new()
+                        Properties = DefaultRunProps() with
                         {
                             FontSizePoints = fontSize
                         }
@@ -668,7 +683,7 @@ internal sealed class HtmlParser
         return result;
     }
 
-    static void ParseList(IElement listElement, List<DocumentElement> elements, string bulletPrefix, int level = 0)
+    void ParseList(IElement listElement, List<DocumentElement> elements, string bulletPrefix, int level = 0)
     {
         foreach (var child in listElement.Children)
         {
@@ -708,7 +723,7 @@ internal sealed class HtmlParser
                         new()
                         {
                             Text = bulletPrefix + itemText,
-                            Properties = new()
+                            Properties = DefaultRunProps()
                         }
                     ],
                     Properties = new()
@@ -733,7 +748,7 @@ internal sealed class HtmlParser
         }
     }
 
-    static void ParseOrderedList(IElement listElement, List<DocumentElement> elements, int level = 0)
+    void ParseOrderedList(IElement listElement, List<DocumentElement> elements, int level = 0)
     {
         var num = 1;
         foreach (var child in listElement.Children)
@@ -754,7 +769,7 @@ internal sealed class HtmlParser
                         new()
                         {
                             Text = $"{num}. {text}",
-                            Properties = new()
+                            Properties = DefaultRunProps()
                         }
                     ],
                     Properties = new()
@@ -768,7 +783,7 @@ internal sealed class HtmlParser
         }
     }
 
-    static TableElement? ParseTable(IElement tableElement)
+    TableElement? ParseTable(IElement tableElement)
     {
         var rows = new List<TableRow>();
 
@@ -905,7 +920,7 @@ internal sealed class HtmlParser
                             new()
                             {
                                 Text = text,
-                                Properties = new()
+                                Properties = DefaultRunProps() with
                                 {
                                     Bold = isHeader
                                 }
@@ -1104,7 +1119,7 @@ internal sealed class HtmlParser
         return null;
     }
 
-    static void ParseDefinitionList(IElement element, List<DocumentElement> elements)
+    void ParseDefinitionList(IElement element, List<DocumentElement> elements)
     {
         foreach (var child in element.Children)
         {
