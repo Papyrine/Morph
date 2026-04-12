@@ -63,6 +63,8 @@ public class ImageSharpScenarioTests
             .UseDirectory(directory)
             .UseFileName("results_imagesharp")
             .IgnoreParameters();
+
+        ScenarioHtmlGenerator.Regenerate(directory);
     }
 
     static List<PageDiff>? PageDiffs(string[] expectedFiles, IReadOnlyList<byte[]> actualFiles)
