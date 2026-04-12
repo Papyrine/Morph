@@ -6,6 +6,7 @@ obj/
 *.DotSettings.user
 .idea/
 *.received.*
+*.current.*
 nugets/
 .claude/settings.local.json
 *~$*.docx
