@@ -2552,9 +2552,25 @@ sealed class DocumentParser
                             var overlayImages = ParseDrawingElements(drawing, mainPart);
                             result.AddRange(overlayImages);
 
-                            // Parse text boxes and solid fill shapes inside the shapes/group (they contain the actual content)
+                            // Parse text boxes and solid fill shapes inside the shapes/group (they contain the actual content).
+                            // Skip any solid-fill FloatingShapeElement whose position/size matches one
+                            // already emitted by ShapeParser above — both parsers traverse the same wgp
+                            // group and would otherwise produce duplicates.
                             var shapesFromDrawing = ParseAllShapesFromDrawing(drawing, mainPart);
-                            result.AddRange(shapesFromDrawing);
+                            foreach (var shape in shapesFromDrawing)
+                            {
+                                if (shape is FloatingShapeElement fse &&
+                                    shapeElements.Any(existing =>
+                                        existing is FloatingShapeElement e &&
+                                        Math.Abs(e.HorizontalPositionPoints - fse.HorizontalPositionPoints) < 0.5 &&
+                                        Math.Abs(e.VerticalPositionPoints - fse.VerticalPositionPoints) < 0.5 &&
+                                        Math.Abs(e.WidthPoints - fse.WidthPoints) < 0.5 &&
+                                        Math.Abs(e.HeightPoints - fse.HeightPoints) < 0.5))
+                                {
+                                    continue;
+                                }
+                                result.Add(shape);
+                            }
 
                             continue;
                         }
@@ -3892,6 +3908,13 @@ sealed class DocumentParser
         // Skip shapes with blip fill (image fill) - these are already handled by ShapeParser.ParseBackgroundShapes
         var blipFill = shapeProps.GetFirstChild<A.BlipFill>();
         if (blipFill != null)
+        {
+            return null;
+        }
+
+        // An explicit <a:noFill/> in spPr means the shape has no fill, even if the
+        // wps:style contains a fillRef — the direct property always wins.
+        if (shapeProps.GetFirstChild<A.NoFill>() != null)
         {
             return null;
         }

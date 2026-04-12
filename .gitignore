@@ -16,3 +16,4 @@ src/.claude/settings.local.json
 /TestResults
 /BenchmarkDotNet.Artifacts
 /src/Tests/TestResults
+tmp_*
