@@ -40,7 +40,6 @@ static class ScenarioHtmlGenerator
               td { padding: 16px; vertical-align: top; text-align: center; }
               td img { max-width: 500px; max-height: 700px; border: 2px solid #666; background: white; display: block; }
               .page-label { font-weight: bold; margin-bottom: 6px; font-size: 14px; }
-              .metric { color: #ff8888; font-size: 12px; margin-bottom: 6px; }
               .missing { color: #888; font-style: italic; padding: 80px 40px; border: 2px dashed #555; min-width: 400px; min-height: 500px; display: flex; align-items: center; justify-content: center; }
               tr { border-bottom: 1px solid #444; }
             </style>
@@ -67,8 +66,10 @@ static class ScenarioHtmlGenerator
             sb.AppendLine("</tr>");
         }
 
-        sb.AppendLine("</tbody></table>");
-        sb.AppendLine("</body></html>");
+        sb.AppendLine("""
+            </tbody></table>
+            </body></html>
+            """);
 
         File.WriteAllText(Path.Combine(directory, "compare.html"), sb.ToString());
     }
@@ -102,16 +103,17 @@ static class ScenarioHtmlGenerator
 
     static string RenderCell(string pageLabel, double? metric, string? fileName)
     {
+        var label = metric.HasValue
+            ? $"{pageLabel}. ErrorMetric: {metric.Value:F4}"
+            : pageLabel;
+
         if (fileName == null)
         {
-            return $"<td><div class=\"page-label\">{pageLabel}</div><div class=\"missing\">(no page)</div></td>";
+            return $"""<td><div class="page-label">{label}</div><div class="missing">(no page)</div></td>""";
         }
 
         var src = fileName.Replace("#", "%23");
-        var metricLine = metric.HasValue
-            ? $"<div class=\"metric\">ErrorMetric: {metric.Value:F4}</div>"
-            : "";
-        return $"<td><div class=\"page-label\">{pageLabel}</div>{metricLine}<img src=\"{src}\"></td>";
+        return $"""<td><div class="page-label">{label}</div><img src="{src}"></td>""";
     }
 
     static string GetScenarioName(string directory)
