@@ -18,12 +18,35 @@ dotnet run --project src/Tests --configuration Release
 # Run tests with dotnet test
 dotnet test src/Tests
 
-# Run a single test by name
-dotnet run --project src/Tests -- --filter "Name=Scenario"
-
 # Limit test parallelism to half the CPU count to avoid resource contention
 dotnet run --project src/Tests --configuration Debug -- --maximum-parallel-tests $(( $(nproc) / 2 ))
 ```
+
+### TUnit filter syntax (`--treenode-filter`)
+
+TUnit uses `--treenode-filter`, not `--filter`. The filter path format is:
+```
+/{assembly}/{namespace}/{class}/{method}
+```
+
+Parameter values are **NOT** part of the filter path — they only appear in the display name, which is not filterable. Wildcards (`*`) work in any segment but `**` is only allowed as the final segment.
+
+```bash
+# Run only the scenario test classes (skip the ~540 spec/unit tests)
+dotnet run --project src/Tests --configuration Debug -- --treenode-filter "/*/*/*ScenarioTests/*"
+
+# Run only the Skia scenario tests
+dotnet run --project src/Tests --configuration Debug -- --treenode-filter "/*/*/SkiaScenarioTests/*"
+```
+
+**To target a single parameterized scenario (e.g. `cover-letters/02` alone)** — since the filter can't match parameter values, temporarily narrow `GetScenarioDirectories()` in `SkiaScenarioTests.cs` / `ImageSharpScenarioTests.cs`:
+```csharp
+.Where(_ => _.EndsWith(@"cover-letters\02\input.docx"))
+```
+Then combine with `--treenode-filter "/*/*/*ScenarioTests/*"` to skip the spec tests. Revert the `Where` when done.
+
+Brackets (`[...]`) in treenode filters are for property-bag filters (e.g. `[Category=Foo]`), not parameter matching — don't confuse them with LINQ-style filtering.
+
 
 **Prerequisites:** .NET SDK 10.0 (preview). See `global.json` for exact version. Bundled fonts in `src/Fonts/` must be installed on CI (see `src/appveyor.yml`).
 
