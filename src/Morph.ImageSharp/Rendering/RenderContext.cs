@@ -1,10 +1,6 @@
-using System.Diagnostics.CodeAnalysis;
-// ReSharper disable UseCollectionExpression
-
 /// <summary>
 /// Maintains rendering state during page layout and rendering.
 /// </summary>
-[SuppressMessage("Style", "IDE0028:Simplify collection initialization")]
 sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0, Func<string, string?>? fontFallback = null)
     : RenderContextBase(pageSettings, dpi, compatibility, fontWidthScale, fontFallback),
         IDisposable
@@ -14,48 +10,11 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
     // Shared font collection for fonts loaded from file (cloud, Office, user caches)
     FontCollection sharedFontCollection = new();
 
-    // Cloud fonts cache from Microsoft 365
-    static Lazy<Dictionary<string, string[]>> cloudFontsCache = new(() => LoadFontCache(FontCacheLoader.GetCloudFontFiles()));
+    static Lazy<FontFileCache> cloudFontsCache = new(() => new(FontCacheLoader.GetCloudFontFiles(), ReadFamilyName));
+    static Lazy<FontFileCache> officeFontsCache = new(() => new(FontCacheLoader.GetOfficeFontFiles(), ReadFamilyName));
+    static Lazy<FontFileCache> userFontsCache = new(() => new(FontCacheLoader.GetUserFontFiles(), ReadFamilyName));
 
-    // Office private fonts (bundled with Microsoft Office)
-    static Lazy<Dictionary<string, string[]>> officeFontsCache = new(() => LoadFontCache(FontCacheLoader.GetOfficeFontFiles()));
-
-    // User-installed fonts (installed without admin rights)
-    static Lazy<Dictionary<string, string[]>> userFontsCache = new(() => LoadFontCache(FontCacheLoader.GetUserFontFiles()));
-
-    static Dictionary<string, string[]> LoadFontCache(IEnumerable<string> fontFiles)
-    {
-        var result = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var fontFile in fontFiles)
-        {
-            try
-            {
-                var collection = new FontCollection();
-                var family = collection.Add(fontFile);
-
-                if (!result.TryGetValue(family.Name, out var files))
-                {
-                    files = new();
-                    result[family.Name] = files;
-                }
-
-                files.Add(fontFile);
-            }
-            catch
-            {
-                // Ignore individual font load errors
-            }
-        }
-
-        var final = new Dictionary<string, string[]>(result.Count, StringComparer.OrdinalIgnoreCase);
-        foreach (var kvp in result)
-        {
-            final[kvp.Key] = kvp.Value.ToArray();
-        }
-
-        return final;
-    }
+    static string? ReadFamilyName(string fontFile) => new FontCollection().Add(fontFile).Name;
 
     public FontFamily GetFontFamily(string fontFamily, bool bold, bool italic)
     {
@@ -80,12 +39,15 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
         {
             // Load from all font caches into the shared collection so all style
             // variants are available (e.g. Regular from user fonts + Italic from cloud)
-            TryLoadFromAnyCandidateName(userFontsCache.Value, candidates);
-            TryLoadFromAnyCandidateName(officeFontsCache.Value, candidates);
-            TryLoadFromAnyCandidateName(cloudFontsCache.Value, candidates);
+            LoadFilesIntoSharedCollection(userFontsCache.Value, candidates);
+            LoadFilesIntoSharedCollection(officeFontsCache.Value, candidates);
+            LoadFilesIntoSharedCollection(cloudFontsCache.Value, candidates);
 
-            // Try shared collection first (has all loaded variants), then system fonts
-            if (TryResolveFromKnownSources(candidates, style, out resolvedFamily))
+            // Prefer a family that has the exact style, but accept any matching-name family
+            // if an exact variant isn't available. The caller will downgrade the requested
+            // style in GetFont so we still render with the closest available variant.
+            if (TryResolveFromKnownSources(candidates, style, out resolvedFamily) ||
+                TryResolveFromKnownSources(candidates, requireStyle: null, out resolvedFamily))
             {
                 fontFamilyCache[key] = resolvedFamily;
                 return resolvedFamily;
@@ -109,28 +71,22 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
         return resolvedFamily;
     }
 
-    bool TryResolveFromKnownSources(FontNameCandidates candidates, FontStyle style, out FontFamily resolved)
+    bool TryResolveFromKnownSources(FontNameCandidates candidates, FontStyle? requireStyle, out FontFamily resolved)
     {
-        var needsItalic = style is FontStyle.Italic or FontStyle.BoldItalic;
-
-        foreach (var name in CandidateNames(candidates))
+        foreach (var name in FontFileCache.EnumerateCandidateNames(candidates))
         {
             // Prefer shared collection (has fonts from all caches with proper style variants)
-            if (sharedFontCollection.TryGet(name, out resolved))
+            if (sharedFontCollection.TryGet(name, out resolved) &&
+                (requireStyle == null || resolved.TryGetMetrics(requireStyle.Value, out _)))
             {
-                if (!needsItalic || resolved.TryGetMetrics(style, out _))
-                {
-                    return true;
-                }
+                return true;
             }
 
             // Fall back to system fonts
-            if (SystemFonts.TryGet(name, out resolved))
+            if (SystemFonts.TryGet(name, out resolved) &&
+                (requireStyle == null || resolved.TryGetMetrics(requireStyle.Value, out _)))
             {
-                if (!needsItalic || resolved.TryGetMetrics(style, out _))
-                {
-                    return true;
-                }
+                return true;
             }
         }
 
@@ -138,71 +94,24 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
         return false;
     }
 
-    FontFamily? TryLoadFromAnyCandidateName(Dictionary<string, string[]> fontCache, FontNameCandidates candidates)
+    void LoadFilesIntoSharedCollection(FontFileCache cache, FontNameCandidates candidates)
     {
-        foreach (var name in CandidateNames(candidates))
+        if (!cache.TryGet(candidates, out var fontFiles))
         {
-            var result = TryLoadFromFontCache(fontCache, name);
-            if (result != null)
-            {
-                return result;
-            }
+            return;
         }
-
-        return null;
-    }
-
-    static IEnumerable<string> CandidateNames(FontNameCandidates candidates)
-    {
-        yield return candidates.Effective;
-        if (candidates.Original != candidates.Effective)
-        {
-            yield return candidates.Original;
-        }
-
-        if (candidates.Stripped != null)
-        {
-            yield return candidates.Stripped;
-        }
-    }
-
-    FontFamily? TryLoadFromFontCache(Dictionary<string, string[]> fontCache, string fontFamily)
-    {
-        // Try exact match first
-        if (!fontCache.TryGetValue(fontFamily, out var fontFiles))
-        {
-            // Try stripping style suffixes to find base family
-            var baseName = FontHelpers.StripWeightSuffixes(fontFamily);
-
-            if (baseName == fontFamily ||
-                !fontCache.TryGetValue(baseName, out fontFiles))
-            {
-                return null;
-            }
-        }
-
-        // Load all font files into the shared collection and find the best match
-        FontFamily? bestFamily = null;
 
         foreach (var fontFile in fontFiles)
         {
             try
             {
-                var family = sharedFontCollection.Add(fontFile);
-                bestFamily = family;
+                sharedFontCollection.Add(fontFile);
             }
             catch
             {
                 // Ignore individual font load errors
             }
         }
-
-        if (bestFamily != null && sharedFontCollection.TryGet(bestFamily.Value.Name, out var resolved))
-        {
-            return resolved;
-        }
-
-        return bestFamily;
     }
 
     public Font GetFont(RunProperties props)
@@ -233,7 +142,37 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
             style = FontStyle.Italic;
         }
 
-        return family.CreateFont(fontSize, style);
+        return family.CreateFont(fontSize, PickAvailableStyle(family, style));
+    }
+
+    /// <summary>
+    /// Returns the closest available style from the given family. Prefers the requested
+    /// style, then drops italic, then drops bold, finally returning Regular.
+    /// </summary>
+    static FontStyle PickAvailableStyle(FontFamily family, FontStyle requested)
+    {
+        if (family.TryGetMetrics(requested, out _))
+        {
+            return requested;
+        }
+
+        // Ordered fallback attempts per requested style
+        var fallbackOrder = requested switch
+        {
+            FontStyle.BoldItalic => new[] {FontStyle.Bold, FontStyle.Italic, FontStyle.Regular},
+            FontStyle.Bold => new[] {FontStyle.BoldItalic, FontStyle.Regular, FontStyle.Italic},
+            FontStyle.Italic => new[] {FontStyle.BoldItalic, FontStyle.Regular, FontStyle.Bold},
+            _ => new[] {FontStyle.Bold, FontStyle.Italic, FontStyle.BoldItalic}
+        };
+        foreach (var candidate in fallbackOrder)
+        {
+            if (family.TryGetMetrics(candidate, out _))
+            {
+                return candidate;
+            }
+        }
+
+        return requested;
     }
 
     /// <summary>
@@ -259,7 +198,7 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
             style = FontStyle.Italic;
         }
 
-        return family.CreateFont(sizePoints, style);
+        return family.CreateFont(sizePoints, PickAvailableStyle(family, style));
     }
 
     /// <summary>

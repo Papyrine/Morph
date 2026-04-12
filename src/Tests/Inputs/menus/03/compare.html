@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html><head>
+<title>03</title>
+<style>
+  body { background: #2a2a2a; color: #fff; font-family: -apple-system, Segoe UI, sans-serif; margin: 20px; }
+  h1 { text-align: center; margin-bottom: 20px; }
+  table { border-collapse: collapse; margin: 0 auto; }
+  thead th { position: sticky; top: 0; background: #1a1a1a; padding: 12px 20px; font-size: 18px; border-bottom: 2px solid #555; }
+  td { padding: 16px; vertical-align: top; text-align: center; }
+  td img { max-width: 500px; max-height: 700px; border: 2px solid #666; background: white; display: block; }
+  .page-label { font-weight: bold; margin-bottom: 6px; font-size: 14px; }
+  .missing { color: #888; font-style: italic; padding: 80px 40px; border: 2px dashed #555; min-width: 400px; min-height: 500px; display: flex; align-items: center; justify-content: center; }
+  tr { border-bottom: 1px solid #444; }
+</style>
+</head><body>
+<h1>03</h1>
+<table>
+<thead><tr><th>Expected (Word)</th><th>Skia</th><th>ImageSharp</th></tr></thead>
+<tbody>
+<tr>
+<td><div class="page-label">Page 1</div><img src="expected_0001.png"></td>
+<td><div class="page-label">Page 1. ErrorMetric: 0.0435</div><img src="results_skia%23page_0001.verified.png"></td>
+<td><div class="page-label">Page 1. ErrorMetric: 0.0515</div><img src="results_imagesharp%23page_0001.verified.png"></td>
+</tr>
+</tbody></table>
+</body></html>

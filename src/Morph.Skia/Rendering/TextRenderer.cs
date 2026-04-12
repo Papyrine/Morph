@@ -165,6 +165,7 @@ sealed class TextRenderer(RenderContext context)
             canvas.DrawRect(bgX, bgY, bgWidth, bgHeight, bgPaint);
         }
 
+        var paragraphStartY = context.CurrentY;
         var isFirstLine = true;
         foreach (var line in lines)
         {
@@ -237,6 +238,39 @@ sealed class TextRenderer(RenderContext context)
             }
 
             context.CurrentY += lineHeight;
+        }
+
+        // Draw paragraph borders if specified
+        if (props.Borders is {HasAnyBorder: true})
+        {
+            var borderLeft = context.PointsToPixels(context.ContentLeft + (float) props.LeftIndentPoints);
+            var borderRight = context.PointsToPixels(context.ContentLeft + context.ContentWidth - (float) props.RightIndentPoints);
+
+            if (props.Borders.Bottom.IsVisible)
+            {
+                var borderY = context.PointsToPixels(context.CurrentY + (float) props.BorderBottomSpacePoints);
+                using var borderPaint = new SKPaint
+                {
+                    Color = SKColor.Parse("#" + (props.Borders.Bottom.ColorHex ?? "000000")),
+                    StrokeWidth = context.PointsToPixels((float) props.Borders.Bottom.WidthPoints),
+                    Style = SKPaintStyle.Stroke,
+                    IsAntialias = true
+                };
+                canvas.DrawLine(borderLeft, borderY, borderRight, borderY, borderPaint);
+            }
+
+            if (props.Borders.Top.IsVisible)
+            {
+                var borderY = context.PointsToPixels(paragraphStartY);
+                using var borderPaint = new SKPaint
+                {
+                    Color = SKColor.Parse("#" + (props.Borders.Top.ColorHex ?? "000000")),
+                    StrokeWidth = context.PointsToPixels((float) props.Borders.Top.WidthPoints),
+                    Style = SKPaintStyle.Stroke,
+                    IsAntialias = true
+                };
+                canvas.DrawLine(borderLeft, borderY, borderRight, borderY, borderPaint);
+            }
         }
 
         // Add spacing after and track for margin collapsing with next paragraph

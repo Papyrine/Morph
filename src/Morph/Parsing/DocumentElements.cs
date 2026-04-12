@@ -705,6 +705,17 @@ internal sealed record ParagraphProperties
     /// Used for contextual spacing which only collapses spacing between paragraphs of the same style.
     /// </summary>
     public string? StyleId { get; init; }
+
+    /// <summary>
+    /// Paragraph borders (from w:pBdr element in w:pPr).
+    /// </summary>
+    public CellBorders? Borders { get; init; }
+
+    /// <summary>
+    /// Space between the bottom border and the paragraph text, in points.
+    /// From w:pBdr/w:bottom/@w:space (in points).
+    /// </summary>
+    public double BorderBottomSpacePoints { get; init; }
 }
 
 /// <summary>
@@ -1037,6 +1048,9 @@ sealed class FloatingShapeElement : DocumentElement
 
     /// <summary>Fill color (hex RGB without #, e.g. "FF0000" for red). Null if using image fill.</summary>
     public string? FillColorHex { get; init; }
+
+    /// <summary>Fill opacity, 0.0 (fully transparent) to 1.0 (fully opaque). Defaults to 1.0.</summary>
+    public double FillAlpha { get; init; } = 1.0;
 
     /// <summary>Image data for image-filled shapes. Null if using solid color fill.</summary>
     public byte[]? ImageData { get; init; }

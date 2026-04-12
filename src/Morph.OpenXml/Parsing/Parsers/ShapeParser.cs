@@ -134,7 +134,8 @@ static class ShapeParser
                     HorizontalAnchor = positioning.HorizontalAnchor,
                     VerticalAnchor = positioning.VerticalAnchor,
                     BehindText = true,
-                    FillColorHex = fillColorHex
+                    FillColorHex = fillColorHex,
+                    FillAlpha = ExtractSolidFillAlpha(solidFill)
                 };
             }
         }
@@ -236,7 +237,8 @@ static class ShapeParser
                     HorizontalAnchor = positioning.HorizontalAnchor,
                     VerticalAnchor = positioning.VerticalAnchor,
                     BehindText = true,
-                    FillColorHex = fillColorHex
+                    FillColorHex = fillColorHex,
+                    FillAlpha = ExtractSolidFillAlpha(solidFill)
                 };
             }
         }
@@ -312,6 +314,21 @@ static class ShapeParser
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Extracts the alpha (opacity) value from a solid fill element, as a 0.0–1.0 ratio.
+    /// Reads `a:alpha` under either the srgbClr or schemeClr child, or the solidFill itself.
+    /// Returns 1.0 (fully opaque) if no alpha is set.
+    /// </summary>
+    public static double ExtractSolidFillAlpha(A.SolidFill solidFill)
+    {
+        var alphaElement = solidFill.Descendants<A.Alpha>().FirstOrDefault();
+        if (alphaElement?.Val?.HasValue == true)
+        {
+            return alphaElement.Val.Value / 100000.0;
+        }
+        return 1.0;
     }
 
     /// <summary>

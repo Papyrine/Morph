@@ -5,43 +5,14 @@ sealed class RenderContext : RenderContextBase, IDisposable
 {
     Dictionary<(string, int, SKFontStyleSlant), SKTypeface> typefaceCache = [];
 
-    // Cloud fonts cache from Microsoft 365
-    static Lazy<Dictionary<string, string[]>> cloudFontsCache = new(() => LoadFontCache(FontCacheLoader.GetCloudFontFiles()));
+    static Lazy<FontFileCache> cloudFontsCache = new(() => new(FontCacheLoader.GetCloudFontFiles(), ReadFamilyName));
+    static Lazy<FontFileCache> officeFontsCache = new(() => new(FontCacheLoader.GetOfficeFontFiles(), ReadFamilyName));
+    static Lazy<FontFileCache> userFontsCache = new(() => new(FontCacheLoader.GetUserFontFiles(), ReadFamilyName));
 
-    // Office private fonts (bundled with Microsoft Office)
-    static Lazy<Dictionary<string, string[]>> officeFontsCache = new(() => LoadFontCache(FontCacheLoader.GetOfficeFontFiles()));
-
-    // User-installed fonts (installed without admin rights)
-    static Lazy<Dictionary<string, string[]>> userFontsCache = new(() => LoadFontCache(FontCacheLoader.GetUserFontFiles()));
-
-    static Dictionary<string, string[]> LoadFontCache(IEnumerable<string> fontFiles)
+    static string? ReadFamilyName(string fontFile)
     {
-        var temp = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var fontFile in fontFiles)
-        {
-            using var tf = SKTypeface.FromFile(fontFile);
-            if (tf == null)
-            {
-                continue;
-            }
-
-            if (!temp.TryGetValue(tf.FamilyName, out var files))
-            {
-                files = [];
-                temp[tf.FamilyName] = files;
-            }
-
-            files.Add(fontFile);
-        }
-
-        var result = new Dictionary<string, string[]>(temp.Count, StringComparer.OrdinalIgnoreCase);
-        foreach (var kvp in temp)
-        {
-            result[kvp.Key] = kvp.Value.ToArray();
-        }
-
-        return result;
+        using var tf = SKTypeface.FromFile(fontFile);
+        return tf?.FamilyName;
     }
 
     public RenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0, Func<string, string?>? fontFallback = null)
@@ -112,7 +83,7 @@ sealed class RenderContext : RenderContextBase, IDisposable
 
     static SKTypeface? TryResolveFromSystem(FontNameCandidates candidates, SKFontStyle style)
     {
-        foreach (var name in CandidateNames(candidates))
+        foreach (var name in FontFileCache.EnumerateCandidateNames(candidates))
         {
             var typeface = SKTypeface.FromFamilyName(name, style);
             if (typeface.FamilyName.Equals(name, StringComparison.OrdinalIgnoreCase)
@@ -136,27 +107,15 @@ sealed class RenderContext : RenderContextBase, IDisposable
         return null;
     }
 
-    static string[]? GetMergedFontFiles(FontNameCandidates candidates, params Dictionary<string, string[]>[] caches)
+    static string[]? GetMergedFontFiles(FontNameCandidates candidates, params FontFileCache[] caches)
     {
         List<string>? merged = null;
         foreach (var cache in caches)
         {
-            foreach (var name in CandidateNames(candidates))
+            if (cache.TryGet(candidates, out var files))
             {
-                if (cache.TryGetValue(name, out var files))
-                {
-                    merged ??= [];
-                    merged.AddRange(files);
-                }
-                else
-                {
-                    var baseName = FontHelpers.StripWeightSuffixes(name);
-                    if (baseName != name && cache.TryGetValue(baseName, out files))
-                    {
-                        merged ??= [];
-                        merged.AddRange(files);
-                    }
-                }
+                merged ??= [];
+                merged.AddRange(files);
             }
         }
 
@@ -234,156 +193,6 @@ sealed class RenderContext : RenderContextBase, IDisposable
         }
 
         return score;
-    }
-
-    static SKTypeface? TryLoadFromAnyCandidateName(Dictionary<string, string[]> fontCache, FontNameCandidates candidates, SKFontStyle style)
-    {
-        foreach (var name in CandidateNames(candidates))
-        {
-            var result = TryLoadFromFontCache(fontCache, name, style);
-            if (result != null)
-            {
-                return result;
-            }
-        }
-
-        return null;
-    }
-
-    static IEnumerable<string> CandidateNames(FontNameCandidates candidates)
-    {
-        yield return candidates.Effective;
-        if (candidates.Original != candidates.Effective)
-        {
-            yield return candidates.Original;
-        }
-
-        if (candidates.Stripped != null)
-        {
-            yield return candidates.Stripped;
-        }
-    }
-
-    static SKTypeface? TryLoadFromFontCache(Dictionary<string, string[]> fontCache, string fontFamily, SKFontStyle style)
-    {
-        // Try exact match first
-        if (!fontCache.TryGetValue(fontFamily, out var fontFiles))
-        {
-            // Try stripping style suffixes to find base family
-            var baseName = FontHelpers.StripWeightSuffixes(fontFamily);
-
-            if (baseName != fontFamily && fontCache.TryGetValue(baseName, out fontFiles))
-            {
-                // Found base family, adjust style based on original name
-                var weight = style.Weight;
-                var width = style.Width;
-
-                // Determine base weight from font name
-                var baseWeight = (int) SKFontStyleWeight.Normal;
-                if (FontHelpers.ImpliesBold(fontFamily))
-                {
-                    // Use the weight based on specific name match
-                    if (fontFamily.Contains("Bold", StringComparison.OrdinalIgnoreCase) ||
-                        fontFamily.Contains("Black", StringComparison.OrdinalIgnoreCase) ||
-                        fontFamily.Contains("Heavy", StringComparison.OrdinalIgnoreCase))
-                    {
-                        baseWeight = (int) SKFontStyleWeight.Bold;
-                    }
-                    else
-                    {
-                        baseWeight = (int) SKFontStyleWeight.SemiBold;
-                    }
-                }
-                else if (fontFamily.Contains("Light", StringComparison.OrdinalIgnoreCase) ||
-                         fontFamily.Contains("Thin", StringComparison.OrdinalIgnoreCase))
-                {
-                    baseWeight = (int) SKFontStyleWeight.Light;
-                }
-
-                // Use the heavier of the requested weight and the font name's weight
-                weight = Math.Max(weight, baseWeight);
-
-                if (fontFamily.Contains("Condensed", StringComparison.OrdinalIgnoreCase) ||
-                    fontFamily.Contains("Narrow", StringComparison.OrdinalIgnoreCase) ||
-                    fontFamily.Contains("Compressed", StringComparison.OrdinalIgnoreCase))
-                {
-                    width = (int) SKFontStyleWidth.Condensed;
-                }
-
-                style = new(weight, width, style.Slant);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        // Try to find best matching font file based on style
-        SKTypeface? bestMatch = null;
-        var bestScore = -1;
-
-        foreach (var fontFile in fontFiles)
-        {
-            try
-            {
-                var tf = SKTypeface.FromFile(fontFile);
-                if (tf == null)
-                {
-                    continue;
-                }
-
-                // Score based on style match
-                var score = 0;
-                var isBold = tf.FontStyle.Weight >= 600;
-                var isItalic = tf.FontStyle.Slant != SKFontStyleSlant.Upright;
-                var isCondensed = tf.FontStyle.Width <= (int) SKFontStyleWidth.SemiCondensed;
-                var isExtended = tf.FontStyle.Width >= (int) SKFontStyleWidth.SemiExpanded;
-
-                var wantBold = style.Weight >= 600;
-                var wantItalic = style.Slant != SKFontStyleSlant.Upright;
-                var wantCondensed = style.Width <= (int) SKFontStyleWidth.SemiCondensed;
-                var wantExtended = style.Width >= (int) SKFontStyleWidth.SemiExpanded;
-
-                // Width matching is most important for visual accuracy
-                if (isCondensed == wantCondensed && isExtended == wantExtended)
-                {
-                    score += 4;
-                }
-
-                if (isBold == wantBold)
-                {
-                    score += 2;
-                }
-
-                if (isItalic == wantItalic)
-                {
-                    score += 1;
-                }
-
-                // Prefer regular weight for non-bold requests
-                if (!wantBold && tf.FontStyle.Weight is >= 400 and <= 500)
-                {
-                    score += 1;
-                }
-
-                if (score > bestScore)
-                {
-                    bestMatch?.Dispose();
-                    bestMatch = tf;
-                    bestScore = score;
-                }
-                else
-                {
-                    tf.Dispose();
-                }
-            }
-            catch
-            {
-                // Ignore individual font load errors
-            }
-        }
-
-        return bestMatch;
     }
 
     public SKFont CreateFont(RunProperties props)
