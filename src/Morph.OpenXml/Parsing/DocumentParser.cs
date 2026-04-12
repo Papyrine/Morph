@@ -678,6 +678,26 @@ sealed class DocumentParser
                     }
                 }
 
+                // Parse paragraph borders (w:pBdr)
+                var borders = baseProps?.Borders;
+                var borderBottomSpace = baseProps?.BorderBottomSpacePoints ?? 0;
+                var pBdr = paraProps.GetFirstChild<ParagraphBorders>();
+                if (pBdr != null)
+                {
+                    borders = new()
+                    {
+                        Top = ParseBorderEdge(pBdr.GetFirstChild<TopBorder>()),
+                        Right = ParseBorderEdge(pBdr.GetFirstChild<RightBorder>()),
+                        Bottom = ParseBorderEdge(pBdr.GetFirstChild<BottomBorder>()),
+                        Left = ParseBorderEdge(pBdr.GetFirstChild<LeftBorder>())
+                    };
+                    var bottomBorder = pBdr.GetFirstChild<BottomBorder>();
+                    if (bottomBorder?.Space?.HasValue == true)
+                    {
+                        borderBottomSpace = bottomBorder.Space.Value;
+                    }
+                }
+
                 styleProps[styleId] = new()
                 {
                     Alignment = alignment,
@@ -694,7 +714,9 @@ sealed class DocumentParser
                     KeepLines = keepLines,
                     KeepNext = keepNext,
                     WidowControl = widowControl,
-                    BackgroundColorHex = backgroundColor
+                    BackgroundColorHex = backgroundColor,
+                    Borders = borders,
+                    BorderBottomSpacePoints = borderBottomSpace
                     // PageBreakBefore intentionally not inherited from styles
                 };
                 processed.Add(styleId);
@@ -1690,7 +1712,6 @@ sealed class DocumentParser
                 }
             }
         }
-
         return elements.Count > 0
             ? new HeaderFooterContent { Elements = elements }
             : null;
@@ -2509,6 +2530,7 @@ sealed class DocumentParser
 
                         // Check if there's a group - groups may contain text boxes and images even without shapes
                         var hasGroup = drawing.Descendants<WPG.WordprocessingGroup>().Any();
+
 
                         if (shapeElements.Count > 0 || hasGroup)
                         {
@@ -3877,9 +3899,16 @@ sealed class DocumentParser
         // Check for solid fill in shape properties
         var solidFill = shapeProps.GetFirstChild<A.SolidFill>();
         string? fillColorHex = null;
+        var fillAlpha = 1.0;
 
         if (solidFill != null)
         {
+            // Parse alpha transform (a:alpha val="X" where X is in thousandths of a percent)
+            var alphaElement = solidFill.Descendants<A.Alpha>().FirstOrDefault();
+            if (alphaElement?.Val?.HasValue == true)
+            {
+                fillAlpha = alphaElement.Val.Value / 100000.0;
+            }
             // Check for direct RGB color
             var srgbClr = solidFill.GetFirstChild<A.RgbColorModelHex>();
             if (srgbClr?.Val?.HasValue == true)
@@ -3987,7 +4016,8 @@ sealed class DocumentParser
             HorizontalAnchor = positioning.HorizontalAnchor,
             VerticalAnchor = positioning.VerticalAnchor,
             BehindText = behindText,
-            FillColorHex = fillColorHex
+            FillColorHex = fillColorHex,
+            FillAlpha = fillAlpha
         };
     }
 
@@ -4045,6 +4075,22 @@ sealed class DocumentParser
         else if (schemeColor == A.SchemeColorValues.Light2)
         {
             themeColor = colorScheme.Light2Color;
+        }
+        else if (schemeColor == A.SchemeColorValues.Background1)
+        {
+            themeColor = colorScheme.Light1Color;
+        }
+        else if (schemeColor == A.SchemeColorValues.Background2)
+        {
+            themeColor = colorScheme.Light2Color;
+        }
+        else if (schemeColor == A.SchemeColorValues.Text1)
+        {
+            themeColor = colorScheme.Dark1Color;
+        }
+        else if (schemeColor == A.SchemeColorValues.Text2)
+        {
+            themeColor = colorScheme.Dark2Color;
         }
 
         if (themeColor == null)
@@ -5200,6 +5246,26 @@ sealed class DocumentParser
             }
         }
 
+        // Parse paragraph borders (w:pBdr)
+        var borders = styleDefaults?.Borders;
+        var borderBottomSpace = styleDefaults?.BorderBottomSpacePoints ?? 0;
+        var pBdr = props.GetFirstChild<ParagraphBorders>();
+        if (pBdr != null)
+        {
+            borders = new()
+            {
+                Top = ParseBorderEdge(pBdr.GetFirstChild<TopBorder>()),
+                Right = ParseBorderEdge(pBdr.GetFirstChild<RightBorder>()),
+                Bottom = ParseBorderEdge(pBdr.GetFirstChild<BottomBorder>()),
+                Left = ParseBorderEdge(pBdr.GetFirstChild<LeftBorder>())
+            };
+            var bottomBorder = pBdr.GetFirstChild<BottomBorder>();
+            if (bottomBorder?.Space?.HasValue == true)
+            {
+                borderBottomSpace = bottomBorder.Space.Value;
+            }
+        }
+
         // Parse paragraph mark font size (used for empty paragraphs)
         double? paragraphMarkFontSize = null;
         var paragraphMarkRunProps = props.ParagraphMarkRunProperties;
@@ -5233,7 +5299,9 @@ sealed class DocumentParser
             PageBreakBefore = pageBreakBefore,
             ParagraphMarkFontSizePoints = paragraphMarkFontSize,
             BackgroundColorHex = backgroundColor,
-            StyleId = styleId
+            StyleId = styleId,
+            Borders = borders,
+            BorderBottomSpacePoints = borderBottomSpace
         };
     }
 

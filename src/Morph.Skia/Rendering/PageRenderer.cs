@@ -128,7 +128,11 @@ sealed class PageRenderer(RenderContext context) :
 
         foreach (var element in activeHeader.Elements)
         {
-            if (element is ParagraphElement para)
+            if (element is FloatingShapeElement {BehindText: true} shape)
+            {
+                RenderBackgroundShape(shape);
+            }
+            else if (element is ParagraphElement para)
             {
                 textRenderer.RenderParagraph(currentCanvas, para);
             }
@@ -2477,9 +2481,11 @@ sealed class PageRenderer(RenderContext context) :
         else if (shape.FillColorHex != null)
         {
             // Solid fill
+            var color = SKColor.Parse(shape.FillColorHex)
+                .WithAlpha((byte) Math.Round(Math.Clamp(shape.FillAlpha, 0, 1) * 255));
             using var paint = new SKPaint
             {
-                Color = SKColor.Parse(shape.FillColorHex),
+                Color = color,
                 Style = SKPaintStyle.Fill,
                 IsAntialias = true
             };

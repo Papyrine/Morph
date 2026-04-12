@@ -1,7 +1,3 @@
-#if DEBUG
-using System.Text;
-using System.Text.Json;
-
 /// <summary>
 /// Generates a side-by-side HTML preview (compare.html) for a scenario directory,
 /// showing Expected vs Skia vs ImageSharp verified page renders. One table row per
@@ -121,7 +117,7 @@ static class ScenarioHtmlGenerator
         var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
         if (directory.StartsWith(inputsDir, StringComparison.OrdinalIgnoreCase))
         {
-            return directory.Substring(inputsDir.Length).TrimStart('\\', '/').Replace('\\', '/');
+            return directory[inputsDir.Length..].TrimStart('\\', '/').Replace('\\', '/');
         }
         return Path.GetFileName(directory);
     }
@@ -129,4 +125,3 @@ static class ScenarioHtmlGenerator
     static string HtmlEncode(string value) =>
         value.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
 }
-#endif

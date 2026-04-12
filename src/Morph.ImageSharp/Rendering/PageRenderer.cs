@@ -89,7 +89,11 @@ sealed class PageRenderer(RenderContext context) :
 
         foreach (var element in activeHeader.Elements)
         {
-            if (element is ParagraphElement para)
+            if (element is FloatingShapeElement {BehindText: true} shape)
+            {
+                RenderBackgroundShape(shape);
+            }
+            else if (element is ParagraphElement para)
             {
                 textRenderer.RenderParagraph(currentPage, para);
             }
@@ -1716,6 +1720,13 @@ sealed class PageRenderer(RenderContext context) :
         else if (shape.FillColorHex != null)
         {
             var fillColor = RenderContext.ParseColor(shape.FillColorHex);
+            var alpha = (float) Math.Clamp(shape.FillAlpha, 0, 1);
+            if (alpha < 1f)
+            {
+                var pixel = fillColor.ToPixel<Rgba32>();
+                pixel.A = (byte) Math.Round(alpha * 255);
+                fillColor = Color.FromPixel(pixel);
+            }
             currentPage.Mutate(_ => _.Fill(fillColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
         }
     }

@@ -160,6 +160,7 @@ sealed class TextRenderer(RenderContext context)
             currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(bgX, bgY, bgWidth, bgHeight)));
         }
 
+        var paragraphStartY = context.CurrentY;
         var isFirstLine = true;
         foreach (var line in lines)
         {
@@ -232,6 +233,31 @@ sealed class TextRenderer(RenderContext context)
             }
 
             context.CurrentY += lineHeight;
+        }
+
+        // Draw paragraph borders if specified
+        if (props.Borders is {HasAnyBorder: true})
+        {
+            var borderLeft = context.PointsToPixels(context.ContentLeft + (float) props.LeftIndentPoints);
+            var borderRight = context.PointsToPixels(context.ContentLeft + context.ContentWidth - (float) props.RightIndentPoints);
+
+            if (props.Borders.Bottom.IsVisible)
+            {
+                var borderY = context.PointsToPixels(context.CurrentY + (float) props.BorderBottomSpacePoints);
+                var borderColor = RenderContext.ParseColor(props.Borders.Bottom.ColorHex ?? "000000");
+                var strokeWidth = context.PointsToPixels((float) props.Borders.Bottom.WidthPoints);
+                var pen = new SolidPen(borderColor, strokeWidth);
+                currentPage.Mutate(_ => _.DrawLine(pen, new PointF(borderLeft, borderY), new PointF(borderRight, borderY)));
+            }
+
+            if (props.Borders.Top.IsVisible)
+            {
+                var borderY = context.PointsToPixels(paragraphStartY);
+                var borderColor = RenderContext.ParseColor(props.Borders.Top.ColorHex ?? "000000");
+                var strokeWidth = context.PointsToPixels((float) props.Borders.Top.WidthPoints);
+                var pen = new SolidPen(borderColor, strokeWidth);
+                currentPage.Mutate(_ => _.DrawLine(pen, new PointF(borderLeft, borderY), new PointF(borderRight, borderY)));
+            }
         }
 
         // Add spacing after and track for margin collapsing with next paragraph
