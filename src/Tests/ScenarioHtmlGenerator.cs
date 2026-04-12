@@ -28,26 +28,28 @@ static class ScenarioHtmlGenerator
         var scenarioName = GetScenarioName(directory);
 
         var sb = new StringBuilder();
-        sb.AppendLine("<!DOCTYPE html>");
-        sb.AppendLine("<html><head>");
-        sb.AppendLine($"<title>{HtmlEncode(scenarioName)}</title>");
-        sb.AppendLine("<style>");
-        sb.AppendLine("  body { background: #2a2a2a; color: #fff; font-family: -apple-system, Segoe UI, sans-serif; margin: 20px; }");
-        sb.AppendLine("  h1 { text-align: center; margin-bottom: 20px; }");
-        sb.AppendLine("  table { border-collapse: collapse; margin: 0 auto; }");
-        sb.AppendLine("  thead th { position: sticky; top: 0; background: #1a1a1a; padding: 12px 20px; font-size: 18px; border-bottom: 2px solid #555; }");
-        sb.AppendLine("  td { padding: 16px; vertical-align: top; text-align: center; }");
-        sb.AppendLine("  td img { max-width: 500px; max-height: 700px; border: 2px solid #666; background: white; display: block; }");
-        sb.AppendLine("  .page-label { font-weight: bold; margin-bottom: 6px; font-size: 14px; }");
-        sb.AppendLine("  .metric { color: #ff8888; font-size: 12px; margin-bottom: 6px; }");
-        sb.AppendLine("  .missing { color: #888; font-style: italic; padding: 80px 40px; border: 2px dashed #555; min-width: 400px; min-height: 500px; display: flex; align-items: center; justify-content: center; }");
-        sb.AppendLine("  tr { border-bottom: 1px solid #444; }");
-        sb.AppendLine("</style>");
-        sb.AppendLine("</head><body>");
-        sb.AppendLine($"<h1>{HtmlEncode(scenarioName)}</h1>");
-        sb.AppendLine("<table>");
-        sb.AppendLine("<thead><tr><th>Expected (Word)</th><th>Skia</th><th>ImageSharp</th></tr></thead>");
-        sb.AppendLine("<tbody>");
+        sb.AppendLine($$"""
+            <!DOCTYPE html>
+            <html><head>
+            <title>{{HtmlEncode(scenarioName)}}</title>
+            <style>
+              body { background: #2a2a2a; color: #fff; font-family: -apple-system, Segoe UI, sans-serif; margin: 20px; }
+              h1 { text-align: center; margin-bottom: 20px; }
+              table { border-collapse: collapse; margin: 0 auto; }
+              thead th { position: sticky; top: 0; background: #1a1a1a; padding: 12px 20px; font-size: 18px; border-bottom: 2px solid #555; }
+              td { padding: 16px; vertical-align: top; text-align: center; }
+              td img { max-width: 500px; max-height: 700px; border: 2px solid #666; background: white; display: block; }
+              .page-label { font-weight: bold; margin-bottom: 6px; font-size: 14px; }
+              .metric { color: #ff8888; font-size: 12px; margin-bottom: 6px; }
+              .missing { color: #888; font-style: italic; padding: 80px 40px; border: 2px dashed #555; min-width: 400px; min-height: 500px; display: flex; align-items: center; justify-content: center; }
+              tr { border-bottom: 1px solid #444; }
+            </style>
+            </head><body>
+            <h1>{{HtmlEncode(scenarioName)}}</h1>
+            <table>
+            <thead><tr><th>Expected (Word)</th><th>Skia</th><th>ImageSharp</th></tr></thead>
+            <tbody>
+            """);
 
         for (var i = 0; i < maxPages; i++)
         {
