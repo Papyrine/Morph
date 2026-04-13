@@ -5,7 +5,6 @@ namespace WordRender;
 /// </summary>
 public abstract class DocumentConverter
 {
-    DocumentParser parser = new();
 
     /// <summary>
     /// Converts a DOCX file to PNG images.
@@ -32,7 +31,7 @@ public abstract class DocumentConverter
         options ??= new();
         Directory.CreateDirectory(outputDirectory);
 
-        var document = parser.Parse(docxStream);
+        var document = new DocumentParser().Parse(docxStream);
         var imagePaths = new List<string>();
 
         var pageIndex = 0;
@@ -72,7 +71,7 @@ public abstract class DocumentConverter
     {
         options ??= new();
 
-        var document = parser.Parse(docxStream);
+        var document = new DocumentParser().Parse(docxStream);
         var imageData = new List<byte[]>();
 
         RenderPages(document, options, writePng =>
