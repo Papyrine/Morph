@@ -2,9 +2,6 @@
 
 public class ImageSharpScenarioTests
 {
-    static ConcurrentBag<string> pageCountFailures = [];
-    static ConcurrentBag<string> metricFailures = [];
-
     public static IEnumerable<string> GetScenarioDirectories()
     {
         var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
@@ -24,27 +21,6 @@ public class ImageSharpScenarioTests
         var data = converter.ConvertToImageData(inputFile);
 
         var diffs = PageDiffs(expectedFiles, data);
-
-        if (expectedFiles.Length != data.Count)
-        {
-            pageCountFailures.Add(directory);
-        }
-        else
-        {
-            var verifiedPath = Path.Combine(directory, "results_imagesharp.verified.json");
-            var verified = await ScenarioResult.LoadFromFileAsync(verifiedPath);
-            if (verified.PageDiffs != null && diffs != null)
-            {
-                foreach (var diff in diffs)
-                {
-                    var verifiedDiff = verified.PageDiffs.FirstOrDefault(_ => _.Page == diff.Page);
-                    if (verifiedDiff != null && diff.ErrorMetric > verifiedDiff.ErrorMetric)
-                    {
-                        metricFailures.Add(directory);
-                    }
-                }
-            }
-        }
 
         var targets = new List<Target>(data.Count);
         for (var index = 0; index < data.Count; index++)
@@ -91,26 +67,6 @@ public class ImageSharpScenarioTests
         }
 
         return diffs;
-    }
-
-    [After(Class)]
-    public static async Task AfterAllTests()
-    {
-        var combine = Path.Combine(ProjectFiles.ProjectDirectory, "outcome_imagesharp.txt");
-        File.Delete(combine);
-        await using var writer = File.CreateText(combine);
-        await writer.WriteLineAsync("# pageCountFailures " + pageCountFailures.Count);
-        foreach (var failure in pageCountFailures.Order())
-        {
-            await writer.WriteLineAsync(failure);
-        }
-
-        await writer.WriteLineAsync("");
-        await writer.WriteLineAsync("# metricFailures " + metricFailures.Count);
-        foreach (var failure in metricFailures.Order())
-        {
-            await writer.WriteLineAsync(failure);
-        }
     }
 }
 #endif
