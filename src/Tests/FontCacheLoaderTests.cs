@@ -15,17 +15,17 @@ public class FontCacheLoaderTests
         var dir = CreateTempDir();
         try
         {
-            File.WriteAllText(Path.Combine(dir, "a.ttf"), "");
-            File.WriteAllText(Path.Combine(dir, "b.otf"), "");
-            File.WriteAllText(Path.Combine(dir, "ignore.txt"), "");
-            File.WriteAllText(Path.Combine(dir, "ignore.fon"), "");
+            await File.WriteAllTextAsync(Path.Combine(dir, "a.ttf"), "");
+            await File.WriteAllTextAsync(Path.Combine(dir, "b.otf"), "");
+            await File.WriteAllTextAsync(Path.Combine(dir, "ignore.txt"), "");
+            await File.WriteAllTextAsync(Path.Combine(dir, "ignore.fon"), "");
 
             var files = FontCacheLoader.EnumerateFontFilesInDirectory(dir)
-                .Select(_ => Path.GetFileName(_)!)
+                .Select(_ => Path.GetFileName(_))
                 .OrderBy(_ => _)
                 .ToList();
 
-            await Assert.That(files).IsEquivalentTo(new[] {"a.ttf", "b.otf"});
+            await Assert.That(files).IsEquivalentTo(["a.ttf", "b.otf"]);
         }
         finally
         {
@@ -39,15 +39,15 @@ public class FontCacheLoaderTests
         var dir = CreateTempDir();
         try
         {
-            File.WriteAllText(Path.Combine(dir, "upper.TTF"), "");
-            File.WriteAllText(Path.Combine(dir, "mixed.Otf"), "");
+            await File.WriteAllTextAsync(Path.Combine(dir, "upper.TTF"), "");
+            await File.WriteAllTextAsync(Path.Combine(dir, "mixed.Otf"), "");
 
             var files = FontCacheLoader.EnumerateFontFilesInDirectory(dir)
-                .Select(_ => Path.GetFileName(_)!)
+                .Select(_ => Path.GetFileName(_))
                 .OrderBy(_ => _)
                 .ToList();
 
-            await Assert.That(files).IsEquivalentTo(new[] {"mixed.Otf", "upper.TTF"});
+            await Assert.That(files).IsEquivalentTo(["mixed.Otf", "upper.TTF"]);
         }
         finally
         {
@@ -61,16 +61,16 @@ public class FontCacheLoaderTests
         var dir = CreateTempDir();
         try
         {
-            File.WriteAllText(Path.Combine(dir, "top.ttf"), "");
+            await File.WriteAllTextAsync(Path.Combine(dir, "top.ttf"), "");
             var sub = Path.Combine(dir, "sub");
             Directory.CreateDirectory(sub);
-            File.WriteAllText(Path.Combine(sub, "nested.ttf"), "");
+            await File.WriteAllTextAsync(Path.Combine(sub, "nested.ttf"), "");
 
             var files = FontCacheLoader.EnumerateFontFilesInDirectory(dir)
-                .Select(_ => Path.GetFileName(_)!)
+                .Select(_ => Path.GetFileName(_))
                 .ToList();
 
-            await Assert.That(files).IsEquivalentTo(new[] {"top.ttf"});
+            await Assert.That(files).IsEquivalentTo(["top.ttf"]);
         }
         finally
         {
@@ -84,20 +84,20 @@ public class FontCacheLoaderTests
         var dir = CreateTempDir();
         try
         {
-            File.WriteAllText(Path.Combine(dir, "top.ttf"), "");
+            await File.WriteAllTextAsync(Path.Combine(dir, "top.ttf"), "");
             var sub = Path.Combine(dir, "sub");
             Directory.CreateDirectory(sub);
-            File.WriteAllText(Path.Combine(sub, "nested.ttf"), "");
+            await File.WriteAllTextAsync(Path.Combine(sub, "nested.ttf"), "");
             var deeper = Path.Combine(sub, "deeper");
             Directory.CreateDirectory(deeper);
-            File.WriteAllText(Path.Combine(deeper, "deep.otf"), "");
+            await File.WriteAllTextAsync(Path.Combine(deeper, "deep.otf"), "");
 
             var files = FontCacheLoader.EnumerateFontFilesInDirectory(dir, recursive: true)
-                .Select(_ => Path.GetFileName(_)!)
+                .Select(_ => Path.GetFileName(_))
                 .OrderBy(_ => _)
                 .ToList();
 
-            await Assert.That(files).IsEquivalentTo(new[] {"deep.otf", "nested.ttf", "top.ttf"});
+            await Assert.That(files).IsEquivalentTo(["deep.otf", "nested.ttf", "top.ttf"]);
         }
         finally
         {
