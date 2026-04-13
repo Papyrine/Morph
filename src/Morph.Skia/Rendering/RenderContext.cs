@@ -62,7 +62,7 @@ sealed class RenderContext : RenderContextBase, IDisposable
                 var fallbackFont = FontHelpers.FindFallback(candidates) ?? FontFallback?.Invoke(fontFamily);
                 if (fallbackFont == null)
                 {
-                    throw new InvalidOperationException($"Font '{fontFamily}' not found. Checked system fonts, user fonts, Office fonts, and cloud cache.");
+                    throw new InvalidOperationException($"Font '{fontFamily}' not found. Checked:{Environment.NewLine}  {string.Join($"{Environment.NewLine}  ", FontCacheLoader.GetSearchedPaths())}");
                 }
 
                 var fallbackTypeface = SKTypeface.FromFamilyName(fallbackFont, style);
