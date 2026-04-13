@@ -67,7 +67,7 @@ static class ScenarioHtmlGenerator
             </body></html>
             """);
 
-        File.WriteAllText(Path.Combine(directory, "compare.html"), sb.ToString());
+        File.WriteAllText(Path.Combine(directory, "compare.html"), sb.ToString().Replace("\r\n", "\n"));
     }
 
     static Dictionary<int, double> ReadMetrics(string jsonPath)
