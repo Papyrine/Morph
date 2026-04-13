@@ -2986,6 +2986,7 @@ sealed class DocumentParser
     /// </summary>
     static Run? TryParseInlineImageRun(Drawing drawing, MainDocumentPart mainPart, RunProperties runProps)
     {
+        var hostPart = ResolveHostPart(drawing, mainPart);
         // Use XML-based approach for better namespace handling
         var hasAnchor = drawing.Descendants().Any(e => e.LocalName == "anchor");
         var hasInline = drawing.Descendants().Any(e => e.LocalName == "inline");
@@ -3092,7 +3093,7 @@ sealed class DocumentParser
                     continue;
                 }
 
-                var svgPart = mainPart.GetPartById(svgEmbedAttr.Value);
+                var svgPart = hostPart.GetPartById(svgEmbedAttr.Value);
                 using var stream = svgPart.GetStream();
                 using var ms = new MemoryStream();
                 stream.CopyTo(ms);
@@ -3104,7 +3105,7 @@ sealed class DocumentParser
         // Fall back to regular image
         if (imageData == null)
         {
-            if (mainPart.GetPartById(embedAttr.Value) is ImagePart imagePart)
+            if (hostPart.GetPartById(embedAttr.Value) is ImagePart imagePart)
             {
                 using var stream = imagePart.GetStream();
                 using var ms = new MemoryStream();
@@ -3134,8 +3135,25 @@ sealed class DocumentParser
     /// <summary>
     /// Parses all images from a drawing element, including multiple images in groups.
     /// </summary>
+    static OpenXmlPart ResolveHostPart(OpenXmlElement element, MainDocumentPart mainPart)
+    {
+        var current = element;
+        while (current != null)
+        {
+            if (current is OpenXmlPartRootElement { OpenXmlPart: { } part })
+            {
+                return part;
+            }
+
+            current = current.Parent;
+        }
+
+        return mainPart;
+    }
+
     static List<DocumentElement> ParseDrawingElements(Drawing drawing, MainDocumentPart mainPart)
     {
+        var hostPart = ResolveHostPart(drawing, mainPart);
         var result = new List<DocumentElement>();
 
         var anchor = drawing.GetFirstChild<DW.Anchor>();
@@ -3306,7 +3324,7 @@ sealed class DocumentParser
                             var svgEmbedAttr = svgBlip.GetAttributes().FirstOrDefault(a => a.LocalName == "embed");
                             if (svgEmbedAttr.Value != null)
                             {
-                                var svgPart = mainPart.GetPartById(svgEmbedAttr.Value);
+                                var svgPart = hostPart.GetPartById(svgEmbedAttr.Value);
                                 using var stream = svgPart.GetStream();
                                 using var ms = new MemoryStream();
                                 stream.CopyTo(ms);
@@ -3321,7 +3339,7 @@ sealed class DocumentParser
             // Fall back to regular image
             if (imageData == null)
             {
-                if (mainPart.GetPartById(embedAttr.Value) is ImagePart imagePart)
+                if (hostPart.GetPartById(embedAttr.Value) is ImagePart imagePart)
                 {
                     using var stream = imagePart.GetStream();
                     using var ms = new MemoryStream();

@@ -13,31 +13,4 @@ C:\Code\Morph\src\Tests\Inputs\resumes\16
 C:\Code\Morph\src\Tests\Inputs\resumes\18
 C:\Code\Morph\src\Tests\Inputs\table_multipage
 
-# metricFailures 27
-C:\Code\Morph\src\Tests\Inputs\brochures\07
-C:\Code\Morph\src\Tests\Inputs\business-plans\01
-C:\Code\Morph\src\Tests\Inputs\business-plans\03
-C:\Code\Morph\src\Tests\Inputs\business-plans\07
-C:\Code\Morph\src\Tests\Inputs\business-plans\08
-C:\Code\Morph\src\Tests\Inputs\business-plans\08
-C:\Code\Morph\src\Tests\Inputs\cards\08
-C:\Code\Morph\src\Tests\Inputs\cards\08
-C:\Code\Morph\src\Tests\Inputs\cards\19
-C:\Code\Morph\src\Tests\Inputs\cards\19
-C:\Code\Morph\src\Tests\Inputs\cover-letters\01
-C:\Code\Morph\src\Tests\Inputs\cover-letters\03
-C:\Code\Morph\src\Tests\Inputs\cover-letters\14
-C:\Code\Morph\src\Tests\Inputs\letters\09
-C:\Code\Morph\src\Tests\Inputs\letters\10
-C:\Code\Morph\src\Tests\Inputs\letters\11
-C:\Code\Morph\src\Tests\Inputs\newsletters\04
-C:\Code\Morph\src\Tests\Inputs\newsletters\04
-C:\Code\Morph\src\Tests\Inputs\newsletters\10
-C:\Code\Morph\src\Tests\Inputs\newsletters\13
-C:\Code\Morph\src\Tests\Inputs\postcards\03
-C:\Code\Morph\src\Tests\Inputs\wedding\02
-C:\Code\Morph\src\Tests\Inputs\wedding\02
-C:\Code\Morph\src\Tests\Inputs\wedding\06
-C:\Code\Morph\src\Tests\Inputs\wedding\07
-C:\Code\Morph\src\Tests\Inputs\wedding\09
-C:\Code\Morph\src\Tests\Inputs\wedding\09
+# metricFailures 0
