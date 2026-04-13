@@ -996,7 +996,7 @@ Content repeated at the top/bottom of every page.
 - **Model**: `ParsedDocument.Header`, `ParsedDocument.Footer` → `HeaderFooterContent`
 - **Test**: `header/`, `footer/`, `header_footer/`
 
-> **Contributors**: Header/footer content supports paragraphs, tables, and images. Rendered at fixed positions based on `HeaderDistance`/`FooterDistance` from page edge. Content area adjusted via `SetHeaderFooterSpace()`.
+> **Contributors**: Header/footer content supports paragraphs, tables, inline images, and anchored (floating) images — including full-page `behindDoc` background images used by many Word templates. Rendered at fixed positions based on `HeaderDistance`/`FooterDistance` from page edge. Content area adjusted via `SetHeaderFooterSpace()`. Image relationships (`r:embed`) inside header/footer parts are resolved against the host part, not the main document part.
 
 
 #### First-Page Different Headers / Footers `DONE`
@@ -1144,6 +1144,19 @@ Rotating an image by a specified angle.
 - **OOXML**: `wp:anchor` or `wp:inline` > `a:xfrm` with `rot` attribute (in 60,000ths of a degree)
 
 > **AI**: Parse rotation from `a:xfrm`. Apply canvas rotation before drawing image in both backends.
+
+
+#### Blip Color Effects (Duotone / Recolor) `TODO`
+
+Color transformations applied to an embedded image at render time. Word templates frequently ship a grayscale or two-tone source PNG and re-color it via a `<a:duotone>` effect so the decoration picks up the document's theme accent. Other blip effects include `a:biLevel`, `a:grayscl`, `a:lum`, `a:alphaModFix`, and `a:clrChange`.
+
+- **OOXML**: `a:blip` children inside `a:blipFill`: `a:duotone` (pair of colors — typically `a:prstClr`/`a:srgbClr`/`a:schemeClr` possibly with `a:tint`, `a:shade`, `a:lumMod`, `a:lumOff`, `a:satMod`), `a:biLevel`, `a:grayscl`, `a:lum`, `a:alphaModFix`, `a:clrChange`
+- **Spec**: [Blip Fill (ECMA-376 §20.1.8.13)](https://c-rex.net/samples/ooxml/e1/Part4/OOXML_P4_DOCX_blipFill_topic_ID0EDIAB.html)
+- **Model**: _not parsed_ — current `FloatingImageElement`/`ImageElement` stores only raw `ImageData`
+- **Test**: `letters/01/` (duotone remaps a lime+purple source PNG to accent3-blue corner shapes — currently rendered as the raw source)
+
+> **Consumers**: Current behavior paints the source image bytes unchanged. For any template that relies on duotone/recolor for its decorative graphics, the rendered colors will be wrong regardless of theme.
+> **AI**: Needs (1) a parse-time pass in `ParseDrawingElements` / `TryParseInlineImageRun` to extract the blip effect children and resolve scheme colors via the theme (reuse `ThemeColorResolver`), storing the result as e.g. `ImageElement.BlipEffect`; (2) a render-time pixel transform in both backends. Duotone: map each source pixel's luminance to a linear interpolation between the two target colors. Simplest approach: decode to 32bpp, iterate pixels, rewrite, re-encode — Skia via `SKBitmap.Pixels`, ImageSharp via `image.Mutate(...ProcessPixelRowsAsVector4...)`. Tint/satMod modifiers need HSL conversion (see existing `HslColorConversion` helpers in `Word2010/ComplexTypes`).
 
 
 ### 6.2 Shapes & Drawings

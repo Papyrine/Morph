@@ -40,6 +40,7 @@ public class SkiaFontResolutionTests
     public async Task GetTypeface_UnknownFont_NoFallback_Throws()
     {
         using var context = CreateContext();
+        // ReSharper disable once AccessToDisposedClosure
         await Assert.That(() => context.GetTypeface("NonExistentFont12345", false, false))
             .Throws<InvalidOperationException>();
     }
@@ -72,6 +73,7 @@ public class SkiaFontResolutionTests
     {
         using var context = new SkiaRenderContext(
             new(), 96, fontFallback: _ => null);
+        // ReSharper disable once AccessToDisposedClosure
         await Assert.That(() => context.GetTypeface("NonExistentFont12345", false, false))
             .Throws<InvalidOperationException>();
     }
