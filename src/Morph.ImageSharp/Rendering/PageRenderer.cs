@@ -93,6 +93,10 @@ sealed class PageRenderer(RenderContext context) :
             {
                 RenderBackgroundShape(shape);
             }
+            else if (element is FloatingImageElement floatingImage)
+            {
+                RenderFloatingImage(floatingImage);
+            }
             else if (element is ParagraphElement para)
             {
                 textRenderer.RenderParagraph(currentPage, para);
@@ -118,7 +122,15 @@ sealed class PageRenderer(RenderContext context) :
 
         foreach (var element in activeFooter.Elements)
         {
-            if (element is ParagraphElement para)
+            if (element is FloatingShapeElement {BehindText: true} shape)
+            {
+                RenderBackgroundShape(shape);
+            }
+            else if (element is FloatingImageElement floatingImage)
+            {
+                RenderFloatingImage(floatingImage);
+            }
+            else if (element is ParagraphElement para)
             {
                 textRenderer.RenderParagraph(currentPage, para);
             }
