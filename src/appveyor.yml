@@ -5,15 +5,44 @@ environment:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 build_script:
 - pwsh: |
-    # Install bundled fonts (direct copy avoids COM Shell hangs on CI)
+    # Install bundled fonts (direct copy avoids COM Shell hangs on CI).
+    # Each font is validated via System.Drawing before install; corrupt files
+    # (e.g. TTFs mangled by Git CRLF conversion) will fail the build here
+    # rather than surfacing as confusing "font not found" errors at test time.
+    $ErrorActionPreference = 'Stop'
+    Add-Type -AssemblyName System.Drawing
     $fontsPath = "src/Fonts"
     $winFonts = "$env:WINDIR\Fonts"
     $regKey = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts"
-    Get-ChildItem -Path $fontsPath -Include *.ttf,*.otf -Recurse | ForEach-Object {
-        Copy-Item $_.FullName -Destination $winFonts -Force
-        $fontName = [System.IO.Path]::GetFileNameWithoutExtension($_.Name)
-        $fontType = if ($_.Extension -eq ".otf") { "OpenType" } else { "TrueType" }
-        New-ItemProperty -Path $regKey -Name "$fontName ($fontType)" -Value $_.Name -PropertyType String -Force | Out-Null
+    Write-Host "Font source: $fontsPath"
+    $files = @(Get-ChildItem -Path $fontsPath -Recurse -File |
+        Where-Object { $_.Extension -in '.ttf', '.otf' })
+    Write-Host "Found $($files.Count) font files"
+    if ($files.Count -eq 0)
+    {
+        throw "No font files found in $fontsPath"
+    }
+    foreach ($file in $files)
+    {
+        $pfc = New-Object System.Drawing.Text.PrivateFontCollection
+        try
+        {
+            $pfc.AddFontFile($file.FullName)
+            if ($pfc.Families.Count -eq 0 -or [string]::IsNullOrEmpty($pfc.Families[0].Name))
+            {
+                throw "Font file '$($file.FullName)' has no family name (likely corrupt — check .gitattributes marks *.ttf/*.otf as binary)"
+            }
+            $family = $pfc.Families[0].Name
+        }
+        finally
+        {
+            $pfc.Dispose()
+        }
+        Write-Host "Installing $($file.Name) (family: '$family')"
+        Copy-Item $file.FullName -Destination $winFonts -Force
+        $fontName = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
+        $fontType = if ($file.Extension -eq ".otf") { "OpenType" } else { "TrueType" }
+        New-ItemProperty -Path $regKey -Name "$fontName ($fontType)" -Value $file.Name -PropertyType String -Force | Out-Null
     }
 - pwsh: |
     Invoke-WebRequest "https://dot.net/v1/dotnet-install.ps1" -OutFile "./dotnet-install.ps1"
