@@ -52,17 +52,43 @@ static class FontCacheLoader
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         var userFontsPath = Path.Combine(localAppData, "Microsoft", "Windows", "Fonts");
+        return EnumerateFontFilesInDirectory(userFontsPath);
+    }
 
-        if (!Directory.Exists(userFontsPath))
+    /// <summary>
+    /// Gets font file paths from machine-wide font directories.
+    /// On Windows that is <c>%WINDIR%\Fonts</c>; on Linux the standard
+    /// <c>/usr/share/fonts</c> tree; on macOS <c>/Library/Fonts</c> and
+    /// <c>/System/Library/Fonts</c>. Reading these directories directly avoids
+    /// depending on the OS font manager having indexed newly-installed fonts,
+    /// which is unreliable on CI agents.
+    /// </summary>
+    internal static IEnumerable<string> GetSystemFontFiles()
+    {
+        foreach (var path in GetSystemFontPaths())
         {
-            yield break;
+            foreach (var fontFile in EnumerateFontFilesInDirectory(path, recursive: true))
+            {
+                yield return fontFile;
+            }
         }
+    }
 
-        foreach (var fontFile in Directory.EnumerateFiles(userFontsPath)
-                     .Where(f => f.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase)
-                              || f.EndsWith(".otf", StringComparison.OrdinalIgnoreCase)))
+    static IEnumerable<string> GetSystemFontPaths()
+    {
+        if (OperatingSystem.IsWindows())
         {
-            yield return fontFile;
+            yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Fonts");
+        }
+        else if (OperatingSystem.IsMacOS())
+        {
+            yield return "/Library/Fonts";
+            yield return "/System/Library/Fonts";
+        }
+        else if (OperatingSystem.IsLinux())
+        {
+            yield return "/usr/share/fonts";
+            yield return "/usr/local/share/fonts";
         }
     }
 
@@ -77,6 +103,38 @@ static class FontCacheLoader
             yield return "/Applications/Microsoft Word.app/Contents/Resources/DFonts";
             yield return "/Applications/Microsoft Excel.app/Contents/Resources/DFonts";
             yield return "/Applications/Microsoft PowerPoint.app/Contents/Resources/DFonts";
+        }
+    }
+
+    /// <summary>
+    /// Enumerates <c>.ttf</c> and <c>.otf</c> files in <paramref name="directory"/>.
+    /// Returns nothing if the directory does not exist.
+    /// </summary>
+    internal static IEnumerable<string> EnumerateFontFilesInDirectory(string directory, bool recursive = false)
+    {
+        if (!Directory.Exists(directory))
+        {
+            yield break;
+        }
+
+        var option = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+        IEnumerable<string> files;
+        try
+        {
+            files = Directory.EnumerateFiles(directory, "*", option);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            yield break;
+        }
+
+        foreach (var file in files)
+        {
+            if (file.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase) ||
+                file.EndsWith(".otf", StringComparison.OrdinalIgnoreCase))
+            {
+                yield return file;
+            }
         }
     }
 }

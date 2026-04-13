@@ -13,8 +13,9 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
     static Lazy<FontFileCache> cloudFontsCache = new(() => new(FontCacheLoader.GetCloudFontFiles(), ReadFamilyName));
     static Lazy<FontFileCache> officeFontsCache = new(() => new(FontCacheLoader.GetOfficeFontFiles(), ReadFamilyName));
     static Lazy<FontFileCache> userFontsCache = new(() => new(FontCacheLoader.GetUserFontFiles(), ReadFamilyName));
+    static Lazy<FontFileCache> systemFontsCache = new(() => new(FontCacheLoader.GetSystemFontFiles(), ReadFamilyName));
 
-    static string? ReadFamilyName(string fontFile) => new FontCollection().Add(fontFile).Name;
+    static string ReadFamilyName(string fontFile) => new FontCollection().Add(fontFile).Name;
 
     public FontFamily GetFontFamily(string fontFamily, bool bold, bool italic)
     {
@@ -42,6 +43,7 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
             LoadFilesIntoSharedCollection(userFontsCache.Value, candidates);
             LoadFilesIntoSharedCollection(officeFontsCache.Value, candidates);
             LoadFilesIntoSharedCollection(cloudFontsCache.Value, candidates);
+            LoadFilesIntoSharedCollection(systemFontsCache.Value, candidates);
 
             // Prefer a family that has the exact style, but accept any matching-name family
             // if an exact variant isn't available. The caller will downgrade the requested
