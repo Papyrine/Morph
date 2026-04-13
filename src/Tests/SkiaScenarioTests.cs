@@ -91,26 +91,5 @@ public class SkiaScenarioTests
 
         return diffs;
     }
-
-
-    [After(Class)]
-    public static async Task AfterAllTests()
-    {
-        var combine = Path.Combine(ProjectFiles.ProjectDirectory, "outcome_skia.txt");
-        File.Delete(combine);
-        await using var writer = File.CreateText(combine);
-        await writer.WriteLineAsync("# pageCountFailures " + pageCountFailures.Count);
-        foreach (var failure in pageCountFailures.Order())
-        {
-            await writer.WriteLineAsync(failure);
-        }
-
-        await writer.WriteLineAsync("");
-        await writer.WriteLineAsync("# metricFailures "+ metricFailures.Count);
-        foreach (var failure in metricFailures.Order())
-        {
-            await writer.WriteLineAsync(failure);
-        }
-    }
 }
 #endif
