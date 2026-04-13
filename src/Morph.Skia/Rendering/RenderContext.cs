@@ -8,6 +8,7 @@ sealed class RenderContext : RenderContextBase, IDisposable
     static Lazy<FontFileCache> cloudFontsCache = new(() => new(FontCacheLoader.GetCloudFontFiles(), ReadFamilyName));
     static Lazy<FontFileCache> officeFontsCache = new(() => new(FontCacheLoader.GetOfficeFontFiles(), ReadFamilyName));
     static Lazy<FontFileCache> userFontsCache = new(() => new(FontCacheLoader.GetUserFontFiles(), ReadFamilyName));
+    static Lazy<FontFileCache> systemFontsCache = new(() => new(FontCacheLoader.GetSystemFontFiles(), ReadFamilyName));
 
     static string? ReadFamilyName(string fontFile)
     {
@@ -49,7 +50,7 @@ sealed class RenderContext : RenderContextBase, IDisposable
                 // Merge all font caches so all style variants are available
                 // (e.g. Regular from user fonts + Italic from cloud)
                 var mergedFiles = GetMergedFontFiles(candidates,
-                    userFontsCache.Value, officeFontsCache.Value, cloudFontsCache.Value);
+                    userFontsCache.Value, officeFontsCache.Value, cloudFontsCache.Value, systemFontsCache.Value);
                 if (mergedFiles != null)
                 {
                     typeface = FindBestMatch(mergedFiles, style);
