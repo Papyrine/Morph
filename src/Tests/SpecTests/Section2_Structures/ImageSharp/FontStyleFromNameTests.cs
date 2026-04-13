@@ -102,6 +102,19 @@ public class FontStyleFromNameTests
     }
 
     [Test]
+    public async Task GetFontFamily_UnknownFont_ExceptionMessageIncludesSearchedPaths()
+    {
+        using var context = CreateContext();
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => context.GetFontFamily("NonExistentFont12345", false, false));
+        await Assert.That(ex!.Message).Contains("NonExistentFont12345");
+        foreach (var path in FontCacheLoader.GetSearchedPaths())
+        {
+            await Assert.That(ex.Message).Contains(path);
+        }
+    }
+
+    [Test]
     public async Task GetFontFamily_UnknownFont_DelegateFallback_ResolvesToFallback()
     {
         using var context = new ImageSharpRenderContext(

@@ -45,6 +45,19 @@ public class SkiaFontResolutionTests
     }
 
     [Test]
+    public async Task GetTypeface_UnknownFont_ExceptionMessageIncludesSearchedPaths()
+    {
+        using var context = CreateContext();
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => context.GetTypeface("NonExistentFont12345", false, false));
+        await Assert.That(ex!.Message).Contains("NonExistentFont12345");
+        foreach (var path in FontCacheLoader.GetSearchedPaths())
+        {
+            await Assert.That(ex.Message).Contains(path);
+        }
+    }
+
+    [Test]
     public async Task GetTypeface_UnknownFont_DelegateFallback_ResolvesToFallback()
     {
         using var context = new SkiaRenderContext(
