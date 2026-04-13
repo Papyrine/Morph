@@ -9,9 +9,7 @@ static class FontCacheLoader
     /// </summary>
     internal static IEnumerable<string> GetCloudFontFiles()
     {
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var cloudFontsPath = Path.Combine(localAppData, "Microsoft", "FontCache", "4", "CloudFonts");
-
+        var cloudFontsPath = GetCloudFontPath();
         if (!Directory.Exists(cloudFontsPath))
         {
             yield break;
@@ -24,6 +22,32 @@ static class FontCacheLoader
                 yield return fontFile;
             }
         }
+    }
+
+    internal static string GetCloudFontPath()
+    {
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return Path.Combine(localAppData, "Microsoft", "FontCache", "4", "CloudFonts");
+    }
+
+    internal static string GetUserFontPath()
+    {
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return Path.Combine(localAppData, "Microsoft", "Windows", "Fonts");
+    }
+
+    internal static IEnumerable<string> GetSearchedPaths()
+    {
+        foreach (var path in GetSystemFontPaths())
+        {
+            yield return path;
+        }
+        yield return GetUserFontPath();
+        foreach (var path in GetOfficeFontPaths())
+        {
+            yield return path;
+        }
+        yield return GetCloudFontPath();
     }
 
     /// <summary>
@@ -48,12 +72,8 @@ static class FontCacheLoader
     /// <summary>
     /// Gets font file paths from user-installed fonts (installed without admin rights).
     /// </summary>
-    internal static IEnumerable<string> GetUserFontFiles()
-    {
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var userFontsPath = Path.Combine(localAppData, "Microsoft", "Windows", "Fonts");
-        return EnumerateFontFilesInDirectory(userFontsPath);
-    }
+    internal static IEnumerable<string> GetUserFontFiles() =>
+        EnumerateFontFilesInDirectory(GetUserFontPath());
 
     /// <summary>
     /// Gets font file paths from machine-wide font directories.
