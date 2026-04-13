@@ -49,8 +49,9 @@ public class SkiaFontResolutionTests
     {
         using var context = CreateContext();
         var ex = Assert.Throws<InvalidOperationException>(
+            // ReSharper disable once AccessToDisposedClosure
             () => context.GetTypeface("NonExistentFont12345", false, false));
-        await Assert.That(ex!.Message).Contains("NonExistentFont12345");
+        await Assert.That(ex.Message).Contains("NonExistentFont12345");
         foreach (var path in FontCacheLoader.GetSearchedPaths())
         {
             await Assert.That(ex.Message).Contains(path);
