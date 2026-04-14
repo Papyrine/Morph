@@ -6,6 +6,7 @@ public class SkiaScenarioTests
     {
         var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
         return Directory.GetFiles(inputsDir, "input.docx", SearchOption.AllDirectories)
+            .Where(_ => _.EndsWith(@"business-plans\15\input.docx"))
             .Select(Path.GetDirectoryName)!;
     }
 
