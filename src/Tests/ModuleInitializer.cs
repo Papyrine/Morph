@@ -5,6 +5,15 @@ public static class ModuleInitializer
     {
         VerifierSettings.UseStrictJson();
 
+        // Pin culture/region so locale-dependent behavior (paper size defaults,
+        // number/date formatting, RegionInfo.CurrentRegion) is deterministic
+        // regardless of the host machine.
+        var auCulture = new CultureInfo("en-AU");
+        CultureInfo.DefaultThreadCurrentCulture = auCulture;
+        CultureInfo.DefaultThreadCurrentUICulture = auCulture;
+        Thread.CurrentThread.CurrentCulture = auCulture;
+        Thread.CurrentThread.CurrentUICulture = auCulture;
+
         // Force A4 size for consistent test results across regions
         DefaultPageSize.UseLetterSize = false;
 
