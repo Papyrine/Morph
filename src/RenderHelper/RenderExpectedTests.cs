@@ -188,7 +188,6 @@ public class RenderExpectedTests
     }
 
     [Test]
-    [Explicit]
     [TestCaseSource(nameof(GetScenarioNames))]
     public void GenerateExpectedImage(string scenarioName)
     {

@@ -1,4 +1,5 @@
 ﻿global using System.Collections.Concurrent;
+global using System.Globalization;
 global using System.Diagnostics.CodeAnalysis;
 global using System.IO.Compression;
 global using System.Runtime.CompilerServices;
