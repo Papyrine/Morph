@@ -2111,7 +2111,7 @@ sealed class DocumentParser
         };
     }
 
-    static CellSpacing? ParseTableCellMargin(TableCellMarginDefault margin)
+    internal static CellSpacing? ParseTableCellMargin(TableCellMarginDefault margin)
     {
         double top = 0, right = 0, bottom = 0, left = 0;
         var hasAny = false;
@@ -2123,10 +2123,14 @@ sealed class DocumentParser
             hasAny = true;
         }
 
-        var rightMargin = margin.TableCellRightMargin;
-        if (rightMargin?.Width?.HasValue == true)
+        if (margin.EndMargin?.Width?.HasValue == true)
         {
-            right = rightMargin.Width.Value / twipsPerPoint;
+            right = double.Parse(margin.EndMargin.Width.Value!) / twipsPerPoint;
+            hasAny = true;
+        }
+        else if (margin.TableCellRightMargin?.Width?.HasValue == true)
+        {
+            right = margin.TableCellRightMargin.Width.Value / twipsPerPoint;
             hasAny = true;
         }
 
@@ -2137,17 +2141,21 @@ sealed class DocumentParser
             hasAny = true;
         }
 
-        var leftMargin = margin.TableCellLeftMargin;
-        if (leftMargin?.Width?.HasValue == true)
+        if (margin.StartMargin?.Width?.HasValue == true)
         {
-            left = leftMargin.Width.Value / twipsPerPoint;
+            left = double.Parse(margin.StartMargin.Width.Value!) / twipsPerPoint;
+            hasAny = true;
+        }
+        else if (margin.TableCellLeftMargin?.Width?.HasValue == true)
+        {
+            left = margin.TableCellLeftMargin.Width.Value / twipsPerPoint;
             hasAny = true;
         }
 
         return hasAny ? new CellSpacing(top, right, bottom, left) : null;
     }
 
-    static CellSpacing? ParseCellMargin(TableCellMargin margin)
+    internal static CellSpacing? ParseCellMargin(TableCellMargin margin)
     {
         double top = 0, right = 0, bottom = 0, left = 0;
         var hasAny = false;
@@ -2159,10 +2167,14 @@ sealed class DocumentParser
             hasAny = true;
         }
 
-        var rightMargin = margin.RightMargin;
-        if (rightMargin?.Width?.HasValue == true)
+        if (margin.EndMargin?.Width?.HasValue == true)
         {
-            right = double.Parse(rightMargin.Width.Value!) / twipsPerPoint;
+            right = double.Parse(margin.EndMargin.Width.Value!) / twipsPerPoint;
+            hasAny = true;
+        }
+        else if (margin.RightMargin?.Width?.HasValue == true)
+        {
+            right = double.Parse(margin.RightMargin.Width.Value!) / twipsPerPoint;
             hasAny = true;
         }
 
@@ -2173,10 +2185,14 @@ sealed class DocumentParser
             hasAny = true;
         }
 
-        var leftMargin = margin.LeftMargin;
-        if (leftMargin?.Width?.HasValue == true)
+        if (margin.StartMargin?.Width?.HasValue == true)
         {
-            left = double.Parse(leftMargin.Width.Value!) / twipsPerPoint;
+            left = double.Parse(margin.StartMargin.Width.Value!) / twipsPerPoint;
+            hasAny = true;
+        }
+        else if (margin.LeftMargin?.Width?.HasValue == true)
+        {
+            left = double.Parse(margin.LeftMargin.Width.Value!) / twipsPerPoint;
             hasAny = true;
         }
 
