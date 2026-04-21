@@ -2,6 +2,8 @@
 
 public class ImageSharpScenarioTests
 {
+    static readonly string fontsDirectory = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
+
     public static IEnumerable<string> GetScenarioDirectories()
     {
         var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
@@ -19,7 +21,7 @@ public class ImageSharpScenarioTests
         var expectedFiles = Directory.GetFiles(directory, "expected_*.png")
             .Order()
             .ToArray();
-        var data = converter.ConvertToImageData(inputFile);
+        var data = converter.ConvertToImageData(inputFile, new ConversionOptions {FontDirectory = fontsDirectory});
 
         var diffs = PageDiffs(expectedFiles, data);
 

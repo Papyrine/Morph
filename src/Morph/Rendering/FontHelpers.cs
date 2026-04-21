@@ -17,6 +17,8 @@ static class FontHelpers
         ["Sagona"] = "Georgia",
         ["Sagona ExtraLight"] = "Georgia",
         ["Sagona Light"] = "Georgia",
+        ["Grandview Display"] = "Grandview",
+        ["Cambria Math"] = "Cambria",
     };
 
     // Common font style suffixes to strip when looking for base family

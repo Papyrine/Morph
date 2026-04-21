@@ -15,6 +15,13 @@ abstract class RenderContextBase
     public float FontWidthScale { get; }
     public Func<string, string?>? FontFallback { get; }
 
+    /// <summary>
+    /// When non-null, font resolution uses only files from this directory (recursive)
+    /// and all system/user/Office/cloud caches and OS-level fallbacks are skipped.
+    /// Missing fonts throw.
+    /// </summary>
+    public string? FontDirectory { get; }
+
     // Header/footer space adjustments
     float headerSpace;
     float footerSpace;
@@ -48,7 +55,7 @@ abstract class RenderContextBase
     public float ContentWidth => (float) PageSettings.ColumnWidth;
     public float ContentHeight => FullContentBottom - FullContentTop;
 
-    protected RenderContextBase(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility, double fontWidthScale, Func<string, string?>? fontFallback = null)
+    protected RenderContextBase(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility, double fontWidthScale, Func<string, string?>? fontFallback = null, string? fontDirectory = null)
     {
         PageSettings = pageSettings;
         Compatibility = compatibility ?? new CompatibilitySettings();
@@ -56,6 +63,7 @@ abstract class RenderContextBase
         Scale = dpi / 72f;
         FontWidthScale = (float) fontWidthScale;
         FontFallback = fontFallback;
+        FontDirectory = fontDirectory;
 
         PageWidthPixels = (int) (pageSettings.WidthPoints * Scale);
         PageHeightPixels = (int) (pageSettings.HeightPoints * Scale);

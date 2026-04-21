@@ -10,14 +10,21 @@ sealed class RenderContext : RenderContextBase, IDisposable
     static Lazy<FontFileCache> userFontsCache = new(() => new(FontCacheLoader.GetUserFontFiles(), ReadFamilyName));
     static Lazy<FontFileCache> systemFontsCache = new(() => new(FontCacheLoader.GetSystemFontFiles(), ReadFamilyName));
 
+    static readonly ConcurrentDictionary<string, FontFileCache> directoryCaches = new(StringComparer.OrdinalIgnoreCase);
+
+    static FontFileCache GetDirectoryCache(string fontDirectory) =>
+        directoryCaches.GetOrAdd(
+            Path.GetFullPath(fontDirectory),
+            path => new(FontCacheLoader.EnumerateFontFilesInDirectory(path, recursive: true), ReadFamilyName));
+
     static string? ReadFamilyName(string fontFile)
     {
         using var tf = SKTypeface.FromFile(fontFile);
         return tf?.FamilyName;
     }
 
-    public RenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0, Func<string, string?>? fontFallback = null)
-        : base(pageSettings, dpi, compatibility, fontWidthScale, fontFallback)
+    public RenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0, Func<string, string?>? fontFallback = null, string? fontDirectory = null)
+        : base(pageSettings, dpi, compatibility, fontWidthScale, fontFallback, fontDirectory)
     {
     }
 
@@ -42,37 +49,58 @@ sealed class RenderContext : RenderContextBase, IDisposable
 
         if (!typefaceCache.TryGetValue(key, out var typeface))
         {
-            // Try each candidate name against system fonts
-            typeface = TryResolveFromSystem(candidates, style);
-
-            if (typeface == null)
+            if (FontDirectory != null)
             {
-                // Merge all font caches so all style variants are available
-                // (e.g. Regular from user fonts + Italic from cloud)
-                var mergedFiles = GetMergedFontFiles(candidates,
-                    userFontsCache.Value, officeFontsCache.Value, cloudFontsCache.Value, systemFontsCache.Value);
-                if (mergedFiles != null)
+                typeface = ResolveFromDirectory(candidates, style);
+
+                if (typeface == null)
                 {
-                    typeface = FindBestMatch(mergedFiles, style);
+                    var fallbackFont = FontHelpers.FindFallback(candidates) ?? FontFallback?.Invoke(fontFamily);
+                    if (fallbackFont != null)
+                    {
+                        typeface = ResolveFromDirectory(FontHelpers.GetCandidateNames(fallbackFont, bold), style);
+                    }
+                }
+
+                if (typeface == null)
+                {
+                    throw new InvalidOperationException($"Font '{fontFamily}' not found in '{FontDirectory}'.");
                 }
             }
-
-            if (typeface == null)
+            else
             {
-                var fallbackFont = FontHelpers.FindFallback(candidates) ?? FontFallback?.Invoke(fontFamily);
-                if (fallbackFont == null)
+                // Try each candidate name against system fonts
+                typeface = TryResolveFromSystem(candidates, style);
+
+                if (typeface == null)
                 {
-                    throw new InvalidOperationException($"Font '{fontFamily}' not found. Checked:{Environment.NewLine}  {string.Join($"{Environment.NewLine}  ", FontCacheLoader.GetSearchedPaths())}");
+                    // Merge all font caches so all style variants are available
+                    // (e.g. Regular from user fonts + Italic from cloud)
+                    var mergedFiles = GetMergedFontFiles(candidates,
+                        userFontsCache.Value, officeFontsCache.Value, cloudFontsCache.Value, systemFontsCache.Value);
+                    if (mergedFiles != null)
+                    {
+                        typeface = FindBestMatch(mergedFiles, style);
+                    }
                 }
 
-                var fallbackTypeface = SKTypeface.FromFamilyName(fallbackFont, style);
-                if (fallbackTypeface.FamilyName.Equals(fallbackFont, StringComparison.OrdinalIgnoreCase))
+                if (typeface == null)
                 {
-                    typeface = fallbackTypeface;
-                }
-                else
-                {
-                    throw new InvalidOperationException($"Font '{fontFamily}' not found and fallback '{fallbackFont}' also not available.");
+                    var fallbackFont = FontHelpers.FindFallback(candidates) ?? FontFallback?.Invoke(fontFamily);
+                    if (fallbackFont == null)
+                    {
+                        throw new InvalidOperationException($"Font '{fontFamily}' not found. Checked:{Environment.NewLine}  {string.Join($"{Environment.NewLine}  ", FontCacheLoader.GetSearchedPaths())}");
+                    }
+
+                    var fallbackTypeface = SKTypeface.FromFamilyName(fallbackFont, style);
+                    if (fallbackTypeface.FamilyName.Equals(fallbackFont, StringComparison.OrdinalIgnoreCase))
+                    {
+                        typeface = fallbackTypeface;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Font '{fontFamily}' not found and fallback '{fallbackFont}' also not available.");
+                    }
                 }
             }
 
@@ -80,6 +108,17 @@ sealed class RenderContext : RenderContextBase, IDisposable
         }
 
         return typeface;
+    }
+
+    SKTypeface? ResolveFromDirectory(FontNameCandidates candidates, SKFontStyle style)
+    {
+        var cache = GetDirectoryCache(FontDirectory!);
+        if (cache.TryGet(candidates, out var files))
+        {
+            return FindBestMatch(files, style);
+        }
+
+        return null;
     }
 
     static SKTypeface? TryResolveFromSystem(FontNameCandidates candidates, SKFontStyle style)

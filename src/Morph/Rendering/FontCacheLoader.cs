@@ -127,7 +127,7 @@ static class FontCacheLoader
     }
 
     /// <summary>
-    /// Enumerates <c>.ttf</c> and <c>.otf</c> files in <paramref name="directory"/>.
+    /// Enumerates <c>.ttf</c>, <c>.otf</c>, and <c>.ttc</c> files in <paramref name="directory"/>.
     /// Returns nothing if the directory does not exist.
     /// </summary>
     internal static IEnumerable<string> EnumerateFontFilesInDirectory(string directory, bool recursive = false)
@@ -151,7 +151,8 @@ static class FontCacheLoader
         foreach (var file in files)
         {
             if (file.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase) ||
-                file.EndsWith(".otf", StringComparison.OrdinalIgnoreCase))
+                file.EndsWith(".otf", StringComparison.OrdinalIgnoreCase) ||
+                file.EndsWith(".ttc", StringComparison.OrdinalIgnoreCase))
             {
                 yield return file;
             }
