@@ -23,7 +23,7 @@
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageVersion Include="SixLabors.ImageSharp.Drawing" Version="2.1.7" />
     <PackageVersion Include="Svg.Skia" Version="4.4.0" />
-    <PackageVersion Include="TUnit" Version="1.37.24" />
+    <PackageVersion Include="TUnit" Version="1.37.36" />
     <PackageVersion Include="Verify.ImageMagick" Version="3.8.8" />
     <PackageVersion Include="Verify.TUnit" Version="31.16.1" />
   </ItemGroup>
