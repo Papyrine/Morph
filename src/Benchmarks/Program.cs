@@ -1,6 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
+using Morph;
 
 BenchmarkSwitcher.FromAssembly(typeof(ConversionBenchmarks).Assembly).Run(args);
 
@@ -18,8 +19,8 @@ public class ConversionBenchmarks
     // Large (~5.5MB) - newsletter with many images
     static readonly string largeDoc = Path.Combine(inputsDir, "newsletters", "03", "input.docx");
 
-    readonly WordRender.Skia.SkiaDocumentConverter skia = new();
-    readonly WordRender.ImageSharp.ImageSharpDocumentConverter imageSharp = new();
+    SkiaDocumentConverter skia = new();
+    ImageSharpDocumentConverter imageSharp = new();
 
     byte[] smallBytes = [];
     byte[] mediumBytes = [];

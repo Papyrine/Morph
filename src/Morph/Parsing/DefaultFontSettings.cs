@@ -1,3 +1,5 @@
+using Morph;
+
 /// <summary>
 /// Provides configurable font rendering settings to better match Microsoft Word.
 /// All settings are process-wide and must be configured before the first render;
@@ -44,7 +46,7 @@ static class DefaultFontSettings
     /// </summary>
     /// <remarks>
     /// To override per-conversion without affecting other callers, use
-    /// <see cref="WordRender.ConversionOptions.DefaultFont"/> instead.
+    /// <see cref="ConversionOptions.DefaultFont"/> instead.
     /// </remarks>
     public static string DefaultFont
     {

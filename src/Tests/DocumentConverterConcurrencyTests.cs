@@ -1,3 +1,5 @@
+using Morph;
+
 #if !DEBUG
 
 public class DocumentConverterConcurrencyTests
@@ -12,7 +14,7 @@ public class DocumentConverterConcurrencyTests
     // to hold the same value either way). complex_tables and bullet_list together exercise
     // the parser fields the original race corrupted (style borders, numbering, theme).
     //
-    // Both Skia and ImageSharp derive from WordRender.DocumentConverter, so the parse path
+    // Both Skia and ImageSharp derive from DocumentConverter, so the parse path
     // covered here is shared across both backends.
     [Test]
     public async Task SharedConverterIsByteIdenticalUnderConcurrentRenders()
@@ -21,7 +23,7 @@ public class DocumentConverterConcurrencyTests
         var inputA = await File.ReadAllBytesAsync(Path.Combine(inputsDir, "complex_tables", "input.docx"));
         var inputB = await File.ReadAllBytesAsync(Path.Combine(inputsDir, "bullet_list", "input.docx"));
 
-        var converter = new WordRender.Skia.DocumentConverter();
+        var converter = new SkiaDocumentConverter();
         var baselineA = Render(converter, inputA);
         var baselineB = Render(converter, inputB);
 
@@ -61,7 +63,7 @@ public class DocumentConverterConcurrencyTests
         }
     }
 
-    static IReadOnlyList<byte[]> Render(WordRender.DocumentConverter converter, byte[] docx)
+    static IReadOnlyList<byte[]> Render(DocumentConverter converter, byte[] docx)
     {
         using var stream = new MemoryStream(docx);
         return converter.ConvertToImageData(stream);

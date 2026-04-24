@@ -1,3 +1,5 @@
+using Morph;
+
 public class ImageSharpScenarioTests
 {
     static readonly string fontsDirectory = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
@@ -14,7 +16,7 @@ public class ImageSharpScenarioTests
     [MethodDataSource(nameof(GetScenarioDirectories))]
     public async Task Scenario(string directory)
     {
-        var converter = new WordRender.ImageSharp.ImageSharpDocumentConverter();
+        var converter = new ImageSharpDocumentConverter();
         var inputFile = Path.Combine(directory, "input.docx");
         var expectedFiles = Directory.GetFiles(directory, "expected_*.png")
             .Order()

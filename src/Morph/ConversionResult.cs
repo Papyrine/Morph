@@ -1,4 +1,4 @@
-﻿namespace WordRender;
+﻿namespace Morph;
 
 /// <summary>
 /// Result of a document conversion.

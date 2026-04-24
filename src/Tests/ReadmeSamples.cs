@@ -8,7 +8,7 @@ public class Samples
     [Test]
     public Task Simple()
     {
-        var converter = new WordRender.Skia.SkiaDocumentConverter();
+        var converter = new SkiaDocumentConverter();
 
         var data = converter.ConvertToImageData("sample.docx");
 
@@ -19,7 +19,7 @@ public class Samples
     {
         #region BasicUsage
 
-        var converter = new WordRender.Skia.SkiaDocumentConverter();
+        var converter = new SkiaDocumentConverter();
 
         var result = converter.ConvertToImages(
             "document.docx",
@@ -38,7 +38,7 @@ public class Samples
     {
         #region InMemoryConversion
 
-        var converter = new WordRender.Skia.SkiaDocumentConverter();
+        var converter = new SkiaDocumentConverter();
 
         var imageData = converter.ConvertToImageData("document.docx");
 
@@ -54,7 +54,7 @@ public class Samples
     {
         #region StreamBasedConversion
 
-        var converter = new WordRender.Skia.SkiaDocumentConverter();
+        var converter = new SkiaDocumentConverter();
 
         using var stream = File.OpenRead("document.docx");
 
@@ -71,7 +71,7 @@ public class Samples
     {
         #region CustomOptions
 
-        var converter = new WordRender.Skia.SkiaDocumentConverter();
+        var converter = new SkiaDocumentConverter();
 
         var options = new ConversionOptions
         {
