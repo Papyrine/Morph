@@ -393,8 +393,42 @@ sealed class TextRenderer(RenderContext context)
         var firstLineIndent = (float)props.FirstLineIndentPoints;
         var effectiveWidth = adjustedMaxWidth - (isFirstLine ? firstLineIndent : 0);
 
-        foreach (var run in paragraph.Runs)
+        for (var runIndex = 0; runIndex < paragraph.Runs.Count; runIndex++)
         {
+            var run = paragraph.Runs[runIndex];
+
+            // Tab snap: emit a tab-filler fragment that advances the cursor to the next tab stop.
+            if (run.IsTab)
+            {
+                var followingWidth = MeasureFollowingWidth(paragraph, runIndex + 1);
+                var leftIndentPts = (float)props.LeftIndentPoints;
+                var cursorAbs = leftIndentPts + currentLineWidth;
+                var (destinationAbs, matchedStop) = TabStopResolver.Resolve(
+                    cursorAbs, followingWidth,
+                    props.TabStops, props.DefaultTabStopPoints, leftIndentPts);
+                var gap = (float)(destinationAbs - cursorAbs);
+                if (gap <= 0 || currentLineWidth + gap > effectiveWidth)
+                {
+                    continue;
+                }
+
+                var tabFont = context.GetFont(run.Properties);
+                var (tabRunHeight, tabBaseline) = RenderContext.GetFontMetrics(tabFont);
+
+                currentFragments.Add(new()
+                {
+                    Text = "",
+                    Width = gap,
+                    Properties = run.Properties,
+                    IsTabFiller = true,
+                    TabLeader = matchedStop?.Leader ?? TabLeader.None
+                });
+                currentLineWidth += gap;
+                maxLineHeight = Math.Max(maxLineHeight, tabRunHeight);
+                maxBaseline = Math.Max(maxBaseline, tabBaseline);
+                continue;
+            }
+
             // Handle inline images - treat as a single "word" in the text flow
             if (run.InlineImageData is {Length: > 0})
             {
@@ -726,6 +760,11 @@ sealed class TextRenderer(RenderContext context)
 
         foreach (var r in paragraph.Runs)
         {
+            if (r.IsTab)
+            {
+                continue;
+            }
+
             if (!string.IsNullOrEmpty(r.Text) || r.InlineImageData != null)
             {
                 return false;
@@ -763,6 +802,12 @@ sealed class TextRenderer(RenderContext context)
         if (fragment.InlineImageData is {Length: > 0})
         {
             RenderInlineImage(currentPage, fragment, x, y);
+            return;
+        }
+
+        if (fragment.IsTabFiller)
+        {
+            RenderTabFiller(currentPage, fragment, x, y);
             return;
         }
 
@@ -830,6 +875,67 @@ sealed class TextRenderer(RenderContext context)
         }
     }
 
+    void RenderTabFiller(Image<Rgba32> currentPage, TextFragment fragment, float x, float y)
+    {
+        if (fragment.Width <= 0 || fragment.TabLeader == TabLeader.None)
+        {
+            return;
+        }
+
+        var color = RenderContext.ParseColor(fragment.Properties.ColorHex);
+        var pixelY = context.PointsToPixels(y);
+        var pixelStartX = context.PointsToPixels(x);
+        var pixelEndX = context.PointsToPixels(x + fragment.Width);
+
+        if (fragment.TabLeader == TabLeader.Underscore)
+        {
+            var strokeWidth = Math.Max(1f, (float)fragment.Properties.FontSizePoints * context.Scale * 0.07f);
+            currentPage.Mutate(_ => _.DrawLine(
+                new SolidPen(color, strokeWidth),
+                new PointF(pixelStartX, pixelY),
+                new PointF(pixelEndX, pixelY)));
+            return;
+        }
+
+        var leaderChar = fragment.TabLeader switch
+        {
+            TabLeader.Dot => '.',
+            TabLeader.Hyphen => '-',
+            TabLeader.MiddleDot => '·',
+            TabLeader.Heavy => '—',
+            _ => '.'
+        };
+
+        var font = context.GetFont(fragment.Properties);
+        var glyphWidthPoints = RenderContext.MeasureText(font, leaderChar.ToString());
+        if (glyphWidthPoints <= 0)
+        {
+            return;
+        }
+
+        // Leave roughly one glyph of trailing padding before the snapped text begins.
+        var availablePoints = fragment.Width - glyphWidthPoints;
+        if (availablePoints <= 0)
+        {
+            return;
+        }
+
+        var count = (int)Math.Floor(availablePoints / glyphWidthPoints);
+        if (count <= 0)
+        {
+            return;
+        }
+
+        var leaderText = new string(leaderChar, count);
+        var (_, baseline) = RenderContext.GetFontMetrics(font);
+        var textOptions = new RichTextOptions(font)
+        {
+            Dpi = context.Dpi,
+            Origin = new PointF(pixelStartX, pixelY - baseline * context.Scale)
+        };
+        currentPage.Mutate(_ => _.DrawText(textOptions, leaderText, new SolidBrush(color)));
+    }
+
     void RenderInlineImage(Image<Rgba32> currentPage, TextFragment fragment, float x, float y)
     {
         // Convert to pixels - y is the baseline, need to adjust for image height
@@ -880,8 +986,42 @@ sealed class TextRenderer(RenderContext context)
         var subsequentOffset = (float)props.HangingIndentPoints;
         var effectiveWidth = baseWidth - (isFirstLine ? firstLineOffset : subsequentOffset);
 
-        foreach (var run in paragraph.Runs)
+        for (var runIndex = 0; runIndex < paragraph.Runs.Count; runIndex++)
         {
+            var run = paragraph.Runs[runIndex];
+
+            // Tab snap: emit a tab-filler fragment that advances the cursor to the next tab stop.
+            if (run.IsTab)
+            {
+                var followingWidth = MeasureFollowingWidth(paragraph, runIndex + 1);
+                var leftIndentPts = (float)props.LeftIndentPoints;
+                var cursorAbs = leftIndentPts + currentLineWidth;
+                var (destinationAbs, matchedStop) = TabStopResolver.Resolve(
+                    cursorAbs, followingWidth,
+                    props.TabStops, props.DefaultTabStopPoints, leftIndentPts);
+                var gap = (float)(destinationAbs - cursorAbs);
+                if (gap <= 0 || currentLineWidth + gap > effectiveWidth)
+                {
+                    continue;
+                }
+
+                var tabFont = context.GetFont(run.Properties);
+                var (tabRunHeight, tabBaseline) = RenderContext.GetFontMetrics(tabFont);
+
+                currentFragments.Add(new()
+                {
+                    Text = "",
+                    Width = gap,
+                    Properties = run.Properties,
+                    IsTabFiller = true,
+                    TabLeader = matchedStop?.Leader ?? TabLeader.None
+                });
+                currentLineWidth += gap;
+                maxLineHeight = Math.Max(maxLineHeight, tabRunHeight);
+                maxBaseline = Math.Max(maxBaseline, tabBaseline);
+                continue;
+            }
+
             // Handle inline images - treat as a single "word" in the text flow
             if (run.InlineImageData is {Length: > 0})
             {
@@ -1125,6 +1265,40 @@ sealed class TextRenderer(RenderContext context)
     const char softHyphen = '\u00AD';
     const string softHyphenString = "\u00AD";
 
+    /// <summary>
+    /// Measures text widths for runs following a tab, up to the next tab or line break.
+    /// </summary>
+    float MeasureFollowingWidth(ParagraphElement paragraph, int startRunIndex)
+    {
+        float total = 0;
+        for (var i = startRunIndex; i < paragraph.Runs.Count; i++)
+        {
+            var run = paragraph.Runs[i];
+            if (run.IsTab)
+            {
+                break;
+            }
+
+            if (run.InlineImageData is {Length: > 0})
+            {
+                total += (float)run.InlineImageWidthPoints;
+                continue;
+            }
+
+            if (run.Text.Contains('\n') || run.Text.Contains('\r'))
+            {
+                break;
+            }
+
+            var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
+            var font = context.GetFont(run.Properties);
+            total += RenderContext.MeasureText(font, text)
+                     + (float)(run.Properties.CharacterSpacingPoints * text.Length);
+        }
+
+        return total;
+    }
+
     static List<TextFragment> RemoveSoftHyphens(List<TextFragment> fragments)
     {
         var result = new List<TextFragment>(fragments.Count);
@@ -1222,4 +1396,10 @@ sealed class TextFragment
 
     /// <summary>Content type of inline image (e.g., "image/png", "image/svg+xml").</summary>
     public string? InlineImageContentType { get; init; }
+
+    /// <summary>True when this fragment represents a tab-stop gap (leader glyphs or empty spacer).</summary>
+    public bool IsTabFiller { get; init; }
+
+    /// <summary>Leader character to tile across a tab-filler fragment.</summary>
+    public TabLeader TabLeader { get; init; } = TabLeader.None;
 }

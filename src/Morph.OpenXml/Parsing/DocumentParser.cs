@@ -6,6 +6,8 @@ using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 using OoxmlRunProperties = DocumentFormat.OpenXml.Wordprocessing.RunProperties;
 using OoxmlTableCellProperties = DocumentFormat.OpenXml.Wordprocessing.TableCellProperties;
 using OoxmlTableProperties = DocumentFormat.OpenXml.Wordprocessing.TableProperties;
+using OoxmlTabStop = DocumentFormat.OpenXml.Wordprocessing.TabStop;
+using OoxmlTabs = DocumentFormat.OpenXml.Wordprocessing.Tabs;
 using WPG = DocumentFormat.OpenXml.Office2010.Word.DrawingGroup;
 using WPS = DocumentFormat.OpenXml.Office2010.Word.DrawingShape;
 
@@ -81,6 +83,9 @@ sealed class DocumentParser(string defaultFont)
     double defaultLeftIndentPoints;
     double defaultRightIndentPoints;
 
+    // Document-level w:defaultTabStop in points (720 twips = 36 pt = 0.5 inch, OOXML default).
+    double defaultTabStopPoints = 36;
+
     public ParsedDocument Parse(string filePath)
     {
         using var stream = File.OpenRead(filePath);
@@ -114,6 +119,9 @@ sealed class DocumentParser(string defaultFont)
 
         // Extract document default spacing from pPrDefault
         ExtractDefaultParagraphProperties(mainPart);
+
+        // Extract document-level default tab stop width (w:defaultTabStop in settings.xml)
+        ExtractDefaultTabStop(mainPart);
 
         // SectionProperties (sectPr) describes the section it belongs to, and the section break is stored
         // on the last paragraph of the section. The next section's properties are stored in the next sectPr.
@@ -538,7 +546,9 @@ sealed class DocumentParser(string defaultFont)
                         KeepLines = keepLines,
                         KeepNext = keepNext,
                         WidowControl = widowControl,
-                        BackgroundColorHex = backgroundColor
+                        BackgroundColorHex = backgroundColor,
+                        TabStops = baseProps?.TabStops ?? [],
+                        DefaultTabStopPoints = defaultTabStopPoints
                         // PageBreakBefore intentionally not inherited from styles
                     };
                     processed.Add(styleId);
@@ -728,7 +738,9 @@ sealed class DocumentParser(string defaultFont)
                     WidowControl = widowControl,
                     BackgroundColorHex = backgroundColor,
                     Borders = borders,
-                    BorderBottomSpacePoints = borderBottomSpace
+                    BorderBottomSpacePoints = borderBottomSpace,
+                    TabStops = ParseTabs(paraProps, baseProps?.TabStops ?? []),
+                    DefaultTabStopPoints = defaultTabStopPoints
                     // PageBreakBefore intentionally not inherited from styles
                 };
                 processed.Add(styleId);
@@ -1326,6 +1338,16 @@ sealed class DocumentParser(string defaultFont)
             ConsecutiveHyphenLimit = consecutiveHyphenLimit,
             DoNotHyphenateCaps = doNotHyphenateCaps
         };
+    }
+
+    void ExtractDefaultTabStop(MainDocumentPart mainPart)
+    {
+        var settings = mainPart.DocumentSettingsPart?.Settings;
+        var defaultTabStop = settings?.GetFirstChild<DefaultTabStop>();
+        if (defaultTabStop?.Val?.HasValue == true)
+        {
+            defaultTabStopPoints = defaultTabStop.Val.Value / twipsPerPoint;
+        }
     }
 
     static CompatibilitySettings ExtractCompatibilitySettings(MainDocumentPart mainPart)
@@ -2399,11 +2421,7 @@ sealed class DocumentParser(string defaultFont)
                             // Parse the run for text content (skip if it only contains a drawing)
                             if (!sdtChildRun.Descendants<Drawing>().Any())
                             {
-                                var parsedRun = ParseRun(sdtChildRun, mainPart, paragraphStyleId);
-                                if (parsedRun != null)
-                                {
-                                    runs.Add(parsedRun);
-                                }
+                                runs.AddRange(ParseRun(sdtChildRun, mainPart, paragraphStyleId));
                             }
                         }
                     }
@@ -2460,11 +2478,7 @@ sealed class DocumentParser(string defaultFont)
                             continue;
                         }
 
-                        var parsedRun = ParseRun(sdtCellRun, mainPart, paragraphStyleId);
-                        if (parsedRun != null)
-                        {
-                            runs.Add(parsedRun);
-                        }
+                        runs.AddRange(ParseRun(sdtCellRun, mainPart, paragraphStyleId));
                     }
 
                     break;
@@ -2520,11 +2534,7 @@ sealed class DocumentParser(string defaultFont)
                             continue;
                         }
 
-                        var parsedRun = ParseRun(sdtBlockRun, mainPart, paragraphStyleId);
-                        if (parsedRun != null)
-                        {
-                            runs.Add(parsedRun);
-                        }
+                        runs.AddRange(ParseRun(sdtBlockRun, mainPart, paragraphStyleId));
                     }
 
                     break;
@@ -2792,12 +2802,12 @@ sealed class DocumentParser(string defaultFont)
                     // Skip if run only contains a drawing (no text)
                     if (!run.Descendants<Drawing>().Any())
                     {
-                        var parsedRun = ParseRun(run, mainPart, paragraphStyleId);
-                        if (parsedRun != null && !run.Descendants<Break>().Any())
+                        var parsedRuns = ParseRun(run, mainPart, paragraphStyleId);
+                        if (parsedRuns.Count > 0 && !run.Descendants<Break>().Any())
                         {
-                            runs.Add(parsedRun);
+                            runs.AddRange(parsedRuns);
                         }
-                        else if (parsedRun != null && run.Descendants<Break>().All(b =>
+                        else if (parsedRuns.Count > 0 && run.Descendants<Break>().All(b =>
                                      b.Type?.Value != BreakValues.Page && b.Type?.Value != BreakValues.Column))
                         {
                             // Has only line breaks, text already handled above
@@ -4899,11 +4909,7 @@ sealed class DocumentParser(string defaultFont)
                     continue;
                 }
 
-                var parsedRun = ParseRun(run, mainPart, paragraphStyleId);
-                if (parsedRun != null)
-                {
-                    styledRuns.Add(parsedRun);
-                }
+                styledRuns.AddRange(ParseRun(run, mainPart, paragraphStyleId));
             }
 
             // Also build plain text content for backward compatibility
@@ -5103,6 +5109,69 @@ sealed class DocumentParser(string defaultFont)
         };
     }
 
+    static IReadOnlyList<TabStop> ParseTabs(OpenXmlCompositeElement? props, IReadOnlyList<TabStop> inheritedTabs)
+    {
+        var tabsEl = props?.GetFirstChild<OoxmlTabs>();
+        if (tabsEl == null)
+        {
+            return inheritedTabs;
+        }
+
+        // Merge inherited + inline. Inline w:val="clear" removes inherited stops at that position.
+        var map = new Dictionary<double, TabStop>();
+        foreach (var inherited in inheritedTabs)
+        {
+            map[inherited.PositionPoints] = inherited;
+        }
+
+        foreach (var tabStop in tabsEl.Elements<OoxmlTabStop>())
+        {
+            if (tabStop.Position?.HasValue != true)
+            {
+                continue;
+            }
+
+            var positionPoints = tabStop.Position.Value / twipsPerPoint;
+            var alignment = MapTabAlignment(tabStop.Val?.InnerText);
+            if (alignment == TabAlignment.Clear)
+            {
+                map.Remove(positionPoints);
+                continue;
+            }
+
+            map[positionPoints] = new()
+            {
+                PositionPoints = positionPoints,
+                Alignment = alignment,
+                Leader = MapTabLeader(tabStop.Leader?.InnerText)
+            };
+        }
+
+        return [.. map.Values.OrderBy(_ => _.PositionPoints)];
+    }
+
+    static TabAlignment MapTabAlignment(string? val) =>
+        val switch
+        {
+            "clear" => TabAlignment.Clear,
+            "center" => TabAlignment.Center,
+            "right" or "end" => TabAlignment.Right,
+            "decimal" => TabAlignment.Decimal,
+            "bar" => TabAlignment.Bar,
+            _ => TabAlignment.Left
+        };
+
+    static TabLeader MapTabLeader(string? val) =>
+        val switch
+        {
+            "dot" => TabLeader.Dot,
+            "hyphen" => TabLeader.Hyphen,
+            "underscore" => TabLeader.Underscore,
+            "middleDot" => TabLeader.MiddleDot,
+            "heavy" => TabLeader.Heavy,
+            _ => TabLeader.None
+        };
+
     ParagraphProperties ParseParagraphProperties(OoxmlParagraphProperties? props, string? styleId = null)
     {
         // Get style defaults if available
@@ -5157,7 +5226,9 @@ sealed class DocumentParser(string defaultFont)
                 WidowControl = widowControl,
                 PageBreakBefore = pageBreakBefore,
                 BackgroundColorHex = backgroundColor,
-                StyleId = styleId
+                StyleId = styleId,
+                TabStops = styleDefaults?.TabStops ?? [],
+                DefaultTabStopPoints = defaultTabStopPoints
             };
         }
 
@@ -5370,7 +5441,9 @@ sealed class DocumentParser(string defaultFont)
             BackgroundColorHex = backgroundColor,
             StyleId = styleId,
             Borders = borders,
-            BorderBottomSpacePoints = borderBottomSpace
+            BorderBottomSpacePoints = borderBottomSpace,
+            TabStops = ParseTabs(props, styleDefaults?.TabStops ?? []),
+            DefaultTabStopPoints = defaultTabStopPoints
         };
     }
 
@@ -5378,42 +5451,57 @@ sealed class DocumentParser(string defaultFont)
     const char softHyphenChar = '\u00AD'; // Soft hyphen (optional break point)
     const char nonBreakingHyphenChar = '\u2011'; // Non-breaking hyphen
 
-    Run? ParseRun(OoxmlRun run, MainDocumentPart mainPart, string? paragraphStyleId = null)
+    List<Run> ParseRun(OoxmlRun run, MainDocumentPart mainPart, string? paragraphStyleId = null)
     {
-        // Build text content including special hyphen characters
+        var result = new List<Run>();
+        RunProperties? properties = null;
+        RunProperties GetProperties() =>
+            properties ??= ParseRunProperties(run.RunProperties, mainPart, paragraphStyleId);
+
+        // Walk children in order so w:tab splits the run into separate model Runs (text, tab, text, ...)
         var textBuilder = new StringBuilder();
+        void FlushText()
+        {
+            if (textBuilder.Length == 0)
+            {
+                return;
+            }
+
+            result.Add(new()
+            {
+                Text = textBuilder.ToString(),
+                Properties = GetProperties()
+            });
+            textBuilder.Clear();
+        }
+
         foreach (var child in run.ChildElements)
         {
-            if (child is Text textElement)
+            switch (child)
             {
-                textBuilder.Append(textElement.Text);
-            }
-            else if (child is SoftHyphen)
-            {
-                textBuilder.Append(softHyphenChar);
-            }
-            else if (child is NoBreakHyphen)
-            {
-                textBuilder.Append(nonBreakingHyphenChar);
+                case Text textElement:
+                    textBuilder.Append(textElement.Text);
+                    break;
+                case SoftHyphen:
+                    textBuilder.Append(softHyphenChar);
+                    break;
+                case NoBreakHyphen:
+                    textBuilder.Append(nonBreakingHyphenChar);
+                    break;
+                case TabChar:
+                    FlushText();
+                    result.Add(new()
+                    {
+                        Text = "\t",
+                        Properties = GetProperties(),
+                        IsTab = true
+                    });
+                    break;
             }
         }
 
-        var text = textBuilder.ToString();
-
-        // Skip empty runs that don't have any content
-        if (string.IsNullOrEmpty(text))
-        {
-            return null;
-        }
-
-        var runProps = run.RunProperties;
-        var properties = ParseRunProperties(runProps, mainPart, paragraphStyleId);
-
-        return new()
-        {
-            Text = text,
-            Properties = properties
-        };
+        FlushText();
+        return result;
     }
 
     RunProperties ParseRunProperties(OoxmlRunProperties? props, MainDocumentPart mainPart, string? paragraphStyleId = null)
