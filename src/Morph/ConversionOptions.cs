@@ -1,4 +1,4 @@
-﻿namespace WordRender;
+namespace WordRender;
 
 /// <summary>
 /// Options for document conversion.
@@ -13,10 +13,14 @@
 /// only fonts from this directory (searched recursively) are used; system/user/Office/cloud font caches
 /// and OS-level font fallbacks are ignored, and unresolved fonts throw. Use this to make rendering
 /// deterministic across machines.</param>
+/// <param name="DefaultFont">Overrides the fallback font family used when the DOCX document does
+/// not declare a default run font. When <c>null</c> (default), <see cref="DefaultFontSettings.DefaultFont"/>
+/// is used. Per-conversion overrides do not affect the static default and do not lock it.</param>
 public sealed record ConversionOptions
 {
     public int Dpi { get; init; } = 150;
     public double FontWidthScale { get; init; } = DefaultFontSettings.FontWidthScale;
     public Func<string, string?>? FontFallback { get; init; }
     public string? FontDirectory { get; init; }
+    public string? DefaultFont { get; init; }
 }

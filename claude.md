@@ -48,7 +48,7 @@ Then combine with `--treenode-filter "/*/*/*ScenarioTests/*"` to skip the spec t
 Brackets (`[...]`) in treenode filters are for property-bag filters (e.g. `[Category=Foo]`), not parameter matching — don't confuse them with LINQ-style filtering.
 
 
-**Prerequisites:** .NET SDK 10.0 (preview). See `global.json` for exact version. Bundled fonts in `src/Fonts/` must be installed on CI (see `src/appveyor.yml`).
+**Prerequisites:** .NET SDK 10.0 (preview). See `global.json` for exact version. Tests load fonts directly from the bundled `src/Fonts/` directory via `ConversionOptions.FontDirectory`, so no OS-level font install is needed.
 
 ## Architecture
 
@@ -91,6 +91,7 @@ For a complete feature-by-feature mapping to code locations, see `docs/word-feat
 - **Scenario tests** (`SkiaScenarioTests.cs` / `ImageSharpScenarioTests.cs`, DEBUG-only): parameterized over 2000+ directories in `src/Tests/Inputs/`, each containing `input.docx` and `expected_*.png` reference images. Uses Verify + ImageMagick for pixel-level comparison. Both backends are tested independently
 - **Spec tests** (`src/Tests/SpecTests/`): unit tests for specific OOXML specification features
 - **RenderHelper** (`src/RenderHelper/`): .NET Framework 4.8.1 project that generates reference images using Microsoft Word via COM interop (Windows-only, not part of normal test runs)
+- **Static-setting tests** (`src/StaticSettingTests/`): isolated project that mutates process-wide settings on `DefaultFontSettings` (e.g. the render-locked default font). Runs single-threaded via `[assembly: ParallelLimiter<SingleThreaded>]` and a `[BeforeEvery(HookType.Test)]` hook in `ResetHook.cs` resets the static state between tests. Must stay in its own assembly so the `renderOccurred` latch does not leak from scenario tests. Run with `dotnet run --project src/StaticSettingTests`.
 
 ## Feature Documentation
 

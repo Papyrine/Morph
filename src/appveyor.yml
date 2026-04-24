@@ -5,56 +5,11 @@ environment:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 build_script:
 - pwsh: |
-    # Install bundled fonts (direct copy avoids COM Shell hangs on CI).
-    # Each font is validated via System.Drawing before install; corrupt files
-    # (e.g. TTFs mangled by Git CRLF conversion) will fail the build here
-    # rather than surfacing as confusing "font not found" errors at test time.
-    $ErrorActionPreference = 'Stop'
-    Add-Type -AssemblyName System.Drawing
-    $fontsPath = "src/Fonts"
-    $winFonts = "$env:WINDIR\Fonts"
-    $regKey = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts"
-    Write-Host "Font source: $fontsPath"
-    $files = @(Get-ChildItem -Path $fontsPath -Recurse -File |
-        Where-Object { $_.Extension -in '.ttf', '.otf' })
-    Write-Host "Found $($files.Count) font files"
-    if ($files.Count -eq 0)
-    {
-        throw "No font files found in $fontsPath"
-    }
-    foreach ($file in $files)
-    {
-        $pfc = New-Object System.Drawing.Text.PrivateFontCollection
-        try
-        {
-            $pfc.AddFontFile($file.FullName)
-            if ($pfc.Families.Count -eq 0 -or [string]::IsNullOrEmpty($pfc.Families[0].Name))
-            {
-                throw "Font file '$($file.FullName)' has no family name (likely corrupt — check .gitattributes marks *.ttf/*.otf as binary)"
-            }
-            $family = $pfc.Families[0].Name
-        }
-        finally
-        {
-            $pfc.Dispose()
-        }
-        $dest = Join-Path $winFonts $file.Name
-        if (Test-Path $dest)
-        {
-            Write-Host "Skipping $($file.Name) (already present in $winFonts)"
-            continue
-        }
-        Write-Host "Installing $($file.Name) (family: '$family')"
-        Copy-Item $file.FullName -Destination $dest
-        $fontName = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
-        $fontType = if ($file.Extension -eq ".otf") { "OpenType" } else { "TrueType" }
-        New-ItemProperty -Path $regKey -Name "$fontName ($fontType)" -Value $file.Name -PropertyType String -Force | Out-Null
-    }
-- pwsh: |
     Invoke-WebRequest "https://dot.net/v1/dotnet-install.ps1" -OutFile "./dotnet-install.ps1"
     ./dotnet-install.ps1 -JSonFile global.json -Architecture x64 -InstallDir 'C:\Program Files\dotnet'
 - dotnet build src --configuration Release
 - dotnet run --project src/Tests --configuration Release --no-build
+- dotnet run --project src/StaticSettingTests --configuration Release --no-build
 test: off
 artifacts:
 - path: nugets\**\*.nupkg

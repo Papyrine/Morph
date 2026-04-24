@@ -18,6 +18,7 @@ public abstract class HtmlConverter
     public async Task<ConversionResult> ConvertToImages(string html, string outputDirectory, ConversionOptions? options = null, Cancel cancel = default)
     {
         options ??= new();
+        DefaultFontSettings.MarkRenderOccurred();
         Directory.CreateDirectory(outputDirectory);
 
         var document = await ParseHtml(html, cancel);
@@ -48,6 +49,7 @@ public abstract class HtmlConverter
     public async Task<IReadOnlyList<byte[]>> ConvertToImageData(string html, ConversionOptions? options = null, Cancel cancel = default)
     {
         options ??= new();
+        DefaultFontSettings.MarkRenderOccurred();
 
         var document = await ParseHtml(html, cancel);
         var imageData = new List<byte[]>();
