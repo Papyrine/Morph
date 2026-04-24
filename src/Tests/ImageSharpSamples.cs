@@ -1,4 +1,7 @@
 // ReSharper disable UnusedVariable
+
+using Morph;
+
 [SuppressMessage("Style", "IDE0059:Unnecessary assignment of a value")]
 public class ImageSharpSamples
 {
