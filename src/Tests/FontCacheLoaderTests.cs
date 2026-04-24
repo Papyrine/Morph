@@ -129,7 +129,8 @@ public class FontCacheLoaderTests
             var ext = Path.GetExtension(file);
             await Assert.That(
                 ext.Equals(".ttf", StringComparison.OrdinalIgnoreCase) ||
-                ext.Equals(".otf", StringComparison.OrdinalIgnoreCase)).IsTrue();
+                ext.Equals(".otf", StringComparison.OrdinalIgnoreCase) ||
+                ext.Equals(".ttc", StringComparison.OrdinalIgnoreCase)).IsTrue();
         }
     }
 
