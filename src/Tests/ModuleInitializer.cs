@@ -1,3 +1,5 @@
+using VerifyTests.DiffPlex;
+
 public static class ModuleInitializer
 {
     [ModuleInitializer]
@@ -21,7 +23,7 @@ public static class ModuleInitializer
         DefaultFontSettings.FontWidthScale = 1.08;
 
         VerifyImageMagick.RegisterComparers(threshold: 0.5);
-
+        VerifyDiffPlex.Initialize(OutputType.Compact);
         VerifierSettings.InitializePlugins();
     }
 }
