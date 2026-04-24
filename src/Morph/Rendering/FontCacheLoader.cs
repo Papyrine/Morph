@@ -17,7 +17,7 @@ static class FontCacheLoader
 
         foreach (var fontDir in Directory.GetDirectories(cloudFontsPath))
         {
-            foreach (var fontFile in Directory.GetFiles(fontDir, "*.ttf"))
+            foreach (var fontFile in EnumerateFontFilesInDirectory(fontDir))
             {
                 yield return fontFile;
             }
@@ -57,12 +57,7 @@ static class FontCacheLoader
     {
         foreach (var officeFontsPath in GetOfficeFontPaths())
         {
-            if (!Directory.Exists(officeFontsPath))
-            {
-                continue;
-            }
-
-            foreach (var fontFile in Directory.GetFiles(officeFontsPath, "*.ttf"))
+            foreach (var fontFile in EnumerateFontFilesInDirectory(officeFontsPath))
             {
                 yield return fontFile;
             }
