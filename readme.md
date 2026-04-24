@@ -137,7 +137,7 @@ foreach (var path in result.ImagePaths)
     Console.WriteLine($"Created: {path}");
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L20-L34' title='Snippet source file'>snippet source</a> | <a href='#snippet-BasicUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L18-L32' title='Snippet source file'>snippet source</a> | <a href='#snippet-BasicUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -155,7 +155,7 @@ foreach (var pngBytes in imageData)
     // Use the PNG byte array as needed
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L39-L50' title='Snippet source file'>snippet source</a> | <a href='#snippet-InMemoryConversion' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L37-L48' title='Snippet source file'>snippet source</a> | <a href='#snippet-InMemoryConversion' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -174,7 +174,7 @@ var result = converter.ConvertToImages(stream, "output-folder");
 // Or from stream to memory
 var imageData = converter.ConvertToImageData(stream);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L55-L67' title='Snippet source file'>snippet source</a> | <a href='#snippet-StreamBasedConversion' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L53-L65' title='Snippet source file'>snippet source</a> | <a href='#snippet-StreamBasedConversion' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -196,7 +196,7 @@ var result = converter.ConvertToImages(
     "output-folder",
     options);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L72-L87' title='Snippet source file'>snippet source</a> | <a href='#snippet-CustomOptions' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L70-L85' title='Snippet source file'>snippet source</a> | <a href='#snippet-CustomOptions' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 

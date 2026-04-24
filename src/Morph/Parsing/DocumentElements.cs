@@ -716,6 +716,57 @@ internal sealed record ParagraphProperties
     /// From w:pBdr/w:bottom/@w:space (in points).
     /// </summary>
     public double BorderBottomSpacePoints { get; init; }
+
+    /// <summary>
+    /// Custom tab stops for this paragraph, sorted ascending by <see cref="TabStop.PositionPoints"/>.
+    /// Excludes cleared stops. Inherited tabs from paragraph styles are merged in at parse time.
+    /// </summary>
+    public IReadOnlyList<TabStop> TabStops { get; init; } = [];
+
+    /// <summary>
+    /// Document-level default tab stop width in points (from w:defaultTabStop in settings.xml).
+    /// Used to snap tab characters past the last explicit stop. Default 36 points (0.5 inch).
+    /// </summary>
+    public double DefaultTabStopPoints { get; init; } = 36;
+}
+
+/// <summary>
+/// Tab alignment type from w:tab/@w:val.
+/// </summary>
+internal enum TabAlignment
+{
+    Left,
+    Center,
+    Right,
+    Decimal,
+    Bar,
+    Clear
+}
+
+/// <summary>
+/// Leader character displayed in the gap between the cursor and the tab stop position.
+/// From w:tab/@w:leader.
+/// </summary>
+internal enum TabLeader
+{
+    None,
+    Dot,
+    Hyphen,
+    Underscore,
+    MiddleDot,
+    Heavy
+}
+
+/// <summary>
+/// A single tab stop within a paragraph.
+/// </summary>
+internal sealed record TabStop
+{
+    /// <summary>Position in points from the left margin (converted from twips at parse time).</summary>
+    public required double PositionPoints { get; init; }
+
+    public TabAlignment Alignment { get; init; } = TabAlignment.Left;
+    public TabLeader Leader { get; init; } = TabLeader.None;
 }
 
 /// <summary>
@@ -792,6 +843,12 @@ sealed class Run
 
     /// <summary>Content type of inline image (e.g., "image/png", "image/svg+xml").</summary>
     public string? InlineImageContentType { get; init; }
+
+    /// <summary>
+    /// True when this run represents a single w:tab character.
+    /// When true, <see cref="Text"/> is "\t" and the renderer snaps the cursor to the next tab stop.
+    /// </summary>
+    public bool IsTab { get; init; }
 }
 
 /// <summary>

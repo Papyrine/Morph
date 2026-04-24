@@ -1570,14 +1570,18 @@ Prevents hyphenation of all-uppercase words.
 ### 9.2 Tab Stops
 
 
-#### Tab Stops `TODO`
+#### Tab Stops `PARTIAL`
 
 Positioned alignment points within a paragraph. Types: left, center, right, decimal. Optional leader characters (dots, dashes, etc.).
 
-- **OOXML**: `w:tabs` > `w:tab` with `w:val` (type), `w:pos` (position), `w:leader`
+- **OOXML**: `w:tabs` > `w:tab` with `w:val` (type), `w:pos` (position), `w:leader`; `w:defaultTabStop` in settings.xml; `<w:tab/>` character in runs
+- **Parse**: `DocumentParser.ParseTabs()`, `ExtractDefaultTabStop()` in `Morph.OpenXml/Parsing/DocumentParser.cs`
+- **Model**: `ParagraphProperties.TabStops`, `ParagraphProperties.DefaultTabStopPoints`, `Run.IsTab` in `Morph/Parsing/DocumentElements.cs`
+- **Render**: `TabStopResolver` in `Morph/Rendering/TabStopResolver.cs`; `HandleTab` + `RenderTabFiller` in each `TextRenderer`
+- **Test**: `tab_stops`, plus `TabStopResolverTests` in `src/Tests/SpecTests/Section2_Structures/`
 - **Spec**: [Tab Stops](http://officeopenxml.com/WPtab.php)
 
-> **AI**: Add `TabStop` record (Position, Type, Leader) and list to `ParagraphProperties`. Parse from `w:tabs` in `DocumentParser.ParseParagraphProperties()`. In `TextRenderer`, when rendering tab characters, advance X to the next matching tab stop position. Default tab stops are every 0.5 inches (36pt) when none are defined.
+> **AI**: Implemented: left/center/right explicit stops, default-tab fallback (`w:defaultTabStop`), `w:val="clear"` removal, inherited stops via paragraph styles, dot/hyphen/middleDot/heavy leader glyphs, underscore leader as baseline line. Deferred: decimal alignment (parsed, renders as Left), bar tabs (parsed, not drawn), `num` tabs, and full wrap-on-tab (tab collapses to zero when destination behind cursor or gap exceeds remaining line width).
 
 
 ### 9.3 Bidirectional Text
@@ -1830,11 +1834,11 @@ Read-only mode, form protection, and editing restrictions.
 | 6. Graphics & Media | 10 | 0 | 9 | 19 |
 | 7. Form Controls | 10 | 0 | 0 | 10 |
 | 8. Themes & Styles | 5 | 0 | 0 | 5 |
-| 9. Typography | 6 | 0 | 2 | 8 |
+| 9. Typography | 6 | 1 | 1 | 8 |
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 0 | 5 | 6 |
 | 12. Advanced Content | 0 | 0 | 2 | 2 |
-| **Total** | **90** | **3** | **31** | **124** |
+| **Total** | **90** | **4** | **30** | **124** |
 
 
 ### Coverage
@@ -1842,16 +1846,15 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 90
-    "Partial" : 3
-    "Todo" : 31
+    "Partial" : 4
+    "Todo" : 30
 ```
 
-**Overall coverage: 70% fully implemented, 3% partial, 27% remaining.**
+**Overall coverage: 73% fully implemented, 3% partial, 24% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)
-2. **Tab stops** — common in many documents
-3. **Footnotes / endnotes** — common in academic and formal documents
-4. **Table of contents** — can use cached content for quick win
-5. **Tracked changes (accept all)** — allows rendering documents with revisions
+2. **Footnotes / endnotes** — common in academic and formal documents
+3. **Table of contents** — can use cached content (now unblocked by Tab Stops PARTIAL)
+4. **Tracked changes (accept all)** — allows rendering documents with revisions
 6. **Charts / SmartArt fallback images** — extract preview images for quick coverage
