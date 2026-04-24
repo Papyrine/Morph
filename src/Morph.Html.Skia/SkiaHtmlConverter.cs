@@ -1,11 +1,12 @@
+using HtmlRender;
 using WordRender;
 
-namespace HtmlRender.Skia;
+namespace Morph;
 
 /// <summary>
 /// Converts HTML content to PNG images using SkiaSharp.
 /// </summary>
-public sealed class HtmlConverter : HtmlRender.HtmlConverter
+public sealed class SkiaHtmlConverter : HtmlConverter
 {
     private protected override int RenderPages(ParsedDocument document, ConversionOptions options, Action<Action<Stream>> pageCallback)
     {
