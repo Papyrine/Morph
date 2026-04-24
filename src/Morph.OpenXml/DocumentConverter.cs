@@ -1,6 +1,4 @@
-using Morph;
-
-namespace WordRender;
+namespace Morph;
 
 /// <summary>
 /// Converts DOCX documents to PNG images.

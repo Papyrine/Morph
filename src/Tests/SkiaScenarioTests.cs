@@ -1,3 +1,5 @@
+using Morph;
+
 public class SkiaScenarioTests
 {
     static readonly string fontsDirectory = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
@@ -13,7 +15,7 @@ public class SkiaScenarioTests
     [MethodDataSource(nameof(GetScenarioDirectories))]
     public async Task Scenario(string directory)
     {
-        var converter = new WordRender.Skia.SkiaDocumentConverter();
+        var converter = new SkiaDocumentConverter();
         var inputFile = Path.Combine(directory, "input.docx");
         var expectedFiles = Directory.GetFiles(directory, "expected_*.png")
             .Order()

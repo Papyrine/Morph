@@ -1,7 +1,25 @@
+using Morph;
+
 /// <summary>
 /// Maintains rendering state during page layout and rendering.
 /// </summary>
-sealed class RenderContext : RenderContextBase, IDisposable
+sealed class RenderContext(
+    PageSettings pageSettings,
+    int dpi,
+    CompatibilitySettings? compatibility = null,
+    double fontWidthScale = 1.0,
+    Func<string, string?>? fontFallback = null,
+    string? fontDirectory = null,
+    bool? deterministicRendering = null) :
+    RenderContextBase(
+        pageSettings,
+        dpi,
+        compatibility,
+        fontWidthScale,
+        fontFallback,
+        fontDirectory,
+        deterministicRendering),
+    IDisposable
 {
     Dictionary<(string, int, SKFontStyleSlant), SKTypeface> typefaceCache = [];
 
@@ -21,11 +39,6 @@ sealed class RenderContext : RenderContextBase, IDisposable
     {
         using var tf = SKTypeface.FromFile(fontFile);
         return tf?.FamilyName;
-    }
-
-    public RenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0, Func<string, string?>? fontFallback = null, string? fontDirectory = null, bool? deterministicRendering = null)
-        : base(pageSettings, dpi, compatibility, fontWidthScale, fontFallback, fontDirectory, deterministicRendering)
-    {
     }
 
     public SKTypeface GetTypeface(string fontFamily, bool bold, bool italic)

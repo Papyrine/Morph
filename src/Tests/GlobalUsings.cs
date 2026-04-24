@@ -5,4 +5,3 @@ global using System.Runtime.CompilerServices;
 global using System.Text.Json;
 global using ImageMagick;
 global using ProjectFilesGenerator;
-global using WordRender;
