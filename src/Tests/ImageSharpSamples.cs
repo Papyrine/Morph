@@ -5,7 +5,7 @@ public class ImageSharpSamples
     [Test]
     public Task Simple()
     {
-        var converter = new WordRender.ImageSharp.DocumentConverter();
+        var converter = new WordRender.ImageSharp.ImageSharpDocumentConverter();
 
         var data = converter.ConvertToImageData("sample.docx");
 
@@ -14,7 +14,7 @@ public class ImageSharpSamples
 
     public static void BasicUsage()
     {
-        var converter = new WordRender.ImageSharp.DocumentConverter();
+        var converter = new WordRender.ImageSharp.ImageSharpDocumentConverter();
 
         var result = converter.ConvertToImages(
             "document.docx",
@@ -29,7 +29,7 @@ public class ImageSharpSamples
 
     public static void InMemoryConversion()
     {
-        var converter = new WordRender.ImageSharp.DocumentConverter();
+        var converter = new WordRender.ImageSharp.ImageSharpDocumentConverter();
 
         var imageData = converter.ConvertToImageData("document.docx");
 
@@ -41,7 +41,7 @@ public class ImageSharpSamples
 
     public static void StreamBasedConversion()
     {
-        var converter = new WordRender.ImageSharp.DocumentConverter();
+        var converter = new WordRender.ImageSharp.ImageSharpDocumentConverter();
 
         using var stream = File.OpenRead("document.docx");
 
@@ -52,7 +52,7 @@ public class ImageSharpSamples
 
     public static void CustomOptions()
     {
-        var converter = new WordRender.ImageSharp.DocumentConverter();
+        var converter = new WordRender.ImageSharp.ImageSharpDocumentConverter();
 
         var options = new ConversionOptions
         {

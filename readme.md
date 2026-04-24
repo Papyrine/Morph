@@ -125,7 +125,7 @@ The examples below use the SkiaSharp backend. To use ImageSharp instead, replace
 <!-- snippet: BasicUsage -->
 <a id='snippet-BasicUsage'></a>
 ```cs
-var converter = new WordRender.Skia.DocumentConverter();
+var converter = new WordRender.Skia.ImageSharpDocumentConverter();
 
 var result = converter.ConvertToImages(
     "document.docx",
@@ -146,7 +146,7 @@ foreach (var path in result.ImagePaths)
 <!-- snippet: InMemoryConversion -->
 <a id='snippet-InMemoryConversion'></a>
 ```cs
-var converter = new WordRender.Skia.DocumentConverter();
+var converter = new WordRender.Skia.ImageSharpDocumentConverter();
 
 var imageData = converter.ConvertToImageData("document.docx");
 
@@ -164,7 +164,7 @@ foreach (var pngBytes in imageData)
 <!-- snippet: StreamBasedConversion -->
 <a id='snippet-StreamBasedConversion'></a>
 ```cs
-var converter = new WordRender.Skia.DocumentConverter();
+var converter = new WordRender.Skia.ImageSharpDocumentConverter();
 
 using var stream = File.OpenRead("document.docx");
 
@@ -183,7 +183,7 @@ var imageData = converter.ConvertToImageData(stream);
 <!-- snippet: CustomOptions -->
 <a id='snippet-CustomOptions'></a>
 ```cs
-var converter = new WordRender.Skia.DocumentConverter();
+var converter = new WordRender.Skia.ImageSharpDocumentConverter();
 
 var options = new ConversionOptions
 {

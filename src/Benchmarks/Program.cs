@@ -18,8 +18,8 @@ public class ConversionBenchmarks
     // Large (~5.5MB) - newsletter with many images
     static readonly string largeDoc = Path.Combine(inputsDir, "newsletters", "03", "input.docx");
 
-    readonly WordRender.Skia.DocumentConverter skia = new();
-    readonly WordRender.ImageSharp.DocumentConverter imageSharp = new();
+    readonly WordRender.Skia.ImageSharpDocumentConverter skia = new();
+    readonly WordRender.ImageSharp.ImageSharpDocumentConverter imageSharp = new();
 
     byte[] smallBytes = [];
     byte[] mediumBytes = [];
