@@ -1,11 +1,12 @@
+using HtmlRender;
 using WordRender;
 
-namespace HtmlRender.ImageSharp;
+namespace Morph;
 
 /// <summary>
 /// Converts HTML content to PNG images using SixLabors.ImageSharp.
 /// </summary>
-public sealed class HtmlConverter : HtmlRender.HtmlConverter
+public sealed class ImageSharpHtmlConverter : HtmlConverter
 {
     private protected override int RenderPages(ParsedDocument document, ConversionOptions options, Action<Action<Stream>> pageCallback)
     {
