@@ -594,8 +594,8 @@ sealed class TextRenderer(RenderContext context)
         var pixelX = context.PointsToPixels(x);
         var pixelY = context.PointsToPixels(baselineY);
 
-        // Use a standard font for line numbers (9pt, same as typical Word default)
-        var props = new RunProperties { FontFamily = "Aptos", FontSizePoints = 9 };
+        // Use the configured default font for line numbers (9pt, same as typical Word default)
+        var props = new RunProperties { FontFamily = DefaultFontSettings.DefaultFont, FontSizePoints = 9 };
         var font = context.GetFont(props);
         var (_, baseline) = RenderContext.GetFontMetrics(font);
 

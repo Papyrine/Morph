@@ -24,12 +24,24 @@ sealed record TableStyleBorderInfo(
 /// </summary>
 [SuppressMessage("Style", "IDE0028:Simplify collection initialization")]
 [SuppressMessage("Style", "IDE0306:Simplify collection initialization")]
-sealed class DocumentParser
+sealed class DocumentParser(string defaultFont)
 {
     // Conversion constants
     const double twipsPerPoint = 20.0;
     // EMUs per point
     const double emusPerPoint = 914400.0 / 72.0;
+
+    // Built-in default font size (11pt matches Word's Normal style).
+    // The default font family is configurable — see constructor.
+    const double builtInDefaultFontSizePoints = 11.0;
+
+    // Fallback font family to use when the document does not specify one in docDefaults.
+    // Passed in from ConversionOptions.DefaultFont or DefaultFontSettings.DefaultFont.
+
+    public DocumentParser()
+        : this(DefaultFontSettings.DefaultFont)
+    {
+    }
 
     // Theme colors for the current document being parsed
     ThemeColors? currentThemeColors;
@@ -172,8 +184,8 @@ sealed class DocumentParser
         }
 
         // Extract docDefaults run properties as the base defaults
-        var defaultFontFamily = "Aptos";
-        var defaultFontSize = 11.0;
+        var defaultFontFamily = defaultFont;
+        var defaultFontSize = builtInDefaultFontSizePoints;
 
         var docDefaults = stylesPart.Styles.DocDefaults;
         if (docDefaults?.RunPropertiesDefault?.RunPropertiesBaseStyle != null)
@@ -4379,7 +4391,7 @@ sealed class DocumentParser
         }
 
         // Parse font properties from the first run
-        var fontFamily = "Aptos";
+        var fontFamily = defaultFont;
         double fontSize = 36;
         var bold = false;
         var italic = false;
@@ -5422,8 +5434,8 @@ sealed class DocumentParser
         }
 
         // Start with style defaults or built-in defaults
-        var fontFamily = styleDefaults?.FontFamily ?? "Aptos";
-        var fontSize = styleDefaults?.FontSizePoints ?? 11;
+        var fontFamily = styleDefaults?.FontFamily ?? defaultFont;
+        var fontSize = styleDefaults?.FontSizePoints ?? builtInDefaultFontSizePoints;
         var bold = styleDefaults?.Bold ?? false;
         var italic = styleDefaults?.Italic ?? false;
         var underline = styleDefaults?.Underline ?? false;

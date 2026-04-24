@@ -9,6 +9,9 @@ using SkiaRenderContext = Skia::RenderContext;
 public class SkiaFontResolutionTests
 {
     static SkiaRenderContext CreateContext() =>
+        new(new(), 96, fontDirectory: ProjectFonts.Directory);
+
+    static SkiaRenderContext CreateSystemContext() =>
         new(new(), 96);
 
     [Test]
@@ -48,7 +51,9 @@ public class SkiaFontResolutionTests
     [Test]
     public async Task GetTypeface_UnknownFont_ExceptionMessageIncludesSearchedPaths()
     {
-        using var context = CreateContext();
+        // Uses the system-font path (no FontDirectory) so the error message
+        // enumerates system/user/Office/cloud caches.
+        using var context = CreateSystemContext();
         var ex = Assert.Throws<InvalidOperationException>(
             // ReSharper disable once AccessToDisposedClosure
             () => context.GetTypeface("NonExistentFont12345", false, false));

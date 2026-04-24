@@ -20,5 +20,6 @@
     <Build Solution="Release|*" Project="false" />
   </Project>
   <Project Path="Tests/Tests.csproj" />
+  <Project Path="StaticSettingTests/StaticSettingTests.csproj" />
   <Project Path="Benchmarks/Benchmarks.csproj" />
 </Solution>

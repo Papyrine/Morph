@@ -799,7 +799,7 @@ sealed class Run
 /// </summary>
 internal sealed record RunProperties
 {
-    public string FontFamily { get; init; } = "Aptos";
+    public string FontFamily { get; init; } = DefaultFontSettings.DefaultFont;
     public double FontSizePoints { get; init; } = 11;
     public bool Bold { get; init; }
     public bool Italic { get; init; }
@@ -1090,7 +1090,7 @@ sealed class FloatingWordArtElement : DocumentElement
     public bool BehindText { get; init; }
 
     /// <summary>Font family for the text.</summary>
-    public string FontFamily { get; init; } = "Aptos";
+    public string FontFamily { get; init; } = DefaultFontSettings.DefaultFont;
 
     /// <summary>Font size in points.</summary>
     public double FontSizePoints { get; init; } = 36;
@@ -1138,7 +1138,7 @@ sealed class WordArtElement : DocumentElement
     public required double HeightPoints { get; init; }
 
     /// <summary>Font family for the text.</summary>
-    public string FontFamily { get; init; } = "Aptos";
+    public string FontFamily { get; init; } = DefaultFontSettings.DefaultFont;
 
     /// <summary>Font size in points.</summary>
     public double FontSizePoints { get; init; } = 36;

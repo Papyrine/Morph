@@ -22,7 +22,7 @@ public class CompactLineSpacingTests
             MarginLeft = 72,
             MarginRight = 72
         };
-        var context = new SkiaRenderContext(pageSettings, 96);
+        var context = new SkiaRenderContext(pageSettings, 96, fontDirectory: ProjectFonts.Directory);
         var textRenderer = new SkiaTextRenderer(context);
         var bitmap = new SKBitmap(context.PageWidthPixels, context.PageHeightPixels);
         var canvas = new SKCanvas(bitmap);

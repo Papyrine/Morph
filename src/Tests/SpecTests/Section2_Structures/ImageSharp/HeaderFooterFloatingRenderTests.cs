@@ -17,7 +17,7 @@ public class ImageSharpHeaderFooterFloatingRenderTests
 
     static byte[] RenderDocument(ParsedDocument doc)
     {
-        using var context = new ImageSharpRenderContext(doc.PageSettings, 96);
+        using var context = new ImageSharpRenderContext(doc.PageSettings, 96, fontDirectory: ProjectFonts.Directory);
         using var renderer = new ImageSharpPageRenderer(context);
 
         byte[]? result = null;

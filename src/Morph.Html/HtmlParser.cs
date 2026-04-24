@@ -1226,7 +1226,7 @@ internal sealed class HtmlParser
         }
 
         var widthPt = 0.75;
-        var color = (string?)"000000";
+        var color = "000000";
 
         foreach (var part in parts)
         {

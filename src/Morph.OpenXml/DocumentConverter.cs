@@ -29,9 +29,10 @@ public abstract class DocumentConverter
     public ConversionResult ConvertToImages(Stream docxStream, string outputDirectory, ConversionOptions? options = null)
     {
         options ??= new();
+        DefaultFontSettings.MarkRenderOccurred();
         Directory.CreateDirectory(outputDirectory);
 
-        var document = new DocumentParser().Parse(docxStream);
+        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.DefaultFont).Parse(docxStream);
         var imagePaths = new List<string>();
 
         var pageIndex = 0;
@@ -70,8 +71,9 @@ public abstract class DocumentConverter
     public IReadOnlyList<byte[]> ConvertToImageData(Stream docxStream, ConversionOptions? options = null)
     {
         options ??= new();
+        DefaultFontSettings.MarkRenderOccurred();
 
-        var document = new DocumentParser().Parse(docxStream);
+        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.DefaultFont).Parse(docxStream);
         var imageData = new List<byte[]>();
 
         RenderPages(document, options, writePng =>

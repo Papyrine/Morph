@@ -611,8 +611,8 @@ sealed class TextRenderer(RenderContext context)
         var pixelX = context.PointsToPixels(x);
         var pixelY = context.PointsToPixels(baselineY);
 
-        // Use a standard font for line numbers (9pt, same as typical Word default)
-        using var typeface = SKTypeface.FromFamilyName("Aptos", SKFontStyle.Normal);
+        // Use the configured default font for line numbers (9pt, same as typical Word default)
+        var typeface = context.GetTypeface(DefaultFontSettings.DefaultFont, false, false);
         using var font = context.CreateFontFromTypeface(typeface, 9);
         using var paint = new SKPaint
         {

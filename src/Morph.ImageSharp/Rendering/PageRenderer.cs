@@ -1281,7 +1281,7 @@ sealed class PageRenderer(RenderContext context) :
         var displayText = string.IsNullOrEmpty(textField.Value) ? textField.DefaultText ?? "" : textField.Value;
         if (!string.IsNullOrEmpty(displayText))
         {
-            var font = context.GetFontForFamily("Aptos", 10, false, false);
+            var font = context.GetFontForFamily(DefaultFontSettings.DefaultFont, 10, false, false);
             var textColor = textField.Enabled ? Color.Black : Color.Gray;
             var textX = pixelX + 3 * context.Scale;
             var textY = pixelY + 2 * context.Scale;
@@ -1379,7 +1379,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (!string.IsNullOrEmpty(selectedValue))
         {
-            var font = context.GetFontForFamily("Aptos", 10, false, false);
+            var font = context.GetFontForFamily(DefaultFontSettings.DefaultFont, 10, false, false);
             var textColor = dropDown.Enabled ? Color.Black : Color.Gray;
             currentPage.Mutate(_ => _.DrawText(selectedValue, font, textColor, new(pixelX + 3 * context.Scale, pixelY + 2 * context.Scale)));
         }
@@ -1616,7 +1616,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (!string.IsNullOrEmpty(text))
         {
-            var font = context.GetFontForFamily("Aptos", 10, false, false);
+            var font = context.GetFontForFamily(DefaultFontSettings.DefaultFont, 10, false, false);
             var textColor = isPlaceholder ? Color.Gray : Color.Black;
             currentPage.Mutate(_ => _.DrawText(text, font, textColor, new(pixelX + 3 * context.Scale, pixelY + 2 * context.Scale)));
         }

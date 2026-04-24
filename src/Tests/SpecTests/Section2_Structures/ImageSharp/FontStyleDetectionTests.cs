@@ -77,18 +77,18 @@ public class ImageSharpFontStyleDetectionTests
     // === Default font ===
 
     [Test]
-    public async Task GetFontFamily_Aptos_Resolves()
+    public async Task GetFontFamily_DefaultFont_Resolves()
     {
         using var context = CreateContext();
-        var family = context.GetFontFamily("Aptos", false, false);
+        var family = context.GetFontFamily(DefaultFontSettings.DefaultFont, false, false);
         await Assert.That(family.Name).IsNotNull();
     }
 
     [Test]
-    public async Task GetFontFamily_Aptos_Bold_Resolves()
+    public async Task GetFontFamily_DefaultFont_Bold_Resolves()
     {
         using var context = CreateContext();
-        var family = context.GetFontFamily("Aptos", true, false);
+        var family = context.GetFontFamily(DefaultFontSettings.DefaultFont, true, false);
         await Assert.That(family.Name).IsNotNull();
     }
 

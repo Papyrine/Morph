@@ -89,12 +89,12 @@ public class DocDefaultIndentTests
             MarginRight = 20
         };
 
-        using var context1 = new SkiaRenderContext(pageSettings, 96);
+        using var context1 = new SkiaRenderContext(pageSettings, 96, fontDirectory: ProjectFonts.Directory);
         var tr1 = new SkiaTextRenderer(context1);
         using var bmp1 = new SKBitmap(context1.PageWidthPixels, context1.PageHeightPixels);
         using var cvs1 = new SKCanvas(bmp1);
 
-        using var context2 = new SkiaRenderContext(pageSettings, 96);
+        using var context2 = new SkiaRenderContext(pageSettings, 96, fontDirectory: ProjectFonts.Directory);
         var tr2 = new SkiaTextRenderer(context2);
         using var bmp2 = new SKBitmap(context2.PageWidthPixels, context2.PageHeightPixels);
         using var cvs2 = new SKCanvas(bmp2);
