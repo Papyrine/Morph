@@ -3,7 +3,7 @@ namespace WordRender.Skia;
 /// <summary>
 /// Converts DOCX documents to PNG images using SkiaSharp.
 /// </summary>
-public sealed class ImageSharpDocumentConverter : DocumentConverter
+public sealed class SkiaDocumentConverter : DocumentConverter
 {
     private protected override int RenderPages(ParsedDocument document, ConversionOptions options, Action<Action<Stream>> pageCallback)
     {

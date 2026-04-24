@@ -13,7 +13,7 @@ public class SkiaScenarioTests
     [MethodDataSource(nameof(GetScenarioDirectories))]
     public async Task Scenario(string directory)
     {
-        var converter = new WordRender.Skia.ImageSharpDocumentConverter();
+        var converter = new WordRender.Skia.SkiaDocumentConverter();
         var inputFile = Path.Combine(directory, "input.docx");
         var expectedFiles = Directory.GetFiles(directory, "expected_*.png")
             .Order()

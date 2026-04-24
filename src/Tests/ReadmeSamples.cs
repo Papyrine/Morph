@@ -6,7 +6,7 @@ public class Samples
     [Test]
     public Task Simple()
     {
-        var converter = new WordRender.Skia.ImageSharpDocumentConverter();
+        var converter = new WordRender.Skia.SkiaDocumentConverter();
 
         var data = converter.ConvertToImageData("sample.docx");
 
@@ -17,7 +17,7 @@ public class Samples
     {
         #region BasicUsage
 
-        var converter = new WordRender.Skia.ImageSharpDocumentConverter();
+        var converter = new WordRender.Skia.SkiaDocumentConverter();
 
         var result = converter.ConvertToImages(
             "document.docx",
@@ -36,7 +36,7 @@ public class Samples
     {
         #region InMemoryConversion
 
-        var converter = new WordRender.Skia.ImageSharpDocumentConverter();
+        var converter = new WordRender.Skia.SkiaDocumentConverter();
 
         var imageData = converter.ConvertToImageData("document.docx");
 
@@ -52,7 +52,7 @@ public class Samples
     {
         #region StreamBasedConversion
 
-        var converter = new WordRender.Skia.ImageSharpDocumentConverter();
+        var converter = new WordRender.Skia.SkiaDocumentConverter();
 
         using var stream = File.OpenRead("document.docx");
 
@@ -69,7 +69,7 @@ public class Samples
     {
         #region CustomOptions
 
-        var converter = new WordRender.Skia.ImageSharpDocumentConverter();
+        var converter = new WordRender.Skia.SkiaDocumentConverter();
 
         var options = new ConversionOptions
         {
