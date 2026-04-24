@@ -16,6 +16,7 @@ static class DefaultFontSettings
     static double fontWidthScale = 1.0;
     static string defaultFont = builtInDefaultFont;
     static bool renderOccurred;
+    static bool deterministicRendering;
 
     /// <summary>
     /// Gets or sets the font width scale factor for text measurements.
@@ -56,6 +57,23 @@ static class DefaultFontSettings
     }
 
     /// <summary>
+    /// When <c>true</c>, backends disable font hinting and sub-pixel positioning
+    /// for glyph rendering, falling back to integer-positioned greyscale anti-aliasing.
+    /// Produces output that's identical across machines and font rasterizer versions
+    /// (at the cost of slightly softer text), making scenario tests stable on CI.
+    /// Intended for test harnesses; leave <c>false</c> in production.
+    /// </summary>
+    public static bool DeterministicRendering
+    {
+        get => deterministicRendering;
+        set
+        {
+            ThrowIfRendered(nameof(DeterministicRendering));
+            deterministicRendering = value;
+        }
+    }
+
+    /// <summary>
     /// Invoked by converters on the first render call to lock all static
     /// settings on <see cref="DefaultFontSettings"/> against further changes.
     /// </summary>
@@ -68,6 +86,7 @@ static class DefaultFontSettings
     {
         fontWidthScale = 1.0;
         defaultFont = builtInDefaultFont;
+        deterministicRendering = false;
         renderOccurred = false;
     }
 
@@ -76,8 +95,7 @@ static class DefaultFontSettings
         if (renderOccurred)
         {
             throw new InvalidOperationException(
-                $"DefaultFontSettings.{setting} cannot be changed after a render has started. " +
-                "Set it once during application startup, or use the matching ConversionOptions property per conversion.");
+                $"DefaultFontSettings.{setting} cannot be changed after a render has started. Set it once during application startup, or use the matching ConversionOptions property per conversion.");
         }
     }
 }

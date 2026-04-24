@@ -1,8 +1,8 @@
 /// <summary>
 /// Maintains rendering state during page layout and rendering.
 /// </summary>
-sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0, Func<string, string?>? fontFallback = null, string? fontDirectory = null)
-    : RenderContextBase(pageSettings, dpi, compatibility, fontWidthScale, fontFallback, fontDirectory),
+sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0, Func<string, string?>? fontFallback = null, string? fontDirectory = null, bool? deterministicRendering = null)
+    : RenderContextBase(pageSettings, dpi, compatibility, fontWidthScale, fontFallback, fontDirectory, deterministicRendering),
         IDisposable
 {
     Dictionary<(string, FontStyle), FontFamily> fontFamilyCache = [];

@@ -22,6 +22,14 @@ abstract class RenderContextBase
     /// </summary>
     public string? FontDirectory { get; }
 
+    /// <summary>
+    /// When <c>true</c>, Skia renders glyphs with greyscale AA, integer x positions
+    /// and no hinting for pixel-stable output across machines. Sourced from
+    /// <see cref="ConversionOptions.DeterministicRendering"/> or the
+    /// <see cref="DefaultFontSettings.DeterministicRendering"/> static fallback.
+    /// </summary>
+    public bool DeterministicRendering { get; }
+
     // Header/footer space adjustments
     float headerSpace;
     float footerSpace;
@@ -55,7 +63,7 @@ abstract class RenderContextBase
     public float ContentWidth => (float) PageSettings.ColumnWidth;
     public float ContentHeight => FullContentBottom - FullContentTop;
 
-    protected RenderContextBase(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility, double fontWidthScale, Func<string, string?>? fontFallback = null, string? fontDirectory = null)
+    protected RenderContextBase(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility, double fontWidthScale, Func<string, string?>? fontFallback = null, string? fontDirectory = null, bool? deterministicRendering = null)
     {
         PageSettings = pageSettings;
         Compatibility = compatibility ?? new CompatibilitySettings();
@@ -64,6 +72,7 @@ abstract class RenderContextBase
         FontWidthScale = (float) fontWidthScale;
         FontFallback = fontFallback;
         FontDirectory = fontDirectory;
+        DeterministicRendering = deterministicRendering ?? DefaultFontSettings.DeterministicRendering;
 
         PageWidthPixels = (int) (pageSettings.WidthPoints * Scale);
         PageHeightPixels = (int) (pageSettings.HeightPoints * Scale);

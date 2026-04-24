@@ -23,8 +23,8 @@ sealed class RenderContext : RenderContextBase, IDisposable
         return tf?.FamilyName;
     }
 
-    public RenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0, Func<string, string?>? fontFallback = null, string? fontDirectory = null)
-        : base(pageSettings, dpi, compatibility, fontWidthScale, fontFallback, fontDirectory)
+    public RenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0, Func<string, string?>? fontFallback = null, string? fontDirectory = null, bool? deterministicRendering = null)
+        : base(pageSettings, dpi, compatibility, fontWidthScale, fontFallback, fontDirectory, deterministicRendering)
     {
     }
 
@@ -246,12 +246,9 @@ sealed class RenderContext : RenderContextBase, IDisposable
             fontSize *= 0.58f;
         }
 
-        return new(typeface, fontSize * Scale)
-        {
-            Subpixel = true,
-            Edging = SKFontEdging.SubpixelAntialias,
-            Hinting = SKFontHinting.Normal
-        };
+        var font = new SKFont(typeface, fontSize * Scale);
+        ApplyRenderingMode(font);
+        return font;
     }
 
     public static SKPaint CreateTextPaint(RunProperties props) =>
@@ -264,13 +261,35 @@ sealed class RenderContext : RenderContextBase, IDisposable
     /// <summary>
     /// Creates an SKFont with consistent rendering properties from a typeface and font size.
     /// </summary>
-    public SKFont CreateFontFromTypeface(SKTypeface typeface, float fontSizePoints) =>
-        new(typeface, fontSizePoints * Scale)
+    public SKFont CreateFontFromTypeface(SKTypeface typeface, float fontSizePoints)
+    {
+        var font = new SKFont(typeface, fontSizePoints * Scale);
+        ApplyRenderingMode(font);
+        return font;
+    }
+
+    /// <summary>
+    /// Applies hinting / subpixel / edging settings. When deterministic rendering is enabled
+    /// (via <see cref="ConversionOptions.DeterministicRendering"/> or the
+    /// <see cref="DefaultFontSettings.DeterministicRendering"/> static fallback), falls back to
+    /// integer-positioned greyscale anti-aliasing so output is identical across machines;
+    /// otherwise uses the platform's full-fidelity subpixel LCD rendering.
+    /// </summary>
+    void ApplyRenderingMode(SKFont font)
+    {
+        if (DeterministicRendering)
         {
-            Subpixel = true,
-            Edging = SKFontEdging.SubpixelAntialias,
-            Hinting = SKFontHinting.Normal
-        };
+            font.Subpixel = false;
+            font.Edging = SKFontEdging.Antialias;
+            font.Hinting = SKFontHinting.None;
+        }
+        else
+        {
+            font.Subpixel = true;
+            font.Edging = SKFontEdging.SubpixelAntialias;
+            font.Hinting = SKFontHinting.Normal;
+        }
+    }
 
     static SKColor ParseColor(string? hexColor)
     {

@@ -22,6 +22,11 @@ public static class ModuleInitializer
         // Use 1.08 font width scale to better match Microsoft Word's text rendering
         DefaultFontSettings.FontWidthScale = 1.08;
 
+        // Disable font hinting + subpixel positioning in tests: greyscale AA at
+        // integer x positions gives pixel-identical output across machines so
+        // scenario verified PNGs/JSON don't drift between local and CI.
+        DefaultFontSettings.DeterministicRendering = true;
+
         VerifyImageMagick.RegisterComparers(threshold: 0.5);
         VerifyDiffPlex.Initialize(OutputType.Compact);
         VerifierSettings.InitializePlugins();

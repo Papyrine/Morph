@@ -16,6 +16,10 @@ namespace WordRender;
 /// <param name="DefaultFont">Overrides the fallback font family used when the DOCX document does
 /// not declare a default run font. When <c>null</c> (default), <see cref="DefaultFontSettings.DefaultFont"/>
 /// is used. Per-conversion overrides do not affect the static default and do not lock it.</param>
+/// <param name="DeterministicRendering">Overrides <see cref="DefaultFontSettings.DeterministicRendering"/>
+/// for this conversion. When <c>true</c>, the Skia backend renders glyphs with greyscale AA, integer
+/// x positions, and no font hinting — producing pixel-identical output across machines at the cost of
+/// slightly softer text. When <c>null</c> (default), the static setting is used.</param>
 public sealed record ConversionOptions
 {
     public int Dpi { get; init; } = 150;
@@ -23,4 +27,5 @@ public sealed record ConversionOptions
     public Func<string, string?>? FontFallback { get; init; }
     public string? FontDirectory { get; init; }
     public string? DefaultFont { get; init; }
+    public bool? DeterministicRendering { get; init; }
 }
