@@ -3,7 +3,7 @@ namespace WordRender.ImageSharp;
 /// <summary>
 /// Converts DOCX documents to PNG images using SixLabors.ImageSharp.
 /// </summary>
-public sealed class DocumentConverter : WordRender.DocumentConverter
+public sealed class ImageSharpDocumentConverter : DocumentConverter
 {
     private protected override int RenderPages(ParsedDocument document, ConversionOptions options, Action<Action<Stream>> pageCallback)
     {
