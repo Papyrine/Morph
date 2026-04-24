@@ -58,18 +58,18 @@ public class SkiaFontStyleDetectionTests
     // === Default font ===
 
     [Test]
-    public async Task GetTypeface_Aptos_Resolves()
+    public async Task GetTypeface_DefaultFont_Resolves()
     {
         using var context = CreateContext();
-        using var typeface = context.GetTypeface("Aptos", false, false);
+        using var typeface = context.GetTypeface(DefaultFontSettings.DefaultFont, false, false);
         await Assert.That(typeface).IsNotNull();
     }
 
     [Test]
-    public async Task GetTypeface_Aptos_Bold_Resolves()
+    public async Task GetTypeface_DefaultFont_Bold_Resolves()
     {
         using var context = CreateContext();
-        using var typeface = context.GetTypeface("Aptos", true, false);
+        using var typeface = context.GetTypeface(DefaultFontSettings.DefaultFont, true, false);
         await Assert.That(typeface).IsNotNull();
         await Assert.That(typeface.FontStyle.Weight).IsGreaterThanOrEqualTo(600);
     }

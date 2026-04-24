@@ -27,7 +27,7 @@ public class UnsupportedImageFormatTests
             Elements = elements
         };
 
-        using var context = new SkiaRenderContext(doc.PageSettings, 96);
+        using var context = new SkiaRenderContext(doc.PageSettings, 96, fontDirectory: ProjectFonts.Directory);
         using var renderer = new SkiaPageRenderer(context);
 
         return renderer.RenderDocument(doc, _ => { });

@@ -4,7 +4,6 @@
 sealed class PageRenderer(RenderContext context) :
     IDisposable
 {
-    static readonly SKTypeface aptosTypeface = SKTypeface.FromFamilyName("Aptos", SKFontStyle.Normal);
 
     /// <summary>
     /// Safely decodes image data, returning null for unsupported formats
@@ -1796,7 +1795,7 @@ sealed class PageRenderer(RenderContext context) :
         var displayText = string.IsNullOrEmpty(textField.Value) ? textField.DefaultText ?? "" : textField.Value;
         if (!string.IsNullOrEmpty(displayText))
         {
-            using var font = context.CreateFontFromTypeface(aptosTypeface, 10);
+            using var font = context.CreateFontFromTypeface(context.GetTypeface(DefaultFontSettings.DefaultFont, false, false), 10);
             using var textPaint = new SKPaint
             {
                 Color = textField.Enabled ? SKColors.Black : SKColors.Gray,
@@ -1938,7 +1937,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (!string.IsNullOrEmpty(selectedValue))
         {
-            using var font = context.CreateFontFromTypeface(aptosTypeface, 10);
+            using var font = context.CreateFontFromTypeface(context.GetTypeface(DefaultFontSettings.DefaultFont, false, false), 10);
             using var textPaint = new SKPaint
             {
                 Color = dropDown.Enabled ? SKColors.Black : SKColors.Gray,
@@ -2199,7 +2198,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (!string.IsNullOrEmpty(text))
         {
-            using var font = context.CreateFontFromTypeface(aptosTypeface, 10);
+            using var font = context.CreateFontFromTypeface(context.GetTypeface(DefaultFontSettings.DefaultFont, false, false), 10);
             using var textPaint = new SKPaint
             {
                 Color = isPlaceholder ? SKColors.Gray : SKColors.Black,
@@ -2269,7 +2268,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (!string.IsNullOrEmpty(displayText))
         {
-            using var font = context.CreateFontFromTypeface(aptosTypeface, 10);
+            using var font = context.CreateFontFromTypeface(context.GetTypeface(DefaultFontSettings.DefaultFont, false, false), 10);
             using var textPaint = new SKPaint
             {
                 Color = SKColors.Black,
@@ -2351,7 +2350,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (!string.IsNullOrEmpty(displayText))
         {
-            using var font = context.CreateFontFromTypeface(aptosTypeface, 10);
+            using var font = context.CreateFontFromTypeface(context.GetTypeface(DefaultFontSettings.DefaultFont, false, false), 10);
             using var textPaint = new SKPaint
             {
                 Color = control.DateValue.HasValue || !string.IsNullOrEmpty(control.Content) ? SKColors.Black : SKColors.Gray,
