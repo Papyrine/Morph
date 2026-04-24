@@ -25,6 +25,11 @@
       "KeepNext": false,
       "WidowControl": true,
       "PageBreakBefore": false,
+      "BorderBetween": {
+        "IsVisible": false,
+        "WidthPoints": 0.5,
+        "ColorHex": "000000"
+      },
       "DefaultTabStopPoints": 36.0
     }
   },
@@ -55,6 +60,11 @@
       "KeepNext": false,
       "WidowControl": true,
       "PageBreakBefore": false,
+      "BorderBetween": {
+        "IsVisible": false,
+        "WidthPoints": 0.5,
+        "ColorHex": "000000"
+      },
       "DefaultTabStopPoints": 36.0
     }
   }

@@ -49,6 +49,12 @@ abstract class RenderContextBase
     public float LastParagraphSpacingAfterPoints { get; set; }
     public string? LastParagraphStyleId { get; set; }
 
+    /// <summary>
+    /// When true, the next paragraph's top border should be suppressed because
+    /// the previous paragraph collapsed their shared w:between border.
+    /// </summary>
+    public bool SuppressNextParagraphTopBorder { get; set; }
+
     // Page dimensions in pixels
     public int PageWidthPixels { get; private set; }
     public int PageHeightPixels { get; private set; }

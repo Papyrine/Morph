@@ -692,22 +692,33 @@ sealed class DocumentParser(string defaultFont)
 
                 // Parse paragraph borders (w:pBdr)
                 var borders = baseProps?.Borders;
+                var borderTopSpace = baseProps?.BorderTopSpacePoints ?? 0;
                 var borderBottomSpace = baseProps?.BorderBottomSpacePoints ?? 0;
+                var borderLeftSpace = baseProps?.BorderLeftSpacePoints ?? 0;
+                var borderRightSpace = baseProps?.BorderRightSpacePoints ?? 0;
+                var borderBetween = baseProps?.BorderBetween ?? BorderEdge.None;
+                var borderBetweenSpace = baseProps?.BorderBetweenSpacePoints ?? 0;
                 var pBdr = paraProps.GetFirstChild<ParagraphBorders>();
                 if (pBdr != null)
                 {
+                    var topBorder = pBdr.GetFirstChild<TopBorder>();
+                    var rightBorder = pBdr.GetFirstChild<RightBorder>();
+                    var bottomBorder = pBdr.GetFirstChild<BottomBorder>();
+                    var leftBorder = pBdr.GetFirstChild<LeftBorder>();
+                    var betweenBorder = pBdr.GetFirstChild<BetweenBorder>();
                     borders = new()
                     {
-                        Top = ParseBorderEdge(pBdr.GetFirstChild<TopBorder>()),
-                        Right = ParseBorderEdge(pBdr.GetFirstChild<RightBorder>()),
-                        Bottom = ParseBorderEdge(pBdr.GetFirstChild<BottomBorder>()),
-                        Left = ParseBorderEdge(pBdr.GetFirstChild<LeftBorder>())
+                        Top = ParseBorderEdge(topBorder),
+                        Right = ParseBorderEdge(rightBorder),
+                        Bottom = ParseBorderEdge(bottomBorder),
+                        Left = ParseBorderEdge(leftBorder)
                     };
-                    var bottomBorder = pBdr.GetFirstChild<BottomBorder>();
-                    if (bottomBorder?.Space?.HasValue == true)
-                    {
-                        borderBottomSpace = bottomBorder.Space.Value;
-                    }
+                    borderTopSpace = ParseBorderSpace(topBorder);
+                    borderRightSpace = ParseBorderSpace(rightBorder);
+                    borderBottomSpace = ParseBorderSpace(bottomBorder);
+                    borderLeftSpace = ParseBorderSpace(leftBorder);
+                    borderBetween = ParseBorderEdge(betweenBorder);
+                    borderBetweenSpace = ParseBorderSpace(betweenBorder);
                 }
 
                 styleProps[styleId] = new()
@@ -728,7 +739,12 @@ sealed class DocumentParser(string defaultFont)
                     WidowControl = widowControl,
                     BackgroundColorHex = backgroundColor,
                     Borders = borders,
+                    BorderTopSpacePoints = borderTopSpace,
                     BorderBottomSpacePoints = borderBottomSpace,
+                    BorderLeftSpacePoints = borderLeftSpace,
+                    BorderRightSpacePoints = borderRightSpace,
+                    BorderBetween = borderBetween,
+                    BorderBetweenSpacePoints = borderBetweenSpace,
                     TabStops = ParseTabs(paraProps, baseProps?.TabStops ?? []),
                     DefaultTabStopPoints = defaultTabStopPoints
                     // PageBreakBefore intentionally not inherited from styles
@@ -2222,6 +2238,9 @@ sealed class DocumentParser(string defaultFont)
 
         return hasAny ? new CellSpacing(top, right, bottom, left) : null;
     }
+
+    static double ParseBorderSpace(BorderType? border) =>
+        border?.Space?.HasValue == true ? border.Space.Value : 0;
 
     BorderEdge ParseBorderEdge(BorderType? border)
     {
@@ -5378,22 +5397,33 @@ sealed class DocumentParser(string defaultFont)
 
         // Parse paragraph borders (w:pBdr)
         var borders = styleDefaults?.Borders;
+        var borderTopSpace = styleDefaults?.BorderTopSpacePoints ?? 0;
         var borderBottomSpace = styleDefaults?.BorderBottomSpacePoints ?? 0;
+        var borderLeftSpace = styleDefaults?.BorderLeftSpacePoints ?? 0;
+        var borderRightSpace = styleDefaults?.BorderRightSpacePoints ?? 0;
+        var borderBetween = styleDefaults?.BorderBetween ?? BorderEdge.None;
+        var borderBetweenSpace = styleDefaults?.BorderBetweenSpacePoints ?? 0;
         var pBdr = props.GetFirstChild<ParagraphBorders>();
         if (pBdr != null)
         {
+            var topBorder = pBdr.GetFirstChild<TopBorder>();
+            var rightBorder = pBdr.GetFirstChild<RightBorder>();
+            var bottomBorder = pBdr.GetFirstChild<BottomBorder>();
+            var leftBorder = pBdr.GetFirstChild<LeftBorder>();
+            var betweenBorder = pBdr.GetFirstChild<BetweenBorder>();
             borders = new()
             {
-                Top = ParseBorderEdge(pBdr.GetFirstChild<TopBorder>()),
-                Right = ParseBorderEdge(pBdr.GetFirstChild<RightBorder>()),
-                Bottom = ParseBorderEdge(pBdr.GetFirstChild<BottomBorder>()),
-                Left = ParseBorderEdge(pBdr.GetFirstChild<LeftBorder>())
+                Top = ParseBorderEdge(topBorder),
+                Right = ParseBorderEdge(rightBorder),
+                Bottom = ParseBorderEdge(bottomBorder),
+                Left = ParseBorderEdge(leftBorder)
             };
-            var bottomBorder = pBdr.GetFirstChild<BottomBorder>();
-            if (bottomBorder?.Space?.HasValue == true)
-            {
-                borderBottomSpace = bottomBorder.Space.Value;
-            }
+            borderTopSpace = ParseBorderSpace(topBorder);
+            borderRightSpace = ParseBorderSpace(rightBorder);
+            borderBottomSpace = ParseBorderSpace(bottomBorder);
+            borderLeftSpace = ParseBorderSpace(leftBorder);
+            borderBetween = ParseBorderEdge(betweenBorder);
+            borderBetweenSpace = ParseBorderSpace(betweenBorder);
         }
 
         // Parse paragraph mark font size (used for empty paragraphs)
@@ -5431,7 +5461,12 @@ sealed class DocumentParser(string defaultFont)
             BackgroundColorHex = backgroundColor,
             StyleId = styleId,
             Borders = borders,
+            BorderTopSpacePoints = borderTopSpace,
             BorderBottomSpacePoints = borderBottomSpace,
+            BorderLeftSpacePoints = borderLeftSpace,
+            BorderRightSpacePoints = borderRightSpace,
+            BorderBetween = borderBetween,
+            BorderBetweenSpacePoints = borderBetweenSpace,
             TabStops = ParseTabs(props, styleDefaults?.TabStops ?? []),
             DefaultTabStopPoints = defaultTabStopPoints
         };

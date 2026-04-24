@@ -374,7 +374,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (currentPage != null)
         {
-            textRenderer.RenderParagraph(currentPage, paragraph);
+            textRenderer.RenderParagraph(currentPage, paragraph, nextElement);
         }
 
         if (hasSignificantContent)

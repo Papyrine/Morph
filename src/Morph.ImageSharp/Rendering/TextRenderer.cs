@@ -28,7 +28,30 @@ sealed class TextRenderer(RenderContext context)
             totalHeight += (float)props.SpacingAfterPoints;
         }
 
+        // Border space: only expand height by the amount w:space exceeds the
+        // spacing that would otherwise absorb it (matches Word's layout).
+        totalHeight += BorderSpaceExcess(props);
+
         return totalHeight;
+    }
+
+    static float BorderSpaceExcess(ParagraphProperties props)
+    {
+        if (props.Borders is not {HasAnyBorder: true} borders)
+        {
+            return 0;
+        }
+
+        var extra = 0f;
+        if (borders.Top.IsVisible)
+        {
+            extra += Math.Max(0, (float) props.BorderTopSpacePoints - (float) props.SpacingBeforePoints);
+        }
+        if (borders.Bottom.IsVisible)
+        {
+            extra += Math.Max(0, (float) props.BorderBottomSpacePoints - (float) props.SpacingAfterPoints);
+        }
+        return extra;
     }
 
     /// <summary>
@@ -51,6 +74,8 @@ sealed class TextRenderer(RenderContext context)
         {
             totalHeight += (float)props.SpacingAfterPoints;
         }
+
+        totalHeight += BorderSpaceExcess(props);
 
         return totalHeight;
     }
@@ -116,7 +141,7 @@ sealed class TextRenderer(RenderContext context)
     /// <summary>
     /// Renders a paragraph to the image at the current position.
     /// </summary>
-    public void RenderParagraph(Image<Rgba32> currentPage, ParagraphElement paragraph)
+    public void RenderParagraph(Image<Rgba32> currentPage, ParagraphElement paragraph, DocumentElement? nextElement = null)
     {
         var lines = LayoutParagraph(paragraph);
         var props = paragraph.Properties;
@@ -128,7 +153,10 @@ sealed class TextRenderer(RenderContext context)
         // Contextual spacing only collapses spacing between paragraphs of the SAME STYLE
         var sameStyle = props.StyleId != null && props.StyleId == context.LastParagraphStyleId;
         var collapseSpacingBefore = props.ContextualSpacing && context.LastParagraphHadContextualSpacing && sameStyle;
-        if (!collapseSpacingBefore)
+        // Also collapse when we're continuing a w:between border chain — the borders fuse,
+        // so there must be no gap between this paragraph and the previous one.
+        var inBetweenChain = context.SuppressNextParagraphTopBorder;
+        if (!collapseSpacingBefore && !inBetweenChain)
         {
             var spacingBefore = (float)props.SpacingBeforePoints;
             var lastSpacingAfter = context.LastParagraphSpacingAfterPoints;
@@ -160,7 +188,24 @@ sealed class TextRenderer(RenderContext context)
             currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(bgX, bgY, bgWidth, bgHeight)));
         }
 
+        // Reserve vertical space for border w:space that isn't already absorbed by
+        // SpacingBefore/After. When inBetweenChain, the spacing-before above was
+        // suppressed, so the full top-space must be reserved to keep text clear of
+        // the between line drawn by the previous paragraph.
+        var hasTopBorder = props.Borders?.Top.IsVisible ?? false;
+        var hasBottomBorder = props.Borders?.Bottom.IsVisible ?? false;
+        var topSpaceExtra = (hasTopBorder || inBetweenChain)
+            ? (inBetweenChain
+                ? (float) props.BorderTopSpacePoints
+                : Math.Max(0f, (float) props.BorderTopSpacePoints - (float) props.SpacingBeforePoints))
+            : 0f;
+        var bottomSpaceExtra = hasBottomBorder
+            ? Math.Max(0f, (float) props.BorderBottomSpacePoints - (float) props.SpacingAfterPoints)
+            : 0f;
+
+        context.CurrentY += topSpaceExtra;
         var paragraphStartY = context.CurrentY;
+
         var isFirstLine = true;
         foreach (var line in lines)
         {
@@ -235,13 +280,20 @@ sealed class TextRenderer(RenderContext context)
             context.CurrentY += lineHeight;
         }
 
-        // Draw paragraph borders if specified
-        if (props.Borders is {HasAnyBorder: true})
+        // Draw paragraph borders if specified. Top sits BorderTopSpace above the text;
+        // bottom sits BorderBottomSpace below the last line. When the space exceeds
+        // SpacingBefore/After, we reserved the excess above/below to avoid overlap.
+        if (props.Borders is {HasAnyBorder: true} borders)
         {
-            var borderLeft = context.PointsToPixels(context.ContentLeft + (float) props.LeftIndentPoints);
-            var borderRight = context.PointsToPixels(context.ContentLeft + context.ContentWidth - (float) props.RightIndentPoints);
-            var borderTopY = context.PointsToPixels(paragraphStartY);
+            var borderLeft = context.PointsToPixels(context.ContentLeft + (float) props.LeftIndentPoints - (float) props.BorderLeftSpacePoints);
+            var borderRight = context.PointsToPixels(context.ContentLeft + context.ContentWidth - (float) props.RightIndentPoints + (float) props.BorderRightSpacePoints);
+            var borderTopY = context.PointsToPixels(paragraphStartY - (float) props.BorderTopSpacePoints);
             var borderBottomY = context.PointsToPixels(context.CurrentY + (float) props.BorderBottomSpacePoints);
+
+            var collapseBottom = nextElement is ParagraphElement nextPara
+                && props.BordersCollapseWith(nextPara.Properties);
+            var suppressTop = context.SuppressNextParagraphTopBorder;
+            context.SuppressNextParagraphTopBorder = false;
 
             void DrawBorder(BorderEdge edge, PointF start, PointF end)
             {
@@ -250,33 +302,44 @@ sealed class TextRenderer(RenderContext context)
                 currentPage.Mutate(_ => _.DrawLine(pen, start, end));
             }
 
-            if (props.Borders.Bottom.IsVisible)
+            if (borders.Bottom.IsVisible && !collapseBottom)
             {
-                DrawBorder(props.Borders.Bottom, new(borderLeft, borderBottomY), new(borderRight, borderBottomY));
+                DrawBorder(borders.Bottom, new(borderLeft, borderBottomY), new(borderRight, borderBottomY));
             }
 
-            if (props.Borders.Top.IsVisible)
+            if (borders.Top.IsVisible && !suppressTop)
             {
-                DrawBorder(props.Borders.Top, new(borderLeft, borderTopY), new(borderRight, borderTopY));
+                DrawBorder(borders.Top, new(borderLeft, borderTopY), new(borderRight, borderTopY));
             }
 
-            if (props.Borders.Left.IsVisible)
+            if (borders.Left.IsVisible)
             {
-                DrawBorder(props.Borders.Left, new(borderLeft, borderTopY), new(borderLeft, borderBottomY));
+                DrawBorder(borders.Left, new(borderLeft, borderTopY), new(borderLeft, borderBottomY));
             }
 
-            if (props.Borders.Right.IsVisible)
+            if (borders.Right.IsVisible)
             {
-                DrawBorder(props.Borders.Right, new(borderRight, borderTopY), new(borderRight, borderBottomY));
+                DrawBorder(borders.Right, new(borderRight, borderTopY), new(borderRight, borderBottomY));
+            }
+
+            if (collapseBottom)
+            {
+                DrawBorder(props.BorderBetween, new(borderLeft, borderBottomY), new(borderRight, borderBottomY));
+                context.SuppressNextParagraphTopBorder = true;
+                // Advance past the between line so the next paragraph's top space starts here.
+                context.CurrentY += (float) props.BorderBottomSpacePoints;
             }
         }
 
         // Add spacing after and track for margin collapsing with next paragraph
-        // Contextual spacing removes space between paragraphs to create tighter visual grouping
+        // Contextual spacing removes space between paragraphs to create tighter visual grouping.
+        // When this paragraph collapsed its bottom border into a w:between line, suppress
+        // spacing-after too so the shared edges visually fuse with the next paragraph.
         var spacingAfter = (float)props.SpacingAfterPoints;
-        if (!props.ContextualSpacing)
+        var collapsedBottom = context.SuppressNextParagraphTopBorder;
+        if (!props.ContextualSpacing && !collapsedBottom)
         {
-            context.CurrentY += spacingAfter;
+            context.CurrentY += spacingAfter + bottomSpaceExtra;
             context.LastParagraphSpacingAfterPoints = spacingAfter;
         }
         else

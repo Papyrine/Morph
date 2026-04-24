@@ -461,7 +461,7 @@ sealed class PageRenderer(RenderContext context) :
         // Render the paragraph
         if (currentCanvas != null)
         {
-            textRenderer.RenderParagraph(currentCanvas, paragraph);
+            textRenderer.RenderParagraph(currentCanvas, paragraph, nextElement);
         }
 
         // Track significant content for blank page removal
