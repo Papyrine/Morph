@@ -1,4 +1,4 @@
-namespace WordRender;
+namespace Morph;
 
 /// <summary>
 /// Options for document conversion.
