@@ -1,3 +1,5 @@
+using WordRender;
+
 /// <summary>
 /// Maintains rendering state during page layout and rendering.
 /// </summary>
