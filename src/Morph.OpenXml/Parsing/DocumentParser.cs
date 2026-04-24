@@ -12,16 +12,6 @@ using WPG = DocumentFormat.OpenXml.Office2010.Word.DrawingGroup;
 using WPS = DocumentFormat.OpenXml.Office2010.Word.DrawingShape;
 
 /// <summary>
-/// Stores border information extracted from a table style, including conditional formatting overrides.
-/// </summary>
-sealed record TableStyleBorderInfo(
-    CellBorders Outer,
-    BorderEdge InsideH,
-    BorderEdge InsideV,
-    int ColBandSize,
-    Dictionary<TableStyleOverrideValues, CellBorders>? ConditionalBorders);
-
-/// <summary>
 /// Parses DOCX files using OpenXML.
 /// </summary>
 [SuppressMessage("Style", "IDE0028:Simplify collection initialization")]
