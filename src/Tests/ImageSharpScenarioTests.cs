@@ -1,5 +1,3 @@
-using Morph;
-
 public class ImageSharpScenarioTests
 {
     static readonly string fontsDirectory = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
