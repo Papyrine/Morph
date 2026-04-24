@@ -1,6 +1,6 @@
 using WordRender;
 
-namespace HtmlRender;
+namespace Morph;
 
 /// <summary>
 /// Converts HTML content to PNG images.
