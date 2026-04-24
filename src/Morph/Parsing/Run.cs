@@ -1,0 +1,26 @@
+﻿/// <summary>
+/// A run of text with consistent formatting. Can also represent an inline image.
+/// </summary>
+sealed class Run
+{
+    public required string Text { get; init; }
+    public RunProperties Properties { get; init; } = new();
+
+    /// <summary>Inline image data (when the run represents an inline image).</summary>
+    public byte[]? InlineImageData { get; init; }
+
+    /// <summary>Width of inline image in points.</summary>
+    public double InlineImageWidthPoints { get; init; }
+
+    /// <summary>Height of inline image in points.</summary>
+    public double InlineImageHeightPoints { get; init; }
+
+    /// <summary>Content type of inline image (e.g., "image/png", "image/svg+xml").</summary>
+    public string? InlineImageContentType { get; init; }
+
+    /// <summary>
+    /// True when this run represents a single w:tab character.
+    /// When true, <see cref="Text"/> is "\t" and the renderer snaps the cursor to the next tab stop.
+    /// </summary>
+    public bool IsTab { get; init; }
+}
