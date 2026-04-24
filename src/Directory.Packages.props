@@ -13,7 +13,7 @@
     <PackageVersion Include="NUnit" Version="4.5.1" />
     <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.2.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="6.2.0" />
-    <PackageVersion Include="ProjectDefaults" Version="1.0.172" />
+    <PackageVersion Include="ProjectDefaults" Version="1.0.173" />
     <PackageVersion Include="ProjectFiles" Version="1.1.1" />
     <PackageVersion Include="SkiaSharp" Version="3.119.2" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.2" />
@@ -23,8 +23,8 @@
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageVersion Include="SixLabors.ImageSharp.Drawing" Version="2.1.7" />
     <PackageVersion Include="Svg.Skia" Version="4.4.0" />
-    <PackageVersion Include="TUnit" Version="1.37.24" />
+    <PackageVersion Include="TUnit" Version="1.37.36" />
     <PackageVersion Include="Verify.ImageMagick" Version="3.8.8" />
-    <PackageVersion Include="Verify.TUnit" Version="31.16.1" />
+    <PackageVersion Include="Verify.TUnit" Version="31.16.2" />
   </ItemGroup>
 </Project>
