@@ -17,7 +17,7 @@ public class HeaderFooterFloatingRenderTests
 
     static byte[] RenderDocument(ParsedDocument doc)
     {
-        using var context = new SkiaRenderContext(doc.PageSettings, 96);
+        using var context = new SkiaRenderContext(doc.PageSettings, 96, fontDirectory: ProjectFonts.Directory);
         using var renderer = new SkiaPageRenderer(context);
 
         byte[]? result = null;

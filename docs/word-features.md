@@ -136,7 +136,7 @@ The typeface used to render text. Resolved from document, theme fonts, or system
 - **Test**: `font_families/`
 
 > **Contributors**: Font resolution order: effective candidate name (weight suffix stripping) -> original name -> stripped base name -> `FontHelpers.FontFallbacks` dictionary -> custom `FontFallback` callback. Cloud fonts searched in `%LOCALAPPDATA%\Microsoft\FontCache\4\CloudFonts\`. Office private fonts checked in `Program Files\Microsoft Office\root\vfs\Fonts\private\`.
-> **Consumers**: If a document uses a font not installed on the system, Morph falls back through a chain of alternatives. Set `ConversionOptions.FontFallback` to provide custom mappings. Default font is Aptos 11pt.
+> **Consumers**: If a document uses a font not installed on the system, Morph falls back through a chain of alternatives. Set `ConversionOptions.FontFallback` to provide custom mappings. Default font is Georgia 11pt — Georgia ships on Windows, macOS, and most Linux distributions out of the box, unlike Word's newer default (Aptos, Microsoft 365 only). Override globally via `DefaultFontSettings.DefaultFont` (must be set before the first render — throws afterwards), or per conversion via `WordRender.ConversionOptions.DefaultFont`. For pixel-stable rendering across machines (useful for snapshot tests), set `DefaultFontSettings.DeterministicRendering = true` during startup — the Skia backend then uses greyscale AA at integer pixel positions with no font hinting, eliminating platform-specific subpixel drift at the cost of slightly softer text.
 > **AI**: Font resolution lives in `RenderContext.cs` (per backend) and `FontHelpers.cs`. When adding new fallback mappings, update `FontHelpers.FontFallbacks`. The `FontCacheLoader.cs` handles system font enumeration.
 
 
@@ -149,7 +149,7 @@ Text size in half-points (OOXML) converted to points for rendering.
 - **Model**: `RunProperties.FontSizePoints`
 - **Test**: `font_sizes/`
 
-> **Consumers**: Default size is 11pt (Aptos). Half-point values from OOXML are automatically converted.
+> **Consumers**: Default size is 11pt (Georgia). Half-point values from OOXML are automatically converted.
 
 
 ### 1.2 Character Formatting
@@ -1505,7 +1505,7 @@ Style definitions with inheritance chains. Properties cascade: document defaults
 Default paragraph and run properties applied when no style or direct formatting overrides.
 
 - **OOXML**: `w:docDefaults` > `w:rPrDefault`, `w:pPrDefault`
-- **Model**: `DefaultFontSettings` — font "Aptos", size 11pt
+- **Model**: `DefaultFontSettings` — font "Georgia" (configurable), size 11pt
 
 ---
 

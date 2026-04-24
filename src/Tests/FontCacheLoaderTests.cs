@@ -10,13 +10,14 @@ public class FontCacheLoaderTests
     }
 
     [Test]
-    public async Task EnumerateFontFilesInDirectory_ReturnsTtfAndOtfOnly()
+    public async Task EnumerateFontFilesInDirectory_ReturnsTtfOtfAndTtcOnly()
     {
         var dir = CreateTempDir();
         try
         {
             await File.WriteAllTextAsync(Path.Combine(dir, "a.ttf"), "");
             await File.WriteAllTextAsync(Path.Combine(dir, "b.otf"), "");
+            await File.WriteAllTextAsync(Path.Combine(dir, "c.ttc"), "");
             await File.WriteAllTextAsync(Path.Combine(dir, "ignore.txt"), "");
             await File.WriteAllTextAsync(Path.Combine(dir, "ignore.fon"), "");
 
@@ -25,7 +26,7 @@ public class FontCacheLoaderTests
                 .OrderBy(_ => _)
                 .ToList();
 
-            await Assert.That(files).IsEquivalentTo(["a.ttf", "b.otf"]);
+            await Assert.That(files).IsEquivalentTo(["a.ttf", "b.otf", "c.ttc"]);
         }
         finally
         {
@@ -128,7 +129,8 @@ public class FontCacheLoaderTests
             var ext = Path.GetExtension(file);
             await Assert.That(
                 ext.Equals(".ttf", StringComparison.OrdinalIgnoreCase) ||
-                ext.Equals(".otf", StringComparison.OrdinalIgnoreCase)).IsTrue();
+                ext.Equals(".otf", StringComparison.OrdinalIgnoreCase) ||
+                ext.Equals(".ttc", StringComparison.OrdinalIgnoreCase)).IsTrue();
         }
     }
 

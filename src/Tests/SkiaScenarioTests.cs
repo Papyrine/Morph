@@ -1,7 +1,7 @@
-#if DEBUG
-
 public class SkiaScenarioTests
 {
+    static readonly string fontsDirectory = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
+
     public static IEnumerable<string> GetScenarioDirectories()
     {
         var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
@@ -18,7 +18,12 @@ public class SkiaScenarioTests
         var expectedFiles = Directory.GetFiles(directory, "expected_*.png")
             .Order()
             .ToArray();
-        var data = converter.ConvertToImageData(inputFile);
+        var data = converter.ConvertToImageData(
+            inputFile,
+            new()
+            {
+                FontDirectory = fontsDirectory
+            });
 
         var diffs = PageDiffs(expectedFiles, data);
 
@@ -69,4 +74,3 @@ public class SkiaScenarioTests
         return diffs;
     }
 }
-#endif

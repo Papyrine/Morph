@@ -22,7 +22,7 @@ public class RPrExtensionsTests
     {
         var props = new RunProperties();
 
-        await Assert.That(props.FontFamily).IsEqualTo("Aptos");
+        await Assert.That(props.FontFamily).IsEqualTo("Georgia");
         await Assert.That(props.FontSizePoints).IsEqualTo(11);
         await Assert.That(props.Bold).IsFalse();
         await Assert.That(props.Italic).IsFalse();
@@ -37,7 +37,7 @@ public class RPrExtensionsTests
     {
         var run = new Run { Text = "Test" };
 
-        await Assert.That(run.Properties.FontFamily).IsEqualTo("Aptos");
+        await Assert.That(run.Properties.FontFamily).IsEqualTo("Georgia");
         await Assert.That(run.Properties.FontSizePoints).IsEqualTo(11);
         await Assert.That(run.Properties.Bold).IsFalse();
     }

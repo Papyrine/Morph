@@ -1,8 +1,8 @@
 /// <summary>
 /// Maintains rendering state during page layout and rendering.
 /// </summary>
-sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0, Func<string, string?>? fontFallback = null)
-    : RenderContextBase(pageSettings, dpi, compatibility, fontWidthScale, fontFallback),
+sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0, Func<string, string?>? fontFallback = null, string? fontDirectory = null, bool? deterministicRendering = null)
+    : RenderContextBase(pageSettings, dpi, compatibility, fontWidthScale, fontFallback, fontDirectory, deterministicRendering),
         IDisposable
 {
     Dictionary<(string, FontStyle), FontFamily> fontFamilyCache = [];
@@ -14,6 +14,13 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
     static Lazy<FontFileCache> officeFontsCache = new(() => new(FontCacheLoader.GetOfficeFontFiles(), ReadFamilyName));
     static Lazy<FontFileCache> userFontsCache = new(() => new(FontCacheLoader.GetUserFontFiles(), ReadFamilyName));
     static Lazy<FontFileCache> systemFontsCache = new(() => new(FontCacheLoader.GetSystemFontFiles(), ReadFamilyName));
+
+    static readonly ConcurrentDictionary<string, FontFileCache> directoryCaches = new(StringComparer.OrdinalIgnoreCase);
+
+    static FontFileCache GetDirectoryCache(string fontDirectory) =>
+        directoryCaches.GetOrAdd(
+            System.IO.Path.GetFullPath(fontDirectory),
+            path => new(FontCacheLoader.EnumerateFontFilesInDirectory(path, recursive: true), ReadFamilyName));
 
     static string ReadFamilyName(string fontFile) => new FontCollection().Add(fontFile).Name;
 
@@ -38,6 +45,35 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
 
         if (!fontFamilyCache.TryGetValue(key, out var resolvedFamily))
         {
+            if (FontDirectory != null)
+            {
+                var directoryCache = GetDirectoryCache(FontDirectory);
+                LoadFilesIntoSharedCollection(directoryCache, candidates);
+
+                if (TryResolveFromSharedCollection(candidates, style, out resolvedFamily) ||
+                    TryResolveFromSharedCollection(candidates, requireStyle: null, out resolvedFamily))
+                {
+                    fontFamilyCache[key] = resolvedFamily;
+                    return resolvedFamily;
+                }
+
+                var directoryFallbackFont = FontHelpers.FindFallback(candidates) ?? FontFallback?.Invoke(fontFamily);
+                if (directoryFallbackFont != null)
+                {
+                    var fallbackCandidates = FontHelpers.GetCandidateNames(directoryFallbackFont, bold);
+                    LoadFilesIntoSharedCollection(directoryCache, fallbackCandidates);
+
+                    if (TryResolveFromSharedCollection(fallbackCandidates, style, out resolvedFamily) ||
+                        TryResolveFromSharedCollection(fallbackCandidates, requireStyle: null, out resolvedFamily))
+                    {
+                        fontFamilyCache[key] = resolvedFamily;
+                        return resolvedFamily;
+                    }
+                }
+
+                throw new InvalidOperationException($"Font '{fontFamily}' not found in '{FontDirectory}'.");
+            }
+
             // Load from all font caches into the shared collection so all style
             // variants are available (e.g. Regular from user fonts + Italic from cloud)
             LoadFilesIntoSharedCollection(userFontsCache.Value, candidates);
@@ -86,6 +122,21 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
 
             // Fall back to system fonts
             if (SystemFonts.TryGet(name, out resolved) &&
+                (requireStyle == null || resolved.TryGetMetrics(requireStyle.Value, out _)))
+            {
+                return true;
+            }
+        }
+
+        resolved = default;
+        return false;
+    }
+
+    bool TryResolveFromSharedCollection(FontNameCandidates candidates, FontStyle? requireStyle, out FontFamily resolved)
+    {
+        foreach (var name in FontFileCache.EnumerateCandidateNames(candidates))
+        {
+            if (sharedFontCollection.TryGet(name, out resolved) &&
                 (requireStyle == null || resolved.TryGetMetrics(requireStyle.Value, out _)))
             {
                 return true;

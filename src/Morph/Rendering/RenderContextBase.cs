@@ -1,3 +1,5 @@
+using WordRender;
+
 /// <summary>
 /// Base class for rendering context state shared across backends.
 /// Manages pagination, column layout, line numbering, and coordinate conversion.
@@ -14,6 +16,21 @@ abstract class RenderContextBase
     /// </summary>
     public float FontWidthScale { get; }
     public Func<string, string?>? FontFallback { get; }
+
+    /// <summary>
+    /// When non-null, font resolution uses only files from this directory (recursive)
+    /// and all system/user/Office/cloud caches and OS-level fallbacks are skipped.
+    /// Missing fonts throw.
+    /// </summary>
+    public string? FontDirectory { get; }
+
+    /// <summary>
+    /// When <c>true</c>, Skia renders glyphs with greyscale AA, integer x positions
+    /// and no hinting for pixel-stable output across machines. Sourced from
+    /// <see cref="ConversionOptions.DeterministicRendering"/> or the
+    /// <see cref="DefaultFontSettings.DeterministicRendering"/> static fallback.
+    /// </summary>
+    public bool DeterministicRendering { get; }
 
     // Header/footer space adjustments
     float headerSpace;
@@ -48,7 +65,7 @@ abstract class RenderContextBase
     public float ContentWidth => (float) PageSettings.ColumnWidth;
     public float ContentHeight => FullContentBottom - FullContentTop;
 
-    protected RenderContextBase(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility, double fontWidthScale, Func<string, string?>? fontFallback = null)
+    protected RenderContextBase(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility, double fontWidthScale, Func<string, string?>? fontFallback = null, string? fontDirectory = null, bool? deterministicRendering = null)
     {
         PageSettings = pageSettings;
         Compatibility = compatibility ?? new CompatibilitySettings();
@@ -56,6 +73,8 @@ abstract class RenderContextBase
         Scale = dpi / 72f;
         FontWidthScale = (float) fontWidthScale;
         FontFallback = fontFallback;
+        FontDirectory = fontDirectory;
+        DeterministicRendering = deterministicRendering ?? DefaultFontSettings.DeterministicRendering;
 
         PageWidthPixels = (int) (pageSettings.WidthPoints * Scale);
         PageHeightPixels = (int) (pageSettings.HeightPoints * Scale);

@@ -20,7 +20,7 @@ public class CharacterSpacingTests
             MarginLeft = 20,
             MarginRight = 20
         };
-        var context = new SkiaRenderContext(pageSettings, 96);
+        var context = new SkiaRenderContext(pageSettings, 96, fontDirectory: ProjectFonts.Directory);
         var textRenderer = new SkiaTextRenderer(context);
         var bitmap = new SKBitmap(context.PageWidthPixels, context.PageHeightPixels);
         var canvas = new SKCanvas(bitmap);
