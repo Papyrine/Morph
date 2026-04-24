@@ -1,5 +1,3 @@
-using Morph;
-
 public class SkiaScenarioTests
 {
     static readonly string fontsDirectory = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
