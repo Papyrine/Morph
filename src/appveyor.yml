@@ -38,8 +38,14 @@ build_script:
         {
             $pfc.Dispose()
         }
+        $dest = Join-Path $winFonts $file.Name
+        if (Test-Path $dest)
+        {
+            Write-Host "Skipping $($file.Name) (already present in $winFonts)"
+            continue
+        }
         Write-Host "Installing $($file.Name) (family: '$family')"
-        Copy-Item $file.FullName -Destination $winFonts -Force
+        Copy-Item $file.FullName -Destination $dest
         $fontName = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
         $fontType = if ($file.Extension -eq ".otf") { "OpenType" } else { "TrueType" }
         New-ItemProperty -Path $regKey -Name "$fontName ($fontType)" -Value $file.Name -PropertyType String -Force | Out-Null
