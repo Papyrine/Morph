@@ -4,7 +4,6 @@
 sealed class PageRenderer(RenderContext context) :
     IDisposable
 {
-
     /// <summary>
     /// Safely decodes image data, returning null for unsupported formats
     /// instead of throwing when <see cref="SKCodec"/> cannot handle the data.
@@ -16,8 +15,7 @@ sealed class PageRenderer(RenderContext context) :
         return codec != null ? SKBitmap.Decode(codec) : null;
     }
 
-
-    readonly TextRenderer textRenderer = new(context);
+    TextRenderer textRenderer = new(context);
 
     Action<Action<Stream>>? pageCallback;
     int pageCount;
