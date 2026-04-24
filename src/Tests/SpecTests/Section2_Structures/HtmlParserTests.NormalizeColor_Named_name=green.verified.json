@@ -12,7 +12,8 @@
           "Strikethrough": false,
           "AllCaps": false,
           "ColorHex": "008000"
-        }
+        },
+        "IsTab": false
       }
     ],
     "Properties": {
@@ -24,7 +25,8 @@
       "KeepLines": false,
       "KeepNext": false,
       "WidowControl": true,
-      "PageBreakBefore": false
+      "PageBreakBefore": false,
+      "DefaultTabStopPoints": 36.0
     }
   }
 ]

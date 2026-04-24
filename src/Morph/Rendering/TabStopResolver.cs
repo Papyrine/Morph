@@ -38,7 +38,7 @@ static class TabStopResolver
 
             var destination = stop.Alignment switch
             {
-                TabAlignment.Center => stop.PositionPoints - (followingWidth / 2.0),
+                TabAlignment.Center => stop.PositionPoints - followingWidth / 2.0,
                 TabAlignment.Right => stop.PositionPoints - followingWidth,
                 // Decimal falls back to Left until decimal alignment is implemented.
                 _ => stop.PositionPoints
@@ -63,7 +63,7 @@ static class TabStopResolver
         // Snap to the next multiple of defaultTabStopPoints past cursorX, measured from basePosition.
         var offsetFromBase = cursorX - basePosition;
         var nextMultipleIndex = Math.Floor(offsetFromBase / defaultTabStopPoints) + 1;
-        var destinationX = basePosition + (nextMultipleIndex * defaultTabStopPoints);
+        var destinationX = basePosition + nextMultipleIndex * defaultTabStopPoints;
 
         if (destinationX <= cursorX)
         {

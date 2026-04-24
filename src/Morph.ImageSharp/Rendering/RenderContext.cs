@@ -10,19 +10,33 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
     // Shared font collection for fonts loaded from file (cloud, Office, user caches)
     FontCollection sharedFontCollection = new();
 
-    static Lazy<FontFileCache> cloudFontsCache = new(() => new(FontCacheLoader.GetCloudFontFiles(), ReadFamilyName));
-    static Lazy<FontFileCache> officeFontsCache = new(() => new(FontCacheLoader.GetOfficeFontFiles(), ReadFamilyName));
-    static Lazy<FontFileCache> userFontsCache = new(() => new(FontCacheLoader.GetUserFontFiles(), ReadFamilyName));
-    static Lazy<FontFileCache> systemFontsCache = new(() => new(FontCacheLoader.GetSystemFontFiles(), ReadFamilyName));
+    static Lazy<FontFileCache> cloudFontsCache = new(() => new(FontCacheLoader.GetCloudFontFiles(), ReadFamilyNames));
+    static Lazy<FontFileCache> officeFontsCache = new(() => new(FontCacheLoader.GetOfficeFontFiles(), ReadFamilyNames));
+    static Lazy<FontFileCache> userFontsCache = new(() => new(FontCacheLoader.GetUserFontFiles(), ReadFamilyNames));
+    static Lazy<FontFileCache> systemFontsCache = new(() => new(FontCacheLoader.GetSystemFontFiles(), ReadFamilyNames));
 
     static readonly ConcurrentDictionary<string, FontFileCache> directoryCaches = new(StringComparer.OrdinalIgnoreCase);
 
     static FontFileCache GetDirectoryCache(string fontDirectory) =>
         directoryCaches.GetOrAdd(
             System.IO.Path.GetFullPath(fontDirectory),
-            path => new(FontCacheLoader.EnumerateFontFilesInDirectory(path, recursive: true), ReadFamilyName));
+            path => new(FontCacheLoader.EnumerateFontFilesInDirectory(path, recursive: true), ReadFamilyNames));
 
-    static string ReadFamilyName(string fontFile) => new FontCollection().Add(fontFile).Name;
+    static IEnumerable<string> ReadFamilyNames(string fontFile)
+    {
+        var collection = new FontCollection();
+        if (fontFile.EndsWith(".ttc", StringComparison.OrdinalIgnoreCase))
+        {
+            foreach (var family in collection.AddCollection(fontFile))
+            {
+                yield return family.Name;
+            }
+        }
+        else
+        {
+            yield return collection.Add(fontFile).Name;
+        }
+    }
 
     public FontFamily GetFontFamily(string fontFamily, bool bold, bool italic)
     {
@@ -158,7 +172,14 @@ sealed class RenderContext(PageSettings pageSettings, int dpi, CompatibilitySett
         {
             try
             {
-                sharedFontCollection.Add(fontFile);
+                if (fontFile.EndsWith(".ttc", StringComparison.OrdinalIgnoreCase))
+                {
+                    sharedFontCollection.AddCollection(fontFile);
+                }
+                else
+                {
+                    sharedFontCollection.Add(fontFile);
+                }
             }
             catch
             {

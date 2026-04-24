@@ -17,7 +17,8 @@
                       "Underline": false,
                       "Strikethrough": false,
                       "AllCaps": false
-                    }
+                    },
+                    "IsTab": false
                   }
                 ],
                 "Properties": {
@@ -28,7 +29,8 @@
                   "KeepLines": false,
                   "KeepNext": false,
                   "WidowControl": true,
-                  "PageBreakBefore": false
+                  "PageBreakBefore": false,
+                  "DefaultTabStopPoints": 36.0
                 }
               }
             ],
@@ -51,7 +53,8 @@
                       "Underline": false,
                       "Strikethrough": false,
                       "AllCaps": false
-                    }
+                    },
+                    "IsTab": false
                   }
                 ],
                 "Properties": {
@@ -62,7 +65,8 @@
                   "KeepLines": false,
                   "KeepNext": false,
                   "WidowControl": true,
-                  "PageBreakBefore": false
+                  "PageBreakBefore": false,
+                  "DefaultTabStopPoints": 36.0
                 }
               }
             ],
@@ -95,7 +99,8 @@
                       "Underline": false,
                       "Strikethrough": false,
                       "AllCaps": false
-                    }
+                    },
+                    "IsTab": false
                   }
                 ],
                 "Properties": {
@@ -106,7 +111,8 @@
                   "KeepLines": false,
                   "KeepNext": false,
                   "WidowControl": true,
-                  "PageBreakBefore": false
+                  "PageBreakBefore": false,
+                  "DefaultTabStopPoints": 36.0
                 }
               }
             ],

@@ -546,14 +546,18 @@ Prevents automatic hyphenation for this paragraph.
 - **Test**: `hyphenation_suppressed/`
 
 
-#### Paragraph Borders `TODO`
+#### Paragraph Borders `PARTIAL`
 
 Borders around a paragraph (top, bottom, left, right, between).
 
 - **OOXML**: `w:pBdr` — `w:top`, `w:bottom`, `w:left`, `w:right`, `w:between`
+- **Parse**: `DocumentParser.ParseParagraphProperties()` and `ParseStyleParagraphProperties()` in `Morph.OpenXml/Parsing/DocumentParser.cs`
+- **Model**: `ParagraphProperties.Borders` (reuses `CellBorders`), `ParagraphProperties.BorderBottomSpacePoints`
+- **Render**: paragraph-border block in `Morph.Skia/Rendering/TextRenderer.cs` and `Morph.ImageSharp/Rendering/TextRenderer.cs`
 - **Spec**: [Paragraph Borders](http://officeopenxml.com/WPborders.php)
 
-> **AI**: Add paragraph border properties to `ParagraphProperties` in `DocumentElements.cs`. Parse from `w:pBdr` in `DocumentParser.ParseParagraphProperties()`. Render in `TextRenderer` similar to how cell borders are drawn in `PageRenderer`. Reuse `BorderEdge` and `CellBorders` types.
+> **Contributors**: Top/Bottom/Left/Right edges are drawn around the paragraph's content box (indents respected). `w:space` is honored for the bottom edge only. `w:between` (shared border between adjacent paragraphs with matching borders) is not implemented — each paragraph renders its own edges independently, so stacked bordered paragraphs draw overlapping top/bottom lines.
+> **Consumers**: Basic box borders work. Joined borders across consecutive paragraphs (`w:between` collapsing) are not yet handled.
 
 ---
 
@@ -1827,7 +1831,7 @@ Read-only mode, form protection, and editing restrictions.
 | Category | Done | Partial | Todo | Total |
 |----------|------|---------|------|-------|
 | 1. Text Formatting | 11 | 0 | 5 | 16 |
-| 2. Paragraph Formatting | 10 | 1 | 1 | 12 |
+| 2. Paragraph Formatting | 10 | 2 | 0 | 12 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
 | 4. Tables | 12 | 1 | 4 | 17 |
 | 5. Page Layout & Sections | 14 | 1 | 3 | 18 |
@@ -1838,7 +1842,7 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 0 | 5 | 6 |
 | 12. Advanced Content | 0 | 0 | 2 | 2 |
-| **Total** | **90** | **4** | **30** | **124** |
+| **Total** | **90** | **5** | **29** | **124** |
 
 
 ### Coverage
@@ -1846,11 +1850,11 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 90
-    "Partial" : 4
-    "Todo" : 30
+    "Partial" : 5
+    "Todo" : 29
 ```
 
-**Overall coverage: 73% fully implemented, 3% partial, 24% remaining.**
+**Overall coverage: 73% fully implemented, 4% partial, 23% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)

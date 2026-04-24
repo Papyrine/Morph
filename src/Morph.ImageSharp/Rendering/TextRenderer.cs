@@ -240,23 +240,34 @@ sealed class TextRenderer(RenderContext context)
         {
             var borderLeft = context.PointsToPixels(context.ContentLeft + (float) props.LeftIndentPoints);
             var borderRight = context.PointsToPixels(context.ContentLeft + context.ContentWidth - (float) props.RightIndentPoints);
+            var borderTopY = context.PointsToPixels(paragraphStartY);
+            var borderBottomY = context.PointsToPixels(context.CurrentY + (float) props.BorderBottomSpacePoints);
+
+            void DrawBorder(BorderEdge edge, PointF start, PointF end)
+            {
+                var color = RenderContext.ParseColor(edge.ColorHex ?? "000000");
+                var pen = new SolidPen(color, context.PointsToPixels((float) edge.WidthPoints));
+                currentPage.Mutate(_ => _.DrawLine(pen, start, end));
+            }
 
             if (props.Borders.Bottom.IsVisible)
             {
-                var borderY = context.PointsToPixels(context.CurrentY + (float) props.BorderBottomSpacePoints);
-                var borderColor = RenderContext.ParseColor(props.Borders.Bottom.ColorHex ?? "000000");
-                var strokeWidth = context.PointsToPixels((float) props.Borders.Bottom.WidthPoints);
-                var pen = new SolidPen(borderColor, strokeWidth);
-                currentPage.Mutate(_ => _.DrawLine(pen, new PointF(borderLeft, borderY), new PointF(borderRight, borderY)));
+                DrawBorder(props.Borders.Bottom, new(borderLeft, borderBottomY), new(borderRight, borderBottomY));
             }
 
             if (props.Borders.Top.IsVisible)
             {
-                var borderY = context.PointsToPixels(paragraphStartY);
-                var borderColor = RenderContext.ParseColor(props.Borders.Top.ColorHex ?? "000000");
-                var strokeWidth = context.PointsToPixels((float) props.Borders.Top.WidthPoints);
-                var pen = new SolidPen(borderColor, strokeWidth);
-                currentPage.Mutate(_ => _.DrawLine(pen, new PointF(borderLeft, borderY), new PointF(borderRight, borderY)));
+                DrawBorder(props.Borders.Top, new(borderLeft, borderTopY), new(borderRight, borderTopY));
+            }
+
+            if (props.Borders.Left.IsVisible)
+            {
+                DrawBorder(props.Borders.Left, new(borderLeft, borderTopY), new(borderLeft, borderBottomY));
+            }
+
+            if (props.Borders.Right.IsVisible)
+            {
+                DrawBorder(props.Borders.Right, new(borderRight, borderTopY), new(borderRight, borderBottomY));
             }
         }
 

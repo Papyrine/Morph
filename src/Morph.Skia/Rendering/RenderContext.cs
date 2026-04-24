@@ -23,22 +23,47 @@ sealed class RenderContext(
 {
     Dictionary<(string, int, SKFontStyleSlant), SKTypeface> typefaceCache = [];
 
-    static Lazy<FontFileCache> cloudFontsCache = new(() => new(FontCacheLoader.GetCloudFontFiles(), ReadFamilyName));
-    static Lazy<FontFileCache> officeFontsCache = new(() => new(FontCacheLoader.GetOfficeFontFiles(), ReadFamilyName));
-    static Lazy<FontFileCache> userFontsCache = new(() => new(FontCacheLoader.GetUserFontFiles(), ReadFamilyName));
-    static Lazy<FontFileCache> systemFontsCache = new(() => new(FontCacheLoader.GetSystemFontFiles(), ReadFamilyName));
+    static Lazy<FontFileCache> cloudFontsCache = new(() => new(FontCacheLoader.GetCloudFontFiles(), ReadFamilyNames));
+    static Lazy<FontFileCache> officeFontsCache = new(() => new(FontCacheLoader.GetOfficeFontFiles(), ReadFamilyNames));
+    static Lazy<FontFileCache> userFontsCache = new(() => new(FontCacheLoader.GetUserFontFiles(), ReadFamilyNames));
+    static Lazy<FontFileCache> systemFontsCache = new(() => new(FontCacheLoader.GetSystemFontFiles(), ReadFamilyNames));
 
     static readonly ConcurrentDictionary<string, FontFileCache> directoryCaches = new(StringComparer.OrdinalIgnoreCase);
 
     static FontFileCache GetDirectoryCache(string fontDirectory) =>
         directoryCaches.GetOrAdd(
             Path.GetFullPath(fontDirectory),
-            path => new(FontCacheLoader.EnumerateFontFilesInDirectory(path, recursive: true), ReadFamilyName));
+            path => new(FontCacheLoader.EnumerateFontFilesInDirectory(path, recursive: true), ReadFamilyNames));
 
-    static string? ReadFamilyName(string fontFile)
+    static IEnumerable<string> ReadFamilyNames(string fontFile)
     {
-        using var tf = SKTypeface.FromFile(fontFile);
-        return tf?.FamilyName;
+        if (fontFile.EndsWith(".ttc", StringComparison.OrdinalIgnoreCase))
+        {
+            var index = 0;
+            while (true)
+            {
+                using var tf = SKTypeface.FromFile(fontFile, index);
+                if (tf == null)
+                {
+                    yield break;
+                }
+
+                if (!string.IsNullOrEmpty(tf.FamilyName))
+                {
+                    yield return tf.FamilyName;
+                }
+
+                index++;
+            }
+        }
+        else
+        {
+            using var tf = SKTypeface.FromFile(fontFile);
+            if (tf?.FamilyName is { Length: > 0 } name)
+            {
+                yield return name;
+            }
+        }
     }
 
     public SKTypeface GetTypeface(string fontFamily, bool bold, bool italic)

@@ -245,31 +245,39 @@ sealed class TextRenderer(RenderContext context)
         {
             var borderLeft = context.PointsToPixels(context.ContentLeft + (float) props.LeftIndentPoints);
             var borderRight = context.PointsToPixels(context.ContentLeft + context.ContentWidth - (float) props.RightIndentPoints);
+            var borderTopY = context.PointsToPixels(paragraphStartY);
+            var borderBottomY = context.PointsToPixels(context.CurrentY + (float) props.BorderBottomSpacePoints);
+
+            static SKPaint CreatePaint(BorderEdge edge, float strokeWidth) => new()
+            {
+                Color = SKColor.Parse("#" + (edge.ColorHex ?? "000000")),
+                StrokeWidth = strokeWidth,
+                Style = SKPaintStyle.Stroke,
+                IsAntialias = true
+            };
 
             if (props.Borders.Bottom.IsVisible)
             {
-                var borderY = context.PointsToPixels(context.CurrentY + (float) props.BorderBottomSpacePoints);
-                using var borderPaint = new SKPaint
-                {
-                    Color = SKColor.Parse("#" + (props.Borders.Bottom.ColorHex ?? "000000")),
-                    StrokeWidth = context.PointsToPixels((float) props.Borders.Bottom.WidthPoints),
-                    Style = SKPaintStyle.Stroke,
-                    IsAntialias = true
-                };
-                canvas.DrawLine(borderLeft, borderY, borderRight, borderY, borderPaint);
+                using var paint = CreatePaint(props.Borders.Bottom, context.PointsToPixels((float) props.Borders.Bottom.WidthPoints));
+                canvas.DrawLine(borderLeft, borderBottomY, borderRight, borderBottomY, paint);
             }
 
             if (props.Borders.Top.IsVisible)
             {
-                var borderY = context.PointsToPixels(paragraphStartY);
-                using var borderPaint = new SKPaint
-                {
-                    Color = SKColor.Parse("#" + (props.Borders.Top.ColorHex ?? "000000")),
-                    StrokeWidth = context.PointsToPixels((float) props.Borders.Top.WidthPoints),
-                    Style = SKPaintStyle.Stroke,
-                    IsAntialias = true
-                };
-                canvas.DrawLine(borderLeft, borderY, borderRight, borderY, borderPaint);
+                using var paint = CreatePaint(props.Borders.Top, context.PointsToPixels((float) props.Borders.Top.WidthPoints));
+                canvas.DrawLine(borderLeft, borderTopY, borderRight, borderTopY, paint);
+            }
+
+            if (props.Borders.Left.IsVisible)
+            {
+                using var paint = CreatePaint(props.Borders.Left, context.PointsToPixels((float) props.Borders.Left.WidthPoints));
+                canvas.DrawLine(borderLeft, borderTopY, borderLeft, borderBottomY, paint);
+            }
+
+            if (props.Borders.Right.IsVisible)
+            {
+                using var paint = CreatePaint(props.Borders.Right, context.PointsToPixels((float) props.Borders.Right.WidthPoints));
+                canvas.DrawLine(borderRight, borderTopY, borderRight, borderBottomY, paint);
             }
         }
 
