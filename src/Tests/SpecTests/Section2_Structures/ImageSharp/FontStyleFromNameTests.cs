@@ -12,6 +12,9 @@ public class FontStyleFromNameTests
     static ImageSharpRenderContext CreateContext() =>
         new(new(), 96);
 
+    static ImageSharpRenderContext CreateBundledFontContext() =>
+        new(new(), 96, fontDirectory: ProjectFonts.Directory);
+
     [Test]
     [Arguments("Calibri Bold", true)]
     [Arguments("Arial Black", true)]
@@ -72,11 +75,21 @@ public class FontStyleFromNameTests
     [Test]
     [Arguments("Calibri Bold", "Calibri")]
     [Arguments("Arial Black", "Arial Black")]
-    [Arguments("Avenir Next LT Pro Bold", "Avenir Next LT Pro")]
     [Arguments("Calibri Light", "Calibri Light")]
     public async Task GetFontFamily_StyleSuffixStripped_ResolvesBaseFamily(string fontFamily, string expectedFamily)
     {
         using var context = CreateContext();
+        var family = context.GetFontFamily(fontFamily, false, false);
+        await Assert.That(family.Name).IsEqualTo(expectedFamily);
+    }
+
+    [Test]
+    [Arguments("Avenir Next LT Pro Bold", "Avenir Next LT Pro")]
+    public async Task GetFontFamily_StyleSuffixStripped_ResolvesBaseFamily_FromBundle(string fontFamily, string expectedFamily)
+    {
+        // Avenir Next LT Pro isn't a default-installed Windows font, so this case is
+        // exercised against the bundled fonts in src/Fonts.
+        using var context = CreateBundledFontContext();
         var family = context.GetFontFamily(fontFamily, false, false);
         await Assert.That(family.Name).IsEqualTo(expectedFamily);
     }
@@ -88,7 +101,8 @@ public class FontStyleFromNameTests
     {
         // "AvenirNext LT Pro" (no space) has a fallback to "Century Gothic" in FontFallbacks.
         // Stripping " Bold"/" Light" should find the fallback.
-        using var context = CreateContext();
+        // Uses the bundled font directory since neither family ships on Windows by default.
+        using var context = CreateBundledFontContext();
         var family = context.GetFontFamily(fontFamily, false, false);
         await Assert.That(family.Name).IsEqualTo(expectedFamily);
     }
