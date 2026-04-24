@@ -5,7 +5,6 @@ namespace WordRender;
 /// </summary>
 public abstract class DocumentConverter
 {
-
     /// <summary>
     /// Converts a DOCX file to PNG images.
     /// </summary>
