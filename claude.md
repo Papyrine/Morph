@@ -9,7 +9,10 @@ Morph is a .NET library that converts Microsoft Word DOCX documents or HTML cont
 ## Build & Test Commands
 
 ```bash
-# Build
+# Build (always pass the `src` directory or an absolute path to `src/Morph.slnx`).
+# `dotnet build` with no arg or with a relative slnx path resolved against a
+# subdirectory cwd will fail with MSB1009 — the slnx file isn't auto-discovered
+# from arbitrary cwds the way a single .csproj is.
 dotnet build src --configuration Release
 
 # Run all tests (TUnit via Microsoft.Testing.Platform; tests are an executable)

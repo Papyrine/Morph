@@ -101,6 +101,24 @@ sealed class TextRenderer(RenderContext context)
     }
 
     /// <summary>
+    /// Measures the maximum line width when a paragraph is laid out at the given wrap width.
+    /// Pass a very large maxWidth to obtain the natural single-line width.
+    /// </summary>
+    public float MeasureParagraphNaturalWidth(ParagraphElement paragraph, float maxWidth)
+    {
+        var lines = LayoutParagraphWithWidth(paragraph, maxWidth);
+        var widest = 0f;
+        foreach (var line in lines)
+        {
+            if (line.Width > widest)
+            {
+                widest = line.Width;
+            }
+        }
+        return widest;
+    }
+
+    /// <summary>
     /// Calculates the effective line height based on the line spacing rule.
     /// </summary>
     float CalculateLineHeight(float naturalHeight, ParagraphProperties props)

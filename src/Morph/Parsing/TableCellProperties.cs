@@ -26,7 +26,6 @@ sealed record TableCellProperties
 
     /// <summary>
     /// Text flow direction within the cell (w:textDirection). Default is left-to-right.
-    /// Renderer does not yet rotate text for vertical directions.
     /// </summary>
     public CellTextDirection TextDirection { get; init; } = CellTextDirection.LeftToRight;
 }

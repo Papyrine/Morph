@@ -1493,6 +1493,11 @@ sealed class PageRenderer(RenderContext context) :
         var padding = TableLayout.GetEffectivePadding(cell.Properties, tableProps);
         var margin = TableLayout.GetEffectiveMargin(cell.Properties, tableProps);
 
+        if (cell.Properties.TextDirection != CellTextDirection.LeftToRight)
+        {
+            return MeasureVerticalCellHeight(cell, padding, margin);
+        }
+
         // Calculate available content width within the cell
         var contentWidth = cellWidth - (float) (padding.Horizontal + margin.Horizontal);
 
@@ -1586,6 +1591,76 @@ sealed class PageRenderer(RenderContext context) :
         return height;
     }
 
+    float MeasureVerticalCellHeight(TableCell cell, CellSpacing padding, CellSpacing margin)
+    {
+        // For btLr / tbRl cells, the cell's vertical extent in the row equals the longest
+        // paragraph's natural single-line width. Multiple paragraphs stack horizontally
+        // (along the row direction) so they don't add to the cell's height contribution.
+        var widest = 0f;
+        foreach (var element in cell.Content)
+        {
+            var para = element as ParagraphElement;
+            if (para == null && element is ContentControlElement cc && cc.Runs is { Count: > 0 })
+            {
+                para = new() { Runs = cc.Runs, Properties = new() };
+            }
+
+            if (para == null)
+            {
+                continue;
+            }
+
+            var natural = textRenderer.MeasureParagraphNaturalWidth(para, float.MaxValue / 4);
+            if (natural > widest)
+            {
+                widest = natural;
+            }
+        }
+
+        return (float) (padding.Vertical + margin.Vertical) + widest;
+    }
+
+    void RenderVerticalCellContent(TableCell cell, float cellX, float cellY, float cellWidth, float cellHeight, CellSpacing padding)
+    {
+        if (currentCanvas == null)
+        {
+            return;
+        }
+
+        var contentX = cellX + (float) padding.Left;
+        var contentY = cellY + (float) padding.Top;
+        var contentWidth = cellWidth - (float) padding.Horizontal;
+        var availableHeight = cellHeight - (float) padding.Vertical;
+
+        // BottomToTop: rotate -90 around bottom-left of the content rect.
+        // TopToBottom: rotate +90 around top-right of the content rect.
+        var bottomToTop = cell.Properties.TextDirection == CellTextDirection.BottomToTop;
+        var pivotXpx = context.PointsToPixels(bottomToTop ? contentX : contentX + contentWidth);
+        var pivotYpx = context.PointsToPixels(bottomToTop ? contentY + availableHeight : contentY);
+
+        currentCanvas.Save();
+        currentCanvas.Translate(pivotXpx, pivotYpx);
+        currentCanvas.RotateDegrees(bottomToTop ? -90 : 90);
+
+        var savedY = context.CurrentY;
+        context.CurrentY = 0;
+
+        foreach (var element in cell.Content)
+        {
+            if (element is ParagraphElement para)
+            {
+                RenderParagraphInBounds(para, 0, availableHeight);
+            }
+            else if (element is ContentControlElement contentControl)
+            {
+                RenderContentControlInCell(contentControl, 0, availableHeight);
+            }
+        }
+
+        context.CurrentY = savedY;
+        currentCanvas.Restore();
+    }
+
     void RenderTableCell(TableCell cell, float x, float y, float width, float height, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols)
     {
         if (currentCanvas == null)
@@ -1644,6 +1719,12 @@ sealed class PageRenderer(RenderContext context) :
                 ConfigureBorderPaint(paint, borders.Left);
                 currentCanvas.DrawLine(pixelX, pixelY, pixelX, pixelY + pixelHeight, paint);
             }
+        }
+
+        if (cell.Properties.TextDirection != CellTextDirection.LeftToRight)
+        {
+            RenderVerticalCellContent(cell, cellX, cellY, cellWidth, cellHeight, padding);
+            return;
         }
 
         // Render cell content

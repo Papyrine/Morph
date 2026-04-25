@@ -881,7 +881,7 @@ Horizontal alignment of the table on the page (left, center, right).
 > **Contributors**: When the table is wider than the content area, `Math.Max(0, slack)` keeps it pinned at the left edge instead of shifting off-page.
 
 
-#### Table Cell Text Direction `PARTIAL`
+#### Table Cell Text Direction `DONE`
 
 Rotated text direction within cells (bottom-to-top, top-to-bottom).
 
@@ -889,9 +889,10 @@ Rotated text direction within cells (bottom-to-top, top-to-bottom).
 - **Model**: `CellTextDirection` enum (`LeftToRight`, `BottomToTop`, `TopToBottom`); `TableCellProperties.TextDirection`
 - **Parse**: cell-properties parser reads `w:textDirection` and maps `btLr` → `BottomToTop`, `tbRl` → `TopToBottom`
 - **Spec**: [TextDirection](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.textdirection)
-- **Render**: not yet — vertical-direction cells render with horizontal text. Capturing this lets consumers detect and skip cells they can't render meaningfully.
+- **Render**: Skia's `PageRenderer.RenderVerticalCellContent` wraps the cell's content draw in `SKCanvas.Save / Translate / RotateDegrees(±90) / Restore` around the bottom-left (btLr) or top-right (tbRl) of the content rect. ImageSharp renders the unrotated text into a temp `Image<Rgba32>` and applies `Mutate(_ => _.Rotate(±90))` before blitting at the cell's content origin.
+- **Test**: `table_text_direction/`
 
-> **Contributors**: Marked PARTIAL until the renderer wraps cell content in a `SKCanvas.RotateDegrees(±90)` (Skia) or equivalent rotation in ImageSharp.
+> **Contributors**: Row-height contribution for vertical cells comes from `MeasureParagraphNaturalWidth` — the longest paragraph's natural single-line width becomes the cell's vertical extent. Multiple paragraphs in one vertical cell stack horizontally (along the row direction) so they don't add to the cell's height contribution. Cells where the rotated text exceeds the column's available height aren't reflowed; vertical-alignment within rotated cells is currently treated as Top.
 
 ---
 
@@ -1946,7 +1947,7 @@ Read-only mode, form protection, and editing restrictions.
 | 1. Text Formatting | 12 | 7 | 0 | 19 |
 | 2. Paragraph Formatting | 11 | 1 | 0 | 12 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
-| 4. Tables | 13 | 4 | 0 | 17 |
+| 4. Tables | 14 | 3 | 0 | 17 |
 | 5. Page Layout & Sections | 16 | 1 | 1 | 18 |
 | 6. Graphics & Media | 12 | 1 | 6 | 19 |
 | 7. Form Controls | 10 | 0 | 0 | 10 |
@@ -1955,19 +1956,20 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 6 | 1 | 8 |
 | 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **108** | **33** | **0** | **141** |
+| **Total** | **109** | **32** | **0** | **141** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 108
-    "Partial" : 33
+    "Done" : 109
+    "Partial" : 32
     "Todo" : 0
 ```
 
 **Overall coverage: 77% fully implemented, 23% partial, 0% remaining.**
+
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)

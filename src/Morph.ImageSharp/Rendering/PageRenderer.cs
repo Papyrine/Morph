@@ -1044,6 +1044,12 @@ sealed class PageRenderer(RenderContext context) :
     {
         var padding = GetEffectivePadding(cell.Properties, tableProps);
         var margin = GetEffectiveMargin(cell.Properties, tableProps);
+
+        if (cell.Properties.TextDirection != CellTextDirection.LeftToRight)
+        {
+            return MeasureVerticalCellHeight(cell, padding, margin);
+        }
+
         var contentWidth = cellWidth - (float) (padding.Horizontal + margin.Horizontal);
         var height = (float) (padding.Vertical + margin.Vertical);
 
@@ -1140,6 +1146,82 @@ sealed class PageRenderer(RenderContext context) :
     static CellSpacing GetEffectiveMargin(TableCellProperties cellProps, TableProperties tableProps) =>
         TableLayout.GetEffectiveMargin(cellProps, tableProps);
 
+    float MeasureVerticalCellHeight(TableCell cell, CellSpacing padding, CellSpacing margin)
+    {
+        var widest = 0f;
+        foreach (var element in cell.Content)
+        {
+            var para = element as ParagraphElement;
+            if (para == null && element is ContentControlElement cc && cc.Runs is { Count: > 0 })
+            {
+                para = new() { Runs = cc.Runs, Properties = new() };
+            }
+
+            if (para == null)
+            {
+                continue;
+            }
+
+            var natural = textRenderer.MeasureParagraphNaturalWidth(para, float.MaxValue / 4);
+            if (natural > widest)
+            {
+                widest = natural;
+            }
+        }
+
+        return (float) (padding.Vertical + margin.Vertical) + widest;
+    }
+
+    void RenderVerticalCellContent(TableCell cell, float cellX, float cellY, float cellWidth, float cellHeight, CellSpacing padding)
+    {
+        if (currentPage == null)
+        {
+            return;
+        }
+
+        var contentX = cellX + (float) padding.Left;
+        var contentY = cellY + (float) padding.Top;
+        var contentWidth = cellWidth - (float) padding.Horizontal;
+        var availableHeight = cellHeight - (float) padding.Vertical;
+
+        // Render unrotated into a temp image whose width is the rotated wrap-width
+        // (real-space cell vertical extent) and whose height is the rotated cross-axis
+        // (real-space cell horizontal extent). Then rotate ±90 and blit.
+        var tempW = (int) Math.Ceiling(context.PointsToPixels(availableHeight));
+        var tempH = (int) Math.Ceiling(context.PointsToPixels(contentWidth));
+        if (tempW <= 0 || tempH <= 0)
+        {
+            return;
+        }
+
+        using var tempImage = new Image<Rgba32>(tempW, tempH);
+
+        var savedY = context.CurrentY;
+        context.CurrentY = 0;
+
+        foreach (var element in cell.Content)
+        {
+            if (element is ParagraphElement para)
+            {
+                textRenderer.RenderParagraphInBounds(tempImage, para, 0, availableHeight);
+            }
+            else if (element is ContentControlElement cc && cc.Runs is { Count: > 0 })
+            {
+                var ccPara = new ParagraphElement { Runs = cc.Runs, Properties = new() };
+                textRenderer.RenderParagraphInBounds(tempImage, ccPara, 0, availableHeight);
+            }
+        }
+
+        context.CurrentY = savedY;
+
+        var bottomToTop = cell.Properties.TextDirection == CellTextDirection.BottomToTop;
+        tempImage.Mutate(_ => _.Rotate(bottomToTop ? -90f : 90f));
+
+        var drawX = (int) context.PointsToPixels(contentX);
+        var drawY = (int) context.PointsToPixels(contentY);
+        currentPage.Mutate(_ => _.DrawImage(tempImage, new Point(drawX, drawY), 1f));
+    }
+
     void RenderTableCell(TableCell cell, float x, float y, float width, float height, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols)
     {
         if (currentPage == null)
@@ -1191,6 +1273,12 @@ sealed class PageRenderer(RenderContext context) :
                     DrawBorderLine(_, pixelX, pixelY, pixelX, pixelY + pixelHeight, borders.Left);
                 }
             });
+        }
+
+        if (cell.Properties.TextDirection != CellTextDirection.LeftToRight)
+        {
+            RenderVerticalCellContent(cell, cellX, cellY, cellWidth, cellHeight, padding);
+            return;
         }
 
         var savedY = context.CurrentY;
