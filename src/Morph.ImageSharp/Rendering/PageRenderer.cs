@@ -839,10 +839,31 @@ sealed class PageRenderer(RenderContext context) :
 
     void RenderTableRowByRow(TableElement table, int colCount, float[] colWidths, float[] rowHeights)
     {
+        var headerCount = 0;
+        while (headerCount < table.Rows.Count && table.Rows[headerCount].IsHeader)
+        {
+            headerCount++;
+        }
+
         for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
         {
             var rowHeight = rowHeights[rowIndex];
+
+            var yBefore = context.CurrentY;
             EnsureSpaceFor(rowHeight);
+            var pageBroke = context.CurrentY < yBefore;
+
+            if (pageBroke && headerCount > 0 && rowIndex >= headerCount)
+            {
+                var tableXHeader = ComputeTableX(table, colWidths);
+                for (var h = 0; h < headerCount; h++)
+                {
+                    var headerHeight = rowHeights[h];
+                    var headerY = context.CurrentY;
+                    RenderTableRow(table, h, colCount, colWidths, rowHeights, tableXHeader, headerY);
+                    context.CurrentY += headerHeight;
+                }
+            }
 
             var tableX = ComputeTableX(table, colWidths);
             var currentY = context.CurrentY;

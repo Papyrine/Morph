@@ -854,7 +854,7 @@ Automatic column width adjustment based on content.
 > **Contributors**: Marked PARTIAL until the renderer measures cell content and reflows columns when `IsAutoFit` is true (currently the grid widths from `w:tblGrid` are used regardless).
 
 
-#### Header Row Repeat `PARTIAL`
+#### Header Row Repeat `DONE`
 
 Repeats the first row(s) as header on each page when a table spans multiple pages.
 
@@ -862,10 +862,9 @@ Repeats the first row(s) as header on each page when a table spans multiple page
 - **Spec**: [Table Header](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.tableheader)
 - **Model**: `TableRow.IsHeader`
 - **Parse**: `DocumentParser.ParseTable()` reads `w:trPr/w:tblHeader`
-- **Render**: not yet — header rows render once at the top of the table; multi-page tables don't repeat them at each page break.
+- **Render**: `PageRenderer.RenderTableRowByRow` (both backends) detects page breaks via `EnsureSpaceFor` and re-renders the contiguous leading header rows before continuing with the data row.
 
-> **Contributors**: Marked PARTIAL until `RenderTableRowByRow` re-renders the contiguous header rows after each page break in both backends.
-> **AI**: To finish, in both `PageRenderer.RenderTableRowByRow` paths track whether the current row is the first row on a freshly-started page (compare `context.CurrentY` to `context.ContentTop` after `EnsureSpaceFor`). When it is and the current row isn't itself a header, render `table.Rows.TakeWhile(_ => _.IsHeader)` first.
+> **Contributors**: Only kicks in for `RenderTableRowByRow` — the multi-page rendering path. Single-page tables still render headers once. The detection compares `context.CurrentY` before and after `EnsureSpaceFor` to spot the page break.
 
 
 #### Table Alignment `DONE`

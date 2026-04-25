@@ -1250,14 +1250,37 @@ sealed class PageRenderer(RenderContext context) :
     /// </summary>
     void RenderTableRowByRow(TableElement table, int colCount, float[] colWidths, float[] rowHeights)
     {
+        // Count contiguous header rows from the top (w:tblHeader). They get re-rendered after each page break.
+        var headerCount = 0;
+        while (headerCount < table.Rows.Count && table.Rows[headerCount].IsHeader)
+        {
+            headerCount++;
+        }
+
         for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
         {
             var rowHeight = rowHeights[rowIndex];
 
             // Ensure space for this row - may trigger a page break
+            var yBefore = context.CurrentY;
             EnsureSpaceFor(rowHeight);
+            var pageBroke = context.CurrentY < yBefore;
 
-            // Get current position after potential page break
+            // After a page break, re-emit any header rows before continuing — but skip when the
+            // current row is itself one of those headers (e.g. the very first row on the very first page).
+            if (pageBroke && headerCount > 0 && rowIndex >= headerCount)
+            {
+                var tableXHeader = ComputeTableX(table, colWidths);
+                for (var h = 0; h < headerCount; h++)
+                {
+                    var headerHeight = rowHeights[h];
+                    var headerY = context.CurrentY;
+                    RenderTableRow(table, h, colCount, colWidths, rowHeights, tableXHeader, headerY);
+                    context.CurrentY += headerHeight;
+                }
+            }
+
+            // Get current position after potential page break and header repeat
             var tableX = ComputeTableX(table, colWidths);
             var currentY = context.CurrentY;
 
