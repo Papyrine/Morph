@@ -3062,6 +3062,26 @@ sealed class DocumentParser(string defaultFont)
 
                     break;
 
+                case SimpleField simpleField:
+                    // w:fldSimple wraps the cached result runs of a legacy field. Render them inline;
+                    // the field instruction itself is captured separately on ParsedDocument.FieldCodes.
+                    foreach (var fieldRun in simpleField.Descendants<OoxmlRun>())
+                    {
+                        runs.AddRange(ParseRun(fieldRun, mainPart, paragraphStyleId));
+                    }
+
+                    break;
+
+                case Hyperlink hyperlink:
+                    // w:hyperlink wraps runs that point at an external URL or internal anchor. The
+                    // visible content is the inner runs; rendering ignores the link target for now.
+                    foreach (var hlRun in hyperlink.Elements<OoxmlRun>())
+                    {
+                        runs.AddRange(ParseRun(hlRun, mainPart, paragraphStyleId));
+                    }
+
+                    break;
+
                 case OoxmlRun run:
                     // Check for legacy form fields (FieldChar with FormFieldData)
                     var formField = ParseFormField(run);
