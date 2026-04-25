@@ -356,11 +356,12 @@ internal sealed class HtmlParser
                     var text = textNode.TextContent;
                     if (!string.IsNullOrEmpty(text))
                     {
-                        runs.Add(new()
-                        {
-                            Text = text,
-                            Properties = props
-                        });
+                        runs.Add(
+                            new()
+                            {
+                                Text = text,
+                                Properties = props
+                            });
                     }
 
                     break;
@@ -428,41 +429,54 @@ internal sealed class HtmlParser
                 break;
 
             case "br":
-                runs.Add(new()
-                {
-                    Text = "\n",
-                    Properties = props
-                });
+                runs.Add(
+                    new()
+                    {
+                        Text = "\n",
+                        Properties = props
+                    });
                 break;
 
             case "sub":
             case "sup":
                 // Render sub/sup as smaller text
-                ParseInlineNodes(element.ChildNodes, runs, props with
-                {
-                    FontSizePoints = props.FontSizePoints * 0.7
-                });
+                ParseInlineNodes(
+                    element.ChildNodes,
+                    runs,
+                    props with
+                    {
+                        FontSizePoints = props.FontSizePoints * 0.7
+                    });
                 break;
 
             case "mark":
-                ParseInlineNodes(element.ChildNodes, runs, props with
-                {
-                    BackgroundColorHex = "FFFF00"
-                });
+                ParseInlineNodes(
+                    element.ChildNodes,
+                    runs,
+                    props with
+                    {
+                        BackgroundColorHex = "FFFF00"
+                    });
                 break;
 
             case "small":
-                ParseInlineNodes(element.ChildNodes, runs, props with
-                {
-                    FontSizePoints = props.FontSizePoints * 0.8
-                });
+                ParseInlineNodes(
+                    element.ChildNodes,
+                    runs,
+                    props with
+                    {
+                        FontSizePoints = props.FontSizePoints * 0.8
+                    });
                 break;
 
             case "code":
-                ParseInlineNodes(element.ChildNodes, runs, props with
-                {
-                    FontFamily = "Courier New"
-                });
+                ParseInlineNodes(
+                    element.ChildNodes,
+                    runs,
+                    props with
+                    {
+                        FontFamily = "Courier New"
+                    });
                 break;
 
             case "img":
@@ -471,15 +485,16 @@ internal sealed class HtmlParser
                 {
                     var imgWidth = ParseDimensionAttribute(element, "width") ?? 100;
                     var imgHeight = ParseDimensionAttribute(element, "height") ?? 100;
-                    runs.Add(new()
-                    {
-                        Text = "",
-                        Properties = props,
-                        InlineImageData = imgData,
-                        InlineImageWidthPoints = imgWidth,
-                        InlineImageHeightPoints = imgHeight,
-                        InlineImageContentType = imgContentType
-                    });
+                    runs.Add(
+                        new()
+                        {
+                            Text = "",
+                            Properties = props,
+                            InlineImageData = imgData,
+                            InlineImageWidthPoints = imgWidth,
+                            InlineImageHeightPoints = imgHeight,
+                            InlineImageContentType = imgContentType
+                        });
                 }
 
                 break;
@@ -514,7 +529,8 @@ internal sealed class HtmlParser
         }
 
         var size = element.GetAttribute("size");
-        if (!string.IsNullOrEmpty(size) && int.TryParse(size, out var sizeValue))
+        if (!string.IsNullOrEmpty(size) &&
+            int.TryParse(size, out var sizeValue))
         {
             double[] fontSizes = [8, 10, 12, 14, 18, 24, 36];
             var idx = Math.Clamp(sizeValue - 1, 0, 6);
@@ -867,7 +883,8 @@ internal sealed class HtmlParser
                 // Insert Continue cells for active rowspans
                 while (activeRowspans.ContainsKey(colIndex))
                 {
-                    cells.Add(new()
+                    cells.Add(
+                        new()
                     {
                         Content = [],
                         Properties = new()
@@ -932,7 +949,8 @@ internal sealed class HtmlParser
                     });
                 }
 
-                cells.Add(new()
+                cells.Add(
+                    new()
                 {
                     Content = cellElements,
                     Properties = new()
@@ -951,7 +969,8 @@ internal sealed class HtmlParser
             // Insert trailing Continue cells for active rowspans
             while (activeRowspans.ContainsKey(colIndex))
             {
-                cells.Add(new()
+                cells.Add(
+                    new()
                 {
                     Content = [],
                     Properties = new()
@@ -982,7 +1001,8 @@ internal sealed class HtmlParser
 
             if (cells.Count > 0)
             {
-                rows.Add(new()
+                rows.Add(
+                    new()
                 {
                     Cells = cells
                 });

@@ -600,7 +600,7 @@ sealed class DocumentParser(string defaultFont)
             {
                 if (current is Paragraph p && paragraphOrdinals.TryGetValue(p, out var idx))
                 {
-                    anchorByCommentId[rangeId.ToString()] = idx;
+                    anchorByCommentId[rangeId] = idx;
                     break;
                 }
             }
@@ -621,12 +621,12 @@ sealed class DocumentParser(string defaultFont)
                 date = dateValue;
             }
 
-            int? anchor = anchorByCommentId.TryGetValue(id.ToString(), out var idx) ? idx : null;
+            int? anchor = anchorByCommentId.TryGetValue(id, out var idx) ? idx : null;
 
             result.Add(
                 new()
                 {
-                    Id = id.ToString(),
+                    Id = id,
                     Author = ooxmlComment.Author?.Value,
                     Text = text,
                     Date = date,
@@ -2631,22 +2631,23 @@ sealed class DocumentParser(string defaultFont)
                     }
                 }
 
-                cells.Add(new()
-                {
-                    Content = cellContent,
-                    Properties = new()
+                cells.Add(
+                    new()
                     {
-                        WidthPoints = width,
-                        BackgroundColorHex = bgColor,
-                        Padding = cellPadding,
-                        Margin = cellMargin,
-                        Borders = cellBorders,
-                        GridSpan = gridSpan,
-                        VerticalAlignment = verticalAlign,
-                        VerticalMerge = verticalMerge,
-                        TextDirection = textDirection
-                    }
-                });
+                        Content = cellContent,
+                        Properties = new()
+                        {
+                            WidthPoints = width,
+                            BackgroundColorHex = bgColor,
+                            Padding = cellPadding,
+                            Margin = cellMargin,
+                            Borders = cellBorders,
+                            GridSpan = gridSpan,
+                            VerticalAlignment = verticalAlign,
+                            VerticalMerge = verticalMerge,
+                            TextDirection = textDirection
+                        }
+                    });
 
                 gridColIndex += gridSpan;
             }
@@ -2673,13 +2674,14 @@ sealed class DocumentParser(string defaultFont)
                 }
             }
 
-            rows.Add(new()
-            {
-                Cells = cells,
-                HeightPoints = rowHeight,
-                IsExactHeight = isExactHeight,
-                IsHeader = isHeader
-            });
+            rows.Add(
+                new()
+                {
+                    Cells = cells,
+                    HeightPoints = rowHeight,
+                    IsExactHeight = isExactHeight,
+                    IsHeader = isHeader
+                });
         }
 
         if (rows.Count == 0)
@@ -3034,11 +3036,12 @@ sealed class DocumentParser(string defaultFont)
 
                                 // Line break - add newline character
                                 var runProps = ParseRunProperties(sdtChildRun.RunProperties, mainPart);
-                                runs.Add(new()
-                                {
-                                    Text = "\n",
-                                    Properties = runProps
-                                });
+                                runs.Add(
+                                    new()
+                                    {
+                                        Text = "\n",
+                                        Properties = runProps
+                                    });
                                 continue;
                             }
 
@@ -3115,11 +3118,12 @@ sealed class DocumentParser(string defaultFont)
                             }
 
                             var runProps = ParseRunProperties(sdtCellRun.RunProperties, mainPart);
-                            runs.Add(new()
-                            {
-                                Text = "\n",
-                                Properties = runProps
-                            });
+                            runs.Add(
+                                new()
+                                {
+                                    Text = "\n",
+                                    Properties = runProps
+                                });
                             continue;
                         }
 
@@ -3171,11 +3175,12 @@ sealed class DocumentParser(string defaultFont)
                             }
 
                             var runProps = ParseRunProperties(sdtBlockRun.RunProperties, mainPart);
-                            runs.Add(new()
-                            {
-                                Text = "\n",
-                                Properties = runProps
-                            });
+                            runs.Add(
+                                new()
+                                {
+                                    Text = "\n",
+                                    Properties = runProps
+                                });
                             continue;
                         }
 
@@ -3438,22 +3443,27 @@ sealed class DocumentParser(string defaultFont)
                                     .Select(t => t.Text));
                                 if (!string.IsNullOrEmpty(textBefore))
                                 {
-                                    runs.Add(new()
-                                    {
-                                        Text = textBefore,
-                                        Properties = parsedProps
-                                    });
+                                    runs.Add(
+                                        new()
+                                        {
+                                            Text = textBefore,
+                                            Properties = parsedProps
+                                        });
                                 }
 
                                 // Add the line break as a newline character
-                                runs.Add(new()
-                                {
-                                    Text = "\n",
-                                    Properties = parsedProps
-                                });
+                                runs.Add(
+                                    new()
+                                    {
+                                        Text = "\n",
+                                        Properties = parsedProps
+                                    });
                             }
                         }
-                        else if (lastRenderedPageBreakCount >= 20 && runChild is LastRenderedPageBreak && !run.Descendants<Text>().Any() && !run.Descendants<Break>().Any())
+                        else if (lastRenderedPageBreakCount >= 20 &&
+                                 runChild is LastRenderedPageBreak &&
+                                 !run.Descendants<Text>().Any() &&
+                                 !run.Descendants<Break>().Any())
                         {
                             // Word caches pagination using lastRenderedPageBreak. Only treat it as a page boundary hint
                             // when the document has lots of these markers (i.e., likely reflects full-document pagination).
@@ -3461,11 +3471,12 @@ sealed class DocumentParser(string defaultFont)
                             {
                                 if (runs.Count > 0)
                                 {
-                                    result.Add(new ParagraphElement
-                                    {
-                                        Runs = new List<Run>(runs),
-                                        Properties = props
-                                    });
+                                    result.Add(
+                                        new ParagraphElement
+                                        {
+                                            Runs = new List<Run>(runs),
+                                            Properties = props
+                                        });
                                     runs.Clear();
                                 }
 
@@ -5663,15 +5674,18 @@ sealed class DocumentParser(string defaultFont)
             {
                 // Check for line breaks within the run
                 var breakElement = run.GetFirstChild<Break>();
-                if (breakElement != null && breakElement.Type?.Value != BreakValues.Page && breakElement.Type?.Value != BreakValues.Column)
+                if (breakElement != null &&
+                    breakElement.Type?.Value != BreakValues.Page &&
+                    breakElement.Type?.Value != BreakValues.Column)
                 {
                     // Line break - add newline character
                     var runProps = ParseRunProperties(run.RunProperties, mainPart);
-                    styledRuns.Add(new()
-                    {
-                        Text = "\n",
-                        Properties = runProps
-                    });
+                    styledRuns.Add(
+                        new()
+                        {
+                            Text = "\n",
+                            Properties = runProps
+                        });
                     continue;
                 }
 
@@ -6287,11 +6301,12 @@ sealed class DocumentParser(string defaultFont)
                 return;
             }
 
-            result.Add(new()
-            {
-                Text = textBuilder.ToString(),
-                Properties = GetProperties()
-            });
+            result.Add(
+                new()
+                {
+                    Text = textBuilder.ToString(),
+                    Properties = GetProperties()
+                });
             textBuilder.Clear();
         }
 
@@ -6310,12 +6325,13 @@ sealed class DocumentParser(string defaultFont)
                     break;
                 case TabChar:
                     FlushText();
-                    result.Add(new()
-                    {
-                        Text = "\t",
-                        Properties = GetProperties(),
-                        IsTab = true
-                    });
+                    result.Add(
+                        new()
+                        {
+                            Text = "\t",
+                            Properties = GetProperties(),
+                            IsTab = true
+                        });
                     break;
             }
         }

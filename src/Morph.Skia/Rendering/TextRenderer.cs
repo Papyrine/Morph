@@ -231,7 +231,6 @@ sealed class TextRenderer(RenderContext context)
         // Reserve "excess" top space so the border sits clear of the previous paragraph.
         context.CurrentY += topSpaceExtra;
         var paragraphStartY = context.CurrentY;
-        var hasBorders = props.Borders is {HasAnyBorder: true};
 
         var isFirstLine = true;
         foreach (var line in lines)
@@ -259,7 +258,12 @@ sealed class TextRenderer(RenderContext context)
             // Calculate extra space per gap for justified text
             // Justified alignment distributes extra space between words, except on the last line
             float extraSpacePerGap = 0;
-            if (props.Alignment == TextAlignment.Justify && line is {IsLastLine: false, Fragments.Count: > 1})
+            if (props.Alignment == TextAlignment.Justify &&
+                line is
+                {
+                    IsLastLine: false,
+                    Fragments.Count: > 1
+                })
             {
                 var availableWidth = context.ContentWidth - (float)props.LeftIndentPoints - (float)props.RightIndentPoints;
                 // First line uses FirstLineIndent, subsequent use HangingIndent
@@ -282,9 +286,8 @@ sealed class TextRenderer(RenderContext context)
 
             // Render each fragment in the line
             var currentX = x;
-            for (var i = 0; i < line.Fragments.Count; i++)
+            foreach (var fragment in line.Fragments)
             {
-                var fragment = line.Fragments[i];
                 RenderFragment(canvas, fragment, currentX, y);
                 currentX += fragment.Width;
 
@@ -372,14 +375,15 @@ sealed class TextRenderer(RenderContext context)
         // spacing-after too so the shared edges visually fuse with the next paragraph.
         var spacingAfter = (float)props.SpacingAfterPoints;
         var collapsedBottom = context.SuppressNextParagraphTopBorder;
-        if (!props.ContextualSpacing && !collapsedBottom)
+        if (props.ContextualSpacing ||
+            collapsedBottom)
         {
-            context.CurrentY += spacingAfter + bottomSpaceExtra;
-            context.LastParagraphSpacingAfterPoints = spacingAfter;
+            context.LastParagraphSpacingAfterPoints = 0;
         }
         else
         {
-            context.LastParagraphSpacingAfterPoints = 0;
+            context.CurrentY += spacingAfter + bottomSpaceExtra;
+            context.LastParagraphSpacingAfterPoints = spacingAfter;
         }
 
         // Track contextual spacing state for next paragraph
@@ -428,7 +432,8 @@ sealed class TextRenderer(RenderContext context)
             // Calculate extra space per gap for justified text
             float extraSpacePerGap = 0;
             var effectiveWidth = width - bulletIndent - (float)props.LeftIndentPoints;
-            if (props.Alignment == TextAlignment.Justify && line is {IsLastLine: false, Fragments.Count: > 1})
+            if (props.Alignment == TextAlignment.Justify &&
+                line is {IsLastLine: false, Fragments.Count: > 1})
             {
                 if (line.IsFirstLine)
                 {
@@ -445,9 +450,8 @@ sealed class TextRenderer(RenderContext context)
 
             // Render each fragment in the line
             var currentX = x;
-            for (var i = 0; i < line.Fragments.Count; i++)
+            foreach (var fragment in line.Fragments)
             {
-                var fragment = line.Fragments[i];
                 RenderFragment(canvas, fragment, currentX, y);
                 currentX += fragment.Width;
 
@@ -458,7 +462,12 @@ sealed class TextRenderer(RenderContext context)
                 }
             }
 
-            if (line.IsLastLine && props is {LineSpacingRule: LineSpacingRule.Auto, LineSpacingMultiplier: < 1.0})
+            if (line.IsLastLine &&
+                props is
+                {
+                    LineSpacingRule: LineSpacingRule.Auto,
+                    LineSpacingMultiplier: < 1.0
+                })
             {
                 lineHeight = Math.Max(lineHeight, line.Height);
             }
@@ -510,7 +519,7 @@ sealed class TextRenderer(RenderContext context)
             if (run.IsTab)
             {
                 var followingWidth = MeasureFollowingWidthNoScale(paragraph, runIndex + 1);
-                var leftIndentPts = (float)props.LeftIndentPoints;
+                var leftIndentPts = (float) props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
                 double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
                     ? MeasureFollowingDecimalPrefixNoScale(paragraph, runIndex + 1)
@@ -519,7 +528,7 @@ sealed class TextRenderer(RenderContext context)
                     cursorAbs, followingWidth,
                     props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
                     decimalPrefix);
-                var gap = (float)(destinationAbs - cursorAbs);
+                var gap = (float) (destinationAbs - cursorAbs);
                 if (gap <= 0 || currentLineWidth + gap > effectiveWidth)
                 {
                     continue;
@@ -530,14 +539,15 @@ sealed class TextRenderer(RenderContext context)
                 var tabRunHeight = (-tabMetrics.Ascent + tabMetrics.Descent) / context.Scale;
                 var tabBaseline = -tabMetrics.Ascent / context.Scale;
 
-                currentFragments.Add(new()
-                {
-                    Text = "",
-                    Width = gap,
-                    Properties = run.Properties,
-                    IsTabFiller = true,
-                    TabLeader = matchedStop?.Leader ?? TabLeader.None
-                });
+                currentFragments.Add(
+                    new()
+                    {
+                        Text = "",
+                        Width = gap,
+                        Properties = run.Properties,
+                        IsTabFiller = true,
+                        TabLeader = matchedStop?.Leader ?? TabLeader.None
+                    });
                 currentLineWidth += gap;
                 maxLineHeight = Math.Max(maxLineHeight, tabRunHeight);
                 maxBaseline = Math.Max(maxBaseline, tabBaseline);
@@ -547,21 +557,22 @@ sealed class TextRenderer(RenderContext context)
             // Handle inline images - treat as a single "word" in the text flow
             if (run.InlineImageData is {Length: > 0})
             {
-                var imageWidth = (float)run.InlineImageWidthPoints;
-                var imageHeight = (float)run.InlineImageHeightPoints;
+                var imageWidth = (float) run.InlineImageWidthPoints;
+                var imageHeight = (float) run.InlineImageHeightPoints;
 
                 // Check if we need to wrap before the image
                 if (currentLineWidth + imageWidth > effectiveWidth && currentFragments.Count > 0)
                 {
                     // Finish current line
-                    lines.Add(new()
-                    {
-                        Fragments = [..currentFragments],
-                        Width = currentLineWidth,
-                        Height = maxLineHeight,
-                        Baseline = maxBaseline,
-                        IsFirstLine = isFirstLine
-                    });
+                    lines.Add(
+                        new()
+                        {
+                            Fragments = [..currentFragments],
+                            Width = currentLineWidth,
+                            Height = maxLineHeight,
+                            Baseline = maxBaseline,
+                            IsFirstLine = isFirstLine
+                        });
                     currentFragments.Clear();
                     currentLineWidth = 0;
                     maxLineHeight = 0;
@@ -571,17 +582,18 @@ sealed class TextRenderer(RenderContext context)
                 }
 
                 // Add inline image fragment
-                currentFragments.Add(new()
-                {
-                    Text = "",
-                    Width = imageWidth,
-                    Properties = run.Properties,
-                    InlineImageData = run.InlineImageData,
-                    InlineImageHeightPoints = imageHeight,
-                    InlineImageContentType = run.InlineImageContentType,
-                    InlineImageRotationDegrees = run.InlineImageRotationDegrees,
-                    InlineImageCrop = run.InlineImageCrop
-                });
+                currentFragments.Add(
+                    new()
+                    {
+                        Text = "",
+                        Width = imageWidth,
+                        Properties = run.Properties,
+                        InlineImageData = run.InlineImageData,
+                        InlineImageHeightPoints = imageHeight,
+                        InlineImageContentType = run.InlineImageContentType,
+                        InlineImageRotationDegrees = run.InlineImageRotationDegrees,
+                        InlineImageCrop = run.InlineImageCrop
+                    });
                 currentLineWidth += imageWidth;
                 maxLineHeight = Math.Max(maxLineHeight, imageHeight);
                 // The baseline needs to be at least the image height so the image doesn't overlap content above
@@ -606,26 +618,28 @@ sealed class TextRenderer(RenderContext context)
                     // Force a line break - finish current line
                     if (currentFragments.Count > 0)
                     {
-                        lines.Add(new()
-                        {
-                            Fragments = [..currentFragments],
-                            Width = currentLineWidth,
-                            Height = maxLineHeight,
-                            Baseline = maxBaseline,
-                            IsFirstLine = isFirstLine
-                        });
+                        lines.Add(
+                            new()
+                            {
+                                Fragments = [..currentFragments],
+                                Width = currentLineWidth,
+                                Height = maxLineHeight,
+                                Baseline = maxBaseline,
+                                IsFirstLine = isFirstLine
+                            });
                     }
                     else
                     {
                         // Empty line - still add it with font metrics
-                        lines.Add(new()
-                        {
-                            Fragments = [],
-                            Width = 0,
-                            Height = runHeight,
-                            Baseline = baseline,
-                            IsFirstLine = isFirstLine
-                        });
+                        lines.Add(
+                            new()
+                            {
+                                Fragments = [],
+                                Width = 0,
+                                Height = runHeight,
+                                Baseline = baseline,
+                                IsFirstLine = isFirstLine
+                            });
                     }
 
                     // Start new line
@@ -640,20 +654,21 @@ sealed class TextRenderer(RenderContext context)
 
                 // Convert pixel measurements back to points, including character spacing
                 var wordWidth = font.MeasureText(word) / context.Scale
-                                + (float)(run.Properties.CharacterSpacingPoints * word.Length);
+                                + (float) (run.Properties.CharacterSpacingPoints * word.Length);
 
                 // Check if we need to wrap
                 if (currentLineWidth + wordWidth > effectiveWidth && currentFragments.Count > 0)
                 {
                     // Finish current line
-                    lines.Add(new()
-                    {
-                        Fragments = [..currentFragments],
-                        Width = currentLineWidth,
-                        Height = maxLineHeight,
-                        Baseline = maxBaseline,
-                        IsFirstLine = isFirstLine
-                    });
+                    lines.Add(
+                        new()
+                        {
+                            Fragments = [..currentFragments],
+                            Width = currentLineWidth,
+                            Height = maxLineHeight,
+                            Baseline = maxBaseline,
+                            IsFirstLine = isFirstLine
+                        });
                     currentFragments.Clear();
                     currentLineWidth = 0;
                     maxLineHeight = 0;
@@ -663,12 +678,13 @@ sealed class TextRenderer(RenderContext context)
                 }
 
                 // Add word to current line
-                currentFragments.Add(new()
-                {
-                    Text = word,
-                    Width = wordWidth,
-                    Properties = run.Properties
-                });
+                currentFragments.Add(
+                    new()
+                    {
+                        Text = word,
+                        Width = wordWidth,
+                        Properties = run.Properties
+                    });
                 currentLineWidth += wordWidth;
                 maxLineHeight = Math.Max(maxLineHeight, runHeight);
                 maxBaseline = Math.Max(maxBaseline, baseline);
@@ -678,15 +694,16 @@ sealed class TextRenderer(RenderContext context)
         // Add final line if not empty
         if (currentFragments.Count > 0)
         {
-            lines.Add(new()
-            {
-                Fragments = [..currentFragments],
-                Width = currentLineWidth,
-                Height = maxLineHeight,
-                Baseline = maxBaseline,
-                IsFirstLine = isFirstLine,
-                IsLastLine = true  // This is the last line
-            });
+            lines.Add(
+                new()
+                {
+                    Fragments = [..currentFragments],
+                    Width = currentLineWidth,
+                    Height = maxLineHeight,
+                    Baseline = maxBaseline,
+                    IsFirstLine = isFirstLine,
+                    IsLastLine = true // This is the last line
+                });
         }
 
         // Handle empty paragraph - use font metrics from runs or paragraph mark font size
@@ -707,23 +724,25 @@ sealed class TextRenderer(RenderContext context)
             else if (props.ParagraphMarkFontSizePoints.HasValue)
             {
                 // Use paragraph mark font size for empty paragraphs
-                emptyHeight = (float)props.ParagraphMarkFontSizePoints.Value * 1.2f;
-                emptyBaseline = (float)props.ParagraphMarkFontSizePoints.Value;
+                emptyHeight = (float) props.ParagraphMarkFontSizePoints.Value * 1.2f;
+                emptyBaseline = (float) props.ParagraphMarkFontSizePoints.Value;
             }
 
-            lines.Add(new()
-            {
-                Fragments = [],
-                Width = 0,
-                Height = emptyHeight,
-                Baseline = emptyBaseline,
-                IsFirstLine = true,
-                IsLastLine = true
-            });
+            lines.Add(
+                new()
+                {
+                    Fragments = [],
+                    Width = 0,
+                    Height = emptyHeight,
+                    Baseline = emptyBaseline,
+                    IsFirstLine = true,
+                    IsLastLine = true
+                });
         }
 
         // Mark the last line if we have lines (in case final line wasn't added above)
-        if (lines.Count > 0 && !lines[^1].IsLastLine)
+        if (lines.Count > 0 &&
+            !lines[^1].IsLastLine)
         {
             var lastLine = lines[^1];
             lines[^1] = lastLine with { IsLastLine = true };
@@ -1177,7 +1196,7 @@ sealed class TextRenderer(RenderContext context)
             if (run.IsTab)
             {
                 var followingWidth = MeasureFollowingWidthScaled(paragraph, runIndex + 1);
-                var leftIndentPts = (float)props.LeftIndentPoints;
+                var leftIndentPts = (float) props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
                 double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
                     ? MeasureFollowingDecimalPrefixScaled(paragraph, runIndex + 1)
@@ -1186,7 +1205,7 @@ sealed class TextRenderer(RenderContext context)
                     cursorAbs, followingWidth,
                     props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
                     decimalPrefix);
-                var gap = (float)(destinationAbs - cursorAbs);
+                var gap = (float) (destinationAbs - cursorAbs);
                 if (gap <= 0 || currentLineWidth + gap > effectiveWidth)
                 {
                     continue;
@@ -1197,14 +1216,15 @@ sealed class TextRenderer(RenderContext context)
                 var tabRunHeight = (-tabMetrics.Ascent + tabMetrics.Descent) / context.Scale;
                 var tabBaseline = -tabMetrics.Ascent / context.Scale;
 
-                currentFragments.Add(new()
-                {
-                    Text = "",
-                    Width = gap,
-                    Properties = run.Properties,
-                    IsTabFiller = true,
-                    TabLeader = matchedStop?.Leader ?? TabLeader.None
-                });
+                currentFragments.Add(
+                    new()
+                    {
+                        Text = "",
+                        Width = gap,
+                        Properties = run.Properties,
+                        IsTabFiller = true,
+                        TabLeader = matchedStop?.Leader ?? TabLeader.None
+                    });
                 currentLineWidth += gap;
                 maxLineHeight = Math.Max(maxLineHeight, tabRunHeight);
                 maxBaseline = Math.Max(maxBaseline, tabBaseline);
@@ -1214,22 +1234,23 @@ sealed class TextRenderer(RenderContext context)
             // Handle inline images - treat as a single "word" in the text flow
             if (run.InlineImageData is {Length: > 0})
             {
-                var imageWidth = (float)run.InlineImageWidthPoints;
-                var imageHeight = (float)run.InlineImageHeightPoints;
+                var imageWidth = (float) run.InlineImageWidthPoints;
+                var imageHeight = (float) run.InlineImageHeightPoints;
 
                 // Check if we need to wrap before the image
                 if (currentLineWidth + imageWidth > effectiveWidth && currentFragments.Count > 0)
                 {
                     // Finish current line
                     var finalizedFragments = FinalizeLine(currentFragments);
-                    lines.Add(new()
-                    {
-                        Fragments = finalizedFragments,
-                        Width = currentLineWidth,
-                        Height = maxLineHeight,
-                        Baseline = maxBaseline,
-                        IsFirstLine = isFirstLine
-                    });
+                    lines.Add(
+                        new()
+                        {
+                            Fragments = finalizedFragments,
+                            Width = currentLineWidth,
+                            Height = maxLineHeight,
+                            Baseline = maxBaseline,
+                            IsFirstLine = isFirstLine
+                        });
                     currentFragments.Clear();
                     currentLineWidth = 0;
                     maxLineHeight = 0;
@@ -1239,17 +1260,18 @@ sealed class TextRenderer(RenderContext context)
                 }
 
                 // Add inline image fragment
-                currentFragments.Add(new()
-                {
-                    Text = "",
-                    Width = imageWidth,
-                    Properties = run.Properties,
-                    InlineImageData = run.InlineImageData,
-                    InlineImageHeightPoints = imageHeight,
-                    InlineImageContentType = run.InlineImageContentType,
-                    InlineImageRotationDegrees = run.InlineImageRotationDegrees,
-                    InlineImageCrop = run.InlineImageCrop
-                });
+                currentFragments.Add(
+                    new()
+                    {
+                        Text = "",
+                        Width = imageWidth,
+                        Properties = run.Properties,
+                        InlineImageData = run.InlineImageData,
+                        InlineImageHeightPoints = imageHeight,
+                        InlineImageContentType = run.InlineImageContentType,
+                        InlineImageRotationDegrees = run.InlineImageRotationDegrees,
+                        InlineImageCrop = run.InlineImageCrop
+                    });
                 currentLineWidth += imageWidth;
                 maxLineHeight = Math.Max(maxLineHeight, imageHeight);
                 // The baseline needs to be at least the image height so the image doesn't overlap content above
@@ -1275,26 +1297,28 @@ sealed class TextRenderer(RenderContext context)
                     if (currentFragments.Count > 0)
                     {
                         var finalizedFragments = FinalizeLine(currentFragments);
-                        lines.Add(new()
-                        {
-                            Fragments = finalizedFragments,
-                            Width = currentLineWidth,
-                            Height = maxLineHeight,
-                            Baseline = maxBaseline,
-                            IsFirstLine = isFirstLine
-                        });
+                        lines.Add(
+                            new()
+                            {
+                                Fragments = finalizedFragments,
+                                Width = currentLineWidth,
+                                Height = maxLineHeight,
+                                Baseline = maxBaseline,
+                                IsFirstLine = isFirstLine
+                            });
                     }
                     else
                     {
                         // Empty line - still add it with font metrics
-                        lines.Add(new()
-                        {
-                            Fragments = [],
-                            Width = 0,
-                            Height = runHeight,
-                            Baseline = runBaseline,
-                            IsFirstLine = isFirstLine
-                        });
+                        lines.Add(
+                            new()
+                            {
+                                Fragments = [],
+                                Width = 0,
+                                Height = runHeight,
+                                Baseline = runBaseline,
+                                IsFirstLine = isFirstLine
+                            });
                     }
 
                     // Start new line
@@ -1314,21 +1338,22 @@ sealed class TextRenderer(RenderContext context)
                 // Measure the display word (without soft hyphen)
                 // Apply FontWidthScale and character spacing to better match Word's text rendering
                 var wordWidth = font.MeasureText(displayWord) / context.Scale * context.FontWidthScale
-                                + (float)(run.Properties.CharacterSpacingPoints * displayWord.Length);
+                                + (float) (run.Properties.CharacterSpacingPoints * displayWord.Length);
 
                 // Check if we need to wrap to a new line
                 if (currentLineWidth + wordWidth > effectiveWidth && currentFragments.Count > 0)
                 {
                     // Finish current line - convert any trailing soft hyphens to visible hyphens
                     var finalizedFragments = FinalizeLine(currentFragments);
-                    lines.Add(new()
-                    {
-                        Fragments = finalizedFragments,
-                        Width = currentLineWidth,
-                        Height = maxLineHeight,
-                        Baseline = maxBaseline,
-                        IsFirstLine = isFirstLine
-                    });
+                    lines.Add(
+                        new()
+                        {
+                            Fragments = finalizedFragments,
+                            Width = currentLineWidth,
+                            Height = maxLineHeight,
+                            Baseline = maxBaseline,
+                            IsFirstLine = isFirstLine
+                        });
 
                     // Start new line
                     currentFragments.Clear();
@@ -1340,12 +1365,13 @@ sealed class TextRenderer(RenderContext context)
                 }
 
                 // Add word to current line (keep soft hyphen marker for now)
-                currentFragments.Add(new()
-                {
-                    Text = hasSoftHyphen ? displayWord + softHyphen : displayWord,
-                    Width = wordWidth,
-                    Properties = run.Properties
-                });
+                currentFragments.Add(
+                    new()
+                    {
+                        Text = hasSoftHyphen ? displayWord + softHyphen : displayWord,
+                        Width = wordWidth,
+                        Properties = run.Properties
+                    });
 
                 currentLineWidth += wordWidth;
                 maxLineHeight = Math.Max(maxLineHeight, runHeight);
@@ -1357,15 +1383,16 @@ sealed class TextRenderer(RenderContext context)
         if (currentFragments.Count > 0)
         {
             var finalizedFragments = RemoveSoftHyphens(currentFragments);
-            lines.Add(new()
-            {
-                Fragments = finalizedFragments,
-                Width = currentLineWidth,
-                Height = maxLineHeight,
-                Baseline = maxBaseline,
-                IsFirstLine = isFirstLine,
-                IsLastLine = true  // This is the last line with content
-            });
+            lines.Add(
+                new()
+                {
+                    Fragments = finalizedFragments,
+                    Width = currentLineWidth,
+                    Height = maxLineHeight,
+                    Baseline = maxBaseline,
+                    IsFirstLine = isFirstLine,
+                    IsLastLine = true // This is the last line with content
+                });
         }
 
         // Handle empty paragraph - use font metrics from runs if available
@@ -1388,19 +1415,20 @@ sealed class TextRenderer(RenderContext context)
             {
                 // Use paragraph mark font size for empty paragraphs
                 // Approximate height based on font size (typical ascent + descent ratio)
-                emptyHeight = (float)props.ParagraphMarkFontSizePoints.Value * 1.2f;
-                emptyBaseline = (float)props.ParagraphMarkFontSizePoints.Value;
+                emptyHeight = (float) props.ParagraphMarkFontSizePoints.Value * 1.2f;
+                emptyBaseline = (float) props.ParagraphMarkFontSizePoints.Value;
             }
 
-            lines.Add(new()
-            {
-                Fragments = [],
-                Width = 0,
-                Height = emptyHeight,
-                Baseline = emptyBaseline,
-                IsFirstLine = true,
-                IsLastLine = true
-            });
+            lines.Add(
+                new()
+                {
+                    Fragments = [],
+                    Width = 0,
+                    Height = emptyHeight,
+                    Baseline = emptyBaseline,
+                    IsFirstLine = true,
+                    IsLastLine = true
+                });
         }
 
         // Mark last line (may have been set during final line add, but ensure it's set)
@@ -1428,28 +1456,31 @@ sealed class TextRenderer(RenderContext context)
             if (i == fragments.Count - 1 && fragment.Text.EndsWith(softHyphen))
             {
                 // Last fragment ends with soft hyphen - convert to visible hyphen
-                result.Add(new()
-                {
-                    Text = fragment.Text.TrimEnd(softHyphen) + "-",
-                    Width = fragment.Width, // Width was already measured without soft hyphen
-                    Properties = fragment.Properties
-                });
+                result.Add(
+                    new()
+                    {
+                        Text = fragment.Text.TrimEnd(softHyphen) + "-",
+                        Width = fragment.Width, // Width was already measured without soft hyphen
+                        Properties = fragment.Properties
+                    });
             }
             else if (fragment.Text.Contains(softHyphen))
             {
                 // Remove soft hyphen if not at end of line
-                result.Add(new()
-                {
-                    Text = fragment.Text.Replace(softHyphenString, ""),
-                    Width = fragment.Width,
-                    Properties = fragment.Properties
-                });
+                result.Add(
+                    new()
+                    {
+                        Text = fragment.Text.Replace(softHyphenString, ""),
+                        Width = fragment.Width,
+                        Properties = fragment.Properties
+                    });
             }
             else
             {
                 result.Add(fragment);
             }
         }
+
         return result;
     }
 
@@ -1473,12 +1504,14 @@ sealed class TextRenderer(RenderContext context)
         for (var i = startRunIndex; i < paragraph.Runs.Count; i++)
         {
             var run = paragraph.Runs[i];
-            if (run.IsTab || run.InlineImageData is {Length: > 0})
+            if (run.IsTab ||
+                run.InlineImageData is {Length: > 0})
             {
                 break;
             }
 
-            if (run.Text.Contains('\n') || run.Text.Contains('\r'))
+            if (run.Text.Contains('\n') ||
+                run.Text.Contains('\r'))
             {
                 break;
             }
@@ -1508,12 +1541,14 @@ sealed class TextRenderer(RenderContext context)
         for (var i = startRunIndex; i < paragraph.Runs.Count; i++)
         {
             var run = paragraph.Runs[i];
-            if (run.IsTab || run.InlineImageData is {Length: > 0})
+            if (run.IsTab ||
+                run.InlineImageData is {Length: > 0})
             {
                 break;
             }
 
-            if (run.Text.Contains('\n') || run.Text.Contains('\r'))
+            if (run.Text.Contains('\n') ||
+                run.Text.Contains('\r'))
             {
                 break;
             }
@@ -1609,12 +1644,13 @@ sealed class TextRenderer(RenderContext context)
         {
             if (f.Text.Contains(softHyphen))
             {
-                result.Add(new()
-                {
-                    Text = f.Text.Replace(softHyphenString, ""),
-                    Width = f.Width,
-                    Properties = f.Properties
-                });
+                result.Add(
+                    new()
+                    {
+                        Text = f.Text.Replace(softHyphenString, ""),
+                        Width = f.Width,
+                        Properties = f.Properties
+                    });
             }
             else
             {

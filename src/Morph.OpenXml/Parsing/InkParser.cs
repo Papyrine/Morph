@@ -178,14 +178,15 @@ static class InkParser
                     continue;
                 }
 
-                strokes.Add(new()
-                {
-                    Points = points,
-                    ColorHex = strokeColor,
-                    WidthPoints = strokeWidth,
-                    Transparency = strokeTransparency,
-                    IsHighlighter = isHighlighter
-                });
+                strokes.Add(
+                    new()
+                    {
+                        Points = points,
+                        ColorHex = strokeColor,
+                        WidthPoints = strokeWidth,
+                        Transparency = strokeTransparency,
+                        IsHighlighter = isHighlighter
+                    });
             }
         }
 
