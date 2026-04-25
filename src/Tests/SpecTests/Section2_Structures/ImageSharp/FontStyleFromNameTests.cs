@@ -1,5 +1,4 @@
 extern alias ImageSharp;
-using ImageSharpRenderContext = ImageSharp::RenderContext;
 
 /// <summary>
 /// Tests that font names implying bold (e.g. "Arial Black") cause

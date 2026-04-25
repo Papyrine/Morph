@@ -1,10 +1,10 @@
 /// <summary>
 /// Renders document pages to PNG images using SixLabors.ImageSharp.
 /// </summary>
-sealed class PageRenderer(RenderContext context) :
+sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     IDisposable
 {
-    readonly TextRenderer textRenderer = new(context);
+    TextRenderer textRenderer = new(context);
 
     Action<Action<Stream>>? pageCallback;
     int pageCount;
@@ -555,7 +555,7 @@ sealed class PageRenderer(RenderContext context) :
         }
         else
         {
-            fillColor = RenderContext.ParseColor(wordArt.FillColorHex);
+            fillColor = ImageSharpRenderContext.ParseColor(wordArt.FillColorHex);
         }
 
         if (wordArt.HasShadow)
@@ -566,7 +566,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (wordArt is {OutlineColorHex: not null, OutlineWidthPoints: > 0})
         {
-            var outlineColor = RenderContext.ParseColor(wordArt.OutlineColorHex);
+            var outlineColor = ImageSharpRenderContext.ParseColor(wordArt.OutlineColorHex);
             var outlinePen = Pens.Solid(outlineColor, context.PointsToPixels((float) wordArt.OutlineWidthPoints));
             currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, outlinePen, new(textX, textY)));
         }
@@ -631,7 +631,7 @@ sealed class PageRenderer(RenderContext context) :
         }
         else
         {
-            fillColor = RenderContext.ParseColor(wordArt.FillColorHex);
+            fillColor = ImageSharpRenderContext.ParseColor(wordArt.FillColorHex);
         }
 
         if (wordArt.HasShadow)
@@ -642,7 +642,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (wordArt is {OutlineColorHex: not null, OutlineWidthPoints: > 0})
         {
-            var outlineColor = RenderContext.ParseColor(wordArt.OutlineColorHex);
+            var outlineColor = ImageSharpRenderContext.ParseColor(wordArt.OutlineColorHex);
             var outlinePen = Pens.Solid(outlineColor, context.PointsToPixels((float) wordArt.OutlineWidthPoints));
             currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, outlinePen, new(textX, textY)));
         }
@@ -698,7 +698,7 @@ sealed class PageRenderer(RenderContext context) :
                 continue;
             }
 
-            var color = RenderContext.ParseColor(stroke.ColorHex);
+            var color = ImageSharpRenderContext.ParseColor(stroke.ColorHex);
 
             if (stroke.Transparency > 0 || stroke.IsHighlighter)
             {
@@ -1262,7 +1262,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (cell.Properties.BackgroundColorHex != null)
         {
-            var bgColor = RenderContext.ParseColor(cell.Properties.BackgroundColorHex);
+            var bgColor = ImageSharpRenderContext.ParseColor(cell.Properties.BackgroundColorHex);
             currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
         }
 
@@ -1382,7 +1382,7 @@ sealed class PageRenderer(RenderContext context) :
 
     void DrawBorderLine(IImageProcessingContext ctx, float x1, float y1, float x2, float y2, BorderEdge edge)
     {
-        var color = RenderContext.ParseColor(edge.ColorHex ?? "000000");
+        var color = ImageSharpRenderContext.ParseColor(edge.ColorHex ?? "000000");
         var strokeWidth = context.PointsToPixels((float) edge.WidthPoints);
         var pen = Pens.Solid(color, strokeWidth);
 
@@ -1864,7 +1864,7 @@ sealed class PageRenderer(RenderContext context) :
         }
         else
         {
-            fillColor = RenderContext.ParseColor(bgColor);
+            fillColor = ImageSharpRenderContext.ParseColor(bgColor);
         }
 
         currentPage.Mutate(_ => _.Fill(fillColor, new RectangleF(0, 0, context.PageWidthPixels, context.PageHeightPixels)));
@@ -1911,25 +1911,25 @@ sealed class PageRenderer(RenderContext context) :
 
         if (borders.Top.IsVisible)
         {
-            var pen = Pens.Solid(RenderContext.ParseColor(borders.Top.ColorHex), context.PointsToPixels((float) borders.Top.WidthPoints));
+            var pen = Pens.Solid(ImageSharpRenderContext.ParseColor(borders.Top.ColorHex), context.PointsToPixels((float) borders.Top.WidthPoints));
             page.Mutate(_ => _.DrawLine(pen, new PointF(leftX, topY), new PointF(rightX, topY)));
         }
 
         if (borders.Bottom.IsVisible)
         {
-            var pen = Pens.Solid(RenderContext.ParseColor(borders.Bottom.ColorHex), context.PointsToPixels((float) borders.Bottom.WidthPoints));
+            var pen = Pens.Solid(ImageSharpRenderContext.ParseColor(borders.Bottom.ColorHex), context.PointsToPixels((float) borders.Bottom.WidthPoints));
             page.Mutate(_ => _.DrawLine(pen, new PointF(leftX, bottomY), new PointF(rightX, bottomY)));
         }
 
         if (borders.Left.IsVisible)
         {
-            var pen = Pens.Solid(RenderContext.ParseColor(borders.Left.ColorHex), context.PointsToPixels((float) borders.Left.WidthPoints));
+            var pen = Pens.Solid(ImageSharpRenderContext.ParseColor(borders.Left.ColorHex), context.PointsToPixels((float) borders.Left.WidthPoints));
             page.Mutate(_ => _.DrawLine(pen, new PointF(leftX, topY), new PointF(leftX, bottomY)));
         }
 
         if (borders.Right.IsVisible)
         {
-            var pen = Pens.Solid(RenderContext.ParseColor(borders.Right.ColorHex), context.PointsToPixels((float) borders.Right.WidthPoints));
+            var pen = Pens.Solid(ImageSharpRenderContext.ParseColor(borders.Right.ColorHex), context.PointsToPixels((float) borders.Right.WidthPoints));
             page.Mutate(_ => _.DrawLine(pen, new PointF(rightX, topY), new PointF(rightX, bottomY)));
         }
     }
@@ -1976,7 +1976,7 @@ sealed class PageRenderer(RenderContext context) :
         }
         else if (shape.FillColorHex != null)
         {
-            var fillColor = RenderContext.ParseColor(shape.FillColorHex);
+            var fillColor = ImageSharpRenderContext.ParseColor(shape.FillColorHex);
             var alpha = (float) Math.Clamp(shape.FillAlpha, 0, 1);
             if (alpha < 1f)
             {
@@ -2069,7 +2069,7 @@ sealed class PageRenderer(RenderContext context) :
             using var tempImage = new Image<Rgba32>(tempW, tempH);
             if (textBox.BackgroundColorHex != null)
             {
-                var bgColor = RenderContext.ParseColor(textBox.BackgroundColorHex);
+                var bgColor = ImageSharpRenderContext.ParseColor(textBox.BackgroundColorHex);
                 tempImage.Mutate(_ => _.Fill(bgColor));
             }
 
@@ -2100,7 +2100,7 @@ sealed class PageRenderer(RenderContext context) :
         {
             if (textBox.BackgroundColorHex != null)
             {
-                var bgFillColor = RenderContext.ParseColor(textBox.BackgroundColorHex);
+                var bgFillColor = ImageSharpRenderContext.ParseColor(textBox.BackgroundColorHex);
                 currentPage.Mutate(_ => _.Fill(bgFillColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
             }
 

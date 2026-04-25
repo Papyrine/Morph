@@ -1,6 +1,4 @@
 extern alias Skia;
-using SkiaRenderContext = Skia::RenderContext;
-using SkiaPageRenderer = Skia::PageRenderer;
 
 /// <summary>
 /// Rendering tests for HTML-parsed elements through the Skia pipeline.

@@ -1,6 +1,4 @@
 extern alias ImageSharp;
-using ImageSharpRenderContext = ImageSharp::RenderContext;
-using ImageSharpPageRenderer = ImageSharp::PageRenderer;
 
 /// <summary>
 /// Rendering tests for HTML-parsed elements through the ImageSharp pipeline.

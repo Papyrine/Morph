@@ -1,5 +1,4 @@
 extern alias ImageSharp;
-using ImageSharpRenderContext = ImageSharp::RenderContext;
 
 /// <summary>
 /// Tests for ImageSharp font style detection: italic verification,

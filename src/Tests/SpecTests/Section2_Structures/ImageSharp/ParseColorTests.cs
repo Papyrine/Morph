@@ -1,5 +1,4 @@
 extern alias ImageSharp;
-using ImageSharpRenderContext = ImageSharp::RenderContext;
 using SixLabors.ImageSharp;
 
 public class ParseColorTests

@@ -1,7 +1,7 @@
 /// <summary>
 /// Renders text content with formatting using SkiaSharp.
 /// </summary>
-sealed class TextRenderer(RenderContext context)
+sealed class TextRenderer(SkiaRenderContext context)
 {
     /// <summary>
     /// Measures the height of a paragraph when rendered at the given width.
@@ -941,7 +941,7 @@ sealed class TextRenderer(RenderContext context)
         }
 
         using var font = context.CreateFont(fragment.Properties);
-        using var paint = RenderContext.CreateTextPaint(fragment.Properties);
+        using var paint = SkiaRenderContext.CreateTextPaint(fragment.Properties);
 
         // Convert to pixels
         var pixelX = context.PointsToPixels(x);
@@ -1028,7 +1028,7 @@ sealed class TextRenderer(RenderContext context)
         if (fragment.TabLeader == TabLeader.Underscore)
         {
             // Draw a horizontal line at baseline for cleaner output than tiled underscore glyphs.
-            using var linePaint = RenderContext.CreateTextPaint(fragment.Properties);
+            using var linePaint = SkiaRenderContext.CreateTextPaint(fragment.Properties);
             linePaint.Style = SKPaintStyle.Stroke;
             linePaint.StrokeWidth = Math.Max(1f, (float)fragment.Properties.FontSizePoints * context.Scale * 0.07f);
             canvas.DrawLine(pixelStartX, pixelY, pixelEndX, pixelY, linePaint);
@@ -1045,7 +1045,7 @@ sealed class TextRenderer(RenderContext context)
         };
 
         using var font = context.CreateFont(fragment.Properties);
-        using var paint = RenderContext.CreateTextPaint(fragment.Properties);
+        using var paint = SkiaRenderContext.CreateTextPaint(fragment.Properties);
         var glyphPixelWidth = font.MeasureText(leaderChar.ToString());
         if (glyphPixelWidth <= 0)
         {

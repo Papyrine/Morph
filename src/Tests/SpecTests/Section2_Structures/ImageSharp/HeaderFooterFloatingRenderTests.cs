@@ -1,6 +1,4 @@
 extern alias ImageSharp;
-using ImageSharpRenderContext = ImageSharp::RenderContext;
-using ImageSharpPageRenderer = ImageSharp::PageRenderer;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 

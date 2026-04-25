@@ -1,6 +1,4 @@
 extern alias Skia;
-using SkiaRenderContext = Skia::RenderContext;
-using SkiaPageRenderer = Skia::PageRenderer;
 using SkiaSharp;
 
 /// <summary>

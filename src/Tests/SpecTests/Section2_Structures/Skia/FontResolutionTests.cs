@@ -1,5 +1,4 @@
 extern alias Skia;
-using SkiaRenderContext = Skia::RenderContext;
 
 /// <summary>
 /// Tests that the Skia RenderContext resolves font families correctly

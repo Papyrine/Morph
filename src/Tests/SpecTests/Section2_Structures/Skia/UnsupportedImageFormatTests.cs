@@ -1,6 +1,4 @@
 extern alias Skia;
-using SkiaRenderContext = Skia::RenderContext;
-using SkiaPageRenderer = Skia::PageRenderer;
 
 /// <summary>
 /// Verifies that rendering gracefully handles image data in formats
