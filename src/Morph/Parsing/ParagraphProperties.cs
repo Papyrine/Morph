@@ -160,4 +160,14 @@ sealed record ParagraphProperties
     /// Used to snap tab characters past the last explicit stop. Default 36 points (0.5 inch).
     /// </summary>
     public double DefaultTabStopPoints { get; init; } = 36;
+
+    /// <summary>
+    /// Drop cap position for this paragraph (w:framePr/w:dropCap). Default <see cref="DropCapPosition.None"/>.
+    /// </summary>
+    public DropCapPosition DropCap { get; init; } = DropCapPosition.None;
+
+    /// <summary>
+    /// Number of lines the drop cap spans (w:framePr/w:lines). Only relevant when <see cref="DropCap"/> is not None.
+    /// </summary>
+    public int DropCapLines { get; init; }
 }

@@ -1356,14 +1356,18 @@ Diagram layouts (organization charts, process flows, hierarchies, etc.).
 > **AI**: SmartArt has 4 parts: layout definition, data, colors, style. Like charts, consider extracting the fallback image first. Full SmartArt rendering requires interpreting the layout algorithm.
 
 
-#### Drop Caps `TODO`
+#### Drop Caps `PARTIAL`
 
 Large decorative first letter spanning multiple lines at paragraph start.
 
 - **OOXML**: `w:framePr` with drop cap attributes (`w:dropCap`, `w:lines`, `w:wrap`)
 - **Spec**: [Frame Properties](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.frameproperties)
+- **Model**: `DropCapPosition` enum (`None`, `Drop`, `Margin`); `ParagraphProperties.DropCap`, `ParagraphProperties.DropCapLines`
+- **Parse**: `ParseParagraphProperties` reads `w:framePr/@w:dropCap` and `@w:lines`
+- **Render**: not yet — paragraphs with drop caps render as a normal paragraph
+- **Test**: covered by paragraph-properties parsing tests
 
-> **AI**: Requires new element type in `DocumentElements.cs`. Parse `w:framePr` in `DocumentParser`. Render as oversized first character with text wrapping. Use `FloatingTextBoxElement` as reference for positioned text.
+> **Contributors**: Marked PARTIAL until the renderer floats the first character at the requested span. Reference `FloatingTextBoxElement` for the positioning approach.
 
 
 #### Embedded Objects (OLE) `TODO`
@@ -1891,14 +1895,14 @@ Read-only mode, form protection, and editing restrictions.
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
 | 4. Tables | 13 | 2 | 2 | 17 |
 | 5. Page Layout & Sections | 16 | 1 | 1 | 18 |
-| 6. Graphics & Media | 10 | 2 | 7 | 19 |
+| 6. Graphics & Media | 10 | 3 | 6 | 19 |
 | 7. Form Controls | 10 | 0 | 0 | 10 |
 | 8. Themes & Styles | 5 | 0 | 0 | 5 |
 | 9. Typography | 6 | 1 | 1 | 8 |
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 3 | 2 | 6 |
 | 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **95** | **12** | **17** | **124** |
+| **Total** | **95** | **13** | **16** | **124** |
 
 
 ### Coverage
@@ -1906,11 +1910,11 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 95
-    "Partial" : 12
-    "Todo" : 17
+    "Partial" : 13
+    "Todo" : 16
 ```
 
-**Overall coverage: 77% fully implemented, 10% partial, 14% remaining.**
+**Overall coverage: 77% fully implemented, 10% partial, 13% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)

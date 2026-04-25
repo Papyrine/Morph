@@ -5749,6 +5749,28 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        // Parse drop cap (w:framePr/w:dropCap, w:framePr/w:lines)
+        var dropCap = DropCapPosition.None;
+        var dropCapLines = 0;
+        var framePr = props.GetFirstChild<FrameProperties>();
+        if (framePr?.DropCap?.HasValue == true)
+        {
+            var dcVal = framePr.DropCap.Value.ToString();
+            if (string.Equals(dcVal, "drop", StringComparison.OrdinalIgnoreCase))
+            {
+                dropCap = DropCapPosition.Drop;
+            }
+            else if (string.Equals(dcVal, "margin", StringComparison.OrdinalIgnoreCase))
+            {
+                dropCap = DropCapPosition.Margin;
+            }
+
+            if (framePr.Lines?.HasValue == true)
+            {
+                dropCapLines = framePr.Lines.Value;
+            }
+        }
+
         return new()
         {
             Alignment = alignment,
@@ -5779,7 +5801,9 @@ sealed class DocumentParser(string defaultFont)
             BorderBetween = borderBetween,
             BorderBetweenSpacePoints = borderBetweenSpace,
             TabStops = ParseTabs(props, styleDefaults?.TabStops ?? []),
-            DefaultTabStopPoints = defaultTabStopPoints
+            DefaultTabStopPoints = defaultTabStopPoints,
+            DropCap = dropCap,
+            DropCapLines = dropCapLines
         };
     }
 
