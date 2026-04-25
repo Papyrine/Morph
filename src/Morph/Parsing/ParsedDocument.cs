@@ -40,4 +40,10 @@ sealed class ParsedDocument
     /// Reviewer comments parsed from word/comments.xml. Comments are not rendered today.
     /// </summary>
     public IReadOnlyList<Comment> Comments { get; init; } = [];
+
+    /// <summary>
+    /// Tracked change revisions (w:ins / w:del). Currently captured in the model only —
+    /// renderers neither show insertions in revision colour nor strike out deletions.
+    /// </summary>
+    public IReadOnlyList<TrackedChange> TrackedChanges { get; init; } = [];
 }

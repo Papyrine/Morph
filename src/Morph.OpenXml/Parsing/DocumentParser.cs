@@ -158,6 +158,7 @@ sealed class DocumentParser(string defaultFont)
         var compatibility = ExtractCompatibilitySettings(mainPart);
         var bookmarks = ExtractBookmarks(body);
         var comments = ExtractComments(mainPart);
+        var trackedChanges = ExtractTrackedChanges(body);
 
         return new()
         {
@@ -172,8 +173,52 @@ sealed class DocumentParser(string defaultFont)
             ThemeFonts = currentThemeFonts,
             Compatibility = compatibility,
             Bookmarks = bookmarks,
-            Comments = comments
+            Comments = comments,
+            TrackedChanges = trackedChanges
         };
+    }
+
+    static IReadOnlyList<TrackedChange> ExtractTrackedChanges(Body body)
+    {
+        var result = new List<TrackedChange>();
+
+        foreach (var ins in body.Descendants<InsertedRun>())
+        {
+            if (ins.Id?.Value is not { } id)
+            {
+                continue;
+            }
+
+            result.Add(BuildChange(id, ins.Author?.Value, ins.Date?.Value, TrackedChangeType.Insertion, ins));
+        }
+
+        foreach (var del in body.Descendants<DeletedRun>())
+        {
+            if (del.Id?.Value is not { } id)
+            {
+                continue;
+            }
+
+            result.Add(BuildChange(id, del.Author?.Value, del.Date?.Value, TrackedChangeType.Deletion, del));
+        }
+
+        return result;
+
+        static TrackedChange BuildChange(string id, string? author, DateTime? date, TrackedChangeType type, OpenXmlElement element)
+        {
+            // DeletedText (w:delText) is the deleted content; Text (w:t) is the regular variant under InsertedRun.
+            var text = string.Concat(element.Descendants<Text>().Select(_ => _.Text)
+                .Concat(element.Descendants<DeletedText>().Select(_ => _.Text)));
+
+            return new()
+            {
+                Id = id,
+                Author = author,
+                Date = date is { } dt ? new DateTimeOffset(dt) : null,
+                Type = type,
+                Text = text
+            };
+        }
     }
 
     static IReadOnlyList<Comment> ExtractComments(MainDocumentPart mainPart)

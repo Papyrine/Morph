@@ -1733,12 +1733,19 @@ Reviewer comments attached to document ranges.
 > **AI**: Marked PARTIAL because margin/inline rendering and range positioning are still TODO. To draw comments later, parse the range markers during paragraph walk and store start/end positions on each `Comment`.
 
 
-#### Tracked Changes (Revisions) `TODO`
+#### Tracked Changes (Revisions) `PARTIAL`
 
 Insertions, deletions, and formatting changes tracked with author/date metadata.
 
 - **OOXML**: `w:ins` (insertions), `w:del` (deletions), `w:rPrChange` (formatting changes)
 - **Spec**: [Revisions](http://officeopenxml.com/WPrevisions.php)
+- **Model**: `TrackedChange` record (id, author, date, type, text); `ParsedDocument.TrackedChanges`
+- **Parse**: `DocumentParser.ExtractTrackedChanges()` walks `w:ins` and `w:del` descendants
+- **Render**: revisions are silently skipped — neither insertion underline nor deletion strike-through is drawn
+- **Test**: `tracked_changes/`, spec test `TrackedChangesTests`
+
+> **Contributors**: `w:rPrChange` (run-property revision history) is not captured. Run children inside `w:ins`/`w:del` are dropped from the rendered output, so documents with pending revisions render as if every change was rejected.
+> **AI**: Marked PARTIAL because rendering is missing. To implement "as accepted" rendering, add `case InsertedRun ins:` to the paragraph child switch (recurse into the inner runs) and continue ignoring `DeletedRun`.
 
 > **AI**: Two rendering modes to consider: (1) final document (accept all changes — render inserted text, skip deleted text), (2) markup view (show changes with strikethrough/underline/color). Mode 1 is simpler and likely what most consumers want. Currently, revision markup may cause parsing issues for affected paragraphs.
 
@@ -1859,9 +1866,9 @@ Read-only mode, form protection, and editing restrictions.
 | 8. Themes & Styles | 5 | 0 | 0 | 5 |
 | 9. Typography | 6 | 1 | 1 | 8 |
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
-| 11. Annotations & References | 1 | 2 | 3 | 6 |
+| 11. Annotations & References | 1 | 3 | 2 | 6 |
 | 12. Advanced Content | 0 | 0 | 2 | 2 |
-| **Total** | **93** | **6** | **25** | **124** |
+| **Total** | **93** | **7** | **24** | **124** |
 
 
 ### Coverage
@@ -1869,11 +1876,11 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 93
-    "Partial" : 6
-    "Todo" : 25
+    "Partial" : 7
+    "Todo" : 24
 ```
 
-**Overall coverage: 75% fully implemented, 5% partial, 20% remaining.**
+**Overall coverage: 75% fully implemented, 6% partial, 19% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)
