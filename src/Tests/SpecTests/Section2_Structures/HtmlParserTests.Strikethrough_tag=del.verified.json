@@ -11,6 +11,7 @@
           "Underline": false,
           "Strikethrough": true,
           "AllCaps": false,
+          "SmallCaps": false,
           "Ligatures": "Standard"
         },
         "IsTab": false

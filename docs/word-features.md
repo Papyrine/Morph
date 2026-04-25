@@ -213,14 +213,18 @@ Displays text in uppercase regardless of source case.
 > **Contributors**: Applied during text rendering via `ToUpperInvariant()` transform.
 
 
-#### Small Caps `TODO`
+#### Small Caps `PARTIAL`
 
 Displays lowercase letters as smaller uppercase letters while keeping original uppercase letters at full size.
 
 - **OOXML**: `w:smallCaps`
 - **Spec**: [SmallCaps](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.smallcaps)
+- **Model**: `RunProperties.SmallCaps`
+- **Parse**: `w:smallCaps` parsed alongside `w:caps` in both style and inline run-property paths
+- **Render**: not yet — small-caps runs render with their original case
+- **Test**: covered by run-properties parsing tests; HtmlParserTests JSON snapshots regenerated to include the new field.
 
-> **AI**: Add `SmallCaps` bool to `RunProperties` in `DocumentElements.cs`. Parse `w:smallCaps` in `DocumentParser.ParseRunProperties()`. In `TextRenderer`, render lowercase chars at ~70% font size in uppercase form. Follow the `AllCaps` pattern.
+> **Contributors**: Marked PARTIAL until the renderer splits each run on case boundaries and renders the originally-lowercase segments uppercased at ~70% font size — a per-character font-scale change that the current line layout doesn't support.
 
 
 #### Text Color `DONE`
@@ -1890,7 +1894,7 @@ Read-only mode, form protection, and editing restrictions.
 
 | Category | Done | Partial | Todo | Total |
 |----------|------|---------|------|-------|
-| 1. Text Formatting | 11 | 2 | 3 | 16 |
+| 1. Text Formatting | 11 | 3 | 2 | 16 |
 | 2. Paragraph Formatting | 11 | 1 | 0 | 12 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
 | 4. Tables | 13 | 2 | 2 | 17 |
@@ -1902,7 +1906,7 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 3 | 2 | 6 |
 | 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **95** | **13** | **16** | **124** |
+| **Total** | **95** | **14** | **15** | **124** |
 
 
 ### Coverage
@@ -1910,11 +1914,11 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 95
-    "Partial" : 13
-    "Todo" : 16
+    "Partial" : 14
+    "Todo" : 15
 ```
 
-**Overall coverage: 77% fully implemented, 10% partial, 13% remaining.**
+**Overall coverage: 77% fully implemented, 11% partial, 12% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)

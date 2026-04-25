@@ -10,6 +10,7 @@ sealed record RunProperties
     public bool Underline { get; init; }
     public bool Strikethrough { get; init; }
     public bool AllCaps { get; init; }
+    public bool SmallCaps { get; init; }
     public string? ColorHex { get; init; } // null = black
 
     /// <summary>

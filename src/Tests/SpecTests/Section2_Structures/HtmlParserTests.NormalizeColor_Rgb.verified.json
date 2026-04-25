@@ -11,6 +11,7 @@
           "Underline": false,
           "Strikethrough": false,
           "AllCaps": false,
+          "SmallCaps": false,
           "ColorHex": "FF8000",
           "Ligatures": "Standard"
         },

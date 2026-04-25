@@ -17,6 +17,7 @@
                       "Underline": false,
                       "Strikethrough": false,
                       "AllCaps": false,
+                      "SmallCaps": false,
                       "Ligatures": "Standard"
                     },
                     "IsTab": false
@@ -64,6 +65,7 @@
                       "Underline": false,
                       "Strikethrough": false,
                       "AllCaps": false,
+                      "SmallCaps": false,
                       "Ligatures": "Standard"
                     },
                     "IsTab": false
@@ -105,6 +107,7 @@
                       "Underline": false,
                       "Strikethrough": false,
                       "AllCaps": false,
+                      "SmallCaps": false,
                       "Ligatures": "Standard"
                     },
                     "IsTab": false

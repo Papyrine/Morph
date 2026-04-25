@@ -411,6 +411,7 @@ sealed class DocumentParser(string defaultFont)
                 var underline = baseProps?.Underline ?? false;
                 var strikethrough = baseProps?.Strikethrough ?? false;
                 var allCaps = baseProps?.AllCaps ?? false;
+                var smallCaps = baseProps?.SmallCaps ?? false;
                 var color = baseProps?.ColorHex;
                 var backgroundColor = baseProps?.BackgroundColorHex;
                 var characterSpacing = baseProps?.CharacterSpacingPoints ?? 0.0;
@@ -427,6 +428,7 @@ sealed class DocumentParser(string defaultFont)
                         Underline = underline,
                         Strikethrough = strikethrough,
                         AllCaps = allCaps,
+                        SmallCaps = smallCaps,
                         ColorHex = color,
                         BackgroundColorHex = backgroundColor,
                         CharacterSpacingPoints = characterSpacing
@@ -497,6 +499,13 @@ sealed class DocumentParser(string defaultFont)
                 if (capsElement != null)
                 {
                     allCaps = capsElement.Val?.Value != false;
+                }
+
+                // Small caps
+                var smallCapsElement = runProps.GetFirstChild<SmallCaps>();
+                if (smallCapsElement != null)
+                {
+                    smallCaps = smallCapsElement.Val?.Value != false;
                 }
 
                 // Character spacing (w:spacing in rPr)
@@ -573,6 +582,7 @@ sealed class DocumentParser(string defaultFont)
                     Underline = underline,
                     Strikethrough = strikethrough,
                     AllCaps = allCaps,
+                    SmallCaps = smallCaps,
                     ColorHex = color,
                     BackgroundColorHex = backgroundColor,
                     CharacterSpacingPoints = characterSpacing
@@ -5889,6 +5899,7 @@ sealed class DocumentParser(string defaultFont)
         var underline = styleDefaults?.Underline ?? false;
         var strikethrough = styleDefaults?.Strikethrough ?? false;
         var allCaps = styleDefaults?.AllCaps ?? false;
+        var smallCaps = styleDefaults?.SmallCaps ?? false;
         var color = styleDefaults?.ColorHex;
         var backgroundColor = styleDefaults?.BackgroundColorHex;
         var verticalAlignment = styleDefaults?.VerticalAlignment ?? VerticalRunAlignment.Baseline;
@@ -5949,6 +5960,12 @@ sealed class DocumentParser(string defaultFont)
         if (capsElement != null)
         {
             allCaps = capsElement.Val?.Value != false;
+        }
+
+        var smallCapsElement = props.GetFirstChild<SmallCaps>();
+        if (smallCapsElement != null)
+        {
+            smallCaps = smallCapsElement.Val?.Value != false;
         }
 
         // Character spacing (w:spacing in rPr — extra space between characters, in twips)
@@ -6107,6 +6124,11 @@ sealed class DocumentParser(string defaultFont)
                 allCaps = runStyleProps.AllCaps;
             }
 
+            if (props.GetFirstChild<SmallCaps>() == null && originalRPr?.GetFirstChild<SmallCaps>() != null)
+            {
+                smallCaps = runStyleProps.SmallCaps;
+            }
+
             if (props.GetFirstChild<Spacing>() == null && originalRPr?.GetFirstChild<Spacing>() != null)
             {
                 characterSpacing = runStyleProps.CharacterSpacingPoints;
@@ -6137,6 +6159,7 @@ sealed class DocumentParser(string defaultFont)
             Underline = underline,
             Strikethrough = strikethrough,
             AllCaps = allCaps,
+            SmallCaps = smallCaps,
             ColorHex = color,
             BackgroundColorHex = backgroundColor,
             CharacterSpacingPoints = characterSpacing,
