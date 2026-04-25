@@ -422,18 +422,49 @@ sealed class PageRenderer(RenderContext context) :
         var width = context.PointsToPixels((float) image.WidthPoints);
         var pixelHeight = context.PointsToPixels(height);
 
+        DrawBlockImage(image.ImageData, x, y, width, pixelHeight, (float) image.RotationDegrees, image.Crop);
+
+        context.CurrentY += height;
+    }
+
+    void DrawBlockImage(byte[] imageData, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, ImageCrop? crop)
+    {
+        if (currentPage == null)
+        {
+            return;
+        }
+
         try
         {
-            using var img = Image.Load<Rgba32>(image.ImageData);
-            img.Mutate(_ => _.Resize((int) width, (int) pixelHeight));
-            currentPage.Mutate(_ => _.DrawImage(img, new Point((int) x, (int) y), 1f));
+            using var img = Image.Load<Rgba32>(imageData);
+
+            if (crop is { IsCropped: true } c)
+            {
+                var srcLeft = (int) (c.Left * img.Width);
+                var srcTop = (int) (c.Top * img.Height);
+                var srcWidth = Math.Max(1, img.Width - srcLeft - (int) (c.Right * img.Width));
+                var srcHeight = Math.Max(1, img.Height - srcTop - (int) (c.Bottom * img.Height));
+                img.Mutate(_ => _.Crop(new Rectangle(srcLeft, srcTop, srcWidth, srcHeight)));
+            }
+
+            img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
+
+            if (rotation != 0)
+            {
+                img.Mutate(_ => _.Rotate(rotation));
+                var newX = pixelX + pixelWidth / 2 - img.Width / 2f;
+                var newY = pixelY + pixelHeight / 2 - img.Height / 2f;
+                currentPage.Mutate(_ => _.DrawImage(img, new Point((int) newX, (int) newY), 1f));
+            }
+            else
+            {
+                currentPage.Mutate(_ => _.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f));
+            }
         }
         catch
         {
             // Ignore image decode errors
         }
-
-        context.CurrentY += height;
     }
 
     void RenderWordArt(WordArtElement wordArt)
@@ -1830,16 +1861,7 @@ sealed class PageRenderer(RenderContext context) :
         var pixelWidth = context.PointsToPixels((float) image.WidthPoints);
         var pixelHeight = context.PointsToPixels((float) image.HeightPoints);
 
-        try
-        {
-            using var img = Image.Load<Rgba32>(image.ImageData);
-            img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
-            currentPage.Mutate(_ => _.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f));
-        }
-        catch
-        {
-            // Ignore image decode errors
-        }
+        DrawBlockImage(image.ImageData, pixelX, pixelY, pixelWidth, pixelHeight, (float) image.RotationDegrees, image.Crop);
     }
 
     float CalculateFloatingImageX(FloatingImageElement image) =>

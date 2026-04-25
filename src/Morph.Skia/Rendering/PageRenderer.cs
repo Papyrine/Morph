@@ -512,22 +512,52 @@ sealed class PageRenderer(RenderContext context) :
 
         var destRect = new SKRect(x, y, x + width, y + pixelHeight);
 
-        // Check if this is an SVG image
-        if (image.ContentType == "image/svg+xml")
+        DrawBlockImage(image.ImageData, image.ContentType, destRect, (float) image.RotationDegrees, image.Crop);
+
+        context.CurrentY += height;
+    }
+
+    void DrawBlockImage(byte[] imageData, string? contentType, SKRect destRect, float rotation, ImageCrop? crop)
+    {
+        if (currentCanvas == null)
         {
-            RenderSvgImage(image.ImageData, destRect);
+            return;
+        }
+
+        if (rotation != 0)
+        {
+            currentCanvas.Save();
+            currentCanvas.RotateDegrees(rotation, destRect.MidX, destRect.MidY);
+        }
+
+        if (contentType == "image/svg+xml")
+        {
+            RenderSvgImage(imageData, destRect);
         }
         else
         {
-            // Regular bitmap image
-            using var skImage = DecodeBitmap(image.ImageData);
+            using var skImage = DecodeBitmap(imageData);
             if (skImage != null)
             {
-                currentCanvas.DrawBitmap(skImage, destRect);
+                if (crop is { IsCropped: true } c)
+                {
+                    var srcLeft = (float) (c.Left * skImage.Width);
+                    var srcTop = (float) (c.Top * skImage.Height);
+                    var srcRight = (float) ((1 - c.Right) * skImage.Width);
+                    var srcBottom = (float) ((1 - c.Bottom) * skImage.Height);
+                    currentCanvas.DrawBitmap(skImage, new SKRect(srcLeft, srcTop, srcRight, srcBottom), destRect);
+                }
+                else
+                {
+                    currentCanvas.DrawBitmap(skImage, destRect);
+                }
             }
         }
 
-        context.CurrentY += height;
+        if (rotation != 0)
+        {
+            currentCanvas.Restore();
+        }
     }
 
     void RenderSvgImage(byte[] svgData, SKRect destRect)
@@ -2613,18 +2643,7 @@ sealed class PageRenderer(RenderContext context) :
 
         var destRect = new SKRect(pixelX, pixelY, pixelX + pixelWidth, pixelY + pixelHeight);
 
-        if (image.ContentType == "image/svg+xml")
-        {
-            RenderSvgImage(image.ImageData, destRect);
-        }
-        else
-        {
-            using var skImage = DecodeBitmap(image.ImageData);
-            if (skImage != null)
-            {
-                currentCanvas.DrawBitmap(skImage, destRect);
-            }
-        }
+        DrawBlockImage(image.ImageData, image.ContentType, destRect, (float) image.RotationDegrees, image.Crop);
     }
 
     float CalculateFloatingImageX(FloatingImageElement image)

@@ -1160,7 +1160,7 @@ Scalable vector graphics rendered to bitmap for output.
 > **Contributors**: SVG pre-processed to remove `<style>` elements and `class` attributes to avoid CSS conflicts during rendering. Rendered to bitmap via Svg.Skia.
 
 
-#### Image Cropping `PARTIAL`
+#### Image Cropping `DONE`
 
 Displaying only a portion of an image.
 
@@ -1168,25 +1168,23 @@ Displaying only a portion of an image.
 - **Spec**: [Source Rectangle](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.sourcerectangle)
 - **Model**: `ImageCrop` record (`Left/Top/Right/Bottom` as 0..1 fractions); `Run.InlineImageCrop`, `ImageElement.Crop`, `FloatingImageElement.Crop`
 - **Parse**: `DocumentParser.ReadCrop()` reads `a:srcRect` (1000ths-of-percent → fraction) for both inline and drawing-element image paths
-- **Render**: inline images apply the source rectangle via `SKCanvas.DrawBitmap(src, dest)` (Skia) and `image.Mutate(_ => _.Crop(...))` (ImageSharp). Block-level `ImageElement` and `FloatingImageElement` carry the model field but `PageRenderer` does not yet apply it.
+- **Render**: inline images via `SKCanvas.DrawBitmap(src, dest)` (Skia) / `image.Mutate(_ => _.Crop(...))` (ImageSharp). Block-level `ImageElement` and `FloatingImageElement` go through `PageRenderer.DrawBlockImage` which applies the same crop+rotate pipeline.
 - **Test**: `image_cropping/`
 
-> **Contributors**: Several existing scenarios that ship `a:srcRect` (cards/16, newsletters/14, business-plans/02, business-plans/03, brochures/06) were re-snapshotted; the new behaviour matches Word more closely now that crop is honoured.
-> **AI**: To finish the block/floating path, mirror the inline approach in `PageRenderer.RenderImage` / `RenderFloatingImage` for both backends.
+> **Contributors**: Several existing scenarios that ship `a:srcRect` (cards/16, newsletters/14, business-plans/02, business-plans/03, brochures/06, wedding/02-10, labels/11, letters/13, brochures/02, cover-letters/12, newsletters/01) re-snapshot to the cropped output — most move closer to Word's reference, with `wedding/10` improving from 0.151 → 0.118 pixel-diff.
 
 
-#### Image Rotation `PARTIAL`
+#### Image Rotation `DONE`
 
 Rotating an image by a specified angle.
 
 - **OOXML**: `wp:anchor` or `wp:inline` > `a:xfrm` with `rot` attribute (in 60,000ths of a degree)
 - **Model**: `Run.InlineImageRotationDegrees`, `ImageElement.RotationDegrees`, `FloatingImageElement.RotationDegrees`
 - **Parse**: `DocumentParser.ReadRotationDegrees()` converts `rot` (60,000ths of a degree) to degrees; applied in `TryParseInlineImageRun` and `ParseDrawingElements`
-- **Render**: inline images rotate around their centre via `SKCanvas.RotateDegrees` (Skia) / `image.Mutate(_ => _.Rotate(...))` then recentre (ImageSharp). Block-level `ImageElement` and `FloatingImageElement` carry the model field but `PageRenderer` does not yet apply it.
+- **Render**: inline images rotate around their centre via `SKCanvas.RotateDegrees` (Skia) / `image.Mutate(_ => _.Rotate(...))` then recentre (ImageSharp). Block-level images go through `PageRenderer.DrawBlockImage` which applies the same rotation transform after crop and resize.
 - **Test**: `image_rotation/`, spec test `ImageRotationTests`
 
-> **Contributors**: Inline rotation reserves the original (un-rotated) bounding box, so rotated images can overlap surrounding text — Word instead reflows around the rotated bounding box. Marked PARTIAL until block / floating image rendering also rotates.
-> **AI**: To finish the block/floating path, locate the bitmap draw in `PageRenderer.RenderImage` / floating-image render path in both backends and wrap with the same rotate-around-centre transform used in `TextRenderer.RenderInlineImage`.
+> **Contributors**: Rotation reserves the original (un-rotated) bounding box, so rotated images can overlap surrounding text — Word instead reflows around the rotated bounding box. Acceptable for now; revisit if specific layouts demand the reflow behaviour.
 
 
 #### Blip Color Effects (Duotone / Recolor) `TODO`
@@ -1903,26 +1901,26 @@ Read-only mode, form protection, and editing restrictions.
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
 | 4. Tables | 13 | 2 | 2 | 17 |
 | 5. Page Layout & Sections | 16 | 1 | 1 | 18 |
-| 6. Graphics & Media | 10 | 3 | 6 | 19 |
+| 6. Graphics & Media | 12 | 1 | 6 | 19 |
 | 7. Form Controls | 10 | 0 | 0 | 10 |
 | 8. Themes & Styles | 5 | 0 | 0 | 5 |
 | 9. Typography | 6 | 1 | 1 | 8 |
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 4 | 1 | 6 |
 | 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **95** | **15** | **14** | **124** |
+| **Total** | **97** | **13** | **14** | **124** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 95
-    "Partial" : 15
+    "Done" : 97
+    "Partial" : 13
     "Todo" : 14
 ```
 
-**Overall coverage: 77% fully implemented, 12% partial, 11% remaining.**
+**Overall coverage: 78% fully implemented, 10% partial, 11% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)
