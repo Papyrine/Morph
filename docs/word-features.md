@@ -1148,14 +1148,19 @@ Scalable vector graphics rendered to bitmap for output.
 > **Contributors**: SVG pre-processed to remove `<style>` elements and `class` attributes to avoid CSS conflicts during rendering. Rendered to bitmap via Svg.Skia.
 
 
-#### Image Cropping `TODO`
+#### Image Cropping `PARTIAL`
 
 Displaying only a portion of an image.
 
-- **OOXML**: `a:srcRect` within `a:blipFill` (crop percentages from each edge)
+- **OOXML**: `a:srcRect` within `a:blipFill` (crop percentages from each edge, in 1000ths of a percent)
 - **Spec**: [Source Rectangle](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.sourcerectangle)
+- **Model**: `ImageCrop` record (`Left/Top/Right/Bottom` as 0..1 fractions); `Run.InlineImageCrop`, `ImageElement.Crop`, `FloatingImageElement.Crop`
+- **Parse**: `DocumentParser.ReadCrop()` reads `a:srcRect` (1000ths-of-percent → fraction) for both inline and drawing-element image paths
+- **Render**: inline images apply the source rectangle via `SKCanvas.DrawBitmap(src, dest)` (Skia) and `image.Mutate(_ => _.Crop(...))` (ImageSharp). Block-level `ImageElement` and `FloatingImageElement` carry the model field but `PageRenderer` does not yet apply it.
+- **Test**: `image_cropping/`
 
-> **AI**: Parse crop percentages from `a:srcRect`. Apply as source rectangle when drawing the image in both backends. SkiaSharp: use `SKCanvas.DrawImage` with source rect. ImageSharp: use `Crop()` before drawing.
+> **Contributors**: Several existing scenarios that ship `a:srcRect` (cards/16, newsletters/14, business-plans/02, business-plans/03, brochures/06) were re-snapshotted; the new behaviour matches Word more closely now that crop is honoured.
+> **AI**: To finish the block/floating path, mirror the inline approach in `PageRenderer.RenderImage` / `RenderFloatingImage` for both backends.
 
 
 #### Image Rotation `PARTIAL`
@@ -1878,14 +1883,14 @@ Read-only mode, form protection, and editing restrictions.
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
 | 4. Tables | 13 | 2 | 2 | 17 |
 | 5. Page Layout & Sections | 16 | 1 | 1 | 18 |
-| 6. Graphics & Media | 10 | 1 | 8 | 19 |
+| 6. Graphics & Media | 10 | 2 | 7 | 19 |
 | 7. Form Controls | 10 | 0 | 0 | 10 |
 | 8. Themes & Styles | 5 | 0 | 0 | 5 |
 | 9. Typography | 6 | 1 | 1 | 8 |
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 3 | 2 | 6 |
 | 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **95** | **9** | **20** | **124** |
+| **Total** | **95** | **10** | **19** | **124** |
 
 
 ### Coverage
@@ -1893,11 +1898,11 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 95
-    "Partial" : 9
-    "Todo" : 20
+    "Partial" : 10
+    "Todo" : 19
 ```
 
-**Overall coverage: 77% fully implemented, 7% partial, 16% remaining.**
+**Overall coverage: 77% fully implemented, 8% partial, 15% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)

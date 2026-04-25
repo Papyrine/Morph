@@ -3329,6 +3329,8 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
+        var crop = ReadCrop(blipFill);
+
         var blip = blipFill.Descendants().FirstOrDefault(e => e.LocalName == "blip");
         if (blip == null)
         {
@@ -3405,7 +3407,8 @@ sealed class DocumentParser(string defaultFont)
             InlineImageWidthPoints = widthPoints,
             InlineImageHeightPoints = heightPoints,
             InlineImageContentType = contentType,
-            InlineImageRotationDegrees = rotationDegrees
+            InlineImageRotationDegrees = rotationDegrees,
+            InlineImageCrop = crop
         };
     }
 
@@ -3418,6 +3421,37 @@ sealed class DocumentParser(string defaultFont)
         }
 
         return 0;
+    }
+
+    static ImageCrop? ReadCrop(OpenXmlElement blipFill)
+    {
+        // a:srcRect attributes l/t/r/b are in 1000ths of a percent (100000 = 100%).
+        var srcRect = blipFill.Elements().FirstOrDefault(e => e.LocalName == "srcRect");
+        if (srcRect == null)
+        {
+            return null;
+        }
+
+        var crop = new ImageCrop
+        {
+            Left = ReadFraction(srcRect, "l"),
+            Top = ReadFraction(srcRect, "t"),
+            Right = ReadFraction(srcRect, "r"),
+            Bottom = ReadFraction(srcRect, "b")
+        };
+
+        return crop.IsCropped ? crop : null;
+
+        static double ReadFraction(OpenXmlElement el, string attrName)
+        {
+            var attr = el.GetAttributes().FirstOrDefault(a => a.LocalName == attrName);
+            if (attr.Value != null && long.TryParse(attr.Value, out var thousandthsOfPercent))
+            {
+                return Math.Clamp(thousandthsOfPercent / 100000.0, 0, 1);
+            }
+
+            return 0;
+        }
     }
 
     /// <summary>
@@ -3584,6 +3618,8 @@ sealed class DocumentParser(string defaultFont)
                 continue;
             }
 
+            var crop = ReadCrop(blipFill);
+
             var blip = blipFill.Descendants().FirstOrDefault(e => e.LocalName == "blip");
             if (blip == null)
             {
@@ -3654,12 +3690,13 @@ sealed class DocumentParser(string defaultFont)
                     WidthPoints = widthPoints,
                     HeightPoints = heightPoints,
                     ContentType = contentType,
-                    RotationDegrees = rotationDegrees
+                    RotationDegrees = rotationDegrees,
+                    Crop = crop
                 });
             }
             else
             {
-                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees);
+                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees, crop);
                 result.Add(floatingImage);
             }
         }
@@ -3670,7 +3707,7 @@ sealed class DocumentParser(string defaultFont)
     /// <summary>
     /// Parses an anchored image with additional X/Y offset within a group.
     /// </summary>
-    static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0)
+    static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, ImageCrop? crop = null)
     {
         // Parse horizontal position
         var hPosPoints = offsetXPoints;
@@ -3748,7 +3785,8 @@ sealed class DocumentParser(string defaultFont)
             HorizontalAnchor = hAnchor,
             VerticalAnchor = vAnchor,
             BehindText = isBehindText,
-            RotationDegrees = rotationDegrees
+            RotationDegrees = rotationDegrees,
+            Crop = crop
         };
     }
 

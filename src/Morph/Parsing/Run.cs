@@ -21,6 +21,9 @@ sealed class Run
     /// <summary>Inline image rotation in degrees (clockwise). 0 means no rotation.</summary>
     public double InlineImageRotationDegrees { get; init; }
 
+    /// <summary>Inline image source-rectangle crop (a:srcRect). Null = no crop.</summary>
+    public ImageCrop? InlineImageCrop { get; init; }
+
     /// <summary>
     /// True when this run represents a single w:tab character.
     /// When true, <see cref="Text"/> is "\t" and the renderer snaps the cursor to the next tab stop.
