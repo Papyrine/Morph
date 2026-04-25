@@ -59,4 +59,14 @@ sealed class ParsedDocument
     /// are present (PAGE, TOC, REF, HYPERLINK, etc.) without re-walking the OOXML.
     /// </summary>
     public IReadOnlyList<FieldCode> FieldCodes { get; init; } = [];
+
+    /// <summary>
+    /// Footnotes from word/footnotes.xml. Renderer does not yet emit them at the page bottom.
+    /// </summary>
+    public IReadOnlyList<Footnote> Footnotes { get; init; } = [];
+
+    /// <summary>
+    /// Endnotes from word/endnotes.xml. Renderer does not yet emit them at the document end.
+    /// </summary>
+    public IReadOnlyList<Endnote> Endnotes { get; init; } = [];
 }

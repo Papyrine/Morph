@@ -170,6 +170,8 @@ sealed class DocumentParser(string defaultFont)
         var trackedChanges = ExtractTrackedChanges(body);
         var protection = ExtractDocumentProtection(mainPart);
         var fieldCodes = ExtractFieldCodes(body);
+        var footnotes = ExtractFootnotes(mainPart);
+        var endnotes = ExtractEndnotes(mainPart);
 
         return new()
         {
@@ -187,8 +189,67 @@ sealed class DocumentParser(string defaultFont)
             Comments = comments,
             TrackedChanges = trackedChanges,
             Protection = protection,
-            FieldCodes = fieldCodes
+            FieldCodes = fieldCodes,
+            Footnotes = footnotes,
+            Endnotes = endnotes
         };
+    }
+
+    static IReadOnlyList<Footnote> ExtractFootnotes(MainDocumentPart mainPart)
+    {
+        var part = mainPart.FootnotesPart;
+        if (part?.Footnotes == null)
+        {
+            return [];
+        }
+
+        var result = new List<Footnote>();
+        foreach (var fn in part.Footnotes.Elements<DocumentFormat.OpenXml.Wordprocessing.Footnote>())
+        {
+            if (fn.Id?.Value is not { } idLong)
+            {
+                continue;
+            }
+
+            // Skip the built-in separator/continuationSeparator footnotes (negative ids).
+            if (idLong < 0)
+            {
+                continue;
+            }
+
+            var text = string.Concat(fn.Descendants<Text>().Select(_ => _.Text));
+            result.Add(new() { Id = idLong.ToString(), Text = text });
+        }
+
+        return result;
+    }
+
+    static IReadOnlyList<Endnote> ExtractEndnotes(MainDocumentPart mainPart)
+    {
+        var part = mainPart.EndnotesPart;
+        if (part?.Endnotes == null)
+        {
+            return [];
+        }
+
+        var result = new List<Endnote>();
+        foreach (var en in part.Endnotes.Elements<DocumentFormat.OpenXml.Wordprocessing.Endnote>())
+        {
+            if (en.Id?.Value is not { } idLong)
+            {
+                continue;
+            }
+
+            if (idLong < 0)
+            {
+                continue;
+            }
+
+            var text = string.Concat(en.Descendants<Text>().Select(_ => _.Text));
+            result.Add(new() { Id = idLong.ToString(), Text = text });
+        }
+
+        return result;
     }
 
     static IReadOnlyList<FieldCode> ExtractFieldCodes(Body body)

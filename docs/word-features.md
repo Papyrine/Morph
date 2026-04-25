@@ -1808,24 +1808,30 @@ Insertions, deletions, and formatting changes tracked with author/date metadata.
 ### 11.3 Footnotes & Endnotes
 
 
-#### Footnotes `TODO`
+#### Footnotes `PARTIAL`
 
 Numbered references with content at the bottom of the page.
 
 - **OOXML**: `footnotes.xml` part, `w:footnoteReference` in document
 - **Spec**: [Footnotes](http://officeopenxml.com/WPfootnotes.php)
+- **Model**: `Footnote` record (id, flat text); `ParsedDocument.Footnotes`
+- **Parse**: `DocumentParser.ExtractFootnotes()` reads `FootnotesPart`, skipping the built-in separator entries (negative ids)
+- **Render**: not yet — footnote references in the body are silently dropped, footnote bodies aren't drawn at the page bottom
 
-> **AI**: Requires: (1) parsing footnote references and content, (2) reserving space at page bottom for footnote text, (3) rendering a separator line and footnote content. The page layout engine would need to calculate footnote height before finalizing page breaks.
+> **Contributors**: Marked PARTIAL because rendering needs to (a) measure footnote heights before page-break calculation, (b) reserve bottom space, (c) draw a separator line and the footnote text. The model capture lets consumers detect documents that depend on footnotes.
 
 
-#### Endnotes `TODO`
+#### Endnotes `PARTIAL`
 
 Numbered references with content at the end of the document or section.
 
 - **OOXML**: `endnotes.xml` part, `w:endnoteReference` in document
 - **Spec**: [Endnotes](http://officeopenxml.com/WPfootnotes.php)
+- **Model**: `Endnote` record (id, flat text); `ParsedDocument.Endnotes`
+- **Parse**: `DocumentParser.ExtractEndnotes()` reads `EndnotesPart`, skipping the built-in separator entries
+- **Render**: not yet — endnote references are silently dropped, endnote bodies aren't drawn at the document end
 
-> **AI**: Simpler than footnotes — collect all endnote content and render after the last page (or last page of each section). No page-bottom space reservation needed.
+> **Contributors**: Endnote rendering is straightforward once we decide to ship it: append a section after the last page with the endnote bodies. Today the model capture is the only output.
 
 
 ### 11.4 Bookmarks
@@ -1929,9 +1935,9 @@ Read-only mode, form protection, and editing restrictions.
 | 8. Themes & Styles | 5 | 0 | 0 | 5 |
 | 9. Typography | 6 | 2 | 0 | 8 |
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
-| 11. Annotations & References | 1 | 4 | 1 | 6 |
+| 11. Annotations & References | 1 | 6 | 1 | 8 |
 | 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **97** | **20** | **7** | **124** |
+| **Total** | **97** | **21** | **6** | **124** |
 
 
 ### Coverage
@@ -1939,11 +1945,11 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 97
-    "Partial" : 20
-    "Todo" : 7
+    "Partial" : 21
+    "Todo" : 6
 ```
 
-**Overall coverage: 78% fully implemented, 16% partial, 6% remaining.**
+**Overall coverage: 78% fully implemented, 17% partial, 5% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)
