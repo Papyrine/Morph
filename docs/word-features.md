@@ -1125,7 +1125,7 @@ Text or image watermarks displayed behind page content.
 - **Model**: `ParsedDocument.Features.HasWatermarks` — heuristic, true when a header shape carries the `WordPictureWatermark` / `WordTextWatermark` class hint
 - **Render**: not yet — watermarks are silently dropped along with the rest of unrecognised header shape content.
 
-> **Contributors**: Detection is class-name-based (matches Word's emitted markup). Rendering would reuse the floating-shape pipeline with `BehindText = true`.
+> **Contributors**: Detection is class-name-based (matches Word's emitted markup). Rendering would reuse the floating-shape pipeline with `BehindText = true`, but a naive blit overpowers the page content because Word emits the watermark with `v:imagedata gain="…" blacklevel="…"` luminance transforms that fade the image to ~25–35% effective brightness. To finish: parse `gain`/`blacklevel`, apply a per-pixel luminance map (decode → process → re-encode) before drawing. Tried earlier without the fade and the rendered watermark dominated the page (page-diff 0.13 → 0.35 on `business-plans/04`); reverted.
 
 ---
 
