@@ -18,6 +18,12 @@ public class ConversionBenchmarks
     static readonly string mediumDoc = Path.Combine(inputsDir, "letters", "01", "input.docx");
     // Large (~5.5MB) - newsletter with many images
     static readonly string largeDoc = Path.Combine(inputsDir, "newsletters", "03", "input.docx");
+    // Table-heavy: exercises bordered cells + ParseColor caching + HasVerticalMerge dedup
+    static readonly string complexTablesDoc = Path.Combine(inputsDir, "complex_tables", "input.docx");
+    // Long table that paginates row-by-row
+    static readonly string tableMultipageDoc = Path.Combine(inputsDir, "table_multipage", "input.docx");
+    // Vertical-merge table (RenderTableWithColumnTracking path)
+    static readonly string tableVmergeDoc = Path.Combine(inputsDir, "table_vmerge_basic", "input.docx");
 
     SkiaDocumentConverter skia = new();
     ImageSharpDocumentConverter imageSharp = new();
@@ -25,6 +31,9 @@ public class ConversionBenchmarks
     byte[] smallBytes = [];
     byte[] mediumBytes = [];
     byte[] largeBytes = [];
+    byte[] complexTablesBytes = [];
+    byte[] tableMultipageBytes = [];
+    byte[] tableVmergeBytes = [];
 
     [GlobalSetup]
     public void Setup()
@@ -32,6 +41,9 @@ public class ConversionBenchmarks
         smallBytes = File.ReadAllBytes(smallDoc);
         mediumBytes = File.ReadAllBytes(mediumDoc);
         largeBytes = File.ReadAllBytes(largeDoc);
+        complexTablesBytes = File.ReadAllBytes(complexTablesDoc);
+        tableMultipageBytes = File.ReadAllBytes(tableMultipageDoc);
+        tableVmergeBytes = File.ReadAllBytes(tableVmergeDoc);
     }
 
     [Benchmark(Baseline = true)]
@@ -57,4 +69,28 @@ public class ConversionBenchmarks
     [Benchmark]
     [BenchmarkCategory("Large")]
     public IReadOnlyList<byte[]> ImageSharp_Large() => imageSharp.ConvertToImageData(new MemoryStream(largeBytes));
+
+    [Benchmark(Baseline = true)]
+    [BenchmarkCategory("ComplexTables")]
+    public IReadOnlyList<byte[]> Skia_ComplexTables() => skia.ConvertToImageData(new MemoryStream(complexTablesBytes));
+
+    [Benchmark]
+    [BenchmarkCategory("ComplexTables")]
+    public IReadOnlyList<byte[]> ImageSharp_ComplexTables() => imageSharp.ConvertToImageData(new MemoryStream(complexTablesBytes));
+
+    [Benchmark(Baseline = true)]
+    [BenchmarkCategory("TableMultipage")]
+    public IReadOnlyList<byte[]> Skia_TableMultipage() => skia.ConvertToImageData(new MemoryStream(tableMultipageBytes));
+
+    [Benchmark]
+    [BenchmarkCategory("TableMultipage")]
+    public IReadOnlyList<byte[]> ImageSharp_TableMultipage() => imageSharp.ConvertToImageData(new MemoryStream(tableMultipageBytes));
+
+    [Benchmark(Baseline = true)]
+    [BenchmarkCategory("TableVMerge")]
+    public IReadOnlyList<byte[]> Skia_TableVMerge() => skia.ConvertToImageData(new MemoryStream(tableVmergeBytes));
+
+    [Benchmark]
+    [BenchmarkCategory("TableVMerge")]
+    public IReadOnlyList<byte[]> ImageSharp_TableVMerge() => imageSharp.ConvertToImageData(new MemoryStream(tableVmergeBytes));
 }
