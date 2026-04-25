@@ -35,4 +35,9 @@ sealed class ParsedDocument
     /// they exist for cross-reference fields and hyperlink anchors.
     /// </summary>
     public IReadOnlyList<Bookmark> Bookmarks { get; init; } = [];
+
+    /// <summary>
+    /// Reviewer comments parsed from word/comments.xml. Comments are not rendered today.
+    /// </summary>
+    public IReadOnlyList<Comment> Comments { get; init; } = [];
 }

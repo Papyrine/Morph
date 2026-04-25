@@ -1718,14 +1718,19 @@ Clickable links to external URLs or internal bookmarks. Rendered as styled text 
 ### 11.2 Comments & Tracked Changes
 
 
-#### Comments `TODO`
+#### Comments `PARTIAL`
 
 Reviewer comments attached to document ranges.
 
 - **OOXML**: `comments.xml` part, `w:commentRangeStart` / `w:commentRangeEnd` in document
 - **Spec**: [Comments](http://officeopenxml.com/WPcomments.php)
+- **Model**: `Comment` record (id, author, text, date); `ParsedDocument.Comments`
+- **Parse**: `DocumentParser.ExtractComments()` reads `WordprocessingCommentsPart`
+- **Render**: not visible — comment ranges in the body are silently skipped (matches existing behaviour)
+- **Test**: `comments/`, spec test `CommentsTests`
 
-> **AI**: Comments could be rendered as margin annotations or highlighted ranges. Simpler approach: ignore comment markup and render the base document text only (which is the current behavior — comment ranges are silently skipped).
+> **Contributors**: Captures the comment payload only (id, author, flat text, date). Comment range markers (`w:commentRangeStart` / `End`) and references (`w:commentReference`) in the body are not associated back with comments yet, so we don't know which range a comment is attached to.
+> **AI**: Marked PARTIAL because margin/inline rendering and range positioning are still TODO. To draw comments later, parse the range markers during paragraph walk and store start/end positions on each `Comment`.
 
 
 #### Tracked Changes (Revisions) `TODO`
@@ -1854,9 +1859,9 @@ Read-only mode, form protection, and editing restrictions.
 | 8. Themes & Styles | 5 | 0 | 0 | 5 |
 | 9. Typography | 6 | 1 | 1 | 8 |
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
-| 11. Annotations & References | 1 | 1 | 4 | 6 |
+| 11. Annotations & References | 1 | 2 | 3 | 6 |
 | 12. Advanced Content | 0 | 0 | 2 | 2 |
-| **Total** | **93** | **5** | **26** | **124** |
+| **Total** | **93** | **6** | **25** | **124** |
 
 
 ### Coverage
@@ -1864,11 +1869,11 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 93
-    "Partial" : 5
-    "Todo" : 26
+    "Partial" : 6
+    "Todo" : 25
 ```
 
-**Overall coverage: 75% fully implemented, 4% partial, 21% remaining.**
+**Overall coverage: 75% fully implemented, 5% partial, 20% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)

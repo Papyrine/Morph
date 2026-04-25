@@ -157,6 +157,7 @@ sealed class DocumentParser(string defaultFont)
         var hyphenation = ExtractHyphenationSettings(mainPart);
         var compatibility = ExtractCompatibilitySettings(mainPart);
         var bookmarks = ExtractBookmarks(body);
+        var comments = ExtractComments(mainPart);
 
         return new()
         {
@@ -170,8 +171,44 @@ sealed class DocumentParser(string defaultFont)
             ThemeColors = currentThemeColors,
             ThemeFonts = currentThemeFonts,
             Compatibility = compatibility,
-            Bookmarks = bookmarks
+            Bookmarks = bookmarks,
+            Comments = comments
         };
+    }
+
+    static IReadOnlyList<Comment> ExtractComments(MainDocumentPart mainPart)
+    {
+        var commentsPart = mainPart.WordprocessingCommentsPart;
+        if (commentsPart?.Comments == null)
+        {
+            return [];
+        }
+
+        var result = new List<Comment>();
+        foreach (var ooxmlComment in commentsPart.Comments.Elements<DocumentFormat.OpenXml.Wordprocessing.Comment>())
+        {
+            if (ooxmlComment.Id?.Value is not { } id)
+            {
+                continue;
+            }
+
+            var text = string.Concat(ooxmlComment.Descendants<Text>().Select(_ => _.Text));
+            DateTimeOffset? date = null;
+            if (ooxmlComment.Date?.Value is { } dateValue)
+            {
+                date = dateValue;
+            }
+
+            result.Add(new()
+            {
+                Id = id,
+                Author = ooxmlComment.Author?.Value,
+                Text = text,
+                Date = date
+            });
+        }
+
+        return result;
     }
 
     static IReadOnlyList<Bookmark> ExtractBookmarks(Body body)
