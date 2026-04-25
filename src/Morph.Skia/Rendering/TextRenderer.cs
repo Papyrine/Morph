@@ -1,7 +1,8 @@
 /// <summary>
 /// Renders text content with formatting using SkiaSharp.
 /// </summary>
-sealed class TextRenderer(SkiaRenderContext context)
+sealed class TextRenderer(SkiaRenderContext context) :
+    IParagraphMeasurer
 {
     /// <summary>
     /// Measures the height of a paragraph when rendered at the given width.
