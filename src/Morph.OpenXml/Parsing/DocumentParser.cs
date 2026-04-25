@@ -6084,6 +6084,13 @@ sealed class DocumentParser(string defaultFont)
             runRtl = rtlElement.Val?.Value != false;
         }
 
+        // w14 text effects (presence only)
+        var effects = TextEffects.None;
+        if (props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Shadow>() != null) effects |= TextEffects.Shadow;
+        if (props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.TextOutlineEffect>() != null) effects |= TextEffects.Outline;
+        if (props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Glow>() != null) effects |= TextEffects.Glow;
+        if (props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Reflection>() != null) effects |= TextEffects.Reflection;
+
         // Vertical alignment (subscript/superscript)
         var vertAlignElement = props.GetFirstChild<VerticalTextAlignment>();
         if (vertAlignElement?.Val?.HasValue == true)
@@ -6264,7 +6271,8 @@ sealed class DocumentParser(string defaultFont)
             VerticalAlignment = verticalAlignment,
             KerningMinFontSizePoints = kerningMinFontSize,
             Ligatures = ligatures,
-            IsRightToLeft = runRtl
+            IsRightToLeft = runRtl,
+            Effects = effects
         };
     }
 }

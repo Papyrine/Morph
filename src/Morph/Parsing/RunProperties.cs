@@ -46,4 +46,10 @@ sealed record RunProperties
     /// Whether this run reads right-to-left (w:rtl). Renderer does not yet reverse text order.
     /// </summary>
     public bool IsRightToLeft { get; init; }
+
+    /// <summary>
+    /// Word 2010+ text effects (w14:shadow / textOutline / glow / reflection). Presence-only —
+    /// individual effect parameters aren't captured. Renderer doesn't apply any of these yet.
+    /// </summary>
+    public TextEffects Effects { get; init; } = TextEffects.None;
 }

@@ -317,40 +317,52 @@ Combines specific character sequences (fi, fl, ff, etc.) into single glyphs.
 ### 1.3 Text Effects
 
 
-#### Text Shadow `TODO`
+#### Text Shadow `PARTIAL`
 
 Shadow effect behind text (not to be confused with WordArt shadow).
 
 - **OOXML**: `w14:shadow` with color, blur radius, distance, angle
 - **Spec**: [MS-DOCX Text Effects](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
+- **Model**: `RunProperties.Effects` includes `TextEffects.Shadow` flag (presence only)
+- **Parse**: detects `w14:shadow` element on run properties
+- **Render**: not yet — shadow effect is not drawn
 
-> **AI**: Word 2010+ text effects live in the `w14` namespace. Parse alongside standard run properties. The WordArt rendering in `TextRenderer` already handles shadow for `WordArtElement` — adapt that approach for inline text shadow.
+> **Contributors**: Captures presence only. Shadow parameters (color, blur, distance, angle) aren't extracted; full rendering would adapt the WordArt shadow code in `TextRenderer`.
 
 
-#### Text Outline `TODO`
+#### Text Outline `PARTIAL`
 
 Outline/stroke around text characters.
 
 - **OOXML**: `w14:textOutline` with color, width, line style
 - **Spec**: [MS-DOCX Text Effects](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
+- **Model**: `RunProperties.Effects` includes `TextEffects.Outline` flag (presence only)
+- **Parse**: detects `w14:textOutline` element on run properties
+- **Render**: not yet — outline stroke is not drawn
 
-> **AI**: Similar to WordArt outline rendering already in `TextRenderer`. Parse `w14:textOutline` in `DocumentParser.ParseRunProperties()`.
+> **Contributors**: Outline color, width, and line-style parameters aren't extracted; rendering would mirror the WordArt outline code in `TextRenderer`.
 
 
-#### Text Glow `TODO`
+#### Text Glow `PARTIAL`
 
 Soft glow effect around text.
 
 - **OOXML**: `w14:glow` with color, radius
 - **Spec**: [MS-DOCX Text Effects](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
+- **Model**: `RunProperties.Effects` includes `TextEffects.Glow` flag (presence only)
+- **Parse**: detects `w14:glow` element on run properties
+- **Render**: not yet — glow is not drawn
 
 
-#### Text Reflection `TODO`
+#### Text Reflection `PARTIAL`
 
 Mirrored reflection below text.
 
 - **OOXML**: `w14:reflection` with transparency, size, blur, distance
 - **Spec**: [MS-DOCX Text Effects](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
+- **Model**: `RunProperties.Effects` includes `TextEffects.Reflection` flag (presence only)
+- **Parse**: detects `w14:reflection` element on run properties
+- **Render**: not yet — reflection is not drawn
 
 ---
 
@@ -1646,7 +1658,7 @@ Support for RTL languages (Arabic, Hebrew) and mixed-direction paragraphs.
 - **OOXML**: `w:bidi` (paragraph direction), `w:rtl` (run direction)
 - **Spec**: [BiDi](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.bidirectional)
 - **Model**: `ParagraphProperties.IsRightToLeft`, `RunProperties.IsRightToLeft`
-- **Parse**: `BiDi` on paragraph properties and `RightToLeftText` on run properties — both are simple OnOff toggles
+- **Parse**: `BiDi` on paragraph properties and `RightToLeftText` on run properties — both are OnOff toggles
 - **Render**: not yet — RTL paragraphs/runs render left-to-right with no reordering. Capturing this lets consumers detect Arabic/Hebrew content even though the visual output isn't yet accurate.
 - **Test**: HtmlParserTests JSON snapshots regenerated to include the new fields
 
@@ -1907,7 +1919,7 @@ Read-only mode, form protection, and editing restrictions.
 
 | Category | Done | Partial | Todo | Total |
 |----------|------|---------|------|-------|
-| 1. Text Formatting | 11 | 3 | 2 | 16 |
+| 1. Text Formatting | 12 | 7 | 0 | 19 |
 | 2. Paragraph Formatting | 11 | 1 | 0 | 12 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
 | 4. Tables | 13 | 4 | 0 | 17 |
@@ -1919,7 +1931,7 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 4 | 1 | 6 |
 | 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **97** | **16** | **11** | **124** |
+| **Total** | **97** | **20** | **7** | **124** |
 
 
 ### Coverage
@@ -1927,11 +1939,11 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 97
-    "Partial" : 16
-    "Todo" : 11
+    "Partial" : 20
+    "Todo" : 7
 ```
 
-**Overall coverage: 78% fully implemented, 13% partial, 9% remaining.**
+**Overall coverage: 78% fully implemented, 16% partial, 6% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)
