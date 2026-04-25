@@ -27,4 +27,11 @@ sealed record RunProperties
     /// Vertical alignment for subscript/superscript text.
     /// </summary>
     public VerticalRunAlignment VerticalAlignment { get; init; } = VerticalRunAlignment.Baseline;
+
+    /// <summary>
+    /// Minimum font size in points at which Word applies pair kerning (w:kern).
+    /// Zero means "no explicit threshold". The renderer relies on the platform shaper for
+    /// the actual kerning values; this field is captured for downstream inspection.
+    /// </summary>
+    public double KerningMinFontSizePoints { get; init; }
 }

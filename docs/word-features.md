@@ -282,14 +282,18 @@ Lowers text below the baseline, typically at a smaller font size.
 > **Contributors**: Lowered 15% of font size below baseline in `TextRenderer`.
 
 
-#### Kerning `TODO`
+#### Kerning `PARTIAL`
 
 Adjusts spacing between specific character pairs for visual balance.
 
-- **OOXML**: `w:kern` (minimum font size threshold for kerning)
+- **OOXML**: `w:kern` (minimum font size threshold for kerning, in half-points)
 - **Spec**: [Kern](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.kern)
+- **Model**: `RunProperties.KerningMinFontSizePoints`
+- **Parse**: `DocumentParser.BuildRunProperties` reads `w:kern` (half-points → points)
+- **Render**: relies on the platform shaper. SkiaSharp via HarfBuzz applies font kerning tables by default at all sizes; ImageSharp.Fonts also kerns automatically. The `KerningMinFontSizePoints` threshold is captured but not enforced — kerning happens regardless of size.
+- **Test**: covered by run-properties parsing tests.
 
-> **AI**: Kerning is typically handled by the font/shaping engine. SkiaSharp may apply kerning automatically through `SKPaint`. Check if the rendering backends already honor font kerning tables before adding explicit support.
+> **Contributors**: Marked PARTIAL because we don't currently honour the size threshold (kerning is unconditionally on). Most documents target the default Word threshold (16pt), so visual differences are minor.
 
 
 #### Ligatures `TODO`
@@ -1878,7 +1882,7 @@ Read-only mode, form protection, and editing restrictions.
 
 | Category | Done | Partial | Todo | Total |
 |----------|------|---------|------|-------|
-| 1. Text Formatting | 11 | 0 | 5 | 16 |
+| 1. Text Formatting | 11 | 1 | 4 | 16 |
 | 2. Paragraph Formatting | 11 | 1 | 0 | 12 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
 | 4. Tables | 13 | 2 | 2 | 17 |
@@ -1890,7 +1894,7 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 3 | 2 | 6 |
 | 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **95** | **10** | **19** | **124** |
+| **Total** | **95** | **11** | **18** | **124** |
 
 
 ### Coverage
@@ -1898,11 +1902,11 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 95
-    "Partial" : 10
-    "Todo" : 19
+    "Partial" : 11
+    "Todo" : 18
 ```
 
-**Overall coverage: 77% fully implemented, 8% partial, 15% remaining.**
+**Overall coverage: 77% fully implemented, 9% partial, 14% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)

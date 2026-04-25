@@ -5907,6 +5907,14 @@ sealed class DocumentParser(string defaultFont)
             characterSpacing = spacingElement.Val.Value / twipsPerPoint;
         }
 
+        // Kerning threshold (w:kern in rPr — half-points; 0 means kerning is off)
+        double kerningMinFontSize = 0;
+        var kernElement = props.GetFirstChild<Kern>();
+        if (kernElement?.Val?.HasValue == true)
+        {
+            kerningMinFontSize = kernElement.Val.Value / 2.0;
+        }
+
         // Vertical alignment (subscript/superscript)
         var vertAlignElement = props.GetFirstChild<VerticalTextAlignment>();
         if (vertAlignElement?.Val?.HasValue == true)
@@ -6078,7 +6086,8 @@ sealed class DocumentParser(string defaultFont)
             ColorHex = color,
             BackgroundColorHex = backgroundColor,
             CharacterSpacingPoints = characterSpacing,
-            VerticalAlignment = verticalAlignment
+            VerticalAlignment = verticalAlignment,
+            KerningMinFontSizePoints = kerningMinFontSize
         };
     }
 }
