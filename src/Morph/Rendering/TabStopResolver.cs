@@ -15,6 +15,11 @@ static class TabStopResolver
     /// <param name="tabStops">Paragraph tab stops sorted ascending by <see cref="TabStop.PositionPoints"/>.</param>
     /// <param name="defaultTabStopPoints">Document-level default tab width (typically 36 pt = 0.5").</param>
     /// <param name="leftIndentPoints">Paragraph left indent; default tabs are multiples of this base.</param>
+    /// <param name="decimalPrefixWidth">
+    /// Width of the following text up to (but excluding) its decimal point, used to align
+    /// <see cref="TabAlignment.Decimal"/> stops. When null or no decimal point is present,
+    /// decimal stops fall back to right-alignment.
+    /// </param>
     /// <returns>
     /// <c>destinationX</c> in points and the matched <see cref="TabStop"/> (null for default-tab snap).
     /// If no valid destination is found past the cursor, returns <c>(cursorX, null)</c> — tab collapses.
