@@ -1,7 +1,7 @@
 /// <summary>
 /// Renders text content with formatting using SixLabors.ImageSharp.
 /// </summary>
-sealed class TextRenderer(RenderContext context)
+sealed class TextRenderer(ImageSharpRenderContext context)
 {
     /// <summary>
     /// Measures the height of a paragraph when rendered at the given width.
@@ -201,7 +201,7 @@ sealed class TextRenderer(RenderContext context)
                 paragraphHeight += CalculateLineHeight(line.Height, props);
             }
 
-            var bgColor = RenderContext.ParseColor(props.BackgroundColorHex);
+            var bgColor = ImageSharpRenderContext.ParseColor(props.BackgroundColorHex);
 
             var bgX = context.PointsToPixels(context.ContentLeft + (float)props.LeftIndentPoints);
             var bgY = context.PointsToPixels(context.CurrentY);
@@ -321,7 +321,7 @@ sealed class TextRenderer(RenderContext context)
 
             void DrawBorder(BorderEdge edge, PointF start, PointF end)
             {
-                var color = RenderContext.ParseColor(edge.ColorHex ?? "000000");
+                var color = ImageSharpRenderContext.ParseColor(edge.ColorHex ?? "000000");
                 var pen = new SolidPen(color, context.PointsToPixels((float) edge.WidthPoints));
                 currentPage.Mutate(_ => _.DrawLine(pen, start, end));
             }
@@ -515,7 +515,7 @@ sealed class TextRenderer(RenderContext context)
                 }
 
                 var tabFont = context.GetFont(run.Properties);
-                var (tabRunHeight, tabBaseline) = RenderContext.GetFontMetrics(tabFont);
+                var (tabRunHeight, tabBaseline) = ImageSharpRenderContext.GetFontMetrics(tabFont);
 
                 currentFragments.Add(
                     new()
@@ -584,7 +584,7 @@ sealed class TextRenderer(RenderContext context)
             var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
             var words = SplitIntoWords(text);
             var font = context.GetFont(run.Properties);
-            var (runHeight, baseline) = RenderContext.GetFontMetrics(font);
+            var (runHeight, baseline) = ImageSharpRenderContext.GetFontMetrics(font);
 
             foreach (var word in words)
             {
@@ -629,7 +629,7 @@ sealed class TextRenderer(RenderContext context)
                 }
 
                 // Measure word width in points, including character spacing
-                var wordWidth = RenderContext.MeasureText(font, word)
+                var wordWidth = ImageSharpRenderContext.MeasureText(font, word)
                                 + (float) (run.Properties.CharacterSpacingPoints * word.Length);
 
                 // Check if we need to wrap
@@ -693,7 +693,7 @@ sealed class TextRenderer(RenderContext context)
             {
                 var firstRun = paragraph.Runs[0];
                 var font = context.GetFont(firstRun.Properties);
-                (emptyHeight, emptyBaseline) = RenderContext.GetFontMetrics(font);
+                (emptyHeight, emptyBaseline) = ImageSharpRenderContext.GetFontMetrics(font);
             }
             else if (props.ParagraphMarkFontSizePoints.HasValue)
             {
@@ -744,12 +744,12 @@ sealed class TextRenderer(RenderContext context)
         // Use the configured default font for line numbers (9pt, same as typical Word default)
         var props = new RunProperties { FontFamily = DefaultFontSettings.DefaultFont, FontSizePoints = 9 };
         var font = context.GetFont(props);
-        var (_, baseline) = RenderContext.GetFontMetrics(font);
+        var (_, baseline) = ImageSharpRenderContext.GetFontMetrics(font);
 
         var numberText = lineNumber.ToString();
 
         // Measure text width so we can right-align it
-        var textWidth = RenderContext.MeasureText(font, numberText) * context.Scale;
+        var textWidth = ImageSharpRenderContext.MeasureText(font, numberText) * context.Scale;
 
         var textOptions = new RichTextOptions(font)
         {
@@ -782,9 +782,9 @@ sealed class TextRenderer(RenderContext context)
         // Arial is available on all platforms and has good Unicode coverage including bullet characters
         var bulletProps = new RunProperties { FontFamily = "Arial", FontSizePoints = fontSize };
         var font = context.GetFont(bulletProps);
-        var (_, baseline) = RenderContext.GetFontMetrics(font);
+        var (_, baseline) = ImageSharpRenderContext.GetFontMetrics(font);
 
-        var color = colorHex != null ? RenderContext.ParseColor(colorHex) : Color.Black;
+        var color = colorHex != null ? ImageSharpRenderContext.ParseColor(colorHex) : Color.Black;
 
         var textOptions = new RichTextOptions(font)
         {
@@ -812,9 +812,9 @@ sealed class TextRenderer(RenderContext context)
         // Arial is available on all platforms and has good Unicode coverage including bullet characters
         var bulletProps = new RunProperties { FontFamily = "Arial", FontSizePoints = fontSize };
         var font = context.GetFont(bulletProps);
-        var (_, baseline) = RenderContext.GetFontMetrics(font);
+        var (_, baseline) = ImageSharpRenderContext.GetFontMetrics(font);
 
-        var color = colorHex != null ? RenderContext.ParseColor(colorHex) : Color.Black;
+        var color = colorHex != null ? ImageSharpRenderContext.ParseColor(colorHex) : Color.Black;
 
         // Render bullet at the start of the content area (text is indented to the right)
         var pixelX = context.PointsToPixels(startX);
@@ -925,7 +925,7 @@ sealed class TextRenderer(RenderContext context)
         }
 
         var font = context.GetFont(fragment.Properties);
-        var color = RenderContext.ParseColor(fragment.Properties.ColorHex);
+        var color = ImageSharpRenderContext.ParseColor(fragment.Properties.ColorHex);
 
         // Convert to pixels
         var pixelX = context.PointsToPixels(x);
@@ -948,10 +948,10 @@ sealed class TextRenderer(RenderContext context)
         // Draw background/shading color if specified
         if (!string.IsNullOrEmpty(fragment.Properties.BackgroundColorHex))
         {
-            var bgColor = RenderContext.ParseColor(fragment.Properties.BackgroundColorHex);
+            var bgColor = ImageSharpRenderContext.ParseColor(fragment.Properties.BackgroundColorHex);
 
             var textWidth = context.PointsToPixels(fragment.Width);
-            var (runHeight, runBaseline) = RenderContext.GetFontMetrics(font);
+            var (runHeight, runBaseline) = ImageSharpRenderContext.GetFontMetrics(font);
             // Top of text: baseline position minus ascent (in pixels)
             var textTop = pixelY - runBaseline * context.Scale;
             var textBottom = pixelY + (runHeight - runBaseline) * context.Scale;
@@ -960,7 +960,7 @@ sealed class TextRenderer(RenderContext context)
         }
 
         // Get baseline for coordinate conversion (Skia uses baseline Y, ImageSharp uses top-left Y)
-        var (_, baseline) = RenderContext.GetFontMetrics(font);
+        var (_, baseline) = ImageSharpRenderContext.GetFontMetrics(font);
 
         var textOptions = new RichTextOptions(font)
         {
@@ -995,7 +995,7 @@ sealed class TextRenderer(RenderContext context)
             return;
         }
 
-        var color = RenderContext.ParseColor(fragment.Properties.ColorHex);
+        var color = ImageSharpRenderContext.ParseColor(fragment.Properties.ColorHex);
         var pixelY = context.PointsToPixels(y);
         var pixelStartX = context.PointsToPixels(x);
         var pixelEndX = context.PointsToPixels(x + fragment.Width);
@@ -1020,7 +1020,7 @@ sealed class TextRenderer(RenderContext context)
         };
 
         var font = context.GetFont(fragment.Properties);
-        var glyphWidthPoints = RenderContext.MeasureText(font, leaderChar.ToString());
+        var glyphWidthPoints = ImageSharpRenderContext.MeasureText(font, leaderChar.ToString());
         if (glyphWidthPoints <= 0)
         {
             return;
@@ -1040,7 +1040,7 @@ sealed class TextRenderer(RenderContext context)
         }
 
         var leaderText = new string(leaderChar, count);
-        var (_, baseline) = RenderContext.GetFontMetrics(font);
+        var (_, baseline) = ImageSharpRenderContext.GetFontMetrics(font);
         var textOptions = new RichTextOptions(font)
         {
             Dpi = context.Dpi,
@@ -1145,7 +1145,7 @@ sealed class TextRenderer(RenderContext context)
                 }
 
                 var tabFont = context.GetFont(run.Properties);
-                var (tabRunHeight, tabBaseline) = RenderContext.GetFontMetrics(tabFont);
+                var (tabRunHeight, tabBaseline) = ImageSharpRenderContext.GetFontMetrics(tabFont);
 
                 currentFragments.Add(
                     new()
@@ -1215,7 +1215,7 @@ sealed class TextRenderer(RenderContext context)
             var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
             var words = SplitIntoWords(text);
             var font = context.GetFont(run.Properties);
-            var (runHeight, runBaseline) = RenderContext.GetFontMetrics(font);
+            var (runHeight, runBaseline) = ImageSharpRenderContext.GetFontMetrics(font);
 
             foreach (var word in words)
             {
@@ -1266,7 +1266,7 @@ sealed class TextRenderer(RenderContext context)
 
                 // Measure the display word (without soft hyphen)
                 // Apply FontWidthScale and character spacing to better match Word's text rendering
-                var wordWidth = RenderContext.MeasureText(font, displayWord) * context.FontWidthScale
+                var wordWidth = ImageSharpRenderContext.MeasureText(font, displayWord) * context.FontWidthScale
                                 + (float) (run.Properties.CharacterSpacingPoints * displayWord.Length);
 
                 // Check if we need to wrap to a new line
@@ -1336,7 +1336,7 @@ sealed class TextRenderer(RenderContext context)
             {
                 var firstRun = paragraph.Runs[0];
                 var font = context.GetFont(firstRun.Properties);
-                (emptyHeight, emptyBaseline) = RenderContext.GetFontMetrics(font);
+                (emptyHeight, emptyBaseline) = ImageSharpRenderContext.GetFontMetrics(font);
             }
             else if (props.ParagraphMarkFontSizePoints.HasValue)
             {
@@ -1445,12 +1445,12 @@ sealed class TextRenderer(RenderContext context)
             if (dotIndex >= 0)
             {
                 var prefix = text[..dotIndex];
-                total += RenderContext.MeasureText(font, prefix)
+                total += ImageSharpRenderContext.MeasureText(font, prefix)
                          + (float)(run.Properties.CharacterSpacingPoints * prefix.Length);
                 return total;
             }
 
-            total += RenderContext.MeasureText(font, text)
+            total += ImageSharpRenderContext.MeasureText(font, text)
                      + (float)(run.Properties.CharacterSpacingPoints * text.Length);
         }
 
@@ -1481,7 +1481,7 @@ sealed class TextRenderer(RenderContext context)
 
             var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
             var font = context.GetFont(run.Properties);
-            total += RenderContext.MeasureText(font, text)
+            total += ImageSharpRenderContext.MeasureText(font, text)
                      + (float)(run.Properties.CharacterSpacingPoints * text.Length);
         }
 

@@ -1,7 +1,7 @@
 /// <summary>
 /// Renders document pages to PNG images.
 /// </summary>
-sealed class PageRenderer(RenderContext context) :
+sealed class SkiaPageRenderer(SkiaRenderContext context) :
     IDisposable
 {
     /// <summary>

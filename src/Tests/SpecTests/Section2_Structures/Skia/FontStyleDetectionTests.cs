@@ -1,5 +1,4 @@
 extern alias Skia;
-using SkiaRenderContext = Skia::RenderContext;
 
 /// <summary>
 /// Tests for Skia font style detection: italic verification in system font

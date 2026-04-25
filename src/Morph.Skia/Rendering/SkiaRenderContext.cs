@@ -3,7 +3,7 @@ using Morph;
 /// <summary>
 /// Maintains rendering state during page layout and rendering.
 /// </summary>
-sealed class RenderContext(
+sealed class SkiaRenderContext(
     PageSettings pageSettings,
     int dpi,
     CompatibilitySettings? compatibility = null,
@@ -56,7 +56,7 @@ sealed class RenderContext(
                 index++;
             }
         }
-        else
+
         {
             using var tf = SKTypeface.FromFile(fontFile);
             if (tf?.FamilyName is { Length: > 0 } name)
@@ -87,25 +87,7 @@ sealed class RenderContext(
 
         if (!typefaceCache.TryGetValue(key, out var typeface))
         {
-            if (FontDirectory != null)
-            {
-                typeface = ResolveFromDirectory(candidates, style);
-
-                if (typeface == null)
-                {
-                    var fallbackFont = FontHelpers.FindFallback(candidates) ?? FontFallback?.Invoke(fontFamily);
-                    if (fallbackFont != null)
-                    {
-                        typeface = ResolveFromDirectory(FontHelpers.GetCandidateNames(fallbackFont, bold), style);
-                    }
-                }
-
-                if (typeface == null)
-                {
-                    throw new InvalidOperationException($"Font '{fontFamily}' not found in '{FontDirectory}'.");
-                }
-            }
-            else
+            if (FontDirectory == null)
             {
                 // Try each candidate name against system fonts
                 typeface = TryResolveFromSystem(candidates, style);
@@ -141,6 +123,24 @@ sealed class RenderContext(
                     }
                 }
             }
+            else
+            {
+                typeface = ResolveFromDirectory(candidates, style);
+
+                if (typeface == null)
+                {
+                    var fallbackFont = FontHelpers.FindFallback(candidates) ?? FontFallback?.Invoke(fontFamily);
+                    if (fallbackFont != null)
+                    {
+                        typeface = ResolveFromDirectory(FontHelpers.GetCandidateNames(fallbackFont, bold), style);
+                    }
+                }
+
+                if (typeface == null)
+                {
+                    throw new InvalidOperationException($"Font '{fontFamily}' not found in '{FontDirectory}'.");
+                }
+            }
 
             typefaceCache[key] = typeface;
         }
@@ -164,8 +164,8 @@ sealed class RenderContext(
         foreach (var name in FontFileCache.EnumerateCandidateNames(candidates))
         {
             var typeface = SKTypeface.FromFamilyName(name, style);
-            if (typeface.FamilyName.Equals(name, StringComparison.OrdinalIgnoreCase)
-                || typeface.FamilyName.StartsWith(name, StringComparison.OrdinalIgnoreCase))
+            if (typeface.FamilyName.Equals(name, StringComparison.OrdinalIgnoreCase) ||
+                typeface.FamilyName.StartsWith(name, StringComparison.OrdinalIgnoreCase))
             {
                 // Verify the returned typeface actually matches the requested style.
                 // System fonts may return a regular face when italic isn't available,
@@ -333,7 +333,8 @@ sealed class RenderContext(
 
     static SKColor ParseColor(string? hexColor)
     {
-        if (string.IsNullOrEmpty(hexColor) || hexColor == "auto")
+        if (string.IsNullOrEmpty(hexColor) ||
+            hexColor == "auto")
         {
             return SKColors.Black;
         }
