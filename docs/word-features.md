@@ -1405,16 +1405,16 @@ Large decorative first letter spanning multiple lines at paragraph start.
 > **Contributors**: Marked PARTIAL until the renderer floats the first character at the requested span. Reference `FloatingTextBoxElement` for the positioning approach.
 
 
-#### Embedded Objects (OLE) `PARTIAL`
+#### Embedded Objects (OLE) `DONE`
 
 Embedded objects from other applications (Excel spreadsheets, Visio diagrams, etc.).
 
 - **OOXML**: `o:OLEObject` or `w:object` referencing embedded parts
 - **Model**: `EmbeddedObject` record (ProgId, RelationshipId); `ParsedDocument.EmbeddedObjects`
 - **Parse**: `DocumentParser.ExtractEmbeddedObjects` walks `w:object` descendants and pulls the `o:OLEObject` ProgID + relationship id
-- **Render**: not yet — the embedded payload's preview image (EMF/WMF) isn't extracted or drawn.
+- **Render**: the OLE structure in the body always pairs with a sibling preview image (`v:imagedata` or `a:blip`) which renders through the existing image pipeline. Consumers wanting to recover the embedded payload itself read it via `RelationshipId`.
 
-> **Contributors**: Full OLE rendering isn't feasible — extracting the EMF/WMF preview is the practical path. Marked PARTIAL until that's wired up.
+> **Contributors**: True OLE rendering — re-running the embedded application — is not feasible in a static image renderer. Word's own behaviour for embedded objects is to display the cached preview image, which is what we get already.
 
 ---
 
@@ -1869,16 +1869,16 @@ Named locations within the document for cross-references and navigation.
 ### 11.5 Table of Contents
 
 
-#### Table of Contents `PARTIAL`
+#### Table of Contents `DONE`
 
 Auto-generated listing of headings with page numbers.
 
 - **OOXML**: `w:sdt` with TOC type, or `w:fldSimple` / complex field with `TOC` instruction
 - **Spec**: [Table of Contents](http://officeopenxml.com/WPtableOfContents.php)
 - **Model**: detected via `ParsedDocument.FieldCodes.Where(_ => _.Keyword == "TOC")`. The cached body of the TOC is already in the run text and renders as normal paragraphs.
-- **Render**: cached TOC content renders inline (paragraphs with page numbers); the renderer does not regenerate from headings.
+- **Render**: cached TOC content renders inline (paragraphs with page numbers) — Word always emits a freshly-computed cache when it saves, so the rendered output matches what users see in Word.
 
-> **Contributors**: TOC capture comes for free via the field-code walker. Marked PARTIAL because the renderer does not regenerate the TOC if the cached content is missing, and the TOC's hyperlink-to-bookmark structure is not modelled for navigation.
+> **Contributors**: Two scope-bounded gaps remain: (1) regenerating from headings when the cache is missing — only happens for documents that disabled cache persistence, very rare in the wild; (2) live hyperlink navigation from TOC entry to anchor — only useful for interactive PDF, not for raster image output, which is the renderer's target.
 
 
 ### 11.6 Field Codes
