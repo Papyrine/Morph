@@ -1639,14 +1639,18 @@ Positioned alignment points within a paragraph. Types: left, center, right, deci
 ### 9.3 Bidirectional Text
 
 
-#### Right-to-Left (RTL) Text `TODO`
+#### Right-to-Left (RTL) Text `PARTIAL`
 
 Support for RTL languages (Arabic, Hebrew) and mixed-direction paragraphs.
 
 - **OOXML**: `w:bidi` (paragraph direction), `w:rtl` (run direction)
 - **Spec**: [BiDi](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.bidirectional)
+- **Model**: `ParagraphProperties.IsRightToLeft`, `RunProperties.IsRightToLeft`
+- **Parse**: `BiDi` on paragraph properties and `RightToLeftText` on run properties — both are simple OnOff toggles
+- **Render**: not yet — RTL paragraphs/runs render left-to-right with no reordering. Capturing this lets consumers detect Arabic/Hebrew content even though the visual output isn't yet accurate.
+- **Test**: HtmlParserTests JSON snapshots regenerated to include the new fields
 
-> **AI**: Requires Unicode BiDi algorithm implementation (or library). Affects paragraph alignment (RTL default is right-aligned), text rendering direction, and table cell order. Major feature — consider HarfBuzz integration for proper text shaping.
+> **Contributors**: Marked PARTIAL because proper rendering requires the Unicode BiDi algorithm and a shaper that supports RTL — HarfBuzz can do this in Skia, but the layout pipeline today assumes LTR. Most documents in the test suite are LTR, so the visual gap is invisible until an Arabic/Hebrew scenario lands.
 
 ---
 
@@ -1911,11 +1915,11 @@ Read-only mode, form protection, and editing restrictions.
 | 6. Graphics & Media | 12 | 1 | 6 | 19 |
 | 7. Form Controls | 10 | 0 | 0 | 10 |
 | 8. Themes & Styles | 5 | 0 | 0 | 5 |
-| 9. Typography | 6 | 1 | 1 | 8 |
+| 9. Typography | 6 | 2 | 0 | 8 |
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 4 | 1 | 6 |
 | 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **97** | **15** | **12** | **124** |
+| **Total** | **97** | **16** | **11** | **124** |
 
 
 ### Coverage
@@ -1923,11 +1927,11 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 97
-    "Partial" : 15
-    "Todo" : 12
+    "Partial" : 16
+    "Todo" : 11
 ```
 
-**Overall coverage: 78% fully implemented, 12% partial, 10% remaining.**
+**Overall coverage: 78% fully implemented, 13% partial, 9% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)

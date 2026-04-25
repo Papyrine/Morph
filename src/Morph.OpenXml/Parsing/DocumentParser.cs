@@ -5840,6 +5840,14 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        // RTL paragraph (w:bidi)
+        var paraRtl = false;
+        var bidi = props.GetFirstChild<BiDi>();
+        if (bidi != null)
+        {
+            paraRtl = bidi.Val?.Value != false;
+        }
+
         // Parse drop cap (w:framePr/w:dropCap, w:framePr/w:lines)
         var dropCap = DropCapPosition.None;
         var dropCapLines = 0;
@@ -5894,7 +5902,8 @@ sealed class DocumentParser(string defaultFont)
             TabStops = ParseTabs(props, styleDefaults?.TabStops ?? []),
             DefaultTabStopPoints = defaultTabStopPoints,
             DropCap = dropCap,
-            DropCapLines = dropCapLines
+            DropCapLines = dropCapLines,
+            IsRightToLeft = paraRtl
         };
     }
 
@@ -6066,6 +6075,14 @@ sealed class DocumentParser(string defaultFont)
 
         // Ligature mode (w14:ligatures in rPr — Word 2010+ extension)
         var ligatures = ParseLigatureMode(props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Ligatures>());
+
+        // RTL run (w:rtl)
+        var runRtl = false;
+        var rtlElement = props.GetFirstChild<RightToLeftText>();
+        if (rtlElement != null)
+        {
+            runRtl = rtlElement.Val?.Value != false;
+        }
 
         // Vertical alignment (subscript/superscript)
         var vertAlignElement = props.GetFirstChild<VerticalTextAlignment>();
@@ -6246,7 +6263,8 @@ sealed class DocumentParser(string defaultFont)
             CharacterSpacingPoints = characterSpacing,
             VerticalAlignment = verticalAlignment,
             KerningMinFontSizePoints = kerningMinFontSize,
-            Ligatures = ligatures
+            Ligatures = ligatures,
+            IsRightToLeft = runRtl
         };
     }
 }

@@ -41,4 +41,9 @@ sealed record RunProperties
     /// platform shaper for actual ligature substitution; this field is captured for inspection.
     /// </summary>
     public LigatureMode Ligatures { get; init; } = LigatureMode.Standard;
+
+    /// <summary>
+    /// Whether this run reads right-to-left (w:rtl). Renderer does not yet reverse text order.
+    /// </summary>
+    public bool IsRightToLeft { get; init; }
 }

@@ -18,7 +18,8 @@
                       "Strikethrough": false,
                       "AllCaps": false,
                       "SmallCaps": false,
-                      "Ligatures": "Standard"
+                      "Ligatures": "Standard",
+                      "IsRightToLeft": false
                     },
                     "IsTab": false
                   }
@@ -37,7 +38,8 @@
                     "WidthPoints": 0.5,
                     "ColorHex": "000000"
                   },
-                  "DefaultTabStopPoints": 36.0
+                  "DefaultTabStopPoints": 36.0,
+                  "IsRightToLeft": false
                 }
               }
             ],
@@ -66,7 +68,8 @@
                       "Strikethrough": false,
                       "AllCaps": false,
                       "SmallCaps": false,
-                      "Ligatures": "Standard"
+                      "Ligatures": "Standard",
+                      "IsRightToLeft": false
                     },
                     "IsTab": false
                   }
@@ -85,7 +88,8 @@
                     "WidthPoints": 0.5,
                     "ColorHex": "000000"
                   },
-                  "DefaultTabStopPoints": 36.0
+                  "DefaultTabStopPoints": 36.0,
+                  "IsRightToLeft": false
                 }
               }
             ],
@@ -108,7 +112,8 @@
                       "Strikethrough": false,
                       "AllCaps": false,
                       "SmallCaps": false,
-                      "Ligatures": "Standard"
+                      "Ligatures": "Standard",
+                      "IsRightToLeft": false
                     },
                     "IsTab": false
                   }
@@ -127,7 +132,8 @@
                     "WidthPoints": 0.5,
                     "ColorHex": "000000"
                   },
-                  "DefaultTabStopPoints": 36.0
+                  "DefaultTabStopPoints": 36.0,
+                  "IsRightToLeft": false
                 }
               }
             ],

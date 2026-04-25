@@ -170,4 +170,9 @@ sealed record ParagraphProperties
     /// Number of lines the drop cap spans (w:framePr/w:lines). Only relevant when <see cref="DropCap"/> is not None.
     /// </summary>
     public int DropCapLines { get; init; }
+
+    /// <summary>
+    /// Whether the paragraph reads right-to-left (w:bidi). Renderer does not yet reverse text order.
+    /// </summary>
+    public bool IsRightToLeft { get; init; }
 }
