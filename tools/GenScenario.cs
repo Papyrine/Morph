@@ -3,65 +3,75 @@ using System.IO;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using M = DocumentFormat.OpenXml.Math;
 
 var source = args[0];
 var target = args[1];
 File.Copy(source, target, overwrite: true);
 
 using var doc = WordprocessingDocument.Open(target, isEditable: true);
-var mainPart = doc.MainDocumentPart!;
-var body = mainPart.Document.Body!;
+var body = doc.MainDocumentPart!.Document.Body!;
 foreach (var p in body.Elements<Paragraph>().ToList()) p.Remove();
 
 var sectPr = body.Elements<SectionProperties>().Last();
 sectPr.Remove();
 
-// 1. Footnote definition + reference.
-var footnotesPart = mainPart.AddNewPart<FootnotesPart>();
-var footnotes = new Footnotes();
-// Required separator entries.
-footnotes.Append(new Footnote { Id = -1, Type = FootnoteEndnoteValues.Separator });
-footnotes.Append(new Footnote { Id = 0, Type = FootnoteEndnoteValues.ContinuationSeparator });
-var fn = new Footnote { Id = 1 };
-fn.Append(new Paragraph(new Run(new Text("This is a footnote."))));
-footnotes.Append(fn);
-footnotesPart.Footnotes = footnotes;
-footnotesPart.Footnotes.Save();
+// Tall table: 1 header row + 60 data rows so it spans multiple pages.
+var table = new Table();
+var tblPr = new TableProperties();
+tblPr.Append(new TableWidth { Type = TableWidthUnitValues.Dxa, Width = "9000" });
+var borders = new TableBorders(
+    new TopBorder { Val = BorderValues.Single, Size = 4, Color = "000000" },
+    new BottomBorder { Val = BorderValues.Single, Size = 4, Color = "000000" },
+    new LeftBorder { Val = BorderValues.Single, Size = 4, Color = "000000" },
+    new RightBorder { Val = BorderValues.Single, Size = 4, Color = "000000" },
+    new InsideHorizontalBorder { Val = BorderValues.Single, Size = 4, Color = "000000" },
+    new InsideVerticalBorder { Val = BorderValues.Single, Size = 4, Color = "000000" });
+tblPr.Append(borders);
+table.Append(tblPr);
 
-// 2. Endnote definition.
-var endnotesPart = mainPart.AddNewPart<EndnotesPart>();
-var endnotes = new Endnotes();
-endnotes.Append(new Endnote { Id = -1, Type = FootnoteEndnoteValues.Separator });
-endnotes.Append(new Endnote { Id = 0, Type = FootnoteEndnoteValues.ContinuationSeparator });
-var en = new Endnote { Id = 1 };
-en.Append(new Paragraph(new Run(new Text("This is an endnote."))));
-endnotes.Append(en);
-endnotesPart.Endnotes = endnotes;
-endnotesPart.Endnotes.Save();
+var grid = new TableGrid();
+grid.Append(new GridColumn { Width = "3000" });
+grid.Append(new GridColumn { Width = "3000" });
+grid.Append(new GridColumn { Width = "3000" });
+table.Append(grid);
 
-// 3. Body paragraphs with references and an OLE placeholder.
-var pFn = new Paragraph();
-pFn.Append(new Run(new Text("Footnote ref ")));
-pFn.Append(new Run(new FootnoteReference { Id = 1 }));
-body.Append(pFn);
+// Header row marked with w:tblHeader.
+var headerRow = new TableRow();
+var trPr = new TableRowProperties();
+trPr.Append(new TableHeader());
+headerRow.Append(trPr);
+foreach (var label in new[] { "ID", "Name", "Notes" })
+{
+    var cell = new TableCell();
+    cell.Append(new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Dxa, Width = "3000" }));
+    var p = new Paragraph();
+    var rPr = new RunProperties();
+    rPr.Append(new Bold());
+    var r = new Run();
+    r.Append(rPr);
+    r.Append(new Text(label));
+    p.Append(r);
+    cell.Append(p);
+    headerRow.Append(cell);
+}
+table.Append(headerRow);
 
-var pEn = new Paragraph();
-pEn.Append(new Run(new Text("Endnote ref ")));
-pEn.Append(new Run(new EndnoteReference { Id = 1 }));
-body.Append(pEn);
+// 60 data rows.
+for (var i = 1; i <= 60; i++)
+{
+    var row = new TableRow();
+    foreach (var value in new[] { i.ToString(), $"Person {i}", "Lorem ipsum dolor sit amet" })
+    {
+        var cell = new TableCell();
+        cell.Append(new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Dxa, Width = "3000" }));
+        cell.Append(new Paragraph(new Run(new Text(value))));
+        row.Append(cell);
+    }
+    table.Append(row);
+}
 
-// 4. Math equation.
-var pMath = new Paragraph();
-var oMathPara = new M.Paragraph();
-var oMath = new M.OfficeMath();
-var mr = new M.Run();
-mr.Append(new M.Text("x"));
-oMath.Append(mr);
-oMathPara.Append(oMath);
-pMath.Append(oMathPara);
-body.Append(pMath);
-
+body.Append(table);
 body.Append(sectPr);
-mainPart.Document.Save();
+
+doc.MainDocumentPart.Document.Save();
 Console.WriteLine($"Updated {target}");
