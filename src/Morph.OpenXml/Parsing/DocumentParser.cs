@@ -172,6 +172,16 @@ sealed class DocumentParser(string defaultFont)
         var firstPageFooter = pageSettings.DifferentFirstPage
             ? ExtractHeaderFooter(body, mainPart, HeaderFooterValues.First, isHeader: false)
             : null;
+
+        // w:settings/w:evenAndOddHeaders opts the document into separate even-page parts.
+        var evenAndOddHeaders = mainPart.DocumentSettingsPart?.Settings?
+            .GetFirstChild<EvenAndOddHeaders>() is { } eoh && eoh.Val?.Value != false;
+        var evenPageHeader = evenAndOddHeaders
+            ? ExtractHeaderFooter(body, mainPart, HeaderFooterValues.Even, isHeader: true)
+            : null;
+        var evenPageFooter = evenAndOddHeaders
+            ? ExtractHeaderFooter(body, mainPart, HeaderFooterValues.Even, isHeader: false)
+            : null;
         var hyphenation = ExtractHyphenationSettings(mainPart);
         var compatibility = ExtractCompatibilitySettings(mainPart);
         var bookmarks = ExtractBookmarks(body);
@@ -192,6 +202,8 @@ sealed class DocumentParser(string defaultFont)
             Footer = footer,
             FirstPageHeader = firstPageHeader,
             FirstPageFooter = firstPageFooter,
+            EvenPageHeader = evenPageHeader,
+            EvenPageFooter = evenPageFooter,
             Hyphenation = hyphenation,
             ThemeColors = currentThemeColors,
             ThemeFonts = currentThemeFonts,

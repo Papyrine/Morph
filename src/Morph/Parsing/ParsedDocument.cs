@@ -11,6 +11,18 @@ sealed class ParsedDocument
     public HeaderFooterContent? FirstPageFooter { get; init; }
 
     /// <summary>
+    /// Header for even-numbered pages when the document opts in via w:evenAndOddHeaders.
+    /// Null when even-page headers aren't enabled — pages 2/4/6 fall back to <see cref="Header"/>.
+    /// </summary>
+    public HeaderFooterContent? EvenPageHeader { get; init; }
+
+    /// <summary>
+    /// Footer for even-numbered pages when the document opts in via w:evenAndOddHeaders.
+    /// Null when even-page footers aren't enabled.
+    /// </summary>
+    public HeaderFooterContent? EvenPageFooter { get; init; }
+
+    /// <summary>
     /// Document-level hyphenation settings.
     /// </summary>
     public HyphenationSettings Hyphenation { get; init; } = new();

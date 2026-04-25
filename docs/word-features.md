@@ -1053,15 +1053,16 @@ Different header/footer content for the first page of a section.
 - **Model**: `ParsedDocument.FirstPageHeader`, `FirstPageFooter`, `PageSettings.DifferentFirstPage`
 
 
-#### Even / Odd Page Headers `PARTIAL`
+#### Even / Odd Page Headers `DONE`
 
 Different header/footer content for even vs. odd pages.
 
 - **OOXML**: `w:evenAndOddHeaders` in document settings, `w:type="even"` references
+- **Model**: `ParsedDocument.EvenPageHeader`, `ParsedDocument.EvenPageFooter`
+- **Parse**: `DocumentParser.ParseDocument` checks `w:settings/w:evenAndOddHeaders` and pulls the matching `HeaderFooterValues.Even` parts when set
+- **Render**: `PageRenderer.RenderHeader` / `RenderFooter` (both backends) pick first-page → even-page → default in that order based on `CurrentPageNumber`
 
-> **Contributors**: Even/odd header references are parsed but only first-page different and default are rendered. Even-page specific headers are not applied.
-> **Consumers**: Even/odd page headers are not rendered — all pages use the default header.
-> **AI**: Parse the `w:evenAndOddHeaders` flag from document settings. Store even-page header/footer references in `ParsedDocument`. In `PageRenderer`, check page number parity and select the appropriate header/footer.
+> **Contributors**: When `w:evenAndOddHeaders` isn't set, even pages fall back to the default header/footer (which is what consumers expect). The first-page selector still wins on page 1.
 
 
 #### Page Numbers in Headers `DONE`

@@ -14,6 +14,8 @@ sealed class PageRenderer(RenderContext context) :
     HeaderFooterContent? footer;
     HeaderFooterContent? firstPageHeader;
     HeaderFooterContent? firstPageFooter;
+    HeaderFooterContent? evenPageHeader;
+    HeaderFooterContent? evenPageFooter;
     bool differentFirstPage;
     float headerHeight;
     float footerHeight;
@@ -29,6 +31,8 @@ sealed class PageRenderer(RenderContext context) :
         footer = document.Footer;
         firstPageHeader = document.FirstPageHeader;
         firstPageFooter = document.FirstPageFooter;
+        evenPageHeader = document.EvenPageHeader;
+        evenPageFooter = document.EvenPageFooter;
         differentFirstPage = document.PageSettings.DifferentFirstPage;
 
         headerHeight = MeasureHeaderFooterHeight(header);
@@ -75,9 +79,19 @@ sealed class PageRenderer(RenderContext context) :
 
     void RenderHeader()
     {
-        var activeHeader = differentFirstPage && context.CurrentPageNumber == 1
-            ? firstPageHeader
-            : header;
+        HeaderFooterContent? activeHeader;
+        if (differentFirstPage && context.CurrentPageNumber == 1)
+        {
+            activeHeader = firstPageHeader;
+        }
+        else if (evenPageHeader != null && context.CurrentPageNumber % 2 == 0)
+        {
+            activeHeader = evenPageHeader;
+        }
+        else
+        {
+            activeHeader = header;
+        }
 
         if (activeHeader == null || currentPage == null)
         {
@@ -108,9 +122,19 @@ sealed class PageRenderer(RenderContext context) :
 
     void RenderFooter()
     {
-        var activeFooter = differentFirstPage && context.CurrentPageNumber == 1
-            ? firstPageFooter
-            : footer;
+        HeaderFooterContent? activeFooter;
+        if (differentFirstPage && context.CurrentPageNumber == 1)
+        {
+            activeFooter = firstPageFooter;
+        }
+        else if (evenPageFooter != null && context.CurrentPageNumber % 2 == 0)
+        {
+            activeFooter = evenPageFooter;
+        }
+        else
+        {
+            activeFooter = footer;
+        }
 
         if (activeFooter == null || currentPage == null)
         {
