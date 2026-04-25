@@ -423,6 +423,20 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        // Legacy w:fldSimple (single-element field). The instruction lives in @w:instr and the
+        // cached result is the descendant text.
+        foreach (var simple in body.Descendants<SimpleField>())
+        {
+            var instruction = simple.Instruction?.Value?.Trim() ?? string.Empty;
+            if (instruction.Length == 0)
+            {
+                continue;
+            }
+
+            var resultText = string.Concat(simple.Descendants<Text>().Select(_ => _.Text));
+            result.Add(new() { Instruction = instruction, Result = resultText });
+        }
+
         return result;
     }
 

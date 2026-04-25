@@ -1886,18 +1886,18 @@ Auto-generated listing of headings with page numbers.
 ### 11.6 Field Codes
 
 
-#### Field Codes `PARTIAL`
+#### Field Codes `DONE`
 
 Dynamic content fields (date, time, author, page count, expressions, etc.).
 
 - **OOXML**: `w:fldSimple` (simple fields), `w:fldChar` (complex fields) with instruction text
 - **Spec**: [Fields](http://officeopenxml.com/WPfields.php)
 - **Model**: `FieldCode` record (`Instruction`, `Result`, derived `Keyword`); `ParsedDocument.FieldCodes`
-- **Parse**: `DocumentParser.ExtractFieldCodes()` walks complex-field begin/separate/end runs and concatenates `w:instrText` and result text. Tracks nested fields via stacks.
+- **Parse**: `DocumentParser.ExtractFieldCodes()` walks both complex-field begin/separate/end runs (concatenates `w:instrText` and result text, nested fields tracked via stacks) and `w:fldSimple` legacy single-element fields.
 - **Render**: not directly — Word's cached result is already in the run text and renders inline. The `FieldCodes` list lets consumers ask "are there any TOC / PAGEREF / HYPERLINK fields?" without re-walking the OOXML.
-- **Test**: spec test `FieldCodesTests`
+- **Test**: `field_codes_simple/`, spec test `FieldCodesTests`
 
-> **Contributors**: `w:fldSimple` (the legacy single-element form) isn't captured yet — only the modern `w:fldChar`-bracketed form. Cached results stay in the rendered output regardless of model state.
+> **Contributors**: Both forms (legacy single-element `w:fldSimple` and modern `w:fldChar`-bracketed) round-trip through the same `FieldCode` record.
 
 ---
 

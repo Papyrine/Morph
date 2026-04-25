@@ -39,4 +39,18 @@ public class FieldCodesTests
 
         await Assert.That(doc.FieldCodes).IsEmpty();
     }
+
+    [Test]
+    public async Task DocumentParser_CapturesSimpleFields()
+    {
+        // field_codes_simple/01 uses two w:fldSimple entries (PAGE and NUMPAGES) on the same paragraph.
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "field_codes_simple", "01", "input.docx");
+
+        var parser = new DocumentParser();
+        var doc = parser.Parse(inputFile);
+
+        await Assert.That(doc.FieldCodes.Count).IsEqualTo(2);
+        await Assert.That(doc.FieldCodes.Any(_ => _.Keyword == "PAGE")).IsTrue();
+        await Assert.That(doc.FieldCodes.Any(_ => _.Keyword == "NUMPAGES")).IsTrue();
+    }
 }
