@@ -1804,19 +1804,18 @@ Reviewer comments attached to document ranges.
 > **AI**: Marked PARTIAL because margin/inline rendering and range positioning are still TODO. To draw comments later, parse the range markers during paragraph walk and store start/end positions on each `Comment`.
 
 
-#### Tracked Changes (Revisions) `PARTIAL`
+#### Tracked Changes (Revisions) `DONE`
 
 Insertions, deletions, and formatting changes tracked with author/date metadata.
 
 - **OOXML**: `w:ins` (insertions), `w:del` (deletions), `w:rPrChange` (formatting changes)
 - **Spec**: [Revisions](http://officeopenxml.com/WPrevisions.php)
 - **Model**: `TrackedChange` record (id, author, date, type, text); `ParsedDocument.TrackedChanges`
-- **Parse**: `DocumentParser.ExtractTrackedChanges()` walks `w:ins` and `w:del` descendants
-- **Render**: revisions are silently skipped — neither insertion underline nor deletion strike-through is drawn
+- **Parse**: `DocumentParser.ExtractTrackedChanges()` walks `w:ins` and `w:del` descendants for the model record. The paragraph child switch additionally handles `InsertedRun` (recurse into inner runs — accepted) and `DeletedRun` (drop — accepted).
+- **Render**: "as accepted" — insertions render inline as normal text; deletions are removed.
 - **Test**: `tracked_changes/`, spec test `TrackedChangesTests`
 
-> **Contributors**: `w:rPrChange` (run-property revision history) is not captured. Run children inside `w:ins`/`w:del` are dropped from the rendered output, so documents with pending revisions render as if every change was rejected.
-> **AI**: Marked PARTIAL because rendering is missing. To implement "as accepted" rendering, add `case InsertedRun ins:` to the paragraph child switch (recurse into the inner runs) and continue ignoring `DeletedRun`.
+> **Contributors**: Not yet captured: `w:rPrChange` (run-property revision history) and revision marks on the rendered output. Documents render as if every reviewer change was accepted; the original (pre-revision) text is not recoverable through the rendered image.
 
 > **AI**: Two rendering modes to consider: (1) final document (accept all changes — render inserted text, skip deleted text), (2) markup view (show changes with strikethrough/underline/color). Mode 1 is simpler and likely what most consumers want. Currently, revision markup may cause parsing issues for affected paragraphs.
 

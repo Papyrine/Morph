@@ -3113,6 +3113,20 @@ sealed class DocumentParser(string defaultFont)
 
                     break;
 
+                case InsertedRun insertedRun:
+                    // Tracked-change insertion: render the inserted runs inline ("as accepted").
+                    // The revision metadata is captured separately on ParsedDocument.TrackedChanges.
+                    foreach (var insRun in insertedRun.Elements<OoxmlRun>())
+                    {
+                        runs.AddRange(ParseRun(insRun, mainPart, paragraphStyleId));
+                    }
+
+                    break;
+
+                case DeletedRun:
+                    // Tracked-change deletion: drop the runs ("as accepted" = remove deleted text).
+                    break;
+
                 case OoxmlRun run:
                     // Check for legacy form fields (FieldChar with FormFieldData)
                     var formField = ParseFormField(run);
