@@ -908,14 +908,18 @@ Top, bottom, left, and right margins controlling the content area.
 > **Contributors**: Content area calculated as page size minus margins. Stored in `RenderContextBase` as `ContentLeft`, `ContentTop`, `ContentBottom`, `ContentWidth`.
 
 
-#### Gutter Margins `TODO`
+#### Gutter Margins `DONE`
 
 Extra margin space on the binding edge for printed documents.
 
 - **OOXML**: `w:pgMar` with `w:gutter`, plus `w:gutterAtTop` in document settings
 - **Spec**: [Gutter](http://officeopenxml.com/WPsectionPgMar.php)
+- **Model**: `PageSettings.GutterPoints`, `PageSettings.GutterAtTop`
+- **Parse**: `DocumentParser.ExtractPageSettings` reads `w:pgMar/@w:gutter`. The gutter is folded into `MarginLeft` (or `MarginTop` when `w:gutterAtTop`) at parse time, so the rest of the pipeline doesn't need to know about it; the original gutter value is preserved for consumers.
+- **Render**: not a separate render step — covered by the existing margin handling.
+- **Test**: `gutter_margins/`, spec test `GutterMarginsTests`
 
-> **AI**: Add `GutterPoints` to `PageSettings`. Parse from `w:pgMar`. Apply as additional left margin (or top if `gutterAtTop`). Adjust content area calculation in `RenderContextBase`.
+> **Contributors**: Folding gutter into the effective margin is deliberate: every renderer already knows how to handle margins, so we avoid threading a "gutter offset" through `RenderContextBase`.
 
 
 ### 5.3 Columns
@@ -1865,7 +1869,7 @@ Read-only mode, form protection, and editing restrictions.
 | 2. Paragraph Formatting | 11 | 1 | 0 | 12 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
 | 4. Tables | 13 | 1 | 3 | 17 |
-| 5. Page Layout & Sections | 15 | 1 | 2 | 18 |
+| 5. Page Layout & Sections | 16 | 1 | 1 | 18 |
 | 6. Graphics & Media | 10 | 1 | 8 | 19 |
 | 7. Form Controls | 10 | 0 | 0 | 10 |
 | 8. Themes & Styles | 5 | 0 | 0 | 5 |
@@ -1873,19 +1877,19 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 3 | 2 | 6 |
 | 12. Advanced Content | 0 | 0 | 2 | 2 |
-| **Total** | **93** | **8** | **23** | **124** |
+| **Total** | **94** | **8** | **22** | **124** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 93
+    "Done" : 94
     "Partial" : 8
-    "Todo" : 23
+    "Todo" : 22
 ```
 
-**Overall coverage: 75% fully implemented, 6% partial, 19% remaining.**
+**Overall coverage: 76% fully implemented, 6% partial, 18% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)

@@ -77,6 +77,9 @@ sealed class DocumentParser(string defaultFont)
     // Document-level w:defaultTabStop in points (720 twips = 36 pt = 0.5 inch, OOXML default).
     double defaultTabStopPoints = 36;
 
+    // Document-level w:gutterAtTop flag; when true, w:pgMar/@w:gutter is added to the top margin instead of left.
+    bool gutterAtTopSetting;
+
     public ParsedDocument Parse(string filePath)
     {
         using var stream = File.OpenRead(filePath);
@@ -113,6 +116,11 @@ sealed class DocumentParser(string defaultFont)
 
         // Extract document-level default tab stop width (w:defaultTabStop in settings.xml)
         ExtractDefaultTabStop(mainPart);
+
+        // Extract gutterAtTop setting (so ExtractPageSettings can apply gutter to the right margin).
+        gutterAtTopSetting = mainPart.DocumentSettingsPart?.Settings?
+            .GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.GutterAtTop>() is { } g
+            && g.Val?.Value != false;
 
         // SectionProperties (sectPr) describes the section it belongs to, and the section break is stored
         // on the last paragraph of the section. The next section's properties are stored in the next sectPr.
@@ -1538,6 +1546,7 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        double gutterPoints = 0;
         if (pageMargin != null)
         {
             if (pageMargin.Top?.HasValue == true)
@@ -1568,6 +1577,26 @@ sealed class DocumentParser(string defaultFont)
             if (pageMargin.Footer?.HasValue == true)
             {
                 footerDistance = pageMargin.Footer.Value / twipsPerPoint;
+            }
+
+            if (pageMargin.Gutter?.HasValue == true)
+            {
+                gutterPoints = pageMargin.Gutter.Value / twipsPerPoint;
+            }
+        }
+
+        // Gutter is added to the appropriate margin at parse time so the rest of the pipeline
+        // doesn't need to know about it. Preserved separately on PageSettings for consumers.
+        var gutterAtTop = gutterAtTopSetting;
+        if (gutterPoints > 0)
+        {
+            if (gutterAtTop)
+            {
+                marginTop += gutterPoints;
+            }
+            else
+            {
+                marginLeft += gutterPoints;
             }
         }
 
@@ -1620,7 +1649,9 @@ sealed class DocumentParser(string defaultFont)
             LastRenderedPageBreakCount = lastRenderedPageBreakCount,
             BackgroundColorHex = documentBackgroundColor,
             DifferentFirstPage = differentFirstPage,
-            PageBorders = pageBorders
+            PageBorders = pageBorders,
+            GutterPoints = gutterPoints,
+            GutterAtTop = gutterAtTop
         };
     }
 
