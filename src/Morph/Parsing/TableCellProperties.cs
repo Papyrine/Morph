@@ -23,4 +23,10 @@ sealed record TableCellProperties
 
     /// <summary>Vertical merge state for this cell. Default is None.</summary>
     public VerticalMergeType VerticalMerge { get; init; } = VerticalMergeType.None;
+
+    /// <summary>
+    /// Text flow direction within the cell (w:textDirection). Default is left-to-right.
+    /// Renderer does not yet rotate text for vertical directions.
+    /// </summary>
+    public CellTextDirection TextDirection { get; init; } = CellTextDirection.LeftToRight;
 }

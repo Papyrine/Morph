@@ -870,14 +870,17 @@ Horizontal alignment of the table on the page (left, center, right).
 > **Contributors**: When the table is wider than the content area, `Math.Max(0, slack)` keeps it pinned at the left edge instead of shifting off-page.
 
 
-#### Table Cell Text Direction `TODO`
+#### Table Cell Text Direction `PARTIAL`
 
 Rotated text direction within cells (bottom-to-top, top-to-bottom).
 
 - **OOXML**: `w:textDirection` within `w:tcPr`
+- **Model**: `CellTextDirection` enum (`LeftToRight`, `BottomToTop`, `TopToBottom`); `TableCellProperties.TextDirection`
+- **Parse**: cell-properties parser reads `w:textDirection` and maps `btLr` → `BottomToTop`, `tbRl` → `TopToBottom`
 - **Spec**: [TextDirection](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.textdirection)
+- **Render**: not yet — vertical-direction cells render with horizontal text. Capturing this lets consumers detect and skip cells they can't render meaningfully.
 
-> **AI**: Requires rotated text rendering in the backend. SkiaSharp supports canvas rotation; apply before rendering cell content.
+> **Contributors**: Marked PARTIAL until the renderer wraps cell content in a `SKCanvas.RotateDegrees(±90)` (Skia) or equivalent rotation in ImageSharp.
 
 ---
 
@@ -1903,7 +1906,7 @@ Read-only mode, form protection, and editing restrictions.
 | 1. Text Formatting | 11 | 3 | 2 | 16 |
 | 2. Paragraph Formatting | 11 | 1 | 0 | 12 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
-| 4. Tables | 13 | 3 | 1 | 17 |
+| 4. Tables | 13 | 4 | 0 | 17 |
 | 5. Page Layout & Sections | 16 | 1 | 1 | 18 |
 | 6. Graphics & Media | 12 | 1 | 6 | 19 |
 | 7. Form Controls | 10 | 0 | 0 | 10 |
@@ -1912,7 +1915,7 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 4 | 1 | 6 |
 | 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **97** | **14** | **13** | **124** |
+| **Total** | **97** | **15** | **12** | **124** |
 
 
 ### Coverage
@@ -1920,11 +1923,11 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 97
-    "Partial" : 14
-    "Todo" : 13
+    "Partial" : 15
+    "Todo" : 12
 ```
 
-**Overall coverage: 78% fully implemented, 11% partial, 10% remaining.**
+**Overall coverage: 78% fully implemented, 12% partial, 10% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)

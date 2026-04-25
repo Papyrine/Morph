@@ -2264,6 +2264,22 @@ sealed class DocumentParser(string defaultFont)
                     }
                 }
 
+                // Parse text direction (w:textDirection)
+                var textDirection = CellTextDirection.LeftToRight;
+                var textDirElement = cellProps?.GetFirstChild<TextDirection>();
+                if (textDirElement?.Val?.HasValue == true)
+                {
+                    var dirVal = textDirElement.Val.Value;
+                    if (dirVal == TextDirectionValues.BottomToTopLeftToRight)
+                    {
+                        textDirection = CellTextDirection.BottomToTop;
+                    }
+                    else if (dirVal == TextDirectionValues.TopToBottomRightToLeft)
+                    {
+                        textDirection = CellTextDirection.TopToBottom;
+                    }
+                }
+
                 // Parse vertical merge (w:vMerge)
                 var verticalMerge = VerticalMergeType.None;
                 var vMergeElement = cellProps?.GetFirstChild<VerticalMerge>();
@@ -2308,7 +2324,8 @@ sealed class DocumentParser(string defaultFont)
                         Borders = cellBorders,
                         GridSpan = gridSpan,
                         VerticalAlignment = verticalAlign,
-                        VerticalMerge = verticalMerge
+                        VerticalMerge = verticalMerge,
+                        TextDirection = textDirection
                     }
                 });
 
