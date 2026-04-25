@@ -477,9 +477,13 @@ sealed class TextRenderer(RenderContext context)
                 var followingWidth = MeasureFollowingWidth(paragraph, runIndex + 1);
                 var leftIndentPts = (float)props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
+                double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
+                    ? MeasureFollowingDecimalPrefix(paragraph, runIndex + 1)
+                    : null;
                 var (destinationAbs, matchedStop) = TabStopResolver.Resolve(
                     cursorAbs, followingWidth,
-                    props.TabStops, props.DefaultTabStopPoints, leftIndentPts);
+                    props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
+                    decimalPrefix);
                 var gap = (float)(destinationAbs - cursorAbs);
                 if (gap <= 0 || currentLineWidth + gap > effectiveWidth)
                 {
@@ -1094,9 +1098,13 @@ sealed class TextRenderer(RenderContext context)
                 var followingWidth = MeasureFollowingWidth(paragraph, runIndex + 1);
                 var leftIndentPts = (float)props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
+                double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
+                    ? MeasureFollowingDecimalPrefix(paragraph, runIndex + 1)
+                    : null;
                 var (destinationAbs, matchedStop) = TabStopResolver.Resolve(
                     cursorAbs, followingWidth,
-                    props.TabStops, props.DefaultTabStopPoints, leftIndentPts);
+                    props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
+                    decimalPrefix);
                 var gap = (float)(destinationAbs - cursorAbs);
                 if (gap <= 0 || currentLineWidth + gap > effectiveWidth)
                 {
@@ -1368,6 +1376,42 @@ sealed class TextRenderer(RenderContext context)
     /// <summary>
     /// Measures text widths for runs following a tab, up to the next tab or line break.
     /// </summary>
+    // Width of the following text up to (but not including) the first '.' character. Returns null
+    // when no '.' is present — resolver then treats the Decimal stop as Right alignment.
+    float? MeasureFollowingDecimalPrefix(ParagraphElement paragraph, int startRunIndex)
+    {
+        float total = 0;
+        for (var i = startRunIndex; i < paragraph.Runs.Count; i++)
+        {
+            var run = paragraph.Runs[i];
+            if (run.IsTab || run.InlineImageData is {Length: > 0})
+            {
+                break;
+            }
+
+            if (run.Text.Contains('\n') || run.Text.Contains('\r'))
+            {
+                break;
+            }
+
+            var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
+            var font = context.GetFont(run.Properties);
+            var dotIndex = text.IndexOf('.');
+            if (dotIndex >= 0)
+            {
+                var prefix = text[..dotIndex];
+                total += RenderContext.MeasureText(font, prefix)
+                         + (float)(run.Properties.CharacterSpacingPoints * prefix.Length);
+                return total;
+            }
+
+            total += RenderContext.MeasureText(font, text)
+                     + (float)(run.Properties.CharacterSpacingPoints * text.Length);
+        }
+
+        return null;
+    }
+
     float MeasureFollowingWidth(ParagraphElement paragraph, int startRunIndex)
     {
         float total = 0;

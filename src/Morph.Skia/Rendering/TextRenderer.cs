@@ -492,9 +492,13 @@ sealed class TextRenderer(RenderContext context)
                 var followingWidth = MeasureFollowingWidthNoScale(paragraph, runIndex + 1);
                 var leftIndentPts = (float)props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
+                double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
+                    ? MeasureFollowingDecimalPrefixNoScale(paragraph, runIndex + 1)
+                    : null;
                 var (destinationAbs, matchedStop) = TabStopResolver.Resolve(
                     cursorAbs, followingWidth,
-                    props.TabStops, props.DefaultTabStopPoints, leftIndentPts);
+                    props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
+                    decimalPrefix);
                 var gap = (float)(destinationAbs - cursorAbs);
                 if (gap <= 0 || currentLineWidth + gap > effectiveWidth)
                 {
@@ -1155,9 +1159,13 @@ sealed class TextRenderer(RenderContext context)
                 var followingWidth = MeasureFollowingWidthScaled(paragraph, runIndex + 1);
                 var leftIndentPts = (float)props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
+                double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
+                    ? MeasureFollowingDecimalPrefixScaled(paragraph, runIndex + 1)
+                    : null;
                 var (destinationAbs, matchedStop) = TabStopResolver.Resolve(
                     cursorAbs, followingWidth,
-                    props.TabStops, props.DefaultTabStopPoints, leftIndentPts);
+                    props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
+                    decimalPrefix);
                 var gap = (float)(destinationAbs - cursorAbs);
                 if (gap <= 0 || currentLineWidth + gap > effectiveWidth)
                 {
@@ -1436,6 +1444,78 @@ sealed class TextRenderer(RenderContext context)
     /// Measures text widths for runs following a tab, up to the next tab or line break.
     /// Used by LayoutParagraphWithWidth (no FontWidthScale).
     /// </summary>
+    // Width of the following text up to (but not including) the first '.' character, applying the
+    // same per-glyph metrics as MeasureFollowingWidthNoScale. Returns null if no '.' is found —
+    // resolver then treats the Decimal stop as Right alignment, matching Word's fallback.
+    float? MeasureFollowingDecimalPrefixNoScale(ParagraphElement paragraph, int startRunIndex)
+    {
+        float total = 0;
+        for (var i = startRunIndex; i < paragraph.Runs.Count; i++)
+        {
+            var run = paragraph.Runs[i];
+            if (run.IsTab || run.InlineImageData is {Length: > 0})
+            {
+                break;
+            }
+
+            if (run.Text.Contains('\n') || run.Text.Contains('\r'))
+            {
+                break;
+            }
+
+            var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
+            var dotIndex = text.IndexOf('.');
+            using var font = context.CreateFont(run.Properties);
+            if (dotIndex >= 0)
+            {
+                var prefix = text[..dotIndex];
+                total += font.MeasureText(prefix) / context.Scale
+                         + (float)(run.Properties.CharacterSpacingPoints * prefix.Length);
+                return total;
+            }
+
+            total += font.MeasureText(text) / context.Scale
+                     + (float)(run.Properties.CharacterSpacingPoints * text.Length);
+        }
+
+        return null;
+    }
+
+    // Same measurement, with FontWidthScale applied to match LayoutParagraph's measurement style.
+    float? MeasureFollowingDecimalPrefixScaled(ParagraphElement paragraph, int startRunIndex)
+    {
+        float total = 0;
+        for (var i = startRunIndex; i < paragraph.Runs.Count; i++)
+        {
+            var run = paragraph.Runs[i];
+            if (run.IsTab || run.InlineImageData is {Length: > 0})
+            {
+                break;
+            }
+
+            if (run.Text.Contains('\n') || run.Text.Contains('\r'))
+            {
+                break;
+            }
+
+            var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
+            var dotIndex = text.IndexOf('.');
+            using var font = context.CreateFont(run.Properties);
+            if (dotIndex >= 0)
+            {
+                var prefix = text[..dotIndex];
+                total += font.MeasureText(prefix) / context.Scale * context.FontWidthScale
+                         + (float)(run.Properties.CharacterSpacingPoints * prefix.Length);
+                return total;
+            }
+
+            total += font.MeasureText(text) / context.Scale * context.FontWidthScale
+                     + (float)(run.Properties.CharacterSpacingPoints * text.Length);
+        }
+
+        return null;
+    }
+
     float MeasureFollowingWidthNoScale(ParagraphElement paragraph, int startRunIndex)
     {
         float total = 0;

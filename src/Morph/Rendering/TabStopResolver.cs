@@ -24,11 +24,12 @@ static class TabStopResolver
         double followingWidth,
         IReadOnlyList<TabStop> tabStops,
         double defaultTabStopPoints,
-        double leftIndentPoints)
+        double leftIndentPoints,
+        double? decimalPrefixWidth = null)
     {
         // Try each explicit stop whose position is strictly beyond the cursor.
-        // For Right/Center, the effective destination may land behind the cursor if followingWidth
-        // is large relative to the stop position — in that case skip to the next stop.
+        // For Right/Center/Decimal, the effective destination may land behind the cursor if the
+        // measured following text is too wide — in that case skip to the next stop.
         foreach (var stop in tabStops)
         {
             if (stop.PositionPoints <= cursorX)
@@ -40,7 +41,10 @@ static class TabStopResolver
             {
                 TabAlignment.Center => stop.PositionPoints - followingWidth / 2.0,
                 TabAlignment.Right => stop.PositionPoints - followingWidth,
-                // Decimal falls back to Left until decimal alignment is implemented.
+                // Decimal: align the decimal point of the following text at the tab position.
+                // If the caller didn't measure a decimal-prefix width (or the following text has no
+                // decimal point), behave like Right — that's what Word does as a fallback.
+                TabAlignment.Decimal => stop.PositionPoints - (decimalPrefixWidth ?? followingWidth),
                 _ => stop.PositionPoints
             };
 

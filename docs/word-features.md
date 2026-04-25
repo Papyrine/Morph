@@ -1659,10 +1659,10 @@ Positioned alignment points within a paragraph. Types: left, center, right, deci
 - **Parse**: `DocumentParser.ParseTabs()`, `ExtractDefaultTabStop()` in `Morph.OpenXml/Parsing/DocumentParser.cs`
 - **Model**: `ParagraphProperties.TabStops`, `ParagraphProperties.DefaultTabStopPoints`, `Run.IsTab` in `Morph/Parsing/DocumentElements.cs`
 - **Render**: `TabStopResolver` in `Morph/Rendering/TabStopResolver.cs`; `HandleTab` + `RenderTabFiller` in each `TextRenderer`
-- **Test**: `tab_stops`, plus `TabStopResolverTests` in `src/Tests/SpecTests/Section2_Structures/`
+- **Test**: `tab_stops`, `decimal_tabs`, plus `TabStopResolverTests` in `src/Tests/SpecTests/Section2_Structures/`
 - **Spec**: [Tab Stops](http://officeopenxml.com/WPtab.php)
 
-> **AI**: Implemented: left/center/right explicit stops, default-tab fallback (`w:defaultTabStop`), `w:val="clear"` removal, inherited stops via paragraph styles, dot/hyphen/middleDot/heavy leader glyphs, underscore leader as baseline line. Deferred: decimal alignment (parsed, renders as Left), bar tabs (parsed, not drawn), `num` tabs, and full wrap-on-tab (tab collapses to zero when destination behind cursor or gap exceeds remaining line width).
+> **AI**: Implemented: left/center/right/decimal explicit stops, default-tab fallback (`w:defaultTabStop`), `w:val="clear"` removal, inherited stops via paragraph styles, dot/hyphen/middleDot/heavy leader glyphs, underscore leader as baseline line. Decimal alignment scans the following runs for the first `.` and aligns that x at the tab position; falls back to Right when no decimal is present (matches Word). Deferred: bar tabs (parsed, not drawn), `num` tabs, and full wrap-on-tab (tab collapses to zero when destination behind cursor or gap exceeds remaining line width).
 
 
 ### 9.3 Bidirectional Text
