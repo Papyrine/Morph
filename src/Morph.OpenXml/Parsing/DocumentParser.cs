@@ -2190,6 +2190,22 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        // Parse table-level horizontal alignment (w:tblPr/w:jc)
+        var alignment = TextAlignment.Left;
+        var tableJustification = tableProps?.GetFirstChild<TableJustification>();
+        if (tableJustification?.Val?.HasValue == true)
+        {
+            var jcVal = tableJustification.Val.Value;
+            if (jcVal == TableRowAlignmentValues.Center)
+            {
+                alignment = TextAlignment.Center;
+            }
+            else if (jcVal == TableRowAlignmentValues.Right)
+            {
+                alignment = TextAlignment.Right;
+            }
+        }
+
         return new()
         {
             Rows = rows,
@@ -2202,7 +2218,8 @@ sealed class DocumentParser(string defaultFont)
                 DefaultCellPadding = defaultCellPadding ?? new CellSpacing(),
                 DefaultCellMargin = defaultCellMargin ?? new CellSpacing(0),
                 IndentPoints = indentPoints,
-                GridColumnWidths = gridColumnWidths
+                GridColumnWidths = gridColumnWidths,
+                Alignment = alignment
             }
         };
     }

@@ -708,9 +708,22 @@ sealed class PageRenderer(RenderContext context) :
         }
     }
 
+    float ComputeTableX(TableElement table, float[] colWidths)
+    {
+        var contentLeft = context.ContentLeft;
+        var tableWidth = colWidths.Sum();
+        var slack = context.ContentWidth - tableWidth;
+        return table.Properties.Alignment switch
+        {
+            TextAlignment.Center => contentLeft + Math.Max(0, slack / 2),
+            TextAlignment.Right => contentLeft + Math.Max(0, slack),
+            _ => contentLeft
+        };
+    }
+
     void RenderTableRows(TableElement table, int colCount, float[] colWidths, float[] rowHeights)
     {
-        var tableX = context.ContentLeft;
+        var tableX = ComputeTableX(table, colWidths);
         var startY = context.CurrentY;
 
         var hasVerticalMerge = TableLayout.HasVerticalMerge(table);
@@ -800,7 +813,7 @@ sealed class PageRenderer(RenderContext context) :
             var rowHeight = rowHeights[rowIndex];
             EnsureSpaceFor(rowHeight);
 
-            var tableX = context.ContentLeft;
+            var tableX = ComputeTableX(table, colWidths);
             var currentY = context.CurrentY;
 
             RenderTableRow(table, rowIndex, colCount, colWidths, rowHeights, tableX, currentY);

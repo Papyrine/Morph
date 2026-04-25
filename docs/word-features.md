@@ -836,14 +836,18 @@ Repeats the first row(s) as header on each page when a table spans multiple page
 > **AI**: Parse the `w:tblHeader` flag per row. In `PageRenderer.RenderTableRowByRow()`, after each page break, re-render the header rows before continuing with data rows.
 
 
-#### Table Alignment `TODO`
+#### Table Alignment `DONE`
 
 Horizontal alignment of the table on the page (left, center, right).
 
 - **OOXML**: `w:jc` within `w:tblPr`
 - **Spec**: [Table Alignment](http://officeopenxml.com/WPtableAlignment.php)
+- **Model**: `TableProperties.Alignment` (`TextAlignment` enum; Justify is treated as Left)
+- **Parse**: `DocumentParser.ParseTable()` reads `w:tblPr/w:jc` (`TableJustification`)
+- **Render**: `PageRenderer.ComputeTableX` shifts the table by `(ContentWidth - tableWidth) / 2` for Center and `(ContentWidth - tableWidth)` for Right; both backends
+- **Test**: `table_alignment/`, spec test `TableAlignmentTests`
 
-> **AI**: Parse `w:jc` from `w:tblPr`. In `PageRenderer`, calculate table X offset based on alignment and available content width minus table width.
+> **Contributors**: When the table is wider than the content area, `Math.Max(0, slack)` keeps it pinned at the left edge instead of shifting off-page.
 
 
 #### Table Cell Text Direction `TODO`
@@ -1843,7 +1847,7 @@ Read-only mode, form protection, and editing restrictions.
 | 1. Text Formatting | 11 | 0 | 5 | 16 |
 | 2. Paragraph Formatting | 11 | 1 | 0 | 12 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
-| 4. Tables | 12 | 1 | 4 | 17 |
+| 4. Tables | 13 | 1 | 3 | 17 |
 | 5. Page Layout & Sections | 15 | 1 | 2 | 18 |
 | 6. Graphics & Media | 10 | 0 | 9 | 19 |
 | 7. Form Controls | 10 | 0 | 0 | 10 |
@@ -1852,19 +1856,19 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 1 | 4 | 6 |
 | 12. Advanced Content | 0 | 0 | 2 | 2 |
-| **Total** | **92** | **5** | **27** | **124** |
+| **Total** | **93** | **5** | **26** | **124** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 92
+    "Done" : 93
     "Partial" : 5
-    "Todo" : 27
+    "Todo" : 26
 ```
 
-**Overall coverage: 74% fully implemented, 4% partial, 22% remaining.**
+**Overall coverage: 75% fully implemented, 4% partial, 21% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)
