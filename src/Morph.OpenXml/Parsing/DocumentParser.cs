@@ -130,8 +130,8 @@ sealed class DocumentParser(string defaultFont)
 
         // Extract gutterAtTop setting (so ExtractPageSettings can apply gutter to the right margin).
         gutterAtTopSetting = mainPart.DocumentSettingsPart?.Settings?
-                                 .GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.GutterAtTop>() is { } g
-                             && g.Val?.Value != false;
+                                 .GetFirstChild<GutterAtTop>() is { } g &&
+                             g.Val?.Value != false;
 
         // SectionProperties (sectPr) describes the section it belongs to, and the section break is stored
         // on the last paragraph of the section. The next section's properties are stored in the next sectPr.
@@ -176,7 +176,8 @@ sealed class DocumentParser(string defaultFont)
 
         // w:settings/w:evenAndOddHeaders opts the document into separate even-page parts.
         var evenAndOddHeaders = mainPart.DocumentSettingsPart?.Settings?
-            .GetFirstChild<EvenAndOddHeaders>() is { } eoh && eoh.Val?.Value != false;
+            .GetFirstChild<EvenAndOddHeaders>() is { } eoh &&
+                                eoh.Val?.Value != false;
         var evenPageHeader = evenAndOddHeaders
             ? ExtractHeaderFooter(body, mainPart, HeaderFooterValues.Even, isHeader: true)
             : null;
@@ -282,8 +283,9 @@ sealed class DocumentParser(string defaultFont)
             // Word emits watermarks as v:shape with class containing "WordPictureWatermark" / "WordTextWatermark".
             foreach (var attr in headerPart.Header.Descendants().SelectMany(_ => _.GetAttributes()))
             {
-                if (attr.Value is { } v && (v.Contains("WordPictureWatermark", StringComparison.OrdinalIgnoreCase) ||
-                                            v.Contains("WordTextWatermark", StringComparison.OrdinalIgnoreCase)))
+                if (attr.Value is { } v &&
+                    (v.Contains("WordPictureWatermark", StringComparison.OrdinalIgnoreCase) ||
+                     v.Contains("WordTextWatermark", StringComparison.OrdinalIgnoreCase)))
                 {
                     hasWatermark = true;
                     break;
@@ -327,7 +329,8 @@ sealed class DocumentParser(string defaultFont)
                     {
                         progId = attr.Value;
                     }
-                    else if (attr.LocalName == "id" && (attr.NamespaceUri?.EndsWith("/relationships") ?? false))
+                    else if (attr.LocalName == "id" &&
+                             (attr.NamespaceUri.EndsWith("/relationships") ?? false))
                     {
                         relId = attr.Value;
                     }
@@ -354,7 +357,8 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
-        if (fonts.AsciiTheme?.HasValue == true && currentThemeFonts != null)
+        if (fonts.AsciiTheme?.HasValue == true &&
+            currentThemeFonts != null)
         {
             var themeValue = ((IEnumValue) fonts.AsciiTheme.Value).Value;
             var resolved = currentThemeFonts.ResolveFont(themeValue);
@@ -379,7 +383,8 @@ sealed class DocumentParser(string defaultFont)
         foreach (var fn in part.Footnotes.Elements<DocumentFormat.OpenXml.Wordprocessing.Footnote>())
         {
             // Skip Word's built-in separator / continuation-separator entries.
-            if (fn.Type?.HasValue == true && fn.Type.Value != FootnoteEndnoteValues.Normal)
+            if (fn.Type?.HasValue == true &&
+                fn.Type.Value != FootnoteEndnoteValues.Normal)
             {
                 continue;
             }
@@ -407,7 +412,8 @@ sealed class DocumentParser(string defaultFont)
         var result = new List<Endnote>();
         foreach (var en in part.Endnotes.Elements<DocumentFormat.OpenXml.Wordprocessing.Endnote>())
         {
-            if (en.Type?.HasValue == true && en.Type.Value != FootnoteEndnoteValues.Normal)
+            if (en.Type?.HasValue == true &&
+                en.Type.Value != FootnoteEndnoteValues.Normal)
             {
                 continue;
             }
@@ -451,7 +457,8 @@ sealed class DocumentParser(string defaultFont)
 
                         break;
 
-                    case FieldChar fc when fc.FieldCharType?.Value == FieldCharValues.Separate && inResult.Count > 0:
+                    case FieldChar fc when fc.FieldCharType?.Value == FieldCharValues.Separate &&
+                                           inResult.Count > 0:
                         var flag = inResult.Pop();
                         inResult.Push(true);
                         _ = flag;
@@ -616,14 +623,15 @@ sealed class DocumentParser(string defaultFont)
 
             int? anchor = anchorByCommentId.TryGetValue(id.ToString(), out var idx) ? idx : null;
 
-            result.Add(new()
-            {
-                Id = id.ToString(),
-                Author = ooxmlComment.Author?.Value,
-                Text = text,
-                Date = date,
-                AnchorParagraphIndex = anchor
-            });
+            result.Add(
+                new()
+                {
+                    Id = id.ToString(),
+                    Author = ooxmlComment.Author?.Value,
+                    Text = text,
+                    Date = date,
+                    AnchorParagraphIndex = anchor
+                });
         }
 
         return result;
@@ -642,7 +650,8 @@ sealed class DocumentParser(string defaultFont)
         var result = new List<Bookmark>();
         foreach (var start in body.Descendants<BookmarkStart>())
         {
-            if (start.Id?.Value is not { } id || start.Name?.Value is not { } name)
+            if (start.Id?.Value is not { } id ||
+                start.Name?.Value is not { } name)
             {
                 continue;
             }
@@ -657,7 +666,13 @@ sealed class DocumentParser(string defaultFont)
                 }
             }
 
-            result.Add(new() {Id = id, Name = name, ParagraphIndex = paragraphIndex});
+            result.Add(
+                new()
+                {
+                    Id = id,
+                    Name = name,
+                    ParagraphIndex = paragraphIndex
+                });
         }
 
         return result;
@@ -717,7 +732,9 @@ sealed class DocumentParser(string defaultFont)
 
         // Build a set of all style IDs that exist in the document
         var existingStyleIds = new HashSet<string>(
-            styles.Select(s => s.StyleId?.Value).Where(id => id != null)!,
+            styles
+                .Select(_ => _.StyleId?.Value)
+                .Where(_ => _ != null)!,
             StringComparer.OrdinalIgnoreCase);
 
         // Process styles with proper inheritance - may need multiple passes
@@ -729,7 +746,8 @@ sealed class DocumentParser(string defaultFont)
             foreach (var style in styles)
             {
                 var styleId = style.StyleId?.Value;
-                if (styleId == null || processed.Contains(styleId))
+                if (styleId == null ||
+                    processed.Contains(styleId))
                 {
                     continue;
                 }
@@ -738,7 +756,9 @@ sealed class DocumentParser(string defaultFont)
                 var basedOnId = style.BasedOn?.Val?.Value;
                 // Only wait for the base style if it actually exists in this document
                 // If basedOn references a non-existent style, process without waiting
-                if (basedOnId != null && existingStyleIds.Contains(basedOnId) && !processed.Contains(basedOnId))
+                if (basedOnId != null &&
+                    existingStyleIds.Contains(basedOnId) &&
+                    !processed.Contains(basedOnId))
                 {
                     // Base style not yet processed, skip for now
                     continue;
@@ -793,7 +813,8 @@ sealed class DocumentParser(string defaultFont)
                 if (runFonts != null)
                 {
                     // First try theme font reference
-                    if (runFonts.AsciiTheme?.HasValue == true && currentThemeFonts != null)
+                    if (runFonts.AsciiTheme?.HasValue == true &&
+                        currentThemeFonts != null)
                     {
                         // ThemeFontValues implements IEnumValue - access Value property through interface
                         var themeValue = ((IEnumValue) runFonts.AsciiTheme.Value).Value;
@@ -833,7 +854,8 @@ sealed class DocumentParser(string defaultFont)
 
                 // Underline
                 var underlineElement = runProps.GetFirstChild<Underline>();
-                if (underlineElement != null && underlineElement.Val?.Value != UnderlineValues.None)
+                if (underlineElement != null &&
+                    underlineElement.Val?.Value != UnderlineValues.None)
                 {
                     underline = true;
                 }

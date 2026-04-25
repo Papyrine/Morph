@@ -117,11 +117,13 @@ sealed class PageRenderer(RenderContext context) :
         // Selection precedence: first-page header (if enabled and page 1) → even-page header
         // (if enabled and page is even) → default header.
         HeaderFooterContent? activeHeader;
-        if (differentFirstPage && context.CurrentPageNumber == 1)
+        if (differentFirstPage &&
+            context.CurrentPageNumber == 1)
         {
             activeHeader = firstPageHeader;
         }
-        else if (evenPageHeader != null && context.CurrentPageNumber % 2 == 0)
+        else if (evenPageHeader != null &&
+                 context.CurrentPageNumber % 2 == 0)
         {
             activeHeader = evenPageHeader;
         }
@@ -160,11 +162,13 @@ sealed class PageRenderer(RenderContext context) :
     void RenderFooter()
     {
         HeaderFooterContent? activeFooter;
-        if (differentFirstPage && context.CurrentPageNumber == 1)
+        if (differentFirstPage &&
+            context.CurrentPageNumber == 1)
         {
             activeFooter = firstPageFooter;
         }
-        else if (evenPageFooter != null && context.CurrentPageNumber % 2 == 0)
+        else if (evenPageFooter != null &&
+                 context.CurrentPageNumber % 2 == 0)
         {
             activeFooter = evenPageFooter;
         }
@@ -392,7 +396,8 @@ sealed class PageRenderer(RenderContext context) :
             return;
         }
 
-        if (!context.HasSpaceFor(height) && context.CurrentY > context.ContentTop)
+        if (!context.HasSpaceFor(height) &&
+            context.CurrentY > context.ContentTop)
         {
             // Try to move to next column first
             if (!context.MoveToNextColumn())
@@ -426,7 +431,8 @@ sealed class PageRenderer(RenderContext context) :
 
         // Handle PageBreakBefore - force a page break before this paragraph
         // But only if we're not already at the top of a page (to avoid blank pages)
-        if (paragraph.Properties.PageBreakBefore && !isCompletelyEmpty &&
+        if (paragraph.Properties.PageBreakBefore &&
+            !isCompletelyEmpty &&
             context.CurrentY > context.ContentTop)
         {
             FinishCurrentPage();
@@ -438,7 +444,9 @@ sealed class PageRenderer(RenderContext context) :
 
         // Handle KeepWithNext (KeepNext) - keep this paragraph on the same page as the next element
         // This is commonly used for headings to prevent them from appearing alone at the bottom of a page
-        if (paragraph.Properties.KeepNext && nextElement != null && !isCompletelyEmpty)
+        if (paragraph.Properties.KeepNext &&
+            nextElement != null &&
+            !isCompletelyEmpty)
         {
             var nextHeight = MeasureElementHeight(nextElement);
             var combinedHeight = height + nextHeight;
@@ -456,7 +464,8 @@ sealed class PageRenderer(RenderContext context) :
 
         // Handle KeepLines - keep all lines of this paragraph on the same page
         // If the paragraph doesn't fit on current page but would fit on a new page, move it
-        if (paragraph.Properties.KeepLines && !isCompletelyEmpty)
+        if (paragraph.Properties.KeepLines &&
+            !isCompletelyEmpty)
         {
             if (!context.HasSpaceFor(height) &&
                 height <= context.ContentHeight &&
@@ -1600,9 +1609,14 @@ sealed class PageRenderer(RenderContext context) :
         foreach (var element in cell.Content)
         {
             var para = element as ParagraphElement;
-            if (para == null && element is ContentControlElement cc && cc.Runs is {Count: > 0})
+            if (para == null &&
+                element is ContentControlElement {Runs.Count: > 0} cc)
             {
-                para = new() {Runs = cc.Runs, Properties = new()};
+                para = new()
+                {
+                    Runs = cc.Runs,
+                    Properties = new()
+                };
             }
 
             if (para == null)

@@ -80,7 +80,7 @@ public class RunPropertyCaptureTests
                     foreach (var run in Walk(cell.Content))
                         yield return run;
                     break;
-                case ContentControlElement cc when cc.Runs != null:
+                case ContentControlElement {Runs: not null} cc:
                     foreach (var run in cc.Runs) yield return run;
                     break;
             }

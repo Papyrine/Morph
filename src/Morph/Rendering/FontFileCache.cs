@@ -65,7 +65,8 @@ sealed class FontFileCache
         }
 
         var baseName = FontHelpers.StripWeightSuffixes(candidateName);
-        if (baseName != candidateName && index.TryGetValue(baseName, out files))
+        if (baseName != candidateName &&
+            index.TryGetValue(baseName, out files))
         {
             return true;
         }

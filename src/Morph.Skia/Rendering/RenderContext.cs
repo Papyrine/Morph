@@ -250,7 +250,8 @@ sealed class RenderContext(
         var wantCondensed = style.Width <= (int) SKFontStyleWidth.SemiCondensed;
         var wantExtended = style.Width >= (int) SKFontStyleWidth.SemiExpanded;
 
-        if (isCondensed == wantCondensed && isExtended == wantExtended)
+        if (isCondensed == wantCondensed &&
+            isExtended == wantExtended)
         {
             score += 4;
         }
@@ -265,7 +266,8 @@ sealed class RenderContext(
             score += 1;
         }
 
-        if (!wantBold && tf.FontStyle.Weight is >= 400 and <= 500)
+        if (!wantBold &&
+            tf.FontStyle.Weight is >= 400 and <= 500)
         {
             score += 1;
         }

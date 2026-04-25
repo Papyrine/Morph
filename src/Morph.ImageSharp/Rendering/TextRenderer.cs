@@ -13,8 +13,10 @@ sealed class TextRenderer(RenderContext context)
 
         // Add spacing before (collapsed if contextual spacing from previous paragraph)
         // Contextual spacing only collapses spacing between paragraphs of the SAME STYLE
-        var sameStyle = props.StyleId != null && props.StyleId == context.LastParagraphStyleId;
-        var collapseSpacingBefore = props.ContextualSpacing && context.LastParagraphHadContextualSpacing && sameStyle;
+        var sameStyle = props.StyleId != null &&
+                        props.StyleId == context.LastParagraphStyleId;
+        var collapseSpacingBefore = props.ContextualSpacing &&
+                                    context.LastParagraphHadContextualSpacing && sameStyle;
         var totalHeight = collapseSpacingBefore ? 0 : (float)props.SpacingBeforePoints;
 
         foreach (var line in lines)
@@ -164,13 +166,16 @@ sealed class TextRenderer(RenderContext context)
         var lines = LayoutParagraph(paragraph);
         var props = paragraph.Properties;
         var lineNumberSettings = context.PageSettings.LineNumbers;
-        var showLineNumbers = lineNumberSettings != null && !props.SuppressLineNumbers;
+        var showLineNumbers = lineNumberSettings != null &&
+                              !props.SuppressLineNumbers;
 
         // Add spacing before with margin collapsing (similar to CSS)
         // When two paragraphs are adjacent, use max(SpacingAfter, SpacingBefore) instead of sum
         // Contextual spacing only collapses spacing between paragraphs of the SAME STYLE
-        var sameStyle = props.StyleId != null && props.StyleId == context.LastParagraphStyleId;
-        var collapseSpacingBefore = props.ContextualSpacing && context.LastParagraphHadContextualSpacing && sameStyle;
+        var sameStyle = props.StyleId != null &&
+                        props.StyleId == context.LastParagraphStyleId;
+        var collapseSpacingBefore = props.ContextualSpacing &&
+                                    context.LastParagraphHadContextualSpacing && sameStyle;
         // Also collapse when we're continuing a w:between border chain — the borders fuse,
         // so there must be no gap between this paragraph and the previous one.
         var inBetweenChain = context.SuppressNextParagraphTopBorder;

@@ -13,8 +13,10 @@ sealed class TextRenderer(RenderContext context)
 
         // Add spacing before (collapsed if contextual spacing from previous paragraph)
         // Contextual spacing only collapses spacing between paragraphs of the SAME STYLE
-        var sameStyle = props.StyleId != null && props.StyleId == context.LastParagraphStyleId;
-        var collapseSpacingBefore = props.ContextualSpacing && context.LastParagraphHadContextualSpacing && sameStyle;
+        var sameStyle = props.StyleId != null &&
+                        props.StyleId == context.LastParagraphStyleId;
+        var collapseSpacingBefore = props.ContextualSpacing &&
+                                    context.LastParagraphHadContextualSpacing && sameStyle;
         var totalHeight = collapseSpacingBefore ? 0 : (float)props.SpacingBeforePoints;
 
         foreach (var line in lines)

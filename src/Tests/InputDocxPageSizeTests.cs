@@ -47,7 +47,8 @@ public class InputDocxPageSizeTests
         foreach (var sectionProps in body.Descendants<SectionProperties>())
         {
             var pageSize = sectionProps.GetFirstChild<PageSize>();
-            if (pageSize?.Width?.HasValue == true && pageSize.Height?.HasValue == true)
+            if (pageSize?.Width?.HasValue == true &&
+                pageSize.Height?.HasValue == true)
             {
                 return true;
             }

@@ -33,7 +33,7 @@ public class BookmarksTests
 
         // At least one bookmark anchors inside a paragraph; every present index is non-negative.
         await Assert.That(doc.Bookmarks.Any(_ => _.ParagraphIndex.HasValue)).IsTrue();
-        await Assert.That(doc.Bookmarks.All(_ => !_.ParagraphIndex.HasValue || _.ParagraphIndex >= 0)).IsTrue();
+        await Assert.That(doc.Bookmarks.All(_ => _.ParagraphIndex is null or >= 0)).IsTrue();
     }
 
     [Test]

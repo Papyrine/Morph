@@ -142,7 +142,8 @@ static class ShapeParser
 
         // Try blip fill (image fill)
         var blipFill = shapeProps.GetFirstChild<A.BlipFill>();
-        if (blipFill != null && mainPart != null)
+        if (blipFill != null &&
+            mainPart != null)
         {
             var (imageData, contentType) = ExtractBlipFillImage(blipFill, mainPart);
             if (imageData != null)
@@ -245,7 +246,8 @@ static class ShapeParser
 
         // Try blip fill (image fill)
         var blipFill = shapeProps.GetFirstChild<A.BlipFill>();
-        if (blipFill != null && mainPart != null)
+        if (blipFill != null &&
+            mainPart != null)
         {
             var (imageData, contentType) = ExtractBlipFillImage(blipFill, mainPart);
             if (imageData != null)
@@ -302,7 +304,8 @@ static class ShapeParser
             long cx = xfrm.Extents.Cx ?? 0;
             long cy = xfrm.Extents.Cy ?? 0;
 
-            if (cx > 0 && cy > 0)
+            if (cx > 0 &&
+                cy > 0)
             {
                 var aspectRatio = (double)cx / cy;
                 // Very thin lines (width > 50x height) are likely decorative
@@ -351,7 +354,8 @@ static class ShapeParser
 
         // Try scheme color (theme-based)
         var schemeClr = solidFill.GetFirstChild<A.SchemeColor>();
-        if (schemeClr?.Val?.HasValue == true && themeColors != null)
+        if (schemeClr?.Val?.HasValue == true &&
+            themeColors != null)
         {
             // Get the actual XML value (e.g., "tx2" not "Text2")
             var schemeValue = ((IEnumValue)schemeClr.Val.Value).Value;

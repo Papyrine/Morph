@@ -80,11 +80,13 @@ sealed class PageRenderer(RenderContext context) :
     void RenderHeader()
     {
         HeaderFooterContent? activeHeader;
-        if (differentFirstPage && context.CurrentPageNumber == 1)
+        if (differentFirstPage &&
+            context.CurrentPageNumber == 1)
         {
             activeHeader = firstPageHeader;
         }
-        else if (evenPageHeader != null && context.CurrentPageNumber % 2 == 0)
+        else if (evenPageHeader != null &&
+                 context.CurrentPageNumber % 2 == 0)
         {
             activeHeader = evenPageHeader;
         }
@@ -123,11 +125,13 @@ sealed class PageRenderer(RenderContext context) :
     void RenderFooter()
     {
         HeaderFooterContent? activeFooter;
-        if (differentFirstPage && context.CurrentPageNumber == 1)
+        if (differentFirstPage &&
+            context.CurrentPageNumber == 1)
         {
             activeFooter = firstPageFooter;
         }
-        else if (evenPageFooter != null && context.CurrentPageNumber % 2 == 0)
+        else if (evenPageFooter != null &&
+                 context.CurrentPageNumber % 2 == 0)
         {
             activeFooter = evenPageFooter;
         }
@@ -332,7 +336,8 @@ sealed class PageRenderer(RenderContext context) :
             return;
         }
 
-        if (!context.HasSpaceFor(height) && context.CurrentY > context.ContentTop)
+        if (!context.HasSpaceFor(height) &&
+            context.CurrentY > context.ContentTop)
         {
             if (!context.MoveToNextColumn())
             {
@@ -356,7 +361,8 @@ sealed class PageRenderer(RenderContext context) :
         var hasSignificantContent = paragraph.Runs.Any(r => !string.IsNullOrWhiteSpace(r.Text));
         var isCompletelyEmpty = paragraph.Runs.Count == 0;
 
-        if (paragraph.Properties.PageBreakBefore && !isCompletelyEmpty &&
+        if (paragraph.Properties.PageBreakBefore &&
+            !isCompletelyEmpty &&
             context.CurrentY > context.ContentTop)
         {
             FinishCurrentPage();
@@ -366,7 +372,9 @@ sealed class PageRenderer(RenderContext context) :
 
         var height = textRenderer.MeasureParagraphHeight(paragraph);
 
-        if (paragraph.Properties.KeepNext && nextElement != null && !isCompletelyEmpty)
+        if (paragraph.Properties.KeepNext &&
+            nextElement != null &&
+            !isCompletelyEmpty)
         {
             var nextHeight = MeasureElementHeight(nextElement);
             var combinedHeight = height + nextHeight;
@@ -380,7 +388,8 @@ sealed class PageRenderer(RenderContext context) :
             }
         }
 
-        if (paragraph.Properties.KeepLines && !isCompletelyEmpty)
+        if (paragraph.Properties.KeepLines &&
+            !isCompletelyEmpty)
         {
             if (!context.HasSpaceFor(height) &&
                 height <= context.ContentHeight &&
@@ -1210,9 +1219,13 @@ sealed class PageRenderer(RenderContext context) :
             {
                 textRenderer.RenderParagraphInBounds(tempImage, para, 0, availableHeight);
             }
-            else if (element is ContentControlElement cc && cc.Runs is { Count: > 0 })
+            else if (element is ContentControlElement {Runs.Count: > 0} cc)
             {
-                var ccPara = new ParagraphElement { Runs = cc.Runs, Properties = new() };
+                var ccPara = new ParagraphElement
+                {
+                    Runs = cc.Runs,
+                    Properties = new()
+                };
                 textRenderer.RenderParagraphInBounds(tempImage, ccPara, 0, availableHeight);
             }
         }
