@@ -2,8 +2,12 @@
 /// Renders document pages to PNG images.
 /// </summary>
 sealed class SkiaPageRenderer(SkiaRenderContext context) :
+    PageRendererBase(context),
     IDisposable
 {
+    protected override IParagraphMeasurer Measurer => textRenderer;
+    protected override bool HasOutput => currentCanvas != null;
+
     /// <summary>
     /// Safely decodes image data, returning null for unsupported formats
     /// instead of throwing when <see cref="SKCodec"/> cannot handle the data.
@@ -312,101 +316,13 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
     }
 
-    void RenderSectionBreak(SectionBreakElement sectionBreak)
+    void RenderSectionBreak(SectionBreakElement sectionBreak) =>
+        SectionBreakHandler.Handle(sectionBreak, context, FinishCurrentPage, StartNewExplicitPage);
+
+    void StartNewExplicitPage()
     {
-        switch (sectionBreak.BreakType)
-        {
-            case SectionBreakType.NextPage:
-                FinishCurrentPage();
-                ApplySectionSettings(sectionBreak.NewSectionSettings);
-                StartNewPage();
-                currentPageFromExplicitBreak = true;
-                break;
-
-            case SectionBreakType.Continuous:
-                // Continuous break - apply new settings but stay on same page
-                ApplySectionSettings(sectionBreak.NewSectionSettings);
-                // Reset to first column if column count changed
-                context.ResetColumn();
-                break;
-
-            case SectionBreakType.EvenPage:
-                FinishCurrentPage();
-                ApplySectionSettings(sectionBreak.NewSectionSettings);
-                StartNewPage();
-                currentPageFromExplicitBreak = true;
-                // If current page is odd, add another page
-                if (context.CurrentPageNumber % 2 != 0)
-                {
-                    FinishCurrentPage();
-                    StartNewPage();
-                    currentPageFromExplicitBreak = true;
-                }
-
-                break;
-
-            case SectionBreakType.OddPage:
-                FinishCurrentPage();
-                ApplySectionSettings(sectionBreak.NewSectionSettings);
-                StartNewPage();
-                currentPageFromExplicitBreak = true;
-                // If current page is even, add another page
-                if (context.CurrentPageNumber % 2 == 0)
-                {
-                    FinishCurrentPage();
-                    StartNewPage();
-                    currentPageFromExplicitBreak = true;
-                }
-
-                break;
-
-            case SectionBreakType.NextColumn:
-                // Move to next column, or new page if no more columns
-                ApplySectionSettings(sectionBreak.NewSectionSettings);
-                if (!context.MoveToNextColumn())
-                {
-                    FinishCurrentPage();
-                    StartNewPage();
-                    currentPageFromExplicitBreak = true;
-                }
-
-                break;
-        }
-    }
-
-    void ApplySectionSettings(PageSettings? settings)
-    {
-        if (settings != null)
-        {
-            context.UpdatePageSettings(settings);
-            // Reset line numbers for new section if needed
-            context.ResetLineNumbersForSection();
-        }
-    }
-
-    /// <summary>
-    /// Ensures there's space for content. Moves to next column or new page if needed.
-    /// </summary>
-    void EnsureSpaceFor(float height)
-    {
-        // If the content is taller than a full page, don't trigger a page break
-        // since moving to a new page won't help - just render at current position
-        if (height > context.ContentHeight)
-        {
-            return;
-        }
-
-        if (!context.HasSpaceFor(height) &&
-            context.CurrentY > context.ContentTop)
-        {
-            // Try to move to next column first
-            if (!context.MoveToNextColumn())
-            {
-                // No more columns, need a new page
-                FinishCurrentPage();
-                StartNewPage();
-            }
-        }
+        StartNewPage();
+        currentPageFromExplicitBreak = true;
     }
 
     /// <summary>
@@ -787,13 +703,18 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
 
         // Calculate absolute position based on anchor type
-        var x = CalculateFloatingWordArtX(wordArt);
-        var y = CalculateFloatingWordArtY(wordArt);
-
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var width = context.PointsToPixels((float) wordArt.WidthPoints);
-        var pixelHeight = context.PointsToPixels((float) wordArt.HeightPoints);
+        var bounds = FloatingPosition.ResolveBounds(
+            context,
+            wordArt.HorizontalAnchor,
+            wordArt.VerticalAnchor,
+            wordArt.HorizontalPositionPoints,
+            wordArt.VerticalPositionPoints,
+            wordArt.WidthPoints,
+            wordArt.HeightPoints);
+        var pixelX = bounds.PixelX;
+        var pixelY = bounds.PixelY;
+        var width = bounds.PixelWidth;
+        var pixelHeight = bounds.PixelHeight;
 
         // Create font with WordArt properties
         var typeface = SKTypeface.FromFamilyName(
@@ -907,34 +828,6 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         currentCanvas.Restore();
         // Note: No CurrentY advancement for floating elements
-    }
-
-    float CalculateFloatingWordArtX(FloatingWordArtElement wordArt)
-    {
-        var baseX = wordArt.HorizontalAnchor switch
-        {
-            HorizontalAnchor.Page => 0,
-            HorizontalAnchor.Margin => (float) context.PageSettings.MarginLeft,
-            HorizontalAnchor.Column => context.ContentLeft,
-            HorizontalAnchor.Character => context.ContentLeft, // Approximate
-            _ => 0
-        };
-
-        return baseX + (float) wordArt.HorizontalPositionPoints;
-    }
-
-    float CalculateFloatingWordArtY(FloatingWordArtElement wordArt)
-    {
-        var baseY = wordArt.VerticalAnchor switch
-        {
-            VerticalAnchor.Page => 0,
-            VerticalAnchor.Margin => (float) context.PageSettings.MarginTop,
-            VerticalAnchor.Paragraph => context.CurrentY, // Approximate - relative to current paragraph
-            VerticalAnchor.Line => context.CurrentY, // Approximate
-            _ => 0
-        };
-
-        return baseY + (float) wordArt.VerticalPositionPoints;
     }
 
     void ApplyWordArtTransform(WordArtTransform transform, float x, float y, float width, float height)
@@ -1114,527 +1007,13 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         var colCount = TableLayout.GetColumnCount(table);
 
         var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
-        var rowHeights = CalculateRowHeights(table, colWidths);
+        var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, textRenderer);
 
         return rowHeights.Sum();
     }
 
-    float ComputeTableX(TableElement table, float[] colWidths)
-    {
-        var contentLeft = context.ContentLeft;
-        var tableWidth = colWidths.Sum();
-        var slack = context.ContentWidth - tableWidth;
-        return table.Properties.Alignment switch
-        {
-            TextAlignment.Center => contentLeft + Math.Max(0, slack / 2),
-            TextAlignment.Right => contentLeft + Math.Max(0, slack),
-            _ => contentLeft
-        };
-    }
 
-    void RenderTable(TableElement table)
-    {
-        if (currentCanvas == null || table.Rows.Count == 0)
-        {
-            return;
-        }
-
-        var colCount = TableLayout.GetColumnCount(table);
-
-        var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
-
-        // Calculate row heights
-        var rowHeights = CalculateRowHeights(table, colWidths);
-
-        var totalHeight = rowHeights.Sum();
-
-        // Check if table is larger than a single page's content area
-        // Only use row-by-row rendering for tables that significantly exceed a full page
-        // Allow tolerance since table height measurements can be slightly conservative
-        // Tables that are close to page height should use simpler single-page rendering
-        // 10% tolerance
-        var tableTolerance = context.ContentHeight * 0.10f;
-        var needsRowByRowRendering = totalHeight > context.ContentHeight + tableTolerance;
-
-        if (needsRowByRowRendering)
-        {
-            // Table is larger than a page - render row by row with page breaks
-            RenderTableRowByRow(table, colCount, colWidths, rowHeights);
-        }
-        else
-        {
-            // Table fits on a single page - use existing behavior
-            // Apply a tolerance when checking if table fits on current page.
-            // Word's layout often allows tables to slightly overflow (line height rounding, etc.)
-            // Word 2013+ (mode 15) has more consistent table handling, use slightly higher tolerance.
-            var tolerancePercent = context.Compatibility.CompatibilityMode >= 15 ? 0.02f : 0.01f;
-            var tolerance = context.ContentHeight * tolerancePercent;
-            var requiredHeight = totalHeight - tolerance;
-            EnsureSpaceFor(requiredHeight);
-            RenderTableRows(table, colCount, colWidths, rowHeights);
-        }
-    }
-
-    /// <summary>
-    /// Renders all table rows at the current position (used when table fits on current page).
-    /// </summary>
-    void RenderTableRows(TableElement table, int colCount, float[] colWidths, float[] rowHeights)
-    {
-        var tableX = ComputeTableX(table, colWidths);
-        var startY = context.CurrentY;
-
-        // Check if table has vertical merges - if so, use column-based Y tracking
-        var hasVerticalMerge = TableLayout.HasVerticalMerge(table);
-
-        if (hasVerticalMerge)
-        {
-            // Track Y position per column for proper merged cell layout
-            var columnYPositions = new float[colCount];
-            for (var i = 0; i < colCount; i++)
-            {
-                columnYPositions[i] = startY;
-            }
-
-            RenderTableWithColumnTracking(table, colCount, colWidths, rowHeights, tableX, columnYPositions);
-
-            // Set final Y to the maximum column Y position
-            context.CurrentY = columnYPositions.Max();
-        }
-        else
-        {
-            // Standard row-by-row rendering for tables without vertical merges
-            var currentY = startY;
-            for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
-            {
-                RenderTableRow(table, rowIndex, colCount, colWidths, rowHeights, tableX, currentY);
-                currentY += rowHeights[rowIndex];
-            }
-
-            context.CurrentY = currentY;
-        }
-    }
-
-    /// <summary>
-    /// Renders a table with vertical merges using per-column Y tracking.
-    /// </summary>
-    void RenderTableWithColumnTracking(TableElement table, int colCount, float[] colWidths, float[] rowHeights, float tableX, float[] columnYPositions)
-    {
-        for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
-        {
-            var row = table.Rows[rowIndex];
-            var currentX = tableX;
-            var gridColIndex = 0;
-
-            for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
-            {
-                var cell = row.Cells[cellIndex];
-                var span = cell.Properties.GridSpan;
-
-                // Sum column widths for horizontally merged cells
-                float cellWidth = 0;
-                for (var i = 0; i < span && gridColIndex + i < colCount; i++)
-                {
-                    cellWidth += colWidths[gridColIndex + i];
-                }
-
-                // Skip cells that continue a vertical merge
-                if (cell.Properties.VerticalMerge == VerticalMergeType.Continue)
-                {
-                    currentX += cellWidth;
-                    gridColIndex += span;
-                    continue;
-                }
-
-                // Get Y position for this column
-                var cellY = columnYPositions[gridColIndex];
-
-                // Calculate cell height
-                float cellHeight;
-                if (cell.Properties.VerticalMerge == VerticalMergeType.Restart)
-                {
-                    // For vertically merged cells, use the full merged height so background fills entire area
-                    cellHeight = TableLayout.CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
-                }
-                else
-                {
-                    // For regular cells, use content-based height
-                    var padding = TableLayout.GetEffectivePadding(cell.Properties, table.Properties);
-                    var contentWidth = cellWidth - (float) padding.Horizontal;
-                    var contentHeight = MeasureCellHeight(cell, contentWidth, table.Properties);
-                    cellHeight = contentHeight + (float) padding.Vertical;
-                }
-
-                RenderTableCell(cell, currentX, cellY, cellWidth, cellHeight, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount);
-
-                for (var i = 0; i < span && gridColIndex + i < colCount; i++)
-                {
-                    columnYPositions[gridColIndex + i] = cellY + cellHeight;
-                }
-
-                currentX += cellWidth;
-                gridColIndex += span;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Renders table rows one by one, triggering page breaks as needed.
-    /// Used for tables larger than a single page.
-    /// </summary>
-    void RenderTableRowByRow(TableElement table, int colCount, float[] colWidths, float[] rowHeights)
-    {
-        // Count contiguous header rows from the top (w:tblHeader). They get re-rendered after each page break.
-        var headerCount = 0;
-        while (headerCount < table.Rows.Count && table.Rows[headerCount].IsHeader)
-        {
-            headerCount++;
-        }
-
-        for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
-        {
-            var rowHeight = rowHeights[rowIndex];
-
-            // Ensure space for this row - may trigger a page break
-            var yBefore = context.CurrentY;
-            EnsureSpaceFor(rowHeight);
-            var pageBroke = context.CurrentY < yBefore;
-
-            // After a page break, re-emit any header rows before continuing — but skip when the
-            // current row is itself one of those headers (e.g. the very first row on the very first page).
-            if (pageBroke && headerCount > 0 && rowIndex >= headerCount)
-            {
-                var tableXHeader = ComputeTableX(table, colWidths);
-                for (var h = 0; h < headerCount; h++)
-                {
-                    var headerHeight = rowHeights[h];
-                    var headerY = context.CurrentY;
-                    RenderTableRow(table, h, colCount, colWidths, rowHeights, tableXHeader, headerY);
-                    context.CurrentY += headerHeight;
-                }
-            }
-
-            // Get current position after potential page break and header repeat
-            var tableX = ComputeTableX(table, colWidths);
-            var currentY = context.CurrentY;
-
-            // Render this row
-            RenderTableRow(table, rowIndex, colCount, colWidths, rowHeights, tableX, currentY);
-
-            // Advance Y position
-            context.CurrentY += rowHeight;
-        }
-    }
-
-    /// <summary>
-    /// Renders a single table row at the specified position.
-    /// </summary>
-    void RenderTableRow(TableElement table, int rowIndex, int colCount, float[] colWidths, float[] rowHeights, float tableX, float currentY)
-    {
-        var row = table.Rows[rowIndex];
-        var rowHeight = rowHeights[rowIndex];
-
-        var currentX = tableX;
-        // Track actual grid column position
-        var gridColIndex = 0;
-
-        for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
-        {
-            var cell = row.Cells[cellIndex];
-            var span = cell.Properties.GridSpan;
-
-            // Sum column widths for merged cells
-            float cellWidth = 0;
-            for (var i = 0; i < span && gridColIndex + i < colCount; i++)
-            {
-                cellWidth += colWidths[gridColIndex + i];
-            }
-
-            // Handle vertical merge
-            if (cell.Properties.VerticalMerge == VerticalMergeType.Continue)
-            {
-                // Skip this cell - it's part of a vertically merged cell above
-                currentX += cellWidth;
-                gridColIndex += span;
-                continue;
-            }
-
-            // Calculate cell height, considering vertical merge
-            var cellHeight = rowHeight;
-            if (cell.Properties.VerticalMerge == VerticalMergeType.Restart)
-            {
-                // For vertically merged cells, use the full merged height so background fills entire area
-                cellHeight = TableLayout.CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
-            }
-
-            RenderTableCell(cell, currentX, currentY, cellWidth, cellHeight, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount);
-
-            currentX += cellWidth;
-            gridColIndex += span;
-        }
-    }
-
-    float[] CalculateRowHeights(TableElement table, float[] colWidths)
-    {
-        var heights = new float[table.Rows.Count];
-        var colCount = colWidths.Length;
-
-
-        // First pass: Calculate heights for non-merged cells only
-        for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
-        {
-            var row = table.Rows[rowIndex];
-            // Minimum row height
-            float maxHeight = 20;
-
-            var gridColIndex = 0;
-            for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
-            {
-                var cell = row.Cells[cellIndex];
-                var span = cell.Properties.GridSpan;
-
-                // Skip cells that are part of a vertical merge (their height is handled separately)
-                if (cell.Properties.VerticalMerge is VerticalMergeType.Continue or VerticalMergeType.Restart)
-                {
-                    gridColIndex += span;
-                    continue;
-                }
-
-                // Sum column widths for horizontally merged cells
-                float cellWidth = 0;
-                for (var i = 0; i < span && gridColIndex + i < colCount; i++)
-                {
-                    cellWidth += colWidths[gridColIndex + i];
-                }
-
-                var cellHeight = MeasureCellHeight(cell, cellWidth, table.Properties);
-                maxHeight = Math.Max(maxHeight, cellHeight);
-
-                gridColIndex += span;
-            }
-
-            heights[rowIndex] = maxHeight;
-        }
-
-        // Second pass: Apply explicit row heights if specified (w:trHeight)
-        // For tables with vMerge AND all rows having explicit heights, use heights directly.
-        // This pattern is common in letterheads where row heights define the layout precisely.
-        // For other tables, use atLeast behavior (content can expand).
-        var hasVMerge = TableLayout.HasVerticalMerge(table);
-        var allRowsHaveExplicitHeight = table.Rows.All(r => r.HeightPoints.HasValue);
-        var useStrictHeights = hasVMerge && allRowsHaveExplicitHeight;
-
-        for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
-        {
-            var row = table.Rows[rowIndex];
-            if (row.HeightPoints.HasValue)
-            {
-                var explicitHeight = (float) row.HeightPoints.Value;
-                if (row.IsExactHeight || useStrictHeights)
-                {
-                    // Exact height, or vMerge table with all explicit heights: use specified height
-                    heights[rowIndex] = explicitHeight;
-                }
-                else
-                {
-                    // Minimum (atLeast): allow content expansion
-                    heights[rowIndex] = Math.Max(heights[rowIndex], explicitHeight);
-                }
-            }
-        }
-
-        // Third pass: Handle vertically merged cells
-        // Find vMerge.Restart cells and distribute their height among spanned rows
-        // This runs AFTER explicit heights so vMerge can expand rows if needed
-        for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
-        {
-            var row = table.Rows[rowIndex];
-            var gridColIndex = 0;
-
-            for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
-            {
-                var cell = row.Cells[cellIndex];
-                var span = cell.Properties.GridSpan;
-
-                if (cell.Properties.VerticalMerge == VerticalMergeType.Restart)
-                {
-                    // Calculate how many rows this cell spans
-                    var rowSpan = TableLayout.CalculateVerticalMergeRowSpan(table, rowIndex, gridColIndex);
-
-                    // Calculate cell width
-                    float cellWidth = 0;
-                    for (var i = 0; i < span && gridColIndex + i < colCount; i++)
-                    {
-                        cellWidth += colWidths[gridColIndex + i];
-                    }
-
-                    // Measure the content height of this merged cell
-                    var contentHeight = MeasureCellHeight(cell, cellWidth, table.Properties);
-
-                    // Calculate current total height of spanned rows
-                    float currentTotalHeight = 0;
-                    for (var r = rowIndex; r < rowIndex + rowSpan && r < table.Rows.Count; r++)
-                    {
-                        currentTotalHeight += heights[r];
-                    }
-
-                    // If content needs more space, distribute the extra height among spanned rows
-                    if (contentHeight > currentTotalHeight)
-                    {
-                        var extraHeight = contentHeight - currentTotalHeight;
-                        var extraPerRow = extraHeight / rowSpan;
-
-                        for (var r = rowIndex; r < rowIndex + rowSpan && r < table.Rows.Count; r++)
-                        {
-                            heights[r] += extraPerRow;
-                        }
-                    }
-                }
-
-                gridColIndex += span;
-            }
-        }
-
-        return heights;
-    }
-
-    float MeasureCellHeight(TableCell cell, float cellWidth, TableProperties tableProps)
-    {
-        var padding = TableLayout.GetEffectivePadding(cell.Properties, tableProps);
-        var margin = TableLayout.GetEffectiveMargin(cell.Properties, tableProps);
-
-        if (cell.Properties.TextDirection != CellTextDirection.LeftToRight)
-        {
-            return MeasureVerticalCellHeight(cell, padding, margin);
-        }
-
-        // Calculate available content width within the cell
-        var contentWidth = cellWidth - (float) (padding.Horizontal + margin.Horizontal);
-
-        var height = (float) (padding.Vertical + margin.Vertical);
-
-        // Collect all paragraphs to determine first/last
-        var paragraphs = new List<(ParagraphElement para, float bulletIndent)>();
-        foreach (var element in cell.Content)
-        {
-            if (element is ParagraphElement para)
-            {
-                float bulletIndent = para.Properties.Numbering != null ? 12 : 0;
-                paragraphs.Add((para, bulletIndent));
-            }
-            else if (element is ContentControlElement contentControl)
-            {
-                ParagraphElement? measurePara = null;
-                if (contentControl.Runs is {Count: > 0})
-                {
-                    measurePara = new()
-                    {
-                        Runs = contentControl.Runs,
-                        Properties = new()
-                    };
-                }
-                else if (!string.IsNullOrEmpty(contentControl.Content))
-                {
-                    measurePara = new()
-                    {
-                        Runs =
-                        [
-                            new()
-                            {
-                                Text = contentControl.Content,
-                                Properties = new()
-                            }
-                        ],
-                        Properties = new()
-                    };
-                }
-
-                if (measurePara != null)
-                {
-                    paragraphs.Add((measurePara, 0));
-                }
-            }
-            else if (element is TableElement {Properties.IsFloating: false})
-            {
-                height += 50;
-            }
-        }
-
-        for (var i = 0; i < paragraphs.Count; i++)
-        {
-            var (para, bulletIndent) = paragraphs[i];
-            var lines = textRenderer.LayoutParagraphForMeasurement(para, contentWidth - bulletIndent);
-            var props = para.Properties;
-
-            if (i == 0)
-            {
-                var extra = (float) props.SpacingBeforePoints - (float) padding.Top;
-                if (extra > 0)
-                {
-                    height += extra;
-                }
-            }
-            else
-            {
-                height += (float) props.SpacingBeforePoints;
-            }
-
-            foreach (var lineHeight in lines)
-            {
-                height += lineHeight;
-            }
-
-            if (i == paragraphs.Count - 1)
-            {
-                var extra = (float) props.SpacingAfterPoints - (float) padding.Bottom;
-                if (extra > 0)
-                {
-                    height += extra;
-                }
-            }
-            else
-            {
-                height += (float) props.SpacingAfterPoints;
-            }
-        }
-
-        return height;
-    }
-
-    float MeasureVerticalCellHeight(TableCell cell, CellSpacing padding, CellSpacing margin)
-    {
-        // For btLr / tbRl cells, the cell's vertical extent in the row equals the longest
-        // paragraph's natural single-line width. Multiple paragraphs stack horizontally
-        // (along the row direction) so they don't add to the cell's height contribution.
-        var widest = 0f;
-        foreach (var element in cell.Content)
-        {
-            var para = element as ParagraphElement;
-            if (para == null &&
-                element is ContentControlElement {Runs.Count: > 0} cc)
-            {
-                para = new()
-                {
-                    Runs = cc.Runs,
-                    Properties = new()
-                };
-            }
-
-            if (para == null)
-            {
-                continue;
-            }
-
-            var natural = textRenderer.MeasureParagraphNaturalWidth(para, float.MaxValue / 4);
-            if (natural > widest)
-            {
-                widest = natural;
-            }
-        }
-
-        return (float) (padding.Vertical + margin.Vertical) + widest;
-    }
-
-    void RenderVerticalCellContent(TableCell cell, float cellX, float cellY, float cellWidth, float cellHeight, CellSpacing padding)
+    protected override void RenderVerticalCellContent(TableCell cell, float cellX, float cellY, float cellWidth, float cellHeight, CellSpacing padding)
     {
         if (currentCanvas == null)
         {
@@ -1675,161 +1054,8 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         currentCanvas.Restore();
     }
 
-    void RenderTableCell(TableCell cell, float x, float y, float width, float height, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols)
-    {
-        if (currentCanvas == null)
-        {
-            return;
-        }
 
-        var padding = TableLayout.GetEffectivePadding(cell.Properties, tableProps);
-        var margin = TableLayout.GetEffectiveMargin(cell.Properties, tableProps);
-
-        var cellX = x + (float) margin.Left;
-        var cellY = y + (float) margin.Top;
-        var cellWidth = width - (float) margin.Horizontal;
-        var cellHeight = height - (float) margin.Vertical;
-
-        var pixelX = context.PointsToPixels(cellX);
-        var pixelY = context.PointsToPixels(cellY);
-        var pixelWidth = context.PointsToPixels(cellWidth);
-        var pixelHeight = context.PointsToPixels(cellHeight);
-
-        if (cell.Properties.BackgroundColorHex != null)
-        {
-            using var bgPaint = new SKPaint
-            {
-                Color = ParseColor(cell.Properties.BackgroundColorHex),
-                Style = SKPaintStyle.Fill
-            };
-            currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, bgPaint);
-        }
-
-        var borders = TableLayout.ResolveCellBorders(cell.Properties, tableProps, rowIndex, colIndex, totalRows, totalCols);
-        if (borders != null)
-        {
-            using var paint = new SKPaint {Style = SKPaintStyle.Stroke, IsAntialias = true};
-
-            if (borders.Top.IsVisible)
-            {
-                ConfigureBorderPaint(paint, borders.Top);
-                currentCanvas.DrawLine(pixelX, pixelY, pixelX + pixelWidth, pixelY, paint);
-            }
-
-            if (borders.Right.IsVisible)
-            {
-                ConfigureBorderPaint(paint, borders.Right);
-                currentCanvas.DrawLine(pixelX + pixelWidth, pixelY, pixelX + pixelWidth, pixelY + pixelHeight, paint);
-            }
-
-            if (borders.Bottom.IsVisible)
-            {
-                ConfigureBorderPaint(paint, borders.Bottom);
-                currentCanvas.DrawLine(pixelX, pixelY + pixelHeight, pixelX + pixelWidth, pixelY + pixelHeight, paint);
-            }
-
-            if (borders.Left.IsVisible)
-            {
-                ConfigureBorderPaint(paint, borders.Left);
-                currentCanvas.DrawLine(pixelX, pixelY, pixelX, pixelY + pixelHeight, paint);
-            }
-        }
-
-        if (cell.Properties.TextDirection != CellTextDirection.LeftToRight)
-        {
-            RenderVerticalCellContent(cell, cellX, cellY, cellWidth, cellHeight, padding);
-            return;
-        }
-
-        // Render cell content
-        var savedY = context.CurrentY;
-
-        // Calculate content dimensions for vertical alignment
-        var contentX = cellX + (float) padding.Left;
-        var contentWidth = cellWidth - (float) padding.Horizontal;
-        var availableHeight = cellHeight - (float) padding.Vertical;
-
-        // Measure actual content height
-        float contentHeight = 0;
-        foreach (var element in cell.Content)
-        {
-            if (element is ParagraphElement para)
-            {
-                // Account for bullet indent to match RenderParagraphInBounds behavior
-                float bulletIndent = para.Properties.Numbering != null ? 12 : 0;
-                contentHeight += textRenderer.MeasureParagraphHeightWithWidth(para, contentWidth - bulletIndent);
-            }
-            else if (element is ContentControlElement contentControl)
-            {
-                // Approximate content control height as a single line
-                var measurePara = new ParagraphElement
-                {
-                    Runs = contentControl.Runs!,
-                    Properties = new()
-                };
-                contentHeight += textRenderer.MeasureParagraphHeightWithWidth(measurePara, contentWidth);
-            }
-            else if (element is ImageElement image)
-            {
-                // Calculate image height, accounting for scaling if needed
-                var imageWidth = (float) image.WidthPoints;
-                var imageHeight = (float) image.HeightPoints;
-                if (imageWidth > contentWidth)
-                {
-                    var scale = contentWidth / imageWidth;
-                    imageHeight *= scale;
-                }
-
-                contentHeight += imageHeight;
-            }
-        }
-
-        // Calculate vertical offset based on alignment
-        // For vertically merged cells (vMerge restart), Word appears to use reduced centering
-        // to prevent excessive whitespace above content when the merged cell is tall
-        var verticalOffset = cell.Properties.VerticalAlignment switch
-        {
-            CellVerticalAlignment.Center => Math.Max(0, (availableHeight - contentHeight) / 2),
-            CellVerticalAlignment.Bottom => Math.Max(0, availableHeight - contentHeight),
-            _ => 0 // Top alignment
-        };
-
-        // Limit vertical centering for cells that start a vertical merge (vMerge="restart")
-        // Word seems to use reduced centering in this case, positioning content closer to top
-        if (cell.Properties is {VerticalMerge: VerticalMergeType.Restart, VerticalAlignment: CellVerticalAlignment.Center})
-        {
-            // Use a maximum offset to prevent too much whitespace above content
-            // ~0.17 inches
-            const float maxCenterOffset = 12f;
-            verticalOffset = Math.Min(verticalOffset, maxCenterOffset);
-        }
-
-        // Temporarily adjust context for cell rendering with padding and vertical alignment
-        context.CurrentY = cellY + (float) padding.Top + verticalOffset;
-
-        foreach (var element in cell.Content)
-        {
-            if (element is ParagraphElement para)
-            {
-                // Render paragraph within cell bounds with padding
-                RenderParagraphInBounds(para, contentX, contentWidth);
-            }
-            else if (element is ContentControlElement contentControl)
-            {
-                // Render content control text as simple text in cell
-                RenderContentControlInCell(contentControl, contentX, contentWidth);
-            }
-            else if (element is ImageElement image)
-            {
-                // Render image within cell bounds
-                RenderImageInCell(image, contentX, contentWidth);
-            }
-        }
-
-        context.CurrentY = savedY;
-    }
-
-    void RenderParagraphInBounds(ParagraphElement paragraph, float x, float maxWidth)
+    protected override void RenderParagraphInBounds(ParagraphElement paragraph, float x, float maxWidth)
     {
         if (currentCanvas == null)
         {
@@ -1840,7 +1066,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         textRenderer.RenderParagraphInBounds(currentCanvas, paragraph, x, maxWidth);
     }
 
-    void RenderImageInCell(ImageElement image, float x, float maxWidth)
+    protected override void RenderImageInCell(ImageElement image, float x, float maxWidth)
     {
         if (currentCanvas == null)
         {
@@ -1910,6 +1136,55 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
 
         return SKColors.Black;
+    }
+
+    protected override void DrawCellBackground(float pixelX, float pixelY, float pixelWidth, float pixelHeight, string hexColor)
+    {
+        if (currentCanvas == null)
+        {
+            return;
+        }
+
+        using var bgPaint = new SKPaint
+        {
+            Color = ParseColor(hexColor),
+            Style = SKPaintStyle.Fill
+        };
+        currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, bgPaint);
+    }
+
+    protected override void DrawCellBorders(float pixelX, float pixelY, float pixelWidth, float pixelHeight, CellBorders borders)
+    {
+        if (currentCanvas == null)
+        {
+            return;
+        }
+
+        using var paint = new SKPaint {Style = SKPaintStyle.Stroke, IsAntialias = true};
+
+        if (borders.Top.IsVisible)
+        {
+            ConfigureBorderPaint(paint, borders.Top);
+            currentCanvas.DrawLine(pixelX, pixelY, pixelX + pixelWidth, pixelY, paint);
+        }
+
+        if (borders.Right.IsVisible)
+        {
+            ConfigureBorderPaint(paint, borders.Right);
+            currentCanvas.DrawLine(pixelX + pixelWidth, pixelY, pixelX + pixelWidth, pixelY + pixelHeight, paint);
+        }
+
+        if (borders.Bottom.IsVisible)
+        {
+            ConfigureBorderPaint(paint, borders.Bottom);
+            currentCanvas.DrawLine(pixelX, pixelY + pixelHeight, pixelX + pixelWidth, pixelY + pixelHeight, paint);
+        }
+
+        if (borders.Left.IsVisible)
+        {
+            ConfigureBorderPaint(paint, borders.Left);
+            currentCanvas.DrawLine(pixelX, pixelY, pixelX, pixelY + pixelHeight, paint);
+        }
     }
 
     SKPaint CreateBorderPaint(BorderEdge edge) =>
@@ -2252,49 +1527,6 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         context.CurrentY += boxSize + 4;
     }
 
-    /// <summary>
-    /// Renders a content control's text content within a table cell (without form field styling).
-    /// </summary>
-    void RenderContentControlInCell(ContentControlElement control, float x, float maxWidth)
-    {
-        if (currentCanvas == null)
-        {
-            return;
-        }
-
-        // Use styled runs if available, otherwise fall back to plain text
-        ParagraphElement para;
-        if (control.Runs is {Count: > 0})
-        {
-            para = new()
-            {
-                Runs = control.Runs,
-                Properties = new()
-            };
-        }
-        else if (!string.IsNullOrEmpty(control.Content))
-        {
-            para = new()
-            {
-                Runs =
-                [
-                    new()
-                    {
-                        Text = control.Content,
-                        Properties = new()
-                    }
-                ],
-                Properties = new()
-            };
-        }
-        else
-        {
-            return;
-        }
-
-        RenderParagraphInBounds(para, x, maxWidth);
-    }
-
     void RenderContentControlText(ContentControlElement control)
     {
         if (currentCanvas == null)
@@ -2577,7 +1809,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
     }
 
-    void StartNewPage()
+    protected override void StartNewPage()
     {
         FlushPendingPage();
 
@@ -2618,7 +1850,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         currentPageFromExplicitBreak = false;
     }
 
-    void FinishCurrentPage()
+    protected override void FinishCurrentPage()
     {
         if (currentPage != null)
         {
@@ -2700,13 +1932,18 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
 
         // Calculate position based on anchor type
-        var x = CalculateShapeX(shape);
-        var y = CalculateShapeY(shape);
-
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var pixelWidth = context.PointsToPixels((float) shape.WidthPoints);
-        var pixelHeight = context.PointsToPixels((float) shape.HeightPoints);
+        var bounds = FloatingPosition.ResolveShapeBounds(
+            context,
+            shape.HorizontalAnchor,
+            shape.VerticalAnchor,
+            shape.HorizontalPositionPoints,
+            shape.VerticalPositionPoints,
+            shape.WidthPoints,
+            shape.HeightPoints);
+        var pixelX = bounds.PixelX;
+        var pixelY = bounds.PixelY;
+        var pixelWidth = bounds.PixelWidth;
+        var pixelHeight = bounds.PixelHeight;
 
         // Check for image fill first
         if (shape.ImageData != null)
@@ -2738,37 +1975,6 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
     }
 
-    float CalculateShapeX(FloatingShapeElement shape)
-    {
-        // For background shapes (BehindText=true), use margin as base for column-relative
-        // since these are typically full-page backgrounds
-        var baseX = shape.HorizontalAnchor switch
-        {
-            HorizontalAnchor.Page => 0,
-            HorizontalAnchor.Margin => (float) context.PageSettings.MarginLeft,
-            HorizontalAnchor.Column => (float) context.PageSettings.MarginLeft,
-            _ => (float) context.PageSettings.MarginLeft
-        };
-
-        return baseX + (float) shape.HorizontalPositionPoints;
-    }
-
-    float CalculateShapeY(FloatingShapeElement shape)
-    {
-        // For background shapes (BehindText=true), use margin as base for paragraph-relative
-        // since these are rendered at page start before any content is placed
-        var baseY = shape.VerticalAnchor switch
-        {
-            VerticalAnchor.Page => 0,
-            VerticalAnchor.Margin => (float) context.PageSettings.MarginTop,
-            VerticalAnchor.Paragraph => (float) context.PageSettings.MarginTop,
-            VerticalAnchor.Line => (float) context.PageSettings.MarginTop,
-            _ => (float) context.PageSettings.MarginTop
-        };
-
-        return baseY + (float) shape.VerticalPositionPoints;
-    }
-
     void RenderFloatingImage(FloatingImageElement image)
     {
         if (currentCanvas == null)
@@ -2777,45 +1983,18 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
 
         // Calculate absolute position based on anchor type
-        var x = CalculateFloatingImageX(image);
-        var y = CalculateFloatingImageY(image);
+        var bounds = FloatingPosition.ResolveBounds(
+            context,
+            image.HorizontalAnchor,
+            image.VerticalAnchor,
+            image.HorizontalPositionPoints,
+            image.VerticalPositionPoints,
+            image.WidthPoints,
+            image.HeightPoints);
 
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var pixelWidth = context.PointsToPixels((float) image.WidthPoints);
-        var pixelHeight = context.PointsToPixels((float) image.HeightPoints);
-
-        var destRect = new SKRect(pixelX, pixelY, pixelX + pixelWidth, pixelY + pixelHeight);
+        var destRect = new SKRect(bounds.PixelX, bounds.PixelY, bounds.PixelX + bounds.PixelWidth, bounds.PixelY + bounds.PixelHeight);
 
         DrawBlockImage(image.ImageData, image.ContentType, destRect, (float) image.RotationDegrees, image.Crop);
-    }
-
-    float CalculateFloatingImageX(FloatingImageElement image)
-    {
-        var baseX = image.HorizontalAnchor switch
-        {
-            HorizontalAnchor.Page => 0,
-            HorizontalAnchor.Margin => (float) context.PageSettings.MarginLeft,
-            HorizontalAnchor.Column => context.ContentLeft,
-            HorizontalAnchor.Character => context.ContentLeft, // Approximate
-            _ => 0
-        };
-
-        return baseX + (float) image.HorizontalPositionPoints;
-    }
-
-    float CalculateFloatingImageY(FloatingImageElement image)
-    {
-        var baseY = image.VerticalAnchor switch
-        {
-            VerticalAnchor.Page => 0,
-            VerticalAnchor.Margin => (float) context.PageSettings.MarginTop,
-            VerticalAnchor.Paragraph => context.CurrentY, // Approximate - relative to current paragraph
-            VerticalAnchor.Line => context.CurrentY, // Approximate
-            _ => 0
-        };
-
-        return baseY + (float) image.VerticalPositionPoints;
     }
 
     void RenderFloatingTextBox(FloatingTextBoxElement textBox)
@@ -2826,13 +2005,20 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
 
         // Calculate absolute position
-        var x = CalculateFloatingTextBoxX(textBox);
-        var y = CalculateFloatingTextBoxY(textBox);
-
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var pixelWidth = context.PointsToPixels((float) textBox.WidthPoints);
-        var pixelHeight = context.PointsToPixels((float) textBox.HeightPoints);
+        var bounds = FloatingPosition.ResolveBounds(
+            context,
+            textBox.HorizontalAnchor,
+            textBox.VerticalAnchor,
+            textBox.HorizontalPositionPoints,
+            textBox.VerticalPositionPoints,
+            textBox.WidthPoints,
+            textBox.HeightPoints);
+        var x = bounds.X;
+        var y = bounds.Y;
+        var pixelX = bounds.PixelX;
+        var pixelY = bounds.PixelY;
+        var pixelWidth = bounds.PixelWidth;
+        var pixelHeight = bounds.PixelHeight;
 
         // Save canvas state before rotation
         currentCanvas.Save();
@@ -2880,34 +2066,6 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         // Restore canvas state (removes rotation)
         currentCanvas.Restore();
-    }
-
-    float CalculateFloatingTextBoxX(FloatingTextBoxElement textBox)
-    {
-        var baseX = textBox.HorizontalAnchor switch
-        {
-            HorizontalAnchor.Page => 0,
-            HorizontalAnchor.Margin => (float) context.PageSettings.MarginLeft,
-            HorizontalAnchor.Column => context.ContentLeft,
-            HorizontalAnchor.Character => context.ContentLeft,
-            _ => 0
-        };
-
-        return baseX + (float) textBox.HorizontalPositionPoints;
-    }
-
-    float CalculateFloatingTextBoxY(FloatingTextBoxElement textBox)
-    {
-        var baseY = textBox.VerticalAnchor switch
-        {
-            VerticalAnchor.Page => 0,
-            VerticalAnchor.Margin => (float) context.PageSettings.MarginTop,
-            VerticalAnchor.Paragraph => context.CurrentY,
-            VerticalAnchor.Line => context.CurrentY,
-            _ => 0
-        };
-
-        return baseY + (float) textBox.VerticalPositionPoints;
     }
 
     public void Dispose()

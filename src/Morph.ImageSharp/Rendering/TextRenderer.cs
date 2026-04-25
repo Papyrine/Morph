@@ -1,7 +1,8 @@
 /// <summary>
 /// Renders text content with formatting using SixLabors.ImageSharp.
 /// </summary>
-sealed class TextRenderer(ImageSharpRenderContext context)
+sealed class TextRenderer(ImageSharpRenderContext context) :
+    IParagraphMeasurer
 {
     /// <summary>
     /// Measures the height of a paragraph when rendered at the given width.

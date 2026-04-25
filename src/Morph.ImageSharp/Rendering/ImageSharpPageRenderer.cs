@@ -2,8 +2,12 @@
 /// Renders document pages to PNG images using SixLabors.ImageSharp.
 /// </summary>
 sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
+    PageRendererBase(context),
     IDisposable
 {
+    protected override IParagraphMeasurer Measurer => textRenderer;
+    protected override bool HasOutput => currentPage != null;
+
     TextRenderer textRenderer = new(context);
 
     Action<Action<Stream>>? pageCallback;
@@ -263,88 +267,13 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
     }
 
-    void RenderSectionBreak(SectionBreakElement sectionBreak)
+    void RenderSectionBreak(SectionBreakElement sectionBreak) =>
+        SectionBreakHandler.Handle(sectionBreak, context, FinishCurrentPage, StartNewExplicitPage);
+
+    void StartNewExplicitPage()
     {
-        switch (sectionBreak.BreakType)
-        {
-            case SectionBreakType.NextPage:
-                FinishCurrentPage();
-                ApplySectionSettings(sectionBreak.NewSectionSettings);
-                StartNewPage();
-                currentPageFromExplicitBreak = true;
-                break;
-
-            case SectionBreakType.Continuous:
-                ApplySectionSettings(sectionBreak.NewSectionSettings);
-                context.ResetColumn();
-                break;
-
-            case SectionBreakType.EvenPage:
-                FinishCurrentPage();
-                ApplySectionSettings(sectionBreak.NewSectionSettings);
-                StartNewPage();
-                currentPageFromExplicitBreak = true;
-                if (context.CurrentPageNumber % 2 != 0)
-                {
-                    FinishCurrentPage();
-                    StartNewPage();
-                    currentPageFromExplicitBreak = true;
-                }
-
-                break;
-
-            case SectionBreakType.OddPage:
-                FinishCurrentPage();
-                ApplySectionSettings(sectionBreak.NewSectionSettings);
-                StartNewPage();
-                currentPageFromExplicitBreak = true;
-                if (context.CurrentPageNumber % 2 == 0)
-                {
-                    FinishCurrentPage();
-                    StartNewPage();
-                    currentPageFromExplicitBreak = true;
-                }
-
-                break;
-
-            case SectionBreakType.NextColumn:
-                ApplySectionSettings(sectionBreak.NewSectionSettings);
-                if (!context.MoveToNextColumn())
-                {
-                    FinishCurrentPage();
-                    StartNewPage();
-                    currentPageFromExplicitBreak = true;
-                }
-
-                break;
-        }
-    }
-
-    void ApplySectionSettings(PageSettings? settings)
-    {
-        if (settings != null)
-        {
-            context.UpdatePageSettings(settings);
-            context.ResetLineNumbersForSection();
-        }
-    }
-
-    void EnsureSpaceFor(float height)
-    {
-        if (height > context.ContentHeight)
-        {
-            return;
-        }
-
-        if (!context.HasSpaceFor(height) &&
-            context.CurrentY > context.ContentTop)
-        {
-            if (!context.MoveToNextColumn())
-            {
-                FinishCurrentPage();
-                StartNewPage();
-            }
-        }
+        StartNewPage();
+        currentPageFromExplicitBreak = true;
     }
 
     float MeasureElementHeight(DocumentElement element) =>
@@ -583,13 +512,18 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             return;
         }
 
-        var x = CalculateFloatingWordArtX(wordArt);
-        var y = CalculateFloatingWordArtY(wordArt);
-
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var width = context.PointsToPixels((float) wordArt.WidthPoints);
-        var pixelHeight = context.PointsToPixels((float) wordArt.HeightPoints);
+        var bounds = FloatingPosition.ResolveBounds(
+            context,
+            wordArt.HorizontalAnchor,
+            wordArt.VerticalAnchor,
+            wordArt.HorizontalPositionPoints,
+            wordArt.VerticalPositionPoints,
+            wordArt.WidthPoints,
+            wordArt.HeightPoints);
+        var pixelX = bounds.PixelX;
+        var pixelY = bounds.PixelY;
+        var width = bounds.PixelWidth;
+        var pixelHeight = bounds.PixelHeight;
 
         var font = context.GetFontForFamily(
             wordArt.FontFamily,
@@ -648,34 +582,6 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
 
         currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, fillColor, new(textX, textY)));
-    }
-
-    float CalculateFloatingWordArtX(FloatingWordArtElement wordArt)
-    {
-        var baseX = wordArt.HorizontalAnchor switch
-        {
-            HorizontalAnchor.Page => 0,
-            HorizontalAnchor.Margin => (float) context.PageSettings.MarginLeft,
-            HorizontalAnchor.Column => context.ContentLeft,
-            HorizontalAnchor.Character => context.ContentLeft,
-            _ => 0
-        };
-
-        return baseX + (float) wordArt.HorizontalPositionPoints;
-    }
-
-    float CalculateFloatingWordArtY(FloatingWordArtElement wordArt)
-    {
-        var baseY = wordArt.VerticalAnchor switch
-        {
-            VerticalAnchor.Page => 0,
-            VerticalAnchor.Margin => (float) context.PageSettings.MarginTop,
-            VerticalAnchor.Paragraph => context.CurrentY,
-            VerticalAnchor.Line => context.CurrentY,
-            _ => 0
-        };
-
-        return baseY + (float) wordArt.VerticalPositionPoints;
     }
 
     void RenderInk(InkElement ink)
@@ -737,456 +643,13 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         var colCount = TableLayout.GetColumnCount(table);
 
         var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
-        var rowHeights = CalculateRowHeights(table, colWidths);
+        var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, textRenderer);
 
         return rowHeights.Sum();
     }
 
-    void RenderTable(TableElement table)
-    {
-        if (currentPage == null || table.Rows.Count == 0)
-        {
-            return;
-        }
 
-        var colCount = TableLayout.GetColumnCount(table);
-
-        var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
-        var rowHeights = CalculateRowHeights(table, colWidths);
-        var totalHeight = rowHeights.Sum();
-
-        var tableTolerance = context.ContentHeight * 0.10f;
-        var needsRowByRowRendering = totalHeight > context.ContentHeight + tableTolerance;
-
-        if (needsRowByRowRendering)
-        {
-            RenderTableRowByRow(table, colCount, colWidths, rowHeights);
-        }
-        else
-        {
-            var tolerancePercent = context.Compatibility.CompatibilityMode >= 15 ? 0.02f : 0.01f;
-            var tolerance = context.ContentHeight * tolerancePercent;
-            var requiredHeight = totalHeight - tolerance;
-            EnsureSpaceFor(requiredHeight);
-            RenderTableRows(table, colCount, colWidths, rowHeights);
-        }
-    }
-
-    float ComputeTableX(TableElement table, float[] colWidths)
-    {
-        var contentLeft = context.ContentLeft;
-        var tableWidth = colWidths.Sum();
-        var slack = context.ContentWidth - tableWidth;
-        return table.Properties.Alignment switch
-        {
-            TextAlignment.Center => contentLeft + Math.Max(0, slack / 2),
-            TextAlignment.Right => contentLeft + Math.Max(0, slack),
-            _ => contentLeft
-        };
-    }
-
-    void RenderTableRows(TableElement table, int colCount, float[] colWidths, float[] rowHeights)
-    {
-        var tableX = ComputeTableX(table, colWidths);
-        var startY = context.CurrentY;
-
-        var hasVerticalMerge = TableLayout.HasVerticalMerge(table);
-
-        if (hasVerticalMerge)
-        {
-            var columnYPositions = new float[colCount];
-            for (var i = 0; i < colCount; i++)
-            {
-                columnYPositions[i] = startY;
-            }
-
-            RenderTableWithColumnTracking(table, colCount, colWidths, rowHeights, tableX, columnYPositions);
-            context.CurrentY = columnYPositions.Max();
-        }
-        else
-        {
-            var currentY = startY;
-            for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
-            {
-                RenderTableRow(table, rowIndex, colCount, colWidths, rowHeights, tableX, currentY);
-                currentY += rowHeights[rowIndex];
-            }
-
-            context.CurrentY = currentY;
-        }
-    }
-
-    void RenderTableWithColumnTracking(TableElement table, int colCount, float[] colWidths, float[] rowHeights, float tableX, float[] columnYPositions)
-    {
-        for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
-        {
-            var row = table.Rows[rowIndex];
-            var currentX = tableX;
-            var gridColIndex = 0;
-
-            for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
-            {
-                var cell = row.Cells[cellIndex];
-                var span = cell.Properties.GridSpan;
-
-                float cellWidth = 0;
-                for (var i = 0; i < span && gridColIndex + i < colCount; i++)
-                {
-                    cellWidth += colWidths[gridColIndex + i];
-                }
-
-                if (cell.Properties.VerticalMerge == VerticalMergeType.Continue)
-                {
-                    currentX += cellWidth;
-                    gridColIndex += span;
-                    continue;
-                }
-
-                var cellY = columnYPositions[gridColIndex];
-
-                float cellHeight;
-                if (cell.Properties.VerticalMerge == VerticalMergeType.Restart)
-                {
-                    cellHeight = TableLayout.CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
-                }
-                else
-                {
-                    var padding = GetEffectivePadding(cell.Properties, table.Properties);
-                    var contentWidth = cellWidth - (float) padding.Horizontal;
-                    var contentHeight = MeasureCellHeight(cell, contentWidth, table.Properties);
-                    cellHeight = contentHeight + (float) padding.Vertical;
-                }
-
-                RenderTableCell(cell, currentX, cellY, cellWidth, cellHeight, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount);
-
-                for (var i = 0; i < span && gridColIndex + i < colCount; i++)
-                {
-                    columnYPositions[gridColIndex + i] = cellY + cellHeight;
-                }
-
-                currentX += cellWidth;
-                gridColIndex += span;
-            }
-        }
-    }
-
-    void RenderTableRowByRow(TableElement table, int colCount, float[] colWidths, float[] rowHeights)
-    {
-        var headerCount = 0;
-        while (headerCount < table.Rows.Count && table.Rows[headerCount].IsHeader)
-        {
-            headerCount++;
-        }
-
-        for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
-        {
-            var rowHeight = rowHeights[rowIndex];
-
-            var yBefore = context.CurrentY;
-            EnsureSpaceFor(rowHeight);
-            var pageBroke = context.CurrentY < yBefore;
-
-            if (pageBroke && headerCount > 0 && rowIndex >= headerCount)
-            {
-                var tableXHeader = ComputeTableX(table, colWidths);
-                for (var h = 0; h < headerCount; h++)
-                {
-                    var headerHeight = rowHeights[h];
-                    var headerY = context.CurrentY;
-                    RenderTableRow(table, h, colCount, colWidths, rowHeights, tableXHeader, headerY);
-                    context.CurrentY += headerHeight;
-                }
-            }
-
-            var tableX = ComputeTableX(table, colWidths);
-            var currentY = context.CurrentY;
-
-            RenderTableRow(table, rowIndex, colCount, colWidths, rowHeights, tableX, currentY);
-            context.CurrentY += rowHeight;
-        }
-    }
-
-    void RenderTableRow(TableElement table, int rowIndex, int colCount, float[] colWidths, float[] rowHeights, float tableX, float currentY)
-    {
-        var row = table.Rows[rowIndex];
-        var rowHeight = rowHeights[rowIndex];
-        var currentX = tableX;
-        var gridColIndex = 0;
-
-        for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
-        {
-            var cell = row.Cells[cellIndex];
-            var span = cell.Properties.GridSpan;
-
-            float cellWidth = 0;
-            for (var i = 0; i < span && gridColIndex + i < colCount; i++)
-            {
-                cellWidth += colWidths[gridColIndex + i];
-            }
-
-            if (cell.Properties.VerticalMerge == VerticalMergeType.Continue)
-            {
-                currentX += cellWidth;
-                gridColIndex += span;
-                continue;
-            }
-
-            var cellHeight = rowHeight;
-            if (cell.Properties.VerticalMerge == VerticalMergeType.Restart)
-            {
-                cellHeight = TableLayout.CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
-            }
-
-            RenderTableCell(cell, currentX, currentY, cellWidth, cellHeight, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount);
-
-            currentX += cellWidth;
-            gridColIndex += span;
-        }
-    }
-
-    float[] CalculateRowHeights(TableElement table, float[] colWidths)
-    {
-        var heights = new float[table.Rows.Count];
-        var colCount = colWidths.Length;
-
-        for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
-        {
-            var row = table.Rows[rowIndex];
-            float maxHeight = 20;
-
-            var gridColIndex = 0;
-            for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
-            {
-                var cell = row.Cells[cellIndex];
-                var span = cell.Properties.GridSpan;
-
-                if (cell.Properties.VerticalMerge is VerticalMergeType.Continue or VerticalMergeType.Restart)
-                {
-                    gridColIndex += span;
-                    continue;
-                }
-
-                float cellWidth = 0;
-                for (var i = 0; i < span && gridColIndex + i < colCount; i++)
-                {
-                    cellWidth += colWidths[gridColIndex + i];
-                }
-
-                var cellHeight = MeasureCellHeight(cell, cellWidth, table.Properties);
-                maxHeight = Math.Max(maxHeight, cellHeight);
-
-                gridColIndex += span;
-            }
-
-            heights[rowIndex] = maxHeight;
-        }
-
-        var hasVMerge = TableLayout.HasVerticalMerge(table);
-        var allRowsHaveExplicitHeight = table.Rows.All(_ => _.HeightPoints.HasValue);
-        var useStrictHeights = hasVMerge && allRowsHaveExplicitHeight;
-
-        for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
-        {
-            var row = table.Rows[rowIndex];
-            if (row.HeightPoints.HasValue)
-            {
-                var explicitHeight = (float) row.HeightPoints.Value;
-                if (row.IsExactHeight || useStrictHeights)
-                {
-                    heights[rowIndex] = explicitHeight;
-                }
-                else
-                {
-                    heights[rowIndex] = Math.Max(heights[rowIndex], explicitHeight);
-                }
-            }
-        }
-
-        for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
-        {
-            var row = table.Rows[rowIndex];
-            var gridColIndex = 0;
-
-            for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
-            {
-                var cell = row.Cells[cellIndex];
-                var span = cell.Properties.GridSpan;
-
-                if (cell.Properties.VerticalMerge == VerticalMergeType.Restart)
-                {
-                    var rowSpan = TableLayout.CalculateVerticalMergeRowSpan(table, rowIndex, gridColIndex);
-
-                    float cellWidth = 0;
-                    for (var i = 0; i < span && gridColIndex + i < colCount; i++)
-                    {
-                        cellWidth += colWidths[gridColIndex + i];
-                    }
-
-                    var contentHeight = MeasureCellHeight(cell, cellWidth, table.Properties);
-
-                    float currentTotalHeight = 0;
-                    for (var r = rowIndex; r < rowIndex + rowSpan && r < table.Rows.Count; r++)
-                    {
-                        currentTotalHeight += heights[r];
-                    }
-
-                    if (contentHeight > currentTotalHeight)
-                    {
-                        var extraHeight = contentHeight - currentTotalHeight;
-                        var extraPerRow = extraHeight / rowSpan;
-
-                        for (var r = rowIndex; r < rowIndex + rowSpan && r < table.Rows.Count; r++)
-                        {
-                            heights[r] += extraPerRow;
-                        }
-                    }
-                }
-
-                gridColIndex += span;
-            }
-        }
-
-        return heights;
-    }
-
-    float MeasureCellHeight(TableCell cell, float cellWidth, TableProperties tableProps)
-    {
-        var padding = GetEffectivePadding(cell.Properties, tableProps);
-        var margin = GetEffectiveMargin(cell.Properties, tableProps);
-
-        if (cell.Properties.TextDirection != CellTextDirection.LeftToRight)
-        {
-            return MeasureVerticalCellHeight(cell, padding, margin);
-        }
-
-        var contentWidth = cellWidth - (float) (padding.Horizontal + margin.Horizontal);
-        var height = (float) (padding.Vertical + margin.Vertical);
-
-        var paragraphs = new List<(ParagraphElement para, float bulletIndent)>();
-        foreach (var element in cell.Content)
-        {
-            if (element is ParagraphElement para)
-            {
-                float bulletIndent = para.Properties.Numbering != null ? 12 : 0;
-                paragraphs.Add((para, bulletIndent));
-            }
-            else if (element is ContentControlElement contentControl)
-            {
-                ParagraphElement? measurePara = null;
-                if (contentControl.Runs is {Count: > 0})
-                {
-                    measurePara = new()
-                    {
-                        Runs = contentControl.Runs,
-                        Properties = new()
-                    };
-                }
-                else if (!string.IsNullOrEmpty(contentControl.Content))
-                {
-                    measurePara = new()
-                    {
-                        Runs =
-                        [
-                            new()
-                            {
-                                Text = contentControl.Content,
-                                Properties = new()
-                            }
-                        ],
-                        Properties = new()
-                    };
-                }
-
-                if (measurePara != null)
-                {
-                    paragraphs.Add((measurePara, 0));
-                }
-            }
-            else if (element is TableElement {Properties.IsFloating: false})
-            {
-                height += 50;
-            }
-        }
-
-        for (var i = 0; i < paragraphs.Count; i++)
-        {
-            var (para, bulletIndent) = paragraphs[i];
-            var lines = textRenderer.LayoutParagraphForMeasurement(para, contentWidth - bulletIndent);
-            var props = para.Properties;
-
-            if (i == 0)
-            {
-                var extra = (float) props.SpacingBeforePoints - (float) padding.Top;
-                if (extra > 0)
-                {
-                    height += extra;
-                }
-            }
-            else
-            {
-                height += (float) props.SpacingBeforePoints;
-            }
-
-            foreach (var lineHeight in lines)
-            {
-                height += lineHeight;
-            }
-
-            if (i == paragraphs.Count - 1)
-            {
-                var extra = (float) props.SpacingAfterPoints - (float) padding.Bottom;
-                if (extra > 0)
-                {
-                    height += extra;
-                }
-            }
-            else
-            {
-                height += (float) props.SpacingAfterPoints;
-            }
-        }
-
-        return height;
-    }
-
-    static CellSpacing GetEffectivePadding(TableCellProperties cellProps, TableProperties tableProps) =>
-        TableLayout.GetEffectivePadding(cellProps, tableProps);
-
-    static CellSpacing GetEffectiveMargin(TableCellProperties cellProps, TableProperties tableProps) =>
-        TableLayout.GetEffectiveMargin(cellProps, tableProps);
-
-    float MeasureVerticalCellHeight(TableCell cell, CellSpacing padding, CellSpacing margin)
-    {
-        var widest = 0f;
-        foreach (var element in cell.Content)
-        {
-            var para = element as ParagraphElement;
-            if (para == null &&
-                element is ContentControlElement {Runs.Count: > 0} cc)
-            {
-                para = new()
-                {
-                    Runs = cc.Runs,
-                    Properties = new()
-                };
-            }
-
-            if (para == null)
-            {
-                continue;
-            }
-
-            var natural = textRenderer.MeasureParagraphNaturalWidth(para, float.MaxValue / 4);
-            if (natural > widest)
-            {
-                widest = natural;
-            }
-        }
-
-        return (float) (padding.Vertical + margin.Vertical) + widest;
-    }
-
-    void RenderVerticalCellContent(TableCell cell, float cellX, float cellY, float cellWidth, float cellHeight, CellSpacing padding)
+    protected override void RenderVerticalCellContent(TableCell cell, float cellX, float cellY, float cellWidth, float cellHeight, CellSpacing padding)
     {
         if (currentPage == null)
         {
@@ -1240,134 +703,47 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         currentPage.Mutate(_ => _.DrawImage(tempImage, new Point(drawX, drawY), 1f));
     }
 
-    void RenderTableCell(TableCell cell, float x, float y, float width, float height, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols)
+
+    protected override void DrawCellBackground(float pixelX, float pixelY, float pixelWidth, float pixelHeight, string hexColor)
     {
         if (currentPage == null)
         {
             return;
         }
 
-        var padding = GetEffectivePadding(cell.Properties, tableProps);
-        var margin = GetEffectiveMargin(cell.Properties, tableProps);
+        var bgColor = ImageSharpRenderContext.ParseColor(hexColor);
+        currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
+    }
 
-        var cellX = x + (float) margin.Left;
-        var cellY = y + (float) margin.Top;
-        var cellWidth = width - (float) margin.Horizontal;
-        var cellHeight = height - (float) margin.Vertical;
-
-        var pixelX = context.PointsToPixels(cellX);
-        var pixelY = context.PointsToPixels(cellY);
-        var pixelWidth = context.PointsToPixels(cellWidth);
-        var pixelHeight = context.PointsToPixels(cellHeight);
-
-        if (cell.Properties.BackgroundColorHex != null)
+    protected override void DrawCellBorders(float pixelX, float pixelY, float pixelWidth, float pixelHeight, CellBorders borders)
+    {
+        if (currentPage == null)
         {
-            var bgColor = ImageSharpRenderContext.ParseColor(cell.Properties.BackgroundColorHex);
-            currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
-        }
-
-        var borders = TableLayout.ResolveCellBorders(cell.Properties, tableProps, rowIndex, colIndex, totalRows, totalCols);
-        if (borders != null && currentPage != null)
-        {
-            currentPage.Mutate(_ =>
-            {
-                if (borders.Top.IsVisible)
-                {
-                    DrawBorderLine(_, pixelX, pixelY, pixelX + pixelWidth, pixelY, borders.Top);
-                }
-
-                if (borders.Right.IsVisible)
-                {
-                    DrawBorderLine(_, pixelX + pixelWidth, pixelY, pixelX + pixelWidth, pixelY + pixelHeight, borders.Right);
-                }
-
-                if (borders.Bottom.IsVisible)
-                {
-                    DrawBorderLine(_, pixelX, pixelY + pixelHeight, pixelX + pixelWidth, pixelY + pixelHeight, borders.Bottom);
-                }
-
-                if (borders.Left.IsVisible)
-                {
-                    DrawBorderLine(_, pixelX, pixelY, pixelX, pixelY + pixelHeight, borders.Left);
-                }
-            });
-        }
-
-        if (cell.Properties.TextDirection != CellTextDirection.LeftToRight)
-        {
-            RenderVerticalCellContent(cell, cellX, cellY, cellWidth, cellHeight, padding);
             return;
         }
 
-        var savedY = context.CurrentY;
-
-        var contentX = cellX + (float) padding.Left;
-        var contentWidth = cellWidth - (float) padding.Horizontal;
-        var availableHeight = cellHeight - (float) padding.Vertical;
-
-        float contentHeight = 0;
-        foreach (var element in cell.Content)
+        currentPage.Mutate(_ =>
         {
-            if (element is ParagraphElement para)
+            if (borders.Top.IsVisible)
             {
-                float bulletIndent = para.Properties.Numbering != null ? 12 : 0;
-                contentHeight += textRenderer.MeasureParagraphHeightWithWidth(para, contentWidth - bulletIndent);
+                DrawBorderLine(_, pixelX, pixelY, pixelX + pixelWidth, pixelY, borders.Top);
             }
-            else if (element is ContentControlElement contentControl)
+
+            if (borders.Right.IsVisible)
             {
-                var measurePara = new ParagraphElement
-                {
-                    Runs = contentControl.Runs!,
-                    Properties = new()
-                };
-                contentHeight += textRenderer.MeasureParagraphHeightWithWidth(measurePara, contentWidth);
+                DrawBorderLine(_, pixelX + pixelWidth, pixelY, pixelX + pixelWidth, pixelY + pixelHeight, borders.Right);
             }
-            else if (element is ImageElement image)
+
+            if (borders.Bottom.IsVisible)
             {
-                var imageWidth = (float) image.WidthPoints;
-                var imageHeight = (float) image.HeightPoints;
-                if (imageWidth > contentWidth)
-                {
-                    var scale = contentWidth / imageWidth;
-                    imageHeight *= scale;
-                }
-
-                contentHeight += imageHeight;
+                DrawBorderLine(_, pixelX, pixelY + pixelHeight, pixelX + pixelWidth, pixelY + pixelHeight, borders.Bottom);
             }
-        }
 
-        var verticalOffset = cell.Properties.VerticalAlignment switch
-        {
-            CellVerticalAlignment.Center => Math.Max(0, (availableHeight - contentHeight) / 2),
-            CellVerticalAlignment.Bottom => Math.Max(0, availableHeight - contentHeight),
-            _ => 0
-        };
-
-        if (cell.Properties is {VerticalMerge: VerticalMergeType.Restart, VerticalAlignment: CellVerticalAlignment.Center})
-        {
-            const float maxCenterOffset = 12f;
-            verticalOffset = Math.Min(verticalOffset, maxCenterOffset);
-        }
-
-        context.CurrentY = cellY + (float) padding.Top + verticalOffset;
-
-        foreach (var element in cell.Content)
-        {
-            if (element is ParagraphElement para)
+            if (borders.Left.IsVisible)
             {
-                RenderParagraphInBounds(para, contentX, contentWidth);
+                DrawBorderLine(_, pixelX, pixelY, pixelX, pixelY + pixelHeight, borders.Left);
             }
-            else if (element is ContentControlElement contentControl)
-            {
-                RenderContentControlInCell(contentControl, contentX, contentWidth);
-            }
-            else if (element is ImageElement image)
-            {
-                RenderImageInCell(image, contentX, contentWidth);
-            }
-        }
-
-        context.CurrentY = savedY;
+        });
     }
 
     void DrawBorderLine(float x1, float y1, float x2, float y2, BorderEdge edge)
@@ -1389,7 +765,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         ctx.DrawLine(pen, new PointF(x1, y1), new PointF(x2, y2));
     }
 
-    void RenderParagraphInBounds(ParagraphElement paragraph, float x, float maxWidth)
+    protected override void RenderParagraphInBounds(ParagraphElement paragraph, float x, float maxWidth)
     {
         if (currentPage == null)
         {
@@ -1399,7 +775,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         textRenderer.RenderParagraphInBounds(currentPage, paragraph, x, maxWidth);
     }
 
-    void RenderImageInCell(ImageElement image, float x, float maxWidth)
+    protected override void RenderImageInCell(ImageElement image, float x, float maxWidth)
     {
         if (currentPage == null)
         {
@@ -1664,45 +1040,6 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         context.CurrentY += boxSize + 4;
     }
 
-    void RenderContentControlInCell(ContentControlElement control, float x, float maxWidth)
-    {
-        if (currentPage == null)
-        {
-            return;
-        }
-
-        ParagraphElement para;
-        if (control.Runs is {Count: > 0})
-        {
-            para = new()
-            {
-                Runs = control.Runs,
-                Properties = new()
-            };
-        }
-        else if (!string.IsNullOrEmpty(control.Content))
-        {
-            para = new()
-            {
-                Runs =
-                [
-                    new()
-                    {
-                        Text = control.Content,
-                        Properties = new()
-                    }
-                ],
-                Properties = new()
-            };
-        }
-        else
-        {
-            return;
-        }
-
-        RenderParagraphInBounds(para, x, maxWidth);
-    }
-
     void RenderContentControlText(ContentControlElement control)
     {
         if (currentPage == null)
@@ -1850,7 +1187,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
     }
 
-    void StartNewPage()
+    protected override void StartNewPage()
     {
         FlushPendingPage();
 
@@ -1883,7 +1220,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         currentPageFromExplicitBreak = false;
     }
 
-    void FinishCurrentPage()
+    protected override void FinishCurrentPage()
     {
         if (currentPage != null)
         {
@@ -1954,12 +1291,18 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             return;
         }
 
-        var x = CalculateShapeX(shape);
-        var y = CalculateShapeY(shape);
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var pixelWidth = context.PointsToPixels((float) shape.WidthPoints);
-        var pixelHeight = context.PointsToPixels((float) shape.HeightPoints);
+        var bounds = FloatingPosition.ResolveShapeBounds(
+            context,
+            shape.HorizontalAnchor,
+            shape.VerticalAnchor,
+            shape.HorizontalPositionPoints,
+            shape.VerticalPositionPoints,
+            shape.WidthPoints,
+            shape.HeightPoints);
+        var pixelX = bounds.PixelX;
+        var pixelY = bounds.PixelY;
+        var pixelWidth = bounds.PixelWidth;
+        var pixelHeight = bounds.PixelHeight;
 
         if (shape.ImageData != null)
         {
@@ -1988,25 +1331,6 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
     }
 
-    float CalculateShapeX(FloatingShapeElement shape) =>
-        shape.HorizontalAnchor switch
-        {
-            HorizontalAnchor.Page => 0f,
-            HorizontalAnchor.Margin => (float) context.PageSettings.MarginLeft,
-            HorizontalAnchor.Column => (float) context.PageSettings.MarginLeft,
-            _ => (float) context.PageSettings.MarginLeft
-        } + (float) shape.HorizontalPositionPoints;
-
-    float CalculateShapeY(FloatingShapeElement shape) =>
-        shape.VerticalAnchor switch
-        {
-            VerticalAnchor.Page => 0f,
-            VerticalAnchor.Margin => (float) context.PageSettings.MarginTop,
-            VerticalAnchor.Paragraph => (float) context.PageSettings.MarginTop,
-            VerticalAnchor.Line => (float) context.PageSettings.MarginTop,
-            _ => (float) context.PageSettings.MarginTop
-        } + (float) shape.VerticalPositionPoints;
-
     void RenderFloatingImage(FloatingImageElement image)
     {
         if (currentPage == null || image.ContentType == "image/svg+xml")
@@ -2014,33 +1338,17 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             return;
         }
 
-        var pixelX = context.PointsToPixels(CalculateFloatingImageX(image));
-        var pixelY = context.PointsToPixels(CalculateFloatingImageY(image));
-        var pixelWidth = context.PointsToPixels((float) image.WidthPoints);
-        var pixelHeight = context.PointsToPixels((float) image.HeightPoints);
+        var bounds = FloatingPosition.ResolveBounds(
+            context,
+            image.HorizontalAnchor,
+            image.VerticalAnchor,
+            image.HorizontalPositionPoints,
+            image.VerticalPositionPoints,
+            image.WidthPoints,
+            image.HeightPoints);
 
-        DrawBlockImage(image.ImageData, pixelX, pixelY, pixelWidth, pixelHeight, (float) image.RotationDegrees, image.Crop);
+        DrawBlockImage(image.ImageData, bounds.PixelX, bounds.PixelY, bounds.PixelWidth, bounds.PixelHeight, (float) image.RotationDegrees, image.Crop);
     }
-
-    float CalculateFloatingImageX(FloatingImageElement image) =>
-        image.HorizontalAnchor switch
-        {
-            HorizontalAnchor.Page => 0f,
-            HorizontalAnchor.Margin => (float) context.PageSettings.MarginLeft,
-            HorizontalAnchor.Column => context.ContentLeft,
-            HorizontalAnchor.Character => context.ContentLeft,
-            _ => 0f
-        } + (float) image.HorizontalPositionPoints;
-
-    float CalculateFloatingImageY(FloatingImageElement image) =>
-        image.VerticalAnchor switch
-        {
-            VerticalAnchor.Page => 0f,
-            VerticalAnchor.Margin => (float) context.PageSettings.MarginTop,
-            VerticalAnchor.Paragraph => context.CurrentY,
-            VerticalAnchor.Line => context.CurrentY,
-            _ => 0f
-        } + (float) image.VerticalPositionPoints;
 
     void RenderFloatingTextBox(FloatingTextBoxElement textBox)
     {
@@ -2049,12 +1357,20 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             return;
         }
 
-        var x = CalculateFloatingTextBoxX(textBox);
-        var y = CalculateFloatingTextBoxY(textBox);
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var pixelWidth = context.PointsToPixels((float) textBox.WidthPoints);
-        var pixelHeight = context.PointsToPixels((float) textBox.HeightPoints);
+        var bounds = FloatingPosition.ResolveBounds(
+            context,
+            textBox.HorizontalAnchor,
+            textBox.VerticalAnchor,
+            textBox.HorizontalPositionPoints,
+            textBox.VerticalPositionPoints,
+            textBox.WidthPoints,
+            textBox.HeightPoints);
+        var x = bounds.X;
+        var y = bounds.Y;
+        var pixelX = bounds.PixelX;
+        var pixelY = bounds.PixelY;
+        var pixelWidth = bounds.PixelWidth;
+        var pixelHeight = bounds.PixelHeight;
 
         if (Math.Abs(textBox.RotationDegrees) > 0.01)
         {
@@ -2118,26 +1434,6 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             context.CurrentY = savedY;
         }
     }
-
-    float CalculateFloatingTextBoxX(FloatingTextBoxElement textBox) =>
-        textBox.HorizontalAnchor switch
-        {
-            HorizontalAnchor.Page => 0f,
-            HorizontalAnchor.Margin => (float) context.PageSettings.MarginLeft,
-            HorizontalAnchor.Column => context.ContentLeft,
-            HorizontalAnchor.Character => context.ContentLeft,
-            _ => 0f
-        } + (float) textBox.HorizontalPositionPoints;
-
-    float CalculateFloatingTextBoxY(FloatingTextBoxElement textBox) =>
-        textBox.VerticalAnchor switch
-        {
-            VerticalAnchor.Page => 0f,
-            VerticalAnchor.Margin => (float) context.PageSettings.MarginTop,
-            VerticalAnchor.Paragraph => context.CurrentY,
-            VerticalAnchor.Line => context.CurrentY,
-            _ => 0f
-        } + (float) textBox.VerticalPositionPoints;
 
     public void Dispose() =>
         currentPage?.Dispose();
