@@ -1841,14 +1841,18 @@ Auto-generated listing of headings with page numbers.
 ### 11.6 Field Codes
 
 
-#### Field Codes `TODO`
+#### Field Codes `PARTIAL`
 
 Dynamic content fields (date, time, author, page count, expressions, etc.).
 
 - **OOXML**: `w:fldSimple` (simple fields), `w:fldChar` (complex fields) with instruction text
 - **Spec**: [Fields](http://officeopenxml.com/WPfields.php)
+- **Model**: `FieldCode` record (`Instruction`, `Result`, derived `Keyword`); `ParsedDocument.FieldCodes`
+- **Parse**: `DocumentParser.ExtractFieldCodes()` walks complex-field begin/separate/end runs and concatenates `w:instrText` and result text. Tracks nested fields via stacks.
+- **Render**: not directly — Word's cached result is already in the run text and renders inline. The `FieldCodes` list lets consumers ask "are there any TOC / PAGEREF / HYPERLINK fields?" without re-walking the OOXML.
+- **Test**: spec test `FieldCodesTests`
 
-> **AI**: Fields have both an instruction (`w:instrText`) and a cached result. For static rendering, use the cached display value. PAGE fields are already handled for headers/footers. Common fields: DATE, TIME, AUTHOR, NUMPAGES, FILENAME, MERGEFIELD.
+> **Contributors**: `w:fldSimple` (the legacy single-element form) isn't captured yet — only the modern `w:fldChar`-bracketed form. Cached results stay in the rendered output regardless of model state.
 
 ---
 
@@ -1904,9 +1908,9 @@ Read-only mode, form protection, and editing restrictions.
 | 8. Themes & Styles | 5 | 0 | 0 | 5 |
 | 9. Typography | 6 | 1 | 1 | 8 |
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
-| 11. Annotations & References | 1 | 3 | 2 | 6 |
+| 11. Annotations & References | 1 | 4 | 1 | 6 |
 | 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **95** | **14** | **15** | **124** |
+| **Total** | **95** | **15** | **14** | **124** |
 
 
 ### Coverage
@@ -1914,11 +1918,11 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 95
-    "Partial" : 14
-    "Todo" : 15
+    "Partial" : 15
+    "Todo" : 14
 ```
 
-**Overall coverage: 77% fully implemented, 11% partial, 12% remaining.**
+**Overall coverage: 77% fully implemented, 12% partial, 11% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)

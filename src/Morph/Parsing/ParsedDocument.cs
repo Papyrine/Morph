@@ -52,4 +52,11 @@ sealed class ParsedDocument
     /// Has no rendering effect — exposed for consumers that care about read-only state.
     /// </summary>
     public DocumentProtectionSettings Protection { get; init; } = new();
+
+    /// <summary>
+    /// Field codes (w:fldChar/w:instrText) captured from the document body. Renderers continue
+    /// to emit each field's cached result text inline; this list lets consumers see which fields
+    /// are present (PAGE, TOC, REF, HYPERLINK, etc.) without re-walking the OOXML.
+    /// </summary>
+    public IReadOnlyList<FieldCode> FieldCodes { get; init; } = [];
 }

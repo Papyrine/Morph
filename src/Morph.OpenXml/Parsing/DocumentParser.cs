@@ -6,6 +6,7 @@ using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 using OoxmlRunProperties = DocumentFormat.OpenXml.Wordprocessing.RunProperties;
 using OoxmlTableCellProperties = DocumentFormat.OpenXml.Wordprocessing.TableCellProperties;
 using OoxmlTableProperties = DocumentFormat.OpenXml.Wordprocessing.TableProperties;
+using OoxmlFieldCode = DocumentFormat.OpenXml.Wordprocessing.FieldCode;
 using OoxmlPageBorders = DocumentFormat.OpenXml.Wordprocessing.PageBorders;
 using OoxmlTabStop = DocumentFormat.OpenXml.Wordprocessing.TabStop;
 using OoxmlTabs = DocumentFormat.OpenXml.Wordprocessing.Tabs;
@@ -168,6 +169,7 @@ sealed class DocumentParser(string defaultFont)
         var comments = ExtractComments(mainPart);
         var trackedChanges = ExtractTrackedChanges(body);
         var protection = ExtractDocumentProtection(mainPart);
+        var fieldCodes = ExtractFieldCodes(body);
 
         return new()
         {
@@ -184,8 +186,61 @@ sealed class DocumentParser(string defaultFont)
             Bookmarks = bookmarks,
             Comments = comments,
             TrackedChanges = trackedChanges,
-            Protection = protection
+            Protection = protection,
+            FieldCodes = fieldCodes
         };
+    }
+
+    static IReadOnlyList<FieldCode> ExtractFieldCodes(Body body)
+    {
+        var result = new List<FieldCode>();
+        var instructionStack = new Stack<StringBuilder>();
+        var resultStack = new Stack<StringBuilder>();
+        var inResult = new Stack<bool>();
+
+        foreach (var run in body.Descendants<OoxmlRun>())
+        {
+            foreach (var child in run.ChildElements)
+            {
+                switch (child)
+                {
+                    case FieldChar fc when fc.FieldCharType?.Value == FieldCharValues.Begin:
+                        instructionStack.Push(new());
+                        resultStack.Push(new());
+                        inResult.Push(false);
+                        break;
+
+                    case OoxmlFieldCode instr when instructionStack.Count > 0:
+                        if (!inResult.Peek())
+                        {
+                            instructionStack.Peek().Append(instr.Text);
+                        }
+                        break;
+
+                    case FieldChar fc when fc.FieldCharType?.Value == FieldCharValues.Separate && inResult.Count > 0:
+                        var flag = inResult.Pop();
+                        inResult.Push(true);
+                        _ = flag;
+                        break;
+
+                    case Text t when instructionStack.Count > 0 && inResult.Peek():
+                        resultStack.Peek().Append(t.Text);
+                        break;
+
+                    case FieldChar fc when fc.FieldCharType?.Value == FieldCharValues.End && instructionStack.Count > 0:
+                        var instruction = instructionStack.Pop().ToString().Trim();
+                        var resultText = resultStack.Pop().ToString();
+                        inResult.Pop();
+                        if (instruction.Length > 0)
+                        {
+                            result.Add(new() { Instruction = instruction, Result = resultText });
+                        }
+                        break;
+                }
+            }
+        }
+
+        return result;
     }
 
     static DocumentProtectionSettings ExtractDocumentProtection(MainDocumentPart mainPart)
