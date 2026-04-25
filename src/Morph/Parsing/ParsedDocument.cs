@@ -29,4 +29,10 @@ sealed class ParsedDocument
     /// Word compatibility settings from the document.
     /// </summary>
     public CompatibilitySettings Compatibility { get; init; } = new();
+
+    /// <summary>
+    /// Named bookmarks in the document body (w:bookmarkStart). Bookmarks are invisible —
+    /// they exist for cross-reference fields and hyperlink anchors.
+    /// </summary>
+    public IReadOnlyList<Bookmark> Bookmarks { get; init; } = [];
 }

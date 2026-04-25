@@ -156,6 +156,7 @@ sealed class DocumentParser(string defaultFont)
             : null;
         var hyphenation = ExtractHyphenationSettings(mainPart);
         var compatibility = ExtractCompatibilitySettings(mainPart);
+        var bookmarks = ExtractBookmarks(body);
 
         return new()
         {
@@ -168,8 +169,25 @@ sealed class DocumentParser(string defaultFont)
             Hyphenation = hyphenation,
             ThemeColors = currentThemeColors,
             ThemeFonts = currentThemeFonts,
-            Compatibility = compatibility
+            Compatibility = compatibility,
+            Bookmarks = bookmarks
         };
+    }
+
+    static IReadOnlyList<Bookmark> ExtractBookmarks(Body body)
+    {
+        var result = new List<Bookmark>();
+        foreach (var start in body.Descendants<BookmarkStart>())
+        {
+            if (start.Id?.Value is not { } id || start.Name?.Value is not { } name)
+            {
+                continue;
+            }
+
+            result.Add(new() { Id = id, Name = name });
+        }
+
+        return result;
     }
 
     Dictionary<string, RunProperties> ExtractStyleRunProperties(MainDocumentPart mainPart)

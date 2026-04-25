@@ -1760,14 +1760,19 @@ Numbered references with content at the end of the document or section.
 ### 11.4 Bookmarks
 
 
-#### Bookmarks `TODO`
+#### Bookmarks `PARTIAL`
 
 Named locations within the document for cross-references and navigation.
 
 - **OOXML**: `w:bookmarkStart` / `w:bookmarkEnd` with `w:name`
 - **Spec**: [Bookmarks](http://officeopenxml.com/WPbookmark.php)
+- **Model**: `Bookmark` record (`Morph/Parsing/Bookmark.cs`); `ParsedDocument.Bookmarks`
+- **Parse**: `DocumentParser.ExtractBookmarks()` collects every `w:bookmarkStart` (id + name)
+- **Render**: not visible — bookmarks pass through with no draw step
+- **Test**: spec test `BookmarksTests`
 
-> **AI**: Bookmarks are invisible markers — no visual rendering needed unless used for cross-references. The parser currently skips bookmark elements. If implementing cross-reference fields, bookmark positions would need to be tracked.
+> **Contributors**: Captures the start anchor (id + name) only — not the position within the element tree, and not the matching `w:bookmarkEnd`. Internal anchors like `_GoBack` and `_Hlk*` are kept; consumers can filter by name prefix.
+> **AI**: Marked PARTIAL because cross-reference fields (`PAGEREF` / `REF`) and hyperlink anchors aren't wired up yet — those need positional information per bookmark, not just name/id.
 
 
 ### 11.5 Table of Contents
@@ -1845,9 +1850,9 @@ Read-only mode, form protection, and editing restrictions.
 | 8. Themes & Styles | 5 | 0 | 0 | 5 |
 | 9. Typography | 6 | 1 | 1 | 8 |
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
-| 11. Annotations & References | 1 | 0 | 5 | 6 |
+| 11. Annotations & References | 1 | 1 | 4 | 6 |
 | 12. Advanced Content | 0 | 0 | 2 | 2 |
-| **Total** | **92** | **4** | **28** | **124** |
+| **Total** | **92** | **5** | **27** | **124** |
 
 
 ### Coverage
@@ -1855,11 +1860,11 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 92
-    "Partial" : 4
-    "Todo" : 28
+    "Partial" : 5
+    "Todo" : 27
 ```
 
-**Overall coverage: 74% fully implemented, 3% partial, 23% remaining.**
+**Overall coverage: 74% fully implemented, 4% partial, 22% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)
