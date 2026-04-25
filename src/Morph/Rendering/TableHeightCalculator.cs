@@ -4,6 +4,19 @@
 /// </summary>
 static class TableHeightCalculator
 {
+    static bool AllRowsHaveExplicitHeight(TableElement table)
+    {
+        foreach (var row in table.Rows)
+        {
+            if (!row.HeightPoints.HasValue)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /// <summary>
     /// Computes the final height of every row in <paramref name="table"/>, accounting for
     /// non-merged cells, explicit row heights (atLeast vs exact, vMerge-strict tables),
@@ -12,7 +25,8 @@ static class TableHeightCalculator
     public static float[] CalculateRowHeights(
         TableElement table,
         float[] colWidths,
-        IParagraphMeasurer measurer)
+        IParagraphMeasurer measurer,
+        bool hasVerticalMerge)
     {
         var heights = new float[table.Rows.Count];
         var colCount = colWidths.Length;
@@ -56,9 +70,8 @@ static class TableHeightCalculator
         // Second pass: Apply explicit row heights (w:trHeight).
         // Tables with vMerge AND every row carrying an explicit height use those heights
         // verbatim — common in letterhead-style layouts. Otherwise atLeast lets content expand.
-        var hasVMerge = TableLayout.HasVerticalMerge(table);
-        var allRowsHaveExplicitHeight = table.Rows.All(_ => _.HeightPoints.HasValue);
-        var useStrictHeights = hasVMerge && allRowsHaveExplicitHeight;
+        var allRowsHaveExplicitHeight = AllRowsHaveExplicitHeight(table);
+        var useStrictHeights = hasVerticalMerge && allRowsHaveExplicitHeight;
 
         for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
         {

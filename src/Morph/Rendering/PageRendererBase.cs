@@ -114,8 +114,9 @@ abstract class PageRendererBase(RenderContextBase context)
 
         var colCount = TableLayout.GetColumnCount(table);
         var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
+        var hasVerticalMerge = TableLayout.HasVerticalMerge(table);
 
-        var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, Measurer);
+        var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, Measurer, hasVerticalMerge);
         var totalHeight = rowHeights.Sum();
 
         // Allow a 10% tolerance on the page-overflow check; row-height measurement is conservative.
@@ -134,7 +135,7 @@ abstract class PageRendererBase(RenderContextBase context)
             var tolerance = context.ContentHeight * tolerancePercent;
             var requiredHeight = totalHeight - tolerance;
             EnsureSpaceFor(requiredHeight);
-            RenderTableRows(table, colCount, colWidths, rowHeights);
+            RenderTableRows(table, colCount, colWidths, rowHeights, hasVerticalMerge);
         }
     }
 
@@ -155,12 +156,12 @@ abstract class PageRendererBase(RenderContextBase context)
     /// Renders all table rows at the current position (used when the table fits on one page).
     /// Picks per-column Y tracking for vMerge tables and per-row tracking otherwise.
     /// </summary>
-    void RenderTableRows(TableElement table, int colCount, float[] colWidths, float[] rowHeights)
+    void RenderTableRows(TableElement table, int colCount, float[] colWidths, float[] rowHeights, bool hasVerticalMerge)
     {
         var tableX = ComputeTableX(table, colWidths);
         var startY = context.CurrentY;
 
-        if (TableLayout.HasVerticalMerge(table))
+        if (hasVerticalMerge)
         {
             // Track Y per column so vertical merges line up properly.
             var columnYPositions = new float[colCount];

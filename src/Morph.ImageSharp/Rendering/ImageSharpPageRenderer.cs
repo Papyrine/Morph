@@ -27,6 +27,25 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     bool hasSignificantContentOnCurrentPage;
     bool currentPageFromExplicitBreak;
 
+    Dictionary<string, Color> colorCache = new();
+
+    Color ParseColor(string? hexColor)
+    {
+        if (string.IsNullOrEmpty(hexColor))
+        {
+            return ImageSharpRenderContext.ParseColor(hexColor);
+        }
+
+        if (colorCache.TryGetValue(hexColor, out var cached))
+        {
+            return cached;
+        }
+
+        var color = ImageSharpRenderContext.ParseColor(hexColor);
+        colorCache[hexColor] = color;
+        return color;
+    }
+
     public int RenderDocument(ParsedDocument document, Action<Action<Stream>> callback)
     {
         pageCallback = callback;
@@ -484,7 +503,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
         else
         {
-            fillColor = ImageSharpRenderContext.ParseColor(wordArt.FillColorHex);
+            fillColor = ParseColor(wordArt.FillColorHex);
         }
 
         if (wordArt.HasShadow)
@@ -495,7 +514,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         if (wordArt is {OutlineColorHex: not null, OutlineWidthPoints: > 0})
         {
-            var outlineColor = ImageSharpRenderContext.ParseColor(wordArt.OutlineColorHex);
+            var outlineColor = ParseColor(wordArt.OutlineColorHex);
             var outlinePen = Pens.Solid(outlineColor, context.PointsToPixels((float) wordArt.OutlineWidthPoints));
             currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, outlinePen, new(textX, textY)));
         }
@@ -565,7 +584,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
         else
         {
-            fillColor = ImageSharpRenderContext.ParseColor(wordArt.FillColorHex);
+            fillColor = ParseColor(wordArt.FillColorHex);
         }
 
         if (wordArt.HasShadow)
@@ -576,7 +595,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         if (wordArt is {OutlineColorHex: not null, OutlineWidthPoints: > 0})
         {
-            var outlineColor = ImageSharpRenderContext.ParseColor(wordArt.OutlineColorHex);
+            var outlineColor = ParseColor(wordArt.OutlineColorHex);
             var outlinePen = Pens.Solid(outlineColor, context.PointsToPixels((float) wordArt.OutlineWidthPoints));
             currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, outlinePen, new(textX, textY)));
         }
@@ -604,7 +623,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 continue;
             }
 
-            var color = ImageSharpRenderContext.ParseColor(stroke.ColorHex);
+            var color = ParseColor(stroke.ColorHex);
 
             if (stroke.Transparency > 0 || stroke.IsHighlighter)
             {
@@ -643,7 +662,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         var colCount = TableLayout.GetColumnCount(table);
 
         var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
-        var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, textRenderer);
+        var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, textRenderer, TableLayout.HasVerticalMerge(table));
 
         return rowHeights.Sum();
     }
@@ -711,7 +730,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             return;
         }
 
-        var bgColor = ImageSharpRenderContext.ParseColor(hexColor);
+        var bgColor = ParseColor(hexColor);
         currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
     }
 
@@ -758,7 +777,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     void DrawBorderLine(IImageProcessingContext ctx, float x1, float y1, float x2, float y2, BorderEdge edge)
     {
-        var color = ImageSharpRenderContext.ParseColor(edge.ColorHex ?? "000000");
+        var color = ParseColor(edge.ColorHex ?? "000000");
         var strokeWidth = context.PointsToPixels((float) edge.WidthPoints);
         var pen = Pens.Solid(color, strokeWidth);
 
@@ -1201,7 +1220,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
         else
         {
-            fillColor = ImageSharpRenderContext.ParseColor(bgColor);
+            fillColor = ParseColor(bgColor);
         }
 
         currentPage.Mutate(_ => _.Fill(fillColor, new RectangleF(0, 0, context.PageWidthPixels, context.PageHeightPixels)));
@@ -1248,25 +1267,25 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         if (borders.Top.IsVisible)
         {
-            var pen = Pens.Solid(ImageSharpRenderContext.ParseColor(borders.Top.ColorHex), context.PointsToPixels((float) borders.Top.WidthPoints));
+            var pen = Pens.Solid(ParseColor(borders.Top.ColorHex), context.PointsToPixels((float) borders.Top.WidthPoints));
             page.Mutate(_ => _.DrawLine(pen, new PointF(leftX, topY), new PointF(rightX, topY)));
         }
 
         if (borders.Bottom.IsVisible)
         {
-            var pen = Pens.Solid(ImageSharpRenderContext.ParseColor(borders.Bottom.ColorHex), context.PointsToPixels((float) borders.Bottom.WidthPoints));
+            var pen = Pens.Solid(ParseColor(borders.Bottom.ColorHex), context.PointsToPixels((float) borders.Bottom.WidthPoints));
             page.Mutate(_ => _.DrawLine(pen, new PointF(leftX, bottomY), new PointF(rightX, bottomY)));
         }
 
         if (borders.Left.IsVisible)
         {
-            var pen = Pens.Solid(ImageSharpRenderContext.ParseColor(borders.Left.ColorHex), context.PointsToPixels((float) borders.Left.WidthPoints));
+            var pen = Pens.Solid(ParseColor(borders.Left.ColorHex), context.PointsToPixels((float) borders.Left.WidthPoints));
             page.Mutate(_ => _.DrawLine(pen, new PointF(leftX, topY), new PointF(leftX, bottomY)));
         }
 
         if (borders.Right.IsVisible)
         {
-            var pen = Pens.Solid(ImageSharpRenderContext.ParseColor(borders.Right.ColorHex), context.PointsToPixels((float) borders.Right.WidthPoints));
+            var pen = Pens.Solid(ParseColor(borders.Right.ColorHex), context.PointsToPixels((float) borders.Right.WidthPoints));
             page.Mutate(_ => _.DrawLine(pen, new PointF(rightX, topY), new PointF(rightX, bottomY)));
         }
     }
@@ -1319,7 +1338,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
         else if (shape.FillColorHex != null)
         {
-            var fillColor = ImageSharpRenderContext.ParseColor(shape.FillColorHex);
+            var fillColor = ParseColor(shape.FillColorHex);
             var alpha = (float) Math.Clamp(shape.FillAlpha, 0, 1);
             if (alpha < 1f)
             {
@@ -1385,7 +1404,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             using var tempImage = new Image<Rgba32>(tempW, tempH);
             if (textBox.BackgroundColorHex != null)
             {
-                var bgColor = ImageSharpRenderContext.ParseColor(textBox.BackgroundColorHex);
+                var bgColor = ParseColor(textBox.BackgroundColorHex);
                 tempImage.Mutate(_ => _.Fill(bgColor));
             }
 
@@ -1416,7 +1435,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         {
             if (textBox.BackgroundColorHex != null)
             {
-                var bgFillColor = ImageSharpRenderContext.ParseColor(textBox.BackgroundColorHex);
+                var bgFillColor = ParseColor(textBox.BackgroundColorHex);
                 currentPage.Mutate(_ => _.Fill(bgFillColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
             }
 

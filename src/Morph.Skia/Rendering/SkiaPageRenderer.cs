@@ -1007,7 +1007,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         var colCount = TableLayout.GetColumnCount(table);
 
         var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
-        var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, textRenderer);
+        var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, textRenderer, TableLayout.HasVerticalMerge(table));
 
         return rowHeights.Sum();
     }
@@ -1107,13 +1107,27 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         context.CurrentY += imageHeight;
     }
 
-    static SKColor ParseColor(string hexColor)
+    Dictionary<string, SKColor> colorCache = new();
+
+    SKColor ParseColor(string hexColor)
     {
         if (string.IsNullOrEmpty(hexColor) || hexColor == "auto")
         {
             return SKColors.Black;
         }
 
+        if (colorCache.TryGetValue(hexColor, out var cached))
+        {
+            return cached;
+        }
+
+        var color = ParseColorImpl(hexColor);
+        colorCache[hexColor] = color;
+        return color;
+    }
+
+    static SKColor ParseColorImpl(string hexColor)
+    {
         if (hexColor.Length == 6 &&
             uint.TryParse(hexColor, NumberStyles.HexNumber, null, out var rgb))
         {
