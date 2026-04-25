@@ -6,6 +6,7 @@ using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 using OoxmlRunProperties = DocumentFormat.OpenXml.Wordprocessing.RunProperties;
 using OoxmlTableCellProperties = DocumentFormat.OpenXml.Wordprocessing.TableCellProperties;
 using OoxmlTableProperties = DocumentFormat.OpenXml.Wordprocessing.TableProperties;
+using OoxmlPageBorders = DocumentFormat.OpenXml.Wordprocessing.PageBorders;
 using OoxmlTabStop = DocumentFormat.OpenXml.Wordprocessing.TabStop;
 using OoxmlTabs = DocumentFormat.OpenXml.Wordprocessing.Tabs;
 using WPG = DocumentFormat.OpenXml.Office2010.Word.DrawingGroup;
@@ -1499,6 +1500,9 @@ sealed class DocumentParser(string defaultFont)
             documentGridLinePitchPoints = docGrid.LinePitch.Value / twipsPerPoint;
         }
 
+        // Parse page borders (w:pgBorders)
+        var pageBorders = ParsePageBorders(sectionProps.GetFirstChild<OoxmlPageBorders>());
+
         return new()
         {
             WidthPoints = width,
@@ -1515,8 +1519,42 @@ sealed class DocumentParser(string defaultFont)
             DocumentGridLinePitchPoints = documentGridLinePitchPoints,
             LastRenderedPageBreakCount = lastRenderedPageBreakCount,
             BackgroundColorHex = documentBackgroundColor,
-            DifferentFirstPage = differentFirstPage
+            DifferentFirstPage = differentFirstPage,
+            PageBorders = pageBorders
         };
+    }
+
+    PageBorders? ParsePageBorders(OoxmlPageBorders? element)
+    {
+        if (element == null)
+        {
+            return null;
+        }
+
+        var top = ParseBorderEdge(element.GetFirstChild<TopBorder>());
+        var right = ParseBorderEdge(element.GetFirstChild<RightBorder>());
+        var bottom = ParseBorderEdge(element.GetFirstChild<BottomBorder>());
+        var left = ParseBorderEdge(element.GetFirstChild<LeftBorder>());
+
+        if (!top.IsVisible && !right.IsVisible && !bottom.IsVisible && !left.IsVisible)
+        {
+            return null;
+        }
+
+        return new()
+        {
+            Top = top,
+            Right = right,
+            Bottom = bottom,
+            Left = left,
+            TopSpacePoints = ReadSpacePoints(element.GetFirstChild<TopBorder>()),
+            RightSpacePoints = ReadSpacePoints(element.GetFirstChild<RightBorder>()),
+            BottomSpacePoints = ReadSpacePoints(element.GetFirstChild<BottomBorder>()),
+            LeftSpacePoints = ReadSpacePoints(element.GetFirstChild<LeftBorder>())
+        };
+
+        static double ReadSpacePoints(BorderType? edge) =>
+            edge?.Space?.HasValue == true ? edge.Space.Value : 24;
     }
 
     static LineNumberSettings? ParseLineNumberSettings(SectionProperties sectionProps)

@@ -1667,6 +1667,8 @@ sealed class PageRenderer(RenderContext context) :
 
         currentPage.Mutate(_ => _.Fill(fillColor, new RectangleF(0, 0, context.PageWidthPixels, context.PageHeightPixels)));
 
+        DrawPageBorders();
+
         if (pageCount > 0)
         {
             context.StartNewPage();
@@ -1686,6 +1688,47 @@ sealed class PageRenderer(RenderContext context) :
             RenderFooter();
             pendingPage = currentPage;
             currentPage = null;
+        }
+    }
+
+    void DrawPageBorders()
+    {
+        if (currentPage == null || context.PageSettings.PageBorders is not {HasAnyBorder: true} borders)
+        {
+            return;
+        }
+
+        var pageWidth = context.PageWidthPixels;
+        var pageHeight = context.PageHeightPixels;
+        var leftX = context.PointsToPixels((float) borders.LeftSpacePoints);
+        var rightX = pageWidth - context.PointsToPixels((float) borders.RightSpacePoints);
+        var topY = context.PointsToPixels((float) borders.TopSpacePoints);
+        var bottomY = pageHeight - context.PointsToPixels((float) borders.BottomSpacePoints);
+
+        var page = currentPage;
+
+        if (borders.Top.IsVisible)
+        {
+            var pen = Pens.Solid(RenderContext.ParseColor(borders.Top.ColorHex), context.PointsToPixels((float) borders.Top.WidthPoints));
+            page.Mutate(_ => _.DrawLine(pen, new PointF(leftX, topY), new PointF(rightX, topY)));
+        }
+
+        if (borders.Bottom.IsVisible)
+        {
+            var pen = Pens.Solid(RenderContext.ParseColor(borders.Bottom.ColorHex), context.PointsToPixels((float) borders.Bottom.WidthPoints));
+            page.Mutate(_ => _.DrawLine(pen, new PointF(leftX, bottomY), new PointF(rightX, bottomY)));
+        }
+
+        if (borders.Left.IsVisible)
+        {
+            var pen = Pens.Solid(RenderContext.ParseColor(borders.Left.ColorHex), context.PointsToPixels((float) borders.Left.WidthPoints));
+            page.Mutate(_ => _.DrawLine(pen, new PointF(leftX, topY), new PointF(leftX, bottomY)));
+        }
+
+        if (borders.Right.IsVisible)
+        {
+            var pen = Pens.Solid(RenderContext.ParseColor(borders.Right.ColorHex), context.PointsToPixels((float) borders.Right.WidthPoints));
+            page.Mutate(_ => _.DrawLine(pen, new PointF(rightX, topY), new PointF(rightX, bottomY)));
         }
     }
 

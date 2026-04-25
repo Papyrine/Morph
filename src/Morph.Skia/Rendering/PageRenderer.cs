@@ -2414,6 +2414,8 @@ sealed class PageRenderer(RenderContext context) :
             currentCanvas.Clear(SKColors.White);
         }
 
+        DrawPageBorders();
+
         if (pageCount > 0)
         {
             context.StartNewPage();
@@ -2440,6 +2442,53 @@ sealed class PageRenderer(RenderContext context) :
             currentCanvas?.Dispose();
             currentCanvas = null;
             currentPage = null;
+        }
+    }
+
+    void DrawPageBorders()
+    {
+        if (currentCanvas == null || context.PageSettings.PageBorders is not {HasAnyBorder: true} borders)
+        {
+            return;
+        }
+
+        var pageWidth = context.PageWidthPixels;
+        var pageHeight = context.PageHeightPixels;
+        var leftX = context.PointsToPixels((float) borders.LeftSpacePoints);
+        var rightX = pageWidth - context.PointsToPixels((float) borders.RightSpacePoints);
+        var topY = context.PointsToPixels((float) borders.TopSpacePoints);
+        var bottomY = pageHeight - context.PointsToPixels((float) borders.BottomSpacePoints);
+
+        static SKPaint CreatePaint(BorderEdge edge, float strokeWidth) => new()
+        {
+            Color = SKColor.Parse("#" + (edge.ColorHex ?? "000000")),
+            StrokeWidth = strokeWidth,
+            Style = SKPaintStyle.Stroke,
+            IsAntialias = true
+        };
+
+        if (borders.Top.IsVisible)
+        {
+            using var paint = CreatePaint(borders.Top, context.PointsToPixels((float) borders.Top.WidthPoints));
+            currentCanvas.DrawLine(leftX, topY, rightX, topY, paint);
+        }
+
+        if (borders.Bottom.IsVisible)
+        {
+            using var paint = CreatePaint(borders.Bottom, context.PointsToPixels((float) borders.Bottom.WidthPoints));
+            currentCanvas.DrawLine(leftX, bottomY, rightX, bottomY, paint);
+        }
+
+        if (borders.Left.IsVisible)
+        {
+            using var paint = CreatePaint(borders.Left, context.PointsToPixels((float) borders.Left.WidthPoints));
+            currentCanvas.DrawLine(leftX, topY, leftX, bottomY, paint);
+        }
+
+        if (borders.Right.IsVisible)
+        {
+            using var paint = CreatePaint(borders.Right, context.PointsToPixels((float) borders.Right.WidthPoints));
+            currentCanvas.DrawLine(rightX, topY, rightX, bottomY, paint);
         }
     }
 

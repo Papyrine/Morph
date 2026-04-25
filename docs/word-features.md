@@ -1058,14 +1058,19 @@ Solid background color for the entire page.
 - **Model**: `PageSettings.BackgroundColorHex`
 
 
-#### Page Borders `TODO`
+#### Page Borders `DONE`
 
 Decorative borders around the page edges.
 
 - **OOXML**: `w:pgBorders` — `w:top`, `w:bottom`, `w:left`, `w:right` with style, color, size
 - **Spec**: [Page Borders](http://officeopenxml.com/WPsectionPgBorders.php)
+- **Model**: `PageBorders` record (`Morph/Parsing/PageBorders.cs`); `PageSettings.PageBorders`
+- **Parse**: `DocumentParser.ParsePageBorders()` (DOCX-only — HTML has no per-page concept)
+- **Render**: `PageRenderer.DrawPageBorders()` in both backends, called from `StartNewPage` after background fill
+- **Test**: `page_borders/`, spec test `PageBordersTests`
 
-> **AI**: Add page border properties to `PageSettings`. Parse from `w:pgBorders`. Render as lines inset from page edges in `PageRenderer` before content rendering. Reuse `BorderEdge` type.
+> **Contributors**: Border style is currently rendered as a solid stroke regardless of the `w:val` style hint. Per-edge `space` attribute defines the inset from the page edge in points (Word default 24pt).
+> **AI**: Reuses `BorderEdge` and `ParseBorderEdge`. The style/decorative variants (double, dashed, art) collapse to single solid lines today; widen the renderer if those become important.
 
 
 #### Watermarks `TODO`
@@ -1834,7 +1839,7 @@ Read-only mode, form protection, and editing restrictions.
 | 2. Paragraph Formatting | 11 | 1 | 0 | 12 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
 | 4. Tables | 12 | 1 | 4 | 17 |
-| 5. Page Layout & Sections | 14 | 1 | 3 | 18 |
+| 5. Page Layout & Sections | 15 | 1 | 2 | 18 |
 | 6. Graphics & Media | 10 | 0 | 9 | 19 |
 | 7. Form Controls | 10 | 0 | 0 | 10 |
 | 8. Themes & Styles | 5 | 0 | 0 | 5 |
@@ -1842,19 +1847,19 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 0 | 5 | 6 |
 | 12. Advanced Content | 0 | 0 | 2 | 2 |
-| **Total** | **91** | **4** | **29** | **124** |
+| **Total** | **92** | **4** | **28** | **124** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 91
+    "Done" : 92
     "Partial" : 4
-    "Todo" : 29
+    "Todo" : 28
 ```
 
-**Overall coverage: 73% fully implemented, 3% partial, 23% remaining.**
+**Overall coverage: 74% fully implemented, 3% partial, 23% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)

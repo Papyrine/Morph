@@ -61,6 +61,11 @@ sealed record PageSettings
     /// </summary>
     public bool DifferentFirstPage { get; init; }
 
+    /// <summary>
+    /// Decorative borders drawn around each page (from w:pgBorders). Null when no page borders are defined.
+    /// </summary>
+    public PageBorders? PageBorders { get; init; }
+
     public double ContentWidth => WidthPoints - MarginLeft - MarginRight;
 
     /// <summary>Width of a single column in points.</summary>
