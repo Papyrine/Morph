@@ -6031,25 +6031,28 @@ sealed class DocumentParser(string defaultFont)
             paraRtl = bidi.Val?.Value != false;
         }
 
-        // Parse drop cap (w:framePr/w:dropCap, w:framePr/w:lines)
+        // Parse drop cap (w:framePr/w:dropCap, w:framePr/w:lines).
+        // The OOXML SDK exposes DropCap as a typed EnumValue, but reading via the raw attribute
+        // is more reliable across SDK versions.
         var dropCap = DropCapPosition.None;
         var dropCapLines = 0;
         var framePr = props.GetFirstChild<FrameProperties>();
-        if (framePr?.DropCap?.HasValue == true)
+        if (framePr != null)
         {
-            var dcVal = framePr.DropCap.Value.ToString();
-            if (string.Equals(dcVal, "drop", StringComparison.OrdinalIgnoreCase))
+            var dropCapAttr = framePr.GetAttributes().FirstOrDefault(a => a.LocalName == "dropCap").Value;
+            if (string.Equals(dropCapAttr, "drop", StringComparison.OrdinalIgnoreCase))
             {
                 dropCap = DropCapPosition.Drop;
             }
-            else if (string.Equals(dcVal, "margin", StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(dropCapAttr, "margin", StringComparison.OrdinalIgnoreCase))
             {
                 dropCap = DropCapPosition.Margin;
             }
 
-            if (framePr.Lines?.HasValue == true)
+            var linesAttr = framePr.GetAttributes().FirstOrDefault(a => a.LocalName == "lines").Value;
+            if (int.TryParse(linesAttr, out var parsedLines))
             {
-                dropCapLines = framePr.Lines.Value;
+                dropCapLines = parsedLines;
             }
         }
 
