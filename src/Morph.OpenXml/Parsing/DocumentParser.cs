@@ -330,7 +330,7 @@ sealed class DocumentParser(string defaultFont)
                         progId = attr.Value;
                     }
                     else if (attr.LocalName == "id" &&
-                             (attr.NamespaceUri.EndsWith("/relationships") ?? false))
+                             attr.NamespaceUri.EndsWith("/relationships"))
                     {
                         relId = attr.Value;
                     }
