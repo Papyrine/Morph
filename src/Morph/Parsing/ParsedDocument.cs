@@ -69,4 +69,10 @@ sealed class ParsedDocument
     /// Endnotes from word/endnotes.xml. Renderer does not yet emit them at the document end.
     /// </summary>
     public IReadOnlyList<Endnote> Endnotes { get; init; } = [];
+
+    /// <summary>
+    /// Embedded OLE objects (w:object / o:OLEObject) referenced from the document body.
+    /// Renderer does not yet draw the embedded payload — these are captured for inspection only.
+    /// </summary>
+    public IReadOnlyList<EmbeddedObject> EmbeddedObjects { get; init; } = [];
 }

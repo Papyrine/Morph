@@ -1391,13 +1391,16 @@ Large decorative first letter spanning multiple lines at paragraph start.
 > **Contributors**: Marked PARTIAL until the renderer floats the first character at the requested span. Reference `FloatingTextBoxElement` for the positioning approach.
 
 
-#### Embedded Objects (OLE) `TODO`
+#### Embedded Objects (OLE) `PARTIAL`
 
 Embedded objects from other applications (Excel spreadsheets, Visio diagrams, etc.).
 
 - **OOXML**: `o:OLEObject` or `w:object` referencing embedded parts
+- **Model**: `EmbeddedObject` record (ProgId, RelationshipId); `ParsedDocument.EmbeddedObjects`
+- **Parse**: `DocumentParser.ExtractEmbeddedObjects` walks `w:object` descendants and pulls the `o:OLEObject` ProgID + relationship id
+- **Render**: not yet — the embedded payload's preview image (EMF/WMF) isn't extracted or drawn.
 
-> **AI**: OLE objects typically have a preview image (EMF/WMF). Extract and render the preview image as a fallback. Full OLE rendering is not feasible.
+> **Contributors**: Full OLE rendering isn't feasible — extracting the EMF/WMF preview is the practical path. Marked PARTIAL until that's wired up.
 
 ---
 
@@ -1855,14 +1858,16 @@ Named locations within the document for cross-references and navigation.
 ### 11.5 Table of Contents
 
 
-#### Table of Contents `TODO`
+#### Table of Contents `PARTIAL`
 
 Auto-generated listing of headings with page numbers.
 
-- **OOXML**: `w:sdt` with TOC type, or `w:fldSimple` with `TOC` instruction
+- **OOXML**: `w:sdt` with TOC type, or `w:fldSimple` / complex field with `TOC` instruction
 - **Spec**: [Table of Contents](http://officeopenxml.com/WPtableOfContents.php)
+- **Model**: detected via `ParsedDocument.FieldCodes.Where(_ => _.Keyword == "TOC")`. The cached body of the TOC is already in the run text and renders as normal paragraphs.
+- **Render**: cached TOC content renders inline (paragraphs with page numbers); we don't regenerate from headings.
 
-> **AI**: TOC in OOXML has two parts: the field instruction (which generates the TOC) and the cached content (the last-generated TOC text). For rendering, use the cached content — it's already formatted as paragraphs with page numbers. No need to regenerate from headings.
+> **Contributors**: TOC capture comes for free via the field-code walker. Marked PARTIAL because we don't regenerate the TOC if the cached content is missing, and we don't yet model the TOC's hyperlink-to-bookmark structure for navigation.
 
 
 ### 11.6 Field Codes
@@ -1937,7 +1942,7 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 6 | 1 | 8 |
 | 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **97** | **21** | **6** | **124** |
+| **Total** | **97** | **23** | **4** | **124** |
 
 
 ### Coverage
@@ -1945,11 +1950,11 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 97
-    "Partial" : 21
-    "Todo" : 6
+    "Partial" : 23
+    "Todo" : 4
 ```
 
-**Overall coverage: 78% fully implemented, 17% partial, 5% remaining.**
+**Overall coverage: 78% fully implemented, 19% partial, 3% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)

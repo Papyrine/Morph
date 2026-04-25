@@ -172,6 +172,7 @@ sealed class DocumentParser(string defaultFont)
         var fieldCodes = ExtractFieldCodes(body);
         var footnotes = ExtractFootnotes(mainPart);
         var endnotes = ExtractEndnotes(mainPart);
+        var embeddedObjects = ExtractEmbeddedObjects(body);
 
         return new()
         {
@@ -191,8 +192,42 @@ sealed class DocumentParser(string defaultFont)
             Protection = protection,
             FieldCodes = fieldCodes,
             Footnotes = footnotes,
-            Endnotes = endnotes
+            Endnotes = endnotes,
+            EmbeddedObjects = embeddedObjects
         };
+    }
+
+    static IReadOnlyList<EmbeddedObject> ExtractEmbeddedObjects(Body body)
+    {
+        var result = new List<EmbeddedObject>();
+        foreach (var obj in body.Descendants<DocumentFormat.OpenXml.Wordprocessing.EmbeddedObject>())
+        {
+            string? progId = null;
+            string? relId = null;
+            foreach (var child in obj.Descendants())
+            {
+                if (child.LocalName != "OLEObject")
+                {
+                    continue;
+                }
+
+                foreach (var attr in child.GetAttributes())
+                {
+                    if (attr.LocalName == "ProgID")
+                    {
+                        progId = attr.Value;
+                    }
+                    else if (attr.LocalName == "id" && (attr.NamespaceUri?.EndsWith("/relationships") ?? false))
+                    {
+                        relId = attr.Value;
+                    }
+                }
+            }
+
+            result.Add(new() { ProgId = progId, RelationshipId = relId });
+        }
+
+        return result;
     }
 
     static IReadOnlyList<Footnote> ExtractFootnotes(MainDocumentPart mainPart)
