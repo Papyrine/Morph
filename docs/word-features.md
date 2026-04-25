@@ -1150,13 +1150,18 @@ Displaying only a portion of an image.
 > **AI**: Parse crop percentages from `a:srcRect`. Apply as source rectangle when drawing the image in both backends. SkiaSharp: use `SKCanvas.DrawImage` with source rect. ImageSharp: use `Crop()` before drawing.
 
 
-#### Image Rotation `TODO`
+#### Image Rotation `PARTIAL`
 
 Rotating an image by a specified angle.
 
 - **OOXML**: `wp:anchor` or `wp:inline` > `a:xfrm` with `rot` attribute (in 60,000ths of a degree)
+- **Model**: `Run.InlineImageRotationDegrees`, `ImageElement.RotationDegrees`, `FloatingImageElement.RotationDegrees`
+- **Parse**: `DocumentParser.ReadRotationDegrees()` converts `rot` (60,000ths of a degree) to degrees; applied in `TryParseInlineImageRun` and `ParseDrawingElements`
+- **Render**: inline images rotate around their centre via `SKCanvas.RotateDegrees` (Skia) / `image.Mutate(_ => _.Rotate(...))` then recentre (ImageSharp). Block-level `ImageElement` and `FloatingImageElement` carry the model field but `PageRenderer` does not yet apply it.
+- **Test**: `image_rotation/`, spec test `ImageRotationTests`
 
-> **AI**: Parse rotation from `a:xfrm`. Apply canvas rotation before drawing image in both backends.
+> **Contributors**: Inline rotation reserves the original (un-rotated) bounding box, so rotated images can overlap surrounding text — Word instead reflows around the rotated bounding box. Marked PARTIAL until block / floating image rendering also rotates.
+> **AI**: To finish the block/floating path, locate the bitmap draw in `PageRenderer.RenderImage` / floating-image render path in both backends and wrap with the same rotate-around-centre transform used in `TextRenderer.RenderInlineImage`.
 
 
 #### Blip Color Effects (Duotone / Recolor) `TODO`
@@ -1861,14 +1866,14 @@ Read-only mode, form protection, and editing restrictions.
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
 | 4. Tables | 13 | 1 | 3 | 17 |
 | 5. Page Layout & Sections | 15 | 1 | 2 | 18 |
-| 6. Graphics & Media | 10 | 0 | 9 | 19 |
+| 6. Graphics & Media | 10 | 1 | 8 | 19 |
 | 7. Form Controls | 10 | 0 | 0 | 10 |
 | 8. Themes & Styles | 5 | 0 | 0 | 5 |
 | 9. Typography | 6 | 1 | 1 | 8 |
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 3 | 2 | 6 |
 | 12. Advanced Content | 0 | 0 | 2 | 2 |
-| **Total** | **93** | **7** | **24** | **124** |
+| **Total** | **93** | **8** | **23** | **124** |
 
 
 ### Coverage
@@ -1876,8 +1881,8 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 93
-    "Partial" : 7
-    "Todo" : 24
+    "Partial" : 8
+    "Todo" : 23
 ```
 
 **Overall coverage: 75% fully implemented, 6% partial, 19% remaining.**

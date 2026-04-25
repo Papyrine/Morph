@@ -18,6 +18,9 @@ sealed class Run
     /// <summary>Content type of inline image (e.g., "image/png", "image/svg+xml").</summary>
     public string? InlineImageContentType { get; init; }
 
+    /// <summary>Inline image rotation in degrees (clockwise). 0 means no rotation.</summary>
+    public double InlineImageRotationDegrees { get; init; }
+
     /// <summary>
     /// True when this run represents a single w:tab character.
     /// When true, <see cref="Text"/> is "\t" and the renderer snaps the cursor to the next tab stop.

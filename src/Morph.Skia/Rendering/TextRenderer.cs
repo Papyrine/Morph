@@ -554,7 +554,8 @@ sealed class TextRenderer(RenderContext context)
                     Properties = run.Properties,
                     InlineImageData = run.InlineImageData,
                     InlineImageHeightPoints = imageHeight,
-                    InlineImageContentType = run.InlineImageContentType
+                    InlineImageContentType = run.InlineImageContentType,
+                    InlineImageRotationDegrees = run.InlineImageRotationDegrees
                 });
                 currentLineWidth += imageWidth;
                 maxLineHeight = Math.Max(maxLineHeight, imageHeight);
@@ -1035,6 +1036,13 @@ sealed class TextRenderer(RenderContext context)
 
         var destRect = new SKRect(pixelX, pixelY, pixelX + pixelWidth, pixelY + pixelHeight);
 
+        var rotation = (float) fragment.InlineImageRotationDegrees;
+        if (rotation != 0)
+        {
+            canvas.Save();
+            canvas.RotateDegrees(rotation, pixelX + pixelWidth / 2, pixelY + pixelHeight / 2);
+        }
+
         if (fragment.InlineImageContentType == "image/svg+xml")
         {
             // Pre-process SVG to remove class attributes and style elements that Svg.Skia might not handle correctly
@@ -1094,6 +1102,11 @@ sealed class TextRenderer(RenderContext context)
                     canvas.DrawBitmap(skImage, destRect);
                 }
             }
+        }
+
+        if (rotation != 0)
+        {
+            canvas.Restore();
         }
     }
 
@@ -1192,7 +1205,8 @@ sealed class TextRenderer(RenderContext context)
                     Properties = run.Properties,
                     InlineImageData = run.InlineImageData,
                     InlineImageHeightPoints = imageHeight,
-                    InlineImageContentType = run.InlineImageContentType
+                    InlineImageContentType = run.InlineImageContentType,
+                    InlineImageRotationDegrees = run.InlineImageRotationDegrees
                 });
                 currentLineWidth += imageWidth;
                 maxLineHeight = Math.Max(maxLineHeight, imageHeight);
@@ -1571,6 +1585,9 @@ sealed class TextFragment
 
     /// <summary>Content type of inline image (e.g., "image/png", "image/svg+xml").</summary>
     public string? InlineImageContentType { get; init; }
+
+    /// <summary>Inline image rotation in degrees (clockwise).</summary>
+    public double InlineImageRotationDegrees { get; init; }
 
     /// <summary>True when this fragment represents a tab-stop gap (leader glyphs or empty spacer).</summary>
     public bool IsTabFiller { get; init; }

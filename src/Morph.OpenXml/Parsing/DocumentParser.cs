@@ -3248,6 +3248,9 @@ sealed class DocumentParser(string defaultFont)
         var widthPoints = picWidth / emusPerPoint;
         var heightPoints = picHeight / emusPerPoint;
 
+        // Rotation (a:xfrm/@rot, in 60,000ths of a degree, clockwise)
+        var rotationDegrees = ReadRotationDegrees(xfrm);
+
         // Find the blip (image reference)
         var blipFill = pic.Elements().FirstOrDefault(e => e.LocalName == "blipFill");
         if (blipFill == null)
@@ -3330,8 +3333,20 @@ sealed class DocumentParser(string defaultFont)
             InlineImageData = imageData,
             InlineImageWidthPoints = widthPoints,
             InlineImageHeightPoints = heightPoints,
-            InlineImageContentType = contentType
+            InlineImageContentType = contentType,
+            InlineImageRotationDegrees = rotationDegrees
         };
+    }
+
+    static double ReadRotationDegrees(OpenXmlElement xfrm)
+    {
+        var rotAttr = xfrm.GetAttributes().FirstOrDefault(a => a.LocalName == "rot");
+        if (rotAttr.Value != null && long.TryParse(rotAttr.Value, out var rot60000ths))
+        {
+            return rot60000ths / 60000.0;
+        }
+
+        return 0;
     }
 
     /// <summary>
@@ -3488,6 +3503,9 @@ sealed class DocumentParser(string defaultFont)
             var offsetXPoints = finalX / emusPerPoint;
             var offsetYPoints = finalY / emusPerPoint;
 
+            // Rotation (a:xfrm/@rot, in 60,000ths of a degree, clockwise)
+            var rotationDegrees = ReadRotationDegrees(xfrm);
+
             // Find the blip (image reference)
             var blipFill = pic.Elements().FirstOrDefault(e => e.LocalName == "blipFill");
             if (blipFill == null)
@@ -3564,12 +3582,13 @@ sealed class DocumentParser(string defaultFont)
                     ImageData = imageData,
                     WidthPoints = widthPoints,
                     HeightPoints = heightPoints,
-                    ContentType = contentType
+                    ContentType = contentType,
+                    RotationDegrees = rotationDegrees
                 });
             }
             else
             {
-                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints);
+                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees);
                 result.Add(floatingImage);
             }
         }
@@ -3580,7 +3599,7 @@ sealed class DocumentParser(string defaultFont)
     /// <summary>
     /// Parses an anchored image with additional X/Y offset within a group.
     /// </summary>
-    static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints)
+    static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0)
     {
         // Parse horizontal position
         var hPosPoints = offsetXPoints;
@@ -3657,7 +3676,8 @@ sealed class DocumentParser(string defaultFont)
             VerticalPositionPoints = vPosPoints,
             HorizontalAnchor = hAnchor,
             VerticalAnchor = vAnchor,
-            BehindText = isBehindText
+            BehindText = isBehindText,
+            RotationDegrees = rotationDegrees
         };
     }
 

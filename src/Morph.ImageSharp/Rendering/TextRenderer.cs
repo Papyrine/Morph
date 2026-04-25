@@ -537,7 +537,8 @@ sealed class TextRenderer(RenderContext context)
                     Properties = run.Properties,
                     InlineImageData = run.InlineImageData,
                     InlineImageHeightPoints = imageHeight,
-                    InlineImageContentType = run.InlineImageContentType
+                    InlineImageContentType = run.InlineImageContentType,
+                    InlineImageRotationDegrees = run.InlineImageRotationDegrees
                 });
                 currentLineWidth += imageWidth;
                 maxLineHeight = Math.Max(maxLineHeight, imageHeight);
@@ -1030,7 +1031,19 @@ sealed class TextRenderer(RenderContext context)
         {
             using var img = Image.Load<Rgba32>(fragment.InlineImageData!);
             img.Mutate(_ => _.Resize(new Size((int)pixelWidth, (int)pixelHeight)));
-            currentPage.Mutate(_ => _.DrawImage(img, new Point((int)pixelX, (int)pixelY), 1f));
+            var rotation = (float) fragment.InlineImageRotationDegrees;
+            if (rotation != 0)
+            {
+                img.Mutate(_ => _.Rotate(rotation));
+                // After rotation the image's bounding box grew; recentre over the original location.
+                var newX = pixelX + pixelWidth / 2 - img.Width / 2f;
+                var newY = pixelY + pixelHeight / 2 - img.Height / 2f;
+                currentPage.Mutate(_ => _.DrawImage(img, new Point((int)newX, (int)newY), 1f));
+            }
+            else
+            {
+                currentPage.Mutate(_ => _.DrawImage(img, new Point((int)pixelX, (int)pixelY), 1f));
+            }
         }
         catch
         {
@@ -1131,7 +1144,8 @@ sealed class TextRenderer(RenderContext context)
                     Properties = run.Properties,
                     InlineImageData = run.InlineImageData,
                     InlineImageHeightPoints = imageHeight,
-                    InlineImageContentType = run.InlineImageContentType
+                    InlineImageContentType = run.InlineImageContentType,
+                    InlineImageRotationDegrees = run.InlineImageRotationDegrees
                 });
                 currentLineWidth += imageWidth;
                 maxLineHeight = Math.Max(maxLineHeight, imageHeight);
@@ -1470,6 +1484,9 @@ sealed class TextFragment
 
     /// <summary>Content type of inline image (e.g., "image/png", "image/svg+xml").</summary>
     public string? InlineImageContentType { get; init; }
+
+    /// <summary>Inline image rotation in degrees (clockwise).</summary>
+    public double InlineImageRotationDegrees { get; init; }
 
     /// <summary>True when this fragment represents a tab-stop gap (leader glyphs or empty spacer).</summary>
     public bool IsTabFiller { get; init; }

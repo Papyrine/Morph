@@ -25,4 +25,7 @@ sealed class FloatingImageElement : DocumentElement
 
     /// <summary>Whether this image is behind text (vs in front).</summary>
     public bool BehindText { get; init; }
+
+    /// <summary>Rotation in degrees (clockwise). 0 means no rotation.</summary>
+    public double RotationDegrees { get; init; }
 }
