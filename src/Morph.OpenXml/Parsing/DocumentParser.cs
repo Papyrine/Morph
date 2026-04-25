@@ -167,6 +167,7 @@ sealed class DocumentParser(string defaultFont)
         var bookmarks = ExtractBookmarks(body);
         var comments = ExtractComments(mainPart);
         var trackedChanges = ExtractTrackedChanges(body);
+        var protection = ExtractDocumentProtection(mainPart);
 
         return new()
         {
@@ -182,8 +183,39 @@ sealed class DocumentParser(string defaultFont)
             Compatibility = compatibility,
             Bookmarks = bookmarks,
             Comments = comments,
-            TrackedChanges = trackedChanges
+            TrackedChanges = trackedChanges,
+            Protection = protection
         };
+    }
+
+    static DocumentProtectionSettings ExtractDocumentProtection(MainDocumentPart mainPart)
+    {
+        var settings = mainPart.DocumentSettingsPart?.Settings;
+        var protection = settings?.GetFirstChild<DocumentProtection>();
+        if (protection?.Edit?.Value is not { } editValue)
+        {
+            return new();
+        }
+
+        var mode = DocumentEditingMode.None;
+        if (editValue == DocumentProtectionValues.ReadOnly)
+        {
+            mode = DocumentEditingMode.ReadOnly;
+        }
+        else if (editValue == DocumentProtectionValues.Comments)
+        {
+            mode = DocumentEditingMode.Comments;
+        }
+        else if (editValue == DocumentProtectionValues.TrackedChanges)
+        {
+            mode = DocumentEditingMode.TrackedChanges;
+        }
+        else if (editValue == DocumentProtectionValues.Forms)
+        {
+            mode = DocumentEditingMode.Forms;
+        }
+
+        return new() { EditingMode = mode };
     }
 
     static IReadOnlyList<TrackedChange> ExtractTrackedChanges(Body body)

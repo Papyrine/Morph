@@ -1847,13 +1847,17 @@ Mathematical equations using Office Math Markup Language.
 ### 12.2 Document Protection
 
 
-#### Document Protection `TODO`
+#### Document Protection `DONE`
 
 Read-only mode, form protection, and editing restrictions.
 
 - **OOXML**: `w:documentProtection` in document settings
+- **Model**: `DocumentProtectionSettings` (`IsProtected`, `EditingMode`); `ParsedDocument.Protection`
+- **Parse**: `DocumentParser.ExtractDocumentProtection()` reads the `Edit` attribute (ReadOnly / Comments / TrackedChanges / Forms)
+- **Render**: no rendering effect — protection is an editing concern, not a visual one
+- **Test**: `document_protection/`, spec test `DocumentProtectionTests`
 
-> **AI**: Not relevant for rendering — protection is an editing concern. Low priority for a document-to-image converter.
+> **Contributors**: Password / hash details and `w:formatting` / `w:enforcement` are intentionally not surfaced; consumers that need them can read settings.xml directly.
 
 ---
 
@@ -1876,20 +1880,20 @@ Read-only mode, form protection, and editing restrictions.
 | 9. Typography | 6 | 1 | 1 | 8 |
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 3 | 2 | 6 |
-| 12. Advanced Content | 0 | 0 | 2 | 2 |
-| **Total** | **94** | **8** | **22** | **124** |
+| 12. Advanced Content | 1 | 0 | 1 | 2 |
+| **Total** | **95** | **8** | **21** | **124** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 94
+    "Done" : 95
     "Partial" : 8
-    "Todo" : 22
+    "Todo" : 21
 ```
 
-**Overall coverage: 76% fully implemented, 6% partial, 18% remaining.**
+**Overall coverage: 77% fully implemented, 6% partial, 17% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)

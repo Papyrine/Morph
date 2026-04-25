@@ -46,4 +46,10 @@ sealed class ParsedDocument
     /// renderers neither show insertions in revision colour nor strike out deletions.
     /// </summary>
     public IReadOnlyList<TrackedChange> TrackedChanges { get; init; } = [];
+
+    /// <summary>
+    /// Document protection / editing-restriction settings (w:documentProtection).
+    /// Has no rendering effect — exposed for consumers that care about read-only state.
+    /// </summary>
+    public DocumentProtectionSettings Protection { get; init; } = new();
 }
