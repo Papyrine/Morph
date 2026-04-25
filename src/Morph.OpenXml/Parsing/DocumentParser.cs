@@ -81,6 +81,10 @@ sealed class DocumentParser(string defaultFont)
     // Document-level w:gutterAtTop flag; when true, w:pgMar/@w:gutter is added to the top margin instead of left.
     bool gutterAtTopSetting;
 
+    // Document-default font family resolved from docDefaults; falls back to the constructor's
+    // defaultFont when the document doesn't specify one. Used by every run that doesn't carry an explicit font.
+    string effectiveDefaultFont = "";
+
     public ParsedDocument Parse(string filePath)
     {
         using var stream = File.OpenRead(filePath);
@@ -108,6 +112,11 @@ sealed class DocumentParser(string defaultFont)
 
         // Extract and store theme fonts for use during parsing
         currentThemeFonts = ThemeParser.ExtractThemeFonts(mainPart);
+
+        // Resolve the document's default font from docDefaults (w:rPrDefault/w:rFonts). Every run
+        // that doesn't carry an explicit font inherits this. Falls back to the constructor's
+        // defaultFont when the document doesn't specify one.
+        effectiveDefaultFont = ResolveDocDefaultFont(mainPart) ?? defaultFont;
 
         // Extract document-level background color (w:background element)
         documentBackgroundColor = ExtractDocumentBackgroundColor(mainPart.Document);
@@ -315,6 +324,28 @@ sealed class DocumentParser(string defaultFont)
         }
 
         return result;
+    }
+
+    string? ResolveDocDefaultFont(MainDocumentPart mainPart)
+    {
+        var rPrDefault = mainPart.StyleDefinitionsPart?.Styles?.DocDefaults?.RunPropertiesDefault?.RunPropertiesBaseStyle;
+        var fonts = rPrDefault?.GetFirstChild<RunFonts>();
+        if (fonts == null)
+        {
+            return null;
+        }
+
+        if (fonts.AsciiTheme?.HasValue == true && currentThemeFonts != null)
+        {
+            var themeValue = ((IEnumValue) fonts.AsciiTheme.Value).Value;
+            var resolved = currentThemeFonts.ResolveFont(themeValue);
+            if (resolved != null)
+            {
+                return resolved;
+            }
+        }
+
+        return fonts.Ascii?.HasValue == true ? fonts.Ascii.Value : null;
     }
 
     static IReadOnlyList<Footnote> ExtractFootnotes(MainDocumentPart mainPart)
@@ -5029,7 +5060,7 @@ sealed class DocumentParser(string defaultFont)
         }
 
         // Parse font properties from the first run
-        var fontFamily = defaultFont;
+        var fontFamily = effectiveDefaultFont;
         double fontSize = 36;
         var bold = false;
         var italic = false;
@@ -6195,14 +6226,16 @@ sealed class DocumentParser(string defaultFont)
             styleRunProperties.TryGetValue(styleId, out styleDefaults);
         }
 
-        // If no inline properties, return style defaults or empty properties
+        // If no inline properties, return style defaults or empty properties.
+        // When neither is present, anchor the font to the document default rather than the
+        // RunProperties record's static default (which is Georgia, the cross-platform fallback).
         if (props == null)
         {
-            return styleDefaults ?? new RunProperties();
+            return styleDefaults ?? new RunProperties { FontFamily = effectiveDefaultFont };
         }
 
         // Start with style defaults or built-in defaults
-        var fontFamily = styleDefaults?.FontFamily ?? defaultFont;
+        var fontFamily = styleDefaults?.FontFamily ?? effectiveDefaultFont;
         var fontSize = styleDefaults?.FontSizePoints ?? builtInDefaultFontSizePoints;
         var bold = styleDefaults?.Bold ?? false;
         var italic = styleDefaults?.Italic ?? false;
