@@ -34,4 +34,10 @@ sealed record RunProperties
     /// the actual kerning values; this field is captured for downstream inspection.
     /// </summary>
     public double KerningMinFontSizePoints { get; init; }
+
+    /// <summary>
+    /// OpenType ligature mode (w14:ligatures). Word 2010+ extension. Renderer relies on the
+    /// platform shaper for actual ligature substitution; this field is captured for inspection.
+    /// </summary>
+    public LigatureMode Ligatures { get; init; } = LigatureMode.Standard;
 }

@@ -296,14 +296,18 @@ Adjusts spacing between specific character pairs for visual balance.
 > **Contributors**: Marked PARTIAL because we don't currently honour the size threshold (kerning is unconditionally on). Most documents target the default Word threshold (16pt), so visual differences are minor.
 
 
-#### Ligatures `TODO`
+#### Ligatures `PARTIAL`
 
 Combines specific character sequences (fi, fl, ff, etc.) into single glyphs.
 
 - **OOXML**: `w14:ligatures` (Word 2010+ extension)
 - **Spec**: [Ligatures](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
+- **Model**: `LigatureMode` flags (`Standard`, `Contextual`, `Historical`, `Discretional`); `RunProperties.Ligatures` (default `Standard`)
+- **Parse**: `DocumentParser.ParseLigatureMode` reads `w14:ligatures` and maps the OOXML enumerated values to the flag combination
+- **Render**: not enforced — SkiaSharp/HarfBuzz and ImageSharp.Fonts both apply standard OpenType ligatures by default. The flags are captured but the renderer doesn't toggle them per run.
+- **Test**: covered by run-properties parsing tests.
 
-> **AI**: OpenType ligature support depends on the rendering backend's text shaping capabilities. SkiaSharp with HarfBuzz can handle this. Requires parsing the `w14` namespace extensions.
+> **Contributors**: To honour `LigatureMode.None` we'd need to disable the default `liga`/`clig` features per draw call, and to honour `Discretional`/`Historical` we'd need to enable `dlig`/`hlig` — both possible via SKShaper / HarfBuzz feature settings, neither wired today.
 
 
 ### 1.3 Text Effects
@@ -1882,7 +1886,7 @@ Read-only mode, form protection, and editing restrictions.
 
 | Category | Done | Partial | Todo | Total |
 |----------|------|---------|------|-------|
-| 1. Text Formatting | 11 | 1 | 4 | 16 |
+| 1. Text Formatting | 11 | 2 | 3 | 16 |
 | 2. Paragraph Formatting | 11 | 1 | 0 | 12 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
 | 4. Tables | 13 | 2 | 2 | 17 |
@@ -1894,7 +1898,7 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 3 | 2 | 6 |
 | 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **95** | **11** | **18** | **124** |
+| **Total** | **95** | **12** | **17** | **124** |
 
 
 ### Coverage
@@ -1902,11 +1906,11 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 95
-    "Partial" : 11
-    "Todo" : 18
+    "Partial" : 12
+    "Todo" : 17
 ```
 
-**Overall coverage: 77% fully implemented, 9% partial, 14% remaining.**
+**Overall coverage: 77% fully implemented, 10% partial, 14% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)

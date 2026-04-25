@@ -10,7 +10,8 @@
           "Italic": false,
           "Underline": true,
           "Strikethrough": false,
-          "AllCaps": false
+          "AllCaps": false,
+          "Ligatures": "Standard"
         },
         "IsTab": false
       }

@@ -3423,6 +3423,33 @@ sealed class DocumentParser(string defaultFont)
         return 0;
     }
 
+    static LigatureMode ParseLigatureMode(DocumentFormat.OpenXml.Office2010.Word.Ligatures? element)
+    {
+        if (element?.Val?.Value is not { } val)
+        {
+            return LigatureMode.Standard;
+        }
+
+        var v = DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.None;
+        if (val == v) return LigatureMode.None;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.Standard) return LigatureMode.Standard;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.Contextual) return LigatureMode.Contextual;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.Historical) return LigatureMode.Historical;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.Discretional) return LigatureMode.Discretional;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.StandardContextual) return LigatureMode.Standard | LigatureMode.Contextual;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.StandardHistorical) return LigatureMode.Standard | LigatureMode.Historical;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.StandardDiscretional) return LigatureMode.Standard | LigatureMode.Discretional;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.ContextualHistorical) return LigatureMode.Contextual | LigatureMode.Historical;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.ContextualDiscretional) return LigatureMode.Contextual | LigatureMode.Discretional;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.HistoricalDiscretional) return LigatureMode.Historical | LigatureMode.Discretional;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.StandardContextualHistorical) return LigatureMode.Standard | LigatureMode.Contextual | LigatureMode.Historical;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.StandardContextualDiscretional) return LigatureMode.Standard | LigatureMode.Contextual | LigatureMode.Discretional;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.StandardHistoricalDiscretional) return LigatureMode.Standard | LigatureMode.Historical | LigatureMode.Discretional;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.ContextualHistoricalDiscretional) return LigatureMode.Contextual | LigatureMode.Historical | LigatureMode.Discretional;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.All) return LigatureMode.All;
+        return LigatureMode.Standard;
+    }
+
     static ImageCrop? ReadCrop(OpenXmlElement blipFill)
     {
         // a:srcRect attributes l/t/r/b are in 1000ths of a percent (100000 = 100%).
@@ -5915,6 +5942,9 @@ sealed class DocumentParser(string defaultFont)
             kerningMinFontSize = kernElement.Val.Value / 2.0;
         }
 
+        // Ligature mode (w14:ligatures in rPr — Word 2010+ extension)
+        var ligatures = ParseLigatureMode(props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Ligatures>());
+
         // Vertical alignment (subscript/superscript)
         var vertAlignElement = props.GetFirstChild<VerticalTextAlignment>();
         if (vertAlignElement?.Val?.HasValue == true)
@@ -6087,7 +6117,8 @@ sealed class DocumentParser(string defaultFont)
             BackgroundColorHex = backgroundColor,
             CharacterSpacingPoints = characterSpacing,
             VerticalAlignment = verticalAlignment,
-            KerningMinFontSizePoints = kerningMinFontSize
+            KerningMinFontSizePoints = kerningMinFontSize,
+            Ligatures = ligatures
         };
     }
 }

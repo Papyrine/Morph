@@ -10,7 +10,8 @@
           "Italic": false,
           "Underline": false,
           "Strikethrough": false,
-          "AllCaps": false
+          "AllCaps": false,
+          "Ligatures": "Standard"
         },
         "IsTab": false
       },
@@ -23,7 +24,8 @@
           "Italic": false,
           "Underline": false,
           "Strikethrough": false,
-          "AllCaps": false
+          "AllCaps": false,
+          "Ligatures": "Standard"
         },
         "IsTab": false
       },
@@ -36,7 +38,8 @@
           "Italic": false,
           "Underline": false,
           "Strikethrough": false,
-          "AllCaps": false
+          "AllCaps": false,
+          "Ligatures": "Standard"
         },
         "IsTab": false
       }

@@ -11,7 +11,8 @@
           "Underline": false,
           "Strikethrough": false,
           "AllCaps": false,
-          "ColorHex": "FFA500"
+          "ColorHex": "FFA500",
+          "Ligatures": "Standard"
         },
         "IsTab": false
       }
