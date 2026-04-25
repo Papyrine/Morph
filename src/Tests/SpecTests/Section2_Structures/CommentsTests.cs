@@ -38,4 +38,17 @@ public class CommentsTests
 
         await Assert.That(doc.Comments).IsEmpty();
     }
+
+    [Test]
+    public async Task DocumentParser_CommentAnchorParagraphIndex_PointsAtRangeStart()
+    {
+        // comments/01 fixture has w:commentRangeStart on the only paragraph (index 0).
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "comments", "01", "input.docx");
+
+        var parser = new DocumentParser();
+        var doc = parser.Parse(inputFile);
+
+        await Assert.That(doc.Comments.Count).IsEqualTo(1);
+        await Assert.That(doc.Comments[0].AnchorParagraphIndex).IsEqualTo(0);
+    }
 }

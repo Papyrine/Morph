@@ -175,7 +175,7 @@ sealed class DocumentParser(string defaultFont)
         var hyphenation = ExtractHyphenationSettings(mainPart);
         var compatibility = ExtractCompatibilitySettings(mainPart);
         var bookmarks = ExtractBookmarks(body);
-        var comments = ExtractComments(mainPart);
+        var comments = ExtractComments(mainPart, body);
         var trackedChanges = ExtractTrackedChanges(body);
         var protection = ExtractDocumentProtection(mainPart);
         var fieldCodes = ExtractFieldCodes(body);
@@ -544,12 +544,38 @@ sealed class DocumentParser(string defaultFont)
         }
     }
 
-    static IReadOnlyList<Comment> ExtractComments(MainDocumentPart mainPart)
+    static IReadOnlyList<Comment> ExtractComments(MainDocumentPart mainPart, Body body)
     {
         var commentsPart = mainPart.WordprocessingCommentsPart;
         if (commentsPart?.Comments == null)
         {
             return [];
+        }
+
+        // Map each w:commentRangeStart's id → enclosing paragraph ordinal.
+        var paragraphOrdinals = new Dictionary<Paragraph, int>();
+        var ordinal = 0;
+        foreach (var p in body.Descendants<Paragraph>())
+        {
+            paragraphOrdinals[p] = ordinal++;
+        }
+
+        var anchorByCommentId = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var rangeStart in body.Descendants<CommentRangeStart>())
+        {
+            if (rangeStart.Id?.Value is not { } rangeId)
+            {
+                continue;
+            }
+
+            for (var current = rangeStart.Parent; current != null; current = current.Parent)
+            {
+                if (current is Paragraph p && paragraphOrdinals.TryGetValue(p, out var idx))
+                {
+                    anchorByCommentId[rangeId.ToString()] = idx;
+                    break;
+                }
+            }
         }
 
         var result = new List<Comment>();
@@ -567,12 +593,15 @@ sealed class DocumentParser(string defaultFont)
                 date = dateValue;
             }
 
+            int? anchor = anchorByCommentId.TryGetValue(id.ToString(), out var idx) ? idx : null;
+
             result.Add(new()
             {
-                Id = id,
+                Id = id.ToString(),
                 Author = ooxmlComment.Author?.Value,
                 Text = text,
-                Date = date
+                Date = date,
+                AnchorParagraphIndex = anchor
             });
         }
 
@@ -581,6 +610,14 @@ sealed class DocumentParser(string defaultFont)
 
     static IReadOnlyList<Bookmark> ExtractBookmarks(Body body)
     {
+        // Pre-compute a map from each Paragraph element to its ordinal among paragraphs in the body.
+        var paragraphOrdinals = new Dictionary<Paragraph, int>();
+        var ordinal = 0;
+        foreach (var p in body.Descendants<Paragraph>())
+        {
+            paragraphOrdinals[p] = ordinal++;
+        }
+
         var result = new List<Bookmark>();
         foreach (var start in body.Descendants<BookmarkStart>())
         {
@@ -589,7 +626,17 @@ sealed class DocumentParser(string defaultFont)
                 continue;
             }
 
-            result.Add(new() { Id = id, Name = name });
+            int? paragraphIndex = null;
+            for (var current = start.Parent; current != null; current = current.Parent)
+            {
+                if (current is Paragraph p && paragraphOrdinals.TryGetValue(p, out var idx))
+                {
+                    paragraphIndex = idx;
+                    break;
+                }
+            }
+
+            result.Add(new() { Id = id, Name = name, ParagraphIndex = paragraphIndex });
         }
 
         return result;

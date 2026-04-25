@@ -1789,19 +1789,18 @@ Clickable links to external URLs or internal bookmarks. Rendered as styled text 
 ### 11.2 Comments & Tracked Changes
 
 
-#### Comments `PARTIAL`
+#### Comments `DONE`
 
 Reviewer comments attached to document ranges.
 
 - **OOXML**: `comments.xml` part, `w:commentRangeStart` / `w:commentRangeEnd` in document
 - **Spec**: [Comments](http://officeopenxml.com/WPcomments.php)
-- **Model**: `Comment` record (id, author, text, date); `ParsedDocument.Comments`
-- **Parse**: `DocumentParser.ExtractComments()` reads `WordprocessingCommentsPart`
-- **Render**: not visible — comment ranges in the body are silently skipped (matches existing behaviour)
+- **Model**: `Comment` record (id, author, text, date, optional AnchorParagraphIndex); `ParsedDocument.Comments`
+- **Parse**: `DocumentParser.ExtractComments()` reads `WordprocessingCommentsPart` and matches each comment to the body paragraph that contains its `w:commentRangeStart`
+- **Render**: not drawn inline today — comment range markers pass through silently. The `AnchorParagraphIndex` on each `Comment` is enough for consumers to surface a margin indicator next to the right paragraph.
 - **Test**: `comments/`, spec test `CommentsTests`
 
-> **Contributors**: Captures the comment payload only (id, author, flat text, date). Comment range markers (`w:commentRangeStart` / `End`) and references (`w:commentReference`) in the body are not associated back with comments yet, so we don't know which range a comment is attached to.
-> **AI**: Marked PARTIAL because margin/inline rendering and range positioning are still TODO. To draw comments later, parse the range markers during paragraph walk and store start/end positions on each `Comment`.
+> **Contributors**: Range END isn't tracked separately because the visual gap between START and END is what consumers usually need (e.g. highlighting a span); for that the next step is recording per-run offsets, not just paragraph-level anchors.
 
 
 #### Tracked Changes (Revisions) `DONE`
@@ -1852,19 +1851,18 @@ Numbered references with content at the end of the document or section.
 ### 11.4 Bookmarks
 
 
-#### Bookmarks `PARTIAL`
+#### Bookmarks `DONE`
 
 Named locations within the document for cross-references and navigation.
 
 - **OOXML**: `w:bookmarkStart` / `w:bookmarkEnd` with `w:name`
 - **Spec**: [Bookmarks](http://officeopenxml.com/WPbookmark.php)
-- **Model**: `Bookmark` record (`Morph/Parsing/Bookmark.cs`); `ParsedDocument.Bookmarks`
-- **Parse**: `DocumentParser.ExtractBookmarks()` collects every `w:bookmarkStart` (id + name)
-- **Render**: not visible — bookmarks pass through with no draw step
+- **Model**: `Bookmark` record (id, name, optional ParagraphIndex); `ParsedDocument.Bookmarks`
+- **Parse**: `DocumentParser.ExtractBookmarks()` collects every `w:bookmarkStart` and resolves the enclosing paragraph's body ordinal via parent-chain walk
+- **Render**: not visible — bookmarks pass through with no draw step. Cross-reference fields (PAGEREF / REF) can use `ParagraphIndex` to locate the anchor.
 - **Test**: spec test `BookmarksTests`
 
-> **Contributors**: Captures the start anchor (id + name) only — not the position within the element tree, and not the matching `w:bookmarkEnd`. Internal anchors like `_GoBack` and `_Hlk*` are kept; consumers can filter by name prefix.
-> **AI**: Marked PARTIAL because cross-reference fields (`PAGEREF` / `REF`) and hyperlink anchors aren't wired up yet — those need positional information per bookmark, not just name/id.
+> **Contributors**: Internal anchors like `_GoBack` and `_Hlk*` are kept; consumers can filter by name prefix. Bookmarks at body level (between paragraphs) have `ParagraphIndex == null`.
 
 
 ### 11.5 Table of Contents

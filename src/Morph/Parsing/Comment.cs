@@ -14,4 +14,11 @@ sealed record Comment
 
     /// <summary>The comment timestamp if present (w:date).</summary>
     public DateTimeOffset? Date { get; init; }
+
+    /// <summary>
+    /// Zero-based ordinal of the body paragraph that contains the matching w:commentRangeStart.
+    /// Null when the comment isn't anchored to a paragraph in the body. Useful to surface a
+    /// comment indicator next to the right paragraph in the rendered output later on.
+    /// </summary>
+    public int? AnchorParagraphIndex { get; init; }
 }
