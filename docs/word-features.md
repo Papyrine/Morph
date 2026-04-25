@@ -826,14 +826,18 @@ Automatic column width adjustment based on content.
 > **AI**: Requires measuring text content width for each cell, then distributing column widths proportionally. Add to `TableLayout.CalculateColumnWidths()`. Complex because it requires a measurement pass before layout.
 
 
-#### Header Row Repeat `TODO`
+#### Header Row Repeat `PARTIAL`
 
 Repeats the first row(s) as header on each page when a table spans multiple pages.
 
 - **OOXML**: `w:tblHeader` within `w:trPr`
 - **Spec**: [Table Header](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.tableheader)
+- **Model**: `TableRow.IsHeader`
+- **Parse**: `DocumentParser.ParseTable()` reads `w:trPr/w:tblHeader`
+- **Render**: not yet — header rows render once at the top of the table; multi-page tables don't repeat them at each page break.
 
-> **AI**: Parse the `w:tblHeader` flag per row. In `PageRenderer.RenderTableRowByRow()`, after each page break, re-render the header rows before continuing with data rows.
+> **Contributors**: Marked PARTIAL until `RenderTableRowByRow` re-renders the contiguous header rows after each page break in both backends.
+> **AI**: To finish, in both `PageRenderer.RenderTableRowByRow` paths track whether the current row is the first row on a freshly-started page (compare `context.CurrentY` to `context.ContentTop` after `EnsureSpaceFor`). When it is and the current row isn't itself a header, render `table.Rows.TakeWhile(_ => _.IsHeader)` first.
 
 
 #### Table Alignment `DONE`
@@ -1872,7 +1876,7 @@ Read-only mode, form protection, and editing restrictions.
 | 1. Text Formatting | 11 | 0 | 5 | 16 |
 | 2. Paragraph Formatting | 11 | 1 | 0 | 12 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
-| 4. Tables | 13 | 1 | 3 | 17 |
+| 4. Tables | 13 | 2 | 2 | 17 |
 | 5. Page Layout & Sections | 16 | 1 | 1 | 18 |
 | 6. Graphics & Media | 10 | 1 | 8 | 19 |
 | 7. Form Controls | 10 | 0 | 0 | 10 |
@@ -1881,7 +1885,7 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 3 | 2 | 6 |
 | 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **95** | **8** | **21** | **124** |
+| **Total** | **95** | **9** | **20** | **124** |
 
 
 ### Coverage
@@ -1889,11 +1893,11 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 95
-    "Partial" : 8
-    "Todo" : 21
+    "Partial" : 9
+    "Todo" : 20
 ```
 
-**Overall coverage: 77% fully implemented, 6% partial, 17% remaining.**
+**Overall coverage: 77% fully implemented, 7% partial, 16% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)

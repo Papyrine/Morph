@@ -2253,6 +2253,7 @@ sealed class DocumentParser(string defaultFont)
             // Parse row properties for height
             double? rowHeight = null;
             var isExactHeight = false;
+            var isHeader = false;
             var rowProps = row.GetFirstChild<TableRowProperties>();
             if (rowProps != null)
             {
@@ -2263,13 +2264,20 @@ sealed class DocumentParser(string defaultFont)
                     // hRule="exact" means exact height, otherwise it's minimum height
                     isExactHeight = trHeight.HeightType?.Value == HeightRuleValues.Exact;
                 }
+
+                var headerElement = rowProps.GetFirstChild<TableHeader>();
+                if (headerElement != null)
+                {
+                    isHeader = headerElement.Val?.Value != OnOffOnlyValues.Off;
+                }
             }
 
             rows.Add(new()
             {
                 Cells = cells,
                 HeightPoints = rowHeight,
-                IsExactHeight = isExactHeight
+                IsExactHeight = isExactHeight,
+                IsHeader = isHeader
             });
         }
 

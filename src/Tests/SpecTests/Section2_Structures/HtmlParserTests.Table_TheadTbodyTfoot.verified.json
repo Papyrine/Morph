@@ -44,7 +44,8 @@
             }
           }
         ],
-        "IsExactHeight": false
+        "IsExactHeight": false,
+        "IsHeader": false
       },
       {
         "Cells": [
@@ -89,7 +90,8 @@
             }
           }
         ],
-        "IsExactHeight": false
+        "IsExactHeight": false,
+        "IsHeader": false
       },
       {
         "Cells": [
@@ -134,7 +136,8 @@
             }
           }
         ],
-        "IsExactHeight": false
+        "IsExactHeight": false,
+        "IsHeader": false
       }
     ],
     "Properties": {

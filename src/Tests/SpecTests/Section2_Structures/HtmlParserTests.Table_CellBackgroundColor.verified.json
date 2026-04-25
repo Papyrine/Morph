@@ -45,7 +45,8 @@
             }
           }
         ],
-        "IsExactHeight": false
+        "IsExactHeight": false,
+        "IsHeader": false
       }
     ],
     "Properties": {
