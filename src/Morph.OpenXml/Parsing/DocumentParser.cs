@@ -2408,6 +2408,14 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        // Parse table layout type (w:tblPr/w:tblLayout/@type)
+        var isAutoFit = true;
+        var tableLayoutEl = tableProps?.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.TableLayout>();
+        if (tableLayoutEl?.Type?.Value is { } layoutType)
+        {
+            isAutoFit = layoutType != TableLayoutValues.Fixed;
+        }
+
         // Parse table-level horizontal alignment (w:tblPr/w:jc)
         var alignment = TextAlignment.Left;
         var tableJustification = tableProps?.GetFirstChild<TableJustification>();
@@ -2437,7 +2445,8 @@ sealed class DocumentParser(string defaultFont)
                 DefaultCellMargin = defaultCellMargin ?? new CellSpacing(0),
                 IndentPoints = indentPoints,
                 GridColumnWidths = gridColumnWidths,
-                Alignment = alignment
+                Alignment = alignment,
+                IsAutoFit = isAutoFit
             }
         };
     }

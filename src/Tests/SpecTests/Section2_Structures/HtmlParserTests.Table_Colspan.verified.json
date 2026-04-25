@@ -166,7 +166,8 @@
         "HasAnyBorder": true
       },
       "DefaultCellPadding": {},
-      "DefaultCellMargin": {}
+      "DefaultCellMargin": {},
+      "IsAutoFit": true
     }
   }
 ]

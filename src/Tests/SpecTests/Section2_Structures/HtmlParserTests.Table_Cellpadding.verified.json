@@ -83,7 +83,8 @@
         "Horizontal": 10.0,
         "Vertical": 10.0
       },
-      "DefaultCellMargin": {}
+      "DefaultCellMargin": {},
+      "IsAutoFit": true
     }
   }
 ]

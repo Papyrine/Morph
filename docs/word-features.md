@@ -828,14 +828,18 @@ Tables with absolute positioning on the page.
 > **AI**: Full implementation requires reading `w:tblpPr` attributes (horizontal/vertical position, anchor), then rendering the table at the calculated absolute position similar to `FloatingImageElement` handling.
 
 
-#### Table Auto-fit `TODO`
+#### Table Auto-fit `PARTIAL`
 
 Automatic column width adjustment based on content.
 
-- **OOXML**: `w:tblLayout` with `w:type="autofit"`
+- **OOXML**: `w:tblLayout` with `w:type="autofit"` or `"fixed"`
 - **Spec**: [Table Layout](http://officeopenxml.com/WPtableLayout.php)
+- **Model**: `TableProperties.IsAutoFit` (default `true`, matching Word's behaviour for tables without an explicit layout type)
+- **Parse**: `DocumentParser.ParseTable()` reads `w:tblLayout/@type`; only `fixed` flips the flag
+- **Render**: `TableLayout.CalculateColumnWidths` already distributes widths proportionally regardless of mode, so the field is captured but doesn't yet drive different layouts
+- **Test**: HtmlParserTests JSON snapshots regenerated to include the new field
 
-> **AI**: Requires measuring text content width for each cell, then distributing column widths proportionally. Add to `TableLayout.CalculateColumnWidths()`. Complex because it requires a measurement pass before layout.
+> **Contributors**: Marked PARTIAL until the renderer measures cell content and reflows columns when `IsAutoFit` is true (currently the grid widths from `w:tblGrid` are used regardless).
 
 
 #### Header Row Repeat `PARTIAL`
@@ -1899,7 +1903,7 @@ Read-only mode, form protection, and editing restrictions.
 | 1. Text Formatting | 11 | 3 | 2 | 16 |
 | 2. Paragraph Formatting | 11 | 1 | 0 | 12 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
-| 4. Tables | 13 | 2 | 2 | 17 |
+| 4. Tables | 13 | 3 | 1 | 17 |
 | 5. Page Layout & Sections | 16 | 1 | 1 | 18 |
 | 6. Graphics & Media | 12 | 1 | 6 | 19 |
 | 7. Form Controls | 10 | 0 | 0 | 10 |
@@ -1908,7 +1912,7 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 4 | 1 | 6 |
 | 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **97** | **13** | **14** | **124** |
+| **Total** | **97** | **14** | **13** | **124** |
 
 
 ### Coverage
@@ -1916,11 +1920,11 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 97
-    "Partial" : 13
-    "Todo" : 14
+    "Partial" : 14
+    "Todo" : 13
 ```
 
-**Overall coverage: 78% fully implemented, 10% partial, 11% remaining.**
+**Overall coverage: 78% fully implemented, 11% partial, 10% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)
