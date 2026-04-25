@@ -75,4 +75,10 @@ sealed class ParsedDocument
     /// Renderer does not yet draw the embedded payload — these are captured for inspection only.
     /// </summary>
     public IReadOnlyList<EmbeddedObject> EmbeddedObjects { get; init; } = [];
+
+    /// <summary>
+    /// Presence flags for advanced OOXML features that the renderer doesn't yet draw.
+    /// Lets consumers decide whether to fall back to Word for the document.
+    /// </summary>
+    public DocumentFeatures Features { get; init; } = new();
 }

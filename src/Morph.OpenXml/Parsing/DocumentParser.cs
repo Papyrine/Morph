@@ -173,6 +173,7 @@ sealed class DocumentParser(string defaultFont)
         var footnotes = ExtractFootnotes(mainPart);
         var endnotes = ExtractEndnotes(mainPart);
         var embeddedObjects = ExtractEmbeddedObjects(body);
+        var features = DetectAdvancedFeatures(body, mainPart);
 
         return new()
         {
@@ -193,7 +194,93 @@ sealed class DocumentParser(string defaultFont)
             FieldCodes = fieldCodes,
             Footnotes = footnotes,
             Endnotes = endnotes,
-            EmbeddedObjects = embeddedObjects
+            EmbeddedObjects = embeddedObjects,
+            Features = features
+        };
+    }
+
+    static DocumentFeatures DetectAdvancedFeatures(Body body, MainDocumentPart mainPart)
+    {
+        var hasCharts = false;
+        var hasSmartArt = false;
+        var hasMath = false;
+        var hasGradients = false;
+        var hasBezier = false;
+        var has3d = false;
+        var hasConnectors = false;
+        var hasDuotone = false;
+
+        // Math can appear at body level or inside paragraphs.
+        if (body.Descendants().Any(_ => _.LocalName is "oMath" or "oMathPara"))
+        {
+            hasMath = true;
+        }
+
+        foreach (var element in body.Descendants())
+        {
+            switch (element.LocalName)
+            {
+                case "graphicData":
+                    var uri = element.GetAttributes().FirstOrDefault(a => a.LocalName == "uri").Value;
+                    if (uri == "http://schemas.openxmlformats.org/drawingml/2006/chart")
+                    {
+                        hasCharts = true;
+                    }
+                    else if (uri == "http://schemas.openxmlformats.org/drawingml/2006/diagram")
+                    {
+                        hasSmartArt = true;
+                    }
+                    break;
+                case "gradFill":
+                    hasGradients = true;
+                    break;
+                case "custGeom":
+                    hasBezier = true;
+                    break;
+                case "sp3d":
+                case "scene3d":
+                    has3d = true;
+                    break;
+                case "cxnSp":
+                    hasConnectors = true;
+                    break;
+                case "duotone":
+                case "clrChange":
+                    hasDuotone = true;
+                    break;
+            }
+        }
+
+        // Watermarks: header parts with shapes that look watermark-shaped.
+        var hasWatermark = false;
+        foreach (var headerPart in mainPart.HeaderParts)
+        {
+            if (headerPart.Header == null) continue;
+            // Word emits watermarks as v:shape with class containing "WordPictureWatermark" / "WordTextWatermark".
+            foreach (var attr in headerPart.Header.Descendants().SelectMany(_ => _.GetAttributes()))
+            {
+                if (attr.Value is { } v && (v.Contains("WordPictureWatermark", StringComparison.OrdinalIgnoreCase) ||
+                                            v.Contains("WordTextWatermark", StringComparison.OrdinalIgnoreCase)))
+                {
+                    hasWatermark = true;
+                    break;
+                }
+            }
+
+            if (hasWatermark) break;
+        }
+
+        return new()
+        {
+            HasCharts = hasCharts,
+            HasSmartArt = hasSmartArt,
+            HasMath = hasMath,
+            HasWatermarks = hasWatermark,
+            HasGradientFills = hasGradients,
+            HasBezierShapes = hasBezier,
+            Has3dEffects = has3d,
+            HasConnectors = hasConnectors,
+            HasDuotoneEffects = hasDuotone
         };
     }
 

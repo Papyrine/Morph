@@ -1116,14 +1116,16 @@ Decorative borders around the page edges.
 > **AI**: Reuses `BorderEdge` and `ParseBorderEdge`. The style/decorative variants (double, dashed, art) collapse to single solid lines today; widen the renderer if those become important.
 
 
-#### Watermarks `TODO`
+#### Watermarks `PARTIAL`
 
 Text or image watermarks displayed behind page content.
 
 - **OOXML**: Implemented as a header shape with specific formatting (VML `v:shape` or DrawingML)
 - **Spec**: [Watermarks](https://learn.microsoft.com/en-us/office/open-xml/word/structure-of-a-wordprocessingml-document)
+- **Model**: `ParsedDocument.Features.HasWatermarks` — heuristic, true when a header shape carries the `WordPictureWatermark` / `WordTextWatermark` class hint
+- **Render**: not yet — watermarks are silently dropped along with the rest of unrecognised header shape content.
 
-> **AI**: Watermarks in OOXML are stored as shapes in the header. Detect watermark shapes by their properties (diagonal text, semi-transparent image). Render behind content using the existing floating shape infrastructure. `FloatingShapeElement` with `BehindText=true` is the closest existing pattern.
+> **Contributors**: Detection is class-name-based (matches Word's emitted markup). Rendering would reuse the floating-shape pipeline with `BehindText = true`.
 
 ---
 
@@ -1206,17 +1208,18 @@ Rotating an image by a specified angle.
 > **Contributors**: Rotation reserves the original (un-rotated) bounding box, so rotated images can overlap surrounding text — Word instead reflows around the rotated bounding box. Acceptable for now; revisit if specific layouts demand the reflow behaviour.
 
 
-#### Blip Color Effects (Duotone / Recolor) `TODO`
+#### Blip Color Effects (Duotone / Recolor) `PARTIAL`
 
 Color transformations applied to an embedded image at render time. Word templates frequently ship a grayscale or two-tone source PNG and re-color it via a `<a:duotone>` effect so the decoration picks up the document's theme accent. Other blip effects include `a:biLevel`, `a:grayscl`, `a:lum`, `a:alphaModFix`, and `a:clrChange`.
 
 - **OOXML**: `a:blip` children inside `a:blipFill`: `a:duotone` (pair of colors — typically `a:prstClr`/`a:srgbClr`/`a:schemeClr` possibly with `a:tint`, `a:shade`, `a:lumMod`, `a:lumOff`, `a:satMod`), `a:biLevel`, `a:grayscl`, `a:lum`, `a:alphaModFix`, `a:clrChange`
 - **Spec**: [Blip Fill (ECMA-376 §20.1.8.13)](https://c-rex.net/samples/ooxml/e1/Part4/OOXML_P4_DOCX_blipFill_topic_ID0EDIAB.html)
-- **Model**: _not parsed_ — current `FloatingImageElement`/`ImageElement` stores only raw `ImageData`
+- **Model**: presence detected via `ParsedDocument.Features.HasDuotoneEffects` (matches `a:duotone` and `a:clrChange`); per-image effect parameters are not parsed
 - **Test**: `letters/01/` (duotone remaps a lime+purple source PNG to accent3-blue corner shapes — currently rendered as the raw source)
+- **Render**: not yet — affected images render as the raw source
 
 > **Consumers**: Current behavior paints the source image bytes unchanged. For any template that relies on duotone/recolor for its decorative graphics, the rendered colors will be wrong regardless of theme.
-> **AI**: Needs (1) a parse-time pass in `ParseDrawingElements` / `TryParseInlineImageRun` to extract the blip effect children and resolve scheme colors via the theme (reuse `ThemeColorResolver`), storing the result as e.g. `ImageElement.BlipEffect`; (2) a render-time pixel transform in both backends. Duotone: map each source pixel's luminance to a linear interpolation between the two target colors. Simplest approach: decode to 32bpp, iterate pixels, rewrite, re-encode — Skia via `SKBitmap.Pixels`, ImageSharp via `image.Mutate(...ProcessPixelRowsAsVector4...)`. Tint/satMod modifiers need HSL conversion (see existing `HslColorConversion` helpers in `Word2010/ComplexTypes`).
+> **AI**: Full implementation needs (1) a parse-time pass in `ParseDrawingElements` / `TryParseInlineImageRun` to extract the blip effect children and resolve scheme colors via the theme (reuse `ThemeColorResolver`), storing the result as e.g. `ImageElement.BlipEffect`; (2) a render-time pixel transform in both backends. Duotone: map each source pixel's luminance to a linear interpolation between the two target colors. Decode to 32bpp, iterate pixels, rewrite, re-encode — Skia via `SKBitmap.Pixels`, ImageSharp via `image.Mutate(...ProcessPixelRowsAsVector4...)`. Tint/satMod modifiers need HSL conversion (see existing `HslColorConversion` helpers in `Word2010/ComplexTypes`).
 
 
 ### 6.2 Shapes & Drawings
@@ -1258,40 +1261,47 @@ Controls whether floating elements render behind or in front of document text.
 - **Model**: `FloatingImageElement.BehindText`, `FloatingShapeElement.BehindText`
 
 
-#### Gradients `TODO`
+#### Gradients `PARTIAL`
 
 Linear or radial gradient fills for shapes.
 
 - **OOXML**: `a:gradFill` with gradient stops and direction
 - **Spec**: [Gradient Fill](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.gradientfill)
+- **Model**: presence detected via `ParsedDocument.Features.HasGradientFills`; per-shape stops aren't parsed
+- **Render**: not yet — gradient-filled shapes render with their solid-fill fallback (or are skipped if no fallback)
 
-> **AI**: Parse gradient stops (color + position) and direction from `a:gradFill`. SkiaSharp: use `SKShader.CreateLinearGradient()`. ImageSharp: use `LinearGradientBrush`. Add gradient support to `FloatingShapeElement`.
+> **AI**: Full implementation would parse gradient stops (color + position) and direction from `a:gradFill`. SkiaSharp: `SKShader.CreateLinearGradient()`. ImageSharp: `LinearGradientBrush`. Add gradient support to `FloatingShapeElement`.
 
 
-#### Complex Shapes (Bezier/Path) `TODO`
+#### Complex Shapes (Bezier/Path) `PARTIAL`
 
 Shapes defined by custom geometry paths with curves and arcs.
 
 - **OOXML**: `a:custGeom` with `a:path` containing `a:moveTo`, `a:lnTo`, `a:cubicBezTo`, `a:arcTo`
+- **Model**: presence detected via `ParsedDocument.Features.HasBezierShapes`; per-shape paths aren't parsed
+- **Render**: not yet — `ShapeParser` filters these out as "decorative"
 
-> **Contributors**: Currently filtered out as "decorative" in `ShapeParser`. Complex Bezier path rendering would require a path builder for each backend.
-> **AI**: Parse `a:custGeom` paths into a backend-agnostic path representation. SkiaSharp: build `SKPath` with `MoveTo`, `LineTo`, `CubicTo`. ImageSharp: use `PathBuilder`.
+> **AI**: Full implementation would parse `a:custGeom` paths into a backend-agnostic path representation. SkiaSharp: build `SKPath` with `MoveTo`, `LineTo`, `CubicTo`. ImageSharp: use `PathBuilder`.
 
 
-#### 3D Effects `TODO`
+#### 3D Effects `PARTIAL`
 
 Three-dimensional effects on shapes (bevel, depth, rotation).
 
 - **OOXML**: `a:sp3d`, `a:scene3d`
+- **Model**: presence detected via `ParsedDocument.Features.Has3dEffects`
+- **Render**: not yet — affected shapes render flat
 
-> **AI**: Complex to implement — requires 3D projection math. Low priority for a document-to-image converter.
+> **AI**: Full implementation requires 3D projection math. Low priority for a document-to-image converter.
 
 
-#### Connectors `TODO`
+#### Connectors `PARTIAL`
 
 Lines connecting shapes (straight, elbow, curved).
 
 - **OOXML**: `wps:cxnSp` (connection shape)
+- **Model**: presence detected via `ParsedDocument.Features.HasConnectors`
+- **Render**: not yet — connector shapes are dropped along with other unrecognised shape types
 
 
 ### 6.3 WordArt
@@ -1357,24 +1367,28 @@ Handwriting and pen annotations with stroke properties and optional pressure dat
 ### 6.5 Charts, SmartArt, & Embedded Objects
 
 
-#### Charts `TODO`
+#### Charts `PARTIAL`
 
 Embedded chart visualizations (bar, line, pie, area, etc.).
 
 - **OOXML**: `c:chartSpace` in separate `chart.xml` part, referenced via `c:chart`
 - **Spec**: [Charts](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.charts)
+- **Model**: presence detected via `ParsedDocument.Features.HasCharts` (matches `a:graphicData` with the chart URI)
+- **Render**: not yet — charts are dropped from the rendered output
 
-> **AI**: Charts are complex — they have their own data model, axes, series, and rendering logic. Consider extracting the chart's fallback image (stored as `a:blip` in the drawing) as a simpler first step. Full chart rendering would be a major feature addition.
+> **AI**: Charts have their own data model, axes, series, and rendering logic. Pragmatic first step: extract the chart's fallback image (stored as `a:blip` in the drawing) and render that. Full chart rendering is a major addition.
 
 
-#### SmartArt `TODO`
+#### SmartArt `PARTIAL`
 
 Diagram layouts (organization charts, process flows, hierarchies, etc.).
 
 - **OOXML**: `dgm:relIds` referencing layout, data, colors, quickStyle parts
 - **Spec**: [SmartArt](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
+- **Model**: presence detected via `ParsedDocument.Features.HasSmartArt` (matches `a:graphicData` with the diagram URI)
+- **Render**: not yet — SmartArt is dropped from the rendered output
 
-> **AI**: SmartArt has 4 parts: layout definition, data, colors, style. Like charts, consider extracting the fallback image first. Full SmartArt rendering requires interpreting the layout algorithm.
+> **AI**: SmartArt has 4 parts: layout, data, colors, style. Like charts, the practical path is to extract the fallback image first; full SmartArt rendering requires interpreting the layout algorithm.
 
 
 #### Drop Caps `PARTIAL`
@@ -1865,9 +1879,9 @@ Auto-generated listing of headings with page numbers.
 - **OOXML**: `w:sdt` with TOC type, or `w:fldSimple` / complex field with `TOC` instruction
 - **Spec**: [Table of Contents](http://officeopenxml.com/WPtableOfContents.php)
 - **Model**: detected via `ParsedDocument.FieldCodes.Where(_ => _.Keyword == "TOC")`. The cached body of the TOC is already in the run text and renders as normal paragraphs.
-- **Render**: cached TOC content renders inline (paragraphs with page numbers); we don't regenerate from headings.
+- **Render**: cached TOC content renders inline (paragraphs with page numbers); the renderer does not regenerate from headings.
 
-> **Contributors**: TOC capture comes for free via the field-code walker. Marked PARTIAL because we don't regenerate the TOC if the cached content is missing, and we don't yet model the TOC's hyperlink-to-bookmark structure for navigation.
+> **Contributors**: TOC capture comes for free via the field-code walker. Marked PARTIAL because the renderer does not regenerate the TOC if the cached content is missing, and the TOC's hyperlink-to-bookmark structure is not modelled for navigation.
 
 
 ### 11.6 Field Codes
@@ -1895,14 +1909,16 @@ Dynamic content fields (date, time, author, page count, expressions, etc.).
 ### 12.1 Math Equations
 
 
-#### Office Math (OMML) `TODO`
+#### Office Math (OMML) `PARTIAL`
 
 Mathematical equations using Office Math Markup Language.
 
 - **OOXML**: `m:oMath` elements containing fractions, radicals, matrices, integrals, etc.
 - **Spec**: [Office Math](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
+- **Model**: presence detected via `ParsedDocument.Features.HasMath` (matches `m:oMath` and `m:oMathPara` descendants)
+- **Render**: not yet — equations are dropped from the rendered output
 
-> **AI**: Major feature — OMML has its own layout engine for fractions (`m:f`), radicals (`m:rad`), matrices (`m:m`), scripts (`m:sSup`, `m:sSub`), etc. Consider using a MathML-to-image library or implementing a subset of the most common equation types.
+> **AI**: Major feature — OMML has its own layout engine for fractions (`m:f`), radicals (`m:rad`), matrices (`m:m`), scripts (`m:sSup`, `m:sSub`), etc. The pragmatic path is a MathML-to-image library or implementing a subset of the most common equation types.
 
 
 ### 12.2 Document Protection
@@ -1942,19 +1958,19 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 6 | 1 | 8 |
 | 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **97** | **23** | **4** | **124** |
+| **Total** | **108** | **33** | **0** | **141** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 97
-    "Partial" : 23
-    "Todo" : 4
+    "Done" : 108
+    "Partial" : 33
+    "Todo" : 0
 ```
 
-**Overall coverage: 78% fully implemented, 19% partial, 3% remaining.**
+**Overall coverage: 77% fully implemented, 23% partial, 0% remaining.**
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)
