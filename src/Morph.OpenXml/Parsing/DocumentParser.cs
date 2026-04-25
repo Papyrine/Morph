@@ -22,6 +22,7 @@ sealed class DocumentParser(string defaultFont)
 {
     // Conversion constants
     const double twipsPerPoint = 20.0;
+
     // EMUs per point
     const double emusPerPoint = 914400.0 / 72.0;
 
@@ -129,8 +130,8 @@ sealed class DocumentParser(string defaultFont)
 
         // Extract gutterAtTop setting (so ExtractPageSettings can apply gutter to the right margin).
         gutterAtTopSetting = mainPart.DocumentSettingsPart?.Settings?
-            .GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.GutterAtTop>() is { } g
-            && g.Val?.Value != false;
+                                 .GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.GutterAtTop>() is { } g
+                             && g.Val?.Value != false;
 
         // SectionProperties (sectPr) describes the section it belongs to, and the section break is stored
         // on the last paragraph of the section. The next section's properties are stored in the next sectPr.
@@ -251,6 +252,7 @@ sealed class DocumentParser(string defaultFont)
                     {
                         hasSmartArt = true;
                     }
+
                     break;
                 case "gradFill":
                     hasGradients = true;
@@ -332,7 +334,12 @@ sealed class DocumentParser(string defaultFont)
                 }
             }
 
-            result.Add(new() { ProgId = progId, RelationshipId = relId });
+            result.Add(
+                new()
+                {
+                    ProgId = progId,
+                    RelationshipId = relId
+                });
         }
 
         return result;
@@ -383,7 +390,7 @@ sealed class DocumentParser(string defaultFont)
             }
 
             var text = string.Concat(fn.Descendants<Text>().Select(_ => _.Text));
-            result.Add(new() { Id = idLong.ToString(), Text = text });
+            result.Add(new() {Id = idLong.ToString(), Text = text});
         }
 
         return result;
@@ -411,7 +418,7 @@ sealed class DocumentParser(string defaultFont)
             }
 
             var text = string.Concat(en.Descendants<Text>().Select(_ => _.Text));
-            result.Add(new() { Id = idLong.ToString(), Text = text });
+            result.Add(new() {Id = idLong.ToString(), Text = text});
         }
 
         return result;
@@ -441,6 +448,7 @@ sealed class DocumentParser(string defaultFont)
                         {
                             instructionStack.Peek().Append(instr.Text);
                         }
+
                         break;
 
                     case FieldChar fc when fc.FieldCharType?.Value == FieldCharValues.Separate && inResult.Count > 0:
@@ -459,8 +467,9 @@ sealed class DocumentParser(string defaultFont)
                         inResult.Pop();
                         if (instruction.Length > 0)
                         {
-                            result.Add(new() { Instruction = instruction, Result = resultText });
+                            result.Add(new() {Instruction = instruction, Result = resultText});
                         }
+
                         break;
                 }
             }
@@ -477,7 +486,7 @@ sealed class DocumentParser(string defaultFont)
             }
 
             var resultText = string.Concat(simple.Descendants<Text>().Select(_ => _.Text));
-            result.Add(new() { Instruction = instruction, Result = resultText });
+            result.Add(new() {Instruction = instruction, Result = resultText});
         }
 
         return result;
@@ -510,7 +519,7 @@ sealed class DocumentParser(string defaultFont)
             mode = DocumentEditingMode.Forms;
         }
 
-        return new() { EditingMode = mode };
+        return new() {EditingMode = mode};
     }
 
     static IReadOnlyList<TrackedChange> ExtractTrackedChanges(Body body)
@@ -648,7 +657,7 @@ sealed class DocumentParser(string defaultFont)
                 }
             }
 
-            result.Add(new() { Id = id, Name = name, ParagraphIndex = paragraphIndex });
+            result.Add(new() {Id = id, Name = name, ParagraphIndex = paragraphIndex});
         }
 
         return result;
@@ -2305,8 +2314,9 @@ sealed class DocumentParser(string defaultFont)
                 }
             }
         }
+
         return elements.Count > 0
-            ? new HeaderFooterContent { Elements = elements }
+            ? new HeaderFooterContent {Elements = elements}
             : null;
     }
 
@@ -3111,10 +3121,10 @@ sealed class DocumentParser(string defaultFont)
                                 {
                                     result.Add(
                                         new ParagraphElement
-                                    {
-                                        Runs = new List<Run>(runs),
-                                        Properties = props
-                                    });
+                                        {
+                                            Runs = new List<Run>(runs),
+                                            Properties = props
+                                        });
                                     runs.Clear();
                                 }
 
@@ -3224,10 +3234,10 @@ sealed class DocumentParser(string defaultFont)
                             {
                                 result.Add(
                                     new ParagraphElement
-                                {
-                                    Runs = new List<Run>(runs),
-                                    Properties = props
-                                });
+                                    {
+                                        Runs = new List<Run>(runs),
+                                        Properties = props
+                                    });
                                 runs.Clear();
                             }
 
@@ -3254,6 +3264,7 @@ sealed class DocumentParser(string defaultFont)
                                 {
                                     continue;
                                 }
+
                                 result.Add(shape);
                             }
 
@@ -3269,10 +3280,10 @@ sealed class DocumentParser(string defaultFont)
                             {
                                 result.Add(
                                     new ParagraphElement
-                                {
-                                    Runs = new List<Run>(runs),
-                                    Properties = props
-                                });
+                                    {
+                                        Runs = new List<Run>(runs),
+                                        Properties = props
+                                    });
                                 runs.Clear();
                             }
 
@@ -3288,10 +3299,10 @@ sealed class DocumentParser(string defaultFont)
                                 {
                                     result.Add(
                                         new ParagraphElement
-                                    {
-                                        Runs = new List<Run>(runs),
-                                        Properties = props
-                                    });
+                                        {
+                                            Runs = new List<Run>(runs),
+                                            Properties = props
+                                        });
                                     runs.Clear();
                                 }
 
@@ -3901,7 +3912,7 @@ sealed class DocumentParser(string defaultFont)
         var current = element;
         while (current != null)
         {
-            if (current is OpenXmlPartRootElement { OpenXmlPart: { } part })
+            if (current is OpenXmlPartRootElement {OpenXmlPart: { } part})
             {
                 return part;
             }
@@ -4720,6 +4731,7 @@ sealed class DocumentParser(string defaultFont)
             {
                 fillAlpha = alphaElement.Val.Value / 100000.0;
             }
+
             // Check for direct RGB color
             var srgbClr = solidFill.GetFirstChild<A.RgbColorModelHex>();
             if (srgbClr?.Val?.HasValue == true)
@@ -6239,11 +6251,13 @@ sealed class DocumentParser(string defaultFont)
     {
         var result = new List<Run>();
         RunProperties? properties = null;
+
         RunProperties GetProperties() =>
             properties ??= ParseRunProperties(run.RunProperties, mainPart, paragraphStyleId);
 
         // Walk children in order so w:tab splits the run into separate model Runs (text, tab, text, ...)
         var textBuilder = new StringBuilder();
+
         void FlushText()
         {
             if (textBuilder.Length == 0)
@@ -6304,7 +6318,7 @@ sealed class DocumentParser(string defaultFont)
         // RunProperties record's static default (which is Georgia, the cross-platform fallback).
         if (props == null)
         {
-            return styleDefaults ?? new RunProperties { FontFamily = effectiveDefaultFont };
+            return styleDefaults ?? new RunProperties {FontFamily = effectiveDefaultFont};
         }
 
         // Start with style defaults or built-in defaults

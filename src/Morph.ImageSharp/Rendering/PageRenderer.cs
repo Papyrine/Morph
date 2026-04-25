@@ -1152,9 +1152,14 @@ sealed class PageRenderer(RenderContext context) :
         foreach (var element in cell.Content)
         {
             var para = element as ParagraphElement;
-            if (para == null && element is ContentControlElement cc && cc.Runs is { Count: > 0 })
+            if (para == null &&
+                element is ContentControlElement {Runs.Count: > 0} cc)
             {
-                para = new() { Runs = cc.Runs, Properties = new() };
+                para = new()
+                {
+                    Runs = cc.Runs,
+                    Properties = new()
+                };
             }
 
             if (para == null)
@@ -1710,10 +1715,17 @@ sealed class PageRenderer(RenderContext context) :
                 {
                     RenderParagraph(
                         new()
-                    {
-                        Runs = [new() { Text = displayText, Properties = new() }],
-                        Properties = new()
-                    });
+                        {
+                            Runs =
+                            [
+                                new()
+                                {
+                                    Text = displayText,
+                                    Properties = new()
+                                }
+                            ],
+                            Properties = new()
+                        });
                 }
             }
 

@@ -11,7 +11,10 @@ internal sealed class HtmlParser
         this.defaultFontFamily = defaultFontFamily;
 
     RunProperties DefaultRunProps() =>
-        new() { FontFamily = defaultFontFamily };
+        new()
+        {
+            FontFamily = defaultFontFamily
+        };
 
     public static List<DocumentElement> Parse(string html) =>
         Parse(html, "Times New Roman");

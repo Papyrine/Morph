@@ -563,7 +563,7 @@ sealed class PageRenderer(RenderContext context) :
             using var skImage = DecodeBitmap(imageData);
             if (skImage != null)
             {
-                if (crop is { IsCropped: true } c)
+                if (crop is {IsCropped: true} c)
                 {
                     var srcLeft = (float) (c.Left * skImage.Width);
                     var srcTop = (float) (c.Top * skImage.Height);
@@ -1600,9 +1600,9 @@ sealed class PageRenderer(RenderContext context) :
         foreach (var element in cell.Content)
         {
             var para = element as ParagraphElement;
-            if (para == null && element is ContentControlElement cc && cc.Runs is { Count: > 0 })
+            if (para == null && element is ContentControlElement cc && cc.Runs is {Count: > 0})
             {
-                para = new() { Runs = cc.Runs, Properties = new() };
+                para = new() {Runs = cc.Runs, Properties = new()};
             }
 
             if (para == null)
@@ -1694,7 +1694,7 @@ sealed class PageRenderer(RenderContext context) :
         var borders = TableLayout.ResolveCellBorders(cell.Properties, tableProps, rowIndex, colIndex, totalRows, totalCols);
         if (borders != null)
         {
-            using var paint = new SKPaint { Style = SKPaintStyle.Stroke, IsAntialias = true };
+            using var paint = new SKPaint {Style = SKPaintStyle.Stroke, IsAntialias = true};
 
             if (borders.Top.IsVisible)
             {
@@ -2515,7 +2515,9 @@ sealed class PageRenderer(RenderContext context) :
         // Draw the date value or placeholder
         var displayText = control.DateValue.HasValue
             ? control.DateValue.Value.ToShortDateString()
-            : !string.IsNullOrEmpty(control.Content) ? control.Content : control.PlaceholderText ?? "";
+            : !string.IsNullOrEmpty(control.Content)
+                ? control.Content
+                : control.PlaceholderText ?? "";
 
         if (!string.IsNullOrEmpty(displayText))
         {
