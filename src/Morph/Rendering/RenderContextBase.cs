@@ -49,6 +49,12 @@ abstract class RenderContextBase
     public float LastParagraphSpacingAfterPoints { get; set; }
     public string? LastParagraphStyleId { get; set; }
 
+    /// <summary>
+    /// When true, the next paragraph's top border should be suppressed because
+    /// the previous paragraph collapsed their shared w:between border.
+    /// </summary>
+    public bool SuppressNextParagraphTopBorder { get; set; }
+
     // Page dimensions in pixels
     public int PageWidthPixels { get; private set; }
     public int PageHeightPixels { get; private set; }
@@ -85,7 +91,8 @@ abstract class RenderContextBase
     public void SetHeaderFooterSpace(float headerHeight, float footerHeight)
     {
         var headerEnd = (float) PageSettings.HeaderDistance + headerHeight;
-        if (headerHeight > 0 && headerEnd > (float) PageSettings.MarginTop)
+        if (headerHeight > 0 &&
+            headerEnd > (float) PageSettings.MarginTop)
         {
             headerSpace = headerEnd - (float) PageSettings.MarginTop;
         }
@@ -95,7 +102,8 @@ abstract class RenderContextBase
         }
 
         var footerEnd = (float) PageSettings.FooterDistance + footerHeight;
-        if (footerHeight > 0 && footerEnd > (float) PageSettings.MarginBottom)
+        if (footerHeight > 0 &&
+            footerEnd > (float) PageSettings.MarginBottom)
         {
             footerSpace = footerEnd - (float) PageSettings.MarginBottom;
         }

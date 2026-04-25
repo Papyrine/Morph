@@ -10,6 +10,7 @@ sealed record RunProperties
     public bool Underline { get; init; }
     public bool Strikethrough { get; init; }
     public bool AllCaps { get; init; }
+    public bool SmallCaps { get; init; }
     public string? ColorHex { get; init; } // null = black
 
     /// <summary>
@@ -27,4 +28,28 @@ sealed record RunProperties
     /// Vertical alignment for subscript/superscript text.
     /// </summary>
     public VerticalRunAlignment VerticalAlignment { get; init; } = VerticalRunAlignment.Baseline;
+
+    /// <summary>
+    /// Minimum font size in points at which Word applies pair kerning (w:kern).
+    /// Zero means "no explicit threshold". The renderer relies on the platform shaper for
+    /// the actual kerning values; this field is captured for downstream inspection.
+    /// </summary>
+    public double KerningMinFontSizePoints { get; init; }
+
+    /// <summary>
+    /// OpenType ligature mode (w14:ligatures). Word 2010+ extension. Renderer relies on the
+    /// platform shaper for actual ligature substitution; this field is captured for inspection.
+    /// </summary>
+    public LigatureMode Ligatures { get; init; } = LigatureMode.Standard;
+
+    /// <summary>
+    /// Whether this run reads right-to-left (w:rtl). Renderer does not yet reverse text order.
+    /// </summary>
+    public bool IsRightToLeft { get; init; }
+
+    /// <summary>
+    /// Word 2010+ text effects (w14:shadow / textOutline / glow / reflection). Presence-only —
+    /// individual effect parameters aren't captured. Renderer doesn't apply any of these yet.
+    /// </summary>
+    public TextEffects Effects { get; init; } = TextEffects.None;
 }

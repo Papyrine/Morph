@@ -13,8 +13,10 @@ sealed class TextRenderer(RenderContext context)
 
         // Add spacing before (collapsed if contextual spacing from previous paragraph)
         // Contextual spacing only collapses spacing between paragraphs of the SAME STYLE
-        var sameStyle = props.StyleId != null && props.StyleId == context.LastParagraphStyleId;
-        var collapseSpacingBefore = props.ContextualSpacing && context.LastParagraphHadContextualSpacing && sameStyle;
+        var sameStyle = props.StyleId != null &&
+                        props.StyleId == context.LastParagraphStyleId;
+        var collapseSpacingBefore = props.ContextualSpacing &&
+                                    context.LastParagraphHadContextualSpacing && sameStyle;
         var totalHeight = collapseSpacingBefore ? 0 : (float)props.SpacingBeforePoints;
 
         foreach (var line in lines)
@@ -28,7 +30,30 @@ sealed class TextRenderer(RenderContext context)
             totalHeight += (float)props.SpacingAfterPoints;
         }
 
+        // Border space: only expand height by the amount w:space exceeds the
+        // spacing that would otherwise absorb it (matches Word's layout).
+        totalHeight += BorderSpaceExcess(props);
+
         return totalHeight;
+    }
+
+    static float BorderSpaceExcess(ParagraphProperties props)
+    {
+        if (props.Borders is not {HasAnyBorder: true} borders)
+        {
+            return 0;
+        }
+
+        var extra = 0f;
+        if (borders.Top.IsVisible)
+        {
+            extra += Math.Max(0, (float) props.BorderTopSpacePoints - (float) props.SpacingBeforePoints);
+        }
+        if (borders.Bottom.IsVisible)
+        {
+            extra += Math.Max(0, (float) props.BorderBottomSpacePoints - (float) props.SpacingAfterPoints);
+        }
+        return extra;
     }
 
     /// <summary>
@@ -52,6 +77,8 @@ sealed class TextRenderer(RenderContext context)
             totalHeight += (float)props.SpacingAfterPoints;
         }
 
+        totalHeight += BorderSpaceExcess(props);
+
         return totalHeight;
     }
 
@@ -73,6 +100,24 @@ sealed class TextRenderer(RenderContext context)
         }
 
         return lineHeights;
+    }
+
+    /// <summary>
+    /// Measures the maximum line width when a paragraph is laid out at the given wrap width.
+    /// Pass a very large maxWidth to obtain the natural single-line width.
+    /// </summary>
+    public float MeasureParagraphNaturalWidth(ParagraphElement paragraph, float maxWidth)
+    {
+        var lines = LayoutParagraphWithWidth(paragraph, maxWidth);
+        var widest = 0f;
+        foreach (var line in lines)
+        {
+            if (line.Width > widest)
+            {
+                widest = line.Width;
+            }
+        }
+        return widest;
     }
 
 
@@ -116,19 +161,25 @@ sealed class TextRenderer(RenderContext context)
     /// <summary>
     /// Renders a paragraph to the image at the current position.
     /// </summary>
-    public void RenderParagraph(Image<Rgba32> currentPage, ParagraphElement paragraph)
+    public void RenderParagraph(Image<Rgba32> currentPage, ParagraphElement paragraph, DocumentElement? nextElement = null)
     {
         var lines = LayoutParagraph(paragraph);
         var props = paragraph.Properties;
         var lineNumberSettings = context.PageSettings.LineNumbers;
-        var showLineNumbers = lineNumberSettings != null && !props.SuppressLineNumbers;
+        var showLineNumbers = lineNumberSettings != null &&
+                              !props.SuppressLineNumbers;
 
         // Add spacing before with margin collapsing (similar to CSS)
         // When two paragraphs are adjacent, use max(SpacingAfter, SpacingBefore) instead of sum
         // Contextual spacing only collapses spacing between paragraphs of the SAME STYLE
-        var sameStyle = props.StyleId != null && props.StyleId == context.LastParagraphStyleId;
-        var collapseSpacingBefore = props.ContextualSpacing && context.LastParagraphHadContextualSpacing && sameStyle;
-        if (!collapseSpacingBefore)
+        var sameStyle = props.StyleId != null &&
+                        props.StyleId == context.LastParagraphStyleId;
+        var collapseSpacingBefore = props.ContextualSpacing &&
+                                    context.LastParagraphHadContextualSpacing && sameStyle;
+        // Also collapse when we're continuing a w:between border chain — the borders fuse,
+        // so there must be no gap between this paragraph and the previous one.
+        var inBetweenChain = context.SuppressNextParagraphTopBorder;
+        if (!collapseSpacingBefore && !inBetweenChain)
         {
             var spacingBefore = (float)props.SpacingBeforePoints;
             var lastSpacingAfter = context.LastParagraphSpacingAfterPoints;
@@ -160,7 +211,24 @@ sealed class TextRenderer(RenderContext context)
             currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(bgX, bgY, bgWidth, bgHeight)));
         }
 
+        // Reserve vertical space for border w:space that isn't already absorbed by
+        // SpacingBefore/After. When inBetweenChain, the spacing-before above was
+        // suppressed, so the full top-space must be reserved to keep text clear of
+        // the between line drawn by the previous paragraph.
+        var hasTopBorder = props.Borders?.Top.IsVisible ?? false;
+        var hasBottomBorder = props.Borders?.Bottom.IsVisible ?? false;
+        var topSpaceExtra = (hasTopBorder || inBetweenChain)
+            ? (inBetweenChain
+                ? (float) props.BorderTopSpacePoints
+                : Math.Max(0f, (float) props.BorderTopSpacePoints - (float) props.SpacingBeforePoints))
+            : 0f;
+        var bottomSpaceExtra = hasBottomBorder
+            ? Math.Max(0f, (float) props.BorderBottomSpacePoints - (float) props.SpacingAfterPoints)
+            : 0f;
+
+        context.CurrentY += topSpaceExtra;
         var paragraphStartY = context.CurrentY;
+
         var isFirstLine = true;
         foreach (var line in lines)
         {
@@ -235,37 +303,66 @@ sealed class TextRenderer(RenderContext context)
             context.CurrentY += lineHeight;
         }
 
-        // Draw paragraph borders if specified
-        if (props.Borders is {HasAnyBorder: true})
+        // Draw paragraph borders if specified. Top sits BorderTopSpace above the text;
+        // bottom sits BorderBottomSpace below the last line. When the space exceeds
+        // SpacingBefore/After, we reserved the excess above/below to avoid overlap.
+        if (props.Borders is {HasAnyBorder: true} borders)
         {
-            var borderLeft = context.PointsToPixels(context.ContentLeft + (float) props.LeftIndentPoints);
-            var borderRight = context.PointsToPixels(context.ContentLeft + context.ContentWidth - (float) props.RightIndentPoints);
+            var borderLeft = context.PointsToPixels(context.ContentLeft + (float) props.LeftIndentPoints - (float) props.BorderLeftSpacePoints);
+            var borderRight = context.PointsToPixels(context.ContentLeft + context.ContentWidth - (float) props.RightIndentPoints + (float) props.BorderRightSpacePoints);
+            var borderTopY = context.PointsToPixels(paragraphStartY - (float) props.BorderTopSpacePoints);
+            var borderBottomY = context.PointsToPixels(context.CurrentY + (float) props.BorderBottomSpacePoints);
 
-            if (props.Borders.Bottom.IsVisible)
+            var collapseBottom = nextElement is ParagraphElement nextPara
+                && props.BordersCollapseWith(nextPara.Properties);
+            var suppressTop = context.SuppressNextParagraphTopBorder;
+            context.SuppressNextParagraphTopBorder = false;
+
+            void DrawBorder(BorderEdge edge, PointF start, PointF end)
             {
-                var borderY = context.PointsToPixels(context.CurrentY + (float) props.BorderBottomSpacePoints);
-                var borderColor = RenderContext.ParseColor(props.Borders.Bottom.ColorHex ?? "000000");
-                var strokeWidth = context.PointsToPixels((float) props.Borders.Bottom.WidthPoints);
-                var pen = new SolidPen(borderColor, strokeWidth);
-                currentPage.Mutate(_ => _.DrawLine(pen, new PointF(borderLeft, borderY), new PointF(borderRight, borderY)));
+                var color = RenderContext.ParseColor(edge.ColorHex ?? "000000");
+                var pen = new SolidPen(color, context.PointsToPixels((float) edge.WidthPoints));
+                currentPage.Mutate(_ => _.DrawLine(pen, start, end));
             }
 
-            if (props.Borders.Top.IsVisible)
+            if (borders.Bottom.IsVisible && !collapseBottom)
             {
-                var borderY = context.PointsToPixels(paragraphStartY);
-                var borderColor = RenderContext.ParseColor(props.Borders.Top.ColorHex ?? "000000");
-                var strokeWidth = context.PointsToPixels((float) props.Borders.Top.WidthPoints);
-                var pen = new SolidPen(borderColor, strokeWidth);
-                currentPage.Mutate(_ => _.DrawLine(pen, new PointF(borderLeft, borderY), new PointF(borderRight, borderY)));
+                DrawBorder(borders.Bottom, new(borderLeft, borderBottomY), new(borderRight, borderBottomY));
+            }
+
+            if (borders.Top.IsVisible && !suppressTop)
+            {
+                DrawBorder(borders.Top, new(borderLeft, borderTopY), new(borderRight, borderTopY));
+            }
+
+            if (borders.Left.IsVisible)
+            {
+                DrawBorder(borders.Left, new(borderLeft, borderTopY), new(borderLeft, borderBottomY));
+            }
+
+            if (borders.Right.IsVisible)
+            {
+                DrawBorder(borders.Right, new(borderRight, borderTopY), new(borderRight, borderBottomY));
+            }
+
+            if (collapseBottom)
+            {
+                DrawBorder(props.BorderBetween, new(borderLeft, borderBottomY), new(borderRight, borderBottomY));
+                context.SuppressNextParagraphTopBorder = true;
+                // Advance past the between line so the next paragraph's top space starts here.
+                context.CurrentY += (float) props.BorderBottomSpacePoints;
             }
         }
 
         // Add spacing after and track for margin collapsing with next paragraph
-        // Contextual spacing removes space between paragraphs to create tighter visual grouping
+        // Contextual spacing removes space between paragraphs to create tighter visual grouping.
+        // When this paragraph collapsed its bottom border into a w:between line, suppress
+        // spacing-after too so the shared edges visually fuse with the next paragraph.
         var spacingAfter = (float)props.SpacingAfterPoints;
-        if (!props.ContextualSpacing)
+        var collapsedBottom = context.SuppressNextParagraphTopBorder;
+        if (!props.ContextualSpacing && !collapsedBottom)
         {
-            context.CurrentY += spacingAfter;
+            context.CurrentY += spacingAfter + bottomSpaceExtra;
             context.LastParagraphSpacingAfterPoints = spacingAfter;
         }
         else
@@ -403,9 +500,13 @@ sealed class TextRenderer(RenderContext context)
                 var followingWidth = MeasureFollowingWidth(paragraph, runIndex + 1);
                 var leftIndentPts = (float)props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
+                double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
+                    ? MeasureFollowingDecimalPrefix(paragraph, runIndex + 1)
+                    : null;
                 var (destinationAbs, matchedStop) = TabStopResolver.Resolve(
                     cursorAbs, followingWidth,
-                    props.TabStops, props.DefaultTabStopPoints, leftIndentPts);
+                    props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
+                    decimalPrefix);
                 var gap = (float)(destinationAbs - cursorAbs);
                 if (gap <= 0 || currentLineWidth + gap > effectiveWidth)
                 {
@@ -463,7 +564,9 @@ sealed class TextRenderer(RenderContext context)
                     Properties = run.Properties,
                     InlineImageData = run.InlineImageData,
                     InlineImageHeightPoints = imageHeight,
-                    InlineImageContentType = run.InlineImageContentType
+                    InlineImageContentType = run.InlineImageContentType,
+                    InlineImageRotationDegrees = run.InlineImageRotationDegrees,
+                    InlineImageCrop = run.InlineImageCrop
                 });
                 currentLineWidth += imageWidth;
                 maxLineHeight = Math.Max(maxLineHeight, imageHeight);
@@ -955,8 +1058,30 @@ sealed class TextRenderer(RenderContext context)
         try
         {
             using var img = Image.Load<Rgba32>(fragment.InlineImageData!);
+
+            if (fragment.InlineImageCrop is { IsCropped: true } crop)
+            {
+                var srcLeft = (int) (crop.Left * img.Width);
+                var srcTop = (int) (crop.Top * img.Height);
+                var srcWidth = Math.Max(1, img.Width - srcLeft - (int) (crop.Right * img.Width));
+                var srcHeight = Math.Max(1, img.Height - srcTop - (int) (crop.Bottom * img.Height));
+                img.Mutate(_ => _.Crop(new Rectangle(srcLeft, srcTop, srcWidth, srcHeight)));
+            }
+
             img.Mutate(_ => _.Resize(new Size((int)pixelWidth, (int)pixelHeight)));
-            currentPage.Mutate(_ => _.DrawImage(img, new Point((int)pixelX, (int)pixelY), 1f));
+            var rotation = (float) fragment.InlineImageRotationDegrees;
+            if (rotation != 0)
+            {
+                img.Mutate(_ => _.Rotate(rotation));
+                // After rotation the image's bounding box grew; recentre over the original location.
+                var newX = pixelX + pixelWidth / 2 - img.Width / 2f;
+                var newY = pixelY + pixelHeight / 2 - img.Height / 2f;
+                currentPage.Mutate(_ => _.DrawImage(img, new Point((int)newX, (int)newY), 1f));
+            }
+            else
+            {
+                currentPage.Mutate(_ => _.DrawImage(img, new Point((int)pixelX, (int)pixelY), 1f));
+            }
         }
         catch
         {
@@ -996,9 +1121,13 @@ sealed class TextRenderer(RenderContext context)
                 var followingWidth = MeasureFollowingWidth(paragraph, runIndex + 1);
                 var leftIndentPts = (float)props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
+                double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
+                    ? MeasureFollowingDecimalPrefix(paragraph, runIndex + 1)
+                    : null;
                 var (destinationAbs, matchedStop) = TabStopResolver.Resolve(
                     cursorAbs, followingWidth,
-                    props.TabStops, props.DefaultTabStopPoints, leftIndentPts);
+                    props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
+                    decimalPrefix);
                 var gap = (float)(destinationAbs - cursorAbs);
                 if (gap <= 0 || currentLineWidth + gap > effectiveWidth)
                 {
@@ -1057,7 +1186,9 @@ sealed class TextRenderer(RenderContext context)
                     Properties = run.Properties,
                     InlineImageData = run.InlineImageData,
                     InlineImageHeightPoints = imageHeight,
-                    InlineImageContentType = run.InlineImageContentType
+                    InlineImageContentType = run.InlineImageContentType,
+                    InlineImageRotationDegrees = run.InlineImageRotationDegrees,
+                    InlineImageCrop = run.InlineImageCrop
                 });
                 currentLineWidth += imageWidth;
                 maxLineHeight = Math.Max(maxLineHeight, imageHeight);
@@ -1268,6 +1399,42 @@ sealed class TextRenderer(RenderContext context)
     /// <summary>
     /// Measures text widths for runs following a tab, up to the next tab or line break.
     /// </summary>
+    // Width of the following text up to (but not including) the first '.' character. Returns null
+    // when no '.' is present — resolver then treats the Decimal stop as Right alignment.
+    float? MeasureFollowingDecimalPrefix(ParagraphElement paragraph, int startRunIndex)
+    {
+        float total = 0;
+        for (var i = startRunIndex; i < paragraph.Runs.Count; i++)
+        {
+            var run = paragraph.Runs[i];
+            if (run.IsTab || run.InlineImageData is {Length: > 0})
+            {
+                break;
+            }
+
+            if (run.Text.Contains('\n') || run.Text.Contains('\r'))
+            {
+                break;
+            }
+
+            var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
+            var font = context.GetFont(run.Properties);
+            var dotIndex = text.IndexOf('.');
+            if (dotIndex >= 0)
+            {
+                var prefix = text[..dotIndex];
+                total += RenderContext.MeasureText(font, prefix)
+                         + (float)(run.Properties.CharacterSpacingPoints * prefix.Length);
+                return total;
+            }
+
+            total += RenderContext.MeasureText(font, text)
+                     + (float)(run.Properties.CharacterSpacingPoints * text.Length);
+        }
+
+        return null;
+    }
+
     float MeasureFollowingWidth(ParagraphElement paragraph, int startRunIndex)
     {
         float total = 0;
@@ -1396,6 +1563,12 @@ sealed class TextFragment
 
     /// <summary>Content type of inline image (e.g., "image/png", "image/svg+xml").</summary>
     public string? InlineImageContentType { get; init; }
+
+    /// <summary>Inline image rotation in degrees (clockwise).</summary>
+    public double InlineImageRotationDegrees { get; init; }
+
+    /// <summary>Inline image source-rectangle crop. Null = no crop.</summary>
+    public ImageCrop? InlineImageCrop { get; init; }
 
     /// <summary>True when this fragment represents a tab-stop gap (leader glyphs or empty spacer).</summary>
     public bool IsTabFiller { get; init; }

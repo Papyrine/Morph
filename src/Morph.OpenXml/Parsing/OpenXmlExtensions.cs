@@ -100,7 +100,8 @@ static class OpenXmlExtensions
             }
 
             var posOffset = posH.GetFirstChild<DW.PositionOffset>();
-            if (posOffset?.Text != null && long.TryParse(posOffset.Text, out var hOffsetEmu))
+            if (posOffset?.Text != null &&
+                long.TryParse(posOffset.Text, out var hOffsetEmu))
             {
                 hPosPoints += hOffsetEmu.EmuToPoints();
             }
@@ -130,7 +131,8 @@ static class OpenXmlExtensions
             }
 
             var posOffset = posV.GetFirstChild<DW.PositionOffset>();
-            if (posOffset?.Text != null && long.TryParse(posOffset.Text, out var vOffsetEmu))
+            if (posOffset?.Text != null &&
+                long.TryParse(posOffset.Text, out var vOffsetEmu))
             {
                 vPosPoints += vOffsetEmu.EmuToPoints();
             }

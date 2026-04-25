@@ -61,6 +61,23 @@ sealed record PageSettings
     /// </summary>
     public bool DifferentFirstPage { get; init; }
 
+    /// <summary>
+    /// Decorative borders drawn around each page (from w:pgBorders). Null when no page borders are defined.
+    /// </summary>
+    public PageBorders? PageBorders { get; init; }
+
+    /// <summary>
+    /// Extra binding-edge margin in points (w:pgMar/@w:gutter). Applied to the left margin by default,
+    /// or to the top margin when <see cref="GutterAtTop"/> is true.
+    /// </summary>
+    public double GutterPoints { get; init; }
+
+    /// <summary>
+    /// Whether the gutter is added to the top margin instead of the left margin
+    /// (w:settings/w:gutterAtTop).
+    /// </summary>
+    public bool GutterAtTop { get; init; }
+
     public double ContentWidth => WidthPoints - MarginLeft - MarginRight;
 
     /// <summary>Width of a single column in points.</summary>

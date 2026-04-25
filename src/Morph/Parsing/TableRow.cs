@@ -17,4 +17,11 @@ sealed class TableRow
     /// When minimum, the row will be at least HeightPoints tall.
     /// </summary>
     public bool IsExactHeight { get; init; }
+
+    /// <summary>
+    /// Whether this row is marked as a header row (w:trPr/w:tblHeader).
+    /// Header rows are intended to repeat at the top of each page when a table spans pages.
+    /// Captured in the model; the renderer does not yet repeat them.
+    /// </summary>
+    public bool IsHeader { get; init; }
 }

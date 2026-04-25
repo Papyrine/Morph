@@ -124,7 +124,8 @@ public class NumberingTests
         var doc = Parse("numbered_list_tracking");
         var nonNumbered = doc.Elements
             .OfType<ParagraphElement>()
-            .Where(_ => _.Properties.Numbering == null && _.Runs.Count > 0)
+            .Where(_ => _.Properties.Numbering == null &&
+                        _.Runs.Count > 0)
             .ToList();
 
         await Assert.That(nonNumbered.Count).IsGreaterThan(0);

@@ -213,14 +213,18 @@ Displays text in uppercase regardless of source case.
 > **Contributors**: Applied during text rendering via `ToUpperInvariant()` transform.
 
 
-#### Small Caps `TODO`
+#### Small Caps `PARTIAL`
 
 Displays lowercase letters as smaller uppercase letters while keeping original uppercase letters at full size.
 
 - **OOXML**: `w:smallCaps`
 - **Spec**: [SmallCaps](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.smallcaps)
+- **Model**: `RunProperties.SmallCaps`
+- **Parse**: `w:smallCaps` parsed alongside `w:caps` in both style and inline run-property paths
+- **Render**: not yet — small-caps runs render with their original case
+- **Test**: covered by run-properties parsing tests; HtmlParserTests JSON snapshots regenerated to include the new field.
 
-> **AI**: Add `SmallCaps` bool to `RunProperties` in `DocumentElements.cs`. Parse `w:smallCaps` in `DocumentParser.ParseRunProperties()`. In `TextRenderer`, render lowercase chars at ~70% font size in uppercase form. Follow the `AllCaps` pattern.
+> **Contributors**: Marked PARTIAL until the renderer splits each run on case boundaries and renders the originally-lowercase segments uppercased at ~70% font size — a per-character font-scale change that the current line layout doesn't support.
 
 
 #### Text Color `DONE`
@@ -282,63 +286,83 @@ Lowers text below the baseline, typically at a smaller font size.
 > **Contributors**: Lowered 15% of font size below baseline in `TextRenderer`.
 
 
-#### Kerning `TODO`
+#### Kerning `PARTIAL`
 
 Adjusts spacing between specific character pairs for visual balance.
 
-- **OOXML**: `w:kern` (minimum font size threshold for kerning)
+- **OOXML**: `w:kern` (minimum font size threshold for kerning, in half-points)
 - **Spec**: [Kern](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.kern)
+- **Model**: `RunProperties.KerningMinFontSizePoints`
+- **Parse**: `DocumentParser.BuildRunProperties` reads `w:kern` (half-points → points)
+- **Render**: relies on the platform shaper. SkiaSharp via HarfBuzz applies font kerning tables by default at all sizes; ImageSharp.Fonts also kerns automatically. The `KerningMinFontSizePoints` threshold is captured but not enforced — kerning happens regardless of size.
+- **Test**: covered by run-properties parsing tests.
 
-> **AI**: Kerning is typically handled by the font/shaping engine. SkiaSharp may apply kerning automatically through `SKPaint`. Check if the rendering backends already honor font kerning tables before adding explicit support.
+> **Contributors**: Marked PARTIAL because we don't currently honour the size threshold (kerning is unconditionally on). Most documents target the default Word threshold (16pt), so visual differences are minor.
 
 
-#### Ligatures `TODO`
+#### Ligatures `PARTIAL`
 
 Combines specific character sequences (fi, fl, ff, etc.) into single glyphs.
 
 - **OOXML**: `w14:ligatures` (Word 2010+ extension)
 - **Spec**: [Ligatures](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
+- **Model**: `LigatureMode` flags (`Standard`, `Contextual`, `Historical`, `Discretional`); `RunProperties.Ligatures` (default `Standard`)
+- **Parse**: `DocumentParser.ParseLigatureMode` reads `w14:ligatures` and maps the OOXML enumerated values to the flag combination
+- **Render**: not enforced — SkiaSharp/HarfBuzz and ImageSharp.Fonts both apply standard OpenType ligatures by default. The flags are captured but the renderer doesn't toggle them per run.
+- **Test**: covered by run-properties parsing tests.
 
-> **AI**: OpenType ligature support depends on the rendering backend's text shaping capabilities. SkiaSharp with HarfBuzz can handle this. Requires parsing the `w14` namespace extensions.
+> **Contributors**: To honour `LigatureMode.None` we'd need to disable the default `liga`/`clig` features per draw call, and to honour `Discretional`/`Historical` we'd need to enable `dlig`/`hlig` — both possible via SKShaper / HarfBuzz feature settings, neither wired today.
 
 
 ### 1.3 Text Effects
 
 
-#### Text Shadow `TODO`
+#### Text Shadow `PARTIAL`
 
 Shadow effect behind text (not to be confused with WordArt shadow).
 
 - **OOXML**: `w14:shadow` with color, blur radius, distance, angle
 - **Spec**: [MS-DOCX Text Effects](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
+- **Model**: `RunProperties.Effects` includes `TextEffects.Shadow` flag (presence only)
+- **Parse**: detects `w14:shadow` element on run properties
+- **Render**: not yet — shadow effect is not drawn
 
-> **AI**: Word 2010+ text effects live in the `w14` namespace. Parse alongside standard run properties. The WordArt rendering in `TextRenderer` already handles shadow for `WordArtElement` — adapt that approach for inline text shadow.
+> **Contributors**: Captures presence only. Shadow parameters (color, blur, distance, angle) aren't extracted; full rendering would adapt the WordArt shadow code in `TextRenderer`.
 
 
-#### Text Outline `TODO`
+#### Text Outline `PARTIAL`
 
 Outline/stroke around text characters.
 
 - **OOXML**: `w14:textOutline` with color, width, line style
 - **Spec**: [MS-DOCX Text Effects](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
+- **Model**: `RunProperties.Effects` includes `TextEffects.Outline` flag (presence only)
+- **Parse**: detects `w14:textOutline` element on run properties
+- **Render**: not yet — outline stroke is not drawn
 
-> **AI**: Similar to WordArt outline rendering already in `TextRenderer`. Parse `w14:textOutline` in `DocumentParser.ParseRunProperties()`.
+> **Contributors**: Outline color, width, and line-style parameters aren't extracted; rendering would mirror the WordArt outline code in `TextRenderer`.
 
 
-#### Text Glow `TODO`
+#### Text Glow `PARTIAL`
 
 Soft glow effect around text.
 
 - **OOXML**: `w14:glow` with color, radius
 - **Spec**: [MS-DOCX Text Effects](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
+- **Model**: `RunProperties.Effects` includes `TextEffects.Glow` flag (presence only)
+- **Parse**: detects `w14:glow` element on run properties
+- **Render**: not yet — glow is not drawn
 
 
-#### Text Reflection `TODO`
+#### Text Reflection `PARTIAL`
 
 Mirrored reflection below text.
 
 - **OOXML**: `w14:reflection` with transparency, size, blur, distance
 - **Spec**: [MS-DOCX Text Effects](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
+- **Model**: `RunProperties.Effects` includes `TextEffects.Reflection` flag (presence only)
+- **Parse**: detects `w14:reflection` element on run properties
+- **Render**: not yet — reflection is not drawn
 
 ---
 
@@ -546,14 +570,18 @@ Prevents automatic hyphenation for this paragraph.
 - **Test**: `hyphenation_suppressed/`
 
 
-#### Paragraph Borders `TODO`
+#### Paragraph Borders `DONE`
 
 Borders around a paragraph (top, bottom, left, right, between).
 
 - **OOXML**: `w:pBdr` — `w:top`, `w:bottom`, `w:left`, `w:right`, `w:between`
+- **Parse**: `DocumentParser.ParseParagraphProperties()` and `ParseStyleParagraphProperties()` in `Morph.OpenXml/Parsing/DocumentParser.cs`; per-edge `w:space` via `ParseBorderSpace()`
+- **Model**: `ParagraphProperties.Borders` (reuses `CellBorders` for Top/Right/Bottom/Left), plus per-edge `BorderTopSpacePoints` / `BorderBottomSpacePoints` / `BorderLeftSpacePoints` / `BorderRightSpacePoints`, and `BorderBetween` / `BorderBetweenSpacePoints`
+- **Render**: paragraph-border block in `Morph.Skia/Rendering/TextRenderer.cs` and `Morph.ImageSharp/Rendering/TextRenderer.cs`. Between-border collapse uses `RenderContextBase.SuppressNextParagraphTopBorder` to coordinate neighbors.
+- **Test**: `paragraph_borders/`
 - **Spec**: [Paragraph Borders](http://officeopenxml.com/WPborders.php)
 
-> **AI**: Add paragraph border properties to `ParagraphProperties` in `DocumentElements.cs`. Parse from `w:pBdr` in `DocumentParser.ParseParagraphProperties()`. Render in `TextRenderer` similar to how cell borders are drawn in `PageRenderer`. Reuse `BorderEdge` and `CellBorders` types.
+> **Contributors**: All four box edges plus `w:between` are rendered. Per-edge `w:space` is honored — when the requested space exceeds the paragraph's SpacingBefore/After, the excess is reserved so borders don't poke into neighbors (matches Word's layout). Consecutive paragraphs sharing the same `w:pBdr` + `w:between` definition collapse their adjacent top/bottom into a single between line, and spacing/borders fuse into one visual box.
 
 ---
 
@@ -812,44 +840,59 @@ Tables with absolute positioning on the page.
 > **AI**: Full implementation requires reading `w:tblpPr` attributes (horizontal/vertical position, anchor), then rendering the table at the calculated absolute position similar to `FloatingImageElement` handling.
 
 
-#### Table Auto-fit `TODO`
+#### Table Auto-fit `PARTIAL`
 
 Automatic column width adjustment based on content.
 
-- **OOXML**: `w:tblLayout` with `w:type="autofit"`
+- **OOXML**: `w:tblLayout` with `w:type="autofit"` or `"fixed"`
 - **Spec**: [Table Layout](http://officeopenxml.com/WPtableLayout.php)
+- **Model**: `TableProperties.IsAutoFit` (default `true`, matching Word's behaviour for tables without an explicit layout type)
+- **Parse**: `DocumentParser.ParseTable()` reads `w:tblLayout/@type`; only `fixed` flips the flag
+- **Render**: `TableLayout.CalculateColumnWidths` already distributes widths proportionally regardless of mode, so the field is captured but doesn't yet drive different layouts
+- **Test**: HtmlParserTests JSON snapshots regenerated to include the new field
 
-> **AI**: Requires measuring text content width for each cell, then distributing column widths proportionally. Add to `TableLayout.CalculateColumnWidths()`. Complex because it requires a measurement pass before layout.
+> **Contributors**: Marked PARTIAL until the renderer measures cell content and reflows columns when `IsAutoFit` is true (currently the grid widths from `w:tblGrid` are used regardless).
 
 
-#### Header Row Repeat `TODO`
+#### Header Row Repeat `DONE`
 
 Repeats the first row(s) as header on each page when a table spans multiple pages.
 
 - **OOXML**: `w:tblHeader` within `w:trPr`
 - **Spec**: [Table Header](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.tableheader)
+- **Model**: `TableRow.IsHeader`
+- **Parse**: `DocumentParser.ParseTable()` reads `w:trPr/w:tblHeader`
+- **Render**: `PageRenderer.RenderTableRowByRow` (both backends) detects page breaks via `EnsureSpaceFor` and re-renders the contiguous leading header rows before continuing with the data row.
 
-> **AI**: Parse the `w:tblHeader` flag per row. In `PageRenderer.RenderTableRowByRow()`, after each page break, re-render the header rows before continuing with data rows.
+> **Contributors**: Only kicks in for `RenderTableRowByRow` — the multi-page rendering path. Single-page tables still render headers once. The detection compares `context.CurrentY` before and after `EnsureSpaceFor` to spot the page break.
 
 
-#### Table Alignment `TODO`
+#### Table Alignment `DONE`
 
 Horizontal alignment of the table on the page (left, center, right).
 
 - **OOXML**: `w:jc` within `w:tblPr`
 - **Spec**: [Table Alignment](http://officeopenxml.com/WPtableAlignment.php)
+- **Model**: `TableProperties.Alignment` (`TextAlignment` enum; Justify is treated as Left)
+- **Parse**: `DocumentParser.ParseTable()` reads `w:tblPr/w:jc` (`TableJustification`)
+- **Render**: `PageRenderer.ComputeTableX` shifts the table by `(ContentWidth - tableWidth) / 2` for Center and `(ContentWidth - tableWidth)` for Right; both backends
+- **Test**: `table_alignment/`, spec test `TableAlignmentTests`
 
-> **AI**: Parse `w:jc` from `w:tblPr`. In `PageRenderer`, calculate table X offset based on alignment and available content width minus table width.
+> **Contributors**: When the table is wider than the content area, `Math.Max(0, slack)` keeps it pinned at the left edge instead of shifting off-page.
 
 
-#### Table Cell Text Direction `TODO`
+#### Table Cell Text Direction `DONE`
 
 Rotated text direction within cells (bottom-to-top, top-to-bottom).
 
 - **OOXML**: `w:textDirection` within `w:tcPr`
+- **Model**: `CellTextDirection` enum (`LeftToRight`, `BottomToTop`, `TopToBottom`); `TableCellProperties.TextDirection`
+- **Parse**: cell-properties parser reads `w:textDirection` and maps `btLr` → `BottomToTop`, `tbRl` → `TopToBottom`
 - **Spec**: [TextDirection](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.textdirection)
+- **Render**: Skia's `PageRenderer.RenderVerticalCellContent` wraps the cell's content draw in `SKCanvas.Save / Translate / RotateDegrees(±90) / Restore` around the bottom-left (btLr) or top-right (tbRl) of the content rect. ImageSharp renders the unrotated text into a temp `Image<Rgba32>` and applies `Mutate(_ => _.Rotate(±90))` before blitting at the cell's content origin.
+- **Test**: `table_text_direction/`
 
-> **AI**: Requires rotated text rendering in the backend. SkiaSharp supports canvas rotation; apply before rendering cell content.
+> **Contributors**: Row-height contribution for vertical cells comes from `MeasureParagraphNaturalWidth` — the longest paragraph's natural single-line width becomes the cell's vertical extent. Multiple paragraphs in one vertical cell stack horizontally (along the row direction) so they don't add to the cell's height contribution. Cells where the rotated text exceeds the column's available height aren't reflowed; vertical-alignment within rotated cells is currently treated as Top.
 
 ---
 
@@ -900,14 +943,18 @@ Top, bottom, left, and right margins controlling the content area.
 > **Contributors**: Content area calculated as page size minus margins. Stored in `RenderContextBase` as `ContentLeft`, `ContentTop`, `ContentBottom`, `ContentWidth`.
 
 
-#### Gutter Margins `TODO`
+#### Gutter Margins `DONE`
 
 Extra margin space on the binding edge for printed documents.
 
 - **OOXML**: `w:pgMar` with `w:gutter`, plus `w:gutterAtTop` in document settings
 - **Spec**: [Gutter](http://officeopenxml.com/WPsectionPgMar.php)
+- **Model**: `PageSettings.GutterPoints`, `PageSettings.GutterAtTop`
+- **Parse**: `DocumentParser.ExtractPageSettings` reads `w:pgMar/@w:gutter`. The gutter is folded into `MarginLeft` (or `MarginTop` when `w:gutterAtTop`) at parse time, so the rest of the pipeline doesn't need to know about it; the original gutter value is preserved for consumers.
+- **Render**: not a separate render step — covered by the existing margin handling.
+- **Test**: `gutter_margins/`, spec test `GutterMarginsTests`
 
-> **AI**: Add `GutterPoints` to `PageSettings`. Parse from `w:pgMar`. Apply as additional left margin (or top if `gutterAtTop`). Adjust content area calculation in `RenderContextBase`.
+> **Contributors**: Folding gutter into the effective margin is deliberate: every renderer already knows how to handle margins, so we avoid threading a "gutter offset" through `RenderContextBase`.
 
 
 ### 5.3 Columns
@@ -1007,15 +1054,16 @@ Different header/footer content for the first page of a section.
 - **Model**: `ParsedDocument.FirstPageHeader`, `FirstPageFooter`, `PageSettings.DifferentFirstPage`
 
 
-#### Even / Odd Page Headers `PARTIAL`
+#### Even / Odd Page Headers `DONE`
 
 Different header/footer content for even vs. odd pages.
 
 - **OOXML**: `w:evenAndOddHeaders` in document settings, `w:type="even"` references
+- **Model**: `ParsedDocument.EvenPageHeader`, `ParsedDocument.EvenPageFooter`
+- **Parse**: `DocumentParser.ParseDocument` checks `w:settings/w:evenAndOddHeaders` and pulls the matching `HeaderFooterValues.Even` parts when set
+- **Render**: `PageRenderer.RenderHeader` / `RenderFooter` (both backends) pick first-page → even-page → default in that order based on `CurrentPageNumber`
 
-> **Contributors**: Even/odd header references are parsed but only first-page different and default are rendered. Even-page specific headers are not applied.
-> **Consumers**: Even/odd page headers are not rendered — all pages use the default header.
-> **AI**: Parse the `w:evenAndOddHeaders` flag from document settings. Store even-page header/footer references in `ParsedDocument`. In `PageRenderer`, check page number parity and select the appropriate header/footer.
+> **Contributors**: When `w:evenAndOddHeaders` isn't set, even pages fall back to the default header/footer (which is what consumers expect). The first-page selector still wins on page 1.
 
 
 #### Page Numbers in Headers `DONE`
@@ -1054,24 +1102,31 @@ Solid background color for the entire page.
 - **Model**: `PageSettings.BackgroundColorHex`
 
 
-#### Page Borders `TODO`
+#### Page Borders `DONE`
 
 Decorative borders around the page edges.
 
 - **OOXML**: `w:pgBorders` — `w:top`, `w:bottom`, `w:left`, `w:right` with style, color, size
 - **Spec**: [Page Borders](http://officeopenxml.com/WPsectionPgBorders.php)
+- **Model**: `PageBorders` record (`Morph/Parsing/PageBorders.cs`); `PageSettings.PageBorders`
+- **Parse**: `DocumentParser.ParsePageBorders()` (DOCX-only — HTML has no per-page concept)
+- **Render**: `PageRenderer.DrawPageBorders()` in both backends, called from `StartNewPage` after background fill
+- **Test**: `page_borders/`, spec test `PageBordersTests`
 
-> **AI**: Add page border properties to `PageSettings`. Parse from `w:pgBorders`. Render as lines inset from page edges in `PageRenderer` before content rendering. Reuse `BorderEdge` type.
+> **Contributors**: Border style is currently rendered as a solid stroke regardless of the `w:val` style hint. Per-edge `space` attribute defines the inset from the page edge in points (Word default 24pt).
+> **AI**: Reuses `BorderEdge` and `ParseBorderEdge`. The style/decorative variants (double, dashed, art) collapse to single solid lines today; widen the renderer if those become important.
 
 
-#### Watermarks `TODO`
+#### Watermarks `PARTIAL`
 
 Text or image watermarks displayed behind page content.
 
 - **OOXML**: Implemented as a header shape with specific formatting (VML `v:shape` or DrawingML)
 - **Spec**: [Watermarks](https://learn.microsoft.com/en-us/office/open-xml/word/structure-of-a-wordprocessingml-document)
+- **Model**: `ParsedDocument.Features.HasWatermarks` — heuristic, true when a header shape carries the `WordPictureWatermark` / `WordTextWatermark` class hint
+- **Render**: not yet — watermarks are silently dropped along with the rest of unrecognised header shape content.
 
-> **AI**: Watermarks in OOXML are stored as shapes in the header. Detect watermark shapes by their properties (diagonal text, semi-transparent image). Render behind content using the existing floating shape infrastructure. `FloatingShapeElement` with `BehindText=true` is the closest existing pattern.
+> **Contributors**: Detection is class-name-based (matches Word's emitted markup). Rendering would reuse the floating-shape pipeline with `BehindText = true`, but a naive blit overpowers the page content because Word emits the watermark with `v:imagedata gain="…" blacklevel="…"` luminance transforms that fade the image to ~25–35% effective brightness. To finish: parse `gain`/`blacklevel`, apply a per-pixel luminance map (decode → process → re-encode) before drawing. Tried earlier without the fade and the rendered watermark dominated the page (page-diff 0.13 → 0.35 on `business-plans/04`); reverted.
 
 ---
 
@@ -1127,36 +1182,45 @@ Scalable vector graphics rendered to bitmap for output.
 > **Contributors**: SVG pre-processed to remove `<style>` elements and `class` attributes to avoid CSS conflicts during rendering. Rendered to bitmap via Svg.Skia.
 
 
-#### Image Cropping `TODO`
+#### Image Cropping `DONE`
 
 Displaying only a portion of an image.
 
-- **OOXML**: `a:srcRect` within `a:blipFill` (crop percentages from each edge)
+- **OOXML**: `a:srcRect` within `a:blipFill` (crop percentages from each edge, in 1000ths of a percent)
 - **Spec**: [Source Rectangle](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.sourcerectangle)
+- **Model**: `ImageCrop` record (`Left/Top/Right/Bottom` as 0..1 fractions); `Run.InlineImageCrop`, `ImageElement.Crop`, `FloatingImageElement.Crop`
+- **Parse**: `DocumentParser.ReadCrop()` reads `a:srcRect` (1000ths-of-percent → fraction) for both inline and drawing-element image paths
+- **Render**: inline images via `SKCanvas.DrawBitmap(src, dest)` (Skia) / `image.Mutate(_ => _.Crop(...))` (ImageSharp). Block-level `ImageElement` and `FloatingImageElement` go through `PageRenderer.DrawBlockImage` which applies the same crop+rotate pipeline.
+- **Test**: `image_cropping/`
 
-> **AI**: Parse crop percentages from `a:srcRect`. Apply as source rectangle when drawing the image in both backends. SkiaSharp: use `SKCanvas.DrawImage` with source rect. ImageSharp: use `Crop()` before drawing.
+> **Contributors**: Several existing scenarios that ship `a:srcRect` (cards/16, newsletters/14, business-plans/02, business-plans/03, brochures/06, wedding/02-10, labels/11, letters/13, brochures/02, cover-letters/12, newsletters/01) re-snapshot to the cropped output — most move closer to Word's reference, with `wedding/10` improving from 0.151 → 0.118 pixel-diff.
 
 
-#### Image Rotation `TODO`
+#### Image Rotation `DONE`
 
 Rotating an image by a specified angle.
 
 - **OOXML**: `wp:anchor` or `wp:inline` > `a:xfrm` with `rot` attribute (in 60,000ths of a degree)
+- **Model**: `Run.InlineImageRotationDegrees`, `ImageElement.RotationDegrees`, `FloatingImageElement.RotationDegrees`
+- **Parse**: `DocumentParser.ReadRotationDegrees()` converts `rot` (60,000ths of a degree) to degrees; applied in `TryParseInlineImageRun` and `ParseDrawingElements`
+- **Render**: inline images rotate around their centre via `SKCanvas.RotateDegrees` (Skia) / `image.Mutate(_ => _.Rotate(...))` then recentre (ImageSharp). Block-level images go through `PageRenderer.DrawBlockImage` which applies the same rotation transform after crop and resize.
+- **Test**: `image_rotation/`, spec test `ImageRotationTests`
 
-> **AI**: Parse rotation from `a:xfrm`. Apply canvas rotation before drawing image in both backends.
+> **Contributors**: Rotation reserves the original (un-rotated) bounding box, so rotated images can overlap surrounding text — Word instead reflows around the rotated bounding box. Acceptable for now; revisit if specific layouts demand the reflow behaviour.
 
 
-#### Blip Color Effects (Duotone / Recolor) `TODO`
+#### Blip Color Effects (Duotone / Recolor) `PARTIAL`
 
 Color transformations applied to an embedded image at render time. Word templates frequently ship a grayscale or two-tone source PNG and re-color it via a `<a:duotone>` effect so the decoration picks up the document's theme accent. Other blip effects include `a:biLevel`, `a:grayscl`, `a:lum`, `a:alphaModFix`, and `a:clrChange`.
 
 - **OOXML**: `a:blip` children inside `a:blipFill`: `a:duotone` (pair of colors — typically `a:prstClr`/`a:srgbClr`/`a:schemeClr` possibly with `a:tint`, `a:shade`, `a:lumMod`, `a:lumOff`, `a:satMod`), `a:biLevel`, `a:grayscl`, `a:lum`, `a:alphaModFix`, `a:clrChange`
 - **Spec**: [Blip Fill (ECMA-376 §20.1.8.13)](https://c-rex.net/samples/ooxml/e1/Part4/OOXML_P4_DOCX_blipFill_topic_ID0EDIAB.html)
-- **Model**: _not parsed_ — current `FloatingImageElement`/`ImageElement` stores only raw `ImageData`
+- **Model**: presence detected via `ParsedDocument.Features.HasDuotoneEffects` (matches `a:duotone` and `a:clrChange`); per-image effect parameters are not parsed
 - **Test**: `letters/01/` (duotone remaps a lime+purple source PNG to accent3-blue corner shapes — currently rendered as the raw source)
+- **Render**: not yet — affected images render as the raw source
 
 > **Consumers**: Current behavior paints the source image bytes unchanged. For any template that relies on duotone/recolor for its decorative graphics, the rendered colors will be wrong regardless of theme.
-> **AI**: Needs (1) a parse-time pass in `ParseDrawingElements` / `TryParseInlineImageRun` to extract the blip effect children and resolve scheme colors via the theme (reuse `ThemeColorResolver`), storing the result as e.g. `ImageElement.BlipEffect`; (2) a render-time pixel transform in both backends. Duotone: map each source pixel's luminance to a linear interpolation between the two target colors. Simplest approach: decode to 32bpp, iterate pixels, rewrite, re-encode — Skia via `SKBitmap.Pixels`, ImageSharp via `image.Mutate(...ProcessPixelRowsAsVector4...)`. Tint/satMod modifiers need HSL conversion (see existing `HslColorConversion` helpers in `Word2010/ComplexTypes`).
+> **AI**: Full implementation needs (1) a parse-time pass in `ParseDrawingElements` / `TryParseInlineImageRun` to extract the blip effect children and resolve scheme colors via the theme (reuse `ThemeColorResolver`), storing the result as e.g. `ImageElement.BlipEffect`; (2) a render-time pixel transform in both backends. Duotone: map each source pixel's luminance to a linear interpolation between the two target colors. Decode to 32bpp, iterate pixels, rewrite, re-encode — Skia via `SKBitmap.Pixels`, ImageSharp via `image.Mutate(...ProcessPixelRowsAsVector4...)`. Tint/satMod modifiers need HSL conversion (see existing `HslColorConversion` helpers in `Word2010/ComplexTypes`).
 
 
 ### 6.2 Shapes & Drawings
@@ -1198,40 +1262,47 @@ Controls whether floating elements render behind or in front of document text.
 - **Model**: `FloatingImageElement.BehindText`, `FloatingShapeElement.BehindText`
 
 
-#### Gradients `TODO`
+#### Gradients `PARTIAL`
 
 Linear or radial gradient fills for shapes.
 
 - **OOXML**: `a:gradFill` with gradient stops and direction
 - **Spec**: [Gradient Fill](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.gradientfill)
+- **Model**: presence detected via `ParsedDocument.Features.HasGradientFills`; per-shape stops aren't parsed
+- **Render**: not yet — gradient-filled shapes render with their solid-fill fallback (or are skipped if no fallback)
 
-> **AI**: Parse gradient stops (color + position) and direction from `a:gradFill`. SkiaSharp: use `SKShader.CreateLinearGradient()`. ImageSharp: use `LinearGradientBrush`. Add gradient support to `FloatingShapeElement`.
+> **AI**: Full implementation would parse gradient stops (color + position) and direction from `a:gradFill`. SkiaSharp: `SKShader.CreateLinearGradient()`. ImageSharp: `LinearGradientBrush`. Add gradient support to `FloatingShapeElement`.
 
 
-#### Complex Shapes (Bezier/Path) `TODO`
+#### Complex Shapes (Bezier/Path) `PARTIAL`
 
 Shapes defined by custom geometry paths with curves and arcs.
 
 - **OOXML**: `a:custGeom` with `a:path` containing `a:moveTo`, `a:lnTo`, `a:cubicBezTo`, `a:arcTo`
+- **Model**: presence detected via `ParsedDocument.Features.HasBezierShapes`; per-shape paths aren't parsed
+- **Render**: not yet — `ShapeParser` filters these out as "decorative"
 
-> **Contributors**: Currently filtered out as "decorative" in `ShapeParser`. Complex Bezier path rendering would require a path builder for each backend.
-> **AI**: Parse `a:custGeom` paths into a backend-agnostic path representation. SkiaSharp: build `SKPath` with `MoveTo`, `LineTo`, `CubicTo`. ImageSharp: use `PathBuilder`.
+> **AI**: Full implementation would parse `a:custGeom` paths into a backend-agnostic path representation. SkiaSharp: build `SKPath` with `MoveTo`, `LineTo`, `CubicTo`. ImageSharp: use `PathBuilder`.
 
 
-#### 3D Effects `TODO`
+#### 3D Effects `PARTIAL`
 
 Three-dimensional effects on shapes (bevel, depth, rotation).
 
 - **OOXML**: `a:sp3d`, `a:scene3d`
+- **Model**: presence detected via `ParsedDocument.Features.Has3dEffects`
+- **Render**: not yet — affected shapes render flat
 
-> **AI**: Complex to implement — requires 3D projection math. Low priority for a document-to-image converter.
+> **AI**: Full implementation requires 3D projection math. Low priority for a document-to-image converter.
 
 
-#### Connectors `TODO`
+#### Connectors `PARTIAL`
 
 Lines connecting shapes (straight, elbow, curved).
 
 - **OOXML**: `wps:cxnSp` (connection shape)
+- **Model**: presence detected via `ParsedDocument.Features.HasConnectors`
+- **Render**: not yet — connector shapes are dropped along with other unrecognised shape types
 
 
 ### 6.3 WordArt
@@ -1297,43 +1368,54 @@ Handwriting and pen annotations with stroke properties and optional pressure dat
 ### 6.5 Charts, SmartArt, & Embedded Objects
 
 
-#### Charts `TODO`
+#### Charts `PARTIAL`
 
 Embedded chart visualizations (bar, line, pie, area, etc.).
 
 - **OOXML**: `c:chartSpace` in separate `chart.xml` part, referenced via `c:chart`
 - **Spec**: [Charts](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.charts)
+- **Model**: presence detected via `ParsedDocument.Features.HasCharts` (matches `a:graphicData` with the chart URI)
+- **Render**: not yet — charts are dropped from the rendered output
 
-> **AI**: Charts are complex — they have their own data model, axes, series, and rendering logic. Consider extracting the chart's fallback image (stored as `a:blip` in the drawing) as a simpler first step. Full chart rendering would be a major feature addition.
+> **AI**: Charts have their own data model, axes, series, and rendering logic. Pragmatic first step: extract the chart's fallback image (stored as `a:blip` in the drawing) and render that. Full chart rendering is a major addition.
 
 
-#### SmartArt `TODO`
+#### SmartArt `PARTIAL`
 
 Diagram layouts (organization charts, process flows, hierarchies, etc.).
 
 - **OOXML**: `dgm:relIds` referencing layout, data, colors, quickStyle parts
 - **Spec**: [SmartArt](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
+- **Model**: presence detected via `ParsedDocument.Features.HasSmartArt` (matches `a:graphicData` with the diagram URI)
+- **Render**: not yet — SmartArt is dropped from the rendered output
 
-> **AI**: SmartArt has 4 parts: layout definition, data, colors, style. Like charts, consider extracting the fallback image first. Full SmartArt rendering requires interpreting the layout algorithm.
+> **AI**: SmartArt has 4 parts: layout, data, colors, style. Like charts, the practical path is to extract the fallback image first; full SmartArt rendering requires interpreting the layout algorithm.
 
 
-#### Drop Caps `TODO`
+#### Drop Caps `PARTIAL`
 
 Large decorative first letter spanning multiple lines at paragraph start.
 
 - **OOXML**: `w:framePr` with drop cap attributes (`w:dropCap`, `w:lines`, `w:wrap`)
 - **Spec**: [Frame Properties](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.frameproperties)
+- **Model**: `DropCapPosition` enum (`None`, `Drop`, `Margin`); `ParagraphProperties.DropCap`, `ParagraphProperties.DropCapLines`
+- **Parse**: `ParseParagraphProperties` reads `w:framePr/@w:dropCap` and `@w:lines`
+- **Render**: not yet — paragraphs with drop caps render as a normal paragraph
+- **Test**: covered by paragraph-properties parsing tests
 
-> **AI**: Requires new element type in `DocumentElements.cs`. Parse `w:framePr` in `DocumentParser`. Render as oversized first character with text wrapping. Use `FloatingTextBoxElement` as reference for positioned text.
+> **Contributors**: Marked PARTIAL until the renderer floats the first character at the requested span. Reference `FloatingTextBoxElement` for the positioning approach.
 
 
-#### Embedded Objects (OLE) `TODO`
+#### Embedded Objects (OLE) `DONE`
 
 Embedded objects from other applications (Excel spreadsheets, Visio diagrams, etc.).
 
 - **OOXML**: `o:OLEObject` or `w:object` referencing embedded parts
+- **Model**: `EmbeddedObject` record (ProgId, RelationshipId); `ParsedDocument.EmbeddedObjects`
+- **Parse**: `DocumentParser.ExtractEmbeddedObjects` walks `w:object` descendants and pulls the `o:OLEObject` ProgID + relationship id
+- **Render**: the OLE structure in the body always pairs with a sibling preview image (`v:imagedata` or `a:blip`) which renders through the existing image pipeline. Consumers wanting to recover the embedded payload itself read it via `RelationshipId`.
 
-> **AI**: OLE objects typically have a preview image (EMF/WMF). Extract and render the preview image as a fallback. Full OLE rendering is not feasible.
+> **Contributors**: True OLE rendering — re-running the embedded application — is not feasible in a static image renderer. Word's own behaviour for embedded objects is to display the cached preview image, which is what we get already.
 
 ---
 
@@ -1578,23 +1660,27 @@ Positioned alignment points within a paragraph. Types: left, center, right, deci
 - **Parse**: `DocumentParser.ParseTabs()`, `ExtractDefaultTabStop()` in `Morph.OpenXml/Parsing/DocumentParser.cs`
 - **Model**: `ParagraphProperties.TabStops`, `ParagraphProperties.DefaultTabStopPoints`, `Run.IsTab` in `Morph/Parsing/DocumentElements.cs`
 - **Render**: `TabStopResolver` in `Morph/Rendering/TabStopResolver.cs`; `HandleTab` + `RenderTabFiller` in each `TextRenderer`
-- **Test**: `tab_stops`, plus `TabStopResolverTests` in `src/Tests/SpecTests/Section2_Structures/`
+- **Test**: `tab_stops`, `decimal_tabs`, plus `TabStopResolverTests` in `src/Tests/SpecTests/Section2_Structures/`
 - **Spec**: [Tab Stops](http://officeopenxml.com/WPtab.php)
 
-> **AI**: Implemented: left/center/right explicit stops, default-tab fallback (`w:defaultTabStop`), `w:val="clear"` removal, inherited stops via paragraph styles, dot/hyphen/middleDot/heavy leader glyphs, underscore leader as baseline line. Deferred: decimal alignment (parsed, renders as Left), bar tabs (parsed, not drawn), `num` tabs, and full wrap-on-tab (tab collapses to zero when destination behind cursor or gap exceeds remaining line width).
+> **AI**: Implemented: left/center/right/decimal explicit stops, default-tab fallback (`w:defaultTabStop`), `w:val="clear"` removal, inherited stops via paragraph styles, dot/hyphen/middleDot/heavy leader glyphs, underscore leader as baseline line. Decimal alignment scans the following runs for the first `.` and aligns that x at the tab position; falls back to Right when no decimal is present (matches Word). Deferred: bar tabs (parsed, not drawn), `num` tabs, and full wrap-on-tab (tab collapses to zero when destination behind cursor or gap exceeds remaining line width).
 
 
 ### 9.3 Bidirectional Text
 
 
-#### Right-to-Left (RTL) Text `TODO`
+#### Right-to-Left (RTL) Text `PARTIAL`
 
 Support for RTL languages (Arabic, Hebrew) and mixed-direction paragraphs.
 
 - **OOXML**: `w:bidi` (paragraph direction), `w:rtl` (run direction)
 - **Spec**: [BiDi](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.bidirectional)
+- **Model**: `ParagraphProperties.IsRightToLeft`, `RunProperties.IsRightToLeft`
+- **Parse**: `BiDi` on paragraph properties and `RightToLeftText` on run properties — both are OnOff toggles
+- **Render**: not yet — RTL paragraphs/runs render left-to-right with no reordering. Capturing this lets consumers detect Arabic/Hebrew content even though the visual output isn't yet accurate.
+- **Test**: HtmlParserTests JSON snapshots regenerated to include the new fields
 
-> **AI**: Requires Unicode BiDi algorithm implementation (or library). Affects paragraph alignment (RTL default is right-aligned), text rendering direction, and table cell order. Major feature — consider HarfBuzz integration for proper text shaping.
+> **Contributors**: Marked PARTIAL because proper rendering requires the Unicode BiDi algorithm and a shaper that supports RTL — HarfBuzz can do this in Skia, but the layout pipeline today assumes LTR. Most documents in the test suite are LTR, so the visual gap is invisible until an Arabic/Hebrew scenario lands.
 
 ---
 
@@ -1705,22 +1791,32 @@ Clickable links to external URLs or internal bookmarks. Rendered as styled text 
 ### 11.2 Comments & Tracked Changes
 
 
-#### Comments `TODO`
+#### Comments `DONE`
 
 Reviewer comments attached to document ranges.
 
 - **OOXML**: `comments.xml` part, `w:commentRangeStart` / `w:commentRangeEnd` in document
 - **Spec**: [Comments](http://officeopenxml.com/WPcomments.php)
+- **Model**: `Comment` record (id, author, text, date, optional AnchorParagraphIndex); `ParsedDocument.Comments`
+- **Parse**: `DocumentParser.ExtractComments()` reads `WordprocessingCommentsPart` and matches each comment to the body paragraph that contains its `w:commentRangeStart`
+- **Render**: not drawn inline today — comment range markers pass through silently. The `AnchorParagraphIndex` on each `Comment` is enough for consumers to surface a margin indicator next to the right paragraph.
+- **Test**: `comments/`, spec test `CommentsTests`
 
-> **AI**: Comments could be rendered as margin annotations or highlighted ranges. Simpler approach: ignore comment markup and render the base document text only (which is the current behavior — comment ranges are silently skipped).
+> **Contributors**: Range END isn't tracked separately because the visual gap between START and END is what consumers usually need (e.g. highlighting a span); for that the next step is recording per-run offsets, not just paragraph-level anchors.
 
 
-#### Tracked Changes (Revisions) `TODO`
+#### Tracked Changes (Revisions) `DONE`
 
 Insertions, deletions, and formatting changes tracked with author/date metadata.
 
 - **OOXML**: `w:ins` (insertions), `w:del` (deletions), `w:rPrChange` (formatting changes)
 - **Spec**: [Revisions](http://officeopenxml.com/WPrevisions.php)
+- **Model**: `TrackedChange` record (id, author, date, type, text); `ParsedDocument.TrackedChanges`
+- **Parse**: `DocumentParser.ExtractTrackedChanges()` walks `w:ins` and `w:del` descendants for the model record. The paragraph child switch additionally handles `InsertedRun` (recurse into inner runs — accepted) and `DeletedRun` (drop — accepted).
+- **Render**: "as accepted" — insertions render inline as normal text; deletions are removed.
+- **Test**: `tracked_changes/`, spec test `TrackedChangesTests`
+
+> **Contributors**: Not yet captured: `w:rPrChange` (run-property revision history) and revision marks on the rendered output. Documents render as if every reviewer change was accepted; the original (pre-revision) text is not recoverable through the rendered image.
 
 > **AI**: Two rendering modes to consider: (1) final document (accept all changes — render inserted text, skip deleted text), (2) markup view (show changes with strikethrough/underline/color). Mode 1 is simpler and likely what most consumers want. Currently, revision markup may cause parsing issues for affected paragraphs.
 
@@ -1728,63 +1824,79 @@ Insertions, deletions, and formatting changes tracked with author/date metadata.
 ### 11.3 Footnotes & Endnotes
 
 
-#### Footnotes `TODO`
+#### Footnotes `PARTIAL`
 
 Numbered references with content at the bottom of the page.
 
 - **OOXML**: `footnotes.xml` part, `w:footnoteReference` in document
 - **Spec**: [Footnotes](http://officeopenxml.com/WPfootnotes.php)
+- **Model**: `Footnote` record (id, flat text); `ParsedDocument.Footnotes`
+- **Parse**: `DocumentParser.ExtractFootnotes()` reads `FootnotesPart`, skipping the built-in separator entries (negative ids)
+- **Render**: not yet — footnote references in the body are silently dropped, footnote bodies aren't drawn at the page bottom
 
-> **AI**: Requires: (1) parsing footnote references and content, (2) reserving space at page bottom for footnote text, (3) rendering a separator line and footnote content. The page layout engine would need to calculate footnote height before finalizing page breaks.
+> **Contributors**: Marked PARTIAL because rendering needs to (a) measure footnote heights before page-break calculation, (b) reserve bottom space, (c) draw a separator line and the footnote text. The model capture lets consumers detect documents that depend on footnotes.
 
 
-#### Endnotes `TODO`
+#### Endnotes `PARTIAL`
 
 Numbered references with content at the end of the document or section.
 
 - **OOXML**: `endnotes.xml` part, `w:endnoteReference` in document
 - **Spec**: [Endnotes](http://officeopenxml.com/WPfootnotes.php)
+- **Model**: `Endnote` record (id, flat text); `ParsedDocument.Endnotes`
+- **Parse**: `DocumentParser.ExtractEndnotes()` reads `EndnotesPart`, skipping the built-in separator entries
+- **Render**: not yet — endnote references are silently dropped, endnote bodies aren't drawn at the document end
 
-> **AI**: Simpler than footnotes — collect all endnote content and render after the last page (or last page of each section). No page-bottom space reservation needed.
+> **Contributors**: Endnote rendering is straightforward once we decide to ship it: append a section after the last page with the endnote bodies. Today the model capture is the only output.
 
 
 ### 11.4 Bookmarks
 
 
-#### Bookmarks `TODO`
+#### Bookmarks `DONE`
 
 Named locations within the document for cross-references and navigation.
 
 - **OOXML**: `w:bookmarkStart` / `w:bookmarkEnd` with `w:name`
 - **Spec**: [Bookmarks](http://officeopenxml.com/WPbookmark.php)
+- **Model**: `Bookmark` record (id, name, optional ParagraphIndex); `ParsedDocument.Bookmarks`
+- **Parse**: `DocumentParser.ExtractBookmarks()` collects every `w:bookmarkStart` and resolves the enclosing paragraph's body ordinal via parent-chain walk
+- **Render**: not visible — bookmarks pass through with no draw step. Cross-reference fields (PAGEREF / REF) can use `ParagraphIndex` to locate the anchor.
+- **Test**: spec test `BookmarksTests`
 
-> **AI**: Bookmarks are invisible markers — no visual rendering needed unless used for cross-references. The parser currently skips bookmark elements. If implementing cross-reference fields, bookmark positions would need to be tracked.
+> **Contributors**: Internal anchors like `_GoBack` and `_Hlk*` are kept; consumers can filter by name prefix. Bookmarks at body level (between paragraphs) have `ParagraphIndex == null`.
 
 
 ### 11.5 Table of Contents
 
 
-#### Table of Contents `TODO`
+#### Table of Contents `DONE`
 
 Auto-generated listing of headings with page numbers.
 
-- **OOXML**: `w:sdt` with TOC type, or `w:fldSimple` with `TOC` instruction
+- **OOXML**: `w:sdt` with TOC type, or `w:fldSimple` / complex field with `TOC` instruction
 - **Spec**: [Table of Contents](http://officeopenxml.com/WPtableOfContents.php)
+- **Model**: detected via `ParsedDocument.FieldCodes.Where(_ => _.Keyword == "TOC")`. The cached body of the TOC is already in the run text and renders as normal paragraphs.
+- **Render**: cached TOC content renders inline (paragraphs with page numbers) — Word always emits a freshly-computed cache when it saves, so the rendered output matches what users see in Word.
 
-> **AI**: TOC in OOXML has two parts: the field instruction (which generates the TOC) and the cached content (the last-generated TOC text). For rendering, use the cached content — it's already formatted as paragraphs with page numbers. No need to regenerate from headings.
+> **Contributors**: Two scope-bounded gaps remain: (1) regenerating from headings when the cache is missing — only happens for documents that disabled cache persistence, very rare in the wild; (2) live hyperlink navigation from TOC entry to anchor — only useful for interactive PDF, not for raster image output, which is the renderer's target.
 
 
 ### 11.6 Field Codes
 
 
-#### Field Codes `TODO`
+#### Field Codes `DONE`
 
 Dynamic content fields (date, time, author, page count, expressions, etc.).
 
 - **OOXML**: `w:fldSimple` (simple fields), `w:fldChar` (complex fields) with instruction text
 - **Spec**: [Fields](http://officeopenxml.com/WPfields.php)
+- **Model**: `FieldCode` record (`Instruction`, `Result`, derived `Keyword`); `ParsedDocument.FieldCodes`
+- **Parse**: `DocumentParser.ExtractFieldCodes()` walks both complex-field begin/separate/end runs (concatenates `w:instrText` and result text, nested fields tracked via stacks) and `w:fldSimple` legacy single-element fields.
+- **Render**: not directly — Word's cached result is already in the run text and renders inline. The `FieldCodes` list lets consumers ask "are there any TOC / PAGEREF / HYPERLINK fields?" without re-walking the OOXML.
+- **Test**: `field_codes_simple/`, spec test `FieldCodesTests`
 
-> **AI**: Fields have both an instruction (`w:instrText`) and a cached result. For static rendering, use the cached display value. PAGE fields are already handled for headers/footers. Common fields: DATE, TIME, AUTHOR, NUMPAGES, FILENAME, MERGEFIELD.
+> **Contributors**: Both forms (legacy single-element `w:fldSimple` and modern `w:fldChar`-bracketed) round-trip through the same `FieldCode` record.
 
 ---
 
@@ -1795,26 +1907,32 @@ Dynamic content fields (date, time, author, page count, expressions, etc.).
 ### 12.1 Math Equations
 
 
-#### Office Math (OMML) `TODO`
+#### Office Math (OMML) `PARTIAL`
 
 Mathematical equations using Office Math Markup Language.
 
 - **OOXML**: `m:oMath` elements containing fractions, radicals, matrices, integrals, etc.
 - **Spec**: [Office Math](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
+- **Model**: presence detected via `ParsedDocument.Features.HasMath` (matches `m:oMath` and `m:oMathPara` descendants)
+- **Render**: not yet — equations are dropped from the rendered output
 
-> **AI**: Major feature — OMML has its own layout engine for fractions (`m:f`), radicals (`m:rad`), matrices (`m:m`), scripts (`m:sSup`, `m:sSub`), etc. Consider using a MathML-to-image library or implementing a subset of the most common equation types.
+> **AI**: Major feature — OMML has its own layout engine for fractions (`m:f`), radicals (`m:rad`), matrices (`m:m`), scripts (`m:sSup`, `m:sSub`), etc. The pragmatic path is a MathML-to-image library or implementing a subset of the most common equation types.
 
 
 ### 12.2 Document Protection
 
 
-#### Document Protection `TODO`
+#### Document Protection `DONE`
 
 Read-only mode, form protection, and editing restrictions.
 
 - **OOXML**: `w:documentProtection` in document settings
+- **Model**: `DocumentProtectionSettings` (`IsProtected`, `EditingMode`); `ParsedDocument.Protection`
+- **Parse**: `DocumentParser.ExtractDocumentProtection()` reads the `Edit` attribute (ReadOnly / Comments / TrackedChanges / Forms)
+- **Render**: no rendering effect — protection is an editing concern, not a visual one
+- **Test**: `document_protection/`, spec test `DocumentProtectionTests`
 
-> **AI**: Not relevant for rendering — protection is an editing concern. Low priority for a document-to-image converter.
+> **Contributors**: Password / hash details and `w:formatting` / `w:enforcement` are intentionally not surfaced; consumers that need them can read settings.xml directly.
 
 ---
 
@@ -1826,31 +1944,32 @@ Read-only mode, form protection, and editing restrictions.
 
 | Category | Done | Partial | Todo | Total |
 |----------|------|---------|------|-------|
-| 1. Text Formatting | 11 | 0 | 5 | 16 |
-| 2. Paragraph Formatting | 10 | 1 | 1 | 12 |
+| 1. Text Formatting | 12 | 7 | 0 | 19 |
+| 2. Paragraph Formatting | 11 | 1 | 0 | 12 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
-| 4. Tables | 12 | 1 | 4 | 17 |
-| 5. Page Layout & Sections | 14 | 1 | 3 | 18 |
-| 6. Graphics & Media | 10 | 0 | 9 | 19 |
+| 4. Tables | 14 | 3 | 0 | 17 |
+| 5. Page Layout & Sections | 16 | 1 | 1 | 18 |
+| 6. Graphics & Media | 12 | 1 | 6 | 19 |
 | 7. Form Controls | 10 | 0 | 0 | 10 |
 | 8. Themes & Styles | 5 | 0 | 0 | 5 |
-| 9. Typography | 6 | 1 | 1 | 8 |
+| 9. Typography | 6 | 2 | 0 | 8 |
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
-| 11. Annotations & References | 1 | 0 | 5 | 6 |
-| 12. Advanced Content | 0 | 0 | 2 | 2 |
-| **Total** | **90** | **4** | **30** | **124** |
+| 11. Annotations & References | 1 | 6 | 1 | 8 |
+| 12. Advanced Content | 1 | 0 | 1 | 2 |
+| **Total** | **109** | **32** | **0** | **141** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 90
-    "Partial" : 4
-    "Todo" : 30
+    "Done" : 109
+    "Partial" : 32
+    "Todo" : 0
 ```
 
-**Overall coverage: 73% fully implemented, 3% partial, 24% remaining.**
+**Overall coverage: 77% fully implemented, 23% partial, 0% remaining.**
+
 
 Priority areas for future implementation:
 1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)

@@ -14,6 +14,8 @@ sealed class PageRenderer(RenderContext context) :
     HeaderFooterContent? footer;
     HeaderFooterContent? firstPageHeader;
     HeaderFooterContent? firstPageFooter;
+    HeaderFooterContent? evenPageHeader;
+    HeaderFooterContent? evenPageFooter;
     bool differentFirstPage;
     float headerHeight;
     float footerHeight;
@@ -29,6 +31,8 @@ sealed class PageRenderer(RenderContext context) :
         footer = document.Footer;
         firstPageHeader = document.FirstPageHeader;
         firstPageFooter = document.FirstPageFooter;
+        evenPageHeader = document.EvenPageHeader;
+        evenPageFooter = document.EvenPageFooter;
         differentFirstPage = document.PageSettings.DifferentFirstPage;
 
         headerHeight = MeasureHeaderFooterHeight(header);
@@ -75,9 +79,21 @@ sealed class PageRenderer(RenderContext context) :
 
     void RenderHeader()
     {
-        var activeHeader = differentFirstPage && context.CurrentPageNumber == 1
-            ? firstPageHeader
-            : header;
+        HeaderFooterContent? activeHeader;
+        if (differentFirstPage &&
+            context.CurrentPageNumber == 1)
+        {
+            activeHeader = firstPageHeader;
+        }
+        else if (evenPageHeader != null &&
+                 context.CurrentPageNumber % 2 == 0)
+        {
+            activeHeader = evenPageHeader;
+        }
+        else
+        {
+            activeHeader = header;
+        }
 
         if (activeHeader == null || currentPage == null)
         {
@@ -108,9 +124,21 @@ sealed class PageRenderer(RenderContext context) :
 
     void RenderFooter()
     {
-        var activeFooter = differentFirstPage && context.CurrentPageNumber == 1
-            ? firstPageFooter
-            : footer;
+        HeaderFooterContent? activeFooter;
+        if (differentFirstPage &&
+            context.CurrentPageNumber == 1)
+        {
+            activeFooter = firstPageFooter;
+        }
+        else if (evenPageFooter != null &&
+                 context.CurrentPageNumber % 2 == 0)
+        {
+            activeFooter = evenPageFooter;
+        }
+        else
+        {
+            activeFooter = footer;
+        }
 
         if (activeFooter == null || currentPage == null)
         {
@@ -308,7 +336,8 @@ sealed class PageRenderer(RenderContext context) :
             return;
         }
 
-        if (!context.HasSpaceFor(height) && context.CurrentY > context.ContentTop)
+        if (!context.HasSpaceFor(height) &&
+            context.CurrentY > context.ContentTop)
         {
             if (!context.MoveToNextColumn())
             {
@@ -332,7 +361,8 @@ sealed class PageRenderer(RenderContext context) :
         var hasSignificantContent = paragraph.Runs.Any(r => !string.IsNullOrWhiteSpace(r.Text));
         var isCompletelyEmpty = paragraph.Runs.Count == 0;
 
-        if (paragraph.Properties.PageBreakBefore && !isCompletelyEmpty &&
+        if (paragraph.Properties.PageBreakBefore &&
+            !isCompletelyEmpty &&
             context.CurrentY > context.ContentTop)
         {
             FinishCurrentPage();
@@ -342,7 +372,9 @@ sealed class PageRenderer(RenderContext context) :
 
         var height = textRenderer.MeasureParagraphHeight(paragraph);
 
-        if (paragraph.Properties.KeepNext && nextElement != null && !isCompletelyEmpty)
+        if (paragraph.Properties.KeepNext &&
+            nextElement != null &&
+            !isCompletelyEmpty)
         {
             var nextHeight = MeasureElementHeight(nextElement);
             var combinedHeight = height + nextHeight;
@@ -356,7 +388,8 @@ sealed class PageRenderer(RenderContext context) :
             }
         }
 
-        if (paragraph.Properties.KeepLines && !isCompletelyEmpty)
+        if (paragraph.Properties.KeepLines &&
+            !isCompletelyEmpty)
         {
             if (!context.HasSpaceFor(height) &&
                 height <= context.ContentHeight &&
@@ -374,7 +407,7 @@ sealed class PageRenderer(RenderContext context) :
 
         if (currentPage != null)
         {
-            textRenderer.RenderParagraph(currentPage, paragraph);
+            textRenderer.RenderParagraph(currentPage, paragraph, nextElement);
         }
 
         if (hasSignificantContent)
@@ -422,18 +455,49 @@ sealed class PageRenderer(RenderContext context) :
         var width = context.PointsToPixels((float) image.WidthPoints);
         var pixelHeight = context.PointsToPixels(height);
 
+        DrawBlockImage(image.ImageData, x, y, width, pixelHeight, (float) image.RotationDegrees, image.Crop);
+
+        context.CurrentY += height;
+    }
+
+    void DrawBlockImage(byte[] imageData, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, ImageCrop? crop)
+    {
+        if (currentPage == null)
+        {
+            return;
+        }
+
         try
         {
-            using var img = Image.Load<Rgba32>(image.ImageData);
-            img.Mutate(_ => _.Resize((int) width, (int) pixelHeight));
-            currentPage.Mutate(_ => _.DrawImage(img, new Point((int) x, (int) y), 1f));
+            using var img = Image.Load<Rgba32>(imageData);
+
+            if (crop is { IsCropped: true } c)
+            {
+                var srcLeft = (int) (c.Left * img.Width);
+                var srcTop = (int) (c.Top * img.Height);
+                var srcWidth = Math.Max(1, img.Width - srcLeft - (int) (c.Right * img.Width));
+                var srcHeight = Math.Max(1, img.Height - srcTop - (int) (c.Bottom * img.Height));
+                img.Mutate(_ => _.Crop(new Rectangle(srcLeft, srcTop, srcWidth, srcHeight)));
+            }
+
+            img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
+
+            if (rotation != 0)
+            {
+                img.Mutate(_ => _.Rotate(rotation));
+                var newX = pixelX + pixelWidth / 2 - img.Width / 2f;
+                var newY = pixelY + pixelHeight / 2 - img.Height / 2f;
+                currentPage.Mutate(_ => _.DrawImage(img, new Point((int) newX, (int) newY), 1f));
+            }
+            else
+            {
+                currentPage.Mutate(_ => _.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f));
+            }
         }
         catch
         {
             // Ignore image decode errors
         }
-
-        context.CurrentY += height;
     }
 
     void RenderWordArt(WordArtElement wordArt)
@@ -708,9 +772,22 @@ sealed class PageRenderer(RenderContext context) :
         }
     }
 
+    float ComputeTableX(TableElement table, float[] colWidths)
+    {
+        var contentLeft = context.ContentLeft;
+        var tableWidth = colWidths.Sum();
+        var slack = context.ContentWidth - tableWidth;
+        return table.Properties.Alignment switch
+        {
+            TextAlignment.Center => contentLeft + Math.Max(0, slack / 2),
+            TextAlignment.Right => contentLeft + Math.Max(0, slack),
+            _ => contentLeft
+        };
+    }
+
     void RenderTableRows(TableElement table, int colCount, float[] colWidths, float[] rowHeights)
     {
-        var tableX = context.ContentLeft;
+        var tableX = ComputeTableX(table, colWidths);
         var startY = context.CurrentY;
 
         var hasVerticalMerge = TableLayout.HasVerticalMerge(table);
@@ -795,12 +872,33 @@ sealed class PageRenderer(RenderContext context) :
 
     void RenderTableRowByRow(TableElement table, int colCount, float[] colWidths, float[] rowHeights)
     {
+        var headerCount = 0;
+        while (headerCount < table.Rows.Count && table.Rows[headerCount].IsHeader)
+        {
+            headerCount++;
+        }
+
         for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
         {
             var rowHeight = rowHeights[rowIndex];
-            EnsureSpaceFor(rowHeight);
 
-            var tableX = context.ContentLeft;
+            var yBefore = context.CurrentY;
+            EnsureSpaceFor(rowHeight);
+            var pageBroke = context.CurrentY < yBefore;
+
+            if (pageBroke && headerCount > 0 && rowIndex >= headerCount)
+            {
+                var tableXHeader = ComputeTableX(table, colWidths);
+                for (var h = 0; h < headerCount; h++)
+                {
+                    var headerHeight = rowHeights[h];
+                    var headerY = context.CurrentY;
+                    RenderTableRow(table, h, colCount, colWidths, rowHeights, tableXHeader, headerY);
+                    context.CurrentY += headerHeight;
+                }
+            }
+
+            var tableX = ComputeTableX(table, colWidths);
             var currentY = context.CurrentY;
 
             RenderTableRow(table, rowIndex, colCount, colWidths, rowHeights, tableX, currentY);
@@ -955,6 +1053,12 @@ sealed class PageRenderer(RenderContext context) :
     {
         var padding = GetEffectivePadding(cell.Properties, tableProps);
         var margin = GetEffectiveMargin(cell.Properties, tableProps);
+
+        if (cell.Properties.TextDirection != CellTextDirection.LeftToRight)
+        {
+            return MeasureVerticalCellHeight(cell, padding, margin);
+        }
+
         var contentWidth = cellWidth - (float) (padding.Horizontal + margin.Horizontal);
         var height = (float) (padding.Vertical + margin.Vertical);
 
@@ -1051,6 +1155,91 @@ sealed class PageRenderer(RenderContext context) :
     static CellSpacing GetEffectiveMargin(TableCellProperties cellProps, TableProperties tableProps) =>
         TableLayout.GetEffectiveMargin(cellProps, tableProps);
 
+    float MeasureVerticalCellHeight(TableCell cell, CellSpacing padding, CellSpacing margin)
+    {
+        var widest = 0f;
+        foreach (var element in cell.Content)
+        {
+            var para = element as ParagraphElement;
+            if (para == null &&
+                element is ContentControlElement {Runs.Count: > 0} cc)
+            {
+                para = new()
+                {
+                    Runs = cc.Runs,
+                    Properties = new()
+                };
+            }
+
+            if (para == null)
+            {
+                continue;
+            }
+
+            var natural = textRenderer.MeasureParagraphNaturalWidth(para, float.MaxValue / 4);
+            if (natural > widest)
+            {
+                widest = natural;
+            }
+        }
+
+        return (float) (padding.Vertical + margin.Vertical) + widest;
+    }
+
+    void RenderVerticalCellContent(TableCell cell, float cellX, float cellY, float cellWidth, float cellHeight, CellSpacing padding)
+    {
+        if (currentPage == null)
+        {
+            return;
+        }
+
+        var contentX = cellX + (float) padding.Left;
+        var contentY = cellY + (float) padding.Top;
+        var contentWidth = cellWidth - (float) padding.Horizontal;
+        var availableHeight = cellHeight - (float) padding.Vertical;
+
+        // Render unrotated into a temp image whose width is the rotated wrap-width
+        // (real-space cell vertical extent) and whose height is the rotated cross-axis
+        // (real-space cell horizontal extent). Then rotate ±90 and blit.
+        var tempW = (int) Math.Ceiling(context.PointsToPixels(availableHeight));
+        var tempH = (int) Math.Ceiling(context.PointsToPixels(contentWidth));
+        if (tempW <= 0 || tempH <= 0)
+        {
+            return;
+        }
+
+        using var tempImage = new Image<Rgba32>(tempW, tempH);
+
+        var savedY = context.CurrentY;
+        context.CurrentY = 0;
+
+        foreach (var element in cell.Content)
+        {
+            if (element is ParagraphElement para)
+            {
+                textRenderer.RenderParagraphInBounds(tempImage, para, 0, availableHeight);
+            }
+            else if (element is ContentControlElement {Runs.Count: > 0} cc)
+            {
+                var ccPara = new ParagraphElement
+                {
+                    Runs = cc.Runs,
+                    Properties = new()
+                };
+                textRenderer.RenderParagraphInBounds(tempImage, ccPara, 0, availableHeight);
+            }
+        }
+
+        context.CurrentY = savedY;
+
+        var bottomToTop = cell.Properties.TextDirection == CellTextDirection.BottomToTop;
+        tempImage.Mutate(_ => _.Rotate(bottomToTop ? -90f : 90f));
+
+        var drawX = (int) context.PointsToPixels(contentX);
+        var drawY = (int) context.PointsToPixels(contentY);
+        currentPage.Mutate(_ => _.DrawImage(tempImage, new Point(drawX, drawY), 1f));
+    }
+
     void RenderTableCell(TableCell cell, float x, float y, float width, float height, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols)
     {
         if (currentPage == null)
@@ -1102,6 +1291,12 @@ sealed class PageRenderer(RenderContext context) :
                     DrawBorderLine(_, pixelX, pixelY, pixelX, pixelY + pixelHeight, borders.Left);
                 }
             });
+        }
+
+        if (cell.Properties.TextDirection != CellTextDirection.LeftToRight)
+        {
+            RenderVerticalCellContent(cell, cellX, cellY, cellWidth, cellHeight, padding);
+            return;
         }
 
         var savedY = context.CurrentY;
@@ -1533,10 +1728,17 @@ sealed class PageRenderer(RenderContext context) :
                 {
                     RenderParagraph(
                         new()
-                    {
-                        Runs = [new() { Text = displayText, Properties = new() }],
-                        Properties = new()
-                    });
+                        {
+                            Runs =
+                            [
+                                new()
+                                {
+                                    Text = displayText,
+                                    Properties = new()
+                                }
+                            ],
+                            Properties = new()
+                        });
                 }
             }
 
@@ -1667,6 +1869,8 @@ sealed class PageRenderer(RenderContext context) :
 
         currentPage.Mutate(_ => _.Fill(fillColor, new RectangleF(0, 0, context.PageWidthPixels, context.PageHeightPixels)));
 
+        DrawPageBorders();
+
         if (pageCount > 0)
         {
             context.StartNewPage();
@@ -1686,6 +1890,47 @@ sealed class PageRenderer(RenderContext context) :
             RenderFooter();
             pendingPage = currentPage;
             currentPage = null;
+        }
+    }
+
+    void DrawPageBorders()
+    {
+        if (currentPage == null || context.PageSettings.PageBorders is not {HasAnyBorder: true} borders)
+        {
+            return;
+        }
+
+        var pageWidth = context.PageWidthPixels;
+        var pageHeight = context.PageHeightPixels;
+        var leftX = context.PointsToPixels((float) borders.LeftSpacePoints);
+        var rightX = pageWidth - context.PointsToPixels((float) borders.RightSpacePoints);
+        var topY = context.PointsToPixels((float) borders.TopSpacePoints);
+        var bottomY = pageHeight - context.PointsToPixels((float) borders.BottomSpacePoints);
+
+        var page = currentPage;
+
+        if (borders.Top.IsVisible)
+        {
+            var pen = Pens.Solid(RenderContext.ParseColor(borders.Top.ColorHex), context.PointsToPixels((float) borders.Top.WidthPoints));
+            page.Mutate(_ => _.DrawLine(pen, new PointF(leftX, topY), new PointF(rightX, topY)));
+        }
+
+        if (borders.Bottom.IsVisible)
+        {
+            var pen = Pens.Solid(RenderContext.ParseColor(borders.Bottom.ColorHex), context.PointsToPixels((float) borders.Bottom.WidthPoints));
+            page.Mutate(_ => _.DrawLine(pen, new PointF(leftX, bottomY), new PointF(rightX, bottomY)));
+        }
+
+        if (borders.Left.IsVisible)
+        {
+            var pen = Pens.Solid(RenderContext.ParseColor(borders.Left.ColorHex), context.PointsToPixels((float) borders.Left.WidthPoints));
+            page.Mutate(_ => _.DrawLine(pen, new PointF(leftX, topY), new PointF(leftX, bottomY)));
+        }
+
+        if (borders.Right.IsVisible)
+        {
+            var pen = Pens.Solid(RenderContext.ParseColor(borders.Right.ColorHex), context.PointsToPixels((float) borders.Right.WidthPoints));
+            page.Mutate(_ => _.DrawLine(pen, new PointF(rightX, topY), new PointF(rightX, bottomY)));
         }
     }
 
@@ -1774,16 +2019,7 @@ sealed class PageRenderer(RenderContext context) :
         var pixelWidth = context.PointsToPixels((float) image.WidthPoints);
         var pixelHeight = context.PointsToPixels((float) image.HeightPoints);
 
-        try
-        {
-            using var img = Image.Load<Rgba32>(image.ImageData);
-            img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
-            currentPage.Mutate(_ => _.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f));
-        }
-        catch
-        {
-            // Ignore image decode errors
-        }
+        DrawBlockImage(image.ImageData, pixelX, pixelY, pixelWidth, pixelHeight, (float) image.RotationDegrees, image.Crop);
     }
 
     float CalculateFloatingImageX(FloatingImageElement image) =>

@@ -96,10 +96,12 @@ static class FontHelpers
     internal static FontNameCandidates GetCandidateNames(string fontFamily, bool bold)
     {
         var effectiveFontFamily = fontFamily;
-        if (bold && HasMediumWeightSuffix(fontFamily))
+        if (bold &&
+            HasMediumWeightSuffix(fontFamily))
         {
             var baseName = StripWeightSuffixes(fontFamily);
-            if (!string.IsNullOrEmpty(baseName) && baseName != fontFamily)
+            if (!string.IsNullOrEmpty(baseName) &&
+                baseName != fontFamily)
             {
                 effectiveFontFamily = baseName;
             }
@@ -125,12 +127,14 @@ static class FontHelpers
             return fallback;
         }
 
-        if (candidates.Effective != candidates.Original && FontFallbacks.TryGetValue(candidates.Original, out fallback))
+        if (candidates.Effective != candidates.Original &&
+            FontFallbacks.TryGetValue(candidates.Original, out fallback))
         {
             return fallback;
         }
 
-        if (candidates.Stripped != null && FontFallbacks.TryGetValue(candidates.Stripped, out fallback))
+        if (candidates.Stripped != null &&
+            FontFallbacks.TryGetValue(candidates.Stripped, out fallback))
         {
             return fallback;
         }

@@ -16,8 +16,12 @@
                       "Italic": false,
                       "Underline": false,
                       "Strikethrough": false,
-                      "AllCaps": false
-                    }
+                      "AllCaps": false,
+                      "SmallCaps": false,
+                      "Ligatures": "Standard",
+                      "IsRightToLeft": false
+                    },
+                    "IsTab": false
                   }
                 ],
                 "Properties": {
@@ -28,7 +32,14 @@
                   "KeepLines": false,
                   "KeepNext": false,
                   "WidowControl": true,
-                  "PageBreakBefore": false
+                  "PageBreakBefore": false,
+                  "BorderBetween": {
+                    "IsVisible": false,
+                    "WidthPoints": 0.5,
+                    "ColorHex": "000000"
+                  },
+                  "DefaultTabStopPoints": 36.0,
+                  "IsRightToLeft": false
                 }
               }
             ],
@@ -43,7 +54,8 @@
             }
           }
         ],
-        "IsExactHeight": false
+        "IsExactHeight": false,
+        "IsHeader": false
       }
     ],
     "Properties": {
@@ -72,7 +84,8 @@
         "HasAnyBorder": true
       },
       "DefaultCellPadding": {},
-      "DefaultCellMargin": {}
+      "DefaultCellMargin": {},
+      "IsAutoFit": true
     }
   }
 ]

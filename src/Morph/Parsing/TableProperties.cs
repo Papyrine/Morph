@@ -26,4 +26,17 @@ sealed record TableProperties
 
     /// <summary>Column widths from the table grid (w:tblGrid), in points. Null if not specified.</summary>
     public IReadOnlyList<double>? GridColumnWidths { get; init; }
+
+    /// <summary>
+    /// Table-level horizontal alignment within the page content area (from w:tblPr/w:jc).
+    /// Justify is not valid for tables and is treated as Left.
+    /// </summary>
+    public TextAlignment Alignment { get; init; } = TextAlignment.Left;
+
+    /// <summary>
+    /// Whether the table uses automatic column-width fitting (w:tblLayout/@type="autofit").
+    /// Default true matches Word's behaviour for tables without an explicit layout type.
+    /// When false, column widths are taken verbatim from <see cref="GridColumnWidths"/>.
+    /// </summary>
+    public bool IsAutoFit { get; init; } = true;
 }

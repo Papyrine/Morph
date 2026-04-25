@@ -6,6 +6,8 @@ using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 using OoxmlRunProperties = DocumentFormat.OpenXml.Wordprocessing.RunProperties;
 using OoxmlTableCellProperties = DocumentFormat.OpenXml.Wordprocessing.TableCellProperties;
 using OoxmlTableProperties = DocumentFormat.OpenXml.Wordprocessing.TableProperties;
+using OoxmlFieldCode = DocumentFormat.OpenXml.Wordprocessing.FieldCode;
+using OoxmlPageBorders = DocumentFormat.OpenXml.Wordprocessing.PageBorders;
 using OoxmlTabStop = DocumentFormat.OpenXml.Wordprocessing.TabStop;
 using OoxmlTabs = DocumentFormat.OpenXml.Wordprocessing.Tabs;
 using WPG = DocumentFormat.OpenXml.Office2010.Word.DrawingGroup;
@@ -20,6 +22,7 @@ sealed class DocumentParser(string defaultFont)
 {
     // Conversion constants
     const double twipsPerPoint = 20.0;
+
     // EMUs per point
     const double emusPerPoint = 914400.0 / 72.0;
 
@@ -76,6 +79,13 @@ sealed class DocumentParser(string defaultFont)
     // Document-level w:defaultTabStop in points (720 twips = 36 pt = 0.5 inch, OOXML default).
     double defaultTabStopPoints = 36;
 
+    // Document-level w:gutterAtTop flag; when true, w:pgMar/@w:gutter is added to the top margin instead of left.
+    bool gutterAtTopSetting;
+
+    // Document-default font family resolved from docDefaults; falls back to the constructor's
+    // defaultFont when the document doesn't specify one. Used by every run that doesn't carry an explicit font.
+    string effectiveDefaultFont = "";
+
     public ParsedDocument Parse(string filePath)
     {
         using var stream = File.OpenRead(filePath);
@@ -104,6 +114,11 @@ sealed class DocumentParser(string defaultFont)
         // Extract and store theme fonts for use during parsing
         currentThemeFonts = ThemeParser.ExtractThemeFonts(mainPart);
 
+        // Resolve the document's default font from docDefaults (w:rPrDefault/w:rFonts). Every run
+        // that doesn't carry an explicit font inherits this. Falls back to the constructor's
+        // defaultFont when the document doesn't specify one.
+        effectiveDefaultFont = ResolveDocDefaultFont(mainPart) ?? defaultFont;
+
         // Extract document-level background color (w:background element)
         documentBackgroundColor = ExtractDocumentBackgroundColor(mainPart.Document);
 
@@ -112,6 +127,11 @@ sealed class DocumentParser(string defaultFont)
 
         // Extract document-level default tab stop width (w:defaultTabStop in settings.xml)
         ExtractDefaultTabStop(mainPart);
+
+        // Extract gutterAtTop setting (so ExtractPageSettings can apply gutter to the right margin).
+        gutterAtTopSetting = mainPart.DocumentSettingsPart?.Settings?
+                                 .GetFirstChild<GutterAtTop>() is { } g &&
+                             g.Val?.Value != false;
 
         // SectionProperties (sectPr) describes the section it belongs to, and the section break is stored
         // on the last paragraph of the section. The next section's properties are stored in the next sectPr.
@@ -153,8 +173,28 @@ sealed class DocumentParser(string defaultFont)
         var firstPageFooter = pageSettings.DifferentFirstPage
             ? ExtractHeaderFooter(body, mainPart, HeaderFooterValues.First, isHeader: false)
             : null;
+
+        // w:settings/w:evenAndOddHeaders opts the document into separate even-page parts.
+        var evenAndOddHeaders = mainPart.DocumentSettingsPart?.Settings?
+            .GetFirstChild<EvenAndOddHeaders>() is { } eoh &&
+                                eoh.Val?.Value != false;
+        var evenPageHeader = evenAndOddHeaders
+            ? ExtractHeaderFooter(body, mainPart, HeaderFooterValues.Even, isHeader: true)
+            : null;
+        var evenPageFooter = evenAndOddHeaders
+            ? ExtractHeaderFooter(body, mainPart, HeaderFooterValues.Even, isHeader: false)
+            : null;
         var hyphenation = ExtractHyphenationSettings(mainPart);
         var compatibility = ExtractCompatibilitySettings(mainPart);
+        var bookmarks = ExtractBookmarks(body);
+        var comments = ExtractComments(mainPart, body);
+        var trackedChanges = ExtractTrackedChanges(body);
+        var protection = ExtractDocumentProtection(mainPart);
+        var fieldCodes = ExtractFieldCodes(body);
+        var footnotes = ExtractFootnotes(mainPart);
+        var endnotes = ExtractEndnotes(mainPart);
+        var embeddedObjects = ExtractEmbeddedObjects(body);
+        var features = DetectAdvancedFeatures(body, mainPart);
 
         return new()
         {
@@ -164,11 +204,478 @@ sealed class DocumentParser(string defaultFont)
             Footer = footer,
             FirstPageHeader = firstPageHeader,
             FirstPageFooter = firstPageFooter,
+            EvenPageHeader = evenPageHeader,
+            EvenPageFooter = evenPageFooter,
             Hyphenation = hyphenation,
             ThemeColors = currentThemeColors,
             ThemeFonts = currentThemeFonts,
-            Compatibility = compatibility
+            Compatibility = compatibility,
+            Bookmarks = bookmarks,
+            Comments = comments,
+            TrackedChanges = trackedChanges,
+            Protection = protection,
+            FieldCodes = fieldCodes,
+            Footnotes = footnotes,
+            Endnotes = endnotes,
+            EmbeddedObjects = embeddedObjects,
+            Features = features
         };
+    }
+
+    static DocumentFeatures DetectAdvancedFeatures(Body body, MainDocumentPart mainPart)
+    {
+        var hasCharts = false;
+        var hasSmartArt = false;
+        var hasMath = false;
+        var hasGradients = false;
+        var hasBezier = false;
+        var has3d = false;
+        var hasConnectors = false;
+        var hasDuotone = false;
+
+        // Math can appear at body level or inside paragraphs.
+        if (body.Descendants().Any(_ => _.LocalName is "oMath" or "oMathPara"))
+        {
+            hasMath = true;
+        }
+
+        foreach (var element in body.Descendants())
+        {
+            switch (element.LocalName)
+            {
+                case "graphicData":
+                    var uri = element.GetAttributes().FirstOrDefault(a => a.LocalName == "uri").Value;
+                    if (uri == "http://schemas.openxmlformats.org/drawingml/2006/chart")
+                    {
+                        hasCharts = true;
+                    }
+                    else if (uri == "http://schemas.openxmlformats.org/drawingml/2006/diagram")
+                    {
+                        hasSmartArt = true;
+                    }
+
+                    break;
+                case "gradFill":
+                    hasGradients = true;
+                    break;
+                case "custGeom":
+                    hasBezier = true;
+                    break;
+                case "sp3d":
+                case "scene3d":
+                    has3d = true;
+                    break;
+                case "cxnSp":
+                    hasConnectors = true;
+                    break;
+                case "duotone":
+                case "clrChange":
+                    hasDuotone = true;
+                    break;
+            }
+        }
+
+        // Watermarks: header parts with shapes that look watermark-shaped.
+        var hasWatermark = false;
+        foreach (var headerPart in mainPart.HeaderParts)
+        {
+            if (headerPart.Header == null) continue;
+            // Word emits watermarks as v:shape with class containing "WordPictureWatermark" / "WordTextWatermark".
+            foreach (var attr in headerPart.Header.Descendants().SelectMany(_ => _.GetAttributes()))
+            {
+                if (attr.Value is { } v &&
+                    (v.Contains("WordPictureWatermark", StringComparison.OrdinalIgnoreCase) ||
+                     v.Contains("WordTextWatermark", StringComparison.OrdinalIgnoreCase)))
+                {
+                    hasWatermark = true;
+                    break;
+                }
+            }
+
+            if (hasWatermark) break;
+        }
+
+        return new()
+        {
+            HasCharts = hasCharts,
+            HasSmartArt = hasSmartArt,
+            HasMath = hasMath,
+            HasWatermarks = hasWatermark,
+            HasGradientFills = hasGradients,
+            HasBezierShapes = hasBezier,
+            Has3dEffects = has3d,
+            HasConnectors = hasConnectors,
+            HasDuotoneEffects = hasDuotone
+        };
+    }
+
+    static IReadOnlyList<EmbeddedObject> ExtractEmbeddedObjects(Body body)
+    {
+        var result = new List<EmbeddedObject>();
+        foreach (var obj in body.Descendants<DocumentFormat.OpenXml.Wordprocessing.EmbeddedObject>())
+        {
+            string? progId = null;
+            string? relId = null;
+            foreach (var child in obj.Descendants())
+            {
+                if (child.LocalName != "OLEObject")
+                {
+                    continue;
+                }
+
+                foreach (var attr in child.GetAttributes())
+                {
+                    if (attr.LocalName == "ProgID")
+                    {
+                        progId = attr.Value;
+                    }
+                    else if (attr.LocalName == "id" &&
+                             (attr.NamespaceUri.EndsWith("/relationships") ?? false))
+                    {
+                        relId = attr.Value;
+                    }
+                }
+            }
+
+            result.Add(
+                new()
+                {
+                    ProgId = progId,
+                    RelationshipId = relId
+                });
+        }
+
+        return result;
+    }
+
+    string? ResolveDocDefaultFont(MainDocumentPart mainPart)
+    {
+        var rPrDefault = mainPart.StyleDefinitionsPart?.Styles?.DocDefaults?.RunPropertiesDefault?.RunPropertiesBaseStyle;
+        var fonts = rPrDefault?.GetFirstChild<RunFonts>();
+        if (fonts == null)
+        {
+            return null;
+        }
+
+        if (fonts.AsciiTheme?.HasValue == true &&
+            currentThemeFonts != null)
+        {
+            var themeValue = ((IEnumValue) fonts.AsciiTheme.Value).Value;
+            var resolved = currentThemeFonts.ResolveFont(themeValue);
+            if (resolved != null)
+            {
+                return resolved;
+            }
+        }
+
+        return fonts.Ascii?.HasValue == true ? fonts.Ascii.Value : null;
+    }
+
+    static IReadOnlyList<Footnote> ExtractFootnotes(MainDocumentPart mainPart)
+    {
+        var part = mainPart.FootnotesPart;
+        if (part?.Footnotes == null)
+        {
+            return [];
+        }
+
+        var result = new List<Footnote>();
+        foreach (var fn in part.Footnotes.Elements<DocumentFormat.OpenXml.Wordprocessing.Footnote>())
+        {
+            // Skip Word's built-in separator / continuation-separator entries.
+            if (fn.Type?.HasValue == true &&
+                fn.Type.Value != FootnoteEndnoteValues.Normal)
+            {
+                continue;
+            }
+
+            if (fn.Id?.Value is not { } idLong)
+            {
+                continue;
+            }
+
+            var text = string.Concat(fn.Descendants<Text>().Select(_ => _.Text));
+            result.Add(new() {Id = idLong.ToString(), Text = text});
+        }
+
+        return result;
+    }
+
+    static IReadOnlyList<Endnote> ExtractEndnotes(MainDocumentPart mainPart)
+    {
+        var part = mainPart.EndnotesPart;
+        if (part?.Endnotes == null)
+        {
+            return [];
+        }
+
+        var result = new List<Endnote>();
+        foreach (var en in part.Endnotes.Elements<DocumentFormat.OpenXml.Wordprocessing.Endnote>())
+        {
+            if (en.Type?.HasValue == true &&
+                en.Type.Value != FootnoteEndnoteValues.Normal)
+            {
+                continue;
+            }
+
+            if (en.Id?.Value is not { } idLong)
+            {
+                continue;
+            }
+
+            var text = string.Concat(en.Descendants<Text>().Select(_ => _.Text));
+            result.Add(new() {Id = idLong.ToString(), Text = text});
+        }
+
+        return result;
+    }
+
+    static IReadOnlyList<FieldCode> ExtractFieldCodes(Body body)
+    {
+        var result = new List<FieldCode>();
+        var instructionStack = new Stack<StringBuilder>();
+        var resultStack = new Stack<StringBuilder>();
+        var inResult = new Stack<bool>();
+
+        foreach (var run in body.Descendants<OoxmlRun>())
+        {
+            foreach (var child in run.ChildElements)
+            {
+                switch (child)
+                {
+                    case FieldChar fc when fc.FieldCharType?.Value == FieldCharValues.Begin:
+                        instructionStack.Push(new());
+                        resultStack.Push(new());
+                        inResult.Push(false);
+                        break;
+
+                    case OoxmlFieldCode instr when instructionStack.Count > 0:
+                        if (!inResult.Peek())
+                        {
+                            instructionStack.Peek().Append(instr.Text);
+                        }
+
+                        break;
+
+                    case FieldChar fc when fc.FieldCharType?.Value == FieldCharValues.Separate &&
+                                           inResult.Count > 0:
+                        var flag = inResult.Pop();
+                        inResult.Push(true);
+                        _ = flag;
+                        break;
+
+                    case Text t when instructionStack.Count > 0 && inResult.Peek():
+                        resultStack.Peek().Append(t.Text);
+                        break;
+
+                    case FieldChar fc when fc.FieldCharType?.Value == FieldCharValues.End && instructionStack.Count > 0:
+                        var instruction = instructionStack.Pop().ToString().Trim();
+                        var resultText = resultStack.Pop().ToString();
+                        inResult.Pop();
+                        if (instruction.Length > 0)
+                        {
+                            result.Add(new() {Instruction = instruction, Result = resultText});
+                        }
+
+                        break;
+                }
+            }
+        }
+
+        // Legacy w:fldSimple (single-element field). The instruction lives in @w:instr and the
+        // cached result is the descendant text.
+        foreach (var simple in body.Descendants<SimpleField>())
+        {
+            var instruction = simple.Instruction?.Value?.Trim() ?? string.Empty;
+            if (instruction.Length == 0)
+            {
+                continue;
+            }
+
+            var resultText = string.Concat(simple.Descendants<Text>().Select(_ => _.Text));
+            result.Add(new() {Instruction = instruction, Result = resultText});
+        }
+
+        return result;
+    }
+
+    static DocumentProtectionSettings ExtractDocumentProtection(MainDocumentPart mainPart)
+    {
+        var settings = mainPart.DocumentSettingsPart?.Settings;
+        var protection = settings?.GetFirstChild<DocumentProtection>();
+        if (protection?.Edit?.Value is not { } editValue)
+        {
+            return new();
+        }
+
+        var mode = DocumentEditingMode.None;
+        if (editValue == DocumentProtectionValues.ReadOnly)
+        {
+            mode = DocumentEditingMode.ReadOnly;
+        }
+        else if (editValue == DocumentProtectionValues.Comments)
+        {
+            mode = DocumentEditingMode.Comments;
+        }
+        else if (editValue == DocumentProtectionValues.TrackedChanges)
+        {
+            mode = DocumentEditingMode.TrackedChanges;
+        }
+        else if (editValue == DocumentProtectionValues.Forms)
+        {
+            mode = DocumentEditingMode.Forms;
+        }
+
+        return new() {EditingMode = mode};
+    }
+
+    static IReadOnlyList<TrackedChange> ExtractTrackedChanges(Body body)
+    {
+        var result = new List<TrackedChange>();
+
+        foreach (var ins in body.Descendants<InsertedRun>())
+        {
+            if (ins.Id?.Value is not { } id)
+            {
+                continue;
+            }
+
+            result.Add(BuildChange(id, ins.Author?.Value, ins.Date?.Value, TrackedChangeType.Insertion, ins));
+        }
+
+        foreach (var del in body.Descendants<DeletedRun>())
+        {
+            if (del.Id?.Value is not { } id)
+            {
+                continue;
+            }
+
+            result.Add(BuildChange(id, del.Author?.Value, del.Date?.Value, TrackedChangeType.Deletion, del));
+        }
+
+        return result;
+
+        static TrackedChange BuildChange(string id, string? author, DateTime? date, TrackedChangeType type, OpenXmlElement element)
+        {
+            // DeletedText (w:delText) is the deleted content; Text (w:t) is the regular variant under InsertedRun.
+            var text = string.Concat(element.Descendants<Text>().Select(_ => _.Text)
+                .Concat(element.Descendants<DeletedText>().Select(_ => _.Text)));
+
+            return new()
+            {
+                Id = id,
+                Author = author,
+                Date = date is { } dt ? new DateTimeOffset(dt) : null,
+                Type = type,
+                Text = text
+            };
+        }
+    }
+
+    static IReadOnlyList<Comment> ExtractComments(MainDocumentPart mainPart, Body body)
+    {
+        var commentsPart = mainPart.WordprocessingCommentsPart;
+        if (commentsPart?.Comments == null)
+        {
+            return [];
+        }
+
+        // Map each w:commentRangeStart's id → enclosing paragraph ordinal.
+        var paragraphOrdinals = new Dictionary<Paragraph, int>();
+        var ordinal = 0;
+        foreach (var p in body.Descendants<Paragraph>())
+        {
+            paragraphOrdinals[p] = ordinal++;
+        }
+
+        var anchorByCommentId = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var rangeStart in body.Descendants<CommentRangeStart>())
+        {
+            if (rangeStart.Id?.Value is not { } rangeId)
+            {
+                continue;
+            }
+
+            for (var current = rangeStart.Parent; current != null; current = current.Parent)
+            {
+                if (current is Paragraph p && paragraphOrdinals.TryGetValue(p, out var idx))
+                {
+                    anchorByCommentId[rangeId.ToString()] = idx;
+                    break;
+                }
+            }
+        }
+
+        var result = new List<Comment>();
+        foreach (var ooxmlComment in commentsPart.Comments.Elements<DocumentFormat.OpenXml.Wordprocessing.Comment>())
+        {
+            if (ooxmlComment.Id?.Value is not { } id)
+            {
+                continue;
+            }
+
+            var text = string.Concat(ooxmlComment.Descendants<Text>().Select(_ => _.Text));
+            DateTimeOffset? date = null;
+            if (ooxmlComment.Date?.Value is { } dateValue)
+            {
+                date = dateValue;
+            }
+
+            int? anchor = anchorByCommentId.TryGetValue(id.ToString(), out var idx) ? idx : null;
+
+            result.Add(
+                new()
+                {
+                    Id = id.ToString(),
+                    Author = ooxmlComment.Author?.Value,
+                    Text = text,
+                    Date = date,
+                    AnchorParagraphIndex = anchor
+                });
+        }
+
+        return result;
+    }
+
+    static IReadOnlyList<Bookmark> ExtractBookmarks(Body body)
+    {
+        // Pre-compute a map from each Paragraph element to its ordinal among paragraphs in the body.
+        var paragraphOrdinals = new Dictionary<Paragraph, int>();
+        var ordinal = 0;
+        foreach (var p in body.Descendants<Paragraph>())
+        {
+            paragraphOrdinals[p] = ordinal++;
+        }
+
+        var result = new List<Bookmark>();
+        foreach (var start in body.Descendants<BookmarkStart>())
+        {
+            if (start.Id?.Value is not { } id ||
+                start.Name?.Value is not { } name)
+            {
+                continue;
+            }
+
+            int? paragraphIndex = null;
+            for (var current = start.Parent; current != null; current = current.Parent)
+            {
+                if (current is Paragraph p && paragraphOrdinals.TryGetValue(p, out var idx))
+                {
+                    paragraphIndex = idx;
+                    break;
+                }
+            }
+
+            result.Add(
+                new()
+                {
+                    Id = id,
+                    Name = name,
+                    ParagraphIndex = paragraphIndex
+                });
+        }
+
+        return result;
     }
 
     Dictionary<string, RunProperties> ExtractStyleRunProperties(MainDocumentPart mainPart)
@@ -225,7 +732,9 @@ sealed class DocumentParser(string defaultFont)
 
         // Build a set of all style IDs that exist in the document
         var existingStyleIds = new HashSet<string>(
-            styles.Select(s => s.StyleId?.Value).Where(id => id != null)!,
+            styles
+                .Select(_ => _.StyleId?.Value)
+                .Where(_ => _ != null)!,
             StringComparer.OrdinalIgnoreCase);
 
         // Process styles with proper inheritance - may need multiple passes
@@ -237,7 +746,8 @@ sealed class DocumentParser(string defaultFont)
             foreach (var style in styles)
             {
                 var styleId = style.StyleId?.Value;
-                if (styleId == null || processed.Contains(styleId))
+                if (styleId == null ||
+                    processed.Contains(styleId))
                 {
                     continue;
                 }
@@ -246,7 +756,9 @@ sealed class DocumentParser(string defaultFont)
                 var basedOnId = style.BasedOn?.Val?.Value;
                 // Only wait for the base style if it actually exists in this document
                 // If basedOn references a non-existent style, process without waiting
-                if (basedOnId != null && existingStyleIds.Contains(basedOnId) && !processed.Contains(basedOnId))
+                if (basedOnId != null &&
+                    existingStyleIds.Contains(basedOnId) &&
+                    !processed.Contains(basedOnId))
                 {
                     // Base style not yet processed, skip for now
                     continue;
@@ -270,6 +782,7 @@ sealed class DocumentParser(string defaultFont)
                 var underline = baseProps?.Underline ?? false;
                 var strikethrough = baseProps?.Strikethrough ?? false;
                 var allCaps = baseProps?.AllCaps ?? false;
+                var smallCaps = baseProps?.SmallCaps ?? false;
                 var color = baseProps?.ColorHex;
                 var backgroundColor = baseProps?.BackgroundColorHex;
                 var characterSpacing = baseProps?.CharacterSpacingPoints ?? 0.0;
@@ -286,6 +799,7 @@ sealed class DocumentParser(string defaultFont)
                         Underline = underline,
                         Strikethrough = strikethrough,
                         AllCaps = allCaps,
+                        SmallCaps = smallCaps,
                         ColorHex = color,
                         BackgroundColorHex = backgroundColor,
                         CharacterSpacingPoints = characterSpacing
@@ -299,7 +813,8 @@ sealed class DocumentParser(string defaultFont)
                 if (runFonts != null)
                 {
                     // First try theme font reference
-                    if (runFonts.AsciiTheme?.HasValue == true && currentThemeFonts != null)
+                    if (runFonts.AsciiTheme?.HasValue == true &&
+                        currentThemeFonts != null)
                     {
                         // ThemeFontValues implements IEnumValue - access Value property through interface
                         var themeValue = ((IEnumValue) runFonts.AsciiTheme.Value).Value;
@@ -339,7 +854,8 @@ sealed class DocumentParser(string defaultFont)
 
                 // Underline
                 var underlineElement = runProps.GetFirstChild<Underline>();
-                if (underlineElement != null && underlineElement.Val?.Value != UnderlineValues.None)
+                if (underlineElement != null &&
+                    underlineElement.Val?.Value != UnderlineValues.None)
                 {
                     underline = true;
                 }
@@ -356,6 +872,13 @@ sealed class DocumentParser(string defaultFont)
                 if (capsElement != null)
                 {
                     allCaps = capsElement.Val?.Value != false;
+                }
+
+                // Small caps
+                var smallCapsElement = runProps.GetFirstChild<SmallCaps>();
+                if (smallCapsElement != null)
+                {
+                    smallCaps = smallCapsElement.Val?.Value != false;
                 }
 
                 // Character spacing (w:spacing in rPr)
@@ -432,6 +955,7 @@ sealed class DocumentParser(string defaultFont)
                     Underline = underline,
                     Strikethrough = strikethrough,
                     AllCaps = allCaps,
+                    SmallCaps = smallCaps,
                     ColorHex = color,
                     BackgroundColorHex = backgroundColor,
                     CharacterSpacingPoints = characterSpacing
@@ -692,22 +1216,33 @@ sealed class DocumentParser(string defaultFont)
 
                 // Parse paragraph borders (w:pBdr)
                 var borders = baseProps?.Borders;
+                var borderTopSpace = baseProps?.BorderTopSpacePoints ?? 0;
                 var borderBottomSpace = baseProps?.BorderBottomSpacePoints ?? 0;
+                var borderLeftSpace = baseProps?.BorderLeftSpacePoints ?? 0;
+                var borderRightSpace = baseProps?.BorderRightSpacePoints ?? 0;
+                var borderBetween = baseProps?.BorderBetween ?? BorderEdge.None;
+                var borderBetweenSpace = baseProps?.BorderBetweenSpacePoints ?? 0;
                 var pBdr = paraProps.GetFirstChild<ParagraphBorders>();
                 if (pBdr != null)
                 {
+                    var topBorder = pBdr.GetFirstChild<TopBorder>();
+                    var rightBorder = pBdr.GetFirstChild<RightBorder>();
+                    var bottomBorder = pBdr.GetFirstChild<BottomBorder>();
+                    var leftBorder = pBdr.GetFirstChild<LeftBorder>();
+                    var betweenBorder = pBdr.GetFirstChild<BetweenBorder>();
                     borders = new()
                     {
-                        Top = ParseBorderEdge(pBdr.GetFirstChild<TopBorder>()),
-                        Right = ParseBorderEdge(pBdr.GetFirstChild<RightBorder>()),
-                        Bottom = ParseBorderEdge(pBdr.GetFirstChild<BottomBorder>()),
-                        Left = ParseBorderEdge(pBdr.GetFirstChild<LeftBorder>())
+                        Top = ParseBorderEdge(topBorder),
+                        Right = ParseBorderEdge(rightBorder),
+                        Bottom = ParseBorderEdge(bottomBorder),
+                        Left = ParseBorderEdge(leftBorder)
                     };
-                    var bottomBorder = pBdr.GetFirstChild<BottomBorder>();
-                    if (bottomBorder?.Space?.HasValue == true)
-                    {
-                        borderBottomSpace = bottomBorder.Space.Value;
-                    }
+                    borderTopSpace = ParseBorderSpace(topBorder);
+                    borderRightSpace = ParseBorderSpace(rightBorder);
+                    borderBottomSpace = ParseBorderSpace(bottomBorder);
+                    borderLeftSpace = ParseBorderSpace(leftBorder);
+                    borderBetween = ParseBorderEdge(betweenBorder);
+                    borderBetweenSpace = ParseBorderSpace(betweenBorder);
                 }
 
                 styleProps[styleId] = new()
@@ -728,7 +1263,12 @@ sealed class DocumentParser(string defaultFont)
                     WidowControl = widowControl,
                     BackgroundColorHex = backgroundColor,
                     Borders = borders,
+                    BorderTopSpacePoints = borderTopSpace,
                     BorderBottomSpacePoints = borderBottomSpace,
+                    BorderLeftSpacePoints = borderLeftSpace,
+                    BorderRightSpacePoints = borderRightSpace,
+                    BorderBetween = borderBetween,
+                    BorderBetweenSpacePoints = borderBetweenSpace,
                     TabStops = ParseTabs(paraProps, baseProps?.TabStops ?? []),
                     DefaultTabStopPoints = defaultTabStopPoints
                     // PageBreakBefore intentionally not inherited from styles
@@ -1421,6 +1961,7 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        double gutterPoints = 0;
         if (pageMargin != null)
         {
             if (pageMargin.Top?.HasValue == true)
@@ -1451,6 +1992,26 @@ sealed class DocumentParser(string defaultFont)
             if (pageMargin.Footer?.HasValue == true)
             {
                 footerDistance = pageMargin.Footer.Value / twipsPerPoint;
+            }
+
+            if (pageMargin.Gutter?.HasValue == true)
+            {
+                gutterPoints = pageMargin.Gutter.Value / twipsPerPoint;
+            }
+        }
+
+        // Gutter is added to the appropriate margin at parse time so the rest of the pipeline
+        // doesn't need to know about it. Preserved separately on PageSettings for consumers.
+        var gutterAtTop = gutterAtTopSetting;
+        if (gutterPoints > 0)
+        {
+            if (gutterAtTop)
+            {
+                marginTop += gutterPoints;
+            }
+            else
+            {
+                marginLeft += gutterPoints;
             }
         }
 
@@ -1483,6 +2044,9 @@ sealed class DocumentParser(string defaultFont)
             documentGridLinePitchPoints = docGrid.LinePitch.Value / twipsPerPoint;
         }
 
+        // Parse page borders (w:pgBorders)
+        var pageBorders = ParsePageBorders(sectionProps.GetFirstChild<OoxmlPageBorders>());
+
         return new()
         {
             WidthPoints = width,
@@ -1499,8 +2063,44 @@ sealed class DocumentParser(string defaultFont)
             DocumentGridLinePitchPoints = documentGridLinePitchPoints,
             LastRenderedPageBreakCount = lastRenderedPageBreakCount,
             BackgroundColorHex = documentBackgroundColor,
-            DifferentFirstPage = differentFirstPage
+            DifferentFirstPage = differentFirstPage,
+            PageBorders = pageBorders,
+            GutterPoints = gutterPoints,
+            GutterAtTop = gutterAtTop
         };
+    }
+
+    PageBorders? ParsePageBorders(OoxmlPageBorders? element)
+    {
+        if (element == null)
+        {
+            return null;
+        }
+
+        var top = ParseBorderEdge(element.GetFirstChild<TopBorder>());
+        var right = ParseBorderEdge(element.GetFirstChild<RightBorder>());
+        var bottom = ParseBorderEdge(element.GetFirstChild<BottomBorder>());
+        var left = ParseBorderEdge(element.GetFirstChild<LeftBorder>());
+
+        if (!top.IsVisible && !right.IsVisible && !bottom.IsVisible && !left.IsVisible)
+        {
+            return null;
+        }
+
+        return new()
+        {
+            Top = top,
+            Right = right,
+            Bottom = bottom,
+            Left = left,
+            TopSpacePoints = ReadSpacePoints(element.GetFirstChild<TopBorder>()),
+            RightSpacePoints = ReadSpacePoints(element.GetFirstChild<RightBorder>()),
+            BottomSpacePoints = ReadSpacePoints(element.GetFirstChild<BottomBorder>()),
+            LeftSpacePoints = ReadSpacePoints(element.GetFirstChild<LeftBorder>())
+        };
+
+        static double ReadSpacePoints(BorderType? edge) =>
+            edge?.Space?.HasValue == true ? edge.Space.Value : 24;
     }
 
     static LineNumberSettings? ParseLineNumberSettings(SectionProperties sectionProps)
@@ -1736,8 +2336,9 @@ sealed class DocumentParser(string defaultFont)
                 }
             }
         }
+
         return elements.Count > 0
-            ? new HeaderFooterContent { Elements = elements }
+            ? new HeaderFooterContent {Elements = elements}
             : null;
     }
 
@@ -1982,6 +2583,22 @@ sealed class DocumentParser(string defaultFont)
                     }
                 }
 
+                // Parse text direction (w:textDirection)
+                var textDirection = CellTextDirection.LeftToRight;
+                var textDirElement = cellProps?.GetFirstChild<TextDirection>();
+                if (textDirElement?.Val?.HasValue == true)
+                {
+                    var dirVal = textDirElement.Val.Value;
+                    if (dirVal == TextDirectionValues.BottomToTopLeftToRight)
+                    {
+                        textDirection = CellTextDirection.BottomToTop;
+                    }
+                    else if (dirVal == TextDirectionValues.TopToBottomRightToLeft)
+                    {
+                        textDirection = CellTextDirection.TopToBottom;
+                    }
+                }
+
                 // Parse vertical merge (w:vMerge)
                 var verticalMerge = VerticalMergeType.None;
                 var vMergeElement = cellProps?.GetFirstChild<VerticalMerge>();
@@ -2026,7 +2643,8 @@ sealed class DocumentParser(string defaultFont)
                         Borders = cellBorders,
                         GridSpan = gridSpan,
                         VerticalAlignment = verticalAlign,
-                        VerticalMerge = verticalMerge
+                        VerticalMerge = verticalMerge,
+                        TextDirection = textDirection
                     }
                 });
 
@@ -2036,6 +2654,7 @@ sealed class DocumentParser(string defaultFont)
             // Parse row properties for height
             double? rowHeight = null;
             var isExactHeight = false;
+            var isHeader = false;
             var rowProps = row.GetFirstChild<TableRowProperties>();
             if (rowProps != null)
             {
@@ -2046,13 +2665,20 @@ sealed class DocumentParser(string defaultFont)
                     // hRule="exact" means exact height, otherwise it's minimum height
                     isExactHeight = trHeight.HeightType?.Value == HeightRuleValues.Exact;
                 }
+
+                var headerElement = rowProps.GetFirstChild<TableHeader>();
+                if (headerElement != null)
+                {
+                    isHeader = headerElement.Val?.Value != OnOffOnlyValues.Off;
+                }
             }
 
             rows.Add(new()
             {
                 Cells = cells,
                 HeightPoints = rowHeight,
-                IsExactHeight = isExactHeight
+                IsExactHeight = isExactHeight,
+                IsHeader = isHeader
             });
         }
 
@@ -2118,6 +2744,30 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        // Parse table layout type (w:tblPr/w:tblLayout/@type)
+        var isAutoFit = true;
+        var tableLayoutEl = tableProps?.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.TableLayout>();
+        if (tableLayoutEl?.Type?.Value is { } layoutType)
+        {
+            isAutoFit = layoutType != TableLayoutValues.Fixed;
+        }
+
+        // Parse table-level horizontal alignment (w:tblPr/w:jc)
+        var alignment = TextAlignment.Left;
+        var tableJustification = tableProps?.GetFirstChild<TableJustification>();
+        if (tableJustification?.Val?.HasValue == true)
+        {
+            var jcVal = tableJustification.Val.Value;
+            if (jcVal == TableRowAlignmentValues.Center)
+            {
+                alignment = TextAlignment.Center;
+            }
+            else if (jcVal == TableRowAlignmentValues.Right)
+            {
+                alignment = TextAlignment.Right;
+            }
+        }
+
         return new()
         {
             Rows = rows,
@@ -2130,7 +2780,9 @@ sealed class DocumentParser(string defaultFont)
                 DefaultCellPadding = defaultCellPadding ?? new CellSpacing(),
                 DefaultCellMargin = defaultCellMargin ?? new CellSpacing(0),
                 IndentPoints = indentPoints,
-                GridColumnWidths = gridColumnWidths
+                GridColumnWidths = gridColumnWidths,
+                Alignment = alignment,
+                IsAutoFit = isAutoFit
             }
         };
     }
@@ -2222,6 +2874,9 @@ sealed class DocumentParser(string defaultFont)
 
         return hasAny ? new CellSpacing(top, right, bottom, left) : null;
     }
+
+    static double ParseBorderSpace(BorderType? border) =>
+        border?.Space?.HasValue == true ? border.Space.Value : 0;
 
     BorderEdge ParseBorderEdge(BorderType? border)
     {
@@ -2488,10 +3143,10 @@ sealed class DocumentParser(string defaultFont)
                                 {
                                     result.Add(
                                         new ParagraphElement
-                                    {
-                                        Runs = new List<Run>(runs),
-                                        Properties = props
-                                    });
+                                        {
+                                            Runs = new List<Run>(runs),
+                                            Properties = props
+                                        });
                                     runs.Clear();
                                 }
 
@@ -2527,6 +3182,40 @@ sealed class DocumentParser(string defaultFont)
                         runs.AddRange(ParseRun(sdtBlockRun, mainPart, paragraphStyleId));
                     }
 
+                    break;
+
+                case SimpleField simpleField:
+                    // w:fldSimple wraps the cached result runs of a legacy field. Render them inline;
+                    // the field instruction itself is captured separately on ParsedDocument.FieldCodes.
+                    foreach (var fieldRun in simpleField.Descendants<OoxmlRun>())
+                    {
+                        runs.AddRange(ParseRun(fieldRun, mainPart, paragraphStyleId));
+                    }
+
+                    break;
+
+                case Hyperlink hyperlink:
+                    // w:hyperlink wraps runs that point at an external URL or internal anchor. The
+                    // visible content is the inner runs; rendering ignores the link target for now.
+                    foreach (var hlRun in hyperlink.Elements<OoxmlRun>())
+                    {
+                        runs.AddRange(ParseRun(hlRun, mainPart, paragraphStyleId));
+                    }
+
+                    break;
+
+                case InsertedRun insertedRun:
+                    // Tracked-change insertion: render the inserted runs inline ("as accepted").
+                    // The revision metadata is captured separately on ParsedDocument.TrackedChanges.
+                    foreach (var insRun in insertedRun.Elements<OoxmlRun>())
+                    {
+                        runs.AddRange(ParseRun(insRun, mainPart, paragraphStyleId));
+                    }
+
+                    break;
+
+                case DeletedRun:
+                    // Tracked-change deletion: drop the runs ("as accepted" = remove deleted text).
                     break;
 
                 case OoxmlRun run:
@@ -2567,10 +3256,10 @@ sealed class DocumentParser(string defaultFont)
                             {
                                 result.Add(
                                     new ParagraphElement
-                                {
-                                    Runs = new List<Run>(runs),
-                                    Properties = props
-                                });
+                                    {
+                                        Runs = new List<Run>(runs),
+                                        Properties = props
+                                    });
                                 runs.Clear();
                             }
 
@@ -2597,6 +3286,7 @@ sealed class DocumentParser(string defaultFont)
                                 {
                                     continue;
                                 }
+
                                 result.Add(shape);
                             }
 
@@ -2612,10 +3302,10 @@ sealed class DocumentParser(string defaultFont)
                             {
                                 result.Add(
                                     new ParagraphElement
-                                {
-                                    Runs = new List<Run>(runs),
-                                    Properties = props
-                                });
+                                    {
+                                        Runs = new List<Run>(runs),
+                                        Properties = props
+                                    });
                                 runs.Clear();
                             }
 
@@ -2631,10 +3321,10 @@ sealed class DocumentParser(string defaultFont)
                                 {
                                     result.Add(
                                         new ParagraphElement
-                                    {
-                                        Runs = new List<Run>(runs),
-                                        Properties = props
-                                    });
+                                        {
+                                            Runs = new List<Run>(runs),
+                                            Properties = props
+                                        });
                                     runs.Clear();
                                 }
 
@@ -3074,12 +3764,17 @@ sealed class DocumentParser(string defaultFont)
         var widthPoints = picWidth / emusPerPoint;
         var heightPoints = picHeight / emusPerPoint;
 
+        // Rotation (a:xfrm/@rot, in 60,000ths of a degree, clockwise)
+        var rotationDegrees = ReadRotationDegrees(xfrm);
+
         // Find the blip (image reference)
         var blipFill = pic.Elements().FirstOrDefault(e => e.LocalName == "blipFill");
         if (blipFill == null)
         {
             return null;
         }
+
+        var crop = ReadCrop(blipFill);
 
         var blip = blipFill.Descendants().FirstOrDefault(e => e.LocalName == "blip");
         if (blip == null)
@@ -3156,8 +3851,79 @@ sealed class DocumentParser(string defaultFont)
             InlineImageData = imageData,
             InlineImageWidthPoints = widthPoints,
             InlineImageHeightPoints = heightPoints,
-            InlineImageContentType = contentType
+            InlineImageContentType = contentType,
+            InlineImageRotationDegrees = rotationDegrees,
+            InlineImageCrop = crop
         };
+    }
+
+    static double ReadRotationDegrees(OpenXmlElement xfrm)
+    {
+        var rotAttr = xfrm.GetAttributes().FirstOrDefault(a => a.LocalName == "rot");
+        if (rotAttr.Value != null && long.TryParse(rotAttr.Value, out var rot60000ths))
+        {
+            return rot60000ths / 60000.0;
+        }
+
+        return 0;
+    }
+
+    static LigatureMode ParseLigatureMode(DocumentFormat.OpenXml.Office2010.Word.Ligatures? element)
+    {
+        if (element?.Val?.Value is not { } val)
+        {
+            return LigatureMode.Standard;
+        }
+
+        var v = DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.None;
+        if (val == v) return LigatureMode.None;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.Standard) return LigatureMode.Standard;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.Contextual) return LigatureMode.Contextual;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.Historical) return LigatureMode.Historical;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.Discretional) return LigatureMode.Discretional;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.StandardContextual) return LigatureMode.Standard | LigatureMode.Contextual;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.StandardHistorical) return LigatureMode.Standard | LigatureMode.Historical;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.StandardDiscretional) return LigatureMode.Standard | LigatureMode.Discretional;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.ContextualHistorical) return LigatureMode.Contextual | LigatureMode.Historical;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.ContextualDiscretional) return LigatureMode.Contextual | LigatureMode.Discretional;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.HistoricalDiscretional) return LigatureMode.Historical | LigatureMode.Discretional;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.StandardContextualHistorical) return LigatureMode.Standard | LigatureMode.Contextual | LigatureMode.Historical;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.StandardContextualDiscretional) return LigatureMode.Standard | LigatureMode.Contextual | LigatureMode.Discretional;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.StandardHistoricalDiscretional) return LigatureMode.Standard | LigatureMode.Historical | LigatureMode.Discretional;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.ContextualHistoricalDiscretional) return LigatureMode.Contextual | LigatureMode.Historical | LigatureMode.Discretional;
+        if (val == DocumentFormat.OpenXml.Office2010.Word.LigaturesValues.All) return LigatureMode.All;
+        return LigatureMode.Standard;
+    }
+
+    static ImageCrop? ReadCrop(OpenXmlElement blipFill)
+    {
+        // a:srcRect attributes l/t/r/b are in 1000ths of a percent (100000 = 100%).
+        var srcRect = blipFill.Elements().FirstOrDefault(e => e.LocalName == "srcRect");
+        if (srcRect == null)
+        {
+            return null;
+        }
+
+        var crop = new ImageCrop
+        {
+            Left = ReadFraction(srcRect, "l"),
+            Top = ReadFraction(srcRect, "t"),
+            Right = ReadFraction(srcRect, "r"),
+            Bottom = ReadFraction(srcRect, "b")
+        };
+
+        return crop.IsCropped ? crop : null;
+
+        static double ReadFraction(OpenXmlElement el, string attrName)
+        {
+            var attr = el.GetAttributes().FirstOrDefault(a => a.LocalName == attrName);
+            if (attr.Value != null && long.TryParse(attr.Value, out var thousandthsOfPercent))
+            {
+                return Math.Clamp(thousandthsOfPercent / 100000.0, 0, 1);
+            }
+
+            return 0;
+        }
     }
 
     /// <summary>
@@ -3168,7 +3934,7 @@ sealed class DocumentParser(string defaultFont)
         var current = element;
         while (current != null)
         {
-            if (current is OpenXmlPartRootElement { OpenXmlPart: { } part })
+            if (current is OpenXmlPartRootElement {OpenXmlPart: { } part})
             {
                 return part;
             }
@@ -3314,12 +4080,17 @@ sealed class DocumentParser(string defaultFont)
             var offsetXPoints = finalX / emusPerPoint;
             var offsetYPoints = finalY / emusPerPoint;
 
+            // Rotation (a:xfrm/@rot, in 60,000ths of a degree, clockwise)
+            var rotationDegrees = ReadRotationDegrees(xfrm);
+
             // Find the blip (image reference)
             var blipFill = pic.Elements().FirstOrDefault(e => e.LocalName == "blipFill");
             if (blipFill == null)
             {
                 continue;
             }
+
+            var crop = ReadCrop(blipFill);
 
             var blip = blipFill.Descendants().FirstOrDefault(e => e.LocalName == "blip");
             if (blip == null)
@@ -3390,12 +4161,14 @@ sealed class DocumentParser(string defaultFont)
                     ImageData = imageData,
                     WidthPoints = widthPoints,
                     HeightPoints = heightPoints,
-                    ContentType = contentType
+                    ContentType = contentType,
+                    RotationDegrees = rotationDegrees,
+                    Crop = crop
                 });
             }
             else
             {
-                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints);
+                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees, crop);
                 result.Add(floatingImage);
             }
         }
@@ -3406,7 +4179,7 @@ sealed class DocumentParser(string defaultFont)
     /// <summary>
     /// Parses an anchored image with additional X/Y offset within a group.
     /// </summary>
-    static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints)
+    static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, ImageCrop? crop = null)
     {
         // Parse horizontal position
         var hPosPoints = offsetXPoints;
@@ -3483,7 +4256,9 @@ sealed class DocumentParser(string defaultFont)
             VerticalPositionPoints = vPosPoints,
             HorizontalAnchor = hAnchor,
             VerticalAnchor = vAnchor,
-            BehindText = isBehindText
+            BehindText = isBehindText,
+            RotationDegrees = rotationDegrees,
+            Crop = crop
         };
     }
 
@@ -3978,6 +4753,7 @@ sealed class DocumentParser(string defaultFont)
             {
                 fillAlpha = alphaElement.Val.Value / 100000.0;
             }
+
             // Check for direct RGB color
             var srgbClr = solidFill.GetFirstChild<A.RgbColorModelHex>();
             if (srgbClr?.Val?.HasValue == true)
@@ -4391,7 +5167,7 @@ sealed class DocumentParser(string defaultFont)
         }
 
         // Parse font properties from the first run
-        var fontFamily = defaultFont;
+        var fontFamily = effectiveDefaultFont;
         double fontSize = 36;
         var bold = false;
         var italic = false;
@@ -5378,22 +6154,33 @@ sealed class DocumentParser(string defaultFont)
 
         // Parse paragraph borders (w:pBdr)
         var borders = styleDefaults?.Borders;
+        var borderTopSpace = styleDefaults?.BorderTopSpacePoints ?? 0;
         var borderBottomSpace = styleDefaults?.BorderBottomSpacePoints ?? 0;
+        var borderLeftSpace = styleDefaults?.BorderLeftSpacePoints ?? 0;
+        var borderRightSpace = styleDefaults?.BorderRightSpacePoints ?? 0;
+        var borderBetween = styleDefaults?.BorderBetween ?? BorderEdge.None;
+        var borderBetweenSpace = styleDefaults?.BorderBetweenSpacePoints ?? 0;
         var pBdr = props.GetFirstChild<ParagraphBorders>();
         if (pBdr != null)
         {
+            var topBorder = pBdr.GetFirstChild<TopBorder>();
+            var rightBorder = pBdr.GetFirstChild<RightBorder>();
+            var bottomBorder = pBdr.GetFirstChild<BottomBorder>();
+            var leftBorder = pBdr.GetFirstChild<LeftBorder>();
+            var betweenBorder = pBdr.GetFirstChild<BetweenBorder>();
             borders = new()
             {
-                Top = ParseBorderEdge(pBdr.GetFirstChild<TopBorder>()),
-                Right = ParseBorderEdge(pBdr.GetFirstChild<RightBorder>()),
-                Bottom = ParseBorderEdge(pBdr.GetFirstChild<BottomBorder>()),
-                Left = ParseBorderEdge(pBdr.GetFirstChild<LeftBorder>())
+                Top = ParseBorderEdge(topBorder),
+                Right = ParseBorderEdge(rightBorder),
+                Bottom = ParseBorderEdge(bottomBorder),
+                Left = ParseBorderEdge(leftBorder)
             };
-            var bottomBorder = pBdr.GetFirstChild<BottomBorder>();
-            if (bottomBorder?.Space?.HasValue == true)
-            {
-                borderBottomSpace = bottomBorder.Space.Value;
-            }
+            borderTopSpace = ParseBorderSpace(topBorder);
+            borderRightSpace = ParseBorderSpace(rightBorder);
+            borderBottomSpace = ParseBorderSpace(bottomBorder);
+            borderLeftSpace = ParseBorderSpace(leftBorder);
+            borderBetween = ParseBorderEdge(betweenBorder);
+            borderBetweenSpace = ParseBorderSpace(betweenBorder);
         }
 
         // Parse paragraph mark font size (used for empty paragraphs)
@@ -5405,6 +6192,39 @@ sealed class DocumentParser(string defaultFont)
             if (fontSize?.Val?.HasValue == true && double.TryParse(fontSize.Val.Value, out var halfPoints))
             {
                 paragraphMarkFontSize = halfPoints / 2.0; // Convert half-points to points
+            }
+        }
+
+        // RTL paragraph (w:bidi)
+        var paraRtl = false;
+        var bidi = props.GetFirstChild<BiDi>();
+        if (bidi != null)
+        {
+            paraRtl = bidi.Val?.Value != false;
+        }
+
+        // Parse drop cap (w:framePr/w:dropCap, w:framePr/w:lines).
+        // The OOXML SDK exposes DropCap as a typed EnumValue, but reading via the raw attribute
+        // is more reliable across SDK versions.
+        var dropCap = DropCapPosition.None;
+        var dropCapLines = 0;
+        var framePr = props.GetFirstChild<FrameProperties>();
+        if (framePr != null)
+        {
+            var dropCapAttr = framePr.GetAttributes().FirstOrDefault(a => a.LocalName == "dropCap").Value;
+            if (string.Equals(dropCapAttr, "drop", StringComparison.OrdinalIgnoreCase))
+            {
+                dropCap = DropCapPosition.Drop;
+            }
+            else if (string.Equals(dropCapAttr, "margin", StringComparison.OrdinalIgnoreCase))
+            {
+                dropCap = DropCapPosition.Margin;
+            }
+
+            var linesAttr = framePr.GetAttributes().FirstOrDefault(a => a.LocalName == "lines").Value;
+            if (int.TryParse(linesAttr, out var parsedLines))
+            {
+                dropCapLines = parsedLines;
             }
         }
 
@@ -5431,9 +6251,17 @@ sealed class DocumentParser(string defaultFont)
             BackgroundColorHex = backgroundColor,
             StyleId = styleId,
             Borders = borders,
+            BorderTopSpacePoints = borderTopSpace,
             BorderBottomSpacePoints = borderBottomSpace,
+            BorderLeftSpacePoints = borderLeftSpace,
+            BorderRightSpacePoints = borderRightSpace,
+            BorderBetween = borderBetween,
+            BorderBetweenSpacePoints = borderBetweenSpace,
             TabStops = ParseTabs(props, styleDefaults?.TabStops ?? []),
-            DefaultTabStopPoints = defaultTabStopPoints
+            DefaultTabStopPoints = defaultTabStopPoints,
+            DropCap = dropCap,
+            DropCapLines = dropCapLines,
+            IsRightToLeft = paraRtl
         };
     }
 
@@ -5445,11 +6273,13 @@ sealed class DocumentParser(string defaultFont)
     {
         var result = new List<Run>();
         RunProperties? properties = null;
+
         RunProperties GetProperties() =>
             properties ??= ParseRunProperties(run.RunProperties, mainPart, paragraphStyleId);
 
         // Walk children in order so w:tab splits the run into separate model Runs (text, tab, text, ...)
         var textBuilder = new StringBuilder();
+
         void FlushText()
         {
             if (textBuilder.Length == 0)
@@ -5505,20 +6335,23 @@ sealed class DocumentParser(string defaultFont)
             styleRunProperties.TryGetValue(styleId, out styleDefaults);
         }
 
-        // If no inline properties, return style defaults or empty properties
+        // If no inline properties, return style defaults or empty properties.
+        // When neither is present, anchor the font to the document default rather than the
+        // RunProperties record's static default (which is Georgia, the cross-platform fallback).
         if (props == null)
         {
-            return styleDefaults ?? new RunProperties();
+            return styleDefaults ?? new RunProperties {FontFamily = effectiveDefaultFont};
         }
 
         // Start with style defaults or built-in defaults
-        var fontFamily = styleDefaults?.FontFamily ?? defaultFont;
+        var fontFamily = styleDefaults?.FontFamily ?? effectiveDefaultFont;
         var fontSize = styleDefaults?.FontSizePoints ?? builtInDefaultFontSizePoints;
         var bold = styleDefaults?.Bold ?? false;
         var italic = styleDefaults?.Italic ?? false;
         var underline = styleDefaults?.Underline ?? false;
         var strikethrough = styleDefaults?.Strikethrough ?? false;
         var allCaps = styleDefaults?.AllCaps ?? false;
+        var smallCaps = styleDefaults?.SmallCaps ?? false;
         var color = styleDefaults?.ColorHex;
         var backgroundColor = styleDefaults?.BackgroundColorHex;
         var verticalAlignment = styleDefaults?.VerticalAlignment ?? VerticalRunAlignment.Baseline;
@@ -5581,12 +6414,44 @@ sealed class DocumentParser(string defaultFont)
             allCaps = capsElement.Val?.Value != false;
         }
 
+        var smallCapsElement = props.GetFirstChild<SmallCaps>();
+        if (smallCapsElement != null)
+        {
+            smallCaps = smallCapsElement.Val?.Value != false;
+        }
+
         // Character spacing (w:spacing in rPr — extra space between characters, in twips)
         var spacingElement = props.GetFirstChild<Spacing>();
         if (spacingElement?.Val?.HasValue == true)
         {
             characterSpacing = spacingElement.Val.Value / twipsPerPoint;
         }
+
+        // Kerning threshold (w:kern in rPr — half-points; 0 means kerning is off)
+        double kerningMinFontSize = 0;
+        var kernElement = props.GetFirstChild<Kern>();
+        if (kernElement?.Val?.HasValue == true)
+        {
+            kerningMinFontSize = kernElement.Val.Value / 2.0;
+        }
+
+        // Ligature mode (w14:ligatures in rPr — Word 2010+ extension)
+        var ligatures = ParseLigatureMode(props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Ligatures>());
+
+        // RTL run (w:rtl)
+        var runRtl = false;
+        var rtlElement = props.GetFirstChild<RightToLeftText>();
+        if (rtlElement != null)
+        {
+            runRtl = rtlElement.Val?.Value != false;
+        }
+
+        // w14 text effects (presence only)
+        var effects = TextEffects.None;
+        if (props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Shadow>() != null) effects |= TextEffects.Shadow;
+        if (props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.TextOutlineEffect>() != null) effects |= TextEffects.Outline;
+        if (props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Glow>() != null) effects |= TextEffects.Glow;
+        if (props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Reflection>() != null) effects |= TextEffects.Reflection;
 
         // Vertical alignment (subscript/superscript)
         var vertAlignElement = props.GetFirstChild<VerticalTextAlignment>();
@@ -5726,6 +6591,11 @@ sealed class DocumentParser(string defaultFont)
                 allCaps = runStyleProps.AllCaps;
             }
 
+            if (props.GetFirstChild<SmallCaps>() == null && originalRPr?.GetFirstChild<SmallCaps>() != null)
+            {
+                smallCaps = runStyleProps.SmallCaps;
+            }
+
             if (props.GetFirstChild<Spacing>() == null && originalRPr?.GetFirstChild<Spacing>() != null)
             {
                 characterSpacing = runStyleProps.CharacterSpacingPoints;
@@ -5756,10 +6626,15 @@ sealed class DocumentParser(string defaultFont)
             Underline = underline,
             Strikethrough = strikethrough,
             AllCaps = allCaps,
+            SmallCaps = smallCaps,
             ColorHex = color,
             BackgroundColorHex = backgroundColor,
             CharacterSpacingPoints = characterSpacing,
-            VerticalAlignment = verticalAlignment
+            VerticalAlignment = verticalAlignment,
+            KerningMinFontSizePoints = kerningMinFontSize,
+            Ligatures = ligatures,
+            IsRightToLeft = runRtl,
+            Effects = effects
         };
     }
 }
