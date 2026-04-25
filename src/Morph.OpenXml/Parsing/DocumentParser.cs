@@ -328,13 +328,13 @@ sealed class DocumentParser(string defaultFont)
         var result = new List<Footnote>();
         foreach (var fn in part.Footnotes.Elements<DocumentFormat.OpenXml.Wordprocessing.Footnote>())
         {
-            if (fn.Id?.Value is not { } idLong)
+            // Skip Word's built-in separator / continuation-separator entries.
+            if (fn.Type?.HasValue == true && fn.Type.Value != FootnoteEndnoteValues.Normal)
             {
                 continue;
             }
 
-            // Skip the built-in separator/continuationSeparator footnotes (negative ids).
-            if (idLong < 0)
+            if (fn.Id?.Value is not { } idLong)
             {
                 continue;
             }
@@ -357,12 +357,12 @@ sealed class DocumentParser(string defaultFont)
         var result = new List<Endnote>();
         foreach (var en in part.Endnotes.Elements<DocumentFormat.OpenXml.Wordprocessing.Endnote>())
         {
-            if (en.Id?.Value is not { } idLong)
+            if (en.Type?.HasValue == true && en.Type.Value != FootnoteEndnoteValues.Normal)
             {
                 continue;
             }
 
-            if (idLong < 0)
+            if (en.Id?.Value is not { } idLong)
             {
                 continue;
             }
