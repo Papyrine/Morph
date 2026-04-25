@@ -141,8 +141,10 @@ public class TabStopResolverTests
     }
 
     [Test]
-    public async Task DecimalFallsBackToLeftAlignment()
+    public async Task DecimalFallsBackToRightWhenNoPrefix()
     {
+        // No decimalPrefixWidth supplied → behaves like Right (matches Word's fallback when
+        // the following text has no decimal point).
         var stops = new List<TabStop>
         {
             new() { PositionPoints = 144, Alignment = TabAlignment.Decimal }
@@ -150,6 +152,25 @@ public class TabStopResolverTests
 
         var (dest, _) = TabStopResolver.Resolve(cursorX: 20, followingWidth: 50, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
 
-        await Assert.That(dest).IsEqualTo(144.0);
+        await Assert.That(dest).IsEqualTo(94.0);
+    }
+
+    [Test]
+    public async Task Decimal_AlignsDecimalPointAtStop()
+    {
+        // followingWidth=50 (whole "12.50"), decimalPrefixWidth=20 (just "12") → decimal lands at 144,
+        // so destination = 144 - 20 = 124.
+        var stops = new List<TabStop>
+        {
+            new() { PositionPoints = 144, Alignment = TabAlignment.Decimal }
+        };
+
+        var (dest, stop) = TabStopResolver.Resolve(
+            cursorX: 20, followingWidth: 50, stops,
+            defaultTabStopPoints: 36, leftIndentPoints: 0,
+            decimalPrefixWidth: 20);
+
+        await Assert.That(dest).IsEqualTo(124.0);
+        await Assert.That(stop!.PositionPoints).IsEqualTo(144.0);
     }
 }

@@ -104,10 +104,50 @@ sealed record ParagraphProperties
     public CellBorders? Borders { get; init; }
 
     /// <summary>
+    /// Space between the top border and the paragraph text, in points.
+    /// From w:pBdr/w:top/@w:space.
+    /// </summary>
+    public double BorderTopSpacePoints { get; init; }
+
+    /// <summary>
     /// Space between the bottom border and the paragraph text, in points.
-    /// From w:pBdr/w:bottom/@w:space (in points).
+    /// From w:pBdr/w:bottom/@w:space.
     /// </summary>
     public double BorderBottomSpacePoints { get; init; }
+
+    /// <summary>
+    /// Space between the left border and the paragraph text, in points.
+    /// From w:pBdr/w:left/@w:space.
+    /// </summary>
+    public double BorderLeftSpacePoints { get; init; }
+
+    /// <summary>
+    /// Space between the right border and the paragraph text, in points.
+    /// From w:pBdr/w:right/@w:space.
+    /// </summary>
+    public double BorderRightSpacePoints { get; init; }
+
+    /// <summary>
+    /// Border drawn between consecutive paragraphs that share the same w:pBdr.
+    /// From w:pBdr/w:between. When this and the matching neighbor's border match,
+    /// the adjacent top/bottom edges collapse into a single between line.
+    /// </summary>
+    public BorderEdge BorderBetween { get; init; } = BorderEdge.None;
+
+    /// <summary>
+    /// Space around the between border, in points. From w:pBdr/w:between/@w:space.
+    /// </summary>
+    public double BorderBetweenSpacePoints { get; init; }
+
+    /// <summary>
+    /// Returns true if this paragraph and the next should collapse their adjacent
+    /// top/bottom borders into a single between line.
+    /// </summary>
+    internal bool BordersCollapseWith(ParagraphProperties next) =>
+        Borders is {HasAnyBorder: true} &&
+        BorderBetween.IsVisible &&
+        Borders == next.Borders &&
+        BorderBetween == next.BorderBetween;
 
     /// <summary>
     /// Custom tab stops for this paragraph, sorted ascending by <see cref="TabStop.PositionPoints"/>.
@@ -120,4 +160,19 @@ sealed record ParagraphProperties
     /// Used to snap tab characters past the last explicit stop. Default 36 points (0.5 inch).
     /// </summary>
     public double DefaultTabStopPoints { get; init; } = 36;
+
+    /// <summary>
+    /// Drop cap position for this paragraph (w:framePr/w:dropCap). Default <see cref="DropCapPosition.None"/>.
+    /// </summary>
+    public DropCapPosition DropCap { get; init; } = DropCapPosition.None;
+
+    /// <summary>
+    /// Number of lines the drop cap spans (w:framePr/w:lines). Only relevant when <see cref="DropCap"/> is not None.
+    /// </summary>
+    public int DropCapLines { get; init; }
+
+    /// <summary>
+    /// Whether the paragraph reads right-to-left (w:bidi). Renderer does not yet reverse text order.
+    /// </summary>
+    public bool IsRightToLeft { get; init; }
 }

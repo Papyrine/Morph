@@ -7,4 +7,10 @@ sealed class ImageElement : DocumentElement
     public required double WidthPoints { get; init; }
     public required double HeightPoints { get; init; }
     public string? ContentType { get; init; }
+
+    /// <summary>Rotation in degrees (clockwise). 0 means no rotation.</summary>
+    public double RotationDegrees { get; init; }
+
+    /// <summary>Source-rectangle crop (a:srcRect). Null = no crop.</summary>
+    public ImageCrop? Crop { get; init; }
 }

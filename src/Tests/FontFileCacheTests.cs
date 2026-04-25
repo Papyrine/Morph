@@ -7,7 +7,7 @@ public class FontFileCacheTests
     static FontFileCache Build(params (string path, string? family)[] files)
     {
         var map = files.ToDictionary(f => f.path, f => f.family, StringComparer.Ordinal);
-        return new(files.Select(f => f.path), path => map[path]);
+        return new(files.Select(f => f.path), path => map[path] is { } name ? [name] : []);
     }
 
     [Test]
@@ -75,7 +75,7 @@ public class FontFileCacheTests
             ["good.ttf", "corrupt.ttf", "another.ttf"],
             path => path == "corrupt.ttf"
                 ? throw new InvalidDataException("simulated bad font")
-                : path switch {"good.ttf" => "Arial", "another.ttf" => "Arial", _ => null});
+                : path switch {"good.ttf" => ["Arial"], "another.ttf" => ["Arial"], _ => []});
 
         var found = cache.TryGet("Arial", out var files);
         await Assert.That(found).IsTrue();
@@ -180,7 +180,7 @@ public class FontFileCacheTests
     [Test]
     public async Task EmptyCache_ReturnsFalseForAnyLookup()
     {
-        var cache = new FontFileCache([], _ => null);
+        var cache = new FontFileCache([], _ => []);
         var found = cache.TryGet("Arial", out var files);
         await Assert.That(found).IsFalse();
         await Assert.That(files).IsNull();

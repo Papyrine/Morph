@@ -101,7 +101,8 @@ static class InkParser
                         {
                             case "color":
                                 // Color can be #RRGGBB format
-                                if (value.StartsWith('#') && value.Length == 7)
+                                if (value.StartsWith('#') &&
+                                    value.Length == 7)
                                 {
                                     color = value[1..];
                                 }
@@ -160,7 +161,8 @@ static class InkParser
                 byte strokeTransparency = 0;
                 var isHighlighter = false;
 
-                if (brushRef != null && brushes.TryGetValue(brushRef, out var brush))
+                if (brushRef != null &&
+                    brushes.TryGetValue(brushRef, out var brush))
                 {
                     strokeColor = brush.color;
                     strokeWidth = brush.width;
@@ -250,7 +252,8 @@ static class InkParser
         var rawHeight = maxY - minY;
 
         // If ink has no extent, nothing to scale
-        if (rawWidth <= 0 && rawHeight <= 0)
+        if (rawWidth <= 0 &&
+            rawHeight <= 0)
         {
             return;
         }
@@ -325,7 +328,8 @@ static class InkParser
                     var yPt = y * 0.02835;
 
                     // Handle relative coordinates (prefixed with ')
-                    if (values[i].StartsWith('\'') && points.Count > 0)
+                    if (values[i].StartsWith('\'') &&
+                        points.Count > 0)
                     {
                         var lastPoint = points[^1];
                         xPt = lastPoint.X + xPt;

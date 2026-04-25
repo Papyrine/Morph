@@ -25,7 +25,8 @@ public class DocDefaultIndentTests
             .SelectMany(_ => _.Cells)
             .SelectMany(_ => _.Content)
             .OfType<ParagraphElement>()
-            .Where(_ => _.Properties.StyleId != null && _.Runs.Count > 0)
+            .Where(_ => _.Properties.StyleId != null &&
+                        _.Runs.Count > 0)
             .ToList();
 
         // EventDate style (basedOn SecondaryText → Subtitle → Normal).
@@ -50,7 +51,8 @@ public class DocDefaultIndentTests
             .SelectMany(_ => _.Cells)
             .SelectMany(_ => _.Content)
             .OfType<ParagraphElement>()
-            .Where(_ => _.Properties.StyleId != null && _.Runs.Count > 0)
+            .Where(_ => _.Properties.StyleId != null &&
+                        _.Runs.Count > 0)
             .ToList();
 
         // SecondName has explicit w:ind w:left="1728" (86.4pt), overriding doc default 36pt

@@ -10,16 +10,16 @@ sealed class FontFileCache
 {
     readonly Dictionary<string, string[]> index;
 
-    public FontFileCache(IEnumerable<string> fontFiles, Func<string, string?> readFamilyName)
+    public FontFileCache(IEnumerable<string> fontFiles, Func<string, IEnumerable<string>> readFamilyNames)
     {
         var temp = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var fontFile in fontFiles)
         {
-            string? familyName;
+            IEnumerable<string> familyNames;
             try
             {
-                familyName = readFamilyName(fontFile);
+                familyNames = readFamilyNames(fontFile);
             }
             catch
             {
@@ -27,18 +27,21 @@ sealed class FontFileCache
                 continue;
             }
 
-            if (string.IsNullOrEmpty(familyName))
+            foreach (var familyName in familyNames)
             {
-                continue;
-            }
+                if (string.IsNullOrEmpty(familyName))
+                {
+                    continue;
+                }
 
-            if (!temp.TryGetValue(familyName, out var files))
-            {
-                files = [];
-                temp[familyName] = files;
-            }
+                if (!temp.TryGetValue(familyName, out var files))
+                {
+                    files = [];
+                    temp[familyName] = files;
+                }
 
-            files.Add(fontFile);
+                files.Add(fontFile);
+            }
         }
 
         var final = new Dictionary<string, string[]>(temp.Count, StringComparer.OrdinalIgnoreCase);
@@ -62,7 +65,8 @@ sealed class FontFileCache
         }
 
         var baseName = FontHelpers.StripWeightSuffixes(candidateName);
-        if (baseName != candidateName && index.TryGetValue(baseName, out files))
+        if (baseName != candidateName &&
+            index.TryGetValue(baseName, out files))
         {
             return true;
         }
