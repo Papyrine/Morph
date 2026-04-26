@@ -13,4 +13,25 @@ sealed class ImageElement : DocumentElement
 
     /// <summary>Source-rectangle crop (a:srcRect). Null = no crop.</summary>
     public ImageCrop? Crop { get; init; }
+
+    /// <summary>Colour-transform effect to apply before drawing (a:duotone / a:grayscl / a:lum).</summary>
+    public BlipColorEffect ColorEffect { get; init; } = BlipColorEffect.None;
+}
+
+/// <summary>
+/// Image colour transforms emitted by Word's "Recolor" gallery. We model the most common
+/// presets; other transforms (clrChange, biLevel, tint, alphaModFix) fall back to None.
+/// </summary>
+enum BlipColorEffect
+{
+    None,
+
+    /// <summary>a:grayscl — straight luminance preservation, all colour stripped.</summary>
+    Grayscale,
+
+    /// <summary>a:duotone — image mapped to two-tone gradient. We render as Grayscale fallback.</summary>
+    Duotone,
+
+    /// <summary>a:lum bright="N" with N &gt; 0 — washout / lighten effect.</summary>
+    Washout
 }

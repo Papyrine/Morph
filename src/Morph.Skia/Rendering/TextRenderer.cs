@@ -860,7 +860,13 @@ sealed class TextRenderer(SkiaRenderContext context) :
         var firstLineOffset = (float)props.FirstLineIndentPoints;
         var subsequentOffset = (float)props.HangingIndentPoints;
 
-        return props.Alignment switch
+        // RTL paragraphs flip the visual meaning of "leading-edge" alignment to the page's right
+        // edge. We don't reorder glyphs (no BiDi shaper) but at least the line lands on the right.
+        var alignment = props.IsRightToLeft && props.Alignment == TextAlignment.Left
+            ? TextAlignment.Right
+            : props.Alignment;
+
+        return alignment switch
         {
             TextAlignment.Center => contentLeft + (availableWidth - line.Width) / 2,
             TextAlignment.Right => contentLeft + availableWidth - line.Width,

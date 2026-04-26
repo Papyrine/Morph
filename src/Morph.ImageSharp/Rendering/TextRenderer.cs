@@ -844,7 +844,12 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var firstLineOffset = (float)props.FirstLineIndentPoints;
         var subsequentOffset = (float)props.HangingIndentPoints;
 
-        return props.Alignment switch
+        // RTL paragraphs flip "leading-edge" alignment to the page's right edge (no BiDi reorder).
+        var alignment = props.IsRightToLeft && props.Alignment == TextAlignment.Left
+            ? TextAlignment.Right
+            : props.Alignment;
+
+        return alignment switch
         {
             TextAlignment.Center => contentLeft + (availableWidth - line.Width) / 2,
             TextAlignment.Right => contentLeft + availableWidth - line.Width,
