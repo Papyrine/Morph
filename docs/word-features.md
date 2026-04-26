@@ -1900,9 +1900,9 @@ Mathematical equations using Office Math Markup Language.
 - **OOXML**: `m:oMath` elements containing fractions, radicals, matrices, integrals, etc.
 - **Model**: presence detected via `ParsedDocument.Features.HasMath`; the actual content flows through paragraph runs.
 - **Parse**: `ParseParagraph` recognises `m:oMath` and `m:oMathPara` children inline and emits the concatenated text of all `m:t` descendants as a regular text run via `AppendMathText`.
-- **Render**: equations render as plain text in the surrounding paragraph — radicals, fractions, sub/superscripts, big operators all flatten into the linear character sequence.
+- **Render**: `WalkMath` recursively turns the math tree into runs with the right typography — italic variables, upright digits/operators, raised superscripts (`m:sSup`), lowered subscripts (`m:sSub`/`m:sSubSup`), and inline `numerator/denominator` for fractions (`m:f`). Radicals, big operators, n-aries, and matrices walk through the default branch and surface as plain text inline.
 
-> **AI**: Genuine math layout (a:f / a:rad / a:m / a:sSup / a:sSub) is a substantial feature on its own; the text fallback at least keeps equation content on the page. "a²+b²=c²" comes through as "a2+b2=c2" because the superscript wrapper is stripped — fine for indexing/searching but visually wrong vs Word.
+> **AI**: True stacked-fraction layout requires line-level cutouts the renderer can't produce yet, so `m:f` falls back to inline `a/b`. Square-root glyphs and integral signs render as plain text without their associated symbols (`√`, `∫`). The visible difference vs Word is fraction stacking and big-operator glyphs; sub/superscripts now match Word's typography.
 
 
 ### 12.2 Document Protection

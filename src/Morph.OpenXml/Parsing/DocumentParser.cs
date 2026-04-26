@@ -6678,17 +6678,94 @@ sealed class DocumentParser(string defaultFont)
 
     static void AppendMathText(List<Run> runs, OpenXmlElement mathElement)
     {
-        // m:t is the Office-Math text element; .Elements<m:t>() would only catch direct children,
-        // but math expressions nest (m:fName/m:e/...), so walk descendants.
-        var sb = new System.Text.StringBuilder();
-        foreach (var t in mathElement.Descendants<DocumentFormat.OpenXml.Math.Text>())
-        {
-            sb.Append(t.Text);
-        }
+        // Math text inherits the surrounding run's font size when available so equations don't
+        // collapse to the 11pt default. Variables render italic by default — Word's Cambria-Math
+        // convention; numbers and operators stay upright (handled inside EmitMathRun).
+        var context = runs.Count > 0 ? runs[^1].Properties : new RunProperties();
+        WalkMath(mathElement, runs, context with {Italic = true});
+    }
 
-        if (sb.Length > 0)
+    static void WalkMath(OpenXmlElement element, List<Run> runs, RunProperties props)
+    {
+        foreach (var child in element.ChildElements)
         {
-            runs.Add(new() {Text = sb.ToString()});
+            switch (child)
+            {
+                case DocumentFormat.OpenXml.Math.Run mathRun:
+                    EmitMathRun(mathRun, runs, props);
+                    break;
+
+                case DocumentFormat.OpenXml.Math.Subscript sSub:
+                {
+                    var b = sSub.GetFirstChild<DocumentFormat.OpenXml.Math.Base>();
+                    if (b != null) WalkMath(b, runs, props);
+                    var sub = sSub.GetFirstChild<DocumentFormat.OpenXml.Math.SubArgument>();
+                    if (sub != null) WalkMath(sub, runs, props with {VerticalAlignment = VerticalRunAlignment.Subscript});
+                    break;
+                }
+
+                case DocumentFormat.OpenXml.Math.Superscript sSup:
+                {
+                    var b = sSup.GetFirstChild<DocumentFormat.OpenXml.Math.Base>();
+                    if (b != null) WalkMath(b, runs, props);
+                    var sup = sSup.GetFirstChild<DocumentFormat.OpenXml.Math.SuperArgument>();
+                    if (sup != null) WalkMath(sup, runs, props with {VerticalAlignment = VerticalRunAlignment.Superscript});
+                    break;
+                }
+
+                case DocumentFormat.OpenXml.Math.SubSuperscript sSubSup:
+                {
+                    var b = sSubSup.GetFirstChild<DocumentFormat.OpenXml.Math.Base>();
+                    if (b != null) WalkMath(b, runs, props);
+                    var sub = sSubSup.GetFirstChild<DocumentFormat.OpenXml.Math.SubArgument>();
+                    if (sub != null) WalkMath(sub, runs, props with {VerticalAlignment = VerticalRunAlignment.Subscript});
+                    var sup = sSubSup.GetFirstChild<DocumentFormat.OpenXml.Math.SuperArgument>();
+                    if (sup != null) WalkMath(sup, runs, props with {VerticalAlignment = VerticalRunAlignment.Superscript});
+                    break;
+                }
+
+                case DocumentFormat.OpenXml.Math.Fraction frac:
+                {
+                    // Inline fallback: numerator "/" denominator. Stacked fractions need cutout
+                    // layout the line engine doesn't model, so this is the closest we can get.
+                    var num = frac.GetFirstChild<DocumentFormat.OpenXml.Math.Numerator>();
+                    if (num != null) WalkMath(num, runs, props);
+                    runs.Add(new() {Text = "/", Properties = props with {Italic = false}});
+                    var den = frac.GetFirstChild<DocumentFormat.OpenXml.Math.Denominator>();
+                    if (den != null) WalkMath(den, runs, props);
+                    break;
+                }
+
+                default:
+                    // Recurse into other math composites (m:e, m:rad, m:nary, m:func, etc.)
+                    // so their inner runs still surface as plain text.
+                    if (child is OpenXmlCompositeElement composite)
+                    {
+                        WalkMath(composite, runs, props);
+                    }
+
+                    break;
+            }
+        }
+    }
+
+    static void EmitMathRun(DocumentFormat.OpenXml.Math.Run mathRun, List<Run> runs, RunProperties props)
+    {
+        foreach (var t in mathRun.Elements<DocumentFormat.OpenXml.Math.Text>())
+        {
+            var text = t.Text;
+            if (string.IsNullOrEmpty(text))
+            {
+                continue;
+            }
+
+            // Math italic only applies to alphabetic variables; digits and operators stay upright.
+            var isVariable = text.All(char.IsLetter);
+            runs.Add(new()
+            {
+                Text = text,
+                Properties = isVariable ? props : props with {Italic = false}
+            });
         }
     }
 
