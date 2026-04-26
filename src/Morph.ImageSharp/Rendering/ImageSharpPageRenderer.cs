@@ -23,6 +23,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     bool differentFirstPage;
     float headerHeight;
     float footerHeight;
+    IReadOnlyList<Watermark> watermarks = [];
 
     bool hasSignificantContentOnCurrentPage;
     bool currentPageFromExplicitBreak;
@@ -56,6 +57,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         firstPageFooter = document.FirstPageFooter;
         evenPageHeader = document.EvenPageHeader;
         evenPageFooter = document.EvenPageFooter;
+        watermarks = document.Watermarks;
         differentFirstPage = document.PageSettings.DifferentFirstPage;
 
         headerHeight = MeasureHeaderFooterHeight(header);
@@ -1309,6 +1311,8 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         currentPage.Mutate(_ => _.Fill(fillColor, new RectangleF(0, 0, context.PageWidthPixels, context.PageHeightPixels)));
 
+        DrawWatermarks();
+
         DrawPageBorders();
 
         if (pageCount > 0)
@@ -1331,6 +1335,131 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             pendingPage = currentPage;
             currentPage = null;
         }
+    }
+
+    void DrawWatermarks()
+    {
+        if (currentPage == null || watermarks.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var watermark in watermarks)
+        {
+            if (watermark.ImageData != null)
+            {
+                DrawPictureWatermark(watermark);
+            }
+            else if (!string.IsNullOrEmpty(watermark.Text))
+            {
+                DrawTextWatermark(watermark);
+            }
+        }
+    }
+
+    void DrawPictureWatermark(Watermark watermark)
+    {
+        try
+        {
+            using var img = Image.Load<Rgba32>(watermark.ImageData!);
+
+            // Word's gain/blacklevel washout: out = in * gain + blackLevel (per channel).
+            // Bake the alpha-fade into the pixel alpha so DrawImage doesn't have to do it —
+            // ImageSharp's DrawImage opacity parameter sometimes blends differently from
+            // straight alpha multiplication.
+            var gain = (float) watermark.Gain;
+            var bias = (byte) Math.Clamp(watermark.BlackLevel * 255, 0, 255);
+            // ImageSharp's blending is more conservative than Skia's — without a stronger alpha
+            // cut the watermark stays too dark over the page. Half the gain matches Word's near-
+            // invisible rendering of the standard washout preset (0.30 * 0.5 ≈ 0.15 alpha).
+            var alphaScale = (float) Math.Clamp(watermark.Gain * 0.5, 0.1, 1.0);
+            img.ProcessPixelRows(accessor =>
+            {
+                for (var y = 0; y < accessor.Height; y++)
+                {
+                    var row = accessor.GetRowSpan(y);
+                    for (var x = 0; x < row.Length; x++)
+                    {
+                        var pixel = row[x];
+                        row[x] = new Rgba32(
+                            (byte) Math.Clamp(pixel.R * gain + bias, 0, 255),
+                            (byte) Math.Clamp(pixel.G * gain + bias, 0, 255),
+                            (byte) Math.Clamp(pixel.B * gain + bias, 0, 255),
+                            (byte) (pixel.A * alphaScale));
+                    }
+                }
+            });
+
+            // Scale to full page (matches Word's typical "width:612pt;height:11in" watermark sizing).
+            var pageWidth = (float) context.PageWidthPixels;
+            var pageHeight = (float) context.PageHeightPixels;
+            var imageAspect = (float) img.Width / img.Height;
+            var pageAspect = pageWidth / pageHeight;
+
+            int drawW, drawH;
+            if (imageAspect > pageAspect)
+            {
+                drawW = (int) pageWidth;
+                drawH = (int) (drawW / imageAspect);
+            }
+            else
+            {
+                drawH = (int) pageHeight;
+                drawW = (int) (drawH * imageAspect);
+            }
+
+            img.Mutate(_ => _.Resize(drawW, drawH));
+
+            var x = (int) ((pageWidth - drawW) / 2);
+            var y = (int) ((pageHeight - drawH) / 2);
+            // Alpha already baked into pixels above; DrawImage opacity stays at 1.0.
+            currentPage!.Mutate(_ => _.DrawImage(img, new Point(x, y), 1f));
+        }
+        catch
+        {
+            // Ignore image decode errors — watermark just won't appear, document still renders.
+        }
+    }
+
+    void DrawTextWatermark(Watermark watermark)
+    {
+        var fontFamily = context.GetFontFamily(watermark.FontFamily, watermark.Bold, italic: false);
+        var font = fontFamily.CreateFont((float) watermark.FontSizePoints * context.Scale, watermark.Bold ? FontStyle.Bold : FontStyle.Regular);
+        var color = ParseColor(watermark.ColorHex);
+
+        var textOptions = new RichTextOptions(font)
+        {
+            Dpi = context.Dpi,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Origin = new PointF(context.PageWidthPixels / 2f, context.PageHeightPixels / 2f)
+        };
+
+        // ImageSharp's DrawText doesn't accept a transform per call, so we draw onto a temporary
+        // image then rotate it before compositing. The temporary image only needs to cover the
+        // text bounding box, not the whole page.
+        var bounds = TextMeasurer.MeasureBounds(watermark.Text!, textOptions);
+        var tempW = (int) Math.Ceiling(bounds.Width) + 4;
+        var tempH = (int) Math.Ceiling(bounds.Height) + 4;
+        if (tempW <= 0 || tempH <= 0)
+        {
+            return;
+        }
+
+        using var temp = new Image<Rgba32>(tempW, tempH);
+        var tempOptions = new RichTextOptions(font)
+        {
+            Dpi = context.Dpi,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Origin = new PointF(tempW / 2f, tempH / 2f)
+        };
+        temp.Mutate(_ => _.DrawText(tempOptions, watermark.Text!, new SolidBrush(color)));
+        temp.Mutate(_ => _.Rotate((float) watermark.RotationDegrees));
+
+        var dstX = (int) ((context.PageWidthPixels - temp.Width) / 2);
+        var dstY = (int) ((context.PageHeightPixels - temp.Height) / 2);
+        currentPage!.Mutate(_ => _.DrawImage(temp, new Point(dstX, dstY), 1f));
     }
 
     void DrawPageBorders()

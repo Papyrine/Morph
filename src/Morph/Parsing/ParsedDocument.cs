@@ -89,6 +89,11 @@ sealed class ParsedDocument
     public IReadOnlyList<EmbeddedObject> EmbeddedObjects { get; init; } = [];
 
     /// <summary>
+    /// Watermarks extracted from the document's header parts. Drawn behind body content on every page.
+    /// </summary>
+    public IReadOnlyList<Watermark> Watermarks { get; init; } = [];
+
+    /// <summary>
     /// Presence flags for advanced OOXML features that the renderer doesn't yet draw.
     /// Lets consumers decide whether to fall back to Word for the document.
     /// </summary>

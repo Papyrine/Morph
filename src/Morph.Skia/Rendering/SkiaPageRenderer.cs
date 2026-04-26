@@ -35,6 +35,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
     bool differentFirstPage;
     float headerHeight;
     float footerHeight;
+    IReadOnlyList<Watermark> watermarks = [];
 
     // Track whether meaningful content (text/images/tables) was rendered on current page
     // Used to detect and discard spurious blank trailing pages
@@ -57,6 +58,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         firstPageHeader = document.FirstPageHeader;
         firstPageFooter = document.FirstPageFooter;
         evenPageHeader = document.EvenPageHeader;
+        watermarks = document.Watermarks;
         evenPageFooter = document.EvenPageFooter;
         differentFirstPage = document.PageSettings.DifferentFirstPage;
 
@@ -1935,6 +1937,10 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             currentCanvas.Clear(SKColors.White);
         }
 
+        // Watermarks live behind everything: drawn after the page background clear so they
+        // don't show through it, but before page borders/header/body so those land on top.
+        DrawWatermarks();
+
         DrawPageBorders();
 
         if (pageCount > 0)
@@ -1964,6 +1970,101 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             currentCanvas = null;
             currentPage = null;
         }
+    }
+
+    void DrawWatermarks()
+    {
+        if (currentCanvas == null || watermarks.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var watermark in watermarks)
+        {
+            if (watermark.ImageData != null)
+            {
+                DrawPictureWatermark(watermark);
+            }
+            else if (!string.IsNullOrEmpty(watermark.Text))
+            {
+                DrawTextWatermark(watermark);
+            }
+        }
+    }
+
+    void DrawPictureWatermark(Watermark watermark)
+    {
+        using var bitmap = DecodeBitmap(watermark.ImageData!);
+        if (bitmap == null)
+        {
+            return;
+        }
+
+        // Word's gain/blacklevel washout: out = in * gain + blackLevel (per channel). The
+        // documented formula compresses dynamic range to e.g. 35–65% grey at gain=0.30 / bl=0.35,
+        // but Word also alpha-blends the result so the page background bleeds through, which is
+        // how it ends up nearly invisible. Without that extra alpha the watermark dominates.
+        var gain = (float) watermark.Gain;
+        var bias = (float) watermark.BlackLevel * 255f;
+        var alpha = (float) Math.Clamp(watermark.Gain, 0.2, 1.0);
+        var colorMatrix = new[]
+        {
+            gain, 0, 0, 0, bias,
+            0, gain, 0, 0, bias,
+            0, 0, gain, 0, bias,
+            0, 0, 0, alpha, 0
+        };
+
+        using var paint = new SKPaint
+        {
+            IsAntialias = true,
+            FilterQuality = SKFilterQuality.High,
+            ColorFilter = SKColorFilter.CreateColorMatrix(colorMatrix)
+        };
+
+        // Word's emitted style typically says "width:612pt;height:11in" — full letter page,
+        // not just the content area. Scale the image uniformly to fit the full page.
+        var pageWidth = (float) context.PageWidthPixels;
+        var pageHeight = (float) context.PageHeightPixels;
+        var imageAspect = (float) bitmap.Width / bitmap.Height;
+        var pageAspect = pageWidth / pageHeight;
+
+        float drawW, drawH;
+        if (imageAspect > pageAspect)
+        {
+            drawW = pageWidth;
+            drawH = drawW / imageAspect;
+        }
+        else
+        {
+            drawH = pageHeight;
+            drawW = drawH * imageAspect;
+        }
+
+        var x = (pageWidth - drawW) / 2;
+        var y = (pageHeight - drawH) / 2;
+        var rect = new SKRect(x, y, x + drawW, y + drawH);
+        currentCanvas!.DrawBitmap(bitmap, rect, paint);
+    }
+
+    void DrawTextWatermark(Watermark watermark)
+    {
+        var typeface = context.GetTypeface(watermark.FontFamily, watermark.Bold, italic: false);
+        var fontSize = (float) watermark.FontSizePoints * context.Scale;
+        using var font = context.CreateFontFromTypeface(typeface, fontSize);
+        using var paint = new SKPaint
+        {
+            Color = ParseColor(watermark.ColorHex),
+            IsAntialias = true
+        };
+
+        var textWidth = font.MeasureText(watermark.Text);
+
+        currentCanvas!.Save();
+        currentCanvas.Translate(context.PageWidthPixels / 2f, context.PageHeightPixels / 2f);
+        currentCanvas.RotateDegrees((float) watermark.RotationDegrees);
+        currentCanvas.DrawText(watermark.Text, -textWidth / 2f, fontSize / 3f, SKTextAlign.Left, font, paint);
+        currentCanvas.Restore();
     }
 
     void DrawPageBorders()

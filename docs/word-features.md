@@ -821,7 +821,7 @@ Tables that span multiple pages with automatic page breaks between rows.
 ### 4.4 Advanced Table Features
 
 
-#### Floating Tables `PARTIAL`
+#### Floating Tables `DONE`
 
 Tables with absolute positioning on the page.
 
@@ -1107,16 +1107,16 @@ Decorative borders around the page edges.
 > **AI**: Reuses `BorderEdge` and `ParseBorderEdge`. The style/decorative variants (double, dashed, art) collapse to single solid lines today; widen the renderer if those become important.
 
 
-#### Watermarks `PARTIAL`
+#### Watermarks `DONE`
 
 Text or image watermarks displayed behind page content.
 
-- **OOXML**: Implemented as a header shape with specific formatting (VML `v:shape` or DrawingML)
-- **Spec**: [Watermarks](https://learn.microsoft.com/en-us/office/open-xml/word/structure-of-a-wordprocessingml-document)
-- **Model**: `ParsedDocument.Features.HasWatermarks` — heuristic, true when a header shape carries the `WordPictureWatermark` / `WordTextWatermark` class hint
-- **Render**: not yet — watermarks are silently dropped along with the rest of unrecognised header shape content.
+- **OOXML**: Implemented as a header shape (VML `v:shape` carrying a `WordPictureWatermark` or `WordTextWatermark` id/class).
+- **Model**: `Watermark` record (image bytes + gain/blacklevel, or text + font/colour/rotation); `ParsedDocument.Watermarks`. The legacy `Features.HasWatermarks` flag is retained, derived from `Watermarks.Count`.
+- **Parse**: `DocumentParser.ExtractWatermarks` walks every header part for `v:shape` elements whose attributes contain the watermark marker, then extracts either the embedded `v:imagedata` (with `gain`/`blacklevel` decoded from fixed-point /65536) or the `v:textpath` (string + CSS-shorthand font style).
+- **Render**: `DrawWatermarks` is called from `StartNewPage` in both backends, after the page background clear and before borders/header/body so the watermark sits behind everything. Picture watermarks apply Word's `out = in × gain + blackLevel` luminance washout per channel and additionally cut the alpha in half so the result blends to near-invisibility (matching Word's standard washout preset). Text watermarks rotate −45° in light grey through the page centre.
 
-> **Contributors**: Detection is class-name-based (matches Word's emitted markup). Rendering would reuse the floating-shape pipeline with `BehindText = true`, but a naive blit overpowers the page content because Word emits the watermark with `v:imagedata gain="…" blacklevel="…"` luminance transforms that fade the image to ~25–35% effective brightness. To finish: parse `gain`/`blacklevel`, apply a per-pixel luminance map (decode → process → re-encode) before drawing. Tried earlier without the fade and the rendered watermark dominated the page (page-diff 0.13 → 0.35 on `business-plans/04`); reverted.
+> **AI**: ImageSharp uses `Image.ProcessPixelRows` for the per-channel transform plus a baked alpha; Skia uses an `SKColorFilter.CreateColorMatrix` so the GPU can apply gain/blacklevel and alpha in one pass. Watermarks render on every page (ignoring `differentFirstPage` because that's strictly a header/footer setting in Word, not a watermark setting).
 
 ---
 
@@ -1933,8 +1933,8 @@ Read-only mode, form protection, and editing restrictions.
 | 1. Text Formatting | 19 | 0 | 0 | 19 |
 | 2. Paragraph Formatting | 19 | 0 | 0 | 19 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
-| 4. Tables | 17 | 1 | 0 | 18 |
-| 5. Page Layout & Sections | 18 | 1 | 0 | 19 |
+| 4. Tables | 18 | 0 | 0 | 18 |
+| 5. Page Layout & Sections | 19 | 0 | 0 | 19 |
 | 6. Graphics & Media | 16 | 6 | 0 | 22 |
 | 7. Form Controls | 10 | 0 | 0 | 10 |
 | 8. Themes & Styles | 4 | 0 | 0 | 4 |
@@ -1942,19 +1942,19 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 6 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 2 |
-| **Total** | **131** | **10** | **0** | **141** |
+| **Total** | **133** | **8** | **0** | **141** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 131
-    "Partial" : 10
+    "Done" : 133
+    "Partial" : 8
     "Todo" : 0
 ```
 
-**Overall coverage: 93% fully implemented, 7% partial, 0% remaining.**
+**Overall coverage: 94% fully implemented, 6% partial, 0% remaining.**
 
 
 Priority areas for future implementation:
