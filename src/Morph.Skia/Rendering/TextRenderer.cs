@@ -560,8 +560,8 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 continue;
             }
 
-            // Handle inline images - treat as a single "word" in the text flow
-            if (run.InlineImageData is {Length: > 0})
+            // Handle inline images / shape groups — treat as a single "word" in the text flow.
+            if (run.InlineImageData is {Length: > 0} || run.InlineShapeGroup != null)
             {
                 var imageWidth = (float) run.InlineImageWidthPoints;
                 var imageHeight = (float) run.InlineImageHeightPoints;
@@ -598,7 +598,8 @@ sealed class TextRenderer(SkiaRenderContext context) :
                         InlineImageHeightPoints = imageHeight,
                         InlineImageContentType = run.InlineImageContentType,
                         InlineImageRotationDegrees = run.InlineImageRotationDegrees,
-                        InlineImageCrop = run.InlineImageCrop
+                        InlineImageCrop = run.InlineImageCrop,
+                        InlineShapeGroup = run.InlineShapeGroup
                     });
                 currentLineWidth += imageWidth;
                 maxLineHeight = Math.Max(maxLineHeight, imageHeight);
@@ -946,6 +947,12 @@ sealed class TextRenderer(SkiaRenderContext context) :
             return;
         }
 
+        if (fragment.InlineShapeGroup is { } group)
+        {
+            RenderInlineShapeGroup(canvas, group, fragment, x, y);
+            return;
+        }
+
         if (fragment.IsTabFiller)
         {
             RenderTabFiller(canvas, fragment, x, y);
@@ -1217,6 +1224,88 @@ sealed class TextRenderer(SkiaRenderContext context) :
         canvas.DrawText(leaderText, pixelStartX, pixelY, SKTextAlign.Left, font, paint);
     }
 
+    void RenderInlineShapeGroup(SKCanvas canvas, InlineShapeGroup group, TextFragment fragment, float x, float y)
+    {
+        var pixelX = context.PointsToPixels(x);
+        var pixelWidth = context.PointsToPixels(fragment.Width);
+        var pixelHeight = context.PointsToPixels(fragment.InlineImageHeightPoints);
+        var pixelY = context.PointsToPixels(y) - pixelHeight;
+
+        // Map child-coord units to pixels.
+        var sx = pixelWidth / (float) group.ChildExtentX;
+        var sy = pixelHeight / (float) group.ChildExtentY;
+
+        canvas.Save();
+        if (group.RotationDegrees != 0)
+        {
+            canvas.RotateDegrees((float) group.RotationDegrees, pixelX + pixelWidth / 2f, pixelY + pixelHeight / 2f);
+        }
+
+        foreach (var shape in group.Shapes)
+        {
+            var x1 = pixelX + (float) shape.X * sx;
+            var y1 = pixelY + (float) shape.Y * sy;
+            var w = (float) shape.Width * sx;
+            var h = (float) shape.Height * sy;
+
+            if (shape.Geometry == GroupShapeGeometry.Line)
+            {
+                var startX = x1;
+                var startY = y1;
+                var endX = x1 + w;
+                var endY = y1 + h;
+                if (shape.FlipVertical)
+                {
+                    (startY, endY) = (endY, startY);
+                }
+                if (shape.FlipHorizontal)
+                {
+                    (startX, endX) = (endX, startX);
+                }
+
+                using var paint = new SKPaint
+                {
+                    Color = SkiaRenderContext.ParseColor(shape.ColorHex),
+                    Style = SKPaintStyle.Stroke,
+                    // EMU → points → pixels. Default to 0.75pt when the shape doesn't carry a width.
+                    StrokeWidth = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75) * context.Scale,
+                    StrokeCap = SKStrokeCap.Square,
+                    IsAntialias = true
+                };
+                canvas.DrawLine(startX, startY, endX, endY, paint);
+            }
+            else
+            {
+                if (shape.FillColorHex is { } fillHex)
+                {
+                    using var fillPaint = new SKPaint
+                    {
+                        Color = SkiaRenderContext.ParseColor(fillHex),
+                        Style = SKPaintStyle.Fill,
+                        IsAntialias = true
+                    };
+                    canvas.DrawRect(x1, y1, w, h, fillPaint);
+                }
+                if (shape.LineWidthEmu > 0)
+                {
+                    using var strokePaint = new SKPaint
+                    {
+                        Color = SkiaRenderContext.ParseColor(shape.ColorHex),
+                        Style = SKPaintStyle.Stroke,
+                        StrokeWidth = (float) (shape.LineWidthEmu / emusPerPoint) * context.Scale,
+                        IsAntialias = true
+                    };
+                    canvas.DrawRect(x1, y1, w, h, strokePaint);
+                }
+            }
+        }
+
+        canvas.Restore();
+    }
+
+    // EMU = English Metric Units. 1 point = 12700 EMU.
+    const float emusPerPoint = 12700f;
+
     void RenderInlineImage(SKCanvas canvas, TextFragment fragment, float x, float y)
     {
         // Convert to pixels - y is the baseline, need to adjust for image height
@@ -1380,8 +1469,8 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 continue;
             }
 
-            // Handle inline images - treat as a single "word" in the text flow
-            if (run.InlineImageData is {Length: > 0})
+            // Handle inline images / shape groups — treat as a single "word" in the text flow.
+            if (run.InlineImageData is {Length: > 0} || run.InlineShapeGroup != null)
             {
                 var imageWidth = (float) run.InlineImageWidthPoints;
                 var imageHeight = (float) run.InlineImageHeightPoints;
@@ -1419,7 +1508,8 @@ sealed class TextRenderer(SkiaRenderContext context) :
                         InlineImageHeightPoints = imageHeight,
                         InlineImageContentType = run.InlineImageContentType,
                         InlineImageRotationDegrees = run.InlineImageRotationDegrees,
-                        InlineImageCrop = run.InlineImageCrop
+                        InlineImageCrop = run.InlineImageCrop,
+                        InlineShapeGroup = run.InlineShapeGroup
                     });
                 currentLineWidth += imageWidth;
                 maxLineHeight = Math.Max(maxLineHeight, imageHeight);
@@ -1890,6 +1980,9 @@ sealed class TextFragment
 
     /// <summary>Inline image source-rectangle crop. Null = no crop.</summary>
     public ImageCrop? InlineImageCrop { get; init; }
+
+    /// <summary>Inline shape-group payload (wpg:wgp) — mutually exclusive with <see cref="InlineImageData"/>.</summary>
+    public InlineShapeGroup? InlineShapeGroup { get; init; }
 
     /// <summary>True when this fragment represents a tab-stop gap (leader glyphs or empty spacer).</summary>
     public bool IsTabFiller { get; init; }

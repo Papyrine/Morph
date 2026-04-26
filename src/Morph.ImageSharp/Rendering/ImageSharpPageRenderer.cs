@@ -342,7 +342,19 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     }
 
     void RenderSectionBreak(SectionBreakElement sectionBreak) =>
-        SectionBreakHandler.Handle(sectionBreak, context, FinishCurrentPage, StartNewExplicitPage);
+        SectionBreakHandler.Handle(
+            sectionBreak,
+            context,
+            FinishCurrentPage,
+            StartNewExplicitPage,
+            () => !hasSignificantContentOnCurrentPage,
+            DiscardCurrentPage);
+
+    void DiscardCurrentPage()
+    {
+        currentPage?.Dispose();
+        currentPage = null;
+    }
 
     void StartNewExplicitPage()
     {

@@ -29,4 +29,11 @@ sealed class Run
     /// When true, <see cref="Text"/> is "\t" and the renderer snaps the cursor to the next tab stop.
     /// </summary>
     public bool IsTab { get; init; }
+
+    /// <summary>
+    /// Inline shape group (<c>wpg:wgp</c>) attached to this run, when the run hosts a primitive
+    /// drawing made of connector lines / rectangles instead of a picture. Mutually exclusive
+    /// with <see cref="InlineImageData"/>.
+    /// </summary>
+    public InlineShapeGroup? InlineShapeGroup { get; init; }
 }

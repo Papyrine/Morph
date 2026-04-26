@@ -2422,10 +2422,13 @@ sealed class DocumentParser(string defaultFont)
 
     HeaderFooterContent? ExtractHeaderFooter(Body body, MainDocumentPart mainPart, HeaderFooterValues type, bool isHeader)
     {
-        var sectionProps = body.Descendants<SectionProperties>().LastOrDefault();
+        // Search every section's properties for a matching reference, not just the last sectPr.
+        // The last sectPr is the trailing/document-level one and often has no header refs; earlier
+        // sectPrs (e.g. section 0/1) carry the actual references for cover-page and body sections.
+        // Picking up MainPart.HeaderParts.FirstOrDefault as a blind fallback risks landing on the
+        // wrong header (e.g. an unreferenced cover-page header that paints a coloured background).
         OpenXmlPart? part = null;
-
-        if (sectionProps != null)
+        foreach (var sectionProps in body.Descendants<SectionProperties>())
         {
             if (isHeader)
             {
@@ -2434,6 +2437,7 @@ sealed class DocumentParser(string defaultFont)
                 if (headerRef?.Id?.Value != null)
                 {
                     part = mainPart.GetPartById(headerRef.Id.Value);
+                    break;
                 }
             }
             else
@@ -2443,20 +2447,8 @@ sealed class DocumentParser(string defaultFont)
                 if (footerRef?.Id?.Value != null)
                 {
                     part = mainPart.GetPartById(footerRef.Id.Value);
+                    break;
                 }
-            }
-        }
-
-        // Fallback for default type only: try first part directly
-        if (part == null && type == HeaderFooterValues.Default)
-        {
-            if (isHeader)
-            {
-                part = mainPart.HeaderParts.FirstOrDefault();
-            }
-            else
-            {
-                part = mainPart.FooterParts.FirstOrDefault();
             }
         }
 
@@ -3426,8 +3418,12 @@ sealed class DocumentParser(string defaultFont)
                         // Check if there's a group - groups may contain text boxes and images even without shapes
                         var hasGroup = drawing.Descendants<WPG.WordprocessingGroup>().Any();
 
+                        // Inline shape groups (no behindDoc anchor, just <wp:inline> with a wpg:wgp inside)
+                        // need to flow with the surrounding text rather than render as floating block content.
+                        // Skip the group-as-block branch for inline drawings so the inline-image path catches them.
+                        var isInlineGroup = hasGroup && drawing.Descendants().Any(e => e.LocalName == "inline");
 
-                        if (shapeElements.Count > 0 || hasGroup)
+                        if ((shapeElements.Count > 0 || hasGroup) && !isInlineGroup)
                         {
                             // Emit current paragraph content before the shapes/group content
                             if (runs.Count > 0)
@@ -3886,7 +3882,7 @@ sealed class DocumentParser(string defaultFont)
     /// Tries to parse an inline image from a drawing element and returns it as a Run.
     /// Returns null if the drawing is not a simple inline image (e.g., if it's anchored or a group).
     /// </summary>
-    static Run? TryParseInlineImageRun(Drawing drawing, MainDocumentPart mainPart, RunProperties runProps)
+    Run? TryParseInlineImageRun(Drawing drawing, MainDocumentPart mainPart, RunProperties runProps)
     {
         var hostPart = ResolveHostPart(drawing, mainPart);
         // Use XML-based approach for better namespace handling
@@ -3899,11 +3895,13 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
-        // Check if this is a group (more complex structure)
-        var hasGroup = drawing.Descendants<WPG.WordprocessingGroup>().Any();
-        if (hasGroup)
+        // Inline WordprocessingGroup — parse the contained shapes into an inline shape-group
+        // run so the renderer can draw the icon inline (down-arrows on heading rows, accent
+        // arrow accents on cover pages, etc.).
+        var wpgGroup = drawing.Descendants<WPG.WordprocessingGroup>().FirstOrDefault();
+        if (wpgGroup != null)
         {
-            return null;
+            return ParseInlineShapeGroupRun(drawing, wpgGroup, runProps);
         }
 
         // Find the pic element
@@ -4039,6 +4037,149 @@ sealed class DocumentParser(string defaultFont)
             InlineImageRotationDegrees = rotationDegrees,
             InlineImageCrop = crop
         };
+    }
+
+    Run? ParseInlineShapeGroupRun(Drawing drawing, WPG.WordprocessingGroup wpgGroup, RunProperties runProps)
+    {
+        // Inline drawings carry their displayed size on <wp:extent>; the wpg's own xfrm gives
+        // the child coordinate space we treat as 0..ChildExtX × 0..ChildExtY.
+        var extent = drawing.Descendants<DW.Extent>().FirstOrDefault();
+        if (extent?.Cx == null || extent.Cy == null)
+        {
+            return null;
+        }
+
+        // wp:effectExtent reserves layout space for shape effects (shadows, outlines that
+        // visually extend past the bounding box). Word lays inline drawings out at
+        // (extent + effectExtent) so adjacent icons get a visible gap; honouring it here
+        // keeps the connector-line groups (e.g. arrow icons) from packing tight.
+        var effectExtent = drawing.Descendants<DW.EffectExtent>().FirstOrDefault();
+        var effectL = effectExtent?.LeftEdge?.Value ?? 0;
+        var effectT = effectExtent?.TopEdge?.Value ?? 0;
+        var effectR = effectExtent?.RightEdge?.Value ?? 0;
+        var effectB = effectExtent?.BottomEdge?.Value ?? 0;
+
+        var outerCx = extent.Cx.Value + effectL + effectR;
+        var outerCy = extent.Cy.Value + effectT + effectB;
+        var widthPoints = outerCx / emusPerPoint;
+        var heightPoints = outerCy / emusPerPoint;
+        if (widthPoints <= 0 || heightPoints <= 0)
+        {
+            return null;
+        }
+
+        var grpSpPr = wpgGroup.GetFirstChild<WPG.GroupShapeProperties>();
+        var grpXfrm = grpSpPr?.GetFirstChild<A.TransformGroup>();
+        var chExt = grpXfrm?.ChildExtents;
+        var childExtentX = (double) (chExt?.Cx ?? extent.Cx.Value);
+        var childExtentY = (double) (chExt?.Cy ?? extent.Cy.Value);
+        var chOffX = (double) (grpXfrm?.ChildOffset?.X ?? 0);
+        var chOffY = (double) (grpXfrm?.ChildOffset?.Y ?? 0);
+        if (childExtentX <= 0 || childExtentY <= 0)
+        {
+            return null;
+        }
+
+        var rotationDegrees = grpXfrm?.Rotation?.Value is { } rot ? rot / 60000.0 : 0;
+
+        var shapes = new List<GroupShape>();
+        foreach (var wsp in wpgGroup.Descendants<WPS.WordprocessingShape>())
+        {
+            var shapeProps = wsp.GetFirstChild<WPS.ShapeProperties>();
+            var shapeXfrm = shapeProps?.GetFirstChild<A.Transform2D>();
+            if (shapeProps == null || shapeXfrm?.Offset == null || shapeXfrm.Extents == null)
+            {
+                continue;
+            }
+
+            var prstGeom = shapeProps.GetFirstChild<A.PresetGeometry>();
+            var preset = prstGeom?.Preset?.Value;
+            // Only line and rect are common in icon-style groups; anything fancier (curves,
+            // arcs, custGeom) collapses to a rectangle so we render at least the bounding box.
+            var geometry = preset == A.ShapeTypeValues.Line
+                ? GroupShapeGeometry.Line
+                : GroupShapeGeometry.Rectangle;
+
+            var ln = shapeProps.GetFirstChild<A.Outline>();
+            var lineWidth = ln?.Width?.Value ?? 0;
+            var stroke = ExtractFirstFillColor(ln) ?? "000000";
+
+            var fill = shapeProps.GetFirstChild<A.SolidFill>();
+            var fillColor = fill != null ? ExtractFirstFillColor(fill) : null;
+
+            // Shift the shape's child-coord position by the effect-padding offset so it
+            // lines up with the inner (extent) box inside the outer (extent + effectExtent) frame.
+            // The renderer scales the entire outer rectangle into the inline fragment, so without
+            // the offset every shape would land in the top-left padding region.
+            var paddingX = effectL * (childExtentX / (double) extent.Cx.Value);
+            var paddingY = effectT * (childExtentY / (double) extent.Cy.Value);
+            shapes.Add(new()
+            {
+                X = (shapeXfrm.Offset.X ?? 0) - chOffX + paddingX,
+                Y = (shapeXfrm.Offset.Y ?? 0) - chOffY + paddingY,
+                Width = shapeXfrm.Extents.Cx ?? 0,
+                Height = shapeXfrm.Extents.Cy ?? 0,
+                ColorHex = stroke,
+                LineWidthEmu = lineWidth,
+                FlipVertical = shapeXfrm.VerticalFlip?.Value == true,
+                FlipHorizontal = shapeXfrm.HorizontalFlip?.Value == true,
+                Geometry = geometry,
+                FillColorHex = fillColor
+            });
+        }
+
+        if (shapes.Count == 0)
+        {
+            return null;
+        }
+
+        // Stretch the child coord space by the same outer/inner ratio so shape coordinates
+        // (now padded above) map correctly into the rendered outer rectangle.
+        var outerChildExtentX = childExtentX * outerCx / (double) extent.Cx.Value;
+        var outerChildExtentY = childExtentY * outerCy / (double) extent.Cy.Value;
+
+        return new()
+        {
+            Text = "",
+            Properties = runProps,
+            InlineImageWidthPoints = widthPoints,
+            InlineImageHeightPoints = heightPoints,
+            InlineShapeGroup = new()
+            {
+                ChildExtentX = outerChildExtentX,
+                ChildExtentY = outerChildExtentY,
+                RotationDegrees = rotationDegrees,
+                Shapes = shapes
+            }
+        };
+    }
+
+    // Walks an Outline / SolidFill for the first solid colour we can resolve.
+    string? ExtractFirstFillColor(OpenXmlElement? element)
+    {
+        if (element == null)
+        {
+            return null;
+        }
+
+        foreach (var rgb in element.Descendants<A.RgbColorModelHex>())
+        {
+            if (rgb.Val?.HasValue == true)
+            {
+                return rgb.Val.Value;
+            }
+        }
+
+        foreach (var scheme in element.Descendants<A.SchemeColor>())
+        {
+            if (scheme.Val?.HasValue == true && currentThemeColors != null)
+            {
+                var schemeValue = ((IEnumValue) scheme.Val.Value).Value;
+                return currentThemeColors.ResolveColor(schemeValue);
+            }
+        }
+
+        return null;
     }
 
     static double ReadRotationDegrees(OpenXmlElement xfrm)

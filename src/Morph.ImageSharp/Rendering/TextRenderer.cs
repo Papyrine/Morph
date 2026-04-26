@@ -538,8 +538,8 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 continue;
             }
 
-            // Handle inline images - treat as a single "word" in the text flow
-            if (run.InlineImageData is {Length: > 0})
+            // Handle inline images / shape groups — treat as a single "word" in the text flow.
+            if (run.InlineImageData is {Length: > 0} || run.InlineShapeGroup != null)
             {
                 var imageWidth = (float)run.InlineImageWidthPoints;
                 var imageHeight = (float)run.InlineImageHeightPoints;
@@ -576,7 +576,8 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                     InlineImageHeightPoints = imageHeight,
                     InlineImageContentType = run.InlineImageContentType,
                     InlineImageRotationDegrees = run.InlineImageRotationDegrees,
-                    InlineImageCrop = run.InlineImageCrop
+                    InlineImageCrop = run.InlineImageCrop,
+                    InlineShapeGroup = run.InlineShapeGroup
                 });
                 currentLineWidth += imageWidth;
                 maxLineHeight = Math.Max(maxLineHeight, imageHeight);
@@ -929,6 +930,12 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             return;
         }
 
+        if (fragment.InlineShapeGroup is { } group)
+        {
+            RenderInlineShapeGroup(currentPage, group, fragment, x, y);
+            return;
+        }
+
         if (fragment.IsTabFiller)
         {
             RenderTabFiller(currentPage, fragment, x, y);
@@ -1173,6 +1180,97 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         currentPage.Mutate(_ => _.DrawText(textOptions, leaderText, new SolidBrush(color)));
     }
 
+    void RenderInlineShapeGroup(Image<Rgba32> currentPage, InlineShapeGroup group, TextFragment fragment, float x, float y)
+    {
+        var pixelX = context.PointsToPixels(x);
+        var pixelWidth = context.PointsToPixels(fragment.Width);
+        var pixelHeight = context.PointsToPixels(fragment.InlineImageHeightPoints);
+        var pixelY = context.PointsToPixels(y) - pixelHeight;
+
+        var sx = pixelWidth / (float) group.ChildExtentX;
+        var sy = pixelHeight / (float) group.ChildExtentY;
+
+        // ImageSharp doesn't support per-call transforms (rotation), so for rotated groups we
+        // render onto a temp image, rotate it, and composite. Most templates use 90° group
+        // rotation for header arrows; the temp-image route handles those without distortion.
+        var hasRotation = group.RotationDegrees != 0;
+        var canvas = currentPage;
+        Image<Rgba32>? temp = null;
+        var drawOriginX = pixelX;
+        var drawOriginY = pixelY;
+        if (hasRotation)
+        {
+            temp = new((int) Math.Ceiling(pixelWidth), (int) Math.Ceiling(pixelHeight));
+            canvas = temp;
+            drawOriginX = 0;
+            drawOriginY = 0;
+        }
+
+        foreach (var shape in group.Shapes)
+        {
+            var x1 = drawOriginX + (float) shape.X * sx;
+            var y1 = drawOriginY + (float) shape.Y * sy;
+            var w = (float) shape.Width * sx;
+            var h = (float) shape.Height * sy;
+
+            if (shape.Geometry == GroupShapeGeometry.Line)
+            {
+                var startX = x1;
+                var startY = y1;
+                var endX = x1 + w;
+                var endY = y1 + h;
+                if (shape.FlipVertical)
+                {
+                    (startY, endY) = (endY, startY);
+                }
+                if (shape.FlipHorizontal)
+                {
+                    (startX, endX) = (endX, startX);
+                }
+
+                var color = ImageSharpRenderContext.ParseColor(shape.ColorHex);
+                var width = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75) * context.Scale;
+                // Square end caps make the perpendicular connector lines extend half-stroke-width
+                // past their endpoints — that's how Word's icon-style arrows form a clean L corner
+                // (each line's square cap fills the gap where a butt/round cap would leave a notch).
+                var pen = new SolidPen(new PenOptions(color, width)
+                {
+                    EndCapStyle = SixLabors.ImageSharp.Drawing.EndCapStyle.Square,
+                    JointStyle = SixLabors.ImageSharp.Drawing.JointStyle.Square
+                });
+                canvas.Mutate(_ => _.DrawLine(pen, new PointF(startX, startY), new PointF(endX, endY)));
+            }
+            else
+            {
+                if (shape.FillColorHex is { } fillHex)
+                {
+                    var fill = ImageSharpRenderContext.ParseColor(fillHex);
+                    canvas.Mutate(_ => _.Fill(fill, new RectangleF(x1, y1, w, h)));
+                }
+                if (shape.LineWidthEmu > 0)
+                {
+                    var color = ImageSharpRenderContext.ParseColor(shape.ColorHex);
+                    var width = (float) (shape.LineWidthEmu / emusPerPoint) * context.Scale;
+                    var pen = new SolidPen(color, width);
+                    canvas.Mutate(_ => _.Draw(pen, new RectangleF(x1, y1, w, h)));
+                }
+            }
+        }
+
+        if (hasRotation && temp != null)
+        {
+            temp.Mutate(_ => _.Rotate((float) group.RotationDegrees));
+            // Centre the rotated temp at the original group centre to keep alignment with text.
+            var dstX = (int) (pixelX + (pixelWidth - temp.Width) / 2f);
+            var dstY = (int) (pixelY + (pixelHeight - temp.Height) / 2f);
+            currentPage.Mutate(_ => _.DrawImage(temp, new Point(dstX, dstY), 1f));
+            temp.Dispose();
+        }
+    }
+
+    // EMU = English Metric Units. 1 point = 12700 EMU.
+    const float emusPerPoint = 12700f;
+
     void RenderInlineImage(Image<Rgba32> currentPage, TextFragment fragment, float x, float y)
     {
         // Convert to pixels - y is the baseline, need to adjust for image height
@@ -1288,7 +1386,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             }
 
             // Handle inline images - treat as a single "word" in the text flow
-            if (run.InlineImageData is {Length: > 0})
+            if (run.InlineImageData is {Length: > 0} || run.InlineShapeGroup != null)
             {
                 var imageWidth = (float) run.InlineImageWidthPoints;
                 var imageHeight = (float) run.InlineImageHeightPoints;
@@ -1326,7 +1424,8 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                         InlineImageHeightPoints = imageHeight,
                         InlineImageContentType = run.InlineImageContentType,
                         InlineImageRotationDegrees = run.InlineImageRotationDegrees,
-                        InlineImageCrop = run.InlineImageCrop
+                        InlineImageCrop = run.InlineImageCrop,
+                        InlineShapeGroup = run.InlineShapeGroup
                     });
                 currentLineWidth += imageWidth;
                 maxLineHeight = Math.Max(maxLineHeight, imageHeight);
@@ -1718,6 +1817,9 @@ sealed class TextFragment
 
     /// <summary>Inline image source-rectangle crop. Null = no crop.</summary>
     public ImageCrop? InlineImageCrop { get; init; }
+
+    /// <summary>Inline shape-group payload (wpg:wgp) — mutually exclusive with <see cref="InlineImageData"/>.</summary>
+    public InlineShapeGroup? InlineShapeGroup { get; init; }
 
     /// <summary>True when this fragment represents a tab-stop gap (leader glyphs or empty spacer).</summary>
     public bool IsTabFiller { get; init; }
