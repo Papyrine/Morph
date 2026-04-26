@@ -11,17 +11,23 @@ static class SectionBreakHandler
     /// <paramref name="startNewExplicitPage"/> when a new page must start. The latter
     /// is also responsible for marking the new page as resulting from an explicit break
     /// so blank-page discard logic doesn't drop it.
+    /// <paramref name="isCurrentPageBlank"/> reports whether the current page has any
+    /// significant content; when blank, <paramref name="discardCurrentPage"/> is called
+    /// in place of <paramref name="finishCurrentPage"/> so trailing whitespace overflow
+    /// from the previous section doesn't waste a sheet.
     /// </summary>
     public static void Handle(
         SectionBreakElement sectionBreak,
         RenderContextBase context,
         Action finishCurrentPage,
-        Action startNewExplicitPage)
+        Action startNewExplicitPage,
+        Func<bool> isCurrentPageBlank,
+        Action discardCurrentPage)
     {
         switch (sectionBreak.BreakType)
         {
             case SectionBreakType.NextPage:
-                finishCurrentPage();
+                EndCurrentPage(isCurrentPageBlank, finishCurrentPage, discardCurrentPage);
                 ApplySectionSettings(sectionBreak.NewSectionSettings, context);
                 startNewExplicitPage();
                 break;
@@ -34,7 +40,7 @@ static class SectionBreakHandler
                 break;
 
             case SectionBreakType.EvenPage:
-                finishCurrentPage();
+                EndCurrentPage(isCurrentPageBlank, finishCurrentPage, discardCurrentPage);
                 ApplySectionSettings(sectionBreak.NewSectionSettings, context);
                 startNewExplicitPage();
                 // If the new page is odd, advance once more so content lands on an even page.
@@ -47,7 +53,7 @@ static class SectionBreakHandler
                 break;
 
             case SectionBreakType.OddPage:
-                finishCurrentPage();
+                EndCurrentPage(isCurrentPageBlank, finishCurrentPage, discardCurrentPage);
                 ApplySectionSettings(sectionBreak.NewSectionSettings, context);
                 startNewExplicitPage();
                 // If the new page is even, advance once more so content lands on an odd page.
@@ -69,6 +75,21 @@ static class SectionBreakHandler
                 }
 
                 break;
+        }
+    }
+
+    static void EndCurrentPage(Func<bool> isCurrentPageBlank, Action finishCurrentPage, Action discardCurrentPage)
+    {
+        if (isCurrentPageBlank())
+        {
+            // The current page is just trailing-whitespace overflow from the previous
+            // section. Word doesn't waste a sheet on this — drop it so the new section's
+            // first page lands on what would otherwise have been a blank intermediate page.
+            discardCurrentPage();
+        }
+        else
+        {
+            finishCurrentPage();
         }
     }
 

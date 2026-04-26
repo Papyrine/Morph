@@ -377,7 +377,21 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
     }
 
     void RenderSectionBreak(SectionBreakElement sectionBreak) =>
-        SectionBreakHandler.Handle(sectionBreak, context, FinishCurrentPage, StartNewExplicitPage);
+        SectionBreakHandler.Handle(
+            sectionBreak,
+            context,
+            FinishCurrentPage,
+            StartNewExplicitPage,
+            () => !hasSignificantContentOnCurrentPage,
+            DiscardCurrentPage);
+
+    void DiscardCurrentPage()
+    {
+        currentCanvas?.Dispose();
+        currentCanvas = null;
+        currentPage?.Dispose();
+        currentPage = null;
+    }
 
     void StartNewExplicitPage()
     {
