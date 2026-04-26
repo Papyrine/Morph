@@ -1005,29 +1005,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         }
     }
 
-    /// <summary>
-    /// Translates Word's <c>w:kern</c> threshold and <c>w14:ligatures</c> flag into a
-    /// SixLabors.Fonts <see cref="KerningMode"/>. Pair-kerning and standard ligatures both
-    /// flow through the same shaping pass, so disabling one disables the other.
-    /// </summary>
-    static KerningMode ResolveKerningMode(RunProperties props)
-    {
-        // Word only kerns when fontSize >= w:kern threshold. Threshold of 0 = no explicit
-        // setting → default kerning behaviour applies.
-        if (props.KerningMinFontSizePoints > 0 &&
-            props.FontSizePoints < props.KerningMinFontSizePoints)
-        {
-            return KerningMode.None;
-        }
-
-        // w14:ligatures="none" turns off all ligature substitution.
-        if (props.Ligatures == LigatureMode.None)
-        {
-            return KerningMode.None;
-        }
-
-        return KerningMode.Standard;
-    }
+    static KerningMode ResolveKerningMode(RunProperties props) => TextShaping.ResolveKerningMode(props);
 
     void DrawBarTabs(Image<Rgba32> currentPage, ParagraphProperties props, float lineTopY, float lineHeight)
     {
