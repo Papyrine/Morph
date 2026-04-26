@@ -299,6 +299,10 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 }
             }
 
+            // Bar tabs draw a vertical line at each bar position on every line of the paragraph,
+            // independent of any explicit <w:tab/> character.
+            DrawBarTabs(canvas, props, context.CurrentY, lineHeight);
+
             // For the last line of a paragraph with compact auto spacing (< 1.0x),
             // ensure the cursor advances by at least the natural line height to prevent
             // overlap with the next paragraph. Compact spacing only compresses the
@@ -985,7 +989,23 @@ sealed class TextRenderer(SkiaRenderContext context) :
             canvas.DrawRect(pixelX, textTop, textWidth, textBottom - textTop, bgPaint);
         }
 
+        // Effects drawn behind the main glyph fill: shadow, glow, reflection.
+        DrawTextEffectsBehind(canvas, fragment, font, pixelX, pixelY);
+
         canvas.DrawText(fragment.Text, pixelX, pixelY, SKTextAlign.Left, font, paint);
+
+        // Outline stroked over the fill so the stroke is crisp on top.
+        if (fragment.Properties.Outline is { } outline)
+        {
+            using var outlinePaint = new SKPaint
+            {
+                Color = SkiaRenderContext.ParseColor(outline.ColorHex),
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = Math.Max(0.5f, (float) outline.WidthPoints * context.Scale),
+                IsAntialias = true
+            };
+            canvas.DrawText(fragment.Text, pixelX, pixelY, SKTextAlign.Left, font, outlinePaint);
+        }
 
         // Draw underline if needed
         if (fragment.Properties.Underline)
@@ -1013,6 +1033,126 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 IsAntialias = true
             };
             canvas.DrawLine(pixelX, strikeY, pixelX + width, strikeY, linePaint);
+        }
+    }
+
+    void DrawBarTabs(SKCanvas canvas, ParagraphProperties props, float lineTopY, float lineHeight)
+    {
+        if (props.TabStops.Count == 0)
+        {
+            return;
+        }
+
+        using var paint = new SKPaint
+        {
+            Color = SKColors.Black,
+            StrokeWidth = Math.Max(1, 0.5f * context.Scale),
+            Style = SKPaintStyle.Stroke,
+            IsAntialias = true
+        };
+
+        var top = context.PointsToPixels(lineTopY);
+        var bottom = context.PointsToPixels(lineTopY + lineHeight);
+
+        foreach (var stop in props.TabStops)
+        {
+            if (stop.Alignment != TabAlignment.Bar)
+            {
+                continue;
+            }
+
+            var x = context.PointsToPixels(context.ContentLeft + (float) stop.PositionPoints);
+            canvas.DrawLine(x, top, x, bottom, paint);
+        }
+    }
+
+    /// <summary>
+    /// Draws shadow / glow / reflection (in that order) underneath the text fragment.
+    /// Outline is drawn over the fill in <see cref="RenderFragment"/>.
+    /// </summary>
+    void DrawTextEffectsBehind(SKCanvas canvas, TextFragment fragment, SKFont font, float pixelX, float pixelY)
+    {
+        var props = fragment.Properties;
+
+        if (props.Shadow is { } shadow)
+        {
+            // Word's direction convention: 0deg = right, 90deg = down (clockwise).
+            var dirRad = shadow.DirectionDegrees * Math.PI / 180.0;
+            var offsetX = (float) (Math.Cos(dirRad) * shadow.DistancePoints) * context.Scale;
+            var offsetY = (float) (Math.Sin(dirRad) * shadow.DistancePoints) * context.Scale;
+            var alpha = (byte) Math.Clamp(shadow.AlphaPercent * 255 / 100, 0, 255);
+            var color = SkiaRenderContext.ParseColor(shadow.ColorHex).WithAlpha(alpha);
+
+            using var shadowPaint = new SKPaint
+            {
+                Color = color,
+                IsAntialias = true
+            };
+            if (shadow.BlurPoints > 0)
+            {
+                shadowPaint.ImageFilter = SKImageFilter.CreateBlur(
+                    (float) shadow.BlurPoints * context.Scale,
+                    (float) shadow.BlurPoints * context.Scale);
+            }
+            canvas.DrawText(fragment.Text, pixelX + offsetX, pixelY + offsetY, SKTextAlign.Left, font, shadowPaint);
+        }
+
+        if (props.Glow is { } glow)
+        {
+            var alpha = (byte) Math.Clamp(glow.AlphaPercent * 255 / 100, 0, 255);
+            var color = SkiaRenderContext.ParseColor(glow.ColorHex).WithAlpha(alpha);
+            using var glowPaint = new SKPaint
+            {
+                Color = color,
+                IsAntialias = true,
+                ImageFilter = SKImageFilter.CreateBlur(
+                    (float) glow.RadiusPoints * context.Scale,
+                    (float) glow.RadiusPoints * context.Scale)
+            };
+            // Drawing the same glyph twice deepens the halo so it shows through the fill.
+            canvas.DrawText(fragment.Text, pixelX, pixelY, SKTextAlign.Left, font, glowPaint);
+            canvas.DrawText(fragment.Text, pixelX, pixelY, SKTextAlign.Left, font, glowPaint);
+        }
+
+        if (props.HasReflection)
+        {
+            // Mirror below baseline with a top→bottom alpha fade. Defaults match Word's
+            // built-in "Tight Reflection, touching" preset: starts at ~50% alpha and fades to 0.
+            var width = context.PointsToPixels(fragment.Width);
+            var ascent = -font.Metrics.Ascent;
+            var height = ascent + font.Metrics.Descent;
+
+            var reflectPaint = new SKPaint
+            {
+                Color = SkiaRenderContext.ParseColor(props.ColorHex),
+                IsAntialias = true,
+                Shader = SKShader.CreateLinearGradient(
+                    new(pixelX, pixelY),
+                    new(pixelX, pixelY + height),
+                    [new SKColor(255, 255, 255, 128), new SKColor(255, 255, 255, 0)],
+                    SKShaderTileMode.Clamp),
+                BlendMode = SKBlendMode.SrcIn
+            };
+
+            canvas.Save();
+            // Translate to the baseline so flipping pivots there, then mirror Y.
+            canvas.Translate(0, pixelY * 2);
+            canvas.Scale(1, -1);
+
+            // First lay the mirrored glyph in the destination region with the requested colour.
+            using var mirrorFill = new SKPaint
+            {
+                Color = SkiaRenderContext.ParseColor(props.ColorHex),
+                IsAntialias = true
+            };
+            canvas.DrawText(fragment.Text, pixelX, pixelY, SKTextAlign.Left, font, mirrorFill);
+
+            // Apply the alpha gradient on top of the mirrored glyph.
+            using (reflectPaint)
+            {
+                canvas.DrawRect(pixelX, pixelY - ascent, width, height, reflectPaint);
+            }
+            canvas.Restore();
         }
     }
 

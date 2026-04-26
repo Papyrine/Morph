@@ -331,7 +331,7 @@ sealed class SkiaRenderContext(
         }
     }
 
-    static SKColor ParseColor(string? hexColor)
+    public static SKColor ParseColor(string? hexColor)
     {
         if (string.IsNullOrEmpty(hexColor) ||
             hexColor == "auto")

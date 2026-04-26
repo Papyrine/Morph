@@ -6462,12 +6462,11 @@ sealed class DocumentParser(string defaultFont)
             runRtl = rtlElement.Val?.Value != false;
         }
 
-        // w14 text effects (presence only)
-        var effects = TextEffects.None;
-        if (props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Shadow>() != null) effects |= TextEffects.Shadow;
-        if (props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.TextOutlineEffect>() != null) effects |= TextEffects.Outline;
-        if (props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Glow>() != null) effects |= TextEffects.Glow;
-        if (props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Reflection>() != null) effects |= TextEffects.Reflection;
+        // w14 text effects (parameters captured for outline/shadow/glow; reflection is presence-only)
+        var outline = ParseTextOutline(props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.TextOutlineEffect>(), color);
+        var shadow = ParseTextShadow(props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Shadow>());
+        var glow = ParseTextGlow(props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Glow>());
+        var hasReflection = props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Reflection>() != null;
 
         // Vertical alignment (subscript/superscript)
         var vertAlignElement = props.GetFirstChild<VerticalTextAlignment>();
@@ -6650,7 +6649,114 @@ sealed class DocumentParser(string defaultFont)
             KerningMinFontSizePoints = kerningMinFontSize,
             Ligatures = ligatures,
             IsRightToLeft = runRtl,
-            Effects = effects
+            Outline = outline,
+            Shadow = shadow,
+            Glow = glow,
+            HasReflection = hasReflection
         };
+    }
+
+    static TextOutline? ParseTextOutline(
+        DocumentFormat.OpenXml.Office2010.Word.TextOutlineEffect? element,
+        string? fillColor)
+    {
+        if (element == null)
+        {
+            return null;
+        }
+
+        // LineWidth is in EMU; default to a thin stroke when absent.
+        var widthEmu = element.LineWidth?.Value ?? (long) (0.75 * emusPerPoint);
+        var widthPoints = widthEmu / emusPerPoint;
+
+        var color = ReadW14SolidFillColor(element) ?? fillColor ?? "000000";
+        return new()
+        {
+            ColorHex = color,
+            WidthPoints = widthPoints
+        };
+    }
+
+    static TextShadow? ParseTextShadow(DocumentFormat.OpenXml.Office2010.Word.Shadow? element)
+    {
+        if (element == null)
+        {
+            return null;
+        }
+
+        // Word's defaults when attributes absent: 4pt distance, 45deg, 4pt blur, semi-transparent black.
+        var blurPoints = (element.BlurRadius?.Value ?? (long) (4 * emusPerPoint)) / emusPerPoint;
+        var distancePoints = (element.DistanceFromText?.Value ?? (long) (4 * emusPerPoint)) / emusPerPoint;
+        // DirectionAngle is in 60000ths of a degree; OOXML 0deg = right, 90deg = down.
+        var directionDegrees = (element.DirectionAngle?.Value ?? 2700000) / 60000.0;
+
+        var (color, alpha) = ReadW14ColorWithAlpha(element.RgbColorModelHex, element.SchemeColor);
+        return new()
+        {
+            ColorHex = color ?? "000000",
+            BlurPoints = blurPoints,
+            DistancePoints = distancePoints,
+            DirectionDegrees = directionDegrees,
+            AlphaPercent = alpha ?? 50
+        };
+    }
+
+    static TextGlow? ParseTextGlow(DocumentFormat.OpenXml.Office2010.Word.Glow? element)
+    {
+        if (element == null)
+        {
+            return null;
+        }
+
+        var radiusPoints = (element.GlowRadius?.Value ?? (long) (4 * emusPerPoint)) / emusPerPoint;
+        var (color, alpha) = ReadW14ColorWithAlpha(element.RgbColorModelHex, element.SchemeColor);
+        return new()
+        {
+            ColorHex = color ?? "FFFF00",
+            RadiusPoints = radiusPoints,
+            AlphaPercent = alpha ?? 60
+        };
+    }
+
+    // Walks a w14 effect element looking for solidFill > srgbClr; returns null if not found.
+    static string? ReadW14SolidFillColor(OpenXmlElement element)
+    {
+        foreach (var child in element.Descendants())
+        {
+            if (child is DocumentFormat.OpenXml.Office2010.Word.RgbColorModelHex rgb && rgb.Val?.HasValue == true)
+            {
+                return rgb.Val.Value;
+            }
+        }
+        return null;
+    }
+
+    static (string? Color, int? AlphaPercent) ReadW14ColorWithAlpha(
+        DocumentFormat.OpenXml.Office2010.Word.RgbColorModelHex? rgb,
+        DocumentFormat.OpenXml.Office2010.Word.SchemeColor? scheme)
+    {
+        if (rgb?.Val?.HasValue == true)
+        {
+            return (rgb.Val.Value, ReadW14Alpha(rgb));
+        }
+
+        if (scheme != null)
+        {
+            // Scheme-colour resolution against the document theme is not yet modelled here.
+            return (null, ReadW14Alpha(scheme));
+        }
+
+        return (null, null);
+    }
+
+    static int? ReadW14Alpha(OpenXmlElement parent)
+    {
+        var alpha = parent.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Alpha>();
+        if (alpha?.Val?.HasValue == true)
+        {
+            // w14:alpha is in 1000ths of a percent (100000 = 100%).
+            return (int) (alpha.Val.Value / 1000);
+        }
+        return null;
     }
 }

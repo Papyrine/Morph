@@ -47,9 +47,26 @@ sealed record RunProperties
     /// </summary>
     public bool IsRightToLeft { get; init; }
 
+    /// <summary>Stroke around glyph outlines (w14:textOutline). Null = no outline.</summary>
+    public TextOutline? Outline { get; init; }
+
+    /// <summary>Drop-shadow behind text (w14:shadow). Null = no shadow.</summary>
+    public TextShadow? Shadow { get; init; }
+
+    /// <summary>Soft halo around text (w14:glow). Null = no glow.</summary>
+    public TextGlow? Glow { get; init; }
+
+    /// <summary>Mirrored reflection below text (w14:reflection). Presence-only — full
+    /// parameter set (alpha gradient, distance, blur, skew) is not modelled.</summary>
+    public bool HasReflection { get; init; }
+
     /// <summary>
-    /// Word 2010+ text effects (w14:shadow / textOutline / glow / reflection). Presence-only —
-    /// individual effect parameters aren't captured. Renderer doesn't apply any of these yet.
+    /// Bitmask view of which Word 2010+ text effects are present on the run, derived from
+    /// <see cref="Outline"/>, <see cref="Shadow"/>, <see cref="Glow"/> and <see cref="HasReflection"/>.
     /// </summary>
-    public TextEffects Effects { get; init; } = TextEffects.None;
+    public TextEffects Effects =>
+        (Shadow != null ? TextEffects.Shadow : TextEffects.None) |
+        (Outline != null ? TextEffects.Outline : TextEffects.None) |
+        (Glow != null ? TextEffects.Glow : TextEffects.None) |
+        (HasReflection ? TextEffects.Reflection : TextEffects.None);
 }

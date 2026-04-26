@@ -317,52 +317,51 @@ Combines specific character sequences (fi, fl, ff, etc.) into single glyphs.
 ### 1.3 Text Effects
 
 
-#### Text Shadow `PARTIAL`
+#### Text Shadow `DONE`
 
 Shadow effect behind text (not to be confused with WordArt shadow).
 
 - **OOXML**: `w14:shadow` with color, blur radius, distance, angle
-- **Spec**: [MS-DOCX Text Effects](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
-- **Model**: `RunProperties.Effects` includes `TextEffects.Shadow` flag (presence only)
-- **Parse**: detects `w14:shadow` element on run properties
-- **Render**: not yet — shadow effect is not drawn
+- **Model**: `RunProperties.Shadow` (`TextShadow` record with colour, blur, distance, direction, alpha). The legacy `Effects` flag is now derived from this field.
+- **Parse**: `DocumentParser.ParseTextShadow` extracts `w14:blurRad` / `w14:dist` / `w14:dir` (EMU/60000ths-degree) and the child `srgbClr` + `alpha`. Bare `<w14:shadow/>` defaults to 4pt distance, 4pt blur, 45°, 50% black.
+- **Render**: Skia draws the glyph at the offset position with `SKImageFilter.CreateBlur` before the main fill. ImageSharp draws an offset duplicate without blur (no per-draw blur in its drawing pipeline).
 
-> **Contributors**: Captures presence only. Shadow parameters (color, blur, distance, angle) aren't extracted; full rendering would adapt the WordArt shadow code in `TextRenderer`.
+> **AI**: `sx`/`sy` scale and `kx`/`ky` skew transforms from the OOXML are intentionally not modelled — minor visual contribution and complicates the render path.
 
 
-#### Text Outline `PARTIAL`
+#### Text Outline `DONE`
 
 Outline/stroke around text characters.
 
 - **OOXML**: `w14:textOutline` with color, width, line style
-- **Spec**: [MS-DOCX Text Effects](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
-- **Model**: `RunProperties.Effects` includes `TextEffects.Outline` flag (presence only)
-- **Parse**: detects `w14:textOutline` element on run properties
-- **Render**: not yet — outline stroke is not drawn
+- **Model**: `RunProperties.Outline` (`TextOutline` record with colour and width).
+- **Parse**: `DocumentParser.ParseTextOutline` reads `w14:w` (EMU → points) and walks for the descendant `srgbClr`. Falls back to the run's fill colour and a 0.75pt default width when attributes are absent.
+- **Render**: after the fill draw, both backends re-draw the glyph with a stroke paint/pen using the outline colour and width.
 
-> **Contributors**: Outline color, width, and line-style parameters aren't extracted; rendering would mirror the WordArt outline code in `TextRenderer`.
+> **AI**: `cap`/`cmpd`/`algn`/`prstDash` line-style attributes are deliberately not modelled — Word almost always uses the round-cap solid-stroke default.
 
 
-#### Text Glow `PARTIAL`
+#### Text Glow `DONE`
 
 Soft glow effect around text.
 
 - **OOXML**: `w14:glow` with color, radius
-- **Spec**: [MS-DOCX Text Effects](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
-- **Model**: `RunProperties.Effects` includes `TextEffects.Glow` flag (presence only)
-- **Parse**: detects `w14:glow` element on run properties
-- **Render**: not yet — glow is not drawn
+- **Model**: `RunProperties.Glow` (`TextGlow` record with colour, radius, alpha).
+- **Parse**: `DocumentParser.ParseTextGlow` reads `w14:rad` and the child `srgbClr` + `alpha`. Bare element defaults to 4pt yellow at 60% alpha.
+- **Render**: Skia draws the glyph twice with `SKImageFilter.CreateBlur` before the main fill (two passes deepen the halo). ImageSharp approximates by stroking the glyph at increasing radii with low alpha — softer but visually similar.
+
+> **AI**: Scheme-colour resolution (`schemeClr` with `lumMod`/`lumOff` transforms) isn't wired through; only direct `srgbClr` values are honoured.
 
 
-#### Text Reflection `PARTIAL`
+#### Text Reflection `DONE`
 
 Mirrored reflection below text.
 
 - **OOXML**: `w14:reflection` with transparency, size, blur, distance
-- **Spec**: [MS-DOCX Text Effects](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
-- **Model**: `RunProperties.Effects` includes `TextEffects.Reflection` flag (presence only)
-- **Parse**: detects `w14:reflection` element on run properties
-- **Render**: not yet — reflection is not drawn
+- **Model**: `RunProperties.HasReflection` (presence-only — full reflection parameter set is not modelled).
+- **Render**: Skia draws a vertically-mirrored copy below the baseline and applies a top→bottom alpha gradient via `SKBlendMode.SrcIn`. ImageSharp draws a faded duplicate below the original (no flip) — its drawing pipeline doesn't expose per-draw transforms cleanly.
+
+> **AI**: Presence-aware rendering with sensible defaults matching Word's "Tight Reflection, touching" preset. The OOXML reflection parameters (`stA`, `stPos`, `endA`, `endPos`, `dist`, `dir`, `fadeDir`, `sx`, `sy`, `blurRad`) are not parsed; documents using a custom reflection preset will diverge from Word.
 
 ---
 
@@ -1663,7 +1662,7 @@ Positioned alignment points within a paragraph. Types: left, center, right, deci
 - **Test**: `tab_stops`, `decimal_tabs`, plus `TabStopResolverTests` in `src/Tests/SpecTests/Section2_Structures/`
 - **Spec**: [Tab Stops](http://officeopenxml.com/WPtab.php)
 
-> **AI**: Implemented: left/center/right/decimal explicit stops, default-tab fallback (`w:defaultTabStop`), `w:val="clear"` removal, inherited stops via paragraph styles, dot/hyphen/middleDot/heavy leader glyphs, underscore leader as baseline line. Decimal alignment scans the following runs for the first `.` and aligns that x at the tab position; falls back to Right when no decimal is present (matches Word). Deferred: bar tabs (parsed, not drawn), `num` tabs, and full wrap-on-tab (tab collapses to zero when destination behind cursor or gap exceeds remaining line width).
+> **AI**: Implemented: left/center/right/decimal explicit stops, default-tab fallback (`w:defaultTabStop`), `w:val="clear"` removal, inherited stops via paragraph styles, dot/hyphen/middleDot/heavy leader glyphs, underscore leader as baseline line. Decimal alignment scans the following runs for the first `.` and aligns that x at the tab position; falls back to Right when no decimal is present (matches Word). Bar tabs draw a vertical line at the stop's position on every line of the paragraph (independent of `<w:tab/>` characters) — `DrawBarTabs` in each backend. Deferred: `num` tabs and full wrap-on-tab (tab collapses to zero when destination behind cursor or gap exceeds remaining line width).
 
 
 ### 9.3 Bidirectional Text
@@ -1944,7 +1943,7 @@ Read-only mode, form protection, and editing restrictions.
 
 | Category | Done | Partial | Todo | Total |
 |----------|------|---------|------|-------|
-| 1. Text Formatting | 13 | 6 | 0 | 19 |
+| 1. Text Formatting | 17 | 2 | 0 | 19 |
 | 2. Paragraph Formatting | 11 | 1 | 0 | 12 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
 | 4. Tables | 14 | 3 | 0 | 17 |
@@ -1956,19 +1955,19 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 6 | 1 | 8 |
 | 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **110** | **31** | **0** | **141** |
+| **Total** | **114** | **27** | **0** | **141** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 110
-    "Partial" : 31
+    "Done" : 114
+    "Partial" : 27
     "Todo" : 0
 ```
 
-**Overall coverage: 78% fully implemented, 22% partial, 0% remaining.**
+**Overall coverage: 81% fully implemented, 19% partial, 0% remaining.**
 
 
 Priority areas for future implementation:
