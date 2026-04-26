@@ -2464,7 +2464,7 @@ sealed class DocumentParser(string defaultFont)
                 defaultCellPadding = ParseTableCellMargin(tblCellMar);
             }
 
-            // Check for floating table positioning (tblpPr)
+            // Check for floating table positioning (tblpPr).
             var tblpPr = tableProps.GetFirstChild<TablePositionProperties>();
             isFloating = tblpPr != null;
         }
@@ -2768,6 +2768,14 @@ sealed class DocumentParser(string defaultFont)
             {
                 alignment = TextAlignment.Right;
             }
+        }
+        // Floating tables can carry their horizontal alignment in tblpXSpec instead of w:jc.
+        // We don't honour the absolute X coordinate (tblpX) — the inline fallback re-uses
+        // the alignment so the table at least lands in the right column.
+        else if (tableProps?.GetFirstChild<TablePositionProperties>()?.TablePositionXAlignment?.Value is { } xAlign)
+        {
+            if (xAlign == HorizontalAlignmentValues.Center) alignment = TextAlignment.Center;
+            else if (xAlign == HorizontalAlignmentValues.Right) alignment = TextAlignment.Right;
         }
 
         return new()
@@ -3221,6 +3229,18 @@ sealed class DocumentParser(string defaultFont)
 
                 case DeletedRun:
                     // Tracked-change deletion: drop the runs ("as accepted" = remove deleted text).
+                    break;
+
+                case DocumentFormat.OpenXml.Math.OfficeMath inlineMath:
+                    // Office Math (OMML) — render the textual content of m:t descendants as a fallback.
+                    // Proper math layout (radicals, fractions, sub/superscripts, big operators) is
+                    // not modelled, so symbols and structure are lost; equations like "a²+b²=c²"
+                    // come through as "a2+b2=c2" but at least don't disappear from the page.
+                    AppendMathText(runs, inlineMath);
+                    break;
+
+                case DocumentFormat.OpenXml.Math.Paragraph mathPara:
+                    AppendMathText(runs, mathPara);
                     break;
 
                 case OoxmlRun run:
@@ -6654,6 +6674,22 @@ sealed class DocumentParser(string defaultFont)
             Glow = glow,
             HasReflection = hasReflection
         };
+    }
+
+    static void AppendMathText(List<Run> runs, OpenXmlElement mathElement)
+    {
+        // m:t is the Office-Math text element; .Elements<m:t>() would only catch direct children,
+        // but math expressions nest (m:fName/m:e/...), so walk descendants.
+        var sb = new System.Text.StringBuilder();
+        foreach (var t in mathElement.Descendants<DocumentFormat.OpenXml.Math.Text>())
+        {
+            sb.Append(t.Text);
+        }
+
+        if (sb.Length > 0)
+        {
+            runs.Add(new() {Text = sb.ToString()});
+        }
     }
 
     static TextOutline? ParseTextOutline(

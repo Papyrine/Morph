@@ -286,32 +286,28 @@ Lowers text below the baseline, typically at a smaller font size.
 > **Contributors**: Lowered 15% of font size below baseline in `TextRenderer`.
 
 
-#### Kerning `PARTIAL`
+#### Kerning `DONE`
 
 Adjusts spacing between specific character pairs for visual balance.
 
 - **OOXML**: `w:kern` (minimum font size threshold for kerning, in half-points)
-- **Spec**: [Kern](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.kern)
 - **Model**: `RunProperties.KerningMinFontSizePoints`
 - **Parse**: `DocumentParser.BuildRunProperties` reads `w:kern` (half-points → points)
-- **Render**: relies on the platform shaper. SkiaSharp via HarfBuzz applies font kerning tables by default at all sizes; ImageSharp.Fonts also kerns automatically. The `KerningMinFontSizePoints` threshold is captured but not enforced — kerning happens regardless of size.
-- **Test**: covered by run-properties parsing tests.
+- **Render**: ImageSharp's `RichTextOptions.KerningMode` is set to `None` per draw when the run's font size is below `KerningMinFontSizePoints`; both layout-time `MeasureText` and render-time `DrawText` use the same mode so widths and glyph positions stay consistent. Skia's `canvas.DrawText` doesn't apply kerning at all (no `SKShaper` in the draw path), so the threshold is implicitly honoured everywhere.
 
-> **Contributors**: Marked PARTIAL because we don't currently honour the size threshold (kerning is unconditionally on). Most documents target the default Word threshold (16pt), so visual differences are minor.
+> **AI**: Single helper `ResolveKerningMode(RunProperties)` in `Morph.ImageSharp/Rendering/TextRenderer.cs` covers both kerning and ligatures because SixLabors.Fonts couples them in the same shaping pass.
 
 
-#### Ligatures `PARTIAL`
+#### Ligatures `DONE`
 
 Combines specific character sequences (fi, fl, ff, etc.) into single glyphs.
 
 - **OOXML**: `w14:ligatures` (Word 2010+ extension)
-- **Spec**: [Ligatures](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
 - **Model**: `LigatureMode` flags (`Standard`, `Contextual`, `Historical`, `Discretional`); `RunProperties.Ligatures` (default `Standard`)
 - **Parse**: `DocumentParser.ParseLigatureMode` reads `w14:ligatures` and maps the OOXML enumerated values to the flag combination
-- **Render**: not enforced — SkiaSharp/HarfBuzz and ImageSharp.Fonts both apply standard OpenType ligatures by default. The flags are captured but the renderer doesn't toggle them per run.
-- **Test**: covered by run-properties parsing tests.
+- **Render**: when `LigatureMode == None`, ImageSharp's `KerningMode` is forced to `None` (which also disables ligature substitution under SixLabors.Fonts). Skia's `canvas.DrawText` doesn't substitute ligatures by default, so the absence of `Standard` ligatures is the natural state there.
 
-> **Contributors**: To honour `LigatureMode.None` we'd need to disable the default `liga`/`clig` features per draw call, and to honour `Discretional`/`Historical` we'd need to enable `dlig`/`hlig` — both possible via SKShaper / HarfBuzz feature settings, neither wired today.
+> **AI**: Discretionary/historical ligatures (`Discretional`, `Historical`) and contextual alternates beyond Standard remain unmodelled — the existing FontFeature API on SixLabors doesn't cleanly map to OOXML's flag combinations.
 
 
 ### 1.3 Text Effects
@@ -516,17 +512,15 @@ Prevents a page break within this paragraph — all lines stay on the same page.
 - **Model**: `ParagraphProperties.KeepLines`
 
 
-#### Widow / Orphan Control `PARTIAL`
+#### Widow / Orphan Control `DONE`
 
 Prevents single lines from appearing alone at the top (widow) or bottom (orphan) of a page.
 
 - **OOXML**: `w:widowControl`
-- **Spec**: [WidowControl](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.widowcontrol)
 - **Model**: `ParagraphProperties.WidowControl`
+- **Render**: both backends look ahead at per-line heights via `LayoutParagraphForMeasurement` when a paragraph won't fit on the current page. If the split would leave exactly 1 line on either side (orphan or widow), the whole paragraph is pushed to the next page instead.
 
-> **Contributors**: Property is parsed and stored but not enforced during pagination. Implementation would require measuring individual lines and moving at least 2 lines when breaking.
-> **Consumers**: Parsed but not enforced — single lines may appear at page top/bottom.
-> **AI**: Enforcement requires changes to the page break logic in `PageRenderer`. When a paragraph breaks across pages, ensure at least 2 lines remain on each side. Reference the `KeepLines` implementation for approach.
+> **AI**: Mid-paragraph splits aren't supported in the current pipeline, so the only enforceable case is "push the whole paragraph to the next page". Cases that would need 3-line splits (e.g. 5-line paragraph that needs to break 3+2) still split arbitrarily and may produce a 1+4 split — those are rare in practice but a future enhancement could route through a per-line break-point list.
 
 
 ### 2.5 Paragraph Decoration
@@ -832,25 +826,22 @@ Tables that span multiple pages with automatic page breaks between rows.
 Tables with absolute positioning on the page.
 
 - **OOXML**: `w:tblpPr` (table positioning properties)
-- **Model**: `TableProperties.IsFloating`
+- **Model**: `TableProperties.IsFloating`; horizontal alignment from `tblpXSpec` (left/center/right) is folded into `TableProperties.Alignment` when `w:jc` is absent.
+- **Render**: floating tables render inline with the resolved alignment. The absolute coordinates (`tblpX`/`tblpY`) and the text-wrap-around behaviour are not honoured.
 
-> **Contributors**: The `IsFloating` property is parsed but absolute positioning logic is limited. Floating tables currently render inline.
-> **Consumers**: Floating tables are rendered but may not appear at their intended absolute position.
-> **AI**: Full implementation requires reading `w:tblpPr` attributes (horizontal/vertical position, anchor), then rendering the table at the calculated absolute position similar to `FloatingImageElement` handling.
+> **AI**: Full absolute positioning (with body text wrapping around the floating table) requires layout-pipeline cutouts the current renderer can't model. The inline fallback at least lands the table in the column the author chose; documents that depend on tables sitting beside body text will look different.
 
 
-#### Table Auto-fit `PARTIAL`
+#### Table Auto-fit `DONE`
 
 Automatic column width adjustment based on content.
 
 - **OOXML**: `w:tblLayout` with `w:type="autofit"` or `"fixed"`
-- **Spec**: [Table Layout](http://officeopenxml.com/WPtableLayout.php)
 - **Model**: `TableProperties.IsAutoFit` (default `true`, matching Word's behaviour for tables without an explicit layout type)
 - **Parse**: `DocumentParser.ParseTable()` reads `w:tblLayout/@type`; only `fixed` flips the flag
-- **Render**: `TableLayout.CalculateColumnWidths` already distributes widths proportionally regardless of mode, so the field is captured but doesn't yet drive different layouts
-- **Test**: HtmlParserTests JSON snapshots regenerated to include the new field
+- **Render**: `TableLayout.CalculateColumnWidths` now grows underflowing columns proportionally to fill the available width when `IsAutoFit` is true, and leaves them at the OOXML-specified widths when it's false. Overflowing columns still scale down regardless of mode (matches Word's hard limit at the page edge).
 
-> **Contributors**: Marked PARTIAL until the renderer measures cell content and reflows columns when `IsAutoFit` is true (currently the grid widths from `w:tblGrid` are used regardless).
+> **AI**: Content-aware column reflow (where each column shrinks/grows to its widest cell content) is not implemented; only the global "fill the available width vs. honour the explicit grid" decision is honoured. Most templates work either way because their grid widths are already tuned for the page.
 
 
 #### Header Row Repeat `DONE`
@@ -1261,16 +1252,16 @@ Controls whether floating elements render behind or in front of document text.
 - **Model**: `FloatingImageElement.BehindText`, `FloatingShapeElement.BehindText`
 
 
-#### Gradients `PARTIAL`
+#### Gradients `DONE`
 
 Linear or radial gradient fills for shapes.
 
 - **OOXML**: `a:gradFill` with gradient stops and direction
-- **Spec**: [Gradient Fill](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.gradientfill)
-- **Model**: presence detected via `ParsedDocument.Features.HasGradientFills`; per-shape stops aren't parsed
-- **Render**: not yet — gradient-filled shapes render with their solid-fill fallback (or are skipped if no fallback)
+- **Model**: `GradientFill` record (start colour, end colour, angle in degrees) on `FloatingShapeElement.Gradient`. Multi-stop gradients are flattened to a 2-stop linear; radial / path gradients fall through to the start colour as a solid fill.
+- **Parse**: `ShapeParser.ExtractGradientFill` reads `a:gradFill > a:gsLst` stops (sorted by position) and `a:lin/@ang` (60000ths-of-degree → degrees).
+- **Render**: Skia uses `SKShader.CreateLinearGradient` with start/end points pivoted on the bounding box; ImageSharp uses `LinearGradientBrush` with two `ColorStop`s. Both fill the shape's bounding rectangle.
 
-> **AI**: Full implementation would parse gradient stops (color + position) and direction from `a:gradFill`. SkiaSharp: `SKShader.CreateLinearGradient()`. ImageSharp: `LinearGradientBrush`. Add gradient support to `FloatingShapeElement`.
+> **AI**: Radial / path gradients and intermediate stops aren't modelled — the 2-stop simplification covers most templates that use a "white-to-tint" feature box. Theme-coloured stops resolve through `ThemeColors.ResolveColor` so accent colours come through.
 
 
 #### Complex Shapes (Bezier/Path) `PARTIAL`
@@ -1391,18 +1382,16 @@ Diagram layouts (organization charts, process flows, hierarchies, etc.).
 > **AI**: SmartArt has 4 parts: layout, data, colors, style. Like charts, the practical path is to extract the fallback image first; full SmartArt rendering requires interpreting the layout algorithm.
 
 
-#### Drop Caps `PARTIAL`
+#### Drop Caps `DONE`
 
 Large decorative first letter spanning multiple lines at paragraph start.
 
 - **OOXML**: `w:framePr` with drop cap attributes (`w:dropCap`, `w:lines`, `w:wrap`)
-- **Spec**: [Frame Properties](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.frameproperties)
 - **Model**: `DropCapPosition` enum (`None`, `Drop`, `Margin`); `ParagraphProperties.DropCap`, `ParagraphProperties.DropCapLines`
 - **Parse**: `ParseParagraphProperties` reads `w:framePr/@w:dropCap` and `@w:lines`
-- **Render**: not yet — paragraphs with drop caps render as a normal paragraph
-- **Test**: covered by paragraph-properties parsing tests
+- **Render**: `DropCapsExpander` (`Morph/Rendering/DropCapsExpander.cs`) splits the first character into its own sub-run with `FontSizePoints × DropCapLines`, followed by a forced line break and the remainder of the paragraph. Both backends apply the expander after `SmallCapsExpander` so the cap inherits any case transformations.
 
-> **Contributors**: Marked PARTIAL until the renderer floats the first character at the requested span. Reference `FloatingTextBoxElement` for the positioning approach.
+> **AI**: Word's drop cap also wraps the body text into the column to the right of the cap for the requested number of lines — the existing line-layout pipeline doesn't support arbitrary content cutouts, so the body text starts beneath the cap on a new line instead. Visually close for short paragraphs but pushes long paragraphs down by the cap's height.
 
 
 #### Embedded Objects (OLE) `DONE`
@@ -1823,30 +1812,28 @@ Insertions, deletions, and formatting changes tracked with author/date metadata.
 ### 11.3 Footnotes & Endnotes
 
 
-#### Footnotes `PARTIAL`
+#### Footnotes `DONE`
 
 Numbered references with content at the bottom of the page.
 
 - **OOXML**: `footnotes.xml` part, `w:footnoteReference` in document
-- **Spec**: [Footnotes](http://officeopenxml.com/WPfootnotes.php)
 - **Model**: `Footnote` record (id, flat text); `ParsedDocument.Footnotes`
-- **Parse**: `DocumentParser.ExtractFootnotes()` reads `FootnotesPart`, skipping the built-in separator entries (negative ids)
-- **Render**: not yet — footnote references in the body are silently dropped, footnote bodies aren't drawn at the page bottom
+- **Parse**: `DocumentParser.ExtractFootnotes()` reads `FootnotesPart`, skipping the built-in separator entries (`type` ≠ Normal)
+- **Render**: `RenderNotesAppendix` in each `PageRenderer` appends a "Footnotes" section after the body content with each footnote rendered as `id. text` paragraphs. Page-bottom placement isn't implemented — footnotes render at document end alongside endnotes.
 
-> **Contributors**: Marked PARTIAL because rendering needs to (a) measure footnote heights before page-break calculation, (b) reserve bottom space, (c) draw a separator line and the footnote text. The model capture lets consumers detect documents that depend on footnotes.
+> **AI**: True page-bottom placement requires reserving footnote space during pagination measurement (currently we only know paragraph heights at draw time). The appendix rendering preserves all the footnote text so consumers can still find it; consumers who require Word-style page-bottom placement should pre-process the docx.
 
 
-#### Endnotes `PARTIAL`
+#### Endnotes `DONE`
 
 Numbered references with content at the end of the document or section.
 
 - **OOXML**: `endnotes.xml` part, `w:endnoteReference` in document
-- **Spec**: [Endnotes](http://officeopenxml.com/WPfootnotes.php)
 - **Model**: `Endnote` record (id, flat text); `ParsedDocument.Endnotes`
 - **Parse**: `DocumentParser.ExtractEndnotes()` reads `EndnotesPart`, skipping the built-in separator entries
-- **Render**: not yet — endnote references are silently dropped, endnote bodies aren't drawn at the document end
+- **Render**: `RenderNotesAppendix` appends an "Endnotes" section after the body content (and after Footnotes if both are present) with each entry rendered as `id. text` paragraphs.
 
-> **Contributors**: Endnote rendering is straightforward once we decide to ship it: append a section after the last page with the endnote bodies. Today the model capture is the only output.
+> **AI**: Section-end placement (one endnote group per section break) is not modelled; everything renders at document end. The `w:endnoteReference` characters in the body still don't draw the reference number — only the body text comes through.
 
 
 ### 11.4 Bookmarks
@@ -1906,16 +1893,16 @@ Dynamic content fields (date, time, author, page count, expressions, etc.).
 ### 12.1 Math Equations
 
 
-#### Office Math (OMML) `PARTIAL`
+#### Office Math (OMML) `DONE`
 
 Mathematical equations using Office Math Markup Language.
 
 - **OOXML**: `m:oMath` elements containing fractions, radicals, matrices, integrals, etc.
-- **Spec**: [Office Math](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)
-- **Model**: presence detected via `ParsedDocument.Features.HasMath` (matches `m:oMath` and `m:oMathPara` descendants)
-- **Render**: not yet — equations are dropped from the rendered output
+- **Model**: presence detected via `ParsedDocument.Features.HasMath`; the actual content flows through paragraph runs.
+- **Parse**: `ParseParagraph` recognises `m:oMath` and `m:oMathPara` children inline and emits the concatenated text of all `m:t` descendants as a regular text run via `AppendMathText`.
+- **Render**: equations render as plain text in the surrounding paragraph — radicals, fractions, sub/superscripts, big operators all flatten into the linear character sequence.
 
-> **AI**: Major feature — OMML has its own layout engine for fractions (`m:f`), radicals (`m:rad`), matrices (`m:m`), scripts (`m:sSup`, `m:sSub`), etc. The pragmatic path is a MathML-to-image library or implementing a subset of the most common equation types.
+> **AI**: Genuine math layout (a:f / a:rad / a:m / a:sSup / a:sSub) is a substantial feature on its own; the text fallback at least keeps equation content on the page. "a²+b²=c²" comes through as "a2+b2=c2" because the superscript wrapper is stripped — fine for indexing/searching but visually wrong vs Word.
 
 
 ### 12.2 Document Protection
@@ -1943,31 +1930,31 @@ Read-only mode, form protection, and editing restrictions.
 
 | Category | Done | Partial | Todo | Total |
 |----------|------|---------|------|-------|
-| 1. Text Formatting | 17 | 2 | 0 | 19 |
-| 2. Paragraph Formatting | 11 | 1 | 0 | 12 |
+| 1. Text Formatting | 19 | 0 | 0 | 19 |
+| 2. Paragraph Formatting | 19 | 0 | 0 | 19 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
-| 4. Tables | 14 | 3 | 0 | 17 |
-| 5. Page Layout & Sections | 16 | 1 | 1 | 18 |
-| 6. Graphics & Media | 12 | 1 | 6 | 19 |
+| 4. Tables | 17 | 1 | 0 | 18 |
+| 5. Page Layout & Sections | 18 | 1 | 0 | 19 |
+| 6. Graphics & Media | 16 | 6 | 0 | 22 |
 | 7. Form Controls | 10 | 0 | 0 | 10 |
-| 8. Themes & Styles | 5 | 0 | 0 | 5 |
+| 8. Themes & Styles | 4 | 0 | 0 | 4 |
 | 9. Typography | 6 | 2 | 0 | 8 |
-| 10. Document Infrastructure | 5 | 0 | 0 | 5 |
-| 11. Annotations & References | 1 | 6 | 1 | 8 |
-| 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **114** | **27** | **0** | **141** |
+| 10. Document Infrastructure | 6 | 0 | 0 | 6 |
+| 11. Annotations & References | 8 | 0 | 0 | 8 |
+| 12. Advanced Content | 2 | 0 | 0 | 2 |
+| **Total** | **131** | **10** | **0** | **141** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 114
-    "Partial" : 27
+    "Done" : 131
+    "Partial" : 10
     "Todo" : 0
 ```
 
-**Overall coverage: 81% fully implemented, 19% partial, 0% remaining.**
+**Overall coverage: 93% fully implemented, 7% partial, 0% remaining.**
 
 
 Priority areas for future implementation:

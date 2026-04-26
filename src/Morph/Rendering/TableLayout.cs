@@ -84,6 +84,7 @@ static class TableLayout
     {
         var widths = new float[colCount];
         var gridWidths = table.Properties.GridColumnWidths;
+        var isAutoFit = table.Properties.IsAutoFit;
 
         var hasExplicitWidths = false;
 
@@ -143,6 +144,17 @@ static class TableLayout
                     widths[i] *= scale;
                 }
             }
+            else if (isAutoFit && totalExplicitWidth > 0 && totalExplicitWidth < availableWidth)
+            {
+                // Autofit: when explicit widths underflow the available width, grow columns
+                // proportionally so the table fills its container. Fixed-layout tables keep
+                // their original widths and may leave whitespace on the right.
+                var scale = availableWidth / totalExplicitWidth;
+                for (var i = 0; i < colCount; i++)
+                {
+                    widths[i] *= scale;
+                }
+            }
         }
         else if (gridWidths is {Count: > 0})
         {
@@ -174,6 +186,15 @@ static class TableLayout
 
             if (totalWidth > availableWidth && totalWidth > 0)
             {
+                var scale = availableWidth / totalWidth;
+                for (var i = 0; i < colCount; i++)
+                {
+                    widths[i] *= scale;
+                }
+            }
+            else if (isAutoFit && totalWidth > 0 && totalWidth < availableWidth)
+            {
+                // Same autofit-grow rule for grid-only widths.
                 var scale = availableWidth / totalWidth;
                 for (var i = 0; i < colCount; i++)
                 {

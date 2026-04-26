@@ -140,6 +140,28 @@ static class ShapeParser
             }
         }
 
+        // Try gradient fill (linear only — radial/path fall through to no fill)
+        var gradFill = shapeProps.GetFirstChild<A.GradientFill>();
+        if (gradFill != null)
+        {
+            var gradient = ExtractGradientFill(gradFill, themeColors);
+            if (gradient != null)
+            {
+                return new()
+                {
+                    WidthPoints = widthPoints,
+                    HeightPoints = heightPoints,
+                    HorizontalPositionPoints = positioning.HorizontalPositionPoints,
+                    VerticalPositionPoints = positioning.VerticalPositionPoints,
+                    HorizontalAnchor = positioning.HorizontalAnchor,
+                    VerticalAnchor = positioning.VerticalAnchor,
+                    BehindText = true,
+                    Gradient = gradient,
+                    FillColorHex = gradient.StartColorHex
+                };
+            }
+        }
+
         // Try blip fill (image fill)
         var blipFill = shapeProps.GetFirstChild<A.BlipFill>();
         if (blipFill != null &&
@@ -372,6 +394,67 @@ static class ShapeParser
             // Extract all color transforms
             var transforms = ExtractColorTransforms(schemeClr);
 
+            return themeColors.ResolveColor(schemeValue, transforms);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Extracts a 2-stop linear gradient from a:gradFill. Multi-stop gradients are flattened to
+    /// the lowest- and highest-position stops; radial / path gradients fall through to null.
+    /// </summary>
+    public static GradientFill? ExtractGradientFill(A.GradientFill gradFill, ThemeColors? themeColors)
+    {
+        var stopList = gradFill.GetFirstChild<A.GradientStopList>();
+        if (stopList == null)
+        {
+            return null;
+        }
+
+        var stops = stopList.Elements<A.GradientStop>()
+            .Where(_ => _.Position?.HasValue == true)
+            .OrderBy(_ => _.Position!.Value)
+            .ToList();
+
+        if (stops.Count < 2)
+        {
+            return null;
+        }
+
+        var first = ExtractGradientStopColor(stops[0], themeColors);
+        var last = ExtractGradientStopColor(stops[^1], themeColors);
+        if (first == null || last == null)
+        {
+            return null;
+        }
+
+        // a:lin/@ang is in 60000ths of a degree, measured clockwise from horizontal-X-axis.
+        // Linear gradient is the only type we model; path/radial fall through to null.
+        var lin = gradFill.GetFirstChild<A.LinearGradientFill>();
+        var angle = lin?.Angle?.Value is { } ang ? ang / 60000.0 : 0.0;
+
+        return new()
+        {
+            StartColorHex = first,
+            EndColorHex = last,
+            DirectionDegrees = angle
+        };
+    }
+
+    static string? ExtractGradientStopColor(A.GradientStop stop, ThemeColors? themeColors)
+    {
+        var rgb = stop.GetFirstChild<A.RgbColorModelHex>();
+        if (rgb?.Val?.HasValue == true)
+        {
+            return rgb.Val.Value;
+        }
+
+        var scheme = stop.GetFirstChild<A.SchemeColor>();
+        if (scheme?.Val?.HasValue == true && themeColors != null)
+        {
+            var schemeValue = ((IEnumValue) scheme.Val.Value).Value;
+            var transforms = ExtractColorTransforms(scheme);
             return themeColors.ResolveColor(schemeValue, transforms);
         }
 

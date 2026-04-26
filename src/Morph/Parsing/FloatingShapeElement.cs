@@ -30,6 +30,9 @@ sealed class FloatingShapeElement : DocumentElement
     /// <summary>Fill opacity, 0.0 (fully transparent) to 1.0 (fully opaque). Defaults to 1.0.</summary>
     public double FillAlpha { get; init; } = 1.0;
 
+    /// <summary>Linear gradient fill. When set, takes precedence over <see cref="FillColorHex"/>.</summary>
+    public GradientFill? Gradient { get; init; }
+
     /// <summary>Image data for image-filled shapes. Null if using solid color fill.</summary>
     public byte[]? ImageData { get; init; }
 
