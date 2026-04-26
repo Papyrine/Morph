@@ -481,6 +481,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     {
         var lines = new List<TextLine>();
         var props = paragraph.Properties;
+        var runs = SmallCapsExpander.Expand(paragraph.Runs);
 
         var adjustedMaxWidth = maxWidth - (float)props.LeftIndentPoints - (float)props.RightIndentPoints;
         float currentLineWidth = 0;
@@ -492,18 +493,18 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var firstLineIndent = (float)props.FirstLineIndentPoints;
         var effectiveWidth = adjustedMaxWidth - (isFirstLine ? firstLineIndent : 0);
 
-        for (var runIndex = 0; runIndex < paragraph.Runs.Count; runIndex++)
+        for (var runIndex = 0; runIndex < runs.Count; runIndex++)
         {
-            var run = paragraph.Runs[runIndex];
+            var run = runs[runIndex];
 
             // Tab snap: emit a tab-filler fragment that advances the cursor to the next tab stop.
             if (run.IsTab)
             {
-                var followingWidth = MeasureFollowingWidth(paragraph, runIndex + 1);
+                var followingWidth = MeasureFollowingWidth(runs, runIndex + 1);
                 var leftIndentPts = (float)props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
                 double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
-                    ? MeasureFollowingDecimalPrefix(paragraph, runIndex + 1)
+                    ? MeasureFollowingDecimalPrefix(runs, runIndex + 1)
                     : null;
                 var (destinationAbs, matchedStop) = TabStopResolver.Resolve(
                     cursorAbs, followingWidth,
@@ -1107,6 +1108,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     {
         var lines = new List<TextLine>();
         var props = paragraph.Properties;
+        var runs = SmallCapsExpander.Expand(paragraph.Runs);
 
         // Base width accounts for left and right indents
         var baseWidth = context.ContentWidth - (float)props.LeftIndentPoints - (float)props.RightIndentPoints;
@@ -1122,18 +1124,18 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var subsequentOffset = (float)props.HangingIndentPoints;
         var effectiveWidth = baseWidth - (isFirstLine ? firstLineOffset : subsequentOffset);
 
-        for (var runIndex = 0; runIndex < paragraph.Runs.Count; runIndex++)
+        for (var runIndex = 0; runIndex < runs.Count; runIndex++)
         {
-            var run = paragraph.Runs[runIndex];
+            var run = runs[runIndex];
 
             // Tab snap: emit a tab-filler fragment that advances the cursor to the next tab stop.
             if (run.IsTab)
             {
-                var followingWidth = MeasureFollowingWidth(paragraph, runIndex + 1);
+                var followingWidth = MeasureFollowingWidth(runs, runIndex + 1);
                 var leftIndentPts = (float) props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
                 double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
-                    ? MeasureFollowingDecimalPrefix(paragraph, runIndex + 1)
+                    ? MeasureFollowingDecimalPrefix(runs, runIndex + 1)
                     : null;
                 var (destinationAbs, matchedStop) = TabStopResolver.Resolve(
                     cursorAbs, followingWidth,
@@ -1424,12 +1426,12 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     /// </summary>
     // Width of the following text up to (but not including) the first '.' character. Returns null
     // when no '.' is present — resolver then treats the Decimal stop as Right alignment.
-    float? MeasureFollowingDecimalPrefix(ParagraphElement paragraph, int startRunIndex)
+    float? MeasureFollowingDecimalPrefix(IReadOnlyList<Run> runs, int startRunIndex)
     {
         float total = 0;
-        for (var i = startRunIndex; i < paragraph.Runs.Count; i++)
+        for (var i = startRunIndex; i < runs.Count; i++)
         {
-            var run = paragraph.Runs[i];
+            var run = runs[i];
             if (run.IsTab || run.InlineImageData is {Length: > 0})
             {
                 break;
@@ -1458,12 +1460,12 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         return null;
     }
 
-    float MeasureFollowingWidth(ParagraphElement paragraph, int startRunIndex)
+    float MeasureFollowingWidth(IReadOnlyList<Run> runs, int startRunIndex)
     {
         float total = 0;
-        for (var i = startRunIndex; i < paragraph.Runs.Count; i++)
+        for (var i = startRunIndex; i < runs.Count; i++)
         {
-            var run = paragraph.Runs[i];
+            var run = runs[i];
             if (run.IsTab)
             {
                 break;

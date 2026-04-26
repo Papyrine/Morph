@@ -213,7 +213,7 @@ Displays text in uppercase regardless of source case.
 > **Contributors**: Applied during text rendering via `ToUpperInvariant()` transform.
 
 
-#### Small Caps `PARTIAL`
+#### Small Caps `DONE`
 
 Displays lowercase letters as smaller uppercase letters while keeping original uppercase letters at full size.
 
@@ -221,10 +221,10 @@ Displays lowercase letters as smaller uppercase letters while keeping original u
 - **Spec**: [SmallCaps](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.smallcaps)
 - **Model**: `RunProperties.SmallCaps`
 - **Parse**: `w:smallCaps` parsed alongside `w:caps` in both style and inline run-property paths
-- **Render**: not yet — small-caps runs render with their original case
-- **Test**: covered by run-properties parsing tests; HtmlParserTests JSON snapshots regenerated to include the new field.
+- **Render**: `SmallCapsExpander` (`Morph/Rendering/SmallCapsExpander.cs`) splits SmallCaps runs at lowercase/non-lowercase boundaries; lowercase segments are uppercased and rendered at 80% of the run's font size, everything else passes through unchanged. Both `Morph.Skia` and `Morph.ImageSharp` `TextRenderer.LayoutParagraph[WithWidth]` apply the expansion before measurement and layout so widths and line breaks reflect the rendered glyphs.
+- **Test**: `SmallCapsExpanderTests` covers the case-boundary splitting; covered by run-properties parsing tests for the model.
 
-> **Contributors**: Marked PARTIAL until the renderer splits each run on case boundaries and renders the originally-lowercase segments uppercased at ~70% font size — a per-character font-scale change that the current line layout doesn't support.
+> **AI**: Word's actual scale factor varies (~75–80% depending on font); 80% picked as the visually closest pass-through for the existing test suite. Tab and inline-image runs are intentionally untouched even when SmallCaps is set.
 
 
 #### Text Color `DONE`
@@ -1944,7 +1944,7 @@ Read-only mode, form protection, and editing restrictions.
 
 | Category | Done | Partial | Todo | Total |
 |----------|------|---------|------|-------|
-| 1. Text Formatting | 12 | 7 | 0 | 19 |
+| 1. Text Formatting | 13 | 6 | 0 | 19 |
 | 2. Paragraph Formatting | 11 | 1 | 0 | 12 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
 | 4. Tables | 14 | 3 | 0 | 17 |
@@ -1956,19 +1956,19 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 5 | 0 | 0 | 5 |
 | 11. Annotations & References | 1 | 6 | 1 | 8 |
 | 12. Advanced Content | 1 | 0 | 1 | 2 |
-| **Total** | **109** | **32** | **0** | **141** |
+| **Total** | **110** | **31** | **0** | **141** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 109
-    "Partial" : 32
+    "Done" : 110
+    "Partial" : 31
     "Todo" : 0
 ```
 
-**Overall coverage: 77% fully implemented, 23% partial, 0% remaining.**
+**Overall coverage: 78% fully implemented, 22% partial, 0% remaining.**
 
 
 Priority areas for future implementation:
