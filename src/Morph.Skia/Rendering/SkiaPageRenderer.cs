@@ -98,6 +98,12 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             RenderElement(element, nextElement);
         }
 
+        // Append footnotes and endnotes as a document-end section. Word draws footnotes at the
+        // bottom of the page where the reference appears; that needs page-level reservation in
+        // the layout pass (not currently wired). Until then we list them at document end so the
+        // content isn't lost.
+        RenderNotesAppendix(document);
+
         // Finish the last page
         FinishCurrentPage();
 
@@ -115,6 +121,58 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         // This matches Word's behavior where body content area is determined solely
         // by page margins, not by header/footer content size.
         0;
+
+    void RenderNotesAppendix(ParsedDocument document)
+    {
+        // Footnote/endnote ids 0 and -1 are Word's "separator" / "continuation separator" stubs —
+        // skip them so the appendix only contains user-authored notes.
+        var footnotes = document.Footnotes
+            .Where(_ => _.Id != "0" && _.Id != "-1" && !string.IsNullOrWhiteSpace(_.Text))
+            .ToList();
+        var endnotes = document.Endnotes
+            .Where(_ => _.Id != "0" && _.Id != "-1" && !string.IsNullOrWhiteSpace(_.Text))
+            .ToList();
+
+        if (footnotes.Count == 0 && endnotes.Count == 0)
+        {
+            return;
+        }
+
+        AppendNotesSection("Footnotes", footnotes.Select(_ => (_.Id, _.Text)).ToList());
+        AppendNotesSection("Endnotes", endnotes.Select(_ => (_.Id, _.Text)).ToList());
+    }
+
+    void AppendNotesSection(string heading, List<(string Id, string Text)> entries)
+    {
+        if (entries.Count == 0)
+        {
+            return;
+        }
+
+        var headingParagraph = new ParagraphElement
+        {
+            Runs =
+            [
+                new() {Text = heading, Properties = new() {Bold = true, FontSizePoints = 12}}
+            ],
+            Properties = new() {SpacingBeforePoints = 12, SpacingAfterPoints = 6}
+        };
+        RenderParagraph(headingParagraph);
+
+        foreach (var (id, text) in entries)
+        {
+            var noteParagraph = new ParagraphElement
+            {
+                Runs =
+                [
+                    new() {Text = $"{id}. ", Properties = new() {Bold = true, FontSizePoints = 10}},
+                    new() {Text = text, Properties = new() {FontSizePoints = 10}}
+                ],
+                Properties = new() {SpacingAfterPoints = 4}
+            };
+            RenderParagraph(noteParagraph);
+        }
+    }
 
     void RenderHeader()
     {
@@ -392,11 +450,41 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             }
         }
 
-        // Handle WidowControl - prevent orphans (single line at bottom) and widows (single line at top)
-        // Note: WidowControl implementation is complex and can cause regressions with some documents.
-        // The property is parsed and stored but full rendering support requires more careful implementation
-        // to handle edge cases around page break tolerance and multi-column layouts.
-        // TODO: Implement WidowControl rendering without causing regressions
+        // Handle WidowControl - prevent orphans (1 line stranded at bottom) and widows (1 line at top).
+        // We can't currently break a paragraph in the middle, so the only enforceable case is the
+        // orphan: when ≥1 line fits at the bottom of the current page but the rest would create a
+        // single-line orphan there. Push the whole paragraph forward instead.
+        if (paragraph.Properties.WidowControl &&
+            !isCompletelyEmpty &&
+            !context.HasSpaceFor(height) &&
+            height <= context.ContentHeight &&
+            context.CurrentY > context.ContentTop)
+        {
+            var lineHeights = textRenderer.LayoutParagraphForMeasurement(paragraph, context.ContentWidth);
+            if (lineHeights.Count >= 3)
+            {
+                var spaceLeft = context.ContentBottom - context.CurrentY - (float) paragraph.Properties.SpacingBeforePoints;
+                var fit = 0;
+                var running = 0f;
+                foreach (var lh in lineHeights)
+                {
+                    if (running + lh > spaceLeft)
+                    {
+                        break;
+                    }
+                    running += lh;
+                    fit++;
+                }
+
+                // Orphan: 1 line fits at the bottom, ≥2 lines wrap to next page → push whole paragraph.
+                // Widow: lines split such that only 1 wraps to next page → also push whole paragraph.
+                if (fit == 1 || fit == lineHeights.Count - 1)
+                {
+                    FinishCurrentPage();
+                    StartNewPage();
+                }
+            }
+        }
 
         // For completely empty paragraphs (no runs), don't force page breaks
         // as these often appear at document end and cause spurious extra pages.
@@ -1973,6 +2061,32 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 };
                 currentCanvas.DrawBitmap(bitmap, destRect, paint);
             }
+        }
+        else if (shape.Gradient is { } gradient)
+        {
+            // Linear gradient: angle 0° = horizontal-X-axis pointing right, clockwise positive
+            // (matches OOXML a:lin/@ang). Convert to start/end points along the bounding box.
+            var rad = gradient.DirectionDegrees * Math.PI / 180.0;
+            var dx = (float) Math.Cos(rad);
+            var dy = (float) Math.Sin(rad);
+            var cx = pixelX + pixelWidth / 2;
+            var cy = pixelY + pixelHeight / 2;
+            var halfDiag = (float) Math.Sqrt(pixelWidth * pixelWidth + pixelHeight * pixelHeight) / 2;
+
+            var startPt = new SKPoint(cx - dx * halfDiag, cy - dy * halfDiag);
+            var endPt = new SKPoint(cx + dx * halfDiag, cy + dy * halfDiag);
+
+            using var shader = SKShader.CreateLinearGradient(
+                startPt, endPt,
+                [SKColor.Parse(gradient.StartColorHex), SKColor.Parse(gradient.EndColorHex)],
+                SKShaderTileMode.Clamp);
+            using var paint = new SKPaint
+            {
+                Shader = shader,
+                Style = SKPaintStyle.Fill,
+                IsAntialias = true
+            };
+            currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, paint);
         }
         else if (shape.FillColorHex != null)
         {

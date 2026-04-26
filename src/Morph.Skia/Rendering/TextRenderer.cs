@@ -505,7 +505,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
     {
         var lines = new List<TextLine>();
         var props = paragraph.Properties;
-        var runs = SmallCapsExpander.Expand(paragraph.Runs);
+        var runs = DropCapsExpander.Expand(SmallCapsExpander.Expand(paragraph.Runs), paragraph.Properties);
 
         var adjustedMaxWidth = maxWidth - (float)props.LeftIndentPoints - (float)props.RightIndentPoints;
         float currentLineWidth = 0;
@@ -1315,7 +1315,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
     {
         var lines = new List<TextLine>();
         var props = paragraph.Properties;
-        var runs = SmallCapsExpander.Expand(paragraph.Runs);
+        var runs = DropCapsExpander.Expand(SmallCapsExpander.Expand(paragraph.Runs), paragraph.Properties);
 
         // Base width accounts for left and right indents
         var baseWidth = context.ContentWidth - (float)props.LeftIndentPoints - (float)props.RightIndentPoints;

@@ -90,6 +90,9 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             RenderElement(element, nextElement);
         }
 
+        // Append footnotes/endnotes at document end (see Skia comment).
+        RenderNotesAppendix(document);
+
         FinishCurrentPage();
         RemoveBlankTrailingPage();
 
@@ -99,6 +102,56 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     // ReSharper disable once UnusedParameter.Local
     static float MeasureHeaderFooterHeight(HeaderFooterContent? content) =>
         0;
+
+    void RenderNotesAppendix(ParsedDocument document)
+    {
+        var footnotes = document.Footnotes
+            .Where(_ => _.Id != "0" && _.Id != "-1" && !string.IsNullOrWhiteSpace(_.Text))
+            .ToList();
+        var endnotes = document.Endnotes
+            .Where(_ => _.Id != "0" && _.Id != "-1" && !string.IsNullOrWhiteSpace(_.Text))
+            .ToList();
+
+        if (footnotes.Count == 0 && endnotes.Count == 0)
+        {
+            return;
+        }
+
+        AppendNotesSection("Footnotes", footnotes.Select(_ => (_.Id, _.Text)).ToList());
+        AppendNotesSection("Endnotes", endnotes.Select(_ => (_.Id, _.Text)).ToList());
+    }
+
+    void AppendNotesSection(string heading, List<(string Id, string Text)> entries)
+    {
+        if (entries.Count == 0)
+        {
+            return;
+        }
+
+        var headingParagraph = new ParagraphElement
+        {
+            Runs =
+            [
+                new() {Text = heading, Properties = new() {Bold = true, FontSizePoints = 12}}
+            ],
+            Properties = new() {SpacingBeforePoints = 12, SpacingAfterPoints = 6}
+        };
+        RenderParagraph(headingParagraph);
+
+        foreach (var (id, text) in entries)
+        {
+            var noteParagraph = new ParagraphElement
+            {
+                Runs =
+                [
+                    new() {Text = $"{id}. ", Properties = new() {Bold = true, FontSizePoints = 10}},
+                    new() {Text = text, Properties = new() {FontSizePoints = 10}}
+                ],
+                Properties = new() {SpacingAfterPoints = 4}
+            };
+            RenderParagraph(noteParagraph);
+        }
+    }
 
     void RenderHeader()
     {
@@ -345,6 +398,37 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             {
                 FinishCurrentPage();
                 StartNewPage();
+            }
+        }
+
+        // WidowControl — push the whole paragraph forward when splitting it would leave a single
+        // orphan/widow line. We can't break a paragraph mid-flow today, so this is the only enforceable case.
+        if (paragraph.Properties.WidowControl &&
+            !isCompletelyEmpty &&
+            !context.HasSpaceFor(height) &&
+            height <= context.ContentHeight &&
+            context.CurrentY > context.ContentTop)
+        {
+            var lineHeights = textRenderer.LayoutParagraphForMeasurement(paragraph, context.ContentWidth);
+            if (lineHeights.Count >= 3)
+            {
+                var spaceLeft = context.ContentBottom - context.CurrentY - (float) paragraph.Properties.SpacingBeforePoints;
+                var fit = 0;
+                var running = 0f;
+                foreach (var lh in lineHeights)
+                {
+                    if (running + lh > spaceLeft)
+                    {
+                        break;
+                    }
+                    running += lh;
+                    fit++;
+                }
+                if (fit == 1 || fit == lineHeights.Count - 1)
+                {
+                    FinishCurrentPage();
+                    StartNewPage();
+                }
             }
         }
 
@@ -1335,6 +1419,25 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             {
                 // Ignore image decode errors
             }
+        }
+        else if (shape.Gradient is { } gradient)
+        {
+            var rad = gradient.DirectionDegrees * Math.PI / 180.0;
+            var dx = (float) Math.Cos(rad);
+            var dy = (float) Math.Sin(rad);
+            var cx = pixelX + pixelWidth / 2;
+            var cy = pixelY + pixelHeight / 2;
+            var halfDiag = (float) Math.Sqrt(pixelWidth * pixelWidth + pixelHeight * pixelHeight) / 2;
+
+            var startPt = new PointF(cx - dx * halfDiag, cy - dy * halfDiag);
+            var endPt = new PointF(cx + dx * halfDiag, cy + dy * halfDiag);
+
+            var brush = new LinearGradientBrush(
+                startPt, endPt,
+                GradientRepetitionMode.None,
+                new ColorStop(0f, ParseColor(gradient.StartColorHex)),
+                new ColorStop(1f, ParseColor(gradient.EndColorHex)));
+            currentPage.Mutate(_ => _.Fill(brush, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
         }
         else if (shape.FillColorHex != null)
         {

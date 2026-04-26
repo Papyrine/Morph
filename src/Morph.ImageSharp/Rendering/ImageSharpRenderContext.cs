@@ -278,11 +278,12 @@ sealed class ImageSharpRenderContext(PageSettings pageSettings, int dpi, Compati
     /// <summary>
     /// Measures text width in points. Uses DPI=72 so pixels equal points.
     /// </summary>
-    public static float MeasureText(Font font, string text)
+    public static float MeasureText(Font font, string text, KerningMode kerning = KerningMode.Standard)
     {
         var options = new TextOptions(font)
         {
-            Dpi = 72
+            Dpi = 72,
+            KerningMode = kerning
         };
 
         var advance = TextMeasurer.MeasureAdvance(text, options);

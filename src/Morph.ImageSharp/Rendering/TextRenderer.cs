@@ -485,7 +485,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     {
         var lines = new List<TextLine>();
         var props = paragraph.Properties;
-        var runs = SmallCapsExpander.Expand(paragraph.Runs);
+        var runs = DropCapsExpander.Expand(SmallCapsExpander.Expand(paragraph.Runs), paragraph.Properties);
 
         var adjustedMaxWidth = maxWidth - (float)props.LeftIndentPoints - (float)props.RightIndentPoints;
         float currentLineWidth = 0;
@@ -635,7 +635,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 }
 
                 // Measure word width in points, including character spacing
-                var wordWidth = ImageSharpRenderContext.MeasureText(font, word)
+                var wordWidth = ImageSharpRenderContext.MeasureText(font, word, ResolveKerningMode(run.Properties))
                                 + (float) (run.Properties.CharacterSpacingPoints * word.Length);
 
                 // Check if we need to wrap
@@ -971,7 +971,8 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var textOptions = new RichTextOptions(font)
         {
             Dpi = context.Dpi,
-            Origin = new PointF(pixelX, pixelY - baseline * context.Scale)
+            Origin = new PointF(pixelX, pixelY - baseline * context.Scale),
+            KerningMode = ResolveKerningMode(fragment.Properties)
         };
 
         DrawTextEffectsBehind(currentPage, fragment, textOptions, font, pixelX, pixelY, baseline);
@@ -1002,6 +1003,30 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             var strokeWidth = 1 * context.Scale;
             currentPage.Mutate(_ => _.DrawLine(new SolidPen(color, strokeWidth), new PointF(pixelX, strikeY), new PointF(pixelX + width, strikeY)));
         }
+    }
+
+    /// <summary>
+    /// Translates Word's <c>w:kern</c> threshold and <c>w14:ligatures</c> flag into a
+    /// SixLabors.Fonts <see cref="KerningMode"/>. Pair-kerning and standard ligatures both
+    /// flow through the same shaping pass, so disabling one disables the other.
+    /// </summary>
+    static KerningMode ResolveKerningMode(RunProperties props)
+    {
+        // Word only kerns when fontSize >= w:kern threshold. Threshold of 0 = no explicit
+        // setting → default kerning behaviour applies.
+        if (props.KerningMinFontSizePoints > 0 &&
+            props.FontSizePoints < props.KerningMinFontSizePoints)
+        {
+            return KerningMode.None;
+        }
+
+        // w14:ligatures="none" turns off all ligature substitution.
+        if (props.Ligatures == LigatureMode.None)
+        {
+            return KerningMode.None;
+        }
+
+        return KerningMode.Standard;
     }
 
     void DrawBarTabs(Image<Rgba32> currentPage, ParagraphProperties props, float lineTopY, float lineHeight)
@@ -1222,7 +1247,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     {
         var lines = new List<TextLine>();
         var props = paragraph.Properties;
-        var runs = SmallCapsExpander.Expand(paragraph.Runs);
+        var runs = DropCapsExpander.Expand(SmallCapsExpander.Expand(paragraph.Runs), paragraph.Properties);
 
         // Base width accounts for left and right indents
         var baseWidth = context.ContentWidth - (float)props.LeftIndentPoints - (float)props.RightIndentPoints;
@@ -1383,7 +1408,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
 
                 // Measure the display word (without soft hyphen)
                 // Apply FontWidthScale and character spacing to better match Word's text rendering
-                var wordWidth = ImageSharpRenderContext.MeasureText(font, displayWord) * context.FontWidthScale
+                var wordWidth = ImageSharpRenderContext.MeasureText(font, displayWord, ResolveKerningMode(run.Properties)) * context.FontWidthScale
                                 + (float) (run.Properties.CharacterSpacingPoints * displayWord.Length);
 
                 // Check if we need to wrap to a new line
