@@ -14,7 +14,8 @@
           "SmallCaps": false,
           "ColorHex": "aabbcc",
           "Ligatures": "Standard",
-          "IsRightToLeft": false
+          "IsRightToLeft": false,
+          "HasReflection": false
         },
         "IsTab": false
       }

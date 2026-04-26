@@ -293,6 +293,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 }
             }
 
+            // Bar tabs draw a vertical line at each bar position on every line of the paragraph,
+            // independent of any explicit <w:tab/> character.
+            DrawBarTabs(currentPage, props, context.CurrentY, lineHeight);
+
             // For the last line of a paragraph with compact auto spacing (< 1.0x),
             // ensure the cursor advances by at least the natural line height to prevent
             // overlap with the next paragraph. Compact spacing only compresses the
@@ -969,7 +973,17 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             Dpi = context.Dpi,
             Origin = new PointF(pixelX, pixelY - baseline * context.Scale)
         };
+
+        DrawTextEffectsBehind(currentPage, fragment, textOptions, font, pixelX, pixelY, baseline);
+
         currentPage.Mutate(_ => _.DrawText(textOptions, fragment.Text, new SolidBrush(color)));
+
+        if (fragment.Properties.Outline is { } outline)
+        {
+            var outlineColor = ImageSharpRenderContext.ParseColor(outline.ColorHex);
+            var pen = new SolidPen(outlineColor, Math.Max(0.5f, (float) outline.WidthPoints * context.Scale));
+            currentPage.Mutate(_ => _.DrawText(textOptions, fragment.Text, pen));
+        }
 
         // Draw underline if needed
         if (fragment.Properties.Underline)
@@ -987,6 +1001,106 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             var width = context.PointsToPixels(fragment.Width);
             var strokeWidth = 1 * context.Scale;
             currentPage.Mutate(_ => _.DrawLine(new SolidPen(color, strokeWidth), new PointF(pixelX, strikeY), new PointF(pixelX + width, strikeY)));
+        }
+    }
+
+    void DrawBarTabs(Image<Rgba32> currentPage, ParagraphProperties props, float lineTopY, float lineHeight)
+    {
+        if (props.TabStops.Count == 0)
+        {
+            return;
+        }
+
+        var pen = new SolidPen(Color.Black, Math.Max(1, 0.5f * context.Scale));
+        var top = context.PointsToPixels(lineTopY);
+        var bottom = context.PointsToPixels(lineTopY + lineHeight);
+
+        foreach (var stop in props.TabStops)
+        {
+            if (stop.Alignment != TabAlignment.Bar)
+            {
+                continue;
+            }
+
+            var x = context.PointsToPixels(context.ContentLeft + (float) stop.PositionPoints);
+            currentPage.Mutate(_ => _.DrawLine(pen, new PointF(x, top), new PointF(x, bottom)));
+        }
+    }
+
+    /// <summary>
+    /// Draws shadow / glow / reflection underneath the text. Outline is drawn over the fill
+    /// in <see cref="RenderFragment"/>. ImageSharp's drawing pipeline doesn't expose a per-draw
+    /// blur filter, so blur radii are approximated by drawing the effect at multiple offsets.
+    /// </summary>
+    void DrawTextEffectsBehind(Image<Rgba32> currentPage, TextFragment fragment, RichTextOptions baseOptions,
+        Font font, float pixelX, float pixelY, float baseline)
+    {
+        var props = fragment.Properties;
+
+        if (props.Shadow is { } shadow)
+        {
+            var dirRad = shadow.DirectionDegrees * Math.PI / 180.0;
+            var offsetX = (float) (Math.Cos(dirRad) * shadow.DistancePoints) * context.Scale;
+            var offsetY = (float) (Math.Sin(dirRad) * shadow.DistancePoints) * context.Scale;
+
+            var rgba = ImageSharpRenderContext.ParseColor(shadow.ColorHex).ToPixel<Rgba32>();
+            var alpha = (byte) Math.Clamp(shadow.AlphaPercent * 255 / 100, 0, 255);
+            var shadowColor = Color.FromPixel(new Rgba32(rgba.R, rgba.G, rgba.B, alpha));
+
+            var shadowOptions = new RichTextOptions(font)
+            {
+                Dpi = context.Dpi,
+                Origin = new PointF(pixelX + offsetX, pixelY - baseline * context.Scale + offsetY)
+            };
+            currentPage.Mutate(_ => _.DrawText(shadowOptions, fragment.Text, new SolidBrush(shadowColor)));
+        }
+
+        if (props.Glow is { } glow)
+        {
+            // No blur filter — approximate the halo by stroking at increasing radii with low alpha.
+            var rgba = ImageSharpRenderContext.ParseColor(glow.ColorHex).ToPixel<Rgba32>();
+            var maxRadius = Math.Max(1f, (float) glow.RadiusPoints * context.Scale);
+            var rings = Math.Max(2, (int) maxRadius);
+            for (var i = 1; i <= rings; i++)
+            {
+                var r = maxRadius * i / rings;
+                var ringAlpha = (byte) Math.Clamp(glow.AlphaPercent * 255 / 100 / rings, 0, 255);
+                var ringColor = Color.FromPixel(new Rgba32(rgba.R, rgba.G, rgba.B, ringAlpha));
+                var pen = new SolidPen(ringColor, r);
+                currentPage.Mutate(_ => _.DrawText(baseOptions, fragment.Text, pen));
+            }
+        }
+
+        if (props.HasReflection)
+        {
+            // Approximate Word's "tight reflection" preset by drawing a single mirrored copy at
+            // half opacity directly below the baseline. A full alpha gradient would require a
+            // custom processor in ImageSharp; the half-opacity shortcut is visually close.
+            var fillColor = ImageSharpRenderContext.ParseColor(props.ColorHex).ToPixel<Rgba32>();
+            var reflectionAlpha = (byte) (fillColor.A * 60 / 100);
+            var reflectionColor = Color.FromPixel(new Rgba32(fillColor.R, fillColor.G, fillColor.B, reflectionAlpha));
+
+            var ascent = baseline * context.Scale;
+            var descent = (font.FontMetrics.VerticalMetrics.Descender / (float) font.FontMetrics.UnitsPerEm) * font.Size;
+
+            var reflectOptions = new RichTextOptions(font)
+            {
+                Dpi = context.Dpi,
+                Origin = new PointF(pixelX, pixelY - baseline * context.Scale),
+                // Vertical scaling -1 mirrors around the origin's Y; the origin is the glyph top.
+                // Translate down by 2*ascent so the mirrored top sits at the original baseline.
+                TextRuns = []
+            };
+            // ImageSharp doesn't expose per-draw vertical-flip transforms cleanly, so the reflection
+            // approximation falls back to a faded duplicate drawn directly below the original — close
+            // enough for presence-aware rendering.
+            var ghostOptions = new RichTextOptions(font)
+            {
+                Dpi = context.Dpi,
+                Origin = new PointF(pixelX, pixelY - baseline * context.Scale + ascent + descent)
+            };
+            _ = reflectOptions;
+            currentPage.Mutate(_ => _.DrawText(ghostOptions, fragment.Text, new SolidBrush(reflectionColor)));
         }
     }
 

@@ -13,7 +13,8 @@
           "AllCaps": false,
           "SmallCaps": false,
           "Ligatures": "Standard",
-          "IsRightToLeft": false
+          "IsRightToLeft": false,
+          "HasReflection": false
         },
         "IsTab": false
       }
@@ -51,7 +52,8 @@
           "AllCaps": false,
           "SmallCaps": false,
           "Ligatures": "Standard",
-          "IsRightToLeft": false
+          "IsRightToLeft": false,
+          "HasReflection": false
         },
         "IsTab": false
       }
@@ -90,7 +92,8 @@
           "AllCaps": false,
           "SmallCaps": false,
           "Ligatures": "Standard",
-          "IsRightToLeft": false
+          "IsRightToLeft": false,
+          "HasReflection": false
         },
         "IsTab": false
       }
