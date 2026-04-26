@@ -551,12 +551,12 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         var destRect = new SKRect(x, y, x + width, y + pixelHeight);
 
-        DrawBlockImage(image.ImageData, image.ContentType, destRect, (float) image.RotationDegrees, image.Crop);
+        DrawBlockImage(image.ImageData, image.ContentType, destRect, (float) image.RotationDegrees, image.Crop, image.ColorEffect);
 
         context.CurrentY += height;
     }
 
-    void DrawBlockImage(byte[] imageData, string? contentType, SKRect destRect, float rotation, ImageCrop? crop)
+    void DrawBlockImage(byte[] imageData, string? contentType, SKRect destRect, float rotation, ImageCrop? crop, BlipColorEffect colorEffect = BlipColorEffect.None)
     {
         if (currentCanvas == null)
         {
@@ -578,17 +578,18 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             using var skImage = DecodeBitmap(imageData);
             if (skImage != null)
             {
+                using var paint = BuildBlipColorEffectPaint(colorEffect);
                 if (crop is {IsCropped: true} c)
                 {
                     var srcLeft = (float) (c.Left * skImage.Width);
                     var srcTop = (float) (c.Top * skImage.Height);
                     var srcRight = (float) ((1 - c.Right) * skImage.Width);
                     var srcBottom = (float) ((1 - c.Bottom) * skImage.Height);
-                    currentCanvas.DrawBitmap(skImage, new SKRect(srcLeft, srcTop, srcRight, srcBottom), destRect);
+                    currentCanvas.DrawBitmap(skImage, new SKRect(srcLeft, srcTop, srcRight, srcBottom), destRect, paint);
                 }
                 else
                 {
-                    currentCanvas.DrawBitmap(skImage, destRect);
+                    currentCanvas.DrawBitmap(skImage, destRect, paint);
                 }
             }
         }
@@ -597,6 +598,41 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         {
             currentCanvas.Restore();
         }
+    }
+
+    static SKPaint? BuildBlipColorEffectPaint(BlipColorEffect effect)
+    {
+        // Standard ITU-R BT.601 luminance weights for grayscale conversion.
+        const float lumR = 0.299f;
+        const float lumG = 0.587f;
+        const float lumB = 0.114f;
+
+        return effect switch
+        {
+            BlipColorEffect.Grayscale or BlipColorEffect.Duotone => new SKPaint
+            {
+                ColorFilter = SKColorFilter.CreateColorMatrix(
+                [
+                    lumR, lumG, lumB, 0, 0,
+                    lumR, lumG, lumB, 0, 0,
+                    lumR, lumG, lumB, 0, 0,
+                    0, 0, 0, 1, 0
+                ])
+            },
+            BlipColorEffect.Washout => new SKPaint
+            {
+                // Match Word's "Washout" picture preset: brightness +70%, contrast −50% — i.e.
+                // gain 0.50 + bias 128 on each channel, producing a faded version of the image.
+                ColorFilter = SKColorFilter.CreateColorMatrix(
+                [
+                    0.5f, 0, 0, 0, 128,
+                    0, 0.5f, 0, 0, 128,
+                    0, 0, 0.5f, 0, 128,
+                    0, 0, 0, 1, 0
+                ])
+            },
+            _ => null
+        };
     }
 
     void RenderSvgImage(byte[] svgData, SKRect destRect)

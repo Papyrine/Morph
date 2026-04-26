@@ -489,12 +489,12 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         var width = context.PointsToPixels((float) image.WidthPoints);
         var pixelHeight = context.PointsToPixels(height);
 
-        DrawBlockImage(image.ImageData, x, y, width, pixelHeight, (float) image.RotationDegrees, image.Crop);
+        DrawBlockImage(image.ImageData, x, y, width, pixelHeight, (float) image.RotationDegrees, image.Crop, image.ColorEffect);
 
         context.CurrentY += height;
     }
 
-    void DrawBlockImage(byte[] imageData, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, ImageCrop? crop)
+    void DrawBlockImage(byte[] imageData, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, ImageCrop? crop, BlipColorEffect colorEffect = BlipColorEffect.None)
     {
         if (currentPage == null)
         {
@@ -516,6 +516,12 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
             img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
 
+            // Apply Word's "Recolor" gallery preset before drawing.
+            if (colorEffect != BlipColorEffect.None)
+            {
+                ApplyBlipColorEffect(img, colorEffect);
+            }
+
             if (rotation != 0)
             {
                 img.Mutate(_ => _.Rotate(rotation));
@@ -531,6 +537,23 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         catch
         {
             // Ignore image decode errors
+        }
+    }
+
+    static void ApplyBlipColorEffect(Image<Rgba32> img, BlipColorEffect effect)
+    {
+        switch (effect)
+        {
+            case BlipColorEffect.Grayscale:
+            case BlipColorEffect.Duotone:
+                img.Mutate(_ => _.Grayscale());
+                break;
+            case BlipColorEffect.Washout:
+                // Word's washout: brightness +70%, contrast -50%. ImageSharp's
+                // Brightness/Contrast operate in 0–N space — these constants line up
+                // visually with Skia's color-matrix branch.
+                img.Mutate(_ => _.Brightness(1.7f).Contrast(0.5f));
+                break;
         }
     }
 

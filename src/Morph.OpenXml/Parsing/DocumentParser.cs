@@ -4079,6 +4079,36 @@ sealed class DocumentParser(string defaultFont)
         return LigatureMode.Standard;
     }
 
+    static BlipColorEffect ReadBlipColorEffect(OpenXmlElement? blip)
+    {
+        if (blip == null)
+        {
+            return BlipColorEffect.None;
+        }
+
+        // a:blip can carry one or more colour-transform children. Pick the most visible one.
+        foreach (var child in blip.Elements())
+        {
+            switch (child.LocalName)
+            {
+                case "grayscl":
+                    return BlipColorEffect.Grayscale;
+                case "duotone":
+                    return BlipColorEffect.Duotone;
+                case "lum":
+                    // a:lum bright="N" — N>0 means washout (lighten), N<0 means darken.
+                    var brightAttr = child.GetAttributes().FirstOrDefault(_ => _.LocalName == "bright").Value;
+                    if (int.TryParse(brightAttr, out var bright) && bright > 0)
+                    {
+                        return BlipColorEffect.Washout;
+                    }
+                    break;
+            }
+        }
+
+        return BlipColorEffect.None;
+    }
+
     static ImageCrop? ReadCrop(OpenXmlElement blipFill)
     {
         // a:srcRect attributes l/t/r/b are in 1000ths of a percent (100000 = 100%).
@@ -4337,6 +4367,8 @@ sealed class DocumentParser(string defaultFont)
                 continue;
             }
 
+            var colorEffect = ReadBlipColorEffect(blip);
+
             // Create the image element
             if (anchor == null)
             {
@@ -4347,7 +4379,8 @@ sealed class DocumentParser(string defaultFont)
                     HeightPoints = heightPoints,
                     ContentType = contentType,
                     RotationDegrees = rotationDegrees,
-                    Crop = crop
+                    Crop = crop,
+                    ColorEffect = colorEffect
                 });
             }
             else
