@@ -194,7 +194,8 @@ sealed class DocumentParser(string defaultFont)
         var footnotes = ExtractFootnotes(mainPart);
         var endnotes = ExtractEndnotes(mainPart);
         var embeddedObjects = ExtractEmbeddedObjects(body);
-        var features = DetectAdvancedFeatures(body, mainPart);
+        var watermarks = ExtractWatermarks(mainPart);
+        var features = DetectAdvancedFeatures(body, mainPart, watermarks.Count > 0);
 
         return new()
         {
@@ -218,11 +219,12 @@ sealed class DocumentParser(string defaultFont)
             Footnotes = footnotes,
             Endnotes = endnotes,
             EmbeddedObjects = embeddedObjects,
+            Watermarks = watermarks,
             Features = features
         };
     }
 
-    static DocumentFeatures DetectAdvancedFeatures(Body body, MainDocumentPart mainPart)
+    static DocumentFeatures DetectAdvancedFeatures(Body body, MainDocumentPart mainPart, bool hasWatermark)
     {
         var hasCharts = false;
         var hasSmartArt = false;
@@ -275,25 +277,7 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
-        // Watermarks: header parts with shapes that look watermark-shaped.
-        var hasWatermark = false;
-        foreach (var headerPart in mainPart.HeaderParts)
-        {
-            if (headerPart.Header == null) continue;
-            // Word emits watermarks as v:shape with class containing "WordPictureWatermark" / "WordTextWatermark".
-            foreach (var attr in headerPart.Header.Descendants().SelectMany(_ => _.GetAttributes()))
-            {
-                if (attr.Value is { } v &&
-                    (v.Contains("WordPictureWatermark", StringComparison.OrdinalIgnoreCase) ||
-                     v.Contains("WordTextWatermark", StringComparison.OrdinalIgnoreCase)))
-                {
-                    hasWatermark = true;
-                    break;
-                }
-            }
-
-            if (hasWatermark) break;
-        }
+        // hasWatermark is determined externally and passed in (extracted alongside the watermark list).
 
         return new()
         {
@@ -346,6 +330,175 @@ sealed class DocumentParser(string defaultFont)
         }
 
         return result;
+    }
+
+    static IReadOnlyList<Watermark> ExtractWatermarks(MainDocumentPart mainPart)
+    {
+        var result = new List<Watermark>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var headerPart in mainPart.HeaderParts)
+        {
+            if (headerPart.Header == null)
+            {
+                continue;
+            }
+
+            foreach (var shape in headerPart.Header.Descendants<DocumentFormat.OpenXml.Vml.Shape>())
+            {
+                // Word emits the watermark shape with id="WordPictureWatermark..." or
+                // id="WordTextWatermark...". Some templates also tag it via o:cls or class — match
+                // any attribute carrying the marker so all variants are detected.
+                var isWatermark = shape.GetAttributes().Any(_ =>
+                    _.Value is { } v &&
+                    (v.Contains("WordPictureWatermark", StringComparison.OrdinalIgnoreCase) ||
+                     v.Contains("WordTextWatermark", StringComparison.OrdinalIgnoreCase)));
+                if (!isWatermark)
+                {
+                    continue;
+                }
+
+                // De-dup across header parts: identical shapes can repeat in even/first-page headers.
+                var dedupKey = shape.OuterXml;
+                if (!seen.Add(dedupKey))
+                {
+                    continue;
+                }
+
+                var imageData = shape.GetFirstChild<DocumentFormat.OpenXml.Vml.ImageData>();
+                if (imageData != null)
+                {
+                    var pictureWatermark = ParsePictureWatermark(imageData, headerPart);
+                    if (pictureWatermark != null)
+                    {
+                        result.Add(pictureWatermark);
+                    }
+
+                    continue;
+                }
+
+                var textPath = shape.GetFirstChild<DocumentFormat.OpenXml.Vml.TextPath>();
+                if (textPath?.String?.Value is { Length: > 0 } textValue)
+                {
+                    result.Add(ParseTextWatermark(textPath, textValue, shape));
+                }
+            }
+        }
+
+        return result;
+    }
+
+    static Watermark? ParsePictureWatermark(DocumentFormat.OpenXml.Vml.ImageData imageData, HeaderPart headerPart)
+    {
+        var relId = imageData.RelationshipId?.Value
+                    ?? imageData.GetAttributes().FirstOrDefault(_ => _.LocalName == "id" && _.NamespaceUri.EndsWith("/relationships")).Value;
+        if (relId == null)
+        {
+            return null;
+        }
+
+        if (headerPart.GetPartById(relId) is not ImagePart imagePart)
+        {
+            return null;
+        }
+
+        using var stream = imagePart.GetStream();
+        using var memory = new MemoryStream();
+        stream.CopyTo(memory);
+
+        // Word stores gain/blacklevel as fixed-point /65536 (the trailing "f" is a hint for that).
+        // 65536 → 1.0; default Gain = 1.0 (no contrast change), default BlackLevel = 0.
+        var gain = ParseFixedPoint(imageData.Gain?.Value, defaultValue: 1.0);
+        var blackLevel = ParseFixedPoint(imageData.BlackLevel?.Value, defaultValue: 0.0);
+
+        return new()
+        {
+            ImageData = memory.ToArray(),
+            ContentType = imagePart.ContentType,
+            Gain = gain,
+            BlackLevel = blackLevel
+        };
+    }
+
+    static Watermark ParseTextWatermark(DocumentFormat.OpenXml.Vml.TextPath textPath, string text, DocumentFormat.OpenXml.Vml.Shape shape)
+    {
+        // textpath @style is a CSS-like string: "font:bold 36pt Calibri"
+        var fontFamily = "Calibri";
+        var fontSize = 36.0;
+        var bold = false;
+
+        if (textPath.Style?.Value is { } styleString)
+        {
+            foreach (var prop in styleString.Split(';'))
+            {
+                var colonIndex = prop.IndexOf(':');
+                if (colonIndex < 0)
+                {
+                    continue;
+                }
+
+                var name = prop[..colonIndex].Trim();
+                var value = prop[(colonIndex + 1)..].Trim();
+                if (!name.Equals("font", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                // CSS shorthand: "[style] [weight] size family" — last token is the family,
+                // any "bold" token sets weight, any "Npt" token sets size.
+                var tokens = value.Split([' '], StringSplitOptions.RemoveEmptyEntries);
+                if (tokens.Length > 0)
+                {
+                    fontFamily = tokens[^1];
+                }
+
+                foreach (var token in tokens)
+                {
+                    if (token.Equals("bold", StringComparison.OrdinalIgnoreCase))
+                    {
+                        bold = true;
+                    }
+                    else if (token.EndsWith("pt", StringComparison.OrdinalIgnoreCase) &&
+                             double.TryParse(token[..^2], NumberStyles.Float, CultureInfo.InvariantCulture, out var pt))
+                    {
+                        fontSize = pt;
+                    }
+                }
+            }
+        }
+
+        // shape.FillColor is a VML colour string (named or "#hex"); strip the "#".
+        var color = "BFBFBF";
+        if (shape.FillColor?.Value is { Length: > 0 } fillColor)
+        {
+            color = fillColor.TrimStart('#').ToUpperInvariant();
+        }
+
+        return new()
+        {
+            Text = text,
+            FontFamily = fontFamily,
+            FontSizePoints = fontSize,
+            Bold = bold,
+            ColorHex = color
+        };
+    }
+
+    static double ParseFixedPoint(string? raw, double defaultValue)
+    {
+        if (string.IsNullOrEmpty(raw))
+        {
+            return defaultValue;
+        }
+
+        // Strip the trailing "f" Word sometimes emits (denotes fixed-point /65536).
+        var trimmed = raw.TrimEnd('f', 'F');
+        if (double.TryParse(trimmed, NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
+        {
+            return value / 65536.0;
+        }
+
+        return defaultValue;
     }
 
     string? ResolveDocDefaultFont(MainDocumentPart mainPart)
