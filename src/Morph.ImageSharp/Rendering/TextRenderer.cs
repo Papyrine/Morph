@@ -513,7 +513,8 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 var (destinationAbs, matchedStop) = TabStopResolver.Resolve(
                     cursorAbs, followingWidth,
                     props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
-                    decimalPrefix);
+                    decimalPrefix,
+                    leftIndentPts + effectiveWidth);
                 var gap = (float)(destinationAbs - cursorAbs);
                 if (gap <= 0 || currentLineWidth + gap > effectiveWidth)
                 {
@@ -1360,7 +1361,8 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 var (destinationAbs, matchedStop) = TabStopResolver.Resolve(
                     cursorAbs, followingWidth,
                     props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
-                    decimalPrefix);
+                    decimalPrefix,
+                    leftIndentPts + effectiveWidth);
                 var gap = (float) (destinationAbs - cursorAbs);
                 if (gap <= 0 || currentLineWidth + gap > effectiveWidth)
                 {

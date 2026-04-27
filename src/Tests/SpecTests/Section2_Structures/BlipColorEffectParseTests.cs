@@ -80,6 +80,6 @@ public class BlipColorEffectParseTests
 
     static BlipColorEffect InvokeReader(OpenXmlElement? blip) =>
         (BlipColorEffect) typeof(DocumentParser)
-            .GetMethod("ReadBlipColorEffect", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!
+            .GetMethod("ReadBlipColorEffect", BindingFlags.Static | BindingFlags.NonPublic)!
             .Invoke(null, [blip])!;
 }

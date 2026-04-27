@@ -20,6 +20,14 @@ static class TabStopResolver
     /// <see cref="TabAlignment.Decimal"/> stops. When null or no decimal point is present,
     /// decimal stops fall back to right-alignment.
     /// </param>
+    /// <param name="availableEndX">
+    /// Optional right-edge X (absolute, in points) past which the following text must not extend
+    /// — typically the right edge of the paragraph's content area or table cell. When supplied,
+    /// Right/Center/Decimal stops whose natural position lies past this edge are clamped so the
+    /// following text terminates exactly at it. This matches Word's behavior for TOC entries
+    /// whose style-defined right-tab (e.g. 10790 twips) lands inside a narrower table cell:
+    /// the page number still right-aligns at the cell edge, with the leader filling the gap.
+    /// </param>
     /// <returns>
     /// <c>destinationX</c> in points and the matched <see cref="TabStop"/> (null for default-tab snap).
     /// If no valid destination is found past the cursor, returns <c>(cursorX, null)</c> — tab collapses.
@@ -30,27 +38,38 @@ static class TabStopResolver
         IReadOnlyList<TabStop> tabStops,
         double defaultTabStopPoints,
         double leftIndentPoints,
-        double? decimalPrefixWidth = null)
+        double? decimalPrefixWidth = null,
+        double? availableEndX = null)
     {
         // Try each explicit stop whose position is strictly beyond the cursor.
         // For Right/Center/Decimal, the effective destination may land behind the cursor if the
         // measured following text is too wide — in that case skip to the next stop.
         foreach (var stop in tabStops)
         {
-            if (stop.PositionPoints <= cursorX)
+            var stopPosition = stop.PositionPoints;
+            // Clamp out-of-bounds Right/Center/Decimal stops to the available right edge so
+            // following text right-aligns there with the leader filling the gap (TOC-in-cell case).
+            if (availableEndX is { } endX &&
+                stopPosition > endX &&
+                stop.Alignment is TabAlignment.Right or TabAlignment.Center or TabAlignment.Decimal)
+            {
+                stopPosition = endX;
+            }
+
+            if (stopPosition <= cursorX)
             {
                 continue;
             }
 
             var destination = stop.Alignment switch
             {
-                TabAlignment.Center => stop.PositionPoints - followingWidth / 2.0,
-                TabAlignment.Right => stop.PositionPoints - followingWidth,
+                TabAlignment.Center => stopPosition - followingWidth / 2.0,
+                TabAlignment.Right => stopPosition - followingWidth,
                 // Decimal: align the decimal point of the following text at the tab position.
                 // If the caller didn't measure a decimal-prefix width (or the following text has no
                 // decimal point), behave like Right — that's what Word does as a fallback.
-                TabAlignment.Decimal => stop.PositionPoints - (decimalPrefixWidth ?? followingWidth),
-                _ => stop.PositionPoints
+                TabAlignment.Decimal => stopPosition - (decimalPrefixWidth ?? followingWidth),
+                _ => stopPosition
             };
 
             if (destination > cursorX)

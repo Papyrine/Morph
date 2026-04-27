@@ -155,6 +155,78 @@ public class TabStopResolverTests
         await Assert.That(dest).IsEqualTo(94.0);
     }
 
+    // === Clamping past availableEndX ===
+
+    [Test]
+    public async Task Right_ClampsToAvailableEndX_WhenStopIsPastIt()
+    {
+        // TOC1 case: style declares a right tab at 540pt for full-page width, but the paragraph
+        // lives in a 250pt-wide cell. The page number must still right-align at the cell edge.
+        var stops = new List<TabStop>
+        {
+            new() { PositionPoints = 540, Alignment = TabAlignment.Right, Leader = TabLeader.Dot }
+        };
+
+        var (dest, stop) = TabStopResolver.Resolve(
+            cursorX: 30, followingWidth: 8, stops,
+            defaultTabStopPoints: 36, leftIndentPoints: 0,
+            availableEndX: 250);
+
+        await Assert.That(dest).IsEqualTo(242.0);
+        await Assert.That(stop!.Leader).IsEqualTo(TabLeader.Dot);
+    }
+
+    [Test]
+    public async Task Right_DoesNotClamp_WhenStopFitsInsideAvailableEndX()
+    {
+        var stops = new List<TabStop>
+        {
+            new() { PositionPoints = 200, Alignment = TabAlignment.Right, Leader = TabLeader.Dot }
+        };
+
+        var (dest, _) = TabStopResolver.Resolve(
+            cursorX: 30, followingWidth: 8, stops,
+            defaultTabStopPoints: 36, leftIndentPoints: 0,
+            availableEndX: 250);
+
+        await Assert.That(dest).IsEqualTo(192.0);
+    }
+
+    [Test]
+    public async Task Center_ClampsToAvailableEndX_WhenStopIsPastIt()
+    {
+        var stops = new List<TabStop>
+        {
+            new() { PositionPoints = 540, Alignment = TabAlignment.Center }
+        };
+
+        var (dest, _) = TabStopResolver.Resolve(
+            cursorX: 30, followingWidth: 60, stops,
+            defaultTabStopPoints: 36, leftIndentPoints: 0,
+            availableEndX: 250);
+
+        await Assert.That(dest).IsEqualTo(220.0);
+    }
+
+    [Test]
+    public async Task Left_DoesNotClampToAvailableEndX()
+    {
+        // Left tabs past the available area collapse via the cursor check; the renderer drops them
+        // separately. We just assert the resolver does not silently relocate them.
+        var stops = new List<TabStop>
+        {
+            new() { PositionPoints = 540, Alignment = TabAlignment.Left }
+        };
+
+        var (dest, stop) = TabStopResolver.Resolve(
+            cursorX: 30, followingWidth: 8, stops,
+            defaultTabStopPoints: 36, leftIndentPoints: 0,
+            availableEndX: 250);
+
+        await Assert.That(dest).IsEqualTo(540.0);
+        await Assert.That(stop!.Alignment).IsEqualTo(TabAlignment.Left);
+    }
+
     [Test]
     public async Task Decimal_AlignsDecimalPointAtStop()
     {
