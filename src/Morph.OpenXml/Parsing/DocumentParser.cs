@@ -3110,6 +3110,7 @@ sealed class DocumentParser(string defaultFont)
                             Borders = cellBorders,
                             Diagonals = cellDiagonals,
                             HideMark = cellProps?.GetFirstChild<HideMark>() != null,
+                            NoWrap = cellProps?.GetFirstChild<NoWrap>() != null,
                             GridSpan = gridSpan,
                             VerticalAlignment = verticalAlign,
                             VerticalMerge = verticalMerge,
@@ -6892,6 +6893,9 @@ sealed class DocumentParser(string defaultFont)
             pageBreakBefore = true;
         }
 
+        // w:mirrorIndents — left/right indents swap on even pages (mirror printing).
+        var mirrorIndents = (styleDefaults?.MirrorIndents ?? false) || props.GetFirstChild<MirrorIndents>() != null;
+
         // Parse paragraph shading/background color (w:shd element)
         var shadingElement = props.GetFirstChild<Shading>();
         if (shadingElement != null)
@@ -7027,7 +7031,8 @@ sealed class DocumentParser(string defaultFont)
             DefaultTabStopPoints = defaultTabStopPoints,
             DropCap = dropCap,
             DropCapLines = dropCapLines,
-            IsRightToLeft = paraRtl
+            IsRightToLeft = paraRtl,
+            MirrorIndents = mirrorIndents
         };
     }
 

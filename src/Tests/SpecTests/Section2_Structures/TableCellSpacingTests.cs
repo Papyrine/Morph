@@ -1,5 +1,3 @@
-using DocumentFormat.OpenXml.Wordprocessing;
-
 /// <summary>
 /// Covers <c>w:tblCellSpacing</c> parsing and the detached-border model it triggers.
 /// </summary>

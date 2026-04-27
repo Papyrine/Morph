@@ -182,7 +182,7 @@ abstract class PageRendererBase(RenderContextBase context)
         // each cell renders its own borders inset by cellSpacing, but Word draws an extra
         // rectangle at the table's outer boundary so the frame and the cell borders show
         // a visible gap between them.
-        if (table.Properties.CellSpacingPoints > 0 && table.Properties.DefaultBorders is { } outer)
+        if (table.Properties is {CellSpacingPoints: > 0, DefaultBorders: { } outer})
         {
             DrawTableOuterFrame(tableX, startY, colWidths.Sum(), rowHeights.Sum(), outer);
         }

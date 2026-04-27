@@ -42,4 +42,12 @@ sealed record TableCellProperties
     /// only affects cells whose sole content is an empty paragraph.
     /// </summary>
     public bool HideMark { get; init; }
+
+    /// <summary>
+    /// <c>w:noWrap</c> — when true, cell content shall not wrap to a new line. In
+    /// auto-fit tables, the column should expand to fit the longest run; in fixed-layout
+    /// tables, content can overflow. Morph parses the flag but doesn't currently grow
+    /// columns based on it (cells with explicit <c>w:tcW</c> use that width verbatim).
+    /// </summary>
+    public bool NoWrap { get; init; }
 }

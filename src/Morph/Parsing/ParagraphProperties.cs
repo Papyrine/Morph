@@ -175,4 +175,11 @@ sealed record ParagraphProperties
     /// Whether the paragraph reads right-to-left (w:bidi). Renderer does not yet reverse text order.
     /// </summary>
     public bool IsRightToLeft { get; init; }
+
+    /// <summary>
+    /// <c>w:mirrorIndents</c> — when true, the paragraph's left and right indents swap on
+    /// even-numbered pages (mirror printing for facing pages). Applied at render time
+    /// using the current page index parity.
+    /// </summary>
+    public bool MirrorIndents { get; init; }
 }
