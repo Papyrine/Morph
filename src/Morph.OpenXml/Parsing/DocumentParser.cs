@@ -2961,18 +2961,39 @@ sealed class DocumentParser(string defaultFont)
                     }
                 }
 
-                // Parse cell-level borders
+                // Parse cell-level borders. Side-borders only get materialised when at
+                // least one of the four side children appears, so a cell that specifies
+                // only diagonals doesn't lose its table-level side cascade.
                 CellBorders? cellBorders = null;
+                CellDiagonals? cellDiagonals = null;
                 var tcBorders = cellProps?.GetFirstChild<TableCellBorders>();
                 if (tcBorders != null)
                 {
-                    cellBorders = new()
+                    var topChild = tcBorders.GetFirstChild<TopBorder>();
+                    var rightChild = tcBorders.GetFirstChild<RightBorder>();
+                    var bottomChild = tcBorders.GetFirstChild<BottomBorder>();
+                    var leftChild = tcBorders.GetFirstChild<LeftBorder>();
+                    if (topChild != null || rightChild != null || bottomChild != null || leftChild != null)
                     {
-                        Top = ParseBorderEdge(tcBorders.GetFirstChild<TopBorder>()),
-                        Right = ParseBorderEdge(tcBorders.GetFirstChild<RightBorder>()),
-                        Bottom = ParseBorderEdge(tcBorders.GetFirstChild<BottomBorder>()),
-                        Left = ParseBorderEdge(tcBorders.GetFirstChild<LeftBorder>())
-                    };
+                        cellBorders = new()
+                        {
+                            Top = ParseBorderEdge(topChild),
+                            Right = ParseBorderEdge(rightChild),
+                            Bottom = ParseBorderEdge(bottomChild),
+                            Left = ParseBorderEdge(leftChild)
+                        };
+                    }
+
+                    var tl2br = tcBorders.GetFirstChild<TopLeftToBottomRightCellBorder>();
+                    var tr2bl = tcBorders.GetFirstChild<TopRightToBottomLeftCellBorder>();
+                    if (tl2br != null || tr2bl != null)
+                    {
+                        cellDiagonals = new()
+                        {
+                            Down = ParseBorderEdge(tl2br),
+                            Up = ParseBorderEdge(tr2bl)
+                        };
+                    }
                 }
 
                 // Parse grid span (number of columns this cell spans)
@@ -3087,6 +3108,8 @@ sealed class DocumentParser(string defaultFont)
                             Padding = cellPadding,
                             Margin = cellMargin,
                             Borders = cellBorders,
+                            Diagonals = cellDiagonals,
+                            HideMark = cellProps?.GetFirstChild<HideMark>() != null,
                             GridSpan = gridSpan,
                             VerticalAlignment = verticalAlign,
                             VerticalMerge = verticalMerge,

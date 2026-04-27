@@ -1378,6 +1378,32 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
     }
 
+    protected override void DrawCellDiagonals(float pixelX, float pixelY, float pixelWidth, float pixelHeight, CellDiagonals diagonals)
+    {
+        if (currentCanvas == null)
+        {
+            return;
+        }
+
+        using var paint = new SKPaint
+        {
+            Style = SKPaintStyle.Stroke,
+            IsAntialias = true
+        };
+
+        if (diagonals.Down.IsVisible)
+        {
+            ConfigureBorderPaint(paint, diagonals.Down);
+            currentCanvas.DrawLine(pixelX, pixelY, pixelX + pixelWidth, pixelY + pixelHeight, paint);
+        }
+
+        if (diagonals.Up.IsVisible)
+        {
+            ConfigureBorderPaint(paint, diagonals.Up);
+            currentCanvas.DrawLine(pixelX + pixelWidth, pixelY, pixelX, pixelY + pixelHeight, paint);
+        }
+    }
+
     SKPaint CreateBorderPaint(BorderEdge edge) =>
         new()
         {

@@ -1,5 +1,8 @@
 ﻿/// <summary>
 /// Represents borders for all four edges of a cell.
+/// Diagonals (<c>w:tl2br</c> / <c>w:tr2bl</c>) are tracked separately on
+/// <see cref="TableCellProperties.Diagonals"/> so they don't interfere with the
+/// cell→table 4-side border cascade.
 /// </summary>
 sealed record CellBorders
 {

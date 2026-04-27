@@ -886,6 +886,27 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         });
     }
 
+    protected override void DrawCellDiagonals(float pixelX, float pixelY, float pixelWidth, float pixelHeight, CellDiagonals diagonals)
+    {
+        if (currentPage == null)
+        {
+            return;
+        }
+
+        currentPage.Mutate(_ =>
+        {
+            if (diagonals.Down.IsVisible)
+            {
+                DrawBorderLine(_, pixelX, pixelY, pixelX + pixelWidth, pixelY + pixelHeight, diagonals.Down);
+            }
+
+            if (diagonals.Up.IsVisible)
+            {
+                DrawBorderLine(_, pixelX + pixelWidth, pixelY, pixelX, pixelY + pixelHeight, diagonals.Up);
+            }
+        });
+    }
+
     void DrawBorderLine(float x1, float y1, float x2, float y2, BorderEdge edge)
     {
         if (currentPage == null)
