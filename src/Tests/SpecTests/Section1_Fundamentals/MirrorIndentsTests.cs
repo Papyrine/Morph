@@ -1,5 +1,3 @@
-using DocumentFormat.OpenXml.Wordprocessing;
-
 /// <summary>
 /// Covers <c>w:mirrorIndents</c> parsing. The flag indicates that left/right indents
 /// should swap on even pages for mirror-printing layouts. Morph tracks the flag on

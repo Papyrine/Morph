@@ -1570,15 +1570,15 @@ Lines connecting shapes (straight, elbow, curved).
 > **AI**: True elbow/curved-connector routing requires solving an avoidance pathfinding problem between the connected shapes, which is outside the scope of a render-only pipeline. The corpus has no scenarios with bare `cxnSp` shapes (only `cxnSpLocks` protection elements), so a straight-line approximation can't be visually validated yet — leaving the renderer as a no-op avoids introducing unverified geometry.
 
 
-#### Legacy VML Shapes `TODO`
+#### Legacy VML Shapes `WONTFIX`
 
-Word 2007-compat VML markup used by older documents and inside `mc:Fallback` branches. Common in headers, footers, signatures, and form-control overlays.
+Word 2007-compat VML markup used by older documents and inside `mc:Fallback` branches. **Not planned.** VML is the pre-DrawingML vector format kept around as a fallback for `mc:Fallback` blocks and legacy `w:pict` content. Modern Word always emits a DrawingML version inside the matching `mc:Choice`, which Morph already consumes — so the `mc:Fallback` VML is redundant for any document round-tripped through a 2010+ build of Word. The only documents that would benefit are pure Word-2007-era files plus a few form-control overlays, neither of which is in scope. Re-implementing a parallel VML pipeline (CSS-like positioning, `o:spt`-driven preset geometry, separate fill/stroke/shadow vocabulary) is a substantial effort with diminishing returns.
+
+The watermark feature already extracts the small VML subset Morph cares about (`v:shape` carrying `WordPictureWatermark` / `WordTextWatermark` ids); see Watermarks for the special case.
 
 - **OOXML**: `v:shape`, `v:shapetype`, `v:group`, `v:line`, `v:oval`, `v:rect`, `v:roundrect`, `v:polyline`, `v:textbox`, `v:imagedata`, `v:fill`, `v:stroke`, `v:shadow`, `v:formulas`, `v:path`, `w10:wrap`, `w10:anchorlock`, `o:fill`, `o:lock`
 - **Spec**: [VML Reference](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odraw/)
-- **Source**: identified via scan in `src/missingTags.md`
-
-> **AI**: Inside `mc:AlternateContent`, DrawingML lives in `mc:Choice` and VML in `mc:Fallback`; if the choice branch is consumed, VML can be skipped. But `w:pict` blocks outside `mc:AlternateContent` carry VML only. `v:shape/@style` is CSS-like (`position:absolute; left:Xpt; top:Ypt; width:Wpt; height:Hpt`); map common `o:spt` values to DrawingML preset geometry IDs rather than re-implementing the VML path language. `v:imagedata r:id=…` reuses the existing image-relationship resolver.
+- **Workaround**: documents that need VML rendering can synthesize an equivalent DrawingML representation upstream rather than relying on Morph to teach the renderer a second drawing language
 
 
 ### 6.3 WordArt
@@ -2222,21 +2222,21 @@ Read-only mode, form protection, and editing restrictions.
 
 ### Feature Count by Category
 
-| Category | Done | Partial | Todo | Total |
-|----------|------|---------|------|-------|
-| 1. Text Formatting | 19 | 0 | 10 | 29 |
-| 2. Paragraph Formatting | 23 | 1 | 0 | 24 |
-| 3. Lists & Numbering | 6 | 0 | 0 | 6 |
-| 4. Tables | 27 | 0 | 0 | 27 |
-| 5. Page Layout & Sections | 19 | 0 | 0 | 19 |
-| 6. Graphics & Media | 22 | 0 | 3 | 25 |
-| 7. Form Controls | 10 | 0 | 1 | 11 |
-| 8. Themes & Styles | 4 | 0 | 0 | 4 |
-| 9. Typography | 8 | 0 | 0 | 8 |
-| 10. Document Infrastructure | 6 | 0 | 0 | 6 |
-| 11. Annotations & References | 8 | 0 | 0 | 8 |
-| 12. Advanced Content | 2 | 0 | 0 | 2 |
-| **Total** | **154** | **1** | **14** | **169** |
+| Category | Done | Partial | Todo | Wontfix | Total |
+|----------|------|---------|------|---------|-------|
+| 1. Text Formatting | 19 | 0 | 10 | 0 | 29 |
+| 2. Paragraph Formatting | 23 | 1 | 0 | 0 | 24 |
+| 3. Lists & Numbering | 6 | 0 | 0 | 0 | 6 |
+| 4. Tables | 27 | 0 | 0 | 0 | 27 |
+| 5. Page Layout & Sections | 19 | 0 | 0 | 0 | 19 |
+| 6. Graphics & Media | 22 | 0 | 2 | 1 | 25 |
+| 7. Form Controls | 10 | 0 | 1 | 0 | 11 |
+| 8. Themes & Styles | 4 | 0 | 0 | 0 | 4 |
+| 9. Typography | 8 | 0 | 0 | 0 | 8 |
+| 10. Document Infrastructure | 6 | 0 | 0 | 0 | 6 |
+| 11. Annotations & References | 8 | 0 | 0 | 0 | 8 |
+| 12. Advanced Content | 2 | 0 | 0 | 0 | 2 |
+| **Total** | **154** | **1** | **13** | **1** | **169** |
 
 
 ### Coverage
@@ -2245,16 +2245,17 @@ Read-only mode, form protection, and editing restrictions.
 pie title Feature Implementation Status
     "Done" : 154
     "Partial" : 1
-    "Todo" : 14
+    "Todo" : 13
+    "Wontfix" : 1
 ```
 
 **Overall coverage: ~91% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
 
 
 Priority areas for future implementation:
-1. **Legacy VML shapes (`v:shape`, `v:rect`, `v:imagedata`, `w10:wrap`, …)** — needed for older documents and `mc:Fallback` branches.
-2. **Percentage-sized floating drawings (`wp14:pctWidth`/`pctHeight`)** — without these, percentage-scaled images may render at zero size.
-3. **Custom-XML data binding (`w:dataBinding`)** — populates SDT content from bound data islands.
-4. **Hidden text + run effects (`w:vanish`, `w:emboss`, `w:imprint`, `w:outline`, `w:bdr`, `w:position`)** — visible text-formatting gaps.
-5. **East Asian typography (`w:wordWrap`, `w:kinsoku`, `w:autoSpaceDE/DN`, `w:em`)** — required for correct CJK line-break and emphasis-mark rendering.
-6. **Image adjustments (`a14:brightnessContrast`/`saturation`/…)** — picture-format filters from Word's "Adjustments" panel.
+1. **Percentage-sized floating drawings (`wp14:pctWidth`/`pctHeight`)** — without these, percentage-scaled images may render at zero size.
+2. **Custom-XML data binding (`w:dataBinding`)** — populates SDT content from bound data islands.
+3. **Hidden text + run effects (`w:vanish`, `w:emboss`, `w:imprint`, `w:outline`, `w:bdr`, `w:position`)** — visible text-formatting gaps.
+4. **Image adjustments (`a14:brightnessContrast`/`saturation`/…)** — picture-format filters from Word's "Adjustments" panel.
+
+Not planned (see `src/missingTags.md` for rationale): legacy VML shape family, East-Asian line-break heuristics.

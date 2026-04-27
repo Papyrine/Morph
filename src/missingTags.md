@@ -73,16 +73,13 @@ Implementation notes:
 <!-- Tables: all previously listed tags now implemented or accepted as no-ops. -->
 <!-- See docs/word-features.md (Tables section) for status. -->
 
-### Legacy VML drawing (Word 2007-compat fallback and form controls)
+### Legacy VML drawing (Word 2007-compat fallback and form controls) — `NO PLANNED SUPPORT`
 
 `v:shape`, `v:shapetype`, `v:group`, `v:line`, `v:oval`, `v:rect`, `v:roundrect`, `v:polyline`, `v:textbox`, `v:imagedata`, `v:fill`, `v:stroke`, `v:shadow`, `v:formulas`, `v:path`, `v:handles`, `v:f`, `v:h`, `w10:wrap`, `w10:anchorlock`, `o:fill`, `o:lock`
 
-Implementation notes:
-- Many older docs, headers/footers, and `w:pict` contents use VML rather than DrawingML.
-- Inside `mc:AlternateContent`, DrawingML is in `mc:Choice` and VML in `mc:Fallback` — if `mc:Choice` is consumed, VML can be ignored; but `w:pict` blocks outside AlternateContent have VML only.
-- `v:shape` has a `style` attribute with CSS-like `position:absolute; left:Xpt; top:Ypt; width:Wpt; height:Hpt`.
-- `v:shapetype` + `o:spt` / `v:formulas` define a reusable geometry; map common `o:spt` values to DrawingML preset geometry IDs instead of re-implementing VML path language.
-- `v:imagedata r:id=…` is the VML equivalent of a DrawingML picture — reuse image-relationship resolution.
+**Decision: not implementing.** VML is the pre-DrawingML vector format from Word 2007, kept around as a fallback inside `mc:Fallback` blocks and inside legacy `w:pict` content. Modern Word always emits a DrawingML version in the matching `mc:Choice`, which Morph already consumes, so the `mc:Fallback` VML is redundant for any document round-tripped through a 2010+ build of Word. The remaining bare-VML cases are old documents and a handful of form-control rendering details that are out of Morph's scope. Re-implementing a parallel VML pipeline (CSS-style positioning, `o:spt`-driven preset geometries, separate fill/stroke/shadow vocabulary) is a substantial effort with diminishing returns.
+
+If a real document surfaces that needs VML rendering, the contained shape can be wrapped in a synthesized DrawingML representation upstream rather than teaching the renderer a second drawing language.
 
 ### Floating drawing extensions
 
@@ -231,13 +228,13 @@ Implementation notes: if fonts aren't resolving well, reading `w:altName` (subst
 
 Updated after the audit + recent feature work (see `docs/word-features.md` for the canonical status).
 
-1. **VML shape family** (`v:shape`, `v:shapetype`, `v:line`, `v:rect`, `v:roundrect`, `v:textbox`, `v:imagedata` + `w10:wrap`) — required for legacy docs, signatures, many header/footer decorations.
-2. **Percentage-sized floating drawings** (`wp14:pctWidth`/`pctHeight`, `wp14:sizeRelH`/`sizeRelV`) — without these, percentage-scaled images may render at zero size.
-3. **Custom-XML data binding** (`w:dataBinding`) — populates SDT content from bound data islands.
-4. **Run formatting gaps**: `w:vanish` (skip), `w:position`, `w:bdr`, `w:em`, `w:emboss`, `w:imprint`, `w:outline`, plus `w14:textFill` (gradient text fill).
-5. **East Asian typography** (`w:wordWrap`, `w:kinsoku`, `w:autoSpaceDE/DN`, `w:em`).
-6. **Image adjustments** (`a14:brightnessContrast`, `a14:saturation`, etc.) — Word's "Picture Format → Adjustments" filters.
-7. **Chart rendering beyond placeholder** — currently renders as empty space matching the drawing extent; either ship a minimal renderer or surface an `mc:Fallback` thumbnail.
+1. **Percentage-sized floating drawings** (`wp14:pctWidth`/`pctHeight`, `wp14:sizeRelH`/`sizeRelV`) — without these, percentage-scaled images may render at zero size.
+2. **Custom-XML data binding** (`w:dataBinding`) — populates SDT content from bound data islands.
+3. **Run formatting gaps**: `w:vanish` (skip), `w:position`, `w:bdr`, `w:em`, `w:emboss`, `w:imprint`, `w:outline`, plus `w14:textFill` (gradient text fill).
+4. **Image adjustments** (`a14:brightnessContrast`, `a14:saturation`, etc.) — Word's "Picture Format → Adjustments" filters.
+5. **Chart rendering beyond placeholder** — currently renders as empty space matching the drawing extent; either ship a minimal renderer or surface an `mc:Fallback` thumbnail.
+
+(Legacy VML — `v:shape`, `v:rect`, `v:imagedata`, etc. — is intentionally not on this list; see the dedicated section above.)
 
 Recently completed (no longer on the list):
 
