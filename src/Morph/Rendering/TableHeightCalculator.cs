@@ -64,7 +64,10 @@ static class TableHeightCalculator
                 gridColIndex += span;
             }
 
-            heights[rowIndex] = maxHeight;
+            // w:tblCellSpacing expands the row slot by 2 × spacing — the cell box stays
+            // the same size, but its row gets extra room above and below so the gaps
+            // between rows show up the way Word renders them.
+            heights[rowIndex] = maxHeight + 2 * (float) table.Properties.CellSpacingPoints;
         }
 
         // Second pass: Apply explicit row heights (w:trHeight).

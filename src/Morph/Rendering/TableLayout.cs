@@ -80,6 +80,20 @@ static class TableLayout
             return null;
         }
 
+        // Detached-border model (w:tblCellSpacing > 0): every cell renders as an isolated
+        // box with the table's *outer* border applied to all four edges. The inside
+        // borders never appear because adjacent cells don't share an edge — there's a gap.
+        if (tableProps.CellSpacingPoints > 0 && outer != null)
+        {
+            return new()
+            {
+                Top = outer.Top,
+                Bottom = outer.Bottom,
+                Left = outer.Left,
+                Right = outer.Right
+            };
+        }
+
         var isFirstRow = rowIndex == 0;
         var isLastRow = rowIndex == totalRows - 1;
         var isFirstCol = colIndex == 0;
