@@ -1034,15 +1034,18 @@ Rotated text direction within cells (bottom-to-top, top-to-bottom).
 > **Contributors**: Row-height contribution for vertical cells comes from `MeasureParagraphNaturalWidth` — the longest paragraph's natural single-line width becomes the cell's vertical extent. Multiple paragraphs in one vertical cell stack horizontally (along the row direction) so they don't add to the cell's height contribution. Cells where the rotated text exceeds the column's available height aren't reflowed; vertical-alignment within rotated cells is currently treated as Top.
 
 
-#### Row-Level Table Property Exceptions `TODO`
+#### Row-Level Table Property Exceptions `DONE`
 
-Per-row overrides of table-level properties (e.g. a single row that uses different cell margins than the rest of the table).
+Per-row overrides of table-level properties — most commonly used to suppress borders or override cell margins for an individual row without affecting the rest of the table.
 
-- **OOXML**: `w:tblPrEx` within `w:tr`
+- **OOXML**: `w:tblPrEx` within `w:tr` (containing `w:tblBorders`, `w:tblCellMar`)
 - **Spec**: [TablePropertyExceptions](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.tablepropertyexceptions)
-- **Source**: identified via scan in `src/missingTags.md`
+- **Model**: `TableRow.OverrideBorders`, `OverrideInsideHBorder`, `OverrideInsideVBorder`, `OverrideCellPadding`
+- **Parse**: `DocumentParser.ParseTable` reads `w:tblPrEx/w:tblBorders` and `w:tblPrEx/w:tblCellMar` from each row
+- **Render**: `TableLayout.ResolveCellBorders`, `GetEffectivePadding`, and `GetEffectiveMargin` accept the row and prefer its overrides over `TableProperties` defaults; cell-level explicit values still win over both
+- **Test**: `TablePropertyExceptionsTests` (unit + end-to-end against `newsletters/04`)
 
-> **AI**: Resolve by merging `w:tblPrEx` over `w:tblPr` when computing the row's effective properties.
+> **Contributors**: Resolution order is **cell explicit → row override → table default**. Only border + cell-margin overrides are modelled; less-common `w:tblPrEx` children (e.g. `w:tblLayout`, `w:shd`) are ignored.
 
 
 #### Conditional Formatting (Banded Tables) `DONE`
@@ -2192,7 +2195,7 @@ Read-only mode, form protection, and editing restrictions.
 | 1. Text Formatting | 19 | 0 | 11 | 30 |
 | 2. Paragraph Formatting | 19 | 0 | 4 | 23 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
-| 4. Tables | 19 | 0 | 6 | 25 |
+| 4. Tables | 20 | 0 | 5 | 25 |
 | 5. Page Layout & Sections | 19 | 0 | 0 | 19 |
 | 6. Graphics & Media | 22 | 0 | 3 | 25 |
 | 7. Form Controls | 10 | 0 | 1 | 11 |
@@ -2201,27 +2204,26 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 6 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 2 |
-| **Total** | **142** | **0** | **25** | **167** |
+| **Total** | **143** | **0** | **24** | **167** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 142
+    "Done" : 143
     "Partial" : 0
-    "Todo" : 25
+    "Todo" : 24
 ```
 
-**Overall coverage: ~85% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
+**Overall coverage: ~86% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
 
 
 Priority areas for future implementation:
-1. **Row-level table property exceptions (`w:tblPrEx`)** — companion to the conditional formatting that's now in place; lets a single row override table defaults.
-2. **Legacy VML shapes (`v:shape`, `v:rect`, `v:imagedata`, `w10:wrap`, …)** — needed for older documents and `mc:Fallback` branches.
-3. **Percentage-sized floating drawings (`wp14:pctWidth`/`pctHeight`)** — without these, percentage-scaled images may render at zero size.
-4. **Custom-XML data binding (`w:dataBinding`)** — populates SDT content from bound data islands.
-5. **Hidden text + run effects (`w:vanish`, `w:emboss`, `w:imprint`, `w:outline`, `w:bdr`, `w:position`)** — visible text-formatting gaps.
-6. **East Asian typography (`w:wordWrap`, `w:kinsoku`, `w:autoSpaceDE/DN`, `w:em`)** — required for correct CJK line-break and emphasis-mark rendering.
-7. **Diagonal cell borders + cell spacing (`w:tl2br`/`w:tr2bl`, `w:tblCellSpacing`)** — table presentation gaps.
-8. **Image adjustments (`a14:brightnessContrast`/`saturation`/…)** — picture-format filters from Word's "Adjustments" panel.
+1. **Legacy VML shapes (`v:shape`, `v:rect`, `v:imagedata`, `w10:wrap`, …)** — needed for older documents and `mc:Fallback` branches.
+2. **Percentage-sized floating drawings (`wp14:pctWidth`/`pctHeight`)** — without these, percentage-scaled images may render at zero size.
+3. **Custom-XML data binding (`w:dataBinding`)** — populates SDT content from bound data islands.
+4. **Hidden text + run effects (`w:vanish`, `w:emboss`, `w:imprint`, `w:outline`, `w:bdr`, `w:position`)** — visible text-formatting gaps.
+5. **East Asian typography (`w:wordWrap`, `w:kinsoku`, `w:autoSpaceDE/DN`, `w:em`)** — required for correct CJK line-break and emphasis-mark rendering.
+6. **Diagonal cell borders + cell spacing (`w:tl2br`/`w:tr2bl`, `w:tblCellSpacing`)** — table presentation gaps.
+7. **Image adjustments (`a14:brightnessContrast`/`saturation`/…)** — picture-format filters from Word's "Adjustments" panel.

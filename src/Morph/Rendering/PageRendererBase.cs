@@ -226,13 +226,13 @@ abstract class PageRendererBase(RenderContextBase context)
                 }
                 else
                 {
-                    var padding = TableLayout.GetEffectivePadding(cell.Properties, table.Properties);
+                    var padding = TableLayout.GetEffectivePadding(cell.Properties, table.Properties, row);
                     var contentWidth = cellWidth - (float) padding.Horizontal;
-                    var contentHeight = TableHeightCalculator.MeasureCellHeight(cell, contentWidth, table.Properties, Measurer);
+                    var contentHeight = TableHeightCalculator.MeasureCellHeight(cell, contentWidth, table.Properties, Measurer, row);
                     cellHeight = contentHeight + (float) padding.Vertical;
                 }
 
-                RenderTableCell(cell, currentX, cellY, cellWidth, cellHeight, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount);
+                RenderTableCell(cell, currentX, cellY, cellWidth, cellHeight, table.Properties, row, rowIndex, gridColIndex, table.Rows.Count, colCount);
 
                 for (var i = 0; i < span && gridColIndex + i < colCount; i++)
                 {
@@ -321,22 +321,22 @@ abstract class PageRendererBase(RenderContextBase context)
                 cellHeight = TableLayout.CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights);
             }
 
-            RenderTableCell(cell, currentX, currentY, cellWidth, cellHeight, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount);
+            RenderTableCell(cell, currentX, currentY, cellWidth, cellHeight, table.Properties, row, rowIndex, gridColIndex, table.Rows.Count, colCount);
 
             currentX += cellWidth;
             gridColIndex += span;
         }
     }
 
-    void RenderTableCell(TableCell cell, float x, float y, float width, float height, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols)
+    void RenderTableCell(TableCell cell, float x, float y, float width, float height, TableProperties tableProps, TableRow row, int rowIndex, int colIndex, int totalRows, int totalCols)
     {
         if (!HasOutput)
         {
             return;
         }
 
-        var padding = TableLayout.GetEffectivePadding(cell.Properties, tableProps);
-        var margin = TableLayout.GetEffectiveMargin(cell.Properties, tableProps);
+        var padding = TableLayout.GetEffectivePadding(cell.Properties, tableProps, row);
+        var margin = TableLayout.GetEffectiveMargin(cell.Properties, tableProps, row);
 
         var cellX = x + (float) margin.Left;
         var cellY = y + (float) margin.Top;
@@ -353,7 +353,7 @@ abstract class PageRendererBase(RenderContextBase context)
             DrawCellBackground(pixelX, pixelY, pixelWidth, pixelHeight, cell.Properties.BackgroundColorHex);
         }
 
-        var borders = TableLayout.ResolveCellBorders(cell.Properties, tableProps, rowIndex, colIndex, totalRows, totalCols);
+        var borders = TableLayout.ResolveCellBorders(cell.Properties, tableProps, rowIndex, colIndex, totalRows, totalCols, row);
         if (borders != null)
         {
             DrawCellBorders(pixelX, pixelY, pixelWidth, pixelHeight, borders);

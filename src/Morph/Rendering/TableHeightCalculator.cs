@@ -58,7 +58,7 @@ static class TableHeightCalculator
                     cellWidth += colWidths[gridColIndex + i];
                 }
 
-                var cellHeight = MeasureCellHeight(cell, cellWidth, table.Properties, measurer);
+                var cellHeight = MeasureCellHeight(cell, cellWidth, table.Properties, measurer, row);
                 maxHeight = Math.Max(maxHeight, cellHeight);
 
                 gridColIndex += span;
@@ -112,7 +112,7 @@ static class TableHeightCalculator
                         cellWidth += colWidths[gridColIndex + i];
                     }
 
-                    var contentHeight = MeasureCellHeight(cell, cellWidth, table.Properties, measurer);
+                    var contentHeight = MeasureCellHeight(cell, cellWidth, table.Properties, measurer, row);
 
                     float currentTotalHeight = 0;
                     for (var r = rowIndex; r < rowIndex + rowSpan && r < table.Rows.Count; r++)
@@ -148,10 +148,11 @@ static class TableHeightCalculator
         TableCell cell,
         float cellWidth,
         TableProperties tableProps,
-        IParagraphMeasurer measurer)
+        IParagraphMeasurer measurer,
+        TableRow? row = null)
     {
-        var padding = TableLayout.GetEffectivePadding(cell.Properties, tableProps);
-        var margin = TableLayout.GetEffectiveMargin(cell.Properties, tableProps);
+        var padding = TableLayout.GetEffectivePadding(cell.Properties, tableProps, row);
+        var margin = TableLayout.GetEffectiveMargin(cell.Properties, tableProps, row);
 
         if (cell.Properties.TextDirection != CellTextDirection.LeftToRight)
         {
