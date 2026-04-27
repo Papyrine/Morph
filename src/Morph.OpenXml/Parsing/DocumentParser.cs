@@ -176,7 +176,7 @@ sealed class DocumentParser(string defaultFont)
 
         // w:settings/w:evenAndOddHeaders opts the document into separate even-page parts.
         var evenAndOddHeaders = mainPart.DocumentSettingsPart?.Settings?
-            .GetFirstChild<EvenAndOddHeaders>() is { } eoh &&
+                                    .GetFirstChild<EvenAndOddHeaders>() is { } eoh &&
                                 eoh.Val?.Value != false;
         var evenPageHeader = evenAndOddHeaders
             ? ExtractHeaderFooter(body, mainPart, HeaderFooterValues.Even, isHeader: true)
@@ -349,10 +349,11 @@ sealed class DocumentParser(string defaultFont)
                 // Word emits the watermark shape with id="WordPictureWatermark..." or
                 // id="WordTextWatermark...". Some templates also tag it via o:cls or class — match
                 // any attribute carrying the marker so all variants are detected.
-                var isWatermark = shape.GetAttributes().Any(_ =>
-                    _.Value is { } v &&
-                    (v.Contains("WordPictureWatermark", StringComparison.OrdinalIgnoreCase) ||
-                     v.Contains("WordTextWatermark", StringComparison.OrdinalIgnoreCase)));
+                var isWatermark = shape.GetAttributes()
+                    .Any(_ =>
+                        _.Value is { } v &&
+                        (v.Contains("WordPictureWatermark", StringComparison.OrdinalIgnoreCase) ||
+                         v.Contains("WordTextWatermark", StringComparison.OrdinalIgnoreCase)));
                 if (!isWatermark)
                 {
                     continue;
@@ -378,7 +379,7 @@ sealed class DocumentParser(string defaultFont)
                 }
 
                 var textPath = shape.GetFirstChild<DocumentFormat.OpenXml.Vml.TextPath>();
-                if (textPath?.String?.Value is { Length: > 0 } textValue)
+                if (textPath?.String?.Value is {Length: > 0} textValue)
                 {
                     result.Add(ParseTextWatermark(textPath, textValue, shape));
                 }
@@ -469,7 +470,7 @@ sealed class DocumentParser(string defaultFont)
 
         // shape.FillColor is a VML colour string (named or "#hex"); strip the "#".
         var color = "BFBFBF";
-        if (shape.FillColor?.Value is { Length: > 0 } fillColor)
+        if (shape.FillColor?.Value is {Length: > 0} fillColor)
         {
             color = fillColor.TrimStart('#').ToUpperInvariant();
         }
@@ -548,7 +549,11 @@ sealed class DocumentParser(string defaultFont)
             }
 
             var text = string.Concat(fn.Descendants<Text>().Select(_ => _.Text));
-            result.Add(new() {Id = idLong.ToString(), Text = text});
+            result.Add(new()
+            {
+                Id = idLong.ToString(),
+                Text = text
+            });
         }
 
         return result;
@@ -577,7 +582,11 @@ sealed class DocumentParser(string defaultFont)
             }
 
             var text = string.Concat(en.Descendants<Text>().Select(_ => _.Text));
-            result.Add(new() {Id = idLong.ToString(), Text = text});
+            result.Add(new()
+            {
+                Id = idLong.ToString(),
+                Text = text
+            });
         }
 
         return result;
@@ -627,7 +636,11 @@ sealed class DocumentParser(string defaultFont)
                         inResult.Pop();
                         if (instruction.Length > 0)
                         {
-                            result.Add(new() {Instruction = instruction, Result = resultText});
+                            result.Add(new()
+                            {
+                                Instruction = instruction,
+                                Result = resultText
+                            });
                         }
 
                         break;
@@ -646,7 +659,11 @@ sealed class DocumentParser(string defaultFont)
             }
 
             var resultText = string.Concat(simple.Descendants<Text>().Select(_ => _.Text));
-            result.Add(new() {Instruction = instruction, Result = resultText});
+            result.Add(new()
+            {
+                Instruction = instruction,
+                Result = resultText
+            });
         }
 
         return result;
@@ -679,7 +696,10 @@ sealed class DocumentParser(string defaultFont)
             mode = DocumentEditingMode.Forms;
         }
 
-        return new() {EditingMode = mode};
+        return new()
+        {
+            EditingMode = mode
+        };
     }
 
     static IReadOnlyList<TrackedChange> ExtractTrackedChanges(Body body)
@@ -2697,7 +2717,10 @@ sealed class DocumentParser(string defaultFont)
         }
 
         return elements.Count > 0
-            ? new HeaderFooterContent {Elements = elements}
+            ? new HeaderFooterContent
+            {
+                Elements = elements
+            }
             : null;
     }
 
@@ -3002,7 +3025,7 @@ sealed class DocumentParser(string defaultFont)
                     var cellFlags = ParseConditionalFormatFlags(cellProps?.GetFirstChild<ConditionalFormatStyle>());
                     var effectiveFlags = cellFlags == ConditionalFormatFlags.None ? rowFlags : cellFlags | rowFlags;
 
-                    var conditionalBorders = (CellBorders?)null;
+                    var conditionalBorders = (CellBorders?) null;
                     var conditionalShading = styleInfo.BackgroundColorHex;
 
                     if (styleInfo.Conditionals != null)
@@ -3075,13 +3098,57 @@ sealed class DocumentParser(string defaultFont)
                 }
             }
 
+            // Parse w:tblPrEx — row-level overrides for table-wide properties (borders, cell margins).
+            CellBorders? rowOverrideBorders = null;
+            BorderEdge? rowOverrideInsideH = null;
+            BorderEdge? rowOverrideInsideV = null;
+            CellSpacing? rowOverrideCellPadding = null;
+
+            var tblPrEx = row.GetFirstChild<TablePropertyExceptions>();
+            if (tblPrEx != null)
+            {
+                var exBorders = tblPrEx.GetFirstChild<TableBorders>();
+                if (exBorders != null)
+                {
+                    rowOverrideBorders = new()
+                    {
+                        Top = ParseBorderEdge(exBorders.GetFirstChild<TopBorder>()),
+                        Right = ParseBorderEdge(exBorders.GetFirstChild<RightBorder>()),
+                        Bottom = ParseBorderEdge(exBorders.GetFirstChild<BottomBorder>()),
+                        Left = ParseBorderEdge(exBorders.GetFirstChild<LeftBorder>())
+                    };
+
+                    var insideH = ParseBorderEdge(exBorders.GetFirstChild<InsideHorizontalBorder>());
+                    if (insideH.IsVisible)
+                    {
+                        rowOverrideInsideH = insideH;
+                    }
+
+                    var insideV = ParseBorderEdge(exBorders.GetFirstChild<InsideVerticalBorder>());
+                    if (insideV.IsVisible)
+                    {
+                        rowOverrideInsideV = insideV;
+                    }
+                }
+
+                var exCellMar = tblPrEx.GetFirstChild<TableCellMarginDefault>();
+                if (exCellMar != null)
+                {
+                    rowOverrideCellPadding = ParseTableCellMargin(exCellMar);
+                }
+            }
+
             rows.Add(
                 new()
                 {
                     Cells = cells,
                     HeightPoints = rowHeight,
                     IsExactHeight = isExactHeight,
-                    IsHeader = isHeader
+                    IsHeader = isHeader,
+                    OverrideBorders = rowOverrideBorders,
+                    OverrideInsideHBorder = rowOverrideInsideH,
+                    OverrideInsideVBorder = rowOverrideInsideV,
+                    OverrideCellPadding = rowOverrideCellPadding
                 });
         }
 
@@ -4499,6 +4566,7 @@ sealed class DocumentParser(string defaultFont)
                     {
                         return BlipColorEffect.Washout;
                     }
+
                     break;
             }
         }
@@ -6959,7 +7027,10 @@ sealed class DocumentParser(string defaultFont)
         // RunProperties record's static default (which is Georgia, the cross-platform fallback).
         if (props == null)
         {
-            return styleDefaults ?? new RunProperties {FontFamily = effectiveDefaultFont};
+            return styleDefaults ?? new RunProperties
+            {
+                FontFamily = effectiveDefaultFont
+            };
         }
 
         // Start with style defaults or built-in defaults
@@ -7265,7 +7336,10 @@ sealed class DocumentParser(string defaultFont)
         // collapse to the 11pt default. Variables render italic by default — Word's Cambria-Math
         // convention; numbers and operators stay upright (handled inside EmitMathRun).
         var context = runs.Count > 0 ? runs[^1].Properties : new();
-        WalkMath(mathElement, runs, context with {Italic = true});
+        WalkMath(mathElement, runs, context with
+        {
+            Italic = true
+        });
     }
 
     static void WalkMath(OpenXmlElement element, List<Run> runs, RunProperties props)
@@ -7283,7 +7357,11 @@ sealed class DocumentParser(string defaultFont)
                     var b = sSub.GetFirstChild<DocumentFormat.OpenXml.Math.Base>();
                     if (b != null) WalkMath(b, runs, props);
                     var sub = sSub.GetFirstChild<DocumentFormat.OpenXml.Math.SubArgument>();
-                    if (sub != null) WalkMath(sub, runs, props with {VerticalAlignment = VerticalRunAlignment.Subscript});
+                    if (sub != null)
+                        WalkMath(sub, runs, props with
+                        {
+                            VerticalAlignment = VerticalRunAlignment.Subscript
+                        });
                     break;
                 }
 
@@ -7292,7 +7370,11 @@ sealed class DocumentParser(string defaultFont)
                     var b = sSup.GetFirstChild<DocumentFormat.OpenXml.Math.Base>();
                     if (b != null) WalkMath(b, runs, props);
                     var sup = sSup.GetFirstChild<DocumentFormat.OpenXml.Math.SuperArgument>();
-                    if (sup != null) WalkMath(sup, runs, props with {VerticalAlignment = VerticalRunAlignment.Superscript});
+                    if (sup != null)
+                        WalkMath(sup, runs, props with
+                        {
+                            VerticalAlignment = VerticalRunAlignment.Superscript
+                        });
                     break;
                 }
 
@@ -7301,9 +7383,17 @@ sealed class DocumentParser(string defaultFont)
                     var b = sSubSup.GetFirstChild<DocumentFormat.OpenXml.Math.Base>();
                     if (b != null) WalkMath(b, runs, props);
                     var sub = sSubSup.GetFirstChild<DocumentFormat.OpenXml.Math.SubArgument>();
-                    if (sub != null) WalkMath(sub, runs, props with {VerticalAlignment = VerticalRunAlignment.Subscript});
+                    if (sub != null)
+                        WalkMath(sub, runs, props with
+                        {
+                            VerticalAlignment = VerticalRunAlignment.Subscript
+                        });
                     var sup = sSubSup.GetFirstChild<DocumentFormat.OpenXml.Math.SuperArgument>();
-                    if (sup != null) WalkMath(sup, runs, props with {VerticalAlignment = VerticalRunAlignment.Superscript});
+                    if (sup != null)
+                        WalkMath(sup, runs, props with
+                        {
+                            VerticalAlignment = VerticalRunAlignment.Superscript
+                        });
                     break;
                 }
 
@@ -7313,7 +7403,14 @@ sealed class DocumentParser(string defaultFont)
                     // layout the line engine doesn't model, so this is the closest we can get.
                     var num = frac.GetFirstChild<DocumentFormat.OpenXml.Math.Numerator>();
                     if (num != null) WalkMath(num, runs, props);
-                    runs.Add(new() {Text = "/", Properties = props with {Italic = false}});
+                    runs.Add(new()
+                    {
+                        Text = "/",
+                        Properties = props with
+                        {
+                            Italic = false
+                        }
+                    });
                     var den = frac.GetFirstChild<DocumentFormat.OpenXml.Math.Denominator>();
                     if (den != null) WalkMath(den, runs, props);
                     break;
@@ -7347,7 +7444,12 @@ sealed class DocumentParser(string defaultFont)
             runs.Add(new()
             {
                 Text = text,
-                Properties = isVariable ? props : props with {Italic = false}
+                Properties = isVariable
+                    ? props
+                    : props with
+                    {
+                        Italic = false
+                    }
             });
         }
     }
@@ -7424,6 +7526,7 @@ sealed class DocumentParser(string defaultFont)
                 return rgb.Val.Value;
             }
         }
+
         return null;
     }
 
@@ -7453,6 +7556,7 @@ sealed class DocumentParser(string defaultFont)
             // w14:alpha is in 1000ths of a percent (100000 = 100%).
             return alpha.Val.Value / 1000;
         }
+
         return null;
     }
 }

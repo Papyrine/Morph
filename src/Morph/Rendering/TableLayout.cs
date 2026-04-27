@@ -44,22 +44,23 @@ static class TableLayout
         return false;
     }
 
-    internal static CellSpacing GetEffectivePadding(TableCellProperties cellProps, TableProperties tableProps) =>
-        cellProps.Padding ?? tableProps.DefaultCellPadding;
+    internal static CellSpacing GetEffectivePadding(TableCellProperties cellProps, TableProperties tableProps, TableRow? row = null) =>
+        cellProps.Padding ?? row?.OverrideCellPadding ?? tableProps.DefaultCellPadding;
 
-    internal static CellSpacing GetEffectiveMargin(TableCellProperties cellProps, TableProperties tableProps) =>
+    internal static CellSpacing GetEffectiveMargin(TableCellProperties cellProps, TableProperties tableProps, TableRow? row = null) =>
         cellProps.Margin ?? tableProps.DefaultCellMargin;
 
-    internal static CellBorders? ResolveCellBorders(TableCellProperties cellProps, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols)
+    internal static CellBorders? ResolveCellBorders(TableCellProperties cellProps, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols, TableRow? row = null)
     {
         if (cellProps.Borders != null)
         {
             return cellProps.Borders;
         }
 
-        var outer = tableProps.DefaultBorders;
-        var insideH = tableProps.InsideHorizontalBorder;
-        var insideV = tableProps.InsideVerticalBorder;
+        // w:tblPrEx row-level overrides take precedence over the table's defaults.
+        var outer = row?.OverrideBorders ?? tableProps.DefaultBorders;
+        var insideH = row?.OverrideInsideHBorder ?? tableProps.InsideHorizontalBorder;
+        var insideV = row?.OverrideInsideVBorder ?? tableProps.InsideVerticalBorder;
 
         if (outer == null && insideH == null && insideV == null)
         {
