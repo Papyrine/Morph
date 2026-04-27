@@ -25,6 +25,9 @@ abstract class PageRendererBase(RenderContextBase context)
     /// <summary>Strokes the visible edges of <paramref name="borders"/> around the cell rectangle.</summary>
     protected abstract void DrawCellBorders(float pixelX, float pixelY, float pixelWidth, float pixelHeight, CellBorders borders);
 
+    /// <summary>Strokes the visible cell diagonals (<c>w:tl2br</c> / <c>w:tr2bl</c>) corner-to-corner.</summary>
+    protected abstract void DrawCellDiagonals(float pixelX, float pixelY, float pixelWidth, float pixelHeight, CellDiagonals diagonals);
+
     /// <summary>Renders a paragraph constrained to a bounded x/width region.</summary>
     protected abstract void RenderParagraphInBounds(ParagraphElement paragraph, float x, float maxWidth);
 
@@ -385,6 +388,12 @@ abstract class PageRendererBase(RenderContextBase context)
         if (borders != null)
         {
             DrawCellBorders(pixelX, pixelY, pixelWidth, pixelHeight, borders);
+        }
+
+        // Diagonals draw additively on top of whatever sides the cell ended up with.
+        if (cell.Properties.Diagonals is {HasAny: true} diagonals)
+        {
+            DrawCellDiagonals(pixelX, pixelY, pixelWidth, pixelHeight, diagonals);
         }
 
         if (cell.Properties.TextDirection != CellTextDirection.LeftToRight)

@@ -1052,13 +1052,16 @@ Cell-level flags selecting which `w:tblStylePr` block applies (first row, last r
 > **Contributors**: Cell- and row-level explicit `w:shd` / `w:tcBorders` win over conditional formatting. When a row/cell carries no `w:cnfStyle`, the cascade derives flags from grid position (firstRow, lastRow, firstColumn, lastColumn, banding) — but only for the conditions that `w:tblLook` permits (e.g. `w:noHBand="1"` suppresses horizontal banding). Run-property and paragraph-property overrides inside `w:tblStylePr` (bold, font colour, alignment) are not yet cascaded — that requires threading the active conditions into paragraph parsing.
 
 
-#### Diagonal Cell Borders `TODO`
+#### Diagonal Cell Borders `DONE`
 
-Diagonal lines drawn corner-to-corner inside a cell (top-left to bottom-right or top-right to bottom-left).
+Diagonal lines drawn corner-to-corner inside a cell (top-left to bottom-right or top-right to bottom-left). Applied additively on top of the four side borders, with their own colour and width.
 
-- **OOXML**: `w:tl2br`, `w:tr2bl` attributes within `w:tcBorders`
-- **Spec**: [TopLeftToBottomRightCellBorder](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.topleftatobottomrightcellborder)
-- **Source**: identified via scan in `src/missingTags.md`
+- **OOXML**: `w:tl2br`, `w:tr2bl` elements within `w:tcBorders`
+- **Spec**: [TopLeftToBottomRightCellBorder](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.topleftatobottomrightcellborder), [TopRightToBottomLeftCellBorder](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.toprighttobottomleftcellborder)
+- **Model**: `TableCellProperties.Diagonals` (a `CellDiagonals` record with `Down` and `Up` `BorderEdge`s) — kept separate from `CellBorders` so cell-level diagonals don't break the four-side cell→table cascade
+- **Parse**: `DocumentParser` reads the two diagonal children inside `w:tcBorders`. The four-side `cellBorders` is only materialised when at least one of `w:top`/`w:right`/`w:bottom`/`w:left` is explicitly present, so a diagonals-only cell still inherits `w:tblBorders` for its sides.
+- **Render**: `PageRendererBase.RenderTableCell` invokes `DrawCellDiagonals` after `DrawCellBorders`; both Skia and ImageSharp implementations stroke a corner-to-corner line for each visible diagonal.
+- **Test**: `TableDiagonalBordersTests` (unit + end-to-end against `Tests/Inputs/table_diagonal_borders/01`)
 
 
 #### Cell Spacing (Detached Borders) `DONE`
@@ -1084,22 +1087,45 @@ Prevents word-wrapping inside a cell — instead the column auto-fits to the lon
 - **Source**: identified via scan in `src/missingTags.md`
 
 
-#### Hide End-of-Cell Mark `TODO`
+#### Hide End-of-Cell Mark `DONE`
 
-Hides the trailing paragraph mark in an empty cell. Cosmetic but affects measured cell height when the cell is empty.
+Suppresses the end-of-cell paragraph mark for height measurement so an empty cell can collapse below one line of text. Only takes effect when the cell's only content is an empty paragraph; cells with real content ignore the flag.
 
 - **OOXML**: `w:hideMark` within `w:tcPr`
 - **Spec**: [HideMark](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.hidemark)
-- **Source**: identified via scan in `src/missingTags.md`
+- **Model**: `TableCellProperties.HideMark`
+- **Parse**: `DocumentParser` reads the presence of the element (no value to parse)
+- **Render**: `TableHeightCalculator.MeasureCellHeight` short-circuits to padding-only when `HideMark` is set and the cell holds a single empty paragraph
+- **Test**: `TableHideMarkTests`
 
 
-#### Row Banding Size `TODO`
+#### Row Banding Size `DONE`
 
 Number of rows per band when applying alternating row styles via a table style. Companion to the already-supported `w:tblStyleColBandSize`.
 
-- **OOXML**: `w:tblStyleRowBandSize` within `w:tblPr`
+- **OOXML**: `w:tblStyleRowBandSize` within the table style's `w:tblPr`
 - **Spec**: [TableStyleRowBandSize](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.tablestylerowbandsize)
-- **Source**: identified via scan in `src/missingTags.md`
+- **Model**: `TableStyleBorderInfo.RowBandSize`
+- **Parse**: `DocumentParser.ExtractTableStyleBorders` reads `w:tblStyleRowBandSize/@w:val` from the style-level `tblPr`
+- **Render**: `DerivePositionalFlags` divides `(rowIndex - 1) / rowBandSize` to assign `band1Horz` / `band2Horz` conditional flags during cnfStyle resolution
+
+
+#### Table Caption / Description `DONE`
+
+Accessibility metadata describing the table for screen readers and exported alt-text. Has no visual effect, so Morph reads neither value but acknowledges them as accepted.
+
+- **OOXML**: `w:tblCaption`, `w:tblDescription` within `w:tblPr`
+- **Spec**: [TableCaption](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.tablecaption), [TableDescription](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.tabledescription)
+- **Render**: no-op — both elements only matter for assistive-technology consumers
+
+
+#### Floating Table Overlap `DONE`
+
+Whether two floating tables on the same page may overlap. Only meaningful for floating tables (`w:tblpPr`); inline tables ignore it. Morph's floating-table support already lays each table out independently, so the flag is captured-but-unused.
+
+- **OOXML**: `w:tblOverlap` within `w:tblPr` (values: `overlap` / `never`)
+- **Spec**: [TableOverlap](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.tableoverlap)
+- **Render**: no-op — collision detection between floating tables isn't implemented; the rendered layout matches Word's `overlap=overlap` default
 
 ---
 
@@ -2190,7 +2216,7 @@ Read-only mode, form protection, and editing restrictions.
 | 1. Text Formatting | 19 | 0 | 10 | 29 |
 | 2. Paragraph Formatting | 19 | 0 | 4 | 23 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
-| 4. Tables | 21 | 0 | 4 | 25 |
+| 4. Tables | 26 | 0 | 1 | 27 |
 | 5. Page Layout & Sections | 19 | 0 | 0 | 19 |
 | 6. Graphics & Media | 22 | 0 | 3 | 25 |
 | 7. Form Controls | 10 | 0 | 1 | 11 |
@@ -2199,19 +2225,19 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 6 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 2 |
-| **Total** | **144** | **0** | **22** | **166** |
+| **Total** | **149** | **0** | **19** | **168** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 144
+    "Done" : 149
     "Partial" : 0
-    "Todo" : 22
+    "Todo" : 19
 ```
 
-**Overall coverage: ~86% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
+**Overall coverage: ~89% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
 
 
 Priority areas for future implementation:
@@ -2220,5 +2246,4 @@ Priority areas for future implementation:
 3. **Custom-XML data binding (`w:dataBinding`)** — populates SDT content from bound data islands.
 4. **Hidden text + run effects (`w:vanish`, `w:emboss`, `w:imprint`, `w:outline`, `w:bdr`, `w:position`)** — visible text-formatting gaps.
 5. **East Asian typography (`w:wordWrap`, `w:kinsoku`, `w:autoSpaceDE/DN`, `w:em`)** — required for correct CJK line-break and emphasis-mark rendering.
-6. **Diagonal cell borders (`w:tl2br`/`w:tr2bl`)** — table presentation gap.
-7. **Image adjustments (`a14:brightnessContrast`/`saturation`/…)** — picture-format filters from Word's "Adjustments" panel.
+6. **Image adjustments (`a14:brightnessContrast`/`saturation`/…)** — picture-format filters from Word's "Adjustments" panel.

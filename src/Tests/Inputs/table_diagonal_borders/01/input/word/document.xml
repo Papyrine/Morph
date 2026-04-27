@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+<w:body>
+<w:p>
+<w:r>
+<w:t>Diagonal cell borders (tl2br &amp; tr2bl):</w:t>
+</w:r>
+</w:p>
+<w:tbl>
+<w:tblPr>
+<w:tblW w:w="9000" w:type="dxa" />
+<w:tblBorders>
+<w:top w:val="single" w:sz="8" w:space="0" w:color="000000" />
+<w:left w:val="single" w:sz="8" w:space="0" w:color="000000" />
+<w:bottom w:val="single" w:sz="8" w:space="0" w:color="000000" />
+<w:right w:val="single" w:sz="8" w:space="0" w:color="000000" />
+<w:insideH w:val="single" w:sz="8" w:space="0" w:color="000000" />
+<w:insideV w:val="single" w:sz="8" w:space="0" w:color="000000" />
+</w:tblBorders>
+</w:tblPr>
+<w:tblGrid>
+<w:gridCol w:w="3000" />
+<w:gridCol w:w="3000" />
+<w:gridCol w:w="3000" />
+</w:tblGrid>
+<w:tr>
+<w:trPr>
+<w:trHeight w:val="800" w:hRule="atLeast" />
+</w:trPr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:w="3000" w:type="dxa" />
+<w:tcBorders>
+<w:tl2br w:val="single" w:sz="8" w:space="0" w:color="000000" />
+</w:tcBorders>
+</w:tcPr>
+<w:p>
+<w:r>
+<w:t>tl2br</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:w="3000" w:type="dxa" />
+<w:tcBorders>
+<w:tr2bl w:val="single" w:sz="8" w:space="0" w:color="000000" />
+</w:tcBorders>
+</w:tcPr>
+<w:p>
+<w:r>
+<w:t>tr2bl</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:w="3000" w:type="dxa" />
+<w:tcBorders>
+<w:tl2br w:val="single" w:sz="8" w:space="0" w:color="FF0000" />
+<w:tr2bl w:val="single" w:sz="8" w:space="0" w:color="0000FF" />
+</w:tcBorders>
+</w:tcPr>
+<w:p>
+<w:r>
+<w:t>both</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+</w:tbl>
+<w:p />
+<w:sectPr>
+<w:pgSz w:w="12240" w:h="15840" w:orient="portrait" />
+<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" />
+</w:sectPr>
+</w:body>
+</w:document>

@@ -80,11 +80,8 @@ Implementation notes:
 
 | Tag | Notes |
 |-----|-------|
-| `w:tl2br` / `w:tr2bl` | Diagonal cell border (attribute on `w:tcBorders`). Draw line corner-to-corner. |
-| `w:hideMark` | Hide end-of-cell paragraph mark — cosmetic but affects cell height measurement when cell is empty. |
-| `w:tblCaption` / `w:tblDescription` | Accessibility metadata — ignore for rendering. |
-| `w:tblOverlap` | Whether floating tables may overlap — ignore unless floating tables are implemented. |
-| `w:tblStyleRowBandSize` | Read into `TableStyleBorderInfo.RowBandSize`; cascade uses it for `band1Horz`/`band2Horz` derivation. Verify no further work needed. |
+<!-- Tables: all previously listed tags now implemented or accepted as no-ops. -->
+<!-- See docs/word-features.md (Tables section) for status. -->
 
 ### Legacy VML drawing (Word 2007-compat fallback and form controls)
 
@@ -248,11 +245,10 @@ Updated after the audit + recent feature work (see `docs/word-features.md` for t
 2. **Percentage-sized floating drawings** (`wp14:pctWidth`/`pctHeight`, `wp14:sizeRelH`/`sizeRelV`) — without these, percentage-scaled images may render at zero size.
 3. **Custom-XML data binding** (`w:dataBinding`) — populates SDT content from bound data islands.
 4. **Run formatting gaps**: `w:vanish` (skip), `w:position`, `w:bdr`, `w:em`, `w:emboss`, `w:imprint`, `w:outline`, plus `w14:textFill` (gradient text fill).
-5. **Diagonal cell borders + hideMark** (`w:tl2br`/`w:tr2bl`, `w:hideMark`) — table presentation gaps.
-6. **East Asian typography** (`w:wordWrap`, `w:kinsoku`, `w:autoSpaceDE/DN`, `w:em`).
-7. **Image adjustments** (`a14:brightnessContrast`, `a14:saturation`, etc.) — Word's "Picture Format → Adjustments" filters.
-8. **Chart rendering beyond placeholder** — currently renders as empty space matching the drawing extent; either ship a minimal renderer or surface an `mc:Fallback` thumbnail.
+5. **East Asian typography** (`w:wordWrap`, `w:kinsoku`, `w:autoSpaceDE/DN`, `w:em`).
+6. **Image adjustments** (`a14:brightnessContrast`, `a14:saturation`, etc.) — Word's "Picture Format → Adjustments" filters.
+7. **Chart rendering beyond placeholder** — currently renders as empty space matching the drawing extent; either ship a minimal renderer or surface an `mc:Fallback` thumbnail.
 
 Recently completed (no longer on the list):
 
-- `w:hyperlink`, footnotes / endnotes, `w:tblPrEx`, `w:cnfStyle`, `w:tblHeader`, `w:tblCellSpacing` (detached-border model, verified via `Tests/Inputs/table_cell_spacing/01`), `w:smallCaps`, `w:dstrike`, `w:kern`, `w14:textOutline` / `glow` / `shadow` / `reflection`, custom tab stops, gradient shape fills (`a:gradFill`), image crop (`a:srcRect`), image rotation, even/odd page headers + footers (verified end-to-end via `Tests/Inputs/even_odd_headers/02`).
+- `w:hyperlink`, footnotes / endnotes, `w:tblPrEx`, `w:cnfStyle`, `w:tblHeader`, `w:tblCellSpacing` (detached-border model, verified via `Tests/Inputs/table_cell_spacing/01`), `w:tl2br` / `w:tr2bl` diagonal cell borders (verified via `Tests/Inputs/table_diagonal_borders/01`), `w:hideMark`, `w:tblCaption` / `w:tblDescription` (accessibility metadata, no-op), `w:tblOverlap` (floating-table-only, no-op for inline), `w:smallCaps`, `w:dstrike`, `w:kern`, `w14:textOutline` / `glow` / `shadow` / `reflection`, custom tab stops, gradient shape fills (`a:gradFill`), image crop (`a:srcRect`), image rotation, even/odd page headers + footers (verified end-to-end via `Tests/Inputs/even_odd_headers/02`).

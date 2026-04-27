@@ -165,6 +165,13 @@ static class TableHeightCalculator
         var contentWidth = cellWidth - (float) (padding.Horizontal + margin.Horizontal);
         var height = (float) (padding.Vertical + margin.Vertical);
 
+        // w:hideMark: when the cell's only content is an empty end-of-cell paragraph mark,
+        // suppress its height contribution so the cell can collapse below one line of text.
+        if (cell.Properties.HideMark && IsOnlyEmptyParagraph(cell.Content))
+        {
+            return height;
+        }
+
         // Collect paragraphs (and content-control wrappers) so we know first/last for spacing collapse.
         var paragraphs = new List<(ParagraphElement para, float bulletIndent)>();
         foreach (var element in cell.Content)
@@ -251,6 +258,16 @@ static class TableHeightCalculator
         }
 
         return height;
+    }
+
+    static bool IsOnlyEmptyParagraph(IReadOnlyList<DocumentElement> content)
+    {
+        if (content.Count != 1)
+        {
+            return false;
+        }
+
+        return content[0] is ParagraphElement {Runs: {Count: 0}};
     }
 
     /// <summary>
