@@ -1061,13 +1061,18 @@ Diagonal lines drawn corner-to-corner inside a cell (top-left to bottom-right or
 - **Source**: identified via scan in `src/missingTags.md`
 
 
-#### Cell Spacing (Detached Borders) `TODO`
+#### Cell Spacing (Detached Borders) `DONE`
 
-Non-zero spacing between adjacent cells, producing the "detached" border layout where each cell has its own visible outline with gaps in between.
+Non-zero spacing between adjacent cells, producing the "detached" border layout where each cell has its own visible outline with gaps in between, plus an outer frame around the whole table.
 
-- **OOXML**: `w:tblCellSpacing` within `w:tblPr`
+- **OOXML**: `w:tblCellSpacing` within `w:tblPr` (or on the table style's `w:tblPr`)
 - **Spec**: [TableCellSpacing](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.tablecellspacing)
-- **Source**: identified via scan in `src/missingTags.md`
+- **Model**: `TableProperties.CellSpacingPoints` (in points; non-zero switches the table to detached-border mode)
+- **Parse**: `DocumentParser.ReadTableCellSpacing` reads `w:tblCellSpacing/@w:w` (twips → points), honours only `type="dxa"`. Falls back to the table style's value when the document doesn't specify its own.
+- **Render**: `TableLayout.ResolveCellBorders` returns the table's outer borders on all four edges of every cell when spacing is set; `RenderTableCell` insets each cell box by `CellSpacingPoints` on every side; `TableHeightCalculator.CalculateRowHeights` adds `2 * CellSpacingPoints` to each row's slot so the gaps show vertically; `RenderTableRows` draws an explicit outer frame at the table boundary to match Word's rendering.
+- **Test**: `TableCellSpacingTests` (unit + end-to-end against `Tests/Inputs/table_cell_spacing/01`)
+
+> **Contributors**: ECMA-376 §17.4.43 says the value applies as additional cell margin on every side, so the visible gap between two adjacent cells is `2 × CellSpacingPoints` (one half from each cell). The corpus only uses cellSpacing inside `TableWeb*` table-style definitions; no document.xml overrides it directly. Style-level cellSpacing is captured in `TableStyleBorderInfo.CellSpacingPoints` and surfaced when the document doesn't specify its own.
 
 
 #### Cell No-Wrap `TODO`
@@ -2185,7 +2190,7 @@ Read-only mode, form protection, and editing restrictions.
 | 1. Text Formatting | 19 | 0 | 10 | 29 |
 | 2. Paragraph Formatting | 19 | 0 | 4 | 23 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
-| 4. Tables | 20 | 0 | 5 | 25 |
+| 4. Tables | 21 | 0 | 4 | 25 |
 | 5. Page Layout & Sections | 19 | 0 | 0 | 19 |
 | 6. Graphics & Media | 22 | 0 | 3 | 25 |
 | 7. Form Controls | 10 | 0 | 1 | 11 |
@@ -2194,16 +2199,16 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 6 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 2 |
-| **Total** | **143** | **0** | **23** | **166** |
+| **Total** | **144** | **0** | **22** | **166** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 143
+    "Done" : 144
     "Partial" : 0
-    "Todo" : 23
+    "Todo" : 22
 ```
 
 **Overall coverage: ~86% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
@@ -2215,5 +2220,5 @@ Priority areas for future implementation:
 3. **Custom-XML data binding (`w:dataBinding`)** — populates SDT content from bound data islands.
 4. **Hidden text + run effects (`w:vanish`, `w:emboss`, `w:imprint`, `w:outline`, `w:bdr`, `w:position`)** — visible text-formatting gaps.
 5. **East Asian typography (`w:wordWrap`, `w:kinsoku`, `w:autoSpaceDE/DN`, `w:em`)** — required for correct CJK line-break and emphasis-mark rendering.
-6. **Diagonal cell borders + cell spacing (`w:tl2br`/`w:tr2bl`, `w:tblCellSpacing`)** — table presentation gaps.
+6. **Diagonal cell borders (`w:tl2br`/`w:tr2bl`)** — table presentation gap.
 7. **Image adjustments (`a14:brightnessContrast`/`saturation`/…)** — picture-format filters from Word's "Adjustments" panel.

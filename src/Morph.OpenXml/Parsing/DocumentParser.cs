@@ -1748,6 +1748,10 @@ sealed class DocumentParser(string defaultFont)
                 }
             }
 
+            // w:tblCellSpacing on the style-level tblPr propagates to every table that
+            // references the style (TableWeb1/2/3 etc. all use this for HTML-style detached borders).
+            var styleCellSpacing = ReadTableCellSpacing(tblPr);
+
             // Whole-table cell shading lives on the style's StyleTableCellProperties (the
             // <w:tcPr> that's a direct child of <w:style>, distinct from
             // StyleTableProperties which holds <w:tblPr>). All cells inherit this fill
@@ -1790,9 +1794,9 @@ sealed class DocumentParser(string defaultFont)
                 conditionals[type.Value] = new(condBorders, condShading);
             }
 
-            if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || wholeTableShading != null || conditionals != null)
+            if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || wholeTableShading != null || conditionals != null || styleCellSpacing > 0)
             {
-                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, conditionals);
+                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, styleCellSpacing, conditionals);
             }
         }
 
@@ -3231,6 +3235,14 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        // Parse w:tblCellSpacing — non-zero switches the table to the detached-border model.
+        // Falls back to the table style's tblCellSpacing when the document doesn't override.
+        var cellSpacingPoints = ReadTableCellSpacing(tableProps);
+        if (cellSpacingPoints == 0)
+        {
+            cellSpacingPoints = styleInfo?.CellSpacingPoints ?? 0;
+        }
+
         // Parse table layout type (w:tblPr/w:tblLayout/@type)
         var isAutoFit = true;
         var tableLayoutEl = tableProps?.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.TableLayout>();
@@ -3277,9 +3289,38 @@ sealed class DocumentParser(string defaultFont)
                 IndentPoints = indentPoints,
                 GridColumnWidths = gridColumnWidths,
                 Alignment = alignment,
-                IsAutoFit = isAutoFit
+                IsAutoFit = isAutoFit,
+                CellSpacingPoints = cellSpacingPoints
             }
         };
+    }
+
+    /// <summary>
+    /// Reads <c>w:tblCellSpacing</c> from the given properties container (either
+    /// <c>w:tblPr</c> or its style equivalent). Returns 0 when absent.
+    /// </summary>
+    static double ReadTableCellSpacing(OpenXmlElement? container)
+    {
+        var spacing = container?.GetFirstChild<TableCellSpacing>();
+        if (spacing?.Width?.Value is not { } widthStr)
+        {
+            return 0;
+        }
+
+        if (!double.TryParse(widthStr, NumberStyles.Float, CultureInfo.InvariantCulture, out var twips))
+        {
+            return 0;
+        }
+
+        // Only honour explicit dxa values. pct/auto/nil aren't modelled — treating them as 0
+        // matches Word's behaviour for non-positive cell spacing (no detached-border switch).
+        var type = spacing.Type?.Value;
+        if (type != null && type != TableWidthUnitValues.Dxa)
+        {
+            return 0;
+        }
+
+        return twips / twipsPerPoint;
     }
 
     internal static CellSpacing? ParseTableCellMargin(TableCellMarginDefault margin)

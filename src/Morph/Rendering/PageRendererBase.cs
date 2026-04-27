@@ -139,6 +139,20 @@ abstract class PageRendererBase(RenderContextBase context)
         }
     }
 
+    /// <summary>
+    /// Draws the table's outer border as a single rectangle at the table boundary.
+    /// Used only for the detached-border model (<c>w:tblCellSpacing</c> &gt; 0) where Word
+    /// places this frame around the whole grid in addition to each cell's own borders.
+    /// </summary>
+    void DrawTableOuterFrame(float x, float y, float width, float height, CellBorders borders)
+    {
+        var pixelX = context.PointsToPixels(x);
+        var pixelY = context.PointsToPixels(y);
+        var pixelWidth = context.PointsToPixels(width);
+        var pixelHeight = context.PointsToPixels(height);
+        DrawCellBorders(pixelX, pixelY, pixelWidth, pixelHeight, borders);
+    }
+
     protected float ComputeTableX(TableElement table, float[] colWidths)
     {
         var contentLeft = context.ContentLeft;
@@ -160,6 +174,15 @@ abstract class PageRendererBase(RenderContextBase context)
     {
         var tableX = ComputeTableX(table, colWidths);
         var startY = context.CurrentY;
+
+        // Detached-border model also needs Word's outer frame around the whole table —
+        // each cell renders its own borders inset by cellSpacing, but Word draws an extra
+        // rectangle at the table's outer boundary so the frame and the cell borders show
+        // a visible gap between them.
+        if (table.Properties.CellSpacingPoints > 0 && table.Properties.DefaultBorders is { } outer)
+        {
+            DrawTableOuterFrame(tableX, startY, colWidths.Sum(), rowHeights.Sum(), outer);
+        }
 
         if (hasVerticalMerge)
         {
@@ -338,10 +361,15 @@ abstract class PageRendererBase(RenderContextBase context)
         var padding = TableLayout.GetEffectivePadding(cell.Properties, tableProps, row);
         var margin = TableLayout.GetEffectiveMargin(cell.Properties, tableProps);
 
-        var cellX = x + (float) margin.Left;
-        var cellY = y + (float) margin.Top;
-        var cellWidth = width - (float) margin.Horizontal;
-        var cellHeight = height - (float) margin.Vertical;
+        // w:tblCellSpacing puts a margin around each cell box, producing the detached-border
+        // model where adjacent cells appear as separate rectangles with visible gaps. The
+        // gap between two adjacent cells is 2 × CellSpacingPoints (one side from each cell).
+        var spacing = (float) tableProps.CellSpacingPoints;
+
+        var cellX = x + (float) margin.Left + spacing;
+        var cellY = y + (float) margin.Top + spacing;
+        var cellWidth = width - (float) margin.Horizontal - 2 * spacing;
+        var cellHeight = height - (float) margin.Vertical - 2 * spacing;
 
         var pixelX = context.PointsToPixels(cellX);
         var pixelY = context.PointsToPixels(cellY);

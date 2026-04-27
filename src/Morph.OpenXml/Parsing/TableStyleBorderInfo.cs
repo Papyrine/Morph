@@ -19,4 +19,5 @@ sealed record TableStyleBorderInfo(
     string? BackgroundColorHex,
     int RowBandSize,
     int ColBandSize,
+    double CellSpacingPoints,
     Dictionary<TableStyleOverrideValues, ConditionalFormat>? Conditionals);

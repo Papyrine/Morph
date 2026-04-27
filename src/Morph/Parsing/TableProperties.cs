@@ -39,4 +39,14 @@ sealed record TableProperties
     /// When false, column widths are taken verbatim from <see cref="GridColumnWidths"/>.
     /// </summary>
     public bool IsAutoFit { get; init; } = true;
+
+    /// <summary>
+    /// Cell spacing in points (from <c>w:tblCellSpacing</c>). When non-zero, switches the
+    /// table to the "detached border" model — each cell renders inside a box shrunk by
+    /// <see cref="CellSpacingPoints"/> on every edge, producing visible gaps of
+    /// <c>2 * CellSpacingPoints</c> between adjacent cells. Per ECMA-376 §17.4.44 the value
+    /// applies as additional padding on each side of every cell, so the visible gap
+    /// between two cells is twice this value.
+    /// </summary>
+    public double CellSpacingPoints { get; init; }
 }
