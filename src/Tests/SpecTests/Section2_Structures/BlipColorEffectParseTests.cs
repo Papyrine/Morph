@@ -1,4 +1,3 @@
-using DocumentFormat.OpenXml;
 using A = DocumentFormat.OpenXml.Drawing;
 
 public class BlipColorEffectParseTests
@@ -13,7 +12,7 @@ public class BlipColorEffectParseTests
         var blip = new A.Blip();
         blip.AppendChild(new A.Grayscale());
 
-        var result = InvokeReader(blip);
+        var result = DocumentParser.ReadBlipColorEffect(blip);
 
         await Assert.That(result).IsEqualTo(BlipColorEffect.Grayscale);
     }
@@ -24,7 +23,7 @@ public class BlipColorEffectParseTests
         var blip = new A.Blip();
         blip.AppendChild(new A.Duotone());
 
-        var result = InvokeReader(blip);
+        var result = DocumentParser.ReadBlipColorEffect(blip);
 
         await Assert.That(result).IsEqualTo(BlipColorEffect.Duotone);
     }
@@ -35,7 +34,7 @@ public class BlipColorEffectParseTests
         var blip = new A.Blip();
         blip.AppendChild(new A.LuminanceEffect {Brightness = 70000});
 
-        var result = InvokeReader(blip);
+        var result = DocumentParser.ReadBlipColorEffect(blip);
 
         await Assert.That(result).IsEqualTo(BlipColorEffect.Washout);
     }
@@ -46,7 +45,7 @@ public class BlipColorEffectParseTests
         var blip = new A.Blip();
         blip.AppendChild(new A.LuminanceEffect {Brightness = -30000});
 
-        var result = InvokeReader(blip);
+        var result = DocumentParser.ReadBlipColorEffect(blip);
 
         await Assert.That(result).IsEqualTo(BlipColorEffect.None);
     }
@@ -57,7 +56,7 @@ public class BlipColorEffectParseTests
         var blip = new A.Blip();
         blip.AppendChild(new A.BiLevel {Threshold = 50000});
 
-        var result = InvokeReader(blip);
+        var result = DocumentParser.ReadBlipColorEffect(blip);
 
         await Assert.That(result).IsEqualTo(BlipColorEffect.None);
     }
@@ -65,7 +64,7 @@ public class BlipColorEffectParseTests
     [Test]
     public async Task ReturnsNoneForEmptyBlip()
     {
-        var result = InvokeReader(new A.Blip());
+        var result = DocumentParser.ReadBlipColorEffect(new A.Blip());
 
         await Assert.That(result).IsEqualTo(BlipColorEffect.None);
     }
@@ -73,13 +72,8 @@ public class BlipColorEffectParseTests
     [Test]
     public async Task ReturnsNoneWhenBlipNull()
     {
-        var result = InvokeReader(null);
+        var result = DocumentParser.ReadBlipColorEffect(null);
 
         await Assert.That(result).IsEqualTo(BlipColorEffect.None);
     }
-
-    static BlipColorEffect InvokeReader(OpenXmlElement? blip) =>
-        (BlipColorEffect) typeof(DocumentParser)
-            .GetMethod("ReadBlipColorEffect", BindingFlags.Static | BindingFlags.NonPublic)!
-            .Invoke(null, [blip])!;
 }
