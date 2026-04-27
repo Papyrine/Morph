@@ -1882,6 +1882,14 @@ sealed class DocumentParser(string defaultFont)
     /// lastRow → firstRow → seCell → swCell → neCell → nwCell.
     /// </para>
     /// </summary>
+    /// <param name="flags">Explicit <c>w:cnfStyle</c> flags from the row, cell, or paragraph. When
+    /// <see cref="ConditionalFormatFlags.None"/>, flags are derived from the cell's grid position.</param>
+    /// <param name="rowIndex">Zero-based row index of the cell within the table.</param>
+    /// <param name="colIndex">Zero-based column index of the cell within the row.</param>
+    /// <param name="totalRows">Total number of rows in the table.</param>
+    /// <param name="totalCols">Total number of columns in the row.</param>
+    /// <param name="rowBandSize">Row band size from <c>w:tblStylePr</c> (rows per horizontal band).</param>
+    /// <param name="colBandSize">Column band size from <c>w:tblStylePr</c> (columns per vertical band).</param>
     /// <param name="tableLookMask">Subset of conditions that the table's <c>w:tblLook</c>
     /// allows to be auto-derived from cell position. Explicit <c>w:cnfStyle</c> is always
     /// honoured regardless of this mask. Word writes the <c>w:tblLook</c> bits to indicate
