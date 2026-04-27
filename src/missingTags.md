@@ -243,13 +243,17 @@ Implementation notes: if fonts aren't resolving well, reading `w:altName` (subst
 
 ## Top candidates to implement next
 
-1. **`w:hyperlink`** — trivial wrapper; ubiquitous in every real document.
-2. **Footnotes / endnotes** (`w:footnote*`, `w:endnote*`, `w:footnoteRef`, separators) — currently silently dropped.
-3. **VML shape family** (`v:shape`, `v:shapetype`, `v:line`, `v:rect`, `v:roundrect`, `v:textbox`, `v:imagedata` + `w10:wrap`) — required for legacy docs, signatures, many header/footer decorations.
-4. **Charts** (`c:*` / `cs:*`) — either a minimal chart renderer or a fallback that surfaces the chart's embedded thumbnail image.
-5. **Table enhancements**: `w:tblPrEx`, `w:cnfStyle`, `w:tl2br`/`w:tr2bl`, `w:tblHeader`, `w:tblCellSpacing`.
-6. **Percentage-sized floating drawings** (`wp14:pctWidth`/`pctHeight`, `wp14:sizeRelH`/`sizeRelV`).
-7. **Run formatting**: `w:smallCaps`, `w:dstrike`, `w:vanish` (skip), `w:kern`, `w:position`, `w:bdr`, `w:em`, plus `w14:textFill`/`textOutline`/`glow`/`shadow`.
-8. **Custom tab stops** (`w:tabs`/`w:tab` inside `w:pPr`) — affects indentation fidelity.
-9. **Gradient fills** (`a:gradFill` + `a:gs`/`a:lin`) — widely used for shape backgrounds.
-10. **Image crop / adjustments** (`a:srcRect`, `a14:brightnessContrast`, `a14:saturation`, etc.).
+Updated after the audit + recent feature work (see `docs/word-features.md` for the canonical status).
+
+1. **VML shape family** (`v:shape`, `v:shapetype`, `v:line`, `v:rect`, `v:roundrect`, `v:textbox`, `v:imagedata` + `w10:wrap`) — required for legacy docs, signatures, many header/footer decorations.
+2. **Percentage-sized floating drawings** (`wp14:pctWidth`/`pctHeight`, `wp14:sizeRelH`/`sizeRelV`) — without these, percentage-scaled images may render at zero size.
+3. **Custom-XML data binding** (`w:dataBinding`) — populates SDT content from bound data islands.
+4. **Run formatting gaps**: `w:vanish` (skip), `w:position`, `w:bdr`, `w:em`, `w:emboss`, `w:imprint`, `w:outline`, plus `w14:textFill` (gradient text fill).
+5. **Diagonal cell borders + cell spacing** (`w:tl2br`/`w:tr2bl`, `w:tblCellSpacing`, `w:hideMark`) — table presentation gaps.
+6. **East Asian typography** (`w:wordWrap`, `w:kinsoku`, `w:autoSpaceDE/DN`, `w:em`).
+7. **Image adjustments** (`a14:brightnessContrast`, `a14:saturation`, etc.) — Word's "Picture Format → Adjustments" filters.
+8. **Chart rendering beyond placeholder** — currently renders as empty space matching the drawing extent; either ship a minimal renderer or surface an `mc:Fallback` thumbnail.
+
+Recently completed (no longer on the list):
+
+- `w:hyperlink`, footnotes / endnotes, `w:tblPrEx`, `w:cnfStyle`, `w:tblHeader`, `w:smallCaps`, `w:dstrike`, `w:kern`, `w14:textOutline` / `glow` / `shadow` / `reflection`, custom tab stops, gradient shape fills (`a:gradFill`), image crop (`a:srcRect`), image rotation, even/odd page headers + footers (verified end-to-end via `Tests/Inputs/even_odd_headers/02`).
