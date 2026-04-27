@@ -390,16 +390,6 @@ Raises or lowers a run relative to the baseline without resizing. Distinct from 
 - **Source**: identified via scan in `src/missingTags.md`
 
 
-#### Complex Script Highlight `TODO`
-
-Highlight applied to complex-script runs.
-
-- **OOXML**: `w:highlightCs`
-- **Source**: identified via scan in `src/missingTags.md`
-
-> **AI**: Parse the same way as `w:highlight`; share the rendering path.
-
-
 ### 1.3 Text Effects
 
 
@@ -2192,7 +2182,7 @@ Read-only mode, form protection, and editing restrictions.
 
 | Category | Done | Partial | Todo | Total |
 |----------|------|---------|------|-------|
-| 1. Text Formatting | 19 | 0 | 11 | 30 |
+| 1. Text Formatting | 19 | 0 | 10 | 29 |
 | 2. Paragraph Formatting | 19 | 0 | 4 | 23 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
 | 4. Tables | 20 | 0 | 5 | 25 |
@@ -2204,7 +2194,7 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 6 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 2 |
-| **Total** | **143** | **0** | **24** | **167** |
+| **Total** | **143** | **0** | **23** | **166** |
 
 
 ### Coverage
@@ -2213,7 +2203,7 @@ Read-only mode, form protection, and editing restrictions.
 pie title Feature Implementation Status
     "Done" : 143
     "Partial" : 0
-    "Todo" : 24
+    "Todo" : 23
 ```
 
 **Overall coverage: ~86% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.

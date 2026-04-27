@@ -49,7 +49,6 @@ Implementation notes:
 | `w:kern` | Kerning threshold in half-points; only kern fonts ≥ value. Most engines kern by default — wire into typography settings. |
 | `w:position` | Baseline shift in half-points (+up, -down). Distinct from `w:vertAlign` (super/sub with resize). |
 | `w:bdr` | Per-run border — draw rectangle around the run's measured box. |
-| `w:highlightCs` | Complex-script highlight — parse the same as `w:highlight`. |
 | `w14:textFill` | Gradient/pattern text fill (contains `w14:solidFill`/`w14:gradFill`). |
 | `w14:textOutline` | Text outline stroke colour/width. |
 | `w14:glow` | Outer glow — radius + colour. |
