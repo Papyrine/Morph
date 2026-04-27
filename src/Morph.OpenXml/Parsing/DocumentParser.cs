@@ -1748,7 +1748,10 @@ sealed class DocumentParser(string defaultFont)
                 }
             }
 
-            // Whole-table cell shading lives on the style's StyleTableCellProperties.
+            // Whole-table cell shading lives on the style's StyleTableCellProperties (the
+            // <w:tcPr> that's a direct child of <w:style>, distinct from
+            // StyleTableProperties which holds <w:tblPr>). All cells inherit this fill
+            // unless a more-specific conditional region or an explicit cell w:shd overrides.
             var wholeTableShading = ReadShadingFill(style.StyleTableCellProperties?.GetFirstChild<Shading>());
 
             // Parse conditional formatting (tblStylePr) for border + shading overrides
@@ -1869,10 +1872,17 @@ sealed class DocumentParser(string defaultFont)
     /// Returns the conditional regions that apply to a given cell, in cascade order
     /// (lowest priority first). Caller cascades borders / shading by overlaying each
     /// region's value onto the running result.
+    /// <para>
+    /// ECMA-376 priority (low → high), which this method emits in order:
+    /// wholeTable (caller's base) → bandHoriz → bandVert → lastCol → firstCol →
+    /// lastRow → firstRow → seCell → swCell → neCell → nwCell.
+    /// </para>
     /// </summary>
     /// <param name="tableLookMask">Subset of conditions that the table's <c>w:tblLook</c>
     /// allows to be auto-derived from cell position. Explicit <c>w:cnfStyle</c> is always
-    /// honoured regardless of this mask.</param>
+    /// honoured regardless of this mask. Word writes the <c>w:tblLook</c> bits to indicate
+    /// "treat this row as the header" / "no banding" — without honouring it Morph applies
+    /// banding shading to tables Word renders un-banded (see <c>cards/09</c>).</param>
     internal static IEnumerable<TableStyleOverrideValues> ResolveActiveConditions(
         ConditionalFormatFlags flags,
         int rowIndex,
@@ -3019,11 +3029,18 @@ sealed class DocumentParser(string defaultFont)
                 }
 
                 // Apply conditional table-style formatting (w:cnfStyle / w:tblStylePr cascade).
-                // Cell- and row-level explicit overrides win over conditional formatting.
+                // Cell- and row-level explicit overrides (w:tcBorders / w:shd on the cell) still
+                // win — they're applied above by leaving cellBorders / bgColor non-null.
+                //
+                // Word distributes cnfStyle across both row and cell: the row carries row-spanning
+                // flags (firstRow / lastRow / oddHBand / evenHBand) and the cell carries
+                // cell-spanning flags (firstColumn / lastColumn / corner cells). ORing the two is
+                // exactly what Word's renderer does — the cell at (0,0) of a styled table ends up
+                // with firstRow ∪ firstColumn ∪ nwCell, all from a single OR.
                 if (styleInfo != null)
                 {
                     var cellFlags = ParseConditionalFormatFlags(cellProps?.GetFirstChild<ConditionalFormatStyle>());
-                    var effectiveFlags = cellFlags == ConditionalFormatFlags.None ? rowFlags : cellFlags | rowFlags;
+                    var effectiveFlags = cellFlags | rowFlags;
 
                     var conditionalBorders = (CellBorders?) null;
                     var conditionalShading = styleInfo.BackgroundColorHex;

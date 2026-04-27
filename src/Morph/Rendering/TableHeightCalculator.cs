@@ -152,7 +152,7 @@ static class TableHeightCalculator
         TableRow? row = null)
     {
         var padding = TableLayout.GetEffectivePadding(cell.Properties, tableProps, row);
-        var margin = TableLayout.GetEffectiveMargin(cell.Properties, tableProps, row);
+        var margin = TableLayout.GetEffectiveMargin(cell.Properties, tableProps);
 
         if (cell.Properties.TextDirection != CellTextDirection.LeftToRight)
         {

@@ -123,4 +123,82 @@ public class ConditionalFormattingTests
                 .Because("BlueCurveMinutesTable firstRow shading should cascade onto header cells");
         }
     }
+
+    /// <summary>
+    /// Wholetable shading defined on the table style's <c>StyleTableCellProperties</c>
+    /// should apply to body cells that have no explicit shd and no conditional override.
+    /// In agendas-minutes/15 the BlueCurveMinutesTable wholeTable region defines fill
+    /// <c>ECF2DA</c>, so body rows should inherit it.
+    /// </summary>
+    [Test]
+    public async Task DocumentParser_AppliesWholeTableShadingToBodyCells()
+    {
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "agendas-minutes", "15", "input.docx");
+
+        var parser = new DocumentParser();
+        var doc = parser.Parse(inputFile);
+
+        var table = doc.Elements.OfType<TableElement>().Skip(1).First();
+
+        // Row 1 (first body row) should have wholeTable fill.
+        await Assert.That(table.Rows[1].Cells[0].Properties.BackgroundColorHex)
+            .IsEqualTo("ECF2DA")
+            .Because("body cells without explicit shd should inherit BlueCurveMinutesTable's wholeTable fill");
+    }
+
+    [Test]
+    public async Task ParseTableLookMask_NullReturnsAllConditions()
+    {
+        var mask = DocumentParser.ParseTableLookMask(null);
+
+        await Assert.That(mask).IsEqualTo(ConditionalFormatFlagsExtensions.AllConditions);
+    }
+
+    [Test]
+    public async Task ParseTableLookMask_FirstRowDisabledByDefault()
+    {
+        // Word's default tblLook has every flag explicitly false; only those Word writers
+        // bump up to "1" should be derivable from position.
+        var look = new TableLook { FirstRow = false, LastRow = false, FirstColumn = false, LastColumn = false };
+
+        var mask = DocumentParser.ParseTableLookMask(look);
+
+        await Assert.That(mask & ConditionalFormatFlags.FirstRow).IsEqualTo(ConditionalFormatFlags.None);
+        await Assert.That(mask & ConditionalFormatFlags.LastRow).IsEqualTo(ConditionalFormatFlags.None);
+    }
+
+    [Test]
+    public async Task ParseTableLookMask_NoBandingFlagsSuppressBanding()
+    {
+        // cards/09 ships w:tblLook w:noHBand="1" w:noVBand="1" — banding must be off,
+        // even though firstRow / firstColumn are still derivable.
+        var look = new TableLook { FirstRow = true, NoHorizontalBand = true, NoVerticalBand = true };
+
+        var mask = DocumentParser.ParseTableLookMask(look);
+
+        await Assert.That(mask & ConditionalFormatFlags.OddHBand).IsEqualTo(ConditionalFormatFlags.None);
+        await Assert.That(mask & ConditionalFormatFlags.EvenHBand).IsEqualTo(ConditionalFormatFlags.None);
+        await Assert.That(mask & ConditionalFormatFlags.OddVBand).IsEqualTo(ConditionalFormatFlags.None);
+        await Assert.That(mask & ConditionalFormatFlags.EvenVBand).IsEqualTo(ConditionalFormatFlags.None);
+        await Assert.That(mask & ConditionalFormatFlags.FirstRow).IsEqualTo(ConditionalFormatFlags.FirstRow);
+    }
+
+    [Test]
+    public async Task ResolveActiveConditions_MaskSuppressesPositionalBanding()
+    {
+        // No explicit cnfStyle, body row 1 with rowBandSize=1 would normally derive OddHBand,
+        // but a tableLookMask without OddHBand should drop it entirely.
+        var maskWithoutBanding = ConditionalFormatFlagsExtensions.AllConditions
+            & ~(ConditionalFormatFlags.OddHBand | ConditionalFormatFlags.EvenHBand);
+
+        var conditions = DocumentParser.ResolveActiveConditions(
+            ConditionalFormatFlags.None,
+            rowIndex: 1, colIndex: 1,
+            totalRows: 5, totalCols: 4,
+            rowBandSize: 1, colBandSize: 1,
+            tableLookMask: maskWithoutBanding).ToList();
+
+        await Assert.That(conditions).DoesNotContain(TableStyleOverrideValues.Band1Horizontal);
+        await Assert.That(conditions).DoesNotContain(TableStyleOverrideValues.Band2Horizontal);
+    }
 }

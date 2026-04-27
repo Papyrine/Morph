@@ -44,10 +44,23 @@ static class TableLayout
         return false;
     }
 
+    /// <summary>
+    /// Resolves the effective cell padding ("cell margin" in Word's UI). OOXML's
+    /// <c>w:tblCellMar</c> appears at three scopes: table-level default
+    /// (<see cref="TableProperties.DefaultCellPadding"/>), row-level override via
+    /// <c>w:tblPrEx</c> (<see cref="TableRow.OverrideCellPadding"/>), and per-cell
+    /// <c>w:tcMar</c> (<see cref="TableCellProperties.Padding"/>). Cell wins, then row, then table.
+    /// </summary>
     internal static CellSpacing GetEffectivePadding(TableCellProperties cellProps, TableProperties tableProps, TableRow? row = null) =>
         cellProps.Padding ?? row?.OverrideCellPadding ?? tableProps.DefaultCellPadding;
 
-    internal static CellSpacing GetEffectiveMargin(TableCellProperties cellProps, TableProperties tableProps, TableRow? row = null) =>
+    /// <summary>
+    /// Cell margin (the gap *outside* the border). OOXML doesn't expose a row-level override
+    /// for this — <c>w:tblPrEx</c> only carries <c>w:tblCellMar</c>, which Morph maps to
+    /// padding. The <see cref="TableCellProperties.Margin"/> field is reserved for HTML
+    /// inputs; DOCX inputs always leave it null.
+    /// </summary>
+    internal static CellSpacing GetEffectiveMargin(TableCellProperties cellProps, TableProperties tableProps) =>
         cellProps.Margin ?? tableProps.DefaultCellMargin;
 
     internal static CellBorders? ResolveCellBorders(TableCellProperties cellProps, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols, TableRow? row = null)
