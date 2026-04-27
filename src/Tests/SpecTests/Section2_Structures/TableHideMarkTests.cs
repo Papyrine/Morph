@@ -37,12 +37,20 @@ public class TableHideMarkTests
     {
         var cell = new TableCell
         {
-            Properties = new() { HideMark = true },
+            Properties = new()
+            {
+                HideMark = true
+            },
             Content =
             [
                 new ParagraphElement
                 {
-                    Runs = [new Run { Text = "x", Properties = new() }],
+                    Runs = [
+                        new()
+                        {
+                            Text = "x",
+                            Properties = new()
+                        }],
                     Properties = new()
                 }
             ]

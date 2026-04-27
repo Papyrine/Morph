@@ -34,7 +34,8 @@
         "ColorHex": "000000"
       },
       "DefaultTabStopPoints": 36.0,
-      "IsRightToLeft": false
+      "IsRightToLeft": false,
+      "MirrorIndents": false
     }
   }
 ]

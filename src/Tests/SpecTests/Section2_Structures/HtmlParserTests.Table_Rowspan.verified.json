@@ -40,13 +40,16 @@
                     "ColorHex": "000000"
                   },
                   "DefaultTabStopPoints": 36.0,
-                  "IsRightToLeft": false
+                  "IsRightToLeft": false,
+                  "MirrorIndents": false
                 }
               }
             ],
             "Properties": {
               "GridSpan": 1,
-              "VerticalMerge": "Restart"
+              "VerticalMerge": "Restart",
+              "HideMark": false,
+              "NoWrap": false
             }
           },
           {
@@ -86,12 +89,15 @@
                     "ColorHex": "000000"
                   },
                   "DefaultTabStopPoints": 36.0,
-                  "IsRightToLeft": false
+                  "IsRightToLeft": false,
+                  "MirrorIndents": false
                 }
               }
             ],
             "Properties": {
-              "GridSpan": 1
+              "GridSpan": 1,
+              "HideMark": false,
+              "NoWrap": false
             }
           }
         ],
@@ -103,7 +109,9 @@
           {
             "Properties": {
               "GridSpan": 1,
-              "VerticalMerge": "Continue"
+              "VerticalMerge": "Continue",
+              "HideMark": false,
+              "NoWrap": false
             }
           },
           {
@@ -143,12 +151,15 @@
                     "ColorHex": "000000"
                   },
                   "DefaultTabStopPoints": 36.0,
-                  "IsRightToLeft": false
+                  "IsRightToLeft": false,
+                  "MirrorIndents": false
                 }
               }
             ],
             "Properties": {
-              "GridSpan": 1
+              "GridSpan": 1,
+              "HideMark": false,
+              "NoWrap": false
             }
           }
         ],

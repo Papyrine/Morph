@@ -267,7 +267,7 @@ static class TableHeightCalculator
             return false;
         }
 
-        return content[0] is ParagraphElement {Runs: {Count: 0}};
+        return content[0] is ParagraphElement {Runs.Count: 0};
     }
 
     /// <summary>

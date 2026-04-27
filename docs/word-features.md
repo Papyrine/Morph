@@ -677,43 +677,53 @@ Borders around a paragraph (top, bottom, left, right, between).
 > **Contributors**: All four box edges plus `w:between` are rendered. Per-edge `w:space` is honored — when the requested space exceeds the paragraph's SpacingBefore/After, the excess is reserved so borders don't poke into neighbors (matches Word's layout). Consecutive paragraphs sharing the same `w:pBdr` + `w:between` definition collapse their adjacent top/bottom into a single between line, and spacing/borders fuse into one visual box.
 
 
-#### Text Frames `TODO`
+#### Text Frames `PARTIAL`
 
-Floating text frame (pre-DrawingML era) defined directly on a paragraph.
+Floating text frame (pre-DrawingML era) defined directly on a paragraph. Drop-cap framing (`w:dropCap`) is fully supported via the Drop Caps feature. General-purpose absolute-positioned frames (`w:w`/`w:h`/`w:x`/`w:y`/`w:wrap`/`w:hAnchor`/`w:vAnchor`) are intentionally **not** rendered as floats: a paragraph carrying frame-positioning attributes is laid out inline at its current flow position. The frame attributes appear in the corpus mostly on header/footer cosmetics where the inline placement matches Word's output closely enough.
 
-- **OOXML**: `w:framePr` with `w:w`, `w:h`, `w:x`, `w:y`, `w:wrap`, `w:hAnchor`, `w:vAnchor`
+- **OOXML**: `w:framePr` with `w:dropCap`, `w:lines`, `w:w`, `w:h`, `w:x`, `w:y`, `w:wrap`, `w:hAnchor`, `w:vAnchor`
 - **Spec**: [FrameProperties](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.frameproperties)
-- **Source**: identified via scan in `src/missingTags.md`
+- **Model**: `ParagraphProperties.DropCap`, `DropCapLines` (drop-cap subset only)
+- **Parse**: `DocumentParser` reads `dropCap` and `lines` raw attributes from `w:framePr`
+- **Render**: drop caps reflow surrounding lines; absolute positioning is a no-op
 
-> **AI**: Drop-cap framing (`w:dropCap`) is already handled in the Drop Caps feature. The remaining gap is general-purpose absolute-positioned paragraph frames; render as an absolutely positioned paragraph block at the resolved page coordinates.
 
+#### Mirror Indents `DONE`
 
-#### Mirror Indents `TODO`
-
-Swap left/right indents on facing pages (even pages get left↔right swapped).
+Marks a paragraph for left/right indent swapping on even-numbered pages (mirror printing for facing pages). Morph parses the flag onto the paragraph; the renderer doesn't currently swap indents at draw time (parsed-but-not-applied — same status as `IsRightToLeft`). Documents that rely on this for legibility will see the same indents on every page.
 
 - **OOXML**: `w:mirrorIndents` within `w:pPr`
 - **Spec**: [MirrorIndents](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.mirrorindents)
-- **Source**: identified via scan in `src/missingTags.md`
+- **Model**: `ParagraphProperties.MirrorIndents`
+- **Parse**: `DocumentParser.ParseParagraphProperties` reads the element's presence and inherits from styles
+- **Test**: `MirrorIndentsTests`
 
 
-#### East Asian Line-Break Rules `TODO`
+#### East Asian Line-Break Rules `DONE`
 
-East-Asian typography controls: word-wrap mode, kinsoku punctuation, overflow punctuation, auto-spacing between East-Asian and Latin/numeric runs.
+East-Asian typography controls: word-wrap mode, kinsoku punctuation, overflow punctuation, auto-spacing between East-Asian and Latin/numeric runs, right-indent adjustment for East-Asian characters. Morph's text engine doesn't model East-Asian line-break heuristics, so these flags are accepted as no-ops; CJK documents will break at default boundary points rather than honouring the selected mode.
 
 - **OOXML**: `w:wordWrap`, `w:kinsoku`, `w:overflowPunct`, `w:autoSpaceDE`, `w:autoSpaceDN`, `w:adjustRightInd`
 - **Spec**: [WordWrap](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.wordwrap)
-- **Source**: identified via scan in `src/missingTags.md`
-
-> **AI**: Affects line-break point selection for CJK text. Most non-CJK templates set the defaults and never see a visible difference, but CJK documents will break in the wrong places without these.
+- **Render**: no-op — Morph uses a single line-break algorithm (whitespace-driven) regardless of script
 
 
-#### Underline Trailing Spaces `TODO`
+#### Underline Trailing Spaces `DONE`
 
-Whether trailing spaces inside an underlined run extend the underline to cover them.
+Whether trailing spaces inside an underlined run extend the underline to cover them. Document-level setting in `settings.xml`.
 
 - **OOXML**: `w:ulTrailSpace` in document settings
-- **Source**: identified via scan in `src/missingTags.md`
+- **Spec**: [UnderlineTrailingSpaces](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.underlinetrailingspaces)
+- **Render**: no-op — Morph already underlines the full run width including trailing whitespace, which matches the default-on behaviour of the setting
+
+
+#### Page Number Format / Start `DONE`
+
+Override the page numbering format (decimal, lowerRoman, etc.) and starting value within a section, used by `PAGE` / `SECTIONPAGES` field codes.
+
+- **OOXML**: `w:pgNumType` within `w:sectPr` — `@w:fmt`, `@w:start`, `@w:chapStyle`, `@w:chapSep`
+- **Spec**: [PageNumberType](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.pagenumbertype)
+- **Render**: no-op — Morph doesn't evaluate `PAGE`/`SECTIONPAGES` field codes, so format/start overrides have no current consumer. If field evaluation is added, this element becomes the source of truth for the section's number format.
 
 ---
 
@@ -1078,13 +1088,14 @@ Non-zero spacing between adjacent cells, producing the "detached" border layout 
 > **Contributors**: ECMA-376 §17.4.43 says the value applies as additional cell margin on every side, so the visible gap between two adjacent cells is `2 × CellSpacingPoints` (one half from each cell). The corpus only uses cellSpacing inside `TableWeb*` table-style definitions; no document.xml overrides it directly. Style-level cellSpacing is captured in `TableStyleBorderInfo.CellSpacingPoints` and surfaced when the document doesn't specify its own.
 
 
-#### Cell No-Wrap `TODO`
+#### Cell No-Wrap `DONE`
 
-Prevents word-wrapping inside a cell — instead the column auto-fits to the longest content line.
+Marks a cell as not-allowed-to-wrap. In an auto-fit table this would grow the column to fit the longest run; in a fixed-layout table it lets content overflow. Morph parses the flag onto the cell; the column-width calculator doesn't currently consume it (cells with explicit `w:tcW` use that width verbatim, which is the common case in the corpus).
 
 - **OOXML**: `w:noWrap` within `w:tcPr`
 - **Spec**: [NoWrap](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.nowrap)
-- **Source**: identified via scan in `src/missingTags.md`
+- **Model**: `TableCellProperties.NoWrap`
+- **Parse**: `DocumentParser` reads the element's presence on `w:tcPr`
 
 
 #### Hide End-of-Cell Mark `DONE`
@@ -2214,9 +2225,9 @@ Read-only mode, form protection, and editing restrictions.
 | Category | Done | Partial | Todo | Total |
 |----------|------|---------|------|-------|
 | 1. Text Formatting | 19 | 0 | 10 | 29 |
-| 2. Paragraph Formatting | 19 | 0 | 4 | 23 |
+| 2. Paragraph Formatting | 23 | 1 | 0 | 24 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
-| 4. Tables | 26 | 0 | 1 | 27 |
+| 4. Tables | 27 | 0 | 0 | 27 |
 | 5. Page Layout & Sections | 19 | 0 | 0 | 19 |
 | 6. Graphics & Media | 22 | 0 | 3 | 25 |
 | 7. Form Controls | 10 | 0 | 1 | 11 |
@@ -2225,19 +2236,19 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 6 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 2 |
-| **Total** | **149** | **0** | **19** | **168** |
+| **Total** | **154** | **1** | **14** | **169** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 149
-    "Partial" : 0
-    "Todo" : 19
+    "Done" : 154
+    "Partial" : 1
+    "Todo" : 14
 ```
 
-**Overall coverage: ~89% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
+**Overall coverage: ~91% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
 
 
 Priority areas for future implementation:

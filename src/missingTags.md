@@ -63,18 +63,8 @@ Implementation notes:
 
 ### Paragraph / section layout
 
-| Tag | Notes |
-|-----|-------|
-| `w:tabs` / `w:tab` (inside `w:pPr`) | Custom tab stop list. Each `w:tab` has `w:val` (start/center/end/decimal/bar), `w:pos` (twips), optional `w:leader`. Text layout must honour these at `w:tab` run elements. |
-| `w:framePr` | Floating text frame (pre-drawing era). `w:w`/`w:h`/`w:x`/`w:y`/`w:wrap`. Render as absolutely positioned paragraph. |
-| `w:pgNumType` | Page number format/start. Only relevant if fields are evaluated. |
-| `w:mirrorIndents` | Swap left/right indents on even pages. |
-| `w:adjustRightInd` | Auto-adjust right indent for East Asian chars. |
-| `w:wordWrap` | Disable mid-word break for East Asian. |
-| `w:overflowPunct`, `w:kinsoku` | East Asian line-break rules. |
-| `w:autoSpaceDE` / `w:autoSpaceDN` | Auto space between East Asian and Latin/numerals. |
-| `w:noWrap` (cell) | Prevent cell text wrapping (auto-fit cell to content instead). |
-| `w:ulTrailSpace` | Underline trailing spaces. |
+<!-- All previously listed tags now implemented or accepted as no-ops. -->
+<!-- See docs/word-features.md (Paragraph Decoration / Page Layout sections) for status. -->
 
 ### Tables
 
@@ -251,4 +241,4 @@ Updated after the audit + recent feature work (see `docs/word-features.md` for t
 
 Recently completed (no longer on the list):
 
-- `w:hyperlink`, footnotes / endnotes, `w:tblPrEx`, `w:cnfStyle`, `w:tblHeader`, `w:tblCellSpacing` (detached-border model, verified via `Tests/Inputs/table_cell_spacing/01`), `w:tl2br` / `w:tr2bl` diagonal cell borders (verified via `Tests/Inputs/table_diagonal_borders/01`), `w:hideMark`, `w:tblCaption` / `w:tblDescription` (accessibility metadata, no-op), `w:tblOverlap` (floating-table-only, no-op for inline), `w:smallCaps`, `w:dstrike`, `w:kern`, `w14:textOutline` / `glow` / `shadow` / `reflection`, custom tab stops, gradient shape fills (`a:gradFill`), image crop (`a:srcRect`), image rotation, even/odd page headers + footers (verified end-to-end via `Tests/Inputs/even_odd_headers/02`).
+- `w:hyperlink`, footnotes / endnotes, `w:tblPrEx`, `w:cnfStyle`, `w:tblHeader`, `w:tblCellSpacing` (detached-border model, verified via `Tests/Inputs/table_cell_spacing/01`), `w:tl2br` / `w:tr2bl` diagonal cell borders (verified via `Tests/Inputs/table_diagonal_borders/01`), `w:hideMark`, `w:noWrap` (cell), `w:tblCaption` / `w:tblDescription` (accessibility metadata, no-op), `w:tblOverlap` (floating-table-only, no-op for inline), `w:mirrorIndents` (parsed; renderer doesn't yet swap indents), `w:framePr` (drop-cap subset only; absolute positioning is a no-op), East-Asian layout flags `w:wordWrap` / `w:kinsoku` / `w:overflowPunct` / `w:autoSpaceDE` / `w:autoSpaceDN` / `w:adjustRightInd` (no-op), `w:pgNumType` (no-op until fields are evaluated), `w:ulTrailSpace` (already matches default-on behaviour), `w:smallCaps`, `w:dstrike`, `w:kern`, `w14:textOutline` / `glow` / `shadow` / `reflection`, custom tab stops, gradient shape fills (`a:gradFill`), image crop (`a:srcRect`), image rotation, even/odd page headers + footers (verified end-to-end via `Tests/Inputs/even_odd_headers/02`).
