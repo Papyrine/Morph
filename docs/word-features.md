@@ -310,6 +310,96 @@ Combines specific character sequences (fi, fl, ff, etc.) into single glyphs.
 > **AI**: Discretionary/historical ligatures (`Discretional`, `Historical`) and contextual alternates beyond Standard remain unmodelled — the existing FontFeature API on SixLabors doesn't cleanly map to OOXML's flag combinations.
 
 
+#### Hidden Text `TODO`
+
+Runs marked as hidden, structural-hidden (TOC markers), or web-only-hidden.
+
+- **OOXML**: `w:vanish`, `w:specVanish`, `w:webHidden`
+- **Spec**: [Vanish](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.vanish)
+- **Source**: identified via scan in `src/missingTags.md`
+
+> **AI**: Currently rendered as visible text. Skip the run when `w:vanish` or `w:specVanish` is set (unless `settings.xml` enables `w:showHiddenText`); `w:webHidden` should still render for image output.
+
+
+#### Emboss `TODO`
+
+3D emboss text effect (raised appearance).
+
+- **OOXML**: `w:emboss`
+- **Spec**: [Emboss](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.emboss)
+- **Source**: identified via scan in `src/missingTags.md`
+
+> **AI**: Approximate by drawing a darker glyph offset down-right and a lighter glyph at the original position.
+
+
+#### Imprint (Engrave) `TODO`
+
+Engraved text effect (inverse of emboss — recessed appearance).
+
+- **OOXML**: `w:imprint`
+- **Spec**: [Imprint](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.imprint)
+- **Source**: identified via scan in `src/missingTags.md`
+
+
+#### Outline Text `TODO`
+
+Stroke-only text (hollow glyphs, no fill). Distinct from `w14:textOutline` which adds a stroke around filled text.
+
+- **OOXML**: `w:outline`
+- **Spec**: [Outline](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.outline)
+- **Source**: identified via scan in `src/missingTags.md`
+
+> **AI**: Set the text paint to stroke-only (zero fill alpha) at the run's colour.
+
+
+#### Animated Text Effect `TODO`
+
+Word's animated run effects (`blinkBackground`, `sparkle`, `lights`, `marchingAnts`, etc.).
+
+- **OOXML**: `w:effect` with `w:val`
+- **Spec**: [TextEffect](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.texteffect)
+- **Source**: identified via scan in `src/missingTags.md`
+
+> **AI**: Animation has no static-image equivalent — accept the property and render the run as plain text.
+
+
+#### Run Border `TODO`
+
+Border drawn around an individual run (per-run rectangle, not paragraph-level).
+
+- **OOXML**: `w:bdr` within `w:rPr`
+- **Spec**: [Border](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.border)
+- **Source**: identified via scan in `src/missingTags.md`
+
+
+#### East Asian Emphasis Mark `TODO`
+
+Dot or circle mark drawn above or below each glyph for emphasis (Chinese/Japanese typography).
+
+- **OOXML**: `w:em`
+- **Spec**: [Emphasis Mark](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.emphasis)
+- **Source**: identified via scan in `src/missingTags.md`
+
+
+#### Baseline Shift (Position) `TODO`
+
+Raises or lowers a run relative to the baseline without resizing. Distinct from superscript/subscript.
+
+- **OOXML**: `w:position` (half-points; positive = up, negative = down)
+- **Spec**: [Position](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.position)
+- **Source**: identified via scan in `src/missingTags.md`
+
+
+#### Complex Script Highlight `TODO`
+
+Highlight applied to complex-script runs.
+
+- **OOXML**: `w:highlightCs`
+- **Source**: identified via scan in `src/missingTags.md`
+
+> **AI**: Parse the same way as `w:highlight`; share the rendering path.
+
+
 ### 1.3 Text Effects
 
 
@@ -358,6 +448,26 @@ Mirrored reflection below text.
 - **Render**: Skia draws a vertically-mirrored copy below the baseline and applies a top→bottom alpha gradient via `SKBlendMode.SrcIn`. ImageSharp draws a faded duplicate below the original (no flip) — its drawing pipeline doesn't expose per-draw transforms cleanly.
 
 > **AI**: Presence-aware rendering with sensible defaults matching Word's "Tight Reflection, touching" preset. The OOXML reflection parameters (`stA`, `stPos`, `endA`, `endPos`, `dist`, `dir`, `fadeDir`, `sx`, `sy`, `blurRad`) are not parsed; documents using a custom reflection preset will diverge from Word.
+
+
+#### Gradient / Pattern Text Fill `TODO`
+
+Gradient or pattern fill applied to glyphs (rather than a solid colour).
+
+- **OOXML**: `w14:textFill` containing `w14:solidFill`, `w14:gradFill`, `w14:noFill`
+- **Source**: identified via scan in `src/missingTags.md`
+
+> **AI**: Skia uses `SKShader.CreateLinearGradient`; ImageSharp uses `LinearGradientBrush` masked to glyph paths.
+
+
+#### OpenType Numeric / Stylistic Variants `TODO`
+
+OpenType feature toggles for numeral form, numeral spacing, stylistic sets, and contextual alternates.
+
+- **OOXML**: `w14:numForm` (`default`/`lining`/`oldStyle`), `w14:numSpacing` (`default`/`proportional`/`tabular`), `w14:stylisticSets`, `w14:cntxtAlts`
+- **Source**: identified via scan in `src/missingTags.md`
+
+> **AI**: SixLabors.Fonts exposes per-feature flags via `FontFeature`; map these properties through the same shaping pipeline as ligatures.
 
 ---
 
@@ -575,6 +685,45 @@ Borders around a paragraph (top, bottom, left, right, between).
 - **Spec**: [Paragraph Borders](http://officeopenxml.com/WPborders.php)
 
 > **Contributors**: All four box edges plus `w:between` are rendered. Per-edge `w:space` is honored — when the requested space exceeds the paragraph's SpacingBefore/After, the excess is reserved so borders don't poke into neighbors (matches Word's layout). Consecutive paragraphs sharing the same `w:pBdr` + `w:between` definition collapse their adjacent top/bottom into a single between line, and spacing/borders fuse into one visual box.
+
+
+#### Text Frames `TODO`
+
+Floating text frame (pre-DrawingML era) defined directly on a paragraph.
+
+- **OOXML**: `w:framePr` with `w:w`, `w:h`, `w:x`, `w:y`, `w:wrap`, `w:hAnchor`, `w:vAnchor`
+- **Spec**: [FrameProperties](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.frameproperties)
+- **Source**: identified via scan in `src/missingTags.md`
+
+> **AI**: Drop-cap framing (`w:dropCap`) is already handled in the Drop Caps feature. The remaining gap is general-purpose absolute-positioned paragraph frames; render as an absolutely positioned paragraph block at the resolved page coordinates.
+
+
+#### Mirror Indents `TODO`
+
+Swap left/right indents on facing pages (even pages get left↔right swapped).
+
+- **OOXML**: `w:mirrorIndents` within `w:pPr`
+- **Spec**: [MirrorIndents](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.mirrorindents)
+- **Source**: identified via scan in `src/missingTags.md`
+
+
+#### East Asian Line-Break Rules `TODO`
+
+East-Asian typography controls: word-wrap mode, kinsoku punctuation, overflow punctuation, auto-spacing between East-Asian and Latin/numeric runs.
+
+- **OOXML**: `w:wordWrap`, `w:kinsoku`, `w:overflowPunct`, `w:autoSpaceDE`, `w:autoSpaceDN`, `w:adjustRightInd`
+- **Spec**: [WordWrap](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.wordwrap)
+- **Source**: identified via scan in `src/missingTags.md`
+
+> **AI**: Affects line-break point selection for CJK text. Most non-CJK templates set the defaults and never see a visible difference, but CJK documents will break in the wrong places without these.
+
+
+#### Underline Trailing Spaces `TODO`
+
+Whether trailing spaces inside an underlined run extend the underline to cover them.
+
+- **OOXML**: `w:ulTrailSpace` in document settings
+- **Source**: identified via scan in `src/missingTags.md`
 
 ---
 
@@ -883,6 +1032,73 @@ Rotated text direction within cells (bottom-to-top, top-to-bottom).
 - **Test**: `table_text_direction/`
 
 > **Contributors**: Row-height contribution for vertical cells comes from `MeasureParagraphNaturalWidth` — the longest paragraph's natural single-line width becomes the cell's vertical extent. Multiple paragraphs in one vertical cell stack horizontally (along the row direction) so they don't add to the cell's height contribution. Cells where the rotated text exceeds the column's available height aren't reflowed; vertical-alignment within rotated cells is currently treated as Top.
+
+
+#### Row-Level Table Property Exceptions `TODO`
+
+Per-row overrides of table-level properties (e.g. a single row that uses different cell margins than the rest of the table).
+
+- **OOXML**: `w:tblPrEx` within `w:tr`
+- **Spec**: [TablePropertyExceptions](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.tablepropertyexceptions)
+- **Source**: identified via scan in `src/missingTags.md`
+
+> **AI**: Resolve by merging `w:tblPrEx` over `w:tblPr` when computing the row's effective properties.
+
+
+#### Conditional Formatting (Banded Tables) `TODO`
+
+Cell-level flags selecting which `w:tblStylePr` block applies (first row, last row, first column, banded rows, banded columns, etc.).
+
+- **OOXML**: `w:cnfStyle` within `w:tcPr` / `w:trPr` / `w:pPr`
+- **Spec**: [ConditionalFormatStyle](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.conditionalformatstyle)
+- **Source**: identified via scan in `src/missingTags.md`
+
+> **AI**: Without this, banded-table styling collapses to a single uniform style across all rows/columns. Required for header-row colouring and row banding to render correctly.
+
+
+#### Diagonal Cell Borders `TODO`
+
+Diagonal lines drawn corner-to-corner inside a cell (top-left to bottom-right or top-right to bottom-left).
+
+- **OOXML**: `w:tl2br`, `w:tr2bl` attributes within `w:tcBorders`
+- **Spec**: [TopLeftToBottomRightCellBorder](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.topleftatobottomrightcellborder)
+- **Source**: identified via scan in `src/missingTags.md`
+
+
+#### Cell Spacing (Detached Borders) `TODO`
+
+Non-zero spacing between adjacent cells, producing the "detached" border layout where each cell has its own visible outline with gaps in between.
+
+- **OOXML**: `w:tblCellSpacing` within `w:tblPr`
+- **Spec**: [TableCellSpacing](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.tablecellspacing)
+- **Source**: identified via scan in `src/missingTags.md`
+
+
+#### Cell No-Wrap `TODO`
+
+Prevents word-wrapping inside a cell — instead the column auto-fits to the longest content line.
+
+- **OOXML**: `w:noWrap` within `w:tcPr`
+- **Spec**: [NoWrap](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.nowrap)
+- **Source**: identified via scan in `src/missingTags.md`
+
+
+#### Hide End-of-Cell Mark `TODO`
+
+Hides the trailing paragraph mark in an empty cell. Cosmetic but affects measured cell height when the cell is empty.
+
+- **OOXML**: `w:hideMark` within `w:tcPr`
+- **Spec**: [HideMark](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.hidemark)
+- **Source**: identified via scan in `src/missingTags.md`
+
+
+#### Row Banding Size `TODO`
+
+Number of rows per band when applying alternating row styles via a table style. Companion to the already-supported `w:tblStyleColBandSize`.
+
+- **OOXML**: `w:tblStyleRowBandSize` within `w:tblPr`
+- **Spec**: [TableStyleRowBandSize](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.tablestylerowbandsize)
+- **Source**: identified via scan in `src/missingTags.md`
 
 ---
 
@@ -1212,6 +1428,26 @@ Color transformations applied to an embedded image at render time. Word template
 > **AI**: Duotone is rendered as straight grayscale rather than mapping luminance to a 2-colour gradient — proper duotone needs the theme-resolved colour pair, which means walking `a:duotone`'s `srgbClr`/`schemeClr` children with full `tint`/`shade`/`lumMod`/`lumOff`/`satMod` resolution. The grayscale fallback is what most templates land on visually anyway because the duotone target is usually a near-greyscale accent.
 
 
+#### Image Adjustments (Brightness, Contrast, Saturation) `TODO`
+
+Word's "Picture Format → Adjustments" filters that re-tone an embedded image at render time without modifying the source.
+
+- **OOXML**: `a14:brightnessContrast`, `a14:colorTemperature`, `a14:saturation`, `a14:sharpenSoften`, `a14:imgEffect`, `a14:imgLayer`, `a14:imgProps`, `a14:shadowObscured`
+- **Source**: identified via scan in `src/missingTags.md`
+
+> **AI**: Apply during raster decode. ImageSharp exposes `.Mutate(_ => _.Brightness(...).Contrast(...).Saturate(...))`. Skia composes a colour matrix via `SKColorFilter.CreateColorMatrix`. The existing `BlipColorEffect` pipeline (Grayscale/Duotone/Washout) is the natural extension point.
+
+
+#### Percentage-Sized Floating Drawings `TODO`
+
+Image / shape sizes specified as a percentage of the page or margin rather than a fixed point size.
+
+- **OOXML**: `wp14:sizeRelH`, `wp14:sizeRelV` (relative-from container) with `wp14:pctWidth`, `wp14:pctHeight` (value × 1000); `wp14:pctPosHOffset`, `wp14:pctPosVOffset` for position
+- **Source**: identified via scan in `src/missingTags.md`
+
+> **AI**: Without this, percentage-scaled images fall back to the `wp:extent` value, which is often zero or wrong. Multiply the resolved reference size (page width / margin width / column width per `relativeFrom`) by `pct ÷ 100000` to get the effective extent.
+
+
 ### 6.2 Shapes & Drawings
 
 
@@ -1294,6 +1530,17 @@ Lines connecting shapes (straight, elbow, curved).
 - **Render**: connector shapes are dropped from the rendered output — the same 2D fallback as 3D Effects: the surrounding diagram (typically a SmartArt or shape group) carries enough fill/outline structure that the missing connector lines are visually inconspicuous on most templates. The presence flag remains so consumers can detect documents whose layout depends on connectors.
 
 > **AI**: True elbow/curved-connector routing requires solving an avoidance pathfinding problem between the connected shapes, which is outside the scope of a render-only pipeline. The corpus has no scenarios with bare `cxnSp` shapes (only `cxnSpLocks` protection elements), so a straight-line approximation can't be visually validated yet — leaving the renderer as a no-op avoids introducing unverified geometry.
+
+
+#### Legacy VML Shapes `TODO`
+
+Word 2007-compat VML markup used by older documents and inside `mc:Fallback` branches. Common in headers, footers, signatures, and form-control overlays.
+
+- **OOXML**: `v:shape`, `v:shapetype`, `v:group`, `v:line`, `v:oval`, `v:rect`, `v:roundrect`, `v:polyline`, `v:textbox`, `v:imagedata`, `v:fill`, `v:stroke`, `v:shadow`, `v:formulas`, `v:path`, `w10:wrap`, `w10:anchorlock`, `o:fill`, `o:lock`
+- **Spec**: [VML Reference](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odraw/)
+- **Source**: identified via scan in `src/missingTags.md`
+
+> **AI**: Inside `mc:AlternateContent`, DrawingML lives in `mc:Choice` and VML in `mc:Fallback`; if the choice branch is consumed, VML can be skipped. But `w:pict` blocks outside `mc:AlternateContent` carry VML only. `v:shape/@style` is CSS-like (`position:absolute; left:Xpt; top:Ypt; width:Wpt; height:Hpt`); map common `o:spt` values to DrawingML preset geometry IDs rather than re-implementing the VML path language. `v:imagedata r:id=…` reuses the existing image-relationship resolver.
 
 
 ### 6.3 WordArt
@@ -1473,6 +1720,17 @@ Image placeholder that users can click to insert a picture.
 
 - **OOXML**: `w:picture` within `w:sdtPr`
 - **Model**: `ContentControlElement` with `ContentControlType.Picture`
+
+
+#### Custom XML Data Binding `TODO`
+
+XPath binding that wires an SDT to a custom-XML data island. The bound value is what should display in the control's content slot.
+
+- **OOXML**: `w:dataBinding` within `w:sdtPr` (with `w:xpath`, `w:storeItemID`, `w:prefixMappings`)
+- **Spec**: [DataBinding](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.databinding)
+- **Source**: identified via scan in `src/missingTags.md`
+
+> **AI**: For rendering, evaluate the XPath against the `customXml/item*.xml` data parts and substitute the result into `w:sdtContent`. If the binding can't be resolved, fall back to whatever's already inside `w:sdtContent` (Word caches the last bound value there).
 
 
 ### 7.2 Legacy Form Fields
@@ -1928,19 +2186,19 @@ Read-only mode, form protection, and editing restrictions.
 
 | Category | Done | Partial | Todo | Total |
 |----------|------|---------|------|-------|
-| 1. Text Formatting | 19 | 0 | 0 | 19 |
-| 2. Paragraph Formatting | 19 | 0 | 0 | 19 |
+| 1. Text Formatting | 19 | 0 | 11 | 30 |
+| 2. Paragraph Formatting | 19 | 0 | 4 | 23 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
-| 4. Tables | 18 | 0 | 0 | 18 |
+| 4. Tables | 18 | 0 | 7 | 25 |
 | 5. Page Layout & Sections | 19 | 0 | 0 | 19 |
-| 6. Graphics & Media | 22 | 0 | 0 | 22 |
-| 7. Form Controls | 10 | 0 | 0 | 10 |
+| 6. Graphics & Media | 22 | 0 | 3 | 25 |
+| 7. Form Controls | 10 | 0 | 1 | 11 |
 | 8. Themes & Styles | 4 | 0 | 0 | 4 |
 | 9. Typography | 8 | 0 | 0 | 8 |
 | 10. Document Infrastructure | 6 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 2 |
-| **Total** | **141** | **0** | **0** | **141** |
+| **Total** | **141** | **0** | **26** | **167** |
 
 
 ### Coverage
@@ -1949,15 +2207,18 @@ Read-only mode, form protection, and editing restrictions.
 pie title Feature Implementation Status
     "Done" : 141
     "Partial" : 0
-    "Todo" : 0
+    "Todo" : 26
 ```
 
-**Overall coverage: 100% fully implemented.**
+**Overall coverage: ~84% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
 
 
 Priority areas for future implementation:
-1. **Numbered list counters** — high user-visibility fix (currently PARTIAL)
-2. **Footnotes / endnotes** — common in academic and formal documents
-3. **Table of contents** — can use cached content (now unblocked by Tab Stops PARTIAL)
-4. **Tracked changes (accept all)** — allows rendering documents with revisions
-6. **Charts / SmartArt fallback images** — extract preview images for quick coverage
+1. **Conditional table formatting (`w:cnfStyle`) + row-level exceptions (`w:tblPrEx`)** — required for header/banded-row rendering on styled tables, very common.
+2. **Legacy VML shapes (`v:shape`, `v:rect`, `v:imagedata`, `w10:wrap`, …)** — needed for older documents and `mc:Fallback` branches.
+3. **Percentage-sized floating drawings (`wp14:pctWidth`/`pctHeight`)** — without these, percentage-scaled images may render at zero size.
+4. **Custom-XML data binding (`w:dataBinding`)** — populates SDT content from bound data islands.
+5. **Hidden text + run effects (`w:vanish`, `w:emboss`, `w:imprint`, `w:outline`, `w:bdr`, `w:position`)** — visible text-formatting gaps.
+6. **East Asian typography (`w:wordWrap`, `w:kinsoku`, `w:autoSpaceDE/DN`, `w:em`)** — required for correct CJK line-break and emphasis-mark rendering.
+7. **Diagonal cell borders + cell spacing (`w:tl2br`/`w:tr2bl`, `w:tblCellSpacing`)** — table presentation gaps.
+8. **Image adjustments (`a14:brightnessContrast`/`saturation`/…)** — picture-format filters from Word's "Adjustments" panel.
