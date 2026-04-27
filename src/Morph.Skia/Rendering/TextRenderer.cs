@@ -220,10 +220,10 @@ sealed class TextRenderer(SkiaRenderContext context) :
         // the between line drawn by the previous paragraph.
         var hasTopBorder = props.Borders?.Top.IsVisible ?? false;
         var hasBottomBorder = props.Borders?.Bottom.IsVisible ?? false;
-        var topSpaceExtra = (hasTopBorder || inBetweenChain)
-            ? (inBetweenChain
+        var topSpaceExtra = hasTopBorder || inBetweenChain
+            ? inBetweenChain
                 ? (float) props.BorderTopSpacePoints
-                : Math.Max(0f, (float) props.BorderTopSpacePoints - (float) props.SpacingBeforePoints))
+                : Math.Max(0f, (float) props.BorderTopSpacePoints - (float) props.SpacingBeforePoints)
             : 0f;
         var bottomSpaceExtra = hasBottomBorder
             ? Math.Max(0f, (float) props.BorderBottomSpacePoints - (float) props.SpacingAfterPoints)
@@ -864,7 +864,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
 
         // RTL paragraphs flip the visual meaning of "leading-edge" alignment to the page's right
         // edge. We don't reorder glyphs (no BiDi shaper) but at least the line lands on the right.
-        var alignment = props.IsRightToLeft && props.Alignment == TextAlignment.Left
+        var alignment = props is {IsRightToLeft: true, Alignment: TextAlignment.Left}
             ? TextAlignment.Right
             : props.Alignment;
 
@@ -1143,7 +1143,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 Shader = SKShader.CreateLinearGradient(
                     new(pixelX, pixelY),
                     new(pixelX, pixelY + height),
-                    [new SKColor(255, 255, 255, 128), new SKColor(255, 255, 255, 0)],
+                    [new(255, 255, 255, 128), new(255, 255, 255, 0)],
                     SKShaderTileMode.Clamp),
                 BlendMode = SKBlendMode.SrcIn
             };

@@ -1045,15 +1045,18 @@ Per-row overrides of table-level properties (e.g. a single row that uses differe
 > **AI**: Resolve by merging `w:tblPrEx` over `w:tblPr` when computing the row's effective properties.
 
 
-#### Conditional Formatting (Banded Tables) `TODO`
+#### Conditional Formatting (Banded Tables) `DONE`
 
-Cell-level flags selecting which `w:tblStylePr` block applies (first row, last row, first column, banded rows, banded columns, etc.).
+Cell-level flags selecting which `w:tblStylePr` block applies (first row, last row, first column, banded rows, banded columns, etc.). Affects header-row colouring, banded rows/columns, and corner-cell styling.
 
-- **OOXML**: `w:cnfStyle` within `w:tcPr` / `w:trPr` / `w:pPr`
+- **OOXML**: `w:cnfStyle` within `w:tcPr` / `w:trPr`; `w:tblStylePr` blocks inside the table style; `w:tblLook` gating which conditions auto-apply
 - **Spec**: [ConditionalFormatStyle](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.conditionalformatstyle)
-- **Source**: identified via scan in `src/missingTags.md`
+- **Model**: `ConditionalFormatFlags` mirrors `w:cnfStyle`; `TableStyleBorderInfo.Conditionals` holds per-region `ConditionalFormat` (borders + shading)
+- **Parse**: `DocumentParser.ParseConditionalFormatFlags` reads cell/row flags. `ParseTableLookMask` reads `w:tblLook`. `ResolveActiveConditions` cascades regions in ECMA-376 priority order (whole-table → bandHorz → bandVert → lastCol → firstCol → lastRow → firstRow → corner cells)
+- **Render**: not a separate render step — the cascade resolves to the existing `Borders` and `BackgroundColorHex` cell properties, which both backends already paint
+- **Test**: `ConditionalFormattingTests` (spec tests + end-to-end against `agendas-minutes/15` which uses `BlueCurveMinutesTable` with a `firstRow` shading override)
 
-> **AI**: Without this, banded-table styling collapses to a single uniform style across all rows/columns. Required for header-row colouring and row banding to render correctly.
+> **Contributors**: Cell- and row-level explicit `w:shd` / `w:tcBorders` win over conditional formatting. When a row/cell carries no `w:cnfStyle`, the cascade derives flags from grid position (firstRow, lastRow, firstColumn, lastColumn, banding) — but only for the conditions that `w:tblLook` permits (e.g. `w:noHBand="1"` suppresses horizontal banding). Run-property and paragraph-property overrides inside `w:tblStylePr` (bold, font colour, alignment) are not yet cascaded — that requires threading the active conditions into paragraph parsing.
 
 
 #### Diagonal Cell Borders `TODO`
@@ -2189,7 +2192,7 @@ Read-only mode, form protection, and editing restrictions.
 | 1. Text Formatting | 19 | 0 | 11 | 30 |
 | 2. Paragraph Formatting | 19 | 0 | 4 | 23 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 6 |
-| 4. Tables | 18 | 0 | 7 | 25 |
+| 4. Tables | 19 | 0 | 6 | 25 |
 | 5. Page Layout & Sections | 19 | 0 | 0 | 19 |
 | 6. Graphics & Media | 22 | 0 | 3 | 25 |
 | 7. Form Controls | 10 | 0 | 1 | 11 |
@@ -2198,23 +2201,23 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 6 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 2 |
-| **Total** | **141** | **0** | **26** | **167** |
+| **Total** | **142** | **0** | **25** | **167** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 141
+    "Done" : 142
     "Partial" : 0
-    "Todo" : 26
+    "Todo" : 25
 ```
 
-**Overall coverage: ~84% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
+**Overall coverage: ~85% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
 
 
 Priority areas for future implementation:
-1. **Conditional table formatting (`w:cnfStyle`) + row-level exceptions (`w:tblPrEx`)** — required for header/banded-row rendering on styled tables, very common.
+1. **Row-level table property exceptions (`w:tblPrEx`)** — companion to the conditional formatting that's now in place; lets a single row override table defaults.
 2. **Legacy VML shapes (`v:shape`, `v:rect`, `v:imagedata`, `w10:wrap`, …)** — needed for older documents and `mc:Fallback` branches.
 3. **Percentage-sized floating drawings (`wp14:pctWidth`/`pctHeight`)** — without these, percentage-scaled images may render at zero size.
 4. **Custom-XML data binding (`w:dataBinding`)** — populates SDT content from bound data islands.

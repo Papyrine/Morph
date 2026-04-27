@@ -195,7 +195,7 @@ sealed class DocumentParser(string defaultFont)
         var endnotes = ExtractEndnotes(mainPart);
         var embeddedObjects = ExtractEmbeddedObjects(body);
         var watermarks = ExtractWatermarks(mainPart);
-        var features = DetectAdvancedFeatures(body, mainPart, watermarks.Count > 0);
+        var features = DetectAdvancedFeatures(body, watermarks.Count > 0);
 
         return new()
         {
@@ -224,7 +224,7 @@ sealed class DocumentParser(string defaultFont)
         };
     }
 
-    static DocumentFeatures DetectAdvancedFeatures(Body body, MainDocumentPart mainPart, bool hasWatermark)
+    static DocumentFeatures DetectAdvancedFeatures(Body body, bool hasWatermark)
     {
         var hasCharts = false;
         var hasSmartArt = false;
@@ -1695,6 +1695,7 @@ sealed class DocumentParser(string defaultFont)
             var insideH = BorderEdge.None;
             var insideV = BorderEdge.None;
             var colBandSize = 1;
+            var rowBandSize = 1;
 
             if (tblPr != null)
             {
@@ -1714,16 +1715,24 @@ sealed class DocumentParser(string defaultFont)
                     insideV = ParseBorderEdge(borders.GetFirstChild<InsideVerticalBorder>());
                 }
 
-                // Parse column band size
-                var bandSize = tblPr.GetFirstChild<TableStyleColumnBandSize>();
-                if (bandSize?.Val?.HasValue == true)
+                var colBand = tblPr.GetFirstChild<TableStyleColumnBandSize>();
+                if (colBand?.Val?.HasValue == true)
                 {
-                    colBandSize = bandSize.Val.Value;
+                    colBandSize = colBand.Val.Value;
+                }
+
+                var rowBand = tblPr.GetFirstChild<TableStyleRowBandSize>();
+                if (rowBand?.Val?.HasValue == true)
+                {
+                    rowBandSize = rowBand.Val.Value;
                 }
             }
 
-            // Parse conditional formatting (tblStylePr) for border overrides
-            Dictionary<TableStyleOverrideValues, CellBorders>? conditionalBorders = null;
+            // Whole-table cell shading lives on the style's StyleTableCellProperties.
+            var wholeTableShading = ReadShadingFill(style.StyleTableCellProperties?.GetFirstChild<Shading>());
+
+            // Parse conditional formatting (tblStylePr) for border + shading overrides
+            Dictionary<TableStyleOverrideValues, ConditionalFormat>? conditionals = null;
             foreach (var tblStylePr in style.Elements<TableStyleProperties>())
             {
                 var type = tblStylePr.Type?.Value;
@@ -1732,33 +1741,238 @@ sealed class DocumentParser(string defaultFont)
                     continue;
                 }
 
-                // Extract cell borders from the conditional formatting
                 var tcPr = tblStylePr.TableStyleConditionalFormattingTableCellProperties;
                 var tcBorders = tcPr?.GetFirstChild<TableCellBorders>();
-                if (tcBorders == null)
+
+                CellBorders? condBorders = null;
+                if (tcBorders != null)
+                {
+                    condBorders = new()
+                    {
+                        Top = ParseBorderEdge(tcBorders.GetFirstChild<TopBorder>()),
+                        Right = ParseBorderEdge(tcBorders.GetFirstChild<RightBorder>()),
+                        Bottom = ParseBorderEdge(tcBorders.GetFirstChild<BottomBorder>()),
+                        Left = ParseBorderEdge(tcBorders.GetFirstChild<LeftBorder>())
+                    };
+                }
+
+                var condShading = ReadShadingFill(tcPr?.GetFirstChild<Shading>());
+
+                if (condBorders == null && condShading == null)
                 {
                     continue;
                 }
 
-                var condBorders = new CellBorders
-                {
-                    Top = ParseBorderEdge(tcBorders.GetFirstChild<TopBorder>()),
-                    Right = ParseBorderEdge(tcBorders.GetFirstChild<RightBorder>()),
-                    Bottom = ParseBorderEdge(tcBorders.GetFirstChild<BottomBorder>()),
-                    Left = ParseBorderEdge(tcBorders.GetFirstChild<LeftBorder>())
-                };
-
-                conditionalBorders ??= new();
-                conditionalBorders[type.Value] = condBorders;
+                conditionals ??= new();
+                conditionals[type.Value] = new(condBorders, condShading);
             }
 
-            if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || conditionalBorders != null)
+            if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || wholeTableShading != null || conditionals != null)
             {
-                result[styleId] = new(cellBorders, insideH, insideV, colBandSize, conditionalBorders);
+                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, conditionals);
             }
         }
 
         return result;
+    }
+
+    static string? ReadShadingFill(Shading? shading)
+    {
+        if (shading?.Fill?.HasValue != true)
+        {
+            return null;
+        }
+
+        var fill = shading.Fill.Value;
+        return fill is null or "auto" ? null : fill;
+    }
+
+    /// <summary>
+    /// Reads <c>w:tblLook</c> into the subset of conditional flags that the table allows
+    /// to be derived from cell position. Defaults to all conditions when no <c>w:tblLook</c>
+    /// is present (matches Word's behaviour for tables saved without an explicit look).
+    /// </summary>
+    internal static ConditionalFormatFlags ParseTableLookMask(TableLook? tableLook)
+    {
+        if (tableLook == null)
+        {
+            return ConditionalFormatFlagsExtensions.AllConditions;
+        }
+
+        var mask = ConditionalFormatFlagsExtensions.AllConditions;
+
+        // First/last-row and first/last-column derivation only when explicitly enabled.
+        if (tableLook.FirstRow?.Value != true) mask &= ~ConditionalFormatFlags.FirstRow;
+        if (tableLook.LastRow?.Value != true) mask &= ~ConditionalFormatFlags.LastRow;
+        if (tableLook.FirstColumn?.Value != true) mask &= ~ConditionalFormatFlags.FirstColumn;
+        if (tableLook.LastColumn?.Value != true) mask &= ~ConditionalFormatFlags.LastColumn;
+
+        // Banding is enabled by default; tblLook's noHBand/noVBand flags suppress it.
+        if (tableLook.NoHorizontalBand?.Value == true)
+        {
+            mask &= ~(ConditionalFormatFlags.OddHBand | ConditionalFormatFlags.EvenHBand);
+        }
+
+        if (tableLook.NoVerticalBand?.Value == true)
+        {
+            mask &= ~(ConditionalFormatFlags.OddVBand | ConditionalFormatFlags.EvenVBand);
+        }
+
+        return mask;
+    }
+
+    internal static ConditionalFormatFlags ParseConditionalFormatFlags(ConditionalFormatStyle? cnfStyle)
+    {
+        if (cnfStyle == null)
+        {
+            return ConditionalFormatFlags.None;
+        }
+
+        var flags = ConditionalFormatFlags.None;
+        if (cnfStyle.FirstRow?.Value == true) flags |= ConditionalFormatFlags.FirstRow;
+        if (cnfStyle.LastRow?.Value == true) flags |= ConditionalFormatFlags.LastRow;
+        if (cnfStyle.FirstColumn?.Value == true) flags |= ConditionalFormatFlags.FirstColumn;
+        if (cnfStyle.LastColumn?.Value == true) flags |= ConditionalFormatFlags.LastColumn;
+        if (cnfStyle.OddVerticalBand?.Value == true) flags |= ConditionalFormatFlags.OddVBand;
+        if (cnfStyle.EvenVerticalBand?.Value == true) flags |= ConditionalFormatFlags.EvenVBand;
+        if (cnfStyle.OddHorizontalBand?.Value == true) flags |= ConditionalFormatFlags.OddHBand;
+        if (cnfStyle.EvenHorizontalBand?.Value == true) flags |= ConditionalFormatFlags.EvenHBand;
+        if (cnfStyle.FirstRowFirstColumn?.Value == true) flags |= ConditionalFormatFlags.FirstRowFirstColumn;
+        if (cnfStyle.FirstRowLastColumn?.Value == true) flags |= ConditionalFormatFlags.FirstRowLastColumn;
+        if (cnfStyle.LastRowFirstColumn?.Value == true) flags |= ConditionalFormatFlags.LastRowFirstColumn;
+        if (cnfStyle.LastRowLastColumn?.Value == true) flags |= ConditionalFormatFlags.LastRowLastColumn;
+
+        return flags;
+    }
+
+    /// <summary>
+    /// Returns the conditional regions that apply to a given cell, in cascade order
+    /// (lowest priority first). Caller cascades borders / shading by overlaying each
+    /// region's value onto the running result.
+    /// </summary>
+    /// <param name="tableLookMask">Subset of conditions that the table's <c>w:tblLook</c>
+    /// allows to be auto-derived from cell position. Explicit <c>w:cnfStyle</c> is always
+    /// honoured regardless of this mask.</param>
+    internal static IEnumerable<TableStyleOverrideValues> ResolveActiveConditions(
+        ConditionalFormatFlags flags,
+        int rowIndex,
+        int colIndex,
+        int totalRows,
+        int totalCols,
+        int rowBandSize,
+        int colBandSize,
+        ConditionalFormatFlags tableLookMask = ConditionalFormatFlagsExtensions.AllConditions)
+    {
+        // When the source provides an explicit cnfStyle (row, cell, or paragraph),
+        // trust those flags. Otherwise derive them from the cell's grid position,
+        // but only for conditions the table's tblLook permits.
+        if (flags == ConditionalFormatFlags.None)
+        {
+            flags = DerivePositionalFlags(rowIndex, colIndex, totalRows, totalCols, rowBandSize, colBandSize) & tableLookMask;
+        }
+
+        // ECMA-376 priority: lowest precedence first; later overrides earlier.
+        if ((flags & ConditionalFormatFlags.OddHBand) != 0)
+        {
+            yield return TableStyleOverrideValues.Band1Horizontal;
+        }
+        else if ((flags & ConditionalFormatFlags.EvenHBand) != 0)
+        {
+            yield return TableStyleOverrideValues.Band2Horizontal;
+        }
+
+        if ((flags & ConditionalFormatFlags.OddVBand) != 0)
+        {
+            yield return TableStyleOverrideValues.Band1Vertical;
+        }
+        else if ((flags & ConditionalFormatFlags.EvenVBand) != 0)
+        {
+            yield return TableStyleOverrideValues.Band2Vertical;
+        }
+
+        if ((flags & ConditionalFormatFlags.LastColumn) != 0)
+        {
+            yield return TableStyleOverrideValues.LastColumn;
+        }
+
+        if ((flags & ConditionalFormatFlags.FirstColumn) != 0)
+        {
+            yield return TableStyleOverrideValues.FirstColumn;
+        }
+
+        if ((flags & ConditionalFormatFlags.LastRow) != 0)
+        {
+            yield return TableStyleOverrideValues.LastRow;
+        }
+
+        if ((flags & ConditionalFormatFlags.FirstRow) != 0)
+        {
+            yield return TableStyleOverrideValues.FirstRow;
+        }
+
+        if ((flags & ConditionalFormatFlags.LastRowLastColumn) != 0)
+        {
+            yield return TableStyleOverrideValues.SouthEastCell;
+        }
+
+        if ((flags & ConditionalFormatFlags.LastRowFirstColumn) != 0)
+        {
+            yield return TableStyleOverrideValues.SouthWestCell;
+        }
+
+        if ((flags & ConditionalFormatFlags.FirstRowLastColumn) != 0)
+        {
+            yield return TableStyleOverrideValues.NorthEastCell;
+        }
+
+        if ((flags & ConditionalFormatFlags.FirstRowFirstColumn) != 0)
+        {
+            yield return TableStyleOverrideValues.NorthWestCell;
+        }
+    }
+
+    static ConditionalFormatFlags DerivePositionalFlags(
+        int rowIndex,
+        int colIndex,
+        int totalRows,
+        int totalCols,
+        int rowBandSize,
+        int colBandSize)
+    {
+        var flags = ConditionalFormatFlags.None;
+
+        if (rowIndex == 0)
+        {
+            flags |= ConditionalFormatFlags.FirstRow;
+        }
+        else if (rowIndex == totalRows - 1)
+        {
+            flags |= ConditionalFormatFlags.LastRow;
+        }
+        else if (rowBandSize > 0)
+        {
+            // Body rows alternate after the header row.
+            flags |= (rowIndex - 1) / rowBandSize % 2 == 0
+                ? ConditionalFormatFlags.OddHBand
+                : ConditionalFormatFlags.EvenHBand;
+        }
+
+        if (colIndex == 0)
+        {
+            flags |= ConditionalFormatFlags.FirstColumn;
+        }
+        else if (colIndex == totalCols - 1)
+        {
+            flags |= ConditionalFormatFlags.LastColumn;
+        }
+        else if (colBandSize > 0)
+        {
+            flags |= (colIndex - 1) / colBandSize % 2 == 0
+                ? ConditionalFormatFlags.OddVBand
+                : ConditionalFormatFlags.EvenVBand;
+        }
+
+        return flags;
     }
 
     NumberingInfo? GetNumberingInfo(OoxmlParagraphProperties? paraProps, string? styleId)
@@ -2563,6 +2777,8 @@ sealed class DocumentParser(string defaultFont)
     {
         var rows = new List<TableRow>();
         var tableProps = table.GetFirstChild<OoxmlTableProperties>();
+        var rowList = table.Elements<DocumentFormat.OpenXml.Wordprocessing.TableRow>().ToList();
+        var totalRows = rowList.Count;
 
         // Look up table style border info (including conditional formatting) early,
         // so we can apply per-cell conditional borders during cell parsing
@@ -2614,10 +2830,28 @@ sealed class DocumentParser(string defaultFont)
             isFloating = tblpPr != null;
         }
 
-        foreach (var row in table.Elements<DocumentFormat.OpenXml.Wordprocessing.TableRow>())
+        // tblLook gates which conditional flags can be derived from cell position when the
+        // document doesn't carry explicit w:cnfStyle.
+        var tableLookMask = ParseTableLookMask(tableProps?.GetFirstChild<TableLook>());
+
+        // Total grid columns — used for resolving lastColumn cnfStyle. Falls back to the
+        // first row's gridSpan-aware cell count when no explicit grid is supplied.
+        var totalCols = gridColumnWidths?.Count ?? 0;
+        if (totalCols == 0 && rowList.Count > 0)
         {
+            foreach (var c in rowList[0].Elements<DocumentFormat.OpenXml.Wordprocessing.TableCell>())
+            {
+                var span = c.GetFirstChild<OoxmlTableCellProperties>()?.GetFirstChild<GridSpan>()?.Val?.Value ?? 1;
+                totalCols += span;
+            }
+        }
+
+        for (var rowIndex = 0; rowIndex < rowList.Count; rowIndex++)
+        {
+            var row = rowList[rowIndex];
             var cells = new List<TableCell>();
             var gridColIndex = 0;
+            var rowFlags = ParseConditionalFormatFlags(row.GetFirstChild<TableRowProperties>()?.GetFirstChild<ConditionalFormatStyle>());
 
             foreach (var cell in row.Elements<DocumentFormat.OpenXml.Wordprocessing.TableCell>())
             {
@@ -2761,19 +2995,41 @@ sealed class DocumentParser(string defaultFont)
                     }
                 }
 
-                // Apply conditional formatting border overrides (e.g., band2Vert with nil borders)
-                // Only when cell doesn't have explicit borders from the document
-                if (cellBorders == null && styleInfo?.ConditionalBorders != null)
+                // Apply conditional table-style formatting (w:cnfStyle / w:tblStylePr cascade).
+                // Cell- and row-level explicit overrides win over conditional formatting.
+                if (styleInfo != null)
                 {
-                    var bandIndex = gridColIndex / styleInfo.ColBandSize;
-                    var bandType = bandIndex % 2 == 0
-                        ? TableStyleOverrideValues.Band1Vertical
-                        : TableStyleOverrideValues.Band2Vertical;
+                    var cellFlags = ParseConditionalFormatFlags(cellProps?.GetFirstChild<ConditionalFormatStyle>());
+                    var effectiveFlags = cellFlags == ConditionalFormatFlags.None ? rowFlags : cellFlags | rowFlags;
 
-                    if (styleInfo.ConditionalBorders.TryGetValue(bandType, out var condBorders))
+                    var conditionalBorders = (CellBorders?)null;
+                    var conditionalShading = styleInfo.BackgroundColorHex;
+
+                    if (styleInfo.Conditionals != null)
                     {
-                        cellBorders = condBorders;
+                        foreach (var condType in ResolveActiveConditions(
+                                     effectiveFlags, rowIndex, gridColIndex, totalRows, totalCols,
+                                     styleInfo.RowBandSize, styleInfo.ColBandSize, tableLookMask))
+                        {
+                            if (!styleInfo.Conditionals.TryGetValue(condType, out var cond))
+                            {
+                                continue;
+                            }
+
+                            if (cond.Borders != null)
+                            {
+                                conditionalBorders = cond.Borders;
+                            }
+
+                            if (cond.BackgroundColorHex != null)
+                            {
+                                conditionalShading = cond.BackgroundColorHex;
+                            }
+                        }
                     }
+
+                    cellBorders ??= conditionalBorders;
+                    bgColor ??= conditionalShading;
                 }
 
                 cells.Add(
@@ -4111,8 +4367,8 @@ sealed class DocumentParser(string defaultFont)
             // lines up with the inner (extent) box inside the outer (extent + effectExtent) frame.
             // The renderer scales the entire outer rectangle into the inline fragment, so without
             // the offset every shape would land in the top-left padding region.
-            var paddingX = effectL * (childExtentX / (double) extent.Cx.Value);
-            var paddingY = effectT * (childExtentY / (double) extent.Cy.Value);
+            var paddingX = effectL * (childExtentX / extent.Cx.Value);
+            var paddingY = effectT * (childExtentY / extent.Cy.Value);
             shapes.Add(new()
             {
                 X = (shapeXfrm.Offset.X ?? 0) - chOffX + paddingX,
@@ -4135,8 +4391,8 @@ sealed class DocumentParser(string defaultFont)
 
         // Stretch the child coord space by the same outer/inner ratio so shape coordinates
         // (now padded above) map correctly into the rendered outer rectangle.
-        var outerChildExtentX = childExtentX * outerCx / (double) extent.Cx.Value;
-        var outerChildExtentY = childExtentY * outerCy / (double) extent.Cy.Value;
+        var outerChildExtentX = childExtentX * outerCx / extent.Cx.Value;
+        var outerChildExtentY = childExtentY * outerCy / extent.Cy.Value;
 
         return new()
         {
@@ -7008,7 +7264,7 @@ sealed class DocumentParser(string defaultFont)
         // Math text inherits the surrounding run's font size when available so equations don't
         // collapse to the 11pt default. Variables render italic by default — Word's Cambria-Math
         // convention; numbers and operators stay upright (handled inside EmitMathRun).
-        var context = runs.Count > 0 ? runs[^1].Properties : new RunProperties();
+        var context = runs.Count > 0 ? runs[^1].Properties : new();
         WalkMath(mathElement, runs, context with {Italic = true});
     }
 
@@ -7163,7 +7419,7 @@ sealed class DocumentParser(string defaultFont)
     {
         foreach (var child in element.Descendants())
         {
-            if (child is DocumentFormat.OpenXml.Office2010.Word.RgbColorModelHex rgb && rgb.Val?.HasValue == true)
+            if (child is DocumentFormat.OpenXml.Office2010.Word.RgbColorModelHex {Val.HasValue: true} rgb)
             {
                 return rgb.Val.Value;
             }
@@ -7195,7 +7451,7 @@ sealed class DocumentParser(string defaultFont)
         if (alpha?.Val?.HasValue == true)
         {
             // w14:alpha is in 1000ths of a percent (100000 = 100%).
-            return (int) (alpha.Val.Value / 1000);
+            return alpha.Val.Value / 1000;
         }
         return null;
     }

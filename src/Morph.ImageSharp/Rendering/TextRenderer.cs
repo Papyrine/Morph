@@ -1298,22 +1298,22 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 var srcTop = (int) (crop.Top * img.Height);
                 var srcWidth = Math.Max(1, img.Width - srcLeft - (int) (crop.Right * img.Width));
                 var srcHeight = Math.Max(1, img.Height - srcTop - (int) (crop.Bottom * img.Height));
-                img.Mutate(_ => _.Crop(new Rectangle(srcLeft, srcTop, srcWidth, srcHeight)));
+                img.Mutate(_ => _.Crop(new(srcLeft, srcTop, srcWidth, srcHeight)));
             }
 
             img.Mutate(_ => _.Resize(new Size((int)pixelWidth, (int)pixelHeight)));
             var rotation = (float) fragment.InlineImageRotationDegrees;
-            if (rotation != 0)
+            if (rotation == 0)
+            {
+                currentPage.Mutate(_ => _.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f));
+            }
+            else
             {
                 img.Mutate(_ => _.Rotate(rotation));
                 // After rotation the image's bounding box grew; recentre over the original location.
                 var newX = pixelX + pixelWidth / 2 - img.Width / 2f;
                 var newY = pixelY + pixelHeight / 2 - img.Height / 2f;
-                currentPage.Mutate(_ => _.DrawImage(img, new Point((int)newX, (int)newY), 1f));
-            }
-            else
-            {
-                currentPage.Mutate(_ => _.DrawImage(img, new Point((int)pixelX, (int)pixelY), 1f));
+                currentPage.Mutate(_ => _.DrawImage(img, new Point((int) newX, (int) newY), 1f));
             }
         }
         catch

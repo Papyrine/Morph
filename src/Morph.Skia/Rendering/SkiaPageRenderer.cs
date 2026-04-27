@@ -155,9 +155,21 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         {
             Runs =
             [
-                new() {Text = heading, Properties = new() {Bold = true, FontSizePoints = 12}}
+                new()
+                {
+                    Text = heading,
+                    Properties = new()
+                    {
+                        Bold = true,
+                        FontSizePoints = 12
+                    }
+                }
             ],
-            Properties = new() {SpacingBeforePoints = 12, SpacingAfterPoints = 6}
+            Properties = new()
+            {
+                SpacingBeforePoints = 12,
+                SpacingAfterPoints = 6
+            }
         };
         RenderParagraph(headingParagraph);
 
@@ -167,10 +179,28 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             {
                 Runs =
                 [
-                    new() {Text = $"{id}. ", Properties = new() {Bold = true, FontSizePoints = 10}},
-                    new() {Text = text, Properties = new() {FontSizePoints = 10}}
+                    new()
+                    {
+                        Text = $"{id}. ",
+                        Properties = new()
+                        {
+                            Bold = true,
+                            FontSizePoints = 10
+                        }
+                    },
+                    new()
+                    {
+                        Text = text,
+                        Properties = new()
+                        {
+                            FontSizePoints = 10
+                        }
+                    }
                 ],
-                Properties = new() {SpacingAfterPoints = 4}
+                Properties = new()
+                {
+                    SpacingAfterPoints = 4
+                }
             };
             RenderParagraph(noteParagraph);
         }
@@ -488,6 +518,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                     {
                         break;
                     }
+
                     running += lh;
                     fit++;
                 }
@@ -599,7 +630,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                     var srcTop = (float) (c.Top * skImage.Height);
                     var srcRight = (float) ((1 - c.Right) * skImage.Width);
                     var srcBottom = (float) ((1 - c.Bottom) * skImage.Height);
-                    currentCanvas.DrawBitmap(skImage, new SKRect(srcLeft, srcTop, srcRight, srcBottom), destRect, paint);
+                    currentCanvas.DrawBitmap(skImage, new(srcLeft, srcTop, srcRight, srcBottom), destRect, paint);
                 }
                 else
                 {
@@ -623,28 +654,30 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         return effect switch
         {
-            BlipColorEffect.Grayscale or BlipColorEffect.Duotone => new SKPaint
-            {
-                ColorFilter = SKColorFilter.CreateColorMatrix(
-                [
-                    lumR, lumG, lumB, 0, 0,
-                    lumR, lumG, lumB, 0, 0,
-                    lumR, lumG, lumB, 0, 0,
-                    0, 0, 0, 1, 0
-                ])
-            },
-            BlipColorEffect.Washout => new SKPaint
-            {
-                // Match Word's "Washout" picture preset: brightness +70%, contrast −50% — i.e.
-                // gain 0.50 + bias 128 on each channel, producing a faded version of the image.
-                ColorFilter = SKColorFilter.CreateColorMatrix(
-                [
-                    0.5f, 0, 0, 0, 128,
-                    0, 0.5f, 0, 0, 128,
-                    0, 0, 0.5f, 0, 128,
-                    0, 0, 0, 1, 0
-                ])
-            },
+            BlipColorEffect.Grayscale or BlipColorEffect.Duotone =>
+                new()
+                {
+                    ColorFilter = SKColorFilter.CreateColorMatrix(
+                    [
+                        lumR, lumG, lumB, 0, 0,
+                        lumR, lumG, lumB, 0, 0,
+                        lumR, lumG, lumB, 0, 0,
+                        0, 0, 0, 1, 0
+                    ])
+                },
+            BlipColorEffect.Washout =>
+                new()
+                {
+                    // Match Word's "Washout" picture preset: brightness +70%, contrast −50% — i.e.
+                    // gain 0.50 + bias 128 on each channel, producing a faded version of the image.
+                    ColorFilter = SKColorFilter.CreateColorMatrix(
+                    [
+                        0.5f, 0, 0, 0, 128,
+                        0, 0.5f, 0, 0, 128,
+                        0, 0, 0.5f, 0, 128,
+                        0, 0, 0, 1, 0
+                    ])
+                },
             _ => null
         };
     }
@@ -1314,7 +1347,11 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             return;
         }
 
-        using var paint = new SKPaint {Style = SKPaintStyle.Stroke, IsAntialias = true};
+        using var paint = new SKPaint
+        {
+            Style = SKPaintStyle.Stroke,
+            IsAntialias = true
+        };
 
         if (borders.Top.IsVisible)
         {
@@ -2059,10 +2096,26 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         var alpha = (float) Math.Clamp(watermark.Gain, 0.2, 1.0);
         var colorMatrix = new[]
         {
-            gain, 0, 0, 0, bias,
-            0, gain, 0, 0, bias,
-            0, 0, gain, 0, bias,
-            0, 0, 0, alpha, 0
+            gain,
+            0,
+            0,
+            0,
+            bias,
+            0,
+            gain,
+            0,
+            0,
+            bias,
+            0,
+            0,
+            gain,
+            0,
+            bias,
+            0,
+            0,
+            0,
+            alpha,
+            0
         };
 
         using var paint = new SKPaint
