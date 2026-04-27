@@ -32,6 +32,30 @@ public class EvenOddHeadersTests
         await Assert.That(FlatText(doc.EvenPageHeader!)).Contains("EVEN HEADER");
     }
 
+    /// <summary>
+    /// even_odd_headers/02 covers both header AND footer with even/odd variants across
+    /// 4 pages. Confirms the symmetric parsing path for footer references picks up
+    /// <c>w:footerReference w:type="even"</c> the same way headers do.
+    /// </summary>
+    [Test]
+    public async Task DocumentParser_PicksUpEvenPageFooter_WhenOptedIn()
+    {
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "even_odd_headers", "02", "input.docx");
+
+        var parser = new DocumentParser();
+        var doc = parser.Parse(inputFile);
+
+        await Assert.That(doc.Footer).IsNotNull();
+        await Assert.That(FlatText(doc.Footer!)).Contains("ODD FOOTER");
+
+        await Assert.That(doc.EvenPageFooter).IsNotNull();
+        await Assert.That(FlatText(doc.EvenPageFooter!)).Contains("EVEN FOOTER");
+
+        // Header path on the same scenario.
+        await Assert.That(FlatText(doc.Header!)).Contains("ODD HEADER");
+        await Assert.That(FlatText(doc.EvenPageHeader!)).Contains("EVEN HEADER");
+    }
+
     static string FlatText(HeaderFooterContent content) =>
         string.Concat(content.Elements
             .OfType<ParagraphElement>()

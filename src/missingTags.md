@@ -75,21 +75,17 @@ Implementation notes:
 | `w:autoSpaceDE` / `w:autoSpaceDN` | Auto space between East Asian and Latin/numerals. |
 | `w:noWrap` (cell) | Prevent cell text wrapping (auto-fit cell to content instead). |
 | `w:ulTrailSpace` | Underline trailing spaces. |
-| `w:evenAndOddHeaders` (settings) | ⚠ Actually high impact — enables `evenPage`/`oddPage` header/footer references. Currently all pages probably use default. |
 
 ### Tables
 
 | Tag | Notes |
 |-----|-------|
-| `w:tblPrEx` | Row-level table property exceptions (row overrides table defaults). Merge over `w:tblPr` when resolving row. |
-| `w:cnfStyle` | Conditional format flags — picks the right `w:tblStylePr` (`firstRow`/`lastRow`/`firstCol`/`lastCol`/`band1Horz`/`band2Horz`/…). Needed for banded-table rendering. |
 | `w:tl2br` / `w:tr2bl` | Diagonal cell border (attribute on `w:tcBorders`). Draw line corner-to-corner. |
-| `w:tblHeader` | Row repeats as header on page break — matters once pagination exists. |
 | `w:tblCellSpacing` | Non-zero → detached border model (gaps between cells). |
 | `w:hideMark` | Hide end-of-cell paragraph mark — cosmetic but affects cell height measurement when cell is empty. |
 | `w:tblCaption` / `w:tblDescription` | Accessibility metadata — ignore for rendering. |
 | `w:tblOverlap` | Whether floating tables may overlap — ignore unless floating tables are implemented. |
-| `w:tblStyleRowBandSize` | Companion to the already-handled `w:tblStyleColBandSize`. |
+| `w:tblStyleRowBandSize` | Read into `TableStyleBorderInfo.RowBandSize`; cascade uses it for `band1Horz`/`band2Horz` derivation. Verify no further work needed. |
 
 ### Legacy VML drawing (Word 2007-compat fallback and form controls)
 
