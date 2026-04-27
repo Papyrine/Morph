@@ -11,11 +11,18 @@ public class GradientFillParseTests
             stopList.AppendChild(new A.GradientStop
             {
                 Position = pos,
-                RgbColorModelHex = new A.RgbColorModelHex {Val = color}
+                RgbColorModelHex = new()
+                {
+                    Val = color
+                }
             });
         }
+
         gradFill.AppendChild(stopList);
-        gradFill.AppendChild(new A.LinearGradientFill {Angle = (int) (angleDegrees * 60000)});
+        gradFill.AppendChild(new A.LinearGradientFill
+        {
+            Angle = (int) (angleDegrees * 60000)
+        });
         return gradFill;
     }
 
@@ -56,12 +63,20 @@ public class GradientFillParseTests
         stopList.AppendChild(new A.GradientStop
         {
             Position = 0,
-            RgbColorModelHex = new A.RgbColorModelHex {Val = "AAAAAA"}
+            RgbColorModelHex =
+                new()
+                {
+                    Val = "AAAAAA"
+                }
         });
         stopList.AppendChild(new A.GradientStop
         {
             Position = 100000,
-            RgbColorModelHex = new A.RgbColorModelHex {Val = "BBBBBB"}
+            RgbColorModelHex =
+                new()
+                {
+                    Val = "BBBBBB"
+                }
         });
         gradFill.AppendChild(stopList);
 
@@ -75,7 +90,10 @@ public class GradientFillParseTests
     public async Task ReturnsNullWhenNoStopList()
     {
         var gradFill = new A.GradientFill();
-        gradFill.AppendChild(new A.LinearGradientFill {Angle = 0});
+        gradFill.AppendChild(new A.LinearGradientFill
+        {
+            Angle = 0
+        });
 
         var result = ShapeParser.ExtractGradientFill(gradFill, null);
 
@@ -90,7 +108,11 @@ public class GradientFillParseTests
         stopList.AppendChild(new A.GradientStop
         {
             Position = 0,
-            RgbColorModelHex = new A.RgbColorModelHex {Val = "FF0000"}
+            RgbColorModelHex =
+                new()
+                {
+                    Val = "FF0000"
+                }
         });
         gradFill.AppendChild(stopList);
 
@@ -107,13 +129,21 @@ public class GradientFillParseTests
         var stopList = new A.GradientStopList();
         stopList.AppendChild(new A.GradientStop
         {
-            RgbColorModelHex = new A.RgbColorModelHex {Val = "FF0000"}
+            RgbColorModelHex =
+                new()
+                {
+                    Val = "FF0000"
+                }
         });
-        stopList.AppendChild(new A.GradientStop
-        {
-            Position = 100000,
-            RgbColorModelHex = new A.RgbColorModelHex {Val = "0000FF"}
-        });
+        stopList.AppendChild(
+            new A.GradientStop
+            {
+                Position = 100000,
+                RgbColorModelHex = new()
+                {
+                    Val = "0000FF"
+                }
+            });
         gradFill.AppendChild(stopList);
 
         var result = ShapeParser.ExtractGradientFill(gradFill, null);

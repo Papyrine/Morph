@@ -218,10 +218,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         // the between line drawn by the previous paragraph.
         var hasTopBorder = props.Borders?.Top.IsVisible ?? false;
         var hasBottomBorder = props.Borders?.Bottom.IsVisible ?? false;
-        var topSpaceExtra = (hasTopBorder || inBetweenChain)
-            ? (inBetweenChain
+        var topSpaceExtra = hasTopBorder || inBetweenChain
+            ? inBetweenChain
                 ? (float) props.BorderTopSpacePoints
-                : Math.Max(0f, (float) props.BorderTopSpacePoints - (float) props.SpacingBeforePoints))
+                : Math.Max(0f, (float) props.BorderTopSpacePoints - (float) props.SpacingBeforePoints)
             : 0f;
         var bottomSpaceExtra = hasBottomBorder
             ? Math.Max(0f, (float) props.BorderBottomSpacePoints - (float) props.SpacingAfterPoints)
@@ -847,7 +847,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var subsequentOffset = (float)props.HangingIndentPoints;
 
         // RTL paragraphs flip "leading-edge" alignment to the page's right edge (no BiDi reorder).
-        var alignment = props.IsRightToLeft && props.Alignment == TextAlignment.Left
+        var alignment = props is {IsRightToLeft: true, Alignment: TextAlignment.Left}
             ? TextAlignment.Right
             : props.Alignment;
 
@@ -1097,7 +1097,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             var reflectionColor = Color.FromPixel(new Rgba32(fillColor.R, fillColor.G, fillColor.B, reflectionAlpha));
 
             var ascent = baseline * context.Scale;
-            var descent = (font.FontMetrics.VerticalMetrics.Descender / (float) font.FontMetrics.UnitsPerEm) * font.Size;
+            var descent = font.FontMetrics.VerticalMetrics.Descender / (float) font.FontMetrics.UnitsPerEm * font.Size;
 
             var reflectOptions = new RichTextOptions(font)
             {
@@ -1236,8 +1236,8 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 // (each line's square cap fills the gap where a butt/round cap would leave a notch).
                 var pen = new SolidPen(new PenOptions(color, width)
                 {
-                    EndCapStyle = SixLabors.ImageSharp.Drawing.EndCapStyle.Square,
-                    JointStyle = SixLabors.ImageSharp.Drawing.JointStyle.Square
+                    EndCapStyle = EndCapStyle.Square,
+                    JointStyle = JointStyle.Square
                 });
                 canvas.Mutate(_ => _.DrawLine(pen, new PointF(startX, startY), new PointF(endX, endY)));
             }
