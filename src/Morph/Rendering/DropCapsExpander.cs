@@ -26,7 +26,7 @@ static class DropCapsExpander
         for (var i = 0; i < runs.Count; i++)
         {
             var run = runs[i];
-            if (!run.IsTab && run.InlineImageData == null && !string.IsNullOrEmpty(run.Text))
+            if (run is {IsTab: false, InlineImageData: null} && !string.IsNullOrEmpty(run.Text))
             {
                 firstIndex = i;
                 break;
