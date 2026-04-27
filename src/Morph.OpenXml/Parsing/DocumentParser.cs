@@ -4220,7 +4220,7 @@ sealed class DocumentParser(string defaultFont)
         return LigatureMode.Standard;
     }
 
-    static BlipColorEffect ReadBlipColorEffect(OpenXmlElement? blip)
+    internal static BlipColorEffect ReadBlipColorEffect(OpenXmlElement? blip)
     {
         if (blip == null)
         {

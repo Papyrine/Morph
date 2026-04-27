@@ -1352,11 +1352,15 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             // Tab snap: emit a tab-filler fragment that advances the cursor to the next tab stop.
             if (run.IsTab)
             {
-                var followingWidth = MeasureFollowingWidth(runs, runIndex + 1);
+                // LayoutParagraph applies FontWidthScale to word widths, so the following-text width
+                // measurement that feeds the tab-stop resolver must apply the same scale — otherwise
+                // a Right tab snaps to a destination that's just-too-tight, and the page-number
+                // word wraps to the next line (TOC dot-leader case).
+                var followingWidth = MeasureFollowingWidth(runs, runIndex + 1, applyFontWidthScale: true);
                 var leftIndentPts = (float) props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
                 double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
-                    ? MeasureFollowingDecimalPrefix(runs, runIndex + 1)
+                    ? MeasureFollowingDecimalPrefix(runs, runIndex + 1, applyFontWidthScale: true)
                     : null;
                 var (destinationAbs, matchedStop) = TabStopResolver.Resolve(
                     cursorAbs, followingWidth,
@@ -1649,8 +1653,9 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     /// </summary>
     // Width of the following text up to (but not including) the first '.' character. Returns null
     // when no '.' is present — resolver then treats the Decimal stop as Right alignment.
-    float? MeasureFollowingDecimalPrefix(IReadOnlyList<Run> runs, int startRunIndex)
+    float? MeasureFollowingDecimalPrefix(IReadOnlyList<Run> runs, int startRunIndex, bool applyFontWidthScale = false)
     {
+        var scale = applyFontWidthScale ? context.FontWidthScale : 1f;
         float total = 0;
         for (var i = startRunIndex; i < runs.Count; i++)
         {
@@ -1671,20 +1676,21 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             if (dotIndex >= 0)
             {
                 var prefix = text[..dotIndex];
-                total += ImageSharpRenderContext.MeasureText(font, prefix)
+                total += ImageSharpRenderContext.MeasureText(font, prefix, ResolveKerningMode(run.Properties)) * scale
                          + (float)(run.Properties.CharacterSpacingPoints * prefix.Length);
                 return total;
             }
 
-            total += ImageSharpRenderContext.MeasureText(font, text)
+            total += ImageSharpRenderContext.MeasureText(font, text, ResolveKerningMode(run.Properties)) * scale
                      + (float)(run.Properties.CharacterSpacingPoints * text.Length);
         }
 
         return null;
     }
 
-    float MeasureFollowingWidth(IReadOnlyList<Run> runs, int startRunIndex)
+    float MeasureFollowingWidth(IReadOnlyList<Run> runs, int startRunIndex, bool applyFontWidthScale = false)
     {
+        var scale = applyFontWidthScale ? context.FontWidthScale : 1f;
         float total = 0;
         for (var i = startRunIndex; i < runs.Count; i++)
         {
@@ -1707,7 +1713,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
 
             var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
             var font = context.GetFont(run.Properties);
-            total += ImageSharpRenderContext.MeasureText(font, text)
+            total += ImageSharpRenderContext.MeasureText(font, text, ResolveKerningMode(run.Properties)) * scale
                      + (float)(run.Properties.CharacterSpacingPoints * text.Length);
         }
 
