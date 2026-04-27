@@ -523,7 +523,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 var srcTop = (int) (c.Top * img.Height);
                 var srcWidth = Math.Max(1, img.Width - srcLeft - (int) (c.Right * img.Width));
                 var srcHeight = Math.Max(1, img.Height - srcTop - (int) (c.Bottom * img.Height));
-                img.Mutate(_ => _.Crop(new Rectangle(srcLeft, srcTop, srcWidth, srcHeight)));
+                img.Mutate(_ => _.Crop(new(srcLeft, srcTop, srcWidth, srcHeight)));
             }
 
             img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
@@ -1416,7 +1416,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                     for (var x = 0; x < row.Length; x++)
                     {
                         var pixel = row[x];
-                        row[x] = new Rgba32(
+                        row[x] = new(
                             (byte) Math.Clamp(pixel.R * gain + bias, 0, 255),
                             (byte) Math.Clamp(pixel.G * gain + bias, 0, 255),
                             (byte) Math.Clamp(pixel.B * gain + bias, 0, 255),
@@ -1492,8 +1492,8 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         temp.Mutate(_ => _.DrawText(tempOptions, watermark.Text!, new SolidBrush(color)));
         temp.Mutate(_ => _.Rotate((float) watermark.RotationDegrees));
 
-        var dstX = (int) ((context.PageWidthPixels - temp.Width) / 2);
-        var dstY = (int) ((context.PageHeightPixels - temp.Height) / 2);
+        var dstX = (context.PageWidthPixels - temp.Width) / 2;
+        var dstY = (context.PageHeightPixels - temp.Height) / 2;
         currentPage!.Mutate(_ => _.DrawImage(temp, new Point(dstX, dstY), 1f));
     }
 
