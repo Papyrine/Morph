@@ -921,9 +921,9 @@ Column width determination from explicit cell widths or table grid definitions.
 
 - **OOXML**: `w:tblGrid` > `w:gridCol`, `w:tcW`
 - **Layout**: `TableLayout.CalculateColumnWidths()`
-- **Test**: `wide_table/`
+- **Test**: `wide_table/`, `table_autofit_no_widths/`
 
-> **Contributors**: Three sources: explicit cell widths (`w:tcW`), grid column widths (`w:tblGrid`), or equal distribution. Width scaling applied when content exceeds available page width.
+> **Contributors**: Four sources, in order: explicit cell widths (`w:tcW`), grid column widths (`w:tblGrid`), content-based autofit when both are absent and `w:tblLayout` is autofit, or equal distribution as the last-resort fallback. Width scaling applied when content exceeds available page width.
 
 
 #### Horizontal Merge (GridSpan) `DONE`
@@ -988,9 +988,8 @@ Automatic column width adjustment based on content.
 - **OOXML**: `w:tblLayout` with `w:type="autofit"` or `"fixed"`
 - **Model**: `TableProperties.IsAutoFit` (default `true`, matching Word's behaviour for tables without an explicit layout type)
 - **Parse**: `DocumentParser.ParseTable()` reads `w:tblLayout/@type`; only `fixed` flips the flag
-- **Render**: `TableLayout.CalculateColumnWidths` now grows underflowing columns proportionally to fill the available width when `IsAutoFit` is true, and leaves them at the OOXML-specified widths when it's false. Overflowing columns still scale down regardless of mode (matches Word's hard limit at the page edge).
-
-> **AI**: Content-aware column reflow (where each column shrinks/grows to its widest cell content) is not implemented; only the global "fill the available width vs. honour the explicit grid" decision is honoured. Most templates work either way because their grid widths are already tuned for the page.
+- **Render**: `TableLayout.CalculateColumnWidths` grows underflowing columns proportionally to fill the available width when `IsAutoFit` is true, and leaves them at the OOXML-specified widths when it's false. Overflowing columns still scale down regardless of mode (matches Word's hard limit at the page edge). When `IsAutoFit` is true *and* no per-cell widths or usable grid widths are present (e.g. bare `<w:gridCol/>` entries), `CalculateContentBasedColumnWidths` measures each cell's preferred (single-line natural) and minimum (longest unbreakable token) width via `IParagraphMeasurer` and distributes width proportionally — preferred when it fits, interpolated min↔preferred when preferred overflows but min fits, or scaled-down min when even min overflows.
+- **Test**: `table_autofit_no_widths/`, `TableAutofitTests`
 
 
 #### Header Row Repeat `DONE`
