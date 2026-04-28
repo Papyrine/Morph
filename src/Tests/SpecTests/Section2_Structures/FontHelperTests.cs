@@ -216,15 +216,21 @@ public class FontHelperTests
     [Arguments(" Narrow")]
     [Arguments(" Extended")]
     [Arguments(" Wide")]
+    [Arguments(" UltraBlack")]
     [Arguments(" Black")]
     [Arguments(" Heavy")]
+    [Arguments(" UltraBold")]
     [Arguments(" ExtraBold")]
+    [Arguments(" Demibold")]
     [Arguments(" Bold")]
     [Arguments(" Semibold")]
     [Arguments(" Demi")]
     [Arguments(" Medium")]
     [Arguments(" Regular")]
     [Arguments(" Book")]
+    [Arguments(" UltraLight")]
+    [Arguments(" ExtraLight")]
+    [Arguments(" Semilight")]
     [Arguments(" Light")]
     [Arguments(" Thin")]
     [Arguments(" Hairline")]
@@ -236,5 +242,27 @@ public class FontHelperTests
         var input = "TestFont" + suffix;
         var result = FontHelpers.StripWeightSuffixes(input);
         await Assert.That(result).IsEqualTo("TestFont");
+    }
+
+    [Test]
+    [Arguments("Segoe UI Semilight", "Segoe UI")]
+    [Arguments("Segoe UI ExtraLight", "Segoe UI")]
+    [Arguments("Segoe UI UltraLight", "Segoe UI")]
+    [Arguments("Helvetica UltraBold", "Helvetica")]
+    [Arguments("Helvetica Demibold", "Helvetica")]
+    [Arguments("Helvetica UltraBlack", "Helvetica")]
+    public async Task StripWeightSuffixes_NewSuffixes_Stripped(string fontFamily, string expected) =>
+        await Assert.That(FontHelpers.StripWeightSuffixes(fontFamily)).IsEqualTo(expected);
+
+    [Test]
+    public async Task GetCandidateNames_Semilight_StrippedToBase()
+    {
+        // Regression: " Semilight" suffix used to be missing from StyleSuffixes,
+        // leaving Stripped=null and breaking resolver fallback when SkiaSharp
+        // collapses "Segoe UI Semilight" to "Segoe UI" weight 400.
+        var c = FontHelpers.GetCandidateNames("Segoe UI Semilight", false);
+        await Assert.That(c.Effective).IsEqualTo("Segoe UI Semilight");
+        await Assert.That(c.Original).IsEqualTo("Segoe UI Semilight");
+        await Assert.That(c.Stripped).IsEqualTo("Segoe UI");
     }
 }

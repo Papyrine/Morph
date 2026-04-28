@@ -14,7 +14,11 @@
           "SmallCaps": false,
           "Ligatures": "Standard",
           "IsRightToLeft": false,
-          "HasReflection": false
+          "HasReflection": false,
+          "Hidden": false,
+          "Emboss": false,
+          "Imprint": false,
+          "OutlineOnly": false
         },
         "IsTab": false
       },
@@ -31,7 +35,11 @@
           "SmallCaps": false,
           "Ligatures": "Standard",
           "IsRightToLeft": false,
-          "HasReflection": false
+          "HasReflection": false,
+          "Hidden": false,
+          "Emboss": false,
+          "Imprint": false,
+          "OutlineOnly": false
         },
         "IsTab": false
       },
@@ -48,7 +56,11 @@
           "SmallCaps": false,
           "Ligatures": "Standard",
           "IsRightToLeft": false,
-          "HasReflection": false
+          "HasReflection": false,
+          "Hidden": false,
+          "Emboss": false,
+          "Imprint": false,
+          "OutlineOnly": false
         },
         "IsTab": false
       },
@@ -65,7 +77,11 @@
           "SmallCaps": false,
           "Ligatures": "Standard",
           "IsRightToLeft": false,
-          "HasReflection": false
+          "HasReflection": false,
+          "Hidden": false,
+          "Emboss": false,
+          "Imprint": false,
+          "OutlineOnly": false
         },
         "IsTab": false
       }
