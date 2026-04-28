@@ -61,6 +61,42 @@ sealed record RunProperties
     public bool HasReflection { get; init; }
 
     /// <summary>
+    /// <c>w:vanish</c> / <c>w:specVanish</c> — when true, the run is hidden text and is
+    /// skipped during layout and rendering. Word's <c>w:showHiddenText</c> setting could
+    /// override this; Morph always honours hidden as the user-visible default.
+    /// </summary>
+    public bool Hidden { get; init; }
+
+    /// <summary>
+    /// Baseline shift in points (<c>w:position</c>; positive moves text up, negative down).
+    /// Distinct from <see cref="VerticalAlignment"/>'s super/sub which also resizes.
+    /// </summary>
+    public double BaselineShiftPoints { get; init; }
+
+    /// <summary>
+    /// Per-run border (<c>w:bdr</c>). Drawn as a rectangle around the run's measured box.
+    /// Null = no run border.
+    /// </summary>
+    public BorderEdge? Border { get; init; }
+
+    /// <summary>
+    /// <c>w:emboss</c> — 3D emboss effect (lighter glyph offset down-right of the main
+    /// glyph). Approximated as a tonal effect; the renderer still uses the run's colour.
+    /// </summary>
+    public bool Emboss { get; init; }
+
+    /// <summary>
+    /// <c>w:imprint</c> — engrave (inverse emboss; darker glyph offset up-left).
+    /// </summary>
+    public bool Imprint { get; init; }
+
+    /// <summary>
+    /// <c>w:outline</c> — stroke-only text (no fill). When true, the renderer draws each
+    /// glyph's outline using the run's colour rather than a filled fill.
+    /// </summary>
+    public bool OutlineOnly { get; init; }
+
+    /// <summary>
     /// Bitmask view of which Word 2010+ text effects are present on the run, derived from
     /// <see cref="Outline"/>, <see cref="Shadow"/>, <see cref="Glow"/> and <see cref="HasReflection"/>.
     /// </summary>

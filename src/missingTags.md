@@ -36,19 +36,7 @@ Implementation notes:
 
 | Tag | Notes |
 |-----|-------|
-| `w:dstrike` | Double strikethrough. Draw two parallel strike lines (use font metrics ×1.3 spacing). |
-| `w:smallCaps` | Lowercase rendered as scaled uppercase (~0.75em). Apply during text shaping before Skia/ImageSharp text layout. |
-| `w:vanish` | Hidden text. Skip the run entirely (unless `settings.xml` has `w:showHiddenText`). |
-| `w:specVanish` | Structural hidden (TOC markers etc.). Treat same as `w:vanish`. |
-| `w:webHidden` | Hidden in web view — render normally for print/image. |
-| `w:emboss` | 3D emboss effect. Approximate: draw darker glyph offset ↘ then lighter glyph. |
-| `w:imprint` | Engrave (inverse emboss). |
-| `w:outline` | Stroke-only text. Set paint to stroke with zero fill. |
-| `w:effect` | Animated text (`blinkBackground`, `sparkle` etc.) — render as plain text (effect is animation-only). |
 | `w:em` | East-Asian emphasis mark (dot/circle above/below each glyph). |
-| `w:kern` | Kerning threshold in half-points; only kern fonts ≥ value. Most engines kern by default — wire into typography settings. |
-| `w:position` | Baseline shift in half-points (+up, -down). Distinct from `w:vertAlign` (super/sub with resize). |
-| `w:bdr` | Per-run border — draw rectangle around the run's measured box. |
 | `w14:textFill` | Gradient/pattern text fill (contains `w14:solidFill`/`w14:gradFill`). |
 | `w14:textOutline` | Text outline stroke colour/width. |
 | `w14:glow` | Outer glow — radius + colour. |
@@ -230,7 +218,7 @@ Updated after the audit + recent feature work (see `docs/word-features.md` for t
 
 1. **Percentage-sized floating drawings** (`wp14:pctWidth`/`pctHeight`, `wp14:sizeRelH`/`sizeRelV`) — without these, percentage-scaled images may render at zero size.
 2. **Custom-XML data binding** (`w:dataBinding`) — populates SDT content from bound data islands.
-3. **Run formatting gaps**: `w:vanish` (skip), `w:position`, `w:bdr`, `w:em`, `w:emboss`, `w:imprint`, `w:outline`, plus `w14:textFill` (gradient text fill).
+3. **Remaining run formatting gaps**: `w:em` (East-Asian emphasis mark), `w14:textFill` (gradient text fill).
 4. **Image adjustments** (`a14:brightnessContrast`, `a14:saturation`, etc.) — Word's "Picture Format → Adjustments" filters.
 5. **Chart rendering beyond placeholder** — currently renders as empty space matching the drawing extent; either ship a minimal renderer or surface an `mc:Fallback` thumbnail.
 
@@ -238,4 +226,4 @@ Updated after the audit + recent feature work (see `docs/word-features.md` for t
 
 Recently completed (no longer on the list):
 
-- `w:hyperlink`, footnotes / endnotes, `w:tblPrEx`, `w:cnfStyle`, `w:tblHeader`, `w:tblCellSpacing` (detached-border model, verified via `Tests/Inputs/table_cell_spacing/01`), `w:tl2br` / `w:tr2bl` diagonal cell borders (verified via `Tests/Inputs/table_diagonal_borders/01`), `w:hideMark`, `w:noWrap` (cell), `w:tblCaption` / `w:tblDescription` (accessibility metadata, no-op), `w:tblOverlap` (floating-table-only, no-op for inline), `w:mirrorIndents` (parsed; renderer doesn't yet swap indents), `w:framePr` (drop-cap subset only; absolute positioning is a no-op), East-Asian layout flags `w:wordWrap` / `w:kinsoku` / `w:overflowPunct` / `w:autoSpaceDE` / `w:autoSpaceDN` / `w:adjustRightInd` (no-op), `w:pgNumType` (no-op until fields are evaluated), `w:ulTrailSpace` (already matches default-on behaviour), `w:smallCaps`, `w:dstrike`, `w:kern`, `w14:textOutline` / `glow` / `shadow` / `reflection`, custom tab stops, gradient shape fills (`a:gradFill`), image crop (`a:srcRect`), image rotation, even/odd page headers + footers (verified end-to-end via `Tests/Inputs/even_odd_headers/02`).
+- `w:hyperlink`, footnotes / endnotes, `w:tblPrEx`, `w:cnfStyle`, `w:tblHeader`, `w:tblCellSpacing` (detached-border model, verified via `Tests/Inputs/table_cell_spacing/01`), `w:tl2br` / `w:tr2bl` diagonal cell borders (verified via `Tests/Inputs/table_diagonal_borders/01`), `w:hideMark`, `w:noWrap` (cell), `w:tblCaption` / `w:tblDescription` (accessibility metadata, no-op), `w:tblOverlap` (floating-table-only, no-op for inline), `w:mirrorIndents` (parsed; renderer doesn't yet swap indents), `w:framePr` (drop-cap subset only; absolute positioning is a no-op), East-Asian layout flags `w:wordWrap` / `w:kinsoku` / `w:overflowPunct` / `w:autoSpaceDE` / `w:autoSpaceDN` / `w:adjustRightInd` (no-op), `w:pgNumType` (no-op until fields are evaluated), `w:ulTrailSpace` (already matches default-on behaviour), `w:vanish` / `w:specVanish` (hidden runs dropped at parse), `w:webHidden` (no-op), `w:position` (baseline shift), `w:bdr` (per-run border), `w:emboss` / `w:imprint` / `w:outline` (run-effect bundle), `w:effect` (animated text, no-op), `w:smallCaps`, `w:dstrike`, `w:kern`, `w14:textOutline` / `glow` / `shadow` / `reflection`, custom tab stops, gradient shape fills (`a:gradFill`), image crop (`a:srcRect`), image rotation, even/odd page headers + footers (verified end-to-end via `Tests/Inputs/even_odd_headers/02`).

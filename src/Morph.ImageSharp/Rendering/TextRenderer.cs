@@ -964,6 +964,13 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             pixelY += originalFontSize * 0.15f;
         }
 
+        // w:position — additive baseline shift in points. Positive raises the glyph,
+        // negative lowers it. Stacks on top of vertAlign for combined shifts.
+        if (fragment.Properties.BaselineShiftPoints != 0)
+        {
+            pixelY -= context.PointsToPixels((float) fragment.Properties.BaselineShiftPoints);
+        }
+
         // Draw background/shading color if specified
         if (!string.IsNullOrEmpty(fragment.Properties.BackgroundColorHex))
         {
@@ -990,7 +997,53 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
 
         DrawTextEffectsBehind(currentPage, fragment, textOptions, font, pixelX, pixelY, baseline);
 
-        currentPage.Mutate(_ => _.DrawText(textOptions, fragment.Text, new SolidBrush(color)));
+        // w:emboss / w:imprint — paint a tonal companion glyph offset by one device pixel
+        // so the run reads as raised (emboss) or engraved (imprint). Approximation only;
+        // companion uses fixed light/dark grey matched to a white background.
+        if (fragment.Properties.Emboss)
+        {
+            var lightOptions = new RichTextOptions(font)
+            {
+                Dpi = context.Dpi,
+                Origin = new PointF(pixelX + 1, pixelY - baseline * context.Scale + 1),
+                KerningMode = textOptions.KerningMode
+            };
+            currentPage.Mutate(_ => _.DrawText(lightOptions, fragment.Text, new SolidBrush(Color.White)));
+        }
+        else if (fragment.Properties.Imprint)
+        {
+            var darkOptions = new RichTextOptions(font)
+            {
+                Dpi = context.Dpi,
+                Origin = new PointF(pixelX - 1, pixelY - baseline * context.Scale - 1),
+                KerningMode = textOptions.KerningMode
+            };
+            currentPage.Mutate(_ => _.DrawText(darkOptions, fragment.Text, new SolidBrush(Color.Gray)));
+        }
+
+        // w:outline — render the glyph as a stroke instead of a fill.
+        if (fragment.Properties.OutlineOnly)
+        {
+            var strokePen = new SolidPen(color, Math.Max(0.5f, context.Scale * 0.5f));
+            currentPage.Mutate(_ => _.DrawText(textOptions, fragment.Text, strokePen));
+        }
+        else
+        {
+            currentPage.Mutate(_ => _.DrawText(textOptions, fragment.Text, new SolidBrush(color)));
+        }
+
+        // w:bdr — per-run border drawn around the text box. Doesn't reserve space, so
+        // adjacent runs may sit close to the rectangle's edge — matches Word.
+        if (fragment.Properties.Border is {IsVisible: true} runBdr)
+        {
+            var (runHeight2, runBaseline2) = ImageSharpRenderContext.GetFontMetrics(font);
+            var bdrTop = pixelY - runBaseline2 * context.Scale;
+            var bdrBottom = pixelY + (runHeight2 - runBaseline2) * context.Scale;
+            var bdrWidth = context.PointsToPixels(fragment.Width);
+            var bdrColor = ImageSharpRenderContext.ParseColor(runBdr.ColorHex);
+            var bdrPen = new SolidPen(bdrColor, Math.Max(0.5f, (float) runBdr.WidthPoints * context.Scale));
+            currentPage.Mutate(_ => _.Draw(bdrPen, new RectangleF(pixelX, bdrTop, bdrWidth, bdrBottom - bdrTop)));
+        }
 
         if (fragment.Properties.Outline is { } outline)
         {

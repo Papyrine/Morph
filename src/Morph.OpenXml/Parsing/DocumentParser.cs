@@ -7056,6 +7056,13 @@ sealed class DocumentParser(string defaultFont)
         RunProperties GetProperties() =>
             properties ??= ParseRunProperties(run.RunProperties, mainPart, paragraphStyleId);
 
+        // w:vanish / w:specVanish — drop hidden runs at parse time so they don't enter
+        // measurement or rendering. Cheaper than filtering at every render call site.
+        if (GetProperties().Hidden)
+        {
+            return result;
+        }
+
         // Walk children in order so w:tab splits the run into separate model Runs (text, tab, text, ...)
         var textBuilder = new StringBuilder();
 
@@ -7400,6 +7407,67 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        // w:vanish / w:specVanish — hidden text. Either form skips the run during layout.
+        // w:webHidden is intentionally not consumed: it hides only in web view, and Morph
+        // renders for print/image so the runs stay visible (parsed-and-discarded).
+        var hidden = styleDefaults?.Hidden ?? false;
+        var vanish = props.GetFirstChild<Vanish>();
+        if (vanish != null)
+        {
+            hidden = vanish.Val?.Value != false;
+        }
+
+        if (props.GetFirstChild<SpecVanish>() != null)
+        {
+            hidden = true;
+        }
+
+        // w:position — baseline shift in half-points (positive = up, negative = down).
+        // Distinct from w:vertAlign which also resizes the glyph.
+        var baselineShift = styleDefaults?.BaselineShiftPoints ?? 0.0;
+        var positionElement = props.GetFirstChild<Position>();
+        if (positionElement?.Val?.HasValue == true &&
+            double.TryParse(positionElement.Val.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var posHalfPts))
+        {
+            baselineShift = posHalfPts / 2.0;
+        }
+
+        // w:bdr — per-run border, modelled as a single BorderEdge applied around the run's
+        // measured box. Reuses ParseBorderEdge so dotted/dashed/single all flow through.
+        var runBorder = styleDefaults?.Border;
+        var bdrElement = props.GetFirstChild<Border>();
+        if (bdrElement != null)
+        {
+            var parsed = ParseBorderEdge(bdrElement);
+            runBorder = parsed.IsVisible ? parsed : null;
+        }
+
+        // w:emboss / w:imprint / w:outline — three glyph-fill modifiers. Each is a presence
+        // toggle (val="0" / val="false" turns it back off).
+        var emboss = styleDefaults?.Emboss ?? false;
+        var embossElement = props.GetFirstChild<Emboss>();
+        if (embossElement != null)
+        {
+            emboss = embossElement.Val?.Value != false;
+        }
+
+        var imprint = styleDefaults?.Imprint ?? false;
+        var imprintElement = props.GetFirstChild<Imprint>();
+        if (imprintElement != null)
+        {
+            imprint = imprintElement.Val?.Value != false;
+        }
+
+        var outlineOnly = styleDefaults?.OutlineOnly ?? false;
+        var outlineElement = props.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.Outline>();
+        if (outlineElement != null)
+        {
+            outlineOnly = outlineElement.Val?.Value != false;
+        }
+
+        // w:effect — animated text (blinkBackground, sparkle, etc.). Pure animation, so we
+        // render the underlying text plain (parsed-and-discarded).
+
         return new()
         {
             FontFamily = fontFamily,
@@ -7420,7 +7488,13 @@ sealed class DocumentParser(string defaultFont)
             Outline = outline,
             Shadow = shadow,
             Glow = glow,
-            HasReflection = hasReflection
+            HasReflection = hasReflection,
+            Hidden = hidden,
+            BaselineShiftPoints = baselineShift,
+            Border = runBorder,
+            Emboss = emboss,
+            Imprint = imprint,
+            OutlineOnly = outlineOnly
         };
     }
 
