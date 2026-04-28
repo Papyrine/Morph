@@ -12,8 +12,8 @@ public class TableAutofitTests
         // Two columns, autofit, no widths supplied. Right column's content is ~3× wider
         // than the left's, so it should claim the larger share of available width.
         var table = MakeTable(
-            new[] { "x", "y" },
-            new[] { "longer content here", "y" });
+            ["x", "y"],
+            ["longer content here", "y"]);
 
         var measurer = new ProportionalMeasurer();
         var widths = TableLayout.CalculateColumnWidths(table, colCount: 2, availableWidth: 400, measurer);
@@ -29,7 +29,7 @@ public class TableAutofitTests
         // Min for both cells is the longest token; the right cell has a much longer token,
         // so its column should still get the larger share.
         var table = MakeTable(
-            new[] { "ab cd ef", "supercalifragilisticexpialidocious" });
+            ["ab cd ef", "supercalifragilisticexpialidocious"]);
 
         var measurer = new ProportionalMeasurer();
         var widths = TableLayout.CalculateColumnWidths(table, colCount: 2, availableWidth: 100, measurer);
@@ -44,7 +44,7 @@ public class TableAutofitTests
         // Even the longest unbreakable tokens won't fit: we scale the min widths down
         // to fill exactly. This is the "page edge wins" fallback.
         var table = MakeTable(
-            new[] { "aaaaaaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbbbbbb" });
+            ["aaaaaaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbbbbbb"]);
 
         var measurer = new ProportionalMeasurer();
         var widths = TableLayout.CalculateColumnWidths(table, colCount: 2, availableWidth: 10, measurer);
@@ -58,7 +58,7 @@ public class TableAutofitTests
         // Even with autofit, omitting the measurer must keep the legacy equal-divide
         // behaviour so existing call paths without measurer access stay deterministic.
         var table = MakeTable(
-            new[] { "a", "loooooong" });
+            ["a", "loooooong"]);
 
         var widths = TableLayout.CalculateColumnWidths(table, colCount: 2, availableWidth: 200, measurer: null);
 
@@ -74,7 +74,7 @@ public class TableAutofitTests
         var table = MakeTable(
             isAutoFit: false,
             cellWidths: null,
-            new[] { "a", "loooooong" });
+            ["a", "loooooong"]);
 
         var measurer = new ProportionalMeasurer();
         var widths = TableLayout.CalculateColumnWidths(table, colCount: 2, availableWidth: 200, measurer);
@@ -92,7 +92,7 @@ public class TableAutofitTests
         var table = MakeTable(
             isAutoFit: true,
             cellWidths: [[50, 150]],
-            new[] { "a", "b" });
+            ["a", "b"]);
 
         var measurer = new ProportionalMeasurer();
         var widths = TableLayout.CalculateColumnWidths(table, colCount: 2, availableWidth: 200, measurer);

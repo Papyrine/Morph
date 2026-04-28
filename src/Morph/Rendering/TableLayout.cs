@@ -383,7 +383,7 @@ static class TableLayout
             {
                 para = direct;
             }
-            else if (element is ContentControlElement {Runs: {Count: > 0}} cc)
+            else if (element is ContentControlElement {Runs.Count: > 0 } cc)
             {
                 para = new()
                 {

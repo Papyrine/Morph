@@ -7459,7 +7459,7 @@ sealed class DocumentParser(string defaultFont)
         }
 
         var outlineOnly = styleDefaults?.OutlineOnly ?? false;
-        var outlineElement = props.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.Outline>();
+        var outlineElement = props.GetFirstChild<Outline>();
         if (outlineElement != null)
         {
             outlineOnly = outlineElement.Val?.Value != false;
