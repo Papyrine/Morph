@@ -1019,12 +1019,20 @@ sealed class TextRenderer(SkiaRenderContext context) :
         // blending; this matches Word's default look on white backgrounds.
         if (fragment.Properties.Emboss)
         {
-            using var lightPaint = new SKPaint {Color = new SKColor(0xFF, 0xFF, 0xFF), IsAntialias = true};
+            using var lightPaint = new SKPaint
+            {
+                Color = new(0xFF, 0xFF, 0xFF),
+                IsAntialias = true
+            };
             canvas.DrawText(fragment.Text, pixelX + 1, pixelY + 1, SKTextAlign.Left, font, lightPaint);
         }
         else if (fragment.Properties.Imprint)
         {
-            using var darkPaint = new SKPaint {Color = new SKColor(0x80, 0x80, 0x80), IsAntialias = true};
+            using var darkPaint = new SKPaint
+            {
+                Color = new(0x80, 0x80, 0x80),
+                IsAntialias = true
+            };
             canvas.DrawText(fragment.Text, pixelX - 1, pixelY - 1, SKTextAlign.Left, font, darkPaint);
         }
 

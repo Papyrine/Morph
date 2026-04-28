@@ -121,7 +121,7 @@ public class RunEffectsTests
             run.AppendChild(new Text(text));
             para.AppendChild(run);
             body.AppendChild(para);
-            mainPart.Document = new Document(body);
+            mainPart.Document = new(body);
         }
 
         stream.Position = 0;
