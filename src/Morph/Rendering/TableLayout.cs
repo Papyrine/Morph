@@ -108,7 +108,7 @@ static class TableLayout
         };
     }
 
-    internal static float[] CalculateColumnWidths(TableElement table, int colCount, float availableWidth)
+    internal static float[] CalculateColumnWidths(TableElement table, int colCount, float availableWidth, IParagraphMeasurer? measurer = null)
     {
         var widths = new float[colCount];
         var gridWidths = table.Properties.GridColumnWidths;
@@ -232,6 +232,14 @@ static class TableLayout
         }
         else
         {
+            // No explicit widths anywhere. With autofit + a measurer, distribute by content
+            // (Word's default behaviour when w:tblGrid carries bare w:gridCol entries with no
+            // w:w). Without a measurer (or with fixed layout), fall back to equal columns.
+            if (isAutoFit && measurer != null)
+            {
+                return CalculateContentBasedColumnWidths(table, colCount, availableWidth, measurer);
+            }
+
             var cellWidth = availableWidth / colCount;
             for (var i = 0; i < colCount; i++)
             {
@@ -240,6 +248,173 @@ static class TableLayout
         }
 
         return widths;
+    }
+
+    /// <summary>
+    /// Content-based autofit: per column, take the max preferred (single-line natural)
+    /// width and the max minimum (longest unbreakable token) width over its cells, then
+    /// distribute available width:
+    ///   - sum(pref) ≤ avail: scale pref up to fill,
+    ///   - sum(min)  ≤ avail &lt; sum(pref): interpolate between min and pref,
+    ///   - sum(min) &gt; avail: scale min down to fit (mirrors Word's autofit fallback when
+    ///     even the longest unbreakable token can't fit the page).
+    /// Multi-span cells contribute their content width split evenly across the columns
+    /// they span; vertically merged continuation cells are skipped.
+    /// </summary>
+    static float[] CalculateContentBasedColumnWidths(TableElement table, int colCount, float availableWidth, IParagraphMeasurer measurer)
+    {
+        var prefs = new float[colCount];
+        var mins = new float[colCount];
+        var tableProps = table.Properties;
+
+        foreach (var row in table.Rows)
+        {
+            var gridColIndex = 0;
+            foreach (var cell in row.Cells)
+            {
+                if (gridColIndex >= colCount)
+                {
+                    break;
+                }
+
+                var props = cell.Properties;
+                var span = Math.Max(1, props.GridSpan);
+
+                if (props.VerticalMerge == VerticalMergeType.Continue)
+                {
+                    gridColIndex += span;
+                    continue;
+                }
+
+                var padding = GetEffectivePadding(props, tableProps, row);
+                var margin = GetEffectiveMargin(props, tableProps);
+                var horizontalChrome = (float) (padding.Horizontal + margin.Horizontal);
+
+                var (cellPref, cellMin) = MeasureCellContentWidth(cell, measurer);
+
+                cellPref += horizontalChrome;
+                cellMin += horizontalChrome;
+
+                var perColPref = cellPref / span;
+                var perColMin = cellMin / span;
+
+                for (var s = 0; s < span && gridColIndex + s < colCount; s++)
+                {
+                    if (perColPref > prefs[gridColIndex + s])
+                    {
+                        prefs[gridColIndex + s] = perColPref;
+                    }
+
+                    if (perColMin > mins[gridColIndex + s])
+                    {
+                        mins[gridColIndex + s] = perColMin;
+                    }
+                }
+
+                gridColIndex += span;
+            }
+        }
+
+        var widths = new float[colCount];
+        var sumPref = 0f;
+        var sumMin = 0f;
+        for (var i = 0; i < colCount; i++)
+        {
+            sumPref += prefs[i];
+            sumMin += mins[i];
+        }
+
+        if (sumPref <= 0)
+        {
+            var equal = availableWidth / colCount;
+            for (var i = 0; i < colCount; i++)
+            {
+                widths[i] = equal;
+            }
+
+            return widths;
+        }
+
+        if (sumPref <= availableWidth)
+        {
+            var scale = availableWidth / sumPref;
+            for (var i = 0; i < colCount; i++)
+            {
+                widths[i] = prefs[i] * scale;
+            }
+        }
+        else if (sumMin < availableWidth)
+        {
+            var ratio = (availableWidth - sumMin) / (sumPref - sumMin);
+            for (var i = 0; i < colCount; i++)
+            {
+                widths[i] = mins[i] + (prefs[i] - mins[i]) * ratio;
+            }
+        }
+        else if (sumMin > 0)
+        {
+            var scale = availableWidth / sumMin;
+            for (var i = 0; i < colCount; i++)
+            {
+                widths[i] = mins[i] * scale;
+            }
+        }
+        else
+        {
+            var equal = availableWidth / colCount;
+            for (var i = 0; i < colCount; i++)
+            {
+                widths[i] = equal;
+            }
+        }
+
+        return widths;
+    }
+
+    static (float Preferred, float Minimum) MeasureCellContentWidth(TableCell cell, IParagraphMeasurer measurer)
+    {
+        var pref = 0f;
+        var min = 0f;
+
+        foreach (var element in cell.Content)
+        {
+            ParagraphElement? para = null;
+            if (element is ParagraphElement direct)
+            {
+                para = direct;
+            }
+            else if (element is ContentControlElement {Runs: {Count: > 0}} cc)
+            {
+                para = new()
+                {
+                    Runs = cc.Runs,
+                    Properties = new()
+                };
+            }
+
+            if (para == null)
+            {
+                continue;
+            }
+
+            // Natural single-line width: pass an effectively unbounded width so nothing wraps.
+            var natural = measurer.MeasureParagraphNaturalWidth(para, float.MaxValue / 4);
+            // Minimum width: pass 1pt so the layout breaks at every word boundary; the widest
+            // remaining line is the longest unbreakable token (e.g. "john@company.com").
+            var minimum = measurer.MeasureParagraphNaturalWidth(para, 1f);
+
+            if (natural > pref)
+            {
+                pref = natural;
+            }
+
+            if (minimum > min)
+            {
+                min = minimum;
+            }
+        }
+
+        return (pref, min);
     }
 
     internal static float CalculateVerticalMergeHeight(TableElement table, int startRowIndex, int gridColIndex, float[] rowHeights)

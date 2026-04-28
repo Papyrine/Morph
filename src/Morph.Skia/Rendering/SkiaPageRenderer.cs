@@ -1179,7 +1179,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         var colCount = TableLayout.GetColumnCount(table);
 
-        var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
+        var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth, textRenderer);
         var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, textRenderer, TableLayout.HasVerticalMerge(table));
 
         return rowHeights.Sum();

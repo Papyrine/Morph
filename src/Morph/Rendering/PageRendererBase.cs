@@ -116,7 +116,7 @@ abstract class PageRendererBase(RenderContextBase context)
         }
 
         var colCount = TableLayout.GetColumnCount(table);
-        var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth);
+        var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth, Measurer);
         var hasVerticalMerge = TableLayout.HasVerticalMerge(table);
 
         var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, Measurer, hasVerticalMerge);
