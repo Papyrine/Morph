@@ -981,6 +981,13 @@ sealed class TextRenderer(SkiaRenderContext context) :
             pixelY += originalFontSize * 0.15f;
         }
 
+        // w:position — additive baseline shift in points. Positive raises the glyph,
+        // negative lowers it. Stacks on top of vertAlign for combined shifts.
+        if (fragment.Properties.BaselineShiftPoints != 0)
+        {
+            pixelY -= context.PointsToPixels((float) fragment.Properties.BaselineShiftPoints);
+        }
+
         // Draw background/shading color if specified
         if (!string.IsNullOrEmpty(fragment.Properties.BackgroundColorHex))
         {
@@ -1006,7 +1013,57 @@ sealed class TextRenderer(SkiaRenderContext context) :
         // Effects drawn behind the main glyph fill: shadow, glow, reflection.
         DrawTextEffectsBehind(canvas, fragment, font, pixelX, pixelY);
 
-        canvas.DrawText(fragment.Text, pixelX, pixelY, SKTextAlign.Left, font, paint);
+        // w:emboss / w:imprint — drop a tonal companion glyph one device pixel away from
+        // the main glyph so the text reads as raised (emboss) or engraved (imprint).
+        // Approximation: the companion uses a fixed light/dark grey rather than per-page
+        // blending; this matches Word's default look on white backgrounds.
+        if (fragment.Properties.Emboss)
+        {
+            using var lightPaint = new SKPaint {Color = new SKColor(0xFF, 0xFF, 0xFF), IsAntialias = true};
+            canvas.DrawText(fragment.Text, pixelX + 1, pixelY + 1, SKTextAlign.Left, font, lightPaint);
+        }
+        else if (fragment.Properties.Imprint)
+        {
+            using var darkPaint = new SKPaint {Color = new SKColor(0x80, 0x80, 0x80), IsAntialias = true};
+            canvas.DrawText(fragment.Text, pixelX - 1, pixelY - 1, SKTextAlign.Left, font, darkPaint);
+        }
+
+        // w:outline — render glyphs as stroke-only (no fill). Falls back to the main paint
+        // colour with stroke style; otherwise use the normal filled glyph.
+        if (fragment.Properties.OutlineOnly)
+        {
+            using var strokePaint = new SKPaint
+            {
+                Color = paint.Color,
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = Math.Max(0.5f, context.Scale * 0.5f),
+                IsAntialias = true
+            };
+            canvas.DrawText(fragment.Text, pixelX, pixelY, SKTextAlign.Left, font, strokePaint);
+        }
+        else
+        {
+            canvas.DrawText(fragment.Text, pixelX, pixelY, SKTextAlign.Left, font, paint);
+        }
+
+        // w:bdr — per-run border drawn around the text box (ascent..descent vertically,
+        // fragment width horizontally). Doesn't reserve space, so adjacent runs may sit
+        // close to the rectangle's edge — matches Word's behaviour for inline run borders.
+        if (fragment.Properties.Border is {IsVisible: true} runBdr)
+        {
+            var metrics = font.Metrics;
+            var bdrTop = pixelY + metrics.Ascent;
+            var bdrBottom = pixelY + metrics.Descent;
+            var bdrWidth = context.PointsToPixels(fragment.Width);
+            using var bdrPaint = new SKPaint
+            {
+                Color = SkiaRenderContext.ParseColor(runBdr.ColorHex),
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = Math.Max(0.5f, (float) runBdr.WidthPoints * context.Scale),
+                IsAntialias = true
+            };
+            canvas.DrawRect(pixelX, bdrTop, bdrWidth, bdrBottom - bdrTop, bdrPaint);
+        }
 
         // Outline stroked over the fill so the stroke is crisp on top.
         if (fragment.Properties.Outline is { } outline)

@@ -310,66 +310,64 @@ Combines specific character sequences (fi, fl, ff, etc.) into single glyphs.
 > **AI**: Discretionary/historical ligatures (`Discretional`, `Historical`) and contextual alternates beyond Standard remain unmodelled — the existing FontFeature API on SixLabors doesn't cleanly map to OOXML's flag combinations.
 
 
-#### Hidden Text `TODO`
+#### Hidden Text `DONE`
 
-Runs marked as hidden, structural-hidden (TOC markers), or web-only-hidden.
+Runs marked as hidden, structural-hidden (TOC markers), or web-only-hidden. Hidden runs are dropped at parse time so they don't enter measurement or rendering — `w:webHidden` is intentionally ignored because Morph renders for print/image where the runs should remain visible.
 
 - **OOXML**: `w:vanish`, `w:specVanish`, `w:webHidden`
 - **Spec**: [Vanish](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.vanish)
-- **Source**: identified via scan in `src/missingTags.md`
+- **Model**: `RunProperties.Hidden`
+- **Parse**: `DocumentParser.ParseRunProperties` reads `w:vanish` (with `val` toggle) and `w:specVanish` (presence-only); `ParseRun` short-circuits and emits no `Run` records when `Hidden` is true. `w:webHidden` is parsed-and-discarded.
+- **Test**: `RunEffectsTests.Vanish_DropsRun_FromParsedParagraph`, `SpecVanish_DropsRun_LikeVanish`
 
-> **AI**: Currently rendered as visible text. Skip the run when `w:vanish` or `w:specVanish` is set (unless `settings.xml` enables `w:showHiddenText`); `w:webHidden` should still render for image output.
 
+#### Emboss `DONE`
 
-#### Emboss `TODO`
-
-3D emboss text effect (raised appearance).
+3D emboss text effect (raised appearance). Approximated by painting a light-grey companion glyph one device pixel down-and-right of the main glyph, so the text reads as raised on a white background.
 
 - **OOXML**: `w:emboss`
 - **Spec**: [Emboss](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.emboss)
-- **Source**: identified via scan in `src/missingTags.md`
+- **Model**: `RunProperties.Emboss`
+- **Render**: companion glyph painted before the main fill in both `Morph.Skia/Rendering/TextRenderer.cs` and `Morph.ImageSharp/Rendering/TextRenderer.cs`
 
-> **AI**: Approximate by drawing a darker glyph offset down-right and a lighter glyph at the original position.
 
+#### Imprint (Engrave) `DONE`
 
-#### Imprint (Engrave) `TODO`
-
-Engraved text effect (inverse of emboss — recessed appearance).
+Engraved text effect (inverse of emboss — recessed appearance). Approximated by painting a medium-grey companion glyph one pixel up-and-left of the main glyph.
 
 - **OOXML**: `w:imprint`
 - **Spec**: [Imprint](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.imprint)
-- **Source**: identified via scan in `src/missingTags.md`
+- **Model**: `RunProperties.Imprint`
 
 
-#### Outline Text `TODO`
+#### Outline Text `DONE`
 
-Stroke-only text (hollow glyphs, no fill). Distinct from `w14:textOutline` which adds a stroke around filled text.
+Stroke-only text (hollow glyphs, no fill). Distinct from `w14:textOutline`, which adds a stroke *around* filled text — `w:outline` replaces the fill with a stroke.
 
 - **OOXML**: `w:outline`
 - **Spec**: [Outline](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.outline)
-- **Source**: identified via scan in `src/missingTags.md`
+- **Model**: `RunProperties.OutlineOnly`
+- **Render**: when set, the main glyph paint is swapped to `Stroke` style (Skia) / `SolidPen` (ImageSharp); the regular fill is skipped entirely
 
-> **AI**: Set the text paint to stroke-only (zero fill alpha) at the run's colour.
 
+#### Animated Text Effect `DONE`
 
-#### Animated Text Effect `TODO`
-
-Word's animated run effects (`blinkBackground`, `sparkle`, `lights`, `marchingAnts`, etc.).
+Word's animated run effects (`blinkBackground`, `sparkle`, `lights`, `marchingAnts`, etc.). Animation has no static-image equivalent, so the run renders as plain text.
 
 - **OOXML**: `w:effect` with `w:val`
 - **Spec**: [TextEffect](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.texteffect)
-- **Source**: identified via scan in `src/missingTags.md`
-
-> **AI**: Animation has no static-image equivalent — accept the property and render the run as plain text.
+- **Render**: parsed-and-discarded — text underneath renders normally
 
 
-#### Run Border `TODO`
+#### Run Border `DONE`
 
-Border drawn around an individual run (per-run rectangle, not paragraph-level).
+Border drawn around an individual run (per-run rectangle, not paragraph-level). Doesn't reserve space, so adjacent runs may sit close to the rectangle's edge — matches Word's inline-border behaviour.
 
 - **OOXML**: `w:bdr` within `w:rPr`
 - **Spec**: [Border](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.border)
-- **Source**: identified via scan in `src/missingTags.md`
+- **Model**: `RunProperties.Border` (a `BorderEdge`)
+- **Render**: rectangle drawn around the run's measured box (ascent..descent vertically, fragment width horizontally) using the parsed colour and width
+- **Test**: `RunEffectsTests.RunBorder_ParsesColorAndWidth`
 
 
 #### East Asian Emphasis Mark `TODO`
@@ -381,13 +379,15 @@ Dot or circle mark drawn above or below each glyph for emphasis (Chinese/Japanes
 - **Source**: identified via scan in `src/missingTags.md`
 
 
-#### Baseline Shift (Position) `TODO`
+#### Baseline Shift (Position) `DONE`
 
-Raises or lowers a run relative to the baseline without resizing. Distinct from superscript/subscript.
+Raises or lowers a run relative to the baseline without resizing. Distinct from superscript/subscript, which also resizes the glyph. Stacks additively with `w:vertAlign` for combined shifts.
 
 - **OOXML**: `w:position` (half-points; positive = up, negative = down)
 - **Spec**: [Position](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.position)
-- **Source**: identified via scan in `src/missingTags.md`
+- **Model**: `RunProperties.BaselineShiftPoints` (in points — half-points are converted at parse time)
+- **Render**: subtracted from `pixelY` after `vertAlign` adjustments in both backend `RenderFragment` paths
+- **Test**: `RunEffectsTests.Position_ParsesHalfPoints_AsPoints`, `Position_NegativeValue_LowersBaseline`
 
 
 ### 1.3 Text Effects
@@ -2223,7 +2223,7 @@ Read-only mode, form protection, and editing restrictions.
 
 | Category | Done | Partial | Todo | Wontfix | Total |
 |----------|------|---------|------|---------|-------|
-| 1. Text Formatting | 19 | 0 | 10 | 0 | 29 |
+| 1. Text Formatting | 26 | 0 | 3 | 0 | 29 |
 | 2. Paragraph Formatting | 23 | 1 | 0 | 0 | 24 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 0 | 6 |
 | 4. Tables | 27 | 0 | 0 | 0 | 27 |
@@ -2235,26 +2235,26 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 6 | 0 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 0 | 2 |
-| **Total** | **154** | **1** | **13** | **1** | **169** |
+| **Total** | **161** | **1** | **6** | **1** | **169** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 154
+    "Done" : 161
     "Partial" : 1
-    "Todo" : 13
+    "Todo" : 6
     "Wontfix" : 1
 ```
 
-**Overall coverage: ~91% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
+**Overall coverage: ~95% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
 
 
 Priority areas for future implementation:
 1. **Percentage-sized floating drawings (`wp14:pctWidth`/`pctHeight`)** — without these, percentage-scaled images may render at zero size.
 2. **Custom-XML data binding (`w:dataBinding`)** — populates SDT content from bound data islands.
-3. **Hidden text + run effects (`w:vanish`, `w:emboss`, `w:imprint`, `w:outline`, `w:bdr`, `w:position`)** — visible text-formatting gaps.
-4. **Image adjustments (`a14:brightnessContrast`/`saturation`/…)** — picture-format filters from Word's "Adjustments" panel.
+3. **Image adjustments (`a14:brightnessContrast`/`saturation`/…)** — picture-format filters from Word's "Adjustments" panel.
+4. **Gradient text fill (`w14:textFill`)** — colour-stop fills inside glyph outlines.
 
 Not planned (see `src/missingTags.md` for rationale): legacy VML shape family, East-Asian line-break heuristics.

@@ -2,7 +2,7 @@
 
 SDK element types catalogued: 1727
 SDK attribute names catalogued: 394
-Tags mentioned in docs: 618
+Tags mentioned in docs: 617
 SDK namespaces seen: a, a14, a15, c, cdr, cx, dgm, m, o, pic, v, w, w10, w14, w15, w16cur, wp, wp14, wpc, wpg, wps
 
 ## SDK tags missing from both word-features.md and missingTags.md (1174)
@@ -1184,7 +1184,7 @@ These elements are recognised by the OpenXml SDK but not documented anywhere —
 - `wps:spPr`
 - `wps:style`
 
-## Tags mentioned in docs but unknown to the SDK (20)
+## Tags mentioned in docs but unknown to the SDK (19)
 
 These are typos, invented names, or extension-namespace tags the SDK doesn't model (e.g. `a14:`, `c16r3:`, `int2:`, `adec:`, `ask:`). Worth a manual scan for typos. Attributes already known to the SDK are filtered out.
 
@@ -1206,5 +1206,4 @@ These are typos, invented names, or extension-namespace tags the SDK doesn't mod
 - `mc:Fallback`
 - `thm15:themeFamily`
 - `w:sdtAlias`
-- `w:showHiddenText`
 - `wps:cxnSp`
