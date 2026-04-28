@@ -26,8 +26,10 @@ static class FontHelpers
     internal static string[] StyleSuffixes { get; } =
     [
         " Condensed", " Compressed", " Narrow", " Extended", " Wide",
-        " Black", " Heavy", " ExtraBold", " Bold", " Semibold", " Demi",
-        " Medium", " Regular", " Book", " Light", " Thin", " Hairline",
+        " UltraBlack", " Black", " Heavy",
+        " UltraBold", " ExtraBold", " Demibold", " Bold", " Semibold", " Demi",
+        " Medium", " Regular", " Book",
+        " UltraLight", " ExtraLight", " Semilight", " Light", " Thin", " Hairline",
         " Italic", " Oblique", " Cond"
     ];
 
