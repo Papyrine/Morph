@@ -10,17 +10,19 @@ sealed class ImageSharpRenderContext(PageSettings pageSettings, int dpi, Compati
     // Shared font collection for fonts loaded from file (cloud, Office, user caches)
     FontCollection sharedFontCollection = new();
 
-    static Lazy<FontFileCache> cloudFontsCache = new(() => new(FontCacheLoader.GetCloudFontFiles(), OpenTypeReader.ReadFaces));
-    static Lazy<FontFileCache> officeFontsCache = new(() => new(FontCacheLoader.GetOfficeFontFiles(), OpenTypeReader.ReadFaces));
-    static Lazy<FontFileCache> userFontsCache = new(() => new(FontCacheLoader.GetUserFontFiles(), OpenTypeReader.ReadFaces));
-    static Lazy<FontFileCache> systemFontsCache = new(() => new(FontCacheLoader.GetSystemFontFiles(), OpenTypeReader.ReadFaces));
+    /// <summary>
+    /// Index of every font file Morph can discover on the host (user, Office, M365 cloud,
+    /// system) in a single name-keyed cache. See <see cref="FontCacheLoader.GetAllFontFiles"/>
+    /// for the merge ordering.
+    /// </summary>
+    static readonly FontFileCache allFontsCache = new(FontCacheLoader.GetAllFontFiles(), OpenTypeReader.ReadFaces);
 
     /// <summary>
     /// FontCollection populated from <see cref="EmbeddedFonts"/> — the Aptos faces shipped
     /// inside <c>Morph.dll</c>. Held statically so the streams are parsed once per
     /// process; consulted as the last resort during family resolution.
     /// </summary>
-    static readonly Lazy<FontCollection> embeddedFontCollection = new(LoadEmbeddedFontCollection);
+    static readonly FontCollection embeddedFontCollection = LoadEmbeddedFontCollection();
 
     static FontCollection LoadEmbeddedFontCollection()
     {
@@ -92,12 +94,10 @@ sealed class ImageSharpRenderContext(PageSettings pageSettings, int dpi, Compati
                 throw new InvalidOperationException($"Font '{fontFamily}' not found in '{FontDirectory}'.");
             }
 
-            // Load from all font caches into the shared collection so all style
-            // variants are available (e.g. Regular from user fonts + Italic from cloud).
-            LoadFilesIntoSharedCollection(userFontsCache.Value, candidates);
-            LoadFilesIntoSharedCollection(officeFontsCache.Value, candidates);
-            LoadFilesIntoSharedCollection(cloudFontsCache.Value, candidates);
-            LoadFilesIntoSharedCollection(systemFontsCache.Value, candidates);
+            // Load every matching face from the merged host cache into the shared
+            // collection so all style variants are available (e.g. Regular from user fonts
+            // + Italic from cloud, both indexed in allFontsCache).
+            LoadFilesIntoSharedCollection(allFontsCache, candidates);
 
             // Prefer a family that has the exact style, but accept any matching-name family
             // if an exact variant isn't available. The caller will downgrade the requested
@@ -146,7 +146,7 @@ sealed class ImageSharpRenderContext(PageSettings pageSettings, int dpi, Compati
             }
 
             // Last resort: faces shipped embedded in Morph.dll (Aptos).
-            if (embeddedFontCollection.Value.TryGet(name, out resolved) &&
+            if (embeddedFontCollection.TryGet(name, out resolved) &&
                 (requireStyle == null || resolved.TryGetMetrics(requireStyle.Value, out _)))
             {
                 return true;

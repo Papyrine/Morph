@@ -72,6 +72,29 @@ static class FontCacheLoader
         EnumerateFontFilesInDirectory(GetUserFontPath());
 
     /// <summary>
+    /// Yields every font file Morph can find on the host, in priority order
+    /// (user → Office → cloud → system). Identical paths emitted by more than one
+    /// source are dropped so the resulting <see cref="FontFileCache"/> indexes each
+    /// file once. The ordering preserves the original "user installs win on ties"
+    /// rule — when the same family name is registered by two different files,
+    /// the higher-priority source's face appears first in the cache's bucket.
+    /// </summary>
+    internal static IEnumerable<string> GetAllFontFiles()
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var path in GetUserFontFiles()
+                     .Concat(GetOfficeFontFiles())
+                     .Concat(GetCloudFontFiles())
+                     .Concat(GetSystemFontFiles()))
+        {
+            if (seen.Add(path))
+            {
+                yield return path;
+            }
+        }
+    }
+
+    /// <summary>
     /// Gets font file paths from machine-wide font directories.
     /// On Windows that is <c>%WINDIR%\Fonts</c>; on Linux the standard
     /// <c>/usr/share/fonts</c> tree; on macOS <c>/Library/Fonts</c> and
