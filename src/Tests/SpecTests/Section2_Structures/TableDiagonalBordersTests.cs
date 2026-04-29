@@ -19,7 +19,12 @@ public class TableDiagonalBordersTests
     {
         var diagonals = new CellDiagonals
         {
-            Down = new() { IsVisible = true, WidthPoints = 1, ColorHex = "000000" }
+            Down = new()
+            {
+                IsVisible = true,
+                WidthPoints = 1,
+                ColorHex = "000000"
+            }
         };
 
         await Assert.That(diagonals.HasAny).IsTrue();

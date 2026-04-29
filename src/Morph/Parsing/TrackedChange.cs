@@ -1,9 +1,3 @@
-enum TrackedChangeType
-{
-    Insertion,
-    Deletion
-}
-
 /// <summary>
 /// A reviewer revision (insertion or deletion) recorded by Word's track changes feature.
 /// </summary>

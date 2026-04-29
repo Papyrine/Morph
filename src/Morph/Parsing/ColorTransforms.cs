@@ -24,7 +24,10 @@ sealed record ColorTransforms
 
     /// <summary>Returns true if any transform is specified.</summary>
     public bool HasTransforms =>
-        Shade.HasValue || Tint.HasValue ||
-        LumMod.HasValue || LumOff.HasValue ||
-        SatMod.HasValue || SatOff.HasValue;
+        Shade.HasValue ||
+        Tint.HasValue ||
+        LumMod.HasValue ||
+        LumOff.HasValue ||
+        SatMod.HasValue ||
+        SatOff.HasValue;
 }

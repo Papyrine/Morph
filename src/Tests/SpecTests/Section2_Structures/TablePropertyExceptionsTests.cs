@@ -7,7 +7,10 @@ public class TablePropertyExceptionsTests
     [Test]
     public async Task TableRow_DefaultOverrides_AreNull()
     {
-        var row = new TableRow { Cells = [] };
+        var row = new TableRow
+        {
+            Cells = []
+        };
 
         await Assert.That(row.OverrideBorders).IsNull();
         await Assert.That(row.OverrideInsideHBorder).IsNull();
@@ -53,8 +56,15 @@ public class TablePropertyExceptionsTests
     public async Task GetEffectivePadding_RowOverrideTakesPrecedenceOverTableDefault()
     {
         var cellProps = new TableCellProperties();
-        var tableProps = new TableProperties { DefaultCellPadding = new(2, 2, 2, 2) };
-        var row = new TableRow { Cells = [], OverrideCellPadding = new(5, 5, 5, 5) };
+        var tableProps = new TableProperties
+        {
+            DefaultCellPadding = new(2, 2, 2, 2)
+        };
+        var row = new TableRow
+        {
+            Cells = [],
+            OverrideCellPadding = new(5, 5, 5, 5)
+        };
 
         var padding = TableLayout.GetEffectivePadding(cellProps, tableProps, row);
 
@@ -64,9 +74,19 @@ public class TablePropertyExceptionsTests
     [Test]
     public async Task GetEffectivePadding_CellPaddingStillWinsOverRowOverride()
     {
-        var cellProps = new TableCellProperties { Padding = new(10, 10, 10, 10) };
-        var tableProps = new TableProperties { DefaultCellPadding = new(2, 2, 2, 2) };
-        var row = new TableRow { Cells = [], OverrideCellPadding = new(5, 5, 5, 5) };
+        var cellProps = new TableCellProperties
+        {
+            Padding = new(10, 10, 10, 10)
+        };
+        var tableProps = new TableProperties
+        {
+            DefaultCellPadding = new(2, 2, 2, 2)
+        };
+        var row = new TableRow
+        {
+            Cells = [],
+            OverrideCellPadding = new(5, 5, 5, 5)
+        };
 
         var padding = TableLayout.GetEffectivePadding(cellProps, tableProps, row);
 
@@ -86,8 +106,8 @@ public class TablePropertyExceptionsTests
         var doc = parser.Parse(inputFile);
 
         var rowsWithOverride = doc.Elements.OfType<TableElement>()
-            .SelectMany(t => t.Rows)
-            .Count(r => r.OverrideBorders != null);
+            .SelectMany(_ => _.Rows)
+            .Count(_ => _.OverrideBorders != null);
 
         await Assert.That(rowsWithOverride)
             .IsGreaterThan(0)

@@ -7,8 +7,16 @@ public class TabStopResolverTests
     {
         var stops = new List<TabStop>
         {
-            new() { PositionPoints = 72, Alignment = TabAlignment.Left },
-            new() { PositionPoints = 216, Alignment = TabAlignment.Left }
+            new()
+            {
+                PositionPoints = 72,
+                Alignment = TabAlignment.Left
+            },
+            new()
+            {
+                PositionPoints = 216,
+                Alignment = TabAlignment.Left
+            }
         };
 
         var (dest, stop) = TabStopResolver.Resolve(cursorX: 30, followingWidth: 40, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
@@ -23,8 +31,16 @@ public class TabStopResolverTests
     {
         var stops = new List<TabStop>
         {
-            new() { PositionPoints = 72, Alignment = TabAlignment.Left },
-            new() { PositionPoints = 216, Alignment = TabAlignment.Left }
+            new()
+            {
+                PositionPoints = 72,
+                Alignment = TabAlignment.Left
+            },
+            new()
+            {
+                PositionPoints = 216,
+                Alignment = TabAlignment.Left
+            }
         };
 
         var (dest, _) = TabStopResolver.Resolve(cursorX: 100, followingWidth: 0, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
@@ -39,7 +55,12 @@ public class TabStopResolverTests
     {
         var stops = new List<TabStop>
         {
-            new() { PositionPoints = 432, Alignment = TabAlignment.Right, Leader = TabLeader.Dot }
+            new()
+            {
+                PositionPoints = 432,
+                Alignment = TabAlignment.Right,
+                Leader = TabLeader.Dot
+            }
         };
 
         var (dest, stop) = TabStopResolver.Resolve(cursorX: 100, followingWidth: 20, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
@@ -53,8 +74,16 @@ public class TabStopResolverTests
     {
         var stops = new List<TabStop>
         {
-            new() { PositionPoints = 100, Alignment = TabAlignment.Right },
-            new() { PositionPoints = 400, Alignment = TabAlignment.Right }
+            new()
+            {
+                PositionPoints = 100,
+                Alignment = TabAlignment.Right
+            },
+            new()
+            {
+                PositionPoints = 400,
+                Alignment = TabAlignment.Right
+            }
         };
 
         // followingWidth=60 at stop 100 → dest 40 (behind cursor 50) → try next stop.
@@ -71,7 +100,11 @@ public class TabStopResolverTests
     {
         var stops = new List<TabStop>
         {
-            new() { PositionPoints = 234, Alignment = TabAlignment.Center }
+            new()
+            {
+                PositionPoints = 234,
+                Alignment = TabAlignment.Center
+            }
         };
 
         var (dest, _) = TabStopResolver.Resolve(cursorX: 50, followingWidth: 60, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
@@ -84,7 +117,11 @@ public class TabStopResolverTests
     [Test]
     public async Task Default_SnapsToNextMultiplePastCursor_WithNoExplicitStops()
     {
-        var (dest, stop) = TabStopResolver.Resolve(cursorX: 10, followingWidth: 0, [], defaultTabStopPoints: 36, leftIndentPoints: 0);
+        var (dest, stop) = TabStopResolver.Resolve(
+            cursorX: 10,
+            followingWidth: 0, [],
+            defaultTabStopPoints: 36,
+            leftIndentPoints: 0);
 
         await Assert.That(dest).IsEqualTo(36.0);
         await Assert.That(stop).IsNull();
@@ -94,7 +131,8 @@ public class TabStopResolverTests
     public async Task Default_SnapsRelativeToLeftIndent()
     {
         // leftIndent=50, defaultTab=36 → stops at 86, 122, 158, ...
-        var (dest, _) = TabStopResolver.Resolve(cursorX: 60, followingWidth: 0, [], defaultTabStopPoints: 36, leftIndentPoints: 50);
+        var (dest, _) = TabStopResolver.Resolve(
+            cursorX: 60, followingWidth: 0, [], defaultTabStopPoints: 36, leftIndentPoints: 50);
 
         await Assert.That(dest).IsEqualTo(86.0);
     }
@@ -104,11 +142,20 @@ public class TabStopResolverTests
     {
         var stops = new List<TabStop>
         {
-            new() { PositionPoints = 144, Alignment = TabAlignment.Left }
+            new()
+            {
+                PositionPoints = 144,
+                Alignment = TabAlignment.Left
+            }
         };
 
         // Cursor past last explicit stop at 150 → next default multiple past 144 is 180, 216, ...
-        var (dest, stop) = TabStopResolver.Resolve(cursorX: 150, followingWidth: 0, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
+        var (dest, stop) = TabStopResolver.Resolve(
+            cursorX: 150,
+            followingWidth: 0,
+            stops,
+            defaultTabStopPoints: 36,
+            leftIndentPoints: 0);
 
         await Assert.That(dest).IsEqualTo(180.0);
         await Assert.That(stop).IsNull();
@@ -119,7 +166,11 @@ public class TabStopResolverTests
     {
         var stops = new List<TabStop>
         {
-            new() { PositionPoints = 200, Alignment = TabAlignment.Left }
+            new()
+            {
+                PositionPoints = 200,
+                Alignment = TabAlignment.Left
+            }
         };
 
         // Cursor at 50: even though a default-tab multiple (72) is closer, the explicit stop wins.
@@ -134,7 +185,12 @@ public class TabStopResolverTests
     [Test]
     public async Task Collapses_WhenDefaultTabStopIsZero()
     {
-        var (dest, stop) = TabStopResolver.Resolve(cursorX: 50, followingWidth: 0, [], defaultTabStopPoints: 0, leftIndentPoints: 0);
+        var (dest, stop) = TabStopResolver.Resolve(
+            cursorX: 50,
+            followingWidth: 0,
+            [],
+            defaultTabStopPoints: 0,
+            leftIndentPoints: 0);
 
         await Assert.That(dest).IsEqualTo(50.0);
         await Assert.That(stop).IsNull();
@@ -147,7 +203,11 @@ public class TabStopResolverTests
         // the following text has no decimal point).
         var stops = new List<TabStop>
         {
-            new() { PositionPoints = 144, Alignment = TabAlignment.Decimal }
+            new()
+            {
+                PositionPoints = 144,
+                Alignment = TabAlignment.Decimal
+            }
         };
 
         var (dest, _) = TabStopResolver.Resolve(cursorX: 20, followingWidth: 50, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
@@ -164,7 +224,12 @@ public class TabStopResolverTests
         // lives in a 250pt-wide cell. The page number must still right-align at the cell edge.
         var stops = new List<TabStop>
         {
-            new() { PositionPoints = 540, Alignment = TabAlignment.Right, Leader = TabLeader.Dot }
+            new()
+            {
+                PositionPoints = 540,
+                Alignment = TabAlignment.Right,
+                Leader = TabLeader.Dot
+            }
         };
 
         var (dest, stop) = TabStopResolver.Resolve(
@@ -181,7 +246,12 @@ public class TabStopResolverTests
     {
         var stops = new List<TabStop>
         {
-            new() { PositionPoints = 200, Alignment = TabAlignment.Right, Leader = TabLeader.Dot }
+            new()
+            {
+                PositionPoints = 200,
+                Alignment = TabAlignment.Right,
+                Leader = TabLeader.Dot
+            }
         };
 
         var (dest, _) = TabStopResolver.Resolve(
@@ -197,7 +267,11 @@ public class TabStopResolverTests
     {
         var stops = new List<TabStop>
         {
-            new() { PositionPoints = 540, Alignment = TabAlignment.Center }
+            new()
+            {
+                PositionPoints = 540,
+                Alignment = TabAlignment.Center
+            }
         };
 
         var (dest, _) = TabStopResolver.Resolve(
@@ -215,7 +289,11 @@ public class TabStopResolverTests
         // separately. We just assert the resolver does not silently relocate them.
         var stops = new List<TabStop>
         {
-            new() { PositionPoints = 540, Alignment = TabAlignment.Left }
+            new()
+            {
+                PositionPoints = 540,
+                Alignment = TabAlignment.Left
+            }
         };
 
         var (dest, stop) = TabStopResolver.Resolve(
@@ -234,12 +312,19 @@ public class TabStopResolverTests
         // so destination = 144 - 20 = 124.
         var stops = new List<TabStop>
         {
-            new() { PositionPoints = 144, Alignment = TabAlignment.Decimal }
+            new()
+            {
+                PositionPoints = 144,
+                Alignment = TabAlignment.Decimal
+            }
         };
 
         var (dest, stop) = TabStopResolver.Resolve(
-            cursorX: 20, followingWidth: 50, stops,
-            defaultTabStopPoints: 36, leftIndentPoints: 0,
+            cursorX: 20,
+            followingWidth: 50,
+            stops,
+            defaultTabStopPoints: 36,
+            leftIndentPoints: 0,
             decimalPrefixWidth: 20);
 
         await Assert.That(dest).IsEqualTo(124.0);

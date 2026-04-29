@@ -96,8 +96,7 @@ https://nuget.org/packages/Morph.Html.ImageSharp/
 
 - Theme support (colors, fonts)
 - Compatibility modes (Word 2007 and later)
-- Custom fonts with multi-level fallback
-- Font width scaling for Word rendering accuracy
+- [Font resolution](docs/fonts.md) — name-table-driven, deterministic across platforms
 - Hyphenation
 - HTML content via AltChunk
 
@@ -241,7 +240,8 @@ foreach (var pngBytes in imageData)
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `Dpi` | int | 150 | Image resolution in dots per inch |
-| `FontWidthScale` | double | 1.0 | Font width adjustment factor (1.07 recommended for Word matching) |
+
+Font-related options (`FontDirectory`, `FontFallback`, `DefaultFont`, `FontWidthScale`, `DeterministicRendering`) are documented in [docs/fonts.md](docs/fonts.md).
 
 
 ## Icon

@@ -115,30 +115,44 @@ public class TableAutofitTests
             {
                 var text = rowContent[colIndex];
                 var width = cellWidths?[rowIndex][colIndex];
-                cells.Add(new()
-                {
-                    Content =
-                    [
-                        new ParagraphElement
+                cells.Add(
+                    new()
+                    {
+                        Content =
+                        [
+                            new ParagraphElement
+                            {
+                                Runs =
+                                [
+                                    new()
+                                    {
+                                        Text = text,
+                                        Properties = new()
+                                    }
+                                ],
+                                Properties = new()
+                            }
+                        ],
+                        Properties = new()
                         {
-                            Runs =
-                            [
-                                new() { Text = text, Properties = new() }
-                            ],
-                            Properties = new()
+                            WidthPoints = width
                         }
-                    ],
-                    Properties = new() { WidthPoints = width }
-                });
+                    });
             }
 
-            rows.Add(new() { Cells = cells });
+            rows.Add(new()
+            {
+                Cells = cells
+            });
         }
 
         return new()
         {
             Rows = rows,
-            Properties = new() { IsAutoFit = isAutoFit }
+            Properties = new()
+            {
+                IsAutoFit = isAutoFit
+            }
         };
     }
 
@@ -151,7 +165,7 @@ public class TableAutofitTests
     sealed class ProportionalMeasurer : IParagraphMeasurer
     {
         public List<float> LayoutParagraphForMeasurement(ParagraphElement paragraph, float maxWidth) =>
-            [paragraph.Runs.Sum(_ => (float) _.Text.Length)];
+            [paragraph.Runs.Sum(_ => (float)_.Text.Length)];
 
         public float MeasureParagraphNaturalWidth(ParagraphElement paragraph, float maxWidth)
         {
@@ -161,7 +175,7 @@ public class TableAutofitTests
             {
                 foreach (var token in run.Text.Split(' '))
                 {
-                    var tokenLen = (float) token.Length;
+                    var tokenLen = (float)token.Length;
                     if (current > 0 && current + 1 + tokenLen > maxWidth)
                     {
                         if (current > widest)
