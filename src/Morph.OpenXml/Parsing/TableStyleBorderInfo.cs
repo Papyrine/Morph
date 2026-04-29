@@ -1,11 +1,12 @@
 /// <summary>
 /// Cell-level formatting from a single conditional region of a table style
 /// (a <c>w:tblStylePr</c> block). Captures the cascaded fields that Morph
-/// can render today — borders and cell shading.
+/// can render today — borders, cell shading, and run-level text colour.
 /// </summary>
 sealed record ConditionalFormat(
     CellBorders? Borders,
-    string? BackgroundColorHex);
+    string? BackgroundColorHex,
+    string? RunColorHex);
 
 /// <summary>
 /// Captures the cell-level fields Morph cascades through a table style
