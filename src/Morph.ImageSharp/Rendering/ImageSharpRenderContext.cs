@@ -5,7 +5,23 @@ sealed class ImageSharpRenderContext(PageSettings pageSettings, int dpi, Compati
     : RenderContextBase(pageSettings, dpi, compatibility, fontWidthScale, fontFallback, fontDirectory, deterministicRendering),
         IDisposable
 {
-    Dictionary<(string, FontStyle), FontFamily> fontFamilyCache = [];
+    // Pre-seeded with the embedded Aptos family so the (name, style) lookup at the top of
+    // GetFontFamily hits immediately — no LoadFilesIntoSharedCollection or system-fonts
+    // walk for the common bold/italic combinations of the default font.
+    Dictionary<(string, FontStyle), FontFamily> fontFamilyCache = SeedFontFamilyCache();
+
+    static Dictionary<(string, FontStyle), FontFamily> SeedFontFamilyCache()
+    {
+        var cache = new Dictionary<(string, FontStyle), FontFamily>();
+        foreach (var family in embeddedFontCollection.Families)
+        {
+            foreach (var style in new[] {FontStyle.Regular, FontStyle.Bold, FontStyle.Italic, FontStyle.BoldItalic})
+            {
+                cache[(family.Name, style)] = family;
+            }
+        }
+        return cache;
+    }
 
     // Shared font collection for fonts loaded from file (cloud, Office, user caches)
     FontCollection sharedFontCollection = new();
@@ -140,13 +156,6 @@ sealed class ImageSharpRenderContext(PageSettings pageSettings, int dpi, Compati
 
             // Fall back to system fonts
             if (SystemFonts.TryGet(name, out resolved) &&
-                (requireStyle == null || resolved.TryGetMetrics(requireStyle.Value, out _)))
-            {
-                return true;
-            }
-
-            // Last resort: faces shipped embedded in Morph.dll (Aptos).
-            if (embeddedFontCollection.TryGet(name, out resolved) &&
                 (requireStyle == null || resolved.TryGetMetrics(requireStyle.Value, out _)))
             {
                 return true;
