@@ -28,6 +28,48 @@ sealed class SkiaRenderContext(
     static Lazy<FontFileCache> userFontsCache = new(() => new(FontCacheLoader.GetUserFontFiles(), OpenTypeReader.ReadFaces));
     static Lazy<FontFileCache> systemFontsCache = new(() => new(FontCacheLoader.GetSystemFontFiles(), OpenTypeReader.ReadFaces));
 
+    /// <summary>
+    /// Typefaces loaded from <see cref="EmbeddedFonts"/> (the Aptos faces shipped inside
+    /// <c>Morph.dll</c>). Indexed by family name (case-insensitive). Held statically so
+    /// the byte arrays are decoded by Skia just once per process — and so per-instance
+    /// <see cref="Dispose"/> can identify and skip these instead of releasing them
+    /// (they're shared across every render context in the process).
+    /// </summary>
+    static readonly Lazy<Dictionary<string, List<SKTypeface>>> embeddedTypefaces = new(LoadEmbeddedTypefaces);
+    static readonly Lazy<HashSet<SKTypeface>> embeddedTypefaceSet = new(() =>
+    {
+        var set = new HashSet<SKTypeface>();
+        foreach (var list in embeddedTypefaces.Value.Values)
+        {
+            foreach (var typeface in list)
+            {
+                set.Add(typeface);
+            }
+        }
+        return set;
+    });
+
+    static Dictionary<string, List<SKTypeface>> LoadEmbeddedTypefaces()
+    {
+        var result = new Dictionary<string, List<SKTypeface>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var stream in EmbeddedFonts.OpenStreams())
+        {
+            using (stream)
+            {
+                var typeface = SKTypeface.FromStream(stream)
+                    ?? throw new InvalidOperationException("Failed to load embedded font from Morph.dll resource stream.");
+
+                if (!result.TryGetValue(typeface.FamilyName, out var list))
+                {
+                    list = new();
+                    result[typeface.FamilyName] = list;
+                }
+                list.Add(typeface);
+            }
+        }
+        return result;
+    }
+
     static readonly ConcurrentDictionary<string, FontFileCache> directoryCaches = new(StringComparer.OrdinalIgnoreCase);
 
     static FontFileCache GetDirectoryCache(string fontDirectory) =>
@@ -81,6 +123,10 @@ sealed class SkiaRenderContext(
         //    didn't index" plus localized system fonts on macOS/Linux).
         typeface ??= TryResolveFromSystem(candidates, style);
 
+        // 3. Last-resort: the faces Morph ships embedded in Morph.dll (Aptos). This is
+        //    what makes the default font render on machines that don't have it installed.
+        typeface ??= TryResolveFromEmbedded(candidates, targetWeight, targetItalic);
+
         // 3. Configured/runtime fallback name (e.g. "Segoe UI Variable" → "Segoe UI") —
         //    re-resolve the alias through the same path.
         if (typeface == null)
@@ -106,8 +152,7 @@ sealed class SkiaRenderContext(
         return typeface;
     }
 
-    SKTypeface? ResolveFromDirectory(
-        FontNameCandidates candidates, string fontFamily, bool bold, int targetWeight, bool targetItalic)
+    SKTypeface? ResolveFromDirectory(FontNameCandidates candidates, string fontFamily, bool bold, int targetWeight, bool targetItalic)
     {
         var cache = GetDirectoryCache(FontDirectory!);
         var typeface = ResolveFromCache(cache, candidates, targetWeight, targetItalic);
@@ -194,6 +239,34 @@ sealed class SkiaRenderContext(
         {
             return null;
         }
+    }
+
+    static SKTypeface? TryResolveFromEmbedded(FontNameCandidates candidates, int targetWeight, bool targetItalic)
+    {
+        var registry = embeddedTypefaces.Value;
+        SKTypeface? best = null;
+        var bestScore = int.MaxValue;
+
+        foreach (var name in FontFileCache.EnumerateCandidateNames(candidates))
+        {
+            if (!registry.TryGetValue(name, out var typefaces))
+            {
+                continue;
+            }
+
+            foreach (var typeface in typefaces)
+            {
+                var faceItalic = typeface.FontStyle.Slant != SKFontStyleSlant.Upright;
+                var score = Math.Abs(typeface.FontStyle.Weight - targetWeight) + (faceItalic == targetItalic ? 0 : 100);
+                if (score < bestScore)
+                {
+                    bestScore = score;
+                    best = typeface;
+                }
+            }
+        }
+
+        return best;
     }
 
     static SKTypeface? TryResolveFromSystem(FontNameCandidates candidates, SKFontStyle style)
@@ -318,8 +391,17 @@ sealed class SkiaRenderContext(
 
     public void Dispose()
     {
+        var shared = embeddedTypefaceSet.IsValueCreated ? embeddedTypefaceSet.Value : null;
         foreach (var typeface in typefaceCache.Values)
         {
+            // Skip shared embedded typefaces — they live in a static registry and are
+            // reused by every render context in the process; disposing here would leave
+            // the next render with a disposed handle.
+            if (shared != null && shared.Contains(typeface))
+            {
+                continue;
+            }
+
             typeface.Dispose();
         }
 

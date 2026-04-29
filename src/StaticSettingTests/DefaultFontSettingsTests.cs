@@ -1,8 +1,8 @@
 public class DefaultFontSettingsTests
 {
     [Test]
-    public async Task DefaultIsGeorgia() =>
-        await Assert.That(DefaultFontSettings.DefaultFont).IsEqualTo("Georgia");
+    public async Task DefaultIsAptos() =>
+        await Assert.That(DefaultFontSettings.DefaultFont).IsEqualTo("Aptos");
 
     [Test]
     public async Task SetDefaultFont_BeforeRender_Changes()
@@ -28,10 +28,10 @@ public class DefaultFontSettingsTests
     }
 
     [Test]
-    public async Task ResetToDefault_RestoresGeorgia()
+    public async Task ResetToDefault_RestoresAptos()
     {
         DefaultFontSettings.DefaultFont = "Verdana";
         DefaultFontSettings.ResetToDefault();
-        await Assert.That(DefaultFontSettings.DefaultFont).IsEqualTo("Georgia");
+        await Assert.That(DefaultFontSettings.DefaultFont).IsEqualTo("Aptos");
     }
 }
