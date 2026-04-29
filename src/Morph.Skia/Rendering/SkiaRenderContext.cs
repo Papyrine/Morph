@@ -21,7 +21,20 @@ sealed class SkiaRenderContext(
         deterministicRendering),
     IDisposable
 {
-    Dictionary<(string, int, SKFontStyleSlant), SKTypeface> typefaceCache = [];
+    // Pre-seeded with the embedded Aptos faces so the (FamilyName, Weight, Slant) lookup at
+    // the top of GetTypeface hits them directly — no extra resolution step for the common
+    // bold/italic combinations of the default font.
+    Dictionary<(string, int, SKFontStyleSlant), SKTypeface> typefaceCache = SeedTypefaceCache();
+
+    static Dictionary<(string, int, SKFontStyleSlant), SKTypeface> SeedTypefaceCache()
+    {
+        var cache = new Dictionary<(string, int, SKFontStyleSlant), SKTypeface>();
+        foreach (var typeface in embeddedTypefaces)
+        {
+            cache[(typeface.FamilyName, typeface.FontStyle.Weight, typeface.FontStyle.Slant)] = typeface;
+        }
+        return cache;
+    }
 
     /// <summary>
     /// Index of every font file Morph can discover on the host (user, Office, M365 cloud,
@@ -34,33 +47,26 @@ sealed class SkiaRenderContext(
 
     /// <summary>
     /// Typefaces loaded from <see cref="EmbeddedFonts"/> (the Aptos faces shipped inside
-    /// <c>Morph.dll</c>). Indexed by family name (case-insensitive). Held statically so
-    /// the byte arrays are decoded by Skia just once per process — and so per-instance
-    /// <see cref="Dispose"/> can identify and skip these instead of releasing them
-    /// (they're shared across every render context in the process).
+    /// <c>Morph.dll</c>). Decoded by Skia once per process and pre-seeded into each
+    /// render context's <c>typefaceCache</c> under their (FamilyName, Weight, Slant)
+    /// keys, so the cache hit at the top of <see cref="GetTypeface"/> covers every
+    /// reachable bold/italic combination. Per-instance <see cref="Dispose"/> identifies
+    /// these by reference and skips releasing them.
     /// </summary>
-    static readonly Dictionary<string, List<SKTypeface>> embeddedTypefaces = LoadEmbeddedTypefaces();
-    static readonly HashSet<SKTypeface> embeddedTypefaceSet = [..embeddedTypefaces.Values.SelectMany(_ => _)];
+    static readonly SKTypeface[] embeddedTypefaces = LoadEmbeddedTypefaces();
 
-    static Dictionary<string, List<SKTypeface>> LoadEmbeddedTypefaces()
+    static SKTypeface[] LoadEmbeddedTypefaces()
     {
-        var result = new Dictionary<string, List<SKTypeface>>(StringComparer.OrdinalIgnoreCase);
+        var list = new List<SKTypeface>();
         foreach (var stream in EmbeddedFonts.OpenStreams())
         {
             using (stream)
             {
-                var typeface = SKTypeface.FromStream(stream)
-                    ?? throw new InvalidOperationException("Failed to load embedded font from Morph.dll resource stream.");
-
-                if (!result.TryGetValue(typeface.FamilyName, out var list))
-                {
-                    list = new();
-                    result[typeface.FamilyName] = list;
-                }
-                list.Add(typeface);
+                list.Add(SKTypeface.FromStream(stream)
+                    ?? throw new InvalidOperationException("Failed to load embedded font from Morph.dll resource stream."));
             }
         }
-        return result;
+        return list.ToArray();
     }
 
     static readonly ConcurrentDictionary<string, FontFileCache> directoryCaches = new(StringComparer.OrdinalIgnoreCase);
@@ -110,15 +116,13 @@ sealed class SkiaRenderContext(
         }
 
         // 1. Search all known caches for any of the candidate names; pick the best face.
+        //    (Embedded Aptos faces are already pre-seeded into typefaceCache, so the
+        //    lookup at the top of this method handles them directly without a fan-out.)
         typeface = ResolveFromCaches(candidates, targetWeight, targetItalic);
 
         // 2. Fall back to the OS font manager (handles "user has installed something we
         //    didn't index" plus localized system fonts on macOS/Linux).
         typeface ??= TryResolveFromSystem(candidates, style);
-
-        // 3. Last-resort: the faces Morph ships embedded in Morph.dll (Aptos). This is
-        //    what makes the default font render on machines that don't have it installed.
-        typeface ??= TryResolveFromEmbedded(candidates, targetWeight, targetItalic);
 
         // 3. Configured/runtime fallback name (e.g. "Segoe UI Variable" → "Segoe UI") —
         //    re-resolve the alias through the same path.
@@ -217,33 +221,6 @@ sealed class SkiaRenderContext(
         {
             return null;
         }
-    }
-
-    static SKTypeface? TryResolveFromEmbedded(FontNameCandidates candidates, int targetWeight, bool targetItalic)
-    {
-        SKTypeface? best = null;
-        var bestScore = int.MaxValue;
-
-        foreach (var name in FontFileCache.EnumerateCandidateNames(candidates))
-        {
-            if (!embeddedTypefaces.TryGetValue(name, out var typefaces))
-            {
-                continue;
-            }
-
-            foreach (var typeface in typefaces)
-            {
-                var faceItalic = typeface.FontStyle.Slant != SKFontStyleSlant.Upright;
-                var score = Math.Abs(typeface.FontStyle.Weight - targetWeight) + (faceItalic == targetItalic ? 0 : 100);
-                if (score < bestScore)
-                {
-                    bestScore = score;
-                    best = typeface;
-                }
-            }
-        }
-
-        return best;
     }
 
     static SKTypeface? TryResolveFromSystem(FontNameCandidates candidates, SKFontStyle style)
@@ -370,10 +347,10 @@ sealed class SkiaRenderContext(
     {
         foreach (var typeface in typefaceCache.Values)
         {
-            // Skip shared embedded typefaces — they live in a static registry and are
+            // Skip shared embedded typefaces — they live in a static array and are
             // reused by every render context in the process; disposing here would leave
             // the next render with a disposed handle.
-            if (embeddedTypefaceSet.Contains(typeface))
+            if (Array.IndexOf(embeddedTypefaces, typeface) >= 0)
             {
                 continue;
             }
