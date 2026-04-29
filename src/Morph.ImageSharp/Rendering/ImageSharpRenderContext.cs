@@ -15,6 +15,26 @@ sealed class ImageSharpRenderContext(PageSettings pageSettings, int dpi, Compati
     static Lazy<FontFileCache> userFontsCache = new(() => new(FontCacheLoader.GetUserFontFiles(), OpenTypeReader.ReadFaces));
     static Lazy<FontFileCache> systemFontsCache = new(() => new(FontCacheLoader.GetSystemFontFiles(), OpenTypeReader.ReadFaces));
 
+    /// <summary>
+    /// FontCollection populated from <see cref="EmbeddedFonts"/> — the Aptos faces shipped
+    /// inside <c>Morph.dll</c>. Held statically so the streams are parsed once per
+    /// process; consulted as the last resort during family resolution.
+    /// </summary>
+    static readonly Lazy<FontCollection> embeddedFontCollection = new(LoadEmbeddedFontCollection);
+
+    static FontCollection LoadEmbeddedFontCollection()
+    {
+        var collection = new FontCollection();
+        foreach (var stream in EmbeddedFonts.OpenStreams())
+        {
+            using (stream)
+            {
+                collection.Add(stream);
+            }
+        }
+        return collection;
+    }
+
     static readonly ConcurrentDictionary<string, FontFileCache> directoryCaches = new(StringComparer.OrdinalIgnoreCase);
 
     static FontFileCache GetDirectoryCache(string fontDirectory) =>
@@ -73,7 +93,7 @@ sealed class ImageSharpRenderContext(PageSettings pageSettings, int dpi, Compati
             }
 
             // Load from all font caches into the shared collection so all style
-            // variants are available (e.g. Regular from user fonts + Italic from cloud)
+            // variants are available (e.g. Regular from user fonts + Italic from cloud).
             LoadFilesIntoSharedCollection(userFontsCache.Value, candidates);
             LoadFilesIntoSharedCollection(officeFontsCache.Value, candidates);
             LoadFilesIntoSharedCollection(cloudFontsCache.Value, candidates);
@@ -120,6 +140,13 @@ sealed class ImageSharpRenderContext(PageSettings pageSettings, int dpi, Compati
 
             // Fall back to system fonts
             if (SystemFonts.TryGet(name, out resolved) &&
+                (requireStyle == null || resolved.TryGetMetrics(requireStyle.Value, out _)))
+            {
+                return true;
+            }
+
+            // Last resort: faces shipped embedded in Morph.dll (Aptos).
+            if (embeddedFontCollection.Value.TryGet(name, out resolved) &&
                 (requireStyle == null || resolved.TryGetMetrics(requireStyle.Value, out _)))
             {
                 return true;

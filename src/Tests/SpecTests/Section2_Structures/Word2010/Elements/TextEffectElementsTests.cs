@@ -29,7 +29,7 @@ public class TextEffectElementsTests
             HeightPoints = 50
         };
 
-        await Assert.That(element.FontFamily).IsEqualTo("Georgia");
+        await Assert.That(element.FontFamily).IsEqualTo("Aptos");
         await Assert.That(element.FontSizePoints).IsEqualTo(36);
         await Assert.That(element.Bold).IsFalse();
         await Assert.That(element.Italic).IsFalse();

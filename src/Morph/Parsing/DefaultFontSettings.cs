@@ -9,11 +9,13 @@ static class DefaultFontSettings
 {
     /// <summary>
     /// Default fallback font family used when a DOCX document does not specify one in
-    /// <c>docDefaults</c>. Georgia is chosen because it ships with Windows and macOS
-    /// (and is widely available on Linux via fontconfig), unlike Aptos (Word 2019+ only).
-    /// Using a universally-available family keeps rendering working on any host.
+    /// <c>docDefaults</c>. Aptos matches modern Word (Microsoft 365's default since 2023)
+    /// — and Morph ships the four standard Aptos faces as embedded resources so this
+    /// resolves on every host, including Linux/macOS machines that don't have it
+    /// installed. The embedded files are extracted once on first render and surfaced
+    /// through <see cref="FontCacheLoader.GetEmbeddedFontFiles"/>.
     /// </summary>
-    const string builtInDefaultFont = "Georgia";
+    const string builtInDefaultFont = "Aptos";
 
     static double fontWidthScale = 1.0;
     static string defaultFont = builtInDefaultFont;
@@ -39,10 +41,11 @@ static class DefaultFontSettings
 
     /// <summary>
     /// Gets or sets the process-wide default fallback font family, used when a DOCX
-    /// document does not declare a default run font. Defaults to <c>Georgia</c>, which
-    /// is more commonly installed across operating systems than Word's modern default
-    /// (Aptos). Must be set before the first render; attempts to change it after any
-    /// conversion has started will throw <see cref="InvalidOperationException"/>.
+    /// document does not declare a default run font. Defaults to <c>Aptos</c> (Word's
+    /// default since 2023); the four standard faces ship inside Morph.dll as embedded
+    /// resources so the default resolves on every host. Must be set before the first
+    /// render; attempts to change it after any conversion has started will throw
+    /// <see cref="InvalidOperationException"/>.
     /// </summary>
     /// <remarks>
     /// To override per-conversion without affecting other callers, use

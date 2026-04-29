@@ -48,6 +48,7 @@ static class FontCacheLoader
             yield return path;
         }
         yield return GetCloudFontPath();
+        yield return "(Morph embedded fonts)";
     }
 
     /// <summary>
