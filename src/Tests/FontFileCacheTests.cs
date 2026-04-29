@@ -193,7 +193,7 @@ public class FontFileCacheTests
         var face = new FontFace { Path = "segoeuisl.ttf", Index = 0, Weight = 350, Width = 5, Italic = false };
         var cache = new FontFileCache(
             ["segoeuisl.ttf"],
-            _ => [(face, new[] { "Segoe UI Semilight", "Segoe UI", "SegoeUI-Semilight" })]);
+            _ => [(face, ["Segoe UI Semilight", "Segoe UI", "SegoeUI-Semilight"])]);
 
         await Assert.That(cache.TryGet("Segoe UI Semilight", out var byFull)).IsTrue();
         await Assert.That(byFull!.Single().Weight).IsEqualTo(350);
@@ -218,9 +218,9 @@ public class FontFileCacheTests
             [regular.Path, semilight.Path, bold.Path],
             file => file switch
             {
-                "segoeui.ttf" => [(regular, new[] { "Segoe UI", "Segoe UI Regular" })],
-                "segoeuisl.ttf" => [(semilight, new[] { "Segoe UI", "Segoe UI Semilight" })],
-                "segoeuib.ttf" => [(bold, new[] { "Segoe UI", "Segoe UI Bold" })],
+                "segoeui.ttf" => [(regular, ["Segoe UI", "Segoe UI Regular"])],
+                "segoeuisl.ttf" => [(semilight, ["Segoe UI", "Segoe UI Semilight"])],
+                "segoeuib.ttf" => [(bold, ["Segoe UI", "Segoe UI Bold"])],
                 _ => []
             });
 

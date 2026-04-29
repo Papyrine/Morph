@@ -122,4 +122,45 @@ static class FloatingPosition
 
         return baseY + (float) positionPoints;
     }
+
+    /// <summary>
+    /// Computes the effective width and height of a floating element, honouring
+    /// <c>wp14:pctWidth</c> / <c>wp14:pctHeight</c> when present (overrides the
+    /// literal <c>wp:extent</c>) and falling back to the explicit values otherwise.
+    /// </summary>
+    public static (double width, double height) ResolveEffectiveSize(
+        RenderContextBase context,
+        double widthPoints,
+        double heightPoints,
+        double? widthPercent,
+        SizeRelativeFrom widthRelativeFrom,
+        double? heightPercent,
+        SizeRelativeFrom heightRelativeFrom)
+    {
+        var resolvedWidth = widthPercent.HasValue
+            ? widthPercent.Value * GetReferenceWidth(context, widthRelativeFrom)
+            : widthPoints;
+
+        var resolvedHeight = heightPercent.HasValue
+            ? heightPercent.Value * GetReferenceHeight(context, heightRelativeFrom)
+            : heightPoints;
+
+        return (resolvedWidth, resolvedHeight);
+    }
+
+    static double GetReferenceWidth(RenderContextBase context, SizeRelativeFrom relativeFrom) =>
+        relativeFrom switch
+        {
+            SizeRelativeFrom.Page => context.PageSettings.WidthPoints,
+            // Margin / leftMargin / rightMargin / inside / outside all collapse to the
+            // content area between page margins.
+            _ => context.ContentWidth
+        };
+
+    static double GetReferenceHeight(RenderContextBase context, SizeRelativeFrom relativeFrom) =>
+        relativeFrom switch
+        {
+            SizeRelativeFrom.Page => context.PageSettings.HeightPoints,
+            _ => context.ContentHeight
+        };
 }

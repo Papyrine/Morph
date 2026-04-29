@@ -73,11 +73,9 @@ If a real document surfaces that needs VML rendering, the contained shape can be
 
 | Tag | Notes |
 |-----|-------|
-| `wp14:sizeRelH` / `wp14:sizeRelV` | Relative sizing container — `relativeFrom="page"/"margin"/…`. |
-| `wp14:pctWidth` / `wp14:pctHeight` | Percentage of the reference (stored ×1000, e.g. `50000` = 50%). |
-| `wp14:pctPosHOffset` / `wp14:pctPosVOffset` | Percentage position offsets. |
+| `wp14:pctPosHOffset` / `wp14:pctPosVOffset` | Percentage position offsets — only sizing is implemented; positioning is still EMU-only. |
 
-Without these, percentage-scaled images end up at the fallback `wp:extent` pixel size, which may be zero or wrong.
+Percentage *sizing* (`wp14:sizeRelH`/`sizeRelV` + `wp14:pctWidth`/`pctHeight`) is now consumed — see `docs/word-features.md` "Percentage-Sized Floating Drawings" for status.
 
 ### Charts (entire family missing)
 
@@ -216,14 +214,14 @@ Implementation notes: if fonts aren't resolving well, reading `w:altName` (subst
 
 Updated after the audit + recent feature work (see `docs/word-features.md` for the canonical status).
 
-1. **Percentage-sized floating drawings** (`wp14:pctWidth`/`pctHeight`, `wp14:sizeRelH`/`sizeRelV`) — without these, percentage-scaled images may render at zero size.
-2. **Custom-XML data binding** (`w:dataBinding`) — populates SDT content from bound data islands.
-3. **Remaining run formatting gaps**: `w:em` (East-Asian emphasis mark), `w14:textFill` (gradient text fill).
-4. **Image adjustments** (`a14:brightnessContrast`, `a14:saturation`, etc.) — Word's "Picture Format → Adjustments" filters.
+1. **Custom-XML data binding** (`w:dataBinding`) — populates SDT content from bound data islands.
+2. **Remaining run formatting gaps**: `w:em` (East-Asian emphasis mark), `w14:textFill` (gradient text fill).
+3. **Image adjustments** (`a14:brightnessContrast`, `a14:saturation`, etc.) — Word's "Picture Format → Adjustments" filters.
+4. **Percentage *position* offsets** (`wp14:pctPosHOffset`/`pctPosVOffset`) — sizing is in; positioning is still EMU-only.
 5. **Chart rendering beyond placeholder** — currently renders as empty space matching the drawing extent; either ship a minimal renderer or surface an `mc:Fallback` thumbnail.
 
 (Legacy VML — `v:shape`, `v:rect`, `v:imagedata`, etc. — is intentionally not on this list; see the dedicated section above.)
 
 Recently completed (no longer on the list):
 
-- `w:hyperlink`, footnotes / endnotes, `w:tblPrEx`, `w:cnfStyle`, `w:tblHeader`, `w:tblCellSpacing` (detached-border model, verified via `Tests/Inputs/table_cell_spacing/01`), `w:tl2br` / `w:tr2bl` diagonal cell borders (verified via `Tests/Inputs/table_diagonal_borders/01`), `w:hideMark`, `w:noWrap` (cell), `w:tblCaption` / `w:tblDescription` (accessibility metadata, no-op), `w:tblOverlap` (floating-table-only, no-op for inline), `w:mirrorIndents` (parsed; renderer doesn't yet swap indents), `w:framePr` (drop-cap subset only; absolute positioning is a no-op), East-Asian layout flags `w:wordWrap` / `w:kinsoku` / `w:overflowPunct` / `w:autoSpaceDE` / `w:autoSpaceDN` / `w:adjustRightInd` (no-op), `w:pgNumType` (no-op until fields are evaluated), `w:ulTrailSpace` (already matches default-on behaviour), `w:vanish` / `w:specVanish` (hidden runs dropped at parse), `w:webHidden` (no-op), `w:position` (baseline shift), `w:bdr` (per-run border), `w:emboss` / `w:imprint` / `w:outline` (run-effect bundle), `w:effect` (animated text, no-op), `w:smallCaps`, `w:dstrike`, `w:kern`, `w14:textOutline` / `glow` / `shadow` / `reflection`, custom tab stops, gradient shape fills (`a:gradFill`), image crop (`a:srcRect`), image rotation, even/odd page headers + footers (verified end-to-end via `Tests/Inputs/even_odd_headers/02`).
+- `w:hyperlink`, footnotes / endnotes, `w:tblPrEx`, `w:cnfStyle`, `w:tblHeader`, `w:tblCellSpacing` (detached-border model, verified via `Tests/Inputs/table_cell_spacing/01`), `w:tl2br` / `w:tr2bl` diagonal cell borders (verified via `Tests/Inputs/table_diagonal_borders/01`), `w:hideMark`, `w:noWrap` (cell), `w:tblCaption` / `w:tblDescription` (accessibility metadata, no-op), `w:tblOverlap` (floating-table-only, no-op for inline), `w:mirrorIndents` (parsed; renderer doesn't yet swap indents), `w:framePr` (drop-cap subset only; absolute positioning is a no-op), East-Asian layout flags `w:wordWrap` / `w:kinsoku` / `w:overflowPunct` / `w:autoSpaceDE` / `w:autoSpaceDN` / `w:adjustRightInd` (no-op), `w:pgNumType` (no-op until fields are evaluated), `w:ulTrailSpace` (already matches default-on behaviour), `w:vanish` / `w:specVanish` (hidden runs dropped at parse), `w:webHidden` (no-op), `w:position` (baseline shift), `w:bdr` (per-run border), `w:emboss` / `w:imprint` / `w:outline` (run-effect bundle), `w:effect` (animated text, no-op), `wp14:sizeRelH` / `wp14:sizeRelV` + `wp14:pctWidth` / `wp14:pctHeight` (percentage sizing for floating drawings), `w:smallCaps`, `w:dstrike`, `w:kern`, `w14:textOutline` / `glow` / `shadow` / `reflection`, custom tab stops, gradient shape fills (`a:gradFill`), image crop (`a:srcRect`), image rotation, even/odd page headers + footers (verified end-to-end via `Tests/Inputs/even_odd_headers/02`).

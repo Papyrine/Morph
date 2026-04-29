@@ -38,4 +38,22 @@ sealed class FloatingShapeElement : DocumentElement
 
     /// <summary>Content type of the image (e.g., "image/jpeg"). Null if using solid color fill.</summary>
     public string? ImageContentType { get; init; }
+
+    /// <summary>
+    /// Width as a fraction (0..1) of <see cref="WidthRelativeFrom"/>, parsed from
+    /// <c>wp14:sizeRelH/wp14:pctWidth</c>. Null when no percentage sizing is present.
+    /// </summary>
+    public double? WidthPercent { get; init; }
+
+    /// <summary>Reference area for <see cref="WidthPercent"/>.</summary>
+    public SizeRelativeFrom WidthRelativeFrom { get; init; } = SizeRelativeFrom.Margin;
+
+    /// <summary>
+    /// Height as a fraction (0..1) of <see cref="HeightRelativeFrom"/>, parsed from
+    /// <c>wp14:sizeRelV/wp14:pctHeight</c>. Null when no percentage sizing is present.
+    /// </summary>
+    public double? HeightPercent { get; init; }
+
+    /// <summary>Reference area for <see cref="HeightPercent"/>.</summary>
+    public SizeRelativeFrom HeightRelativeFrom { get; init; } = SizeRelativeFrom.Margin;
 }

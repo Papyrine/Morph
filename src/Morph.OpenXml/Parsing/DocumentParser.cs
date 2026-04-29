@@ -5046,6 +5046,69 @@ sealed class DocumentParser(string defaultFont)
     /// <summary>
     /// Parses an anchored image with additional X/Y offset within a group.
     /// </summary>
+    /// <summary>
+    /// Reads <c>wp14:sizeRelH</c> / <c>wp14:sizeRelV</c> percentage sizing off a
+    /// <c>wp:anchor</c>. Returns null fractions when the percentage is missing or zero
+    /// (Word writes a <c>0</c> placeholder even when percentage sizing isn't in use).
+    /// Values are stored ×1000 in OOXML, e.g. 50000 = 50% = 0.5.
+    /// </summary>
+    static (double? widthPercent, SizeRelativeFrom widthRel, double? heightPercent, SizeRelativeFrom heightRel)
+        ReadAnchorPercentSize(DW.Anchor anchor)
+    {
+        double? widthPct = null;
+        var widthRel = SizeRelativeFrom.Margin;
+        double? heightPct = null;
+        var heightRel = SizeRelativeFrom.Margin;
+
+        // sizeRelH/sizeRelV live in the wp14 namespace and aren't typed by the SDK at this
+        // point — read them by local name to stay version-tolerant.
+        foreach (var child in anchor.ChildElements)
+        {
+            if (child.LocalName == "sizeRelH")
+            {
+                widthRel = ParseSizeRelativeFrom(child);
+                widthPct = ParsePercentChild(child, "pctWidth");
+            }
+            else if (child.LocalName == "sizeRelV")
+            {
+                heightRel = ParseSizeRelativeFrom(child);
+                heightPct = ParsePercentChild(child, "pctHeight");
+            }
+        }
+
+        return (widthPct, widthRel, heightPct, heightRel);
+    }
+
+    static SizeRelativeFrom ParseSizeRelativeFrom(OpenXmlElement sizeRel)
+    {
+        var attr = sizeRel.GetAttributes().FirstOrDefault(a => a.LocalName == "relativeFrom");
+        return attr.Value switch
+        {
+            "page" => SizeRelativeFrom.Page,
+            // margin / leftMargin / rightMargin / topMargin / bottomMargin / insideMargin / outsideMargin
+            // all collapse to the content area; mirror-margin layouts aren't yet honoured.
+            _ => SizeRelativeFrom.Margin
+        };
+    }
+
+    static double? ParsePercentChild(OpenXmlElement parent, string localName)
+    {
+        var pct = parent.ChildElements.FirstOrDefault(c => c.LocalName == localName);
+        if (pct?.InnerText is not { } text || string.IsNullOrEmpty(text))
+        {
+            return null;
+        }
+
+        // Stored ×1000 of percent: 50000 = 50% = 0.5. A zero placeholder means "no
+        // percentage sizing applied" — treat as null so the renderer keeps the explicit extent.
+        if (!long.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var thousandths) || thousandths <= 0)
+        {
+            return null;
+        }
+
+        return thousandths / 100_000.0;
+    }
+
     static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, ImageCrop? crop = null)
     {
         // Parse horizontal position
@@ -5113,6 +5176,8 @@ sealed class DocumentParser(string defaultFont)
         // Check if behind text
         var isBehindText = anchor.BehindDoc?.Value == true;
 
+        var (widthPct, widthRel, heightPct, heightRel) = ReadAnchorPercentSize(anchor);
+
         return new()
         {
             ImageData = imageData,
@@ -5125,7 +5190,11 @@ sealed class DocumentParser(string defaultFont)
             VerticalAnchor = vAnchor,
             BehindText = isBehindText,
             RotationDegrees = rotationDegrees,
-            Crop = crop
+            Crop = crop,
+            WidthPercent = widthPct,
+            WidthRelativeFrom = widthRel,
+            HeightPercent = heightPct,
+            HeightRelativeFrom = heightRel
         };
     }
 

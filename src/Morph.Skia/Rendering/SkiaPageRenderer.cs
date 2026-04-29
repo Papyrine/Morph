@@ -2263,6 +2263,15 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             return;
         }
 
+        var (width, height) = FloatingPosition.ResolveEffectiveSize(
+            context,
+            shape.WidthPoints,
+            shape.HeightPoints,
+            shape.WidthPercent,
+            shape.WidthRelativeFrom,
+            shape.HeightPercent,
+            shape.HeightRelativeFrom);
+
         // Calculate position based on anchor type
         var bounds = FloatingPosition.ResolveShapeBounds(
             context,
@@ -2270,8 +2279,8 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             shape.VerticalAnchor,
             shape.HorizontalPositionPoints,
             shape.VerticalPositionPoints,
-            shape.WidthPoints,
-            shape.HeightPoints);
+            width,
+            height);
         var pixelX = bounds.PixelX;
         var pixelY = bounds.PixelY;
         var pixelWidth = bounds.PixelWidth;
@@ -2340,6 +2349,15 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             return;
         }
 
+        var (width, height) = FloatingPosition.ResolveEffectiveSize(
+            context,
+            image.WidthPoints,
+            image.HeightPoints,
+            image.WidthPercent,
+            image.WidthRelativeFrom,
+            image.HeightPercent,
+            image.HeightRelativeFrom);
+
         // Calculate absolute position based on anchor type
         var bounds = FloatingPosition.ResolveBounds(
             context,
@@ -2347,8 +2365,8 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             image.VerticalAnchor,
             image.HorizontalPositionPoints,
             image.VerticalPositionPoints,
-            image.WidthPoints,
-            image.HeightPoints);
+            width,
+            height);
 
         var destRect = new SKRect(bounds.PixelX, bounds.PixelY, bounds.PixelX + bounds.PixelWidth, bounds.PixelY + bounds.PixelHeight);
 

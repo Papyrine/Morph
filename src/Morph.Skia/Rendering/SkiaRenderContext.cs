@@ -29,9 +29,9 @@ sealed class SkiaRenderContext(
     static Dictionary<(string, int, SKFontStyleSlant), SKTypeface> SeedTypefaceCache()
     {
         var cache = new Dictionary<(string, int, SKFontStyleSlant), SKTypeface>();
-        foreach (var typeface in embeddedTypefaces)
+        foreach (var entry in embeddedTypefaceEntries)
         {
-            cache[(typeface.FamilyName, typeface.FontStyle.Weight, typeface.FontStyle.Slant)] = typeface;
+            cache[(entry.FamilyName, entry.Weight, entry.Slant)] = entry.Typeface;
         }
         return cache;
     }
@@ -68,6 +68,16 @@ sealed class SkiaRenderContext(
         }
         return list.ToArray();
     }
+
+    // Frozen at static init from the embedded faces' FamilyName / FontStyle. Reading those
+    // properties through SkiaSharp on every new render context — as SeedTypefaceCache did
+    // before this — hit a native AV inside sk_typeface_get_family_name under bulk parallel
+    // test load (regression from 3de908f8). Reading them once and copying the tuples per
+    // instance avoids the issue entirely.
+    static readonly (string FamilyName, int Weight, SKFontStyleSlant Slant, SKTypeface Typeface)[] embeddedTypefaceEntries =
+        embeddedTypefaces
+            .Select(_ => (_.FamilyName, _.FontStyle.Weight, _.FontStyle.Slant, _))
+            .ToArray();
 
     static readonly ConcurrentDictionary<string, FontFileCache> directoryCaches = new(StringComparer.OrdinalIgnoreCase);
 

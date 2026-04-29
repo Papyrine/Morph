@@ -138,14 +138,61 @@ static class OpenXmlExtensions
             }
         }
 
+        // wp14:sizeRelH / wp14:sizeRelV percentage sizing (Word 2010+).
+        double? widthPct = null;
+        var widthRel = SizeRelativeFrom.Margin;
+        double? heightPct = null;
+        var heightRel = SizeRelativeFrom.Margin;
+        foreach (var child in anchor.ChildElements)
+        {
+            if (child.LocalName == "sizeRelH")
+            {
+                widthRel = ParseSizeRelativeFrom(child);
+                widthPct = ParsePercentChild(child, "pctWidth");
+            }
+            else if (child.LocalName == "sizeRelV")
+            {
+                heightRel = ParseSizeRelativeFrom(child);
+                heightPct = ParsePercentChild(child, "pctHeight");
+            }
+        }
+
         return new()
         {
             HorizontalPositionPoints = hPosPoints,
             VerticalPositionPoints = vPosPoints,
             HorizontalAnchor = hAnchor,
             VerticalAnchor = vAnchor,
-            BehindText = anchor.BehindDoc?.Value == true
+            BehindText = anchor.BehindDoc?.Value == true,
+            WidthPercent = widthPct,
+            WidthRelativeFrom = widthRel,
+            HeightPercent = heightPct,
+            HeightRelativeFrom = heightRel
         };
+    }
+
+    static SizeRelativeFrom ParseSizeRelativeFrom(OpenXmlElement sizeRel)
+    {
+        var attr = sizeRel.GetAttributes().FirstOrDefault(a => a.LocalName == "relativeFrom");
+        return attr.Value == "page" ? SizeRelativeFrom.Page : SizeRelativeFrom.Margin;
+    }
+
+    static double? ParsePercentChild(OpenXmlElement parent, string localName)
+    {
+        var pct = parent.ChildElements.FirstOrDefault(c => c.LocalName == localName);
+        if (pct?.InnerText is not { } text || string.IsNullOrEmpty(text))
+        {
+            return null;
+        }
+
+        // Stored ×1000 of percent: 50000 = 50% = 0.5. Zero placeholder means "no
+        // percentage sizing" — Word writes <pctWidth>0</pctWidth> even when not used.
+        if (!long.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var thousandths) || thousandths <= 0)
+        {
+            return null;
+        }
+
+        return thousandths / 100_000.0;
     }
 }
 
@@ -159,4 +206,8 @@ internal readonly struct AnchorPositioning
     public HorizontalAnchor HorizontalAnchor { get; init; }
     public VerticalAnchor VerticalAnchor { get; init; }
     public bool BehindText { get; init; }
+    public double? WidthPercent { get; init; }
+    public SizeRelativeFrom WidthRelativeFrom { get; init; }
+    public double? HeightPercent { get; init; }
+    public SizeRelativeFrom HeightRelativeFrom { get; init; }
 }
