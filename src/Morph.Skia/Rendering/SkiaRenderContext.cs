@@ -23,10 +23,14 @@ sealed class SkiaRenderContext(
 {
     Dictionary<(string, int, SKFontStyleSlant), SKTypeface> typefaceCache = [];
 
-    static Lazy<FontFileCache> cloudFontsCache = new(() => new(FontCacheLoader.GetCloudFontFiles(), OpenTypeReader.ReadFaces));
-    static Lazy<FontFileCache> officeFontsCache = new(() => new(FontCacheLoader.GetOfficeFontFiles(), OpenTypeReader.ReadFaces));
-    static Lazy<FontFileCache> userFontsCache = new(() => new(FontCacheLoader.GetUserFontFiles(), OpenTypeReader.ReadFaces));
-    static Lazy<FontFileCache> systemFontsCache = new(() => new(FontCacheLoader.GetSystemFontFiles(), OpenTypeReader.ReadFaces));
+    /// <summary>
+    /// Index of every font file Morph can discover on the host (user, Office, M365 cloud,
+    /// system) in a single name-keyed cache. The four sources are merged in priority order
+    /// during construction, so when two files share a name the higher-priority source's
+    /// face still appears first in the bucket — keeping the original "user installs win
+    /// on ties" rule without needing four separate caches.
+    /// </summary>
+    static readonly FontFileCache allFontsCache = new(FontCacheLoader.GetAllFontFiles(), OpenTypeReader.ReadFaces);
 
     /// <summary>
     /// Typefaces loaded from <see cref="EmbeddedFonts"/> (the Aptos faces shipped inside
@@ -35,19 +39,8 @@ sealed class SkiaRenderContext(
     /// <see cref="Dispose"/> can identify and skip these instead of releasing them
     /// (they're shared across every render context in the process).
     /// </summary>
-    static readonly Lazy<Dictionary<string, List<SKTypeface>>> embeddedTypefaces = new(LoadEmbeddedTypefaces);
-    static readonly Lazy<HashSet<SKTypeface>> embeddedTypefaceSet = new(() =>
-    {
-        var set = new HashSet<SKTypeface>();
-        foreach (var list in embeddedTypefaces.Value.Values)
-        {
-            foreach (var typeface in list)
-            {
-                set.Add(typeface);
-            }
-        }
-        return set;
-    });
+    static readonly Dictionary<string, List<SKTypeface>> embeddedTypefaces = LoadEmbeddedTypefaces();
+    static readonly HashSet<SKTypeface> embeddedTypefaceSet = [..embeddedTypefaces.Values.SelectMany(_ => _)];
 
     static Dictionary<string, List<SKTypeface>> LoadEmbeddedTypefaces()
     {
@@ -173,43 +166,28 @@ sealed class SkiaRenderContext(
     }
 
     /// <summary>
-    /// Searches every indexed font cache (user → Office → cloud → system) for the
-    /// candidate names. The first cache to produce a hit wins; among the faces it
-    /// returned, <see cref="FontHelpers.PickBestFace"/> selects the closest match by
-    /// weight/italic/width distance.
+    /// Looks the candidate names up in <see cref="allFontsCache"/> and picks the face
+    /// whose weight/italic/width is closest to the request. A Light face beats a
+    /// Regular when Light was asked for; when scores tie, the face from a
+    /// higher-priority ingestion source (user before system) wins because it appears
+    /// first in the bucket.
     /// </summary>
     static SKTypeface? ResolveFromCaches(FontNameCandidates candidates, int targetWeight, bool targetItalic)
     {
-        // User fonts first so explicit installs override anything bundled by the OS.
-        var caches = new[]
+        if (!allFontsCache.TryGet(candidates, out var faces))
         {
-            userFontsCache.Value,
-            officeFontsCache.Value,
-            cloudFontsCache.Value,
-            systemFontsCache.Value,
-        };
+            return null;
+        }
 
         FontFace? bestSoFar = null;
         var bestScore = int.MaxValue;
-
-        foreach (var cache in caches)
+        foreach (var face in faces)
         {
-            if (!cache.TryGet(candidates, out var faces))
+            var score = FontHelpers.ScoreFace(face, targetWeight, targetItalic);
+            if (score < bestScore)
             {
-                continue;
-            }
-
-            // Score every face from this cache and remember the best one across all
-            // caches that hit. This lets a Light face from "user fonts" beat a Regular
-            // face from "system fonts" when Light was requested.
-            foreach (var face in faces)
-            {
-                var score = FontHelpers.ScoreFace(face, targetWeight, targetItalic);
-                if (score < bestScore)
-                {
-                    bestScore = score;
-                    bestSoFar = face;
-                }
+                bestScore = score;
+                bestSoFar = face;
             }
         }
 
@@ -243,13 +221,12 @@ sealed class SkiaRenderContext(
 
     static SKTypeface? TryResolveFromEmbedded(FontNameCandidates candidates, int targetWeight, bool targetItalic)
     {
-        var registry = embeddedTypefaces.Value;
         SKTypeface? best = null;
         var bestScore = int.MaxValue;
 
         foreach (var name in FontFileCache.EnumerateCandidateNames(candidates))
         {
-            if (!registry.TryGetValue(name, out var typefaces))
+            if (!embeddedTypefaces.TryGetValue(name, out var typefaces))
             {
                 continue;
             }
@@ -391,13 +368,12 @@ sealed class SkiaRenderContext(
 
     public void Dispose()
     {
-        var shared = embeddedTypefaceSet.IsValueCreated ? embeddedTypefaceSet.Value : null;
         foreach (var typeface in typefaceCache.Values)
         {
             // Skip shared embedded typefaces — they live in a static registry and are
             // reused by every render context in the process; disposing here would leave
             // the next render with a disposed handle.
-            if (shared != null && shared.Contains(typeface))
+            if (embeddedTypefaceSet.Contains(typeface))
             {
                 continue;
             }
