@@ -83,7 +83,7 @@ static class OpenTypeReader
                 }
             }
         }
-        else if (sig == ttfMagic || sig == otfMagic || sig == trueMagic)
+        else if (sig is ttfMagic or otfMagic or trueMagic)
         {
             if (TryReadFace(bytes, 0, path, 0, out var face, out var names))
             {
@@ -207,13 +207,15 @@ static class OpenTypeReader
                 continue;
             }
 
-            if (bestPriority.TryGetValue(nameId, out var existing) && existing <= priority)
+            if (bestPriority.TryGetValue(nameId, out var existing) &&
+                existing <= priority)
             {
                 continue;
             }
 
             var stringStart = tableOffset + storageOffset + stringOffset;
-            if (stringStart < 0 || stringStart + stringLength > bytes.Length)
+            if (stringStart < 0 ||
+                stringStart + stringLength > bytes.Length)
             {
                 continue;
             }
@@ -239,20 +241,20 @@ static class OpenTypeReader
     {
         // Windows (3) + Unicode BMP (1) / UCS-4 (10), English (0x0409): the canonical
         // modern path for fonts authored on Windows.
-        if (platformId == 3 && (encodingId == 1 || encodingId == 10) && languageId == 0x0409)
+        if (platformId == 3 && encodingId is 1 or 10 && languageId == 0x0409)
         {
             return 0;
         }
 
         // Windows + Unicode, any English variant.
-        if (platformId == 3 && (encodingId == 1 || encodingId == 10) && (languageId & 0xFF) == 0x09)
+        if (platformId == 3 && encodingId is 1 or 10 && (languageId & 0xFF) == 0x09)
         {
             return 1;
         }
 
         // Windows + Unicode, any language: still useful since the strings are in the font
         // even if not English (e.g. CJK fonts).
-        if (platformId == 3 && (encodingId == 1 || encodingId == 10))
+        if (platformId == 3 && encodingId is 1 or 10)
         {
             return 2;
         }
@@ -280,7 +282,7 @@ static class OpenTypeReader
         }
 
         // Platform 3 (Windows) and Platform 0 (Unicode) store strings as UTF-16 big-endian.
-        if (platformId == 3 || platformId == 0)
+        if (platformId is 3 or 0)
         {
             return Encoding.BigEndianUnicode.GetString(bytes);
         }
@@ -297,7 +299,7 @@ static class OpenTypeReader
     /// <summary>
     /// Builds the list of distinct, non-empty names this face should be indexed under.
     /// </summary>
-    static IReadOnlyList<string> BuildIndexNames(Dictionary<int, string> nameRecords)
+    static List<string> BuildIndexNames(Dictionary<int, string> nameRecords)
     {
         // HashSet preserves insertion order via a List<string> we pass alongside, so we
         // can deduplicate cheaply while keeping a stable lookup order.

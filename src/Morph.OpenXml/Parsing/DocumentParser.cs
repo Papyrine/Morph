@@ -67,6 +67,10 @@ sealed class DocumentParser(string defaultFont)
     // Table style borders cached during parsing (styleId -> borders + conditional formatting)
     Dictionary<string, TableStyleBorderInfo>? tableStyleBorders;
 
+    // StyleId of the table style flagged as w:default — used as the implicit style for tables
+    // that don't carry an explicit w:tblStyle reference (ECMA-376 §17.7.4.4).
+    string? defaultTableStyleId;
+
     // Document-level background color (applies to all pages)
     string? documentBackgroundColor;
 
@@ -293,7 +297,7 @@ sealed class DocumentParser(string defaultFont)
         };
     }
 
-    static IReadOnlyList<EmbeddedObject> ExtractEmbeddedObjects(Body body)
+    static List<EmbeddedObject> ExtractEmbeddedObjects(Body body)
     {
         var result = new List<EmbeddedObject>();
         foreach (var obj in body.Descendants<DocumentFormat.OpenXml.Wordprocessing.EmbeddedObject>())
@@ -332,7 +336,7 @@ sealed class DocumentParser(string defaultFont)
         return result;
     }
 
-    static IReadOnlyList<Watermark> ExtractWatermarks(MainDocumentPart mainPart)
+    static List<Watermark> ExtractWatermarks(MainDocumentPart mainPart)
     {
         var result = new List<Watermark>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -559,7 +563,7 @@ sealed class DocumentParser(string defaultFont)
         return result;
     }
 
-    static IReadOnlyList<Endnote> ExtractEndnotes(MainDocumentPart mainPart)
+    static List<Endnote> ExtractEndnotes(MainDocumentPart mainPart)
     {
         var part = mainPart.EndnotesPart;
         if (part?.Endnotes == null)
@@ -702,7 +706,7 @@ sealed class DocumentParser(string defaultFont)
         };
     }
 
-    static IReadOnlyList<TrackedChange> ExtractTrackedChanges(Body body)
+    static List<TrackedChange> ExtractTrackedChanges(Body body)
     {
         var result = new List<TrackedChange>();
 
@@ -745,7 +749,7 @@ sealed class DocumentParser(string defaultFont)
         }
     }
 
-    static IReadOnlyList<Comment> ExtractComments(MainDocumentPart mainPart, Body body)
+    static List<Comment> ExtractComments(MainDocumentPart mainPart, Body body)
     {
         var commentsPart = mainPart.WordprocessingCommentsPart;
         if (commentsPart?.Comments == null)
@@ -810,7 +814,7 @@ sealed class DocumentParser(string defaultFont)
         return result;
     }
 
-    static IReadOnlyList<Bookmark> ExtractBookmarks(Body body)
+    static List<Bookmark> ExtractBookmarks(Body body)
     {
         // Pre-compute a map from each Paragraph element to its ordinal among paragraphs in the body.
         var paragraphOrdinals = new Dictionary<Paragraph, int>();
@@ -1708,6 +1712,11 @@ sealed class DocumentParser(string defaultFont)
                 continue;
             }
 
+            if (style.Default?.Value == true)
+            {
+                defaultTableStyleId = styleId;
+            }
+
             // Look for table properties in the style
             var tblPr = style.StyleTableProperties;
 
@@ -1785,13 +1794,27 @@ sealed class DocumentParser(string defaultFont)
 
                 var condShading = ReadShadingFill(tcPr?.GetFirstChild<Shading>());
 
-                if (condBorders == null && condShading == null)
+                // Run-level rPr inside the tblStylePr — Morph cascades just the run colour
+                // for now (Word's tblStylePr also defines bold/italic/font, but those are
+                // currently expected to come from the run-level rPr in the document body).
+                string? condRunColor = null;
+                var rPr = tblStylePr.GetFirstChild<RunPropertiesBaseStyle>();
+                if (rPr != null)
+                {
+                    var color = rPr.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.Color>();
+                    if (color?.Val?.HasValue == true && color.Val.Value != "auto")
+                    {
+                        condRunColor = color.Val.Value;
+                    }
+                }
+
+                if (condBorders == null && condShading == null && condRunColor == null)
                 {
                     continue;
                 }
 
                 conditionals ??= new();
-                conditionals[type.Value] = new(condBorders, condShading);
+                conditionals[type.Value] = new(condBorders, condShading, condRunColor);
             }
 
             if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || wholeTableShading != null || conditionals != null || styleCellSpacing > 0)
@@ -2826,14 +2849,17 @@ sealed class DocumentParser(string defaultFont)
         var totalRows = rowList.Count;
 
         // Look up table style border info (including conditional formatting) early,
-        // so we can apply per-cell conditional borders during cell parsing
+        // so we can apply per-cell conditional borders during cell parsing.
+        // When the table has no explicit w:tblStyle reference, fall back to the styles part's
+        // default table style (the one with w:default="true") — Word implicitly applies it.
         TableStyleBorderInfo? styleInfo = null;
-        if (tableProps != null)
+        if (tableStyleBorders != null)
         {
-            var tableStyle = tableProps.GetFirstChild<TableStyle>();
-            if (tableStyle?.Val?.Value != null && tableStyleBorders != null)
+            var styleId = tableProps?.GetFirstChild<TableStyle>()?.Val?.Value
+                          ?? defaultTableStyleId;
+            if (styleId != null)
             {
-                tableStyleBorders.TryGetValue(tableStyle.Val.Value, out styleInfo);
+                tableStyleBorders.TryGetValue(styleId, out styleInfo);
             }
         }
 
@@ -3077,6 +3103,7 @@ sealed class DocumentParser(string defaultFont)
 
                     var conditionalBorders = (CellBorders?) null;
                     var conditionalShading = styleInfo.BackgroundColorHex;
+                    string? conditionalRunColor = null;
 
                     if (styleInfo.Conditionals != null)
                     {
@@ -3098,11 +3125,24 @@ sealed class DocumentParser(string defaultFont)
                             {
                                 conditionalShading = cond.BackgroundColorHex;
                             }
+
+                            if (cond.RunColorHex != null)
+                            {
+                                conditionalRunColor = cond.RunColorHex;
+                            }
                         }
                     }
 
                     cellBorders ??= conditionalBorders;
                     bgColor ??= conditionalShading;
+
+                    // Cascade tblStylePr's run colour onto runs in this cell that don't carry
+                    // an explicit w:color. Explicit run colour wins (RunProperties.ColorHex
+                    // is non-null only when the run carried a w:color element).
+                    if (conditionalRunColor != null)
+                    {
+                        ApplyDefaultRunColor(cellContent, conditionalRunColor);
+                    }
                 }
 
                 cells.Add(
@@ -3445,6 +3485,61 @@ sealed class DocumentParser(string defaultFont)
 
     static double ParseBorderSpace(BorderType? border) =>
         border?.Space?.HasValue == true ? border.Space.Value : 0;
+
+    /// <summary>
+    /// Cascades a tblStylePr-derived run colour onto the runs in a freshly-parsed cell.
+    /// Only fills in runs that don't carry an explicit <c>w:color</c> — explicit run colour
+    /// always wins. Nested tables are skipped because they run their own conditional cascade.
+    /// </summary>
+    static void ApplyDefaultRunColor(List<DocumentElement> cellContent, string color)
+    {
+        for (var i = 0; i < cellContent.Count; i++)
+        {
+            if (cellContent[i] is ParagraphElement paragraph)
+            {
+                cellContent[i] = ApplyDefaultRunColorToParagraph(paragraph, color);
+            }
+        }
+    }
+
+    static ParagraphElement ApplyDefaultRunColorToParagraph(ParagraphElement paragraph, string color)
+    {
+        Run[]? rebuilt = null;
+        for (var i = 0; i < paragraph.Runs.Count; i++)
+        {
+            var run = paragraph.Runs[i];
+            if (run.Properties.ColorHex != null)
+            {
+                continue;
+            }
+
+            rebuilt ??= [.. paragraph.Runs];
+            rebuilt[i] = new()
+            {
+                Text = run.Text,
+                Properties = run.Properties with { ColorHex = color },
+                InlineImageData = run.InlineImageData,
+                InlineImageWidthPoints = run.InlineImageWidthPoints,
+                InlineImageHeightPoints = run.InlineImageHeightPoints,
+                InlineImageContentType = run.InlineImageContentType,
+                InlineImageRotationDegrees = run.InlineImageRotationDegrees,
+                InlineImageCrop = run.InlineImageCrop,
+                IsTab = run.IsTab,
+                InlineShapeGroup = run.InlineShapeGroup
+            };
+        }
+
+        if (rebuilt == null)
+        {
+            return paragraph;
+        }
+
+        return new()
+        {
+            Runs = rebuilt,
+            Properties = paragraph.Properties
+        };
+    }
 
     BorderEdge ParseBorderEdge(BorderType? border)
     {
