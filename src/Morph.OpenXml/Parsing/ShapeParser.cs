@@ -134,6 +134,10 @@ static class ShapeParser
                     HorizontalAnchor = positioning.HorizontalAnchor,
                     VerticalAnchor = positioning.VerticalAnchor,
                     BehindText = true,
+                    WidthPercent = positioning.WidthPercent,
+                    WidthRelativeFrom = positioning.WidthRelativeFrom,
+                    HeightPercent = positioning.HeightPercent,
+                    HeightRelativeFrom = positioning.HeightRelativeFrom,
                     FillColorHex = fillColorHex,
                     FillAlpha = ExtractSolidFillAlpha(solidFill)
                 };
@@ -156,6 +160,10 @@ static class ShapeParser
                     HorizontalAnchor = positioning.HorizontalAnchor,
                     VerticalAnchor = positioning.VerticalAnchor,
                     BehindText = true,
+                    WidthPercent = positioning.WidthPercent,
+                    WidthRelativeFrom = positioning.WidthRelativeFrom,
+                    HeightPercent = positioning.HeightPercent,
+                    HeightRelativeFrom = positioning.HeightRelativeFrom,
                     Gradient = gradient,
                     FillColorHex = gradient.StartColorHex
                 };
@@ -179,6 +187,10 @@ static class ShapeParser
                     HorizontalAnchor = positioning.HorizontalAnchor,
                     VerticalAnchor = positioning.VerticalAnchor,
                     BehindText = true,
+                    WidthPercent = positioning.WidthPercent,
+                    WidthRelativeFrom = positioning.WidthRelativeFrom,
+                    HeightPercent = positioning.HeightPercent,
+                    HeightRelativeFrom = positioning.HeightRelativeFrom,
                     ImageData = imageData,
                     ImageContentType = contentType
                 };
@@ -260,6 +272,9 @@ static class ShapeParser
                     HorizontalAnchor = positioning.HorizontalAnchor,
                     VerticalAnchor = positioning.VerticalAnchor,
                     BehindText = true,
+                    // Percent sizing intentionally not propagated to grouped sub-shapes:
+                    // they're already sized by the group's EMU transform (scaleX/scaleY),
+                    // so applying the anchor's pctWidth/pctHeight on top would double-scale.
                     FillColorHex = fillColorHex,
                     FillAlpha = ExtractSolidFillAlpha(solidFill)
                 };
@@ -283,6 +298,7 @@ static class ShapeParser
                     HorizontalAnchor = positioning.HorizontalAnchor,
                     VerticalAnchor = positioning.VerticalAnchor,
                     BehindText = true,
+                    // Percent sizing intentionally not propagated — see solid-fill branch.
                     ImageData = imageData,
                     ImageContentType = contentType
                 };

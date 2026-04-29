@@ -1,5 +1,3 @@
-using System.Reflection;
-
 /// <summary>
 /// Provides byte-array access to the font files Morph ships as <c>EmbeddedResource</c>
 /// inside <c>Morph.dll</c> (the four standard Aptos faces). Renderer backends consume the

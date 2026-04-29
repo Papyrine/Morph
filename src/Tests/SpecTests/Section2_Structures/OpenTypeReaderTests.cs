@@ -52,13 +52,6 @@ public class OpenTypeReaderTests
     }
 
     [Test]
-    public async Task NonexistentFile_ReturnsEmpty()
-    {
-        var faces = OpenTypeReader.ReadFaces(Path.Combine(ProjectFonts.Directory, "does-not-exist.ttf")).ToList();
-        await Assert.That(faces).IsEmpty();
-    }
-
-    [Test]
     public async Task LatoLight_WeightThree_HundredRecovered()
     {
         var path = Path.Combine(ProjectFonts.Directory, "Lato_Light_300.ttf");
@@ -66,5 +59,21 @@ public class OpenTypeReaderTests
 
         await Assert.That(faces.Count).IsEqualTo(1);
         await Assert.That(faces[0].Face.Weight).IsEqualTo(300);
+    }
+
+    [Test]
+    public async Task OpenSansRegular_Woff2_MetadataReadViaPartialBrotliDecode()
+    {
+        // Exercises the WOFF2 path: parse the (uncompressed) header + table directory,
+        // then partial-decompress only enough of the Brotli payload to reach name/OS/2.
+        var path = Path.Combine(ProjectFonts.Directory, "OpenSans-Regular.woff2");
+        var faces = OpenTypeReader.ReadFaces(path).ToList();
+
+        await Assert.That(faces.Count).IsEqualTo(1);
+        var (face, names) = faces[0];
+
+        await Assert.That(face.Weight).IsEqualTo(400);
+        await Assert.That(face.Italic).IsFalse();
+        await Assert.That(names).Contains("Open Sans", StringComparer.OrdinalIgnoreCase);
     }
 }

@@ -1579,14 +1579,23 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             return;
         }
 
+        var (width, height) = FloatingPosition.ResolveEffectiveSize(
+            context,
+            shape.WidthPoints,
+            shape.HeightPoints,
+            shape.WidthPercent,
+            shape.WidthRelativeFrom,
+            shape.HeightPercent,
+            shape.HeightRelativeFrom);
+
         var bounds = FloatingPosition.ResolveShapeBounds(
             context,
             shape.HorizontalAnchor,
             shape.VerticalAnchor,
             shape.HorizontalPositionPoints,
             shape.VerticalPositionPoints,
-            shape.WidthPoints,
-            shape.HeightPoints);
+            width,
+            height);
         var pixelX = bounds.PixelX;
         var pixelY = bounds.PixelY;
         var pixelWidth = bounds.PixelWidth;
@@ -1645,14 +1654,23 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             return;
         }
 
+        var (width, height) = FloatingPosition.ResolveEffectiveSize(
+            context,
+            image.WidthPoints,
+            image.HeightPoints,
+            image.WidthPercent,
+            image.WidthRelativeFrom,
+            image.HeightPercent,
+            image.HeightRelativeFrom);
+
         var bounds = FloatingPosition.ResolveBounds(
             context,
             image.HorizontalAnchor,
             image.VerticalAnchor,
             image.HorizontalPositionPoints,
             image.VerticalPositionPoints,
-            image.WidthPoints,
-            image.HeightPoints);
+            width,
+            height);
 
         DrawBlockImage(image.ImageData, bounds.PixelX, bounds.PixelY, bounds.PixelWidth, bounds.PixelHeight, (float) image.RotationDegrees, image.Crop);
     }

@@ -1475,14 +1475,17 @@ Word's "Picture Format → Adjustments" filters that re-tone an embedded image a
 > **AI**: Apply during raster decode. ImageSharp exposes `.Mutate(_ => _.Brightness(...).Contrast(...).Saturate(...))`. Skia composes a colour matrix via `SKColorFilter.CreateColorMatrix`. The existing `BlipColorEffect` pipeline (Grayscale/Duotone/Washout) is the natural extension point.
 
 
-#### Percentage-Sized Floating Drawings `TODO`
+#### Percentage-Sized Floating Drawings `PARTIAL`
 
-Image / shape sizes specified as a percentage of the page or margin rather than a fixed point size.
+Image / shape sizes specified as a percentage of the page or margin rather than a fixed point size. Morph reads `wp14:pctWidth`/`pctHeight` (stored ×1000 of the percentage; e.g. 50000 = 50%) and the `relativeFrom` axis on `wp14:sizeRelH`/`sizeRelV`, then multiplies the resolved reference (page width/height or content-area width/height) at render time. Word's `leftMargin`/`rightMargin`/`topMargin`/`bottomMargin`/`insideMargin`/`outsideMargin` variants all collapse to the content area — mirror-margin layouts aren't yet honoured. Word writes `<wp14:pctWidth>0</wp14:pctWidth>` as a placeholder when the explicit `wp:extent` is authoritative; the parser collapses zero to null so the fallback extent stays in effect.
 
-- **OOXML**: `wp14:sizeRelH`, `wp14:sizeRelV` (relative-from container) with `wp14:pctWidth`, `wp14:pctHeight` (value × 1000); `wp14:pctPosHOffset`, `wp14:pctPosVOffset` for position
-- **Source**: identified via scan in `src/missingTags.md`
-
-> **AI**: Without this, percentage-scaled images fall back to the `wp:extent` value, which is often zero or wrong. Multiply the resolved reference size (page width / margin width / column width per `relativeFrom`) by `pct ÷ 100000` to get the effective extent.
+- **OOXML**: `wp14:sizeRelH`, `wp14:sizeRelV` (relative-from container) with `wp14:pctWidth`, `wp14:pctHeight` (value × 1000)
+- **Spec**: [SizeRelativeHorizontally](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.office2010.word.drawing.relativewidth)
+- **Model**: `FloatingImageElement.WidthPercent` / `HeightPercent` plus `SizeRelativeFrom` (Page or Margin); same fields on `FloatingShapeElement`
+- **Parse**: `OpenXmlExtensions.ParsePositioning` reads the `wp14:sizeRelH/sizeRelV` siblings of `wp:anchor`; values flow through `AnchorPositioning` to standalone shapes and floating images. Grouped sub-shapes intentionally don't propagate the anchor's percentage — they're already sized by the group's EMU transform, so applying it again would double-scale.
+- **Render**: `FloatingPosition.ResolveEffectiveSize` — when `WidthPercent`/`HeightPercent` is non-null, takes precedence over the literal `wp:extent` value. Both Skia and ImageSharp `RenderFloatingImage`/`RenderBackgroundShape` route through it.
+- **Test**: `PercentageSizingTests` (parses hand-built `wp:anchor` instances + verifies default values)
+- **Not yet implemented**: percentage *positioning* (`wp14:pctPosHOffset`/`pctPosVOffset`) — only sizing is consumed; percentage positions still fall back to the EMU offset.
 
 
 ### 6.2 Shapes & Drawings
@@ -2228,14 +2231,14 @@ Read-only mode, form protection, and editing restrictions.
 | 3. Lists & Numbering | 6 | 0 | 0 | 0 | 6 |
 | 4. Tables | 27 | 0 | 0 | 0 | 27 |
 | 5. Page Layout & Sections | 19 | 0 | 0 | 0 | 19 |
-| 6. Graphics & Media | 22 | 0 | 2 | 1 | 25 |
+| 6. Graphics & Media | 22 | 1 | 1 | 1 | 25 |
 | 7. Form Controls | 10 | 0 | 1 | 0 | 11 |
 | 8. Themes & Styles | 4 | 0 | 0 | 0 | 4 |
 | 9. Typography | 8 | 0 | 0 | 0 | 8 |
 | 10. Document Infrastructure | 6 | 0 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 0 | 2 |
-| **Total** | **161** | **1** | **6** | **1** | **169** |
+| **Total** | **161** | **2** | **5** | **1** | **169** |
 
 
 ### Coverage
@@ -2243,8 +2246,8 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 161
-    "Partial" : 1
-    "Todo" : 6
+    "Partial" : 2
+    "Todo" : 5
     "Wontfix" : 1
 ```
 
@@ -2252,9 +2255,9 @@ pie title Feature Implementation Status
 
 
 Priority areas for future implementation:
-1. **Percentage-sized floating drawings (`wp14:pctWidth`/`pctHeight`)** — without these, percentage-scaled images may render at zero size.
-2. **Custom-XML data binding (`w:dataBinding`)** — populates SDT content from bound data islands.
-3. **Image adjustments (`a14:brightnessContrast`/`saturation`/…)** — picture-format filters from Word's "Adjustments" panel.
-4. **Gradient text fill (`w14:textFill`)** — colour-stop fills inside glyph outlines.
+1. **Custom-XML data binding (`w:dataBinding`)** — populates SDT content from bound data islands.
+2. **Image adjustments (`a14:brightnessContrast`/`saturation`/…)** — picture-format filters from Word's "Adjustments" panel.
+3. **Gradient text fill (`w14:textFill`)** — colour-stop fills inside glyph outlines.
+4. **Percentage *position* offsets (`wp14:pctPosHOffset`/`pctPosVOffset`)** — percentage sizing landed; percentage positioning is still EMU-only.
 
 Not planned (see `src/missingTags.md` for rationale): legacy VML shape family, East-Asian line-break heuristics.
