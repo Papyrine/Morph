@@ -75,7 +75,9 @@ static class TableLayout
         var insideH = row?.OverrideInsideHBorder ?? tableProps.InsideHorizontalBorder;
         var insideV = row?.OverrideInsideVBorder ?? tableProps.InsideVerticalBorder;
 
-        if (outer == null && insideH == null && insideV == null)
+        if (outer == null &&
+            insideH == null &&
+            insideV == null)
         {
             return null;
         }
@@ -486,15 +488,11 @@ static class TableLayout
     /// <summary>
     /// Calculates the effective line height for table cell measurement (compact, no boost).
     /// </summary>
-    internal static float CalculateCompactLineHeight(float naturalHeight, ParagraphProperties props)
-    {
-        var lineHeight = props.LineSpacingRule switch
+    internal static float CalculateCompactLineHeight(float naturalHeight, ParagraphProperties properties) =>
+        properties.LineSpacingRule switch
         {
-            LineSpacingRule.Exactly => (float) props.LineSpacingPoints,
-            LineSpacingRule.AtLeast => Math.Max(naturalHeight, (float) props.LineSpacingPoints),
-            _ => naturalHeight * (float) props.LineSpacingMultiplier
+            LineSpacingRule.Exactly => (float) properties.LineSpacingPoints,
+            LineSpacingRule.AtLeast => Math.Max(naturalHeight, (float) properties.LineSpacingPoints),
+            _ => naturalHeight * (float) properties.LineSpacingMultiplier
         };
-
-        return lineHeight;
-    }
 }

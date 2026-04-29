@@ -12,6 +12,15 @@ sealed record BorderEdge
     /// <summary>Border color as hex string (e.g., "000000").</summary>
     public string? ColorHex { get; init; } = "000000";
 
-    public static BorderEdge None => new() { IsVisible = false };
-    public static BorderEdge Default => new() { IsVisible = true, WidthPoints = 0.5, ColorHex = "000000" };
+    public static BorderEdge None => new()
+    {
+        IsVisible = false
+    };
+
+    public static BorderEdge Default => new()
+    {
+        IsVisible = true,
+        WidthPoints = 0.5,
+        ColorHex = "000000"
+    };
 }

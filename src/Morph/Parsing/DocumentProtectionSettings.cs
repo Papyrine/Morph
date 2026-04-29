@@ -1,12 +1,3 @@
-enum DocumentEditingMode
-{
-    None,
-    ReadOnly,
-    Comments,
-    TrackedChanges,
-    Forms
-}
-
 /// <summary>
 /// Document protection / editing-restriction settings (w:documentProtection in settings.xml).
 /// </summary>

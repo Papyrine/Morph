@@ -1,16 +1,4 @@
 /// <summary>
-/// Resolved position and pixel rectangle of a floating element, computed once from its
-/// anchor, offset, and size so backends don't repeat the conversion math.
-/// </summary>
-readonly record struct FloatingBounds(
-    float X,
-    float Y,
-    float PixelX,
-    float PixelY,
-    float PixelWidth,
-    float PixelHeight);
-
-/// <summary>
 /// Shared anchor-resolution math for floating elements (images, text boxes, word art, shapes).
 /// All coordinates are in points.
 /// </summary>
@@ -75,7 +63,8 @@ static class FloatingPosition
             HorizontalAnchor.Page => 0f,
             HorizontalAnchor.Margin => (float) context.PageSettings.MarginLeft,
             HorizontalAnchor.Column => context.ContentLeft,
-            HorizontalAnchor.Character => context.ContentLeft, // Approximate
+            // Approximate
+            HorizontalAnchor.Character => context.ContentLeft,
             _ => 0f
         };
 
@@ -92,8 +81,10 @@ static class FloatingPosition
         {
             VerticalAnchor.Page => 0f,
             VerticalAnchor.Margin => (float) context.PageSettings.MarginTop,
-            VerticalAnchor.Paragraph => context.CurrentY, // Approximate - relative to current paragraph
-            VerticalAnchor.Line => context.CurrentY, // Approximate
+            // Approximate - relative to current paragraph
+            VerticalAnchor.Paragraph => context.CurrentY,
+            // Approximate
+            VerticalAnchor.Line => context.CurrentY,
             _ => 0f
         };
 

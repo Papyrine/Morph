@@ -10,33 +10,17 @@ sealed class ImageSharpRenderContext(PageSettings pageSettings, int dpi, Compati
     // Shared font collection for fonts loaded from file (cloud, Office, user caches)
     FontCollection sharedFontCollection = new();
 
-    static Lazy<FontFileCache> cloudFontsCache = new(() => new(FontCacheLoader.GetCloudFontFiles(), ReadFamilyNames));
-    static Lazy<FontFileCache> officeFontsCache = new(() => new(FontCacheLoader.GetOfficeFontFiles(), ReadFamilyNames));
-    static Lazy<FontFileCache> userFontsCache = new(() => new(FontCacheLoader.GetUserFontFiles(), ReadFamilyNames));
-    static Lazy<FontFileCache> systemFontsCache = new(() => new(FontCacheLoader.GetSystemFontFiles(), ReadFamilyNames));
+    static Lazy<FontFileCache> cloudFontsCache = new(() => new(FontCacheLoader.GetCloudFontFiles(), OpenTypeReader.ReadFaces));
+    static Lazy<FontFileCache> officeFontsCache = new(() => new(FontCacheLoader.GetOfficeFontFiles(), OpenTypeReader.ReadFaces));
+    static Lazy<FontFileCache> userFontsCache = new(() => new(FontCacheLoader.GetUserFontFiles(), OpenTypeReader.ReadFaces));
+    static Lazy<FontFileCache> systemFontsCache = new(() => new(FontCacheLoader.GetSystemFontFiles(), OpenTypeReader.ReadFaces));
 
     static readonly ConcurrentDictionary<string, FontFileCache> directoryCaches = new(StringComparer.OrdinalIgnoreCase);
 
     static FontFileCache GetDirectoryCache(string fontDirectory) =>
         directoryCaches.GetOrAdd(
             System.IO.Path.GetFullPath(fontDirectory),
-            path => new(FontCacheLoader.EnumerateFontFilesInDirectory(path, recursive: true), ReadFamilyNames));
-
-    static IEnumerable<string> ReadFamilyNames(string fontFile)
-    {
-        var collection = new FontCollection();
-        if (fontFile.EndsWith(".ttc", StringComparison.OrdinalIgnoreCase))
-        {
-            foreach (var family in collection.AddCollection(fontFile))
-            {
-                yield return family.Name;
-            }
-        }
-        else
-        {
-            yield return collection.Add(fontFile).Name;
-        }
-    }
+            path => new(FontCacheLoader.EnumerateFontFilesInDirectory(path, recursive: true), OpenTypeReader.ReadFaces));
 
     public FontFamily GetFontFamily(string fontFamily, bool bold, bool italic)
     {
@@ -163,22 +147,31 @@ sealed class ImageSharpRenderContext(PageSettings pageSettings, int dpi, Compati
 
     void LoadFilesIntoSharedCollection(FontFileCache cache, FontNameCandidates candidates)
     {
-        if (!cache.TryGet(candidates, out var fontFiles))
+        if (!cache.TryGet(candidates, out var faces))
         {
             return;
         }
 
-        foreach (var fontFile in fontFiles)
+        // Dedupe by file path: a single file may surface multiple faces (e.g. a .ttc with
+        // many fonts, or a .ttf indexed under several names), but we only need to load
+        // each path once — ImageSharp's FontCollection will surface every face inside.
+        var loaded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var face in faces)
         {
+            if (!loaded.Add(face.Path))
+            {
+                continue;
+            }
+
             try
             {
-                if (fontFile.EndsWith(".ttc", StringComparison.OrdinalIgnoreCase))
+                if (face.Path.EndsWith(".ttc", StringComparison.OrdinalIgnoreCase))
                 {
-                    sharedFontCollection.AddCollection(fontFile);
+                    sharedFontCollection.AddCollection(face.Path);
                 }
                 else
                 {
-                    sharedFontCollection.Add(fontFile);
+                    sharedFontCollection.Add(face.Path);
                 }
             }
             catch

@@ -135,9 +135,9 @@ The typeface used to render text. Resolved from document, theme fonts, or system
 - **Render**: Font resolved via `FontHelpers` + `RenderContext.GetTypeface()`
 - **Test**: `font_families/`
 
-> **Contributors**: Font resolution order: effective candidate name (weight suffix stripping) -> original name -> stripped base name -> `FontHelpers.FontFallbacks` dictionary -> custom `FontFallback` callback. Cloud fonts searched in `%LOCALAPPDATA%\Microsoft\FontCache\4\CloudFonts\`. Office private fonts checked in `Program Files\Microsoft Office\root\vfs\Fonts\private\`.
-> **Consumers**: If a document uses a font not installed on the system, Morph falls back through a chain of alternatives. Set `ConversionOptions.FontFallback` to provide custom mappings. Default font is Georgia 11pt — Georgia ships on Windows, macOS, and most Linux distributions out of the box, unlike Word's newer default (Aptos, Microsoft 365 only). Override globally via `DefaultFontSettings.DefaultFont` (must be set before the first render — throws afterwards), or per conversion via `WordRender.ConversionOptions.DefaultFont`. For pixel-stable rendering across machines (useful for snapshot tests), set `DefaultFontSettings.DeterministicRendering = true` during startup — the Skia backend then uses greyscale AA at integer pixel positions with no font hinting, eliminating platform-specific subpixel drift at the cost of slightly softer text.
-> **AI**: Font resolution lives in `RenderContext.cs` (per backend) and `FontHelpers.cs`. When adding new fallback mappings, update `FontHelpers.FontFallbacks`. The `FontCacheLoader.cs` handles system font enumeration.
+See [docs/fonts.md](fonts.md) for the full font resolution model, search path, fallback behaviour, and configuration options.
+
+> **AI**: Font resolution lives in `OpenTypeReader.cs`, `FontFileCache.cs`, and `FontHelpers.cs` in `Morph/Rendering/`. Per-backend bindings live in `SkiaRenderContext.cs` / `ImageSharpRenderContext.cs`. When adding a new built-in alias, update `FontHelpers.FontFallbacks`.
 
 
 #### Font Size `DONE`
@@ -164,7 +164,7 @@ Bold weight applied to text runs.
 - **Model**: `RunProperties.Bold`
 - **Test**: `bold_text/`
 
-> **Contributors**: Font weight detection in `FontHelpers.ImpliesBold()` handles fonts with "Bold", "Black", "Heavy", "Medium", "Demi", "Semibold" in the name. When bold is requested on a medium-weight font, the suffix is stripped and the base Bold variant is looked up.
+> **Contributors**: Bold-or-italic flags from the OOXML run combine with any weight word in the font family name (e.g. `Segoe UI Semibold`) to produce a target weight scored against each face's `OS/2` `usWeightClass`. See [fonts.md](fonts.md) for the resolution model.
 
 
 #### Italic `DONE`

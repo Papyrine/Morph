@@ -254,6 +254,86 @@ public class FontHelperTests
     public async Task StripWeightSuffixes_NewSuffixes_Stripped(string fontFamily, string expected) =>
         await Assert.That(FontHelpers.StripWeightSuffixes(fontFamily)).IsEqualTo(expected);
 
+    // === InferWeightFromName / ResolveTargetWeight ===
+
+    [Test]
+    [Arguments("Segoe UI Semilight", 350)]
+    [Arguments("Segoe UI Light", 300)]
+    [Arguments("Segoe UI Semibold", 600)]
+    [Arguments("Segoe UI Bold", 700)]
+    [Arguments("Segoe UI Black", 900)]
+    [Arguments("Helvetica Thin", 100)]
+    [Arguments("Avenir Medium", 500)]
+    public async Task InferWeightFromName_KnownSuffixes(string fontFamily, int expected) =>
+        await Assert.That(FontHelpers.InferWeightFromName(fontFamily)).IsEqualTo(expected);
+
+    [Test]
+    [Arguments("Arial")]
+    [Arguments("Times New Roman")]
+    [Arguments("Calibri")]
+    public async Task InferWeightFromName_NoSuffix_ReturnsNull(string fontFamily) =>
+        await Assert.That(FontHelpers.InferWeightFromName(fontFamily)).IsNull();
+
+    // "Semilight" in the name wins over bold=true → still treats target as 350.
+    // (Word lets people toggle bold on a Semilight face; the resolver should still
+    // find the Semilight rather than jumping to weight 700.)
+    [Test]
+    public async Task ResolveTargetWeight_PrefersNameOverBoldFlag() =>
+        await Assert.That(FontHelpers.ResolveTargetWeight("Segoe UI Semilight", true)).IsEqualTo(350);
+
+    [Test]
+    [Arguments("Arial", false, 400)]
+    [Arguments("Arial", true, 700)]
+    public async Task ResolveTargetWeight_FallsBackToBoldFlag(string fontFamily, bool bold, int expected) =>
+        await Assert.That(FontHelpers.ResolveTargetWeight(fontFamily, bold)).IsEqualTo(expected);
+
+    // === ScoreFace / PickBestFace ===
+
+    [Test]
+    public async Task PickBestFace_PicksSemilightOverRegular_WhenRequestingSemilight()
+    {
+        var regular = new FontFace { Path = "regular.ttf", Weight = 400 };
+        var semilight = new FontFace { Path = "semilight.ttf", Weight = 350 };
+        var bold = new FontFace { Path = "bold.ttf", Weight = 700 };
+
+        var picked = FontHelpers.PickBestFace([regular, semilight, bold], targetWeight: 350, targetItalic: false);
+        await Assert.That(picked!.Path).IsEqualTo("semilight.ttf");
+    }
+
+    [Test]
+    public async Task PickBestFace_PicksClosestWeight_WhenExactMatchUnavailable()
+    {
+        // Target = 350 (Semilight), but only Light (300) and Regular (400) exist.
+        // Both are 50 away — first one wins (we don't break ties).
+        var light = new FontFace { Path = "light.ttf", Weight = 300 };
+        var regular = new FontFace { Path = "regular.ttf", Weight = 400 };
+
+        var picked = FontHelpers.PickBestFace([light, regular], targetWeight: 350, targetItalic: false);
+        await Assert.That(picked).IsNotNull();
+    }
+
+    [Test]
+    public async Task PickBestFace_ItalicMismatchOverridesWeight()
+    {
+        // Italic mismatch is so heavily penalized that a wrong-weight upright beats a
+        // perfect-weight italic when an upright was requested.
+        var perfectButItalic = new FontFace { Path = "italic.ttf", Weight = 350, Italic = true };
+        var wrongWeightUpright = new FontFace { Path = "regular.ttf", Weight = 700, Italic = false };
+
+        var picked = FontHelpers.PickBestFace([perfectButItalic, wrongWeightUpright], targetWeight: 350, targetItalic: false);
+        await Assert.That(picked!.Path).IsEqualTo("regular.ttf");
+    }
+
+    [Test]
+    public async Task PickBestFace_PrefersExactWidth()
+    {
+        var normal = new FontFace { Path = "normal.ttf", Weight = 400, Width = 5 };
+        var condensed = new FontFace { Path = "cond.ttf", Weight = 400, Width = 3 };
+
+        var picked = FontHelpers.PickBestFace([normal, condensed], targetWeight: 400, targetItalic: false);
+        await Assert.That(picked!.Path).IsEqualTo("normal.ttf");
+    }
+
     [Test]
     public async Task GetCandidateNames_Semilight_StrippedToBase()
     {

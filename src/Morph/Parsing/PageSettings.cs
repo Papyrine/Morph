@@ -81,7 +81,16 @@ sealed record PageSettings
     public double ContentWidth => WidthPoints - MarginLeft - MarginRight;
 
     /// <summary>Width of a single column in points.</summary>
-    public double ColumnWidth => ColumnCount > 1
-        ? (ContentWidth - ColumnSpacing * (ColumnCount - 1)) / ColumnCount
-        : ContentWidth;
+    public double ColumnWidth
+    {
+        get
+        {
+            if (ColumnCount > 1)
+            {
+                return (ContentWidth - ColumnSpacing * (ColumnCount - 1)) / ColumnCount;
+            }
+
+            return ContentWidth;
+        }
+    }
 }

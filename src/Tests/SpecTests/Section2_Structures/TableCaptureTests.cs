@@ -14,7 +14,10 @@ public class TableCaptureTests
     [Test]
     public async Task TableRow_DefaultIsHeader_IsFalse()
     {
-        var row = new TableRow { Cells = [] };
+        var row = new TableRow
+        {
+            Cells = []
+        };
         await Assert.That(row.IsHeader).IsFalse();
     }
 

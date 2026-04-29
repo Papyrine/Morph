@@ -18,8 +18,18 @@ public class TableHideMarkTests
     {
         var cell = new TableCell
         {
-            Properties = new() { HideMark = true },
-            Content = [new ParagraphElement { Runs = [], Properties = new() }]
+            Properties = new()
+            {
+                HideMark = true
+            },
+            Content =
+            [
+                new ParagraphElement
+                {
+                    Runs = [],
+                    Properties = new()
+                }
+            ]
         };
         var tableProps = new TableProperties
         {
@@ -45,12 +55,14 @@ public class TableHideMarkTests
             [
                 new ParagraphElement
                 {
-                    Runs = [
+                    Runs =
+                    [
                         new()
                         {
                             Text = "x",
                             Properties = new()
-                        }],
+                        }
+                    ],
                     Properties = new()
                 }
             ]
@@ -72,7 +84,14 @@ public class TableHideMarkTests
         var cell = new TableCell
         {
             Properties = new(),
-            Content = [new ParagraphElement { Runs = [], Properties = new() }]
+            Content =
+            [
+                new ParagraphElement
+                {
+                    Runs = [],
+                    Properties = new()
+                }
+            ]
         };
         var tableProps = new TableProperties
         {
