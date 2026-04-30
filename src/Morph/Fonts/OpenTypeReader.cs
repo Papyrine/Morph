@@ -459,7 +459,7 @@ static class OpenTypeReader
     /// the typographic family). The latter strips the weight out, which is right for
     /// typographic grouping but wrong for the path-keyed lookup ImageSharp needs.
     /// </summary>
-    static string PrimaryFamilyName(Dictionary<int, string> nameRecords)
+    static string? PrimaryFamilyName(Dictionary<int, string> nameRecords)
     {
         if (nameRecords.TryGetValue(nameIdFamily, out var family) &&
             !string.IsNullOrWhiteSpace(family))
@@ -467,7 +467,13 @@ static class OpenTypeReader
             return family;
         }
 
-        return nameRecords.GetValueOrDefault(nameIdTypographicFamily, "");
+        if (nameRecords.TryGetValue(nameIdTypographicFamily, out var typographic) &&
+            !string.IsNullOrWhiteSpace(typographic))
+        {
+            return typographic;
+        }
+
+        return null;
     }
 
     /// <summary>
