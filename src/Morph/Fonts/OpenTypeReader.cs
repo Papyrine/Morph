@@ -414,18 +414,11 @@ static class OpenTypeReader
         }
 
         var decompressed = new byte[(int) maxNeeded];
-        try
-        {
-            // BrotliStream pulls bytes lazily — calling ReadExactly for `maxNeeded`
-            // bytes only decompresses up to the last needed table. The trailing
-            // payload (typically glyf/loca/CFF) is never read or decoded.
-            using var brotli = new BrotliStream(stream, CompressionMode.Decompress, leaveOpen: true);
-            brotli.ReadExactly(decompressed);
-        }
-        catch
-        {
-            return false;
-        }
+        // BrotliStream pulls bytes lazily — calling ReadExactly for `maxNeeded`
+        // bytes only decompresses up to the last needed table. The trailing
+        // payload (typically glyf/loca/CFF) is never read or decoded.
+        using var brotli = new BrotliStream(stream, CompressionMode.Decompress, leaveOpen: true);
+        brotli.ReadExactly(decompressed);
 
         var nameBytes = new byte[(int) nameLength];
         Array.Copy(decompressed, (int) nameOffset, nameBytes, 0, (int) nameLength);
@@ -558,20 +551,25 @@ static class OpenTypeReader
     {
         // Windows (3) + Unicode BMP (1) / UCS-4 (10), English (0x0409): the canonical
         // modern path for fonts authored on Windows.
-        if (platformId == 3 && encodingId is 1 or 10 && languageId == 0x0409)
+        if (platformId == 3 &&
+            encodingId is 1 or 10 &&
+            languageId == 0x0409)
         {
             return 0;
         }
 
         // Windows + Unicode, any English variant.
-        if (platformId == 3 && encodingId is 1 or 10 && (languageId & 0xFF) == 0x09)
+        if (platformId == 3 &&
+            encodingId is 1 or 10 &&
+            (languageId & 0xFF) == 0x09)
         {
             return 1;
         }
 
         // Windows + Unicode, any language: still useful since the strings are in the font
         // even if not English (e.g. CJK fonts).
-        if (platformId == 3 && encodingId is 1 or 10)
+        if (platformId == 3 &&
+            encodingId is 1 or 10)
         {
             return 2;
         }
@@ -583,7 +581,9 @@ static class OpenTypeReader
         }
 
         // Mac (1) + Roman (0) + English (0): older fonts.
-        if (platformId == 1 && encodingId == 0 && languageId == 0)
+        if (platformId == 1 &&
+            encodingId == 0 &&
+            languageId == 0)
         {
             return 4;
         }
@@ -644,7 +644,8 @@ static class OpenTypeReader
         // "Typographic Family + Subfamily" — captures the visible name as Word writes it
         // for fonts with extended families (e.g. "Segoe UI Black" where the Subfamily on
         // its file is "Black" and Typographic Family is "Segoe UI").
-        if (!string.IsNullOrWhiteSpace(typographicFamily) && !string.IsNullOrWhiteSpace(typographicSubfamily))
+        if (!string.IsNullOrWhiteSpace(typographicFamily) &&
+            !string.IsNullOrWhiteSpace(typographicSubfamily))
         {
             Add($"{typographicFamily} {typographicSubfamily}");
         }

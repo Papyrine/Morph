@@ -110,9 +110,14 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
             return font;
         }
 
-        font = fontDirectory != null
-            ? TryResolveDirectoryMode(candidates, fontFamily, bold, targetWeight, italic)
-            : TryResolveDefaultMode(candidates, fontFamily, bold, targetWeight, italic);
+        if (fontDirectory == null)
+        {
+            font = TryResolveDefaultMode(candidates, fontFamily, bold, targetWeight, italic);
+        }
+        else
+        {
+            font = TryResolveDirectoryMode(candidates, fontFamily, bold, targetWeight, italic);
+        }
 
         if (font == null)
         {
@@ -207,8 +212,7 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
     }
 
     static string BuildNotFoundMessage(string fontFamily) =>
-        $"Font '{fontFamily}' not found. Checked:{Environment.NewLine}  " +
-        string.Join($"{Environment.NewLine}  ", FontCacheLoader.GetSearchedPaths());
+        $"Font '{fontFamily}' not found. Checked:{Environment.NewLine}  {string.Join($"{Environment.NewLine}  ", FontCacheLoader.GetSearchedPaths())}";
 
     public void Dispose()
     {

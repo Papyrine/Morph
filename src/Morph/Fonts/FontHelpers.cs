@@ -23,7 +23,7 @@ static class FontHelpers
 
     // Common font style suffixes to strip when looking for base family
     // Note: Do NOT include vendor suffixes like " MT", " Pro", " LT", " ITC" as these are part of the font name
-    internal static string[] StyleSuffixes { get; } =
+    static string[] StyleSuffixes { get; } =
     [
         " Condensed", " Compressed", " Narrow", " Extended", " Wide",
         " UltraBlack", " Black", " Heavy",
@@ -201,7 +201,9 @@ static class FontHelpers
         }
 
         var strippedName = StripWeightSuffixes(fontFamily);
-        if (string.IsNullOrEmpty(strippedName) || strippedName == fontFamily || strippedName == effectiveFontFamily)
+        if (string.IsNullOrEmpty(strippedName) ||
+            strippedName == fontFamily ||
+            strippedName == effectiveFontFamily)
         {
             strippedName = null;
         }
