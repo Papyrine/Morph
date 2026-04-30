@@ -81,7 +81,7 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
             using var stream = new MemoryStream(bytes, writable: false);
             foreach (var (face, _) in OpenTypeReader.ReadFaces(stream, "(embedded)"))
             {
-                if (handlesByName.TryGetValue(face.Family, out var handle))
+                if (face.Family != null && handlesByName.TryGetValue(face.Family, out var handle))
                 {
                     entries.Add(((face.Family, face.Weight, face.Italic), handle));
                 }
@@ -124,6 +124,11 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
                 // Individual file load failures don't fail the resolution; the resolver's
                 // retry loop tries the next-best face if this one's family can't be located.
             }
+        }
+
+        if (bestFace.Family == null)
+        {
+            return null;
         }
 
         return sharedFontCollection.TryGet(bestFace.Family, out var family) ? new(family) : null;
@@ -193,12 +198,12 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         }
 
         // Ordered fallback attempts per requested style
-        var fallbackOrder = requested switch
+        IEnumerable<FontStyle> fallbackOrder = requested switch
         {
-            FontStyle.BoldItalic => new[] {FontStyle.Bold, FontStyle.Italic, FontStyle.Regular},
-            FontStyle.Bold => new[] {FontStyle.BoldItalic, FontStyle.Regular, FontStyle.Italic},
-            FontStyle.Italic => new[] {FontStyle.BoldItalic, FontStyle.Regular, FontStyle.Bold},
-            _ => new[] {FontStyle.Bold, FontStyle.Italic, FontStyle.BoldItalic}
+            FontStyle.BoldItalic => [FontStyle.Bold, FontStyle.Italic, FontStyle.Regular],
+            FontStyle.Bold => [FontStyle.BoldItalic, FontStyle.Regular, FontStyle.Italic],
+            FontStyle.Italic => [FontStyle.BoldItalic, FontStyle.Regular, FontStyle.Bold],
+            _ => [FontStyle.Bold, FontStyle.Italic, FontStyle.BoldItalic]
         };
         foreach (var candidate in fallbackOrder)
         {

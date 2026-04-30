@@ -14,13 +14,14 @@ sealed record FontFace
     public int Index { get; init; }
 
     /// <summary>
-    /// Primary family name from the <c>name</c> table — Name ID 16 (Typographic Family)
-    /// when present, otherwise Name ID 1 (Family). This is the name used by font managers
-    /// that index by family (e.g. ImageSharp's <c>FontCollection</c>) and is what we use
-    /// to look the face up after loading a TTC, where <see cref="Index"/> alone isn't
-    /// enough. Empty when synthesised by tests that build <see cref="FontFace"/> directly.
+    /// Primary family name from the <c>name</c> table — Name ID 1 (Family), falling back
+    /// to ID 16 (Typographic Family) when ID 1 is missing. This is the name used by font
+    /// managers that index by family (e.g. ImageSharp's <c>FontCollection</c>) and is
+    /// what we use to look the face up after loading a TTC, where <see cref="Index"/>
+    /// alone isn't enough. <c>null</c> when synthesised by tests that build
+    /// <see cref="FontFace"/> directly without going through <see cref="OpenTypeReader"/>.
     /// </summary>
-    public string Family { get; init; } = "";
+    public string? Family { get; init; }
 
     /// <summary>OS/2 <c>usWeightClass</c> (1–1000). Common values: 100=Thin, 300=Light, 350=Semilight, 400=Regular, 500=Medium, 600=Semibold, 700=Bold, 900=Black.</summary>
     public int Weight { get; init; }
