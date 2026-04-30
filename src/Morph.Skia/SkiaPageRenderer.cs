@@ -441,7 +441,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             _ => 0 // Other elements don't participate in KeepWithNext
         };
 
-    void RenderParagraph(ParagraphElement paragraph, DocumentElement? nextElement = null)
+    protected override void RenderParagraph(ParagraphElement paragraph, DocumentElement? nextElement = null)
     {
         // Check if this paragraph has significant content (actual text)
         var hasSignificantContent = paragraph.Runs.Any(r => !string.IsNullOrWhiteSpace(r.Text));
@@ -1419,219 +1419,112 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         paint.StrokeWidth = context.PointsToPixels((float) edge.WidthPoints);
     }
 
-    /// <summary>
-    /// Renders a text form field as a text box with border.
-    /// </summary>
-    void RenderTextFormField(TextFormFieldElement textField)
+    // === Form-field / content-control draw primitives (called from PageRendererBase) ===
+
+    protected override void DrawFormFieldRect(float pixelX, float pixelY, float pixelWidth, float pixelHeight,
+        string fillHex, string borderHex, float pixelBorderWidth)
     {
         if (currentCanvas == null)
         {
             return;
         }
 
-        var fieldWidth = (float) textField.WidthPoints;
-        // Standard form field height
-        float fieldHeight = 18;
-        var x = context.ContentLeft;
-        var y = context.CurrentY;
-
-        // Check for page break
-        if (y + fieldHeight > context.ContentBottom)
-        {
-            FinishCurrentPage();
-            StartNewPage();
-            y = context.CurrentY;
-        }
-
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var pixelWidth = context.PointsToPixels(fieldWidth);
-        var pixelHeight = context.PointsToPixels(fieldHeight);
-
-        // Draw field background (light gray for inactive)
         using var bgPaint = new SKPaint
         {
-            Color = textField.Enabled ? SKColors.White : new(240, 240, 240),
+            Color = ParseColor(fillHex),
             Style = SKPaintStyle.Fill
         };
         currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, bgPaint);
 
-        // Draw field border
         using var borderPaint = new SKPaint
         {
-            Color = SKColors.Gray,
+            Color = ParseColor(borderHex),
             Style = SKPaintStyle.Stroke,
-            StrokeWidth = 1 * context.Scale,
+            StrokeWidth = pixelBorderWidth,
             IsAntialias = true
         };
         currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, borderPaint);
-
-        // Draw the text value
-        var displayText = string.IsNullOrEmpty(textField.Value) ? textField.DefaultText ?? "" : textField.Value;
-        if (!string.IsNullOrEmpty(displayText))
-        {
-            using var font = context.CreateFontFromTypeface(context.GetTypeface(DefaultFontSettings.DefaultFont, false, false), 10);
-            using var textPaint = new SKPaint
-            {
-                Color = textField.Enabled ? SKColors.Black : SKColors.Gray,
-                IsAntialias = true
-            };
-
-            var textX = pixelX + 3 * context.Scale;
-            var textY = pixelY + pixelHeight - 4 * context.Scale;
-            currentCanvas.DrawText(displayText, textX, textY, SKTextAlign.Left, font, textPaint);
-        }
-
-        // Add some spacing after
-        context.CurrentY += fieldHeight + 4;
     }
 
-    /// <summary>
-    /// Renders a checkbox form field.
-    /// </summary>
-    void RenderCheckBoxFormField(CheckBoxFormFieldElement checkBox)
+    protected override void DrawFormFieldText(string text, float pixelX, float pixelY, float pixelWidth, float pixelHeight, string textHex)
     {
         if (currentCanvas == null)
         {
             return;
         }
 
-        var boxSize = checkBox.SizePoints > 0 ? (float) checkBox.SizePoints : 12;
-        var x = context.ContentLeft;
-        var y = context.CurrentY;
-
-        // Check for page break
-        if (y + boxSize > context.ContentBottom)
+        using var font = context.CreateFontFromTypeface(context.GetTypeface(DefaultFontSettings.DefaultFont, false, false), 10);
+        using var textPaint = new SKPaint
         {
-            FinishCurrentPage();
-            StartNewPage();
-            y = context.CurrentY;
-        }
-
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var pixelSize = context.PointsToPixels(boxSize);
-
-        // Draw checkbox background
-        using var bgPaint = new SKPaint
-        {
-            Color = checkBox.Enabled ? SKColors.White : new(240, 240, 240),
-            Style = SKPaintStyle.Fill
-        };
-        currentCanvas.DrawRect(pixelX, pixelY, pixelSize, pixelSize, bgPaint);
-
-        // Draw checkbox border
-        using var borderPaint = new SKPaint
-        {
-            Color = SKColors.Black,
-            Style = SKPaintStyle.Stroke,
-            StrokeWidth = 1 * context.Scale,
+            Color = ParseColor(textHex),
             IsAntialias = true
         };
-        currentCanvas.DrawRect(pixelX, pixelY, pixelSize, pixelSize, borderPaint);
 
-        // Draw checkmark if checked
-        if (checkBox.Checked)
-        {
-            using var checkPaint = new SKPaint
-            {
-                Color = SKColors.Black,
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = 2 * context.Scale,
-                IsAntialias = true,
-                StrokeCap = SKStrokeCap.Round
-            };
-
-            // Draw checkmark as two lines
-            var padding = pixelSize * 0.2f;
-            var left = pixelX + padding;
-            var right = pixelX + pixelSize - padding;
-            var top = pixelY + padding;
-            var bottom = pixelY + pixelSize - padding;
-            var midX = pixelX + pixelSize * 0.4f;
-
-            currentCanvas.DrawLine(left, top + (bottom - top) * 0.5f, midX, bottom, checkPaint);
-            currentCanvas.DrawLine(midX, bottom, right, top, checkPaint);
-        }
-
-        // Add some spacing after
-        context.CurrentY += boxSize + 4;
+        // Skia DrawText takes baseline Y; position it 4 pixels above the rect's bottom edge so
+        // the glyph caps sit a couple of pixels below the top of the rect.
+        var textX = pixelX + 3 * context.Scale;
+        var textY = pixelY + pixelHeight - 4 * context.Scale;
+        currentCanvas.DrawText(text, textX, textY, SKTextAlign.Left, font, textPaint);
     }
 
-    /// <summary>
-    /// Renders a drop-down form field.
-    /// </summary>
-    void RenderDropDownFormField(DropDownFormFieldElement dropDown)
+    protected override void DrawCheckMark(float pixelX, float pixelY, float pixelSize, string hexColor, float pixelStrokeWidth, bool xShape)
     {
         if (currentCanvas == null)
         {
             return;
         }
 
-        var fieldWidth = (float) dropDown.WidthPoints;
-        // Standard form field height
-        float fieldHeight = 18;
-        var x = context.ContentLeft;
-        var y = context.CurrentY;
-
-        // Check for page break
-        if (y + fieldHeight > context.ContentBottom)
+        using var paint = new SKPaint
         {
-            FinishCurrentPage();
-            StartNewPage();
-            y = context.CurrentY;
-        }
-
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var pixelWidth = context.PointsToPixels(fieldWidth);
-        var pixelHeight = context.PointsToPixels(fieldHeight);
-
-        // Draw field background
-        using var bgPaint = new SKPaint
-        {
-            Color = dropDown.Enabled ? SKColors.White : new(240, 240, 240),
-            Style = SKPaintStyle.Fill
-        };
-        currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, bgPaint);
-
-        // Draw field border
-        using var borderPaint = new SKPaint
-        {
-            Color = SKColors.Gray,
+            Color = ParseColor(hexColor),
             Style = SKPaintStyle.Stroke,
-            StrokeWidth = 1 * context.Scale,
-            IsAntialias = true
+            StrokeWidth = pixelStrokeWidth,
+            IsAntialias = true,
+            StrokeCap = SKStrokeCap.Round
         };
-        currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, borderPaint);
 
-        // Draw the selected value
-        var selectedValue = dropDown.SelectedIndex >= 0 && dropDown.SelectedIndex < dropDown.Items.Count
-            ? dropDown.Items[dropDown.SelectedIndex]
-            : "";
-
-        if (!string.IsNullOrEmpty(selectedValue))
+        if (xShape)
         {
-            using var font = context.CreateFontFromTypeface(context.GetTypeface(DefaultFontSettings.DefaultFont, false, false), 10);
-            using var textPaint = new SKPaint
-            {
-                Color = dropDown.Enabled ? SKColors.Black : SKColors.Gray,
-                IsAntialias = true
-            };
-
-            var textX = pixelX + 3 * context.Scale;
-            var textY = pixelY + pixelHeight - 4 * context.Scale;
-            currentCanvas.DrawText(selectedValue, textX, textY, SKTextAlign.Left, font, textPaint);
+            // X glyph (used by content-control checkboxes). Wider padding (0.25) than the ✓ form
+            // since the X stretches to all four corners.
+            var pad = pixelSize * 0.25f;
+            var left = pixelX + pad;
+            var right = pixelX + pixelSize - pad;
+            var top = pixelY + pad;
+            var bottom = pixelY + pixelSize - pad;
+            currentCanvas.DrawLine(left, top, right, bottom, paint);
+            currentCanvas.DrawLine(right, top, left, bottom, paint);
+            return;
         }
 
-        // Draw dropdown arrow
+        // ✓ glyph (used by form-field checkboxes). Two strokes meeting at 40% from the left edge,
+        // sitting on the bottom — geometrically what users expect.
+        var checkPad = pixelSize * 0.2f;
+        var checkLeft = pixelX + checkPad;
+        var checkRight = pixelX + pixelSize - checkPad;
+        var checkTop = pixelY + checkPad;
+        var checkBottom = pixelY + pixelSize - checkPad;
+        var midX = pixelX + pixelSize * 0.4f;
+        currentCanvas.DrawLine(checkLeft, checkTop + (checkBottom - checkTop) * 0.5f, midX, checkBottom, paint);
+        currentCanvas.DrawLine(midX, checkBottom, checkRight, checkTop, paint);
+    }
+
+    protected override void DrawDropDownArrow(float pixelX, float pixelY, float pixelHeight, string hexColor)
+    {
+        if (currentCanvas == null)
+        {
+            return;
+        }
+
+        // pixelX is the right edge of the field; back off 12 scaled pixels to leave a margin
+        // and centre the arrow vertically.
         var arrowSize = pixelHeight * 0.3f;
-        var arrowX = pixelX + pixelWidth - 12 * context.Scale;
+        var arrowX = pixelX - 12 * context.Scale;
         var arrowY = pixelY + pixelHeight / 2;
 
         using var arrowPaint = new SKPaint
         {
-            Color = SKColors.Black,
+            Color = ParseColor(hexColor),
             Style = SKPaintStyle.Fill,
             IsAntialias = true
         };
@@ -1642,375 +1535,6 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         arrowPath.LineTo(arrowX + arrowSize / 2, arrowY + arrowSize / 2);
         arrowPath.Close();
         currentCanvas.DrawPath(arrowPath, arrowPaint);
-
-        // Add some spacing after
-        context.CurrentY += fieldHeight + 4;
-    }
-
-    /// <summary>
-    /// Renders a content control element.
-    /// </summary>
-    void RenderContentControl(ContentControlElement control)
-    {
-        if (currentCanvas == null)
-        {
-            return;
-        }
-
-        switch (control.ControlType)
-        {
-            case ContentControlType.CheckBox:
-                RenderContentControlCheckBox(control);
-                break;
-
-            case ContentControlType.ComboBox:
-            case ContentControlType.DropDownList:
-                RenderContentControlDropDown(control);
-                break;
-
-            case ContentControlType.Date:
-                RenderContentControlDate(control);
-                break;
-
-            default:
-                RenderContentControlText(control);
-                break;
-        }
-    }
-
-    void RenderContentControlCheckBox(ContentControlElement control)
-    {
-        if (currentCanvas == null)
-        {
-            return;
-        }
-
-        float boxSize = 12;
-        var x = context.ContentLeft;
-        var y = context.CurrentY;
-
-        if (y + boxSize > context.ContentBottom)
-        {
-            FinishCurrentPage();
-            StartNewPage();
-            y = context.CurrentY;
-        }
-
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var pixelSize = context.PointsToPixels(boxSize);
-
-        // Draw checkbox background
-        using var bgPaint = new SKPaint
-        {
-            Color = SKColors.White,
-            Style = SKPaintStyle.Fill
-        };
-        currentCanvas.DrawRect(pixelX, pixelY, pixelSize, pixelSize, bgPaint);
-
-        // Draw checkbox border
-        using var borderPaint = new SKPaint
-        {
-            Color = SKColors.Black,
-            Style = SKPaintStyle.Stroke,
-            StrokeWidth = 1 * context.Scale,
-            IsAntialias = true
-        };
-        currentCanvas.DrawRect(pixelX, pixelY, pixelSize, pixelSize, borderPaint);
-
-        // Draw checkmark or X if checked
-        if (control.Checked == true)
-        {
-            using var checkPaint = new SKPaint
-            {
-                Color = SKColors.Black,
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = 2 * context.Scale,
-                IsAntialias = true,
-                StrokeCap = SKStrokeCap.Round
-            };
-
-            var padding = pixelSize * 0.25f;
-            var left = pixelX + padding;
-            var right = pixelX + pixelSize - padding;
-            var top = pixelY + padding;
-            var bottom = pixelY + pixelSize - padding;
-
-            // Draw X
-            currentCanvas.DrawLine(left, top, right, bottom, checkPaint);
-            currentCanvas.DrawLine(right, top, left, bottom, checkPaint);
-        }
-
-        context.CurrentY += boxSize + 4;
-    }
-
-    void RenderContentControlText(ContentControlElement control)
-    {
-        if (currentCanvas == null)
-        {
-            return;
-        }
-
-        // For RichText and PlainText content controls, render as regular paragraph text
-        // (these are typically styled text placeholders in templates, not form fields)
-        if (control.ControlType is ContentControlType.RichText or ContentControlType.PlainText)
-        {
-            // Use styled runs if available, otherwise fall back to plain text
-            if (control.Runs is {Count: > 0})
-            {
-                var styledPara = new ParagraphElement
-                {
-                    Runs = control.Runs,
-                    Properties = new()
-                };
-                RenderParagraph(styledPara);
-            }
-            else
-            {
-                var displayText = string.IsNullOrEmpty(control.Content) ? control.PlaceholderText ?? "" : control.Content;
-                if (!string.IsNullOrEmpty(displayText))
-                {
-                    var simplePara = new ParagraphElement
-                    {
-                        Runs =
-                        [
-                            new()
-                            {
-                                Text = displayText,
-                                Properties = new()
-                            }
-                        ],
-                        Properties = new()
-                    };
-                    RenderParagraph(simplePara);
-                }
-            }
-
-            return;
-        }
-
-        // Other control types get form-field styling
-        var fieldWidth = (float) control.WidthPoints;
-        float fieldHeight = 18;
-        var x = context.ContentLeft;
-        var y = context.CurrentY;
-
-        if (y + fieldHeight > context.ContentBottom)
-        {
-            FinishCurrentPage();
-            StartNewPage();
-            y = context.CurrentY;
-        }
-
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var pixelWidth = context.PointsToPixels(fieldWidth);
-        var pixelHeight = context.PointsToPixels(fieldHeight);
-
-        // Draw field background with subtle border
-        using var bgPaint = new SKPaint
-        {
-            Color = new(245, 245, 245),
-            Style = SKPaintStyle.Fill
-        };
-        currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, bgPaint);
-
-        using var borderPaint = new SKPaint
-        {
-            Color = new(200, 200, 200),
-            Style = SKPaintStyle.Stroke,
-            StrokeWidth = 1 * context.Scale,
-            IsAntialias = true
-        };
-        currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, borderPaint);
-
-        // Draw the content or placeholder
-        var text = string.IsNullOrEmpty(control.Content) ? control.PlaceholderText ?? "" : control.Content;
-        var isPlaceholder = string.IsNullOrEmpty(control.Content) && !string.IsNullOrEmpty(control.PlaceholderText);
-
-        if (!string.IsNullOrEmpty(text))
-        {
-            using var font = context.CreateFontFromTypeface(context.GetTypeface(DefaultFontSettings.DefaultFont, false, false), 10);
-            using var textPaint = new SKPaint
-            {
-                Color = isPlaceholder ? SKColors.Gray : SKColors.Black,
-                IsAntialias = true
-            };
-
-            var textX = pixelX + 3 * context.Scale;
-            var textY = pixelY + pixelHeight - 4 * context.Scale;
-            currentCanvas.DrawText(text, textX, textY, SKTextAlign.Left, font, textPaint);
-        }
-
-        context.CurrentY += fieldHeight + 4;
-    }
-
-    void RenderContentControlDropDown(ContentControlElement control)
-    {
-        if (currentCanvas == null)
-        {
-            return;
-        }
-
-        var fieldWidth = (float) control.WidthPoints;
-        float fieldHeight = 18;
-        var x = context.ContentLeft;
-        var y = context.CurrentY;
-
-        if (y + fieldHeight > context.ContentBottom)
-        {
-            FinishCurrentPage();
-            StartNewPage();
-            y = context.CurrentY;
-        }
-
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var pixelWidth = context.PointsToPixels(fieldWidth);
-        var pixelHeight = context.PointsToPixels(fieldHeight);
-
-        // Draw field background
-        using var bgPaint = new SKPaint
-        {
-            Color = new(245, 245, 245),
-            Style = SKPaintStyle.Fill
-        };
-        currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, bgPaint);
-
-        using var borderPaint = new SKPaint
-        {
-            Color = new(200, 200, 200),
-            Style = SKPaintStyle.Stroke,
-            StrokeWidth = 1 * context.Scale,
-            IsAntialias = true
-        };
-        currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, borderPaint);
-
-        // Draw content or first list item
-        string? first = null;
-        foreach (var item in control.ListItems!)
-        {
-            first = item;
-            break;
-        }
-
-        var displayText = string.IsNullOrEmpty(control.Content)
-            ? first ?? control.PlaceholderText ?? ""
-            : control.Content;
-
-        if (!string.IsNullOrEmpty(displayText))
-        {
-            using var font = context.CreateFontFromTypeface(context.GetTypeface(DefaultFontSettings.DefaultFont, false, false), 10);
-            using var textPaint = new SKPaint
-            {
-                Color = SKColors.Black,
-                IsAntialias = true
-            };
-
-            var textX = pixelX + 3 * context.Scale;
-            var textY = pixelY + pixelHeight - 4 * context.Scale;
-            currentCanvas.DrawText(displayText, textX, textY, SKTextAlign.Left, font, textPaint);
-        }
-
-        // Draw dropdown arrow
-        var arrowSize = pixelHeight * 0.3f;
-        var arrowX = pixelX + pixelWidth - 12 * context.Scale;
-        var arrowY = pixelY + pixelHeight / 2;
-
-        using var arrowPaint = new SKPaint
-        {
-            Color = SKColors.Black,
-            Style = SKPaintStyle.Fill,
-            IsAntialias = true
-        };
-
-        using var arrowPath = new SKPath();
-        arrowPath.MoveTo(arrowX, arrowY - arrowSize / 2);
-        arrowPath.LineTo(arrowX + arrowSize, arrowY - arrowSize / 2);
-        arrowPath.LineTo(arrowX + arrowSize / 2, arrowY + arrowSize / 2);
-        arrowPath.Close();
-        currentCanvas.DrawPath(arrowPath, arrowPaint);
-
-        context.CurrentY += fieldHeight + 4;
-    }
-
-    void RenderContentControlDate(ContentControlElement control)
-    {
-        if (currentCanvas == null)
-        {
-            return;
-        }
-
-        var fieldWidth = (float) control.WidthPoints;
-        float fieldHeight = 18;
-        var x = context.ContentLeft;
-        var y = context.CurrentY;
-
-        if (y + fieldHeight > context.ContentBottom)
-        {
-            FinishCurrentPage();
-            StartNewPage();
-            y = context.CurrentY;
-        }
-
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var pixelWidth = context.PointsToPixels(fieldWidth);
-        var pixelHeight = context.PointsToPixels(fieldHeight);
-
-        // Draw field background
-        using var bgPaint = new SKPaint
-        {
-            Color = new(245, 245, 245),
-            Style = SKPaintStyle.Fill
-        };
-        currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, bgPaint);
-
-        using var borderPaint = new SKPaint
-        {
-            Color = new(200, 200, 200),
-            Style = SKPaintStyle.Stroke,
-            StrokeWidth = 1 * context.Scale,
-            IsAntialias = true
-        };
-        currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, borderPaint);
-
-        // Draw the date value or placeholder
-        var displayText = control.DateValue.HasValue
-            ? control.DateValue.Value.ToShortDateString()
-            : !string.IsNullOrEmpty(control.Content)
-                ? control.Content
-                : control.PlaceholderText ?? "";
-
-        if (!string.IsNullOrEmpty(displayText))
-        {
-            using var font = context.CreateFontFromTypeface(context.GetTypeface(DefaultFontSettings.DefaultFont, false, false), 10);
-            using var textPaint = new SKPaint
-            {
-                Color = control.DateValue.HasValue || !string.IsNullOrEmpty(control.Content) ? SKColors.Black : SKColors.Gray,
-                IsAntialias = true
-            };
-
-            var textX = pixelX + 3 * context.Scale;
-            var textY = pixelY + pixelHeight - 4 * context.Scale;
-            currentCanvas.DrawText(displayText, textX, textY, SKTextAlign.Left, font, textPaint);
-        }
-
-        // Draw calendar icon
-        var iconSize = pixelHeight * 0.5f;
-        var iconX = pixelX + pixelWidth - 12 * context.Scale;
-        var iconY = pixelY + (pixelHeight - iconSize) / 2;
-
-        using var iconPaint = new SKPaint
-        {
-            Color = SKColors.Gray,
-            Style = SKPaintStyle.Stroke,
-            StrokeWidth = 1 * context.Scale,
-            IsAntialias = true
-        };
-        currentCanvas.DrawRect(iconX, iconY, iconSize, iconSize, iconPaint);
-
-        context.CurrentY += fieldHeight + 4;
     }
 
     void FlushPendingPage()
