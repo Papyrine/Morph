@@ -47,6 +47,24 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
     /// </summary>
     public delegate TFont? SystemFallbackFunc(FontNameCandidates candidates, int targetWeight, bool targetItalic);
 
+    /// <summary>
+    /// Builds the seed for the four Aptos faces shipped inside <c>Morph.dll</c> from a
+    /// backend-supplied byte-array decoder. The faces are known at build time, so the
+    /// <c>(family, weight, italic)</c> keys are hard-coded instead of being read out of
+    /// each face's <c>name</c>/<c>OS/2</c> tables.
+    /// </summary>
+    public static IEnumerable<((string Name, int Weight, bool Italic) Key, TFont Font)> BuildBundledSeed(
+        Func<byte[], TFont> loadFromBytes)
+    {
+        yield return (("Aptos", 400, false), loadFromBytes(EmbeddedFonts.Aptos400));
+
+        yield return (("Aptos", 400, true), loadFromBytes(EmbeddedFonts.Aptos400Italic));
+
+        yield return (("Aptos", 700, false), loadFromBytes(EmbeddedFonts.Aptos700));
+
+        yield return (("Aptos", 700, true), loadFromBytes(EmbeddedFonts.Aptos700Italic));
+    }
+
     static readonly FontFileCache allFontsCache =
         new(FontCacheLoader.GetAllFontFiles(), OpenTypeReader.ReadFaces);
 
@@ -58,13 +76,13 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
             Path.GetFullPath(fontDirectory),
             path => new(FontCacheLoader.EnumerateFontFilesInDirectory(path, recursive: true), OpenTypeReader.ReadFaces));
 
-    readonly LoadFaceFunc loadFace;
-    readonly SystemFallbackFunc? systemFallback;
-    readonly Action<TFont>? releaseFont;
-    readonly string? fontDirectory;
-    readonly Func<string, string?>? fontFallback;
-    readonly Dictionary<(string Name, int Weight, bool Italic), TFont> cache = new();
-    readonly HashSet<TFont> seededFonts = new();
+    LoadFaceFunc loadFace;
+    SystemFallbackFunc? systemFallback;
+    Action<TFont>? releaseFont;
+    string? fontDirectory;
+    Func<string, string?>? fontFallback;
+    Dictionary<(string Name, int Weight, bool Italic), TFont> cache = new();
+    HashSet<TFont> seededFonts = new();
 
     /// <param name="loadFace">Loads a single face from disk into <typeparamref name="TFont"/>.</param>
     /// <param name="systemFallback">OS-level fallback. Pass <c>null</c> in directory mode.</param>

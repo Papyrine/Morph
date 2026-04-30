@@ -12,8 +12,8 @@ static class DefaultFontSettings
     /// <c>docDefaults</c>. Aptos matches modern Word (Microsoft 365's default since 2023)
     /// — and Morph ships the four standard Aptos faces as embedded resources so this
     /// resolves on every host, including Linux/macOS machines that don't have it
-    /// installed. The embedded files are extracted once on first render and surfaced
-    /// through <see cref="FontCacheLoader.GetEmbeddedFontFiles"/>.
+    /// installed. The bundled bytes are decoded once per <c>TFont</c> backend and
+    /// seeded into the <see cref="FontResolver{TFont}"/> cache.
     /// </summary>
     const string builtInDefaultFont = "Aptos";
 
