@@ -371,7 +371,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             _ => 0
         };
 
-    void RenderParagraph(ParagraphElement paragraph, DocumentElement? nextElement = null)
+    protected override void RenderParagraph(ParagraphElement paragraph, DocumentElement? nextElement = null)
     {
         var hasSignificantContent = paragraph.Runs.Any(r => !string.IsNullOrWhiteSpace(r.Text));
         var isCompletelyEmpty = paragraph.Runs.Count == 0;
@@ -978,363 +978,92 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         context.CurrentY += imageHeight;
     }
 
-    void RenderTextFormField(TextFormFieldElement textField)
+    // === Form-field / content-control draw primitives (called from PageRendererBase) ===
+
+    protected override void DrawFormFieldRect(float pixelX, float pixelY, float pixelWidth, float pixelHeight,
+        string fillHex, string borderHex, float pixelBorderWidth)
     {
         if (currentPage == null)
         {
             return;
         }
 
-        var fieldWidth = (float) textField.WidthPoints;
-        float fieldHeight = 18;
-        var x = context.ContentLeft;
-        var y = context.CurrentY;
-
-        if (y + fieldHeight > context.ContentBottom)
-        {
-            FinishCurrentPage();
-            StartNewPage();
-            y = context.CurrentY;
-        }
-
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var pixelWidth = context.PointsToPixels(fieldWidth);
-        var pixelHeight = context.PointsToPixels(fieldHeight);
-
-        var bgColor = textField.Enabled ? Color.White : Color.FromRgb(240, 240, 240);
         var rect = new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight);
+        var fill = ParseColor(fillHex);
+        var border = ParseColor(borderHex);
         currentPage.Mutate(_ =>
         {
-            _.Fill(bgColor, rect);
-            _.Draw(Pens.Solid(Color.Gray, 1 * context.Scale), rect);
+            _.Fill(fill, rect);
+            _.Draw(Pens.Solid(border, pixelBorderWidth), rect);
         });
-
-        var displayText = string.IsNullOrEmpty(textField.Value) ? textField.DefaultText ?? "" : textField.Value;
-        if (!string.IsNullOrEmpty(displayText))
-        {
-            var font = context.GetFontForFamily(DefaultFontSettings.DefaultFont, 10, false, false);
-            var textColor = textField.Enabled ? Color.Black : Color.Gray;
-            var textX = pixelX + 3 * context.Scale;
-            var textY = pixelY + 2 * context.Scale;
-            currentPage.Mutate(_ => _.DrawText(displayText, font, textColor, new(textX, textY)));
-        }
-
-        context.CurrentY += fieldHeight + 4;
     }
 
-    void RenderCheckBoxFormField(CheckBoxFormFieldElement checkBox)
+    protected override void DrawFormFieldText(string text, float pixelX, float pixelY, float pixelWidth, float pixelHeight, string textHex)
     {
         if (currentPage == null)
         {
             return;
         }
 
-        var boxSize = checkBox.SizePoints > 0 ? (float) checkBox.SizePoints : 12;
-        var x = context.ContentLeft;
-        var y = context.CurrentY;
+        // ImageSharp's DrawText takes the top-of-text Y; sit a couple of scaled pixels below
+        // the rect's top edge so caps clear the border.
+        var font = context.GetFontForFamily(DefaultFontSettings.DefaultFont, 10, false, false);
+        var color = ParseColor(textHex);
+        currentPage.Mutate(_ => _.DrawText(text, font, color, new(pixelX + 3 * context.Scale, pixelY + 2 * context.Scale)));
+    }
 
-        if (y + boxSize > context.ContentBottom)
+    protected override void DrawCheckMark(float pixelX, float pixelY, float pixelSize, string hexColor, float pixelStrokeWidth, bool xShape)
+    {
+        if (currentPage == null)
         {
-            FinishCurrentPage();
-            StartNewPage();
-            y = context.CurrentY;
+            return;
         }
 
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var pixelSize = context.PointsToPixels(boxSize);
+        var pen = Pens.Solid(ParseColor(hexColor), pixelStrokeWidth);
 
-        var bgColor = checkBox.Enabled ? Color.White : Color.FromRgb(240, 240, 240);
-        var rect = new RectangleF(pixelX, pixelY, pixelSize, pixelSize);
-        currentPage.Mutate(_ =>
+        if (xShape)
         {
-            _.Fill(bgColor, rect);
-            _.Draw(Pens.Solid(Color.Black, 1 * context.Scale), rect);
-        });
-
-        if (checkBox.Checked)
-        {
-            var checkPen = Pens.Solid(Color.Black, 2 * context.Scale);
-            var pad = pixelSize * 0.2f;
-            var left = pixelX + pad;
-            var right = pixelX + pixelSize - pad;
-            var top = pixelY + pad;
-            var bottom = pixelY + pixelSize - pad;
-            var midX = pixelX + pixelSize * 0.4f;
-
+            // X glyph (used by content-control checkboxes).
+            var pad = pixelSize * 0.25f;
             currentPage.Mutate(_ =>
             {
-                _.DrawLine(checkPen, new PointF(left, top + (bottom - top) * 0.5f), new PointF(midX, bottom));
-                _.DrawLine(checkPen, new PointF(midX, bottom), new PointF(right, top));
+                _.DrawLine(pen, new PointF(pixelX + pad, pixelY + pad), new PointF(pixelX + pixelSize - pad, pixelY + pixelSize - pad));
+                _.DrawLine(pen, new PointF(pixelX + pixelSize - pad, pixelY + pad), new PointF(pixelX + pad, pixelY + pixelSize - pad));
             });
+            return;
         }
 
-        context.CurrentY += boxSize + 4;
+        // ✓ glyph (used by form-field checkboxes).
+        var checkPad = pixelSize * 0.2f;
+        var left = pixelX + checkPad;
+        var right = pixelX + pixelSize - checkPad;
+        var top = pixelY + checkPad;
+        var bottom = pixelY + pixelSize - checkPad;
+        var midX = pixelX + pixelSize * 0.4f;
+        currentPage.Mutate(_ =>
+        {
+            _.DrawLine(pen, new PointF(left, top + (bottom - top) * 0.5f), new PointF(midX, bottom));
+            _.DrawLine(pen, new PointF(midX, bottom), new PointF(right, top));
+        });
     }
 
-    void RenderDropDownFormField(DropDownFormFieldElement dropDown)
+    protected override void DrawDropDownArrow(float pixelX, float pixelY, float pixelHeight, string hexColor)
     {
         if (currentPage == null)
         {
             return;
-        }
-
-        var fieldWidth = (float) dropDown.WidthPoints;
-        float fieldHeight = 18;
-        var x = context.ContentLeft;
-        var y = context.CurrentY;
-
-        if (y + fieldHeight > context.ContentBottom)
-        {
-            FinishCurrentPage();
-            StartNewPage();
-            y = context.CurrentY;
-        }
-
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var pixelWidth = context.PointsToPixels(fieldWidth);
-        var pixelHeight = context.PointsToPixels(fieldHeight);
-
-        var bgColor = dropDown.Enabled ? Color.White : Color.FromRgb(240, 240, 240);
-        var rect = new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight);
-        currentPage.Mutate(_ =>
-        {
-            _.Fill(bgColor, rect);
-            _.Draw(Pens.Solid(Color.Gray, 1 * context.Scale), rect);
-        });
-
-        var selectedValue = dropDown.SelectedIndex >= 0 && dropDown.SelectedIndex < dropDown.Items.Count
-            ? dropDown.Items[dropDown.SelectedIndex]
-            : "";
-
-        if (!string.IsNullOrEmpty(selectedValue))
-        {
-            var font = context.GetFontForFamily(DefaultFontSettings.DefaultFont, 10, false, false);
-            var textColor = dropDown.Enabled ? Color.Black : Color.Gray;
-            currentPage.Mutate(_ => _.DrawText(selectedValue, font, textColor, new(pixelX + 3 * context.Scale, pixelY + 2 * context.Scale)));
         }
 
         var arrowSize = pixelHeight * 0.3f;
-        var arrowX = pixelX + pixelWidth - 12 * context.Scale;
+        var arrowX = pixelX - 12 * context.Scale;
         var arrowY = pixelY + pixelHeight / 2;
 
         var arrowBuilder = new PathBuilder();
         arrowBuilder.AddLine(new(arrowX, arrowY - arrowSize / 2), new(arrowX + arrowSize, arrowY - arrowSize / 2));
         arrowBuilder.AddLine(new(arrowX + arrowSize, arrowY - arrowSize / 2), new(arrowX + arrowSize / 2, arrowY + arrowSize / 2));
         arrowBuilder.CloseFigure();
-        currentPage.Mutate(_ => _.Fill(Color.Black, arrowBuilder.Build()));
-
-        context.CurrentY += fieldHeight + 4;
-    }
-
-    void RenderContentControl(ContentControlElement control)
-    {
-        if (currentPage == null)
-        {
-            return;
-        }
-
-        switch (control.ControlType)
-        {
-            case ContentControlType.CheckBox:
-                RenderContentControlCheckBox(control);
-                break;
-
-            case ContentControlType.ComboBox:
-            case ContentControlType.DropDownList:
-                RenderContentControlDropDown(control);
-                break;
-
-            case ContentControlType.Date:
-                RenderContentControlDate(control);
-                break;
-
-            default:
-                RenderContentControlText(control);
-                break;
-        }
-    }
-
-    void RenderContentControlCheckBox(ContentControlElement control)
-    {
-        if (currentPage == null)
-        {
-            return;
-        }
-
-        float boxSize = 12;
-        var x = context.ContentLeft;
-        var y = context.CurrentY;
-
-        if (y + boxSize > context.ContentBottom)
-        {
-            FinishCurrentPage();
-            StartNewPage();
-            y = context.CurrentY;
-        }
-
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var pixelSize = context.PointsToPixels(boxSize);
-
-        var rect = new RectangleF(pixelX, pixelY, pixelSize, pixelSize);
-        currentPage.Mutate(_ =>
-        {
-            _.Fill(Color.White, rect);
-            _.Draw(Pens.Solid(Color.Black, 1 * context.Scale), rect);
-        });
-
-        if (control.Checked == true)
-        {
-            var checkPen = Pens.Solid(Color.Black, 2 * context.Scale);
-            var pad = pixelSize * 0.25f;
-
-            currentPage.Mutate(_ =>
-            {
-                _.DrawLine(checkPen, new PointF(pixelX + pad, pixelY + pad), new PointF(pixelX + pixelSize - pad, pixelY + pixelSize - pad));
-                _.DrawLine(checkPen, new PointF(pixelX + pixelSize - pad, pixelY + pad), new PointF(pixelX + pad, pixelY + pixelSize - pad));
-            });
-        }
-
-        context.CurrentY += boxSize + 4;
-    }
-
-    void RenderContentControlText(ContentControlElement control)
-    {
-        if (currentPage == null)
-        {
-            return;
-        }
-
-        if (control.ControlType is ContentControlType.RichText or ContentControlType.PlainText)
-        {
-            if (control.Runs is {Count: > 0})
-            {
-                RenderParagraph(
-                    new()
-                    {
-                        Runs = control.Runs,
-                        Properties = new()
-                    });
-            }
-            else
-            {
-                var displayText = string.IsNullOrEmpty(control.Content) ? control.PlaceholderText ?? "" : control.Content;
-                if (!string.IsNullOrEmpty(displayText))
-                {
-                    RenderParagraph(
-                        new()
-                        {
-                            Runs =
-                            [
-                                new()
-                                {
-                                    Text = displayText,
-                                    Properties = new()
-                                }
-                            ],
-                            Properties = new()
-                        });
-                }
-            }
-
-            return;
-        }
-
-        RenderFormFieldBox(control.WidthPoints, control.Content, control.PlaceholderText);
-    }
-
-    void RenderContentControlDropDown(ContentControlElement control)
-    {
-        if (currentPage == null)
-        {
-            return;
-        }
-
-        string? first = null;
-        foreach (var item in control.ListItems!)
-        {
-            first = item;
-            break;
-        }
-
-        var displayText = string.IsNullOrEmpty(control.Content)
-            ? first ?? control.PlaceholderText ?? ""
-            : control.Content;
-
-        RenderFormFieldBox(control.WidthPoints, displayText, null, drawDropdownArrow: true);
-    }
-
-    void RenderContentControlDate(ContentControlElement control)
-    {
-        if (currentPage == null)
-        {
-            return;
-        }
-
-        var displayText = control.DateValue.HasValue
-            ? control.DateValue.Value.ToShortDateString()
-            : !string.IsNullOrEmpty(control.Content) ? control.Content : control.PlaceholderText ?? "";
-
-        RenderFormFieldBox(control.WidthPoints, displayText, null);
-    }
-
-    void RenderFormFieldBox(double fieldWidthPoints, string? content, string? placeholder, bool drawDropdownArrow = false)
-    {
-        if (currentPage == null)
-        {
-            return;
-        }
-
-        var fieldWidth = (float) fieldWidthPoints;
-        float fieldHeight = 18;
-        var x = context.ContentLeft;
-        var y = context.CurrentY;
-
-        if (y + fieldHeight > context.ContentBottom)
-        {
-            FinishCurrentPage();
-            StartNewPage();
-            y = context.CurrentY;
-        }
-
-        var pixelX = context.PointsToPixels(x);
-        var pixelY = context.PointsToPixels(y);
-        var pixelWidth = context.PointsToPixels(fieldWidth);
-        var pixelHeight = context.PointsToPixels(fieldHeight);
-
-        currentPage.Mutate(_ =>
-        {
-            _.Fill(Color.FromRgb(245, 245, 245), new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight));
-            _.Draw(Pens.Solid(Color.FromRgb(200, 200, 200), 1 * context.Scale), new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight));
-        });
-
-        var text = string.IsNullOrEmpty(content) ? placeholder ?? "" : content;
-        var isPlaceholder = string.IsNullOrEmpty(content) && !string.IsNullOrEmpty(placeholder);
-
-        if (!string.IsNullOrEmpty(text))
-        {
-            var font = context.GetFontForFamily(DefaultFontSettings.DefaultFont, 10, false, false);
-            var textColor = isPlaceholder ? Color.Gray : Color.Black;
-            currentPage.Mutate(_ => _.DrawText(text, font, textColor, new(pixelX + 3 * context.Scale, pixelY + 2 * context.Scale)));
-        }
-
-        if (drawDropdownArrow)
-        {
-            var arrowSize = pixelHeight * 0.3f;
-            var arrowX = pixelX + pixelWidth - 12 * context.Scale;
-            var arrowY = pixelY + pixelHeight / 2;
-
-            var arrowBuilder = new PathBuilder();
-            arrowBuilder.AddLine(new(arrowX, arrowY - arrowSize / 2), new(arrowX + arrowSize, arrowY - arrowSize / 2));
-            arrowBuilder.AddLine(new(arrowX + arrowSize, arrowY - arrowSize / 2), new(arrowX + arrowSize / 2, arrowY + arrowSize / 2));
-            arrowBuilder.CloseFigure();
-            currentPage.Mutate(_ => _.Fill(Color.Black, arrowBuilder.Build()));
-        }
-
-        context.CurrentY += fieldHeight + 4;
+        var color = ParseColor(hexColor);
+        currentPage.Mutate(_ => _.Fill(color, arrowBuilder.Build()));
     }
 
     void FlushPendingPage()

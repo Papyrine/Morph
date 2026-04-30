@@ -37,6 +37,327 @@ abstract class PageRendererBase(RenderContextBase context)
     /// <summary>Renders the contents of a btLr / tbRl rotated cell.</summary>
     protected abstract void RenderVerticalCellContent(TableCell cell, float cellX, float cellY, float cellWidth, float cellHeight, CellSpacing padding);
 
+    /// <summary>Renders a top-level paragraph (handling page breaks, spacing, etc.). Used by
+    /// the lifted content-control text path to delegate rich-text rendering back to the leaf.
+    /// <paramref name="nextElement"/> lets the leaf elide trailing space when followed by a
+    /// heading or section break.</summary>
+    protected abstract void RenderParagraph(ParagraphElement paragraph, DocumentElement? nextElement = null);
+
+    /// <summary>Fills a rectangle with <paramref name="fillHex"/> and strokes its outline with
+    /// <paramref name="borderHex"/>. Used by every form field and content control box.</summary>
+    protected abstract void DrawFormFieldRect(float pixelX, float pixelY, float pixelWidth, float pixelHeight, string fillHex, string borderHex, float pixelBorderWidth);
+
+    /// <summary>Draws short 10pt default-font text inside a form-field rectangle, padded a few
+    /// pixels from the left edge. Backends position the baseline per their convention.</summary>
+    protected abstract void DrawFormFieldText(string text, float pixelX, float pixelY, float pixelWidth, float pixelHeight, string textHex);
+
+    /// <summary>Draws a checkmark glyph (<paramref name="xShape"/>=false) or an X glyph
+    /// (<paramref name="xShape"/>=true) inside a square at the given pixel coordinates.</summary>
+    protected abstract void DrawCheckMark(float pixelX, float pixelY, float pixelSize, string hexColor, float pixelStrokeWidth, bool xShape);
+
+    /// <summary>Draws a small downward-pointing triangle near the right edge of a form-field
+    /// rectangle (used for combo / dropdown / list controls).</summary>
+    protected abstract void DrawDropDownArrow(float pixelX, float pixelY, float pixelHeight, string hexColor);
+
+    // Form-field palette. Same constants used by every backend; centralising them here makes
+    // the abstract draw primitives backend-agnostic without leaking ImageSharp/Skia color types.
+    const string formFieldActiveBg = "FFFFFF";
+    const string formFieldInactiveBg = "F0F0F0";
+    const string formFieldBorder = "808080";
+    const string contentControlBg = "F5F5F5";
+    const string contentControlBorder = "C8C8C8";
+    const string checkBoxBorder = "000000";
+    const string textBlack = "000000";
+    const string textGray = "808080";
+
+    /// <summary>
+    /// Renders a Word legacy text form field (a <c>FORMTEXT</c> field): a flat rectangle with
+    /// 1-px gray border and the default value or current text inside.
+    /// </summary>
+    protected void RenderTextFormField(TextFormFieldElement textField)
+    {
+        if (!HasOutput)
+        {
+            return;
+        }
+
+        var fieldWidth = (float) textField.WidthPoints;
+        const float fieldHeight = 18;
+        var x = context.ContentLeft;
+        var y = context.CurrentY;
+
+        if (y + fieldHeight > context.ContentBottom)
+        {
+            FinishCurrentPage();
+            StartNewPage();
+            y = context.CurrentY;
+        }
+
+        var pixelX = context.PointsToPixels(x);
+        var pixelY = context.PointsToPixels(y);
+        var pixelWidth = context.PointsToPixels(fieldWidth);
+        var pixelHeight = context.PointsToPixels(fieldHeight);
+        var bgHex = textField.Enabled ? formFieldActiveBg : formFieldInactiveBg;
+        DrawFormFieldRect(pixelX, pixelY, pixelWidth, pixelHeight, bgHex, formFieldBorder, context.Scale);
+
+        var displayText = string.IsNullOrEmpty(textField.Value) ? textField.DefaultText ?? "" : textField.Value;
+        if (!string.IsNullOrEmpty(displayText))
+        {
+            var textHex = textField.Enabled ? textBlack : textGray;
+            DrawFormFieldText(displayText, pixelX, pixelY, pixelWidth, pixelHeight, textHex);
+        }
+
+        context.CurrentY += fieldHeight + 4;
+    }
+
+    /// <summary>
+    /// Renders a Word legacy checkbox form field (<c>FORMCHECKBOX</c>): a square with 1-px black
+    /// border and a checkmark inside when <see cref="CheckBoxFormFieldElement.Checked"/> is true.
+    /// </summary>
+    protected void RenderCheckBoxFormField(CheckBoxFormFieldElement checkBox)
+    {
+        if (!HasOutput)
+        {
+            return;
+        }
+
+        var boxSize = checkBox.SizePoints > 0 ? (float) checkBox.SizePoints : 12;
+        var x = context.ContentLeft;
+        var y = context.CurrentY;
+
+        if (y + boxSize > context.ContentBottom)
+        {
+            FinishCurrentPage();
+            StartNewPage();
+            y = context.CurrentY;
+        }
+
+        var pixelX = context.PointsToPixels(x);
+        var pixelY = context.PointsToPixels(y);
+        var pixelSize = context.PointsToPixels(boxSize);
+        var bgHex = checkBox.Enabled ? formFieldActiveBg : formFieldInactiveBg;
+        DrawFormFieldRect(pixelX, pixelY, pixelSize, pixelSize, bgHex, checkBoxBorder, context.Scale);
+
+        if (checkBox.Checked)
+        {
+            DrawCheckMark(pixelX, pixelY, pixelSize, textBlack, 2 * context.Scale, xShape: false);
+        }
+
+        context.CurrentY += boxSize + 4;
+    }
+
+    /// <summary>
+    /// Renders a Word legacy dropdown form field (<c>FORMDROPDOWN</c>): a flat rectangle with
+    /// 1-px gray border, the currently selected list item inside, and a small ▼ on the right.
+    /// </summary>
+    protected void RenderDropDownFormField(DropDownFormFieldElement dropDown)
+    {
+        if (!HasOutput)
+        {
+            return;
+        }
+
+        var fieldWidth = (float) dropDown.WidthPoints;
+        const float fieldHeight = 18;
+        var x = context.ContentLeft;
+        var y = context.CurrentY;
+
+        if (y + fieldHeight > context.ContentBottom)
+        {
+            FinishCurrentPage();
+            StartNewPage();
+            y = context.CurrentY;
+        }
+
+        var pixelX = context.PointsToPixels(x);
+        var pixelY = context.PointsToPixels(y);
+        var pixelWidth = context.PointsToPixels(fieldWidth);
+        var pixelHeight = context.PointsToPixels(fieldHeight);
+        var bgHex = dropDown.Enabled ? formFieldActiveBg : formFieldInactiveBg;
+        DrawFormFieldRect(pixelX, pixelY, pixelWidth, pixelHeight, bgHex, formFieldBorder, context.Scale);
+
+        var selectedValue = dropDown.SelectedIndex >= 0 && dropDown.SelectedIndex < dropDown.Items.Count
+            ? dropDown.Items[dropDown.SelectedIndex]
+            : "";
+
+        if (!string.IsNullOrEmpty(selectedValue))
+        {
+            var textHex = dropDown.Enabled ? textBlack : textGray;
+            DrawFormFieldText(selectedValue, pixelX, pixelY, pixelWidth, pixelHeight, textHex);
+        }
+
+        DrawDropDownArrow(pixelX + pixelWidth, pixelY, pixelHeight, textBlack);
+
+        context.CurrentY += fieldHeight + 4;
+    }
+
+    /// <summary>
+    /// Dispatches an OOXML structured-document tag (<c>w:sdt</c>) to the renderer for its
+    /// specific control type.
+    /// </summary>
+    protected void RenderContentControl(ContentControlElement control)
+    {
+        if (!HasOutput)
+        {
+            return;
+        }
+
+        switch (control.ControlType)
+        {
+            case ContentControlType.CheckBox:
+                RenderContentControlCheckBox(control);
+                break;
+
+            case ContentControlType.ComboBox:
+            case ContentControlType.DropDownList:
+                RenderContentControlDropDown(control);
+                break;
+
+            case ContentControlType.Date:
+                RenderContentControlDate(control);
+                break;
+
+            default:
+                RenderContentControlText(control);
+                break;
+        }
+    }
+
+    void RenderContentControlCheckBox(ContentControlElement control)
+    {
+        const float boxSize = 12;
+        var x = context.ContentLeft;
+        var y = context.CurrentY;
+
+        if (y + boxSize > context.ContentBottom)
+        {
+            FinishCurrentPage();
+            StartNewPage();
+            y = context.CurrentY;
+        }
+
+        var pixelX = context.PointsToPixels(x);
+        var pixelY = context.PointsToPixels(y);
+        var pixelSize = context.PointsToPixels(boxSize);
+        DrawFormFieldRect(pixelX, pixelY, pixelSize, pixelSize, formFieldActiveBg, checkBoxBorder, context.Scale);
+
+        if (control.Checked == true)
+        {
+            // Content-control checkbox uses an X (typed-form-field uses ✓), matching Word's
+            // historical rendering of the two surfaces.
+            DrawCheckMark(pixelX, pixelY, pixelSize, textBlack, 2 * context.Scale, xShape: true);
+        }
+
+        context.CurrentY += boxSize + 4;
+    }
+
+    void RenderContentControlText(ContentControlElement control)
+    {
+        // Rich-text and plain-text content controls are styled placeholders, not form fields —
+        // route them through normal paragraph rendering so their styled runs come out correctly.
+        if (control.ControlType is ContentControlType.RichText or ContentControlType.PlainText)
+        {
+            if (control.Runs is {Count: > 0})
+            {
+                RenderParagraph(
+                    new()
+                    {
+                        Runs = control.Runs,
+                        Properties = new()
+                    });
+                return;
+            }
+
+            var displayText = string.IsNullOrEmpty(control.Content) ? control.PlaceholderText ?? "" : control.Content;
+            if (!string.IsNullOrEmpty(displayText))
+            {
+                RenderParagraph(
+                    new()
+                    {
+                        Runs =
+                        [
+                            new()
+                            {
+                                Text = displayText,
+                                Properties = new()
+                            }
+                        ],
+                        Properties = new()
+                    });
+            }
+
+            return;
+        }
+
+        var text = string.IsNullOrEmpty(control.Content) ? control.PlaceholderText ?? "" : control.Content;
+        var isPlaceholder = string.IsNullOrEmpty(control.Content) && !string.IsNullOrEmpty(control.PlaceholderText);
+        RenderContentControlBox(control.WidthPoints, text, isPlaceholder ? textGray : textBlack, drawDropdownArrow: false);
+    }
+
+    void RenderContentControlDropDown(ContentControlElement control)
+    {
+        string? first = null;
+        foreach (var item in control.ListItems!)
+        {
+            first = item;
+            break;
+        }
+
+        var displayText = string.IsNullOrEmpty(control.Content)
+            ? first ?? control.PlaceholderText ?? ""
+            : control.Content;
+
+        RenderContentControlBox(control.WidthPoints, displayText, textBlack, drawDropdownArrow: true);
+    }
+
+    void RenderContentControlDate(ContentControlElement control)
+    {
+        var displayText = control.DateValue.HasValue
+            ? control.DateValue.Value.ToShortDateString()
+            : !string.IsNullOrEmpty(control.Content) ? control.Content : control.PlaceholderText ?? "";
+
+        var hasValue = control.DateValue.HasValue || !string.IsNullOrEmpty(control.Content);
+        RenderContentControlBox(control.WidthPoints, displayText, hasValue ? textBlack : textGray, drawDropdownArrow: false);
+    }
+
+    /// <summary>
+    /// Shared layout for the three content-control variants that render as a flat rectangle
+    /// (text, dropdown, date): handles page break, geometry, the background fill + border,
+    /// optional text, and the dropdown arrow when requested.
+    /// </summary>
+    void RenderContentControlBox(double fieldWidthPoints, string displayText, string textHex, bool drawDropdownArrow)
+    {
+        var fieldWidth = (float) fieldWidthPoints;
+        const float fieldHeight = 18;
+        var x = context.ContentLeft;
+        var y = context.CurrentY;
+
+        if (y + fieldHeight > context.ContentBottom)
+        {
+            FinishCurrentPage();
+            StartNewPage();
+            y = context.CurrentY;
+        }
+
+        var pixelX = context.PointsToPixels(x);
+        var pixelY = context.PointsToPixels(y);
+        var pixelWidth = context.PointsToPixels(fieldWidth);
+        var pixelHeight = context.PointsToPixels(fieldHeight);
+        DrawFormFieldRect(pixelX, pixelY, pixelWidth, pixelHeight, contentControlBg, contentControlBorder, context.Scale);
+
+        if (!string.IsNullOrEmpty(displayText))
+        {
+            DrawFormFieldText(displayText, pixelX, pixelY, pixelWidth, pixelHeight, textHex);
+        }
+
+        if (drawDropdownArrow)
+        {
+            DrawDropDownArrow(pixelX + pixelWidth, pixelY, pixelHeight, textBlack);
+        }
+
+        context.CurrentY += fieldHeight + 4;
+    }
+
     /// <summary>
     /// Ensures there's space for <paramref name="height"/> on the current page; otherwise
     /// moves to the next column or page. Content taller than a full page renders at the
