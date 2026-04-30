@@ -1,44 +1,55 @@
 /// <summary>
 /// Maintains rendering state during page layout and rendering.
 /// </summary>
-sealed class ImageSharpRenderContext(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility = null, double fontWidthScale = 1.0, Func<string, string?>? fontFallback = null, string? fontDirectory = null, bool? deterministicRendering = null)
-    : RenderContextBase(pageSettings, dpi, compatibility, fontWidthScale, fontFallback, fontDirectory, deterministicRendering),
-        IDisposable
+sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
 {
-    // Pre-seeded with the embedded Aptos family so the (name, style) lookup at the top of
-    // GetFontFamily hits immediately — no LoadFilesIntoSharedCollection or system-fonts
-    // walk for the common bold/italic combinations of the default font.
-    Dictionary<(string, FontStyle), FontFamily> fontFamilyCache = SeedFontFamilyCache();
-
-    static Dictionary<(string, FontStyle), FontFamily> SeedFontFamilyCache()
-    {
-        var cache = new Dictionary<(string, FontStyle), FontFamily>();
-        foreach (var family in embeddedFontCollection.Families)
-        {
-            foreach (var style in new[] {FontStyle.Regular, FontStyle.Bold, FontStyle.Italic, FontStyle.BoldItalic})
-            {
-                cache[(family.Name, style)] = family;
-            }
-        }
-        return cache;
-    }
-
-    // Shared font collection for fonts loaded from file (cloud, Office, user caches)
-    FontCollection sharedFontCollection = new();
-
-    /// <summary>
-    /// Index of every font file Morph can discover on the host (user, Office, M365 cloud,
-    /// system) in a single name-keyed cache. See <see cref="FontCacheLoader.GetAllFontFiles"/>
-    /// for the merge ordering.
-    /// </summary>
-    static readonly FontFileCache allFontsCache = new(FontCacheLoader.GetAllFontFiles(), OpenTypeReader.ReadFaces);
-
     /// <summary>
     /// FontCollection populated from <see cref="EmbeddedFonts"/> — the Aptos faces shipped
-    /// inside <c>Morph.dll</c>. Held statically so the streams are parsed once per
-    /// process; consulted as the last resort during family resolution.
+    /// inside <c>Morph.dll</c>. Held statically so the streams are parsed once per process.
     /// </summary>
     static readonly FontCollection embeddedFontCollection = LoadEmbeddedFontCollection();
+
+    /// <summary>
+    /// Pre-computed seed for <see cref="FontResolver{TFont}"/>. Each Aptos face's
+    /// (FamilyName, Weight, Italic) — read from the OpenType <c>name</c>/<c>OS/2</c>
+    /// tables via <see cref="OpenTypeReader"/> — points at the multi-face FontFamily
+    /// inside <see cref="embeddedFontCollection"/>. Bold/Italic combinations of Aptos
+    /// hit the resolver cache directly without touching disk.
+    /// </summary>
+    static readonly ((string Name, int Weight, bool Italic) Key, FontFamilyHandle Font)[] embeddedSeed = BuildEmbeddedSeed();
+
+    /// <summary>
+    /// Per-instance collection that grows as faces are resolved. Each
+    /// <see cref="LoadFace"/> call pre-loads every sibling face under the matched
+    /// candidate name so <c>FamilyHandle.Family.CreateFont(size, FontStyle.Italic)</c>
+    /// finds the italic variant even when the resolver's score-pick happened to be
+    /// the Regular face. Mirrors the old <c>LoadFilesIntoSharedCollection</c> behavior
+    /// inside the unified <see cref="FontResolver{TFont}"/> shape.
+    /// </summary>
+    readonly FontCollection sharedFontCollection = new();
+
+    /// <summary>Path-keyed dedupe for <see cref="sharedFontCollection"/> — files only get added once.</summary>
+    readonly HashSet<string> loadedPaths = new(StringComparer.OrdinalIgnoreCase);
+
+    readonly FontResolver<FontFamilyHandle> resolver;
+
+    public ImageSharpRenderContext(
+        PageSettings pageSettings,
+        int dpi,
+        CompatibilitySettings? compatibility = null,
+        double fontWidthScale = 1.0,
+        Func<string, string?>? fontFallback = null,
+        string? fontDirectory = null,
+        bool? deterministicRendering = null) :
+        base(pageSettings, dpi, compatibility, fontWidthScale, fontFallback, fontDirectory, deterministicRendering) =>
+        // FontCollection / FontFamily don't own unmanaged state — no per-cache disposal needed.
+        resolver = new(
+            loadFace: LoadFace,
+            systemFallback: fontDirectory == null ? TryResolveFromSystem : null,
+            releaseFont: null,
+            fontDirectory: fontDirectory,
+            fontFallback: fontFallback,
+            seed: embeddedSeed);
 
     static FontCollection LoadEmbeddedFontCollection()
     {
@@ -53,148 +64,46 @@ sealed class ImageSharpRenderContext(PageSettings pageSettings, int dpi, Compati
         return collection;
     }
 
-    static readonly ConcurrentDictionary<string, FontFileCache> directoryCaches = new(StringComparer.OrdinalIgnoreCase);
-
-    static FontFileCache GetDirectoryCache(string fontDirectory) =>
-        directoryCaches.GetOrAdd(
-            System.IO.Path.GetFullPath(fontDirectory),
-            path => new(FontCacheLoader.EnumerateFontFilesInDirectory(path, recursive: true), OpenTypeReader.ReadFaces));
-
-    public FontFamily GetFontFamily(string fontFamily, bool bold, bool italic)
+    static ((string Name, int Weight, bool Italic), FontFamilyHandle)[] BuildEmbeddedSeed()
     {
-        var style = FontStyle.Regular;
-        if (bold && italic)
+        // Wrap each unique embedded family in a single handle so the multi-style seed
+        // entries all point at the same instance — the resolver's seededFonts HashSet
+        // dedupes by reference and skips disposal for everything in the seed.
+        var handlesByName = new Dictionary<string, FontFamilyHandle>(StringComparer.OrdinalIgnoreCase);
+        foreach (var family in embeddedFontCollection.Families)
         {
-            style = FontStyle.BoldItalic;
-        }
-        else if (bold)
-        {
-            style = FontStyle.Bold;
-        }
-        else if (italic)
-        {
-            style = FontStyle.Italic;
+            handlesByName[family.Name] = new(family);
         }
 
-        var candidates = FontHelpers.GetCandidateNames(fontFamily, bold);
-        var key = (candidates.Effective, style);
-
-        if (!fontFamilyCache.TryGetValue(key, out var resolvedFamily))
+        var entries = new List<((string, int, bool), FontFamilyHandle)>();
+        foreach (var bytes in EmbeddedFonts.AllFaceBytes)
         {
-            if (FontDirectory != null)
+            using var stream = new MemoryStream(bytes, writable: false);
+            foreach (var (face, _) in OpenTypeReader.ReadFaces(stream, "(embedded)"))
             {
-                var directoryCache = GetDirectoryCache(FontDirectory);
-                LoadFilesIntoSharedCollection(directoryCache, candidates);
-
-                if (TryResolveFromSharedCollection(candidates, style, out resolvedFamily) ||
-                    TryResolveFromSharedCollection(candidates, requireStyle: null, out resolvedFamily))
+                if (handlesByName.TryGetValue(face.Family, out var handle))
                 {
-                    fontFamilyCache[key] = resolvedFamily;
-                    return resolvedFamily;
+                    entries.Add(((face.Family, face.Weight, face.Italic), handle));
                 }
-
-                var directoryFallbackFont = FontHelpers.FindFallback(candidates) ?? FontFallback?.Invoke(fontFamily);
-                if (directoryFallbackFont != null)
-                {
-                    var fallbackCandidates = FontHelpers.GetCandidateNames(directoryFallbackFont, bold);
-                    LoadFilesIntoSharedCollection(directoryCache, fallbackCandidates);
-
-                    if (TryResolveFromSharedCollection(fallbackCandidates, style, out resolvedFamily) ||
-                        TryResolveFromSharedCollection(fallbackCandidates, requireStyle: null, out resolvedFamily))
-                    {
-                        fontFamilyCache[key] = resolvedFamily;
-                        return resolvedFamily;
-                    }
-                }
-
-                throw new InvalidOperationException($"Font '{fontFamily}' not found in '{FontDirectory}'.");
             }
-
-            // Load every matching face from the merged host cache into the shared
-            // collection so all style variants are available (e.g. Regular from user fonts
-            // + Italic from cloud, both indexed in allFontsCache).
-            LoadFilesIntoSharedCollection(allFontsCache, candidates);
-
-            // Prefer a family that has the exact style, but accept any matching-name family
-            // if an exact variant isn't available. The caller will downgrade the requested
-            // style in GetFont so we still render with the closest available variant.
-            if (TryResolveFromKnownSources(candidates, style, out resolvedFamily) ||
-                TryResolveFromKnownSources(candidates, requireStyle: null, out resolvedFamily))
-            {
-                fontFamilyCache[key] = resolvedFamily;
-                return resolvedFamily;
-            }
-
-            var fallbackFont = FontHelpers.FindFallback(candidates) ?? FontFallback?.Invoke(fontFamily);
-            if (fallbackFont == null)
-            {
-                throw new InvalidOperationException($"Font '{fontFamily}' not found. Checked:{Environment.NewLine}  {string.Join($"{Environment.NewLine}  ", FontCacheLoader.GetSearchedPaths())}");
-            }
-
-            if (!SystemFonts.TryGet(fallbackFont, out resolvedFamily) &&
-                !sharedFontCollection.TryGet(fallbackFont, out resolvedFamily))
-            {
-                throw new InvalidOperationException($"Font '{fontFamily}' not found and fallback '{fallbackFont}' also not available.");
-            }
-
-            fontFamilyCache[key] = resolvedFamily;
         }
-
-        return resolvedFamily;
+        return entries.ToArray();
     }
 
-    bool TryResolveFromKnownSources(FontNameCandidates candidates, FontStyle? requireStyle, out FontFamily resolved)
+    /// <summary>
+    /// Loads every face matching the candidate name into <see cref="sharedFontCollection"/>
+    /// (idempotent via <see cref="loadedPaths"/>) so the family that ImageSharp returns
+    /// has every available style — Regular, Bold, Italic, BoldItalic — even though the
+    /// resolver only score-picked one of them. This matters because at <c>GetFont</c> time
+    /// we hand the family to <see cref="PickAvailableStyle"/>, which routes
+    /// <c>CreateFont(size, FontStyle.Italic)</c> to the actual italic face inside the
+    /// family. Without sibling pre-loading the italic face would never appear there.
+    /// </summary>
+    FontFamilyHandle? LoadFace(FontFace bestFace, IReadOnlyList<FontFace> allCandidateFaces)
     {
-        foreach (var name in FontFileCache.EnumerateCandidateNames(candidates))
+        foreach (var face in allCandidateFaces)
         {
-            // Prefer shared collection (has fonts from all caches with proper style variants)
-            if (sharedFontCollection.TryGet(name, out resolved) &&
-                (requireStyle == null || resolved.TryGetMetrics(requireStyle.Value, out _)))
-            {
-                return true;
-            }
-
-            // Fall back to system fonts
-            if (SystemFonts.TryGet(name, out resolved) &&
-                (requireStyle == null || resolved.TryGetMetrics(requireStyle.Value, out _)))
-            {
-                return true;
-            }
-        }
-
-        resolved = default;
-        return false;
-    }
-
-    bool TryResolveFromSharedCollection(FontNameCandidates candidates, FontStyle? requireStyle, out FontFamily resolved)
-    {
-        foreach (var name in FontFileCache.EnumerateCandidateNames(candidates))
-        {
-            if (sharedFontCollection.TryGet(name, out resolved) &&
-                (requireStyle == null || resolved.TryGetMetrics(requireStyle.Value, out _)))
-            {
-                return true;
-            }
-        }
-
-        resolved = default;
-        return false;
-    }
-
-    void LoadFilesIntoSharedCollection(FontFileCache cache, FontNameCandidates candidates)
-    {
-        if (!cache.TryGet(candidates, out var faces))
-        {
-            return;
-        }
-
-        // Dedupe by file path: a single file may surface multiple faces (e.g. a .ttc with
-        // many fonts, or a .ttf indexed under several names), but we only need to load
-        // each path once — ImageSharp's FontCollection will surface every face inside.
-        var loaded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var face in faces)
-        {
-            if (!loaded.Add(face.Path))
+            if (!loadedPaths.Add(face.Path))
             {
                 continue;
             }
@@ -212,10 +121,34 @@ sealed class ImageSharpRenderContext(PageSettings pageSettings, int dpi, Compati
             }
             catch
             {
-                // Ignore individual font load errors
+                // Individual file load failures don't fail the resolution; the resolver's
+                // retry loop tries the next-best face if this one's family can't be located.
             }
         }
+
+        return sharedFontCollection.TryGet(bestFace.Family, out var family) ? new(family) : null;
     }
+
+    /// <summary>
+    /// OS font manager fallback. SixLabors' <see cref="SystemFonts"/> indexes by family
+    /// name; numeric weight isn't filterable here, so style validation is deferred to
+    /// <see cref="PickAvailableStyle"/> at <c>CreateFont</c> time.
+    /// </summary>
+    static FontFamilyHandle? TryResolveFromSystem(FontNameCandidates candidates, int targetWeight, bool targetItalic)
+    {
+        foreach (var name in FontFileCache.EnumerateCandidateNames(candidates))
+        {
+            if (SystemFonts.TryGet(name, out var family))
+            {
+                return new(family);
+            }
+        }
+
+        return null;
+    }
+
+    public FontFamily GetFontFamily(string fontFamily, bool bold, bool italic) =>
+        resolver.Resolve(fontFamily, bold, italic).Family;
 
     public Font GetFont(RunProperties props)
     {
@@ -370,6 +303,14 @@ sealed class ImageSharpRenderContext(PageSettings pageSettings, int dpi, Compati
         return Color.Black;
     }
 
-    public void Dispose() =>
-        fontFamilyCache.Clear();
+    public void Dispose() => resolver.Dispose();
+}
+
+/// <summary>
+/// Adapter around <see cref="FontFamily"/> (a struct in SixLabors.Fonts) so it can flow
+/// through the reference-typed <see cref="FontResolver{TFont}"/> cache.
+/// </summary>
+sealed class FontFamilyHandle(FontFamily family)
+{
+    public FontFamily Family { get; } = family;
 }
