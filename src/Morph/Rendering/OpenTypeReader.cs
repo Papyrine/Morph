@@ -64,7 +64,20 @@ static class OpenTypeReader
     public static IEnumerable<(FontFace Face, IReadOnlyList<string> Names)> ReadFaces(string path)
     {
         using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+        foreach (var item in ReadFaces(stream, path))
+        {
+            yield return item;
+        }
+    }
 
+    /// <summary>
+    /// Reads every face from <paramref name="stream"/> using <paramref name="sourcePath"/>
+    /// as the value to record on each <see cref="FontFace.Path"/> (typically the file path
+    /// the bytes came from, or a synthetic identifier for in-memory sources). The stream
+    /// must be seekable and is left open after enumeration completes.
+    /// </summary>
+    public static IEnumerable<(FontFace Face, IReadOnlyList<string> Names)> ReadFaces(Stream stream, string sourcePath)
+    {
         var header = new byte[12];
         if (!TryReadExact(stream, header))
         {
@@ -75,7 +88,7 @@ static class OpenTypeReader
 
         if (sig == woff2Magic)
         {
-            if (TryReadWoff2Face(stream, header, path, out var face, out var names))
+            if (TryReadWoff2Face(stream, header, sourcePath, out var face, out var names))
             {
                 yield return (face, names);
             }
@@ -103,7 +116,7 @@ static class OpenTypeReader
             for (var i = 0; i < numFonts; i++)
             {
                 var faceOffset = BinaryPrimitives.ReadUInt32BigEndian(offsetBytes.AsSpan(i * 4, 4));
-                if (TryReadSfntFace(stream, faceOffset, path, i, out var face, out var names))
+                if (TryReadSfntFace(stream, faceOffset, sourcePath, i, out var face, out var names))
                 {
                     yield return (face, names);
                 }
@@ -116,7 +129,7 @@ static class OpenTypeReader
         {
             // The 12-byte buffer we already read IS this single face's offset table
             // header, so we can pass it straight through without re-reading.
-            if (TryReadSfntFaceFromHeader(stream, header, path, 0, out var face, out var names))
+            if (TryReadSfntFaceFromHeader(stream, header, sourcePath, 0, out var face, out var names))
             {
                 yield return (face, names);
             }
@@ -236,6 +249,7 @@ static class OpenTypeReader
         {
             Path = path,
             Index = index,
+            Family = PrimaryFamilyName(nameRecords),
             Weight = weight,
             Width = width,
             Italic = italic,
@@ -422,12 +436,32 @@ static class OpenTypeReader
         {
             Path = path,
             Index = 0,
+            Family = PrimaryFamilyName(nameRecords),
             Weight = weight,
             Width = width,
             Italic = italic,
         };
         names = BuildIndexNames(nameRecords);
         return true;
+    }
+
+    /// <summary>
+    /// Returns the canonical family name for a face — <c>name</c> table ID 1 (Family),
+    /// falling back to ID 16 (Typographic Family) only when ID 1 is missing. ID 1 is
+    /// what SixLabors' <c>FontCollection</c> registers families by, so for the file
+    /// <c>Calibri_300.ttf</c> we want "Calibri Light" (ID 1) here, not "Calibri" (ID 16,
+    /// the typographic family). The latter strips the weight out, which is right for
+    /// typographic grouping but wrong for the path-keyed lookup ImageSharp needs.
+    /// </summary>
+    static string PrimaryFamilyName(Dictionary<int, string> nameRecords)
+    {
+        if (nameRecords.TryGetValue(nameIdFamily, out var family) &&
+            !string.IsNullOrWhiteSpace(family))
+        {
+            return family;
+        }
+
+        return nameRecords.GetValueOrDefault(nameIdTypographicFamily, "");
     }
 
     /// <summary>

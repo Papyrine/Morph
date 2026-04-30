@@ -21,39 +21,33 @@ sealed class SkiaRenderContext(
         deterministicRendering),
     IDisposable
 {
-    // Pre-seeded with the embedded Aptos faces so the (FamilyName, Weight, Slant) lookup at
-    // the top of GetTypeface hits them directly — no extra resolution step for the common
-    // bold/italic combinations of the default font.
-    Dictionary<(string, int, SKFontStyleSlant), SKTypeface> typefaceCache = SeedTypefaceCache();
-
-    static Dictionary<(string, int, SKFontStyleSlant), SKTypeface> SeedTypefaceCache()
-    {
-        var cache = new Dictionary<(string, int, SKFontStyleSlant), SKTypeface>();
-        foreach (var entry in embeddedTypefaceEntries)
-        {
-            cache[(entry.FamilyName, entry.Weight, entry.Slant)] = entry.Typeface;
-        }
-        return cache;
-    }
-
-    /// <summary>
-    /// Index of every font file Morph can discover on the host (user, Office, M365 cloud,
-    /// system) in a single name-keyed cache. The four sources are merged in priority order
-    /// during construction, so when two files share a name the higher-priority source's
-    /// face still appears first in the bucket — keeping the original "user installs win
-    /// on ties" rule without needing four separate caches.
-    /// </summary>
-    static readonly FontFileCache allFontsCache = new(FontCacheLoader.GetAllFontFiles(), OpenTypeReader.ReadFaces);
-
     /// <summary>
     /// Typefaces loaded from <see cref="EmbeddedFonts"/> (the Aptos faces shipped inside
-    /// <c>Morph.dll</c>). Decoded by Skia once per process and pre-seeded into each
-    /// render context's <c>typefaceCache</c> under their (FamilyName, Weight, Slant)
-    /// keys, so the cache hit at the top of <see cref="GetTypeface"/> covers every
-    /// reachable bold/italic combination. Per-instance <see cref="Dispose"/> identifies
-    /// these by reference and skips releasing them.
+    /// <c>Morph.dll</c>). Decoded by Skia once per process and seeded into every render
+    /// context's <see cref="FontResolver{TFont}"/> so the standard bold/italic combinations
+    /// of the default font hit the cache directly without touching disk.
     /// </summary>
     static readonly SKTypeface[] embeddedTypefaces = LoadEmbeddedTypefaces();
+
+    // Frozen at static init from the embedded faces' FamilyName / FontStyle. Reading those
+    // properties through SkiaSharp on every new render context — as the original
+    // SeedTypefaceCache did — hit a native AV inside sk_typeface_get_family_name under
+    // bulk parallel test load (regression from 3de908f8). Reading them once and copying
+    // the tuples per instance avoids the issue entirely.
+    static readonly ((string Name, int Weight, bool Italic) Key, SKTypeface Font)[] embeddedSeed =
+        embeddedTypefaces
+            .Select(_ => (
+                Key: (_.FamilyName, _.FontStyle.Weight, _.FontStyle.Slant != SKFontStyleSlant.Upright),
+                Font: _))
+            .ToArray();
+
+    readonly FontResolver<SKTypeface> resolver = new(
+        loadFace: LoadFace,
+        systemFallback: fontDirectory == null ? TryResolveFromSystem : null,
+        releaseFont: ReleaseTypeface,
+        fontDirectory: fontDirectory,
+        fontFallback: fontFallback,
+        seed: embeddedSeed);
 
     static SKTypeface[] LoadEmbeddedTypefaces()
     {
@@ -69,157 +63,14 @@ sealed class SkiaRenderContext(
         return list.ToArray();
     }
 
-    // Frozen at static init from the embedded faces' FamilyName / FontStyle. Reading those
-    // properties through SkiaSharp on every new render context — as SeedTypefaceCache did
-    // before this — hit a native AV inside sk_typeface_get_family_name under bulk parallel
-    // test load (regression from 3de908f8). Reading them once and copying the tuples per
-    // instance avoids the issue entirely.
-    static readonly (string FamilyName, int Weight, SKFontStyleSlant Slant, SKTypeface Typeface)[] embeddedTypefaceEntries =
-        embeddedTypefaces
-            .Select(_ => (_.FamilyName, _.FontStyle.Weight, _.FontStyle.Slant, _))
-            .ToArray();
-
-    static readonly ConcurrentDictionary<string, FontFileCache> directoryCaches = new(StringComparer.OrdinalIgnoreCase);
-
-    static FontFileCache GetDirectoryCache(string fontDirectory) =>
-        directoryCaches.GetOrAdd(
-            Path.GetFullPath(fontDirectory),
-            path => new(FontCacheLoader.EnumerateFontFilesInDirectory(path, recursive: true), OpenTypeReader.ReadFaces));
-
-    public SKTypeface GetTypeface(string fontFamily, bool bold, bool italic)
-    {
-        var style = SKFontStyle.Normal;
-        if (bold && italic)
-        {
-            style = SKFontStyle.BoldItalic;
-        }
-        else if (bold)
-        {
-            style = SKFontStyle.Bold;
-        }
-        else if (italic)
-        {
-            style = SKFontStyle.Italic;
-        }
-
-        var candidates = FontHelpers.GetCandidateNames(fontFamily, bold);
-        var key = (candidates.Effective, style.Weight, style.Slant);
-
-        if (typefaceCache.TryGetValue(key, out var typeface))
-        {
-            return typeface;
-        }
-
-        var targetWeight = FontHelpers.ResolveTargetWeight(fontFamily, bold);
-        var targetItalic = italic;
-
-        if (FontDirectory != null)
-        {
-            typeface = ResolveFromDirectory(candidates, fontFamily, bold, targetWeight, targetItalic);
-            if (typeface == null)
-            {
-                throw new InvalidOperationException($"Font '{fontFamily}' not found in '{FontDirectory}'.");
-            }
-
-            typefaceCache[key] = typeface;
-            return typeface;
-        }
-
-        // 1. Search all known caches for any of the candidate names; pick the best face.
-        //    (Embedded Aptos faces are already pre-seeded into typefaceCache, so the
-        //    lookup at the top of this method handles them directly without a fan-out.)
-        typeface = ResolveFromCaches(candidates, targetWeight, targetItalic);
-
-        // 2. Fall back to the OS font manager (handles "user has installed something we
-        //    didn't index" plus localized system fonts on macOS/Linux).
-        typeface ??= TryResolveFromSystem(candidates, style);
-
-        // 3. Configured/runtime fallback name (e.g. "Segoe UI Variable" → "Segoe UI") —
-        //    re-resolve the alias through the same path.
-        if (typeface == null)
-        {
-            var fallbackName = FontHelpers.FindFallback(candidates) ?? FontFallback?.Invoke(fontFamily);
-            if (fallbackName != null)
-            {
-                var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, bold);
-                var fallbackTargetWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
-                typeface = ResolveFromCaches(fallbackCandidates, fallbackTargetWeight, targetItalic)
-                    ?? TryResolveFromSystem(fallbackCandidates, style);
-            }
-        }
-
-        if (typeface == null)
-        {
-            throw new InvalidOperationException(
-                $"Font '{fontFamily}' not found. Checked:{Environment.NewLine}  " +
-                string.Join($"{Environment.NewLine}  ", FontCacheLoader.GetSearchedPaths()));
-        }
-
-        typefaceCache[key] = typeface;
-        return typeface;
-    }
-
-    SKTypeface? ResolveFromDirectory(FontNameCandidates candidates, string fontFamily, bool bold, int targetWeight, bool targetItalic)
-    {
-        var cache = GetDirectoryCache(FontDirectory!);
-        var typeface = ResolveFromCache(cache, candidates, targetWeight, targetItalic);
-        if (typeface != null)
-        {
-            return typeface;
-        }
-
-        var fallbackName = FontHelpers.FindFallback(candidates) ?? FontFallback?.Invoke(fontFamily);
-        if (fallbackName == null)
-        {
-            return null;
-        }
-
-        var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, bold);
-        var fallbackTargetWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
-        return ResolveFromCache(cache, fallbackCandidates, fallbackTargetWeight, targetItalic);
-    }
-
     /// <summary>
-    /// Looks the candidate names up in <see cref="allFontsCache"/> and picks the face
-    /// whose weight/italic/width is closest to the request. A Light face beats a
-    /// Regular when Light was asked for; when scores tie, the face from a
-    /// higher-priority ingestion source (user before system) wins because it appears
-    /// first in the bucket.
+    /// Loads a single picked face. Returns <c>null</c> on failure (e.g. WOFF2, which is
+    /// indexable by <see cref="OpenTypeReader"/> but not loadable by Skia) so the resolver
+    /// can advance to the next-best face. The sibling-faces argument is ignored — an
+    /// <c>SKTypeface</c> wraps a single file, so there's no benefit to pre-loading style
+    /// variants the way ImageSharp does.
     /// </summary>
-    static SKTypeface? ResolveFromCaches(FontNameCandidates candidates, int targetWeight, bool targetItalic)
-    {
-        if (!allFontsCache.TryGet(candidates, out var faces))
-        {
-            return null;
-        }
-
-        FontFace? bestSoFar = null;
-        var bestScore = int.MaxValue;
-        foreach (var face in faces)
-        {
-            var score = FontHelpers.ScoreFace(face, targetWeight, targetItalic);
-            if (score < bestScore)
-            {
-                bestScore = score;
-                bestSoFar = face;
-            }
-        }
-
-        return bestSoFar == null ? null : LoadFace(bestSoFar);
-    }
-
-    static SKTypeface? ResolveFromCache(FontFileCache cache, FontNameCandidates candidates, int targetWeight, bool targetItalic)
-    {
-        if (!cache.TryGet(candidates, out var faces))
-        {
-            return null;
-        }
-
-        var face = FontHelpers.PickBestFace(faces, targetWeight, targetItalic);
-        return face == null ? null : LoadFace(face);
-    }
-
-    static SKTypeface? LoadFace(FontFace face)
+    static SKTypeface? LoadFace(FontFace face, IReadOnlyList<FontFace> _)
     {
         try
         {
@@ -233,8 +84,15 @@ sealed class SkiaRenderContext(
         }
     }
 
-    static SKTypeface? TryResolveFromSystem(FontNameCandidates candidates, SKFontStyle style)
+    /// <summary>
+    /// OS font manager fallback. Only used in default mode (not directory mode), so
+    /// behaves exactly like the previous inline implementation.
+    /// </summary>
+    static SKTypeface? TryResolveFromSystem(FontNameCandidates candidates, int targetWeight, bool targetItalic)
     {
+        var slant = targetItalic ? SKFontStyleSlant.Italic : SKFontStyleSlant.Upright;
+        var style = new SKFontStyle(targetWeight, (int) SKFontStyleWidth.Normal, slant);
+
         foreach (var name in FontFileCache.EnumerateCandidateNames(candidates))
         {
             var typeface = SKTypeface.FromFamilyName(name, style);
@@ -251,9 +109,8 @@ sealed class SkiaRenderContext(
             if (typeface.FamilyName.Equals(name, StringComparison.OrdinalIgnoreCase) ||
                 typeface.FamilyName.StartsWith(name, StringComparison.OrdinalIgnoreCase))
             {
-                var wantItalic = style.Slant != SKFontStyleSlant.Upright;
                 var gotItalic = typeface.FontStyle.Slant != SKFontStyleSlant.Upright;
-                if (wantItalic == gotItalic)
+                if (gotItalic == targetItalic)
                 {
                     return typeface;
                 }
@@ -264,6 +121,12 @@ sealed class SkiaRenderContext(
 
         return null;
     }
+
+    static void ReleaseTypeface(SKTypeface typeface) =>
+        typeface.Dispose();
+
+    public SKTypeface GetTypeface(string fontFamily, bool bold, bool italic) =>
+        resolver.Resolve(fontFamily, bold, italic);
 
     public SKFont CreateFont(RunProperties props)
     {
@@ -353,21 +216,5 @@ sealed class SkiaRenderContext(
         return SKColors.Black;
     }
 
-    public void Dispose()
-    {
-        foreach (var typeface in typefaceCache.Values)
-        {
-            // Skip shared embedded typefaces — they live in a static array and are
-            // reused by every render context in the process; disposing here would leave
-            // the next render with a disposed handle.
-            if (Array.IndexOf(embeddedTypefaces, typeface) >= 0)
-            {
-                continue;
-            }
-
-            typeface.Dispose();
-        }
-
-        typefaceCache.Clear();
-    }
+    public void Dispose() => resolver.Dispose();
 }
