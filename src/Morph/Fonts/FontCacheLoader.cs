@@ -4,10 +4,24 @@
 /// </summary>
 static class FontCacheLoader
 {
+    static string? officeFontPath;
+
+    static FontCacheLoader()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            officeFontPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Microsoft Office", "root", "vfs", "Fonts", "private");
+        }
+        else if (OperatingSystem.IsMacOS())
+        {
+            officeFontPath = "/Applications/Microsoft Word.app/Contents/Resources/DFonts";
+        }
+    }
+
     /// <summary>
     /// Gets font file paths from the Microsoft 365 cloud fonts cache.
     /// </summary>
-    internal static IEnumerable<string> GetCloudFontFiles()
+    static IEnumerable<string> GetCloudFontFiles()
     {
         var cloudFontsPath = GetCloudFontPath();
         if (!Directory.Exists(cloudFontsPath))
@@ -24,13 +38,13 @@ static class FontCacheLoader
         }
     }
 
-    internal static string GetCloudFontPath()
+    static string GetCloudFontPath()
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         return Path.Combine(localAppData, "Microsoft", "FontCache", "4", "CloudFonts");
     }
 
-    internal static string GetUserFontPath()
+    static string GetUserFontPath()
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         return Path.Combine(localAppData, "Microsoft", "Windows", "Fonts");
@@ -43,10 +57,12 @@ static class FontCacheLoader
             yield return path;
         }
         yield return GetUserFontPath();
-        foreach (var path in GetOfficeFontPaths())
+
+        if (officeFontPath != null)
         {
-            yield return path;
+            yield return officeFontPath;
         }
+
         yield return GetCloudFontPath();
         yield return "(Morph embedded fonts)";
     }
@@ -54,11 +70,11 @@ static class FontCacheLoader
     /// <summary>
     /// Gets font file paths from Microsoft Office private fonts.
     /// </summary>
-    internal static IEnumerable<string> GetOfficeFontFiles()
+    static IEnumerable<string> GetOfficeFontFiles()
     {
-        foreach (var officeFontsPath in GetOfficeFontPaths())
+        if (officeFontPath != null)
         {
-            foreach (var fontFile in EnumerateFontFilesInDirectory(officeFontsPath))
+            foreach (var fontFile in EnumerateFontFilesInDirectory(officeFontPath))
             {
                 yield return fontFile;
             }
@@ -68,7 +84,7 @@ static class FontCacheLoader
     /// <summary>
     /// Gets font file paths from user-installed fonts (installed without admin rights).
     /// </summary>
-    internal static IEnumerable<string> GetUserFontFiles() =>
+    static IEnumerable<string> GetUserFontFiles() =>
         EnumerateFontFilesInDirectory(GetUserFontPath());
 
     /// <summary>
@@ -131,20 +147,6 @@ static class FontCacheLoader
         }
     }
 
-    static IEnumerable<string> GetOfficeFontPaths()
-    {
-        if (OperatingSystem.IsWindows())
-        {
-            yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Microsoft Office", "root", "vfs", "Fonts", "private");
-        }
-        else if (OperatingSystem.IsMacOS())
-        {
-            yield return "/Applications/Microsoft Word.app/Contents/Resources/DFonts";
-            yield return "/Applications/Microsoft Excel.app/Contents/Resources/DFonts";
-            yield return "/Applications/Microsoft PowerPoint.app/Contents/Resources/DFonts";
-        }
-    }
-
     /// <summary>
     /// Enumerates <c>.ttf</c>, <c>.otf</c>, <c>.ttc</c>, and <c>.woff2</c> files in
     /// <paramref name="directory"/>. Returns nothing if the directory does not exist.
@@ -157,15 +159,7 @@ static class FontCacheLoader
         }
 
         var option = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-        IEnumerable<string> files;
-        try
-        {
-            files = Directory.EnumerateFiles(directory, "*", option);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            yield break;
-        }
+        var files = Directory.EnumerateFiles(directory, "*", option);
 
         foreach (var file in files)
         {
