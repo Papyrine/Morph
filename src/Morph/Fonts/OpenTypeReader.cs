@@ -140,13 +140,19 @@ static class OpenTypeReader
     /// Seeks to <paramref name="faceOffset"/> in <paramref name="stream"/>, reads the
     /// 12-byte offset table header, and parses that face. Used for TTC member faces.
     /// </summary>
-    static bool TryReadSfntFace(Stream stream, long faceOffset, string path, int index,
-        out FontFace face, out IReadOnlyList<string> names)
+    static bool TryReadSfntFace(
+        Stream stream,
+        long faceOffset,
+        string path,
+        int index,
+        [NotNullWhen(true)] out FontFace? face,
+        [NotNullWhen(true)] out IReadOnlyList<string>? names)
     {
-        face = null!;
-        names = [];
+        face = null;
+        names = null;
 
-        if (faceOffset < 0 || faceOffset + 12 > stream.Length)
+        if (faceOffset < 0 ||
+            faceOffset + 12 > stream.Length)
         {
             return false;
         }
@@ -166,12 +172,16 @@ static class OpenTypeReader
     /// stream must be positioned immediately after the header (at the start of the
     /// table directory records).
     /// </summary>
-    static bool TryReadSfntFaceFromHeader(Stream stream, byte[] header, string path, int index,
-        out FontFace face, out IReadOnlyList<string> names)
+    static bool TryReadSfntFaceFromHeader(
+        Stream stream,
+        byte[] header,
+        string path,
+        int index,
+        [NotNullWhen(true)] out FontFace? face,
+        [NotNullWhen(true)] out IReadOnlyList<string>? names)
     {
-        face = null!;
-        names = [];
-
+        face = null;
+        names = null;
         var numTables = BinaryPrimitives.ReadUInt16BigEndian(header.AsSpan(4, 2));
         if (numTables == 0)
         {
@@ -214,7 +224,9 @@ static class OpenTypeReader
             }
         }
 
-        if (nameOffset < 0 || nameLength <= 0 || nameOffset + nameLength > stream.Length)
+        if (nameOffset < 0 ||
+            nameLength <= 0 ||
+            nameOffset + nameLength > stream.Length)
         {
             return false;
         }
@@ -233,7 +245,7 @@ static class OpenTypeReader
             stream.Position = os2Offset;
             if (!TryReadExact(stream, os2Bytes))
             {
-                os2Bytes = Array.Empty<byte>();
+                os2Bytes = [];
             }
         }
 
@@ -349,7 +361,8 @@ static class OpenTypeReader
             var nextOffset = uncompOffset + tableLengthInStream;
             if (nextOffset < uncompOffset)
             {
-                return false; // overflow
+                // overflow
+                return false;
             }
 
             entries[i] = (tag, uncompOffset, tableLengthInStream);
