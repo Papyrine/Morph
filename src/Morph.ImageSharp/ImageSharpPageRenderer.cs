@@ -14,15 +14,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     int pageCount;
     Image<Rgba32>? pendingPage;
     Image<Rgba32>? currentPage;
-    HeaderFooterContent? header;
-    HeaderFooterContent? footer;
-    HeaderFooterContent? firstPageHeader;
-    HeaderFooterContent? firstPageFooter;
-    HeaderFooterContent? evenPageHeader;
-    HeaderFooterContent? evenPageFooter;
-    bool differentFirstPage;
     float headerHeight;
-    float footerHeight;
     IReadOnlyList<Watermark> watermarks = [];
 
     bool hasSignificantContentOnCurrentPage;
@@ -155,94 +147,12 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
     }
 
-    void RenderHeader()
+    protected override void RenderHeaderFooterParagraph(ParagraphElement paragraph)
     {
-        HeaderFooterContent? activeHeader;
-        if (differentFirstPage &&
-            context.CurrentPageNumber == 1)
+        if (currentPage != null)
         {
-            activeHeader = firstPageHeader;
+            textRenderer.RenderParagraph(currentPage, paragraph);
         }
-        else if (evenPageHeader != null &&
-                 context.CurrentPageNumber % 2 == 0)
-        {
-            activeHeader = evenPageHeader;
-        }
-        else
-        {
-            activeHeader = header;
-        }
-
-        if (activeHeader == null || currentPage == null)
-        {
-            return;
-        }
-
-        var savedY = context.CurrentY;
-        context.CurrentY = (float) context.PageSettings.HeaderDistance;
-
-        foreach (var element in activeHeader.Elements)
-        {
-            if (element is FloatingShapeElement {BehindText: true} shape)
-            {
-                RenderBackgroundShape(shape);
-            }
-            else if (element is FloatingImageElement floatingImage)
-            {
-                RenderFloatingImage(floatingImage);
-            }
-            else if (element is ParagraphElement para)
-            {
-                textRenderer.RenderParagraph(currentPage, para);
-            }
-        }
-
-        context.CurrentY = savedY;
-    }
-
-    void RenderFooter()
-    {
-        HeaderFooterContent? activeFooter;
-        if (differentFirstPage &&
-            context.CurrentPageNumber == 1)
-        {
-            activeFooter = firstPageFooter;
-        }
-        else if (evenPageFooter != null &&
-                 context.CurrentPageNumber % 2 == 0)
-        {
-            activeFooter = evenPageFooter;
-        }
-        else
-        {
-            activeFooter = footer;
-        }
-
-        if (activeFooter == null || currentPage == null)
-        {
-            return;
-        }
-
-        var savedY = context.CurrentY;
-        context.CurrentY = (float) (context.PageSettings.HeightPoints - context.PageSettings.FooterDistance - footerHeight);
-
-        foreach (var element in activeFooter.Elements)
-        {
-            if (element is FloatingShapeElement {BehindText: true} shape)
-            {
-                RenderBackgroundShape(shape);
-            }
-            else if (element is FloatingImageElement floatingImage)
-            {
-                RenderFloatingImage(floatingImage);
-            }
-            else if (element is ParagraphElement para)
-            {
-                textRenderer.RenderParagraph(currentPage, para);
-            }
-        }
-
-        context.CurrentY = savedY;
     }
 
     void RenderElement(DocumentElement element, DocumentElement? nextElement = null)
@@ -462,48 +372,26 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
     }
 
-    void RenderHorizontalRule()
+    protected override void DrawHorizontalRuleLine(float pixelX1, float pixelY, float pixelX2, string hexColor, float pixelStrokeWidth)
     {
-        const float ruleHeight = 6;
-        EnsureSpaceFor(ruleHeight);
-
-        if (currentPage != null)
-        {
-            var y = context.PointsToPixels(context.CurrentY + 3);
-            var x1 = context.PointsToPixels(context.ContentLeft);
-            var x2 = context.PointsToPixels(context.ContentLeft + context.ContentWidth);
-            var pen = Pens.Solid(Color.FromRgb(0xA0, 0xA0, 0xA0), context.PointsToPixels(0.75f));
-            currentPage.Mutate(_ => _.DrawLine(pen, new PointF(x1, y), new PointF(x2, y)));
-        }
-
-        context.CurrentY += ruleHeight;
-    }
-
-    void RenderImage(ImageElement image)
-    {
-        var height = (float) image.HeightPoints;
-        EnsureSpaceFor(height);
-
         if (currentPage == null)
         {
             return;
         }
 
-        // SVG images are not supported in ImageSharp backend
-        if (image.ContentType == "image/svg+xml")
+        var pen = Pens.Solid(ParseColor(hexColor), pixelStrokeWidth);
+        currentPage.Mutate(_ => _.DrawLine(pen, new PointF(pixelX1, pixelY), new PointF(pixelX2, pixelY)));
+    }
+
+    protected override void DrawBlockImage(byte[] imageData, string? contentType, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, ImageCrop? crop, BlipColorEffect colorEffect)
+    {
+        // SVG images are not supported in the ImageSharp backend
+        if (contentType == "image/svg+xml")
         {
-            context.CurrentY += height;
             return;
         }
 
-        var x = context.PointsToPixels(context.ContentLeft);
-        var y = context.PointsToPixels(context.CurrentY);
-        var width = context.PointsToPixels((float) image.WidthPoints);
-        var pixelHeight = context.PointsToPixels(height);
-
-        DrawBlockImage(image.ImageData, x, y, width, pixelHeight, (float) image.RotationDegrees, image.Crop, image.ColorEffect);
-
-        context.CurrentY += height;
+        DrawBlockImage(imageData, pixelX, pixelY, pixelWidth, pixelHeight, rotation, crop, colorEffect);
     }
 
     void DrawBlockImage(byte[] imageData, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, ImageCrop? crop, BlipColorEffect colorEffect = BlipColorEffect.None)
@@ -1301,7 +1189,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
     }
 
-    void RenderBackgroundShape(FloatingShapeElement shape)
+    protected override void RenderBackgroundShape(FloatingShapeElement shape)
     {
         if (currentPage == null)
         {
@@ -1376,7 +1264,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
     }
 
-    void RenderFloatingImage(FloatingImageElement image)
+    protected override void RenderFloatingImage(FloatingImageElement image)
     {
         if (currentPage == null || image.ContentType == "image/svg+xml")
         {

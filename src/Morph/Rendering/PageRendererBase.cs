@@ -59,6 +59,33 @@ abstract class PageRendererBase(RenderContextBase context)
     /// rectangle (used for combo / dropdown / list controls).</summary>
     protected abstract void DrawDropDownArrow(float pixelX, float pixelY, float pixelHeight, string hexColor);
 
+    /// <summary>Renders a behind-text floating shape (background ribbon, watermark rectangle, etc).</summary>
+    protected abstract void RenderBackgroundShape(FloatingShapeElement shape);
+
+    /// <summary>Renders an absolutely-positioned floating image (anchored, not part of text flow).</summary>
+    protected abstract void RenderFloatingImage(FloatingImageElement image);
+
+    /// <summary>Renders a paragraph in the header / footer region (does not advance flow Y).</summary>
+    protected abstract void RenderHeaderFooterParagraph(ParagraphElement paragraph);
+
+    /// <summary>Strokes a horizontal rule line between the two x-pixel coordinates.</summary>
+    protected abstract void DrawHorizontalRuleLine(float pixelX1, float pixelY, float pixelX2, string hexColor, float pixelStrokeWidth);
+
+    /// <summary>Draws a block image at the given pixel rectangle, applying optional rotation, crop, and color effect.
+    /// Backends decide how to handle <paramref name="contentType"/> (e.g. SVG vs raster).</summary>
+    protected abstract void DrawBlockImage(byte[] imageData, string? contentType, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, ImageCrop? crop, BlipColorEffect colorEffect);
+
+    // Header / footer state shared by both backends. Set from the leaf's RenderDocument
+    // before page emission begins; consumed by the lifted RenderHeader / RenderFooter.
+    protected HeaderFooterContent? header;
+    protected HeaderFooterContent? footer;
+    protected HeaderFooterContent? firstPageHeader;
+    protected HeaderFooterContent? firstPageFooter;
+    protected HeaderFooterContent? evenPageHeader;
+    protected HeaderFooterContent? evenPageFooter;
+    protected bool differentFirstPage;
+    protected float footerHeight;
+
     // Form-field palette. Same constants used by every backend; centralising them here makes
     // the abstract draw primitives backend-agnostic without leaking ImageSharp/Skia color types.
     const string formFieldActiveBg = "FFFFFF";
@@ -356,6 +383,134 @@ abstract class PageRendererBase(RenderContextBase context)
         }
 
         context.CurrentY += fieldHeight + 4;
+    }
+
+    /// <summary>
+    /// Selects the active header for the current page — first-page header (when
+    /// <see cref="differentFirstPage"/> is on and we're on page 1) → even-page header
+    /// (on even pages) → default header — and renders its elements at <c>HeaderDistance</c>.
+    /// </summary>
+    protected void RenderHeader()
+    {
+        HeaderFooterContent? activeHeader;
+        if (differentFirstPage &&
+            context.CurrentPageNumber == 1)
+        {
+            activeHeader = firstPageHeader;
+        }
+        else if (evenPageHeader != null &&
+                 context.CurrentPageNumber % 2 == 0)
+        {
+            activeHeader = evenPageHeader;
+        }
+        else
+        {
+            activeHeader = header;
+        }
+
+        if (activeHeader == null || !HasOutput)
+        {
+            return;
+        }
+
+        var savedY = context.CurrentY;
+        context.CurrentY = (float) context.PageSettings.HeaderDistance;
+
+        RenderHeaderFooterElements(activeHeader);
+
+        context.CurrentY = savedY;
+    }
+
+    /// <summary>
+    /// Selects the active footer for the current page (same precedence as
+    /// <see cref="RenderHeader"/>) and renders its elements anchored to the page bottom.
+    /// </summary>
+    protected void RenderFooter()
+    {
+        HeaderFooterContent? activeFooter;
+        if (differentFirstPage &&
+            context.CurrentPageNumber == 1)
+        {
+            activeFooter = firstPageFooter;
+        }
+        else if (evenPageFooter != null &&
+                 context.CurrentPageNumber % 2 == 0)
+        {
+            activeFooter = evenPageFooter;
+        }
+        else
+        {
+            activeFooter = footer;
+        }
+
+        if (activeFooter == null || !HasOutput)
+        {
+            return;
+        }
+
+        var savedY = context.CurrentY;
+        context.CurrentY = (float) (context.PageSettings.HeightPoints - context.PageSettings.FooterDistance - footerHeight);
+
+        RenderHeaderFooterElements(activeFooter);
+
+        context.CurrentY = savedY;
+    }
+
+    void RenderHeaderFooterElements(HeaderFooterContent content)
+    {
+        foreach (var element in content.Elements)
+        {
+            if (element is FloatingShapeElement {BehindText: true} shape)
+            {
+                RenderBackgroundShape(shape);
+            }
+            else if (element is FloatingImageElement floatingImage)
+            {
+                RenderFloatingImage(floatingImage);
+            }
+            else if (element is ParagraphElement para)
+            {
+                RenderHeaderFooterParagraph(para);
+            }
+        }
+    }
+
+    /// <summary>Renders a horizontal-rule element: 0.75pt gray line across the content width.</summary>
+    protected void RenderHorizontalRule()
+    {
+        const float ruleHeight = 6; // spacing above + line + spacing below
+        EnsureSpaceFor(ruleHeight);
+
+        if (HasOutput)
+        {
+            var y = context.PointsToPixels(context.CurrentY + 3);
+            var x1 = context.PointsToPixels(context.ContentLeft);
+            var x2 = context.PointsToPixels(context.ContentLeft + context.ContentWidth);
+            DrawHorizontalRuleLine(x1, y, x2, "A0A0A0", context.PointsToPixels(0.75f));
+        }
+
+        context.CurrentY += ruleHeight;
+    }
+
+    /// <summary>Renders a block-level image, handling page-break, geometry, and Y advancement.</summary>
+    protected void RenderImage(ImageElement image)
+    {
+        var height = (float) image.HeightPoints;
+        EnsureSpaceFor(height);
+
+        if (!HasOutput)
+        {
+            return;
+        }
+
+        var x = context.PointsToPixels(context.ContentLeft);
+        var y = context.PointsToPixels(context.CurrentY);
+        var width = context.PointsToPixels((float) image.WidthPoints);
+        var pixelHeight = context.PointsToPixels(height);
+
+        DrawBlockImage(image.ImageData, image.ContentType, x, y, width, pixelHeight, (float) image.RotationDegrees, image.Crop, image.ColorEffect);
+
+        context.CurrentY += height;
     }
 
     /// <summary>

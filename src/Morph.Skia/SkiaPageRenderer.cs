@@ -26,15 +26,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
     SKBitmap? pendingPage;
     SKBitmap? currentPage;
     SKCanvas? currentCanvas;
-    HeaderFooterContent? header;
-    HeaderFooterContent? footer;
-    HeaderFooterContent? firstPageHeader;
-    HeaderFooterContent? firstPageFooter;
-    HeaderFooterContent? evenPageHeader;
-    HeaderFooterContent? evenPageFooter;
-    bool differentFirstPage;
     float headerHeight;
-    float footerHeight;
     IReadOnlyList<Watermark> watermarks = [];
 
     // Track whether meaningful content (text/images/tables) was rendered on current page
@@ -206,97 +198,12 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
     }
 
-    void RenderHeader()
+    protected override void RenderHeaderFooterParagraph(ParagraphElement paragraph)
     {
-        // Selection precedence: first-page header (if enabled and page 1) → even-page header
-        // (if enabled and page is even) → default header.
-        HeaderFooterContent? activeHeader;
-        if (differentFirstPage &&
-            context.CurrentPageNumber == 1)
+        if (currentCanvas != null)
         {
-            activeHeader = firstPageHeader;
+            textRenderer.RenderParagraph(currentCanvas, paragraph);
         }
-        else if (evenPageHeader != null &&
-                 context.CurrentPageNumber % 2 == 0)
-        {
-            activeHeader = evenPageHeader;
-        }
-        else
-        {
-            activeHeader = header;
-        }
-
-        if (activeHeader == null || currentCanvas == null)
-        {
-            return;
-        }
-
-        var savedY = context.CurrentY;
-        context.CurrentY = (float) context.PageSettings.HeaderDistance;
-
-        foreach (var element in activeHeader.Elements)
-        {
-            if (element is FloatingShapeElement {BehindText: true} shape)
-            {
-                RenderBackgroundShape(shape);
-            }
-            else if (element is FloatingImageElement floatingImage)
-            {
-                RenderFloatingImage(floatingImage);
-            }
-            else if (element is ParagraphElement para)
-            {
-                textRenderer.RenderParagraph(currentCanvas, para);
-            }
-        }
-
-        context.CurrentY = savedY;
-    }
-
-    void RenderFooter()
-    {
-        HeaderFooterContent? activeFooter;
-        if (differentFirstPage &&
-            context.CurrentPageNumber == 1)
-        {
-            activeFooter = firstPageFooter;
-        }
-        else if (evenPageFooter != null &&
-                 context.CurrentPageNumber % 2 == 0)
-        {
-            activeFooter = evenPageFooter;
-        }
-        else
-        {
-            activeFooter = footer;
-        }
-
-        if (activeFooter == null || currentCanvas == null)
-        {
-            return;
-        }
-
-        var savedY = context.CurrentY;
-        // Position footer from bottom
-        context.CurrentY = (float) (context.PageSettings.HeightPoints - context.PageSettings.FooterDistance - footerHeight);
-
-        foreach (var element in activeFooter.Elements)
-        {
-            if (element is FloatingShapeElement {BehindText: true} shape)
-            {
-                RenderBackgroundShape(shape);
-            }
-            else if (element is FloatingImageElement floatingImage)
-            {
-                RenderFloatingImage(floatingImage);
-            }
-            else if (element is ParagraphElement para)
-            {
-                textRenderer.RenderParagraph(currentCanvas, para);
-            }
-        }
-
-        context.CurrentY = savedY;
     }
 
     void RenderElement(DocumentElement element, DocumentElement? nextElement = null)
@@ -555,50 +462,27 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
     }
 
-    void RenderHorizontalRule()
+    protected override void DrawHorizontalRuleLine(float pixelX1, float pixelY, float pixelX2, string hexColor, float pixelStrokeWidth)
     {
-        const float ruleHeight = 6; // spacing above + line + spacing below
-        EnsureSpaceFor(ruleHeight);
-
-        if (currentCanvas != null)
-        {
-            var y = context.PointsToPixels(context.CurrentY + 3);
-            var x1 = context.PointsToPixels(context.ContentLeft);
-            var x2 = context.PointsToPixels(context.ContentLeft + context.ContentWidth);
-
-            using var paint = new SKPaint
-            {
-                Style = SKPaintStyle.Stroke,
-                Color = new(0xA0, 0xA0, 0xA0),
-                StrokeWidth = context.PointsToPixels(0.75f),
-                IsAntialias = true
-            };
-            currentCanvas.DrawLine(x1, y, x2, y, paint);
-        }
-
-        context.CurrentY += ruleHeight;
-    }
-
-    void RenderImage(ImageElement image)
-    {
-        var height = (float) image.HeightPoints;
-        EnsureSpaceFor(height);
-
         if (currentCanvas == null)
         {
             return;
         }
 
-        var x = context.PointsToPixels(context.ContentLeft);
-        var y = context.PointsToPixels(context.CurrentY);
-        var width = context.PointsToPixels((float) image.WidthPoints);
-        var pixelHeight = context.PointsToPixels(height);
+        using var paint = new SKPaint
+        {
+            Style = SKPaintStyle.Stroke,
+            Color = SkiaRenderContext.ParseColor(hexColor),
+            StrokeWidth = pixelStrokeWidth,
+            IsAntialias = true
+        };
+        currentCanvas.DrawLine(pixelX1, pixelY, pixelX2, pixelY, paint);
+    }
 
-        var destRect = new SKRect(x, y, x + width, y + pixelHeight);
-
-        DrawBlockImage(image.ImageData, image.ContentType, destRect, (float) image.RotationDegrees, image.Crop, image.ColorEffect);
-
-        context.CurrentY += height;
+    protected override void DrawBlockImage(byte[] imageData, string? contentType, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, ImageCrop? crop, BlipColorEffect colorEffect)
+    {
+        var destRect = new SKRect(pixelX, pixelY, pixelX + pixelWidth, pixelY + pixelHeight);
+        DrawBlockImage(imageData, contentType, destRect, rotation, crop, colorEffect);
     }
 
     void DrawBlockImage(byte[] imageData, string? contentType, SKRect destRect, float rotation, ImageCrop? crop, BlipColorEffect colorEffect = BlipColorEffect.None)
@@ -1780,7 +1664,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
     }
 
-    void RenderBackgroundShape(FloatingShapeElement shape)
+    protected override void RenderBackgroundShape(FloatingShapeElement shape)
     {
         if (currentCanvas == null)
         {
@@ -1866,7 +1750,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
     }
 
-    void RenderFloatingImage(FloatingImageElement image)
+    protected override void RenderFloatingImage(FloatingImageElement image)
     {
         if (currentCanvas == null)
         {
