@@ -12,7 +12,7 @@ sealed class FontFileCache
 
     /// <summary>
     /// Builds an index from <paramref name="fontFiles"/> using <paramref name="readFaces"/>
-    /// (typically <see cref="OpenTypeReader.ReadFaces"/>) to extract per-face metadata
+    /// (typically <see cref="OpenTypeReader.ReadFaces(string)"/>) to extract per-face metadata
     /// and the names each face should be indexed under.
     /// </summary>
     public FontFileCache(

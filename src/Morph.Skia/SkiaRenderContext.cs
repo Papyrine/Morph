@@ -21,46 +21,18 @@ sealed class SkiaRenderContext(
         deterministicRendering),
     IDisposable
 {
-    /// <summary>
-    /// Typefaces loaded from <see cref="EmbeddedFonts"/> (the Aptos faces shipped inside
-    /// <c>Morph.dll</c>). Decoded by Skia once per process and seeded into every render
-    /// context's <see cref="FontResolver{TFont}"/> so the standard bold/italic combinations
-    /// of the default font hit the cache directly without touching disk.
-    /// </summary>
-    static readonly SKTypeface[] embeddedTypefaces = LoadEmbeddedTypefaces();
-
-    // Frozen at static init from the embedded faces' FamilyName / FontStyle. Reading those
-    // properties through SkiaSharp on every new render context — as the original
-    // SeedTypefaceCache did — hit a native AV inside sk_typeface_get_family_name under
-    // bulk parallel test load (regression from 3de908f8). Reading them once and copying
-    // the tuples per instance avoids the issue entirely.
-    static readonly ((string Name, int Weight, bool Italic) Key, SKTypeface Font)[] embeddedSeed =
-        embeddedTypefaces
-            .Select(_ => (
-                Key: (_.FamilyName, _.FontStyle.Weight, _.FontStyle.Slant != SKFontStyleSlant.Upright),
-                Font: _))
-            .ToArray();
-
     readonly FontResolver<SKTypeface> resolver = new(
         loadFace: LoadFace,
         systemFallback: fontDirectory == null ? TryResolveFromSystem : null,
         releaseFont: ReleaseTypeface,
         fontDirectory: fontDirectory,
         fontFallback: fontFallback,
-        seed: embeddedSeed);
+        seed: FontResolver<SKTypeface>.BuildBundledSeed(LoadFromBytes));
 
-    static SKTypeface[] LoadEmbeddedTypefaces()
+    static SKTypeface LoadFromBytes(byte[] bytes)
     {
-        var list = new List<SKTypeface>();
-        foreach (var stream in EmbeddedFonts.OpenStreams())
-        {
-            using (stream)
-            {
-                list.Add(SKTypeface.FromStream(stream)
-                    ?? throw new InvalidOperationException("Failed to load embedded font from Morph.dll resource stream."));
-            }
-        }
-        return list.ToArray();
+        using var stream = new MemoryStream(bytes, writable: false);
+        return SKTypeface.FromStream(stream);
     }
 
     /// <summary>

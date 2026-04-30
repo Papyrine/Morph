@@ -9,6 +9,7 @@
   <Project Path="Morph.Html.Skia/Morph.Html.Skia.csproj" />
   <Project Path="Morph.Html.ImageSharp/Morph.Html.ImageSharp.csproj" />
   <Folder Name="/SolutionItems/">
+    <File Path="../.editorconfig" />
     <File Path="../.gitattributes" />
     <File Path="../docs/word-features.md" />
     <File Path="../README.md" />

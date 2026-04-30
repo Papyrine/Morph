@@ -4,21 +4,6 @@
 sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
 {
     /// <summary>
-    /// FontCollection populated from <see cref="EmbeddedFonts"/> — the Aptos faces shipped
-    /// inside <c>Morph.dll</c>. Held statically so the streams are parsed once per process.
-    /// </summary>
-    static readonly FontCollection embeddedFontCollection = LoadEmbeddedFontCollection();
-
-    /// <summary>
-    /// Pre-computed seed for <see cref="FontResolver{TFont}"/>. Each Aptos face's
-    /// (FamilyName, Weight, Italic) — read from the OpenType <c>name</c>/<c>OS/2</c>
-    /// tables via <see cref="OpenTypeReader"/> — points at the multi-face FontFamily
-    /// inside <see cref="embeddedFontCollection"/>. Bold/Italic combinations of Aptos
-    /// hit the resolver cache directly without touching disk.
-    /// </summary>
-    static readonly ((string Name, int Weight, bool Italic) Key, FontFamilyHandle Font)[] embeddedSeed = BuildEmbeddedSeed();
-
-    /// <summary>
     /// Per-instance collection that grows as faces are resolved. Each
     /// <see cref="LoadFace"/> call pre-loads every sibling face under the matched
     /// candidate name so <c>FamilyHandle.Family.CreateFont(size, FontStyle.Italic)</c>
@@ -49,45 +34,19 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
             releaseFont: null,
             fontDirectory: fontDirectory,
             fontFallback: fontFallback,
-            seed: embeddedSeed);
+            seed: FontResolver<FontFamilyHandle>.BuildBundledSeed(LoadFromBytes));
 
-    static FontCollection LoadEmbeddedFontCollection()
+    static FontFamilyHandle LoadFromBytes(byte[] bytes)
     {
+        // Wrap the face in its own single-style FontCollection so the returned
+        // FontFamily exposes exactly the style this byte[] encodes. The resolver
+        // only returns a seeded entry on an exact (family, weight, italic) match,
+        // so PickAvailableStyle's later style lookup always hits the only style
+        // present.
         var collection = new FontCollection();
-        foreach (var stream in EmbeddedFonts.OpenStreams())
-        {
-            using (stream)
-            {
-                collection.Add(stream);
-            }
-        }
-        return collection;
-    }
-
-    static ((string Name, int Weight, bool Italic), FontFamilyHandle)[] BuildEmbeddedSeed()
-    {
-        // Wrap each unique embedded family in a single handle so the multi-style seed
-        // entries all point at the same instance — the resolver's seededFonts HashSet
-        // dedupes by reference and skips disposal for everything in the seed.
-        var handlesByName = new Dictionary<string, FontFamilyHandle>(StringComparer.OrdinalIgnoreCase);
-        foreach (var family in embeddedFontCollection.Families)
-        {
-            handlesByName[family.Name] = new(family);
-        }
-
-        var entries = new List<((string, int, bool), FontFamilyHandle)>();
-        foreach (var bytes in EmbeddedFonts.AllFaceBytes)
-        {
-            using var stream = new MemoryStream(bytes, writable: false);
-            foreach (var (face, _) in OpenTypeReader.ReadFaces(stream, "(embedded)"))
-            {
-                if (face.Family != null && handlesByName.TryGetValue(face.Family, out var handle))
-                {
-                    entries.Add(((face.Family, face.Weight, face.Italic), handle));
-                }
-            }
-        }
-        return entries.ToArray();
+        using var stream = new MemoryStream(bytes, writable: false);
+        var family = collection.Add(stream);
+        return new(family);
     }
 
     /// <summary>
