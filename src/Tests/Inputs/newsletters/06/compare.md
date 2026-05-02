@@ -2,7 +2,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2675**<br><img src="results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2710**<br><img src="results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.1823**<br><img src="results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.1878**<br><img src="results_imagesharp%23page_0002.verified.png" width="500"> |
-| **Page 3**<br><img src="expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.2670**<br><img src="results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.2706**<br><img src="results_imagesharp%23page_0003.verified.png" width="500"> |
-| **Page 4**<br><img src="expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.1819**<br><img src="results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.1874**<br><img src="results_imagesharp%23page_0004.verified.png" width="500"> |
+| **Page 1**<br><img src="expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2763**<br><img src="results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2785**<br><img src="results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.1854**<br><img src="results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.1901**<br><img src="results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 3**<br><img src="expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.2753**<br><img src="results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.2775**<br><img src="results_imagesharp%23page_0003.verified.png" width="500"> |
+| **Page 4**<br><img src="expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.1869**<br><img src="results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.1911**<br><img src="results_imagesharp%23page_0004.verified.png" width="500"> |

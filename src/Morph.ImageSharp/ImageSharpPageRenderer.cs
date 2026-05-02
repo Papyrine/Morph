@@ -383,6 +383,9 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         currentPage.Mutate(_ => _.DrawLine(pen, new PointF(pixelX1, pixelY), new PointF(pixelX2, pixelY)));
     }
 
+    protected override bool CanRenderContentType(string? contentType) =>
+        contentType != "image/svg+xml";
+
     protected override void DrawBlockImage(byte[] imageData, string? contentType, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, ImageCrop? crop, BlipColorEffect colorEffect)
     {
         // SVG images are not supported in the ImageSharp backend
@@ -831,10 +834,15 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             return;
         }
 
+        var data = image.ImageData;
         if (image.ContentType == "image/svg+xml")
         {
-            context.CurrentY += (float) image.HeightPoints;
-            return;
+            if (image.RasterFallbackData == null)
+            {
+                context.CurrentY += (float) image.HeightPoints;
+                return;
+            }
+            data = image.RasterFallbackData;
         }
 
         var imageWidth = (float) image.WidthPoints;
@@ -854,7 +862,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         try
         {
-            using var img = Image.Load<Rgba32>(image.ImageData);
+            using var img = Image.Load<Rgba32>(data);
             img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
             currentPage.Mutate(_ => _.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f));
         }
@@ -1248,7 +1256,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 GradientRepetitionMode.None,
                 new ColorStop(0f, ParseColor(gradient.StartColorHex)),
                 new ColorStop(1f, ParseColor(gradient.EndColorHex)));
-            currentPage.Mutate(_ => _.Fill(brush, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
+            FillShape(shape.Preset, pixelX, pixelY, pixelWidth, pixelHeight, brush);
         }
         else if (shape.FillColorHex != null)
         {
@@ -1260,31 +1268,67 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 pixel.A = (byte) Math.Round(alpha * 255);
                 fillColor = Color.FromPixel(pixel);
             }
-            currentPage.Mutate(_ => _.Fill(fillColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
+            FillShape(shape.Preset, pixelX, pixelY, pixelWidth, pixelHeight, new SolidBrush(fillColor));
         }
 
         if (shape.LineColorHex is { } lineColor && shape.LineWidthPoints is { } lineWidthPt && lineWidthPt > 0)
         {
             var strokeColor = ParseColor(lineColor);
             var strokePixels = context.PointsToPixels((float) lineWidthPt);
-            // See note in SkiaPageRenderer.RenderBackgroundShape — clamp to canvas so the
-            // centred stroke at the right/bottom of a full-page shape isn't lost to the
-            // half-pixel gap between truncated PageWidthPixels and the shape's rect width.
-            var strokeLeft = Math.Max(0, pixelX);
-            var strokeTop = Math.Max(0, pixelY);
-            var strokeRight = Math.Min(context.PageWidthPixels, pixelX + pixelWidth);
-            var strokeBottom = Math.Min(context.PageHeightPixels, pixelY + pixelHeight);
-            currentPage.Mutate(_ => _.Draw(
-                Pens.Solid(strokeColor, strokePixels),
-                new RectangleF(strokeLeft, strokeTop, strokeRight - strokeLeft, strokeBottom - strokeTop)));
+            var pen = Pens.Solid(strokeColor, strokePixels);
+            if (shape.Preset == PresetShape.Ellipse)
+            {
+                var ellipse = new EllipsePolygon(
+                    pixelX + pixelWidth / 2,
+                    pixelY + pixelHeight / 2,
+                    pixelWidth / 2,
+                    pixelHeight / 2);
+                currentPage.Mutate(_ => _.Draw(pen, ellipse));
+            }
+            else
+            {
+                // See note in SkiaPageRenderer.RenderBackgroundShape — clamp to canvas so the
+                // centred stroke at the right/bottom of a full-page shape isn't lost to the
+                // half-pixel gap between truncated PageWidthPixels and the shape's rect width.
+                var strokeLeft = Math.Max(0, pixelX);
+                var strokeTop = Math.Max(0, pixelY);
+                var strokeRight = Math.Min(context.PageWidthPixels, pixelX + pixelWidth);
+                var strokeBottom = Math.Min(context.PageHeightPixels, pixelY + pixelHeight);
+                currentPage.Mutate(_ => _.Draw(pen, new RectangleF(strokeLeft, strokeTop, strokeRight - strokeLeft, strokeBottom - strokeTop)));
+            }
+        }
+    }
+
+    void FillShape(PresetShape preset, float x, float y, float width, float height, Brush brush)
+    {
+        if (preset == PresetShape.Ellipse)
+        {
+            var ellipse = new EllipsePolygon(x + width / 2, y + height / 2, width / 2, height / 2);
+            currentPage!.Mutate(_ => _.Fill(brush, ellipse));
+        }
+        else
+        {
+            currentPage!.Mutate(_ => _.Fill(brush, new RectangleF(x, y, width, height)));
         }
     }
 
     protected override void RenderFloatingImage(FloatingImageElement image)
     {
-        if (currentPage == null || image.ContentType == "image/svg+xml")
+        if (currentPage == null)
         {
             return;
+        }
+
+        // ImageSharp can't render SVG. If the docx supplied a raster fallback alongside the
+        // SVG (Word does this for theme artwork), use it; otherwise skip.
+        var data = image.ImageData;
+        if (image.ContentType == "image/svg+xml")
+        {
+            if (image.RasterFallbackData == null)
+            {
+                return;
+            }
+            data = image.RasterFallbackData;
         }
 
         var (width, height) = FloatingPosition.ResolveEffectiveSize(
@@ -1305,7 +1349,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             width,
             height);
 
-        DrawBlockImage(image.ImageData, bounds.PixelX, bounds.PixelY, bounds.PixelWidth, bounds.PixelHeight, (float) image.RotationDegrees, image.Crop);
+        DrawBlockImage(data, bounds.PixelX, bounds.PixelY, bounds.PixelWidth, bounds.PixelHeight, (float) image.RotationDegrees, image.Crop);
     }
 
     void RenderFloatingTextBox(FloatingTextBoxElement textBox)

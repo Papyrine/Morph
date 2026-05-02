@@ -1,4 +1,4 @@
-﻿/// <summary>
+/// <summary>
 /// Represents a floating shape (solid-fill or image-fill, typically used as background).
 /// </summary>
 sealed class FloatingShapeElement : DocumentElement
@@ -45,6 +45,9 @@ sealed class FloatingShapeElement : DocumentElement
     /// <summary>Stroke width in points. Null when no outline is drawn.</summary>
     public double? LineWidthPoints { get; init; }
 
+    /// <summary>Preset geometry kind. Currently only differentiates rect vs ellipse for rendering.</summary>
+    public PresetShape Preset { get; init; } = PresetShape.Rect;
+
     /// <summary>
     /// Width as a fraction (0..1) of <see cref="WidthRelativeFrom"/>, parsed from
     /// <c>wp14:sizeRelH/wp14:pctWidth</c>. Null when no percentage sizing is present.
@@ -62,4 +65,11 @@ sealed class FloatingShapeElement : DocumentElement
 
     /// <summary>Reference area for <see cref="HeightPercent"/>.</summary>
     public SizeRelativeFrom HeightRelativeFrom { get; init; } = SizeRelativeFrom.Margin;
+}
+
+/// <summary>Preset geometry kinds we render. Anything outside this enum falls back to Rect.</summary>
+enum PresetShape
+{
+    Rect,
+    Ellipse
 }

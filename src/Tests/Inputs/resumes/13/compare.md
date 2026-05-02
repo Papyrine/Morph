@@ -8,3 +8,4 @@
 | **Page 4**<br><img src="expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.0000**<br><img src="results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.0000**<br><img src="results_imagesharp%23page_0004.verified.png" width="500"> |
 | **Page 5**<br><img src="expected_0005.png" width="500"> | **Page 5. ErrorMetric: 0.0000**<br><img src="results_skia%23page_0005.verified.png" width="500"> | **Page 5. ErrorMetric: 0.0000**<br><img src="results_imagesharp%23page_0005.verified.png" width="500"> |
 | **Page 6**<br>_(no page)_ | **Page 6. ErrorMetric: 0.0000**<br><img src="results_skia%23page_0006.verified.png" width="500"> | **Page 6. ErrorMetric: 0.0000**<br><img src="results_imagesharp%23page_0006.verified.png" width="500"> |
+| **Page 7**<br>_(no page)_ | **Page 7. ErrorMetric: 0.0000**<br>_(no page)_ | **Page 7. ErrorMetric: 0.0000**<br><img src="results_imagesharp%23page_0007.verified.png" width="500"> |
