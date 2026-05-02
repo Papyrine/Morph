@@ -39,6 +39,12 @@ sealed class FloatingShapeElement : DocumentElement
     /// <summary>Content type of the image (e.g., "image/jpeg"). Null if using solid color fill.</summary>
     public string? ImageContentType { get; init; }
 
+    /// <summary>Stroke color for the shape outline (hex RGB, no #). Null when no outline is drawn.</summary>
+    public string? LineColorHex { get; init; }
+
+    /// <summary>Stroke width in points. Null when no outline is drawn.</summary>
+    public double? LineWidthPoints { get; init; }
+
     /// <summary>
     /// Width as a fraction (0..1) of <see cref="WidthRelativeFrom"/>, parsed from
     /// <c>wp14:sizeRelH/wp14:pctWidth</c>. Null when no percentage sizing is present.

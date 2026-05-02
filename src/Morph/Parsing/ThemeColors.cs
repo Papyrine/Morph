@@ -40,6 +40,14 @@ sealed class ThemeColors
     public string FollowedHyperlink { get; init; } = "954F72";
 
     /// <summary>
+    /// Stroke widths (in EMU) from <c>theme/formatScheme/lnStyleLst</c>, indexed 1-based by
+    /// <c>a:lnRef/@idx</c>. Defaults to Office's standard 0.5pt / 1pt / 1.5pt when the theme
+    /// doesn't supply its own list. Index 0 in the list is unused (reserved for "no line" in
+    /// some style refs).
+    /// </summary>
+    public IReadOnlyList<long> LineStyleWidthsEmu { get; init; } = [0, 6350, 12700, 19050];
+
+    /// <summary>
     /// Resolves a theme color name to its hex value.
     /// </summary>
     /// <param name="themeColorName">Theme color name (e.g., "text1", "accent2", "hyperlink")</param>

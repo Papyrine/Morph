@@ -118,6 +118,8 @@ static class ShapeParser
             return null;
         }
 
+        var (lineColor, lineWidth) = ExtractLineStyle(wsp, shapeProps, themeColors);
+
         // Try solid fill first
         var solidFill = shapeProps.GetFirstChild<A.SolidFill>();
         if (solidFill != null)
@@ -139,7 +141,9 @@ static class ShapeParser
                     HeightPercent = positioning.HeightPercent,
                     HeightRelativeFrom = positioning.HeightRelativeFrom,
                     FillColorHex = fillColorHex,
-                    FillAlpha = ExtractSolidFillAlpha(solidFill)
+                    FillAlpha = ExtractSolidFillAlpha(solidFill),
+                    LineColorHex = lineColor,
+                    LineWidthPoints = lineWidth
                 };
             }
         }
@@ -165,7 +169,9 @@ static class ShapeParser
                     HeightPercent = positioning.HeightPercent,
                     HeightRelativeFrom = positioning.HeightRelativeFrom,
                     Gradient = gradient,
-                    FillColorHex = gradient.StartColorHex
+                    FillColorHex = gradient.StartColorHex,
+                    LineColorHex = lineColor,
+                    LineWidthPoints = lineWidth
                 };
             }
         }
@@ -192,12 +198,84 @@ static class ShapeParser
                     HeightPercent = positioning.HeightPercent,
                     HeightRelativeFrom = positioning.HeightRelativeFrom,
                     ImageData = imageData,
-                    ImageContentType = contentType
+                    ImageContentType = contentType,
+                    LineColorHex = lineColor,
+                    LineWidthPoints = lineWidth
                 };
             }
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Extracts the shape outline (color + width in points) from a wsp's <c>spPr/a:ln</c> or
+    /// <c>wps:style/a:lnRef</c>. Direct <c>a:ln</c> wins; <c>a:lnRef</c> resolves the width
+    /// against the theme's <c>lnStyleLst</c> and the colour from its child colour element.
+    /// Returns (null, null) when the shape has no stroke (e.g. <c>a:noFill</c> on the line).
+    /// </summary>
+    static (string? color, double? widthPoints) ExtractLineStyle(WPS.WordprocessingShape wsp, WPS.ShapeProperties shapeProps, ThemeColors? themeColors)
+    {
+        // Direct <a:ln> on spPr overrides everything else.
+        var directLn = shapeProps.GetFirstChild<A.Outline>();
+        if (directLn != null)
+        {
+            // Explicit no-fill on the line means no stroke.
+            if (directLn.GetFirstChild<A.NoFill>() != null)
+            {
+                return (null, null);
+            }
+
+            string? color = null;
+            var directSolid = directLn.GetFirstChild<A.SolidFill>();
+            if (directSolid != null)
+            {
+                color = ExtractSolidFillColor(directSolid, themeColors);
+            }
+
+            double? widthPt = null;
+            if (directLn.Width?.Value is { } emu)
+            {
+                widthPt = ((long) emu).EmuToPoints();
+            }
+
+            return (color, widthPt);
+        }
+
+        // Fall back to the style's <a:lnRef idx="N">. The width comes from the theme's
+        // lnStyleLst (1-based by idx); the colour is taken from the lnRef element itself
+        // (which typically holds a schemeClr override of the theme's phClr placeholder).
+        var lnRef = wsp.GetFirstChild<WPS.ShapeStyle>()?.LineReference;
+        if (lnRef?.Index?.Value is not { } refIdx || refIdx == 0)
+        {
+            return (null, null);
+        }
+
+        var widths = (themeColors ?? new()).LineStyleWidthsEmu;
+        var refEmu = refIdx < widths.Count ? widths[(int) refIdx] : 0;
+        if (refEmu <= 0)
+        {
+            return (null, null);
+        }
+
+        string? refColor = null;
+        var refScheme = lnRef.GetFirstChild<A.SchemeColor>();
+        if (refScheme?.Val?.HasValue == true && themeColors != null)
+        {
+            var schemeValue = ((IEnumValue) refScheme.Val.Value).Value;
+            var transforms = ExtractColorTransforms(refScheme);
+            refColor = themeColors.ResolveColor(schemeValue, transforms);
+        }
+        else
+        {
+            var refRgb = lnRef.GetFirstChild<A.RgbColorModelHex>();
+            if (refRgb?.Val?.HasValue == true)
+            {
+                refColor = refRgb.Val.Value;
+            }
+        }
+
+        return (refColor, refEmu.EmuToPoints());
     }
 
     /// <summary>
@@ -256,6 +334,8 @@ static class ShapeParser
         var widthPt = (shapeCx * scaleX).EmuToPoints();
         var heightPt = (shapeCy * scaleY).EmuToPoints();
 
+        var (lineColor, lineWidth) = ExtractLineStyle(wsp, shapeProps, themeColors);
+
         // Try solid fill first
         var solidFill = shapeProps.GetFirstChild<A.SolidFill>();
         if (solidFill != null)
@@ -276,7 +356,9 @@ static class ShapeParser
                     // they're already sized by the group's EMU transform (scaleX/scaleY),
                     // so applying the anchor's pctWidth/pctHeight on top would double-scale.
                     FillColorHex = fillColorHex,
-                    FillAlpha = ExtractSolidFillAlpha(solidFill)
+                    FillAlpha = ExtractSolidFillAlpha(solidFill),
+                    LineColorHex = lineColor,
+                    LineWidthPoints = lineWidth
                 };
             }
         }
@@ -300,7 +382,9 @@ static class ShapeParser
                     BehindText = true,
                     // Percent sizing intentionally not propagated — see solid-fill branch.
                     ImageData = imageData,
-                    ImageContentType = contentType
+                    ImageContentType = contentType,
+                    LineColorHex = lineColor,
+                    LineWidthPoints = lineWidth
                 };
             }
         }

@@ -1748,6 +1748,18 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             };
             currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, paint);
         }
+
+        if (shape.LineColorHex is { } lineColor && shape.LineWidthPoints is { } lineWidthPt && lineWidthPt > 0)
+        {
+            using var strokePaint = new SKPaint
+            {
+                Color = SKColor.Parse(lineColor),
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = context.PointsToPixels((float) lineWidthPt),
+                IsAntialias = true
+            };
+            currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, strokePaint);
+        }
     }
 
     protected override void RenderFloatingImage(FloatingImageElement image)

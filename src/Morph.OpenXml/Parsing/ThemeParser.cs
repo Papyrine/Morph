@@ -67,8 +67,33 @@ static class ThemeParser
             Accent5 = ExtractColorFromSchemeElement(colorScheme.Accent5Color),
             Accent6 = ExtractColorFromSchemeElement(colorScheme.Accent6Color),
             Hyperlink = ExtractColorFromSchemeElement(colorScheme.Hyperlink),
-            FollowedHyperlink = ExtractColorFromSchemeElement(colorScheme.FollowedHyperlinkColor)
+            FollowedHyperlink = ExtractColorFromSchemeElement(colorScheme.FollowedHyperlinkColor),
+            LineStyleWidthsEmu = ExtractLineStyleWidths(themePart)
         };
+    }
+
+    /// <summary>
+    /// Reads <c>theme/formatScheme/lnStyleLst</c> widths (EMU) for resolving <c>a:lnRef/@idx</c>
+    /// on shapes. The first entry of the returned list is a 0 sentinel so callers can index
+    /// 1-based directly with the <c>idx</c> attribute. Falls back to Office defaults if the
+    /// theme omits the list.
+    /// </summary>
+    static IReadOnlyList<long> ExtractLineStyleWidths(ThemePart themePart)
+    {
+        var defaults = new long[] { 0, 6350, 12700, 19050 };
+        var formatScheme = themePart.Theme?.ThemeElements?.FormatScheme;
+        var lnStyleLst = formatScheme?.LineStyleList;
+        if (lnStyleLst == null)
+        {
+            return defaults;
+        }
+
+        var widths = new List<long> { 0 };
+        foreach (var ln in lnStyleLst.Elements<A.Outline>())
+        {
+            widths.Add(ln.Width?.Value ?? 0);
+        }
+        return widths.Count > 1 ? widths : defaults;
     }
 
     /// <summary>
