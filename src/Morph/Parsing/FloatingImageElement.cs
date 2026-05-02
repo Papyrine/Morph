@@ -8,6 +8,15 @@ sealed class FloatingImageElement : DocumentElement
     public required double HeightPoints { get; init; }
     public string? ContentType { get; init; }
 
+    /// <summary>
+    /// Raster fallback for backends that don't render <see cref="ContentType"/> = "image/svg+xml".
+    /// OOXML stores both an SVG and a raster equivalent for high-DPI artwork; ImageSharp lacks
+    /// SVG support so it falls back to this when present.
+    /// </summary>
+    public byte[]? RasterFallbackData { get; init; }
+
+    public string? RasterFallbackContentType { get; init; }
+
     /// <summary>Horizontal position in points from the anchor reference.</summary>
     public double HorizontalPositionPoints { get; init; }
 

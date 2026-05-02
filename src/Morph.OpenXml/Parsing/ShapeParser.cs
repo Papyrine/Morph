@@ -119,6 +119,7 @@ static class ShapeParser
         }
 
         var (lineColor, lineWidth) = ExtractLineStyle(wsp, shapeProps, themeColors);
+        var preset = ExtractPresetShape(shapeProps);
 
         // Try solid fill first
         var solidFill = shapeProps.GetFirstChild<A.SolidFill>();
@@ -143,7 +144,8 @@ static class ShapeParser
                     FillColorHex = fillColorHex,
                     FillAlpha = ExtractSolidFillAlpha(solidFill),
                     LineColorHex = lineColor,
-                    LineWidthPoints = lineWidth
+                    LineWidthPoints = lineWidth,
+                    Preset = preset
                 };
             }
         }
@@ -171,7 +173,8 @@ static class ShapeParser
                     Gradient = gradient,
                     FillColorHex = gradient.StartColorHex,
                     LineColorHex = lineColor,
-                    LineWidthPoints = lineWidth
+                    LineWidthPoints = lineWidth,
+                    Preset = preset
                 };
             }
         }
@@ -200,7 +203,8 @@ static class ShapeParser
                     ImageData = imageData,
                     ImageContentType = contentType,
                     LineColorHex = lineColor,
-                    LineWidthPoints = lineWidth
+                    LineWidthPoints = lineWidth,
+                    Preset = preset
                 };
             }
         }
@@ -278,6 +282,17 @@ static class ShapeParser
         return (refColor, refEmu.EmuToPoints());
     }
 
+    /// <summary>Maps <c>a:prstGeom/@prst</c> values to our <see cref="PresetShape"/> enum.</summary>
+    public static PresetShape ExtractPresetShape(WPS.ShapeProperties shapeProps)
+    {
+        var prstGeom = shapeProps.GetFirstChild<A.PresetGeometry>();
+        if (prstGeom?.Preset?.Value == A.ShapeTypeValues.Ellipse)
+        {
+            return PresetShape.Ellipse;
+        }
+        return PresetShape.Rect;
+    }
+
     /// <summary>
     /// Parses a shape within a group, applying group transforms to get individual shape dimensions.
     /// Filters out decorative shapes (those with complex bezier paths).
@@ -335,6 +350,7 @@ static class ShapeParser
         var heightPt = (shapeCy * scaleY).EmuToPoints();
 
         var (lineColor, lineWidth) = ExtractLineStyle(wsp, shapeProps, themeColors);
+        var preset = ExtractPresetShape(shapeProps);
 
         // Try solid fill first
         var solidFill = shapeProps.GetFirstChild<A.SolidFill>();
@@ -358,7 +374,8 @@ static class ShapeParser
                     FillColorHex = fillColorHex,
                     FillAlpha = ExtractSolidFillAlpha(solidFill),
                     LineColorHex = lineColor,
-                    LineWidthPoints = lineWidth
+                    LineWidthPoints = lineWidth,
+                    Preset = preset
                 };
             }
         }
@@ -384,7 +401,8 @@ static class ShapeParser
                     ImageData = imageData,
                     ImageContentType = contentType,
                     LineColorHex = lineColor,
-                    LineWidthPoints = lineWidth
+                    LineWidthPoints = lineWidth,
+                    Preset = preset
                 };
             }
         }

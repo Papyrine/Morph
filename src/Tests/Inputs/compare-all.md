@@ -322,7 +322,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="agendas-minutes/01/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0739**<br><img src="agendas-minutes/01/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1114**<br><img src="agendas-minutes/01/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="agendas-minutes/01/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0728**<br><img src="agendas-minutes/01/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0794**<br><img src="agendas-minutes/01/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## agendas-minutes/02
 
@@ -360,14 +360,14 @@
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
 | **Page 1**<br><img src="agendas-minutes/07/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1359**<br><img src="agendas-minutes/07/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1413**<br><img src="agendas-minutes/07/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="agendas-minutes/07/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.1361**<br><img src="agendas-minutes/07/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.1326**<br><img src="agendas-minutes/07/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 2**<br><img src="agendas-minutes/07/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.1340**<br><img src="agendas-minutes/07/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.1299**<br><img src="agendas-minutes/07/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## agendas-minutes/08
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="agendas-minutes/08/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1006**<br><img src="agendas-minutes/08/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1024**<br><img src="agendas-minutes/08/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="agendas-minutes/08/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0290**<br><img src="agendas-minutes/08/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0283**<br><img src="agendas-minutes/08/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 1**<br><img src="agendas-minutes/08/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0937**<br><img src="agendas-minutes/08/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1108**<br><img src="agendas-minutes/08/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="agendas-minutes/08/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0272**<br><img src="agendas-minutes/08/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0313**<br><img src="agendas-minutes/08/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## agendas-minutes/09
 
@@ -379,7 +379,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="agendas-minutes/10/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1337**<br><img src="agendas-minutes/10/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1356**<br><img src="agendas-minutes/10/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="agendas-minutes/10/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0628**<br><img src="agendas-minutes/10/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0645**<br><img src="agendas-minutes/10/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## agendas-minutes/11
 
@@ -409,13 +409,13 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="agendas-minutes/15/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1338**<br><img src="agendas-minutes/15/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1417**<br><img src="agendas-minutes/15/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="agendas-minutes/15/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1658**<br><img src="agendas-minutes/15/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1734**<br><img src="agendas-minutes/15/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## agendas-minutes/16
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="agendas-minutes/16/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1278**<br><img src="agendas-minutes/16/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1148**<br><img src="agendas-minutes/16/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="agendas-minutes/16/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1278**<br><img src="agendas-minutes/16/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1164**<br><img src="agendas-minutes/16/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## agendas-minutes/17
 
@@ -500,45 +500,45 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="brochures/02/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.4286**<br><img src="brochures/02/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.4302**<br><img src="brochures/02/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="brochures/02/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.4544**<br><img src="brochures/02/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.4560**<br><img src="brochures/02/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 1**<br><img src="brochures/02/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.4280**<br><img src="brochures/02/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.4305**<br><img src="brochures/02/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="brochures/02/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.4496**<br><img src="brochures/02/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.4510**<br><img src="brochures/02/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## brochures/03
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
 | **Page 1**<br><img src="brochures/03/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2734**<br><img src="brochures/03/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2750**<br><img src="brochures/03/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="brochures/03/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.2154**<br><img src="brochures/03/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.2090**<br><img src="brochures/03/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 2**<br><img src="brochures/03/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.2131**<br><img src="brochures/03/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.2095**<br><img src="brochures/03/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## brochures/04
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
 | **Page 1**<br><img src="brochures/04/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.5355**<br><img src="brochures/04/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.5358**<br><img src="brochures/04/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="brochures/04/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.5501**<br><img src="brochures/04/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.5556**<br><img src="brochures/04/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 2**<br><img src="brochures/04/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.5528**<br><img src="brochures/04/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.5575**<br><img src="brochures/04/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## brochures/05
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="brochures/05/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2969**<br><img src="brochures/05/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.6424**<br><img src="brochures/05/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="brochures/05/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.1685**<br><img src="brochures/05/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.1703**<br><img src="brochures/05/results_imagesharp%23page_0002.verified.png" width="500"> |
-| **Page 3**<br><img src="brochures/05/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.1787**<br><img src="brochures/05/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.1813**<br><img src="brochures/05/results_imagesharp%23page_0003.verified.png" width="500"> |
-| **Page 4**<br><img src="brochures/05/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.2797**<br><img src="brochures/05/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.2831**<br><img src="brochures/05/results_imagesharp%23page_0004.verified.png" width="500"> |
+| **Page 1**<br><img src="brochures/05/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2763**<br><img src="brochures/05/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.6551**<br><img src="brochures/05/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="brochures/05/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.1436**<br><img src="brochures/05/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.1455**<br><img src="brochures/05/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 3**<br><img src="brochures/05/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.1565**<br><img src="brochures/05/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.1596**<br><img src="brochures/05/results_imagesharp%23page_0003.verified.png" width="500"> |
+| **Page 4**<br><img src="brochures/05/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.2543**<br><img src="brochures/05/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.2581**<br><img src="brochures/05/results_imagesharp%23page_0004.verified.png" width="500"> |
 
 ## brochures/06
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="brochures/06/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3550**<br><img src="brochures/06/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3578**<br><img src="brochures/06/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="brochures/06/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.5553**<br><img src="brochures/06/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.5554**<br><img src="brochures/06/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 1**<br><img src="brochures/06/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3484**<br><img src="brochures/06/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3485**<br><img src="brochures/06/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="brochures/06/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.5545**<br><img src="brochures/06/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.5546**<br><img src="brochures/06/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## brochures/07
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
 | **Page 1**<br><img src="brochures/07/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.6466**<br><img src="brochures/07/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.6468**<br><img src="brochures/07/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="brochures/07/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.6763**<br><img src="brochures/07/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.6782**<br><img src="brochures/07/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 2**<br><img src="brochures/07/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.6754**<br><img src="brochures/07/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.6772**<br><img src="brochures/07/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## brochures/08
 
@@ -567,7 +567,7 @@
 | **Page 2**<br><img src="business-plans/02/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.2535**<br><img src="business-plans/02/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.2621**<br><img src="business-plans/02/results_imagesharp%23page_0002.verified.png" width="500"> |
 | **Page 3**<br><img src="business-plans/02/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.2540**<br><img src="business-plans/02/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.2532**<br><img src="business-plans/02/results_imagesharp%23page_0003.verified.png" width="500"> |
 | **Page 4**<br><img src="business-plans/02/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.0965**<br><img src="business-plans/02/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.0982**<br><img src="business-plans/02/results_imagesharp%23page_0004.verified.png" width="500"> |
-| **Page 5**<br><img src="business-plans/02/expected_0005.png" width="500"> | **Page 5. ErrorMetric: 0.1110**<br><img src="business-plans/02/results_skia%23page_0005.verified.png" width="500"> | **Page 5. ErrorMetric: 0.1128**<br><img src="business-plans/02/results_imagesharp%23page_0005.verified.png" width="500"> |
+| **Page 5**<br><img src="business-plans/02/expected_0005.png" width="500"> | **Page 5. ErrorMetric: 0.1155**<br><img src="business-plans/02/results_skia%23page_0005.verified.png" width="500"> | **Page 5. ErrorMetric: 0.1178**<br><img src="business-plans/02/results_imagesharp%23page_0005.verified.png" width="500"> |
 | **Page 6**<br><img src="business-plans/02/expected_0006.png" width="500"> | **Page 6. ErrorMetric: 0.0930**<br><img src="business-plans/02/results_skia%23page_0006.verified.png" width="500"> | **Page 6. ErrorMetric: 0.0958**<br><img src="business-plans/02/results_imagesharp%23page_0006.verified.png" width="500"> |
 
 ## business-plans/03
@@ -580,13 +580,13 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="business-plans/04/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1357**<br><img src="business-plans/04/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.9966**<br><img src="business-plans/04/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="business-plans/04/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1359**<br><img src="business-plans/04/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.9965**<br><img src="business-plans/04/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## business-plans/05
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="business-plans/05/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1114**<br><img src="business-plans/05/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1186**<br><img src="business-plans/05/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="business-plans/05/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1131**<br><img src="business-plans/05/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1167**<br><img src="business-plans/05/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## business-plans/06
 
@@ -599,13 +599,13 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="business-plans/07/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1314**<br><img src="business-plans/07/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.7999**<br><img src="business-plans/07/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="business-plans/07/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1318**<br><img src="business-plans/07/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.7991**<br><img src="business-plans/07/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## business-plans/08
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="business-plans/08/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0995**<br><img src="business-plans/08/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1120**<br><img src="business-plans/08/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="business-plans/08/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0939**<br><img src="business-plans/08/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1038**<br><img src="business-plans/08/results_imagesharp%23page_0001.verified.png" width="500"> |
 | **Page 2**<br><img src="business-plans/08/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.1232**<br><img src="business-plans/08/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.8288**<br><img src="business-plans/08/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## business-plans/09
@@ -707,6 +707,8 @@
 | **Page 18**<br><img src="business-plans/15/expected_0018.png" width="500"> | **Page 18. ErrorMetric: 0.0000**<br><img src="business-plans/15/results_skia%23page_0018.verified.png" width="500"> | **Page 18. ErrorMetric: 0.0000**<br><img src="business-plans/15/results_imagesharp%23page_0018.verified.png" width="500"> |
 | **Page 19**<br><img src="business-plans/15/expected_0019.png" width="500"> | **Page 19. ErrorMetric: 0.0000**<br><img src="business-plans/15/results_skia%23page_0019.verified.png" width="500"> | **Page 19. ErrorMetric: 0.0000**<br><img src="business-plans/15/results_imagesharp%23page_0019.verified.png" width="500"> |
 | **Page 20**<br>_(no page)_ | **Page 20. ErrorMetric: 0.0000**<br><img src="business-plans/15/results_skia%23page_0020.verified.png" width="500"> | **Page 20. ErrorMetric: 0.0000**<br><img src="business-plans/15/results_imagesharp%23page_0020.verified.png" width="500"> |
+| **Page 21**<br>_(no page)_ | **Page 21. ErrorMetric: 0.0000**<br><img src="business-plans/15/results_skia%23page_0021.verified.png" width="500"> | **Page 21. ErrorMetric: 0.0000**<br><img src="business-plans/15/results_imagesharp%23page_0021.verified.png" width="500"> |
+| **Page 22**<br>_(no page)_ | **Page 22. ErrorMetric: 0.0000**<br><img src="business-plans/15/results_skia%23page_0022.verified.png" width="500"> | **Page 22. ErrorMetric: 0.0000**<br><img src="business-plans/15/results_imagesharp%23page_0022.verified.png" width="500"> |
 
 ## business/01
 
@@ -724,7 +726,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="business/03/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3379**<br><img src="business/03/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3495**<br><img src="business/03/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="business/03/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3375**<br><img src="business/03/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3477**<br><img src="business/03/results_imagesharp%23page_0001.verified.png" width="500"> |
 | **Page 2**<br><img src="business/03/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0758**<br><img src="business/03/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0819**<br><img src="business/03/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## business/04
@@ -756,20 +758,20 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="cards/02/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2013**<br><img src="cards/02/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2013**<br><img src="cards/02/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="cards/02/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.1041**<br><img src="cards/02/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0780**<br><img src="cards/02/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 1**<br><img src="cards/02/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2001**<br><img src="cards/02/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2002**<br><img src="cards/02/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="cards/02/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.1041**<br><img src="cards/02/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.1063**<br><img src="cards/02/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## cards/03
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="cards/03/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3227**<br><img src="cards/03/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3217**<br><img src="cards/03/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="cards/03/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3211**<br><img src="cards/03/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3250**<br><img src="cards/03/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## cards/04
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="cards/04/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1103**<br><img src="cards/04/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1106**<br><img src="cards/04/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="cards/04/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0197**<br><img src="cards/04/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0205**<br><img src="cards/04/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## cards/05
 
@@ -830,7 +832,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="cards/12/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0718**<br><img src="cards/12/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2984**<br><img src="cards/12/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="cards/12/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0718**<br><img src="cards/12/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0776**<br><img src="cards/12/results_imagesharp%23page_0001.verified.png" width="500"> |
 | **Page 2**<br><img src="cards/12/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0089**<br><img src="cards/12/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0093**<br><img src="cards/12/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## cards/13
@@ -867,10 +869,10 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="cards/19/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1095**<br><img src="cards/19/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2559**<br><img src="cards/19/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="cards/19/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0861**<br><img src="cards/19/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.1387**<br><img src="cards/19/results_imagesharp%23page_0002.verified.png" width="500"> |
-| **Page 3**<br><img src="cards/19/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.1254**<br><img src="cards/19/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.4121**<br><img src="cards/19/results_imagesharp%23page_0003.verified.png" width="500"> |
-| **Page 4**<br><img src="cards/19/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.0898**<br><img src="cards/19/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.1380**<br><img src="cards/19/results_imagesharp%23page_0004.verified.png" width="500"> |
+| **Page 1**<br><img src="cards/19/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1095**<br><img src="cards/19/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1204**<br><img src="cards/19/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="cards/19/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0861**<br><img src="cards/19/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0924**<br><img src="cards/19/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 3**<br><img src="cards/19/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.1254**<br><img src="cards/19/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.1384**<br><img src="cards/19/results_imagesharp%23page_0003.verified.png" width="500"> |
+| **Page 4**<br><img src="cards/19/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.0898**<br><img src="cards/19/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.0883**<br><img src="cards/19/results_imagesharp%23page_0004.verified.png" width="500"> |
 
 ## colored_text
 
@@ -895,7 +897,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="compatibility_mode_14/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1052**<br><img src="compatibility_mode_14/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1081**<br><img src="compatibility_mode_14/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="compatibility_mode_14/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1038**<br><img src="compatibility_mode_14/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1085**<br><img src="compatibility_mode_14/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## complex_document
 
@@ -919,8 +921,8 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="complex_tables/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.4159**<br><img src="complex_tables/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.4175**<br><img src="complex_tables/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="complex_tables/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.1594**<br><img src="complex_tables/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.1592**<br><img src="complex_tables/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 1**<br><img src="complex_tables/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3418**<br><img src="complex_tables/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3433**<br><img src="complex_tables/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="complex_tables/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.1083**<br><img src="complex_tables/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.1120**<br><img src="complex_tables/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## content_control_inline
 
@@ -964,7 +966,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="cover-letters/06/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2423**<br><img src="cover-letters/06/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2473**<br><img src="cover-letters/06/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="cover-letters/06/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2451**<br><img src="cover-letters/06/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2486**<br><img src="cover-letters/06/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## cover-letters/07
 
@@ -976,13 +978,13 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="cover-letters/08/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0707**<br><img src="cover-letters/08/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0744**<br><img src="cover-letters/08/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="cover-letters/08/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0699**<br><img src="cover-letters/08/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0753**<br><img src="cover-letters/08/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## cover-letters/09
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="cover-letters/09/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0000**<br><img src="cover-letters/09/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2591**<br><img src="cover-letters/09/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="cover-letters/09/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0000**<br><img src="cover-letters/09/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2593**<br><img src="cover-letters/09/results_imagesharp%23page_0001.verified.png" width="500"> |
 | **Page 2**<br>_(no page)_ | **Page 2. ErrorMetric: 0.0000**<br><img src="cover-letters/09/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0000**<br>_(no page)_ |
 
 ## cover-letters/10
@@ -995,7 +997,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="cover-letters/11/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0742**<br><img src="cover-letters/11/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0763**<br><img src="cover-letters/11/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="cover-letters/11/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0724**<br><img src="cover-letters/11/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0779**<br><img src="cover-letters/11/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## cover-letters/12
 
@@ -1007,7 +1009,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="cover-letters/14/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0663**<br><img src="cover-letters/14/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0697**<br><img src="cover-letters/14/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="cover-letters/14/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0667**<br><img src="cover-letters/14/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0700**<br><img src="cover-letters/14/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## cover-letters/15
 
@@ -1407,7 +1409,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="labels/06/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2116**<br><img src="labels/06/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.6803**<br><img src="labels/06/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="labels/06/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2116**<br><img src="labels/06/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2195**<br><img src="labels/06/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## labels/07
 
@@ -1419,7 +1421,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="labels/08/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.6485**<br><img src="labels/08/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.6508**<br><img src="labels/08/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="labels/08/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.6290**<br><img src="labels/08/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.6315**<br><img src="labels/08/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## labels/09
 
@@ -1437,7 +1439,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="labels/11/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.6616**<br><img src="labels/11/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.6700**<br><img src="labels/11/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="labels/11/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.6616**<br><img src="labels/11/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.6703**<br><img src="labels/11/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## labels/12
 
@@ -1479,7 +1481,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="letters/01/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2106**<br><img src="letters/01/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2146**<br><img src="letters/01/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="letters/01/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2129**<br><img src="letters/01/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2168**<br><img src="letters/01/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## letters/02
 
@@ -1497,22 +1499,21 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="letters/04/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2721**<br><img src="letters/04/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2735**<br><img src="letters/04/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="letters/04/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2725**<br><img src="letters/04/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2739**<br><img src="letters/04/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## letters/05
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="letters/05/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0000**<br><img src="letters/05/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0000**<br><img src="letters/05/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="letters/05/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0000**<br><img src="letters/05/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0000**<br><img src="letters/05/results_imagesharp%23page_0002.verified.png" width="500"> |
-| **Page 3**<br><img src="letters/05/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.0000**<br><img src="letters/05/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.0000**<br><img src="letters/05/results_imagesharp%23page_0003.verified.png" width="500"> |
-| **Page 4**<br>_(no page)_ | **Page 4. ErrorMetric: 0.0000**<br><img src="letters/05/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.0000**<br><img src="letters/05/results_imagesharp%23page_0004.verified.png" width="500"> |
+| **Page 1**<br><img src="letters/05/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0908**<br><img src="letters/05/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0946**<br><img src="letters/05/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="letters/05/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0847**<br><img src="letters/05/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0875**<br><img src="letters/05/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 3**<br><img src="letters/05/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.0663**<br><img src="letters/05/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.0694**<br><img src="letters/05/results_imagesharp%23page_0003.verified.png" width="500"> |
 
 ## letters/06
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="letters/06/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1252**<br><img src="letters/06/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1280**<br><img src="letters/06/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="letters/06/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0760**<br><img src="letters/06/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0796**<br><img src="letters/06/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## letters/07
 
@@ -1536,7 +1537,8 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="letters/10/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.8677**<br><img src="letters/10/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.8679**<br><img src="letters/10/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="letters/10/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0000**<br><img src="letters/10/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0000**<br><img src="letters/10/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br>_(no page)_ | **Page 2. ErrorMetric: 0.0000**<br><img src="letters/10/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0000**<br><img src="letters/10/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## letters/11
 
@@ -1548,15 +1550,15 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="letters/12/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0752**<br><img src="letters/12/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0764**<br><img src="letters/12/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="letters/12/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0735**<br><img src="letters/12/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0761**<br><img src="letters/12/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## letters/13
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="letters/13/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1496**<br><img src="letters/13/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1322**<br><img src="letters/13/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="letters/13/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.2001**<br><img src="letters/13/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.1263**<br><img src="letters/13/results_imagesharp%23page_0002.verified.png" width="500"> |
-| **Page 3**<br><img src="letters/13/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.1221**<br><img src="letters/13/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.1226**<br><img src="letters/13/results_imagesharp%23page_0003.verified.png" width="500"> |
+| **Page 1**<br><img src="letters/13/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1482**<br><img src="letters/13/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1560**<br><img src="letters/13/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="letters/13/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.2001**<br><img src="letters/13/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.2027**<br><img src="letters/13/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 3**<br><img src="letters/13/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.1207**<br><img src="letters/13/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.1219**<br><img src="letters/13/results_imagesharp%23page_0003.verified.png" width="500"> |
 
 ## line_breaks
 
@@ -1629,15 +1631,16 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="menus/01/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2366**<br><img src="menus/01/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2375**<br><img src="menus/01/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="menus/01/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.2590**<br><img src="menus/01/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.1826**<br><img src="menus/01/results_imagesharp%23page_0002.verified.png" width="500"> |
-| **Page 3**<br><img src="menus/01/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.3172**<br><img src="menus/01/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.3158**<br><img src="menus/01/results_imagesharp%23page_0003.verified.png" width="500"> |
+| **Page 1**<br><img src="menus/01/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0000**<br><img src="menus/01/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0000**<br><img src="menus/01/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="menus/01/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0000**<br><img src="menus/01/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0000**<br><img src="menus/01/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 3**<br><img src="menus/01/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.0000**<br><img src="menus/01/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.0000**<br><img src="menus/01/results_imagesharp%23page_0003.verified.png" width="500"> |
+| **Page 4**<br>_(no page)_ | **Page 4. ErrorMetric: 0.0000**<br><img src="menus/01/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.0000**<br><img src="menus/01/results_imagesharp%23page_0004.verified.png" width="500"> |
 
 ## menus/02
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="menus/02/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2182**<br><img src="menus/02/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2202**<br><img src="menus/02/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="menus/02/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1734**<br><img src="menus/02/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1754**<br><img src="menus/02/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## menus/03
 
@@ -1649,35 +1652,37 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="menus/04/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3708**<br><img src="menus/04/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3740**<br><img src="menus/04/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="menus/04/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3919**<br><img src="menus/04/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3929**<br><img src="menus/04/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## menus/05
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="menus/05/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2488**<br><img src="menus/05/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2530**<br><img src="menus/05/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="menus/05/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2494**<br><img src="menus/05/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2537**<br><img src="menus/05/results_imagesharp%23page_0001.verified.png" width="500"> |
 | **Page 2**<br><img src="menus/05/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0868**<br><img src="menus/05/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0855**<br><img src="menus/05/results_imagesharp%23page_0002.verified.png" width="500"> |
-| **Page 3**<br><img src="menus/05/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.0990**<br><img src="menus/05/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.1751**<br><img src="menus/05/results_imagesharp%23page_0003.verified.png" width="500"> |
+| **Page 3**<br><img src="menus/05/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.0973**<br><img src="menus/05/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.1167**<br><img src="menus/05/results_imagesharp%23page_0003.verified.png" width="500"> |
 
 ## menus/06
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="menus/06/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1200**<br><img src="menus/06/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1219**<br><img src="menus/06/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="menus/06/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.9203**<br><img src="menus/06/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.9197**<br><img src="menus/06/results_imagesharp%23page_0002.verified.png" width="500"> |
-| **Page 3**<br><img src="menus/06/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.1802**<br><img src="menus/06/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.1799**<br><img src="menus/06/results_imagesharp%23page_0003.verified.png" width="500"> |
+| **Page 1**<br><img src="menus/06/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0000**<br><img src="menus/06/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0000**<br><img src="menus/06/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="menus/06/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0000**<br><img src="menus/06/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0000**<br><img src="menus/06/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 3**<br><img src="menus/06/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.0000**<br><img src="menus/06/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.0000**<br><img src="menus/06/results_imagesharp%23page_0003.verified.png" width="500"> |
+| **Page 4**<br>_(no page)_ | **Page 4. ErrorMetric: 0.0000**<br><img src="menus/06/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.0000**<br><img src="menus/06/results_imagesharp%23page_0004.verified.png" width="500"> |
+| **Page 5**<br>_(no page)_ | **Page 5. ErrorMetric: 0.0000**<br>_(no page)_ | **Page 5. ErrorMetric: 0.0000**<br><img src="menus/06/results_imagesharp%23page_0005.verified.png" width="500"> |
 
 ## menus/07
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="menus/07/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2986**<br><img src="menus/07/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3012**<br><img src="menus/07/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="menus/07/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3011**<br><img src="menus/07/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3017**<br><img src="menus/07/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## menus/08
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="menus/08/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1674**<br><img src="menus/08/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1684**<br><img src="menus/08/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="menus/08/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1672**<br><img src="menus/08/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1681**<br><img src="menus/08/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## menus/09
 
@@ -1733,9 +1738,9 @@
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
 | **Page 1**<br><img src="newsletters/01/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2924**<br><img src="newsletters/01/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2976**<br><img src="newsletters/01/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="newsletters/01/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.2807**<br><img src="newsletters/01/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.2880**<br><img src="newsletters/01/results_imagesharp%23page_0002.verified.png" width="500"> |
-| **Page 3**<br><img src="newsletters/01/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.5701**<br><img src="newsletters/01/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.5709**<br><img src="newsletters/01/results_imagesharp%23page_0003.verified.png" width="500"> |
-| **Page 4**<br><img src="newsletters/01/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.2659**<br><img src="newsletters/01/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.2739**<br><img src="newsletters/01/results_imagesharp%23page_0004.verified.png" width="500"> |
+| **Page 2**<br><img src="newsletters/01/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.2804**<br><img src="newsletters/01/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.2874**<br><img src="newsletters/01/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 3**<br><img src="newsletters/01/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.5721**<br><img src="newsletters/01/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.5754**<br><img src="newsletters/01/results_imagesharp%23page_0003.verified.png" width="500"> |
+| **Page 4**<br><img src="newsletters/01/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.2660**<br><img src="newsletters/01/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.2746**<br><img src="newsletters/01/results_imagesharp%23page_0004.verified.png" width="500"> |
 
 ## newsletters/02
 
@@ -1748,43 +1753,43 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="newsletters/03/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.4631**<br><img src="newsletters/03/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.4709**<br><img src="newsletters/03/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="newsletters/03/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.4634**<br><img src="newsletters/03/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.4725**<br><img src="newsletters/03/results_imagesharp%23page_0001.verified.png" width="500"> |
 | **Page 2**<br><img src="newsletters/03/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.4564**<br><img src="newsletters/03/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.4660**<br><img src="newsletters/03/results_imagesharp%23page_0002.verified.png" width="500"> |
-| **Page 3**<br><img src="newsletters/03/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.3702**<br><img src="newsletters/03/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.3837**<br><img src="newsletters/03/results_imagesharp%23page_0003.verified.png" width="500"> |
-| **Page 4**<br><img src="newsletters/03/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.6731**<br><img src="newsletters/03/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.6887**<br><img src="newsletters/03/results_imagesharp%23page_0004.verified.png" width="500"> |
+| **Page 3**<br><img src="newsletters/03/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.3799**<br><img src="newsletters/03/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.3844**<br><img src="newsletters/03/results_imagesharp%23page_0003.verified.png" width="500"> |
+| **Page 4**<br><img src="newsletters/03/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.6733**<br><img src="newsletters/03/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.6890**<br><img src="newsletters/03/results_imagesharp%23page_0004.verified.png" width="500"> |
 
 ## newsletters/04
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="newsletters/04/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3250**<br><img src="newsletters/04/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3448**<br><img src="newsletters/04/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="newsletters/04/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.3313**<br><img src="newsletters/04/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.3363**<br><img src="newsletters/04/results_imagesharp%23page_0002.verified.png" width="500"> |
-| **Page 3**<br><img src="newsletters/04/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.3948**<br><img src="newsletters/04/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.4090**<br><img src="newsletters/04/results_imagesharp%23page_0003.verified.png" width="500"> |
-| **Page 4**<br><img src="newsletters/04/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.4225**<br><img src="newsletters/04/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.4261**<br><img src="newsletters/04/results_imagesharp%23page_0004.verified.png" width="500"> |
+| **Page 1**<br><img src="newsletters/04/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3192**<br><img src="newsletters/04/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3384**<br><img src="newsletters/04/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="newsletters/04/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.3310**<br><img src="newsletters/04/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.3382**<br><img src="newsletters/04/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 3**<br><img src="newsletters/04/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.3946**<br><img src="newsletters/04/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.4013**<br><img src="newsletters/04/results_imagesharp%23page_0003.verified.png" width="500"> |
+| **Page 4**<br><img src="newsletters/04/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.4106**<br><img src="newsletters/04/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.4449**<br><img src="newsletters/04/results_imagesharp%23page_0004.verified.png" width="500"> |
 
 ## newsletters/05
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="newsletters/05/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3524**<br><img src="newsletters/05/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3559**<br><img src="newsletters/05/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="newsletters/05/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.3569**<br><img src="newsletters/05/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.3585**<br><img src="newsletters/05/results_imagesharp%23page_0002.verified.png" width="500"> |
-| **Page 3**<br><img src="newsletters/05/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.5092**<br><img src="newsletters/05/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.5125**<br><img src="newsletters/05/results_imagesharp%23page_0003.verified.png" width="500"> |
-| **Page 4**<br><img src="newsletters/05/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.3539**<br><img src="newsletters/05/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.3562**<br><img src="newsletters/05/results_imagesharp%23page_0004.verified.png" width="500"> |
+| **Page 1**<br><img src="newsletters/05/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3521**<br><img src="newsletters/05/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3556**<br><img src="newsletters/05/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="newsletters/05/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.3594**<br><img src="newsletters/05/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.3620**<br><img src="newsletters/05/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 3**<br><img src="newsletters/05/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.5100**<br><img src="newsletters/05/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.5130**<br><img src="newsletters/05/results_imagesharp%23page_0003.verified.png" width="500"> |
+| **Page 4**<br><img src="newsletters/05/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.3573**<br><img src="newsletters/05/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.3596**<br><img src="newsletters/05/results_imagesharp%23page_0004.verified.png" width="500"> |
 
 ## newsletters/06
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="newsletters/06/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2675**<br><img src="newsletters/06/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2710**<br><img src="newsletters/06/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="newsletters/06/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.1823**<br><img src="newsletters/06/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.1878**<br><img src="newsletters/06/results_imagesharp%23page_0002.verified.png" width="500"> |
-| **Page 3**<br><img src="newsletters/06/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.2670**<br><img src="newsletters/06/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.2706**<br><img src="newsletters/06/results_imagesharp%23page_0003.verified.png" width="500"> |
-| **Page 4**<br><img src="newsletters/06/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.1819**<br><img src="newsletters/06/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.1874**<br><img src="newsletters/06/results_imagesharp%23page_0004.verified.png" width="500"> |
+| **Page 1**<br><img src="newsletters/06/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2763**<br><img src="newsletters/06/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2785**<br><img src="newsletters/06/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="newsletters/06/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.1854**<br><img src="newsletters/06/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.1901**<br><img src="newsletters/06/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 3**<br><img src="newsletters/06/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.2753**<br><img src="newsletters/06/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.2775**<br><img src="newsletters/06/results_imagesharp%23page_0003.verified.png" width="500"> |
+| **Page 4**<br><img src="newsletters/06/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.1869**<br><img src="newsletters/06/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.1911**<br><img src="newsletters/06/results_imagesharp%23page_0004.verified.png" width="500"> |
 
 ## newsletters/07
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="newsletters/07/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2184**<br><img src="newsletters/07/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2343**<br><img src="newsletters/07/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="newsletters/07/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2177**<br><img src="newsletters/07/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2328**<br><img src="newsletters/07/results_imagesharp%23page_0001.verified.png" width="500"> |
 | **Page 2**<br><img src="newsletters/07/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.3202**<br><img src="newsletters/07/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.3497**<br><img src="newsletters/07/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## newsletters/08
@@ -1798,10 +1803,11 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="newsletters/09/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3201**<br><img src="newsletters/09/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3283**<br><img src="newsletters/09/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="newsletters/09/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.3284**<br><img src="newsletters/09/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.3418**<br><img src="newsletters/09/results_imagesharp%23page_0002.verified.png" width="500"> |
-| **Page 3**<br><img src="newsletters/09/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.4112**<br><img src="newsletters/09/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.4233**<br><img src="newsletters/09/results_imagesharp%23page_0003.verified.png" width="500"> |
-| **Page 4**<br><img src="newsletters/09/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.3834**<br><img src="newsletters/09/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.4066**<br><img src="newsletters/09/results_imagesharp%23page_0004.verified.png" width="500"> |
+| **Page 1**<br><img src="newsletters/09/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0000**<br><img src="newsletters/09/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3217**<br><img src="newsletters/09/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="newsletters/09/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0000**<br><img src="newsletters/09/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.3372**<br><img src="newsletters/09/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 3**<br><img src="newsletters/09/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.0000**<br><img src="newsletters/09/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.4096**<br><img src="newsletters/09/results_imagesharp%23page_0003.verified.png" width="500"> |
+| **Page 4**<br><img src="newsletters/09/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.0000**<br><img src="newsletters/09/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.4034**<br><img src="newsletters/09/results_imagesharp%23page_0004.verified.png" width="500"> |
+| **Page 5**<br>_(no page)_ | **Page 5. ErrorMetric: 0.0000**<br><img src="newsletters/09/results_skia%23page_0005.verified.png" width="500"> | **Page 5. ErrorMetric: 0.0000**<br>_(no page)_ |
 
 ## newsletters/10
 
@@ -1814,20 +1820,20 @@
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
 | **Page 1**<br><img src="newsletters/11/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2813**<br><img src="newsletters/11/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2865**<br><img src="newsletters/11/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="newsletters/11/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.2901**<br><img src="newsletters/11/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.2924**<br><img src="newsletters/11/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 2**<br><img src="newsletters/11/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.2902**<br><img src="newsletters/11/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.2949**<br><img src="newsletters/11/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## newsletters/12
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="newsletters/12/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.6136**<br><img src="newsletters/12/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.6127**<br><img src="newsletters/12/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="newsletters/12/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.5313**<br><img src="newsletters/12/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.5325**<br><img src="newsletters/12/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 1**<br><img src="newsletters/12/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.6136**<br><img src="newsletters/12/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.6131**<br><img src="newsletters/12/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="newsletters/12/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.5329**<br><img src="newsletters/12/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.5338**<br><img src="newsletters/12/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## newsletters/13
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="newsletters/13/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3902**<br><img src="newsletters/13/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3920**<br><img src="newsletters/13/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="newsletters/13/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3595**<br><img src="newsletters/13/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3612**<br><img src="newsletters/13/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## newsletters/14
 
@@ -1942,21 +1948,21 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="postcards/04/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2351**<br><img src="postcards/04/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2371**<br><img src="postcards/04/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="postcards/04/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.2459**<br><img src="postcards/04/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.2480**<br><img src="postcards/04/results_imagesharp%23page_0002.verified.png" width="500"> |
-| **Page 3**<br><img src="postcards/04/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.2558**<br><img src="postcards/04/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.2558**<br><img src="postcards/04/results_imagesharp%23page_0003.verified.png" width="500"> |
+| **Page 1**<br><img src="postcards/04/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2869**<br><img src="postcards/04/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2906**<br><img src="postcards/04/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="postcards/04/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.2622**<br><img src="postcards/04/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.2641**<br><img src="postcards/04/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 3**<br><img src="postcards/04/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.2755**<br><img src="postcards/04/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.2761**<br><img src="postcards/04/results_imagesharp%23page_0003.verified.png" width="500"> |
 
 ## resumes/01
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="resumes/01/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1085**<br><img src="resumes/01/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1103**<br><img src="resumes/01/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="resumes/01/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1069**<br><img src="resumes/01/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1107**<br><img src="resumes/01/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## resumes/02
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="resumes/02/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1001**<br><img src="resumes/02/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1424**<br><img src="resumes/02/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="resumes/02/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1040**<br><img src="resumes/02/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1128**<br><img src="resumes/02/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## resumes/03
 
@@ -1968,13 +1974,13 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="resumes/04/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2627**<br><img src="resumes/04/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2632**<br><img src="resumes/04/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="resumes/04/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2629**<br><img src="resumes/04/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2628**<br><img src="resumes/04/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## resumes/05
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="resumes/05/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1334**<br><img src="resumes/05/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1384**<br><img src="resumes/05/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="resumes/05/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1328**<br><img src="resumes/05/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1386**<br><img src="resumes/05/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## resumes/06
 
@@ -1994,21 +2000,21 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="resumes/08/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1058**<br><img src="resumes/08/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1115**<br><img src="resumes/08/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="resumes/08/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1067**<br><img src="resumes/08/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1095**<br><img src="resumes/08/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## resumes/09
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="resumes/09/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1029**<br><img src="resumes/09/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1057**<br><img src="resumes/09/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="resumes/09/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1028**<br><img src="resumes/09/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1053**<br><img src="resumes/09/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## resumes/10
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="resumes/10/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1131**<br><img src="resumes/10/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1151**<br><img src="resumes/10/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="resumes/10/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.1168**<br><img src="resumes/10/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.1196**<br><img src="resumes/10/results_imagesharp%23page_0002.verified.png" width="500"> |
-| **Page 3**<br><img src="resumes/10/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.1135**<br><img src="resumes/10/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.1161**<br><img src="resumes/10/results_imagesharp%23page_0003.verified.png" width="500"> |
+| **Page 1**<br><img src="resumes/10/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1132**<br><img src="resumes/10/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1144**<br><img src="resumes/10/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="resumes/10/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.1210**<br><img src="resumes/10/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.1245**<br><img src="resumes/10/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 3**<br><img src="resumes/10/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.1148**<br><img src="resumes/10/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.1167**<br><img src="resumes/10/results_imagesharp%23page_0003.verified.png" width="500"> |
 
 ## resumes/11
 
@@ -2021,7 +2027,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="resumes/12/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2424**<br><img src="resumes/12/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2482**<br><img src="resumes/12/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="resumes/12/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1090**<br><img src="resumes/12/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1148**<br><img src="resumes/12/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## resumes/13
 
@@ -2033,6 +2039,7 @@
 | **Page 4**<br><img src="resumes/13/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.0000**<br><img src="resumes/13/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.0000**<br><img src="resumes/13/results_imagesharp%23page_0004.verified.png" width="500"> |
 | **Page 5**<br><img src="resumes/13/expected_0005.png" width="500"> | **Page 5. ErrorMetric: 0.0000**<br><img src="resumes/13/results_skia%23page_0005.verified.png" width="500"> | **Page 5. ErrorMetric: 0.0000**<br><img src="resumes/13/results_imagesharp%23page_0005.verified.png" width="500"> |
 | **Page 6**<br>_(no page)_ | **Page 6. ErrorMetric: 0.0000**<br><img src="resumes/13/results_skia%23page_0006.verified.png" width="500"> | **Page 6. ErrorMetric: 0.0000**<br><img src="resumes/13/results_imagesharp%23page_0006.verified.png" width="500"> |
+| **Page 7**<br>_(no page)_ | **Page 7. ErrorMetric: 0.0000**<br>_(no page)_ | **Page 7. ErrorMetric: 0.0000**<br><img src="resumes/13/results_imagesharp%23page_0007.verified.png" width="500"> |
 
 ## resumes/14
 
@@ -2058,7 +2065,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="resumes/17/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1184**<br><img src="resumes/17/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1231**<br><img src="resumes/17/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="resumes/17/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1184**<br><img src="resumes/17/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1234**<br><img src="resumes/17/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## resumes/18
 
@@ -2353,8 +2360,8 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="wedding/02/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0989**<br><img src="wedding/02/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1023**<br><img src="wedding/02/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="wedding/02/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0927**<br><img src="wedding/02/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0966**<br><img src="wedding/02/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 1**<br><img src="wedding/02/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0978**<br><img src="wedding/02/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1026**<br><img src="wedding/02/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="wedding/02/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0797**<br><img src="wedding/02/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0837**<br><img src="wedding/02/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## wedding/03
 
@@ -2367,48 +2374,49 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="wedding/04/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1695**<br><img src="wedding/04/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1739**<br><img src="wedding/04/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="wedding/04/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0897**<br><img src="wedding/04/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0924**<br><img src="wedding/04/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 1**<br><img src="wedding/04/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0000**<br><img src="wedding/04/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0000**<br><img src="wedding/04/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="wedding/04/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0000**<br><img src="wedding/04/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0000**<br><img src="wedding/04/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 3**<br>_(no page)_ | **Page 3. ErrorMetric: 0.0000**<br><img src="wedding/04/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.0000**<br><img src="wedding/04/results_imagesharp%23page_0003.verified.png" width="500"> |
 
 ## wedding/05
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="wedding/05/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1733**<br><img src="wedding/05/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1770**<br><img src="wedding/05/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="wedding/05/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.1689**<br><img src="wedding/05/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.1721**<br><img src="wedding/05/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 1**<br><img src="wedding/05/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1736**<br><img src="wedding/05/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1771**<br><img src="wedding/05/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="wedding/05/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.1697**<br><img src="wedding/05/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.1729**<br><img src="wedding/05/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## wedding/06
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="wedding/06/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1964**<br><img src="wedding/06/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1982**<br><img src="wedding/06/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="wedding/06/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2023**<br><img src="wedding/06/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2040**<br><img src="wedding/06/results_imagesharp%23page_0001.verified.png" width="500"> |
 | **Page 2**<br><img src="wedding/06/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0771**<br><img src="wedding/06/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0836**<br><img src="wedding/06/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## wedding/07
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="wedding/07/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.7739**<br><img src="wedding/07/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.7743**<br><img src="wedding/07/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="wedding/07/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3091**<br><img src="wedding/07/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3114**<br><img src="wedding/07/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## wedding/08
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="wedding/08/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0881**<br><img src="wedding/08/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0853**<br><img src="wedding/08/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="wedding/08/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0531**<br><img src="wedding/08/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0528**<br><img src="wedding/08/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 1**<br><img src="wedding/08/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0853**<br><img src="wedding/08/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0854**<br><img src="wedding/08/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="wedding/08/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0524**<br><img src="wedding/08/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0533**<br><img src="wedding/08/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## wedding/09
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="wedding/09/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1698**<br><img src="wedding/09/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1717**<br><img src="wedding/09/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="wedding/09/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1695**<br><img src="wedding/09/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1714**<br><img src="wedding/09/results_imagesharp%23page_0001.verified.png" width="500"> |
 | **Page 2**<br><img src="wedding/09/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0727**<br><img src="wedding/09/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0788**<br><img src="wedding/09/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## wedding/10
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="wedding/10/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1177**<br><img src="wedding/10/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1437**<br><img src="wedding/10/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="wedding/10/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1177**<br><img src="wedding/10/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1256**<br><img src="wedding/10/results_imagesharp%23page_0001.verified.png" width="500"> |
 | **Page 2**<br><img src="wedding/10/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0712**<br><img src="wedding/10/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0784**<br><img src="wedding/10/results_imagesharp%23page_0002.verified.png" width="500"> |
 | **Page 3**<br><img src="wedding/10/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.0588**<br><img src="wedding/10/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.0674**<br><img src="wedding/10/results_imagesharp%23page_0003.verified.png" width="500"> |
 | **Page 4**<br><img src="wedding/10/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.0941**<br><img src="wedding/10/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.1004**<br><img src="wedding/10/results_imagesharp%23page_0004.verified.png" width="500"> |
@@ -2418,8 +2426,8 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="wedding/11/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2385**<br><img src="wedding/11/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2489**<br><img src="wedding/11/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="wedding/11/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.2888**<br><img src="wedding/11/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.2960**<br><img src="wedding/11/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 1**<br><img src="wedding/11/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2386**<br><img src="wedding/11/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2489**<br><img src="wedding/11/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="wedding/11/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.2885**<br><img src="wedding/11/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.2958**<br><img src="wedding/11/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## wide_table
 

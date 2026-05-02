@@ -1733,7 +1733,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 Style = SKPaintStyle.Fill,
                 IsAntialias = true
             };
-            currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, paint);
+            FillShape(shape.Preset, pixelX, pixelY, pixelWidth, pixelHeight, paint);
         }
         else if (shape.FillColorHex != null)
         {
@@ -1746,7 +1746,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 Style = SKPaintStyle.Fill,
                 IsAntialias = true
             };
-            currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, paint);
+            FillShape(shape.Preset, pixelX, pixelY, pixelWidth, pixelHeight, paint);
         }
 
         if (shape.LineColorHex is { } lineColor && shape.LineWidthPoints is { } lineWidthPt && lineWidthPt > 0)
@@ -1758,18 +1758,42 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 StrokeWidth = context.PointsToPixels((float) lineWidthPt),
                 IsAntialias = true
             };
-            // PageWidthPixels truncates `pageWidth * Scale` to int, leaving the canvas one
-            // sub-pixel narrower than a full-page shape rect. Without clamping, a centered
-            // stroke at the right/bottom edge sits ~0.99px outside the canvas and disappears.
-            // Clamp the stroke path to the canvas so the centred line lands on the last visible
-            // column / row.
-            var strokeLeft = Math.Max(0, pixelX);
-            var strokeTop = Math.Max(0, pixelY);
-            var strokeRight = Math.Min(context.PageWidthPixels, pixelX + pixelWidth);
-            var strokeBottom = Math.Min(context.PageHeightPixels, pixelY + pixelHeight);
-            currentCanvas.DrawRect(
-                new SKRect(strokeLeft, strokeTop, strokeRight, strokeBottom),
-                strokePaint);
+            if (shape.Preset == PresetShape.Ellipse)
+            {
+                currentCanvas.DrawOval(
+                    pixelX + pixelWidth / 2,
+                    pixelY + pixelHeight / 2,
+                    pixelWidth / 2,
+                    pixelHeight / 2,
+                    strokePaint);
+            }
+            else
+            {
+                // PageWidthPixels truncates `pageWidth * Scale` to int, leaving the canvas one
+                // sub-pixel narrower than a full-page shape rect. Without clamping, a centered
+                // stroke at the right/bottom edge sits ~0.99px outside the canvas and disappears.
+                // Clamp the stroke path to the canvas so the centred line lands on the last visible
+                // column / row.
+                var strokeLeft = Math.Max(0, pixelX);
+                var strokeTop = Math.Max(0, pixelY);
+                var strokeRight = Math.Min(context.PageWidthPixels, pixelX + pixelWidth);
+                var strokeBottom = Math.Min(context.PageHeightPixels, pixelY + pixelHeight);
+                currentCanvas.DrawRect(
+                    new SKRect(strokeLeft, strokeTop, strokeRight, strokeBottom),
+                    strokePaint);
+            }
+        }
+    }
+
+    void FillShape(PresetShape preset, float x, float y, float width, float height, SKPaint paint)
+    {
+        if (preset == PresetShape.Ellipse)
+        {
+            currentCanvas!.DrawOval(x + width / 2, y + height / 2, width / 2, height / 2, paint);
+        }
+        else
+        {
+            currentCanvas!.DrawRect(x, y, width, height, paint);
         }
     }
 

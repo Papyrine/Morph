@@ -508,10 +508,26 @@ abstract class PageRendererBase(RenderContextBase context)
         var width = context.PointsToPixels((float) image.WidthPoints);
         var pixelHeight = context.PointsToPixels(height);
 
-        DrawBlockImage(image.ImageData, image.ContentType, x, y, width, pixelHeight, (float) image.RotationDegrees, image.Crop, image.ColorEffect);
+        // Backends that can't render the primary content type (e.g. ImageSharp + SVG) substitute
+        // the docx-supplied raster fallback when one is present.
+        var data = image.ImageData;
+        var contentType = image.ContentType;
+        if (!CanRenderContentType(contentType) && image.RasterFallbackData != null)
+        {
+            data = image.RasterFallbackData;
+            contentType = image.RasterFallbackContentType;
+        }
+
+        DrawBlockImage(data, contentType, x, y, width, pixelHeight, (float) image.RotationDegrees, image.Crop, image.ColorEffect);
 
         context.CurrentY += height;
     }
+
+    /// <summary>
+    /// Override in backends that can't render certain content types so the inline-image path
+    /// can fall back to <see cref="ImageElement.RasterFallbackData"/>. Default renders all.
+    /// </summary>
+    protected virtual bool CanRenderContentType(string? contentType) => true;
 
     /// <summary>
     /// Ensures there's space for <paramref name="height"/> on the current page; otherwise

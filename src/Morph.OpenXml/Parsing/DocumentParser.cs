@@ -4971,6 +4971,8 @@ sealed class DocumentParser(string defaultFont)
             // Try to get SVG first, then fall back to regular image
             byte[]? imageData = null;
             string? contentType = null;
+            byte[]? rasterFallbackData = null;
+            string? rasterFallbackContentType = null;
 
             // Check for SVG extension
             var extLst = blip.Elements().FirstOrDefault(e => e.LocalName == "extLst");
@@ -4999,16 +5001,27 @@ sealed class DocumentParser(string defaultFont)
                 }
             }
 
-            // Fall back to regular image
-            if (imageData == null)
+            // Read the raster blob the blip points to. When SVG is set, this becomes the
+            // raster fallback for backends that can't render SVG; otherwise it's the
+            // primary imageData.
+            if (hostPart.GetPartById(embedAttr.Value) is ImagePart rasterPart)
             {
-                if (hostPart.GetPartById(embedAttr.Value) is ImagePart imagePart)
+                using var stream = rasterPart.GetStream();
+                using var ms = new MemoryStream();
+                stream.CopyTo(ms);
+                var rasterBytes = ms.ToArray();
+                if (rasterBytes.Length > 0)
                 {
-                    using var stream = imagePart.GetStream();
-                    using var ms = new MemoryStream();
-                    stream.CopyTo(ms);
-                    imageData = ms.ToArray();
-                    contentType = imagePart.ContentType;
+                    if (imageData == null)
+                    {
+                        imageData = rasterBytes;
+                        contentType = rasterPart.ContentType;
+                    }
+                    else
+                    {
+                        rasterFallbackData = rasterBytes;
+                        rasterFallbackContentType = rasterPart.ContentType;
+                    }
                 }
             }
 
@@ -5030,12 +5043,14 @@ sealed class DocumentParser(string defaultFont)
                     ContentType = contentType,
                     RotationDegrees = rotationDegrees,
                     Crop = crop,
-                    ColorEffect = colorEffect
+                    ColorEffect = colorEffect,
+                    RasterFallbackData = rasterFallbackData,
+                    RasterFallbackContentType = rasterFallbackContentType
                 });
             }
             else
             {
-                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees, crop);
+                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees, crop, rasterFallbackData, rasterFallbackContentType);
                 result.Add(floatingImage);
             }
         }
@@ -5109,7 +5124,7 @@ sealed class DocumentParser(string defaultFont)
         return thousandths / 100_000.0;
     }
 
-    static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, ImageCrop? crop = null)
+    static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null)
     {
         // Parse horizontal position
         var hPosPoints = offsetXPoints;
@@ -5194,7 +5209,9 @@ sealed class DocumentParser(string defaultFont)
             WidthPercent = widthPct,
             WidthRelativeFrom = widthRel,
             HeightPercent = heightPct,
-            HeightRelativeFrom = heightRel
+            HeightRelativeFrom = heightRel,
+            RasterFallbackData = rasterFallbackData,
+            RasterFallbackContentType = rasterFallbackContentType
         };
     }
 
@@ -5706,6 +5723,22 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
+        // Decorative line-art (flower silhouettes, leaf outlines) is encoded as a custGeom
+        // with many cubic beziers — its bounding box does not match the visible artwork, so
+        // rendering it as a solid-fill rectangle produces a large coloured block over the
+        // template. Detect this by counting bezier segments in the path. Simple polygon
+        // backgrounds (page-fills, accent strips) typically use straight lnTo edges with at
+        // most a small number of beziers for rounded corners.
+        var custGeom = shapeProps.GetFirstChild<A.CustomGeometry>();
+        if (custGeom != null)
+        {
+            var bezierCount = custGeom.Descendants<A.CubicBezierCurveTo>().Count();
+            if (bezierCount > 50)
+            {
+                return null;
+            }
+        }
+
         // Check for solid fill in shape properties
         var solidFill = shapeProps.GetFirstChild<A.SolidFill>();
         string? fillColorHex = null;
@@ -5828,7 +5861,8 @@ sealed class DocumentParser(string defaultFont)
             VerticalAnchor = positioning.VerticalAnchor,
             BehindText = behindText,
             FillColorHex = fillColorHex,
-            FillAlpha = fillAlpha
+            FillAlpha = fillAlpha,
+            Preset = ShapeParser.ExtractPresetShape(shapeProps)
         };
     }
 
