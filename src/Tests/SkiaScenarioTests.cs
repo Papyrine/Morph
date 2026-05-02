@@ -45,7 +45,7 @@ public class SkiaScenarioTests
             .UseFileName("results_skia")
             .IgnoreParameters();
 
-        ScenarioHtmlGenerator.Regenerate(directory);
+        ScenarioMarkdownGenerator.Regenerate(directory);
     }
 
     static List<PageDiff>? PageDiffs(string[] expectedFiles, IReadOnlyList<byte[]> actualFiles)

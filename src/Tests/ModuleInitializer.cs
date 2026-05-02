@@ -30,5 +30,8 @@ public static class ModuleInitializer
         VerifyImageMagick.RegisterComparers(threshold: 0.5);
         VerifyDiffPlex.Initialize(OutputType.Compact);
         VerifierSettings.InitializePlugins();
+
+        AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+            ScenarioMarkdownGenerator.RegenerateAll(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs"));
     }
 }
