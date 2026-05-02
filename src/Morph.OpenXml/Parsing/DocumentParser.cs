@@ -1767,6 +1767,28 @@ sealed class DocumentParser(string defaultFont)
             // unless a more-specific conditional region or an explicit cell w:shd overrides.
             var wholeTableShading = ReadShadingFill(style.StyleTableCellProperties?.GetFirstChild<Shading>());
 
+            // Whole-table cell vAlign also lives on StyleTableCellProperties — Word's
+            // built-in form-style tables (FormTable / TableGrid) put vAlign="center" here
+            // so every data row's content sits centred between the row's top and bottom borders.
+            CellVerticalAlignment? styleVerticalAlignment = null;
+            var styleVAlign = style.StyleTableCellProperties?.GetFirstChild<TableCellVerticalAlignment>();
+            if (styleVAlign?.Val?.HasValue == true)
+            {
+                var vAlignVal = styleVAlign.Val.Value;
+                if (vAlignVal == TableVerticalAlignmentValues.Center)
+                {
+                    styleVerticalAlignment = CellVerticalAlignment.Center;
+                }
+                else if (vAlignVal == TableVerticalAlignmentValues.Bottom)
+                {
+                    styleVerticalAlignment = CellVerticalAlignment.Bottom;
+                }
+                else
+                {
+                    styleVerticalAlignment = CellVerticalAlignment.Top;
+                }
+            }
+
             // Parse conditional formatting (tblStylePr) for border + shading overrides
             Dictionary<TableStyleOverrideValues, ConditionalFormat>? conditionals = null;
             foreach (var tblStylePr in style.Elements<TableStyleProperties>())
@@ -1817,9 +1839,9 @@ sealed class DocumentParser(string defaultFont)
                 conditionals[type.Value] = new(condBorders, condShading, condRunColor);
             }
 
-            if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || wholeTableShading != null || conditionals != null || styleCellSpacing > 0)
+            if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || wholeTableShading != null || conditionals != null || styleCellSpacing > 0 || styleVerticalAlignment != null)
             {
-                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, styleCellSpacing, conditionals);
+                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, styleCellSpacing, conditionals, styleVerticalAlignment);
             }
         }
 
@@ -3038,8 +3060,9 @@ sealed class DocumentParser(string defaultFont)
                     gridSpan = gridSpanElement.Val.Value;
                 }
 
-                // Parse vertical alignment (w:vAlign)
-                var verticalAlign = CellVerticalAlignment.Top;
+                // Parse vertical alignment (w:vAlign). Direct cell w:vAlign wins; otherwise
+                // fall back to the table style's whole-table tcPr (e.g. FormTable's vAlign="center").
+                var verticalAlign = styleInfo?.VerticalAlignment ?? CellVerticalAlignment.Top;
                 var vAlignElement = cellProps?.GetFirstChild<TableCellVerticalAlignment>();
                 if (vAlignElement?.Val?.HasValue == true)
                 {
@@ -3051,6 +3074,10 @@ sealed class DocumentParser(string defaultFont)
                     else if (vAlignVal == TableVerticalAlignmentValues.Bottom)
                     {
                         verticalAlign = CellVerticalAlignment.Bottom;
+                    }
+                    else
+                    {
+                        verticalAlign = CellVerticalAlignment.Top;
                     }
                 }
 

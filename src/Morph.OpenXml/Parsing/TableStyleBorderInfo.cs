@@ -21,4 +21,5 @@ sealed record TableStyleBorderInfo(
     int RowBandSize,
     int ColBandSize,
     double CellSpacingPoints,
-    Dictionary<TableStyleOverrideValues, ConditionalFormat>? Conditionals);
+    Dictionary<TableStyleOverrideValues, ConditionalFormat>? Conditionals,
+    CellVerticalAlignment? VerticalAlignment = null);
