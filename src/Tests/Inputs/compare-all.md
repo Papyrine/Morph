@@ -366,8 +366,8 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="agendas-minutes/08/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0937**<br><img src="agendas-minutes/08/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1108**<br><img src="agendas-minutes/08/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="agendas-minutes/08/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0272**<br><img src="agendas-minutes/08/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0313**<br><img src="agendas-minutes/08/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 1**<br><img src="agendas-minutes/08/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0937**<br><img src="agendas-minutes/08/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0957**<br><img src="agendas-minutes/08/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="agendas-minutes/08/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.0272**<br><img src="agendas-minutes/08/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.0266**<br><img src="agendas-minutes/08/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## agendas-minutes/09
 
@@ -765,7 +765,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="cards/03/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3211**<br><img src="cards/03/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3250**<br><img src="cards/03/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="cards/03/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3211**<br><img src="cards/03/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3202**<br><img src="cards/03/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## cards/04
 
@@ -1765,7 +1765,7 @@
 | **Page 1**<br><img src="newsletters/04/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.3192**<br><img src="newsletters/04/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.3384**<br><img src="newsletters/04/results_imagesharp%23page_0001.verified.png" width="500"> |
 | **Page 2**<br><img src="newsletters/04/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.3310**<br><img src="newsletters/04/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.3382**<br><img src="newsletters/04/results_imagesharp%23page_0002.verified.png" width="500"> |
 | **Page 3**<br><img src="newsletters/04/expected_0003.png" width="500"> | **Page 3. ErrorMetric: 0.3946**<br><img src="newsletters/04/results_skia%23page_0003.verified.png" width="500"> | **Page 3. ErrorMetric: 0.4013**<br><img src="newsletters/04/results_imagesharp%23page_0003.verified.png" width="500"> |
-| **Page 4**<br><img src="newsletters/04/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.4106**<br><img src="newsletters/04/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.4449**<br><img src="newsletters/04/results_imagesharp%23page_0004.verified.png" width="500"> |
+| **Page 4**<br><img src="newsletters/04/expected_0004.png" width="500"> | **Page 4. ErrorMetric: 0.4106**<br><img src="newsletters/04/results_skia%23page_0004.verified.png" width="500"> | **Page 4. ErrorMetric: 0.4148**<br><img src="newsletters/04/results_imagesharp%23page_0004.verified.png" width="500"> |
 
 ## newsletters/05
 

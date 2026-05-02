@@ -1278,11 +1278,13 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             var pen = Pens.Solid(strokeColor, strokePixels);
             if (shape.Preset == PresetShape.Ellipse)
             {
+                // EllipsePolygon's 4-arg ctor takes (centerX, centerY, fullWidth, fullHeight) —
+                // the trailing two are bounding-box dimensions, not radii.
                 var ellipse = new EllipsePolygon(
                     pixelX + pixelWidth / 2,
                     pixelY + pixelHeight / 2,
-                    pixelWidth / 2,
-                    pixelHeight / 2);
+                    pixelWidth,
+                    pixelHeight);
                 currentPage.Mutate(_ => _.Draw(pen, ellipse));
             }
             else
@@ -1303,7 +1305,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     {
         if (preset == PresetShape.Ellipse)
         {
-            var ellipse = new EllipsePolygon(x + width / 2, y + height / 2, width / 2, height / 2);
+            var ellipse = new EllipsePolygon(x + width / 2, y + height / 2, width, height);
             currentPage!.Mutate(_ => _.Fill(brush, ellipse));
         }
         else
