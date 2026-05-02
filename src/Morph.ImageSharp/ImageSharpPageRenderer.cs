@@ -1267,7 +1267,16 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         {
             var strokeColor = ParseColor(lineColor);
             var strokePixels = context.PointsToPixels((float) lineWidthPt);
-            currentPage.Mutate(_ => _.Draw(Pens.Solid(strokeColor, strokePixels), new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
+            // See note in SkiaPageRenderer.RenderBackgroundShape — clamp to canvas so the
+            // centred stroke at the right/bottom of a full-page shape isn't lost to the
+            // half-pixel gap between truncated PageWidthPixels and the shape's rect width.
+            var strokeLeft = Math.Max(0, pixelX);
+            var strokeTop = Math.Max(0, pixelY);
+            var strokeRight = Math.Min(context.PageWidthPixels, pixelX + pixelWidth);
+            var strokeBottom = Math.Min(context.PageHeightPixels, pixelY + pixelHeight);
+            currentPage.Mutate(_ => _.Draw(
+                Pens.Solid(strokeColor, strokePixels),
+                new RectangleF(strokeLeft, strokeTop, strokeRight - strokeLeft, strokeBottom - strokeTop)));
         }
     }
 
