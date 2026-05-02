@@ -3640,12 +3640,16 @@ sealed class DocumentParser(string defaultFont)
         var numberingInfo = GetNumberingInfo(paraProps, paragraphStyleId);
         if (numberingInfo != null)
         {
-            // Apply numbering indentation to paragraph if not already set
-            // The numbering defines where text starts (IndentPoints) and how far back the bullet hangs (HangingIndentPoints)
+            // OOXML cascade: style pPr → numbering level pPr → direct pPr (each overrides the
+            // previous). The numbering level's <w:ind> is supposed to win over the style's
+            // <w:ind>, so a List style with ind left=18pt should be replaced by the level's
+            // ind left=36pt + hanging=18pt unless the paragraph itself sets <w:ind> directly.
+            var hasDirectIndent = paraProps?.GetFirstChild<Indentation>() != null;
+            var leftIndent = hasDirectIndent ? props.LeftIndentPoints : numberingInfo.IndentPoints;
             props = props with
             {
                 Numbering = numberingInfo,
-                LeftIndentPoints = props.LeftIndentPoints == 0 ? numberingInfo.IndentPoints : props.LeftIndentPoints
+                LeftIndentPoints = leftIndent
             };
         }
 
