@@ -1262,6 +1262,13 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             }
             currentPage.Mutate(_ => _.Fill(fillColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
         }
+
+        if (shape.LineColorHex is { } lineColor && shape.LineWidthPoints is { } lineWidthPt && lineWidthPt > 0)
+        {
+            var strokeColor = ParseColor(lineColor);
+            var strokePixels = context.PointsToPixels((float) lineWidthPt);
+            currentPage.Mutate(_ => _.Draw(Pens.Solid(strokeColor, strokePixels), new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
+        }
     }
 
     protected override void RenderFloatingImage(FloatingImageElement image)
