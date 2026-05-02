@@ -5470,9 +5470,14 @@ sealed class DocumentParser(string defaultFont)
                 {
                     result.Add(textBox);
                 }
-                else
+                else if (wsp.GetFirstChild<WPS.TextBoxInfo2>() == null)
                 {
-                    // Try to parse as a solid fill shape (no text box)
+                    // Only fall back to solid-fill parsing for shapes without a txbx. A wsp with an
+                    // empty txbx is a decorative-shape carrier (Word stores a placeholder text box
+                    // in templated artwork like full-page coloured rectangles or line-art geometry);
+                    // turning it into a FloatingShapeElement here would overdraw same-anchor image
+                    // overlays or render the bounding box of a custom-geometry outline as a filled
+                    // rect.
                     var solidShape = ParseSolidFillShape(wsp, positioning, accumTransform, behindText, mainPart);
                     if (solidShape != null)
                     {
@@ -5496,9 +5501,9 @@ sealed class DocumentParser(string defaultFont)
                 {
                     result.Add(textBox);
                 }
-                else
+                else if (wsp.GetFirstChild<WPS.TextBoxInfo2>() == null)
                 {
-                    // Try to parse as a solid fill shape (no text box)
+                    // See note above — only shapes with no txbx feed the solid-fill fallback.
                     var accumTransform = new AccumulatedTransform
                     {
                         OffsetX = 0,
@@ -5614,8 +5619,13 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
-        if (content.Count == 0)
+        if (!HasRenderableContent(content))
         {
+            // Word documents commonly use a wsp with an empty txbx as the carrier for a behind-text
+            // decorative shape (e.g. a full-page coloured rectangle plus an anchored picture). The
+            // FloatingShapeElement emitted by ShapeParser already covers the fill; emitting a
+            // FloatingTextBoxElement here too would draw the bg again on top of any same-anchor
+            // image overlay, masking it. Skip when there's no actual text.
             return null;
         }
 
@@ -5641,6 +5651,26 @@ sealed class DocumentParser(string defaultFont)
             BackgroundColorHex = bgColor,
             RotationDegrees = rotationDegrees
         };
+    }
+
+    static bool HasRenderableContent(List<DocumentElement> elements)
+    {
+        foreach (var element in elements)
+        {
+            if (element is ParagraphElement para)
+            {
+                if (para.Runs.Any(_ => !string.IsNullOrEmpty(_.Text)))
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                // Tables, images, etc. always count as renderable.
+                return true;
+            }
+        }
+        return false;
     }
 
     /// <summary>
@@ -5991,8 +6021,10 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
-        if (content.Count == 0)
+        if (!HasRenderableContent(content))
         {
+            // See note in ParseTextBoxFromShape — empty txbx shapes are decorative-shape carriers,
+            // not real text boxes; emitting one would mask any same-anchor image overlay.
             return null;
         }
 
