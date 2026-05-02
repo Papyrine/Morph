@@ -1758,7 +1758,18 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 StrokeWidth = context.PointsToPixels((float) lineWidthPt),
                 IsAntialias = true
             };
-            currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, strokePaint);
+            // PageWidthPixels truncates `pageWidth * Scale` to int, leaving the canvas one
+            // sub-pixel narrower than a full-page shape rect. Without clamping, a centered
+            // stroke at the right/bottom edge sits ~0.99px outside the canvas and disappears.
+            // Clamp the stroke path to the canvas so the centred line lands on the last visible
+            // column / row.
+            var strokeLeft = Math.Max(0, pixelX);
+            var strokeTop = Math.Max(0, pixelY);
+            var strokeRight = Math.Min(context.PageWidthPixels, pixelX + pixelWidth);
+            var strokeBottom = Math.Min(context.PageHeightPixels, pixelY + pixelHeight);
+            currentCanvas.DrawRect(
+                new SKRect(strokeLeft, strokeTop, strokeRight, strokeBottom),
+                strokePaint);
         }
     }
 
