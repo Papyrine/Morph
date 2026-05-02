@@ -97,7 +97,11 @@ static class ScenarioMarkdownGenerator
         }
 
         var src = (srcPrefix + fileName).Replace("#", "%23");
-        return $"**{label}**<br>![]({src})";
+        // Use an explicit width <img> rather than ![]() so all three columns get
+        // identical image sizes — markdown renderers otherwise size columns by
+        // label text width and shrink images to fit, making the Expected column
+        // (which has no ErrorMetric suffix) render noticeably smaller.
+        return $"""**{label}**<br><img src="{src}" width="500">""";
     }
 
     static List<PageRow> CollectPages(string directory)
