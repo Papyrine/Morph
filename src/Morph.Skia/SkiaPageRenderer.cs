@@ -500,7 +500,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         if (contentType == "image/svg+xml")
         {
-            RenderSvgImage(imageData, destRect);
+            RenderSvgImage(imageData, destRect, crop);
         }
         else
         {
@@ -566,7 +566,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         };
     }
 
-    void RenderSvgImage(byte[] svgData, SKRect destRect)
+    void RenderSvgImage(byte[] svgData, SKRect destRect, ImageCrop? crop = null)
     {
         if (currentCanvas == null)
         {
@@ -609,14 +609,34 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             return;
         }
 
-        var scaleX = destRect.Width / svgBounds.Width;
-        var scaleY = destRect.Height / svgBounds.Height;
+        // a:srcRect crop: stretch only the requested sub-rect of the SVG into destRect.
+        // l/t/r/b are fractions of the source extent (Right/Bottom are insets from the edge).
+        var srcLeft = svgBounds.Left;
+        var srcTop = svgBounds.Top;
+        var srcWidth = svgBounds.Width;
+        var srcHeight = svgBounds.Height;
+        if (crop is {IsCropped: true} c)
+        {
+            srcLeft = svgBounds.Left + (float) c.Left * svgBounds.Width;
+            srcTop = svgBounds.Top + (float) c.Top * svgBounds.Height;
+            srcWidth = (float) (1 - c.Left - c.Right) * svgBounds.Width;
+            srcHeight = (float) (1 - c.Top - c.Bottom) * svgBounds.Height;
+            if (srcWidth <= 0 || srcHeight <= 0)
+            {
+                return;
+            }
+        }
 
-        // Render SVG to a bitmap first (more reliable than DrawPicture on some canvases)
+        var scaleX = destRect.Width / srcWidth;
+        var scaleY = destRect.Height / srcHeight;
+
+        // Render SVG to a bitmap first (more reliable than DrawPicture on some canvases).
+        // Translate so the source sub-rect's top-left lands at the bitmap origin, then scale.
         using var bitmap = new SKBitmap((int) destRect.Width, (int) destRect.Height);
         using var tempCanvas = new SKCanvas(bitmap);
         tempCanvas.Clear(SKColors.Transparent);
         tempCanvas.Scale(scaleX, scaleY);
+        tempCanvas.Translate(-srcLeft, -srcTop);
         tempCanvas.DrawPicture(picture);
 
         currentCanvas.DrawBitmap(bitmap, destRect.Left, destRect.Top);

@@ -415,7 +415,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="agendas-minutes/16/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1278**<br><img src="agendas-minutes/16/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1164**<br><img src="agendas-minutes/16/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1**<br><img src="agendas-minutes/16/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1143**<br><img src="agendas-minutes/16/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1164**<br><img src="agendas-minutes/16/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## agendas-minutes/17
 
@@ -507,8 +507,8 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**<br><img src="brochures/03/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2734**<br><img src="brochures/03/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2750**<br><img src="brochures/03/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2**<br><img src="brochures/03/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.2131**<br><img src="brochures/03/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.2095**<br><img src="brochures/03/results_imagesharp%23page_0002.verified.png" width="500"> |
+| **Page 1**<br><img src="brochures/03/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.2731**<br><img src="brochures/03/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.2750**<br><img src="brochures/03/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 2**<br><img src="brochures/03/expected_0002.png" width="500"> | **Page 2. ErrorMetric: 0.2040**<br><img src="brochures/03/results_skia%23page_0002.verified.png" width="500"> | **Page 2. ErrorMetric: 0.2095**<br><img src="brochures/03/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## brochures/04
 
