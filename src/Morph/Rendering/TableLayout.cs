@@ -339,10 +339,13 @@ static class TableLayout
 
         if (sumPref <= availableWidth)
         {
-            var scale = availableWidth / sumPref;
+            // Tables that reach this branch have no explicit width source (no per-cell
+            // widths, no w:tblGrid widths, no w:tblW). Word's autofit hugs the content
+            // in that case rather than growing to fill the page. Preserve preferred
+            // widths so a small "Col 1 / R1C1" grid doesn't span the whole page.
             for (var i = 0; i < colCount; i++)
             {
-                widths[i] = prefs[i] * scale;
+                widths[i] = prefs[i];
             }
         }
         else if (sumMin < availableWidth)

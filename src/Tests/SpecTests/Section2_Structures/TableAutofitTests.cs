@@ -7,10 +7,11 @@
 public class TableAutofitTests
 {
     [Test]
-    public async Task CalculateColumnWidths_ContentAutofit_AllocatesByPreferredWidth()
+    public async Task CalculateColumnWidths_ContentAutofit_HugsContentWhenItFits()
     {
-        // Two columns, autofit, no widths supplied. Right column's content is ~3× wider
-        // than the left's, so it should claim the larger share of available width.
+        // Two columns, autofit, no widths supplied. With ample available width and short
+        // content, Word leaves the table at its preferred (content) width rather than
+        // growing to fill the page — see wide_table scenario.
         var table = MakeTable(
             ["x", "y"],
             ["longer content here", "y"]);
@@ -18,7 +19,7 @@ public class TableAutofitTests
         var measurer = new ProportionalMeasurer();
         var widths = TableLayout.CalculateColumnWidths(table, colCount: 2, availableWidth: 400, measurer);
 
-        await Assert.That(widths.Sum()).IsEqualTo(400).Within(0.1f);
+        await Assert.That(widths.Sum()).IsLessThan(400);
         await Assert.That(widths[0]).IsGreaterThan(widths[1]);
     }
 
@@ -27,14 +28,15 @@ public class TableAutofitTests
     {
         // Preferred widths overflow available: result interpolates between min and pref.
         // Min for both cells is the longest token; the right cell has a much longer token,
-        // so its column should still get the larger share.
+        // so its column should still get the larger share. availableWidth is chosen so
+        // sumMin < avail < sumPref to exercise the interpolation branch.
         var table = MakeTable(
             ["ab cd ef", "supercalifragilisticexpialidocious"]);
 
         var measurer = new ProportionalMeasurer();
-        var widths = TableLayout.CalculateColumnWidths(table, colCount: 2, availableWidth: 100, measurer);
+        var widths = TableLayout.CalculateColumnWidths(table, colCount: 2, availableWidth: 38, measurer);
 
-        await Assert.That(widths.Sum()).IsEqualTo(100).Within(0.1f);
+        await Assert.That(widths.Sum()).IsEqualTo(38).Within(0.1f);
         await Assert.That(widths[1]).IsGreaterThan(widths[0]);
     }
 
