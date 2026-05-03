@@ -921,7 +921,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
     /// <summary>
     /// Renders WordArt that follows a curved path (ArchUp/ArchDown/Circle) using
-    /// <see cref="SKCanvas.DrawTextOnPath"/>. Returns true when the warp was handled,
+    /// <see cref="SKCanvas.DrawTextOnPath(string, SKPath, SKPoint, SKPaint)"/>. Returns true when the warp was handled,
     /// false for warps that should fall back to flat-text rendering.
     /// </summary>
     bool TryRenderWordArtOnPath(
