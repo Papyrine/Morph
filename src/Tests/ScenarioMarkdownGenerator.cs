@@ -21,6 +21,7 @@ static class ScenarioMarkdownGenerator
 
         var sb = new StringBuilder();
         sb.Append("# ").Append(scenarioName).Append("\n\n");
+        AppendNotes(sb, directory);
         AppendTable(sb, pages, srcPrefix: "");
 
         File.WriteAllText(Path.Combine(directory, "compare.md"), sb.ToString());
@@ -58,14 +59,32 @@ static class ScenarioMarkdownGenerator
         }
         sb.Append('\n');
 
-        foreach (var (_, name, pages) in scenarios)
+        foreach (var (dir, name, pages) in scenarios)
         {
             sb.Append("## ").Append(name).Append("\n\n");
+            AppendNotes(sb, dir);
             AppendTable(sb, pages, srcPrefix: $"{name}/");
             sb.Append('\n');
         }
 
         File.WriteAllText(Path.Combine(inputsDirectory, "compare-all.md"), sb.ToString());
+    }
+
+    static void AppendNotes(StringBuilder sb, string directory)
+    {
+        var notesPath = Path.Combine(directory, "notes.md");
+        if (!File.Exists(notesPath))
+        {
+            return;
+        }
+
+        var content = File.ReadAllText(notesPath).Trim();
+        if (content.Length == 0)
+        {
+            return;
+        }
+
+        sb.Append(content).Append("\n\n");
     }
 
     static void AppendTable(StringBuilder sb, List<PageRow> pages, string srcPrefix)

@@ -377,6 +377,12 @@
 
 ## agendas-minutes/10
 
+### Top-right flower silhouette is dropped (no custGeom path renderer)
+
+The decorative pink leaf cluster in the top-right is a `wsp` with `<a:custGeom>` containing 2442 cubic Bézier segments and a solid fill. Without a path renderer, the only options were drawing the bounding rectangle (a large green rectangle covering the artwork — see git history before commit) or skipping the shape. We chose to skip when `custGeom` has > 50 beziers (heuristic in `Morph.OpenXml/Parsing/DocumentParser.cs:ParseSolidFillShape`). Simple polygon backgrounds and accent strips have ≤ 20 beziers and still render as bounding-box rectangles.
+
+To fully render this scenario, parse `<a:pathLst>` into an actual `SKPath` / ImageSharp `IPath` and fill that.
+
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
 | **Page 1**<br><img src="agendas-minutes/10/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0628**<br><img src="agendas-minutes/10/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0645**<br><img src="agendas-minutes/10/results_imagesharp%23page_0001.verified.png" width="500"> |
@@ -413,6 +419,12 @@
 
 ## agendas-minutes/16
 
+### Decorative shapes are SVG with raster fallback
+
+The pink leaf in the top-right (and the dot patterns in the corners) ship as both an SVG (`a:svgBlip` extension) and a PNG raster fallback. Skia renders the SVG via `Svg.Skia`; ImageSharp can't render SVG (`PageRendererBase.CanRenderContentType` returns false for `image/svg+xml`) and falls back to the PNG. Both paths now honour `<a:srcRect>` cropping — see `RenderSvgImage` in `Morph.Skia/SkiaPageRenderer.cs` for the SVG-specific implementation.
+
+Pixel-level differences between Skia's SVG render and Word's renderer remain (gradient interpolation, anti-aliasing) — the verified PNGs lock in our renderer's output, not perfect Word fidelity.
+
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
 | **Page 1**<br><img src="agendas-minutes/16/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.1140**<br><img src="agendas-minutes/16/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.1163**<br><img src="agendas-minutes/16/results_imagesharp%23page_0001.verified.png" width="500"> |
@@ -430,6 +442,12 @@
 | **Page 1**<br><img src="agendas-minutes/18/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0822**<br><img src="agendas-minutes/18/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0877**<br><img src="agendas-minutes/18/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## agendas-minutes/19
+
+### Empty table rows render shorter than Word
+
+The 17 empty rows in the contact table use `<w:trHeight w:val="432"/>` (21.6pt) with no `hRule`. Word renders them at ~30pt; we render at ~25pt. The document has `<w:docGrid w:linePitch="360"/>` (18pt), and Word treats `linePitch` as a per-line minimum even inside table cells. We honour this in `LayoutParagraphForMeasurement` (Skia + ImageSharp), but only for empty paragraphs — applying it to non-empty paragraphs broke other scenarios (e.g. `agendas-minutes/02`'s short data rows).
+
+The remaining ~5pt gap (linePitch 18 + cell padding 7.2 = 25.2pt vs Word's 30pt) isn't fully decoded. Word likely adds extra leading or interprets `trHeight` differently when `linePitch` is present, but a clean formula would need empirical sweeps across more docs.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
@@ -2436,6 +2454,16 @@
 | **Page 1**<br><img src="wide_table/expected_0001.png" width="500"> | **Page 1. ErrorMetric: 0.0173**<br><img src="wide_table/results_skia%23page_0001.verified.png" width="500"> | **Page 1. ErrorMetric: 0.0193**<br><img src="wide_table/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## wordart
+
+### ImageSharp arc/circle warps render as flat text
+
+ImageSharp.Drawing 2.1.7 has no text-on-path API. Skia uses `SKCanvas.DrawTextOnPath` to follow `prstTxWarp` arcs (`textArchUp` / `textArchDown` / `textCircle`) — see `Morph.Skia/SkiaPageRenderer.cs:TryRenderWordArtOnPath`. ImageSharp falls back to flat text at the correct font size; the warp shape is lost but text is at least readable and not blown up to fill the bbox.
+
+If/when ImageSharp.Drawing gains text-on-path (or we move to a higher version), mirror the Skia implementation in `Morph.ImageSharp/ImageSharpPageRenderer.cs`.
+
+### Other warps (Wave / Chevron / Slant / Triangle / Fade)
+
+These are still approximated via canvas transforms in `ApplyWordArtTransform`. Visually crude but not actively broken — full path-based warps would need a per-warp glyph-positioning step (each preset has its own envelope).
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
