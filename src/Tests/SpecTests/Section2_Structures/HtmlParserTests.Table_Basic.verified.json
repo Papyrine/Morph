@@ -46,7 +46,8 @@
                   "DefaultTabStopPoints": 36.0,
                   "IsRightToLeft": false,
                   "MirrorIndents": false
-                }
+                },
+                "IsAnchorOnlyMark": false
               }
             ],
             "Properties": {
@@ -98,7 +99,8 @@
                   "DefaultTabStopPoints": 36.0,
                   "IsRightToLeft": false,
                   "MirrorIndents": false
-                }
+                },
+                "IsAnchorOnlyMark": false
               }
             ],
             "Properties": {

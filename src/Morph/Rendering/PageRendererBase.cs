@@ -607,6 +607,13 @@ abstract class PageRendererBase(RenderContextBase context)
             return;
         }
 
+        // Floating tables (w:tblpPr) are rendered inline today; honour their tblpY as a
+        // y-offset before the first row to approximate Word's anchored placement.
+        if (table.Properties.IsFloating && table.Properties.FloatingYOffsetPoints > 0)
+        {
+            context.CurrentY += (float) table.Properties.FloatingYOffsetPoints;
+        }
+
         var colCount = TableLayout.GetColumnCount(table);
         var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth, Measurer);
         var hasVerticalMerge = TableLayout.HasVerticalMerge(table);

@@ -41,7 +41,8 @@
       "DefaultTabStopPoints": 36.0,
       "IsRightToLeft": false,
       "MirrorIndents": false
-    }
+    },
+    "IsAnchorOnlyMark": false
   },
   {
     "Runs": [
@@ -86,7 +87,8 @@
       "DefaultTabStopPoints": 36.0,
       "IsRightToLeft": false,
       "MirrorIndents": false
-    }
+    },
+    "IsAnchorOnlyMark": false
   },
   {
     "Runs": [
@@ -131,6 +133,7 @@
       "DefaultTabStopPoints": 36.0,
       "IsRightToLeft": false,
       "MirrorIndents": false
-    }
+    },
+    "IsAnchorOnlyMark": false
   }
 ]
