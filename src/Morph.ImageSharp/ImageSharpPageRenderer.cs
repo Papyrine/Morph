@@ -488,9 +488,12 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 Dpi = context.Dpi
             });
 
+        // Only shrink to fit; never enlarge text past the explicit font size. The bounding
+        // box for a WordArt shape (especially arc/circle warps) is much larger than the
+        // rendered glyphs because Word lays the text along a curve inside the box.
         var scaleX = textSize.Width > 0 ? width / textSize.Width : 1;
         var scaleY = textSize.Height > 0 ? pixelHeight / textSize.Height : 1;
-        var scale = Math.Min(scaleX, scaleY);
+        var scale = Math.Min(Math.Min(scaleX, scaleY), 1f);
 
         var scaledFont = context.GetFontForFamily(
             wordArt.FontFamily,
@@ -569,9 +572,11 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 Dpi = context.Dpi
             });
 
+        // Only shrink to fit; never enlarge text past the explicit font size — see note in
+        // RenderWordArt above.
         var scaleX = textSize.Width > 0 ? width / textSize.Width : 1;
         var scaleY = textSize.Height > 0 ? pixelHeight / textSize.Height : 1;
-        var scale = Math.Min(scaleX, scaleY);
+        var scale = Math.Min(Math.Min(scaleX, scaleY), 1f);
 
         var scaledFont = context.GetFontForFamily(
             wordArt.FontFamily,

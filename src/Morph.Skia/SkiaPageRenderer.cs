@@ -677,10 +677,17 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         var textBounds = new SKRect();
         measurePaint.MeasureText(wordArt.Text, ref textBounds);
 
-        // Calculate scale to fit text within the bounding box
+        // Only shrink to fit; never enlarge past the explicit font size. The shape's
+        // bounding box for arc/circle warps is sized for the curve, not the glyph cluster.
         var scaleX = textBounds.Width > 0 ? width / textBounds.Width : 1;
         var scaleY = textBounds.Height > 0 ? pixelHeight / textBounds.Height : 1;
-        var scale = Math.Min(scaleX, scaleY);
+        var scale = Math.Min(Math.Min(scaleX, scaleY), 1f);
+
+        if (TryRenderWordArtOnPath(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, wordArt.OutlineColorHex, wordArt.OutlineWidthPoints, x, y, width, pixelHeight, typeface, pixelFontSize * scale))
+        {
+            context.CurrentY += height;
+            return;
+        }
 
         // Calculate centered position
         var scaledWidth = textBounds.Width * scale;
@@ -813,10 +820,15 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         var textBounds = new SKRect();
         measurePaint.MeasureText(wordArt.Text, ref textBounds);
 
-        // Calculate scale to fit text within the bounding box
+        // Only shrink to fit; never enlarge past the explicit font size — see note above.
         var scaleX = textBounds.Width > 0 ? width / textBounds.Width : 1;
         var scaleY = textBounds.Height > 0 ? pixelHeight / textBounds.Height : 1;
-        var scale = Math.Min(scaleX, scaleY);
+        var scale = Math.Min(Math.Min(scaleX, scaleY), 1f);
+
+        if (TryRenderWordArtOnPath(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, wordArt.OutlineColorHex, wordArt.OutlineWidthPoints, pixelX, pixelY, width, pixelHeight, typeface, pixelFontSize * scale))
+        {
+            return;
+        }
 
         // Calculate centered position
         var scaledWidth = textBounds.Width * scale;
@@ -905,6 +917,81 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         currentCanvas.Restore();
         // Note: No CurrentY advancement for floating elements
+    }
+
+    /// <summary>
+    /// Renders WordArt that follows a curved path (ArchUp/ArchDown/Circle) using
+    /// <see cref="SKCanvas.DrawTextOnPath"/>. Returns true when the warp was handled,
+    /// false for warps that should fall back to flat-text rendering.
+    /// </summary>
+    bool TryRenderWordArtOnPath(
+        WordArtTransform transform,
+        string text,
+        string? fillColorHex,
+        string? outlineColorHex,
+        double outlineWidthPoints,
+        float x, float y, float width, float height,
+        SKTypeface typeface, float fontSize)
+    {
+        if (currentCanvas == null)
+        {
+            return false;
+        }
+
+        SKPath? path;
+        SKTextAlign align;
+        switch (transform)
+        {
+            case WordArtTransform.ArchUp:
+                // Dome arc: starts at bottom-left, peaks at top-centre, ends at bottom-right.
+                // The ellipse is centred at (x+w/2, y+h) with semi-axes (w/2, h), so its top
+                // touches y and its sides touch (y+h). Sweep 180° clockwise from 180°.
+                path = BuildArc(new(x, y, x + width, y + 2 * height), 180, 180);
+                align = SKTextAlign.Center;
+                break;
+            case WordArtTransform.ArchDown:
+                // Valley arc: starts at top-left, dips through bottom-centre, ends at top-right.
+                path = BuildArc(new(x, y - height, x + width, y + height), 180, -180);
+                align = SKTextAlign.Center;
+                break;
+            case WordArtTransform.Circle:
+                // Full circle starting at the top, clockwise. Left-align so the text begins at
+                // the start of the path (top of the circle); Centre would land the text at the
+                // midpoint of the circumference, which sits at the bottom upside-down.
+                path = BuildArc(new(x, y, x + width, y + height), 270, 360);
+                align = SKTextAlign.Left;
+                break;
+            default:
+                return false;
+        }
+
+        using (path)
+        using (var font = new SKFont(typeface, fontSize) {Edging = SKFontEdging.Antialias})
+        using (var fillPaint = new SKPaint {IsAntialias = true, Color = fillColorHex != null ? ParseColor(fillColorHex) : SKColors.Black})
+        {
+            if (outlineColorHex != null && outlineWidthPoints > 0)
+            {
+                using var outlinePaint = new SKPaint
+                {
+                    IsAntialias = true,
+                    Color = ParseColor(outlineColorHex),
+                    Style = SKPaintStyle.Stroke,
+                    StrokeWidth = context.PointsToPixels((float) outlineWidthPoints)
+                };
+                currentCanvas.DrawTextOnPath(text, path, new SKPoint(0, 0), align, font, outlinePaint);
+            }
+
+            currentCanvas.DrawTextOnPath(text, path, new SKPoint(0, 0), align, font, fillPaint);
+        }
+
+        return true;
+    }
+
+    static SKPath BuildArc(SKRect oval, float startAngle, float sweepAngle)
+    {
+        var path = new SKPath();
+        path.AddArc(oval, startAngle, sweepAngle);
+        return path;
     }
 
     void ApplyWordArtTransform(WordArtTransform transform, float x, float y, float width, float height)
