@@ -1714,7 +1714,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
         }
 
         // Handle empty paragraph - use font metrics from runs if available
-        if (lines.Count == 0)
+        if (lines.Count == 0 && !paragraph.IsAnchorOnlyMark)
         {
             // Fallback default
             float emptyHeight = 12;

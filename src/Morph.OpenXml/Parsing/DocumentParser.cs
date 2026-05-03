@@ -2420,12 +2420,14 @@ sealed class DocumentParser(string defaultFont)
         {
             if (pageMargin.Top?.HasValue == true)
             {
-                marginTop = pageMargin.Top.Value / twipsPerPoint;
+                // ECMA-376 §17.6.11: a negative w:top means |val| is the distance from the top of
+                // the page to the top of the body, regardless of header height.
+                marginTop = Math.Abs(pageMargin.Top.Value) / twipsPerPoint;
             }
 
             if (pageMargin.Bottom?.HasValue == true)
             {
-                marginBottom = pageMargin.Bottom.Value / twipsPerPoint;
+                marginBottom = Math.Abs(pageMargin.Bottom.Value) / twipsPerPoint;
             }
 
             if (pageMargin.Left?.HasValue == true)
@@ -2910,6 +2912,7 @@ sealed class DocumentParser(string defaultFont)
         CellSpacing? defaultCellMargin = null;
         CellSpacing? defaultCellPadding = null;
         var isFloating = false;
+        double floatingYOffsetPoints = 0;
         if (tableProps != null)
         {
             var tblCellMar = tableProps.GetFirstChild<TableCellMarginDefault>();
@@ -2921,6 +2924,10 @@ sealed class DocumentParser(string defaultFont)
             // Check for floating table positioning (tblpPr).
             var tblpPr = tableProps.GetFirstChild<TablePositionProperties>();
             isFloating = tblpPr != null;
+            if (tblpPr?.TablePositionY?.HasValue == true)
+            {
+                floatingYOffsetPoints = tblpPr.TablePositionY.Value / twipsPerPoint;
+            }
         }
 
         // tblLook gates which conditional flags can be derived from cell position when the
@@ -3380,6 +3387,7 @@ sealed class DocumentParser(string defaultFont)
             Properties = new()
             {
                 IsFloating = isFloating,
+                FloatingYOffsetPoints = floatingYOffsetPoints,
                 DefaultBorders = defaultBorders,
                 InsideHorizontalBorder = insideHBorder,
                 InsideVerticalBorder = insideVBorder,
@@ -4234,6 +4242,24 @@ sealed class DocumentParser(string defaultFont)
             {
                 Runs = runs,
                 Properties = props
+            });
+        }
+        else if (props.SpacingAfterPoints > 0 &&
+                 result.All(_ => _ is FloatingShapeElement {BehindText: true}))
+        {
+            // Paragraph contained only behind-text decorative shapes (a "background
+            // placeholder" pattern) but carries explicit spacing-after — Word honours
+            // that spacing so the following block sits the correct distance below.
+            // Emit a marker paragraph with zero line height (IsAnchorOnlyMark) and
+            // spacing-before collapsed: Word does not allocate a line for the paragraph
+            // mark in this case, only the trailing spacing. Without this, the table or
+            // heading immediately after a background placeholder paragraph snaps too
+            // high (see agendas-minutes/11).
+            result.Add(new ParagraphElement
+            {
+                Runs = [],
+                Properties = props with {SpacingBeforePoints = 0},
+                IsAnchorOnlyMark = true
             });
         }
 

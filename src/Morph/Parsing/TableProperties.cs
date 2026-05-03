@@ -6,6 +6,14 @@ sealed record TableProperties
     /// <summary>Whether this table is a floating table with absolute positioning (w:tblpPr).</summary>
     public bool IsFloating { get; init; }
 
+    /// <summary>
+    /// Vertical offset in points from the floating-table anchor (w:tblpPr/@w:tblpY).
+    /// Only meaningful when <see cref="IsFloating"/> is true. Morph treats floating tables
+    /// inline today, so this is added as a y-offset before the table's first row to
+    /// approximate Word's positioning.
+    /// </summary>
+    public double FloatingYOffsetPoints { get; init; }
+
     /// <summary>Default borders for cells (from w:tblBorders). Null means no borders.</summary>
     public CellBorders? DefaultBorders { get; init; }
 
