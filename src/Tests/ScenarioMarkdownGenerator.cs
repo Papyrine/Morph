@@ -94,33 +94,51 @@ static class ScenarioMarkdownGenerator
         foreach (var page in pages)
         {
             var pageLabel = $"Page {page.PageNumber}";
+            // One row of labels (page + ErrorMetric) and a separate row for the images
+            // beneath, so each cell's text and image stack vertically inside the table.
             sb.Append("| ");
-            sb.Append(RenderCell(pageLabel, null, page.ExpectedFile, srcPrefix));
+            sb.Append(RenderLabel(pageLabel, null, page.ExpectedFile));
             sb.Append(" | ");
-            sb.Append(RenderCell(pageLabel, page.SkiaMetric, page.SkiaFile, srcPrefix));
+            sb.Append(RenderLabel(pageLabel, page.SkiaMetric, page.SkiaFile));
             sb.Append(" | ");
-            sb.Append(RenderCell(pageLabel, page.ImageSharpMetric, page.ImageSharpFile, srcPrefix));
+            sb.Append(RenderLabel(pageLabel, page.ImageSharpMetric, page.ImageSharpFile));
+            sb.Append(" |\n");
+
+            sb.Append("| ");
+            sb.Append(RenderImage(page.ExpectedFile, srcPrefix));
+            sb.Append(" | ");
+            sb.Append(RenderImage(page.SkiaFile, srcPrefix));
+            sb.Append(" | ");
+            sb.Append(RenderImage(page.ImageSharpFile, srcPrefix));
             sb.Append(" |\n");
         }
     }
 
-    static string RenderCell(string pageLabel, double? metric, string? fileName, string srcPrefix)
+    static string RenderLabel(string pageLabel, double? metric, string? fileName)
     {
+        if (fileName == null)
+        {
+            return $"**{pageLabel}** _(no page)_";
+        }
+
         var label = metric.HasValue
             ? $"{pageLabel}. ErrorMetric: {metric.Value:F4}"
             : pageLabel;
+        return $"**{label}**";
+    }
 
+    static string RenderImage(string? fileName, string srcPrefix)
+    {
         if (fileName == null)
         {
-            return $"**{label}**<br>_(no page)_";
+            return "";
         }
 
         var src = (srcPrefix + fileName).Replace("#", "%23");
         // Use an explicit width <img> rather than ![]() so all three columns get
         // identical image sizes — markdown renderers otherwise size columns by
-        // label text width and shrink images to fit, making the Expected column
-        // (which has no ErrorMetric suffix) render noticeably smaller.
-        return $"""**{label}**<br><img src="{src}" width="500">""";
+        // text width and shrink images to fit.
+        return $"""<img src="{src}" width="500">""";
     }
 
     static List<PageRow> CollectPages(string directory)
