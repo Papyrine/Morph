@@ -134,8 +134,7 @@ sealed class DocumentParser(string defaultFont)
 
         // Extract gutterAtTop setting (so ExtractPageSettings can apply gutter to the right margin).
         gutterAtTopSetting = mainPart.DocumentSettingsPart?.Settings?
-                                 .GetFirstChild<GutterAtTop>() is { } g &&
-                             g.Val?.Value != false;
+            .GetFirstChild<GutterAtTop>().IsOn() ?? false;
 
         // SectionProperties (sectPr) describes the section it belongs to, and the section break is stored
         // on the last paragraph of the section. The next section's properties are stored in the next sectPr.
@@ -180,8 +179,7 @@ sealed class DocumentParser(string defaultFont)
 
         // w:settings/w:evenAndOddHeaders opts the document into separate even-page parts.
         var evenAndOddHeaders = mainPart.DocumentSettingsPart?.Settings?
-                                    .GetFirstChild<EvenAndOddHeaders>() is { } eoh &&
-                                eoh.Val?.Value != false;
+            .GetFirstChild<EvenAndOddHeaders>().IsOn() ?? false;
         var evenPageHeader = evenAndOddHeaders
             ? ExtractHeaderFooter(body, mainPart, HeaderFooterValues.Even, isHeader: true)
             : null;
@@ -899,7 +897,7 @@ sealed class DocumentParser(string defaultFont)
             var defaultSz = rPrDefault.GetFirstChild<FontSize>();
             if (defaultSz?.Val?.HasValue == true)
             {
-                defaultFontSize = double.Parse(defaultSz.Val.Value!) / 2.0;
+                defaultFontSize = double.Parse(defaultSz.Val.Value!).HalfPointsToPoints();
             }
         }
 
@@ -1012,21 +1010,21 @@ sealed class DocumentParser(string defaultFont)
                 var fontSizeElement = runProps.GetFirstChild<FontSize>();
                 if (fontSizeElement?.Val?.HasValue == true)
                 {
-                    fontSize = double.Parse(fontSizeElement.Val.Value!) / 2.0;
+                    fontSize = double.Parse(fontSizeElement.Val.Value!).HalfPointsToPoints();
                 }
 
                 // Bold
                 var boldElement = runProps.GetFirstChild<Bold>();
                 if (boldElement != null)
                 {
-                    bold = boldElement.Val?.Value != false;
+                    bold = boldElement.IsOn();
                 }
 
                 // Italic
                 var italicElement = runProps.GetFirstChild<Italic>();
                 if (italicElement != null)
                 {
-                    italic = italicElement.Val?.Value != false;
+                    italic = italicElement.IsOn();
                 }
 
                 // Underline
@@ -1041,21 +1039,21 @@ sealed class DocumentParser(string defaultFont)
                 var strikeElement = runProps.GetFirstChild<Strike>();
                 if (strikeElement != null)
                 {
-                    strikethrough = strikeElement.Val?.Value != false;
+                    strikethrough = strikeElement.IsOn();
                 }
 
                 // All caps
                 var capsElement = runProps.GetFirstChild<Caps>();
                 if (capsElement != null)
                 {
-                    allCaps = capsElement.Val?.Value != false;
+                    allCaps = capsElement.IsOn();
                 }
 
                 // Small caps
                 var smallCapsElement = runProps.GetFirstChild<SmallCaps>();
                 if (smallCapsElement != null)
                 {
-                    smallCaps = smallCapsElement.Val?.Value != false;
+                    smallCaps = smallCapsElement.IsOn();
                 }
 
                 // Character spacing (w:spacing in rPr)
@@ -2291,7 +2289,7 @@ sealed class DocumentParser(string defaultFont)
         var autoHyphen = settings.GetFirstChild<AutoHyphenation>();
         if (autoHyphen != null)
         {
-            autoHyphenation = autoHyphen.Val?.Value != false;
+            autoHyphenation = autoHyphen.IsOn();
         }
 
         // Parse hyphenationZone
@@ -2312,7 +2310,7 @@ sealed class DocumentParser(string defaultFont)
         var doNotHyphenCaps = settings.GetFirstChild<DoNotHyphenateCaps>();
         if (doNotHyphenCaps != null)
         {
-            doNotHyphenateCaps = doNotHyphenCaps.Val?.Value != false;
+            doNotHyphenateCaps = doNotHyphenCaps.IsOn();
         }
 
         return new()
@@ -6260,19 +6258,19 @@ sealed class DocumentParser(string defaultFont)
             var fontSizeElement = runProps.GetFirstChild<FontSize>();
             if (fontSizeElement?.Val?.HasValue == true)
             {
-                fontSize = double.Parse(fontSizeElement.Val.Value!) / 2.0;
+                fontSize = double.Parse(fontSizeElement.Val.Value!).HalfPointsToPoints();
             }
 
             var boldElement = runProps.GetFirstChild<Bold>();
             if (boldElement != null)
             {
-                bold = boldElement.Val?.Value != false;
+                bold = boldElement.IsOn();
             }
 
             var italicElement = runProps.GetFirstChild<Italic>();
             if (italicElement != null)
             {
-                italic = italicElement.Val?.Value != false;
+                italic = italicElement.IsOn();
             }
 
             var colorElement = runProps.GetFirstChild<Color>();
@@ -6806,7 +6804,7 @@ sealed class DocumentParser(string defaultFont)
             double size = 0;
             if (sizeElement?.Val?.HasValue == true && double.TryParse(sizeElement.Val.Value, out var sizeValue))
             {
-                size = sizeValue / 2.0; // Half-points to points
+                size = sizeValue.HalfPointsToPoints();
             }
 
             return new CheckBoxFormFieldElement
@@ -7256,7 +7254,7 @@ sealed class DocumentParser(string defaultFont)
             var fontSize = paragraphMarkRunProps.GetFirstChild<FontSize>();
             if (fontSize?.Val?.HasValue == true && double.TryParse(fontSize.Val.Value, out var halfPoints))
             {
-                paragraphMarkFontSize = halfPoints / 2.0; // Convert half-points to points
+                paragraphMarkFontSize = halfPoints.HalfPointsToPoints();
             }
         }
 
@@ -7265,7 +7263,7 @@ sealed class DocumentParser(string defaultFont)
         var bidi = props.GetFirstChild<BiDi>();
         if (bidi != null)
         {
-            paraRtl = bidi.Val?.Value != false;
+            paraRtl = bidi.IsOn();
         }
 
         // Parse drop cap (w:framePr/w:dropCap, w:framePr/w:lines).
@@ -7459,19 +7457,19 @@ sealed class DocumentParser(string defaultFont)
         var fontSizeElement = props.GetFirstChild<FontSize>();
         if (fontSizeElement?.Val?.HasValue == true)
         {
-            fontSize = double.Parse(fontSizeElement.Val.Value!) / 2.0;
+            fontSize = double.Parse(fontSizeElement.Val.Value!).HalfPointsToPoints();
         }
 
         var boldElement = props.GetFirstChild<Bold>();
         if (boldElement != null)
         {
-            bold = boldElement.Val?.Value != false;
+            bold = boldElement.IsOn();
         }
 
         var italicElement = props.GetFirstChild<Italic>();
         if (italicElement != null)
         {
-            italic = italicElement.Val?.Value != false;
+            italic = italicElement.IsOn();
         }
 
         var underlineElement = props.GetFirstChild<Underline>();
@@ -7483,19 +7481,19 @@ sealed class DocumentParser(string defaultFont)
         var strikeElement = props.GetFirstChild<Strike>();
         if (strikeElement != null)
         {
-            strikethrough = strikeElement.Val?.Value != false;
+            strikethrough = strikeElement.IsOn();
         }
 
         var capsElement = props.GetFirstChild<Caps>();
         if (capsElement != null)
         {
-            allCaps = capsElement.Val?.Value != false;
+            allCaps = capsElement.IsOn();
         }
 
         var smallCapsElement = props.GetFirstChild<SmallCaps>();
         if (smallCapsElement != null)
         {
-            smallCaps = smallCapsElement.Val?.Value != false;
+            smallCaps = smallCapsElement.IsOn();
         }
 
         // Character spacing (w:spacing in rPr — extra space between characters, in twips)
@@ -7510,7 +7508,7 @@ sealed class DocumentParser(string defaultFont)
         var kernElement = props.GetFirstChild<Kern>();
         if (kernElement?.Val?.HasValue == true)
         {
-            kerningMinFontSize = kernElement.Val.Value / 2.0;
+            kerningMinFontSize = kernElement.Val.Value.HalfPointsToPoints();
         }
 
         // Ligature mode (w14:ligatures in rPr — Word 2010+ extension)
@@ -7521,7 +7519,7 @@ sealed class DocumentParser(string defaultFont)
         var rtlElement = props.GetFirstChild<RightToLeftText>();
         if (rtlElement != null)
         {
-            runRtl = rtlElement.Val?.Value != false;
+            runRtl = rtlElement.IsOn();
         }
 
         // w14 text effects (parameters captured for outline/shadow/glow; reflection is presence-only)
@@ -7701,7 +7699,7 @@ sealed class DocumentParser(string defaultFont)
         var vanish = props.GetFirstChild<Vanish>();
         if (vanish != null)
         {
-            hidden = vanish.Val?.Value != false;
+            hidden = vanish.IsOn();
         }
 
         if (props.GetFirstChild<SpecVanish>() != null)
@@ -7716,7 +7714,7 @@ sealed class DocumentParser(string defaultFont)
         if (positionElement?.Val?.HasValue == true &&
             double.TryParse(positionElement.Val.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var posHalfPts))
         {
-            baselineShift = posHalfPts / 2.0;
+            baselineShift = posHalfPts.HalfPointsToPoints();
         }
 
         // w:bdr — per-run border, modelled as a single BorderEdge applied around the run's
@@ -7735,21 +7733,21 @@ sealed class DocumentParser(string defaultFont)
         var embossElement = props.GetFirstChild<Emboss>();
         if (embossElement != null)
         {
-            emboss = embossElement.Val?.Value != false;
+            emboss = embossElement.IsOn();
         }
 
         var imprint = styleDefaults?.Imprint ?? false;
         var imprintElement = props.GetFirstChild<Imprint>();
         if (imprintElement != null)
         {
-            imprint = imprintElement.Val?.Value != false;
+            imprint = imprintElement.IsOn();
         }
 
         var outlineOnly = styleDefaults?.OutlineOnly ?? false;
         var outlineElement = props.GetFirstChild<Outline>();
         if (outlineElement != null)
         {
-            outlineOnly = outlineElement.Val?.Value != false;
+            outlineOnly = outlineElement.IsOn();
         }
 
         // w:effect — animated text (blinkBackground, sparkle, etc.). Pure animation, so we

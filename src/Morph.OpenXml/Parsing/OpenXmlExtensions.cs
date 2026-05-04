@@ -21,6 +21,28 @@ static class OpenXmlExtensions
     public static double EmuToPoints(this double emus) => emus / EmusPerPoint;
 
     /// <summary>
+    /// Converts half-points (used by w:sz, w:kern, w:position) to points.
+    /// </summary>
+    public static double HalfPointsToPoints(this double halfPoints) => halfPoints / 2.0;
+
+    /// <summary>
+    /// Converts half-points (used by w:sz, w:kern, w:position) to points.
+    /// </summary>
+    public static double HalfPointsToPoints(this int halfPoints) => halfPoints / 2.0;
+
+    /// <summary>
+    /// Converts half-points (used by w:sz, w:kern, w:position) to points.
+    /// </summary>
+    public static double HalfPointsToPoints(this uint halfPoints) => halfPoints / 2.0;
+
+    /// <summary>
+    /// Returns true when an OnOff-style element is present and not explicitly set to false.
+    /// OOXML semantics: a bare element (no w:val) is "on", w:val="false"/"0" is "off".
+    /// </summary>
+    public static bool IsOn(this OnOffType? element) =>
+        element != null && element.Val?.Value != false;
+
+    /// <summary>
     /// Extracts dimensions from a Drawing element (works with both Inline and Anchor).
     /// </summary>
     /// <returns>Tuple of (widthPoints, heightPoints) or null if dimensions cannot be extracted.</returns>
