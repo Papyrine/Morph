@@ -966,10 +966,18 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
 
         using (path)
-        using (var font = new SKFont(typeface, fontSize) {Edging = SKFontEdging.Antialias})
-        using (var fillPaint = new SKPaint {IsAntialias = true, Color = fillColorHex != null ? ParseColor(fillColorHex) : SKColors.Black})
+        using (var font = new SKFont(typeface, fontSize)
+               {
+                   Edging = SKFontEdging.Antialias
+               })
+        using (var fillPaint = new SKPaint
+               {
+                   IsAntialias = true,
+                   Color = fillColorHex != null ? ParseColor(fillColorHex) : SKColors.Black
+               })
         {
-            if (outlineColorHex != null && outlineWidthPoints > 0)
+            if (outlineColorHex != null &&
+                outlineWidthPoints > 0)
             {
                 using var outlinePaint = new SKPaint
                 {
@@ -978,10 +986,10 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                     Style = SKPaintStyle.Stroke,
                     StrokeWidth = context.PointsToPixels((float) outlineWidthPoints)
                 };
-                currentCanvas.DrawTextOnPath(text, path, new SKPoint(0, 0), align, font, outlinePaint);
+                currentCanvas.DrawTextOnPath(text, path, new(0, 0), align, font, outlinePaint);
             }
 
-            currentCanvas.DrawTextOnPath(text, path, new SKPoint(0, 0), align, font, fillPaint);
+            currentCanvas.DrawTextOnPath(text, path, new(0, 0), align, font, fillPaint);
         }
 
         return true;
@@ -1271,7 +1279,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         context.CurrentY += imageHeight;
     }
 
-    Dictionary<string, SKColor> colorCache = new();
+    Dictionary<string, SKColor> colorCache = [];
 
     SKColor ParseColor(string hexColor)
     {
@@ -1556,13 +1564,13 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         // Clear with background color if specified, otherwise white
         var bgColor = context.PageSettings.BackgroundColorHex;
-        if (!string.IsNullOrEmpty(bgColor))
+        if (string.IsNullOrEmpty(bgColor))
         {
-            currentCanvas.Clear(ParseColor(bgColor));
+            currentCanvas.Clear(SKColors.White);
         }
         else
         {
-            currentCanvas.Clear(SKColors.White);
+            currentCanvas.Clear(ParseColor(bgColor));
         }
 
         // Watermarks live behind everything: drawn after the page background clear so they
@@ -1588,16 +1596,18 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
     protected override void FinishCurrentPage()
     {
-        if (currentPage != null)
+        if (currentPage == null)
         {
-            // Render footer before finishing
-            RenderFooter();
-
-            pendingPage = currentPage;
-            currentCanvas?.Dispose();
-            currentCanvas = null;
-            currentPage = null;
+            return;
         }
+
+        // Render footer before finishing
+        RenderFooter();
+
+        pendingPage = currentPage;
+        currentCanvas?.Dispose();
+        currentCanvas = null;
+        currentPage = null;
     }
 
     void DrawWatermarks()
@@ -1713,7 +1723,8 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
     void DrawPageBorders()
     {
-        if (currentCanvas == null || context.PageSettings.PageBorders is not {HasAnyBorder: true} borders)
+        if (currentCanvas == null ||
+            context.PageSettings.PageBorders is not {HasAnyBorder: true} borders)
         {
             return;
         }
@@ -1760,7 +1771,9 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
     void RemoveBlankTrailingPage()
     {
-        if (pageCount > 0 && !hasSignificantContentOnCurrentPage && !currentPageFromExplicitBreak)
+        if (pageCount > 0 &&
+            !hasSignificantContentOnCurrentPage &&
+            !currentPageFromExplicitBreak)
         {
             pendingPage?.Dispose();
             pendingPage = null;
@@ -1856,7 +1869,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             FillShape(shape.Preset, pixelX, pixelY, pixelWidth, pixelHeight, paint);
         }
 
-        if (shape.LineColorHex is { } lineColor && shape.LineWidthPoints is { } lineWidthPt && lineWidthPt > 0)
+        if (shape is { LineColorHex: { } lineColor, LineWidthPoints: { } lineWidthPt and > 0 })
         {
             using var strokePaint = new SKPaint
             {
@@ -1886,7 +1899,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 var strokeRight = Math.Min(context.PageWidthPixels, pixelX + pixelWidth);
                 var strokeBottom = Math.Min(context.PageHeightPixels, pixelY + pixelHeight);
                 currentCanvas.DrawRect(
-                    new SKRect(strokeLeft, strokeTop, strokeRight, strokeBottom),
+                    new(strokeLeft, strokeTop, strokeRight, strokeBottom),
                     strokePaint);
             }
         }

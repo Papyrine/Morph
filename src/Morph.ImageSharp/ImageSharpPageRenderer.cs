@@ -20,7 +20,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     bool hasSignificantContentOnCurrentPage;
     bool currentPageFromExplicitBreak;
 
-    Dictionary<string, Color> colorCache = new();
+    Dictionary<string, Color> colorCache = [];
 
     Color ParseColor(string? hexColor)
     {
@@ -100,13 +100,18 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     void RenderNotesAppendix(ParsedDocument document)
     {
         var footnotes = document.Footnotes
-            .Where(_ => _.Id != "0" && _.Id != "-1" && !string.IsNullOrWhiteSpace(_.Text))
+            .Where(_ => _.Id != "0" &&
+                        _.Id != "-1" &&
+                        !string.IsNullOrWhiteSpace(_.Text))
             .ToList();
         var endnotes = document.Endnotes
-            .Where(_ => _.Id != "0" && _.Id != "-1" && !string.IsNullOrWhiteSpace(_.Text))
+            .Where(_ => _.Id != "0" &&
+                        _.Id != "-1" &&
+                        !string.IsNullOrWhiteSpace(_.Text))
             .ToList();
 
-        if (footnotes.Count == 0 && endnotes.Count == 0)
+        if (footnotes.Count == 0 &&
+            endnotes.Count == 0)
         {
             return;
         }
@@ -126,9 +131,20 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         {
             Runs =
             [
-                new() {Text = heading, Properties = new() {Bold = true, FontSizePoints = 12}}
+                new()
+                {
+                    Text = heading,
+                    Properties = new()
+                    {
+                        Bold = true, FontSizePoints = 12
+                    }
+                }
             ],
-            Properties = new() {SpacingBeforePoints = 12, SpacingAfterPoints = 6}
+            Properties = new()
+            {
+                SpacingBeforePoints = 12,
+                SpacingAfterPoints = 6
+            }
         };
         RenderParagraph(headingParagraph);
 
@@ -1276,7 +1292,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             FillShape(shape.Preset, pixelX, pixelY, pixelWidth, pixelHeight, new SolidBrush(fillColor));
         }
 
-        if (shape.LineColorHex is { } lineColor && shape.LineWidthPoints is { } lineWidthPt && lineWidthPt > 0)
+        if (shape is { LineColorHex: { } lineColor, LineWidthPoints: { } lineWidthPt and > 0 })
         {
             var strokeColor = ParseColor(lineColor);
             var strokePixels = context.PointsToPixels((float) lineWidthPt);
