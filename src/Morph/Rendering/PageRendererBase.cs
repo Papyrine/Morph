@@ -609,7 +609,7 @@ abstract class PageRendererBase(RenderContextBase context)
 
         // Floating tables (w:tblpPr) are rendered inline today; honour their tblpY as a
         // y-offset before the first row to approximate Word's anchored placement.
-        if (table.Properties.IsFloating && table.Properties.FloatingYOffsetPoints > 0)
+        if (table.Properties is { IsFloating: true, FloatingYOffsetPoints: > 0 })
         {
             context.CurrentY += (float) table.Properties.FloatingYOffsetPoints;
         }
