@@ -1696,6 +1696,16 @@ sealed class DocumentParser(string defaultFont)
             return result;
         }
 
+        // Index table styles by ID so we can resolve inherited (w:basedOn) cell margins.
+        var tableStylesById = new Dictionary<string, Style>(StringComparer.OrdinalIgnoreCase);
+        foreach (var style in stylesPart.Styles.Elements<Style>())
+        {
+            if (style.Type?.Value == StyleValues.Table && style.StyleId?.Value is { } id)
+            {
+                tableStylesById[id] = style;
+            }
+        }
+
         foreach (var style in stylesPart.Styles.Elements<Style>())
         {
             var styleId = style.StyleId?.Value;
@@ -1837,13 +1847,51 @@ sealed class DocumentParser(string defaultFont)
                 conditionals[type.Value] = new(condBorders, condShading, condRunColor);
             }
 
-            if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || wholeTableShading != null || conditionals != null || styleCellSpacing > 0 || styleVerticalAlignment != null)
+            // Resolve default cell padding by walking the w:basedOn chain — Word's built-in
+            // TableGrid inherits its tblCellMar from TableNormal, so a table that names
+            // TableGrid would otherwise lose the 108-twip start/end padding.
+            var styleCellPadding = ResolveStyleCellPadding(style, tableStylesById);
+
+            if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || wholeTableShading != null || conditionals != null || styleCellSpacing > 0 || styleVerticalAlignment != null || styleCellPadding != null)
             {
-                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, styleCellSpacing, conditionals, styleVerticalAlignment);
+                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, styleCellSpacing, conditionals, styleVerticalAlignment, styleCellPadding);
             }
         }
 
         return result;
+    }
+
+    static CellSpacing? ResolveStyleCellPadding(Style style, Dictionary<string, Style> tableStylesById)
+    {
+        var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var current = style;
+        while (current != null)
+        {
+            if (current.StyleId?.Value is { } id && !visited.Add(id))
+            {
+                break;
+            }
+
+            var tblCellMar = current.StyleTableProperties?.GetFirstChild<TableCellMarginDefault>();
+            if (tblCellMar != null)
+            {
+                var padding = ParseTableCellMargin(tblCellMar);
+                if (padding != null)
+                {
+                    return padding;
+                }
+            }
+
+            var basedOnId = current.BasedOn?.Val?.Value;
+            if (basedOnId == null || !tableStylesById.TryGetValue(basedOnId, out var baseStyle))
+            {
+                break;
+            }
+
+            current = baseStyle;
+        }
+
+        return null;
     }
 
     static string? ReadShadingFill(Shading? shading)
@@ -3389,7 +3437,7 @@ sealed class DocumentParser(string defaultFont)
                 DefaultBorders = defaultBorders,
                 InsideHorizontalBorder = insideHBorder,
                 InsideVerticalBorder = insideVBorder,
-                DefaultCellPadding = defaultCellPadding ?? new CellSpacing(),
+                DefaultCellPadding = defaultCellPadding ?? styleInfo?.DefaultCellPadding ?? new CellSpacing(),
                 DefaultCellMargin = defaultCellMargin ?? new CellSpacing(0),
                 IndentPoints = indentPoints,
                 GridColumnWidths = gridColumnWidths,

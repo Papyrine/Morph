@@ -888,10 +888,10 @@ Background fill color for individual cells.
 
 Space between cell border and cell content (inside the cell).
 
-- **OOXML**: `w:tcMar` (per-cell) or `w:tblCellMar` (table default)
+- **OOXML**: `w:tcMar` (per-cell) or `w:tblCellMar` (table default; also inherited from the referenced table style and its `w:basedOn` chain)
 - **Spec**: [Cell Margins](http://officeopenxml.com/WPtableCellMargins.php)
 - **Model**: `TableCellProperties.Padding` (per-cell), `TableProperties.DefaultCellPadding`
-- **Test**: `table_cell_padding/`, `table_cell_padding_varied/`, `table_default_cell_margin/`
+- **Test**: `table_cell_padding/`, `table_cell_padding_varied/`, `table_default_cell_margin/`, `table_grid_styling_padding/`
 
 
 #### Cell Margins `DONE`
