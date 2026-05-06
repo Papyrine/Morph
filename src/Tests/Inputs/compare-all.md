@@ -427,14 +427,14 @@ To fully render this scenario, parse `<a:pathLst>` into an actual `SKPath` / Ima
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0883** | **Page 1. ErrorMetric: 0.0914** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0552** | **Page 1. ErrorMetric: 0.0605** |
 | <img src="agendas-minutes/14/expected_0001.png" width="500"> | <img src="agendas-minutes/14/results_skia%23page_0001.verified.png" width="500"> | <img src="agendas-minutes/14/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## agendas-minutes/15
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1659** | **Page 1. ErrorMetric: 0.1740** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1652** | **Page 1. ErrorMetric: 0.1733** |
 | <img src="agendas-minutes/15/expected_0001.png" width="500"> | <img src="agendas-minutes/15/results_skia%23page_0001.verified.png" width="500"> | <img src="agendas-minutes/15/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## agendas-minutes/16
@@ -1004,7 +1004,7 @@ The remaining ~5pt gap (linePitch 18 + cell padding 7.2 = 25.2pt vs Word's 30pt)
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.2405** | **Page 1. ErrorMetric: 0.2425** |
+| **Page 1** | **Page 1. ErrorMetric: 0.2383** | **Page 1. ErrorMetric: 0.2415** |
 | <img src="cards/09/expected_0001.png" width="500"> | <img src="cards/09/results_skia%23page_0001.verified.png" width="500"> | <img src="cards/09/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## cards/10
@@ -1849,7 +1849,7 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.2723** | **Page 1. ErrorMetric: 0.2739** |
+| **Page 1** | **Page 1. ErrorMetric: 0.2717** | **Page 1. ErrorMetric: 0.2745** |
 | <img src="letters/04/expected_0001.png" width="500"> | <img src="letters/04/results_skia%23page_0001.verified.png" width="500"> | <img src="letters/04/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## letters/05
