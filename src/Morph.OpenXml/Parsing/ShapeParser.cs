@@ -120,6 +120,8 @@ static class ShapeParser
 
         var (lineColor, lineWidth) = ExtractLineStyle(wsp, shapeProps, themeColors);
         var preset = ExtractPresetShape(shapeProps);
+        var polygon = ExtractPolygonPoints(shapeProps);
+        var (rotation, flipH, flipV) = ExtractTransform(shapeProps.GetFirstChild<A.Transform2D>());
 
         // Try solid fill first
         var solidFill = shapeProps.GetFirstChild<A.SolidFill>();
@@ -145,7 +147,11 @@ static class ShapeParser
                     FillAlpha = ExtractSolidFillAlpha(solidFill),
                     LineColorHex = lineColor,
                     LineWidthPoints = lineWidth,
-                    Preset = preset
+                    Preset = preset,
+                    PolygonPoints = polygon,
+                    RotationDegrees = rotation,
+                    FlipHorizontal = flipH,
+                    FlipVertical = flipV
                 };
             }
         }
@@ -174,7 +180,11 @@ static class ShapeParser
                     FillColorHex = gradient.StartColorHex,
                     LineColorHex = lineColor,
                     LineWidthPoints = lineWidth,
-                    Preset = preset
+                    Preset = preset,
+                    PolygonPoints = polygon,
+                    RotationDegrees = rotation,
+                    FlipHorizontal = flipH,
+                    FlipVertical = flipV
                 };
             }
         }
@@ -204,7 +214,11 @@ static class ShapeParser
                     ImageContentType = contentType,
                     LineColorHex = lineColor,
                     LineWidthPoints = lineWidth,
-                    Preset = preset
+                    Preset = preset,
+                    PolygonPoints = polygon,
+                    RotationDegrees = rotation,
+                    FlipHorizontal = flipH,
+                    FlipVertical = flipV
                 };
             }
         }
@@ -294,6 +308,80 @@ static class ShapeParser
     }
 
     /// <summary>
+    /// Extracts a closed polyline from <c>a:custGeom</c> as points normalized into the unit
+    /// square (0..1) of the path's declared <c>w</c>/<c>h</c>. Returns null when the geometry
+    /// is missing, contains curves, or has fewer than three points — those cases fall back to
+    /// the bounding rect.
+    /// </summary>
+    public static IReadOnlyList<(double X, double Y)>? ExtractPolygonPoints(WPS.ShapeProperties shapeProps)
+    {
+        var custGeom = shapeProps.GetFirstChild<A.CustomGeometry>();
+        var pathList = custGeom?.GetFirstChild<A.PathList>();
+        var path = pathList?.GetFirstChild<A.Path>();
+        if (path == null)
+        {
+            return null;
+        }
+
+        // Curves can't be represented as a polygon — caller falls back to rect.
+        if (path.Descendants<A.CubicBezierCurveTo>().Any() ||
+            path.Descendants<A.QuadraticBezierCurveTo>().Any() ||
+            path.Descendants<A.ArcTo>().Any())
+        {
+            return null;
+        }
+
+        var pathW = path.Width?.Value ?? 0;
+        var pathH = path.Height?.Value ?? 0;
+        if (pathW <= 0 || pathH <= 0)
+        {
+            return null;
+        }
+
+        var points = new List<(double X, double Y)>();
+        foreach (var child in path.ChildElements)
+        {
+            switch (child)
+            {
+                case A.MoveTo move when move.Point is { } mp && mp.X?.HasValue == true && mp.Y?.HasValue == true:
+                    if (long.TryParse(mp.X!.Value, out var mx) && long.TryParse(mp.Y!.Value, out var my))
+                    {
+                        points.Add((mx / (double) pathW, my / (double) pathH));
+                    }
+                    break;
+                case A.LineTo line when line.Point is { } lp && lp.X?.HasValue == true && lp.Y?.HasValue == true:
+                    if (long.TryParse(lp.X!.Value, out var lx) && long.TryParse(lp.Y!.Value, out var ly))
+                    {
+                        points.Add((lx / (double) pathW, ly / (double) pathH));
+                    }
+                    break;
+            }
+        }
+
+        if (points.Count < 3)
+        {
+            return null;
+        }
+
+        return points;
+    }
+
+    /// <summary>
+    /// Reads rotation (degrees clockwise) and flip flags from an <c>a:xfrm</c>. Rotation is
+    /// stored in 60,000ths of a degree on <c>@rot</c>; <c>@flipH</c>/<c>@flipV</c> are booleans.
+    /// </summary>
+    public static (double RotationDegrees, bool FlipHorizontal, bool FlipVertical) ExtractTransform(A.Transform2D? xfrm)
+    {
+        if (xfrm == null)
+        {
+            return (0, false, false);
+        }
+
+        var rotation = xfrm.Rotation?.Value is { } rot ? rot / 60000.0 : 0;
+        return (rotation, xfrm.HorizontalFlip?.Value == true, xfrm.VerticalFlip?.Value == true);
+    }
+
+    /// <summary>
     /// Parses a shape within a group, applying group transforms to get individual shape dimensions.
     /// Filters out decorative shapes (those with complex bezier paths).
     /// </summary>
@@ -351,6 +439,8 @@ static class ShapeParser
 
         var (lineColor, lineWidth) = ExtractLineStyle(wsp, shapeProps, themeColors);
         var preset = ExtractPresetShape(shapeProps);
+        var polygon = ExtractPolygonPoints(shapeProps);
+        var (rotation, flipH, flipV) = ExtractTransform(xfrm);
 
         // Try solid fill first
         var solidFill = shapeProps.GetFirstChild<A.SolidFill>();
@@ -375,7 +465,11 @@ static class ShapeParser
                     FillAlpha = ExtractSolidFillAlpha(solidFill),
                     LineColorHex = lineColor,
                     LineWidthPoints = lineWidth,
-                    Preset = preset
+                    Preset = preset,
+                    PolygonPoints = polygon,
+                    RotationDegrees = rotation,
+                    FlipHorizontal = flipH,
+                    FlipVertical = flipV
                 };
             }
         }
@@ -402,7 +496,11 @@ static class ShapeParser
                     ImageContentType = contentType,
                     LineColorHex = lineColor,
                     LineWidthPoints = lineWidth,
-                    Preset = preset
+                    Preset = preset,
+                    PolygonPoints = polygon,
+                    RotationDegrees = rotation,
+                    FlipHorizontal = flipH,
+                    FlipVertical = flipV
                 };
             }
         }

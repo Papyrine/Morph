@@ -2,5 +2,5 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1034** | **Page 1. ErrorMetric: 0.1048** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0704** | **Page 1. ErrorMetric: 0.0750** |
 | <img src="expected_0001.png" width="500"> | <img src="results_skia%23page_0001.verified.png" width="500"> | <img src="results_imagesharp%23page_0001.verified.png" width="500"> |

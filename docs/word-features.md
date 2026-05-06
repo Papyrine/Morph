@@ -1539,15 +1539,15 @@ Linear or radial gradient fills for shapes.
 > **AI**: Radial / path gradients and intermediate stops aren't modelled — the 2-stop simplification covers most templates that use a "white-to-tint" feature box. Theme-coloured stops resolve through `ThemeColors.ResolveColor` so accent colours come through.
 
 
-#### Complex Shapes (Bezier/Path) `DONE`
+#### Complex Shapes (Bezier/Path) `PARTIAL`
 
 Shapes defined by custom geometry paths with curves and arcs.
 
 - **OOXML**: `a:custGeom` with `a:path` containing `a:moveTo`, `a:lnTo`, `a:cubicBezTo`, `a:arcTo`
-- **Model**: presence detected via `ParsedDocument.Features.HasBezierShapes`; per-shape paths aren't parsed.
-- **Render**: `ShapeParser.IsDecorativeShape` deliberately filters out custom-geometry shapes (any `a:custGeom` containing `a:cubicBezTo` or `a:quadBezTo`) instead of drawing them as solid rectangles. Most templates use these for purely decorative flourishes (scrollwork, abstract corner accents) where a wrong-shaped solid rectangle looks worse than a missing element. The presence flag is retained so consumers can detect documents whose layout depends on custom geometry.
+- **Model**: presence detected via `ParsedDocument.Features.HasBezierShapes`. Pure polyline custom geometries are parsed into `FloatingShapeElement.PolygonPoints` (normalized 0..1 in path coord space) along with `RotationDegrees` / `FlipHorizontal` / `FlipVertical` from the shape's `a:xfrm`.
+- **Render**: `ShapeParser.ExtractPolygonPoints` picks up polyline `a:custGeom` paths (moveTo/lnTo, no curves) and both renderers draw them as filled/stroked polygons through `BuildPolygonPath` (Skia) / `BuildPolygon` (ImageSharp), applying flip-then-rotate-then-translate around the bounding-box centre. `ShapeParser.IsDecorativeShape` still filters out shapes containing `a:cubicBezTo` / `a:quadBezTo` because those would need a proper bezier renderer.
 
-> **AI**: A real Bezier renderer would build `SKPath` (`MoveTo`/`LineTo`/`CubicTo`/`QuadTo`/`ArcTo`) or `PathBuilder` from `a:custGeom`, mapping `a:gd` formula guides through the shape's `coordsize`. The deliberate filter is the documented behaviour because the corpus shows decorative-only usage; if a future scenario uses custGeom for a foreground content shape (rare in Word documents), the filter heuristic would need to flip to "render as path" instead.
+> **AI**: Bezier-curve custGeom is still filtered (drawing it as a rectangle was worse than dropping it for templates that use it for scrollwork). To extend coverage to curves, the polygon path would need to grow `CubicTo` / `QuadTo` / `ArcTo` segment kinds and `BuildPolygonPath` would map `a:gd` formula guides through the path's coord space. Today's polyline-only support handles the common "geometric template" decoration case (triangles, diamonds, angled corner accents).
 
 
 #### 3D Effects `DONE`
