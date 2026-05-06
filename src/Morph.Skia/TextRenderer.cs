@@ -820,9 +820,10 @@ sealed class TextRenderer(SkiaRenderContext context) :
             colorHex = paragraph.Runs[0].Properties.ColorHex;
         }
 
-        // Use Arial for bullets since Symbol/Wingdings characters have been mapped to Unicode equivalents
-        // Arial is available on all platforms and has good Unicode coverage including bullet characters
-        using var typeface = SKTypeface.FromFamilyName("Arial") ?? SKTypeface.Default;
+        // Bullet glyphs come from Morph's embedded "Morph Bullets" subset (see
+        // EmbeddedFonts/Bullets.md). Sized to match the paragraph font so the dot scales
+        // with the surrounding text.
+        var typeface = context.GetTypeface("Morph Bullets", bold: false, italic: false);
         using var font = context.CreateFontFromTypeface(typeface, fontSize);
         using var paint = new SKPaint
         {
@@ -847,9 +848,10 @@ sealed class TextRenderer(SkiaRenderContext context) :
             colorHex = paragraph.Runs[0].Properties.ColorHex;
         }
 
-        // Use Arial for bullets since Symbol/Wingdings characters have been mapped to Unicode equivalents
-        // Arial is available on all platforms and has good Unicode coverage including bullet characters
-        using var typeface = SKTypeface.FromFamilyName("Arial") ?? SKTypeface.Default;
+        // Bullet glyphs come from Morph's embedded "Morph Bullets" subset (see
+        // EmbeddedFonts/Bullets.md). Sized to match the paragraph font so the dot scales
+        // with the surrounding text.
+        var typeface = context.GetTypeface("Morph Bullets", bold: false, italic: false);
         using var font = context.CreateFontFromTypeface(typeface, fontSize);
         using var paint = new SKPaint
         {

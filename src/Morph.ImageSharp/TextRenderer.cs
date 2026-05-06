@@ -798,9 +798,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             colorHex = paragraph.Runs[0].Properties.ColorHex;
         }
 
-        // Use Arial for bullets since Symbol/Wingdings characters have been mapped to Unicode equivalents
-        // Arial is available on all platforms and has good Unicode coverage including bullet characters
-        var bulletProps = new RunProperties { FontFamily = "Arial", FontSizePoints = fontSize };
+        // Bullet glyphs come from Morph's embedded "Morph Bullets" subset (see
+        // EmbeddedFonts/Bullets.md). Sized to match the paragraph font so the dot scales
+        // with the surrounding text.
+        var bulletProps = new RunProperties { FontFamily = "Morph Bullets", FontSizePoints = fontSize };
         var font = context.GetFont(bulletProps);
         var (_, baseline) = ImageSharpRenderContext.GetFontMetrics(font);
 
@@ -828,9 +829,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             colorHex = paragraph.Runs[0].Properties.ColorHex;
         }
 
-        // Use Arial for bullets since Symbol/Wingdings characters have been mapped to Unicode equivalents
-        // Arial is available on all platforms and has good Unicode coverage including bullet characters
-        var bulletProps = new RunProperties { FontFamily = "Arial", FontSizePoints = fontSize };
+        // Bullet glyphs come from Morph's embedded "Morph Bullets" subset (see
+        // EmbeddedFonts/Bullets.md). Sized to match the paragraph font so the dot scales
+        // with the surrounding text.
+        var bulletProps = new RunProperties { FontFamily = "Morph Bullets", FontSizePoints = fontSize };
         var font = context.GetFont(bulletProps);
         var (_, baseline) = ImageSharpRenderContext.GetFontMetrics(font);
 

@@ -1,4 +1,4 @@
-# All scenarios (316)
+# All scenarios (317)
 
 ## Contents
 
@@ -103,6 +103,7 @@
 - [deep_nested_list](#deep_nested_list)
 - [document_capture/01](#document_capture01)
 - [document_protection/01](#document_protection01)
+- [dot_points](#dot_points)
 - [embedded_font](#embedded_font)
 - [empty_paragraphs](#empty_paragraphs)
 - [even_odd_headers/01](#even_odd_headers01)
@@ -1303,6 +1304,24 @@ The remaining ~5pt gap (linePitch 18 + cell padding 7.2 = 25.2pt vs Word's 30pt)
 | --- | --- | --- |
 | **Page 1** | **Page 1. ErrorMetric: 0.0023** | **Page 1. ErrorMetric: 0.0028** |
 | <img src="document_protection/01/expected_0001.png" width="500"> | <img src="document_protection/01/results_skia%23page_0001.verified.png" width="500"> | <img src="document_protection/01/results_imagesharp%23page_0001.verified.png" width="500"> |
+
+## dot_points
+
+# dot_points
+
+Multi-level bullet list exercising the three Word-default bullet glyphs across the
+9 numbering levels (cycling every 3):
+
+- ilvl 0/3/6 - Symbol font, U+F0B7 (filled round bullet)
+- ilvl 1/4/7 - Courier New, literal lowercase 'o'
+- ilvl 2/5/8 - Wingdings, U+F0A7 (small filled square)
+
+Use this scenario to verify per-level bullet font + glyph fidelity.
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
+| <img src="dot_points/expected_0001.png" width="500"> |  |  |
 
 ## embedded_font
 
