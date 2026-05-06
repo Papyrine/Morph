@@ -614,6 +614,7 @@ abstract class PageRendererBase(RenderContextBase context)
             context.CurrentY += (float) table.Properties.FloatingYOffsetPoints;
         }
 
+
         var colCount = TableLayout.GetColumnCount(table);
         var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth, Measurer);
         var hasVerticalMerge = TableLayout.HasVerticalMerge(table);
@@ -658,6 +659,13 @@ abstract class PageRendererBase(RenderContextBase context)
     protected float ComputeTableX(TableElement table, float[] colWidths)
     {
         var contentLeft = context.ContentLeft;
+        // Floating tables (w:tblpPr) position via tblpX from the text column left,
+        // overriding the regular alignment-based placement.
+        if (table.Properties.IsFloating && table.Properties.FloatingXOffsetPoints != 0)
+        {
+            return contentLeft + (float) table.Properties.FloatingXOffsetPoints;
+        }
+
         var tableWidth = colWidths.Sum();
         var slack = context.ContentWidth - tableWidth;
         return table.Properties.Alignment switch
@@ -971,6 +979,16 @@ abstract class PageRendererBase(RenderContextBase context)
             else if (element is ImageElement image)
             {
                 RenderImageInCell(image, contentX, contentWidth);
+            }
+            else if (element is TableElement {Properties.IsFloating: true} nested)
+            {
+                // Floating nested tables (w:tblpPr) position themselves via tblpX/tblpY
+                // independently of the cell's content area, so they don't advance the cell's
+                // cursor. Non-floating nested tables aren't yet rendered here — column-width
+                // calculation against the parent cell needs more work first.
+                var savedYBeforeNested = context.CurrentY;
+                RenderTable(nested);
+                context.CurrentY = savedYBeforeNested;
             }
         }
 
