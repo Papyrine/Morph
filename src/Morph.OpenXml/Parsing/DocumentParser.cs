@@ -6084,7 +6084,10 @@ sealed class DocumentParser(string defaultFont)
             BehindText = behindText,
             FillColorHex = fillColorHex,
             FillAlpha = fillAlpha,
-            Preset = ShapeParser.ExtractPresetShape(shapeProps)
+            Preset = ShapeParser.ExtractPresetShape(shapeProps),
+            // Without this, custGeom shapes (e.g. half-circle decorations with cubic-bezier
+            // arcs) render as their bounding rect instead of the actual curved silhouette.
+            PolygonPoints = ShapeParser.ExtractPolygonPoints(shapeProps)
         };
     }
 
