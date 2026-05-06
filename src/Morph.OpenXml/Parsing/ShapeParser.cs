@@ -309,9 +309,10 @@ static class ShapeParser
 
     /// <summary>
     /// Extracts a closed polyline from <c>a:custGeom</c> as points normalized into the unit
-    /// square (0..1) of the path's declared <c>w</c>/<c>h</c>. Returns null when the geometry
-    /// is missing, contains curves, or has fewer than three points — those cases fall back to
-    /// the bounding rect.
+    /// square (0..1) of the path's declared <c>w</c>/<c>h</c>. Cubic and quadratic bezier curves
+    /// are flattened into <see cref="bezierFlattenSegments"/> line segments so the polygon path
+    /// approximates the original curve. Returns null when the geometry is missing, uses ArcTo,
+    /// or has fewer than three points — those cases fall back to the bounding rect.
     /// </summary>
     public static IReadOnlyList<(double X, double Y)>? ExtractPolygonPoints(WPS.ShapeProperties shapeProps)
     {
@@ -323,10 +324,9 @@ static class ShapeParser
             return null;
         }
 
-        // Curves can't be represented as a polygon — caller falls back to rect.
-        if (path.Descendants<A.CubicBezierCurveTo>().Any() ||
-            path.Descendants<A.QuadraticBezierCurveTo>().Any() ||
-            path.Descendants<A.ArcTo>().Any())
+        // ArcTo isn't supported — its parameter set differs from the de Casteljau flattening
+        // used for beziers, so fall back to the bounding rect.
+        if (path.Descendants<A.ArcTo>().Any())
         {
             return null;
         }
@@ -339,22 +339,103 @@ static class ShapeParser
         }
 
         var points = new List<(double X, double Y)>();
+        var currentX = 0d;
+        var currentY = 0d;
+
+        bool TryReadPoint(A.Point? p, out double x, out double y)
+        {
+            x = 0;
+            y = 0;
+            if (p is null || p.X is null || p.Y is null)
+            {
+                return false;
+            }
+
+            if (!long.TryParse(p.X.Value, out var px) ||
+                !long.TryParse(p.Y.Value, out var py))
+            {
+                return false;
+            }
+
+            x = px / (double) pathW;
+            y = py / (double) pathH;
+            return true;
+        }
+
+        void AddPoint(double x, double y)
+        {
+            currentX = x;
+            currentY = y;
+            points.Add((x, y));
+        }
+
         foreach (var child in path.ChildElements)
         {
             switch (child)
             {
-                case A.MoveTo move when move.Point is { } mp && mp.X?.HasValue == true && mp.Y?.HasValue == true:
-                    if (long.TryParse(mp.X!.Value, out var mx) && long.TryParse(mp.Y!.Value, out var my))
+                case A.MoveTo move:
+                    if (TryReadPoint(move.Point, out var mx, out var my))
                     {
-                        points.Add((mx / (double) pathW, my / (double) pathH));
+                        AddPoint(mx, my);
                     }
                     break;
-                case A.LineTo line when line.Point is { } lp && lp.X?.HasValue == true && lp.Y?.HasValue == true:
-                    if (long.TryParse(lp.X!.Value, out var lx) && long.TryParse(lp.Y!.Value, out var ly))
+                case A.LineTo line:
+                    if (TryReadPoint(line.Point, out var lx, out var ly))
                     {
-                        points.Add((lx / (double) pathW, ly / (double) pathH));
+                        AddPoint(lx, ly);
                     }
                     break;
+                case A.CubicBezierCurveTo cubic:
+                    {
+                        var pts = cubic.Elements<A.Point>().ToList();
+                        if (pts.Count == 3 &&
+                            TryReadPoint(pts[0], out var c1x, out var c1y) &&
+                            TryReadPoint(pts[1], out var c2x, out var c2y) &&
+                            TryReadPoint(pts[2], out var ex, out var ey))
+                        {
+                            for (var i = 1; i <= bezierFlattenSegments; i++)
+                            {
+                                var t = i / (double) bezierFlattenSegments;
+                                var omt = 1 - t;
+                                var x = omt * omt * omt * currentX +
+                                        3 * omt * omt * t * c1x +
+                                        3 * omt * t * t * c2x +
+                                        t * t * t * ex;
+                                var y = omt * omt * omt * currentY +
+                                        3 * omt * omt * t * c1y +
+                                        3 * omt * t * t * c2y +
+                                        t * t * t * ey;
+                                points.Add((x, y));
+                            }
+                            currentX = ex;
+                            currentY = ey;
+                        }
+                        break;
+                    }
+                case A.QuadraticBezierCurveTo quad:
+                    {
+                        var pts = quad.Elements<A.Point>().ToList();
+                        if (pts.Count == 2 &&
+                            TryReadPoint(pts[0], out var c1x, out var c1y) &&
+                            TryReadPoint(pts[1], out var ex, out var ey))
+                        {
+                            for (var i = 1; i <= bezierFlattenSegments; i++)
+                            {
+                                var t = i / (double) bezierFlattenSegments;
+                                var omt = 1 - t;
+                                var x = omt * omt * currentX +
+                                        2 * omt * t * c1x +
+                                        t * t * ex;
+                                var y = omt * omt * currentY +
+                                        2 * omt * t * c1y +
+                                        t * t * ey;
+                                points.Add((x, y));
+                            }
+                            currentX = ex;
+                            currentY = ey;
+                        }
+                        break;
+                    }
             }
         }
 
@@ -365,6 +446,8 @@ static class ShapeParser
 
         return points;
     }
+
+    const int bezierFlattenSegments = 12;
 
     /// <summary>
     /// Reads rotation (degrees clockwise) and flip flags from an <c>a:xfrm</c>. Rotation is
