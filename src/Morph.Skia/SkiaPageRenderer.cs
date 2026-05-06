@@ -1853,7 +1853,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 Style = SKPaintStyle.Fill,
                 IsAntialias = true
             };
-            FillShape(shape.Preset, pixelX, pixelY, pixelWidth, pixelHeight, paint);
+            FillShape(shape, pixelX, pixelY, pixelWidth, pixelHeight, paint);
         }
         else if (shape.FillColorHex != null)
         {
@@ -1866,7 +1866,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 Style = SKPaintStyle.Fill,
                 IsAntialias = true
             };
-            FillShape(shape.Preset, pixelX, pixelY, pixelWidth, pixelHeight, paint);
+            FillShape(shape, pixelX, pixelY, pixelWidth, pixelHeight, paint);
         }
 
         if (shape is { LineColorHex: { } lineColor, LineWidthPoints: { } lineWidthPt and > 0 })
@@ -1878,7 +1878,12 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 StrokeWidth = context.PointsToPixels((float) lineWidthPt),
                 IsAntialias = true
             };
-            if (shape.Preset == PresetShape.Ellipse)
+            if (shape.PolygonPoints != null)
+            {
+                using var path = BuildPolygonPath(shape, pixelX, pixelY, pixelWidth, pixelHeight);
+                currentCanvas.DrawPath(path, strokePaint);
+            }
+            else if (shape.Preset == PresetShape.Ellipse)
             {
                 currentCanvas.DrawOval(
                     pixelX + pixelWidth / 2,
@@ -1905,9 +1910,16 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
     }
 
-    void FillShape(PresetShape preset, float x, float y, float width, float height, SKPaint paint)
+    void FillShape(FloatingShapeElement shape, float x, float y, float width, float height, SKPaint paint)
     {
-        if (preset == PresetShape.Ellipse)
+        if (shape.PolygonPoints != null)
+        {
+            using var path = BuildPolygonPath(shape, x, y, width, height);
+            currentCanvas!.DrawPath(path, paint);
+            return;
+        }
+
+        if (shape.Preset == PresetShape.Ellipse)
         {
             currentCanvas!.DrawOval(x + width / 2, y + height / 2, width / 2, height / 2, paint);
         }
@@ -1915,6 +1927,41 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         {
             currentCanvas!.DrawRect(x, y, width, height, paint);
         }
+    }
+
+    static SKPath BuildPolygonPath(FloatingShapeElement shape, float x, float y, float width, float height)
+    {
+        var pts = shape.PolygonPoints!;
+        var path = new SKPath();
+        for (var i = 0; i < pts.Count; i++)
+        {
+            var (px, py) = pts[i];
+            // Apply flips around the unit-square center, then scale into the bounding box.
+            var ux = shape.FlipHorizontal ? 1 - px : px;
+            var uy = shape.FlipVertical ? 1 - py : py;
+            var localX = (float) (ux * width);
+            var localY = (float) (uy * height);
+            if (i == 0)
+            {
+                path.MoveTo(localX, localY);
+            }
+            else
+            {
+                path.LineTo(localX, localY);
+            }
+        }
+        path.Close();
+
+        // Translate so (0,0) sits at the bbox top-left, then rotate around the bbox center.
+        var matrix = SKMatrix.CreateTranslation(x, y);
+        if (shape.RotationDegrees != 0)
+        {
+            matrix = SKMatrix.Concat(
+                matrix,
+                SKMatrix.CreateRotationDegrees((float) shape.RotationDegrees, width / 2, height / 2));
+        }
+        path.Transform(matrix);
+        return path;
     }
 
     protected override void RenderFloatingImage(FloatingImageElement image)

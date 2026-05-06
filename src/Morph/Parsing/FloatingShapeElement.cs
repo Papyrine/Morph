@@ -49,6 +49,23 @@ sealed class FloatingShapeElement : DocumentElement
     public PresetShape Preset { get; init; } = PresetShape.Rect;
 
     /// <summary>
+    /// Custom polygon path, expressed as points in the unit square (0..1) of the shape's
+    /// pre-rotation bounding box. When non-null, takes precedence over <see cref="Preset"/> and
+    /// the shape is rendered as a filled polygon (implicitly closed). Null for shapes without
+    /// a polygonal <c>a:custGeom</c>.
+    /// </summary>
+    public IReadOnlyList<(double X, double Y)>? PolygonPoints { get; init; }
+
+    /// <summary>Rotation in degrees clockwise around the bounding-box center. 0 = no rotation.</summary>
+    public double RotationDegrees { get; init; }
+
+    /// <summary>Whether the shape geometry is flipped horizontally around the bounding-box center.</summary>
+    public bool FlipHorizontal { get; init; }
+
+    /// <summary>Whether the shape geometry is flipped vertically around the bounding-box center.</summary>
+    public bool FlipVertical { get; init; }
+
+    /// <summary>
     /// Width as a fraction (0..1) of <see cref="WidthRelativeFrom"/>, parsed from
     /// <c>wp14:sizeRelH/wp14:pctWidth</c>. Null when no percentage sizing is present.
     /// </summary>

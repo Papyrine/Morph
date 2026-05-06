@@ -1277,7 +1277,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 GradientRepetitionMode.None,
                 new ColorStop(0f, ParseColor(gradient.StartColorHex)),
                 new ColorStop(1f, ParseColor(gradient.EndColorHex)));
-            FillShape(shape.Preset, pixelX, pixelY, pixelWidth, pixelHeight, brush);
+            FillShape(shape, pixelX, pixelY, pixelWidth, pixelHeight, brush);
         }
         else if (shape.FillColorHex != null)
         {
@@ -1289,7 +1289,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 pixel.A = (byte) Math.Round(alpha * 255);
                 fillColor = Color.FromPixel(pixel);
             }
-            FillShape(shape.Preset, pixelX, pixelY, pixelWidth, pixelHeight, new SolidBrush(fillColor));
+            FillShape(shape, pixelX, pixelY, pixelWidth, pixelHeight, new SolidBrush(fillColor));
         }
 
         if (shape is { LineColorHex: { } lineColor, LineWidthPoints: { } lineWidthPt and > 0 })
@@ -1297,7 +1297,12 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             var strokeColor = ParseColor(lineColor);
             var strokePixels = context.PointsToPixels((float) lineWidthPt);
             var pen = Pens.Solid(strokeColor, strokePixels);
-            if (shape.Preset == PresetShape.Ellipse)
+            if (shape.PolygonPoints != null)
+            {
+                var polygon = BuildPolygon(shape, pixelX, pixelY, pixelWidth, pixelHeight);
+                currentPage.Mutate(_ => _.Draw(pen, polygon));
+            }
+            else if (shape.Preset == PresetShape.Ellipse)
             {
                 // EllipsePolygon's 4-arg ctor takes (centerX, centerY, fullWidth, fullHeight) —
                 // the trailing two are bounding-box dimensions, not radii.
@@ -1322,9 +1327,16 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
     }
 
-    void FillShape(PresetShape preset, float x, float y, float width, float height, Brush brush)
+    void FillShape(FloatingShapeElement shape, float x, float y, float width, float height, Brush brush)
     {
-        if (preset == PresetShape.Ellipse)
+        if (shape.PolygonPoints != null)
+        {
+            var polygon = BuildPolygon(shape, x, y, width, height);
+            currentPage!.Mutate(_ => _.Fill(brush, polygon));
+            return;
+        }
+
+        if (shape.Preset == PresetShape.Ellipse)
         {
             var ellipse = new EllipsePolygon(x + width / 2, y + height / 2, width, height);
             currentPage!.Mutate(_ => _.Fill(brush, ellipse));
@@ -1333,6 +1345,32 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         {
             currentPage!.Mutate(_ => _.Fill(brush, new RectangleF(x, y, width, height)));
         }
+    }
+
+    static Polygon BuildPolygon(FloatingShapeElement shape, float x, float y, float width, float height)
+    {
+        var pts = shape.PolygonPoints!;
+        var rotRad = (float) (shape.RotationDegrees * Math.PI / 180.0);
+        var cos = (float) Math.Cos(rotRad);
+        var sin = (float) Math.Sin(rotRad);
+        var halfW = width / 2f;
+        var halfH = height / 2f;
+
+        var transformed = new PointF[pts.Count];
+        for (var i = 0; i < pts.Count; i++)
+        {
+            var (px, py) = pts[i];
+            var ux = shape.FlipHorizontal ? 1 - px : px;
+            var uy = shape.FlipVertical ? 1 - py : py;
+            // Local coords with the bbox center at origin.
+            var lx = (float) (ux * width) - halfW;
+            var ly = (float) (uy * height) - halfH;
+            // Rotate clockwise (image-space y-down): standard 2D rotation matrix.
+            var rx = lx * cos - ly * sin;
+            var ry = lx * sin + ly * cos;
+            transformed[i] = new(x + halfW + rx, y + halfH + ry);
+        }
+        return new Polygon(transformed);
     }
 
     protected override void RenderFloatingImage(FloatingImageElement image)
