@@ -5961,6 +5961,15 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        // prstGeom prst="line" — stroke-only connector. Has no fill (and typically cy=0
+        // for a horizontal line, cx=0 for a vertical), so the rest of the fill-driven
+        // pipeline can't render it. Emit a FloatingShapeElement with the line color/width
+        // and let the renderer's stroke branch draw it.
+        if (ShapeParser.IsLineShape(shapeProps))
+        {
+            return ParseLineShape(wsp, shapeProps, positioning, accumTransform, behindText);
+        }
+
         // Check for solid fill in shape properties
         var solidFill = shapeProps.GetFirstChild<A.SolidFill>();
         string? fillColorHex = null;
@@ -6088,6 +6097,68 @@ sealed class DocumentParser(string defaultFont)
             // Without this, custGeom shapes (e.g. half-circle decorations with cubic-bezier
             // arcs) render as their bounding rect instead of the actual curved silhouette.
             PolygonPoints = ShapeParser.ExtractPolygonPoints(shapeProps)
+        };
+    }
+
+    FloatingShapeElement? ParseLineShape(
+        WPS.WordprocessingShape wsp,
+        WPS.ShapeProperties shapeProps,
+        AnchorPositioning positioning,
+        AccumulatedTransform accumTransform,
+        bool behindText)
+    {
+        var (lineColor, lineWidth) = ShapeParser.ExtractLineStyle(wsp, shapeProps, currentThemeColors);
+        if (lineColor == null || lineWidth is not > 0)
+        {
+            return null;
+        }
+
+        var xfrm = shapeProps.GetFirstChild<A.Transform2D>();
+        if (xfrm?.Offset is not { } off ||
+            xfrm.Extents is not { } ext)
+        {
+            return null;
+        }
+
+        // Rotation and dash patterns aren't applied by the rect-stroke render path used for
+        // line shapes — drawing them anyway produces worse output than leaving them out
+        // (e.g. a 90° dashed connector becomes a solid vertical line bisecting the page).
+        if (xfrm.Rotation?.Value is { } rot && rot != 0)
+        {
+            return null;
+        }
+
+        var directLn = shapeProps.GetFirstChild<A.Outline>();
+        if (directLn?.GetFirstChild<A.PresetDash>() != null)
+        {
+            return null;
+        }
+
+        long shapeX = off.X ?? 0;
+        long shapeY = off.Y ?? 0;
+        var finalX = accumTransform.OffsetX + shapeX * accumTransform.ScaleX;
+        var finalY = accumTransform.OffsetY + shapeY * accumTransform.ScaleY;
+        var widthPt = ((ext.Cx ?? 0) * accumTransform.ScaleX).EmuToPoints();
+        var heightPt = ((ext.Cy ?? 0) * accumTransform.ScaleY).EmuToPoints();
+
+        // Lines have a zero extent on the perpendicular axis. Bail if both are zero
+        // (degenerate point) — there's nothing to draw.
+        if (widthPt <= 0 && heightPt <= 0)
+        {
+            return null;
+        }
+
+        return new()
+        {
+            WidthPoints = widthPt,
+            HeightPoints = heightPt,
+            HorizontalPositionPoints = positioning.HorizontalPositionPoints + finalX.EmuToPoints(),
+            VerticalPositionPoints = positioning.VerticalPositionPoints + finalY.EmuToPoints(),
+            HorizontalAnchor = positioning.HorizontalAnchor,
+            VerticalAnchor = positioning.VerticalAnchor,
+            BehindText = behindText,
+            LineColorHex = lineColor,
+            LineWidthPoints = lineWidth
         };
     }
 

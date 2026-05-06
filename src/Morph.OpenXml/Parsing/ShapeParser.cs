@@ -232,7 +232,7 @@ static class ShapeParser
     /// against the theme's <c>lnStyleLst</c> and the colour from its child colour element.
     /// Returns (null, null) when the shape has no stroke (e.g. <c>a:noFill</c> on the line).
     /// </summary>
-    static (string? color, double? widthPoints) ExtractLineStyle(WPS.WordprocessingShape wsp, WPS.ShapeProperties shapeProps, ThemeColors? themeColors)
+    public static (string? color, double? widthPoints) ExtractLineStyle(WPS.WordprocessingShape wsp, WPS.ShapeProperties shapeProps, ThemeColors? themeColors)
     {
         // Direct <a:ln> on spPr overrides everything else.
         var directLn = shapeProps.GetFirstChild<A.Outline>();
@@ -305,6 +305,14 @@ static class ShapeParser
             return PresetShape.Ellipse;
         }
         return PresetShape.Rect;
+    }
+
+    /// <summary>True when the shape is a <c>prstGeom prst="line"</c> connector — these are
+    /// stroke-only with no fill and typically have a zero <c>cx</c> or <c>cy</c>.</summary>
+    public static bool IsLineShape(WPS.ShapeProperties shapeProps)
+    {
+        var prstGeom = shapeProps.GetFirstChild<A.PresetGeometry>();
+        return prstGeom?.Preset?.Value == A.ShapeTypeValues.Line;
     }
 
     /// <summary>
