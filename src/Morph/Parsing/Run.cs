@@ -18,6 +18,14 @@ sealed class Run
     /// <summary>Content type of inline image (e.g., "image/png", "image/svg+xml").</summary>
     public string? InlineImageContentType { get; init; }
 
+    /// <summary>Raster bytes from the primary <c>a:blip r:embed</c>, retained when
+    /// <see cref="InlineImageData"/> holds the SVG variant so backends without SVG
+    /// support can use this fallback.</summary>
+    public byte[]? InlineImageRasterFallbackData { get; init; }
+
+    /// <summary>Content type for <see cref="InlineImageRasterFallbackData"/>.</summary>
+    public string? InlineImageRasterFallbackContentType { get; init; }
+
     /// <summary>Inline image rotation in degrees (clockwise). 0 means no rotation.</summary>
     public double InlineImageRotationDegrees { get; init; }
 
