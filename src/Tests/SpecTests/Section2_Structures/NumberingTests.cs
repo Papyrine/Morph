@@ -181,4 +181,64 @@ public class NumberingTests
 
         await Assert.That(bulletTexts.Count).IsGreaterThan(1);
     }
+
+    // === Style-cascade for indent on numbered paragraph ===
+
+    [Test]
+    public async Task BulletParagraph_StyleIndentBeatsNumberingLevelIndent()
+    {
+        // agendas-minutes/07 uses ListBullet style with <w:ind w:left="432" w:hanging="288">
+        // (= 21.6pt / 14.4pt) and a numbering level with <w:ind w:left="720" w:hanging="360">
+        // (= 36pt / 18pt). Per Word's actual cascade, the style indent wins because the
+        // numbering level's pPr is treated as a low-priority default.
+        var doc = Parse("agendas-minutes/07");
+
+        ParagraphElement? Find(IEnumerable<DocumentElement> elems)
+        {
+            foreach (var e in elems)
+            {
+                if (e is ParagraphElement p && string.Concat(p.Runs.Select(r => r.Text)).Contains("Membership"))
+                {
+                    return p;
+                }
+                if (e is TableElement t)
+                {
+                    foreach (var row in t.Rows)
+                    foreach (var cell in row.Cells)
+                    {
+                        var found = Find(cell.Content);
+                        if (found != null) return found;
+                    }
+                }
+            }
+            return null;
+        }
+
+        var p = Find(doc.Elements);
+        await Assert.That(p).IsNotNull();
+        await Assert.That(p!.Properties.LeftIndentPoints).IsEqualTo(21.6);
+        await Assert.That(p.Properties.HangingIndentPoints).IsEqualTo(14.4);
+    }
+
+    // === Multi-level restart (OOXML w:lvlRestart default behaviour) ===
+
+    [Test]
+    public async Task MultiLevel_ChildCounterRestartsWhenParentIncrements()
+    {
+        // agendas-minutes/04 uses a Heading2/Heading3 multi-level list (numId=1,
+        // ilvl=0/1 — upperRoman / lowerLetter) with no <w:lvlRestart>, so each
+        // Roman section should start its child letter sequence at "a." again.
+        var doc = Parse("agendas-minutes/04");
+        var numbered = GetNumberedParagraphs(doc);
+
+        var texts = numbered.Select(_ => _.Properties.Numbering!.Text).ToList();
+
+        await Assert.That(texts).IsEquivalentTo(new List<string>
+        {
+            "I.",  "a.", "b.",  // Introductions
+            "II.", "a.", "b.",  // New business
+            "III.","a.",        // Old business
+            "IV.", "a."         // Conclusion
+        });
+    }
 }

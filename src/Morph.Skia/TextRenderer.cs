@@ -415,28 +415,27 @@ sealed class TextRenderer(SkiaRenderContext context) :
     {
         var props = paragraph.Properties;
 
-        // Calculate bullet indent for table cells - use a compact indent
-        float bulletIndent = 0;
-        if (props.Numbering != null)
+        // Layout uses the cell width directly. LayoutParagraphWithWidth already subtracts
+        // LeftIndentPoints internally so a bullet paragraph wraps within the indented region;
+        // the bullet itself is drawn into the hanging area below.
+        var lines = LayoutParagraphWithWidth(paragraph, width);
+
+        // Contextual spacing: collapse before-spacing when this paragraph and the previous
+        // one share a style and both opt in. Same logic as the body path.
+        var sameStyle = props.StyleId != null && props.StyleId == context.LastParagraphStyleId;
+        var collapseSpacingBefore = props.ContextualSpacing &&
+                                    context.LastParagraphHadContextualSpacing && sameStyle;
+        if (!collapseSpacingBefore)
         {
-            // Use a fixed compact indent for bullets in table cells (12pt is typical for compact lists)
-            bulletIndent = 12;
+            context.CurrentY += (float)props.SpacingBeforePoints;
         }
-
-        // Layout with adjusted width to account for bullet indent
-        var lines = LayoutParagraphWithWidth(paragraph, width - bulletIndent);
-
-        // Add spacing before
-        context.CurrentY += (float)props.SpacingBeforePoints;
 
         var isFirstLine = true;
         foreach (var line in lines)
         {
             var lineHeight = CalculateLineHeight(line.Height, props);
 
-            // Calculate X position based on alignment within the specified bounds
-            // Add bullet indent to shift text right
-            var x = CalculateLineXInBounds(line, props, startX + bulletIndent, width - bulletIndent);
+            var x = CalculateLineXInBounds(line, props, startX, width);
             var y = context.CurrentY + line.Baseline;
 
             // Render bullet/number on first line
@@ -448,7 +447,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
 
             // Calculate extra space per gap for justified text
             float extraSpacePerGap = 0;
-            var effectiveWidth = width - bulletIndent - (float)props.LeftIndentPoints;
+            var effectiveWidth = width - (float)props.LeftIndentPoints;
             if (props.Alignment == TextAlignment.Justify &&
                 line is {IsLastLine: false, Fragments.Count: > 1})
             {
@@ -492,12 +491,16 @@ sealed class TextRenderer(SkiaRenderContext context) :
             context.CurrentY += lineHeight;
         }
 
-        // Add spacing after (but not for empty paragraphs which are typically just visual spacers)
+        // Add spacing after (but not for empty paragraphs which are typically just visual spacers).
+        // Contextual spacing suppresses spacing-after; the next same-style paragraph picks up the cue.
         var isEmpty = IsParagraphEmpty(paragraph);
-        if (!isEmpty)
+        if (!isEmpty && !props.ContextualSpacing)
         {
             context.CurrentY += (float)props.SpacingAfterPoints;
         }
+
+        context.LastParagraphHadContextualSpacing = props.ContextualSpacing;
+        context.LastParagraphStyleId = props.StyleId;
     }
 
     static float CalculateLineXInBounds(TextLine line, ParagraphProperties props, float startX, float width)
@@ -806,23 +809,34 @@ sealed class TextRenderer(SkiaRenderContext context) :
     /// </summary>
     void RenderBullet(SKCanvas canvas, NumberingInfo numbering, float baselineY, ParagraphElement paragraph)
     {
-        // Position bullet at the indent position (before the hanging indent)
-        var bulletX = context.ContentLeft + (float)numbering.IndentPoints - (float)numbering.HangingIndentPoints;
+        // Position bullet at the cascaded paragraph indent (style's <w:ind> wins over the
+        // numbering level's, per the OOXML cascade), not the raw numbering value.
+        var bulletX = context.ContentLeft + (float)paragraph.Properties.LeftIndentPoints - (float)paragraph.Properties.HangingIndentPoints;
         var pixelX = context.PointsToPixels(bulletX);
         var pixelY = context.PointsToPixels(baselineY);
 
-        // Get font size from paragraph's first run, or use default
+        // Default to the paragraph's first run for size/colour/family.
         float fontSize = 11;
         string? colorHex = null;
+        var fontFamily = DefaultFontSettings.DefaultFont;
+        var bold = false;
+        var italic = false;
         if (paragraph.Runs.Count > 0)
         {
-            fontSize = (float)paragraph.Runs[0].Properties.FontSizePoints;
-            colorHex = paragraph.Runs[0].Properties.ColorHex;
+            var props = paragraph.Runs[0].Properties;
+            fontSize = (float)props.FontSizePoints;
+            colorHex = props.ColorHex;
+            fontFamily = props.FontFamily;
+            bold = props.Bold;
+            italic = props.Italic;
         }
 
-        // Use Arial for bullets since Symbol/Wingdings characters have been mapped to Unicode equivalents
-        // Arial is available on all platforms and has good Unicode coverage including bullet characters
-        using var typeface = SKTypeface.FromFamilyName("Arial") ?? SKTypeface.Default;
+        // Bullets declared in Symbol/Wingdings need the embedded "Morph Bullets"
+        // subset (Linux/macOS don't ship those proprietary faces). Bullets that
+        // are already plain Unicode (e.g. <w:lvlText w:val="•"/> with no rFonts)
+        // render in the paragraph's own font - that's what Word does, and the
+        // paragraph font's bullet glyph is what the user actually sees in Word.
+        var typeface = ResolveBulletTypeface(numbering.FontFamily, fontFamily, bold, italic);
         using var font = context.CreateFontFromTypeface(typeface, fontSize);
         using var paint = new SKPaint
         {
@@ -833,23 +847,42 @@ sealed class TextRenderer(SkiaRenderContext context) :
         canvas.DrawText(numbering.Text, pixelX, pixelY, SKTextAlign.Left, font, paint);
     }
 
+    SKTypeface ResolveBulletTypeface(string? bulletFontFamily, string paragraphFontFamily, bool bold, bool italic)
+    {
+        if (IsProprietaryBulletFont(bulletFontFamily))
+        {
+            return context.GetTypeface("Morph Bullets", bold: false, italic: false);
+        }
+        return context.GetTypeface(paragraphFontFamily, bold, italic);
+    }
+
+    static bool IsProprietaryBulletFont(string? fontFamily) =>
+        fontFamily != null &&
+        (fontFamily.StartsWith("Symbol", StringComparison.OrdinalIgnoreCase) ||
+         fontFamily.StartsWith("Wingdings", StringComparison.OrdinalIgnoreCase));
+
     /// <summary>
     /// Renders a bullet or number for a list item within specific bounds (for table cells).
     /// </summary>
     void RenderBulletInBounds(SKCanvas canvas, NumberingInfo numbering, float baselineY, ParagraphElement paragraph, float startX)
     {
-        // Get font size from paragraph's first run, or use default
         float fontSize = 11;
         string? colorHex = null;
+        var fontFamily = DefaultFontSettings.DefaultFont;
+        var bold = false;
+        var italic = false;
         if (paragraph.Runs.Count > 0)
         {
-            fontSize = (float)paragraph.Runs[0].Properties.FontSizePoints;
-            colorHex = paragraph.Runs[0].Properties.ColorHex;
+            var props = paragraph.Runs[0].Properties;
+            fontSize = (float)props.FontSizePoints;
+            colorHex = props.ColorHex;
+            fontFamily = props.FontFamily;
+            bold = props.Bold;
+            italic = props.Italic;
         }
 
-        // Use Arial for bullets since Symbol/Wingdings characters have been mapped to Unicode equivalents
-        // Arial is available on all platforms and has good Unicode coverage including bullet characters
-        using var typeface = SKTypeface.FromFamilyName("Arial") ?? SKTypeface.Default;
+        // See RenderBullet for why this picks Morph Bullets vs the paragraph font.
+        var typeface = ResolveBulletTypeface(numbering.FontFamily, fontFamily, bold, italic);
         using var font = context.CreateFontFromTypeface(typeface, fontSize);
         using var paint = new SKPaint
         {
@@ -857,8 +890,10 @@ sealed class TextRenderer(SkiaRenderContext context) :
             Color = colorHex != null ? SKColor.Parse("#" + colorHex) : SKColors.Black
         };
 
-        // Render bullet at the start of the content area (text is indented to the right)
-        var pixelX = context.PointsToPixels(startX);
+        // Bullet sits at the cascaded paragraph indent (= LeftIndent - HangingIndent),
+        // so the gap between bullet and text matches the style's hanging indent.
+        var bulletX = startX + (float)paragraph.Properties.LeftIndentPoints - (float)paragraph.Properties.HangingIndentPoints;
+        var pixelX = context.PointsToPixels(bulletX);
         var pixelY = context.PointsToPixels(baselineY);
 
         canvas.DrawText(numbering.Text, pixelX, pixelY, SKTextAlign.Left, font, paint);
