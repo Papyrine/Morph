@@ -4,5 +4,5 @@
 | --- | --- | --- |
 | **Page 1** | **Page 1. ErrorMetric: 0.5491** | **Page 1. ErrorMetric: 0.5536** |
 | <img src="expected_0001.png" width="500"> | <img src="results_skia%23page_0001.verified.png" width="500"> | <img src="results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.4481** | **Page 2. ErrorMetric: 0.4529** |
+| **Page 2** | **Page 2. ErrorMetric: 0.4483** | **Page 2. ErrorMetric: 0.4530** |
 | <img src="expected_0002.png" width="500"> | <img src="results_skia%23page_0002.verified.png" width="500"> | <img src="results_imagesharp%23page_0002.verified.png" width="500"> |

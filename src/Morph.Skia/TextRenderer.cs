@@ -811,19 +811,28 @@ sealed class TextRenderer(SkiaRenderContext context) :
         var pixelX = context.PointsToPixels(bulletX);
         var pixelY = context.PointsToPixels(baselineY);
 
-        // Get font size from paragraph's first run, or use default
+        // Default to the paragraph's first run for size/colour/family.
         float fontSize = 11;
         string? colorHex = null;
+        var fontFamily = DefaultFontSettings.DefaultFont;
+        var bold = false;
+        var italic = false;
         if (paragraph.Runs.Count > 0)
         {
-            fontSize = (float)paragraph.Runs[0].Properties.FontSizePoints;
-            colorHex = paragraph.Runs[0].Properties.ColorHex;
+            var props = paragraph.Runs[0].Properties;
+            fontSize = (float)props.FontSizePoints;
+            colorHex = props.ColorHex;
+            fontFamily = props.FontFamily;
+            bold = props.Bold;
+            italic = props.Italic;
         }
 
-        // Bullet glyphs come from Morph's embedded "Morph Bullets" subset (see
-        // EmbeddedFonts/Bullets.md). Sized to match the paragraph font so the dot scales
-        // with the surrounding text.
-        var typeface = context.GetTypeface("Morph Bullets", bold: false, italic: false);
+        // Bullets declared in Symbol/Wingdings need the embedded "Morph Bullets"
+        // subset (Linux/macOS don't ship those proprietary faces). Bullets that
+        // are already plain Unicode (e.g. <w:lvlText w:val="•"/> with no rFonts)
+        // render in the paragraph's own font - that's what Word does, and the
+        // paragraph font's bullet glyph is what the user actually sees in Word.
+        var typeface = ResolveBulletTypeface(numbering.FontFamily, fontFamily, bold, italic);
         using var font = context.CreateFontFromTypeface(typeface, fontSize);
         using var paint = new SKPaint
         {
@@ -834,24 +843,42 @@ sealed class TextRenderer(SkiaRenderContext context) :
         canvas.DrawText(numbering.Text, pixelX, pixelY, SKTextAlign.Left, font, paint);
     }
 
+    SKTypeface ResolveBulletTypeface(string? bulletFontFamily, string paragraphFontFamily, bool bold, bool italic)
+    {
+        if (IsProprietaryBulletFont(bulletFontFamily))
+        {
+            return context.GetTypeface("Morph Bullets", bold: false, italic: false);
+        }
+        return context.GetTypeface(paragraphFontFamily, bold, italic);
+    }
+
+    static bool IsProprietaryBulletFont(string? fontFamily) =>
+        fontFamily != null &&
+        (fontFamily.StartsWith("Symbol", StringComparison.OrdinalIgnoreCase) ||
+         fontFamily.StartsWith("Wingdings", StringComparison.OrdinalIgnoreCase));
+
     /// <summary>
     /// Renders a bullet or number for a list item within specific bounds (for table cells).
     /// </summary>
     void RenderBulletInBounds(SKCanvas canvas, NumberingInfo numbering, float baselineY, ParagraphElement paragraph, float startX)
     {
-        // Get font size from paragraph's first run, or use default
         float fontSize = 11;
         string? colorHex = null;
+        var fontFamily = DefaultFontSettings.DefaultFont;
+        var bold = false;
+        var italic = false;
         if (paragraph.Runs.Count > 0)
         {
-            fontSize = (float)paragraph.Runs[0].Properties.FontSizePoints;
-            colorHex = paragraph.Runs[0].Properties.ColorHex;
+            var props = paragraph.Runs[0].Properties;
+            fontSize = (float)props.FontSizePoints;
+            colorHex = props.ColorHex;
+            fontFamily = props.FontFamily;
+            bold = props.Bold;
+            italic = props.Italic;
         }
 
-        // Bullet glyphs come from Morph's embedded "Morph Bullets" subset (see
-        // EmbeddedFonts/Bullets.md). Sized to match the paragraph font so the dot scales
-        // with the surrounding text.
-        var typeface = context.GetTypeface("Morph Bullets", bold: false, italic: false);
+        // See RenderBullet for why this picks Morph Bullets vs the paragraph font.
+        var typeface = ResolveBulletTypeface(numbering.FontFamily, fontFamily, bold, italic);
         using var font = context.CreateFontFromTypeface(typeface, fontSize);
         using var paint = new SKPaint
         {
