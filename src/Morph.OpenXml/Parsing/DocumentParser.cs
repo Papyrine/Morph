@@ -4688,6 +4688,8 @@ sealed class DocumentParser(string defaultFont)
         // Try to get SVG first, then fall back to regular image
         byte[]? imageData = null;
         string? contentType = null;
+        byte[]? rasterFallbackData = null;
+        string? rasterFallbackContentType = null;
 
         // Check for SVG extension
         var extLst = blip.Elements().FirstOrDefault(e => e.LocalName == "extLst");
@@ -4722,16 +4724,27 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
-        // Fall back to regular image
-        if (imageData == null)
+        // Read the raster blob the blip points to. When SVG is set, this becomes the
+        // raster fallback for backends that can't render SVG; otherwise it's the
+        // primary imageData.
+        if (hostPart.GetPartById(embedAttr.Value) is ImagePart imagePart)
         {
-            if (hostPart.GetPartById(embedAttr.Value) is ImagePart imagePart)
+            using var stream = imagePart.GetStream();
+            using var ms = new MemoryStream();
+            stream.CopyTo(ms);
+            var rasterBytes = ms.ToArray();
+            if (rasterBytes.Length > 0)
             {
-                using var stream = imagePart.GetStream();
-                using var ms = new MemoryStream();
-                stream.CopyTo(ms);
-                imageData = ms.ToArray();
-                contentType = imagePart.ContentType;
+                if (imageData == null)
+                {
+                    imageData = rasterBytes;
+                    contentType = imagePart.ContentType;
+                }
+                else
+                {
+                    rasterFallbackData = rasterBytes;
+                    rasterFallbackContentType = imagePart.ContentType;
+                }
             }
         }
 
@@ -4749,6 +4762,8 @@ sealed class DocumentParser(string defaultFont)
             InlineImageWidthPoints = widthPoints,
             InlineImageHeightPoints = heightPoints,
             InlineImageContentType = contentType,
+            InlineImageRasterFallbackData = rasterFallbackData,
+            InlineImageRasterFallbackContentType = rasterFallbackContentType,
             InlineImageRotationDegrees = rotationDegrees,
             InlineImageCrop = crop
         };

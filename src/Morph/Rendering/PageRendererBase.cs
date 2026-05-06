@@ -751,10 +751,10 @@ abstract class PageRendererBase(RenderContextBase context)
                 }
                 else
                 {
-                    var padding = TableLayout.GetEffectivePadding(cell.Properties, table.Properties, row);
-                    var contentWidth = cellWidth - (float) padding.Horizontal;
-                    var contentHeight = TableHeightCalculator.MeasureCellHeight(cell, contentWidth, table.Properties, Measurer, row);
-                    cellHeight = contentHeight + (float) padding.Vertical;
+                    // Use the row's resolved height (already accounts for trHeight and natural
+                    // content). Falling back to the cell's natural height here ignored trHeight
+                    // and pushed bottom-aligned content to the top of the row.
+                    cellHeight = rowHeights[rowIndex];
                 }
 
                 RenderTableCell(cell, currentX, cellY, cellWidth, cellHeight, table.Properties, row, rowIndex, gridColIndex, table.Rows.Count, colCount);
@@ -946,6 +946,7 @@ abstract class PageRendererBase(RenderContextBase context)
             CellVerticalAlignment.Bottom => Math.Max(0, availableHeight - contentHeight),
             _ => 0 // Top alignment
         };
+
 
         // For cells that start a vertical merge (vMerge="restart"), Word uses reduced centering
         // — content sits closer to the top — so cap the offset at ~0.17 inches.

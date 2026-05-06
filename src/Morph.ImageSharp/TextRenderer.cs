@@ -591,6 +591,8 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                     InlineImageData = run.InlineImageData,
                     InlineImageHeightPoints = imageHeight,
                     InlineImageContentType = run.InlineImageContentType,
+                    InlineImageRasterFallbackData = run.InlineImageRasterFallbackData,
+                    InlineImageRasterFallbackContentType = run.InlineImageRasterFallbackContentType,
                     InlineImageRotationDegrees = run.InlineImageRotationDegrees,
                     InlineImageCrop = run.InlineImageCrop,
                     InlineShapeGroup = run.InlineShapeGroup
@@ -1365,16 +1367,23 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         // Position image so its bottom aligns with the baseline
         var pixelY = context.PointsToPixels(y) - pixelHeight;
 
+        var imageBytes = fragment.InlineImageData;
         if (fragment.InlineImageContentType == "image/svg+xml")
         {
-            // SVG rendering not supported in ImageSharp - skip silently
-            return;
+            // SVG isn't supported here; use the raster fallback the parser kept from
+            // the primary <a:blip>, or skip if we don't have one.
+            if (fragment.InlineImageRasterFallbackData == null)
+            {
+                return;
+            }
+
+            imageBytes = fragment.InlineImageRasterFallbackData;
         }
 
         // Render bitmap image
         try
         {
-            using var img = Image.Load<Rgba32>(fragment.InlineImageData!);
+            using var img = Image.Load<Rgba32>(imageBytes!);
 
             if (fragment.InlineImageCrop is { IsCropped: true } crop)
             {
@@ -1513,6 +1522,8 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                         InlineImageData = run.InlineImageData,
                         InlineImageHeightPoints = imageHeight,
                         InlineImageContentType = run.InlineImageContentType,
+                        InlineImageRasterFallbackData = run.InlineImageRasterFallbackData,
+                        InlineImageRasterFallbackContentType = run.InlineImageRasterFallbackContentType,
                         InlineImageRotationDegrees = run.InlineImageRotationDegrees,
                         InlineImageCrop = run.InlineImageCrop,
                         InlineShapeGroup = run.InlineShapeGroup
@@ -1903,6 +1914,13 @@ sealed class TextFragment
 
     /// <summary>Content type of inline image (e.g., "image/png", "image/svg+xml").</summary>
     public string? InlineImageContentType { get; init; }
+
+    /// <summary>Raster fallback bytes used when <see cref="InlineImageContentType"/> is SVG
+    /// and the backend can't render SVG.</summary>
+    public byte[]? InlineImageRasterFallbackData { get; init; }
+
+    /// <summary>Content type for <see cref="InlineImageRasterFallbackData"/>.</summary>
+    public string? InlineImageRasterFallbackContentType { get; init; }
 
     /// <summary>Inline image rotation in degrees (clockwise).</summary>
     public double InlineImageRotationDegrees { get; init; }
