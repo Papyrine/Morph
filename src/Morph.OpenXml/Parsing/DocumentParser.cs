@@ -3776,16 +3776,38 @@ sealed class DocumentParser(string defaultFont)
         var numberingInfo = GetNumberingInfo(paraProps, paragraphStyleId);
         if (numberingInfo != null)
         {
-            // OOXML cascade: style pPr → numbering level pPr → direct pPr (each overrides the
-            // previous). The numbering level's <w:ind> is supposed to win over the style's
-            // <w:ind>, so a List style with ind left=18pt should be replaced by the level's
-            // ind left=36pt + hanging=18pt unless the paragraph itself sets <w:ind> directly.
-            var hasDirectIndent = paraProps?.GetFirstChild<Indentation>() != null;
-            var leftIndent = hasDirectIndent ? props.LeftIndentPoints : numberingInfo.IndentPoints;
+            // OOXML indent cascade for a numbered paragraph:
+            //   numPr's pPr (numbering level)  →  style pPr  →  direct paragraph pPr
+            // Each later layer overrides the previous. We resolve left/hanging/firstLine
+            // independently because a layer may set only one of them and inherit the rest.
+            ParagraphProperties? styleDefaults = null;
+            if (paragraphStyleId != null && styleParagraphProperties != null)
+            {
+                styleParagraphProperties.TryGetValue(paragraphStyleId, out styleDefaults);
+            }
+
+            var directInd = paraProps?.GetFirstChild<Indentation>();
+            var directHasLeft = directInd?.Left?.HasValue == true;
+            var directHasHanging = directInd?.Hanging?.HasValue == true;
+
+            // Style "has" the value when it's non-zero - we can't distinguish "explicitly 0"
+            // from "default 0" without re-parsing, but in practice any zero indent means the
+            // style didn't set one and numbering should fill in.
+            var styleHasLeft = (styleDefaults?.LeftIndentPoints ?? 0) > 0;
+            var styleHasHanging = (styleDefaults?.HangingIndentPoints ?? 0) > 0;
+
+            var leftIndent = directHasLeft ? props.LeftIndentPoints
+                : styleHasLeft ? styleDefaults!.LeftIndentPoints
+                : numberingInfo.IndentPoints;
+            var hangingIndent = directHasHanging ? props.HangingIndentPoints
+                : styleHasHanging ? styleDefaults!.HangingIndentPoints
+                : numberingInfo.HangingIndentPoints;
+
             props = props with
             {
                 Numbering = numberingInfo,
-                LeftIndentPoints = leftIndent
+                LeftIndentPoints = leftIndent,
+                HangingIndentPoints = hangingIndent
             };
         }
 
