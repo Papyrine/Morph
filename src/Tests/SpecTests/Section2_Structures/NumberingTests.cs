@@ -181,4 +181,26 @@ public class NumberingTests
 
         await Assert.That(bulletTexts.Count).IsGreaterThan(1);
     }
+
+    // === Multi-level restart (OOXML w:lvlRestart default behaviour) ===
+
+    [Test]
+    public async Task MultiLevel_ChildCounterRestartsWhenParentIncrements()
+    {
+        // agendas-minutes/04 uses a Heading2/Heading3 multi-level list (numId=1,
+        // ilvl=0/1 — upperRoman / lowerLetter) with no <w:lvlRestart>, so each
+        // Roman section should start its child letter sequence at "a." again.
+        var doc = Parse("agendas-minutes/04");
+        var numbered = GetNumberedParagraphs(doc);
+
+        var texts = numbered.Select(_ => _.Properties.Numbering!.Text).ToList();
+
+        await Assert.That(texts).IsEquivalentTo(new List<string>
+        {
+            "I.",  "a.", "b.",  // Introductions
+            "II.", "a.", "b.",  // New business
+            "III.","a.",        // Old business
+            "IV.", "a."         // Conclusion
+        });
+    }
 }

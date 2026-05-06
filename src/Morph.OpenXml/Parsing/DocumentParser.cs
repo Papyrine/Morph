@@ -1467,6 +1467,13 @@ sealed class DocumentParser(string defaultFont)
         public bool IsBullet { get; init; }
         public int StartNumber { get; init; } = 1;
         public NumberFormatValues NumberFormat { get; init; } = NumberFormatValues.Decimal;
+
+        /// <summary>
+        /// OOXML <c>w:lvlRestart</c>. <c>null</c> = default behaviour (restart whenever any
+        /// shallower level increments). <c>0</c> = never restart. A positive value <c>K</c>
+        /// means restart only when an item at level <c>K-1</c> or shallower increments.
+        /// </summary>
+        public int? LevelRestart { get; init; }
     }
 
     static Dictionary<int, Dictionary<int, NumberingLevelDefinition>> ExtractNumberingDefinitions(MainDocumentPart mainPart)
@@ -1532,6 +1539,7 @@ sealed class DocumentParser(string defaultFont)
 
                 // Get start number
                 var startNumber = level.StartNumberingValue?.Val?.Value ?? 1;
+                var lvlRestart = level.LevelRestart?.Val?.Value;
 
                 levels[ilvl] = new()
                 {
@@ -1541,7 +1549,8 @@ sealed class DocumentParser(string defaultFont)
                     HangingIndentPoints = hangingIndent,
                     IsBullet = isBullet,
                     StartNumber = startNumber,
-                    NumberFormat = numFmt ?? NumberFormatValues.Decimal
+                    NumberFormat = numFmt ?? NumberFormatValues.Decimal,
+                    LevelRestart = lvlRestart
                 };
             }
 
@@ -2179,6 +2188,13 @@ sealed class DocumentParser(string defaultFont)
 
             numberingCounters[counterKey] = counter;
 
+            // OOXML default: incrementing level N restarts every deeper level of the
+            // same numId, so e.g. a fresh "II." re-starts its child a/b counter.
+            // <w:lvlRestart w:val="0"/> on a deeper level opts out; <w:lvlRestart w:val="K"/>
+            // means that level only restarts when a level <= K-1 increments, so any
+            // deeper level whose lvlRestart-1 is less than ilvl stays put.
+            ResetDeeperCounters(numId, ilvl, levels);
+
             // Replace %N placeholders with formatted counter values
             text = levelDef.LevelText;
             for (var lvl = 0; lvl <= ilvl; lvl++)
@@ -2219,6 +2235,32 @@ sealed class DocumentParser(string defaultFont)
             IndentPoints = levelDef.LeftIndentPoints,
             HangingIndentPoints = levelDef.HangingIndentPoints
         };
+    }
+
+    void ResetDeeperCounters(int numId, int incrementedIlvl, Dictionary<int, NumberingLevelDefinition> levels)
+    {
+        foreach (var (deeperIlvl, deeperLevel) in levels)
+        {
+            if (deeperIlvl <= incrementedIlvl)
+            {
+                continue;
+            }
+
+            // lvlRestart=0 means "never restart" - the counter persists across parent changes.
+            if (deeperLevel.LevelRestart == 0)
+            {
+                continue;
+            }
+
+            // lvlRestart=K means "restart when an item at level <= K-1 increments".
+            // If our incrementedIlvl is deeper than K-1, this level keeps its value.
+            if (deeperLevel.LevelRestart is { } restart && restart > 0 && incrementedIlvl > restart - 1)
+            {
+                continue;
+            }
+
+            numberingCounters.Remove((numId, deeperIlvl));
+        }
     }
 
     /// <summary>
