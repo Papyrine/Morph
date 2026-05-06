@@ -3041,6 +3041,7 @@ sealed class DocumentParser(string defaultFont)
         CellSpacing? defaultCellPadding = null;
         var isFloating = false;
         double floatingYOffsetPoints = 0;
+        double floatingXOffsetPoints = 0;
         if (tableProps != null)
         {
             var tblCellMar = tableProps.GetFirstChild<TableCellMarginDefault>();
@@ -3055,6 +3056,10 @@ sealed class DocumentParser(string defaultFont)
             if (tblpPr?.TablePositionY?.HasValue == true)
             {
                 floatingYOffsetPoints = tblpPr.TablePositionY.Value / twipsPerPoint;
+            }
+            if (tblpPr?.TablePositionX?.HasValue == true)
+            {
+                floatingXOffsetPoints = tblpPr.TablePositionX.Value / twipsPerPoint;
             }
         }
 
@@ -3516,6 +3521,7 @@ sealed class DocumentParser(string defaultFont)
             {
                 IsFloating = isFloating,
                 FloatingYOffsetPoints = floatingYOffsetPoints,
+                FloatingXOffsetPoints = floatingXOffsetPoints,
                 DefaultBorders = defaultBorders,
                 InsideHorizontalBorder = insideHBorder,
                 InsideVerticalBorder = insideVBorder,

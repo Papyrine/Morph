@@ -14,6 +14,13 @@ sealed record TableProperties
     /// </summary>
     public double FloatingYOffsetPoints { get; init; }
 
+    /// <summary>
+    /// Horizontal offset in points from the floating-table anchor (w:tblpPr/@w:tblpX).
+    /// Only meaningful when <see cref="IsFloating"/> is true. Used as the table's left edge
+    /// relative to the page's text column, ignoring <see cref="Alignment"/>.
+    /// </summary>
+    public double FloatingXOffsetPoints { get; init; }
+
     /// <summary>Default borders for cells (from w:tblBorders). Null means no borders.</summary>
     public CellBorders? DefaultBorders { get; init; }
 
