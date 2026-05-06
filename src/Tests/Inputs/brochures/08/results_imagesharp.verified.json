@@ -11,7 +11,7 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.453,
+      "ErrorMetric": 0.4529,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "results_imagesharp#page_0002.verified.png",
       "ReceivedFile": "results_imagesharp#page_0002.received.png"

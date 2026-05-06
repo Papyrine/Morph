@@ -18,14 +18,14 @@
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.2524,
+      "ErrorMetric": 0.2525,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "results_imagesharp#page_0003.verified.png",
       "ReceivedFile": "results_imagesharp#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.0973,
+      "ErrorMetric": 0.0971,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "results_imagesharp#page_0004.verified.png",
       "ReceivedFile": "results_imagesharp#page_0004.received.png"

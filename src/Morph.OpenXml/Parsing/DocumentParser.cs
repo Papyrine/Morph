@@ -2152,30 +2152,15 @@ sealed class DocumentParser(string defaultFont)
         string text;
         if (levelDef.IsBullet)
         {
-            // For bullets, the level text IS the bullet character
-            text = levelDef.LevelText;
-
-            // Map Symbol/Wingdings font Private Use Area characters to Unicode equivalents
-            if (!string.IsNullOrEmpty(text) && text.Length == 1)
-            {
-                var c = text[0];
-                text = c switch
-                {
-                    '\uF0B7' => "•", // Symbol bullet -> BULLET
-                    '\uF0A7' => "•", // Symbol alternative bullet
-                    '\uF06C' => "●", // Symbol filled circle
-                    '\uF0FC' => "✓", // Wingdings checkmark
-                    '\uF0A8' => "○", // Symbol circle
-                    '\uF0D8' => "◆", // Symbol diamond
-                    '\uF076' => "■", // Wingdings square
-                    >= '\uF000' and <= '\uF0FF' => "•", // Other PUA -> fallback to bullet
-                    _ => text // Keep as-is
-                };
-            }
+            // For bullets, the level text IS the bullet character. Word stores it in
+            // the level's font's Private Use Area encoding - the same PUA codepoint
+            // means a *different glyph* in Symbol vs Wingdings vs Wingdings 2 (e.g.
+            // U+F0A7 is a club suit in Symbol but a small filled square in Wingdings).
+            // Map to Unicode based on the level's declared font, not just the codepoint.
+            text = MapBulletPuaToUnicode(levelDef.LevelText, levelDef.FontFamily);
 
             if (string.IsNullOrEmpty(text))
             {
-                // Default bullet character
                 text = "•";
             }
         }
@@ -2233,6 +2218,61 @@ sealed class DocumentParser(string defaultFont)
             FontFamily = levelDef.FontFamily,
             IndentPoints = levelDef.LeftIndentPoints,
             HangingIndentPoints = levelDef.HangingIndentPoints
+        };
+    }
+
+    /// <summary>
+    /// Maps a single Private Use Area bullet character to a Unicode glyph that
+    /// <c>Bullets.ttf</c> (and most system fonts) can actually render.
+    /// </summary>
+    /// <remarks>
+    /// Word stores bullet glyphs as PUA codepoints in the level's declared font - the
+    /// renderer must therefore use that font, but in our pipeline bullets are drawn from
+    /// the bundled <c>Morph Bullets</c> subset which only carries Unicode codepoints. The
+    /// same PUA codepoint maps to a different glyph per font, so the lookup branches on
+    /// <paramref name="fontFamily"/> first. Multi-character or non-PUA level texts are
+    /// returned unchanged - those are e.g. the literal lowercase "o" Word emits at the
+    /// second bullet level (font = Courier New).
+    /// </remarks>
+    static string MapBulletPuaToUnicode(string levelText, string? fontFamily)
+    {
+        if (string.IsNullOrEmpty(levelText) || levelText.Length != 1)
+        {
+            return levelText;
+        }
+
+        var c = levelText[0];
+        if (c is < '' or > '')
+        {
+            return levelText;
+        }
+
+        // Wingdings and its siblings - codepoints reflect the standard Wingdings encoding
+        // shifted into the F000 PUA block (so 0xA7 -> U+F0A7, etc.).
+        if (fontFamily != null &&
+            fontFamily.StartsWith("Wingdings", StringComparison.OrdinalIgnoreCase))
+        {
+            return c switch
+            {
+                '' => "▪", // Wingdings 0x76 - small filled square
+                '' => "▪", // Wingdings 0xA7 - black small square (Word's default bullet at ilvl 2)
+                '' => "▢", // Wingdings 0xA8 - white square
+                '' => "✓", // Wingdings 0xFC - check mark
+                '' => "✗", // Wingdings 0xFB - ballot X
+                '' => "►", // Wingdings 0xD8 - black right-pointing pointer
+                _ => "▪" // Default Wingdings bullet to a small square
+            };
+        }
+
+        // Symbol font (and unknown/unspecified fonts - Symbol is by far the most common
+        // bullet font in Word templates, so it's the safest default).
+        return c switch
+        {
+            '' => "•", // Symbol 0xB7 - bullet operator
+            '' => "●", // Symbol 0x6C - filled circle
+            '' => "○", // Symbol 0xA8 - hollow circle
+            '' => "◆", // Symbol 0xD8 - diamond
+            _ => "•"
         };
     }
 
