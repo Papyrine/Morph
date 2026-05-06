@@ -1467,6 +1467,13 @@ sealed class DocumentParser(string defaultFont)
         public bool IsBullet { get; init; }
         public int StartNumber { get; init; } = 1;
         public NumberFormatValues NumberFormat { get; init; } = NumberFormatValues.Decimal;
+
+        /// <summary>
+        /// OOXML <c>w:lvlRestart</c>. <c>null</c> = default behaviour (restart whenever any
+        /// shallower level increments). <c>0</c> = never restart. A positive value <c>K</c>
+        /// means restart only when an item at level <c>K-1</c> or shallower increments.
+        /// </summary>
+        public int? LevelRestart { get; init; }
     }
 
     static Dictionary<int, Dictionary<int, NumberingLevelDefinition>> ExtractNumberingDefinitions(MainDocumentPart mainPart)
@@ -1532,6 +1539,7 @@ sealed class DocumentParser(string defaultFont)
 
                 // Get start number
                 var startNumber = level.StartNumberingValue?.Val?.Value ?? 1;
+                var lvlRestart = level.LevelRestart?.Val?.Value;
 
                 levels[ilvl] = new()
                 {
@@ -1541,7 +1549,8 @@ sealed class DocumentParser(string defaultFont)
                     HangingIndentPoints = hangingIndent,
                     IsBullet = isBullet,
                     StartNumber = startNumber,
-                    NumberFormat = numFmt ?? NumberFormatValues.Decimal
+                    NumberFormat = numFmt ?? NumberFormatValues.Decimal,
+                    LevelRestart = lvlRestart
                 };
             }
 
@@ -2152,30 +2161,15 @@ sealed class DocumentParser(string defaultFont)
         string text;
         if (levelDef.IsBullet)
         {
-            // For bullets, the level text IS the bullet character
-            text = levelDef.LevelText;
-
-            // Map Symbol/Wingdings font Private Use Area characters to Unicode equivalents
-            if (!string.IsNullOrEmpty(text) && text.Length == 1)
-            {
-                var c = text[0];
-                text = c switch
-                {
-                    '\uF0B7' => "•", // Symbol bullet -> BULLET
-                    '\uF0A7' => "•", // Symbol alternative bullet
-                    '\uF06C' => "●", // Symbol filled circle
-                    '\uF0FC' => "✓", // Wingdings checkmark
-                    '\uF0A8' => "○", // Symbol circle
-                    '\uF0D8' => "◆", // Symbol diamond
-                    '\uF076' => "■", // Wingdings square
-                    >= '\uF000' and <= '\uF0FF' => "•", // Other PUA -> fallback to bullet
-                    _ => text // Keep as-is
-                };
-            }
+            // For bullets, the level text IS the bullet character. Word stores it in
+            // the level's font's Private Use Area encoding - the same PUA codepoint
+            // means a *different glyph* in Symbol vs Wingdings vs Wingdings 2 (e.g.
+            // U+F0A7 is a club suit in Symbol but a small filled square in Wingdings).
+            // Map to Unicode based on the level's declared font, not just the codepoint.
+            text = MapBulletPuaToUnicode(levelDef.LevelText, levelDef.FontFamily);
 
             if (string.IsNullOrEmpty(text))
             {
-                // Default bullet character
                 text = "•";
             }
         }
@@ -2193,6 +2187,13 @@ sealed class DocumentParser(string defaultFont)
             }
 
             numberingCounters[counterKey] = counter;
+
+            // OOXML default: incrementing level N restarts every deeper level of the
+            // same numId, so e.g. a fresh "II." re-starts its child a/b counter.
+            // <w:lvlRestart w:val="0"/> on a deeper level opts out; <w:lvlRestart w:val="K"/>
+            // means that level only restarts when a level <= K-1 increments, so any
+            // deeper level whose lvlRestart-1 is less than ilvl stays put.
+            ResetDeeperCounters(numId, ilvl, levels);
 
             // Replace %N placeholders with formatted counter values
             text = levelDef.LevelText;
@@ -2233,6 +2234,87 @@ sealed class DocumentParser(string defaultFont)
             FontFamily = levelDef.FontFamily,
             IndentPoints = levelDef.LeftIndentPoints,
             HangingIndentPoints = levelDef.HangingIndentPoints
+        };
+    }
+
+    void ResetDeeperCounters(int numId, int incrementedIlvl, Dictionary<int, NumberingLevelDefinition> levels)
+    {
+        foreach (var (deeperIlvl, deeperLevel) in levels)
+        {
+            if (deeperIlvl <= incrementedIlvl)
+            {
+                continue;
+            }
+
+            // lvlRestart=0 means "never restart" - the counter persists across parent changes.
+            if (deeperLevel.LevelRestart == 0)
+            {
+                continue;
+            }
+
+            // lvlRestart=K means "restart when an item at level <= K-1 increments".
+            // If our incrementedIlvl is deeper than K-1, this level keeps its value.
+            if (deeperLevel.LevelRestart is { } restart && restart > 0 && incrementedIlvl > restart - 1)
+            {
+                continue;
+            }
+
+            numberingCounters.Remove((numId, deeperIlvl));
+        }
+    }
+
+    /// <summary>
+    /// Maps a single Private Use Area bullet character to a Unicode glyph that
+    /// <c>Bullets.ttf</c> (and most system fonts) can actually render.
+    /// </summary>
+    /// <remarks>
+    /// Word stores bullet glyphs as PUA codepoints in the level's declared font - the
+    /// renderer must therefore use that font, but in our pipeline bullets are drawn from
+    /// the bundled <c>Morph Bullets</c> subset which only carries Unicode codepoints. The
+    /// same PUA codepoint maps to a different glyph per font, so the lookup branches on
+    /// <paramref name="fontFamily"/> first. Multi-character or non-PUA level texts are
+    /// returned unchanged - those are e.g. the literal lowercase "o" Word emits at the
+    /// second bullet level (font = Courier New).
+    /// </remarks>
+    static string MapBulletPuaToUnicode(string levelText, string? fontFamily)
+    {
+        if (string.IsNullOrEmpty(levelText) || levelText.Length != 1)
+        {
+            return levelText;
+        }
+
+        var c = levelText[0];
+        if (c is < '' or > '')
+        {
+            return levelText;
+        }
+
+        // Wingdings and its siblings - codepoints reflect the standard Wingdings encoding
+        // shifted into the F000 PUA block (so 0xA7 -> U+F0A7, etc.).
+        if (fontFamily != null &&
+            fontFamily.StartsWith("Wingdings", StringComparison.OrdinalIgnoreCase))
+        {
+            return c switch
+            {
+                '' => "▪", // Wingdings 0x76 - small filled square
+                '' => "▪", // Wingdings 0xA7 - black small square (Word's default bullet at ilvl 2)
+                '' => "▢", // Wingdings 0xA8 - white square
+                '' => "✓", // Wingdings 0xFC - check mark
+                '' => "✗", // Wingdings 0xFB - ballot X
+                '' => "►", // Wingdings 0xD8 - black right-pointing pointer
+                _ => "▪" // Default Wingdings bullet to a small square
+            };
+        }
+
+        // Symbol font (and unknown/unspecified fonts - Symbol is by far the most common
+        // bullet font in Word templates, so it's the safest default).
+        return c switch
+        {
+            '' => "•", // Symbol 0xB7 - bullet operator
+            '' => "●", // Symbol 0x6C - filled circle
+            '' => "○", // Symbol 0xA8 - hollow circle
+            '' => "◆", // Symbol 0xD8 - diamond
+            _ => "•"
         };
     }
 
@@ -3694,16 +3776,38 @@ sealed class DocumentParser(string defaultFont)
         var numberingInfo = GetNumberingInfo(paraProps, paragraphStyleId);
         if (numberingInfo != null)
         {
-            // OOXML cascade: style pPr → numbering level pPr → direct pPr (each overrides the
-            // previous). The numbering level's <w:ind> is supposed to win over the style's
-            // <w:ind>, so a List style with ind left=18pt should be replaced by the level's
-            // ind left=36pt + hanging=18pt unless the paragraph itself sets <w:ind> directly.
-            var hasDirectIndent = paraProps?.GetFirstChild<Indentation>() != null;
-            var leftIndent = hasDirectIndent ? props.LeftIndentPoints : numberingInfo.IndentPoints;
+            // OOXML indent cascade for a numbered paragraph:
+            //   numPr's pPr (numbering level)  →  style pPr  →  direct paragraph pPr
+            // Each later layer overrides the previous. We resolve left/hanging/firstLine
+            // independently because a layer may set only one of them and inherit the rest.
+            ParagraphProperties? styleDefaults = null;
+            if (paragraphStyleId != null && styleParagraphProperties != null)
+            {
+                styleParagraphProperties.TryGetValue(paragraphStyleId, out styleDefaults);
+            }
+
+            var directInd = paraProps?.GetFirstChild<Indentation>();
+            var directHasLeft = directInd?.Left?.HasValue == true;
+            var directHasHanging = directInd?.Hanging?.HasValue == true;
+
+            // Style "has" the value when it's non-zero - we can't distinguish "explicitly 0"
+            // from "default 0" without re-parsing, but in practice any zero indent means the
+            // style didn't set one and numbering should fill in.
+            var styleHasLeft = (styleDefaults?.LeftIndentPoints ?? 0) > 0;
+            var styleHasHanging = (styleDefaults?.HangingIndentPoints ?? 0) > 0;
+
+            var leftIndent = directHasLeft ? props.LeftIndentPoints
+                : styleHasLeft ? styleDefaults!.LeftIndentPoints
+                : numberingInfo.IndentPoints;
+            var hangingIndent = directHasHanging ? props.HangingIndentPoints
+                : styleHasHanging ? styleDefaults!.HangingIndentPoints
+                : numberingInfo.HangingIndentPoints;
+
             props = props with
             {
                 Numbering = numberingInfo,
-                LeftIndentPoints = leftIndent
+                LeftIndentPoints = leftIndent,
+                HangingIndentPoints = hangingIndent
             };
         }
 

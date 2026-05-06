@@ -1,7 +1,9 @@
 /// <summary>
-/// Raw bytes of the four standard Aptos faces Morph ships as <c>EmbeddedResource</c>
-/// inside <c>Morph.dll</c>. Loaded eagerly on first class access. Consumed only by
-/// <see cref="FontResolver{TFont}.BuildBundledSeed"/>; backends never reach in here.
+/// Raw bytes of the fonts Morph ships as <c>EmbeddedResource</c> inside <c>Morph.dll</c>:
+/// the four standard Aptos faces (the modern Word default) and a tiny custom
+/// <c>Bullets.ttf</c> used to render list bullet glyphs cross-platform. Loaded eagerly on
+/// first class access. Consumed only by <see cref="FontResolver{TFont}.BuildBundledSeed"/>;
+/// backends never reach in here.
 /// </summary>
 static class EmbeddedFonts
 {
@@ -9,6 +11,7 @@ static class EmbeddedFonts
     public static byte[] Aptos400Italic { get; } = Load("Morph.EmbeddedFonts.Aptos_400_Italic.ttf");
     public static byte[] Aptos700 { get; } = Load("Morph.EmbeddedFonts.Aptos_700.ttf");
     public static byte[] Aptos700Italic { get; } = Load("Morph.EmbeddedFonts.Aptos_700_Italic.ttf");
+    public static byte[] Bullets { get; } = Load("Morph.EmbeddedFonts.Bullets.ttf");
 
     static byte[] Load(string resourceName)
     {
