@@ -67,6 +67,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
             if (element is FloatingShapeElement {BehindText: true} shape)
             {
+                AdvanceToBackgroundsTargetPage(elements, i);
                 RenderBackgroundShape(shape);
                 continue;
             }
