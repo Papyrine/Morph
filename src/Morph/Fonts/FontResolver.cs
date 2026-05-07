@@ -50,7 +50,7 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
     /// <summary>
     /// Builds the seed for the fonts shipped inside <c>Morph.dll</c> from a backend-supplied
     /// byte-array decoder: the four standard Aptos faces, plus the <c>Morph Bullets</c>
-    /// glyph subset used by <see cref="TextRenderer"/> to draw list bullet markers
+    /// glyph subset used by the backends' <c>TextRenderer</c> to draw list bullet markers
     /// cross-platform (see <c>EmbeddedFonts/Bullets.md</c>). The faces are known at build
     /// time, so the <c>(family, weight, italic)</c> keys are hard-coded instead of being
     /// read out of each face's <c>name</c>/<c>OS/2</c> tables.
