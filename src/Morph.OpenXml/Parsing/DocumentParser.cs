@@ -77,6 +77,12 @@ sealed class DocumentParser(string defaultFont)
     // that don't carry an explicit w:tblStyle reference (ECMA-376 §17.7.4.4).
     string? defaultTableStyleId;
 
+    // StyleId of the paragraph style flagged as w:default (typically "Normal") — Word
+    // implicitly applies it to paragraphs without an explicit w:pStyle, layered on top of
+    // pPrDefault. Without this, our docDefaults-only fallback misses Normal's overrides
+    // (e.g. an explicit <w:ind w:left="0"/> that resets the pPrDefault indent).
+    string? defaultParagraphStyleId;
+
     // Document-level background color (applies to all pages)
     string? documentBackgroundColor;
 
@@ -1175,6 +1181,19 @@ sealed class DocumentParser(string defaultFont)
         var existingStyleIds = new HashSet<string>(
             styles.Select(s => s.StyleId?.Value).Where(id => id != null)!,
             StringComparer.OrdinalIgnoreCase);
+
+        // Capture the default paragraph style id (typically "Normal") so unstyled paragraphs
+        // can layer its properties on top of pPrDefault — Word applies it implicitly.
+        foreach (var style in styles)
+        {
+            if (style.Type?.Value == StyleValues.Paragraph &&
+                style.Default?.Value == true &&
+                style.StyleId?.Value is { } defaultPStyleId)
+            {
+                defaultParagraphStyleId = defaultPStyleId;
+                break;
+            }
+        }
 
         // Process styles with proper inheritance - may need multiple passes
         // to handle chains like: Title -> Normal -> (base)
@@ -7299,11 +7318,15 @@ sealed class DocumentParser(string defaultFont)
 
     ParagraphProperties ParseParagraphProperties(OoxmlParagraphProperties? props, string? styleId = null)
     {
-        // Get style defaults if available
+        // Get style defaults if available. Paragraphs without an explicit w:pStyle still
+        // inherit the document's default paragraph style (the one with w:default="1",
+        // typically Normal) — without this, properties like ind=0 from Normal don't
+        // override the indent inherited from pPrDefault.
         ParagraphProperties? styleDefaults = null;
-        if (styleParagraphProperties != null && styleId != null)
+        var effectiveStyleId = styleId ?? defaultParagraphStyleId;
+        if (styleParagraphProperties != null && effectiveStyleId != null)
         {
-            styleParagraphProperties.TryGetValue(styleId, out styleDefaults);
+            styleParagraphProperties.TryGetValue(effectiveStyleId, out styleDefaults);
         }
 
         // Start with style defaults or document defaults (pPrDefault)
