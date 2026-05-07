@@ -1,4 +1,30 @@
-﻿/// <summary>
+﻿/// <summary>Reference frame for a floating table's <c>tblpY</c> offset.</summary>
+enum FloatingTableVerticalAnchor
+{
+    /// <summary>Anchored to the surrounding text-flow position (default for unspecified).</summary>
+    Text,
+
+    /// <summary>Anchored to the top of the page's content area (margin top).</summary>
+    Margin,
+
+    /// <summary>Anchored to the top edge of the page itself.</summary>
+    Page
+}
+
+/// <summary>Reference frame for a floating table's <c>tblpX</c> offset.</summary>
+enum FloatingTableHorizontalAnchor
+{
+    /// <summary>Anchored to the column / text-flow column (default for unspecified).</summary>
+    Text,
+
+    /// <summary>Anchored to the page margin edge.</summary>
+    Margin,
+
+    /// <summary>Anchored to the page edge.</summary>
+    Page
+}
+
+/// <summary>
 /// Table-level properties.
 /// </summary>
 sealed record TableProperties
@@ -20,6 +46,12 @@ sealed record TableProperties
     /// relative to the page's text column, ignoring <see cref="Alignment"/>.
     /// </summary>
     public double FloatingXOffsetPoints { get; init; }
+
+    /// <summary>What <see cref="FloatingYOffsetPoints"/> is measured from (w:tblpPr/@w:vertAnchor).</summary>
+    public FloatingTableVerticalAnchor FloatingVerticalAnchor { get; init; } = FloatingTableVerticalAnchor.Text;
+
+    /// <summary>What <see cref="FloatingXOffsetPoints"/> is measured from (w:tblpPr/@w:horzAnchor).</summary>
+    public FloatingTableHorizontalAnchor FloatingHorizontalAnchor { get; init; } = FloatingTableHorizontalAnchor.Text;
 
     /// <summary>Default borders for cells (from w:tblBorders). Null means no borders.</summary>
     public CellBorders? DefaultBorders { get; init; }

@@ -65,11 +65,35 @@ abstract class RenderContextBase
     float FullContentBottom => (float) (PageSettings.HeightPoints - PageSettings.MarginBottom) - footerSpace;
 
     // Current column content area bounds in points
-    public float ContentLeft => FullContentLeft + CurrentColumn * ((float) PageSettings.ColumnWidth + (float) PageSettings.ColumnSpacing);
+    public float ContentLeft => containerLeftOverride ?? (FullContentLeft + CurrentColumn * ((float) PageSettings.ColumnWidth + (float) PageSettings.ColumnSpacing));
     public float ContentTop => FullContentTop;
     public float ContentBottom => FullContentBottom;
-    public float ContentWidth => (float) PageSettings.ColumnWidth;
+    public float ContentWidth => containerWidthOverride ?? (float) PageSettings.ColumnWidth;
     public float ContentHeight => FullContentBottom - FullContentTop;
+
+    // Nested-content overrides: when a nested table or framed block needs the layout pipeline
+    // to size to a sub-area of the page (e.g. a parent cell), callers can push the container
+    // bounds via PushContentContainer / pop with the returned IDisposable.
+    float? containerLeftOverride;
+    float? containerWidthOverride;
+
+    public IDisposable PushContentContainer(float left, float width)
+    {
+        var prevLeft = containerLeftOverride;
+        var prevWidth = containerWidthOverride;
+        containerLeftOverride = left;
+        containerWidthOverride = width;
+        return new ContainerScope(this, prevLeft, prevWidth);
+    }
+
+    sealed class ContainerScope(RenderContextBase ctx, float? prevLeft, float? prevWidth) : IDisposable
+    {
+        public void Dispose()
+        {
+            ctx.containerLeftOverride = prevLeft;
+            ctx.containerWidthOverride = prevWidth;
+        }
+    }
 
     protected RenderContextBase(PageSettings pageSettings, int dpi, CompatibilitySettings? compatibility, double fontWidthScale, Func<string, string?>? fontFallback = null, string? fontDirectory = null, bool? deterministicRendering = null)
     {
