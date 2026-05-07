@@ -41,6 +41,12 @@ sealed class DocumentParser(string defaultFont)
     // Theme colors for the current document being parsed
     ThemeColors? currentThemeColors;
 
+    // Floating tables (w:tblpPr) discovered while parsing nested cells.
+    // Lifted to body-level after the body is parsed so they participate in normal page-flow,
+    // pagination, and rendering logic instead of being rendered inside a cell that may
+    // paginate or get clipped.
+    List<TableElement>? pendingLiftedFloatingTables;
+
     // Theme fonts for the current document being parsed
     ThemeFonts? currentThemeFonts;
 
@@ -168,6 +174,15 @@ sealed class DocumentParser(string defaultFont)
         tableStyleBorders = ExtractTableStyleBorders(mainPart);
 
         var elements = ParseElements(body, mainPart);
+
+        // Append floating tables that were nested inside cells. Lifting them here lets the
+        // top-level rendering loop handle pagination and absolute positioning, rather than
+        // attempting to render them within a parent cell whose page-flow may differ.
+        if (pendingLiftedFloatingTables is { Count: > 0 } lifted)
+        {
+            elements.AddRange(lifted);
+            pendingLiftedFloatingTables = null;
+        }
         var header = ExtractHeaderFooter(body, mainPart, HeaderFooterValues.Default, isHeader: true);
         var footer = ExtractHeaderFooter(body, mainPart, HeaderFooterValues.Default, isHeader: false);
         var firstPageHeader = pageSettings.DifferentFirstPage
@@ -3042,6 +3057,8 @@ sealed class DocumentParser(string defaultFont)
         var isFloating = false;
         double floatingYOffsetPoints = 0;
         double floatingXOffsetPoints = 0;
+        var floatingVAnchor = FloatingTableVerticalAnchor.Text;
+        var floatingHAnchor = FloatingTableHorizontalAnchor.Text;
         if (tableProps != null)
         {
             var tblCellMar = tableProps.GetFirstChild<TableCellMarginDefault>();
@@ -3060,6 +3077,22 @@ sealed class DocumentParser(string defaultFont)
             if (tblpPr?.TablePositionX?.HasValue == true)
             {
                 floatingXOffsetPoints = tblpPr.TablePositionX.Value / twipsPerPoint;
+            }
+            if (tblpPr?.VerticalAnchor?.Value is { } vAnch)
+            {
+                floatingVAnchor = vAnch == VerticalAnchorValues.Page
+                    ? FloatingTableVerticalAnchor.Page
+                    : vAnch == VerticalAnchorValues.Margin
+                        ? FloatingTableVerticalAnchor.Margin
+                        : FloatingTableVerticalAnchor.Text;
+            }
+            if (tblpPr?.HorizontalAnchor?.Value is { } hAnch)
+            {
+                floatingHAnchor = hAnch == HorizontalAnchorValues.Page
+                    ? FloatingTableHorizontalAnchor.Page
+                    : hAnch == HorizontalAnchorValues.Margin
+                        ? FloatingTableHorizontalAnchor.Margin
+                        : FloatingTableHorizontalAnchor.Text;
             }
         }
 
@@ -3103,7 +3136,17 @@ sealed class DocumentParser(string defaultFont)
                             var nested = ParseTable(nestedTable, mainPart);
                             if (nested != null)
                             {
-                                cellContent.Add(nested);
+                                if (nested.Properties.IsFloating)
+                                {
+                                    // Lift floating tables to body level so they participate in
+                                    // page-flow / pagination at the document level rather than
+                                    // being rendered inside a cell that may clip or paginate.
+                                    (pendingLiftedFloatingTables ??= []).Add(nested);
+                                }
+                                else
+                                {
+                                    cellContent.Add(nested);
+                                }
                             }
 
                             break;
@@ -3120,7 +3163,14 @@ sealed class DocumentParser(string defaultFont)
                                     var nestedSdt = ParseTable(sdtTable, mainPart);
                                     if (nestedSdt != null)
                                     {
-                                        cellContent.Add(nestedSdt);
+                                        if (nestedSdt.Properties.IsFloating)
+                                        {
+                                            (pendingLiftedFloatingTables ??= []).Add(nestedSdt);
+                                        }
+                                        else
+                                        {
+                                            cellContent.Add(nestedSdt);
+                                        }
                                     }
                                 }
                             }
@@ -3522,6 +3572,8 @@ sealed class DocumentParser(string defaultFont)
                 IsFloating = isFloating,
                 FloatingYOffsetPoints = floatingYOffsetPoints,
                 FloatingXOffsetPoints = floatingXOffsetPoints,
+                FloatingVerticalAnchor = floatingVAnchor,
+                FloatingHorizontalAnchor = floatingHAnchor,
                 DefaultBorders = defaultBorders,
                 InsideHorizontalBorder = insideHBorder,
                 InsideVerticalBorder = insideVBorder,

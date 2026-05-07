@@ -607,13 +607,14 @@ abstract class PageRendererBase(RenderContextBase context)
             return;
         }
 
-        // Floating tables (w:tblpPr) are rendered inline today; honour their tblpY as a
-        // y-offset before the first row to approximate Word's anchored placement.
-        if (table.Properties is { IsFloating: true, FloatingYOffsetPoints: > 0 })
+        // Floating tables position absolutely per their tblpY anchor and don't take inline
+        // space — save the cursor, jump to the resolved Y, render, then restore so the
+        // surrounding flow continues as if the table wasn't there.
+        var savedY = context.CurrentY;
+        if (table.Properties.IsFloating)
         {
-            context.CurrentY += (float) table.Properties.FloatingYOffsetPoints;
+            context.CurrentY = ResolveFloatingTableY(table);
         }
-
 
         var colCount = TableLayout.GetColumnCount(table);
         var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth, Measurer);
@@ -637,9 +638,29 @@ abstract class PageRendererBase(RenderContextBase context)
             var tolerancePercent = context.Compatibility.CompatibilityMode >= 15 ? 0.02f : 0.01f;
             var tolerance = context.ContentHeight * tolerancePercent;
             var requiredHeight = totalHeight - tolerance;
-            EnsureSpaceFor(requiredHeight);
+            if (!table.Properties.IsFloating)
+            {
+                EnsureSpaceFor(requiredHeight);
+            }
             RenderTableRows(table, colCount, colWidths, rowHeights, hasVerticalMerge);
         }
+
+        if (table.Properties.IsFloating)
+        {
+            context.CurrentY = savedY;
+        }
+    }
+
+    float ResolveFloatingTableY(TableElement table)
+    {
+        var offset = (float) table.Properties.FloatingYOffsetPoints;
+        return table.Properties.FloatingVerticalAnchor switch
+        {
+            FloatingTableVerticalAnchor.Page => offset,
+            FloatingTableVerticalAnchor.Margin => context.ContentTop + offset,
+            // Text anchor: where the inline cursor currently sits + tblpY.
+            _ => context.CurrentY + offset
+        };
     }
 
     /// <summary>
@@ -659,11 +680,19 @@ abstract class PageRendererBase(RenderContextBase context)
     protected float ComputeTableX(TableElement table, float[] colWidths)
     {
         var contentLeft = context.ContentLeft;
-        // Floating tables (w:tblpPr) position via tblpX from the text column left,
+
+        // Floating tables (w:tblpPr) position via tblpX measured from horzAnchor,
         // overriding the regular alignment-based placement.
-        if (table.Properties.IsFloating && table.Properties.FloatingXOffsetPoints != 0)
+        if (table.Properties.IsFloating)
         {
-            return contentLeft + (float) table.Properties.FloatingXOffsetPoints;
+            var offset = (float) table.Properties.FloatingXOffsetPoints;
+            return table.Properties.FloatingHorizontalAnchor switch
+            {
+                FloatingTableHorizontalAnchor.Page => offset,
+                FloatingTableHorizontalAnchor.Margin => (float) context.PageSettings.MarginLeft + offset,
+                // Text/column anchor: from the current text column's left edge.
+                _ => contentLeft + offset
+            };
         }
 
         var tableWidth = colWidths.Sum();
@@ -980,15 +1009,24 @@ abstract class PageRendererBase(RenderContextBase context)
             {
                 RenderImageInCell(image, contentX, contentWidth);
             }
-            else if (element is TableElement {Properties.IsFloating: true} nested)
+            else if (element is TableElement nested)
             {
-                // Floating nested tables (w:tblpPr) position themselves via tblpX/tblpY
-                // independently of the cell's content area, so they don't advance the cell's
-                // cursor. Non-floating nested tables aren't yet rendered here — column-width
-                // calculation against the parent cell needs more work first.
-                var savedYBeforeNested = context.CurrentY;
-                RenderTable(nested);
-                context.CurrentY = savedYBeforeNested;
+                if (nested.Properties.IsFloating)
+                {
+                    // Floating nested tables (w:tblpPr) typically reach this branch only when
+                    // the parser couldn't lift them to body level (e.g. inside header/footer
+                    // content); the floating render saves and restores the cursor itself.
+                    RenderTable(nested);
+                }
+                else
+                {
+                    // Non-floating nested tables: constrain the layout pipeline to the cell's
+                    // content area so column widths size against the cell, not the page column.
+                    using (context.PushContentContainer(contentX, contentWidth))
+                    {
+                        RenderTable(nested);
+                    }
+                }
             }
         }
 
