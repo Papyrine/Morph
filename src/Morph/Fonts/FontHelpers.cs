@@ -17,6 +17,7 @@ static class FontHelpers
         ["Sagona"] = "Georgia",
         ["Sagona ExtraLight"] = "Georgia",
         ["Sagona Light"] = "Georgia",
+        ["Daytona Light"] = "Calibri Light",
         ["Grandview Display"] = "Grandview",
         ["Cambria Math"] = "Cambria",
     };

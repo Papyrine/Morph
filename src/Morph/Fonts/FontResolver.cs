@@ -154,23 +154,26 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
     {
         // 1. Search the merged host cache (user → Office → cloud → system, in priority order)
         //    for any of the candidate names, picking the closest face by weight/italic/width.
-        var font = TryResolveFromCache(allFontsCache, candidates, targetWeight, targetItalic);
+        var font = TryResolveFromCache(allFontsCache, candidates, targetWeight, targetItalic, out var weightDelta);
 
         // 2. Fall back to the OS font manager (handles "user has installed something we
         //    didn't index" plus localized system fonts on macOS/Linux).
         font ??= systemFallback?.Invoke(candidates, targetWeight, targetItalic);
 
         // 3. Configured/runtime fallback name (e.g. "Segoe UI Variable" → "Segoe UI") —
-        //    re-resolve the alias through the same path.
-        if (font == null)
+        //    re-resolve the alias through the same path. Also fires when we did find a
+        //    face but its weight is far from what was asked (e.g. only Bold available
+        //    when Light was requested) and a fallback to a closer-weight family exists.
+        var fallbackName = FontHelpers.FindFallback(candidates) ?? fontFallback?.Invoke(fontFamily);
+        if (fallbackName != null && (font == null || weightDelta >= weightFallbackThreshold))
         {
-            var fallbackName = FontHelpers.FindFallback(candidates) ?? fontFallback?.Invoke(fontFamily);
-            if (fallbackName != null)
+            var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, bold);
+            var fallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
+            var fallback = TryResolveFromCache(allFontsCache, fallbackCandidates, fallbackWeight, targetItalic, out var fbDelta)
+                           ?? systemFallback?.Invoke(fallbackCandidates, fallbackWeight, targetItalic);
+            if (fallback != null && (font == null || fbDelta < weightDelta))
             {
-                var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, bold);
-                var fallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
-                font = TryResolveFromCache(allFontsCache, fallbackCandidates, fallbackWeight, targetItalic)
-                       ?? systemFallback?.Invoke(fallbackCandidates, fallbackWeight, targetItalic);
+                font = fallback;
             }
         }
 
@@ -180,21 +183,36 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
     TFont? TryResolveDirectoryMode(FontNameCandidates candidates, string fontFamily, bool bold, int targetWeight, bool targetItalic)
     {
         var directoryCache = GetDirectoryCache(fontDirectory!);
-        var font = TryResolveFromCache(directoryCache, candidates, targetWeight, targetItalic);
+        var font = TryResolveFromCache(directoryCache, candidates, targetWeight, targetItalic, out var weightDelta);
+
+        var fallbackName = FontHelpers.FindFallback(candidates) ?? fontFallback?.Invoke(fontFamily);
+
+        // If the direct match is a poor weight match (e.g. only Bold available for Light
+        // request), prefer the configured fallback when it offers a closer weight.
+        if (fallbackName != null && (font == null || weightDelta >= weightFallbackThreshold))
+        {
+            var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, bold);
+            var fallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
+            var fallback = TryResolveFromCache(directoryCache, fallbackCandidates, fallbackWeight, targetItalic, out var fbDelta);
+            if (fallback != null && (font == null || fbDelta < weightDelta))
+            {
+                return fallback;
+            }
+        }
+
         if (font != null)
         {
             return font;
         }
 
-        var fallbackName = FontHelpers.FindFallback(candidates) ?? fontFallback?.Invoke(fontFamily);
         if (fallbackName == null)
         {
             throw new InvalidOperationException($"Font '{fontFamily}' not found in '{fontDirectory}'.");
         }
 
-        var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, bold);
-        var fallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
-        return TryResolveFromCache(directoryCache, fallbackCandidates, fallbackWeight, targetItalic);
+        var lastFallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, bold);
+        var lastFallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
+        return TryResolveFromCache(directoryCache, lastFallbackCandidates, lastFallbackWeight, targetItalic);
     }
 
     /// <summary>
@@ -204,8 +222,12 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
     /// (parsed fine for indexing, but Skia can't decode it) — we silently advance to the
     /// next-best face that the backend can load.
     /// </summary>
-    TFont? TryResolveFromCache(FontFileCache fileCache, FontNameCandidates candidates, int targetWeight, bool targetItalic)
+    TFont? TryResolveFromCache(FontFileCache fileCache, FontNameCandidates candidates, int targetWeight, bool targetItalic) =>
+        TryResolveFromCache(fileCache, candidates, targetWeight, targetItalic, out _);
+
+    TFont? TryResolveFromCache(FontFileCache fileCache, FontNameCandidates candidates, int targetWeight, bool targetItalic, out int bestWeightDelta)
     {
+        bestWeightDelta = int.MaxValue;
         if (!fileCache.TryGet(candidates, out var faces))
         {
             return null;
@@ -226,12 +248,18 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
             var font = loadFace(face, rankedFaces);
             if (font != null)
             {
+                bestWeightDelta = Math.Abs(face.Weight - targetWeight);
                 return font;
             }
         }
 
         return null;
     }
+
+    // Threshold above which we treat a "best match" as bad enough to prefer the configured
+    // fallback name instead. e.g. resolving "Daytona Light" (target 300) when only
+    // Daytona Bold (700) is bundled gives a delta of 400 — Calibri Light (300) is closer.
+    const int weightFallbackThreshold = 300;
 
     static string BuildNotFoundMessage(string fontFamily) =>
         $"Font '{fontFamily}' not found. Checked:{Environment.NewLine}  {string.Join($"{Environment.NewLine}  ", FontCacheLoader.GetSearchedPaths())}";

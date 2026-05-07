@@ -20,25 +20,25 @@ These are still approximated via canvas transforms in `ApplyWordArtTransform`. V
 | <img src="expected_0003.png" width="500"> | <img src="results_skia%23page_0003.verified.png" width="500"> | <img src="results_imagesharp%23page_0003.verified.png" width="500"> |
 | **Page 4** | **Page 4. ErrorMetric: 0.2014** | **Page 4. ErrorMetric: 0.2046** |
 | <img src="expected_0004.png" width="500"> | <img src="results_skia%23page_0004.verified.png" width="500"> | <img src="results_imagesharp%23page_0004.verified.png" width="500"> |
-| **Page 5** | **Page 5. ErrorMetric: 0.0308** | **Page 5. ErrorMetric: 0.0297** |
+| **Page 5** | **Page 5. ErrorMetric: 0.0308** | **Page 5. ErrorMetric: 0.0289** |
 | <img src="expected_0005.png" width="500"> | <img src="results_skia%23page_0005.verified.png" width="500"> | <img src="results_imagesharp%23page_0005.verified.png" width="500"> |
-| **Page 6** | **Page 6. ErrorMetric: 0.0463** | **Page 6. ErrorMetric: 0.0420** |
+| **Page 6** | **Page 6. ErrorMetric: 0.0463** | **Page 6. ErrorMetric: 0.0415** |
 | <img src="expected_0006.png" width="500"> | <img src="results_skia%23page_0006.verified.png" width="500"> | <img src="results_imagesharp%23page_0006.verified.png" width="500"> |
-| **Page 7** | **Page 7. ErrorMetric: 0.0420** | **Page 7. ErrorMetric: 0.0412** |
+| **Page 7** | **Page 7. ErrorMetric: 0.0420** | **Page 7. ErrorMetric: 0.0407** |
 | <img src="expected_0007.png" width="500"> | <img src="results_skia%23page_0007.verified.png" width="500"> | <img src="results_imagesharp%23page_0007.verified.png" width="500"> |
-| **Page 8** | **Page 8. ErrorMetric: 0.0692** | **Page 8. ErrorMetric: 0.0665** |
+| **Page 8** | **Page 8. ErrorMetric: 0.0692** | **Page 8. ErrorMetric: 0.0660** |
 | <img src="expected_0008.png" width="500"> | <img src="results_skia%23page_0008.verified.png" width="500"> | <img src="results_imagesharp%23page_0008.verified.png" width="500"> |
-| **Page 9** | **Page 9. ErrorMetric: 0.0468** | **Page 9. ErrorMetric: 0.0498** |
+| **Page 9** | **Page 9. ErrorMetric: 0.0468** | **Page 9. ErrorMetric: 0.0469** |
 | <img src="expected_0009.png" width="500"> | <img src="results_skia%23page_0009.verified.png" width="500"> | <img src="results_imagesharp%23page_0009.verified.png" width="500"> |
-| **Page 10** | **Page 10. ErrorMetric: 0.0617** | **Page 10. ErrorMetric: 0.0640** |
+| **Page 10** | **Page 10. ErrorMetric: 0.0617** | **Page 10. ErrorMetric: 0.0612** |
 | <img src="expected_0010.png" width="500"> | <img src="results_skia%23page_0010.verified.png" width="500"> | <img src="results_imagesharp%23page_0010.verified.png" width="500"> |
-| **Page 11** | **Page 11. ErrorMetric: 0.0518** | **Page 11. ErrorMetric: 0.0515** |
+| **Page 11** | **Page 11. ErrorMetric: 0.0518** | **Page 11. ErrorMetric: 0.0496** |
 | <img src="expected_0011.png" width="500"> | <img src="results_skia%23page_0011.verified.png" width="500"> | <img src="results_imagesharp%23page_0011.verified.png" width="500"> |
-| **Page 12** | **Page 12. ErrorMetric: 0.0286** | **Page 12. ErrorMetric: 0.0263** |
+| **Page 12** | **Page 12. ErrorMetric: 0.0286** | **Page 12. ErrorMetric: 0.0255** |
 | <img src="expected_0012.png" width="500"> | <img src="results_skia%23page_0012.verified.png" width="500"> | <img src="results_imagesharp%23page_0012.verified.png" width="500"> |
-| **Page 13** | **Page 13. ErrorMetric: 0.0167** | **Page 13. ErrorMetric: 0.0159** |
+| **Page 13** | **Page 13. ErrorMetric: 0.0167** | **Page 13. ErrorMetric: 0.0154** |
 | <img src="expected_0013.png" width="500"> | <img src="results_skia%23page_0013.verified.png" width="500"> | <img src="results_imagesharp%23page_0013.verified.png" width="500"> |
-| **Page 14** | **Page 14. ErrorMetric: 0.0657** | **Page 14. ErrorMetric: 0.0621** |
+| **Page 14** | **Page 14. ErrorMetric: 0.0657** | **Page 14. ErrorMetric: 0.0614** |
 | <img src="expected_0014.png" width="500"> | <img src="results_skia%23page_0014.verified.png" width="500"> | <img src="results_imagesharp%23page_0014.verified.png" width="500"> |
-| **Page 15** | **Page 15. ErrorMetric: 0.0326** | **Page 15. ErrorMetric: 0.0334** |
+| **Page 15** | **Page 15. ErrorMetric: 0.0326** | **Page 15. ErrorMetric: 0.0332** |
 | <img src="expected_0015.png" width="500"> | <img src="results_skia%23page_0015.verified.png" width="500"> | <img src="results_imagesharp%23page_0015.verified.png" width="500"> |
