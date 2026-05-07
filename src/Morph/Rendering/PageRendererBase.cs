@@ -707,7 +707,18 @@ abstract class PageRendererBase(RenderContextBase context)
 
         if (table.Properties.IsFloating)
         {
-            context.CurrentY = savedY;
+            // Page/margin anchored floating tables sit on top of the layout — they don't take
+            // flow space, so restore the cursor. A text-anchored table flows with the surrounding
+            // text: subsequent content should appear below it, so leave the cursor at the table's
+            // bottom (or at savedY if the table rendered above the cursor).
+            if (table.Properties.FloatingVerticalAnchor == FloatingTableVerticalAnchor.Text)
+            {
+                context.CurrentY = Math.Max(savedY, context.CurrentY);
+            }
+            else
+            {
+                context.CurrentY = savedY;
+            }
         }
     }
 

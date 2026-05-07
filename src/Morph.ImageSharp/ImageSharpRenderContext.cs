@@ -156,11 +156,14 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
             return requested;
         }
 
-        // Ordered fallback attempts per requested style
+        // Ordered fallback attempts per requested style. For pure Bold requests, prefer
+        // Regular over BoldItalic — wrong slant is more visually disruptive than missing
+        // weight (e.g. some bundled font directories carry Regular/Italic/BoldItalic but
+        // not Bold; falling to BoldItalic there would render upright text as italic).
         IEnumerable<FontStyle> fallbackOrder = requested switch
         {
             FontStyle.BoldItalic => [FontStyle.Bold, FontStyle.Italic, FontStyle.Regular],
-            FontStyle.Bold => [FontStyle.BoldItalic, FontStyle.Regular, FontStyle.Italic],
+            FontStyle.Bold => [FontStyle.Regular, FontStyle.BoldItalic, FontStyle.Italic],
             FontStyle.Italic => [FontStyle.BoldItalic, FontStyle.Regular, FontStyle.Bold],
             _ => [FontStyle.Bold, FontStyle.Italic, FontStyle.BoldItalic]
         };
