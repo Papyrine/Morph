@@ -553,6 +553,66 @@ abstract class PageRendererBase(RenderContextBase context)
     }
 
     /// <summary>
+    /// Background drawings are page-scoped: the next significant content typically dictates
+    /// which page they belong to. Look ahead to the next non-background element and, if it
+    /// would page-break before rendering, advance the cursor first so the background lands
+    /// on the page where the actual content will be.
+    /// </summary>
+    protected void AdvanceToBackgroundsTargetPage(IReadOnlyList<DocumentElement> elements, int backgroundIndex)
+    {
+        if (context.CurrentY <= context.ContentTop)
+        {
+            // Already at the top of a fresh page — background already on the right page.
+            return;
+        }
+
+        // Walk forward to find the next element with a known significant height (typically
+        // a table). Paragraphs and other small elements rarely force the page break by
+        // themselves, so we skip past them looking for the real break-driving element.
+        for (var j = backgroundIndex + 1; j < elements.Count; j++)
+        {
+            var next = elements[j];
+            if (next is FloatingShapeElement {BehindText: true})
+            {
+                // Hit a later background — stop; that one will handle its own page advance.
+                return;
+            }
+
+            var required = EstimatedNextElementHeight(next);
+            if (required <= 0)
+            {
+                continue;
+            }
+
+            if (!context.HasSpaceFor(required) && required <= context.ContentHeight)
+            {
+                if (!context.MoveToNextColumn())
+                {
+                    FinishCurrentPage();
+                    StartNewPage();
+                }
+            }
+            return;
+        }
+    }
+
+    static float EstimatedNextElementHeight(DocumentElement element)
+    {
+        if (element is TableElement table)
+        {
+            // Use the first row's declared height as a cheap proxy — enough to detect when
+            // a table won't fit at all in the remaining space. Real layout will re-check.
+            return table.Rows.Count > 0
+                ? (float) (table.Rows[0].HeightPoints ?? 0)
+                : 0;
+        }
+
+        // Paragraphs / other small elements: a single line is unlikely to force a page break,
+        // so conservatively claim no required height.
+        return 0;
+    }
+
+    /// <summary>
     /// Renders a content control inside a table cell by reusing
     /// <see cref="RenderParagraphInBounds"/> with a synthetic paragraph.
     /// </summary>

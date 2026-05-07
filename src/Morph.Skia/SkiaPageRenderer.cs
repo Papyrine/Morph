@@ -71,9 +71,14 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         {
             var element = elements[i];
 
-            // Render background shapes on the current page only (not on every page)
+            // Render background shapes on the current page only (not on every page).
+            // Word anchors a behind-text drawing to the same page as its anchor paragraph.
+            // If the next significant content won't fit on the current page (a page break is
+            // imminent), the background should render on the next page — otherwise the page
+            // ends up with two stacked backgrounds and the actual target page has none.
             if (element is FloatingShapeElement {BehindText: true} shape)
             {
+                AdvanceToBackgroundsTargetPage(elements, i);
                 RenderBackgroundShape(shape);
                 continue;
             }
