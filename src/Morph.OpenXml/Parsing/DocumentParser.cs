@@ -4011,7 +4011,10 @@ sealed class DocumentParser(string defaultFont)
                                     continue;
                                 }
 
-                                // Line break - add newline character
+                                // Line break - add newline character. Don't `continue` — the
+                                // run may also have <w:t> text after the break (e.g.
+                                // <w:r><w:br/><w:t>Sharma</w:t></w:r>) and we still need to
+                                // parse it so neither half of the run is dropped.
                                 var runProps = ParseRunProperties(sdtChildRun.RunProperties, mainPart);
                                 runs.Add(
                                     new()
@@ -4019,7 +4022,6 @@ sealed class DocumentParser(string defaultFont)
                                         Text = "\n",
                                         Properties = runProps
                                     });
-                                continue;
                             }
 
                             // Check for drawings (images/icons) within the SdtRun child
@@ -7086,13 +7088,15 @@ sealed class DocumentParser(string defaultFont)
             // Parse each run with full styling, inheriting from paragraph style
             foreach (var run in sdtContent.Descendants<OoxmlRun>())
             {
-                // Check for line breaks within the run
+                // Check for line breaks within the run. The run may also contain text after
+                // the break (e.g. <w:r><w:br/><w:t>Sharma</w:t></w:r>) — emit a newline run
+                // for the break, then fall through to also parse the text content so neither
+                // half of the run is dropped.
                 var breakElement = run.GetFirstChild<Break>();
                 if (breakElement != null &&
                     breakElement.Type?.Value != BreakValues.Page &&
                     breakElement.Type?.Value != BreakValues.Column)
                 {
-                    // Line break - add newline character
                     var runProps = ParseRunProperties(run.RunProperties, mainPart);
                     styledRuns.Add(
                         new()
@@ -7100,7 +7104,6 @@ sealed class DocumentParser(string defaultFont)
                             Text = "\n",
                             Properties = runProps
                         });
-                    continue;
                 }
 
                 styledRuns.AddRange(ParseRun(run, mainPart, paragraphStyleId));
