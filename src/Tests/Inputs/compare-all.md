@@ -2671,8 +2671,8 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0120** | **Page 1. ErrorMetric: 0.0132** |
-| <img src="table_alignment/01/expected_0001.png" width="500"> | <img src="table_alignment/01/results_skia%23page_0001.verified.png" width="500"> | <img src="table_alignment/01/results_imagesharp%23page_0001.verified.png" width="500"> |
+| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
+| <img src="table_alignment/01/expected_0001.png" width="500"> |  |  |
 
 ## table_autofit_no_widths
 
@@ -2741,7 +2741,7 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0474** | **Page 1. ErrorMetric: 0.0498** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0470** | **Page 1. ErrorMetric: 0.0498** |
 | <img src="table_default_style/expected_0001.png" width="500"> | <img src="table_default_style/results_skia%23page_0001.verified.png" width="500"> | <img src="table_default_style/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## table_default_style_first_row_run_color
@@ -2769,8 +2769,8 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
-| <img src="table_default_style_outer_borders/expected_0001.png" width="500"> |  |  |
+| **Page 1** | **Page 1. ErrorMetric: 0.0008** | **Page 1. ErrorMetric: 0.0008** |
+| <img src="table_default_style_outer_borders/expected_0001.png" width="500"> | <img src="table_default_style_outer_borders/results_skia%23page_0001.verified.png" width="500"> | <img src="table_default_style_outer_borders/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## table_diagonal_borders/01
 

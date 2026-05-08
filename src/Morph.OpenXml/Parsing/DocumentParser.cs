@@ -3095,6 +3095,18 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        // w:tblW — explicit table preferred width. Only honour dxa values; pct/auto/nil
+        // mean "fit to container" which the autofit path already handles.
+        double? preferredWidthPoints = null;
+        var tblWidthEl = tableProps?.GetFirstChild<TableWidth>();
+        if (tblWidthEl?.Type?.Value == TableWidthUnitValues.Dxa &&
+            tblWidthEl.Width?.HasValue == true &&
+            double.TryParse(tblWidthEl.Width.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var tblWTwips) &&
+            tblWTwips > 0)
+        {
+            preferredWidthPoints = tblWTwips / twipsPerPoint;
+        }
+
         // Parse table-level default cell margins and floating table positioning
         CellSpacing? defaultCellMargin = null;
         CellSpacing? defaultCellPadding = null;
@@ -3625,6 +3637,7 @@ sealed class DocumentParser(string defaultFont)
                 DefaultCellMargin = defaultCellMargin ?? new CellSpacing(0),
                 IndentPoints = indentPoints,
                 GridColumnWidths = gridColumnWidths,
+                PreferredWidthPoints = preferredWidthPoints,
                 Alignment = alignment,
                 IsAutoFit = isAutoFit,
                 CellSpacingPoints = cellSpacingPoints

@@ -174,11 +174,14 @@ static class TableLayout
                     widths[i] *= scale;
                 }
             }
-            else if (isAutoFit && totalExplicitWidth > 0 && totalExplicitWidth < availableWidth)
+            else if (isAutoFit && totalExplicitWidth > 0 && totalExplicitWidth < availableWidth &&
+                     table.Properties.PreferredWidthPoints == null)
             {
                 // Autofit: when explicit widths underflow the available width, grow columns
                 // proportionally so the table fills its container. Fixed-layout tables keep
-                // their original widths and may leave whitespace on the right.
+                // their original widths and may leave whitespace on the right. Skip the grow
+                // when the table set an explicit w:tblW dxa width — that's a fixed size, not
+                // a "fill to container" hint.
                 var scale = availableWidth / totalExplicitWidth;
                 for (var i = 0; i < colCount; i++)
                 {
@@ -222,9 +225,12 @@ static class TableLayout
                     widths[i] *= scale;
                 }
             }
-            else if (isAutoFit && totalWidth > 0 && totalWidth < availableWidth)
+            else if (isAutoFit && totalWidth > 0 && totalWidth < availableWidth &&
+                     table.Properties.PreferredWidthPoints == null)
             {
-                // Same autofit-grow rule for grid-only widths.
+                // Same autofit-grow rule for grid-only widths. Skip when the table set an
+                // explicit w:tblW dxa width — that's a fixed size, not a "fill to container"
+                // hint, so growing the columns would override the user's intent.
                 var scale = availableWidth / totalWidth;
                 for (var i = 0; i < colCount; i++)
                 {
