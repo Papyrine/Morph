@@ -146,13 +146,11 @@ sealed class TextRenderer(SkiaRenderContext context) :
             _ => naturalHeight * (float)props.LineSpacingMultiplier // Auto
         };
 
-        // Word compatibility floor: Word's "single line spacing" is approximately 120% of the
-        // largest font size in the line. For fonts whose Ascent+Descent metrics under-report
-        // (some fonts give 111-117%), this floor lifts the line height to match Word.
-        // For fonts whose metrics already exceed 120% (e.g. Calibri at ~137%), this is a
-        // no-op and we use the natural height as-is — adding a multiplicative boost on top
-        // would overshoot Word's actual line height. Only applied for Auto with multiplier
-        // in the "single-ish" range; compact (<0.9) is intentional and exact is exact.
+        // Word compatibility floor: when the font's metrics under-report (Ascent+Descent
+        // gives less than 120% of font size), lift the line height to match Word's "single
+        // line spacing" rule (~120%). For fonts already at/above 120% (Calibri ≈137%) the
+        // floor is a no-op. Only applied for Auto with multiplier in the "single-ish"
+        // range; compact (<0.9) is intentional and exact is exact.
         if (props is {LineSpacingRule: LineSpacingRule.Auto, LineSpacingMultiplier: >= 0.9 and <= 1.15})
         {
             var largestFontSize = LargestFontSizePoints(line, props);
@@ -160,6 +158,18 @@ sealed class TextRenderer(SkiaRenderContext context) :
             {
                 var floor = largestFontSize * 1.20f * (float)props.LineSpacingMultiplier;
                 lineHeight = Math.Max(lineHeight, floor);
+            }
+
+            // Empirical leading boost: Word's pagination for documents that use the
+            // built-in Normal-with-1.08-multiplier style packs slightly less per page
+            // than Skia's natural metrics × 1.08 alone produces. Apply a small extra
+            // boost only for the 1.08-ish range so it kicks in for Word's built-in
+            // default and explicit settings near 1.08, but not for our 1.04 styled
+            // default (which already bakes in just enough leading on its own).
+            if (props.LineSpacingMultiplier >= 1.06)
+            {
+                var boost = 1.0f + 0.50f * (1.15f - (float)props.LineSpacingMultiplier);
+                lineHeight *= Math.Max(1.0f, boost);
             }
         }
 
