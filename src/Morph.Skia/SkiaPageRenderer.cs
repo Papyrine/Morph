@@ -1359,26 +1359,50 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         if (borders.Top.IsVisible)
         {
-            ConfigureBorderPaint(paint, borders.Top);
-            currentCanvas.DrawLine(pixelX, pixelY, pixelX + pixelWidth, pixelY, paint);
+            DrawBorderLine(paint, borders.Top, pixelX, pixelY, pixelX + pixelWidth, pixelY, true);
         }
 
         if (borders.Right.IsVisible)
         {
-            ConfigureBorderPaint(paint, borders.Right);
-            currentCanvas.DrawLine(pixelX + pixelWidth, pixelY, pixelX + pixelWidth, pixelY + pixelHeight, paint);
+            DrawBorderLine(paint, borders.Right, pixelX + pixelWidth, pixelY, pixelX + pixelWidth, pixelY + pixelHeight, false);
         }
 
         if (borders.Bottom.IsVisible)
         {
-            ConfigureBorderPaint(paint, borders.Bottom);
-            currentCanvas.DrawLine(pixelX, pixelY + pixelHeight, pixelX + pixelWidth, pixelY + pixelHeight, paint);
+            DrawBorderLine(paint, borders.Bottom, pixelX, pixelY + pixelHeight, pixelX + pixelWidth, pixelY + pixelHeight, true);
         }
 
         if (borders.Left.IsVisible)
         {
-            ConfigureBorderPaint(paint, borders.Left);
-            currentCanvas.DrawLine(pixelX, pixelY, pixelX, pixelY + pixelHeight, paint);
+            DrawBorderLine(paint, borders.Left, pixelX, pixelY, pixelX, pixelY + pixelHeight, false);
+        }
+    }
+
+    void DrawBorderLine(SKPaint paint, BorderEdge edge, float x1, float y1, float x2, float y2, bool horizontal)
+    {
+        ConfigureBorderPaint(paint, edge);
+        if (edge.Style == BorderLineStyle.Double)
+        {
+            // OOXML w:val="double": render as two parallel lines whose total span (line +
+            // gap + line) matches the declared width. Each line gets ~1/3 of the width.
+            var totalWidth = paint.StrokeWidth;
+            var lineWidth = Math.Max(0.5f, totalWidth / 3f);
+            var offset = totalWidth / 2f - lineWidth / 2f;
+            paint.StrokeWidth = lineWidth;
+            if (horizontal)
+            {
+                currentCanvas!.DrawLine(x1, y1 - offset, x2, y2 - offset, paint);
+                currentCanvas.DrawLine(x1, y1 + offset, x2, y2 + offset, paint);
+            }
+            else
+            {
+                currentCanvas!.DrawLine(x1 - offset, y1, x2 - offset, y2, paint);
+                currentCanvas.DrawLine(x1 + offset, y1, x2 + offset, y2, paint);
+            }
+        }
+        else
+        {
+            currentCanvas!.DrawLine(x1, y1, x2, y2, paint);
         }
     }
 

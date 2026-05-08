@@ -834,9 +834,30 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     {
         var color = ParseColor(edge.ColorHex ?? "000000");
         var strokeWidth = context.PointsToPixels((float) edge.WidthPoints);
-        var pen = Pens.Solid(color, strokeWidth);
 
-        ctx.DrawLine(pen, new PointF(x1, y1), new PointF(x2, y2));
+        if (edge.Style == BorderLineStyle.Double)
+        {
+            // OOXML w:val="double": render as two parallel lines whose total span (line +
+            // gap + line) matches the declared width. Each line gets ~1/3 of the width.
+            var lineWidth = Math.Max(0.5f, strokeWidth / 3f);
+            var offset = strokeWidth / 2f - lineWidth / 2f;
+            var pen = Pens.Solid(color, lineWidth);
+            var horizontal = Math.Abs(y2 - y1) < Math.Abs(x2 - x1);
+            if (horizontal)
+            {
+                ctx.DrawLine(pen, new PointF(x1, y1 - offset), new PointF(x2, y2 - offset));
+                ctx.DrawLine(pen, new PointF(x1, y1 + offset), new PointF(x2, y2 + offset));
+            }
+            else
+            {
+                ctx.DrawLine(pen, new PointF(x1 - offset, y1), new PointF(x2 - offset, y2));
+                ctx.DrawLine(pen, new PointF(x1 + offset, y1), new PointF(x2 + offset, y2));
+            }
+            return;
+        }
+
+        var solidPen = Pens.Solid(color, strokeWidth);
+        ctx.DrawLine(solidPen, new PointF(x1, y1), new PointF(x2, y2));
     }
 
     protected override void RenderParagraphInBounds(ParagraphElement paragraph, float x, float maxWidth)

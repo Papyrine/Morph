@@ -3848,8 +3848,20 @@ sealed class DocumentParser(string defaultFont)
         {
             IsVisible = true,
             WidthPoints = width,
-            ColorHex = color
+            ColorHex = color,
+            Style = MapBorderStyle(border.Val?.Value)
         };
+    }
+
+    static BorderLineStyle MapBorderStyle(BorderValues? val)
+    {
+        if (val == null) return BorderLineStyle.Single;
+        if (val == BorderValues.Double) return BorderLineStyle.Double;
+        if (val == BorderValues.Dotted) return BorderLineStyle.Dotted;
+        if (val == BorderValues.Dashed || val == BorderValues.DashSmallGap ||
+            val == BorderValues.DashDotStroked || val == BorderValues.DotDash ||
+            val == BorderValues.DotDotDash) return BorderLineStyle.Dashed;
+        return BorderLineStyle.Single;
     }
 
     List<DocumentElement> ParseParagraph(Paragraph para, MainDocumentPart mainPart)
