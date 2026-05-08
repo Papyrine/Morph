@@ -1233,7 +1233,7 @@ sealed class DocumentParser(string defaultFont)
                 var alignment = baseProps?.Alignment ?? TextAlignment.Left;
                 var spacingBefore = baseProps?.SpacingBeforePoints ?? defaultSpacingBeforePoints;
                 var spacingAfter = baseProps?.SpacingAfterPoints ?? defaultSpacingAfterPoints;
-                var lineSpacingMultiplier = baseProps?.LineSpacingMultiplier ?? 1.08;
+                var lineSpacingMultiplier = baseProps?.LineSpacingMultiplier ?? 1.04;
                 var lineSpacingPoints = baseProps?.LineSpacingPoints ?? 0;
                 var lineSpacingRule = baseProps?.LineSpacingRule ?? LineSpacingRule.Auto;
                 var firstLineIndent = baseProps?.FirstLineIndentPoints ?? 0;
@@ -7333,7 +7333,10 @@ sealed class DocumentParser(string defaultFont)
         var alignment = styleDefaults?.Alignment ?? TextAlignment.Left;
         var spacingBefore = styleDefaults?.SpacingBeforePoints ?? defaultSpacingBeforePoints;
         var spacingAfter = styleDefaults?.SpacingAfterPoints ?? defaultSpacingAfterPoints;
-        var lineSpacingMultiplier = styleDefaults?.LineSpacingMultiplier ?? 1.08; // Slight leading for readability
+        // When no style applies (bare docx without styles.xml), Word falls back to its
+        // built-in Normal style which has w:line w:val="259" w:lineRule="auto" (≈1.08).
+        // When a styles.xml IS present and provides defaults, those override this.
+        var lineSpacingMultiplier = styleDefaults?.LineSpacingMultiplier ?? 1.08;
         var lineSpacingPoints = styleDefaults?.LineSpacingPoints ?? 0;
         var lineSpacingRule = styleDefaults?.LineSpacingRule ?? LineSpacingRule.Auto;
         var firstLineIndent = styleDefaults?.FirstLineIndentPoints ?? 0;
