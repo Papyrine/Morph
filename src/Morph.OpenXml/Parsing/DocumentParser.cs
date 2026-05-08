@@ -1948,6 +1948,31 @@ sealed class DocumentParser(string defaultFont)
         return fill is null or "auto" ? null : fill;
     }
 
+    // Maps the named-colour palette of <w:highlight w:val="..."/> to RGB hex strings.
+    // Word's highlight pen uses a fixed palette (not arbitrary RGB), so mapping is
+    // deterministic and fixed by the spec — the colours match the highlighter swatches
+    // in Word's Home → Text Highlight Color picker.
+    static string? HighlightToHex(HighlightColorValues value)
+    {
+        if (value == HighlightColorValues.Yellow) return "FFFF00";
+        if (value == HighlightColorValues.Green) return "00FF00";
+        if (value == HighlightColorValues.Cyan) return "00FFFF";
+        if (value == HighlightColorValues.Magenta) return "FF00FF";
+        if (value == HighlightColorValues.Blue) return "0000FF";
+        if (value == HighlightColorValues.Red) return "FF0000";
+        if (value == HighlightColorValues.DarkBlue) return "000080";
+        if (value == HighlightColorValues.DarkCyan) return "008080";
+        if (value == HighlightColorValues.DarkGreen) return "008000";
+        if (value == HighlightColorValues.DarkMagenta) return "800080";
+        if (value == HighlightColorValues.DarkRed) return "800000";
+        if (value == HighlightColorValues.DarkYellow) return "808000";
+        if (value == HighlightColorValues.DarkGray) return "808080";
+        if (value == HighlightColorValues.LightGray) return "C0C0C0";
+        if (value == HighlightColorValues.Black) return "000000";
+        if (value == HighlightColorValues.White) return "FFFFFF";
+        return null;
+    }
+
     /// <summary>
     /// Reads <c>w:tblLook</c> into the subset of conditional flags that the table allows
     /// to be derived from cell position. Defaults to all conditions when no <c>w:tblLook</c>
@@ -7939,6 +7964,19 @@ sealed class DocumentParser(string defaultFont)
             if (inlineBgColor != null)
             {
                 backgroundColor = inlineBgColor;
+            }
+        }
+
+        // w:highlight — Word's highlighter pen, distinct from w:shd. Values are a fixed
+        // palette of named colors (yellow, green, cyan, ...). Mapped to BackgroundColorHex
+        // so the same renderer path that handles shading paints the highlight.
+        var highlightElement = props.GetFirstChild<Highlight>();
+        if (highlightElement?.Val?.HasValue == true)
+        {
+            var highlightHex = HighlightToHex(highlightElement.Val.Value);
+            if (highlightHex != null)
+            {
+                backgroundColor = highlightHex;
             }
         }
 
