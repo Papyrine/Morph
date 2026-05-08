@@ -162,9 +162,30 @@ public class RenderExpectedTests
                 // Render the page directly
                 renderBitmap.Render(page);
 
+                // Re-tag the bitmap with 96 DPI metadata so the saved PNG's pHYs
+                // chunk matches the result PNGs produced by Morph (Skia/ImageSharp
+                // write 96 DPI / no DPI). Without this, GitHub renders the
+                // expected column smaller than the result columns in compare-all.md
+                // because browsers compute CSS intrinsic size from pHYs DPI.
+                // Why: render quality stays at 150 DPI (more pixel detail), but the
+                // file's declared density is 96 DPI to align with the comparison set.
+                var stride = (renderBitmap.PixelWidth * renderBitmap.Format.BitsPerPixel + 7) / 8;
+                var pixels = new byte[renderBitmap.PixelHeight * stride];
+                renderBitmap.CopyPixels(pixels, stride, 0);
+                var bitmap96Dpi = BitmapSource.Create(
+                    renderBitmap.PixelWidth,
+                    renderBitmap.PixelHeight,
+                    96,
+                    96,
+                    renderBitmap.Format,
+                    null,
+                    pixels,
+                    stride
+                );
+
                 // Encode as PNG
                 var encoder = new PngBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+                encoder.Frames.Add(BitmapFrame.Create(bitmap96Dpi));
 
                 // Save to file
                 var outputPath = Path.Combine(outputDirectory, $"expected_{pageCount:D4}.png");

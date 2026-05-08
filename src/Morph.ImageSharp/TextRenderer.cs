@@ -22,7 +22,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
 
         foreach (var line in lines)
         {
-            totalHeight += CalculateLineHeight(line.Height, props);
+            totalHeight += CalculateLineHeight(line, props);
         }
 
         // Add spacing after (collapsed if this paragraph has contextual spacing)
@@ -68,7 +68,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
 
         foreach (var line in lines)
         {
-            totalHeight += CalculateLineHeight(line.Height, props);
+            totalHeight += CalculateLineHeight(line, props);
         }
 
         // Don't add spacing after for empty paragraphs (they're typically just visual spacers)
@@ -139,8 +139,9 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     /// <summary>
     /// Calculates the effective line height based on the line spacing rule.
     /// </summary>
-    float CalculateLineHeight(float naturalHeight, ParagraphProperties props)
+    float CalculateLineHeight(TextLine line, ParagraphProperties props)
     {
+        var naturalHeight = line.Height;
         var lineHeight = props.LineSpacingRule switch
         {
             LineSpacingRule.Exactly => (float)props.LineSpacingPoints,
@@ -148,15 +149,21 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             _ => naturalHeight * (float)props.LineSpacingMultiplier // Auto
         };
 
-        // Word compatibility: Word's "single line spacing" (multiplier 1.0) uses approximately
-        // 120% of the font size, while font metrics (Ascent + Descent) often give ~111-117%.
-        // Apply a graduated correction factor for Auto mode to match Word's line spacing behavior.
-        // Only apply for multipliers >= 0.9 to respect intentionally compact spacing (e.g., 70% spacing for decorative lines).
+        // Word compatibility floor: Word's "single line spacing" is approximately 120% of the
+        // largest font size in the line. For fonts whose Ascent+Descent metrics under-report
+        // (some fonts give 111-117%), this floor lifts the line height to match Word.
+        // For fonts whose metrics already exceed 120% (e.g. Calibri at ~137%), this is a
+        // no-op and we use the natural height as-is — adding a multiplicative boost on top
+        // would overshoot Word's actual line height. Only applied for Auto with multiplier
+        // in the "single-ish" range; compact (<0.9) is intentional and exact is exact.
         if (props is {LineSpacingRule: LineSpacingRule.Auto, LineSpacingMultiplier: >= 0.9 and <= 1.15})
         {
-            // Graduated boost: ~12.5% for 0.9, ~7.5% for 1.0, ~3.5% for 1.08, 0% for 1.15+
-            var boost = 1.0f + 0.50f * (1.15f - (float)props.LineSpacingMultiplier);
-            lineHeight *= Math.Max(1.0f, boost);
+            var largestFontSize = LargestFontSizePoints(line, props);
+            if (largestFontSize > 0)
+            {
+                var floor = largestFontSize * 1.20f * (float)props.LineSpacingMultiplier;
+                lineHeight = Math.Max(lineHeight, floor);
+            }
         }
 
         // Only apply document-grid line pitch when Word pagination hints are prevalent in the document.
@@ -171,6 +178,23 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         return lineHeight;
     }
 
+    static float LargestFontSizePoints(TextLine line, ParagraphProperties props)
+    {
+        var max = 0f;
+        foreach (var f in line.Fragments)
+        {
+            if (f.Properties.FontSizePoints > max)
+            {
+                max = (float)f.Properties.FontSizePoints;
+            }
+        }
+        if (max == 0 && props.ParagraphMarkFontSizePoints is { } markSize)
+        {
+            max = (float)markSize;
+        }
+        return max;
+    }
+
     /// <summary>
     /// Renders a paragraph to the image at the current position.
     /// </summary>
@@ -181,6 +205,11 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var lineNumberSettings = context.PageSettings.LineNumbers;
         var showLineNumbers = lineNumberSettings != null &&
                               !props.SuppressLineNumbers;
+
+        // Snapshot the cursor before spacing-before so bar tabs span the full
+        // paragraph cell (including spacing-before/after). Adjacent bar-tab
+        // paragraphs then meet at the same Y and the vertical bars connect.
+        var barTabStartY = context.CurrentY;
 
         // Add spacing before with margin collapsing (similar to CSS)
         // When two paragraphs are adjacent, use max(SpacingAfter, SpacingBefore) instead of sum
@@ -211,7 +240,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             float paragraphHeight = 0;
             foreach (var line in lines)
             {
-                paragraphHeight += CalculateLineHeight(line.Height, props);
+                paragraphHeight += CalculateLineHeight(line, props);
             }
 
             var bgColor = ImageSharpRenderContext.ParseColor(props.BackgroundColorHex);
@@ -245,7 +274,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var isFirstLine = true;
         foreach (var line in lines)
         {
-            var lineHeight = CalculateLineHeight(line.Height, props);
+            var lineHeight = CalculateLineHeight(line, props);
 
             // Calculate X position based on alignment
             var x = CalculateLineX(line, props);
@@ -304,10 +333,6 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                     currentX += extraSpacePerGap;
                 }
             }
-
-            // Bar tabs draw a vertical line at each bar position on every line of the paragraph,
-            // independent of any explicit <w:tab/> character.
-            DrawBarTabs(currentPage, props, context.CurrentY, lineHeight);
 
             // For the last line of a paragraph with compact auto spacing (< 1.0x),
             // ensure the cursor advances by at least the natural line height to prevent
@@ -388,6 +413,11 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             context.LastParagraphSpacingAfterPoints = 0;
         }
 
+        // Bar tabs draw a vertical line at each bar position spanning the full
+        // paragraph cell — including spacing-before and spacing-after — so
+        // consecutive bar-tab paragraphs render as a continuous vertical bar.
+        DrawBarTabs(currentPage, props, barTabStartY, context.CurrentY - barTabStartY);
+
         // Track contextual spacing state for next paragraph
         context.LastParagraphHadContextualSpacing = props.ContextualSpacing;
         context.LastParagraphStyleId = props.StyleId;
@@ -418,7 +448,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var isFirstLine = true;
         foreach (var line in lines)
         {
-            var lineHeight = CalculateLineHeight(line.Height, props);
+            var lineHeight = CalculateLineHeight(line, props);
 
             var x = CalculateLineXInBounds(line, props, startX, width);
             var y = context.CurrentY + line.Baseline;
