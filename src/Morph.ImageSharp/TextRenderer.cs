@@ -1137,7 +1137,9 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         // Draw strikethrough if needed
         if (fragment.Properties.Strikethrough)
         {
-            var strikeY = pixelY - font.Size * 0.3f;
+            // ImageSharp Font.Size is in points (unlike Skia's SKFont.Size which is in
+            // pixels), so the offset must be scaled by points-to-pixels.
+            var strikeY = pixelY - font.Size * 0.3f * context.Scale;
             var width = context.PointsToPixels(fragment.Width);
             var strokeWidth = 1 * context.Scale;
             currentPage.Mutate(_ => _.DrawLine(new SolidPen(color, strokeWidth), new PointF(pixelX, strikeY), new PointF(pixelX + width, strikeY)));
