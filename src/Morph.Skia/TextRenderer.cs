@@ -1100,27 +1100,30 @@ sealed class TextRenderer(SkiaRenderContext context) :
         // Effects drawn behind the main glyph fill: shadow, glow, reflection.
         DrawTextEffectsBehind(canvas, fragment, font, pixelX, pixelY);
 
-        // w:emboss / w:imprint — drop a tonal companion glyph one device pixel away from
-        // the main glyph so the text reads as raised (emboss) or engraved (imprint).
-        // Approximation: the companion uses a fixed light/dark grey rather than per-page
-        // blending; this matches Word's default look on white backgrounds.
+        // w:emboss / w:imprint — drop a tonal companion glyph one stroke-width away from
+        // the main glyph so the text reads as raised (emboss) or engraved (imprint). The
+        // offset scales with font size so the effect stays visible at large display sizes
+        // (a fixed 1px is invisible against 72pt Impact). Companion uses fixed light/dark
+        // grey rather than per-page blending; matches Word's default on white backgrounds.
         if (fragment.Properties.Emboss)
         {
+            var offset = Math.Max(1f, font.Size * 0.04f);
             using var lightPaint = new SKPaint
             {
                 Color = new(0xFF, 0xFF, 0xFF),
                 IsAntialias = true
             };
-            canvas.DrawText(fragment.Text, pixelX + 1, pixelY + 1, SKTextAlign.Left, font, lightPaint);
+            canvas.DrawText(fragment.Text, pixelX + offset, pixelY + offset, SKTextAlign.Left, font, lightPaint);
         }
         else if (fragment.Properties.Imprint)
         {
+            var offset = Math.Max(1f, font.Size * 0.04f);
             using var darkPaint = new SKPaint
             {
                 Color = new(0x80, 0x80, 0x80),
                 IsAntialias = true
             };
-            canvas.DrawText(fragment.Text, pixelX - 1, pixelY - 1, SKTextAlign.Left, font, darkPaint);
+            canvas.DrawText(fragment.Text, pixelX - offset, pixelY - offset, SKTextAlign.Left, font, darkPaint);
         }
 
         // w:outline — render glyphs as stroke-only (no fill). Falls back to the main paint

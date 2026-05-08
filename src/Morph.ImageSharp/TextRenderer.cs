@@ -1070,25 +1070,29 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
 
         DrawTextEffectsBehind(currentPage, fragment, textOptions, font, pixelX, pixelY, baseline);
 
-        // w:emboss / w:imprint — paint a tonal companion glyph offset by one device pixel
-        // so the run reads as raised (emboss) or engraved (imprint). Approximation only;
-        // companion uses fixed light/dark grey matched to a white background.
+        // w:emboss / w:imprint — paint a tonal companion glyph offset from the main glyph
+        // so the run reads as raised (emboss) or engraved (imprint). The offset scales with
+        // font size so the effect stays visible at large display sizes (a fixed 1px is
+        // invisible against 72pt Impact). Companion uses fixed light/dark grey matched to
+        // a white background.
         if (fragment.Properties.Emboss)
         {
+            var offset = Math.Max(1f, font.Size * context.Scale * 0.04f);
             var lightOptions = new RichTextOptions(font)
             {
                 Dpi = context.Dpi,
-                Origin = new PointF(pixelX + 1, pixelY - baseline * context.Scale + 1),
+                Origin = new PointF(pixelX + offset, pixelY - baseline * context.Scale + offset),
                 KerningMode = textOptions.KerningMode
             };
             currentPage.Mutate(_ => _.DrawText(lightOptions, fragment.Text, new SolidBrush(Color.White)));
         }
         else if (fragment.Properties.Imprint)
         {
+            var offset = Math.Max(1f, font.Size * context.Scale * 0.04f);
             var darkOptions = new RichTextOptions(font)
             {
                 Dpi = context.Dpi,
-                Origin = new PointF(pixelX - 1, pixelY - baseline * context.Scale - 1),
+                Origin = new PointF(pixelX - offset, pixelY - baseline * context.Scale - offset),
                 KerningMode = textOptions.KerningMode
             };
             currentPage.Mutate(_ => _.DrawText(darkOptions, fragment.Text, new SolidBrush(Color.Gray)));

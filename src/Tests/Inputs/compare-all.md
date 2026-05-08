@@ -3057,9 +3057,9 @@ These are still approximated via canvas transforms in `ApplyWordArtTransform`. V
 | <img src="wordart/expected_0008.png" width="500"> | <img src="wordart/results_skia%23page_0008.verified.png" width="500"> | <img src="wordart/results_imagesharp%23page_0008.verified.png" width="500"> |
 | **Page 9** | **Page 9. ErrorMetric: 0.0470** | **Page 9. ErrorMetric: 0.0483** |
 | <img src="wordart/expected_0009.png" width="500"> | <img src="wordart/results_skia%23page_0009.verified.png" width="500"> | <img src="wordart/results_imagesharp%23page_0009.verified.png" width="500"> |
-| **Page 10** | **Page 10. ErrorMetric: 0.0620** | **Page 10. ErrorMetric: 0.0628** |
+| **Page 10** | **Page 10. ErrorMetric: 0.0716** | **Page 10. ErrorMetric: 0.0722** |
 | <img src="wordart/expected_0010.png" width="500"> | <img src="wordart/results_skia%23page_0010.verified.png" width="500"> | <img src="wordart/results_imagesharp%23page_0010.verified.png" width="500"> |
-| **Page 11** | **Page 11. ErrorMetric: 0.0584** | **Page 11. ErrorMetric: 0.0555** |
+| **Page 11** | **Page 11. ErrorMetric: 0.0612** | **Page 11. ErrorMetric: 0.0584** |
 | <img src="wordart/expected_0011.png" width="500"> | <img src="wordart/results_skia%23page_0011.verified.png" width="500"> | <img src="wordart/results_imagesharp%23page_0011.verified.png" width="500"> |
 | **Page 12** | **Page 12. ErrorMetric: 0.0313** | **Page 12. ErrorMetric: 0.0268** |
 | <img src="wordart/expected_0012.png" width="500"> | <img src="wordart/results_skia%23page_0012.verified.png" width="500"> | <img src="wordart/results_imagesharp%23page_0012.verified.png" width="500"> |
