@@ -72,14 +72,25 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 continue;
             }
 
+            // Behind-text floating images carry the same page-anchor semantics as background
+            // shapes — see SkiaPageRenderer for the rationale.
+            if (element is FloatingImageElement {BehindText: true} bgImage)
+            {
+                AdvanceToBackgroundsTargetPage(elements, i);
+                RenderFloatingImage(bgImage);
+                continue;
+            }
+
             DocumentElement? nextElement = null;
             for (var j = i + 1; j < elements.Count; j++)
             {
-                if (elements[j] is not FloatingShapeElement {BehindText: true})
+                if (elements[j] is FloatingShapeElement {BehindText: true} ||
+                    elements[j] is FloatingImageElement {BehindText: true})
                 {
-                    nextElement = elements[j];
-                    break;
+                    continue;
                 }
+                nextElement = elements[j];
+                break;
             }
 
             RenderElement(element, nextElement);

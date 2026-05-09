@@ -1858,9 +1858,9 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0758** | **Page 1. ErrorMetric: 0.0796** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0700** | **Page 1. ErrorMetric: 0.0738** |
 | <img src="letters/05/expected_0001.png" width="500"> | <img src="letters/05/results_skia%23page_0001.verified.png" width="500"> | <img src="letters/05/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.0745** | **Page 2. ErrorMetric: 0.0784** |
+| **Page 2** | **Page 2. ErrorMetric: 0.0532** | **Page 2. ErrorMetric: 0.0572** |
 | <img src="letters/05/expected_0002.png" width="500"> | <img src="letters/05/results_skia%23page_0002.verified.png" width="500"> | <img src="letters/05/results_imagesharp%23page_0002.verified.png" width="500"> |
 | **Page 3** | **Page 3. ErrorMetric: 0.0555** | **Page 3. ErrorMetric: 0.0589** |
 | <img src="letters/05/expected_0003.png" width="500"> | <img src="letters/05/results_skia%23page_0003.verified.png" width="500"> | <img src="letters/05/results_imagesharp%23page_0003.verified.png" width="500"> |
@@ -1920,9 +1920,9 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1496** | **Page 1. ErrorMetric: 0.1544** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0856** | **Page 1. ErrorMetric: 0.0903** |
 | <img src="letters/13/expected_0001.png" width="500"> | <img src="letters/13/results_skia%23page_0001.verified.png" width="500"> | <img src="letters/13/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.1225** | **Page 2. ErrorMetric: 0.1273** |
+| **Page 2** | **Page 2. ErrorMetric: 0.1047** | **Page 2. ErrorMetric: 0.1117** |
 | <img src="letters/13/expected_0002.png" width="500"> | <img src="letters/13/results_skia%23page_0002.verified.png" width="500"> | <img src="letters/13/results_imagesharp%23page_0002.verified.png" width="500"> |
 | **Page 3** | **Page 3. ErrorMetric: 0.1101** | **Page 3. ErrorMetric: 0.1171** |
 | <img src="letters/13/expected_0003.png" width="500"> | <img src="letters/13/results_skia%23page_0003.verified.png" width="500"> | <img src="letters/13/results_imagesharp%23page_0003.verified.png" width="500"> |
@@ -2266,9 +2266,9 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.6155** | **Page 1. ErrorMetric: 0.6144** |
+| **Page 1** | **Page 1. ErrorMetric: 0.3406** | **Page 1. ErrorMetric: 0.3329** |
 | <img src="newsletters/12/expected_0001.png" width="500"> | <img src="newsletters/12/results_skia%23page_0001.verified.png" width="500"> | <img src="newsletters/12/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.5434** | **Page 2. ErrorMetric: 0.5453** |
+| **Page 2** | **Page 2. ErrorMetric: 0.3334** | **Page 2. ErrorMetric: 0.3548** |
 | <img src="newsletters/12/expected_0002.png" width="500"> | <img src="newsletters/12/results_skia%23page_0002.verified.png" width="500"> | <img src="newsletters/12/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## newsletters/13
@@ -2282,9 +2282,9 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.3729** | **Page 1. ErrorMetric: 0.3771** |
+| **Page 1** | **Page 1. ErrorMetric: 0.2580** | **Page 1. ErrorMetric: 0.2617** |
 | <img src="newsletters/14/expected_0001.png" width="500"> | <img src="newsletters/14/results_skia%23page_0001.verified.png" width="500"> | <img src="newsletters/14/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.6200** | **Page 2. ErrorMetric: 0.6211** |
+| **Page 2** | **Page 2. ErrorMetric: 0.3362** | **Page 2. ErrorMetric: 0.3374** |
 | <img src="newsletters/14/expected_0002.png" width="500"> | <img src="newsletters/14/results_skia%23page_0002.verified.png" width="500"> | <img src="newsletters/14/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## numbered_list
@@ -2934,7 +2934,7 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 | --- | --- | --- |
 | **Page 1** | **Page 1. ErrorMetric: 0.0988** | **Page 1. ErrorMetric: 0.1022** |
 | <img src="wedding/02/expected_0001.png" width="500"> | <img src="wedding/02/results_skia%23page_0001.verified.png" width="500"> | <img src="wedding/02/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.0846** | **Page 2. ErrorMetric: 0.0883** |
+| **Page 2** | **Page 2. ErrorMetric: 0.0955** | **Page 2. ErrorMetric: 0.1007** |
 | <img src="wedding/02/expected_0002.png" width="500"> | <img src="wedding/02/results_skia%23page_0002.verified.png" width="500"> | <img src="wedding/02/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## wedding/03
