@@ -345,13 +345,26 @@ static class TableLayout
 
         if (sumPref <= availableWidth)
         {
-            // Tables that reach this branch have no explicit width source (no per-cell
-            // widths, no w:tblGrid widths, no w:tblW). Word's autofit hugs the content
-            // in that case rather than growing to fill the page. Preserve preferred
-            // widths so a small "Col 1 / R1C1" grid doesn't span the whole page.
-            for (var i = 0; i < colCount; i++)
+            // Two flavours:
+            //  * w:tblW w:type="pct" said the table fills its container — distribute the
+            //    available width proportional to content prefs so col1=col2=… add up to
+            //    the page width even when no explicit cell widths are present.
+            //  * No w:tblW (or w:type="auto") — autofit hugs the content, so a small
+            //    "Col 1 / R1C1" grid doesn't span the whole page.
+            if (tableProps.FillContainer)
             {
-                widths[i] = prefs[i];
+                var scale = availableWidth / sumPref;
+                for (var i = 0; i < colCount; i++)
+                {
+                    widths[i] = prefs[i] * scale;
+                }
+            }
+            else
+            {
+                for (var i = 0; i < colCount; i++)
+                {
+                    widths[i] = prefs[i];
+                }
             }
         }
         else if (sumMin < availableWidth)

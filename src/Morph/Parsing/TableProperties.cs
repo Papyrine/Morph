@@ -79,6 +79,12 @@ sealed record TableProperties
     /// path will resolve those forms from the grid / available width instead).</summary>
     public double? PreferredWidthPoints { get; init; }
 
+    /// <summary>True when the table sets <c>w:tblW w:type="pct"</c> with a positive value —
+    /// the table is intended to fill its container, even when columns/cells don't carry
+    /// explicit widths. Drives the content-based autofit pass to scale natural widths up
+    /// to the available width instead of hugging content.</summary>
+    public bool FillContainer { get; init; }
+
     /// <summary>
     /// Table-level horizontal alignment within the page content area (from w:tblPr/w:jc).
     /// Justify is not valid for tables and is treated as Left.
