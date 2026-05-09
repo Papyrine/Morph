@@ -3644,7 +3644,14 @@ sealed class DocumentParser(string defaultFont)
                 DefaultBorders = defaultBorders,
                 InsideHorizontalBorder = insideHBorder,
                 InsideVerticalBorder = insideVBorder,
-                DefaultCellPadding = defaultCellPadding ?? styleInfo?.DefaultCellPadding ?? new CellSpacing(),
+                // For tables without an explicit w:tblCellMar and no inherited style padding,
+                // apply a 2pt top/bottom default. The OOXML spec calls for 0 vertical padding,
+                // but real Word adds ~2pt of breathing room — an unstyled table renders at
+                // roughly font-line + 2 * 2pt + spacing-after rather than the spec's bare
+                // line + spacing-after. Without this padding the table fits fewer rows on a
+                // page than Word does, breaking row-by-row pagination heuristics.
+                DefaultCellPadding = defaultCellPadding ?? styleInfo?.DefaultCellPadding ??
+                    new CellSpacing(top: 2, right: 0, bottom: 2, left: 0),
                 DefaultCellMargin = defaultCellMargin ?? new CellSpacing(0),
                 IndentPoints = indentPoints,
                 GridColumnWidths = gridColumnWidths,
