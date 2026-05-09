@@ -93,25 +93,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var lines = LayoutParagraphWithWidth(paragraph, maxWidth);
         var props = paragraph.Properties;
         var lineHeights = new List<float>(lines.Count);
-        var linePitch = (float)context.PageSettings.DocumentGridLinePitchPoints;
-        // docGrid linePitch only applies to empty paragraphs in cells: Word uses linePitch
-        // as the default line slot for the end-of-cell paragraph mark, but ignores it for
-        // paragraphs that contain text (the actual font/lineSpacing controls those).
-        var applyLinePitch = linePitch > 0 &&
-            props.LineSpacingRule != LineSpacingRule.Exactly &&
-            paragraph.Runs.Count == 0;
-
         foreach (var line in lines)
         {
-            var lineHeight = TableLayout.CalculateCompactLineHeight(line.Height, props);
-            if (applyLinePitch)
-            {
-                lineHeight = Math.Max(lineHeight, linePitch);
-            }
-
-            lineHeights.Add(lineHeight);
+            lineHeights.Add(TableLayout.CalculateCompactLineHeight(line.Height, props));
         }
-
         return lineHeights;
     }
 
