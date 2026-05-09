@@ -4757,6 +4757,17 @@ sealed class DocumentParser(string defaultFont)
             return ParseInlineShapeGroupRun(drawing, wpgGroup, runProps);
         }
 
+        // Standalone inline connector — a single <wps:wsp> with prstGeom prst="line" sitting
+        // directly under <a:graphicData> (no wpg:wgp wrapper). Used by some templates for
+        // section divider rules between sub-headings; without this branch the line is silently
+        // dropped because it has no <pic> child.
+        var standaloneWsp = drawing.Descendants<WPS.WordprocessingShape>().FirstOrDefault();
+        if (standaloneWsp != null &&
+            ShapeParser.IsLineShape(standaloneWsp.GetFirstChild<WPS.ShapeProperties>()))
+        {
+            return ParseInlineSingleLineRun(drawing, standaloneWsp, runProps);
+        }
+
         // Find the pic element
         var pic = drawing.Descendants().FirstOrDefault(e => e.LocalName == "pic");
         if (pic == null)
@@ -5017,6 +5028,73 @@ sealed class DocumentParser(string defaultFont)
                 ChildExtentX = outerChildExtentX,
                 ChildExtentY = outerChildExtentY,
                 RotationDegrees = rotationDegrees,
+                Shapes = shapes
+            }
+        };
+    }
+
+    /// <summary>
+    /// Wraps a single <c>prstGeom prst="line"</c> shape sitting directly under
+    /// <c>a:graphicData</c> (no <c>wpg:wgp</c>) into a one-element <see cref="InlineShapeGroup"/>.
+    /// The shape's own <c>a:xfrm</c> defines the line in its local 0..cx × 0..cy box, so the
+    /// group's child coord space is just the wp:extent itself.
+    /// </summary>
+    Run? ParseInlineSingleLineRun(Drawing drawing, WPS.WordprocessingShape wsp, RunProperties runProps)
+    {
+        var extent = drawing.Descendants<DW.Extent>().FirstOrDefault();
+        if (extent?.Cx == null || extent.Cy == null)
+        {
+            return null;
+        }
+
+        var shapeProps = wsp.GetFirstChild<WPS.ShapeProperties>();
+        var shapeXfrm = shapeProps?.GetFirstChild<A.Transform2D>();
+        if (shapeProps == null || shapeXfrm?.Extents == null)
+        {
+            return null;
+        }
+
+        var ln = shapeProps.GetFirstChild<A.Outline>();
+        var lineWidth = ln?.Width?.Value ?? 0;
+        var stroke = ExtractFirstFillColor(ln) ?? "000000";
+
+        // wp:extent of an inline connector with cy=0 collapses to a zero-height layout box —
+        // the rendered line falls on the baseline. Give the group a one-EMU child height so
+        // GroupShape coordinates stay in-range when the renderer scales them.
+        var childExtentX = (double) (shapeXfrm.Extents.Cx ?? extent.Cx.Value);
+        var childExtentY = Math.Max(1.0, (double) (shapeXfrm.Extents.Cy ?? extent.Cy.Value));
+
+        var widthPoints = extent.Cx.Value / emusPerPoint;
+        var heightPoints = Math.Max(lineWidth / emusPerPoint, extent.Cy.Value / emusPerPoint);
+        if (widthPoints <= 0)
+        {
+            return null;
+        }
+
+        var shapes = new List<GroupShape>
+        {
+            new()
+            {
+                X = 0,
+                Y = 0,
+                Width = shapeXfrm.Extents.Cx ?? 0,
+                Height = shapeXfrm.Extents.Cy ?? 0,
+                ColorHex = stroke,
+                LineWidthEmu = lineWidth,
+                Geometry = GroupShapeGeometry.Line
+            }
+        };
+
+        return new()
+        {
+            Text = "",
+            Properties = runProps,
+            InlineImageWidthPoints = widthPoints,
+            InlineImageHeightPoints = heightPoints,
+            InlineShapeGroup = new()
+            {
+                ChildExtentX = childExtentX,
+                ChildExtentY = childExtentY,
                 Shapes = shapes
             }
         };
@@ -6076,6 +6154,16 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
+        // prstGeom prst="line" — stroke-only connector. Has no fill (and typically cy=0
+        // for a horizontal line, cx=0 for a vertical), so the rest of the fill-driven
+        // pipeline can't render it. Emit a FloatingShapeElement with the line color/width
+        // and let the renderer's stroke branch draw it. Must run before the noFill bail-out
+        // because line connectors carry an explicit <a:noFill/> alongside the stroke.
+        if (ShapeParser.IsLineShape(shapeProps))
+        {
+            return ParseLineShape(wsp, shapeProps, positioning, accumTransform, behindText);
+        }
+
         // An explicit <a:noFill/> in spPr means the shape has no fill, even if the
         // wps:style contains a fillRef — the direct property always wins.
         if (shapeProps.GetFirstChild<A.NoFill>() != null)
@@ -6097,15 +6185,6 @@ sealed class DocumentParser(string defaultFont)
             {
                 return null;
             }
-        }
-
-        // prstGeom prst="line" — stroke-only connector. Has no fill (and typically cy=0
-        // for a horizontal line, cx=0 for a vertical), so the rest of the fill-driven
-        // pipeline can't render it. Emit a FloatingShapeElement with the line color/width
-        // and let the renderer's stroke branch draw it.
-        if (ShapeParser.IsLineShape(shapeProps))
-        {
-            return ParseLineShape(wsp, shapeProps, positioning, accumTransform, behindText);
         }
 
         // Check for solid fill in shape properties
