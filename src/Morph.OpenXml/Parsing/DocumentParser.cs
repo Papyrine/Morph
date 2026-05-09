@@ -2861,18 +2861,21 @@ sealed class DocumentParser(string defaultFont)
             return;
         }
 
-        // Look for docDefaults/pPrDefault
+        // Look for docDefaults/pPrDefault. When the docx has styles but no docDefaults
+        // section (or no paragraph defaults inside), Word still applies its built-in
+        // 8pt-after default — minimal docs (e.g. a hand-built table-only template) come
+        // through this path and rely on Word filling in the gap.
         var docDefaults = stylesPart.Styles.DocDefaults;
         if (docDefaults == null)
         {
-            defaultSpacingAfterPoints = 0;
+            defaultSpacingAfterPoints = 8;
             return;
         }
 
         var pPrDefault = docDefaults.ParagraphPropertiesDefault;
         if (pPrDefault?.ParagraphPropertiesBaseStyle == null)
         {
-            defaultSpacingAfterPoints = 0;
+            defaultSpacingAfterPoints = 8;
             return;
         }
 

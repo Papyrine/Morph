@@ -40,5 +40,5 @@ These are still approximated via canvas transforms in `ApplyWordArtTransform`. V
 | <img src="expected_0013.png" width="500"> | <img src="results_skia%23page_0013.verified.png" width="500"> | <img src="results_imagesharp%23page_0013.verified.png" width="500"> |
 | **Page 14** | **Page 14. ErrorMetric: 0.0716** | **Page 14. ErrorMetric: 0.0646** |
 | <img src="expected_0014.png" width="500"> | <img src="results_skia%23page_0014.verified.png" width="500"> | <img src="results_imagesharp%23page_0014.verified.png" width="500"> |
-| **Page 15** | **Page 15. ErrorMetric: 0.0339** | **Page 15. ErrorMetric: 0.0331** |
+| **Page 15** | **Page 15. ErrorMetric: 0.0339** | **Page 15. ErrorMetric: 0.0332** |
 | <img src="expected_0015.png" width="500"> | <img src="results_skia%23page_0015.verified.png" width="500"> | <img src="results_imagesharp%23page_0015.verified.png" width="500"> |
