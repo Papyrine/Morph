@@ -354,7 +354,7 @@ static class ShapeParser
         {
             x = 0;
             y = 0;
-            if (p is null || p.X is null || p.Y is null)
+            if (p?.X is null || p.Y is null)
             {
                 return false;
             }
@@ -768,14 +768,14 @@ static class ShapeParser
             return (null, null);
         }
 
-        var embedAttr = blip.Embed?.Value;
-        if (string.IsNullOrEmpty(embedAttr))
+        var embedAttribute = blip.Embed?.Value;
+        if (string.IsNullOrEmpty(embedAttribute))
         {
             return (null, null);
         }
 
         // Try to get the image part
-        if (mainPart.GetPartById(embedAttr) is not ImagePart imagePart)
+        if (mainPart.GetPartById(embedAttribute) is not ImagePart imagePart)
         {
             return (null, null);
         }

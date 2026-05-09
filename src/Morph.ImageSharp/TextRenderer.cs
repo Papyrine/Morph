@@ -850,17 +850,17 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
 
     static RunProperties ResolveBulletRunProperties(NumberingInfo numbering, ParagraphElement paragraph)
     {
-        var paragraphProps = paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new RunProperties();
+        var paragraphProps = paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new();
         if (IsProprietaryBulletFont(numbering.FontFamily))
         {
-            return new RunProperties
+            return new()
             {
                 FontFamily = "Morph Bullets",
                 FontSizePoints = paragraphProps.FontSizePoints,
                 ColorHex = paragraphProps.ColorHex
             };
         }
-        return new RunProperties
+        return new()
         {
             FontFamily = paragraphProps.FontFamily,
             FontSizePoints = paragraphProps.FontSizePoints,

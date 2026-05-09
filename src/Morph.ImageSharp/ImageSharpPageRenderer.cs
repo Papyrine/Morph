@@ -841,7 +841,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         currentPage.Mutate(_ => DrawBorderLine(_, x1, y1, x2, y2, edge));
     }
 
-    void DrawBorderLine(IImageProcessingContext ctx, float x1, float y1, float x2, float y2, BorderEdge edge)
+    void DrawBorderLine(IImageProcessingContext processingContext, float x1, float y1, float x2, float y2, BorderEdge edge)
     {
         var color = ParseColor(edge.ColorHex ?? "000000");
         var strokeWidth = context.PointsToPixels((float) edge.WidthPoints);
@@ -856,19 +856,19 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             var horizontal = Math.Abs(y2 - y1) < Math.Abs(x2 - x1);
             if (horizontal)
             {
-                ctx.DrawLine(pen, new PointF(x1, y1 - offset), new PointF(x2, y2 - offset));
-                ctx.DrawLine(pen, new PointF(x1, y1 + offset), new PointF(x2, y2 + offset));
+                processingContext.DrawLine(pen, new PointF(x1, y1 - offset), new PointF(x2, y2 - offset));
+                processingContext.DrawLine(pen, new PointF(x1, y1 + offset), new PointF(x2, y2 + offset));
             }
             else
             {
-                ctx.DrawLine(pen, new PointF(x1 - offset, y1), new PointF(x2 - offset, y2));
-                ctx.DrawLine(pen, new PointF(x1 + offset, y1), new PointF(x2 + offset, y2));
+                processingContext.DrawLine(pen, new PointF(x1 - offset, y1), new PointF(x2 - offset, y2));
+                processingContext.DrawLine(pen, new PointF(x1 + offset, y1), new PointF(x2 + offset, y2));
             }
             return;
         }
 
         var solidPen = Pens.Solid(color, strokeWidth);
-        ctx.DrawLine(solidPen, new PointF(x1, y1), new PointF(x2, y2));
+        processingContext.DrawLine(solidPen, new PointF(x1, y1), new PointF(x2, y2));
     }
 
     protected override void RenderParagraphInBounds(ParagraphElement paragraph, float x, float maxWidth)
@@ -1403,7 +1403,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             var ry = lx * sin + ly * cos;
             transformed[i] = new(x + halfW + rx, y + halfH + ry);
         }
-        return new Polygon(transformed);
+        return new(transformed);
     }
 
     protected override void RenderFloatingImage(FloatingImageElement image)
