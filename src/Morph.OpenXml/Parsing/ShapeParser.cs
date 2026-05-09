@@ -600,30 +600,19 @@ static class ShapeParser
     }
 
     /// <summary>
-    /// Determines if a shape is decorative based on path complexity.
-    /// Decorative shapes typically have complex paths with curves (cubicBezTo).
+    /// Determines if a shape is too complex / degenerate to render as a fillable polygon.
+    /// Bezier curves are now flattened into polygon points by <see cref="ExtractPolygonPoints"/>,
+    /// so the only remaining filter is for ArcTo paths (unsupported flattening) and degenerate
+    /// thin-line aspect ratios that would render as a line rather than a shape.
     /// </summary>
     static bool IsDecorativeShape(WPS.ShapeProperties shapeProps)
     {
-        // Check for custom geometry with curves
+        // Custom geometries with ArcTo segments aren't supported by the polygon flattener;
+        // its parameter set differs from the de Casteljau bezier walk we use everywhere else.
         var custGeom = shapeProps.GetFirstChild<A.CustomGeometry>();
-        if (custGeom != null)
+        if (custGeom?.Descendants<A.ArcTo>().Any() == true)
         {
-            var pathList = custGeom.GetFirstChild<A.PathList>();
-            if (pathList != null)
-            {
-                // If any path contains cubic bezier curves, it's decorative
-                if (pathList.Descendants<A.CubicBezierCurveTo>().Any())
-                {
-                    return true;
-                }
-
-                // Also check for quadratic bezier curves
-                if (pathList.Descendants<A.QuadraticBezierCurveTo>().Any())
-                {
-                    return true;
-                }
-            }
+            return true;
         }
 
         // Check aspect ratio as a backup heuristic

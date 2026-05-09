@@ -6174,21 +6174,11 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
-        // Decorative line-art (flower silhouettes, leaf outlines) is encoded as a custGeom
-        // with many cubic beziers — its bounding box does not match the visible artwork, so
-        // rendering it as a solid-fill rectangle produces a large coloured block over the
-        // template. Detect this by counting bezier segments in the path. Simple polygon
-        // backgrounds (page-fills, accent strips) typically use straight lnTo edges with at
-        // most a small number of beziers for rounded corners.
-        var custGeom = shapeProps.GetFirstChild<A.CustomGeometry>();
-        if (custGeom != null)
-        {
-            var bezierCount = custGeom.Descendants<A.CubicBezierCurveTo>().Count();
-            if (bezierCount > 50)
-            {
-                return null;
-            }
-        }
+        // No bezier-count fallback here — the polygon path flattener (ExtractPolygonPoints)
+        // now turns cubic / quadratic curves into a polyline approximation, so high-bezier
+        // custGeoms render as fillable shapes. The earlier "skip when >50 beziers" guard
+        // existed because we would otherwise have drawn the bounding rect as a solid colour
+        // overlay.
 
         // Check for solid fill in shape properties
         var solidFill = shapeProps.GetFirstChild<A.SolidFill>();
