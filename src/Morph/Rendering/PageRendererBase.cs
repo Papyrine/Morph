@@ -687,6 +687,40 @@ abstract class PageRendererBase(RenderContextBase context)
         var tableTolerance = context.ContentHeight * 0.10f;
         var needsRowByRowRendering = totalHeight > context.ContentHeight + tableTolerance;
 
+        // When a table fits on a fresh page but not in the remaining space, advance to the
+        // next page before rendering it. Without this, letter-style layouts where one row
+        // occupies most of a page (hRule="exact") get their fixed-height row clipped at the
+        // bottom margin instead of being lifted onto the next page. Restricted to tables
+        // that contain at least one hRule="exact" row so flow-style tables (the bulk of
+        // scenarios) keep their existing behaviour where minor over-spill is tolerated.
+        // Use a tighter tolerance here than the row-by-row check above — the goal is to
+        // pre-empt overflow without splitting the table itself.
+        if (!needsRowByRowRendering && !table.Properties.IsFloating && totalHeight > 0)
+        {
+            var remainingSpace = Math.Max(0f, context.ContentHeight - (context.CurrentY - context.ContentTop));
+            // 5pt buffer: line-height rounding can put a single-paragraph leader (~37pt) just
+            // a fraction over the remaining-space-minus-table-height delta. Anything inside
+            // that margin renders fine without an extra page advance.
+            if (totalHeight > remainingSpace + 5f && totalHeight <= context.ContentHeight + tableTolerance)
+            {
+                var hasExactRow = false;
+                foreach (var row in table.Rows)
+                {
+                    if (row.IsExactHeight)
+                    {
+                        hasExactRow = true;
+                        break;
+                    }
+                }
+                if (hasExactRow)
+                {
+                    FinishCurrentPage();
+                    StartNewPage();
+                }
+            }
+        }
+
+
         if (needsRowByRowRendering)
         {
             RenderTableRowByRow(table, colCount, colWidths, rowHeights);
