@@ -175,13 +175,13 @@ static class TableLayout
                 }
             }
             else if (isAutoFit && totalExplicitWidth > 0 && totalExplicitWidth < availableWidth &&
-                     table.Properties.PreferredWidthPoints == null)
+                     table.Properties.FillContainer)
             {
-                // Autofit: when explicit widths underflow the available width, grow columns
-                // proportionally so the table fills its container. Fixed-layout tables keep
-                // their original widths and may leave whitespace on the right. Skip the grow
-                // when the table set an explicit w:tblW dxa width — that's a fixed size, not
-                // a "fill to container" hint.
+                // Autofit: only grow columns to fill the container when the table explicitly
+                // asked to (w:tblW w:type="pct"). When w:tblW is dxa, the table is a fixed
+                // size; when it's missing or auto, Word fits to content and leaves whitespace
+                // on the right — growing here would make narrow tables (e.g. a vertical-text
+                // sidebar) span the page.
                 var scale = availableWidth / totalExplicitWidth;
                 for (var i = 0; i < colCount; i++)
                 {

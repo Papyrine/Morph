@@ -354,7 +354,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0401** | **Page 1. ErrorMetric: 0.0431** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0400** | **Page 1. ErrorMetric: 0.0430** |
 | <img src="agendas-minutes/05/expected_0001.png" width="500"> | <img src="agendas-minutes/05/results_skia%23page_0001.verified.png" width="500"> | <img src="agendas-minutes/05/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## agendas-minutes/06
@@ -370,7 +370,7 @@
 | --- | --- | --- |
 | **Page 1** | **Page 1. ErrorMetric: 0.1527** | **Page 1. ErrorMetric: 0.1594** |
 | <img src="agendas-minutes/07/expected_0001.png" width="500"> | <img src="agendas-minutes/07/results_skia%23page_0001.verified.png" width="500"> | <img src="agendas-minutes/07/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.1028** | **Page 2. ErrorMetric: 0.1132** |
+| **Page 2** | **Page 2. ErrorMetric: 0.1028** | **Page 2. ErrorMetric: 0.1133** |
 | <img src="agendas-minutes/07/expected_0002.png" width="500"> | <img src="agendas-minutes/07/results_skia%23page_0002.verified.png" width="500"> | <img src="agendas-minutes/07/results_imagesharp%23page_0002.verified.png" width="500"> |
 
 ## agendas-minutes/08
@@ -420,14 +420,14 @@ To fully render this scenario, parse `<a:pathLst>` into an actual `SKPath` / Ima
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1613** | **Page 1. ErrorMetric: 0.1639** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1612** | **Page 1. ErrorMetric: 0.1637** |
 | <img src="agendas-minutes/13/expected_0001.png" width="500"> | <img src="agendas-minutes/13/results_skia%23page_0001.verified.png" width="500"> | <img src="agendas-minutes/13/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## agendas-minutes/14
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0555** | **Page 1. ErrorMetric: 0.0612** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0545** | **Page 1. ErrorMetric: 0.0609** |
 | <img src="agendas-minutes/14/expected_0001.png" width="500"> | <img src="agendas-minutes/14/results_skia%23page_0001.verified.png" width="500"> | <img src="agendas-minutes/14/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## agendas-minutes/15
@@ -638,7 +638,7 @@ The remaining ~5pt gap (linePitch 18 + cell padding 7.2 = 25.2pt vs Word's 30pt)
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0358** | **Page 1. ErrorMetric: 0.0339** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0358** | **Page 1. ErrorMetric: 0.0338** |
 | <img src="business-plans/02/expected_0001.png" width="500"> | <img src="business-plans/02/results_skia%23page_0001.verified.png" width="500"> | <img src="business-plans/02/results_imagesharp%23page_0001.verified.png" width="500"> |
 | **Page 2** | **Page 2. ErrorMetric: 0.2618** | **Page 2. ErrorMetric: 0.2691** |
 | <img src="business-plans/02/expected_0002.png" width="500"> | <img src="business-plans/02/results_skia%23page_0002.verified.png" width="500"> | <img src="business-plans/02/results_imagesharp%23page_0002.verified.png" width="500"> |
@@ -646,9 +646,9 @@ The remaining ~5pt gap (linePitch 18 + cell padding 7.2 = 25.2pt vs Word's 30pt)
 | <img src="business-plans/02/expected_0003.png" width="500"> | <img src="business-plans/02/results_skia%23page_0003.verified.png" width="500"> | <img src="business-plans/02/results_imagesharp%23page_0003.verified.png" width="500"> |
 | **Page 4** | **Page 4. ErrorMetric: 0.0952** | **Page 4. ErrorMetric: 0.1007** |
 | <img src="business-plans/02/expected_0004.png" width="500"> | <img src="business-plans/02/results_skia%23page_0004.verified.png" width="500"> | <img src="business-plans/02/results_imagesharp%23page_0004.verified.png" width="500"> |
-| **Page 5** | **Page 5. ErrorMetric: 0.1145** | **Page 5. ErrorMetric: 0.1154** |
+| **Page 5** | **Page 5. ErrorMetric: 0.1149** | **Page 5. ErrorMetric: 0.1157** |
 | <img src="business-plans/02/expected_0005.png" width="500"> | <img src="business-plans/02/results_skia%23page_0005.verified.png" width="500"> | <img src="business-plans/02/results_imagesharp%23page_0005.verified.png" width="500"> |
-| **Page 6** | **Page 6. ErrorMetric: 0.0891** | **Page 6. ErrorMetric: 0.0937** |
+| **Page 6** | **Page 6. ErrorMetric: 0.0902** | **Page 6. ErrorMetric: 0.0947** |
 | <img src="business-plans/02/expected_0006.png" width="500"> | <img src="business-plans/02/results_skia%23page_0006.verified.png" width="500"> | <img src="business-plans/02/results_imagesharp%23page_0006.verified.png" width="500"> |
 
 ## business-plans/03
@@ -716,7 +716,7 @@ The remaining ~5pt gap (linePitch 18 + cell padding 7.2 = 25.2pt vs Word's 30pt)
 | --- | --- | --- |
 | **Page 1** | **Page 1. ErrorMetric: 0.7782** | **Page 1. ErrorMetric: 0.7783** |
 | <img src="business-plans/10/expected_0001.png" width="500"> | <img src="business-plans/10/results_skia%23page_0001.verified.png" width="500"> | <img src="business-plans/10/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.0870** | **Page 2. ErrorMetric: 0.0912** |
+| **Page 2** | **Page 2. ErrorMetric: 0.0869** | **Page 2. ErrorMetric: 0.0912** |
 | <img src="business-plans/10/expected_0002.png" width="500"> | <img src="business-plans/10/results_skia%23page_0002.verified.png" width="500"> | <img src="business-plans/10/results_imagesharp%23page_0002.verified.png" width="500"> |
 | **Page 3** | **Page 3. ErrorMetric: 0.0796** | **Page 3. ErrorMetric: 0.0811** |
 | <img src="business-plans/10/expected_0003.png" width="500"> | <img src="business-plans/10/results_skia%23page_0003.verified.png" width="500"> | <img src="business-plans/10/results_imagesharp%23page_0003.verified.png" width="500"> |
@@ -933,7 +933,7 @@ The remaining ~5pt gap (linePitch 18 + cell padding 7.2 = 25.2pt vs Word's 30pt)
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1999** | **Page 1. ErrorMetric: 0.2003** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1999** | **Page 1. ErrorMetric: 0.2004** |
 | <img src="cards/02/expected_0001.png" width="500"> | <img src="cards/02/results_skia%23page_0001.verified.png" width="500"> | <img src="cards/02/results_imagesharp%23page_0001.verified.png" width="500"> |
 | **Page 2** | **Page 2. ErrorMetric: 0.0999** | **Page 2. ErrorMetric: 0.1040** |
 | <img src="cards/02/expected_0002.png" width="500"> | <img src="cards/02/results_skia%23page_0002.verified.png" width="500"> | <img src="cards/02/results_imagesharp%23page_0002.verified.png" width="500"> |
@@ -1217,7 +1217,7 @@ The remaining ~5pt gap (linePitch 18 + cell padding 7.2 = 25.2pt vs Word's 30pt)
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1096** | **Page 1. ErrorMetric: 0.1162** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1095** | **Page 1. ErrorMetric: 0.1162** |
 | <img src="cover-letters/07/expected_0001.png" width="500"> | <img src="cover-letters/07/results_skia%23page_0001.verified.png" width="500"> | <img src="cover-letters/07/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## cover-letters/08
@@ -1726,7 +1726,7 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0428** | **Page 1. ErrorMetric: 0.0419** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0429** | **Page 1. ErrorMetric: 0.0422** |
 | <img src="labels/02/expected_0001.png" width="500"> | <img src="labels/02/results_skia%23page_0001.verified.png" width="500"> | <img src="labels/02/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## labels/03
@@ -1768,7 +1768,7 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.6292** | **Page 1. ErrorMetric: 0.6315** |
+| **Page 1** | **Page 1. ErrorMetric: 0.6290** | **Page 1. ErrorMetric: 0.6314** |
 | <img src="labels/08/expected_0001.png" width="500"> | <img src="labels/08/results_skia%23page_0001.verified.png" width="500"> | <img src="labels/08/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## labels/09
@@ -1884,7 +1884,7 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1374** | **Page 1. ErrorMetric: 0.1368** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1368** | **Page 1. ErrorMetric: 0.1368** |
 | <img src="letters/07/expected_0001.png" width="500"> | <img src="letters/07/results_skia%23page_0001.verified.png" width="500"> | <img src="letters/07/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## letters/08
@@ -2434,7 +2434,7 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1061** | **Page 1. ErrorMetric: 0.1076** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1062** | **Page 1. ErrorMetric: 0.1078** |
 | <img src="resumes/01/expected_0001.png" width="500"> | <img src="resumes/01/results_skia%23page_0001.verified.png" width="500"> | <img src="resumes/01/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## resumes/02
@@ -2450,7 +2450,7 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1226** | **Page 1. ErrorMetric: 0.1423** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1227** | **Page 1. ErrorMetric: 0.1428** |
 | <img src="resumes/03/expected_0001.png" width="500"> | <img src="resumes/03/results_skia%23page_0001.verified.png" width="500"> | <img src="resumes/03/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## resumes/04
@@ -2529,7 +2529,7 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1044** | **Page 1. ErrorMetric: 0.1099** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1043** | **Page 1. ErrorMetric: 0.1098** |
 | <img src="resumes/12/expected_0001.png" width="500"> | <img src="resumes/12/results_skia%23page_0001.verified.png" width="500"> | <img src="resumes/12/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## resumes/13
@@ -2863,7 +2863,7 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0083** | **Page 1. ErrorMetric: 0.0092** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0051** | **Page 1. ErrorMetric: 0.0061** |
 | <img src="table_text_direction/expected_0001.png" width="500"> | <img src="table_text_direction/results_skia%23page_0001.verified.png" width="500"> | <img src="table_text_direction/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## table_two_column_layout
@@ -3016,15 +3016,15 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0980** | **Page 1. ErrorMetric: 0.1029** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0980** | **Page 1. ErrorMetric: 0.1028** |
 | <img src="wedding/10/expected_0001.png" width="500"> | <img src="wedding/10/results_skia%23page_0001.verified.png" width="500"> | <img src="wedding/10/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.0541** | **Page 2. ErrorMetric: 0.0584** |
+| **Page 2** | **Page 2. ErrorMetric: 0.0540** | **Page 2. ErrorMetric: 0.0582** |
 | <img src="wedding/10/expected_0002.png" width="500"> | <img src="wedding/10/results_skia%23page_0002.verified.png" width="500"> | <img src="wedding/10/results_imagesharp%23page_0002.verified.png" width="500"> |
-| **Page 3** | **Page 3. ErrorMetric: 0.0506** | **Page 3. ErrorMetric: 0.0552** |
+| **Page 3** | **Page 3. ErrorMetric: 0.0506** | **Page 3. ErrorMetric: 0.0551** |
 | <img src="wedding/10/expected_0003.png" width="500"> | <img src="wedding/10/results_skia%23page_0003.verified.png" width="500"> | <img src="wedding/10/results_imagesharp%23page_0003.verified.png" width="500"> |
-| **Page 4** | **Page 4. ErrorMetric: 0.0543** | **Page 4. ErrorMetric: 0.0600** |
+| **Page 4** | **Page 4. ErrorMetric: 0.0539** | **Page 4. ErrorMetric: 0.0597** |
 | <img src="wedding/10/expected_0004.png" width="500"> | <img src="wedding/10/results_skia%23page_0004.verified.png" width="500"> | <img src="wedding/10/results_imagesharp%23page_0004.verified.png" width="500"> |
-| **Page 5** | **Page 5. ErrorMetric: 0.0308** | **Page 5. ErrorMetric: 0.0375** |
+| **Page 5** | **Page 5. ErrorMetric: 0.0304** | **Page 5. ErrorMetric: 0.0372** |
 | <img src="wedding/10/expected_0005.png" width="500"> | <img src="wedding/10/results_skia%23page_0005.verified.png" width="500"> | <img src="wedding/10/results_imagesharp%23page_0005.verified.png" width="500"> |
 
 ## wedding/11
