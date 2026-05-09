@@ -19,7 +19,7 @@ public class TabStopResolverTests
             }
         };
 
-        var (dest, stop) = TabStopResolver.Resolve(cursorX: 30, followingWidth: 40, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
+        var (dest, stop, _) = TabStopResolver.Resolve(cursorX: 30, followingWidth: 40, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
 
         await Assert.That(dest).IsEqualTo(72.0);
         await Assert.That(stop).IsNotNull();
@@ -43,7 +43,7 @@ public class TabStopResolverTests
             }
         };
 
-        var (dest, _) = TabStopResolver.Resolve(cursorX: 100, followingWidth: 0, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
+        var (dest, _, _) = TabStopResolver.Resolve(cursorX: 100, followingWidth: 0, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
 
         await Assert.That(dest).IsEqualTo(216.0);
     }
@@ -63,7 +63,7 @@ public class TabStopResolverTests
             }
         };
 
-        var (dest, stop) = TabStopResolver.Resolve(cursorX: 100, followingWidth: 20, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
+        var (dest, stop, _) = TabStopResolver.Resolve(cursorX: 100, followingWidth: 20, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
 
         await Assert.That(dest).IsEqualTo(412.0);
         await Assert.That(stop!.Leader).IsEqualTo(TabLeader.Dot);
@@ -87,7 +87,7 @@ public class TabStopResolverTests
         };
 
         // followingWidth=60 at stop 100 → dest 40 (behind cursor 50) → try next stop.
-        var (dest, stop) = TabStopResolver.Resolve(cursorX: 50, followingWidth: 60, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
+        var (dest, stop, _) = TabStopResolver.Resolve(cursorX: 50, followingWidth: 60, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
 
         await Assert.That(dest).IsEqualTo(340.0);
         await Assert.That(stop!.PositionPoints).IsEqualTo(400.0);
@@ -107,7 +107,7 @@ public class TabStopResolverTests
             }
         };
 
-        var (dest, _) = TabStopResolver.Resolve(cursorX: 50, followingWidth: 60, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
+        var (dest, _, _) = TabStopResolver.Resolve(cursorX: 50, followingWidth: 60, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
 
         await Assert.That(dest).IsEqualTo(204.0);
     }
@@ -117,7 +117,7 @@ public class TabStopResolverTests
     [Test]
     public async Task Default_SnapsToNextMultiplePastCursor_WithNoExplicitStops()
     {
-        var (dest, stop) = TabStopResolver.Resolve(
+        var (dest, stop, _) = TabStopResolver.Resolve(
             cursorX: 10,
             followingWidth: 0, [],
             defaultTabStopPoints: 36,
@@ -131,7 +131,7 @@ public class TabStopResolverTests
     public async Task Default_SnapsRelativeToLeftIndent()
     {
         // leftIndent=50, defaultTab=36 → stops at 86, 122, 158, ...
-        var (dest, _) = TabStopResolver.Resolve(
+        var (dest, _, _) = TabStopResolver.Resolve(
             cursorX: 60, followingWidth: 0, [], defaultTabStopPoints: 36, leftIndentPoints: 50);
 
         await Assert.That(dest).IsEqualTo(86.0);
@@ -150,7 +150,7 @@ public class TabStopResolverTests
         };
 
         // Cursor past last explicit stop at 150 → next default multiple past 144 is 180, 216, ...
-        var (dest, stop) = TabStopResolver.Resolve(
+        var (dest, stop, _) = TabStopResolver.Resolve(
             cursorX: 150,
             followingWidth: 0,
             stops,
@@ -174,7 +174,7 @@ public class TabStopResolverTests
         };
 
         // Cursor at 50: even though a default-tab multiple (72) is closer, the explicit stop wins.
-        var (dest, stop) = TabStopResolver.Resolve(cursorX: 50, followingWidth: 0, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
+        var (dest, stop, _) = TabStopResolver.Resolve(cursorX: 50, followingWidth: 0, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
 
         await Assert.That(dest).IsEqualTo(200.0);
         await Assert.That(stop).IsNotNull();
@@ -185,7 +185,7 @@ public class TabStopResolverTests
     [Test]
     public async Task Collapses_WhenDefaultTabStopIsZero()
     {
-        var (dest, stop) = TabStopResolver.Resolve(
+        var (dest, stop, _) = TabStopResolver.Resolve(
             cursorX: 50,
             followingWidth: 0,
             [],
@@ -210,7 +210,7 @@ public class TabStopResolverTests
             }
         };
 
-        var (dest, _) = TabStopResolver.Resolve(cursorX: 20, followingWidth: 50, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
+        var (dest, _, _) = TabStopResolver.Resolve(cursorX: 20, followingWidth: 50, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
 
         await Assert.That(dest).IsEqualTo(94.0);
     }
@@ -232,7 +232,7 @@ public class TabStopResolverTests
             }
         };
 
-        var (dest, stop) = TabStopResolver.Resolve(
+        var (dest, stop, _) = TabStopResolver.Resolve(
             cursorX: 30, followingWidth: 8, stops,
             defaultTabStopPoints: 36, leftIndentPoints: 0,
             availableEndX: 250);
@@ -254,7 +254,7 @@ public class TabStopResolverTests
             }
         };
 
-        var (dest, _) = TabStopResolver.Resolve(
+        var (dest, _, _) = TabStopResolver.Resolve(
             cursorX: 30, followingWidth: 8, stops,
             defaultTabStopPoints: 36, leftIndentPoints: 0,
             availableEndX: 250);
@@ -274,7 +274,7 @@ public class TabStopResolverTests
             }
         };
 
-        var (dest, _) = TabStopResolver.Resolve(
+        var (dest, _, _) = TabStopResolver.Resolve(
             cursorX: 30, followingWidth: 60, stops,
             defaultTabStopPoints: 36, leftIndentPoints: 0,
             availableEndX: 250);
@@ -296,7 +296,7 @@ public class TabStopResolverTests
             }
         };
 
-        var (dest, stop) = TabStopResolver.Resolve(
+        var (dest, stop, _) = TabStopResolver.Resolve(
             cursorX: 30, followingWidth: 8, stops,
             defaultTabStopPoints: 36, leftIndentPoints: 0,
             availableEndX: 250);
@@ -319,7 +319,7 @@ public class TabStopResolverTests
             }
         };
 
-        var (dest, stop) = TabStopResolver.Resolve(
+        var (dest, stop, _) = TabStopResolver.Resolve(
             cursorX: 20,
             followingWidth: 50,
             stops,

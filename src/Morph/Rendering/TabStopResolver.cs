@@ -29,10 +29,15 @@ static class TabStopResolver
     /// the page number still right-aligns at the cell edge, with the leader filling the gap.
     /// </param>
     /// <returns>
-    /// <c>destinationX</c> in points and the matched <see cref="TabStop"/> (null for default-tab snap).
-    /// If no valid destination is found past the cursor, returns <c>(cursorX, null)</c> — tab collapses.
+    /// <c>destinationX</c> in points, the matched <see cref="TabStop"/> (null for default-tab snap),
+    /// and <c>suppressFollowing</c>: true when a Right/Center/Decimal stop was clamped to
+    /// <paramref name="availableEndX"/> because its real position lay past the cell — in that case
+    /// the tab fills with leader to the cell edge and the post-tab content (typically a TOC page
+    /// number) is hidden, matching Word's behaviour.
+    /// If no valid destination is found past the cursor, returns <c>(cursorX, null, false)</c> —
+    /// the tab collapses.
     /// </returns>
-    public static (double destinationX, TabStop? stop) Resolve(
+    public static (double destinationX, TabStop? stop, bool suppressFollowing) Resolve(
         double cursorX,
         double followingWidth,
         IReadOnlyList<TabStop> tabStops,
@@ -47,13 +52,24 @@ static class TabStopResolver
         foreach (var stop in tabStops)
         {
             var stopPosition = stop.PositionPoints;
-            // Clamp out-of-bounds Right/Center/Decimal stops to the available right edge so
-            // following text right-aligns there with the leader filling the gap (TOC-in-cell case).
+            var suppressFollowing = false;
+            // Clamp out-of-bounds Right/Center/Decimal stops to the available right edge.
+            // Word's behaviour for a TOC entry inside a narrow table cell: leader fills the
+            // cell width and the page number after the tab is hidden (it would have lived past
+            // the cell's right edge). We mirror that by clamping the destination to the cell
+            // edge (no following-width subtraction) and signalling the caller to drop the
+            // post-tab content.
             if (availableEndX is { } endX &&
                 stopPosition > endX &&
                 stop.Alignment is TabAlignment.Right or TabAlignment.Center or TabAlignment.Decimal)
             {
+                if (endX > cursorX)
+                {
+                    return (endX, stop, true);
+                }
+
                 stopPosition = endX;
+                suppressFollowing = true;
             }
 
             if (stopPosition <= cursorX)
@@ -74,7 +90,7 @@ static class TabStopResolver
 
             if (destination > cursorX)
             {
-                return (destination, stop);
+                return (destination, stop, suppressFollowing);
             }
         }
 
@@ -82,7 +98,7 @@ static class TabStopResolver
         // Defaults are only consulted past the last explicit stop (per OOXML).
         if (defaultTabStopPoints <= 0)
         {
-            return (cursorX, null);
+            return (cursorX, null, false);
         }
 
         var lastExplicit = tabStops.Count > 0 ? tabStops[^1].PositionPoints : leftIndentPoints;
@@ -95,9 +111,9 @@ static class TabStopResolver
 
         if (destinationX <= cursorX)
         {
-            return (cursorX, null);
+            return (cursorX, null, false);
         }
 
-        return (destinationX, null);
+        return (destinationX, null, false);
     }
 }

@@ -565,7 +565,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
                     ? MeasureFollowingDecimalPrefix(runs, runIndex + 1)
                     : null;
-                var (destinationAbs, matchedStop) = TabStopResolver.Resolve(
+                var (destinationAbs, matchedStop, suppressFollowing) = TabStopResolver.Resolve(
                     cursorAbs, followingWidth,
                     props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
                     decimalPrefix,
@@ -573,6 +573,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 var gap = (float)(destinationAbs - cursorAbs);
                 if (gap <= 0 || currentLineWidth + gap > effectiveWidth)
                 {
+                    if (suppressFollowing)
+                    {
+                        runIndex = SkipFollowingTabContent(runs, runIndex);
+                    }
                     continue;
                 }
 
@@ -591,6 +595,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 currentLineWidth += gap;
                 maxLineHeight = Math.Max(maxLineHeight, tabRunHeight);
                 maxBaseline = Math.Max(maxBaseline, tabBaseline);
+                if (suppressFollowing)
+                {
+                    runIndex = SkipFollowingTabContent(runs, runIndex);
+                }
                 continue;
             }
 
@@ -1501,7 +1509,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
                     ? MeasureFollowingDecimalPrefix(runs, runIndex + 1, applyFontWidthScale: true)
                     : null;
-                var (destinationAbs, matchedStop) = TabStopResolver.Resolve(
+                var (destinationAbs, matchedStop, suppressFollowing) = TabStopResolver.Resolve(
                     cursorAbs, followingWidth,
                     props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
                     decimalPrefix,
@@ -1509,6 +1517,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 var gap = (float) (destinationAbs - cursorAbs);
                 if (gap <= 0 || currentLineWidth + gap > effectiveWidth)
                 {
+                    if (suppressFollowing)
+                    {
+                        runIndex = SkipFollowingTabContent(runs, runIndex);
+                    }
                     continue;
                 }
 
@@ -1527,6 +1539,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 currentLineWidth += gap;
                 maxLineHeight = Math.Max(maxLineHeight, tabRunHeight);
                 maxBaseline = Math.Max(maxBaseline, tabBaseline);
+                if (suppressFollowing)
+                {
+                    runIndex = SkipFollowingTabContent(runs, runIndex);
+                }
                 continue;
             }
 
@@ -1827,6 +1843,33 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Returns the index of the last run consumed when suppressing post-tab content. The caller
+    /// is in a <c>for</c> loop that increments runIndex, so we return the index of the final
+    /// run to drop — the loop's own increment then lands on the next-tab boundary.
+    /// </summary>
+    static int SkipFollowingTabContent(IReadOnlyList<Run> runs, int tabRunIndex)
+    {
+        var lastConsumed = tabRunIndex;
+        for (var i = tabRunIndex + 1; i < runs.Count; i++)
+        {
+            var run = runs[i];
+            if (run.IsTab)
+            {
+                break;
+            }
+
+            if (!string.IsNullOrEmpty(run.Text) && (run.Text.Contains('\n') || run.Text.Contains('\r')))
+            {
+                break;
+            }
+
+            lastConsumed = i;
+        }
+
+        return lastConsumed;
     }
 
     float MeasureFollowingWidth(IReadOnlyList<Run> runs, int startRunIndex, bool applyFontWidthScale = false)
