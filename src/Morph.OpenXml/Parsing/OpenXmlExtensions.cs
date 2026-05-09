@@ -195,13 +195,13 @@ static class OpenXmlExtensions
 
     static SizeRelativeFrom ParseSizeRelativeFrom(OpenXmlElement sizeRel)
     {
-        var attr = sizeRel.GetAttributes().FirstOrDefault(a => a.LocalName == "relativeFrom");
+        var attr = sizeRel.GetAttributes().FirstOrDefault(_ => _.LocalName == "relativeFrom");
         return attr.Value == "page" ? SizeRelativeFrom.Page : SizeRelativeFrom.Margin;
     }
 
     static double? ParsePercentChild(OpenXmlElement parent, string localName)
     {
-        var pct = parent.ChildElements.FirstOrDefault(c => c.LocalName == localName);
+        var pct = parent.ChildElements.FirstOrDefault(_ => _.LocalName == localName);
         if (pct?.InnerText is not { } text || string.IsNullOrEmpty(text))
         {
             return null;

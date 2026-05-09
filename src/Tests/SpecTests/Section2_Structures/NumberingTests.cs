@@ -193,17 +193,17 @@ public class NumberingTests
         // numbering level's pPr is treated as a low-priority default.
         var doc = Parse("agendas-minutes/07");
 
-        static ParagraphElement? Find(IEnumerable<DocumentElement> elems)
+        static ParagraphElement? Find(IEnumerable<DocumentElement> elements)
         {
-            foreach (var e in elems)
+            foreach (var element in elements)
             {
-                if (e is ParagraphElement p && string.Concat(p.Runs.Select(r => r.Text)).Contains("Membership"))
+                if (element is ParagraphElement paragraph && string.Concat(paragraph.Runs.Select(_ => _.Text)).Contains("Membership"))
                 {
-                    return p;
+                    return paragraph;
                 }
-                if (e is TableElement t)
+                if (element is TableElement table)
                 {
-                    foreach (var row in t.Rows)
+                    foreach (var row in table.Rows)
                     foreach (var cell in row.Cells)
                     {
                         var found = Find(cell.Content);
@@ -214,10 +214,10 @@ public class NumberingTests
             return null;
         }
 
-        var p = Find(doc.Elements);
-        await Assert.That(p).IsNotNull();
-        await Assert.That(p!.Properties.LeftIndentPoints).IsEqualTo(21.6);
-        await Assert.That(p.Properties.HangingIndentPoints).IsEqualTo(14.4);
+        var paragraph = Find(doc.Elements);
+        await Assert.That(paragraph).IsNotNull();
+        await Assert.That(paragraph!.Properties.LeftIndentPoints).IsEqualTo(21.6);
+        await Assert.That(paragraph.Properties.HangingIndentPoints).IsEqualTo(14.4);
     }
 
     // === Multi-level restart (OOXML w:lvlRestart default behaviour) ===

@@ -141,10 +141,10 @@ static class TableLayout
         {
             var totalExplicitWidth = 0f;
             var columnsWithoutWidth = 0;
-            foreach (var w in widths)
+            foreach (var width in widths)
             {
-                totalExplicitWidth += w;
-                if (w == 0)
+                totalExplicitWidth += width;
+                if (width == 0)
                 {
                     columnsWithoutWidth++;
                 }
@@ -212,9 +212,9 @@ static class TableLayout
             }
 
             var totalWidth = 0f;
-            foreach (var w in widths)
+            foreach (var width in widths)
             {
-                totalWidth += w;
+                totalWidth += width;
             }
 
             if (totalWidth > availableWidth && totalWidth > 0)

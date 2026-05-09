@@ -19,8 +19,8 @@ static class InkParser
         // Look for contentPart element which references ink content
         // contentPart is in the a14 namespace (Office 2010 Drawing)
         var contentPart = drawing.Descendants()
-            .FirstOrDefault(e => e.LocalName == "contentPart" &&
-                                 e.GetAttributes().Any(a => a.LocalName is "id" or "embed"));
+            .FirstOrDefault(_ => _.LocalName == "contentPart" &&
+                                 _.GetAttributes().Any(attr => attr.LocalName is "id" or "embed"));
 
         if (contentPart == null)
         {
@@ -29,7 +29,7 @@ static class InkParser
 
         // Get the relationship ID
         var relIdAttr = contentPart.GetAttributes()
-            .FirstOrDefault(a => a is {LocalName: "id", Prefix: "r"});
+            .FirstOrDefault(_ => _ is {LocalName: "id", Prefix: "r"});
 
         if (relIdAttr.Value == null)
         {

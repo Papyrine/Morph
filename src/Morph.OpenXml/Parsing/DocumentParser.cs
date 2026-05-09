@@ -269,7 +269,7 @@ sealed class DocumentParser(string defaultFont)
             switch (element.LocalName)
             {
                 case "graphicData":
-                    var uri = element.GetAttributes().FirstOrDefault(a => a.LocalName == "uri").Value;
+                    var uri = element.GetAttributes().FirstOrDefault(_ => _.LocalName == "uri").Value;
                     if (uri == "http://schemas.openxmlformats.org/drawingml/2006/chart")
                     {
                         hasCharts = true;
@@ -779,9 +779,9 @@ sealed class DocumentParser(string defaultFont)
         // Map each w:commentRangeStart's id → enclosing paragraph ordinal.
         var paragraphOrdinals = new Dictionary<Paragraph, int>();
         var ordinal = 0;
-        foreach (var p in body.Descendants<Paragraph>())
+        foreach (var paragraph in body.Descendants<Paragraph>())
         {
-            paragraphOrdinals[p] = ordinal++;
+            paragraphOrdinals[paragraph] = ordinal++;
         }
 
         var anchorByCommentId = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -794,7 +794,7 @@ sealed class DocumentParser(string defaultFont)
 
             for (var current = rangeStart.Parent; current != null; current = current.Parent)
             {
-                if (current is Paragraph p && paragraphOrdinals.TryGetValue(p, out var idx))
+                if (current is Paragraph paragraph && paragraphOrdinals.TryGetValue(paragraph, out var idx))
                 {
                     anchorByCommentId[rangeId] = idx;
                     break;
@@ -838,9 +838,9 @@ sealed class DocumentParser(string defaultFont)
         // Pre-compute a map from each Paragraph element to its ordinal among paragraphs in the body.
         var paragraphOrdinals = new Dictionary<Paragraph, int>();
         var ordinal = 0;
-        foreach (var p in body.Descendants<Paragraph>())
+        foreach (var paragraph in body.Descendants<Paragraph>())
         {
-            paragraphOrdinals[p] = ordinal++;
+            paragraphOrdinals[paragraph] = ordinal++;
         }
 
         var result = new List<Bookmark>();
@@ -855,7 +855,7 @@ sealed class DocumentParser(string defaultFont)
             int? paragraphIndex = null;
             for (var current = start.Parent; current != null; current = current.Parent)
             {
-                if (current is Paragraph p && paragraphOrdinals.TryGetValue(p, out var idx))
+                if (current is Paragraph paragraph && paragraphOrdinals.TryGetValue(paragraph, out var idx))
                 {
                     paragraphIndex = idx;
                     break;
@@ -1179,7 +1179,7 @@ sealed class DocumentParser(string defaultFont)
 
         // Build a set of all style IDs that exist in the document
         var existingStyleIds = new HashSet<string>(
-            styles.Select(s => s.StyleId?.Value).Where(id => id != null)!,
+            styles.Select(_ => _.StyleId?.Value).Where(id => id != null)!,
             StringComparer.OrdinalIgnoreCase);
 
         // Capture the default paragraph style id (typically "Normal") so unstyled paragraphs
@@ -2926,7 +2926,7 @@ sealed class DocumentParser(string defaultFont)
             if (isHeader)
             {
                 var headerRef = sectionProps.Descendants<HeaderReference>()
-                    .FirstOrDefault(h => h.Type?.Value == type);
+                    .FirstOrDefault(_ => _.Type?.Value == type);
                 if (headerRef?.Id?.Value != null)
                 {
                     part = mainPart.GetPartById(headerRef.Id.Value);
@@ -2936,7 +2936,7 @@ sealed class DocumentParser(string defaultFont)
             else
             {
                 var footerRef = sectionProps.Descendants<FooterReference>()
-                    .FirstOrDefault(f => f.Type?.Value == type);
+                    .FirstOrDefault(_ => _.Type?.Value == type);
                 if (footerRef?.Id?.Value != null)
                 {
                     part = mainPart.GetPartById(footerRef.Id.Value);
@@ -3172,9 +3172,9 @@ sealed class DocumentParser(string defaultFont)
         var totalCols = gridColumnWidths?.Count ?? 0;
         if (totalCols == 0 && rowList.Count > 0)
         {
-            foreach (var c in rowList[0].Elements<DocumentFormat.OpenXml.Wordprocessing.TableCell>())
+            foreach (var cell in rowList[0].Elements<DocumentFormat.OpenXml.Wordprocessing.TableCell>())
             {
-                var span = c.GetFirstChild<OoxmlTableCellProperties>()?.GetFirstChild<GridSpan>()?.Val?.Value ?? 1;
+                var span = cell.GetFirstChild<OoxmlTableCellProperties>()?.GetFirstChild<GridSpan>()?.Val?.Value ?? 1;
                 totalCols += span;
             }
         }
@@ -4266,7 +4266,7 @@ sealed class DocumentParser(string defaultFont)
                         // Inline shape groups (no behindDoc anchor, just <wp:inline> with a wpg:wgp inside)
                         // need to flow with the surrounding text rather than render as floating block content.
                         // Skip the group-as-block branch for inline drawings so the inline-image path catches them.
-                        var isInlineGroup = hasGroup && drawing.Descendants().Any(e => e.LocalName == "inline");
+                        var isInlineGroup = hasGroup && drawing.Descendants().Any(_ => _.LocalName == "inline");
 
                         if ((shapeElements.Count > 0 || hasGroup) && !isInlineGroup)
                         {
@@ -4371,7 +4371,7 @@ sealed class DocumentParser(string defaultFont)
                                 else
                                 {
                                     // Check if this is an inline image (wp:inline) - should flow with text
-                                    var isInline = drawing.Descendants().Any(e => e.LocalName == "inline");
+                                    var isInline = drawing.Descendants().Any(_ => _.LocalName == "inline");
 
                                     if (isInline)
                                     {
@@ -4453,8 +4453,8 @@ sealed class DocumentParser(string defaultFont)
 
                                 // Add any text before the break
                                 var textBefore = string.Concat(run.Descendants<Text>()
-                                    .TakeWhile(t => t != runChild.NextSibling())
-                                    .Select(t => t.Text));
+                                    .TakeWhile(_ => _ != runChild.NextSibling())
+                                    .Select(_ => _.Text));
                                 if (!string.IsNullOrEmpty(textBefore))
                                 {
                                     runs.Add(
@@ -4512,8 +4512,8 @@ sealed class DocumentParser(string defaultFont)
                         {
                             runs.AddRange(parsedRuns);
                         }
-                        else if (parsedRuns.Count > 0 && run.Descendants<Break>().All(b =>
-                                     b.Type?.Value != BreakValues.Page && b.Type?.Value != BreakValues.Column))
+                        else if (parsedRuns.Count > 0 && run.Descendants<Break>().All(_ =>
+                                     _.Type?.Value != BreakValues.Page && _.Type?.Value != BreakValues.Column))
                         {
                             // Has only line breaks, text already handled above
                         }
@@ -4595,22 +4595,22 @@ sealed class DocumentParser(string defaultFont)
             // Check if this is a grpSp element (DrawingML group, not wgp which is already handled)
             if (current.LocalName == "grpSp")
             {
-                var grpSpPr = current.Elements().FirstOrDefault(e => e.LocalName == "grpSpPr");
-                var xfrm = grpSpPr?.Elements().FirstOrDefault(e => e.LocalName == "xfrm");
+                var grpSpPr = current.Elements().FirstOrDefault(_ => _.LocalName == "grpSpPr");
+                var xfrm = grpSpPr?.Elements().FirstOrDefault(_ => _.LocalName == "xfrm");
 
                 if (xfrm != null)
                 {
                     long offX = 0, offY = 0, extCx = 1, extCy = 1, chOffX = 0, chOffY = 0, chExtCx = 1, chExtCy = 1;
 
-                    var off = xfrm.Elements().FirstOrDefault(e => e.LocalName == "off");
-                    var ext = xfrm.Elements().FirstOrDefault(e => e.LocalName == "ext");
-                    var chOff = xfrm.Elements().FirstOrDefault(e => e.LocalName == "chOff");
-                    var chExt = xfrm.Elements().FirstOrDefault(e => e.LocalName == "chExt");
+                    var off = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "off");
+                    var ext = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "ext");
+                    var chOff = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "chOff");
+                    var chExt = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "chExt");
 
                     if (off != null)
                     {
-                        var xAttr = off.GetAttributes().FirstOrDefault(a => a.LocalName == "x");
-                        var yAttr = off.GetAttributes().FirstOrDefault(a => a.LocalName == "y");
+                        var xAttr = off.GetAttributes().FirstOrDefault(_ => _.LocalName == "x");
+                        var yAttr = off.GetAttributes().FirstOrDefault(_ => _.LocalName == "y");
                         if (xAttr.Value != null)
                         {
                             long.TryParse(xAttr.Value, out offX);
@@ -4624,8 +4624,8 @@ sealed class DocumentParser(string defaultFont)
 
                     if (ext != null)
                     {
-                        var cxAttr = ext.GetAttributes().FirstOrDefault(a => a.LocalName == "cx");
-                        var cyAttr = ext.GetAttributes().FirstOrDefault(a => a.LocalName == "cy");
+                        var cxAttr = ext.GetAttributes().FirstOrDefault(_ => _.LocalName == "cx");
+                        var cyAttr = ext.GetAttributes().FirstOrDefault(_ => _.LocalName == "cy");
                         if (cxAttr.Value != null)
                         {
                             long.TryParse(cxAttr.Value, out extCx);
@@ -4639,8 +4639,8 @@ sealed class DocumentParser(string defaultFont)
 
                     if (chOff != null)
                     {
-                        var xAttr = chOff.GetAttributes().FirstOrDefault(a => a.LocalName == "x");
-                        var yAttr = chOff.GetAttributes().FirstOrDefault(a => a.LocalName == "y");
+                        var xAttr = chOff.GetAttributes().FirstOrDefault(_ => _.LocalName == "x");
+                        var yAttr = chOff.GetAttributes().FirstOrDefault(_ => _.LocalName == "y");
                         if (xAttr.Value != null)
                         {
                             long.TryParse(xAttr.Value, out chOffX);
@@ -4654,8 +4654,8 @@ sealed class DocumentParser(string defaultFont)
 
                     if (chExt != null)
                     {
-                        var cxAttr = chExt.GetAttributes().FirstOrDefault(a => a.LocalName == "cx");
-                        var cyAttr = chExt.GetAttributes().FirstOrDefault(a => a.LocalName == "cy");
+                        var cxAttr = chExt.GetAttributes().FirstOrDefault(_ => _.LocalName == "cx");
+                        var cyAttr = chExt.GetAttributes().FirstOrDefault(_ => _.LocalName == "cy");
                         if (cxAttr.Value != null)
                         {
                             long.TryParse(cxAttr.Value, out chExtCx);
@@ -4749,8 +4749,8 @@ sealed class DocumentParser(string defaultFont)
     {
         var hostPart = ResolveHostPart(drawing, mainPart);
         // Use XML-based approach for better namespace handling
-        var hasAnchor = drawing.Descendants().Any(e => e.LocalName == "anchor");
-        var hasInline = drawing.Descendants().Any(e => e.LocalName == "inline");
+        var hasAnchor = drawing.Descendants().Any(_ => _.LocalName == "anchor");
+        var hasInline = drawing.Descendants().Any(_ => _.LocalName == "inline");
 
         // Only handle simple inline images, not anchored images
         if (hasAnchor || !hasInline)
@@ -4779,16 +4779,16 @@ sealed class DocumentParser(string defaultFont)
         }
 
         // Find the pic element
-        var pic = drawing.Descendants().FirstOrDefault(e => e.LocalName == "pic");
+        var pic = drawing.Descendants().FirstOrDefault(_ => _.LocalName == "pic");
         if (pic == null)
         {
             return null;
         }
 
         // Get the picture's shape properties for size (same approach as ParseDrawingElements)
-        var spPr = pic.Elements().FirstOrDefault(e => e.LocalName == "spPr");
+        var spPr = pic.Elements().FirstOrDefault(_ => _.LocalName == "spPr");
 
-        var xfrm = spPr?.Elements().FirstOrDefault(e => e.LocalName == "xfrm");
+        var xfrm = spPr?.Elements().FirstOrDefault(_ => _.LocalName == "xfrm");
         if (xfrm == null)
         {
             return null;
@@ -4796,11 +4796,11 @@ sealed class DocumentParser(string defaultFont)
 
         // Get image extent from pic's spPr (more reliable than inline.Extent for some documents)
         long picWidth = 0, picHeight = 0;
-        var ext = xfrm.Elements().FirstOrDefault(e => e.LocalName == "ext");
+        var ext = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "ext");
         if (ext != null)
         {
-            var cxAttr = ext.GetAttributes().FirstOrDefault(a => a.LocalName == "cx");
-            var cyAttr = ext.GetAttributes().FirstOrDefault(a => a.LocalName == "cy");
+            var cxAttr = ext.GetAttributes().FirstOrDefault(_ => _.LocalName == "cx");
+            var cyAttr = ext.GetAttributes().FirstOrDefault(_ => _.LocalName == "cy");
             if (cxAttr.Value != null)
             {
                 long.TryParse(cxAttr.Value, out picWidth);
@@ -4824,7 +4824,7 @@ sealed class DocumentParser(string defaultFont)
         var rotationDegrees = ReadRotationDegrees(xfrm);
 
         // Find the blip (image reference)
-        var blipFill = pic.Elements().FirstOrDefault(e => e.LocalName == "blipFill");
+        var blipFill = pic.Elements().FirstOrDefault(_ => _.LocalName == "blipFill");
         if (blipFill == null)
         {
             return null;
@@ -4832,13 +4832,13 @@ sealed class DocumentParser(string defaultFont)
 
         var crop = ReadCrop(blipFill);
 
-        var blip = blipFill.Descendants().FirstOrDefault(e => e.LocalName == "blip");
+        var blip = blipFill.Descendants().FirstOrDefault(_ => _.LocalName == "blip");
         if (blip == null)
         {
             return null;
         }
 
-        var embedAttr = blip.GetAttributes().FirstOrDefault(a => a.LocalName == "embed");
+        var embedAttr = blip.GetAttributes().FirstOrDefault(_ => _.LocalName == "embed");
         if (embedAttr.Value == null)
         {
             return null;
@@ -4851,24 +4851,24 @@ sealed class DocumentParser(string defaultFont)
         string? rasterFallbackContentType = null;
 
         // Check for SVG extension
-        var extLst = blip.Elements().FirstOrDefault(e => e.LocalName == "extLst");
+        var extLst = blip.Elements().FirstOrDefault(_ => _.LocalName == "extLst");
         if (extLst != null)
         {
-            foreach (var extEl in extLst.Elements().Where(e => e.LocalName == "ext"))
+            foreach (var extEl in extLst.Elements().Where(_ => _.LocalName == "ext"))
             {
-                var uriAttr = extEl.GetAttributes().FirstOrDefault(a => a.LocalName == "uri");
+                var uriAttr = extEl.GetAttributes().FirstOrDefault(_ => _.LocalName == "uri");
                 if (uriAttr.Value != "{96DAC541-7B7A-43D3-8B79-37D633B846F1}")
                 {
                     continue;
                 }
 
-                var svgBlip = extEl.Descendants().FirstOrDefault(e => e.LocalName == "svgBlip");
+                var svgBlip = extEl.Descendants().FirstOrDefault(_ => _.LocalName == "svgBlip");
                 if (svgBlip == null)
                 {
                     continue;
                 }
 
-                var svgEmbedAttr = svgBlip.GetAttributes().FirstOrDefault(a => a.LocalName == "embed");
+                var svgEmbedAttr = svgBlip.GetAttributes().FirstOrDefault(_ => _.LocalName == "embed");
                 if (svgEmbedAttr.Value == null)
                 {
                     continue;
@@ -5140,7 +5140,7 @@ sealed class DocumentParser(string defaultFont)
 
     static double ReadRotationDegrees(OpenXmlElement xfrm)
     {
-        var rotAttr = xfrm.GetAttributes().FirstOrDefault(a => a.LocalName == "rot");
+        var rotAttr = xfrm.GetAttributes().FirstOrDefault(_ => _.LocalName == "rot");
         if (rotAttr.Value != null && long.TryParse(rotAttr.Value, out var rot60000ths))
         {
             return rot60000ths / 60000.0;
@@ -5210,7 +5210,7 @@ sealed class DocumentParser(string defaultFont)
     static ImageCrop? ReadCrop(OpenXmlElement blipFill)
     {
         // a:srcRect attributes l/t/r/b are in 1000ths of a percent (100000 = 100%).
-        var srcRect = blipFill.Elements().FirstOrDefault(e => e.LocalName == "srcRect");
+        var srcRect = blipFill.Elements().FirstOrDefault(_ => _.LocalName == "srcRect");
         if (srcRect == null)
         {
             return null;
@@ -5228,7 +5228,7 @@ sealed class DocumentParser(string defaultFont)
 
         static double ReadFraction(OpenXmlElement el, string attrName)
         {
-            var attr = el.GetAttributes().FirstOrDefault(a => a.LocalName == attrName);
+            var attr = el.GetAttributes().FirstOrDefault(_ => _.LocalName == attrName);
             if (attr.Value != null && long.TryParse(attr.Value, out var thousandthsOfPercent))
             {
                 return Math.Clamp(thousandthsOfPercent / 100000.0, 0, 1);
@@ -5268,21 +5268,21 @@ sealed class DocumentParser(string defaultFont)
         long groupOffsetX = 0, groupOffsetY = 0;
         double groupScaleX = 1.0, groupScaleY = 1.0;
 
-        var grpSpPr = drawing.Descendants().FirstOrDefault(e => e.LocalName == "grpSpPr");
+        var grpSpPr = drawing.Descendants().FirstOrDefault(_ => _.LocalName == "grpSpPr");
         if (grpSpPr != null)
         {
-            var xfrm = grpSpPr.Elements().FirstOrDefault(e => e.LocalName == "xfrm");
+            var xfrm = grpSpPr.Elements().FirstOrDefault(_ => _.LocalName == "xfrm");
             if (xfrm != null)
             {
                 // Get child extents for scaling
-                var chOff = xfrm.Elements().FirstOrDefault(e => e.LocalName == "chOff");
-                var chExt = xfrm.Elements().FirstOrDefault(e => e.LocalName == "chExt");
-                var ext = xfrm.Elements().FirstOrDefault(e => e.LocalName == "ext");
+                var chOff = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "chOff");
+                var chExt = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "chExt");
+                var ext = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "ext");
 
                 if (chOff != null)
                 {
-                    var xAttr = chOff.GetAttributes().FirstOrDefault(a => a.LocalName == "x");
-                    var yAttr = chOff.GetAttributes().FirstOrDefault(a => a.LocalName == "y");
+                    var xAttr = chOff.GetAttributes().FirstOrDefault(_ => _.LocalName == "x");
+                    var yAttr = chOff.GetAttributes().FirstOrDefault(_ => _.LocalName == "y");
                     if (xAttr.Value != null)
                     {
                         long.TryParse(xAttr.Value, out groupOffsetX);
@@ -5296,10 +5296,10 @@ sealed class DocumentParser(string defaultFont)
 
                 if (chExt != null && ext != null)
                 {
-                    var chCx = chExt.GetAttributes().FirstOrDefault(a => a.LocalName == "cx");
-                    var chCy = chExt.GetAttributes().FirstOrDefault(a => a.LocalName == "cy");
-                    var extCx = ext.GetAttributes().FirstOrDefault(a => a.LocalName == "cx");
-                    var extCy = ext.GetAttributes().FirstOrDefault(a => a.LocalName == "cy");
+                    var chCx = chExt.GetAttributes().FirstOrDefault(_ => _.LocalName == "cx");
+                    var chCy = chExt.GetAttributes().FirstOrDefault(_ => _.LocalName == "cy");
+                    var extCx = ext.GetAttributes().FirstOrDefault(_ => _.LocalName == "cx");
+                    var extCy = ext.GetAttributes().FirstOrDefault(_ => _.LocalName == "cy");
 
                     if (chCx.Value != null && extCx.Value != null &&
                         long.TryParse(chCx.Value, out var childWidth) && long.TryParse(extCx.Value, out var actualWidth) &&
@@ -5319,18 +5319,18 @@ sealed class DocumentParser(string defaultFont)
         }
 
         // Find ALL pic elements (including in groups)
-        var pics = drawing.Descendants().Where(e => e.LocalName == "pic").ToList();
+        var pics = drawing.Descendants().Where(_ => _.LocalName == "pic").ToList();
 
         foreach (var pic in pics)
         {
             // Get the picture's shape properties for position/size
-            var spPr = pic.Elements().FirstOrDefault(e => e.LocalName == "spPr");
+            var spPr = pic.Elements().FirstOrDefault(_ => _.LocalName == "spPr");
             if (spPr == null)
             {
                 continue;
             }
 
-            var xfrm = spPr.Elements().FirstOrDefault(e => e.LocalName == "xfrm");
+            var xfrm = spPr.Elements().FirstOrDefault(_ => _.LocalName == "xfrm");
             if (xfrm == null)
             {
                 continue;
@@ -5338,11 +5338,11 @@ sealed class DocumentParser(string defaultFont)
 
             // Get offset within group
             long picOffsetX = 0, picOffsetY = 0;
-            var off = xfrm.Elements().FirstOrDefault(e => e.LocalName == "off");
+            var off = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "off");
             if (off != null)
             {
-                var xAttr = off.GetAttributes().FirstOrDefault(a => a.LocalName == "x");
-                var yAttr = off.GetAttributes().FirstOrDefault(a => a.LocalName == "y");
+                var xAttr = off.GetAttributes().FirstOrDefault(_ => _.LocalName == "x");
+                var yAttr = off.GetAttributes().FirstOrDefault(_ => _.LocalName == "y");
                 if (xAttr.Value != null)
                 {
                     long.TryParse(xAttr.Value, out picOffsetX);
@@ -5356,11 +5356,11 @@ sealed class DocumentParser(string defaultFont)
 
             // Get image extent
             long picWidth = 0, picHeight = 0;
-            var ext = xfrm.Elements().FirstOrDefault(e => e.LocalName == "ext");
+            var ext = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "ext");
             if (ext != null)
             {
-                var cxAttr = ext.GetAttributes().FirstOrDefault(a => a.LocalName == "cx");
-                var cyAttr = ext.GetAttributes().FirstOrDefault(a => a.LocalName == "cy");
+                var cxAttr = ext.GetAttributes().FirstOrDefault(_ => _.LocalName == "cx");
+                var cyAttr = ext.GetAttributes().FirstOrDefault(_ => _.LocalName == "cy");
                 if (cxAttr.Value != null)
                 {
                     long.TryParse(cxAttr.Value, out picWidth);
@@ -5396,7 +5396,7 @@ sealed class DocumentParser(string defaultFont)
             var rotationDegrees = ReadRotationDegrees(xfrm);
 
             // Find the blip (image reference)
-            var blipFill = pic.Elements().FirstOrDefault(e => e.LocalName == "blipFill");
+            var blipFill = pic.Elements().FirstOrDefault(_ => _.LocalName == "blipFill");
             if (blipFill == null)
             {
                 continue;
@@ -5404,13 +5404,13 @@ sealed class DocumentParser(string defaultFont)
 
             var crop = ReadCrop(blipFill);
 
-            var blip = blipFill.Descendants().FirstOrDefault(e => e.LocalName == "blip");
+            var blip = blipFill.Descendants().FirstOrDefault(_ => _.LocalName == "blip");
             if (blip == null)
             {
                 continue;
             }
 
-            var embedAttr = blip.GetAttributes().FirstOrDefault(a => a.LocalName == "embed");
+            var embedAttr = blip.GetAttributes().FirstOrDefault(_ => _.LocalName == "embed");
             if (embedAttr.Value == null)
             {
                 continue;
@@ -5423,18 +5423,18 @@ sealed class DocumentParser(string defaultFont)
             string? rasterFallbackContentType = null;
 
             // Check for SVG extension
-            var extLst = blip.Elements().FirstOrDefault(e => e.LocalName == "extLst");
+            var extLst = blip.Elements().FirstOrDefault(_ => _.LocalName == "extLst");
             if (extLst != null)
             {
-                foreach (var extEl in extLst.Elements().Where(e => e.LocalName == "ext"))
+                foreach (var extEl in extLst.Elements().Where(_ => _.LocalName == "ext"))
                 {
-                    var uriAttr = extEl.GetAttributes().FirstOrDefault(a => a.LocalName == "uri");
+                    var uriAttr = extEl.GetAttributes().FirstOrDefault(_ => _.LocalName == "uri");
                     if (uriAttr.Value == "{96DAC541-7B7A-43D3-8B79-37D633B846F1}")
                     {
-                        var svgBlip = extEl.Descendants().FirstOrDefault(e => e.LocalName == "svgBlip");
+                        var svgBlip = extEl.Descendants().FirstOrDefault(_ => _.LocalName == "svgBlip");
                         if (svgBlip != null)
                         {
-                            var svgEmbedAttr = svgBlip.GetAttributes().FirstOrDefault(a => a.LocalName == "embed");
+                            var svgEmbedAttr = svgBlip.GetAttributes().FirstOrDefault(_ => _.LocalName == "embed");
                             if (svgEmbedAttr.Value != null)
                             {
                                 var svgPart = hostPart.GetPartById(svgEmbedAttr.Value);
@@ -5544,7 +5544,7 @@ sealed class DocumentParser(string defaultFont)
 
     static SizeRelativeFrom ParseSizeRelativeFrom(OpenXmlElement sizeRel)
     {
-        var attr = sizeRel.GetAttributes().FirstOrDefault(a => a.LocalName == "relativeFrom");
+        var attr = sizeRel.GetAttributes().FirstOrDefault(_ => _.LocalName == "relativeFrom");
         return attr.Value switch
         {
             "page" => SizeRelativeFrom.Page,
@@ -5556,7 +5556,7 @@ sealed class DocumentParser(string defaultFont)
 
     static double? ParsePercentChild(OpenXmlElement parent, string localName)
     {
-        var pct = parent.ChildElements.FirstOrDefault(c => c.LocalName == localName);
+        var pct = parent.ChildElements.FirstOrDefault(_ => _.LocalName == localName);
         if (pct?.InnerText is not { } text || string.IsNullOrEmpty(text))
         {
             return null;
@@ -7066,7 +7066,7 @@ sealed class DocumentParser(string defaultFont)
         }
 
         // Check for Office 2010 checkbox (w14:checkbox)
-        if (props.Descendants().Any(e => e.LocalName == "checkbox"))
+        if (props.Descendants().Any(_ => _.LocalName == "checkbox"))
         {
             return true;
         }
@@ -7114,14 +7114,14 @@ sealed class DocumentParser(string defaultFont)
 
         // Check for specific control types using Office 2010 Word namespace
         var checkbox14 = props.Descendants()
-            .FirstOrDefault(e => e.LocalName == "checkbox");
+            .FirstOrDefault(_ => _.LocalName == "checkbox");
         if (checkbox14 != null)
         {
             controlType = ContentControlType.CheckBox;
             var checkedElement = checkbox14.Descendants()
-                .FirstOrDefault(e => e.LocalName == "checked");
+                .FirstOrDefault(_ => _.LocalName == "checked");
             var checkedVal = checkedElement?.GetAttributes()
-                .FirstOrDefault(a => a.LocalName == "val").Value;
+                .FirstOrDefault(_ => _.LocalName == "val").Value;
             isChecked = checkedVal is "1" or "true";
         }
         else if (props.GetFirstChild<SdtContentComboBox>() != null)
@@ -7198,7 +7198,7 @@ sealed class DocumentParser(string defaultFont)
             }
 
             // Also build plain text content for backward compatibility
-            content = string.Join("", styledRuns.Select(r => r.Text));
+            content = string.Join("", styledRuns.Select(_ => _.Text));
         }
 
         return new()
@@ -7247,7 +7247,7 @@ sealed class DocumentParser(string defaultFont)
         {
             var checkedElement = checkbox.GetFirstChild<Checked>();
             // Default element may not have a strongly-typed class, search by local name
-            var defaultElement = checkbox.ChildElements.FirstOrDefault(e => e.LocalName == "default");
+            var defaultElement = checkbox.ChildElements.FirstOrDefault(_ => _.LocalName == "default");
             var sizeElement = checkbox.GetFirstChild<FormFieldSize>();
 
             var isChecked = checkedElement != null &&
@@ -7256,7 +7256,7 @@ sealed class DocumentParser(string defaultFont)
             if (defaultElement != null)
             {
                 // Check if it has a val attribute with false value
-                var valAttr = defaultElement.GetAttributes().FirstOrDefault(a => a.LocalName == "val");
+                var valAttr = defaultElement.GetAttributes().FirstOrDefault(_ => _.LocalName == "val");
                 defaultChecked = valAttr.Value == null || (valAttr.Value != "0" && !valAttr.Value.Equals("false", StringComparison.CurrentCultureIgnoreCase));
             }
 
@@ -7740,7 +7740,7 @@ sealed class DocumentParser(string defaultFont)
         var framePr = props.GetFirstChild<FrameProperties>();
         if (framePr != null)
         {
-            var dropCapAttr = framePr.GetAttributes().FirstOrDefault(a => a.LocalName == "dropCap").Value;
+            var dropCapAttr = framePr.GetAttributes().FirstOrDefault(_ => _.LocalName == "dropCap").Value;
             if (string.Equals(dropCapAttr, "drop", StringComparison.OrdinalIgnoreCase))
             {
                 dropCap = DropCapPosition.Drop;
@@ -7750,7 +7750,7 @@ sealed class DocumentParser(string defaultFont)
                 dropCap = DropCapPosition.Margin;
             }
 
-            var linesAttr = framePr.GetAttributes().FirstOrDefault(a => a.LocalName == "lines").Value;
+            var linesAttr = framePr.GetAttributes().FirstOrDefault(_ => _.LocalName == "lines").Value;
             if (int.TryParse(linesAttr, out var parsedLines))
             {
                 dropCapLines = parsedLines;
@@ -8106,7 +8106,7 @@ sealed class DocumentParser(string defaultFont)
             // Look up the original style definition to check which properties are explicitly defined
             var stylesPart = mainPart.StyleDefinitionsPart;
             var originalStyle = stylesPart?.Styles?.Elements<Style>()
-                .FirstOrDefault(s => s.StyleId?.Value == runStyleId);
+                .FirstOrDefault(_ => _.StyleId?.Value == runStyleId);
             var originalRPr = originalStyle?.StyleRunProperties;
 
             // Only override with run style properties that are EXPLICITLY defined in the style
@@ -8363,9 +8363,9 @@ sealed class DocumentParser(string defaultFont)
 
     static void EmitMathRun(DocumentFormat.OpenXml.Math.Run mathRun, List<Run> runs, RunProperties props)
     {
-        foreach (var t in mathRun.Elements<DocumentFormat.OpenXml.Math.Text>())
+        foreach (var mathText in mathRun.Elements<DocumentFormat.OpenXml.Math.Text>())
         {
-            var text = t.Text;
+            var text = mathText.Text;
             if (string.IsNullOrEmpty(text))
             {
                 continue;

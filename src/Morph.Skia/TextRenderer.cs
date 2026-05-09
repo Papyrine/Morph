@@ -174,11 +174,11 @@ sealed class TextRenderer(SkiaRenderContext context) :
     static float LargestFontSizePoints(TextLine line, ParagraphProperties props)
     {
         var max = 0f;
-        foreach (var f in line.Fragments)
+        foreach (var fragment in line.Fragments)
         {
-            if (f.Properties.FontSizePoints > max)
+            if (fragment.Properties.FontSizePoints > max)
             {
-                max = (float)f.Properties.FontSizePoints;
+                max = (float)fragment.Properties.FontSizePoints;
             }
         }
         if (max == 0 && props.ParagraphMarkFontSizePoints is { } markSize)
@@ -982,14 +982,14 @@ sealed class TextRenderer(SkiaRenderContext context) :
             return true;
         }
 
-        foreach (var r in paragraph.Runs)
+        foreach (var run in paragraph.Runs)
         {
-            if (r.IsTab)
+            if (run.IsTab)
             {
                 continue;
             }
 
-            if (!string.IsNullOrEmpty(r.Text) || r.InlineImageData != null)
+            if (!string.IsNullOrEmpty(run.Text) || run.InlineImageData != null)
             {
                 return false;
             }
@@ -1009,9 +1009,9 @@ sealed class TextRenderer(SkiaRenderContext context) :
             return false;
         }
 
-        foreach (var c in text)
+        foreach (var ch in text)
         {
-            if (!char.IsWhiteSpace(c))
+            if (!char.IsWhiteSpace(ch))
             {
                 return false;
             }
@@ -2065,21 +2065,21 @@ sealed class TextRenderer(SkiaRenderContext context) :
     static List<TextFragment> RemoveSoftHyphens(List<TextFragment> fragments)
     {
         var result = new List<TextFragment>(fragments.Count);
-        foreach (var f in fragments)
+        foreach (var fragment in fragments)
         {
-            if (f.Text.Contains(softHyphen))
+            if (fragment.Text.Contains(softHyphen))
             {
                 result.Add(
                     new()
                     {
-                        Text = f.Text.Replace(softHyphenString, ""),
-                        Width = f.Width,
-                        Properties = f.Properties
+                        Text = fragment.Text.Replace(softHyphenString, ""),
+                        Width = fragment.Width,
+                        Properties = fragment.Properties
                     });
             }
             else
             {
-                result.Add(f);
+                result.Add(fragment);
             }
         }
 

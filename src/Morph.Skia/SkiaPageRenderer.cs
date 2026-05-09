@@ -369,7 +369,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
     protected override void RenderParagraph(ParagraphElement paragraph, DocumentElement? nextElement = null)
     {
         // Check if this paragraph has significant content (actual text)
-        var hasSignificantContent = paragraph.Runs.Any(r => !string.IsNullOrWhiteSpace(r.Text));
+        var hasSignificantContent = paragraph.Runs.Any(_ => !string.IsNullOrWhiteSpace(_.Text));
 
         // Check if paragraph is completely empty (no runs at all)
         var isCompletelyEmpty = paragraph.Runs.Count == 0;
