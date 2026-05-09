@@ -193,7 +193,7 @@ public class NumberingTests
         // numbering level's pPr is treated as a low-priority default.
         var doc = Parse("agendas-minutes/07");
 
-        ParagraphElement? Find(IEnumerable<DocumentElement> elems)
+        static ParagraphElement? Find(IEnumerable<DocumentElement> elems)
         {
             foreach (var e in elems)
             {

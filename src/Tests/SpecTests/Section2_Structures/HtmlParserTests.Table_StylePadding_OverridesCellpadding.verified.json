@@ -95,6 +95,7 @@
         "Vertical": 20.0
       },
       "DefaultCellMargin": {},
+      "FillContainer": false,
       "IsAutoFit": true
     }
   }

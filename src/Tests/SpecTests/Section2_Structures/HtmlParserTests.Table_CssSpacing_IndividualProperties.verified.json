@@ -96,6 +96,7 @@
       },
       "DefaultCellPadding": {},
       "DefaultCellMargin": {},
+      "FillContainer": false,
       "IsAutoFit": true
     }
   }
