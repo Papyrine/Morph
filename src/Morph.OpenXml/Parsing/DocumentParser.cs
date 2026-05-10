@@ -258,16 +258,17 @@ sealed class DocumentParser(string defaultFont)
         var hasConnectors = false;
         var hasDuotone = false;
 
-        // Math can appear at body level or inside paragraphs.
-        if (body.Descendants().Any(_ => _.LocalName is "oMath" or "oMathPara"))
-        {
-            hasMath = true;
-        }
-
+        // Single descendant pass: every feature flag is OR'd from a switch on LocalName,
+        // so we don't need separate walks (the prior version did one for math + one for
+        // everything else, doubling DOM traversal cost on large documents).
         foreach (var element in body.Descendants())
         {
             switch (element.LocalName)
             {
+                case "oMath":
+                case "oMathPara":
+                    hasMath = true;
+                    break;
                 case "graphicData":
                     var uri = element.AttributeValue("uri");
                     if (uri == "http://schemas.openxmlformats.org/drawingml/2006/chart")
@@ -453,8 +454,10 @@ sealed class DocumentParser(string defaultFont)
 
         if (textPath.Style?.Value is { } styleString)
         {
-            foreach (var prop in styleString.Split(';'))
+            var styleSpan = styleString.AsSpan();
+            foreach (var propRange in styleSpan.Split(';'))
             {
+                var prop = styleSpan[propRange];
                 var colonIndex = prop.IndexOf(':');
                 if (colonIndex < 0)
                 {
@@ -462,7 +465,6 @@ sealed class DocumentParser(string defaultFont)
                 }
 
                 var name = prop[..colonIndex].Trim();
-                var value = prop[(colonIndex + 1)..].Trim();
                 if (!name.Equals("font", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
@@ -470,14 +472,18 @@ sealed class DocumentParser(string defaultFont)
 
                 // CSS shorthand: "[style] [weight] size family" — last token is the family,
                 // any "bold" token sets weight, any "Npt" token sets size.
-                var tokens = value.Split([' '], StringSplitOptions.RemoveEmptyEntries);
-                if (tokens.Length > 0)
+                var fontValue = prop[(colonIndex + 1)..].Trim();
+                ReadOnlySpan<char> lastToken = default;
+                foreach (var tokenRange in fontValue.Split(' '))
                 {
-                    fontFamily = tokens[^1];
-                }
+                    var token = fontValue[tokenRange];
+                    if (token.IsEmpty)
+                    {
+                        continue;
+                    }
 
-                foreach (var token in tokens)
-                {
+                    lastToken = token;
+
                     if (token.Equals("bold", StringComparison.OrdinalIgnoreCase))
                     {
                         bold = true;
@@ -487,6 +493,11 @@ sealed class DocumentParser(string defaultFont)
                     {
                         fontSize = pt;
                     }
+                }
+
+                if (!lastToken.IsEmpty)
+                {
+                    fontFamily = lastToken.ToString();
                 }
             }
         }

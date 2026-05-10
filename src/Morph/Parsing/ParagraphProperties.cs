@@ -156,6 +156,24 @@ sealed record ParagraphProperties
     public IReadOnlyList<TabStop> TabStops { get; init; } = [];
 
     /// <summary>
+    /// True when any custom tab stop on this paragraph has decimal alignment. Hoisted outside
+    /// the per-tab layout loop because the LINQ probe (`TabStops.Any(...)`) boxes the enumerator
+    /// on every tab; tab-heavy paragraphs (TOCs, indices) hit this hundreds of times.
+    /// Method (not property) so Verify snapshot serialization ignores it.
+    /// </summary>
+    public bool HasDecimalTabStop()
+    {
+        for (var index = 0; index < TabStops.Count; index++)
+        {
+            if (TabStops[index].Alignment == TabAlignment.Decimal)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
     /// Document-level default tab stop width in points (from w:defaultTabStop in settings.xml).
     /// Used to snap tab characters past the last explicit stop. Default 36 points (0.5 inch).
     /// </summary>

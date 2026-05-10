@@ -302,7 +302,7 @@ static class InkParser
     /// <summary>
     /// Parses trace point data from InkML trace element.
     /// </summary>
-    static List<InkPoint> ParseTracePoints(string traceData)
+    internal static List<InkPoint> ParseTracePoints(string traceData)
     {
         var points = new List<InkPoint>();
 
@@ -311,44 +311,65 @@ static class InkParser
         // "x1 y1 x2 y2 x3 y3" (space-separated values)
         // "'x1 y1 'x2 y2" (with modifiers like ' for relative or * for velocity)
 
-        // Split by comma first, then by space
-        var segments = traceData.Split([','], StringSplitOptions.RemoveEmptyEntries);
-
-        foreach (var segment in segments)
+        var trace = traceData.AsSpan();
+        foreach (var segmentRange in trace.Split(','))
         {
-            var values = segment.Trim().Split([' ', '\t'], StringSplitOptions.RemoveEmptyEntries);
-
-            // Process pairs of values (x, y)
-            for (var i = 0; i + 1 < values.Length; i += 2)
+            var segment = trace[segmentRange].Trim();
+            if (segment.IsEmpty)
             {
-                var xStr = values[i].TrimStart('\'', '*', '!', '?');
-                var yStr = values[i + 1].TrimStart('\'', '*', '!', '?');
+                continue;
+            }
 
-                if (double.TryParse(xStr, NumberStyles.Float, CultureInfo.InvariantCulture, out var x) &&
-                    double.TryParse(yStr, NumberStyles.Float, CultureInfo.InvariantCulture, out var y))
+            // Process pairs of (x, y) tokens
+            ReadOnlySpan<char> firstToken = default;
+            var haveFirst = false;
+            foreach (var tokenRange in segment.SplitAny(" \t"))
+            {
+                var token = segment[tokenRange];
+                if (token.IsEmpty)
                 {
-                    // InkML coordinates are typically in himetric units (0.01mm)
-                    // Convert to points: 1 himetric = 0.01mm, 1 point = 0.3528mm
-                    // So: points = himetric * 0.01 / 0.3528 = himetric * 0.02835
-                    var xPt = x * 0.02835;
-                    var yPt = y * 0.02835;
-
-                    // Handle relative coordinates (prefixed with ')
-                    if (values[i].StartsWith('\'') &&
-                        points.Count > 0)
-                    {
-                        var lastPoint = points[^1];
-                        xPt = lastPoint.X + xPt;
-                        yPt = lastPoint.Y + yPt;
-                    }
-
-                    points.Add(
-                        new()
-                        {
-                            X = xPt,
-                            Y = yPt
-                        });
+                    continue;
                 }
+
+                if (!haveFirst)
+                {
+                    firstToken = token;
+                    haveFirst = true;
+                    continue;
+                }
+
+                var prefixChars = "'*!?";
+                var xText = firstToken.TrimStart(prefixChars);
+                var yText = token.TrimStart(prefixChars);
+                haveFirst = false;
+
+                if (!double.TryParse(xText, NumberStyles.Float, CultureInfo.InvariantCulture, out var x) ||
+                    !double.TryParse(yText, NumberStyles.Float, CultureInfo.InvariantCulture, out var y))
+                {
+                    continue;
+                }
+
+                // InkML coordinates are typically in himetric units (0.01mm)
+                // Convert to points: 1 himetric = 0.01mm, 1 point = 0.3528mm
+                // So: points = himetric * 0.01 / 0.3528 = himetric * 0.02835
+                var xPt = x * 0.02835;
+                var yPt = y * 0.02835;
+
+                // Handle relative coordinates (prefixed with ')
+                if (firstToken[0] == '\'' &&
+                    points.Count > 0)
+                {
+                    var lastPoint = points[^1];
+                    xPt = lastPoint.X + xPt;
+                    yPt = lastPoint.Y + yPt;
+                }
+
+                points.Add(
+                    new()
+                    {
+                        X = xPt,
+                        Y = yPt
+                    });
             }
         }
 
