@@ -1084,6 +1084,20 @@ internal sealed class HtmlParser
         _ => 11
     };
 
+    static readonly Dictionary<string, string> namedColors = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["red"] = "FF0000",
+        ["green"] = "008000",
+        ["blue"] = "0000FF",
+        ["black"] = "000000",
+        ["white"] = "FFFFFF",
+        ["yellow"] = "FFFF00",
+        ["orange"] = "FFA500",
+        ["purple"] = "800080",
+        ["gray"] = "808080",
+        ["grey"] = "808080"
+    };
+
     static string? NormalizeColor(string color)
     {
         if (string.IsNullOrEmpty(color))
@@ -1092,20 +1106,6 @@ internal sealed class HtmlParser
         }
 
         color = color.Trim();
-
-        var namedColors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["red"] = "FF0000",
-            ["green"] = "008000",
-            ["blue"] = "0000FF",
-            ["black"] = "000000",
-            ["white"] = "FFFFFF",
-            ["yellow"] = "FFFF00",
-            ["orange"] = "FFA500",
-            ["purple"] = "800080",
-            ["gray"] = "808080",
-            ["grey"] = "808080"
-        };
 
         if (namedColors.TryGetValue(color, out var hex))
         {
