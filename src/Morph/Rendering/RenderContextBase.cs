@@ -65,7 +65,7 @@ abstract class RenderContextBase
     float FullContentBottom => (float) (PageSettings.HeightPoints - PageSettings.MarginBottom) - footerSpace;
 
     // Current column content area bounds in points
-    public float ContentLeft => containerLeftOverride ?? (FullContentLeft + CurrentColumn * ((float) PageSettings.ColumnWidth + (float) PageSettings.ColumnSpacing));
+    public float ContentLeft => containerLeftOverride ?? FullContentLeft + CurrentColumn * ((float) PageSettings.ColumnWidth + (float) PageSettings.ColumnSpacing);
     public float ContentTop => FullContentTop;
     public float ContentBottom => FullContentBottom;
     public float ContentWidth => containerWidthOverride ?? (float) PageSettings.ColumnWidth;
@@ -79,19 +79,19 @@ abstract class RenderContextBase
 
     public IDisposable PushContentContainer(float left, float width)
     {
-        var prevLeft = containerLeftOverride;
-        var prevWidth = containerWidthOverride;
+        var previousLeft = containerLeftOverride;
+        var previousWidth = containerWidthOverride;
         containerLeftOverride = left;
         containerWidthOverride = width;
-        return new ContainerScope(this, prevLeft, prevWidth);
+        return new ContainerScope(this, previousLeft, previousWidth);
     }
 
-    sealed class ContainerScope(RenderContextBase ctx, float? prevLeft, float? prevWidth) : IDisposable
+    sealed class ContainerScope(RenderContextBase context, float? previousLeft, float? previousWidth) : IDisposable
     {
         public void Dispose()
         {
-            ctx.containerLeftOverride = prevLeft;
-            ctx.containerWidthOverride = prevWidth;
+            context.containerLeftOverride = previousLeft;
+            context.containerWidthOverride = previousWidth;
         }
     }
 

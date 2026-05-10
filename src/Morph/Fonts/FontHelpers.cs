@@ -102,8 +102,10 @@ static class FontHelpers
         // than an italic face at the right weight when an upright was requested.
         var italicPenalty = face.Italic == targetItalic ? 0 : 10_000;
 
-        // Width mismatch is significant but secondary to italic.
-        var widthPenalty = Math.Abs(face.Width - targetWidth) * 1_000;
+        // Width is secondary to weight. Some bundled fonts (e.g. Arial_700.ttf) have
+        // a non-standard usWidthClass in their OS/2 table — penalising width too heavily
+        // would beat a Bold face out by a Regular one whose width happens to read 5.
+        var widthPenalty = Math.Abs(face.Width - targetWidth) * 100;
 
         // Weight is a smooth distance so 350 vs 400 (50) beats 350 vs 700 (350).
         var weightPenalty = Math.Abs(face.Weight - targetWeight);

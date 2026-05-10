@@ -93,25 +93,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var lines = LayoutParagraphWithWidth(paragraph, maxWidth);
         var props = paragraph.Properties;
         var lineHeights = new List<float>(lines.Count);
-        var linePitch = (float)context.PageSettings.DocumentGridLinePitchPoints;
-        // docGrid linePitch only applies to empty paragraphs in cells: Word uses linePitch
-        // as the default line slot for the end-of-cell paragraph mark, but ignores it for
-        // paragraphs that contain text (the actual font/lineSpacing controls those).
-        var applyLinePitch = linePitch > 0 &&
-            props.LineSpacingRule != LineSpacingRule.Exactly &&
-            paragraph.Runs.Count == 0;
-
         foreach (var line in lines)
         {
-            var lineHeight = TableLayout.CalculateCompactLineHeight(line.Height, props);
-            if (applyLinePitch)
-            {
-                lineHeight = Math.Max(lineHeight, linePitch);
-            }
-
-            lineHeights.Add(lineHeight);
+            lineHeights.Add(TableLayout.CalculateCompactLineHeight(line.Height, props));
         }
-
         return lineHeights;
     }
 
@@ -191,11 +176,11 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     static float LargestFontSizePoints(TextLine line, ParagraphProperties props)
     {
         var max = 0f;
-        foreach (var f in line.Fragments)
+        foreach (var fragment in line.Fragments)
         {
-            if (f.Properties.FontSizePoints > max)
+            if (fragment.Properties.FontSizePoints > max)
             {
-                max = (float)f.Properties.FontSizePoints;
+                max = (float)fragment.Properties.FontSizePoints;
             }
         }
         if (max == 0 && props.ParagraphMarkFontSizePoints is { } markSize)
@@ -565,7 +550,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
                     ? MeasureFollowingDecimalPrefix(runs, runIndex + 1)
                     : null;
-                var (destinationAbs, matchedStop) = TabStopResolver.Resolve(
+                var (destinationAbs, matchedStop, suppressFollowing) = TabStopResolver.Resolve(
                     cursorAbs, followingWidth,
                     props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
                     decimalPrefix,
@@ -573,6 +558,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 var gap = (float)(destinationAbs - cursorAbs);
                 if (gap <= 0 || currentLineWidth + gap > effectiveWidth)
                 {
+                    if (suppressFollowing)
+                    {
+                        runIndex = SkipFollowingTabContent(runs, runIndex);
+                    }
                     continue;
                 }
 
@@ -591,6 +580,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 currentLineWidth += gap;
                 maxLineHeight = Math.Max(maxLineHeight, tabRunHeight);
                 maxBaseline = Math.Max(maxBaseline, tabBaseline);
+                if (suppressFollowing)
+                {
+                    runIndex = SkipFollowingTabContent(runs, runIndex);
+                }
                 continue;
             }
 
@@ -857,17 +850,17 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
 
     static RunProperties ResolveBulletRunProperties(NumberingInfo numbering, ParagraphElement paragraph)
     {
-        var paragraphProps = paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new RunProperties();
+        var paragraphProps = paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new();
         if (IsProprietaryBulletFont(numbering.FontFamily))
         {
-            return new RunProperties
+            return new()
             {
                 FontFamily = "Morph Bullets",
                 FontSizePoints = paragraphProps.FontSizePoints,
                 ColorHex = paragraphProps.ColorHex
             };
         }
-        return new RunProperties
+        return new()
         {
             FontFamily = paragraphProps.FontFamily,
             FontSizePoints = paragraphProps.FontSizePoints,
@@ -957,14 +950,14 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             return true;
         }
 
-        foreach (var r in paragraph.Runs)
+        foreach (var run in paragraph.Runs)
         {
-            if (r.IsTab)
+            if (run.IsTab)
             {
                 continue;
             }
 
-            if (!string.IsNullOrEmpty(r.Text) || r.InlineImageData != null)
+            if (!string.IsNullOrEmpty(run.Text) || run.InlineImageData != null)
             {
                 return false;
             }
@@ -984,9 +977,9 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             return false;
         }
 
-        foreach (var c in text)
+        foreach (var ch in text)
         {
-            if (!char.IsWhiteSpace(c))
+            if (!char.IsWhiteSpace(ch))
             {
                 return false;
             }
@@ -1070,25 +1063,29 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
 
         DrawTextEffectsBehind(currentPage, fragment, textOptions, font, pixelX, pixelY, baseline);
 
-        // w:emboss / w:imprint — paint a tonal companion glyph offset by one device pixel
-        // so the run reads as raised (emboss) or engraved (imprint). Approximation only;
-        // companion uses fixed light/dark grey matched to a white background.
+        // w:emboss / w:imprint — paint a tonal companion glyph offset from the main glyph
+        // so the run reads as raised (emboss) or engraved (imprint). The offset scales with
+        // font size so the effect stays visible at large display sizes (a fixed 1px is
+        // invisible against 72pt Impact). Companion uses fixed light/dark grey matched to
+        // a white background.
         if (fragment.Properties.Emboss)
         {
+            var offset = Math.Max(1f, font.Size * context.Scale * 0.04f);
             var lightOptions = new RichTextOptions(font)
             {
                 Dpi = context.Dpi,
-                Origin = new PointF(pixelX + 1, pixelY - baseline * context.Scale + 1),
+                Origin = new PointF(pixelX + offset, pixelY - baseline * context.Scale + offset),
                 KerningMode = textOptions.KerningMode
             };
             currentPage.Mutate(_ => _.DrawText(lightOptions, fragment.Text, new SolidBrush(Color.White)));
         }
         else if (fragment.Properties.Imprint)
         {
+            var offset = Math.Max(1f, font.Size * context.Scale * 0.04f);
             var darkOptions = new RichTextOptions(font)
             {
                 Dpi = context.Dpi,
-                Origin = new PointF(pixelX - 1, pixelY - baseline * context.Scale - 1),
+                Origin = new PointF(pixelX - offset, pixelY - baseline * context.Scale - offset),
                 KerningMode = textOptions.KerningMode
             };
             currentPage.Mutate(_ => _.DrawText(darkOptions, fragment.Text, new SolidBrush(Color.Gray)));
@@ -1137,7 +1134,9 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         // Draw strikethrough if needed
         if (fragment.Properties.Strikethrough)
         {
-            var strikeY = pixelY - font.Size * 0.3f;
+            // ImageSharp Font.Size is in points (unlike Skia's SKFont.Size which is in
+            // pixels), so the offset must be scaled by points-to-pixels.
+            var strikeY = pixelY - font.Size * 0.3f * context.Scale;
             var width = context.PointsToPixels(fragment.Width);
             var strokeWidth = 1 * context.Scale;
             currentPage.Mutate(_ => _.DrawLine(new SolidPen(color, strokeWidth), new PointF(pixelX, strikeY), new PointF(pixelX + width, strikeY)));
@@ -1495,7 +1494,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
                     ? MeasureFollowingDecimalPrefix(runs, runIndex + 1, applyFontWidthScale: true)
                     : null;
-                var (destinationAbs, matchedStop) = TabStopResolver.Resolve(
+                var (destinationAbs, matchedStop, suppressFollowing) = TabStopResolver.Resolve(
                     cursorAbs, followingWidth,
                     props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
                     decimalPrefix,
@@ -1503,6 +1502,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 var gap = (float) (destinationAbs - cursorAbs);
                 if (gap <= 0 || currentLineWidth + gap > effectiveWidth)
                 {
+                    if (suppressFollowing)
+                    {
+                        runIndex = SkipFollowingTabContent(runs, runIndex);
+                    }
                     continue;
                 }
 
@@ -1521,6 +1524,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 currentLineWidth += gap;
                 maxLineHeight = Math.Max(maxLineHeight, tabRunHeight);
                 maxBaseline = Math.Max(maxBaseline, tabBaseline);
+                if (suppressFollowing)
+                {
+                    runIndex = SkipFollowingTabContent(runs, runIndex);
+                }
                 continue;
             }
 
@@ -1823,6 +1830,33 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         return null;
     }
 
+    /// <summary>
+    /// Returns the index of the last run consumed when suppressing post-tab content. The caller
+    /// is in a <c>for</c> loop that increments runIndex, so we return the index of the final
+    /// run to drop — the loop's own increment then lands on the next-tab boundary.
+    /// </summary>
+    static int SkipFollowingTabContent(IReadOnlyList<Run> runs, int tabRunIndex)
+    {
+        var lastConsumed = tabRunIndex;
+        for (var i = tabRunIndex + 1; i < runs.Count; i++)
+        {
+            var run = runs[i];
+            if (run.IsTab)
+            {
+                break;
+            }
+
+            if (!string.IsNullOrEmpty(run.Text) && (run.Text.Contains('\n') || run.Text.Contains('\r')))
+            {
+                break;
+            }
+
+            lastConsumed = i;
+        }
+
+        return lastConsumed;
+    }
+
     float MeasureFollowingWidth(IReadOnlyList<Run> runs, int startRunIndex, bool applyFontWidthScale = false)
     {
         var scale = applyFontWidthScale ? context.FontWidthScale : 1f;
@@ -1858,21 +1892,21 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     static List<TextFragment> RemoveSoftHyphens(List<TextFragment> fragments)
     {
         var result = new List<TextFragment>(fragments.Count);
-        foreach (var f in fragments)
+        foreach (var fragment in fragments)
         {
-            if (f.Text.Contains(softHyphen))
+            if (fragment.Text.Contains(softHyphen))
             {
                 result.Add(
                     new()
                     {
-                        Text = f.Text.Replace(softHyphenString, ""),
-                        Width = f.Width,
-                        Properties = f.Properties
+                        Text = fragment.Text.Replace(softHyphenString, ""),
+                        Width = fragment.Width,
+                        Properties = fragment.Properties
                     });
             }
             else
             {
-                result.Add(f);
+                result.Add(fragment);
             }
         }
 

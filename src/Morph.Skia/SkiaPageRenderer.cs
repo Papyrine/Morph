@@ -83,15 +83,28 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 continue;
             }
 
+            // Behind-text floating images carry the same page-anchor semantics as background
+            // shapes: when their parent paragraph contains no flow text and the next significant
+            // element forces a page break, the image belongs on the next page (it's the
+            // background for the *upcoming* content, not the current one).
+            if (element is FloatingImageElement {BehindText: true} bgImage)
+            {
+                AdvanceToBackgroundsTargetPage(elements, i);
+                RenderFloatingImage(bgImage);
+                continue;
+            }
+
             // Get next non-background element for KeepWithNext handling
             DocumentElement? nextElement = null;
             for (var j = i + 1; j < elements.Count; j++)
             {
-                if (elements[j] is not FloatingShapeElement {BehindText: true})
+                if (elements[j] is FloatingShapeElement {BehindText: true} ||
+                    elements[j] is FloatingImageElement {BehindText: true})
                 {
-                    nextElement = elements[j];
-                    break;
+                    continue;
                 }
+                nextElement = elements[j];
+                break;
             }
 
             RenderElement(element, nextElement);
@@ -356,7 +369,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
     protected override void RenderParagraph(ParagraphElement paragraph, DocumentElement? nextElement = null)
     {
         // Check if this paragraph has significant content (actual text)
-        var hasSignificantContent = paragraph.Runs.Any(r => !string.IsNullOrWhiteSpace(r.Text));
+        var hasSignificantContent = paragraph.Runs.Any(_ => !string.IsNullOrWhiteSpace(_.Text));
 
         // Check if paragraph is completely empty (no runs at all)
         var isCompletelyEmpty = paragraph.Runs.Count == 0;
@@ -1359,26 +1372,50 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         if (borders.Top.IsVisible)
         {
-            ConfigureBorderPaint(paint, borders.Top);
-            currentCanvas.DrawLine(pixelX, pixelY, pixelX + pixelWidth, pixelY, paint);
+            DrawBorderLine(paint, borders.Top, pixelX, pixelY, pixelX + pixelWidth, pixelY, true);
         }
 
         if (borders.Right.IsVisible)
         {
-            ConfigureBorderPaint(paint, borders.Right);
-            currentCanvas.DrawLine(pixelX + pixelWidth, pixelY, pixelX + pixelWidth, pixelY + pixelHeight, paint);
+            DrawBorderLine(paint, borders.Right, pixelX + pixelWidth, pixelY, pixelX + pixelWidth, pixelY + pixelHeight, false);
         }
 
         if (borders.Bottom.IsVisible)
         {
-            ConfigureBorderPaint(paint, borders.Bottom);
-            currentCanvas.DrawLine(pixelX, pixelY + pixelHeight, pixelX + pixelWidth, pixelY + pixelHeight, paint);
+            DrawBorderLine(paint, borders.Bottom, pixelX, pixelY + pixelHeight, pixelX + pixelWidth, pixelY + pixelHeight, true);
         }
 
         if (borders.Left.IsVisible)
         {
-            ConfigureBorderPaint(paint, borders.Left);
-            currentCanvas.DrawLine(pixelX, pixelY, pixelX, pixelY + pixelHeight, paint);
+            DrawBorderLine(paint, borders.Left, pixelX, pixelY, pixelX, pixelY + pixelHeight, false);
+        }
+    }
+
+    void DrawBorderLine(SKPaint paint, BorderEdge edge, float x1, float y1, float x2, float y2, bool horizontal)
+    {
+        ConfigureBorderPaint(paint, edge);
+        if (edge.Style == BorderLineStyle.Double)
+        {
+            // OOXML w:val="double": render as two parallel lines whose total span (line +
+            // gap + line) matches the declared width. Each line gets ~1/3 of the width.
+            var totalWidth = paint.StrokeWidth;
+            var lineWidth = Math.Max(0.5f, totalWidth / 3f);
+            var offset = totalWidth / 2f - lineWidth / 2f;
+            paint.StrokeWidth = lineWidth;
+            if (horizontal)
+            {
+                currentCanvas!.DrawLine(x1, y1 - offset, x2, y2 - offset, paint);
+                currentCanvas.DrawLine(x1, y1 + offset, x2, y2 + offset, paint);
+            }
+            else
+            {
+                currentCanvas!.DrawLine(x1 - offset, y1, x2 - offset, y2, paint);
+                currentCanvas.DrawLine(x1 + offset, y1, x2 + offset, y2, paint);
+            }
+        }
+        else
+        {
+            currentCanvas!.DrawLine(x1, y1, x2, y2, paint);
         }
     }
 

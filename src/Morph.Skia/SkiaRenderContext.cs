@@ -113,7 +113,22 @@ sealed class SkiaRenderContext(
 
         var font = new SKFont(typeface, fontSize * Scale);
         ApplyRenderingMode(font);
+        ApplySyntheticBold(font, typeface, props);
         return font;
+    }
+
+    // When the resolved face is materially lighter than what was asked for (e.g. the
+    // doc requests "Arial Black" weight 900, but only Arial Bold 700 is bundled), apply
+    // synthetic emboldening so the rendered glyph has visibly heavier strokes. Without
+    // this the font cache picks the closest-weight face but the user sees a normal-Bold
+    // weight where Word would have rendered the heavier installed Arial Black.
+    static void ApplySyntheticBold(SKFont font, SKTypeface typeface, RunProperties props)
+    {
+        var targetWeight = FontHelpers.ResolveTargetWeight(props.FontFamily, props.Bold);
+        if (targetWeight - typeface.FontStyle.Weight >= 200)
+        {
+            font.Embolden = true;
+        }
     }
 
     public static SKPaint CreateTextPaint(RunProperties props) =>

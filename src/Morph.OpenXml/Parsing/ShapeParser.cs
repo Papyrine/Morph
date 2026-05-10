@@ -309,9 +309,9 @@ static class ShapeParser
 
     /// <summary>True when the shape is a <c>prstGeom prst="line"</c> connector — these are
     /// stroke-only with no fill and typically have a zero <c>cx</c> or <c>cy</c>.</summary>
-    public static bool IsLineShape(WPS.ShapeProperties shapeProps)
+    public static bool IsLineShape(WPS.ShapeProperties? shapeProps)
     {
-        var prstGeom = shapeProps.GetFirstChild<A.PresetGeometry>();
+        var prstGeom = shapeProps?.GetFirstChild<A.PresetGeometry>();
         return prstGeom?.Preset?.Value == A.ShapeTypeValues.Line;
     }
 
@@ -354,7 +354,7 @@ static class ShapeParser
         {
             x = 0;
             y = 0;
-            if (p is null || p.X is null || p.Y is null)
+            if (p?.X is null || p.Y is null)
             {
                 return false;
             }
@@ -600,30 +600,19 @@ static class ShapeParser
     }
 
     /// <summary>
-    /// Determines if a shape is decorative based on path complexity.
-    /// Decorative shapes typically have complex paths with curves (cubicBezTo).
+    /// Determines if a shape is too complex / degenerate to render as a fillable polygon.
+    /// Bezier curves are now flattened into polygon points by <see cref="ExtractPolygonPoints"/>,
+    /// so the only remaining filter is for ArcTo paths (unsupported flattening) and degenerate
+    /// thin-line aspect ratios that would render as a line rather than a shape.
     /// </summary>
     static bool IsDecorativeShape(WPS.ShapeProperties shapeProps)
     {
-        // Check for custom geometry with curves
+        // Custom geometries with ArcTo segments aren't supported by the polygon flattener;
+        // its parameter set differs from the de Casteljau bezier walk we use everywhere else.
         var custGeom = shapeProps.GetFirstChild<A.CustomGeometry>();
-        if (custGeom != null)
+        if (custGeom?.Descendants<A.ArcTo>().Any() == true)
         {
-            var pathList = custGeom.GetFirstChild<A.PathList>();
-            if (pathList != null)
-            {
-                // If any path contains cubic bezier curves, it's decorative
-                if (pathList.Descendants<A.CubicBezierCurveTo>().Any())
-                {
-                    return true;
-                }
-
-                // Also check for quadratic bezier curves
-                if (pathList.Descendants<A.QuadraticBezierCurveTo>().Any())
-                {
-                    return true;
-                }
-            }
+            return true;
         }
 
         // Check aspect ratio as a backup heuristic
@@ -779,14 +768,14 @@ static class ShapeParser
             return (null, null);
         }
 
-        var embedAttr = blip.Embed?.Value;
-        if (string.IsNullOrEmpty(embedAttr))
+        var embedAttribute = blip.Embed?.Value;
+        if (string.IsNullOrEmpty(embedAttribute))
         {
             return (null, null);
         }
 
         // Try to get the image part
-        if (mainPart.GetPartById(embedAttr) is not ImagePart imagePart)
+        if (mainPart.GetPartById(embedAttribute) is not ImagePart imagePart)
         {
             return (null, null);
         }

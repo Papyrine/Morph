@@ -225,36 +225,19 @@ static class TableHeightCalculator
             var lines = measurer.LayoutParagraphForMeasurement(para, contentWidth - bulletIndent);
             var props = para.Properties;
 
-            if (i == 0)
-            {
-                var extra = (float) props.SpacingBeforePoints - (float) padding.Top;
-                if (extra > 0)
-                {
-                    height += extra;
-                }
-            }
-            else
-            {
-                height += (float) props.SpacingBeforePoints;
-            }
+            // Cell padding sits between the border and the content area; paragraph
+            // spacing-before/after lives inside that content area, so the two stack.
+            // (An earlier version subtracted padding from spacing on the assumption that
+            // padding "absorbed" leading/trailing spacing, but Word doesn't collapse
+            // them — tables with explicit w:tblCellMar rendered too tight as a result.)
+            height += (float) props.SpacingBeforePoints;
 
             foreach (var lineHeight in lines)
             {
                 height += lineHeight;
             }
 
-            if (i == paragraphs.Count - 1)
-            {
-                var extra = (float) props.SpacingAfterPoints - (float) padding.Bottom;
-                if (extra > 0)
-                {
-                    height += extra;
-                }
-            }
-            else
-            {
-                height += (float) props.SpacingAfterPoints;
-            }
+            height += (float) props.SpacingAfterPoints;
         }
 
         return height;

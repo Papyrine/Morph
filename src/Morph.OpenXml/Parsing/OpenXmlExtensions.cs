@@ -193,15 +193,43 @@ static class OpenXmlExtensions
         };
     }
 
-    static SizeRelativeFrom ParseSizeRelativeFrom(OpenXmlElement sizeRel)
+    static SizeRelativeFrom ParseSizeRelativeFrom(OpenXmlElement sizeRel) =>
+        sizeRel.AttributeValue("relativeFrom") == "page" ? SizeRelativeFrom.Page : SizeRelativeFrom.Margin;
+
+    /// <summary>
+    /// Returns the value of the attribute matching <paramref name="localName"/>, or null if absent.
+    /// </summary>
+    public static string? AttributeValue(this OpenXmlElement element, string localName)
     {
-        var attr = sizeRel.GetAttributes().FirstOrDefault(a => a.LocalName == "relativeFrom");
-        return attr.Value == "page" ? SizeRelativeFrom.Page : SizeRelativeFrom.Margin;
+        foreach (var attribute in element.GetAttributes())
+        {
+            if (attribute.LocalName == localName)
+            {
+                return attribute.Value;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Returns the value of the attribute matching <paramref name="localName"/> within an
+    /// already-materialised attribute list (used when several lookups share the same list).
+    /// </summary>
+    public static string? AttributeValue(this IList<OpenXmlAttribute> attributes, string localName)
+    {
+        foreach (var attribute in attributes)
+        {
+            if (attribute.LocalName == localName)
+            {
+                return attribute.Value;
+            }
+        }
+        return null;
     }
 
     static double? ParsePercentChild(OpenXmlElement parent, string localName)
     {
-        var pct = parent.ChildElements.FirstOrDefault(c => c.LocalName == localName);
+        var pct = parent.ChildElements.FirstOrDefault(_ => _.LocalName == localName);
         if (pct?.InnerText is not { } text || string.IsNullOrEmpty(text))
         {
             return null;
@@ -216,20 +244,4 @@ static class OpenXmlExtensions
 
         return thousandths / 100_000.0;
     }
-}
-
-/// <summary>
-/// Positioning information extracted from an anchor element.
-/// </summary>
-internal readonly struct AnchorPositioning
-{
-    public double HorizontalPositionPoints { get; init; }
-    public double VerticalPositionPoints { get; init; }
-    public HorizontalAnchor HorizontalAnchor { get; init; }
-    public VerticalAnchor VerticalAnchor { get; init; }
-    public bool BehindText { get; init; }
-    public double? WidthPercent { get; init; }
-    public SizeRelativeFrom WidthRelativeFrom { get; init; }
-    public double? HeightPercent { get; init; }
-    public SizeRelativeFrom HeightRelativeFrom { get; init; }
 }
