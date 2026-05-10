@@ -72,14 +72,25 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 continue;
             }
 
+            // Behind-text floating images carry the same page-anchor semantics as background
+            // shapes — see SkiaPageRenderer for the rationale.
+            if (element is FloatingImageElement {BehindText: true} bgImage)
+            {
+                AdvanceToBackgroundsTargetPage(elements, i);
+                RenderFloatingImage(bgImage);
+                continue;
+            }
+
             DocumentElement? nextElement = null;
             for (var j = i + 1; j < elements.Count; j++)
             {
-                if (elements[j] is not FloatingShapeElement {BehindText: true})
+                if (elements[j] is FloatingShapeElement {BehindText: true} ||
+                    elements[j] is FloatingImageElement {BehindText: true})
                 {
-                    nextElement = elements[j];
-                    break;
+                    continue;
                 }
+                nextElement = elements[j];
+                break;
             }
 
             RenderElement(element, nextElement);
@@ -300,7 +311,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     protected override void RenderParagraph(ParagraphElement paragraph, DocumentElement? nextElement = null)
     {
-        var hasSignificantContent = paragraph.Runs.Any(r => !string.IsNullOrWhiteSpace(r.Text));
+        var hasSignificantContent = paragraph.Runs.Any(_ => !string.IsNullOrWhiteSpace(_.Text));
         var isCompletelyEmpty = paragraph.Runs.Count == 0;
 
         if (paragraph.Properties.PageBreakBefore &&
@@ -830,13 +841,34 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         currentPage.Mutate(_ => DrawBorderLine(_, x1, y1, x2, y2, edge));
     }
 
-    void DrawBorderLine(IImageProcessingContext ctx, float x1, float y1, float x2, float y2, BorderEdge edge)
+    void DrawBorderLine(IImageProcessingContext processingContext, float x1, float y1, float x2, float y2, BorderEdge edge)
     {
         var color = ParseColor(edge.ColorHex ?? "000000");
         var strokeWidth = context.PointsToPixels((float) edge.WidthPoints);
-        var pen = Pens.Solid(color, strokeWidth);
 
-        ctx.DrawLine(pen, new PointF(x1, y1), new PointF(x2, y2));
+        if (edge.Style == BorderLineStyle.Double)
+        {
+            // OOXML w:val="double": render as two parallel lines whose total span (line +
+            // gap + line) matches the declared width. Each line gets ~1/3 of the width.
+            var lineWidth = Math.Max(0.5f, strokeWidth / 3f);
+            var offset = strokeWidth / 2f - lineWidth / 2f;
+            var pen = Pens.Solid(color, lineWidth);
+            var horizontal = Math.Abs(y2 - y1) < Math.Abs(x2 - x1);
+            if (horizontal)
+            {
+                processingContext.DrawLine(pen, new PointF(x1, y1 - offset), new PointF(x2, y2 - offset));
+                processingContext.DrawLine(pen, new PointF(x1, y1 + offset), new PointF(x2, y2 + offset));
+            }
+            else
+            {
+                processingContext.DrawLine(pen, new PointF(x1 - offset, y1), new PointF(x2 - offset, y2));
+                processingContext.DrawLine(pen, new PointF(x1 + offset, y1), new PointF(x2 + offset, y2));
+            }
+            return;
+        }
+
+        var solidPen = Pens.Solid(color, strokeWidth);
+        processingContext.DrawLine(solidPen, new PointF(x1, y1), new PointF(x2, y2));
     }
 
     protected override void RenderParagraphInBounds(ParagraphElement paragraph, float x, float maxWidth)
@@ -1371,7 +1403,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             var ry = lx * sin + ly * cos;
             transformed[i] = new(x + halfW + rx, y + halfH + ry);
         }
-        return new Polygon(transformed);
+        return new(transformed);
     }
 
     protected override void RenderFloatingImage(FloatingImageElement image)

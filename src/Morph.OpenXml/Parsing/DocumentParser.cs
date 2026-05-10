@@ -269,7 +269,7 @@ sealed class DocumentParser(string defaultFont)
             switch (element.LocalName)
             {
                 case "graphicData":
-                    var uri = element.GetAttributes().FirstOrDefault(a => a.LocalName == "uri").Value;
+                    var uri = element.AttributeValue("uri");
                     if (uri == "http://schemas.openxmlformats.org/drawingml/2006/chart")
                     {
                         hasCharts = true;
@@ -330,16 +330,16 @@ sealed class DocumentParser(string defaultFont)
                     continue;
                 }
 
-                foreach (var attr in child.GetAttributes())
+                foreach (var attribute in child.GetAttributes())
                 {
-                    if (attr.LocalName == "ProgID")
+                    if (attribute.LocalName == "ProgID")
                     {
-                        progId = attr.Value;
+                        progId = attribute.Value;
                     }
-                    else if (attr.LocalName == "id" &&
-                             attr.NamespaceUri.EndsWith("/relationships"))
+                    else if (attribute.LocalName == "id" &&
+                             attribute.NamespaceUri.EndsWith("/relationships"))
                     {
-                        relId = attr.Value;
+                        relId = attribute.Value;
                     }
                 }
             }
@@ -779,9 +779,9 @@ sealed class DocumentParser(string defaultFont)
         // Map each w:commentRangeStart's id → enclosing paragraph ordinal.
         var paragraphOrdinals = new Dictionary<Paragraph, int>();
         var ordinal = 0;
-        foreach (var p in body.Descendants<Paragraph>())
+        foreach (var paragraph in body.Descendants<Paragraph>())
         {
-            paragraphOrdinals[p] = ordinal++;
+            paragraphOrdinals[paragraph] = ordinal++;
         }
 
         var anchorByCommentId = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -794,7 +794,7 @@ sealed class DocumentParser(string defaultFont)
 
             for (var current = rangeStart.Parent; current != null; current = current.Parent)
             {
-                if (current is Paragraph p && paragraphOrdinals.TryGetValue(p, out var idx))
+                if (current is Paragraph paragraph && paragraphOrdinals.TryGetValue(paragraph, out var idx))
                 {
                     anchorByCommentId[rangeId] = idx;
                     break;
@@ -838,9 +838,9 @@ sealed class DocumentParser(string defaultFont)
         // Pre-compute a map from each Paragraph element to its ordinal among paragraphs in the body.
         var paragraphOrdinals = new Dictionary<Paragraph, int>();
         var ordinal = 0;
-        foreach (var p in body.Descendants<Paragraph>())
+        foreach (var paragraph in body.Descendants<Paragraph>())
         {
-            paragraphOrdinals[p] = ordinal++;
+            paragraphOrdinals[paragraph] = ordinal++;
         }
 
         var result = new List<Bookmark>();
@@ -855,7 +855,7 @@ sealed class DocumentParser(string defaultFont)
             int? paragraphIndex = null;
             for (var current = start.Parent; current != null; current = current.Parent)
             {
-                if (current is Paragraph p && paragraphOrdinals.TryGetValue(p, out var idx))
+                if (current is Paragraph paragraph && paragraphOrdinals.TryGetValue(paragraph, out var idx))
                 {
                     paragraphIndex = idx;
                     break;
@@ -1179,7 +1179,7 @@ sealed class DocumentParser(string defaultFont)
 
         // Build a set of all style IDs that exist in the document
         var existingStyleIds = new HashSet<string>(
-            styles.Select(s => s.StyleId?.Value).Where(id => id != null)!,
+            styles.Select(_ => _.StyleId?.Value).Where(id => id != null)!,
             StringComparer.OrdinalIgnoreCase);
 
         // Capture the default paragraph style id (typically "Normal") so unstyled paragraphs
@@ -1392,10 +1392,10 @@ sealed class DocumentParser(string defaultFont)
                 var widowControlEl = paraProps.GetFirstChild<WidowControl>();
                 if (widowControlEl != null)
                 {
-                    var valAttr = widowControlEl.Val;
-                    if (valAttr != null && valAttr.HasValue)
+                    var valAttribute = widowControlEl.Val;
+                    if (valAttribute != null && valAttribute.HasValue)
                     {
-                        widowControl = valAttr.Value;
+                        widowControl = valAttribute.Value;
                     }
                     else
                     {
@@ -1946,6 +1946,31 @@ sealed class DocumentParser(string defaultFont)
 
         var fill = shading.Fill.Value;
         return fill is null or "auto" ? null : fill;
+    }
+
+    // Maps the named-colour palette of <w:highlight w:val="..."/> to RGB hex strings.
+    // Word's highlight pen uses a fixed palette (not arbitrary RGB), so mapping is
+    // deterministic and fixed by the spec — the colours match the highlighter swatches
+    // in Word's Home → Text Highlight Color picker.
+    static string? HighlightToHex(HighlightColorValues value)
+    {
+        if (value == HighlightColorValues.Yellow) return "FFFF00";
+        if (value == HighlightColorValues.Green) return "00FF00";
+        if (value == HighlightColorValues.Cyan) return "00FFFF";
+        if (value == HighlightColorValues.Magenta) return "FF00FF";
+        if (value == HighlightColorValues.Blue) return "0000FF";
+        if (value == HighlightColorValues.Red) return "FF0000";
+        if (value == HighlightColorValues.DarkBlue) return "000080";
+        if (value == HighlightColorValues.DarkCyan) return "008080";
+        if (value == HighlightColorValues.DarkGreen) return "008000";
+        if (value == HighlightColorValues.DarkMagenta) return "800080";
+        if (value == HighlightColorValues.DarkRed) return "800000";
+        if (value == HighlightColorValues.DarkYellow) return "808000";
+        if (value == HighlightColorValues.DarkGray) return "808080";
+        if (value == HighlightColorValues.LightGray) return "C0C0C0";
+        if (value == HighlightColorValues.Black) return "000000";
+        if (value == HighlightColorValues.White) return "FFFFFF";
+        return null;
     }
 
     /// <summary>
@@ -2836,18 +2861,21 @@ sealed class DocumentParser(string defaultFont)
             return;
         }
 
-        // Look for docDefaults/pPrDefault
+        // Look for docDefaults/pPrDefault. When the docx has styles but no docDefaults
+        // section (or no paragraph defaults inside), Word still applies its built-in
+        // 8pt-after default — minimal docs (e.g. a hand-built table-only template) come
+        // through this path and rely on Word filling in the gap.
         var docDefaults = stylesPart.Styles.DocDefaults;
         if (docDefaults == null)
         {
-            defaultSpacingAfterPoints = 0;
+            defaultSpacingAfterPoints = 8;
             return;
         }
 
         var pPrDefault = docDefaults.ParagraphPropertiesDefault;
         if (pPrDefault?.ParagraphPropertiesBaseStyle == null)
         {
-            defaultSpacingAfterPoints = 0;
+            defaultSpacingAfterPoints = 8;
             return;
         }
 
@@ -2898,7 +2926,7 @@ sealed class DocumentParser(string defaultFont)
             if (isHeader)
             {
                 var headerRef = sectionProps.Descendants<HeaderReference>()
-                    .FirstOrDefault(h => h.Type?.Value == type);
+                    .FirstOrDefault(_ => _.Type?.Value == type);
                 if (headerRef?.Id?.Value != null)
                 {
                     part = mainPart.GetPartById(headerRef.Id.Value);
@@ -2908,7 +2936,7 @@ sealed class DocumentParser(string defaultFont)
             else
             {
                 var footerRef = sectionProps.Descendants<FooterReference>()
-                    .FirstOrDefault(f => f.Type?.Value == type);
+                    .FirstOrDefault(_ => _.Type?.Value == type);
                 if (footerRef?.Id?.Value != null)
                 {
                     part = mainPart.GetPartById(footerRef.Id.Value);
@@ -3070,6 +3098,26 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        // w:tblW — explicit table preferred width. dxa is a fixed point value; pct says
+        // "fill <pct>% of container"; auto/missing means "fit to content".
+        double? preferredWidthPoints = null;
+        var fillContainer = false;
+        var tblWidthEl = tableProps?.GetFirstChild<TableWidth>();
+        if (tblWidthEl?.Type?.Value == TableWidthUnitValues.Dxa &&
+            tblWidthEl.Width?.HasValue == true &&
+            double.TryParse(tblWidthEl.Width.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var tblWTwips) &&
+            tblWTwips > 0)
+        {
+            preferredWidthPoints = tblWTwips / twipsPerPoint;
+        }
+        else if (tblWidthEl?.Type?.Value == TableWidthUnitValues.Pct &&
+                 tblWidthEl.Width?.HasValue == true &&
+                 double.TryParse(tblWidthEl.Width.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var tblWPct) &&
+                 tblWPct > 0)
+        {
+            fillContainer = true;
+        }
+
         // Parse table-level default cell margins and floating table positioning
         CellSpacing? defaultCellMargin = null;
         CellSpacing? defaultCellPadding = null;
@@ -3124,9 +3172,9 @@ sealed class DocumentParser(string defaultFont)
         var totalCols = gridColumnWidths?.Count ?? 0;
         if (totalCols == 0 && rowList.Count > 0)
         {
-            foreach (var c in rowList[0].Elements<DocumentFormat.OpenXml.Wordprocessing.TableCell>())
+            foreach (var cell in rowList[0].Elements<DocumentFormat.OpenXml.Wordprocessing.TableCell>())
             {
-                var span = c.GetFirstChild<OoxmlTableCellProperties>()?.GetFirstChild<GridSpan>()?.Val?.Value ?? 1;
+                var span = cell.GetFirstChild<OoxmlTableCellProperties>()?.GetFirstChild<GridSpan>()?.Val?.Value ?? 1;
                 totalCols += span;
             }
         }
@@ -3596,10 +3644,19 @@ sealed class DocumentParser(string defaultFont)
                 DefaultBorders = defaultBorders,
                 InsideHorizontalBorder = insideHBorder,
                 InsideVerticalBorder = insideVBorder,
-                DefaultCellPadding = defaultCellPadding ?? styleInfo?.DefaultCellPadding ?? new CellSpacing(),
+                // For tables without an explicit w:tblCellMar and no inherited style padding,
+                // apply a 2pt top/bottom default. The OOXML spec calls for 0 vertical padding,
+                // but real Word adds ~2pt of breathing room — an unstyled table renders at
+                // roughly font-line + 2 * 2pt + spacing-after rather than the spec's bare
+                // line + spacing-after. Without this padding the table fits fewer rows on a
+                // page than Word does, breaking row-by-row pagination heuristics.
+                DefaultCellPadding = defaultCellPadding ?? styleInfo?.DefaultCellPadding ??
+                    new CellSpacing(top: 2, right: 0, bottom: 2, left: 0),
                 DefaultCellMargin = defaultCellMargin ?? new CellSpacing(0),
                 IndentPoints = indentPoints,
                 GridColumnWidths = gridColumnWidths,
+                PreferredWidthPoints = preferredWidthPoints,
+                FillContainer = fillContainer,
                 Alignment = alignment,
                 IsAutoFit = isAutoFit,
                 CellSpacingPoints = cellSpacingPoints
@@ -3823,8 +3880,20 @@ sealed class DocumentParser(string defaultFont)
         {
             IsVisible = true,
             WidthPoints = width,
-            ColorHex = color
+            ColorHex = color,
+            Style = MapBorderStyle(border.Val?.Value)
         };
+    }
+
+    static BorderLineStyle MapBorderStyle(BorderValues? val)
+    {
+        if (val == null) return BorderLineStyle.Single;
+        if (val == BorderValues.Double) return BorderLineStyle.Double;
+        if (val == BorderValues.Dotted) return BorderLineStyle.Dotted;
+        if (val == BorderValues.Dashed || val == BorderValues.DashSmallGap ||
+            val == BorderValues.DashDotStroked || val == BorderValues.DotDash ||
+            val == BorderValues.DotDotDash) return BorderLineStyle.Dashed;
+        return BorderLineStyle.Single;
     }
 
     List<DocumentElement> ParseParagraph(Paragraph para, MainDocumentPart mainPart)
@@ -3961,7 +4030,10 @@ sealed class DocumentParser(string defaultFont)
                                     continue;
                                 }
 
-                                // Line break - add newline character
+                                // Line break - add newline character. Don't `continue` — the
+                                // run may also have <w:t> text after the break (e.g.
+                                // <w:r><w:br/><w:t>Sharma</w:t></w:r>) and we still need to
+                                // parse it so neither half of the run is dropped.
                                 var runProps = ParseRunProperties(sdtChildRun.RunProperties, mainPart);
                                 runs.Add(
                                     new()
@@ -3969,7 +4041,6 @@ sealed class DocumentParser(string defaultFont)
                                         Text = "\n",
                                         Properties = runProps
                                     });
-                                continue;
                             }
 
                             // Check for drawings (images/icons) within the SdtRun child
@@ -4195,7 +4266,7 @@ sealed class DocumentParser(string defaultFont)
                         // Inline shape groups (no behindDoc anchor, just <wp:inline> with a wpg:wgp inside)
                         // need to flow with the surrounding text rather than render as floating block content.
                         // Skip the group-as-block branch for inline drawings so the inline-image path catches them.
-                        var isInlineGroup = hasGroup && drawing.Descendants().Any(e => e.LocalName == "inline");
+                        var isInlineGroup = hasGroup && drawing.Descendants().Any(_ => _.LocalName == "inline");
 
                         if ((shapeElements.Count > 0 || hasGroup) && !isInlineGroup)
                         {
@@ -4300,7 +4371,7 @@ sealed class DocumentParser(string defaultFont)
                                 else
                                 {
                                     // Check if this is an inline image (wp:inline) - should flow with text
-                                    var isInline = drawing.Descendants().Any(e => e.LocalName == "inline");
+                                    var isInline = drawing.Descendants().Any(_ => _.LocalName == "inline");
 
                                     if (isInline)
                                     {
@@ -4382,8 +4453,8 @@ sealed class DocumentParser(string defaultFont)
 
                                 // Add any text before the break
                                 var textBefore = string.Concat(run.Descendants<Text>()
-                                    .TakeWhile(t => t != runChild.NextSibling())
-                                    .Select(t => t.Text));
+                                    .TakeWhile(_ => _ != runChild.NextSibling())
+                                    .Select(_ => _.Text));
                                 if (!string.IsNullOrEmpty(textBefore))
                                 {
                                     runs.Add(
@@ -4441,8 +4512,8 @@ sealed class DocumentParser(string defaultFont)
                         {
                             runs.AddRange(parsedRuns);
                         }
-                        else if (parsedRuns.Count > 0 && run.Descendants<Break>().All(b =>
-                                     b.Type?.Value != BreakValues.Page && b.Type?.Value != BreakValues.Column))
+                        else if (parsedRuns.Count > 0 && run.Descendants<Break>().All(_ =>
+                                     _.Type?.Value != BreakValues.Page && _.Type?.Value != BreakValues.Column))
                         {
                             // Has only line breaks, text already handled above
                         }
@@ -4524,76 +4595,44 @@ sealed class DocumentParser(string defaultFont)
             // Check if this is a grpSp element (DrawingML group, not wgp which is already handled)
             if (current.LocalName == "grpSp")
             {
-                var grpSpPr = current.Elements().FirstOrDefault(e => e.LocalName == "grpSpPr");
-                var xfrm = grpSpPr?.Elements().FirstOrDefault(e => e.LocalName == "xfrm");
+                var grpSpPr = current.Elements().FirstOrDefault(_ => _.LocalName == "grpSpPr");
+                var xfrm = grpSpPr?.Elements().FirstOrDefault(_ => _.LocalName == "xfrm");
 
                 if (xfrm != null)
                 {
                     long offX = 0, offY = 0, extCx = 1, extCy = 1, chOffX = 0, chOffY = 0, chExtCx = 1, chExtCy = 1;
 
-                    var off = xfrm.Elements().FirstOrDefault(e => e.LocalName == "off");
-                    var ext = xfrm.Elements().FirstOrDefault(e => e.LocalName == "ext");
-                    var chOff = xfrm.Elements().FirstOrDefault(e => e.LocalName == "chOff");
-                    var chExt = xfrm.Elements().FirstOrDefault(e => e.LocalName == "chExt");
+                    var off = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "off");
+                    var ext = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "ext");
+                    var chOff = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "chOff");
+                    var chExt = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "chExt");
 
                     if (off != null)
                     {
-                        var xAttr = off.GetAttributes().FirstOrDefault(a => a.LocalName == "x");
-                        var yAttr = off.GetAttributes().FirstOrDefault(a => a.LocalName == "y");
-                        if (xAttr.Value != null)
-                        {
-                            long.TryParse(xAttr.Value, out offX);
-                        }
-
-                        if (yAttr.Value != null)
-                        {
-                            long.TryParse(yAttr.Value, out offY);
-                        }
+                        var attributes = off.GetAttributes();
+                        long.TryParse(attributes.AttributeValue("x"), out offX);
+                        long.TryParse(attributes.AttributeValue("y"), out offY);
                     }
 
                     if (ext != null)
                     {
-                        var cxAttr = ext.GetAttributes().FirstOrDefault(a => a.LocalName == "cx");
-                        var cyAttr = ext.GetAttributes().FirstOrDefault(a => a.LocalName == "cy");
-                        if (cxAttr.Value != null)
-                        {
-                            long.TryParse(cxAttr.Value, out extCx);
-                        }
-
-                        if (cyAttr.Value != null)
-                        {
-                            long.TryParse(cyAttr.Value, out extCy);
-                        }
+                        var attributes = ext.GetAttributes();
+                        long.TryParse(attributes.AttributeValue("cx"), out extCx);
+                        long.TryParse(attributes.AttributeValue("cy"), out extCy);
                     }
 
                     if (chOff != null)
                     {
-                        var xAttr = chOff.GetAttributes().FirstOrDefault(a => a.LocalName == "x");
-                        var yAttr = chOff.GetAttributes().FirstOrDefault(a => a.LocalName == "y");
-                        if (xAttr.Value != null)
-                        {
-                            long.TryParse(xAttr.Value, out chOffX);
-                        }
-
-                        if (yAttr.Value != null)
-                        {
-                            long.TryParse(yAttr.Value, out chOffY);
-                        }
+                        var attributes = chOff.GetAttributes();
+                        long.TryParse(attributes.AttributeValue("x"), out chOffX);
+                        long.TryParse(attributes.AttributeValue("y"), out chOffY);
                     }
 
                     if (chExt != null)
                     {
-                        var cxAttr = chExt.GetAttributes().FirstOrDefault(a => a.LocalName == "cx");
-                        var cyAttr = chExt.GetAttributes().FirstOrDefault(a => a.LocalName == "cy");
-                        if (cxAttr.Value != null)
-                        {
-                            long.TryParse(cxAttr.Value, out chExtCx);
-                        }
-
-                        if (cyAttr.Value != null)
-                        {
-                            long.TryParse(cyAttr.Value, out chExtCy);
-                        }
+                        var attributes = chExt.GetAttributes();
+                        long.TryParse(attributes.AttributeValue("cx"), out chExtCx);
+                        long.TryParse(attributes.AttributeValue("cy"), out chExtCy);
                     }
 
                     if (extCx <= 0)
@@ -4678,8 +4717,8 @@ sealed class DocumentParser(string defaultFont)
     {
         var hostPart = ResolveHostPart(drawing, mainPart);
         // Use XML-based approach for better namespace handling
-        var hasAnchor = drawing.Descendants().Any(e => e.LocalName == "anchor");
-        var hasInline = drawing.Descendants().Any(e => e.LocalName == "inline");
+        var hasAnchor = drawing.Descendants().Any(_ => _.LocalName == "anchor");
+        var hasInline = drawing.Descendants().Any(_ => _.LocalName == "inline");
 
         // Only handle simple inline images, not anchored images
         if (hasAnchor || !hasInline)
@@ -4696,17 +4735,28 @@ sealed class DocumentParser(string defaultFont)
             return ParseInlineShapeGroupRun(drawing, wpgGroup, runProps);
         }
 
+        // Standalone inline connector — a single <wps:wsp> with prstGeom prst="line" sitting
+        // directly under <a:graphicData> (no wpg:wgp wrapper). Used by some templates for
+        // section divider rules between sub-headings; without this branch the line is silently
+        // dropped because it has no <pic> child.
+        var standaloneWsp = drawing.Descendants<WPS.WordprocessingShape>().FirstOrDefault();
+        if (standaloneWsp != null &&
+            ShapeParser.IsLineShape(standaloneWsp.GetFirstChild<WPS.ShapeProperties>()))
+        {
+            return ParseInlineSingleLineRun(drawing, standaloneWsp, runProps);
+        }
+
         // Find the pic element
-        var pic = drawing.Descendants().FirstOrDefault(e => e.LocalName == "pic");
+        var pic = drawing.Descendants().FirstOrDefault(_ => _.LocalName == "pic");
         if (pic == null)
         {
             return null;
         }
 
         // Get the picture's shape properties for size (same approach as ParseDrawingElements)
-        var spPr = pic.Elements().FirstOrDefault(e => e.LocalName == "spPr");
+        var spPr = pic.Elements().FirstOrDefault(_ => _.LocalName == "spPr");
 
-        var xfrm = spPr?.Elements().FirstOrDefault(e => e.LocalName == "xfrm");
+        var xfrm = spPr?.Elements().FirstOrDefault(_ => _.LocalName == "xfrm");
         if (xfrm == null)
         {
             return null;
@@ -4714,20 +4764,12 @@ sealed class DocumentParser(string defaultFont)
 
         // Get image extent from pic's spPr (more reliable than inline.Extent for some documents)
         long picWidth = 0, picHeight = 0;
-        var ext = xfrm.Elements().FirstOrDefault(e => e.LocalName == "ext");
+        var ext = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "ext");
         if (ext != null)
         {
-            var cxAttr = ext.GetAttributes().FirstOrDefault(a => a.LocalName == "cx");
-            var cyAttr = ext.GetAttributes().FirstOrDefault(a => a.LocalName == "cy");
-            if (cxAttr.Value != null)
-            {
-                long.TryParse(cxAttr.Value, out picWidth);
-            }
-
-            if (cyAttr.Value != null)
-            {
-                long.TryParse(cyAttr.Value, out picHeight);
-            }
+            var attributes = ext.GetAttributes();
+            long.TryParse(attributes.AttributeValue("cx"), out picWidth);
+            long.TryParse(attributes.AttributeValue("cy"), out picHeight);
         }
 
         if (picWidth == 0 || picHeight == 0)
@@ -4742,7 +4784,7 @@ sealed class DocumentParser(string defaultFont)
         var rotationDegrees = ReadRotationDegrees(xfrm);
 
         // Find the blip (image reference)
-        var blipFill = pic.Elements().FirstOrDefault(e => e.LocalName == "blipFill");
+        var blipFill = pic.Elements().FirstOrDefault(_ => _.LocalName == "blipFill");
         if (blipFill == null)
         {
             return null;
@@ -4750,14 +4792,14 @@ sealed class DocumentParser(string defaultFont)
 
         var crop = ReadCrop(blipFill);
 
-        var blip = blipFill.Descendants().FirstOrDefault(e => e.LocalName == "blip");
+        var blip = blipFill.Descendants().FirstOrDefault(_ => _.LocalName == "blip");
         if (blip == null)
         {
             return null;
         }
 
-        var embedAttr = blip.GetAttributes().FirstOrDefault(a => a.LocalName == "embed");
-        if (embedAttr.Value == null)
+        var embed = blip.AttributeValue("embed");
+        if (embed == null)
         {
             return null;
         }
@@ -4769,30 +4811,28 @@ sealed class DocumentParser(string defaultFont)
         string? rasterFallbackContentType = null;
 
         // Check for SVG extension
-        var extLst = blip.Elements().FirstOrDefault(e => e.LocalName == "extLst");
+        var extLst = blip.Elements().FirstOrDefault(_ => _.LocalName == "extLst");
         if (extLst != null)
         {
-            foreach (var extEl in extLst.Elements().Where(e => e.LocalName == "ext"))
+            foreach (var extEl in extLst.Elements().Where(_ => _.LocalName == "ext"))
             {
-                var uriAttr = extEl.GetAttributes().FirstOrDefault(a => a.LocalName == "uri");
-                if (uriAttr.Value != "{96DAC541-7B7A-43D3-8B79-37D633B846F1}")
+                if (extEl.AttributeValue("uri") != "{96DAC541-7B7A-43D3-8B79-37D633B846F1}")
                 {
                     continue;
                 }
 
-                var svgBlip = extEl.Descendants().FirstOrDefault(e => e.LocalName == "svgBlip");
+                var svgBlip = extEl.Descendants().FirstOrDefault(_ => _.LocalName == "svgBlip");
                 if (svgBlip == null)
                 {
                     continue;
                 }
 
-                var svgEmbedAttr = svgBlip.GetAttributes().FirstOrDefault(a => a.LocalName == "embed");
-                if (svgEmbedAttr.Value == null)
+                if (svgBlip.AttributeValue("embed") is not { } svgEmbed)
                 {
                     continue;
                 }
 
-                var svgPart = hostPart.GetPartById(svgEmbedAttr.Value);
+                var svgPart = hostPart.GetPartById(svgEmbed);
                 using var stream = svgPart.GetStream();
                 using var ms = new MemoryStream();
                 stream.CopyTo(ms);
@@ -4804,7 +4844,7 @@ sealed class DocumentParser(string defaultFont)
         // Read the raster blob the blip points to. When SVG is set, this becomes the
         // raster fallback for backends that can't render SVG; otherwise it's the
         // primary imageData.
-        if (hostPart.GetPartById(embedAttr.Value) is ImagePart imagePart)
+        if (hostPart.GetPartById(embed) is ImagePart imagePart)
         {
             using var stream = imagePart.GetStream();
             using var ms = new MemoryStream();
@@ -4961,6 +5001,73 @@ sealed class DocumentParser(string defaultFont)
         };
     }
 
+    /// <summary>
+    /// Wraps a single <c>prstGeom prst="line"</c> shape sitting directly under
+    /// <c>a:graphicData</c> (no <c>wpg:wgp</c>) into a one-element <see cref="InlineShapeGroup"/>.
+    /// The shape's own <c>a:xfrm</c> defines the line in its local 0..cx × 0..cy box, so the
+    /// group's child coord space is just the wp:extent itself.
+    /// </summary>
+    Run? ParseInlineSingleLineRun(Drawing drawing, WPS.WordprocessingShape wsp, RunProperties runProps)
+    {
+        var extent = drawing.Descendants<DW.Extent>().FirstOrDefault();
+        if (extent?.Cx == null || extent.Cy == null)
+        {
+            return null;
+        }
+
+        var shapeProps = wsp.GetFirstChild<WPS.ShapeProperties>();
+        var shapeXfrm = shapeProps?.GetFirstChild<A.Transform2D>();
+        if (shapeProps == null || shapeXfrm?.Extents == null)
+        {
+            return null;
+        }
+
+        var ln = shapeProps.GetFirstChild<A.Outline>();
+        var lineWidth = ln?.Width?.Value ?? 0;
+        var stroke = ExtractFirstFillColor(ln) ?? "000000";
+
+        // wp:extent of an inline connector with cy=0 collapses to a zero-height layout box —
+        // the rendered line falls on the baseline. Give the group a one-EMU child height so
+        // GroupShape coordinates stay in-range when the renderer scales them.
+        var childExtentX = (double) (shapeXfrm.Extents.Cx ?? extent.Cx.Value);
+        var childExtentY = Math.Max(1.0, (double) (shapeXfrm.Extents.Cy ?? extent.Cy.Value));
+
+        var widthPoints = extent.Cx.Value / emusPerPoint;
+        var heightPoints = Math.Max(lineWidth / emusPerPoint, extent.Cy.Value / emusPerPoint);
+        if (widthPoints <= 0)
+        {
+            return null;
+        }
+
+        var shapes = new List<GroupShape>
+        {
+            new()
+            {
+                X = 0,
+                Y = 0,
+                Width = shapeXfrm.Extents.Cx ?? 0,
+                Height = shapeXfrm.Extents.Cy ?? 0,
+                ColorHex = stroke,
+                LineWidthEmu = lineWidth,
+                Geometry = GroupShapeGeometry.Line
+            }
+        };
+
+        return new()
+        {
+            Text = "",
+            Properties = runProps,
+            InlineImageWidthPoints = widthPoints,
+            InlineImageHeightPoints = heightPoints,
+            InlineShapeGroup = new()
+            {
+                ChildExtentX = childExtentX,
+                ChildExtentY = childExtentY,
+                Shapes = shapes
+            }
+        };
+    }
+
     // Walks an Outline / SolidFill for the first solid colour we can resolve.
     string? ExtractFirstFillColor(OpenXmlElement? element)
     {
@@ -4991,8 +5098,7 @@ sealed class DocumentParser(string defaultFont)
 
     static double ReadRotationDegrees(OpenXmlElement xfrm)
     {
-        var rotAttr = xfrm.GetAttributes().FirstOrDefault(a => a.LocalName == "rot");
-        if (rotAttr.Value != null && long.TryParse(rotAttr.Value, out var rot60000ths))
+        if (xfrm.AttributeValue("rot") is { } rotValue && long.TryParse(rotValue, out var rot60000ths))
         {
             return rot60000ths / 60000.0;
         }
@@ -5045,8 +5151,8 @@ sealed class DocumentParser(string defaultFont)
                     return BlipColorEffect.Duotone;
                 case "lum":
                     // a:lum bright="N" — N>0 means washout (lighten), N<0 means darken.
-                    var brightAttr = child.GetAttributes().FirstOrDefault(_ => _.LocalName == "bright").Value;
-                    if (int.TryParse(brightAttr, out var bright) && bright > 0)
+                    var brightAttribute = child.AttributeValue("bright");
+                    if (int.TryParse(brightAttribute, out var bright) && bright > 0)
                     {
                         return BlipColorEffect.Washout;
                     }
@@ -5061,7 +5167,7 @@ sealed class DocumentParser(string defaultFont)
     static ImageCrop? ReadCrop(OpenXmlElement blipFill)
     {
         // a:srcRect attributes l/t/r/b are in 1000ths of a percent (100000 = 100%).
-        var srcRect = blipFill.Elements().FirstOrDefault(e => e.LocalName == "srcRect");
+        var srcRect = blipFill.Elements().FirstOrDefault(_ => _.LocalName == "srcRect");
         if (srcRect == null)
         {
             return null;
@@ -5077,10 +5183,9 @@ sealed class DocumentParser(string defaultFont)
 
         return crop.IsCropped ? crop : null;
 
-        static double ReadFraction(OpenXmlElement el, string attrName)
+        static double ReadFraction(OpenXmlElement element, string attributeName)
         {
-            var attr = el.GetAttributes().FirstOrDefault(a => a.LocalName == attrName);
-            if (attr.Value != null && long.TryParse(attr.Value, out var thousandthsOfPercent))
+            if (element.AttributeValue(attributeName) is { } value && long.TryParse(value, out var thousandthsOfPercent))
             {
                 return Math.Clamp(thousandthsOfPercent / 100000.0, 0, 1);
             }
@@ -5119,48 +5224,42 @@ sealed class DocumentParser(string defaultFont)
         long groupOffsetX = 0, groupOffsetY = 0;
         double groupScaleX = 1.0, groupScaleY = 1.0;
 
-        var grpSpPr = drawing.Descendants().FirstOrDefault(e => e.LocalName == "grpSpPr");
+        var grpSpPr = drawing.Descendants().FirstOrDefault(_ => _.LocalName == "grpSpPr");
         if (grpSpPr != null)
         {
-            var xfrm = grpSpPr.Elements().FirstOrDefault(e => e.LocalName == "xfrm");
+            var xfrm = grpSpPr.Elements().FirstOrDefault(_ => _.LocalName == "xfrm");
             if (xfrm != null)
             {
                 // Get child extents for scaling
-                var chOff = xfrm.Elements().FirstOrDefault(e => e.LocalName == "chOff");
-                var chExt = xfrm.Elements().FirstOrDefault(e => e.LocalName == "chExt");
-                var ext = xfrm.Elements().FirstOrDefault(e => e.LocalName == "ext");
+                var chOff = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "chOff");
+                var chExt = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "chExt");
+                var ext = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "ext");
 
                 if (chOff != null)
                 {
-                    var xAttr = chOff.GetAttributes().FirstOrDefault(a => a.LocalName == "x");
-                    var yAttr = chOff.GetAttributes().FirstOrDefault(a => a.LocalName == "y");
-                    if (xAttr.Value != null)
-                    {
-                        long.TryParse(xAttr.Value, out groupOffsetX);
-                    }
-
-                    if (yAttr.Value != null)
-                    {
-                        long.TryParse(yAttr.Value, out groupOffsetY);
-                    }
+                    var attributes = chOff.GetAttributes();
+                    long.TryParse(attributes.AttributeValue("x"), out groupOffsetX);
+                    long.TryParse(attributes.AttributeValue("y"), out groupOffsetY);
                 }
 
                 if (chExt != null && ext != null)
                 {
-                    var chCx = chExt.GetAttributes().FirstOrDefault(a => a.LocalName == "cx");
-                    var chCy = chExt.GetAttributes().FirstOrDefault(a => a.LocalName == "cy");
-                    var extCx = ext.GetAttributes().FirstOrDefault(a => a.LocalName == "cx");
-                    var extCy = ext.GetAttributes().FirstOrDefault(a => a.LocalName == "cy");
+                    var chExtAttributes = chExt.GetAttributes();
+                    var extAttributes = ext.GetAttributes();
+                    var chCx = chExtAttributes.AttributeValue("cx");
+                    var chCy = chExtAttributes.AttributeValue("cy");
+                    var extCx = extAttributes.AttributeValue("cx");
+                    var extCy = extAttributes.AttributeValue("cy");
 
-                    if (chCx.Value != null && extCx.Value != null &&
-                        long.TryParse(chCx.Value, out var childWidth) && long.TryParse(extCx.Value, out var actualWidth) &&
+                    if (chCx != null && extCx != null &&
+                        long.TryParse(chCx, out var childWidth) && long.TryParse(extCx, out var actualWidth) &&
                         childWidth > 0)
                     {
                         groupScaleX = (double) actualWidth / childWidth;
                     }
 
-                    if (chCy.Value != null && extCy.Value != null &&
-                        long.TryParse(chCy.Value, out var childHeight) && long.TryParse(extCy.Value, out var actualHeight) &&
+                    if (chCy != null && extCy != null &&
+                        long.TryParse(chCy, out var childHeight) && long.TryParse(extCy, out var actualHeight) &&
                         childHeight > 0)
                     {
                         groupScaleY = (double) actualHeight / childHeight;
@@ -5170,18 +5269,18 @@ sealed class DocumentParser(string defaultFont)
         }
 
         // Find ALL pic elements (including in groups)
-        var pics = drawing.Descendants().Where(e => e.LocalName == "pic").ToList();
+        var pics = drawing.Descendants().Where(_ => _.LocalName == "pic").ToList();
 
         foreach (var pic in pics)
         {
             // Get the picture's shape properties for position/size
-            var spPr = pic.Elements().FirstOrDefault(e => e.LocalName == "spPr");
+            var spPr = pic.Elements().FirstOrDefault(_ => _.LocalName == "spPr");
             if (spPr == null)
             {
                 continue;
             }
 
-            var xfrm = spPr.Elements().FirstOrDefault(e => e.LocalName == "xfrm");
+            var xfrm = spPr.Elements().FirstOrDefault(_ => _.LocalName == "xfrm");
             if (xfrm == null)
             {
                 continue;
@@ -5189,38 +5288,22 @@ sealed class DocumentParser(string defaultFont)
 
             // Get offset within group
             long picOffsetX = 0, picOffsetY = 0;
-            var off = xfrm.Elements().FirstOrDefault(e => e.LocalName == "off");
+            var off = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "off");
             if (off != null)
             {
-                var xAttr = off.GetAttributes().FirstOrDefault(a => a.LocalName == "x");
-                var yAttr = off.GetAttributes().FirstOrDefault(a => a.LocalName == "y");
-                if (xAttr.Value != null)
-                {
-                    long.TryParse(xAttr.Value, out picOffsetX);
-                }
-
-                if (yAttr.Value != null)
-                {
-                    long.TryParse(yAttr.Value, out picOffsetY);
-                }
+                var attributes = off.GetAttributes();
+                long.TryParse(attributes.AttributeValue("x"), out picOffsetX);
+                long.TryParse(attributes.AttributeValue("y"), out picOffsetY);
             }
 
             // Get image extent
             long picWidth = 0, picHeight = 0;
-            var ext = xfrm.Elements().FirstOrDefault(e => e.LocalName == "ext");
+            var ext = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "ext");
             if (ext != null)
             {
-                var cxAttr = ext.GetAttributes().FirstOrDefault(a => a.LocalName == "cx");
-                var cyAttr = ext.GetAttributes().FirstOrDefault(a => a.LocalName == "cy");
-                if (cxAttr.Value != null)
-                {
-                    long.TryParse(cxAttr.Value, out picWidth);
-                }
-
-                if (cyAttr.Value != null)
-                {
-                    long.TryParse(cyAttr.Value, out picHeight);
-                }
+                var attributes = ext.GetAttributes();
+                long.TryParse(attributes.AttributeValue("cx"), out picWidth);
+                long.TryParse(attributes.AttributeValue("cy"), out picHeight);
             }
 
             if (picWidth == 0 || picHeight == 0)
@@ -5247,7 +5330,7 @@ sealed class DocumentParser(string defaultFont)
             var rotationDegrees = ReadRotationDegrees(xfrm);
 
             // Find the blip (image reference)
-            var blipFill = pic.Elements().FirstOrDefault(e => e.LocalName == "blipFill");
+            var blipFill = pic.Elements().FirstOrDefault(_ => _.LocalName == "blipFill");
             if (blipFill == null)
             {
                 continue;
@@ -5255,14 +5338,13 @@ sealed class DocumentParser(string defaultFont)
 
             var crop = ReadCrop(blipFill);
 
-            var blip = blipFill.Descendants().FirstOrDefault(e => e.LocalName == "blip");
+            var blip = blipFill.Descendants().FirstOrDefault(_ => _.LocalName == "blip");
             if (blip == null)
             {
                 continue;
             }
 
-            var embedAttr = blip.GetAttributes().FirstOrDefault(a => a.LocalName == "embed");
-            if (embedAttr.Value == null)
+            if (blip.AttributeValue("embed") is not { } embed)
             {
                 continue;
             }
@@ -5274,21 +5356,19 @@ sealed class DocumentParser(string defaultFont)
             string? rasterFallbackContentType = null;
 
             // Check for SVG extension
-            var extLst = blip.Elements().FirstOrDefault(e => e.LocalName == "extLst");
+            var extLst = blip.Elements().FirstOrDefault(_ => _.LocalName == "extLst");
             if (extLst != null)
             {
-                foreach (var extEl in extLst.Elements().Where(e => e.LocalName == "ext"))
+                foreach (var extEl in extLst.Elements().Where(_ => _.LocalName == "ext"))
                 {
-                    var uriAttr = extEl.GetAttributes().FirstOrDefault(a => a.LocalName == "uri");
-                    if (uriAttr.Value == "{96DAC541-7B7A-43D3-8B79-37D633B846F1}")
+                    if (extEl.AttributeValue("uri") == "{96DAC541-7B7A-43D3-8B79-37D633B846F1}")
                     {
-                        var svgBlip = extEl.Descendants().FirstOrDefault(e => e.LocalName == "svgBlip");
+                        var svgBlip = extEl.Descendants().FirstOrDefault(_ => _.LocalName == "svgBlip");
                         if (svgBlip != null)
                         {
-                            var svgEmbedAttr = svgBlip.GetAttributes().FirstOrDefault(a => a.LocalName == "embed");
-                            if (svgEmbedAttr.Value != null)
+                            if (svgBlip.AttributeValue("embed") is { } svgEmbed)
                             {
-                                var svgPart = hostPart.GetPartById(svgEmbedAttr.Value);
+                                var svgPart = hostPart.GetPartById(svgEmbed);
                                 using var stream = svgPart.GetStream();
                                 using var ms = new MemoryStream();
                                 stream.CopyTo(ms);
@@ -5303,7 +5383,7 @@ sealed class DocumentParser(string defaultFont)
             // Read the raster blob the blip points to. When SVG is set, this becomes the
             // raster fallback for backends that can't render SVG; otherwise it's the
             // primary imageData.
-            if (hostPart.GetPartById(embedAttr.Value) is ImagePart rasterPart)
+            if (hostPart.GetPartById(embed) is ImagePart rasterPart)
             {
                 using var stream = rasterPart.GetStream();
                 using var ms = new MemoryStream();
@@ -5393,21 +5473,18 @@ sealed class DocumentParser(string defaultFont)
         return (widthPct, widthRel, heightPct, heightRel);
     }
 
-    static SizeRelativeFrom ParseSizeRelativeFrom(OpenXmlElement sizeRel)
-    {
-        var attr = sizeRel.GetAttributes().FirstOrDefault(a => a.LocalName == "relativeFrom");
-        return attr.Value switch
+    static SizeRelativeFrom ParseSizeRelativeFrom(OpenXmlElement sizeRel) =>
+        sizeRel.AttributeValue("relativeFrom") switch
         {
             "page" => SizeRelativeFrom.Page,
             // margin / leftMargin / rightMargin / topMargin / bottomMargin / insideMargin / outsideMargin
             // all collapse to the content area; mirror-margin layouts aren't yet honoured.
             _ => SizeRelativeFrom.Margin
         };
-    }
 
     static double? ParsePercentChild(OpenXmlElement parent, string localName)
     {
-        var pct = parent.ChildElements.FirstOrDefault(c => c.LocalName == localName);
+        var pct = parent.ChildElements.FirstOrDefault(_ => _.LocalName == localName);
         if (pct?.InnerText is not { } text || string.IsNullOrEmpty(text))
         {
             return null;
@@ -6015,6 +6092,16 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
+        // prstGeom prst="line" — stroke-only connector. Has no fill (and typically cy=0
+        // for a horizontal line, cx=0 for a vertical), so the rest of the fill-driven
+        // pipeline can't render it. Emit a FloatingShapeElement with the line color/width
+        // and let the renderer's stroke branch draw it. Must run before the noFill bail-out
+        // because line connectors carry an explicit <a:noFill/> alongside the stroke.
+        if (ShapeParser.IsLineShape(shapeProps))
+        {
+            return ParseLineShape(wsp, shapeProps, positioning, accumTransform, behindText);
+        }
+
         // An explicit <a:noFill/> in spPr means the shape has no fill, even if the
         // wps:style contains a fillRef — the direct property always wins.
         if (shapeProps.GetFirstChild<A.NoFill>() != null)
@@ -6022,30 +6109,11 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
-        // Decorative line-art (flower silhouettes, leaf outlines) is encoded as a custGeom
-        // with many cubic beziers — its bounding box does not match the visible artwork, so
-        // rendering it as a solid-fill rectangle produces a large coloured block over the
-        // template. Detect this by counting bezier segments in the path. Simple polygon
-        // backgrounds (page-fills, accent strips) typically use straight lnTo edges with at
-        // most a small number of beziers for rounded corners.
-        var custGeom = shapeProps.GetFirstChild<A.CustomGeometry>();
-        if (custGeom != null)
-        {
-            var bezierCount = custGeom.Descendants<A.CubicBezierCurveTo>().Count();
-            if (bezierCount > 50)
-            {
-                return null;
-            }
-        }
-
-        // prstGeom prst="line" — stroke-only connector. Has no fill (and typically cy=0
-        // for a horizontal line, cx=0 for a vertical), so the rest of the fill-driven
-        // pipeline can't render it. Emit a FloatingShapeElement with the line color/width
-        // and let the renderer's stroke branch draw it.
-        if (ShapeParser.IsLineShape(shapeProps))
-        {
-            return ParseLineShape(wsp, shapeProps, positioning, accumTransform, behindText);
-        }
+        // No bezier-count fallback here — the polygon path flattener (ExtractPolygonPoints)
+        // now turns cubic / quadratic curves into a polyline approximation, so high-bezier
+        // custGeoms render as fillable shapes. The earlier "skip when >50 beziers" guard
+        // existed because we would otherwise have drawn the bounding rect as a solid colour
+        // overlay.
 
         // Check for solid fill in shape properties
         var solidFill = shapeProps.GetFirstChild<A.SolidFill>();
@@ -6926,7 +6994,7 @@ sealed class DocumentParser(string defaultFont)
         }
 
         // Check for Office 2010 checkbox (w14:checkbox)
-        if (props.Descendants().Any(e => e.LocalName == "checkbox"))
+        if (props.Descendants().Any(_ => _.LocalName == "checkbox"))
         {
             return true;
         }
@@ -6974,14 +7042,13 @@ sealed class DocumentParser(string defaultFont)
 
         // Check for specific control types using Office 2010 Word namespace
         var checkbox14 = props.Descendants()
-            .FirstOrDefault(e => e.LocalName == "checkbox");
+            .FirstOrDefault(_ => _.LocalName == "checkbox");
         if (checkbox14 != null)
         {
             controlType = ContentControlType.CheckBox;
             var checkedElement = checkbox14.Descendants()
-                .FirstOrDefault(e => e.LocalName == "checked");
-            var checkedVal = checkedElement?.GetAttributes()
-                .FirstOrDefault(a => a.LocalName == "val").Value;
+                .FirstOrDefault(_ => _.LocalName == "checked");
+            var checkedVal = checkedElement?.AttributeValue("val");
             isChecked = checkedVal is "1" or "true";
         }
         else if (props.GetFirstChild<SdtContentComboBox>() != null)
@@ -7036,13 +7103,15 @@ sealed class DocumentParser(string defaultFont)
             // Parse each run with full styling, inheriting from paragraph style
             foreach (var run in sdtContent.Descendants<OoxmlRun>())
             {
-                // Check for line breaks within the run
+                // Check for line breaks within the run. The run may also contain text after
+                // the break (e.g. <w:r><w:br/><w:t>Sharma</w:t></w:r>) — emit a newline run
+                // for the break, then fall through to also parse the text content so neither
+                // half of the run is dropped.
                 var breakElement = run.GetFirstChild<Break>();
                 if (breakElement != null &&
                     breakElement.Type?.Value != BreakValues.Page &&
                     breakElement.Type?.Value != BreakValues.Column)
                 {
-                    // Line break - add newline character
                     var runProps = ParseRunProperties(run.RunProperties, mainPart);
                     styledRuns.Add(
                         new()
@@ -7050,14 +7119,13 @@ sealed class DocumentParser(string defaultFont)
                             Text = "\n",
                             Properties = runProps
                         });
-                    continue;
                 }
 
                 styledRuns.AddRange(ParseRun(run, mainPart, paragraphStyleId));
             }
 
             // Also build plain text content for backward compatibility
-            content = string.Join("", styledRuns.Select(r => r.Text));
+            content = string.Join("", styledRuns.Select(_ => _.Text));
         }
 
         return new()
@@ -7106,7 +7174,7 @@ sealed class DocumentParser(string defaultFont)
         {
             var checkedElement = checkbox.GetFirstChild<Checked>();
             // Default element may not have a strongly-typed class, search by local name
-            var defaultElement = checkbox.ChildElements.FirstOrDefault(e => e.LocalName == "default");
+            var defaultElement = checkbox.ChildElements.FirstOrDefault(_ => _.LocalName == "default");
             var sizeElement = checkbox.GetFirstChild<FormFieldSize>();
 
             var isChecked = checkedElement != null &&
@@ -7115,8 +7183,8 @@ sealed class DocumentParser(string defaultFont)
             if (defaultElement != null)
             {
                 // Check if it has a val attribute with false value
-                var valAttr = defaultElement.GetAttributes().FirstOrDefault(a => a.LocalName == "val");
-                defaultChecked = valAttr.Value == null || (valAttr.Value != "0" && !valAttr.Value.Equals("false", StringComparison.CurrentCultureIgnoreCase));
+                var val = defaultElement.AttributeValue("val");
+                defaultChecked = val == null || (val != "0" && !val.Equals("false", StringComparison.CurrentCultureIgnoreCase));
             }
 
             double size = 0;
@@ -7495,10 +7563,10 @@ sealed class DocumentParser(string defaultFont)
         {
             // If the element exists with val="0" or val="false", widow control is disabled
             // If val is missing or true, it's enabled (but we default to true anyway)
-            var valAttr = widowControlEl.Val;
-            if (valAttr != null && valAttr.HasValue)
+            var valAttribute = widowControlEl.Val;
+            if (valAttribute != null && valAttribute.HasValue)
             {
-                widowControl = valAttr.Value;
+                widowControl = valAttribute.Value;
             }
             else
             {
@@ -7599,18 +7667,18 @@ sealed class DocumentParser(string defaultFont)
         var framePr = props.GetFirstChild<FrameProperties>();
         if (framePr != null)
         {
-            var dropCapAttr = framePr.GetAttributes().FirstOrDefault(a => a.LocalName == "dropCap").Value;
-            if (string.Equals(dropCapAttr, "drop", StringComparison.OrdinalIgnoreCase))
+            var attributes = framePr.GetAttributes();
+            var dropCapAttribute = attributes.AttributeValue("dropCap");
+            if (string.Equals(dropCapAttribute, "drop", StringComparison.OrdinalIgnoreCase))
             {
                 dropCap = DropCapPosition.Drop;
             }
-            else if (string.Equals(dropCapAttr, "margin", StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(dropCapAttribute, "margin", StringComparison.OrdinalIgnoreCase))
             {
                 dropCap = DropCapPosition.Margin;
             }
 
-            var linesAttr = framePr.GetAttributes().FirstOrDefault(a => a.LocalName == "lines").Value;
-            if (int.TryParse(linesAttr, out var parsedLines))
+            if (int.TryParse(attributes.AttributeValue("lines"), out var parsedLines))
             {
                 dropCapLines = parsedLines;
             }
@@ -7942,6 +8010,19 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        // w:highlight — Word's highlighter pen, distinct from w:shd. Values are a fixed
+        // palette of named colors (yellow, green, cyan, ...). Mapped to BackgroundColorHex
+        // so the same renderer path that handles shading paints the highlight.
+        var highlightElement = props.GetFirstChild<Highlight>();
+        if (highlightElement?.Val?.HasValue == true)
+        {
+            var highlightHex = HighlightToHex(highlightElement.Val.Value);
+            if (highlightHex != null)
+            {
+                backgroundColor = highlightHex;
+            }
+        }
+
         // Also check for run-specific style reference that overrides paragraph style
         // IMPORTANT: Only apply properties that are EXPLICITLY defined in the character style,
         // not inherited defaults. This ensures character styles like "Shade" (which only defines
@@ -7952,7 +8033,7 @@ sealed class DocumentParser(string defaultFont)
             // Look up the original style definition to check which properties are explicitly defined
             var stylesPart = mainPart.StyleDefinitionsPart;
             var originalStyle = stylesPart?.Styles?.Elements<Style>()
-                .FirstOrDefault(s => s.StyleId?.Value == runStyleId);
+                .FirstOrDefault(_ => _.StyleId?.Value == runStyleId);
             var originalRPr = originalStyle?.StyleRunProperties;
 
             // Only override with run style properties that are EXPLICITLY defined in the style
@@ -8209,9 +8290,9 @@ sealed class DocumentParser(string defaultFont)
 
     static void EmitMathRun(DocumentFormat.OpenXml.Math.Run mathRun, List<Run> runs, RunProperties props)
     {
-        foreach (var t in mathRun.Elements<DocumentFormat.OpenXml.Math.Text>())
+        foreach (var mathText in mathRun.Elements<DocumentFormat.OpenXml.Math.Text>())
         {
-            var text = t.Text;
+            var text = mathText.Text;
             if (string.IsNullOrEmpty(text))
             {
                 continue;

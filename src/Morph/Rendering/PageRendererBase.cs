@@ -569,13 +569,17 @@ abstract class PageRendererBase(RenderContextBase context)
         // Walk forward to find the next element with a known significant height (typically
         // a table). Paragraphs and other small elements rarely force the page break by
         // themselves, so we skip past them looking for the real break-driving element.
+        // Skip over later backgrounds too — when a sequence of behind-text drawings precedes
+        // a table that needs the next page, all the drawings belong on that next page; we
+        // don't want the first decoration in the sequence to anchor itself to the current
+        // page while subsequent ones lift to the next.
         for (var j = backgroundIndex + 1; j < elements.Count; j++)
         {
             var next = elements[j];
-            if (next is FloatingShapeElement {BehindText: true})
+            if (next is FloatingShapeElement {BehindText: true} ||
+                next is FloatingImageElement {BehindText: true})
             {
-                // Hit a later background — stop; that one will handle its own page advance.
-                return;
+                continue;
             }
 
             var required = EstimatedNextElementHeight(next);
@@ -600,11 +604,18 @@ abstract class PageRendererBase(RenderContextBase context)
     {
         if (element is TableElement table)
         {
-            // Use the first row's declared height as a cheap proxy — enough to detect when
-            // a table won't fit at all in the remaining space. Real layout will re-check.
-            return table.Rows.Count > 0
-                ? (float) (table.Rows[0].HeightPoints ?? 0)
-                : 0;
+            // Sum every row's declared height; for rows without a w:trHeight, assume a
+            // ~25pt single-line slot. The estimate only needs to be in the right ballpark
+            // for the AdvanceToBackgroundsTargetPage check — when the table genuinely
+            // won't fit, this catches it; when it does fit, the actual layout pass
+            // confirms and renders inline. Previously this returned just the first row's
+            // declared height, which under-estimated multi-row tables to zero.
+            float sum = 0;
+            foreach (var row in table.Rows)
+            {
+                sum += (float) (row.HeightPoints ?? 25);
+            }
+            return sum;
         }
 
         // Paragraphs / other small elements: a single line is unlikely to force a page break,
@@ -686,6 +697,40 @@ abstract class PageRendererBase(RenderContextBase context)
         // Allow a 10% tolerance on the page-overflow check; row-height measurement is conservative.
         var tableTolerance = context.ContentHeight * 0.10f;
         var needsRowByRowRendering = totalHeight > context.ContentHeight + tableTolerance;
+
+        // When a table fits on a fresh page but not in the remaining space, advance to the
+        // next page before rendering it. Without this, letter-style layouts where one row
+        // occupies most of a page (hRule="exact") get their fixed-height row clipped at the
+        // bottom margin instead of being lifted onto the next page. Restricted to tables
+        // that contain at least one hRule="exact" row so flow-style tables (the bulk of
+        // scenarios) keep their existing behaviour where minor over-spill is tolerated.
+        // Use a tighter tolerance here than the row-by-row check above — the goal is to
+        // pre-empt overflow without splitting the table itself.
+        if (!needsRowByRowRendering && !table.Properties.IsFloating && totalHeight > 0)
+        {
+            var remainingSpace = Math.Max(0f, context.ContentHeight - (context.CurrentY - context.ContentTop));
+            // 5pt buffer: line-height rounding can put a single-paragraph leader (~37pt) just
+            // a fraction over the remaining-space-minus-table-height delta. Anything inside
+            // that margin renders fine without an extra page advance.
+            if (totalHeight > remainingSpace + 5f && totalHeight <= context.ContentHeight + tableTolerance)
+            {
+                var hasExactRow = false;
+                foreach (var row in table.Rows)
+                {
+                    if (row.IsExactHeight)
+                    {
+                        hasExactRow = true;
+                        break;
+                    }
+                }
+                if (hasExactRow)
+                {
+                    FinishCurrentPage();
+                    StartNewPage();
+                }
+            }
+        }
+
 
         if (needsRowByRowRendering)
         {

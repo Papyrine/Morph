@@ -72,7 +72,7 @@ public class TagCoverageAuditTests
             .Order(StringComparer.Ordinal)
             .ToList();
 
-        var prefixesInSdk = sdkElements.Select(t => t.Split(':', 2)[0]).Distinct().Order(StringComparer.Ordinal).ToList();
+        var prefixesInSdk = sdkElements.Select(_ => _.Split(':', 2)[0]).Distinct().Order(StringComparer.Ordinal).ToList();
 
         var report = new StringBuilder();
         report.AppendLine("# OOXML Tag Coverage Audit");

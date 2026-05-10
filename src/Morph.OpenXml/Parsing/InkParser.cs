@@ -19,8 +19,8 @@ static class InkParser
         // Look for contentPart element which references ink content
         // contentPart is in the a14 namespace (Office 2010 Drawing)
         var contentPart = drawing.Descendants()
-            .FirstOrDefault(e => e.LocalName == "contentPart" &&
-                                 e.GetAttributes().Any(a => a.LocalName is "id" or "embed"));
+            .FirstOrDefault(_ => _.LocalName == "contentPart" &&
+                                 _.GetAttributes().Any(attribute => attribute.LocalName is "id" or "embed"));
 
         if (contentPart == null)
         {
@@ -28,16 +28,16 @@ static class InkParser
         }
 
         // Get the relationship ID
-        var relIdAttr = contentPart.GetAttributes()
-            .FirstOrDefault(a => a is {LocalName: "id", Prefix: "r"});
+        var relIdAttribute = contentPart.GetAttributes()
+            .FirstOrDefault(_ => _ is {LocalName: "id", Prefix: "r"});
 
-        if (relIdAttr.Value == null)
+        if (relIdAttribute.Value == null)
         {
             return null;
         }
 
         // Get the ink part
-        var inkPart = mainPart.GetPartById(relIdAttr.Value);
+        var inkPart = mainPart.GetPartById(relIdAttribute.Value);
 
         // Read the InkML content
         using var stream = inkPart.GetStream();
@@ -110,9 +110,14 @@ static class InkParser
                                 break;
                             case "width":
                                 // Width is typically in cm, convert to points (1cm = 28.35pt)
-                                if (double.TryParse(value.Replace("cm", "").Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var w))
+                                var widthSpan = value.AsSpan().Trim();
+                                if (widthSpan.EndsWith("cm", StringComparison.Ordinal))
                                 {
-                                    width = w * 28.35;
+                                    widthSpan = widthSpan[..^2].TrimEnd();
+                                }
+                                if (double.TryParse(widthSpan, NumberStyles.Float, CultureInfo.InvariantCulture, out var widthCm))
+                                {
+                                    width = widthCm * 28.35;
                                 }
 
                                 break;

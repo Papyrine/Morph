@@ -576,7 +576,7 @@ internal sealed class HtmlParser
 
         if (styles.TryGetValue("font-size", out var fontSize))
         {
-            if (double.TryParse(fontSize.Replace("px", "").Replace("pt", ""), out var size))
+            if (TryParseCssDimension(fontSize, out var size))
             {
                 props = props with
                 {
@@ -666,7 +666,7 @@ internal sealed class HtmlParser
 
         if (styles.TryGetValue("text-indent", out var textIndent))
         {
-            if (double.TryParse(textIndent.Replace("px", "").Replace("pt", ""), out var indentValue))
+            if (TryParseCssDimension(textIndent, out var indentValue))
             {
                 result.TextIndent = indentValue;
             }
@@ -674,7 +674,7 @@ internal sealed class HtmlParser
 
         if (styles.TryGetValue("line-height", out var lineHeight))
         {
-            if (double.TryParse(lineHeight.Replace("px", "").Replace("pt", ""), out var lhValue))
+            if (TryParseCssDimension(lineHeight, out var lhValue))
             {
                 result.LineHeight = lhValue;
             }
@@ -816,8 +816,8 @@ internal sealed class HtmlParser
 
         // Parse borders from border attribute
         var defaultBorders = CellBorders.All;
-        var borderAttr = tableElement.GetAttribute("border");
-        if (!string.IsNullOrEmpty(borderAttr) && double.TryParse(borderAttr, out var borderWidth))
+        var borderAttribute = tableElement.GetAttribute("border");
+        if (!string.IsNullOrEmpty(borderAttribute) && double.TryParse(borderAttribute, out var borderWidth))
         {
             if (borderWidth > 0)
             {
@@ -915,16 +915,16 @@ internal sealed class HtmlParser
 
                 // Handle colspan
                 var gridSpan = 1;
-                var colspanAttr = cell.GetAttribute("colspan");
-                if (!string.IsNullOrEmpty(colspanAttr) && int.TryParse(colspanAttr, out var cs) && cs > 1)
+                var colspanAttribute = cell.GetAttribute("colspan");
+                if (!string.IsNullOrEmpty(colspanAttribute) && int.TryParse(colspanAttribute, out var cs) && cs > 1)
                 {
                     gridSpan = cs;
                 }
 
                 // Handle rowspan
                 var verticalMerge = VerticalMergeType.None;
-                var rowspanAttr = cell.GetAttribute("rowspan");
-                if (!string.IsNullOrEmpty(rowspanAttr) && int.TryParse(rowspanAttr, out var rs) && rs > 1)
+                var rowspanAttribute = cell.GetAttribute("rowspan");
+                if (!string.IsNullOrEmpty(rowspanAttribute) && int.TryParse(rowspanAttribute, out var rs) && rs > 1)
                 {
                     verticalMerge = VerticalMergeType.Restart;
                     newRowspans[colIndex] = rs - 1;
@@ -1032,7 +1032,7 @@ internal sealed class HtmlParser
         // Try shorthand property
         if (styles.TryGetValue(property, out var all))
         {
-            if (double.TryParse(all.Replace("px", "").Replace("pt", ""), out var value))
+            if (TryParseCssDimension(all, out var value))
             {
                 return new(value);
             }
@@ -1042,27 +1042,27 @@ internal sealed class HtmlParser
         double? top = null, right = null, bottom = null, left = null;
 
         if (styles.TryGetValue($"{property}-top", out var topStr) &&
-            double.TryParse(topStr.Replace("px", "").Replace("pt", ""), out var t))
+            TryParseCssDimension(topStr, out var topValue))
         {
-            top = t;
+            top = topValue;
         }
 
         if (styles.TryGetValue($"{property}-right", out var rightStr) &&
-            double.TryParse(rightStr.Replace("px", "").Replace("pt", ""), out var r))
+            TryParseCssDimension(rightStr, out var rightValue))
         {
-            right = r;
+            right = rightValue;
         }
 
         if (styles.TryGetValue($"{property}-bottom", out var bottomStr) &&
-            double.TryParse(bottomStr.Replace("px", "").Replace("pt", ""), out var b))
+            TryParseCssDimension(bottomStr, out var bottomValue))
         {
-            bottom = b;
+            bottom = bottomValue;
         }
 
         if (styles.TryGetValue($"{property}-left", out var leftStr) &&
-            double.TryParse(leftStr.Replace("px", "").Replace("pt", ""), out var l))
+            TryParseCssDimension(leftStr, out var leftValue))
         {
-            left = l;
+            left = leftValue;
         }
 
         if (top.HasValue || right.HasValue || bottom.HasValue || left.HasValue)
@@ -1228,16 +1228,27 @@ internal sealed class HtmlParser
         }
     }
 
-    static double? ParseDimensionAttribute(IElement element, string attr)
+    static double? ParseDimensionAttribute(IElement element, string attribute)
     {
-        var value = element.GetAttribute(attr);
+        var value = element.GetAttribute(attribute);
         if (!string.IsNullOrEmpty(value) &&
-            double.TryParse(value.Replace("px", "").Replace("pt", ""), out var result))
+            TryParseCssDimension(value, out var result))
         {
             return result;
         }
 
         return null;
+    }
+
+    static bool TryParseCssDimension(ReadOnlySpan<char> value, out double result)
+    {
+        var span = value.Trim();
+        if (span.EndsWith("px", StringComparison.OrdinalIgnoreCase) ||
+            span.EndsWith("pt", StringComparison.OrdinalIgnoreCase))
+        {
+            span = span[..^2].TrimEnd();
+        }
+        return double.TryParse(span, out result);
     }
 
     static CellBorders? ParseCssBorderShorthand(string value)
@@ -1255,14 +1266,14 @@ internal sealed class HtmlParser
         {
             if (part.EndsWith("px", StringComparison.OrdinalIgnoreCase))
             {
-                if (double.TryParse(part.Replace("px", ""), out var px))
+                if (TryParseCssDimension(part, out var px))
                 {
                     widthPt = px * 0.75;
                 }
             }
             else if (part.EndsWith("pt", StringComparison.OrdinalIgnoreCase))
             {
-                if (double.TryParse(part.Replace("pt", ""), out var pt))
+                if (TryParseCssDimension(part, out var pt))
                 {
                     widthPt = pt;
                 }

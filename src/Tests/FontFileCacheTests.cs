@@ -6,8 +6,8 @@ public class FontFileCacheTests
 
     static FontFileCache Build(params (string path, string? family)[] files)
     {
-        var map = files.ToDictionary(f => f.path, f => f.family, StringComparer.Ordinal);
-        return new(files.Select(f => f.path), path => map[path] is { } name ? [name] : []);
+        var map = files.ToDictionary(_ => _.path, _ => _.family, StringComparer.Ordinal);
+        return new(files.Select(_ => _.path), path => map[path] is { } name ? [name] : []);
     }
 
     [Test]

@@ -141,10 +141,10 @@ static class TableLayout
         {
             var totalExplicitWidth = 0f;
             var columnsWithoutWidth = 0;
-            foreach (var w in widths)
+            foreach (var width in widths)
             {
-                totalExplicitWidth += w;
-                if (w == 0)
+                totalExplicitWidth += width;
+                if (width == 0)
                 {
                     columnsWithoutWidth++;
                 }
@@ -174,11 +174,14 @@ static class TableLayout
                     widths[i] *= scale;
                 }
             }
-            else if (isAutoFit && totalExplicitWidth > 0 && totalExplicitWidth < availableWidth)
+            else if (isAutoFit && totalExplicitWidth > 0 && totalExplicitWidth < availableWidth &&
+                     table.Properties.FillContainer)
             {
-                // Autofit: when explicit widths underflow the available width, grow columns
-                // proportionally so the table fills its container. Fixed-layout tables keep
-                // their original widths and may leave whitespace on the right.
+                // Autofit: only grow columns to fill the container when the table explicitly
+                // asked to (w:tblW w:type="pct"). When w:tblW is dxa, the table is a fixed
+                // size; when it's missing or auto, Word fits to content and leaves whitespace
+                // on the right — growing here would make narrow tables (e.g. a vertical-text
+                // sidebar) span the page.
                 var scale = availableWidth / totalExplicitWidth;
                 for (var i = 0; i < colCount; i++)
                 {
@@ -209,9 +212,9 @@ static class TableLayout
             }
 
             var totalWidth = 0f;
-            foreach (var w in widths)
+            foreach (var width in widths)
             {
-                totalWidth += w;
+                totalWidth += width;
             }
 
             if (totalWidth > availableWidth && totalWidth > 0)
@@ -222,9 +225,12 @@ static class TableLayout
                     widths[i] *= scale;
                 }
             }
-            else if (isAutoFit && totalWidth > 0 && totalWidth < availableWidth)
+            else if (isAutoFit && totalWidth > 0 && totalWidth < availableWidth &&
+                     table.Properties.PreferredWidthPoints == null)
             {
-                // Same autofit-grow rule for grid-only widths.
+                // Same autofit-grow rule for grid-only widths. Skip when the table set an
+                // explicit w:tblW dxa width — that's a fixed size, not a "fill to container"
+                // hint, so growing the columns would override the user's intent.
                 var scale = availableWidth / totalWidth;
                 for (var i = 0; i < colCount; i++)
                 {
@@ -339,13 +345,26 @@ static class TableLayout
 
         if (sumPref <= availableWidth)
         {
-            // Tables that reach this branch have no explicit width source (no per-cell
-            // widths, no w:tblGrid widths, no w:tblW). Word's autofit hugs the content
-            // in that case rather than growing to fill the page. Preserve preferred
-            // widths so a small "Col 1 / R1C1" grid doesn't span the whole page.
-            for (var i = 0; i < colCount; i++)
+            // Two flavours:
+            //  * w:tblW w:type="pct" said the table fills its container — distribute the
+            //    available width proportional to content prefs so col1=col2=… add up to
+            //    the page width even when no explicit cell widths are present.
+            //  * No w:tblW (or w:type="auto") — autofit hugs the content, so a small
+            //    "Col 1 / R1C1" grid doesn't span the whole page.
+            if (tableProps.FillContainer)
             {
-                widths[i] = prefs[i];
+                var scale = availableWidth / sumPref;
+                for (var i = 0; i < colCount; i++)
+                {
+                    widths[i] = prefs[i] * scale;
+                }
+            }
+            else
+            {
+                for (var i = 0; i < colCount; i++)
+                {
+                    widths[i] = prefs[i];
+                }
             }
         }
         else if (sumMin < availableWidth)
