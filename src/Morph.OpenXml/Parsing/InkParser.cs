@@ -302,7 +302,7 @@ static class InkParser
     /// <summary>
     /// Parses trace point data from InkML trace element.
     /// </summary>
-    static List<InkPoint> ParseTracePoints(string traceData)
+    internal static List<InkPoint> ParseTracePoints(string traceData)
     {
         var points = new List<InkPoint>();
 
