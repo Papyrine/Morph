@@ -232,12 +232,15 @@ public class TabStopResolverTests
             }
         };
 
-        var (dest, stop, _) = TabStopResolver.Resolve(
+        var (dest, stop, suppressFollowing) = TabStopResolver.Resolve(
             cursorX: 30, followingWidth: 8, stops,
             defaultTabStopPoints: 36, leftIndentPoints: 0,
             availableEndX: 250);
 
-        await Assert.That(dest).IsEqualTo(242.0);
+        // Destination clamps to the cell edge; the leader fills the gap and the post-tab page
+        // number is dropped via suppressFollowing (Word's TOC-in-narrow-cell behaviour).
+        await Assert.That(dest).IsEqualTo(250.0);
+        await Assert.That(suppressFollowing).IsTrue();
         await Assert.That(stop!.Leader).IsEqualTo(TabLeader.Dot);
     }
 
@@ -274,12 +277,13 @@ public class TabStopResolverTests
             }
         };
 
-        var (dest, _, _) = TabStopResolver.Resolve(
+        var (dest, _, suppressFollowing) = TabStopResolver.Resolve(
             cursorX: 30, followingWidth: 60, stops,
             defaultTabStopPoints: 36, leftIndentPoints: 0,
             availableEndX: 250);
 
-        await Assert.That(dest).IsEqualTo(220.0);
+        await Assert.That(dest).IsEqualTo(250.0);
+        await Assert.That(suppressFollowing).IsTrue();
     }
 
     [Test]
