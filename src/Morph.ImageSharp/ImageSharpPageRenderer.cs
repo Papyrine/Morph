@@ -1189,7 +1189,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             VerticalAlignment = VerticalAlignment.Center,
             Origin = new PointF(tempW / 2f, tempH / 2f)
         };
-        temp.Mutate(_ => _.DrawText(tempOptions, watermark.Text!, new SolidBrush(color)));
+        temp.Mutate(_ => _.DrawText(tempOptions, watermark.Text!, context.GetBrush(color)));
         temp.Mutate(_ => _.Rotate((float) watermark.RotationDegrees));
 
         var dstX = (context.PageWidthPixels - temp.Width) / 2;
@@ -1322,7 +1322,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 pixel.A = (byte) Math.Round(alpha * 255);
                 fillColor = Color.FromPixel(pixel);
             }
-            FillShape(shape, pixelX, pixelY, pixelWidth, pixelHeight, new SolidBrush(fillColor));
+            FillShape(shape, pixelX, pixelY, pixelWidth, pixelHeight, context.GetBrush(fillColor));
         }
 
         if (shape is { LineColorHex: { } lineColor, LineWidthPoints: { } lineWidthPt and > 0 })

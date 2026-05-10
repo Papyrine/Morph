@@ -4,6 +4,9 @@
 sealed class TextRenderer(ImageSharpRenderContext context) :
     IParagraphMeasurer
 {
+    // See SkiaTextRenderer for the rationale — same shape, same hot-path benefit.
+    readonly Dictionary<ParagraphElement, List<TextLine>> pagedLayoutCache = [];
+    readonly Dictionary<(ParagraphElement, float), List<TextLine>> boundedLayoutCache = [];
     /// <summary>
     /// Measures the height of a paragraph when rendered at the given width.
     /// </summary>
@@ -359,7 +362,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             void DrawBorder(BorderEdge edge, PointF start, PointF end)
             {
                 var color = ImageSharpRenderContext.ParseColor(edge.ColorHex ?? "000000");
-                var pen = new SolidPen(color, context.PointsToPixels((float) edge.WidthPoints));
+                var pen = context.GetPen(color, context.PointsToPixels((float) edge.WidthPoints));
                 currentPage.Mutate(_ => _.DrawLine(pen, start, end));
             }
 
@@ -523,6 +526,18 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
 
     List<TextLine> LayoutParagraphWithWidth(ParagraphElement paragraph, float maxWidth)
     {
+        var key = (paragraph, maxWidth);
+        if (boundedLayoutCache.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+        var result = LayoutParagraphWithWidthCore(paragraph, maxWidth);
+        boundedLayoutCache[key] = result;
+        return result;
+    }
+
+    List<TextLine> LayoutParagraphWithWidthCore(ParagraphElement paragraph, float maxWidth)
+    {
         var lines = new List<TextLine>();
         var props = paragraph.Properties;
         var runs = DropCapsExpander.Expand(SmallCapsExpander.Expand(paragraph.Runs), paragraph.Properties);
@@ -536,6 +551,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
 
         var firstLineIndent = (float)props.FirstLineIndentPoints;
         var effectiveWidth = adjustedMaxWidth - (isFirstLine ? firstLineIndent : 0);
+        var hasDecimalTabStop = props.HasDecimalTabStop();
 
         for (var runIndex = 0; runIndex < runs.Count; runIndex++)
         {
@@ -547,7 +563,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 var followingWidth = MeasureFollowingWidth(runs, runIndex + 1);
                 var leftIndentPts = (float)props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
-                double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
+                double? decimalPrefix = hasDecimalTabStop
                     ? MeasureFollowingDecimalPrefix(runs, runIndex + 1)
                     : null;
                 var (destinationAbs, matchedStop, suppressFollowing) = TabStopResolver.Resolve(
@@ -814,7 +830,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             Dpi = context.Dpi,
             Origin = new PointF(pixelX - textWidth, pixelY - baseline * context.Scale)
         };
-        currentPage.Mutate(_ => _.DrawText(textOptions, numberText, new SolidBrush(Color.Black)));
+        currentPage.Mutate(_ => _.DrawText(textOptions, numberText, context.GetBrush(Color.Black)));
     }
 
     /// <summary>
@@ -845,7 +861,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             Dpi = context.Dpi,
             Origin = new PointF(pixelX, pixelY - baseline * context.Scale)
         };
-        currentPage.Mutate(_ => _.DrawText(textOptions, numbering.Text, new SolidBrush(color)));
+        currentPage.Mutate(_ => _.DrawText(textOptions, numbering.Text, context.GetBrush(color)));
     }
 
     static RunProperties ResolveBulletRunProperties(NumberingInfo numbering, ParagraphElement paragraph)
@@ -899,7 +915,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             Dpi = context.Dpi,
             Origin = new PointF(pixelX, pixelY - baseline * context.Scale)
         };
-        currentPage.Mutate(_ => _.DrawText(textOptions, numbering.Text, new SolidBrush(color)));
+        currentPage.Mutate(_ => _.DrawText(textOptions, numbering.Text, context.GetBrush(color)));
     }
 
     float CalculateLineX(TextLine line, ParagraphProperties props)
@@ -1077,7 +1093,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 Origin = new PointF(pixelX + offset, pixelY - baseline * context.Scale + offset),
                 KerningMode = textOptions.KerningMode
             };
-            currentPage.Mutate(_ => _.DrawText(lightOptions, fragment.Text, new SolidBrush(Color.White)));
+            currentPage.Mutate(_ => _.DrawText(lightOptions, fragment.Text, context.GetBrush(Color.White)));
         }
         else if (fragment.Properties.Imprint)
         {
@@ -1088,18 +1104,18 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 Origin = new PointF(pixelX - offset, pixelY - baseline * context.Scale - offset),
                 KerningMode = textOptions.KerningMode
             };
-            currentPage.Mutate(_ => _.DrawText(darkOptions, fragment.Text, new SolidBrush(Color.Gray)));
+            currentPage.Mutate(_ => _.DrawText(darkOptions, fragment.Text, context.GetBrush(Color.Gray)));
         }
 
         // w:outline — render the glyph as a stroke instead of a fill.
         if (fragment.Properties.OutlineOnly)
         {
-            var strokePen = new SolidPen(color, Math.Max(0.5f, context.Scale * 0.5f));
+            var strokePen = context.GetPen(color, Math.Max(0.5f, context.Scale * 0.5f));
             currentPage.Mutate(_ => _.DrawText(textOptions, fragment.Text, strokePen));
         }
         else
         {
-            currentPage.Mutate(_ => _.DrawText(textOptions, fragment.Text, new SolidBrush(color)));
+            currentPage.Mutate(_ => _.DrawText(textOptions, fragment.Text, context.GetBrush(color)));
         }
 
         // w:bdr — per-run border drawn around the text box. Doesn't reserve space, so
@@ -1111,14 +1127,14 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             var bdrBottom = pixelY + (runHeight2 - runBaseline2) * context.Scale;
             var bdrWidth = context.PointsToPixels(fragment.Width);
             var bdrColor = ImageSharpRenderContext.ParseColor(runBdr.ColorHex);
-            var bdrPen = new SolidPen(bdrColor, Math.Max(0.5f, (float) runBdr.WidthPoints * context.Scale));
+            var bdrPen = context.GetPen(bdrColor, Math.Max(0.5f, (float) runBdr.WidthPoints * context.Scale));
             currentPage.Mutate(_ => _.Draw(bdrPen, new RectangleF(pixelX, bdrTop, bdrWidth, bdrBottom - bdrTop)));
         }
 
         if (fragment.Properties.Outline is { } outline)
         {
             var outlineColor = ImageSharpRenderContext.ParseColor(outline.ColorHex);
-            var pen = new SolidPen(outlineColor, Math.Max(0.5f, (float) outline.WidthPoints * context.Scale));
+            var pen = context.GetPen(outlineColor, Math.Max(0.5f, (float) outline.WidthPoints * context.Scale));
             currentPage.Mutate(_ => _.DrawText(textOptions, fragment.Text, pen));
         }
 
@@ -1303,7 +1319,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             Dpi = context.Dpi,
             Origin = new PointF(pixelStartX, pixelY - baseline * context.Scale)
         };
-        currentPage.Mutate(_ => _.DrawText(textOptions, leaderText, new SolidBrush(color)));
+        currentPage.Mutate(_ => _.DrawText(textOptions, leaderText, context.GetBrush(color)));
     }
 
     void RenderInlineShapeGroup(Image<Rgba32> currentPage, InlineShapeGroup group, TextFragment fragment, float x, float y)
@@ -1459,6 +1475,17 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     /// </summary>
     List<TextLine> LayoutParagraph(ParagraphElement paragraph)
     {
+        if (pagedLayoutCache.TryGetValue(paragraph, out var cached))
+        {
+            return cached;
+        }
+        var result = LayoutParagraphCore(paragraph);
+        pagedLayoutCache[paragraph] = result;
+        return result;
+    }
+
+    List<TextLine> LayoutParagraphCore(ParagraphElement paragraph)
+    {
         var lines = new List<TextLine>();
         var props = paragraph.Properties;
         var runs = DropCapsExpander.Expand(SmallCapsExpander.Expand(paragraph.Runs), paragraph.Properties);
@@ -1476,6 +1503,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var firstLineOffset = (float)props.FirstLineIndentPoints;
         var subsequentOffset = (float)props.HangingIndentPoints;
         var effectiveWidth = baseWidth - (isFirstLine ? firstLineOffset : subsequentOffset);
+        var hasDecimalTabStop = props.HasDecimalTabStop();
 
         for (var runIndex = 0; runIndex < runs.Count; runIndex++)
         {
@@ -1491,7 +1519,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 var followingWidth = MeasureFollowingWidth(runs, runIndex + 1, applyFontWidthScale: true);
                 var leftIndentPts = (float) props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
-                double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
+                double? decimalPrefix = hasDecimalTabStop
                     ? MeasureFollowingDecimalPrefix(runs, runIndex + 1, applyFontWidthScale: true)
                     : null;
                 var (destinationAbs, matchedStop, suppressFollowing) = TabStopResolver.Resolve(

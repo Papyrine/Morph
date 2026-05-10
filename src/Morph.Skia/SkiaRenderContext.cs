@@ -100,6 +100,11 @@ sealed class SkiaRenderContext(
     public SKTypeface GetTypeface(string fontFamily, bool bold, bool italic) =>
         resolver.Resolve(fontFamily, bold, italic);
 
+    // SKFont is allocated per fragment in the hot path, but is fully determined by
+    // (typeface, scaledSize, embolden) — rendering mode is fixed per context. Cache
+    // for the lifetime of the context (one document render); disposed in Dispose.
+    readonly Dictionary<(SKTypeface, float, bool), SKFont> fontCache = [];
+
     public SKFont CreateFont(RunProperties props)
     {
         var typeface = GetTypeface(props.FontFamily, props.Bold, props.Italic);
@@ -111,9 +116,32 @@ sealed class SkiaRenderContext(
             fontSize *= 0.58f;
         }
 
-        var font = new SKFont(typeface, fontSize * Scale);
+        var scaledSize = fontSize * Scale;
+        var embolden = ShouldSyntheticallyEmbolden(typeface, props);
+        return GetOrCreateCachedFont(typeface, scaledSize, embolden);
+    }
+
+    /// <summary>
+    /// Creates an SKFont with consistent rendering properties from a typeface and font size.
+    /// </summary>
+    public SKFont CreateFontFromTypeface(SKTypeface typeface, float fontSizePoints) =>
+        GetOrCreateCachedFont(typeface, fontSizePoints * Scale, embolden: false);
+
+    SKFont GetOrCreateCachedFont(SKTypeface typeface, float scaledSize, bool embolden)
+    {
+        var key = (typeface, scaledSize, embolden);
+        if (fontCache.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+
+        var font = new SKFont(typeface, scaledSize);
         ApplyRenderingMode(font);
-        ApplySyntheticBold(font, typeface, props);
+        if (embolden)
+        {
+            font.Embolden = true;
+        }
+        fontCache[key] = font;
         return font;
     }
 
@@ -122,13 +150,10 @@ sealed class SkiaRenderContext(
     // synthetic emboldening so the rendered glyph has visibly heavier strokes. Without
     // this the font cache picks the closest-weight face but the user sees a normal-Bold
     // weight where Word would have rendered the heavier installed Arial Black.
-    static void ApplySyntheticBold(SKFont font, SKTypeface typeface, RunProperties props)
+    static bool ShouldSyntheticallyEmbolden(SKTypeface typeface, RunProperties props)
     {
         var targetWeight = FontHelpers.ResolveTargetWeight(props.FontFamily, props.Bold);
-        if (targetWeight - typeface.FontStyle.Weight >= 200)
-        {
-            font.Embolden = true;
-        }
+        return targetWeight - typeface.FontStyle.Weight >= 200;
     }
 
     public static SKPaint CreateTextPaint(RunProperties props) =>
@@ -138,14 +163,17 @@ sealed class SkiaRenderContext(
             Color = ParseColor(props.ColorHex)
         };
 
-    /// <summary>
-    /// Creates an SKFont with consistent rendering properties from a typeface and font size.
-    /// </summary>
-    public SKFont CreateFontFromTypeface(SKTypeface typeface, float fontSizePoints)
+    // Per-fragment SKPaint allocation in the hot text path. Skia reads paint state at
+    // draw-call time and doesn't retain references, so a single mutable instance can be
+    // reused across consecutive RenderFragment calls. Only the dominant fill paint is
+    // shared — effects/borders/strikes that need different Style or StrokeWidth still
+    // allocate their own to avoid mutation leaks across the call.
+    readonly SKPaint reusableTextPaint = new() { IsAntialias = true };
+
+    public SKPaint GetReusableTextPaint(RunProperties props)
     {
-        var font = new SKFont(typeface, fontSizePoints * Scale);
-        ApplyRenderingMode(font);
-        return font;
+        reusableTextPaint.Color = ParseColor(props.ColorHex);
+        return reusableTextPaint;
     }
 
     /// <summary>
@@ -203,5 +231,14 @@ sealed class SkiaRenderContext(
         return SKColors.Black;
     }
 
-    public void Dispose() => resolver.Dispose();
+    public void Dispose()
+    {
+        foreach (var font in fontCache.Values)
+        {
+            font.Dispose();
+        }
+        fontCache.Clear();
+        reusableTextPaint.Dispose();
+        resolver.Dispose();
+    }
 }

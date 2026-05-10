@@ -1084,6 +1084,20 @@ internal sealed class HtmlParser
         _ => 11
     };
 
+    static readonly Dictionary<string, string> namedColors = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["red"] = "FF0000",
+        ["green"] = "008000",
+        ["blue"] = "0000FF",
+        ["black"] = "000000",
+        ["white"] = "FFFFFF",
+        ["yellow"] = "FFFF00",
+        ["orange"] = "FFA500",
+        ["purple"] = "800080",
+        ["gray"] = "808080",
+        ["grey"] = "808080"
+    };
+
     static string? NormalizeColor(string color)
     {
         if (string.IsNullOrEmpty(color))
@@ -1092,20 +1106,6 @@ internal sealed class HtmlParser
         }
 
         color = color.Trim();
-
-        var namedColors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["red"] = "FF0000",
-            ["green"] = "008000",
-            ["blue"] = "0000FF",
-            ["black"] = "000000",
-            ["white"] = "FFFFFF",
-            ["yellow"] = "FFFF00",
-            ["orange"] = "FFA500",
-            ["purple"] = "800080",
-            ["gray"] = "808080",
-            ["grey"] = "808080"
-        };
 
         if (namedColors.TryGetValue(color, out var hex))
         {
@@ -1129,11 +1129,12 @@ internal sealed class HtmlParser
         // rgb(r, g, b)
         if (color.StartsWith("rgb(", StringComparison.OrdinalIgnoreCase))
         {
-            var values = color[4..^1].Split(',');
-            if (values.Length == 3 &&
-                int.TryParse(values[0].Trim(), out var r) &&
-                int.TryParse(values[1].Trim(), out var g) &&
-                int.TryParse(values[2].Trim(), out var b))
+            var inner = color.AsSpan()[4..^1];
+            Span<Range> ranges = stackalloc Range[4];
+            if (inner.Split(ranges, ',') == 3 &&
+                int.TryParse(inner[ranges[0]].Trim(), out var r) &&
+                int.TryParse(inner[ranges[1]].Trim(), out var g) &&
+                int.TryParse(inner[ranges[2]].Trim(), out var b))
             {
                 return $"{r:X2}{g:X2}{b:X2}";
             }
@@ -1253,8 +1254,8 @@ internal sealed class HtmlParser
 
     static CellBorders? ParseCssBorderShorthand(string value)
     {
-        var parts = value.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length < 1)
+        var trimmed = value.AsSpan().Trim();
+        if (trimmed.IsEmpty)
         {
             return null;
         }
@@ -1262,8 +1263,14 @@ internal sealed class HtmlParser
         var widthPt = 0.75;
         var color = "000000";
 
-        foreach (var part in parts)
+        foreach (var partRange in trimmed.Split(' '))
         {
+            var part = trimmed[partRange];
+            if (part.IsEmpty)
+            {
+                continue;
+            }
+
             if (part.EndsWith("px", StringComparison.OrdinalIgnoreCase))
             {
                 if (TryParseCssDimension(part, out var px))
@@ -1278,17 +1285,20 @@ internal sealed class HtmlParser
                     widthPt = pt;
                 }
             }
-            else if (part is "solid" or "dashed" or "dotted" or "double" or "groove" or "ridge" or "inset" or "outset")
+            else if (part.SequenceEqual("solid") || part.SequenceEqual("dashed") ||
+                     part.SequenceEqual("dotted") || part.SequenceEqual("double") ||
+                     part.SequenceEqual("groove") || part.SequenceEqual("ridge") ||
+                     part.SequenceEqual("inset") || part.SequenceEqual("outset"))
             {
                 // Style token — skip (we treat all visible styles the same)
             }
-            else if (part == "none")
+            else if (part.SequenceEqual("none"))
             {
                 return new();
             }
             else
             {
-                var normalized = NormalizeColor(part);
+                var normalized = NormalizeColor(part.ToString());
                 if (normalized != null)
                 {
                     color = normalized;
