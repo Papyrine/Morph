@@ -258,16 +258,17 @@ sealed class DocumentParser(string defaultFont)
         var hasConnectors = false;
         var hasDuotone = false;
 
-        // Math can appear at body level or inside paragraphs.
-        if (body.Descendants().Any(_ => _.LocalName is "oMath" or "oMathPara"))
-        {
-            hasMath = true;
-        }
-
+        // Single descendant pass: every feature flag is OR'd from a switch on LocalName,
+        // so we don't need separate walks (the prior version did one for math + one for
+        // everything else, doubling DOM traversal cost on large documents).
         foreach (var element in body.Descendants())
         {
             switch (element.LocalName)
             {
+                case "oMath":
+                case "oMathPara":
+                    hasMath = true;
+                    break;
                 case "graphicData":
                     var uri = element.AttributeValue("uri");
                     if (uri == "http://schemas.openxmlformats.org/drawingml/2006/chart")

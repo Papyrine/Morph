@@ -4,6 +4,14 @@
 sealed class TextRenderer(SkiaRenderContext context) :
     IParagraphMeasurer
 {
+    // LayoutParagraph runs once per measure-pass and once per render-pass for the same
+    // paragraph; tables hit the same paragraph 2-3 times per cell across the height-calc
+    // and render phases. Keying by paragraph identity (and width for the bounded variant)
+    // turns those repeated layouts into single-allocation hits. Cache lifetime matches
+    // this TextRenderer instance — i.e. one document render — so layout state never
+    // leaks between conversions.
+    readonly Dictionary<ParagraphElement, List<TextLine>> pagedLayoutCache = [];
+    readonly Dictionary<(ParagraphElement, float), List<TextLine>> boundedLayoutCache = [];
     /// <summary>
     /// Measures the height of a paragraph when rendered at the given width.
     /// </summary>
@@ -544,6 +552,18 @@ sealed class TextRenderer(SkiaRenderContext context) :
 
     List<TextLine> LayoutParagraphWithWidth(ParagraphElement paragraph, float maxWidth)
     {
+        var key = (paragraph, maxWidth);
+        if (boundedLayoutCache.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+        var result = LayoutParagraphWithWidthCore(paragraph, maxWidth);
+        boundedLayoutCache[key] = result;
+        return result;
+    }
+
+    List<TextLine> LayoutParagraphWithWidthCore(ParagraphElement paragraph, float maxWidth)
+    {
         var lines = new List<TextLine>();
         var props = paragraph.Properties;
         var runs = DropCapsExpander.Expand(SmallCapsExpander.Expand(paragraph.Runs), paragraph.Properties);
@@ -557,6 +577,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
 
         var firstLineIndent = (float)props.FirstLineIndentPoints;
         var effectiveWidth = adjustedMaxWidth - (isFirstLine ? firstLineIndent : 0);
+        var hasDecimalTabStop = props.HasDecimalTabStop();
 
         for (var runIndex = 0; runIndex < runs.Count; runIndex++)
         {
@@ -568,7 +589,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 var followingWidth = MeasureFollowingWidthNoScale(runs, runIndex + 1);
                 var leftIndentPts = (float) props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
-                double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
+                double? decimalPrefix = hasDecimalTabStop
                     ? MeasureFollowingDecimalPrefixNoScale(runs, runIndex + 1)
                     : null;
                 var (destinationAbs, matchedStop, suppressFollowing) = TabStopResolver.Resolve(
@@ -586,7 +607,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
                     continue;
                 }
 
-                using var tabFont = context.CreateFont(run.Properties);
+                var tabFont = context.CreateFont(run.Properties);
                 var tabMetrics = tabFont.Metrics;
                 var tabRunHeight = (-tabMetrics.Ascent + tabMetrics.Descent) / context.Scale;
                 var tabBaseline = -tabMetrics.Ascent / context.Scale;
@@ -662,7 +683,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
             // Apply AllCaps text transform if specified
             var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
             var words = SplitIntoWords(text);
-            using var font = context.CreateFont(run.Properties);
+            var font = context.CreateFont(run.Properties);
             var metrics = font.Metrics;
             var runHeight = (-metrics.Ascent + metrics.Descent) / context.Scale;
             var baseline = -metrics.Ascent / context.Scale;
@@ -773,7 +794,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
             if (paragraph.Runs.Count > 0)
             {
                 var firstRun = paragraph.Runs[0];
-                using var font = context.CreateFont(firstRun.Properties);
+                var font = context.CreateFont(firstRun.Properties);
                 var metrics = font.Metrics;
                 emptyHeight = (-metrics.Ascent + metrics.Descent) / context.Scale;
                 emptyBaseline = -metrics.Ascent / context.Scale;
@@ -827,7 +848,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
 
         // Use the configured default font for line numbers (9pt, same as typical Word default)
         var typeface = context.GetTypeface(DefaultFontSettings.DefaultFont, false, false);
-        using var font = context.CreateFontFromTypeface(typeface, 9);
+        var font = context.CreateFontFromTypeface(typeface, 9);
         using var paint = new SKPaint
         {
             IsAntialias = true,
@@ -871,7 +892,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
         // render in the paragraph's own font - that's what Word does, and the
         // paragraph font's bullet glyph is what the user actually sees in Word.
         var typeface = ResolveBulletTypeface(numbering.FontFamily, fontFamily, bold, italic);
-        using var font = context.CreateFontFromTypeface(typeface, fontSize);
+        var font = context.CreateFontFromTypeface(typeface, fontSize);
         using var paint = new SKPaint
         {
             IsAntialias = true,
@@ -917,7 +938,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
 
         // See RenderBullet for why this picks Morph Bullets vs the paragraph font.
         var typeface = ResolveBulletTypeface(numbering.FontFamily, fontFamily, bold, italic);
-        using var font = context.CreateFontFromTypeface(typeface, fontSize);
+        var font = context.CreateFontFromTypeface(typeface, fontSize);
         using var paint = new SKPaint
         {
             IsAntialias = true,
@@ -1041,8 +1062,8 @@ sealed class TextRenderer(SkiaRenderContext context) :
             return;
         }
 
-        using var font = context.CreateFont(fragment.Properties);
-        using var paint = SkiaRenderContext.CreateTextPaint(fragment.Properties);
+        var font = context.CreateFont(fragment.Properties);
+        var paint = context.GetReusableTextPaint(fragment.Properties);
 
         // Convert to pixels
         var pixelX = context.PointsToPixels(x);
@@ -1349,7 +1370,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
             _ => '.'
         };
 
-        using var font = context.CreateFont(fragment.Properties);
+        var font = context.CreateFont(fragment.Properties);
         using var paint = SkiaRenderContext.CreateTextPaint(fragment.Properties);
         var glyphPixelWidth = font.MeasureText(leaderChar.ToString());
         if (glyphPixelWidth <= 0)
@@ -1476,25 +1497,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
 
         if (fragment.InlineImageContentType == "image/svg+xml")
         {
-            // Pre-process SVG to remove class attributes and style elements that Svg.Skia might not handle correctly
-            var svgContent = Encoding.UTF8.GetString(fragment.InlineImageData!);
-
-            // Remove style elements (CSS can interfere with fill processing in Svg.Skia)
-            svgContent = Regex.Replace(
-                svgContent,
-                "<style[^>]*>.*?</style>",
-                "",
-                RegexOptions.Singleline);
-
-            // Remove class attributes from paths
-            svgContent = Regex.Replace(
-                svgContent,
-                """
-                \s+class="[^"]*"
-                """,
-                "");
-
-            var processedData = Encoding.UTF8.GetBytes(svgContent);
+            var processedData = SvgPreprocessor.StripStyleAndClass(fragment.InlineImageData!);
 
             // Render SVG
             using var svg = new SKSvg();
@@ -1558,6 +1561,17 @@ sealed class TextRenderer(SkiaRenderContext context) :
     /// </summary>
     List<TextLine> LayoutParagraph(ParagraphElement paragraph)
     {
+        if (pagedLayoutCache.TryGetValue(paragraph, out var cached))
+        {
+            return cached;
+        }
+        var result = LayoutParagraphCore(paragraph);
+        pagedLayoutCache[paragraph] = result;
+        return result;
+    }
+
+    List<TextLine> LayoutParagraphCore(ParagraphElement paragraph)
+    {
         var lines = new List<TextLine>();
         var props = paragraph.Properties;
         var runs = DropCapsExpander.Expand(SmallCapsExpander.Expand(paragraph.Runs), paragraph.Properties);
@@ -1575,6 +1589,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
         var firstLineOffset = (float)props.FirstLineIndentPoints;
         var subsequentOffset = (float)props.HangingIndentPoints;
         var effectiveWidth = baseWidth - (isFirstLine ? firstLineOffset : subsequentOffset);
+        var hasDecimalTabStop = props.HasDecimalTabStop();
 
         for (var runIndex = 0; runIndex < runs.Count; runIndex++)
         {
@@ -1586,7 +1601,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 var followingWidth = MeasureFollowingWidthScaled(runs, runIndex + 1);
                 var leftIndentPts = (float) props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
-                double? decimalPrefix = props.TabStops.Any(_ => _.Alignment == TabAlignment.Decimal)
+                double? decimalPrefix = hasDecimalTabStop
                     ? MeasureFollowingDecimalPrefixScaled(runs, runIndex + 1)
                     : null;
                 var (destinationAbs, matchedStop, suppressFollowing) = TabStopResolver.Resolve(
@@ -1604,7 +1619,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
                     continue;
                 }
 
-                using var tabFont = context.CreateFont(run.Properties);
+                var tabFont = context.CreateFont(run.Properties);
                 var tabMetrics = tabFont.Metrics;
                 var tabRunHeight = (-tabMetrics.Ascent + tabMetrics.Descent) / context.Scale;
                 var tabBaseline = -tabMetrics.Ascent / context.Scale;
@@ -1681,7 +1696,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
             // Apply AllCaps text transform if specified
             var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
             var words = SplitIntoWords(text);
-            using var font = context.CreateFont(run.Properties);
+            var font = context.CreateFont(run.Properties);
             var fontMetrics = font.Metrics;
             var runHeight = (-fontMetrics.Ascent + fontMetrics.Descent) / context.Scale;
             var runBaseline = -fontMetrics.Ascent / context.Scale;
@@ -1804,7 +1819,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
             if (paragraph.Runs.Count > 0)
             {
                 var firstRun = paragraph.Runs[0];
-                using var font = context.CreateFont(firstRun.Properties);
+                var font = context.CreateFont(firstRun.Properties);
                 var metrics = font.Metrics;
                 emptyHeight = (-metrics.Ascent + metrics.Descent) / context.Scale;
                 emptyBaseline = -metrics.Ascent / context.Scale;
@@ -1916,7 +1931,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
 
             var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
             var dotIndex = text.IndexOf('.');
-            using var font = context.CreateFont(run.Properties);
+            var font = context.CreateFont(run.Properties);
             if (dotIndex >= 0)
             {
                 var prefix = text[..dotIndex];
@@ -1953,7 +1968,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
 
             var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
             var dotIndex = text.IndexOf('.');
-            using var font = context.CreateFont(run.Properties);
+            var font = context.CreateFont(run.Properties);
             if (dotIndex >= 0)
             {
                 var prefix = text[..dotIndex];
@@ -2019,7 +2034,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
             }
 
             var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
-            using var font = context.CreateFont(run.Properties);
+            var font = context.CreateFont(run.Properties);
             total += font.MeasureText(text) / context.Scale
                      + (float)(run.Properties.CharacterSpacingPoints * text.Length);
         }
@@ -2054,7 +2069,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
             }
 
             var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
-            using var font = context.CreateFont(run.Properties);
+            var font = context.CreateFont(run.Properties);
             total += font.MeasureText(text) / context.Scale * context.FontWidthScale
                      + (float)(run.Properties.CharacterSpacingPoints * text.Length);
         }
