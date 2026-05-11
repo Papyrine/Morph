@@ -591,25 +591,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             return;
         }
 
-        // Pre-process SVG to remove class attributes and style elements that Svg.Skia might not handle correctly
-        var svgContent = Encoding.UTF8.GetString(svgData);
-
-        // Remove style elements (CSS can interfere with fill processing in Svg.Skia)
-        svgContent = Regex.Replace(
-            svgContent,
-            "<style[^>]*>.*?</style>",
-            "",
-            RegexOptions.Singleline);
-
-        // Remove class attributes from paths
-        svgContent = Regex.Replace(
-            svgContent,
-            """
-            \s+class="[^"]*"
-            """,
-            "");
-
-        var processedData = Encoding.UTF8.GetBytes(svgContent);
+        var processedData = SvgPreprocessor.StripStyleAndClass(svgData);
 
         using var svg = new SKSvg();
         using var stream = new MemoryStream(processedData);
@@ -1494,7 +1476,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             return;
         }
 
-        using var font = context.CreateFontFromTypeface(context.GetTypeface(DefaultFontSettings.DefaultFont, false, false), 10);
+        var font = context.CreateFontFromTypeface(context.GetTypeface(DefaultFontSettings.DefaultFont, false, false), 10);
         using var textPaint = new SKPaint
         {
             Color = ParseColor(textHex),
@@ -1747,7 +1729,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
     {
         var typeface = context.GetTypeface(watermark.FontFamily, watermark.Bold, italic: false);
         var fontSize = (float) watermark.FontSizePoints * context.Scale;
-        using var font = context.CreateFontFromTypeface(typeface, fontSize);
+        var font = context.CreateFontFromTypeface(typeface, fontSize);
         using var paint = new SKPaint
         {
             Color = ParseColor(watermark.ColorHex),

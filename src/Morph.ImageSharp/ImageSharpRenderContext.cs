@@ -114,6 +114,11 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
     public FontFamily GetFontFamily(string fontFamily, bool bold, bool italic) =>
         resolver.Resolve(fontFamily, bold, italic).Family;
 
+    // Font allocations are a hot-path cost in ImageSharp (`family.CreateFont`
+    // performs internal style lookup + font instantiation). The result is fully
+    // determined by (family, size, style) — cache for the lifetime of the context.
+    readonly Dictionary<(FontFamily, float, FontStyle), Font> fontCache = [];
+
     public Font GetFont(RunProperties props)
     {
         var family = GetFontFamily(props.FontFamily, props.Bold, props.Italic);
@@ -142,7 +147,20 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
             style = FontStyle.Italic;
         }
 
-        return family.CreateFont(fontSize, PickAvailableStyle(family, style));
+        return GetOrCreateCachedFont(family, fontSize, PickAvailableStyle(family, style));
+    }
+
+    Font GetOrCreateCachedFont(FontFamily family, float fontSize, FontStyle style)
+    {
+        var key = (family, fontSize, style);
+        if (fontCache.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+
+        var font = family.CreateFont(fontSize, style);
+        fontCache[key] = font;
+        return font;
     }
 
     /// <summary>
@@ -201,7 +219,7 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
             style = FontStyle.Italic;
         }
 
-        return family.CreateFont(sizePoints, PickAvailableStyle(family, style));
+        return GetOrCreateCachedFont(family, sizePoints, PickAvailableStyle(family, style));
     }
 
     /// <summary>
@@ -237,6 +255,35 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         var height = ascent + descent;
 
         return (height, ascent);
+    }
+
+    // SolidBrush and SolidPen are immutable in ImageSharp.Drawing — every fragment
+    // render currently allocates a fresh instance. Documents typically use a small set
+    // of colours/widths, so caching by key gives near-100% hit rate after warm-up.
+    readonly Dictionary<Color, SolidBrush> brushCache = [];
+    readonly Dictionary<(Color, float), SolidPen> penCache = [];
+
+    public SolidBrush GetBrush(Color color)
+    {
+        if (brushCache.TryGetValue(color, out var cached))
+        {
+            return cached;
+        }
+        var brush = new SolidBrush(color);
+        brushCache[color] = brush;
+        return brush;
+    }
+
+    public SolidPen GetPen(Color color, float width)
+    {
+        var key = (color, width);
+        if (penCache.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+        var pen = new SolidPen(color, width);
+        penCache[key] = pen;
+        return pen;
     }
 
     public static Color ParseColor(string? hexColor)
