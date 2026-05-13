@@ -14,6 +14,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     int pageCount;
     Image<Rgba32>? pendingPage;
     Image<Rgba32>? currentPage;
+    DrawingCanvas? currentCanvas;
     float headerHeight;
     IReadOnlyList<Watermark> watermarks = [];
 
@@ -177,9 +178,9 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     protected override void RenderHeaderFooterParagraph(ParagraphElement paragraph)
     {
-        if (currentPage != null)
+        if (currentCanvas != null)
         {
-            textRenderer.RenderParagraph(currentPage, paragraph);
+            textRenderer.RenderParagraph(currentCanvas, paragraph);
         }
     }
 
@@ -290,6 +291,11 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     void DiscardCurrentPage()
     {
+        currentCanvas?.Dispose();
+        currentCanvas = null;
+        // Source images held by ImageBrush instances on the canvas timeline are safe to dispose
+        // once the canvas has rendered (canvas.Dispose above flushes the timeline).
+        context.DisposePendingPageDisposables();
         currentPage?.Dispose();
         currentPage = null;
     }
@@ -389,9 +395,9 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             EnsureSpaceFor(height);
         }
 
-        if (currentPage != null)
+        if (currentCanvas != null)
         {
-            textRenderer.RenderParagraph(currentPage, paragraph, nextElement);
+            textRenderer.RenderParagraph(currentCanvas, paragraph, nextElement);
         }
 
         if (hasSignificantContent)
@@ -402,13 +408,13 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     protected override void DrawHorizontalRuleLine(float pixelX1, float pixelY, float pixelX2, string hexColor, float pixelStrokeWidth)
     {
-        if (currentPage == null)
+        if (currentCanvas == null)
         {
             return;
         }
 
-        var pen = Pens.Solid(ParseColor(hexColor), pixelStrokeWidth);
-        currentPage.Mutate(_ => _.DrawLine(pen, new PointF(pixelX1, pixelY), new PointF(pixelX2, pixelY)));
+        var pen = context.GetPen(ParseColor(hexColor), pixelStrokeWidth);
+        currentCanvas.DrawLine(pen, new PointF(pixelX1, pixelY), new PointF(pixelX2, pixelY));
     }
 
     protected override bool CanRenderContentType(string? contentType) =>
@@ -427,14 +433,17 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     void DrawBlockImage(byte[] imageData, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, ImageCrop? crop, BlipColorEffect colorEffect = BlipColorEffect.None)
     {
-        if (currentPage == null)
+        if (currentCanvas == null)
         {
             return;
         }
 
         try
         {
-            using var img = Image.Load<Rgba32>(imageData);
+            // Retain for the page's lifetime — canvas.DrawImage queues an ImageBrush that holds
+            // this Image until the canvas timeline renders on FinishCurrentPage's Dispose.
+            var img = Image.Load<Rgba32>(imageData);
+            context.RetainForPage(img);
 
             if (crop is { IsCropped: true } c)
             {
@@ -458,11 +467,11 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 img.Mutate(_ => _.Rotate(rotation));
                 var newX = pixelX + pixelWidth / 2 - img.Width / 2f;
                 var newY = pixelY + pixelHeight / 2 - img.Height / 2f;
-                currentPage.Mutate(_ => _.DrawImage(img, new Point((int) newX, (int) newY), 1f));
+                currentCanvas.DrawImage(img, new((int) newX, (int) newY));
             }
             else
             {
-                currentPage.Mutate(_ => _.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f));
+                currentCanvas.DrawImage(img, new((int) pixelX, (int) pixelY));
             }
         }
         catch
@@ -493,7 +502,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         var height = (float) wordArt.HeightPoints;
         EnsureSpaceFor(height);
 
-        if (currentPage == null)
+        if (currentCanvas == null)
         {
             return;
         }
@@ -551,25 +560,25 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         if (wordArt.HasShadow)
         {
-            var shadowColor = Color.FromPixel(new Rgba32((byte) 0, (byte) 0, (byte) 0, (byte) 80));
-            currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, shadowColor, new(textX + 3, textY + 3)));
+            var shadowColor = Color.FromPixel(new Rgba32(0, 0, 0, 80));
+            currentCanvas.DrawText(wordArt.Text, scaledFont, shadowColor, new(textX + 3, textY + 3));
         }
 
         if (wordArt is {OutlineColorHex: not null, OutlineWidthPoints: > 0})
         {
             var outlineColor = ParseColor(wordArt.OutlineColorHex);
-            var outlinePen = Pens.Solid(outlineColor, context.PointsToPixels((float) wordArt.OutlineWidthPoints));
-            currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, outlinePen, new(textX, textY)));
+            var outlinePen = context.GetPen(outlineColor, context.PointsToPixels((float) wordArt.OutlineWidthPoints));
+            currentCanvas.DrawText(wordArt.Text, scaledFont, outlinePen, new(textX, textY));
         }
 
-        currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, fillColor, new(textX, textY)));
+        currentCanvas.DrawText(wordArt.Text, scaledFont, fillColor, new(textX, textY));
 
         context.CurrentY += height;
     }
 
     void RenderFloatingWordArt(FloatingWordArtElement wordArt)
     {
-        if (currentPage == null)
+        if (currentCanvas == null)
         {
             return;
         }
@@ -634,18 +643,18 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         if (wordArt.HasShadow)
         {
-            var shadowColor = Color.FromPixel(new Rgba32((byte) 0, (byte) 0, (byte) 0, (byte) 80));
-            currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, shadowColor, new(textX + 3, textY + 3)));
+            var shadowColor = Color.FromPixel(new Rgba32(0, 0, 0, 80));
+            currentCanvas.DrawText(wordArt.Text, scaledFont, shadowColor, new(textX + 3, textY + 3));
         }
 
         if (wordArt is {OutlineColorHex: not null, OutlineWidthPoints: > 0})
         {
             var outlineColor = ParseColor(wordArt.OutlineColorHex);
-            var outlinePen = Pens.Solid(outlineColor, context.PointsToPixels((float) wordArt.OutlineWidthPoints));
-            currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, outlinePen, new(textX, textY)));
+            var outlinePen = context.GetPen(outlineColor, context.PointsToPixels((float) wordArt.OutlineWidthPoints));
+            currentCanvas.DrawText(wordArt.Text, scaledFont, outlinePen, new(textX, textY));
         }
 
-        currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, fillColor, new(textX, textY)));
+        currentCanvas.DrawText(wordArt.Text, scaledFont, fillColor, new(textX, textY));
     }
 
     void RenderInk(InkElement ink)
@@ -653,7 +662,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         var height = (float) ink.HeightPoints;
         EnsureSpaceFor(height);
 
-        if (currentPage == null)
+        if (currentCanvas == null)
         {
             return;
         }
@@ -680,7 +689,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             }
 
             var strokeWidth = context.PointsToPixels((float) stroke.WidthPoints);
-            var pen = Pens.Solid(color, strokeWidth);
+            var pen = context.GetPen(color, strokeWidth);
 
             var points = new PointF[stroke.Points.Count];
             for (var i = 0; i < stroke.Points.Count; i++)
@@ -691,7 +700,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                     baseY + context.PointsToPixels((float) point.Y));
             }
 
-            currentPage.Mutate(_ => _.DrawLine(pen, points));
+            currentCanvas.DrawLine(pen, points);
         }
 
         context.CurrentY += height;
@@ -715,7 +724,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     protected override void RenderVerticalCellContent(TableCell cell, float cellX, float cellY, float cellWidth, float cellHeight, CellSpacing padding)
     {
-        if (currentPage == null)
+        if (currentCanvas == null)
         {
             return;
         }
@@ -735,114 +744,111 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             return;
         }
 
-        using var tempImage = new Image<Rgba32>(tempW, tempH);
-
-        var savedY = context.CurrentY;
-        context.CurrentY = 0;
-
-        foreach (var element in cell.Content)
+        var tempImage = new Image<Rgba32>(tempW, tempH);
+        // Retained: tempImage is the source of currentCanvas.DrawImage below, so it must survive
+        // until the page's canvas timeline renders.
+        context.RetainForPage(tempImage);
+        // Scoped canvas — text rendering for this cell batches onto its own timeline,
+        // disposed before the rotate+blit below so the rotation sees the pixels.
+        using (var tempCanvas = tempImage.Frames.RootFrame.CreateCanvas(Configuration.Default, new()))
         {
-            if (element is ParagraphElement para)
-            {
-                textRenderer.RenderParagraphInBounds(tempImage, para, 0, availableHeight);
-            }
-            else if (element is ContentControlElement {Runs.Count: > 0} cc)
-            {
-                var ccPara = new ParagraphElement
-                {
-                    Runs = cc.Runs,
-                    Properties = new()
-                };
-                textRenderer.RenderParagraphInBounds(tempImage, ccPara, 0, availableHeight);
-            }
-        }
+            var savedY = context.CurrentY;
+            context.CurrentY = 0;
 
-        context.CurrentY = savedY;
+            foreach (var element in cell.Content)
+            {
+                if (element is ParagraphElement para)
+                {
+                    textRenderer.RenderParagraphInBounds(tempCanvas, para, 0, availableHeight);
+                }
+                else if (element is ContentControlElement {Runs.Count: > 0} cc)
+                {
+                    var ccPara = new ParagraphElement
+                    {
+                        Runs = cc.Runs,
+                        Properties = new()
+                    };
+                    textRenderer.RenderParagraphInBounds(tempCanvas, ccPara, 0, availableHeight);
+                }
+            }
+
+            context.CurrentY = savedY;
+        }
 
         var bottomToTop = cell.Properties.TextDirection == CellTextDirection.BottomToTop;
         tempImage.Mutate(_ => _.Rotate(bottomToTop ? -90f : 90f));
 
         var drawX = (int) context.PointsToPixels(contentX);
         var drawY = (int) context.PointsToPixels(contentY);
-        currentPage.Mutate(_ => _.DrawImage(tempImage, new Point(drawX, drawY), 1f));
+        currentCanvas.DrawImage(tempImage, new(drawX, drawY));
     }
 
 
     protected override void DrawCellBackground(float pixelX, float pixelY, float pixelWidth, float pixelHeight, string hexColor)
     {
-        if (currentPage == null)
+        if (currentCanvas == null)
         {
             return;
         }
 
         var bgColor = ParseColor(hexColor);
-        currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
+        currentCanvas.Fill(context.GetBrush(bgColor), new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight));
     }
 
     protected override void DrawCellBorders(float pixelX, float pixelY, float pixelWidth, float pixelHeight, CellBorders borders)
     {
-        if (currentPage == null)
+        if (currentCanvas == null)
         {
             return;
         }
 
-        currentPage.Mutate(_ =>
+        if (borders.Top.IsVisible)
         {
-            if (borders.Top.IsVisible)
-            {
-                DrawBorderLine(_, pixelX, pixelY, pixelX + pixelWidth, pixelY, borders.Top);
-            }
+            DrawBorderLine(pixelX, pixelY, pixelX + pixelWidth, pixelY, borders.Top);
+        }
 
-            if (borders.Right.IsVisible)
-            {
-                DrawBorderLine(_, pixelX + pixelWidth, pixelY, pixelX + pixelWidth, pixelY + pixelHeight, borders.Right);
-            }
+        if (borders.Right.IsVisible)
+        {
+            DrawBorderLine(pixelX + pixelWidth, pixelY, pixelX + pixelWidth, pixelY + pixelHeight, borders.Right);
+        }
 
-            if (borders.Bottom.IsVisible)
-            {
-                DrawBorderLine(_, pixelX, pixelY + pixelHeight, pixelX + pixelWidth, pixelY + pixelHeight, borders.Bottom);
-            }
+        if (borders.Bottom.IsVisible)
+        {
+            DrawBorderLine(pixelX, pixelY + pixelHeight, pixelX + pixelWidth, pixelY + pixelHeight, borders.Bottom);
+        }
 
-            if (borders.Left.IsVisible)
-            {
-                DrawBorderLine(_, pixelX, pixelY, pixelX, pixelY + pixelHeight, borders.Left);
-            }
-        });
+        if (borders.Left.IsVisible)
+        {
+            DrawBorderLine(pixelX, pixelY, pixelX, pixelY + pixelHeight, borders.Left);
+        }
     }
 
     protected override void DrawCellDiagonals(float pixelX, float pixelY, float pixelWidth, float pixelHeight, CellDiagonals diagonals)
     {
-        if (currentPage == null)
+        if (currentCanvas == null)
         {
             return;
         }
 
-        currentPage.Mutate(_ =>
+        if (diagonals.Down.IsVisible)
         {
-            if (diagonals.Down.IsVisible)
-            {
-                DrawBorderLine(_, pixelX, pixelY, pixelX + pixelWidth, pixelY + pixelHeight, diagonals.Down);
-            }
+            DrawBorderLine(pixelX, pixelY, pixelX + pixelWidth, pixelY + pixelHeight, diagonals.Down);
+        }
 
-            if (diagonals.Up.IsVisible)
-            {
-                DrawBorderLine(_, pixelX + pixelWidth, pixelY, pixelX, pixelY + pixelHeight, diagonals.Up);
-            }
-        });
+        if (diagonals.Up.IsVisible)
+        {
+            DrawBorderLine(pixelX + pixelWidth, pixelY, pixelX, pixelY + pixelHeight, diagonals.Up);
+        }
     }
 
     void DrawBorderLine(float x1, float y1, float x2, float y2, BorderEdge edge)
     {
-        if (currentPage == null)
+        var canvas = currentCanvas;
+        if (canvas == null)
         {
             return;
         }
 
-        currentPage.Mutate(_ => DrawBorderLine(_, x1, y1, x2, y2, edge));
-    }
-
-    void DrawBorderLine(IImageProcessingContext processingContext, float x1, float y1, float x2, float y2, BorderEdge edge)
-    {
         var color = ParseColor(edge.ColorHex ?? "000000");
         var strokeWidth = context.PointsToPixels((float) edge.WidthPoints);
 
@@ -852,38 +858,38 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             // gap + line) matches the declared width. Each line gets ~1/3 of the width.
             var lineWidth = Math.Max(0.5f, strokeWidth / 3f);
             var offset = strokeWidth / 2f - lineWidth / 2f;
-            var pen = Pens.Solid(color, lineWidth);
+            var pen = context.GetPen(color, lineWidth);
             var horizontal = Math.Abs(y2 - y1) < Math.Abs(x2 - x1);
             if (horizontal)
             {
-                processingContext.DrawLine(pen, new PointF(x1, y1 - offset), new PointF(x2, y2 - offset));
-                processingContext.DrawLine(pen, new PointF(x1, y1 + offset), new PointF(x2, y2 + offset));
+                canvas.DrawLine(pen, new PointF(x1, y1 - offset), new PointF(x2, y2 - offset));
+                canvas.DrawLine(pen, new PointF(x1, y1 + offset), new PointF(x2, y2 + offset));
             }
             else
             {
-                processingContext.DrawLine(pen, new PointF(x1 - offset, y1), new PointF(x2 - offset, y2));
-                processingContext.DrawLine(pen, new PointF(x1 + offset, y1), new PointF(x2 + offset, y2));
+                canvas.DrawLine(pen, new PointF(x1 - offset, y1), new PointF(x2 - offset, y2));
+                canvas.DrawLine(pen, new PointF(x1 + offset, y1), new PointF(x2 + offset, y2));
             }
             return;
         }
 
-        var solidPen = Pens.Solid(color, strokeWidth);
-        processingContext.DrawLine(solidPen, new PointF(x1, y1), new PointF(x2, y2));
+        var solidPen = context.GetPen(color, strokeWidth);
+        canvas.DrawLine(solidPen, new PointF(x1, y1), new PointF(x2, y2));
     }
 
     protected override void RenderParagraphInBounds(ParagraphElement paragraph, float x, float maxWidth)
     {
-        if (currentPage == null)
+        if (currentCanvas == null)
         {
             return;
         }
 
-        textRenderer.RenderParagraphInBounds(currentPage, paragraph, x, maxWidth);
+        textRenderer.RenderParagraphInBounds(currentCanvas, paragraph, x, maxWidth);
     }
 
     protected override void RenderImageInCell(ImageElement image, float x, float maxWidth)
     {
-        if (currentPage == null)
+        if (currentCanvas == null)
         {
             return;
         }
@@ -916,9 +922,10 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         try
         {
-            using var img = Image.Load<Rgba32>(data);
+            var img = Image.Load<Rgba32>(data);
+            context.RetainForPage(img);
             img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
-            currentPage.Mutate(_ => _.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f));
+            currentCanvas.DrawImage(img, new((int) pixelX, (int) pixelY));
         }
         catch
         {
@@ -933,7 +940,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     protected override void DrawFormFieldRect(float pixelX, float pixelY, float pixelWidth, float pixelHeight,
         string fillHex, string borderHex, float pixelBorderWidth)
     {
-        if (currentPage == null)
+        if (currentCanvas == null)
         {
             return;
         }
@@ -941,16 +948,13 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         var rect = new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight);
         var fill = ParseColor(fillHex);
         var border = ParseColor(borderHex);
-        currentPage.Mutate(_ =>
-        {
-            _.Fill(fill, rect);
-            _.Draw(Pens.Solid(border, pixelBorderWidth), rect);
-        });
+        currentCanvas.Fill(context.GetBrush(fill), rect);
+        currentCanvas.Draw(context.GetPen(border, pixelBorderWidth), rect);
     }
 
     protected override void DrawFormFieldText(string text, float pixelX, float pixelY, float pixelWidth, float pixelHeight, string textHex)
     {
-        if (currentPage == null)
+        if (currentCanvas == null)
         {
             return;
         }
@@ -959,27 +963,24 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         // the rect's top edge so caps clear the border.
         var font = context.GetFontForFamily(DefaultFontSettings.DefaultFont, 10, false, false);
         var color = ParseColor(textHex);
-        currentPage.Mutate(_ => _.DrawText(text, font, color, new(pixelX + 3 * context.Scale, pixelY + 2 * context.Scale)));
+        currentCanvas.DrawText(text, font, color, new(pixelX + 3 * context.Scale, pixelY + 2 * context.Scale));
     }
 
     protected override void DrawCheckMark(float pixelX, float pixelY, float pixelSize, string hexColor, float pixelStrokeWidth, bool xShape)
     {
-        if (currentPage == null)
+        if (currentCanvas == null)
         {
             return;
         }
 
-        var pen = Pens.Solid(ParseColor(hexColor), pixelStrokeWidth);
+        var pen = context.GetPen(ParseColor(hexColor), pixelStrokeWidth);
 
         if (xShape)
         {
             // X glyph (used by content-control checkboxes).
             var pad = pixelSize * 0.25f;
-            currentPage.Mutate(_ =>
-            {
-                _.DrawLine(pen, new PointF(pixelX + pad, pixelY + pad), new PointF(pixelX + pixelSize - pad, pixelY + pixelSize - pad));
-                _.DrawLine(pen, new PointF(pixelX + pixelSize - pad, pixelY + pad), new PointF(pixelX + pad, pixelY + pixelSize - pad));
-            });
+            currentCanvas.DrawLine(pen, new PointF(pixelX + pad, pixelY + pad), new PointF(pixelX + pixelSize - pad, pixelY + pixelSize - pad));
+            currentCanvas.DrawLine(pen, new PointF(pixelX + pixelSize - pad, pixelY + pad), new PointF(pixelX + pad, pixelY + pixelSize - pad));
             return;
         }
 
@@ -990,16 +991,13 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         var top = pixelY + checkPad;
         var bottom = pixelY + pixelSize - checkPad;
         var midX = pixelX + pixelSize * 0.4f;
-        currentPage.Mutate(_ =>
-        {
-            _.DrawLine(pen, new PointF(left, top + (bottom - top) * 0.5f), new PointF(midX, bottom));
-            _.DrawLine(pen, new PointF(midX, bottom), new PointF(right, top));
-        });
+        currentCanvas.DrawLine(pen, new PointF(left, top + (bottom - top) * 0.5f), new PointF(midX, bottom));
+        currentCanvas.DrawLine(pen, new PointF(midX, bottom), new PointF(right, top));
     }
 
     protected override void DrawDropDownArrow(float pixelX, float pixelY, float pixelHeight, string hexColor)
     {
-        if (currentPage == null)
+        if (currentCanvas == null)
         {
             return;
         }
@@ -1013,7 +1011,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         arrowBuilder.AddLine(new(arrowX + arrowSize, arrowY - arrowSize / 2), new(arrowX + arrowSize / 2, arrowY + arrowSize / 2));
         arrowBuilder.CloseFigure();
         var color = ParseColor(hexColor);
-        currentPage.Mutate(_ => _.Fill(color, arrowBuilder.Build()));
+        currentCanvas.Fill(color, arrowBuilder.Build());
     }
 
     void FlushPendingPage()
@@ -1032,6 +1030,11 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         FlushPendingPage();
 
         currentPage = new(context.PageWidthPixels, context.PageHeightPixels);
+        // One canvas owns the page for its entire lifetime. Every Fill/Draw/DrawText that
+        // used to be its own one-shot Mutate(_ => _.Paint(...)) round-trip is now a single
+        // recorded command on this batcher; the backend renders the whole timeline once
+        // on Dispose in FinishCurrentPage.
+        currentCanvas = currentPage.Frames.RootFrame.CreateCanvas(Configuration.Default, new());
 
         var bgColor = context.PageSettings.BackgroundColorHex;
         Color fillColor;
@@ -1044,7 +1047,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             fillColor = ParseColor(bgColor);
         }
 
-        currentPage.Mutate(_ => _.Fill(fillColor, new RectangleF(0, 0, context.PageWidthPixels, context.PageHeightPixels)));
+        currentCanvas.Fill(context.GetBrush(fillColor), new RectanglePolygon(0, 0, context.PageWidthPixels, context.PageHeightPixels));
 
         DrawWatermarks();
 
@@ -1067,6 +1070,13 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         if (currentPage != null)
         {
             RenderFooter();
+            // Disposing the canvas flushes its recorded timeline through the backend.
+            // Must happen before pendingPage hands the bitmap to the PNG callback —
+            // otherwise the saved file would be missing every queued command on this page.
+            currentCanvas?.Dispose();
+            currentCanvas = null;
+            // Source images retained for ImageBrush rendering are safe to free now.
+            context.DisposePendingPageDisposables();
             pendingPage = currentPage;
             currentPage = null;
         }
@@ -1074,7 +1084,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     void DrawWatermarks()
     {
-        if (currentPage == null || watermarks.Count == 0)
+        if (currentCanvas == null || watermarks.Count == 0)
         {
             return;
         }
@@ -1096,7 +1106,8 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     {
         try
         {
-            using var img = Image.Load<Rgba32>(watermark.ImageData!);
+            var img = Image.Load<Rgba32>(watermark.ImageData!);
+            context.RetainForPage(img);
 
             // Word's gain/blacklevel washout: out = in * gain + blackLevel (per channel).
             // Bake the alpha-fade into the pixel alpha so DrawImage doesn't have to do it —
@@ -1148,7 +1159,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             var x = (int) ((pageWidth - drawW) / 2);
             var y = (int) ((pageHeight - drawH) / 2);
             // Alpha already baked into pixels above; DrawImage opacity stays at 1.0.
-            currentPage!.Mutate(_ => _.DrawImage(img, new Point(x, y), 1f));
+            currentCanvas!.DrawImage(img, new(x, y));
         }
         catch
         {
@@ -1181,7 +1192,8 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             return;
         }
 
-        using var temp = new Image<Rgba32>(tempW, tempH);
+        var temp = new Image<Rgba32>(tempW, tempH);
+        context.RetainForPage(temp);
         var tempOptions = new RichTextOptions(font)
         {
             Dpi = context.Dpi,
@@ -1189,17 +1201,20 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             VerticalAlignment = VerticalAlignment.Center,
             Origin = new PointF(tempW / 2f, tempH / 2f)
         };
-        temp.Mutate(_ => _.DrawText(tempOptions, watermark.Text!, context.GetBrush(color)));
+        using (var tempCanvas = temp.Frames.RootFrame.CreateCanvas(Configuration.Default, new()))
+        {
+            tempCanvas.DrawText(tempOptions, watermark.Text!, context.GetBrush(color));
+        }
         temp.Mutate(_ => _.Rotate((float) watermark.RotationDegrees));
 
         var dstX = (context.PageWidthPixels - temp.Width) / 2;
         var dstY = (context.PageHeightPixels - temp.Height) / 2;
-        currentPage!.Mutate(_ => _.DrawImage(temp, new Point(dstX, dstY), 1f));
+        currentCanvas!.DrawImage(temp, new(dstX, dstY));
     }
 
     void DrawPageBorders()
     {
-        if (currentPage == null || context.PageSettings.PageBorders is not {HasAnyBorder: true} borders)
+        if (currentCanvas == null || context.PageSettings.PageBorders is not {HasAnyBorder: true} borders)
         {
             return;
         }
@@ -1211,30 +1226,28 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         var topY = context.PointsToPixels((float) borders.TopSpacePoints);
         var bottomY = pageHeight - context.PointsToPixels((float) borders.BottomSpacePoints);
 
-        var page = currentPage;
-
         if (borders.Top.IsVisible)
         {
-            var pen = Pens.Solid(ParseColor(borders.Top.ColorHex), context.PointsToPixels((float) borders.Top.WidthPoints));
-            page.Mutate(_ => _.DrawLine(pen, new PointF(leftX, topY), new PointF(rightX, topY)));
+            var pen = context.GetPen(ParseColor(borders.Top.ColorHex), context.PointsToPixels((float) borders.Top.WidthPoints));
+            currentCanvas.DrawLine(pen, new PointF(leftX, topY), new PointF(rightX, topY));
         }
 
         if (borders.Bottom.IsVisible)
         {
-            var pen = Pens.Solid(ParseColor(borders.Bottom.ColorHex), context.PointsToPixels((float) borders.Bottom.WidthPoints));
-            page.Mutate(_ => _.DrawLine(pen, new PointF(leftX, bottomY), new PointF(rightX, bottomY)));
+            var pen = context.GetPen(ParseColor(borders.Bottom.ColorHex), context.PointsToPixels((float) borders.Bottom.WidthPoints));
+            currentCanvas.DrawLine(pen, new PointF(leftX, bottomY), new PointF(rightX, bottomY));
         }
 
         if (borders.Left.IsVisible)
         {
-            var pen = Pens.Solid(ParseColor(borders.Left.ColorHex), context.PointsToPixels((float) borders.Left.WidthPoints));
-            page.Mutate(_ => _.DrawLine(pen, new PointF(leftX, topY), new PointF(leftX, bottomY)));
+            var pen = context.GetPen(ParseColor(borders.Left.ColorHex), context.PointsToPixels((float) borders.Left.WidthPoints));
+            currentCanvas.DrawLine(pen, new PointF(leftX, topY), new PointF(leftX, bottomY));
         }
 
         if (borders.Right.IsVisible)
         {
-            var pen = Pens.Solid(ParseColor(borders.Right.ColorHex), context.PointsToPixels((float) borders.Right.WidthPoints));
-            page.Mutate(_ => _.DrawLine(pen, new PointF(rightX, topY), new PointF(rightX, bottomY)));
+            var pen = context.GetPen(ParseColor(borders.Right.ColorHex), context.PointsToPixels((float) borders.Right.WidthPoints));
+            currentCanvas.DrawLine(pen, new PointF(rightX, topY), new PointF(rightX, bottomY));
         }
     }
 
@@ -1253,7 +1266,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     protected override void RenderBackgroundShape(FloatingShapeElement shape)
     {
-        if (currentPage == null)
+        if (currentCanvas == null)
         {
             return;
         }
@@ -1284,9 +1297,10 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         {
             try
             {
-                using var img = Image.Load<Rgba32>(shape.ImageData);
+                var img = Image.Load<Rgba32>(shape.ImageData);
+                context.RetainForPage(img);
                 img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
-                currentPage.Mutate(_ => _.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f));
+                currentCanvas.DrawImage(img, new((int) pixelX, (int) pixelY));
             }
             catch
             {
@@ -1329,11 +1343,11 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         {
             var strokeColor = ParseColor(lineColor);
             var strokePixels = context.PointsToPixels((float) lineWidthPt);
-            var pen = Pens.Solid(strokeColor, strokePixels);
+            var pen = context.GetPen(strokeColor, strokePixels);
             if (shape.PolygonPoints != null)
             {
                 var polygon = BuildPolygon(shape, pixelX, pixelY, pixelWidth, pixelHeight);
-                currentPage.Mutate(_ => _.Draw(pen, polygon));
+                currentCanvas.Draw(pen, polygon);
             }
             else if (shape.Preset == PresetShape.Ellipse)
             {
@@ -1344,7 +1358,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                     pixelY + pixelHeight / 2,
                     pixelWidth,
                     pixelHeight);
-                currentPage.Mutate(_ => _.Draw(pen, ellipse));
+                currentCanvas.Draw(pen, ellipse);
             }
             else
             {
@@ -1355,7 +1369,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 var strokeTop = Math.Max(0, pixelY);
                 var strokeRight = Math.Min(context.PageWidthPixels, pixelX + pixelWidth);
                 var strokeBottom = Math.Min(context.PageHeightPixels, pixelY + pixelHeight);
-                currentPage.Mutate(_ => _.Draw(pen, new RectangleF(strokeLeft, strokeTop, strokeRight - strokeLeft, strokeBottom - strokeTop)));
+                currentCanvas.Draw(pen, new RectangleF(strokeLeft, strokeTop, strokeRight - strokeLeft, strokeBottom - strokeTop));
             }
         }
     }
@@ -1365,18 +1379,18 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         if (shape.PolygonPoints != null)
         {
             var polygon = BuildPolygon(shape, x, y, width, height);
-            currentPage!.Mutate(_ => _.Fill(brush, polygon));
+            currentCanvas!.Fill(brush, polygon);
             return;
         }
 
         if (shape.Preset == PresetShape.Ellipse)
         {
             var ellipse = new EllipsePolygon(x + width / 2, y + height / 2, width, height);
-            currentPage!.Mutate(_ => _.Fill(brush, ellipse));
+            currentCanvas!.Fill(brush, ellipse);
         }
         else
         {
-            currentPage!.Mutate(_ => _.Fill(brush, new RectangleF(x, y, width, height)));
+            currentCanvas!.Fill(brush, new RectangleF(x, y, width, height));
         }
     }
 
@@ -1408,7 +1422,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     protected override void RenderFloatingImage(FloatingImageElement image)
     {
-        if (currentPage == null)
+        if (currentCanvas == null)
         {
             return;
         }
@@ -1448,7 +1462,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     void RenderFloatingTextBox(FloatingTextBoxElement textBox)
     {
-        if (currentPage == null)
+        if (currentCanvas == null)
         {
             return;
         }
@@ -1478,25 +1492,29 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 return;
             }
 
-            using var tempImage = new Image<Rgba32>(tempW, tempH);
-            if (textBox.BackgroundColorHex != null)
+            var tempImage = new Image<Rgba32>(tempW, tempH);
+            context.RetainForPage(tempImage);
+            using (var tempCanvas = tempImage.Frames.RootFrame.CreateCanvas(Configuration.Default, new()))
             {
-                var bgColor = ParseColor(textBox.BackgroundColorHex);
-                tempImage.Mutate(_ => _.Fill(bgColor));
-            }
-
-            var savedY = context.CurrentY;
-            context.CurrentY = 0;
-
-            foreach (var element in textBox.Content)
-            {
-                if (element is ParagraphElement para)
+                if (textBox.BackgroundColorHex != null)
                 {
-                    textRenderer.RenderParagraphInBounds(tempImage, para, 0, (float) textBox.WidthPoints);
+                    var bgColor = ParseColor(textBox.BackgroundColorHex);
+                    tempCanvas.Fill(bgColor);
                 }
-            }
 
-            context.CurrentY = savedY;
+                var savedY = context.CurrentY;
+                context.CurrentY = 0;
+
+                foreach (var element in textBox.Content)
+                {
+                    if (element is ParagraphElement para)
+                    {
+                        textRenderer.RenderParagraphInBounds(tempCanvas, para, 0, (float) textBox.WidthPoints);
+                    }
+                }
+
+                context.CurrentY = savedY;
+            }
 
             tempImage.Mutate(_ => _.Rotate((float) textBox.RotationDegrees));
 
@@ -1506,14 +1524,14 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             var drawX = (int) (centerX - tempImage.Width / 2f);
             var drawY = (int) (centerY - tempImage.Height / 2f);
 
-            currentPage.Mutate(_ => _.DrawImage(tempImage, new Point(drawX, drawY), 1f));
+            currentCanvas.DrawImage(tempImage, new(drawX, drawY));
         }
         else
         {
             if (textBox.BackgroundColorHex != null)
             {
                 var bgFillColor = ParseColor(textBox.BackgroundColorHex);
-                currentPage.Mutate(_ => _.Fill(bgFillColor, new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight)));
+                currentCanvas.Fill(context.GetBrush(bgFillColor), new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight));
             }
 
             var savedY = context.CurrentY;
@@ -1523,7 +1541,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             {
                 if (element is ParagraphElement para)
                 {
-                    textRenderer.RenderParagraphInBounds(currentPage, para, x, (float) textBox.WidthPoints);
+                    textRenderer.RenderParagraphInBounds(currentCanvas, para, x, (float) textBox.WidthPoints);
                 }
             }
 
@@ -1531,6 +1549,9 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
     }
 
-    public void Dispose() =>
+    public void Dispose()
+    {
+        currentCanvas?.Dispose();
         currentPage?.Dispose();
+    }
 }

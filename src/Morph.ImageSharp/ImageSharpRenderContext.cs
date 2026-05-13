@@ -286,6 +286,26 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         return pen;
     }
 
+    /// <summary>
+    /// Per-page sink for source images handed to <c>DrawingCanvas.DrawImage</c>. The canvas queues
+    /// an <c>ImageBrush</c> that retains the source image until the canvas is disposed and its
+    /// timeline is rendered, so the image must outlive any caller-side <c>using</c>. Page renderer
+    /// drains this list after canvas dispose in <c>FinishCurrentPage</c>/<c>DiscardCurrentPage</c>.
+    /// </summary>
+    public List<IDisposable> PendingPageDisposables { get; } = [];
+
+    public void RetainForPage(IDisposable disposable) =>
+        PendingPageDisposables.Add(disposable);
+
+    public void DisposePendingPageDisposables()
+    {
+        foreach (var disposable in PendingPageDisposables)
+        {
+            disposable.Dispose();
+        }
+        PendingPageDisposables.Clear();
+    }
+
     public static Color ParseColor(string? hexColor)
     {
         if (string.IsNullOrEmpty(hexColor) || hexColor == "auto")
