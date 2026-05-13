@@ -1343,7 +1343,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         if (hasRotation)
         {
             temp = new((int) Math.Ceiling(pixelWidth), (int) Math.Ceiling(pixelHeight));
-            drawCanvas = temp.Frames.RootFrame.CreateCanvas(Configuration.Default, new DrawingOptions());
+            drawCanvas = temp.Frames.RootFrame.CreateCanvas(Configuration.Default, new());
             drawOriginX = 0;
             drawOriginY = 0;
         }
@@ -1379,7 +1379,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                     // (each line's square cap fills the gap where a butt/round cap would leave a notch).
                     var pen = new SolidPen(new PenOptions(color, width)
                     {
-                        StrokeOptions = new StrokeOptions
+                        StrokeOptions = new()
                         {
                             LineCap = LineCap.Square,
                             LineJoin = LineJoin.Bevel
@@ -1419,7 +1419,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             // Centre the rotated temp at the original group centre to keep alignment with text.
             var dstX = (int) (pixelX + (pixelWidth - temp.Width) / 2f);
             var dstY = (int) (pixelY + (pixelHeight - temp.Height) / 2f);
-            pageCanvas.DrawImage(temp, new Point(dstX, dstY), 1f);
+            pageCanvas.DrawImage(temp, new(dstX, dstY), 1f);
             // ImageBrush retains temp until the page canvas renders.
             context.RetainForPage(temp);
         }
@@ -1469,7 +1469,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             var rotation = (float) fragment.InlineImageRotationDegrees;
             if (rotation == 0)
             {
-                canvas.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f);
+                canvas.DrawImage(img, new((int) pixelX, (int) pixelY), 1f);
             }
             else
             {
@@ -1477,7 +1477,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 // After rotation the image's bounding box grew; recentre over the original location.
                 var newX = pixelX + pixelWidth / 2 - img.Width / 2f;
                 var newY = pixelY + pixelHeight / 2 - img.Height / 2f;
-                canvas.DrawImage(img, new Point((int) newX, (int) newY), 1f);
+                canvas.DrawImage(img, new((int) newX, (int) newY), 1f);
             }
         }
         catch

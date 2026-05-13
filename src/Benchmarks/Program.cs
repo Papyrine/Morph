@@ -1,16 +1,10 @@
-using System.Text;
-using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Configs;
-using BenchmarkDotNet.Running;
-using Morph;
-
 BenchmarkSwitcher.FromAssemblies([typeof(ConversionBenchmarks).Assembly]).Run(args);
 
 [MemoryDiagnoser]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
 public class ConversionBenchmarks
 {
-    static string GetSourceDir([System.Runtime.CompilerServices.CallerFilePath] string path = "") => Path.GetDirectoryName(path)!;
+    static string GetSourceDir([CallerFilePath] string path = "") => Path.GetDirectoryName(path)!;
     static readonly string inputsDir = Path.GetFullPath(Path.Combine(GetSourceDir(), "..", "Tests", "Inputs"));
 
     // Small (~33KB) - simple resume
@@ -117,7 +111,7 @@ public class ConversionBenchmarks
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
 public class ParseBenchmarks
 {
-    static string GetSourceDir([System.Runtime.CompilerServices.CallerFilePath] string path = "") => Path.GetDirectoryName(path)!;
+    static string GetSourceDir([CallerFilePath] string path = "") => Path.GetDirectoryName(path)!;
     static readonly string inputsDir = Path.GetFullPath(Path.Combine(GetSourceDir(), "..", "Tests", "Inputs"));
 
     static readonly string smallDoc = Path.Combine(inputsDir, "resumes", "01", "input.docx");

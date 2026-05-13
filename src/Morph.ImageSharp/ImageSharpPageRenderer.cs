@@ -467,11 +467,11 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 img.Mutate(_ => _.Rotate(rotation));
                 var newX = pixelX + pixelWidth / 2 - img.Width / 2f;
                 var newY = pixelY + pixelHeight / 2 - img.Height / 2f;
-                currentCanvas.DrawImage(img, new Point((int) newX, (int) newY), 1f);
+                currentCanvas.DrawImage(img, new((int) newX, (int) newY), 1f);
             }
             else
             {
-                currentCanvas.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f);
+                currentCanvas.DrawImage(img, new((int) pixelX, (int) pixelY), 1f);
             }
         }
         catch
@@ -560,7 +560,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         if (wordArt.HasShadow)
         {
-            var shadowColor = Color.FromPixel(new Rgba32((byte) 0, (byte) 0, (byte) 0, (byte) 80));
+            var shadowColor = Color.FromPixel(new Rgba32(0, 0, 0, 80));
             currentCanvas.DrawText(wordArt.Text, scaledFont, shadowColor, new(textX + 3, textY + 3));
         }
 
@@ -643,7 +643,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         if (wordArt.HasShadow)
         {
-            var shadowColor = Color.FromPixel(new Rgba32((byte) 0, (byte) 0, (byte) 0, (byte) 80));
+            var shadowColor = Color.FromPixel(new Rgba32(0, 0, 0, 80));
             currentCanvas.DrawText(wordArt.Text, scaledFont, shadowColor, new(textX + 3, textY + 3));
         }
 
@@ -750,7 +750,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         context.RetainForPage(tempImage);
         // Scoped canvas — text rendering for this cell batches onto its own timeline,
         // disposed before the rotate+blit below so the rotation sees the pixels.
-        using (var tempCanvas = tempImage.Frames.RootFrame.CreateCanvas(Configuration.Default, new DrawingOptions()))
+        using (var tempCanvas = tempImage.Frames.RootFrame.CreateCanvas(Configuration.Default, new()))
         {
             var savedY = context.CurrentY;
             context.CurrentY = 0;
@@ -780,7 +780,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         var drawX = (int) context.PointsToPixels(contentX);
         var drawY = (int) context.PointsToPixels(contentY);
-        currentCanvas.DrawImage(tempImage, new Point(drawX, drawY), 1f);
+        currentCanvas.DrawImage(tempImage, new(drawX, drawY), 1f);
     }
 
 
@@ -925,7 +925,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             var img = Image.Load<Rgba32>(data);
             context.RetainForPage(img);
             img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
-            currentCanvas.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f);
+            currentCanvas.DrawImage(img, new((int) pixelX, (int) pixelY), 1f);
         }
         catch
         {
@@ -1034,7 +1034,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         // used to be its own one-shot Mutate(_ => _.Paint(...)) round-trip is now a single
         // recorded command on this batcher; the backend renders the whole timeline once
         // on Dispose in FinishCurrentPage.
-        currentCanvas = currentPage.Frames.RootFrame.CreateCanvas(Configuration.Default, new DrawingOptions());
+        currentCanvas = currentPage.Frames.RootFrame.CreateCanvas(Configuration.Default, new());
 
         var bgColor = context.PageSettings.BackgroundColorHex;
         Color fillColor;
@@ -1159,7 +1159,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             var x = (int) ((pageWidth - drawW) / 2);
             var y = (int) ((pageHeight - drawH) / 2);
             // Alpha already baked into pixels above; DrawImage opacity stays at 1.0.
-            currentCanvas!.DrawImage(img, new Point(x, y), 1f);
+            currentCanvas!.DrawImage(img, new(x, y), 1f);
         }
         catch
         {
@@ -1201,7 +1201,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             VerticalAlignment = VerticalAlignment.Center,
             Origin = new PointF(tempW / 2f, tempH / 2f)
         };
-        using (var tempCanvas = temp.Frames.RootFrame.CreateCanvas(Configuration.Default, new DrawingOptions()))
+        using (var tempCanvas = temp.Frames.RootFrame.CreateCanvas(Configuration.Default, new()))
         {
             tempCanvas.DrawText(tempOptions, watermark.Text!, context.GetBrush(color));
         }
@@ -1209,7 +1209,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         var dstX = (context.PageWidthPixels - temp.Width) / 2;
         var dstY = (context.PageHeightPixels - temp.Height) / 2;
-        currentCanvas!.DrawImage(temp, new Point(dstX, dstY), 1f);
+        currentCanvas!.DrawImage(temp, new(dstX, dstY), 1f);
     }
 
     void DrawPageBorders()
@@ -1300,7 +1300,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 var img = Image.Load<Rgba32>(shape.ImageData);
                 context.RetainForPage(img);
                 img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
-                currentCanvas.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f);
+                currentCanvas.DrawImage(img, new((int) pixelX, (int) pixelY), 1f);
             }
             catch
             {
@@ -1494,7 +1494,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
             var tempImage = new Image<Rgba32>(tempW, tempH);
             context.RetainForPage(tempImage);
-            using (var tempCanvas = tempImage.Frames.RootFrame.CreateCanvas(Configuration.Default, new DrawingOptions()))
+            using (var tempCanvas = tempImage.Frames.RootFrame.CreateCanvas(Configuration.Default, new()))
             {
                 if (textBox.BackgroundColorHex != null)
                 {
@@ -1524,7 +1524,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             var drawX = (int) (centerX - tempImage.Width / 2f);
             var drawY = (int) (centerY - tempImage.Height / 2f);
 
-            currentCanvas.DrawImage(tempImage, new Point(drawX, drawY), 1f);
+            currentCanvas.DrawImage(tempImage, new(drawX, drawY), 1f);
         }
         else
         {
