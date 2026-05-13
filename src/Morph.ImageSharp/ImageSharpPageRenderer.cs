@@ -509,7 +509,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             wordArt.Bold,
             wordArt.Italic);
 
-        var textSize = TextMeasurer.MeasureSize(
+        var textSize = TextMeasurer.MeasureAdvance(
             wordArt.Text,
             new(font)
             {
@@ -529,7 +529,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             wordArt.Bold,
             wordArt.Italic);
 
-        var scaledSize = TextMeasurer.MeasureSize(
+        var scaledSize = TextMeasurer.MeasureAdvance(
             wordArt.Text,
             new(scaledFont)
             {
@@ -551,7 +551,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         if (wordArt.HasShadow)
         {
-            var shadowColor = Color.FromRgba(0, 0, 0, 80);
+            var shadowColor = Color.FromPixel(new Rgba32((byte) 0, (byte) 0, (byte) 0, (byte) 80));
             currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, shadowColor, new(textX + 3, textY + 3)));
         }
 
@@ -593,7 +593,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             wordArt.Bold,
             wordArt.Italic);
 
-        var textSize = TextMeasurer.MeasureSize(
+        var textSize = TextMeasurer.MeasureAdvance(
             wordArt.Text,
             new(font)
             {
@@ -612,7 +612,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             wordArt.Bold,
             wordArt.Italic);
 
-        var scaledSize = TextMeasurer.MeasureSize(
+        var scaledSize = TextMeasurer.MeasureAdvance(
             wordArt.Text,
             new(scaledFont)
             {
@@ -634,7 +634,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         if (wordArt.HasShadow)
         {
-            var shadowColor = Color.FromRgba(0, 0, 0, 80);
+            var shadowColor = Color.FromPixel(new Rgba32((byte) 0, (byte) 0, (byte) 0, (byte) 80));
             currentPage.Mutate(_ => _.DrawText(wordArt.Text, scaledFont, shadowColor, new(textX + 3, textY + 3)));
         }
 
@@ -676,7 +676,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 var alpha = stroke.IsHighlighter
                     ? (byte) 128
                     : (byte) (255 - stroke.Transparency);
-                color = Color.FromRgba(pixel.R, pixel.G, pixel.B, alpha);
+                color = Color.FromPixel(new Rgba32(pixel.R, pixel.G, pixel.B, alpha));
             }
 
             var strokeWidth = context.PointsToPixels((float) stroke.WidthPoints);

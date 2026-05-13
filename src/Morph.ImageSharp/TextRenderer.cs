@@ -1377,8 +1377,11 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 // (each line's square cap fills the gap where a butt/round cap would leave a notch).
                 var pen = new SolidPen(new PenOptions(color, width)
                 {
-                    EndCapStyle = EndCapStyle.Square,
-                    JointStyle = JointStyle.Square
+                    StrokeOptions = new StrokeOptions
+                    {
+                        LineCap = LineCap.Square,
+                        LineJoin = LineJoin.Bevel
+                    }
                 });
                 canvas.Mutate(_ => _.DrawLine(pen, new PointF(startX, startY), new PointF(endX, endY)));
             }
