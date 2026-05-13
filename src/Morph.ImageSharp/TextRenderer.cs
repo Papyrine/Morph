@@ -194,9 +194,9 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     }
 
     /// <summary>
-    /// Renders a paragraph to the image at the current position.
+    /// Renders a paragraph to the canvas at the current position.
     /// </summary>
-    public void RenderParagraph(Image<Rgba32> currentPage, ParagraphElement paragraph, DocumentElement? nextElement = null)
+    public void RenderParagraph(DrawingCanvas canvas, ParagraphElement paragraph, DocumentElement? nextElement = null)
     {
         var lines = LayoutParagraph(paragraph);
         var props = paragraph.Properties;
@@ -248,7 +248,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             var bgWidth = context.PointsToPixels(context.ContentWidth - (float)props.LeftIndentPoints - (float)props.RightIndentPoints);
             var bgHeight = context.PointsToPixels(paragraphHeight);
 
-            currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(bgX, bgY, bgWidth, bgHeight)));
+            canvas.Fill(context.GetBrush(bgColor), new RectangleF(bgX, bgY, bgWidth, bgHeight));
         }
 
         // Reserve vertical space for border w:space that isn't already absorbed by
@@ -282,13 +282,13 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             if (showLineNumbers)
             {
                 var lineNumber = context.GetNextLineNumber();
-                RenderLineNumber(currentPage, lineNumber, y, lineNumberSettings!);
+                RenderLineNumber(canvas, lineNumber, y, lineNumberSettings!);
             }
 
             // Render bullet/number on first line
             if (isFirstLine && props.Numbering != null)
             {
-                RenderBullet(currentPage, props.Numbering, y, paragraph);
+                RenderBullet(canvas, props.Numbering, y, paragraph);
                 isFirstLine = false;
             }
 
@@ -321,7 +321,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             for (var i = 0; i < line.Fragments.Count; i++)
             {
                 var fragment = line.Fragments[i];
-                RenderFragment(currentPage, fragment, currentX, y);
+                RenderFragment(canvas, fragment, currentX, y);
                 currentX += fragment.Width;
 
                 // Add extra space after whitespace fragments for justified text
@@ -363,7 +363,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             {
                 var color = ImageSharpRenderContext.ParseColor(edge.ColorHex ?? "000000");
                 var pen = context.GetPen(color, context.PointsToPixels((float) edge.WidthPoints));
-                currentPage.Mutate(_ => _.DrawLine(pen, start, end));
+                canvas.DrawLine(pen, start, end);
             }
 
             if (borders.Bottom.IsVisible && !collapseBottom)
@@ -414,7 +414,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         // Bar tabs draw a vertical line at each bar position spanning the full
         // paragraph cell — including spacing-before and spacing-after — so
         // consecutive bar-tab paragraphs render as a continuous vertical bar.
-        DrawBarTabs(currentPage, props, barTabStartY, context.CurrentY - barTabStartY);
+        DrawBarTabs(canvas, props, barTabStartY, context.CurrentY - barTabStartY);
 
         // Track contextual spacing state for next paragraph
         context.LastParagraphHadContextualSpacing = props.ContextualSpacing;
@@ -424,7 +424,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     /// <summary>
     /// Renders a paragraph at a specific position with a specific width (for floating text boxes).
     /// </summary>
-    public void RenderParagraphInBounds(Image<Rgba32> currentPage, ParagraphElement paragraph, float startX, float width)
+    public void RenderParagraphInBounds(DrawingCanvas canvas, ParagraphElement paragraph, float startX, float width)
     {
         var props = paragraph.Properties;
 
@@ -454,7 +454,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             // Render bullet/number on first line
             if (isFirstLine && props.Numbering != null)
             {
-                RenderBulletInBounds(currentPage, props.Numbering, y, paragraph, startX);
+                RenderBulletInBounds(canvas, props.Numbering, y, paragraph, startX);
                 isFirstLine = false;
             }
 
@@ -481,7 +481,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             for (var i = 0; i < line.Fragments.Count; i++)
             {
                 var fragment = line.Fragments[i];
-                RenderFragment(currentPage, fragment, currentX, y);
+                RenderFragment(canvas, fragment, currentX, y);
                 currentX += fragment.Width;
 
                 // Add extra space after whitespace fragments for justified text
@@ -801,7 +801,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     /// <summary>
     /// Renders a line number in the left margin.
     /// </summary>
-    void RenderLineNumber(Image<Rgba32> currentPage, int lineNumber, float baselineY, LineNumberSettings settings)
+    void RenderLineNumber(DrawingCanvas canvas, int lineNumber, float baselineY, LineNumberSettings settings)
     {
         // Only show line numbers at the countBy interval
         var adjustedNumber = lineNumber - settings.Start;
@@ -830,13 +830,13 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             Dpi = context.Dpi,
             Origin = new PointF(pixelX - textWidth, pixelY - baseline * context.Scale)
         };
-        currentPage.Mutate(_ => _.DrawText(textOptions, numberText, context.GetBrush(Color.Black)));
+        canvas.DrawText(textOptions, numberText, context.GetBrush(Color.Black));
     }
 
     /// <summary>
     /// Renders a bullet or number for a list item.
     /// </summary>
-    void RenderBullet(Image<Rgba32> currentPage, NumberingInfo numbering, float baselineY, ParagraphElement paragraph)
+    void RenderBullet(DrawingCanvas canvas, NumberingInfo numbering, float baselineY, ParagraphElement paragraph)
     {
         // Position bullet at the cascaded paragraph indent (style's <w:ind> wins over the
         // numbering level's, per the OOXML cascade), not the raw numbering value.
@@ -861,7 +861,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             Dpi = context.Dpi,
             Origin = new PointF(pixelX, pixelY - baseline * context.Scale)
         };
-        currentPage.Mutate(_ => _.DrawText(textOptions, numbering.Text, context.GetBrush(color)));
+        canvas.DrawText(textOptions, numbering.Text, context.GetBrush(color));
     }
 
     static RunProperties ResolveBulletRunProperties(NumberingInfo numbering, ParagraphElement paragraph)
@@ -894,7 +894,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     /// <summary>
     /// Renders a bullet or number for a list item within specific bounds (for table cells).
     /// </summary>
-    void RenderBulletInBounds(Image<Rgba32> currentPage, NumberingInfo numbering, float baselineY, ParagraphElement paragraph, float startX)
+    void RenderBulletInBounds(DrawingCanvas canvas, NumberingInfo numbering, float baselineY, ParagraphElement paragraph, float startX)
     {
         // See RenderBullet for why this picks Morph Bullets vs the paragraph font.
         var bulletProps = ResolveBulletRunProperties(numbering, paragraph);
@@ -915,7 +915,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             Dpi = context.Dpi,
             Origin = new PointF(pixelX, pixelY - baseline * context.Scale)
         };
-        currentPage.Mutate(_ => _.DrawText(textOptions, numbering.Text, context.GetBrush(color)));
+        canvas.DrawText(textOptions, numbering.Text, context.GetBrush(color));
     }
 
     float CalculateLineX(TextLine line, ParagraphProperties props)
@@ -1004,24 +1004,24 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         return true;
     }
 
-    void RenderFragment(Image<Rgba32> currentPage, TextFragment fragment, float x, float y)
+    void RenderFragment(DrawingCanvas canvas, TextFragment fragment, float x, float y)
     {
         // Handle inline images
         if (fragment.InlineImageData is {Length: > 0})
         {
-            RenderInlineImage(currentPage, fragment, x, y);
+            RenderInlineImage(canvas, fragment, x, y);
             return;
         }
 
         if (fragment.InlineShapeGroup is { } group)
         {
-            RenderInlineShapeGroup(currentPage, group, fragment, x, y);
+            RenderInlineShapeGroup(canvas, group, fragment, x, y);
             return;
         }
 
         if (fragment.IsTabFiller)
         {
-            RenderTabFiller(currentPage, fragment, x, y);
+            RenderTabFiller(canvas, fragment, x, y);
             return;
         }
 
@@ -1064,7 +1064,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             var textTop = pixelY - runBaseline * context.Scale;
             var textBottom = pixelY + (runHeight - runBaseline) * context.Scale;
 
-            currentPage.Mutate(_ => _.Fill(bgColor, new RectangleF(pixelX, textTop, textWidth, textBottom - textTop)));
+            canvas.Fill(context.GetBrush(bgColor), new RectangleF(pixelX, textTop, textWidth, textBottom - textTop));
         }
 
         // Get baseline for coordinate conversion (Skia uses baseline Y, ImageSharp uses top-left Y)
@@ -1077,7 +1077,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             KerningMode = ResolveKerningMode(fragment.Properties)
         };
 
-        DrawTextEffectsBehind(currentPage, fragment, textOptions, font, pixelX, pixelY, baseline);
+        DrawTextEffectsBehind(canvas, fragment, textOptions, font, pixelX, pixelY, baseline);
 
         // w:emboss / w:imprint — paint a tonal companion glyph offset from the main glyph
         // so the run reads as raised (emboss) or engraved (imprint). The offset scales with
@@ -1093,7 +1093,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 Origin = new PointF(pixelX + offset, pixelY - baseline * context.Scale + offset),
                 KerningMode = textOptions.KerningMode
             };
-            currentPage.Mutate(_ => _.DrawText(lightOptions, fragment.Text, context.GetBrush(Color.White)));
+            canvas.DrawText(lightOptions, fragment.Text, context.GetBrush(Color.White));
         }
         else if (fragment.Properties.Imprint)
         {
@@ -1104,18 +1104,18 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 Origin = new PointF(pixelX - offset, pixelY - baseline * context.Scale - offset),
                 KerningMode = textOptions.KerningMode
             };
-            currentPage.Mutate(_ => _.DrawText(darkOptions, fragment.Text, context.GetBrush(Color.Gray)));
+            canvas.DrawText(darkOptions, fragment.Text, context.GetBrush(Color.Gray));
         }
 
         // w:outline — render the glyph as a stroke instead of a fill.
         if (fragment.Properties.OutlineOnly)
         {
             var strokePen = context.GetPen(color, Math.Max(0.5f, context.Scale * 0.5f));
-            currentPage.Mutate(_ => _.DrawText(textOptions, fragment.Text, strokePen));
+            canvas.DrawText(textOptions, fragment.Text, strokePen);
         }
         else
         {
-            currentPage.Mutate(_ => _.DrawText(textOptions, fragment.Text, context.GetBrush(color)));
+            canvas.DrawText(textOptions, fragment.Text, context.GetBrush(color));
         }
 
         // w:bdr — per-run border drawn around the text box. Doesn't reserve space, so
@@ -1128,14 +1128,14 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             var bdrWidth = context.PointsToPixels(fragment.Width);
             var bdrColor = ImageSharpRenderContext.ParseColor(runBdr.ColorHex);
             var bdrPen = context.GetPen(bdrColor, Math.Max(0.5f, (float) runBdr.WidthPoints * context.Scale));
-            currentPage.Mutate(_ => _.Draw(bdrPen, new RectangleF(pixelX, bdrTop, bdrWidth, bdrBottom - bdrTop)));
+            canvas.Draw(bdrPen, new RectangleF(pixelX, bdrTop, bdrWidth, bdrBottom - bdrTop));
         }
 
         if (fragment.Properties.Outline is { } outline)
         {
             var outlineColor = ImageSharpRenderContext.ParseColor(outline.ColorHex);
             var pen = context.GetPen(outlineColor, Math.Max(0.5f, (float) outline.WidthPoints * context.Scale));
-            currentPage.Mutate(_ => _.DrawText(textOptions, fragment.Text, pen));
+            canvas.DrawText(textOptions, fragment.Text, pen);
         }
 
         // Draw underline if needed
@@ -1144,7 +1144,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             var underlineY = pixelY + 2 * context.Scale;
             var width = context.PointsToPixels(fragment.Width);
             var strokeWidth = 1 * context.Scale;
-            currentPage.Mutate(_ => _.DrawLine(new SolidPen(color, strokeWidth), new PointF(pixelX, underlineY), new PointF(pixelX + width, underlineY)));
+            canvas.DrawLine(context.GetPen(color, strokeWidth), new PointF(pixelX, underlineY), new PointF(pixelX + width, underlineY));
         }
 
         // Draw strikethrough if needed
@@ -1155,20 +1155,20 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             var strikeY = pixelY - font.Size * 0.3f * context.Scale;
             var width = context.PointsToPixels(fragment.Width);
             var strokeWidth = 1 * context.Scale;
-            currentPage.Mutate(_ => _.DrawLine(new SolidPen(color, strokeWidth), new PointF(pixelX, strikeY), new PointF(pixelX + width, strikeY)));
+            canvas.DrawLine(context.GetPen(color, strokeWidth), new PointF(pixelX, strikeY), new PointF(pixelX + width, strikeY));
         }
     }
 
     static KerningMode ResolveKerningMode(RunProperties props) => TextShaping.ResolveKerningMode(props);
 
-    void DrawBarTabs(Image<Rgba32> currentPage, ParagraphProperties props, float lineTopY, float lineHeight)
+    void DrawBarTabs(DrawingCanvas canvas, ParagraphProperties props, float lineTopY, float lineHeight)
     {
         if (props.TabStops.Count == 0)
         {
             return;
         }
 
-        var pen = new SolidPen(Color.Black, Math.Max(1, 0.5f * context.Scale));
+        var pen = context.GetPen(Color.Black, Math.Max(1, 0.5f * context.Scale));
         var top = context.PointsToPixels(lineTopY);
         var bottom = context.PointsToPixels(lineTopY + lineHeight);
 
@@ -1180,7 +1180,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             }
 
             var x = context.PointsToPixels(context.ContentLeft + (float) stop.PositionPoints);
-            currentPage.Mutate(_ => _.DrawLine(pen, new PointF(x, top), new PointF(x, bottom)));
+            canvas.DrawLine(pen, new PointF(x, top), new PointF(x, bottom));
         }
     }
 
@@ -1189,7 +1189,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     /// in <see cref="RenderFragment"/>. ImageSharp's drawing pipeline doesn't expose a per-draw
     /// blur filter, so blur radii are approximated by drawing the effect at multiple offsets.
     /// </summary>
-    void DrawTextEffectsBehind(Image<Rgba32> currentPage, TextFragment fragment, RichTextOptions baseOptions,
+    void DrawTextEffectsBehind(DrawingCanvas canvas, TextFragment fragment, RichTextOptions baseOptions,
         Font font, float pixelX, float pixelY, float baseline)
     {
         var props = fragment.Properties;
@@ -1209,7 +1209,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 Dpi = context.Dpi,
                 Origin = new PointF(pixelX + offsetX, pixelY - baseline * context.Scale + offsetY)
             };
-            currentPage.Mutate(_ => _.DrawText(shadowOptions, fragment.Text, new SolidBrush(shadowColor)));
+            canvas.DrawText(shadowOptions, fragment.Text, new SolidBrush(shadowColor));
         }
 
         if (props.Glow is { } glow)
@@ -1224,7 +1224,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 var ringAlpha = (byte) Math.Clamp(glow.AlphaPercent * 255 / 100 / rings, 0, 255);
                 var ringColor = Color.FromPixel(new Rgba32(rgba.R, rgba.G, rgba.B, ringAlpha));
                 var pen = new SolidPen(ringColor, r);
-                currentPage.Mutate(_ => _.DrawText(baseOptions, fragment.Text, pen));
+                canvas.DrawText(baseOptions, fragment.Text, pen);
             }
         }
 
@@ -1257,11 +1257,11 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 Origin = new PointF(pixelX, pixelY - baseline * context.Scale + ascent + descent)
             };
             _ = reflectOptions;
-            currentPage.Mutate(_ => _.DrawText(ghostOptions, fragment.Text, new SolidBrush(reflectionColor)));
+            canvas.DrawText(ghostOptions, fragment.Text, new SolidBrush(reflectionColor));
         }
     }
 
-    void RenderTabFiller(Image<Rgba32> currentPage, TextFragment fragment, float x, float y)
+    void RenderTabFiller(DrawingCanvas canvas, TextFragment fragment, float x, float y)
     {
         if (fragment.Width <= 0 || fragment.TabLeader == TabLeader.None)
         {
@@ -1276,10 +1276,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         if (fragment.TabLeader == TabLeader.Underscore)
         {
             var strokeWidth = Math.Max(1f, (float)fragment.Properties.FontSizePoints * context.Scale * 0.07f);
-            currentPage.Mutate(_ => _.DrawLine(
-                new SolidPen(color, strokeWidth),
+            canvas.DrawLine(
+                context.GetPen(color, strokeWidth),
                 new PointF(pixelStartX, pixelY),
-                new PointF(pixelEndX, pixelY)));
+                new PointF(pixelEndX, pixelY));
             return;
         }
 
@@ -1319,10 +1319,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             Dpi = context.Dpi,
             Origin = new PointF(pixelStartX, pixelY - baseline * context.Scale)
         };
-        currentPage.Mutate(_ => _.DrawText(textOptions, leaderText, context.GetBrush(color)));
+        canvas.DrawText(textOptions, leaderText, context.GetBrush(color));
     }
 
-    void RenderInlineShapeGroup(Image<Rgba32> currentPage, InlineShapeGroup group, TextFragment fragment, float x, float y)
+    void RenderInlineShapeGroup(DrawingCanvas pageCanvas, InlineShapeGroup group, TextFragment fragment, float x, float y)
     {
         var pixelX = context.PointsToPixels(x);
         var pixelWidth = context.PointsToPixels(fragment.Width);
@@ -1336,69 +1336,80 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         // render onto a temp image, rotate it, and composite. Most templates use 90° group
         // rotation for header arrows; the temp-image route handles those without distortion.
         var hasRotation = group.RotationDegrees != 0;
-        var canvas = currentPage;
         Image<Rgba32>? temp = null;
+        var drawCanvas = pageCanvas;
         var drawOriginX = pixelX;
         var drawOriginY = pixelY;
         if (hasRotation)
         {
             temp = new((int) Math.Ceiling(pixelWidth), (int) Math.Ceiling(pixelHeight));
-            canvas = temp;
+            drawCanvas = temp.Frames.RootFrame.CreateCanvas(Configuration.Default, new DrawingOptions());
             drawOriginX = 0;
             drawOriginY = 0;
         }
 
-        foreach (var shape in group.Shapes)
+        try
         {
-            var x1 = drawOriginX + (float) shape.X * sx;
-            var y1 = drawOriginY + (float) shape.Y * sy;
-            var w = (float) shape.Width * sx;
-            var h = (float) shape.Height * sy;
-
-            if (shape.Geometry == GroupShapeGeometry.Line)
+            foreach (var shape in group.Shapes)
             {
-                var startX = x1;
-                var startY = y1;
-                var endX = x1 + w;
-                var endY = y1 + h;
-                if (shape.FlipVertical)
-                {
-                    (startY, endY) = (endY, startY);
-                }
-                if (shape.FlipHorizontal)
-                {
-                    (startX, endX) = (endX, startX);
-                }
+                var x1 = drawOriginX + (float) shape.X * sx;
+                var y1 = drawOriginY + (float) shape.Y * sy;
+                var w = (float) shape.Width * sx;
+                var h = (float) shape.Height * sy;
 
-                var color = ImageSharpRenderContext.ParseColor(shape.ColorHex);
-                var width = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75) * context.Scale;
-                // Square end caps make the perpendicular connector lines extend half-stroke-width
-                // past their endpoints — that's how Word's icon-style arrows form a clean L corner
-                // (each line's square cap fills the gap where a butt/round cap would leave a notch).
-                var pen = new SolidPen(new PenOptions(color, width)
+                if (shape.Geometry == GroupShapeGeometry.Line)
                 {
-                    StrokeOptions = new StrokeOptions
+                    var startX = x1;
+                    var startY = y1;
+                    var endX = x1 + w;
+                    var endY = y1 + h;
+                    if (shape.FlipVertical)
                     {
-                        LineCap = LineCap.Square,
-                        LineJoin = LineJoin.Bevel
+                        (startY, endY) = (endY, startY);
                     }
-                });
-                canvas.Mutate(_ => _.DrawLine(pen, new PointF(startX, startY), new PointF(endX, endY)));
-            }
-            else
-            {
-                if (shape.FillColorHex is { } fillHex)
-                {
-                    var fill = ImageSharpRenderContext.ParseColor(fillHex);
-                    canvas.Mutate(_ => _.Fill(fill, new RectangleF(x1, y1, w, h)));
-                }
-                if (shape.LineWidthEmu > 0)
-                {
+                    if (shape.FlipHorizontal)
+                    {
+                        (startX, endX) = (endX, startX);
+                    }
+
                     var color = ImageSharpRenderContext.ParseColor(shape.ColorHex);
-                    var width = (float) (shape.LineWidthEmu / emusPerPoint) * context.Scale;
-                    var pen = new SolidPen(color, width);
-                    canvas.Mutate(_ => _.Draw(pen, new RectangleF(x1, y1, w, h)));
+                    var width = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75) * context.Scale;
+                    // Square end caps make the perpendicular connector lines extend half-stroke-width
+                    // past their endpoints — that's how Word's icon-style arrows form a clean L corner
+                    // (each line's square cap fills the gap where a butt/round cap would leave a notch).
+                    var pen = new SolidPen(new PenOptions(color, width)
+                    {
+                        StrokeOptions = new StrokeOptions
+                        {
+                            LineCap = LineCap.Square,
+                            LineJoin = LineJoin.Bevel
+                        }
+                    });
+                    drawCanvas.DrawLine(pen, new PointF(startX, startY), new PointF(endX, endY));
                 }
+                else
+                {
+                    if (shape.FillColorHex is { } fillHex)
+                    {
+                        var fill = ImageSharpRenderContext.ParseColor(fillHex);
+                        drawCanvas.Fill(context.GetBrush(fill), new RectangleF(x1, y1, w, h));
+                    }
+                    if (shape.LineWidthEmu > 0)
+                    {
+                        var color = ImageSharpRenderContext.ParseColor(shape.ColorHex);
+                        var width = (float) (shape.LineWidthEmu / emusPerPoint) * context.Scale;
+                        var pen = context.GetPen(color, width);
+                        drawCanvas.Draw(pen, new RectangleF(x1, y1, w, h));
+                    }
+                }
+            }
+        }
+        finally
+        {
+            // Dispose the temp canvas before rotating+blitting so the pixels exist on the temp image.
+            if (hasRotation && !ReferenceEquals(drawCanvas, pageCanvas))
+            {
+                drawCanvas.Dispose();
             }
         }
 
@@ -1408,15 +1419,16 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             // Centre the rotated temp at the original group centre to keep alignment with text.
             var dstX = (int) (pixelX + (pixelWidth - temp.Width) / 2f);
             var dstY = (int) (pixelY + (pixelHeight - temp.Height) / 2f);
-            currentPage.Mutate(_ => _.DrawImage(temp, new Point(dstX, dstY), 1f));
-            temp.Dispose();
+            pageCanvas.DrawImage(temp, new Point(dstX, dstY), 1f);
+            // ImageBrush retains temp until the page canvas renders.
+            context.RetainForPage(temp);
         }
     }
 
     // EMU = English Metric Units. 1 point = 12700 EMU.
     const float emusPerPoint = 12700f;
 
-    void RenderInlineImage(Image<Rgba32> currentPage, TextFragment fragment, float x, float y)
+    void RenderInlineImage(DrawingCanvas canvas, TextFragment fragment, float x, float y)
     {
         // Convert to pixels - y is the baseline, need to adjust for image height
         var pixelX = context.PointsToPixels(x);
@@ -1441,7 +1453,8 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         // Render bitmap image
         try
         {
-            using var img = Image.Load<Rgba32>(imageBytes!);
+            var img = Image.Load<Rgba32>(imageBytes!);
+            context.RetainForPage(img);
 
             if (fragment.InlineImageCrop is { IsCropped: true } crop)
             {
@@ -1456,7 +1469,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             var rotation = (float) fragment.InlineImageRotationDegrees;
             if (rotation == 0)
             {
-                currentPage.Mutate(_ => _.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f));
+                canvas.DrawImage(img, new Point((int) pixelX, (int) pixelY), 1f);
             }
             else
             {
@@ -1464,7 +1477,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 // After rotation the image's bounding box grew; recentre over the original location.
                 var newX = pixelX + pixelWidth / 2 - img.Width / 2f;
                 var newY = pixelY + pixelHeight / 2 - img.Height / 2f;
-                currentPage.Mutate(_ => _.DrawImage(img, new Point((int) newX, (int) newY), 1f));
+                canvas.DrawImage(img, new Point((int) newX, (int) newY), 1f);
             }
         }
         catch
