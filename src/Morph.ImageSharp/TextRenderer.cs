@@ -1419,7 +1419,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             // Centre the rotated temp at the original group centre to keep alignment with text.
             var dstX = (int) (pixelX + (pixelWidth - temp.Width) / 2f);
             var dstY = (int) (pixelY + (pixelHeight - temp.Height) / 2f);
-            pageCanvas.DrawImage(temp, new(dstX, dstY), 1f);
+            pageCanvas.DrawImage(temp, new(dstX, dstY));
             // ImageBrush retains temp until the page canvas renders.
             context.RetainForPage(temp);
         }
@@ -1469,7 +1469,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             var rotation = (float) fragment.InlineImageRotationDegrees;
             if (rotation == 0)
             {
-                canvas.DrawImage(img, new((int) pixelX, (int) pixelY), 1f);
+                canvas.DrawImage(img, new((int) pixelX, (int) pixelY));
             }
             else
             {
@@ -1477,7 +1477,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 // After rotation the image's bounding box grew; recentre over the original location.
                 var newX = pixelX + pixelWidth / 2 - img.Width / 2f;
                 var newY = pixelY + pixelHeight / 2 - img.Height / 2f;
-                canvas.DrawImage(img, new((int) newX, (int) newY), 1f);
+                canvas.DrawImage(img, new((int) newX, (int) newY));
             }
         }
         catch

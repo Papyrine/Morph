@@ -467,11 +467,11 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 img.Mutate(_ => _.Rotate(rotation));
                 var newX = pixelX + pixelWidth / 2 - img.Width / 2f;
                 var newY = pixelY + pixelHeight / 2 - img.Height / 2f;
-                currentCanvas.DrawImage(img, new((int) newX, (int) newY), 1f);
+                currentCanvas.DrawImage(img, new((int) newX, (int) newY));
             }
             else
             {
-                currentCanvas.DrawImage(img, new((int) pixelX, (int) pixelY), 1f);
+                currentCanvas.DrawImage(img, new((int) pixelX, (int) pixelY));
             }
         }
         catch
@@ -780,7 +780,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         var drawX = (int) context.PointsToPixels(contentX);
         var drawY = (int) context.PointsToPixels(contentY);
-        currentCanvas.DrawImage(tempImage, new(drawX, drawY), 1f);
+        currentCanvas.DrawImage(tempImage, new(drawX, drawY));
     }
 
 
@@ -925,7 +925,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             var img = Image.Load<Rgba32>(data);
             context.RetainForPage(img);
             img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
-            currentCanvas.DrawImage(img, new((int) pixelX, (int) pixelY), 1f);
+            currentCanvas.DrawImage(img, new((int) pixelX, (int) pixelY));
         }
         catch
         {
@@ -1159,7 +1159,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             var x = (int) ((pageWidth - drawW) / 2);
             var y = (int) ((pageHeight - drawH) / 2);
             // Alpha already baked into pixels above; DrawImage opacity stays at 1.0.
-            currentCanvas!.DrawImage(img, new(x, y), 1f);
+            currentCanvas!.DrawImage(img, new(x, y));
         }
         catch
         {
@@ -1209,7 +1209,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         var dstX = (context.PageWidthPixels - temp.Width) / 2;
         var dstY = (context.PageHeightPixels - temp.Height) / 2;
-        currentCanvas!.DrawImage(temp, new(dstX, dstY), 1f);
+        currentCanvas!.DrawImage(temp, new(dstX, dstY));
     }
 
     void DrawPageBorders()
@@ -1300,7 +1300,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 var img = Image.Load<Rgba32>(shape.ImageData);
                 context.RetainForPage(img);
                 img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
-                currentCanvas.DrawImage(img, new((int) pixelX, (int) pixelY), 1f);
+                currentCanvas.DrawImage(img, new((int) pixelX, (int) pixelY));
             }
             catch
             {
@@ -1524,7 +1524,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             var drawX = (int) (centerX - tempImage.Width / 2f);
             var drawY = (int) (centerY - tempImage.Height / 2f);
 
-            currentCanvas.DrawImage(tempImage, new(drawX, drawY), 1f);
+            currentCanvas.DrawImage(tempImage, new(drawX, drawY));
         }
         else
         {

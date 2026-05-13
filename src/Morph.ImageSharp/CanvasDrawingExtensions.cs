@@ -36,7 +36,7 @@ static class CanvasDrawingExtensions
     // `using var img = ...` block. canvas.DrawImage performs eager image work (crop/scale/transform
     // bake → ImageBrush) up front and queues only the resulting brush, so the source image is
     // safe to dispose immediately after this call returns.
-    public static void DrawImage(this DrawingCanvas canvas, Image image, Point location, float opacity)
+    public static void DrawImage(this DrawingCanvas canvas, Image image, Point location)
     {
         var sourceRect = new Rectangle(0, 0, image.Width, image.Height);
         var destRect = new RectangleF(location.X, location.Y, image.Width, image.Height);
