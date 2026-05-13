@@ -538,6 +538,12 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             wordArt.Bold,
             wordArt.Italic);
 
+        if (TryRenderWordArtOnPath(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, wordArt.OutlineColorHex, wordArt.OutlineWidthPoints, x, y, width, pixelHeight, scaledFont))
+        {
+            context.CurrentY += height;
+            return;
+        }
+
         var scaledSize = TextMeasurer.MeasureAdvance(
             wordArt.Text,
             new(scaledFont)
@@ -574,6 +580,79 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         currentCanvas.DrawText(wordArt.Text, scaledFont, fillColor, new(textX, textY));
 
         context.CurrentY += height;
+    }
+
+    /// <summary>
+    /// Renders WordArt that follows a curved path (ArchUp / ArchDown / Circle) through
+    /// <see cref="DrawingCanvas.DrawText(RichTextOptions, ReadOnlySpan{char}, IPath, Brush, Pen)"/>.
+    /// Returns true when the warp was handled, false for warps that should fall back to
+    /// flat-text rendering. Mirrors <c>SkiaPageRenderer.TryRenderWordArtOnPath</c> — same
+    /// arc geometry, same alignment choices.
+    /// </summary>
+    bool TryRenderWordArtOnPath(
+        WordArtTransform transform,
+        string text,
+        string? fillColorHex,
+        string? outlineColorHex,
+        double outlineWidthPoints,
+        float x, float y, float width, float height,
+        Font font)
+    {
+        if (currentCanvas == null)
+        {
+            return false;
+        }
+
+        IPath path;
+        HorizontalAlignment align;
+        switch (transform)
+        {
+            case WordArtTransform.ArchUp:
+                // Dome arc: starts at bottom-left, peaks at top-centre, ends at bottom-right.
+                // Ellipse centred at (x+w/2, y+h) with semi-axes (w/2, h), so its top touches
+                // y and its sides touch (y+h). Sweep 180° clockwise from 180°.
+                path = BuildArc(new(x, y, width, 2 * height), 180, 180);
+                align = HorizontalAlignment.Center;
+                break;
+            case WordArtTransform.ArchDown:
+                // Valley arc: starts at top-left, dips through bottom-centre, ends at top-right.
+                path = BuildArc(new(x, y - height, width, 2 * height), 180, -180);
+                align = HorizontalAlignment.Center;
+                break;
+            case WordArtTransform.Circle:
+                // Full circle starting at the top, clockwise. Left-align so the text begins at
+                // the start of the path (top of the circle); Centre would land the midpoint of
+                // the text at the bottom of the circumference, upside-down.
+                path = BuildArc(new(x, y, width, height), 270, 360);
+                align = HorizontalAlignment.Left;
+                break;
+            default:
+                return false;
+        }
+
+        var fillColor = fillColorHex == null ? Color.Black : ParseColor(fillColorHex);
+        var options = new RichTextOptions(font)
+        {
+            Dpi = context.Dpi,
+            HorizontalAlignment = align
+        };
+
+        if (outlineColorHex != null && outlineWidthPoints > 0)
+        {
+            var outlineColor = ParseColor(outlineColorHex);
+            var outlinePen = context.GetPen(outlineColor, context.PointsToPixels((float) outlineWidthPoints));
+            currentCanvas.DrawText(options, text.AsSpan(), path, null, outlinePen);
+        }
+
+        currentCanvas.DrawText(options, text.AsSpan(), path, context.GetBrush(fillColor), null);
+        return true;
+    }
+
+    static IPath BuildArc(RectangleF oval, float startAngle, float sweepAngle)
+    {
+        var builder = new PathBuilder();
+        builder.AddArc(oval, rotation: 0, startAngle, sweepAngle);
+        return builder.Build();
     }
 
     void RenderFloatingWordArt(FloatingWordArtElement wordArt)
@@ -620,6 +699,11 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             (float) wordArt.FontSizePoints * scale,
             wordArt.Bold,
             wordArt.Italic);
+
+        if (TryRenderWordArtOnPath(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, wordArt.OutlineColorHex, wordArt.OutlineWidthPoints, pixelX, pixelY, width, pixelHeight, scaledFont))
+        {
+            return;
+        }
 
         var scaledSize = TextMeasurer.MeasureAdvance(
             wordArt.Text,
@@ -734,54 +818,57 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         var contentWidth = cellWidth - (float) padding.Horizontal;
         var availableHeight = cellHeight - (float) padding.Vertical;
 
-        // Render unrotated into a temp image whose width is the rotated wrap-width
-        // (real-space cell vertical extent) and whose height is the rotated cross-axis
-        // (real-space cell horizontal extent). Then rotate ±90 and blit.
-        var tempW = (int) Math.Ceiling(context.PointsToPixels(availableHeight));
-        var tempH = (int) Math.Ceiling(context.PointsToPixels(contentWidth));
-        if (tempW <= 0 || tempH <= 0)
-        {
-            return;
-        }
-
-        var tempImage = new Image<Rgba32>(tempW, tempH);
-        // Retained: tempImage is the source of currentCanvas.DrawImage below, so it must survive
-        // until the page's canvas timeline renders.
-        context.RetainForPage(tempImage);
-        // Scoped canvas — text rendering for this cell batches onto its own timeline,
-        // disposed before the rotate+blit below so the rotation sees the pixels.
-        using (var tempCanvas = tempImage.Frames.RootFrame.CreateCanvas(Configuration.Default, new()))
-        {
-            var savedY = context.CurrentY;
-            context.CurrentY = 0;
-
-            foreach (var element in cell.Content)
-            {
-                if (element is ParagraphElement para)
-                {
-                    textRenderer.RenderParagraphInBounds(tempCanvas, para, 0, availableHeight);
-                }
-                else if (element is ContentControlElement {Runs.Count: > 0} cc)
-                {
-                    var ccPara = new ParagraphElement
-                    {
-                        Runs = cc.Runs,
-                        Properties = new()
-                    };
-                    textRenderer.RenderParagraphInBounds(tempCanvas, ccPara, 0, availableHeight);
-                }
-            }
-
-            context.CurrentY = savedY;
-        }
-
+        // Geometry-space ±90° rotation around the cell content centre. Layout the text into a
+        // pre-rotation rectangle whose width is the cell's vertical extent (text wrap width)
+        // and height is the cell's horizontal extent — once rotated, those dimensions swap to
+        // match the rendered cell orientation. Drawing through the page canvas with a transform
+        // pushed avoids the temp-image+blit round trip and rasterises glyphs once at the final
+        // angle (no bicubic resample softening text).
         var bottomToTop = cell.Properties.TextDirection == CellTextDirection.BottomToTop;
-        tempImage.Mutate(_ => _.Rotate(bottomToTop ? -90f : 90f));
+        var pixelCx = context.PointsToPixels(contentX + contentWidth / 2);
+        var pixelCy = context.PointsToPixels(contentY + availableHeight / 2);
+        var angleRadians = bottomToTop ? -MathF.PI / 2f : MathF.PI / 2f;
 
-        var drawX = (int) context.PointsToPixels(contentX);
-        var drawY = (int) context.PointsToPixels(contentY);
-        currentCanvas.DrawImage(tempImage, new(drawX, drawY));
+        var preRotationLeft = contentX + contentWidth / 2 - availableHeight / 2;
+        var preRotationTop = contentY + availableHeight / 2 - contentWidth / 2;
+
+        currentCanvas.Save(BuildRotation(angleRadians, pixelCx, pixelCy));
+
+        var savedY = context.CurrentY;
+        context.CurrentY = preRotationTop;
+
+        foreach (var element in cell.Content)
+        {
+            if (element is ParagraphElement para)
+            {
+                textRenderer.RenderParagraphInBounds(currentCanvas, para, preRotationLeft, availableHeight);
+            }
+            else if (element is ContentControlElement {Runs.Count: > 0} cc)
+            {
+                var ccPara = new ParagraphElement
+                {
+                    Runs = cc.Runs,
+                    Properties = new()
+                };
+                textRenderer.RenderParagraphInBounds(currentCanvas, ccPara, preRotationLeft, availableHeight);
+            }
+        }
+
+        context.CurrentY = savedY;
+        currentCanvas.Restore();
     }
+
+    /// <summary>
+    /// Builds <see cref="DrawingOptions"/> with a 2D rotation transform around a screen-space pivot.
+    /// Use with <see cref="DrawingCanvas.Save(DrawingOptions, IPath[])"/> /
+    /// <see cref="DrawingCanvas.Restore"/> to render content rotated in geometry space, avoiding
+    /// the temp-image + <c>Mutate(_.Rotate(...))</c> + composite round trip.
+    /// </summary>
+    static DrawingOptions BuildRotation(float radians, float pivotX, float pivotY) =>
+        new()
+        {
+            Transform = new(Matrix3x2.CreateRotation(radians, new(pivotX, pivotY)))
+        };
 
 
     protected override void DrawCellBackground(float pixelX, float pixelY, float pixelWidth, float pixelHeight, string hexColor)
@@ -1169,47 +1256,32 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     void DrawTextWatermark(Watermark watermark)
     {
+        if (currentCanvas == null)
+        {
+            return;
+        }
+
         var fontFamily = context.GetFontFamily(watermark.FontFamily, watermark.Bold, italic: false);
         var font = fontFamily.CreateFont((float) watermark.FontSizePoints * context.Scale, watermark.Bold ? FontStyle.Bold : FontStyle.Regular);
         var color = ParseColor(watermark.ColorHex);
+
+        var pageCenterX = context.PageWidthPixels / 2f;
+        var pageCenterY = context.PageHeightPixels / 2f;
 
         var textOptions = new RichTextOptions(font)
         {
             Dpi = context.Dpi,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
-            Origin = new PointF(context.PageWidthPixels / 2f, context.PageHeightPixels / 2f)
+            Origin = new(pageCenterX, pageCenterY)
         };
 
-        // ImageSharp's DrawText doesn't accept a transform per call, so we draw onto a temporary
-        // image then rotate it before compositing. The temporary image only needs to cover the
-        // text bounding box, not the whole page.
-        var bounds = TextMeasurer.MeasureBounds(watermark.Text!, textOptions);
-        var tempW = (int) Math.Ceiling(bounds.Width) + 4;
-        var tempH = (int) Math.Ceiling(bounds.Height) + 4;
-        if (tempW <= 0 || tempH <= 0)
-        {
-            return;
-        }
-
-        var temp = new Image<Rgba32>(tempW, tempH);
-        context.RetainForPage(temp);
-        var tempOptions = new RichTextOptions(font)
-        {
-            Dpi = context.Dpi,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            Origin = new PointF(tempW / 2f, tempH / 2f)
-        };
-        using (var tempCanvas = temp.Frames.RootFrame.CreateCanvas(Configuration.Default, new()))
-        {
-            tempCanvas.DrawText(tempOptions, watermark.Text!, context.GetBrush(color));
-        }
-        temp.Mutate(_ => _.Rotate((float) watermark.RotationDegrees));
-
-        var dstX = (context.PageWidthPixels - temp.Width) / 2;
-        var dstY = (context.PageHeightPixels - temp.Height) / 2;
-        currentCanvas!.DrawImage(temp, new(dstX, dstY));
+        // Geometry-space rotation around page centre — text glyphs rasterise once at the final
+        // angle. Replaces the previous temp-image route (draw text to bbox-sized image, rotate
+        // pixels, composite at page centre) which double-resampled the glyph edges.
+        currentCanvas.Save(BuildRotation((float) (watermark.RotationDegrees * Math.PI / 180.0), pageCenterX, pageCenterY));
+        currentCanvas.DrawText(textOptions, watermark.Text!, context.GetBrush(color));
+        currentCanvas.Restore();
     }
 
     void DrawPageBorders()
@@ -1486,47 +1558,31 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         if (Math.Abs(textBox.RotationDegrees) > 0.01)
         {
-            // Render to a temporary image, then rotate and compose onto the page
-            var tempW = (int) Math.Ceiling(pixelWidth);
-            var tempH = (int) Math.Ceiling(pixelHeight);
-            if (tempW <= 0 || tempH <= 0)
-            {
-                return;
-            }
-
-            var tempImage = new Image<Rgba32>(tempW, tempH);
-            context.RetainForPage(tempImage);
-            using (var tempCanvas = tempImage.Frames.RootFrame.CreateCanvas(Configuration.Default, new()))
-            {
-                if (textBox.BackgroundColorHex != null)
-                {
-                    var bgColor = ParseColor(textBox.BackgroundColorHex);
-                    tempCanvas.Fill(bgColor);
-                }
-
-                var savedY = context.CurrentY;
-                context.CurrentY = 0;
-
-                foreach (var element in textBox.Content)
-                {
-                    if (element is ParagraphElement para)
-                    {
-                        textRenderer.RenderParagraphInBounds(tempCanvas, para, 0, (float) textBox.WidthPoints);
-                    }
-                }
-
-                context.CurrentY = savedY;
-            }
-
-            tempImage.Mutate(_ => _.Rotate((float) textBox.RotationDegrees));
-
-            // Center the rotated image at the original text box center
+            // Geometry-space rotation around the text box centre. Text and background paint
+            // through the page canvas with the transform pushed; no temp image involved.
             var centerX = pixelX + pixelWidth / 2;
             var centerY = pixelY + pixelHeight / 2;
-            var drawX = (int) (centerX - tempImage.Width / 2f);
-            var drawY = (int) (centerY - tempImage.Height / 2f);
+            currentCanvas.Save(BuildRotation((float) (textBox.RotationDegrees * Math.PI / 180.0), centerX, centerY));
 
-            currentCanvas.DrawImage(tempImage, new(drawX, drawY));
+            if (textBox.BackgroundColorHex != null)
+            {
+                var bgColor = ParseColor(textBox.BackgroundColorHex);
+                currentCanvas.Fill(context.GetBrush(bgColor), new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight));
+            }
+
+            var savedY = context.CurrentY;
+            context.CurrentY = y;
+
+            foreach (var element in textBox.Content)
+            {
+                if (element is ParagraphElement para)
+                {
+                    textRenderer.RenderParagraphInBounds(currentCanvas, para, x, (float) textBox.WidthPoints);
+                }
+            }
+
+            context.CurrentY = savedY;
+            currentCanvas.Restore();
         }
         else
         {

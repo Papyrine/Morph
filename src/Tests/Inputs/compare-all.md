@@ -1697,7 +1697,7 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0245** | **Page 1. ErrorMetric: 0.0251** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0245** | **Page 1. ErrorMetric: 0.0243** |
 | <img src="inline_shape_arrows/expected_0001.png" width="500"> | <img src="inline_shape_arrows/results_skia%23page_0001.verified.png" width="500"> | <img src="inline_shape_arrows/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## italic_text
@@ -1746,7 +1746,7 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.2049** | **Page 1. ErrorMetric: 0.2158** |
+| **Page 1** | **Page 1. ErrorMetric: 0.2049** | **Page 1. ErrorMetric: 0.2159** |
 | <img src="labels/06/expected_0001.png" width="500"> | <img src="labels/06/results_skia%23page_0001.verified.png" width="500"> | <img src="labels/06/results_imagesharp%23page_0001.verified.png" width="500"> |
 
 ## labels/07
@@ -3031,21 +3031,21 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 ## wordart
 
-### ImageSharp arc/circle warps render as flat text
+### ImageSharp arc/circle warps now render along a path
 
-ImageSharp.Drawing 2.1.7 has no text-on-path API. Skia uses `SKCanvas.DrawTextOnPath` to follow `prstTxWarp` arcs (`textArchUp` / `textArchDown` / `textCircle`) — see `Morph.Skia/SkiaPageRenderer.cs:TryRenderWordArtOnPath`. ImageSharp falls back to flat text at the correct font size; the warp shape is lost but text is at least readable and not blown up to fill the bbox.
+ImageSharp.Drawing 3.0 added `DrawingCanvas.DrawText(options, text, IPath, brush, pen)` so the three single-curve warps (`textArchUp` / `textArchDown` / `textCircle`) now render warped instead of flat. Mirrors `SkiaPageRenderer.TryRenderWordArtOnPath` — same arc geometry, same alignment choices. See `ImageSharpPageRenderer.TryRenderWordArtOnPath`.
 
-If/when ImageSharp.Drawing gains text-on-path (or we move to a higher version), mirror the Skia implementation in `Morph.ImageSharp/ImageSharpPageRenderer.cs`.
+The text-on-path positioning isn't a perfect pixel match for Skia. ImageSharp's interpretation of `RichTextOptions.HorizontalAlignment` along a path baseline differs subtly from Skia's `SKTextAlign`, so the visible text sits at a different offset within the same bounding box. Acceptable today since both backends are still well off Word's reference positions for floating WordArt — a follow-up fix would be alignment tuning rather than re-architecture.
 
 ### Other warps (Wave / Chevron / Slant / Triangle / Fade)
 
-These are still approximated via canvas transforms in `ApplyWordArtTransform`. Visually crude but not actively broken — full path-based warps would need a per-warp glyph-positioning step (each preset has its own envelope).
+Still approximated via canvas transforms in `Morph.Skia.ApplyWordArtTransform`; ImageSharp falls back to flat shrink-to-fit text. Visually crude but not actively broken — full path-based warps would need a per-warp glyph-positioning step (each preset has its own envelope), bigger than the single-curve cases above.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
 | **Page 1** | **Page 1. ErrorMetric: 0.0071** | **Page 1. ErrorMetric: 0.0094** |
 | <img src="wordart/expected_0001.png" width="500"> | <img src="wordart/results_skia%23page_0001.verified.png" width="500"> | <img src="wordart/results_imagesharp%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.0479** | **Page 2. ErrorMetric: 0.0398** |
+| **Page 2** | **Page 2. ErrorMetric: 0.0479** | **Page 2. ErrorMetric: 0.0531** |
 | <img src="wordart/expected_0002.png" width="500"> | <img src="wordart/results_skia%23page_0002.verified.png" width="500"> | <img src="wordart/results_imagesharp%23page_0002.verified.png" width="500"> |
 | **Page 3** | **Page 3. ErrorMetric: 0.2091** | **Page 3. ErrorMetric: 0.2100** |
 | <img src="wordart/expected_0003.png" width="500"> | <img src="wordart/results_skia%23page_0003.verified.png" width="500"> | <img src="wordart/results_imagesharp%23page_0003.verified.png" width="500"> |
