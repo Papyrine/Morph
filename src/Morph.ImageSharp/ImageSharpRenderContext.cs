@@ -296,22 +296,20 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         if (hexColor.Length == 6 &&
             uint.TryParse(hexColor, NumberStyles.HexNumber, null, out var rgb))
         {
-            return Color.FromRgb(
+            return Color.FromPixel(new Rgb24(
                 (byte) ((rgb >> 16) & 0xFF),
                 (byte) ((rgb >> 8) & 0xFF),
-                (byte) (rgb & 0xFF)
-            );
+                (byte) (rgb & 0xFF)));
         }
 
         if (hexColor.Length == 8 &&
             uint.TryParse(hexColor, NumberStyles.HexNumber, null, out var argb))
         {
-            return Color.FromRgba(
+            return Color.FromPixel(new Rgba32(
                 (byte) ((argb >> 16) & 0xFF),
                 (byte) ((argb >> 8) & 0xFF),
                 (byte) (argb & 0xFF),
-                (byte) ((argb >> 24) & 0xFF)
-            );
+                (byte) ((argb >> 24) & 0xFF)));
         }
 
         return Color.Black;
