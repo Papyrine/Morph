@@ -586,9 +586,27 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     /// Renders WordArt that follows a curved path (ArchUp / ArchDown / Circle) through
     /// <see cref="DrawingCanvas.DrawText(RichTextOptions, ReadOnlySpan{char}, IPath, Brush, Pen)"/>.
     /// Returns true when the warp was handled, false for warps that should fall back to
-    /// flat-text rendering. Mirrors <c>SkiaPageRenderer.TryRenderWordArtOnPath</c> — same
-    /// arc geometry, same alignment choices.
+    /// flat-text rendering.
     /// </summary>
+    /// <remarks>
+    /// Word's <c>prstTxWarp</c> presets don't treat the WordArt bbox as the *full* arc
+    /// bounding box — that produces a tight half-ellipse, much sharper than Word actually
+    /// draws (and the typical bbox is 4:1 wide-and-flat, so the half-ellipse is also far
+    /// off-centre vertically).
+    /// <para>
+    /// The correct geometry for <c>textArchUp</c>/<c>textArchDown</c> treats bbox W as the
+    /// arc <em>chord</em> and bbox H as the <em>sagitta</em> (perpendicular distance from
+    /// chord midpoint to arc midpoint). The circle radius is R = (W² + 4H²) / (8H), and the
+    /// arc sweep is 2·asin(W/(2R)). Wide-and-flat bboxes give large R and small sweep —
+    /// gentle, mostly-horizontal curves, matching Word.
+    /// </para>
+    /// <para>
+    /// <c>textCircle</c> wraps text around the right side of an inscribed circle. Short
+    /// text covers a small arc centred on 3 o'clock and reads downward — matches Word's
+    /// behaviour where bbox width determines the circle diameter and text sits on the
+    /// right hemisphere.
+    /// </para>
+    /// </remarks>
     bool TryRenderWordArtOnPath(
         WordArtTransform transform,
         string text,
@@ -603,29 +621,40 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             return false;
         }
 
+        // We size the path to exactly fit the text, centred on the desired anchor (peak/dip
+        // for arches, 3 o'clock for circle). ImageSharp's HorizontalAlignment.Center doesn't
+        // centre text along a path baseline the way Skia's SKTextAlign.Center does — it
+        // places glyphs starting at the path origin regardless. Sizing the path to text
+        // length sidesteps that and gives Word-shaped output.
+        var textWidthPixels = TextMeasurer.MeasureAdvance(text, new(font) {Dpi = context.Dpi}).Width;
+        if (textWidthPixels <= 0)
+        {
+            return false;
+        }
+
         IPath path;
-        HorizontalAlignment align;
         switch (transform)
         {
             case WordArtTransform.ArchUp:
-                // Dome arc: starts at bottom-left, peaks at top-centre, ends at bottom-right.
-                // Ellipse centred at (x+w/2, y+h) with semi-axes (w/2, h), so its top touches
-                // y and its sides touch (y+h). Sweep 180° clockwise from 180°.
-                path = BuildArc(new(x, y, width, 2 * height), 180, 180);
-                align = HorizontalAlignment.Center;
+                path = BuildChordSagittaArc(x, y, width, height, textWidthPixels, archDown: false);
                 break;
             case WordArtTransform.ArchDown:
-                // Valley arc: starts at top-left, dips through bottom-centre, ends at top-right.
-                path = BuildArc(new(x, y - height, width, 2 * height), 180, -180);
-                align = HorizontalAlignment.Center;
+                path = BuildChordSagittaArc(x, y, width, height, textWidthPixels, archDown: true);
                 break;
             case WordArtTransform.Circle:
-                // Full circle starting at the top, clockwise. Left-align so the text begins at
-                // the start of the path (top of the circle); Centre would land the midpoint of
-                // the text at the bottom of the circumference, upside-down.
-                path = BuildArc(new(x, y, width, height), 270, 360);
-                align = HorizontalAlignment.Left;
-                break;
+                {
+                    var radius = Math.Min(width, height) / 2f;
+                    var cx = x + width / 2f;
+                    var cy = y + height / 2f;
+                    // Text-length arc centred on 3 o'clock (right side of inscribed circle),
+                    // running CW from upper-right to lower-right. Word's textCircle wraps
+                    // short text on this hemisphere reading downward.
+                    var halfAngleDegrees = (float) (textWidthPixels / radius * 90.0 / Math.PI);
+                    var startAngle = 360f - halfAngleDegrees;
+                    var sweepAngle = 2 * halfAngleDegrees;
+                    path = BuildArc(new(cx - radius, cy - radius, 2 * radius, 2 * radius), startAngle, sweepAngle);
+                    break;
+                }
             default:
                 return false;
         }
@@ -633,8 +662,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         var fillColor = fillColorHex == null ? Color.Black : ParseColor(fillColorHex);
         var options = new RichTextOptions(font)
         {
-            Dpi = context.Dpi,
-            HorizontalAlignment = align
+            Dpi = context.Dpi
         };
 
         if (outlineColorHex != null && outlineWidthPoints > 0)
@@ -646,6 +674,43 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         currentCanvas.DrawText(options, text.AsSpan(), path, context.GetBrush(fillColor), null);
         return true;
+    }
+
+    /// <summary>
+    /// Builds a text-length-fitting arc on the chord-sagitta circle (chord = bbox width,
+    /// sagitta = bbox height). Path is centred on the bbox horizontal midline at the arc
+    /// peak (archUp) or dip (archDown), with sweep limited to <paramref name="textWidth"/>
+    /// arc length so glyphs sit at the page-centre of the WordArt without relying on
+    /// path-text alignment.
+    /// </summary>
+    static IPath BuildChordSagittaArc(float x, float y, float width, float height, float textWidth, bool archDown)
+    {
+        // Sagitta-to-radius identity: R = (chord² + 4·sagitta²) / (8·sagitta).
+        var radius = (width * width + 4 * height * height) / (8 * height);
+        var textHalfAngleDegrees = (float) (textWidth / (2 * radius) * 180.0 / Math.PI);
+        var centerX = x + width / 2f;
+
+        float bboxTop;
+        float startAngle;
+        float sweepAngle;
+        if (archDown)
+        {
+            // Arc dips through y+H; circle center above chord at y - (R-H).
+            // Path centred on 90° (bottom of circle = arc dip), runs CCW for symmetric span.
+            bboxTop = y + height - 2 * radius;
+            startAngle = 90f + textHalfAngleDegrees;
+            sweepAngle = -(2 * textHalfAngleDegrees);
+        }
+        else
+        {
+            // Arc peaks at y; circle center below chord at y + R.
+            // Path centred on 270° (top of circle = arc peak), runs CW for symmetric span.
+            bboxTop = y;
+            startAngle = 270f - textHalfAngleDegrees;
+            sweepAngle = 2 * textHalfAngleDegrees;
+        }
+
+        return BuildArc(new(centerX - radius, bboxTop, 2 * radius, 2 * radius), startAngle, sweepAngle);
     }
 
     static IPath BuildArc(RectangleF oval, float startAngle, float sweepAngle)

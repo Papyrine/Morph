@@ -1,8 +1,13 @@
-### ImageSharp arc/circle warps now render along a path
+### Arc/Circle warps use chord-sagitta envelope geometry
 
-ImageSharp.Drawing 3.0 added `DrawingCanvas.DrawText(options, text, IPath, brush, pen)` so the three single-curve warps (`textArchUp` / `textArchDown` / `textCircle`) now render warped instead of flat. Mirrors `SkiaPageRenderer.TryRenderWordArtOnPath` — same arc geometry, same alignment choices. See `ImageSharpPageRenderer.TryRenderWordArtOnPath`.
+The three single-curve warps (`textArchUp` / `textArchDown` / `textCircle`) render with the geometry Word actually uses, in both backends:
 
-The text-on-path positioning isn't a perfect pixel match for Skia. ImageSharp's interpretation of `RichTextOptions.HorizontalAlignment` along a path baseline differs subtly from Skia's `SKTextAlign`, so the visible text sits at a different offset within the same bounding box. Acceptable today since both backends are still well off Word's reference positions for floating WordArt — a follow-up fix would be alignment tuning rather than re-architecture.
+- **`textArchUp` / `textArchDown`**: bbox width is the arc **chord**, bbox height is the **sagitta** (perpendicular distance from chord midpoint to arc midpoint). Circle radius is `R = (W² + 4H²) / (8H)`. For a typical 4:1 wide-and-flat WordArt bbox (e.g. 432pt × 108pt), this gives R ≈ 270pt and a 106° arc — a gentle, mostly-horizontal curve that matches Word. Treating the bbox as the *full* arc bounding box (the obvious first read of "draw an arc inside the bbox") gives a 180° half-ellipse, far sharper and wrongly off-centre.
+- **`textCircle`**: text wraps the right side of an inscribed circle. Short text covers a small arc centred on 3 o'clock and reads downward — matches Word's behaviour where the bbox diameter sizes the circle and text sits on the right hemisphere.
+
+Path is sized to the rendered text width and centred on the arc peak/dip (or 3 o'clock for circle), so glyphs sit at the bbox-centre without depending on path-text alignment options. Neither ImageSharp's `RichTextOptions.HorizontalAlignment` nor Skia's `SKTextAlign.Center` centre text the way the obvious read suggests — both place text from the offset point in the direction of path travel — so sizing the path to fit is the more robust approach across both backends.
+
+See `ImageSharpPageRenderer.TryRenderWordArtOnPath` / `BuildChordSagittaArc` and `SkiaPageRenderer.TryRenderWordArtOnPath` / `BuildChordSagittaArc`.
 
 ### Other warps (Wave / Chevron / Slant / Triangle / Fade)
 

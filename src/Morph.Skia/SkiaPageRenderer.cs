@@ -920,10 +920,25 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
     }
 
     /// <summary>
-    /// Renders WordArt that follows a curved path (ArchUp/ArchDown/Circle) using
-    /// <see cref="SKCanvas.DrawTextOnPath(string, SKPath, SKPoint, SKPaint)"/>. Returns true when the warp was handled,
-    /// false for warps that should fall back to flat-text rendering.
+    /// Renders WordArt that follows a curved path (ArchUp / ArchDown / Circle) via
+    /// <see cref="SKCanvas.DrawTextOnPath(string, SKPath, SKPoint, SKPaint)"/>.
+    /// Returns true when the warp was handled, false for warps that should fall back to
+    /// flat-text rendering.
     /// </summary>
+    /// <remarks>
+    /// Word's <c>prstTxWarp</c> presets don't treat the WordArt bbox as the *full* arc
+    /// bounding box — that would produce a tight half-ellipse, much sharper than Word
+    /// actually draws. The chord-sagitta interpretation gives the right shape: bbox W is
+    /// the arc chord, bbox H is the sagitta, and the circle radius is
+    /// R = (W² + 4H²) / (8H). For typical 4:1 wide-and-flat WordArt bboxes this gives a
+    /// large radius and a gentle, mostly-horizontal curve — matching Word.
+    /// <para>
+    /// The path is sized to the rendered text width and centred on the arc peak/dip so
+    /// short text sits at the bbox-centre rather than being stretched along the full
+    /// chord. <c>textCircle</c> uses a text-width arc on the right side of an inscribed
+    /// circle (3 o'clock anchor) — short text wraps the right hemisphere reading downward.
+    /// </para>
+    /// </remarks>
     bool TryRenderWordArtOnPath(
         WordArtTransform transform,
         string text,
@@ -938,29 +953,33 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             return false;
         }
 
+        using var measureFont = new SKFont(typeface, fontSize);
+        var textWidth = measureFont.MeasureText(text);
+        if (textWidth <= 0)
+        {
+            return false;
+        }
+
         SKPath? path;
-        SKTextAlign align;
         switch (transform)
         {
             case WordArtTransform.ArchUp:
-                // Dome arc: starts at bottom-left, peaks at top-centre, ends at bottom-right.
-                // The ellipse is centred at (x+w/2, y+h) with semi-axes (w/2, h), so its top
-                // touches y and its sides touch (y+h). Sweep 180° clockwise from 180°.
-                path = BuildArc(new(x, y, x + width, y + 2 * height), 180, 180);
-                align = SKTextAlign.Center;
+                path = BuildChordSagittaArc(x, y, width, height, textWidth, archDown: false);
                 break;
             case WordArtTransform.ArchDown:
-                // Valley arc: starts at top-left, dips through bottom-centre, ends at top-right.
-                path = BuildArc(new(x, y - height, x + width, y + height), 180, -180);
-                align = SKTextAlign.Center;
+                path = BuildChordSagittaArc(x, y, width, height, textWidth, archDown: true);
                 break;
             case WordArtTransform.Circle:
-                // Full circle starting at the top, clockwise. Left-align so the text begins at
-                // the start of the path (top of the circle); Centre would land the text at the
-                // midpoint of the circumference, which sits at the bottom upside-down.
-                path = BuildArc(new(x, y, x + width, y + height), 270, 360);
-                align = SKTextAlign.Left;
-                break;
+                {
+                    var radius = Math.Min(width, height) / 2f;
+                    var cx = x + width / 2f;
+                    var cy = y + height / 2f;
+                    var halfAngleDegrees = (float) (textWidth / radius * 90.0 / Math.PI);
+                    var startAngle = 360f - halfAngleDegrees;
+                    var sweepAngle = 2 * halfAngleDegrees;
+                    path = BuildArc(new(cx - radius, cy - radius, cx + radius, cy + radius), startAngle, sweepAngle);
+                    break;
+                }
             default:
                 return false;
         }
@@ -986,13 +1005,50 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                     Style = SKPaintStyle.Stroke,
                     StrokeWidth = context.PointsToPixels((float) outlineWidthPoints)
                 };
-                currentCanvas.DrawTextOnPath(text, path, new(0, 0), align, font, outlinePaint);
+                currentCanvas.DrawTextOnPath(text, path, new(0, 0), SKTextAlign.Left, font, outlinePaint);
             }
 
-            currentCanvas.DrawTextOnPath(text, path, new(0, 0), align, font, fillPaint);
+            currentCanvas.DrawTextOnPath(text, path, new(0, 0), SKTextAlign.Left, font, fillPaint);
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Builds a text-length-fitting arc on the chord-sagitta circle (chord = bbox width,
+    /// sagitta = bbox height). Path is centred on the arc peak (archUp) or dip (archDown),
+    /// with sweep limited to <paramref name="textWidth"/> arc length so short text sits at
+    /// the bbox-centre rather than being stretched along the full chord.
+    /// </summary>
+    static SKPath BuildChordSagittaArc(float x, float y, float width, float height, float textWidth, bool archDown)
+    {
+        // Sagitta-to-radius identity: R = (chord² + 4·sagitta²) / (8·sagitta).
+        var radius = (width * width + 4 * height * height) / (8 * height);
+        var textHalfAngleDegrees = (float) (textWidth / (2 * radius) * 180.0 / Math.PI);
+        var centerX = x + width / 2f;
+
+        float bboxTop;
+        float startAngle;
+        float sweepAngle;
+        if (archDown)
+        {
+            // Arc dips through y+H; circle center above chord at y - (R-H).
+            // Path centred on 90° (bottom of circle = arc dip), runs CCW for symmetric span.
+            bboxTop = y + height - 2 * radius;
+            startAngle = 90f + textHalfAngleDegrees;
+            sweepAngle = -(2 * textHalfAngleDegrees);
+        }
+        else
+        {
+            // Arc peaks at y; circle center below chord at y + R.
+            // Path centred on 270° (top of circle = arc peak), runs CW for symmetric span.
+            bboxTop = y;
+            startAngle = 270f - textHalfAngleDegrees;
+            sweepAngle = 2 * textHalfAngleDegrees;
+        }
+
+        var ovalLeft = centerX - radius;
+        return BuildArc(new(ovalLeft, bboxTop, ovalLeft + 2 * radius, bboxTop + 2 * radius), startAngle, sweepAngle);
     }
 
     static SKPath BuildArc(SKRect oval, float startAngle, float sweepAngle)
