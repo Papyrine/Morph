@@ -1253,7 +1253,9 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     void RemoveBlankTrailingPage()
     {
-        if (pageCount > 0 && !hasSignificantContentOnCurrentPage && !currentPageFromExplicitBreak)
+        if (pageCount > 0 &&
+            !hasSignificantContentOnCurrentPage &&
+            !currentPageFromExplicitBreak)
         {
             pendingPage?.Dispose();
             pendingPage = null;
