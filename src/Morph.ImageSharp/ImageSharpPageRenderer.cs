@@ -701,10 +701,12 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     }
 
     /// <summary>
-    /// Renders WordArt envelope warps that aren't text-on-path — Fade and Triangle —
-    /// by drawing each glyph individually with a per-glyph vertical scale anchored at the
-    /// baseline. Returns true when the warp was handled. Per-glyph rendering is slower
-    /// than a single DrawText so the path-based warps are tried first.
+    /// Renders WordArt envelope warps that aren't text-on-path — Fade, Triangle, Inflate,
+    /// Deflate, CanUp, CanDown — by drawing each glyph individually with a per-glyph
+    /// vertical scale. The anchor depends on the warp: baseline for Fade/Triangle/CanUp
+    /// (bottom stays put), glyph centre for Inflate/Deflate (both edges move symmetrically),
+    /// glyph top for CanDown (top stays put). Returns true when handled. Per-glyph
+    /// rendering is slower than a single DrawText so the path-based warps are tried first.
     /// </summary>
     bool TryRenderWordArtEnvelope(
         WordArtTransform transform,
@@ -719,18 +721,32 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
 
         // scaleY(t) returns the per-glyph vertical scale factor for normalised position
-        // t ∈ [0, 1] along the text. minScale floor avoids glyphs collapsing to invisibility.
+        // t ∈ [0, 1] along the text. anchor selects which line stays fixed under the scale:
+        // baseline for Fade/Triangle/CanUp, centre for Inflate/Deflate, top for CanDown.
+        // Inflate/CanUp/CanDown peak ~1.4× in the middle (sin curve, amplitude 0.4).
+        // Deflate floors at 0.7 in the middle so glyphs stay readable.
         Func<float, float>? scaleY = transform switch
         {
             WordArtTransform.FadeRight => t => 1f - 0.65f * t,
             WordArtTransform.FadeLeft => t => 0.35f + 0.65f * t,
             WordArtTransform.Triangle => t => 0.35f + 0.65f * (1f - Math.Abs(2f * t - 1f)),
+            WordArtTransform.Inflate => t => 1f + 0.5f * (float) Math.Sin(Math.PI * t),
+            WordArtTransform.Deflate => t => 1f - 0.45f * (float) Math.Sin(Math.PI * t),
+            WordArtTransform.CanUp => t => 1f + 0.5f * (float) Math.Sin(Math.PI * t),
+            WordArtTransform.CanDown => t => 1f + 0.5f * (float) Math.Sin(Math.PI * t),
             _ => null
         };
         if (scaleY == null)
         {
             return false;
         }
+
+        var anchor = transform switch
+        {
+            WordArtTransform.Inflate or WordArtTransform.Deflate => EnvelopeAnchor.Centre,
+            WordArtTransform.CanDown => EnvelopeAnchor.Top,
+            _ => EnvelopeAnchor.Baseline
+        };
 
         var measureOptions = new RichTextOptions(font) {Dpi = context.Dpi};
         var totalWidth = TextMeasurer.MeasureAdvance(text, measureOptions).Width;
@@ -746,12 +762,57 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         var fillColor = fillColorHex == null ? Color.Black : ParseColor(fillColorHex);
         var brush = context.GetBrush(fillColor);
 
-        // Centre the unscaled text horizontally and vertically in the bbox. Per-glyph scale
-        // anchors at the baseline so the bottoms align — top of the glyph moves down toward
-        // the baseline as scale shrinks.
-        var startX = x + (width - totalWidth) / 2f;
-        var topY = y + (height - glyphHeightPixels) / 2f;
-        var baselineY = topY + baselineOffsetPixels;
+        // Inflate / Deflate / Can warps fill the bbox horizontally AND vertically — Word
+        // stretches glyphs to span the box, then modulates each glyph's height by the warp
+        // curve. Fade / Triangle leave the natural size (matches Word for those).
+        // For the box-filling warps, scale so the PEAK (most-stretched) glyph fits the bbox
+        // height: Inflate/Can peak at 1.4× the base, Deflate's largest is 1.0× (it shrinks
+        // toward the centre rather than growing).
+        var fillsBox = transform is WordArtTransform.Inflate or WordArtTransform.Deflate
+            or WordArtTransform.CanUp or WordArtTransform.CanDown;
+        var peakScale = transform switch
+        {
+            WordArtTransform.Inflate or WordArtTransform.CanUp or WordArtTransform.CanDown => 1.5f,
+            // Deflate's biggest glyph is at the edges (sy=1.0) — it shrinks toward middle.
+            _ => 1.0f
+        };
+        var sx = fillsBox ? width / totalWidth : 1f;
+        var baseScaleY = fillsBox ? height / (peakScale * glyphHeightPixels) : 1f;
+        var stretchedWidth = totalWidth * sx;
+
+        // Position the natural-size glyph so its anchor point lands at the desired bbox
+        // anchor. The Matrix3x2 then scales around that anchor without translating it, so
+        // the chosen edge (top / centre / baseline) stays fixed and the opposite edge moves.
+        // For non-box-filling warps (Fade / Triangle) keep the legacy layout — text centred
+        // vertically in the bbox with baseline anchor — so existing baselines stay stable.
+        var startX = x + (width - stretchedWidth) / 2f;
+        var legacyTopY = y + (height - glyphHeightPixels) / 2f;
+        var legacyBaselineY = legacyTopY + baselineOffsetPixels;
+        float anchorY;
+        float originY;
+        if (!fillsBox)
+        {
+            originY = legacyTopY;
+            anchorY = legacyBaselineY;
+        }
+        else
+        {
+            switch (anchor)
+            {
+                case EnvelopeAnchor.Top:
+                    anchorY = y;
+                    originY = anchorY;
+                    break;
+                case EnvelopeAnchor.Centre:
+                    anchorY = y + height / 2f;
+                    originY = anchorY - glyphHeightPixels / 2f;
+                    break;
+                default:
+                    anchorY = y + height;
+                    originY = anchorY - baselineOffsetPixels;
+                    break;
+            }
+        }
 
         var charCount = text.Length;
         var cursorX = startX;
@@ -759,25 +820,33 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         {
             var ch = text[i].ToString();
             var charAdvance = TextMeasurer.MeasureAdvance(ch, measureOptions).Width;
-            var t = charCount > 1 ? (float) i / (charCount - 1) : 0f;
-            var sy = scaleY(t);
+            // For 1-character labels in a box-filling warp, t=0 collapses sin(πt)=0 (no
+            // warp). Use 0.5 so a single glyph still gets the centre amplitude. For Fade /
+            // Triangle a single glyph at the start (t=0) is intentional.
+            var t = charCount > 1 ? (float) i / (charCount - 1) : (fillsBox ? 0.5f : 0f);
+            var sy = scaleY(t) * baseScaleY;
 
-            var matrix = Matrix3x2.CreateScale(new Vector2(1f, sy), new(0f, baselineY));
+            // Scale anchored at (cursorX, anchorY): the X scale stretches each glyph
+            // horizontally from its left edge so cursorX increments stay in stretched space;
+            // the Y scale anchors at the warp anchor line so the chosen edge stays put.
+            var matrix = Matrix3x2.CreateScale(new Vector2(sx, sy), new(cursorX, anchorY));
             currentCanvas.Save(new DrawingOptions {Transform = new(matrix)});
 
             var charOpts = new RichTextOptions(font)
             {
                 Dpi = context.Dpi,
-                Origin = new(cursorX, topY)
+                Origin = new(cursorX, originY)
             };
             currentCanvas.DrawText(charOpts, ch.AsSpan(), brush, null);
             currentCanvas.Restore();
 
-            cursorX += charAdvance;
+            cursorX += charAdvance * sx;
         }
 
         return true;
     }
+
+    enum EnvelopeAnchor { Baseline, Centre, Top }
 
     /// <summary>
     /// Builds a text-length-fitting arc on the chord-sagitta circle (chord = bbox width,

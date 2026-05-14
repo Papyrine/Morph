@@ -28,6 +28,10 @@ Scale curves:
 - FadeLeft: `0.35 → 1.0`
 - Triangle: peaks at 1.0 mid-text, drops to 0.35 at edges (diamond envelope)
 
-### Still unhandled
+### Vertical positioning vs Word
 
-`textInflate` / `textDeflate` / `textCan*` aren't in the parser enum. They're top+bottom envelope warps (per-glyph height *and* baseline shift) — would need both a top and bottom curve interpolated per glyph. Not exercised by any input docx in the test corpus.
+Path Y is the bbox top — glyph baselines sit on the path peak, so glyph tops extend slightly above the bbox. Word's expected sits ~100px higher again (about one ascent), and the gap is the same shape across all warps. The remaining drift isn't in the warp geometry itself but in the inline-drawing layout cursor (paragraph spacing-after, line metrics) accumulating differently than Word's. A `bodyPr anchor="ctr"` shift (centring the path on the bbox midline) makes it worse — it pushes glyphs further down. Leave the path at the bbox top; closing the residual gap is a layout-flow concern, not a WordArt one.
+
+### `textInflate` / `textDeflate` / `textCan*`
+
+Now handled — see [`../wordart-envelope/notes.md`](../wordart-envelope/notes.md). Top+bottom envelope warps render as per-glyph affine scale (anchor varies by warp), with the text stretched to fill the bbox and the peak glyph sized to fit the bbox height.

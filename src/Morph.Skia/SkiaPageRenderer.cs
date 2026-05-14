@@ -1109,12 +1109,23 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             WordArtTransform.FadeRight => t => 1f - 0.65f * t,
             WordArtTransform.FadeLeft => t => 0.35f + 0.65f * t,
             WordArtTransform.Triangle => t => 0.35f + 0.65f * (1f - Math.Abs(2f * t - 1f)),
+            WordArtTransform.Inflate => t => 1f + 0.5f * (float) Math.Sin(Math.PI * t),
+            WordArtTransform.Deflate => t => 1f - 0.45f * (float) Math.Sin(Math.PI * t),
+            WordArtTransform.CanUp => t => 1f + 0.5f * (float) Math.Sin(Math.PI * t),
+            WordArtTransform.CanDown => t => 1f + 0.5f * (float) Math.Sin(Math.PI * t),
             _ => null
         };
         if (scaleY == null)
         {
             return false;
         }
+
+        var anchor = transform switch
+        {
+            WordArtTransform.Inflate or WordArtTransform.Deflate => EnvelopeAnchor.Centre,
+            WordArtTransform.CanDown => EnvelopeAnchor.Top,
+            _ => EnvelopeAnchor.Baseline
+        };
 
         using var paint = new SKPaint
         {
@@ -1131,32 +1142,82 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             return false;
         }
 
-        // Skia DrawText takes a baseline Y. Centre the glyph cluster vertically using the
-        // font's ascent/descent so the visual midline of the unscaled text sits at bbox-centre.
         var fontMetrics = paint.FontMetrics;
         var glyphHeight = fontMetrics.Descent - fontMetrics.Ascent;
-        var topY = y + (height - glyphHeight) / 2f;
-        var baselineY = topY - fontMetrics.Ascent;
 
-        var startX = x + (width - totalWidth) / 2f;
+        // Inflate / Deflate / Can warps fill the bbox horizontally AND vertically — Word
+        // stretches glyphs to span the box, then modulates each glyph's height by the warp
+        // curve. Fade / Triangle leave the natural size (matches Word for those).
+        // For the box-filling warps, scale so the PEAK (most-stretched) glyph fits the bbox
+        // height. Inflate/Can peak at 1.5×, Deflate's largest is 1.0× (it shrinks).
+        var fillsBox = transform is WordArtTransform.Inflate or WordArtTransform.Deflate
+            or WordArtTransform.CanUp or WordArtTransform.CanDown;
+        var peakScale = transform switch
+        {
+            WordArtTransform.Inflate or WordArtTransform.CanUp or WordArtTransform.CanDown => 1.5f,
+            _ => 1.0f
+        };
+        var sx = fillsBox ? width / totalWidth : 1f;
+        var baseScaleY = fillsBox ? height / (peakScale * glyphHeight) : 1f;
+        var stretchedWidth = totalWidth * sx;
+
+        // Position each glyph so its anchor edge (baseline / centre / top) sits at the
+        // chosen bbox edge. The Save/Scale matrix then scales around that anchor without
+        // translating it, so the chosen edge stays fixed and the opposite edge moves.
+        // For non-box-filling warps (Fade / Triangle) keep the legacy layout — text centred
+        // vertically in the bbox with baseline anchor — so existing baselines stay stable.
+        var startX = x + (width - stretchedWidth) / 2f;
+        var legacyTopY = y + (height - glyphHeight) / 2f;
+        var legacyBaselineY = legacyTopY - fontMetrics.Ascent;
+        float anchorY;
+        float baselineY;
+        if (!fillsBox)
+        {
+            anchorY = legacyBaselineY;
+            baselineY = legacyBaselineY;
+        }
+        else
+        {
+            switch (anchor)
+            {
+                case EnvelopeAnchor.Top:
+                    anchorY = y;
+                    baselineY = anchorY - fontMetrics.Ascent;
+                    break;
+                case EnvelopeAnchor.Centre:
+                    anchorY = y + height / 2f;
+                    baselineY = anchorY - (fontMetrics.Ascent + fontMetrics.Descent) / 2f;
+                    break;
+                default:
+                    anchorY = y + height;
+                    baselineY = anchorY;
+                    break;
+            }
+        }
+
         var charCount = text.Length;
         var cursorX = startX;
         for (var i = 0; i < charCount; i++)
         {
             var ch = text[i].ToString();
             var charAdvance = paint.MeasureText(ch);
-            var t = charCount > 1 ? (float) i / (charCount - 1) : 0f;
-            var sy = scaleY(t);
+            // For 1-character labels in a box-filling warp, t=0 collapses sin(πt)=0 (no
+            // warp). Use 0.5 so a single glyph still gets the centre amplitude. For Fade /
+            // Triangle a single glyph at the start (t=0) is intentional.
+            var t = charCount > 1 ? (float) i / (charCount - 1) : (fillsBox ? 0.5f : 0f);
+            var sy = scaleY(t) * baseScaleY;
 
             currentCanvas.Save();
-            currentCanvas.Scale(1f, sy, 0f, baselineY);
+            currentCanvas.Scale(sx, sy, cursorX, anchorY);
             currentCanvas.DrawText(ch, cursorX, baselineY, paint);
             currentCanvas.Restore();
 
-            cursorX += charAdvance;
+            cursorX += charAdvance * sx;
         }
         return true;
     }
+
+    enum EnvelopeAnchor { Baseline, Centre, Top }
 
     /// <summary>
     /// Straight diagonal path through the bbox centre with slope ±H/W. Path length matches

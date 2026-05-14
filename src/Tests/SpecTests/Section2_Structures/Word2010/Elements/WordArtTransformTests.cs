@@ -29,6 +29,10 @@ internal class WordArtTransformTests
     [Arguments(WordArtTransform.Triangle)]
     [Arguments(WordArtTransform.FadeRight)]
     [Arguments(WordArtTransform.FadeLeft)]
+    [Arguments(WordArtTransform.Inflate)]
+    [Arguments(WordArtTransform.Deflate)]
+    [Arguments(WordArtTransform.CanUp)]
+    [Arguments(WordArtTransform.CanDown)]
     public async Task WordArtTransform_AllValues_CanBeSet(WordArtTransform transform)
     {
         var element = new WordArtElement

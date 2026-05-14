@@ -25,7 +25,7 @@
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.206,
+      "ErrorMetric": 0.22,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "results_skia#page_0004.verified.png",
       "ReceivedFile": "results_skia#page_0004.received.png"

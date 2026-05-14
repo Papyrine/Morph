@@ -17,9 +17,26 @@ See `ImageSharpPageRenderer.TryRenderWordArtOnPath` / `BuildChordSagittaArc` and
 
 `textWave1` uses a 64-segment polyline approximation of one full cosine period across the rendered text width: `y = midY - amplitude·cos(2π·t/textWidth)`. Amplitude is bbox H/4 (not H/2) so the wave excursion stays gentle relative to glyph height, matching Word.
 
-### Remaining warps (Slant / Triangle / Fade / Inflate / Deflate / Can)
+### Slant uses a straight diagonal path
 
-Aren't text-on-path — they're *envelope warps* where each glyph is non-uniformly scaled or sheared. Skia today approximates Slant with a `RotateDegrees`, Fade with a `Skew`, and Triangle with an x-scale; ImageSharp falls back to flat. Real envelope rendering would need per-glyph affine transforms (draw each character through `canvas.Save(transform)` / `Restore`), bigger than the single-curve cases above.
+`textSlantUp` / `textSlantDown` route through a straight diagonal `LineTo` path with slope ±H/W. Path-text rendering rotates each glyph to match the line angle, so letters lean at the slant angle (Word keeps glyphs upright on a slanted baseline — close approximation, not pixel-identical, but visually distinct from flat).
+
+### Fade and Triangle use per-glyph rendering
+
+`textFadeRight` / `textFadeLeft` / `textTriangle` are *envelope warps* — each glyph is vertically scaled relative to its position along the text. Implemented by drawing one `DrawText` per character with a `Scale(1, sy)` transform anchored at the baseline, so glyph bottoms align and tops shrink toward the baseline. Per-glyph rendering is slower than a single DrawText so the path-based warps are tried first.
+
+Scale curves:
+- FadeRight: `1.0 → 0.35` (full at left, reduced at right)
+- FadeLeft: `0.35 → 1.0`
+- Triangle: peaks at 1.0 mid-text, drops to 0.35 at edges (diamond envelope)
+
+### Vertical positioning vs Word
+
+Path Y is the bbox top — glyph baselines sit on the path peak, so glyph tops extend slightly above the bbox. Word's expected sits ~100px higher again (about one ascent), and the gap is the same shape across all warps. The remaining drift isn't in the warp geometry itself but in the inline-drawing layout cursor (paragraph spacing-after, line metrics) accumulating differently than Word's. A `bodyPr anchor="ctr"` shift (centring the path on the bbox midline) makes it worse — it pushes glyphs further down. Leave the path at the bbox top; closing the residual gap is a layout-flow concern, not a WordArt one.
+
+### `textInflate` / `textDeflate` / `textCan*`
+
+Now handled — see [`../wordart-envelope/notes.md`](../wordart-envelope/notes.md). Top+bottom envelope warps render as per-glyph affine scale (anchor varies by warp), with the text stretched to fill the bbox and the peak glyph sized to fit the bbox height.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
@@ -29,7 +46,7 @@ Aren't text-on-path — they're *envelope warps* where each glyph is non-uniform
 | <img src="expected_0002.png" width="500"> | <img src="results_skia%23page_0002.verified.png" width="500"> | <img src="results_imagesharp%23page_0002.verified.png" width="500"> |
 | **Page 3** | **Page 3. ErrorMetric: 0.2214** | **Page 3. ErrorMetric: 0.2269** |
 | <img src="expected_0003.png" width="500"> | <img src="results_skia%23page_0003.verified.png" width="500"> | <img src="results_imagesharp%23page_0003.verified.png" width="500"> |
-| **Page 4** | **Page 4. ErrorMetric: 0.2060** | **Page 4. ErrorMetric: 0.2077** |
+| **Page 4** | **Page 4. ErrorMetric: 0.2200** | **Page 4. ErrorMetric: 0.2290** |
 | <img src="expected_0004.png" width="500"> | <img src="results_skia%23page_0004.verified.png" width="500"> | <img src="results_imagesharp%23page_0004.verified.png" width="500"> |
 | **Page 5** | **Page 5. ErrorMetric: 0.0341** | **Page 5. ErrorMetric: 0.0309** |
 | <img src="expected_0005.png" width="500"> | <img src="results_skia%23page_0005.verified.png" width="500"> | <img src="results_imagesharp%23page_0005.verified.png" width="500"> |
