@@ -37,5 +37,17 @@ enum WordArtTransform
     FadeRight,
 
     /// <summary>Text with fade effect to left.</summary>
-    FadeLeft
+    FadeLeft,
+
+    /// <summary>Text inflated — top bulges up and bottom bulges down.</summary>
+    Inflate,
+
+    /// <summary>Text deflated — top dips down and bottom dips up (pinched centre).</summary>
+    Deflate,
+
+    /// <summary>Text in a "can" shape with the top bulged up and bottom flat.</summary>
+    CanUp,
+
+    /// <summary>Text in a "can" shape with the bottom bulged down and top flat.</summary>
+    CanDown
 }

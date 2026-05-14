@@ -6917,6 +6917,33 @@ sealed class DocumentParser(string defaultFont)
             return WordArtTransform.FadeLeft;
         }
 
+        // Top+bottom envelope warps: both edges curve away from the centre line (Inflate)
+        // or toward it (Deflate). InflateTop/Bottom and DeflateTop/Bottom only curve one
+        // edge — closest match is the symmetric variant rather than a separate enum value.
+        if (preset == A.TextShapeValues.TextInflate ||
+            preset == A.TextShapeValues.TextInflateTop ||
+            preset == A.TextShapeValues.TextInflateBottom)
+        {
+            return WordArtTransform.Inflate;
+        }
+
+        if (preset == A.TextShapeValues.TextDeflate ||
+            preset == A.TextShapeValues.TextDeflateTop ||
+            preset == A.TextShapeValues.TextDeflateBottom)
+        {
+            return WordArtTransform.Deflate;
+        }
+
+        if (preset == A.TextShapeValues.TextCanUp)
+        {
+            return WordArtTransform.CanUp;
+        }
+
+        if (preset == A.TextShapeValues.TextCanDown)
+        {
+            return WordArtTransform.CanDown;
+        }
+
         return WordArtTransform.None;
     }
 

@@ -1332,98 +1332,82 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var sx = pixelWidth / (float) group.ChildExtentX;
         var sy = pixelHeight / (float) group.ChildExtentY;
 
-        // ImageSharp doesn't support per-call transforms (rotation), so for rotated groups we
-        // render onto a temp image, rotate it, and composite. Most templates use 90° group
-        // rotation for header arrows; the temp-image route handles those without distortion.
+        // Most icon-style header arrows are 90° group rotations. Push a geometry-space
+        // rotation around the group centre and draw shapes at their original positions; the
+        // canvas transform handles the rotation. Replaces the previous temp-image route.
         var hasRotation = group.RotationDegrees != 0;
-        Image<Rgba32>? temp = null;
-        var drawCanvas = pageCanvas;
-        var drawOriginX = pixelX;
-        var drawOriginY = pixelY;
         if (hasRotation)
         {
-            temp = new((int) Math.Ceiling(pixelWidth), (int) Math.Ceiling(pixelHeight));
-            drawCanvas = temp.Frames.RootFrame.CreateCanvas(Configuration.Default, new());
-            drawOriginX = 0;
-            drawOriginY = 0;
+            var centerX = pixelX + pixelWidth / 2f;
+            var centerY = pixelY + pixelHeight / 2f;
+            pageCanvas.Save(BuildRotation((float) (group.RotationDegrees * Math.PI / 180.0), centerX, centerY));
         }
 
-        try
+        foreach (var shape in group.Shapes)
         {
-            foreach (var shape in group.Shapes)
+            var x1 = pixelX + (float) shape.X * sx;
+            var y1 = pixelY + (float) shape.Y * sy;
+            var w = (float) shape.Width * sx;
+            var h = (float) shape.Height * sy;
+
+            if (shape.Geometry == GroupShapeGeometry.Line)
             {
-                var x1 = drawOriginX + (float) shape.X * sx;
-                var y1 = drawOriginY + (float) shape.Y * sy;
-                var w = (float) shape.Width * sx;
-                var h = (float) shape.Height * sy;
-
-                if (shape.Geometry == GroupShapeGeometry.Line)
+                var startX = x1;
+                var startY = y1;
+                var endX = x1 + w;
+                var endY = y1 + h;
+                if (shape.FlipVertical)
                 {
-                    var startX = x1;
-                    var startY = y1;
-                    var endX = x1 + w;
-                    var endY = y1 + h;
-                    if (shape.FlipVertical)
-                    {
-                        (startY, endY) = (endY, startY);
-                    }
-                    if (shape.FlipHorizontal)
-                    {
-                        (startX, endX) = (endX, startX);
-                    }
+                    (startY, endY) = (endY, startY);
+                }
+                if (shape.FlipHorizontal)
+                {
+                    (startX, endX) = (endX, startX);
+                }
 
+                var color = ImageSharpRenderContext.ParseColor(shape.ColorHex);
+                var width = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75) * context.Scale;
+                // Square end caps make the perpendicular connector lines extend half-stroke-width
+                // past their endpoints — that's how Word's icon-style arrows form a clean L corner
+                // (each line's square cap fills the gap where a butt/round cap would leave a notch).
+                var pen = new SolidPen(new PenOptions(color, width)
+                {
+                    StrokeOptions = new()
+                    {
+                        LineCap = LineCap.Square,
+                        LineJoin = LineJoin.Bevel
+                    }
+                });
+                pageCanvas.DrawLine(pen, new PointF(startX, startY), new PointF(endX, endY));
+            }
+            else
+            {
+                if (shape.FillColorHex is { } fillHex)
+                {
+                    var fill = ImageSharpRenderContext.ParseColor(fillHex);
+                    pageCanvas.Fill(context.GetBrush(fill), new RectangleF(x1, y1, w, h));
+                }
+                if (shape.LineWidthEmu > 0)
+                {
                     var color = ImageSharpRenderContext.ParseColor(shape.ColorHex);
-                    var width = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75) * context.Scale;
-                    // Square end caps make the perpendicular connector lines extend half-stroke-width
-                    // past their endpoints — that's how Word's icon-style arrows form a clean L corner
-                    // (each line's square cap fills the gap where a butt/round cap would leave a notch).
-                    var pen = new SolidPen(new PenOptions(color, width)
-                    {
-                        StrokeOptions = new()
-                        {
-                            LineCap = LineCap.Square,
-                            LineJoin = LineJoin.Bevel
-                        }
-                    });
-                    drawCanvas.DrawLine(pen, new PointF(startX, startY), new PointF(endX, endY));
+                    var width = (float) (shape.LineWidthEmu / emusPerPoint) * context.Scale;
+                    var pen = context.GetPen(color, width);
+                    pageCanvas.Draw(pen, new RectangleF(x1, y1, w, h));
                 }
-                else
-                {
-                    if (shape.FillColorHex is { } fillHex)
-                    {
-                        var fill = ImageSharpRenderContext.ParseColor(fillHex);
-                        drawCanvas.Fill(context.GetBrush(fill), new RectangleF(x1, y1, w, h));
-                    }
-                    if (shape.LineWidthEmu > 0)
-                    {
-                        var color = ImageSharpRenderContext.ParseColor(shape.ColorHex);
-                        var width = (float) (shape.LineWidthEmu / emusPerPoint) * context.Scale;
-                        var pen = context.GetPen(color, width);
-                        drawCanvas.Draw(pen, new RectangleF(x1, y1, w, h));
-                    }
-                }
-            }
-        }
-        finally
-        {
-            // Dispose the temp canvas before rotating+blitting so the pixels exist on the temp image.
-            if (hasRotation && !ReferenceEquals(drawCanvas, pageCanvas))
-            {
-                drawCanvas.Dispose();
             }
         }
 
-        if (hasRotation && temp != null)
+        if (hasRotation)
         {
-            temp.Mutate(_ => _.Rotate((float) group.RotationDegrees));
-            // Centre the rotated temp at the original group centre to keep alignment with text.
-            var dstX = (int) (pixelX + (pixelWidth - temp.Width) / 2f);
-            var dstY = (int) (pixelY + (pixelHeight - temp.Height) / 2f);
-            pageCanvas.DrawImage(temp, new(dstX, dstY));
-            // ImageBrush retains temp until the page canvas renders.
-            context.RetainForPage(temp);
+            pageCanvas.Restore();
         }
     }
+
+    static DrawingOptions BuildRotation(float radians, float pivotX, float pivotY) =>
+        new()
+        {
+            Transform = new(Matrix3x2.CreateRotation(radians, new(pivotX, pivotY)))
+        };
 
     // EMU = English Metric Units. 1 point = 12700 EMU.
     const float emusPerPoint = 12700f;
