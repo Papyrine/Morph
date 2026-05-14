@@ -544,6 +544,12 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             return;
         }
 
+        if (TryRenderWordArtPathWarp(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, x, y, width, pixelHeight, scaledFont))
+        {
+            context.CurrentY += height;
+            return;
+        }
+
         if (TryRenderWordArtEnvelope(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, x, y, width, pixelHeight, scaledFont))
         {
             context.CurrentY += height;
@@ -698,6 +704,144 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         currentCanvas.DrawText(options, text.AsSpan(), path, context.GetBrush(fillColor), null);
         return true;
+    }
+
+    /// <summary>
+    /// Renders the box-filling envelope warps (Inflate / Deflate / CanUp / CanDown) by
+    /// extracting glyph outline paths and remapping every point so each glyph's top and
+    /// bottom edges follow the envelope curve. Word distorts each glyph as a true non-affine
+    /// trapezoid — affine per-glyph scaling (the legacy fallback) only varies glyph height,
+    /// keeping each glyph rectangular. Path-level remap captures the per-column height
+    /// variation that makes the warp look right.
+    ///
+    /// Algorithm: render text glyphs at natural size to get outline paths in
+    /// text-local coords (x ∈ [0, totalWidth], y ∈ ~[0, glyphHeight]). For every point,
+    /// normalise (x, y) into (t, normY), look up the envelope's top/bottom Y at t, and
+    /// remap y linearly between them. X is stretched to fill the bbox width.
+    /// </summary>
+    bool TryRenderWordArtPathWarp(
+        WordArtTransform transform,
+        string text,
+        string? fillColorHex,
+        float x, float y, float width, float height,
+        Font font)
+    {
+        if (currentCanvas == null)
+        {
+            return false;
+        }
+
+        if (transform is not (WordArtTransform.Inflate or WordArtTransform.Deflate
+            or WordArtTransform.CanUp or WordArtTransform.CanDown))
+        {
+            return false;
+        }
+
+        var measureOptions = new RichTextOptions(font) {Dpi = context.Dpi};
+        var totalWidth = TextMeasurer.MeasureAdvance(text, measureOptions).Width;
+        if (totalWidth <= 0)
+        {
+            return false;
+        }
+
+        var (_, baselineFromTop) = ImageSharpRenderContext.GetFontMetrics(font);
+        var naturalAscent = baselineFromTop * context.Scale;
+
+        // Render glyph outlines at text-local coords: baseline at y = ascent. X spans
+        // 0..totalWidth. Use the resulting paths' actual bounds for Y normalisation rather
+        // than font metrics — the visible glyph extent (cap-top to descender-bottom) is what
+        // the envelope curve should map onto, and that's tighter than the font's metric box.
+        var pathOptions = new RichTextOptions(font)
+        {
+            Dpi = context.Dpi,
+            Origin = new Vector2(0, naturalAscent)
+        };
+        var glyphPaths = TextBuilder.GeneratePaths(text, pathOptions);
+        var pathsBounds = glyphPaths.Bounds;
+        var glyphsTop = pathsBounds.Top;
+        var glyphsHeight = pathsBounds.Height;
+        if (glyphsHeight <= 0)
+        {
+            return false;
+        }
+
+        var pathBuilder = new PathBuilder();
+        foreach (var glyphPath in glyphPaths)
+        {
+            foreach (var simplePath in glyphPath.Flatten())
+            {
+                var points = simplePath.Points.Span;
+                if (points.Length == 0)
+                {
+                    continue;
+                }
+
+                pathBuilder.StartFigure();
+                pathBuilder.MoveTo(WarpPoint(points[0], totalWidth, glyphsTop, glyphsHeight, x, y, width, height, transform));
+                for (var i = 1; i < points.Length; i++)
+                {
+                    pathBuilder.LineTo(WarpPoint(points[i], totalWidth, glyphsTop, glyphsHeight, x, y, width, height, transform));
+                }
+                if (simplePath.IsClosed)
+                {
+                    pathBuilder.CloseFigure();
+                }
+            }
+        }
+
+        var fillColor = fillColorHex == null ? Color.Black : ParseColor(fillColorHex);
+        currentCanvas.Fill(context.GetBrush(fillColor), pathBuilder.Build());
+        return true;
+    }
+
+    static PointF WarpPoint(PointF point, float totalWidth, float glyphsTop, float glyphsHeight,
+        float x, float y, float width, float height, WordArtTransform transform)
+    {
+        var t = Math.Clamp(point.X / totalWidth, 0f, 1f);
+        var newX = x + t * width;
+        var (top, bottom) = EnvelopeAt(t, transform, y, height);
+        var normY = (point.Y - glyphsTop) / glyphsHeight;
+        var newY = top + normY * (bottom - top);
+        return new PointF(newX, newY);
+    }
+
+    /// <summary>
+    /// Returns the (top Y, bottom Y) envelope curve at normalised text position t ∈ [0, 1]
+    /// for the given warp. Edge text height is <c>minRatio</c> of the bbox so glyphs at the
+    /// ends of the word stay readable instead of collapsing to a line.
+    /// </summary>
+    static (float top, float bottom) EnvelopeAt(float t, WordArtTransform transform, float bboxTop, float bboxHeight)
+    {
+        var sinT = (float) Math.Sin(Math.PI * t);
+        var bboxBottom = bboxTop + bboxHeight;
+        var bboxCentre = bboxTop + bboxHeight / 2f;
+        const float minRatio = 0.55f;
+
+        switch (transform)
+        {
+            case WordArtTransform.Inflate:
+            {
+                var h = bboxHeight * (minRatio + (1 - minRatio) * sinT);
+                return (bboxCentre - h / 2f, bboxCentre + h / 2f);
+            }
+            case WordArtTransform.Deflate:
+            {
+                var h = bboxHeight * (1f - (1 - minRatio) * sinT);
+                return (bboxCentre - h / 2f, bboxCentre + h / 2f);
+            }
+            case WordArtTransform.CanUp:
+            {
+                var h = bboxHeight * (minRatio + (1 - minRatio) * sinT);
+                return (bboxBottom - h, bboxBottom);
+            }
+            case WordArtTransform.CanDown:
+            {
+                var h = bboxHeight * (minRatio + (1 - minRatio) * sinT);
+                return (bboxTop, bboxTop + h);
+            }
+            default:
+                return (bboxTop, bboxBottom);
+        }
     }
 
     /// <summary>
@@ -994,6 +1138,11 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             wordArt.Italic);
 
         if (TryRenderWordArtOnPath(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, wordArt.OutlineColorHex, wordArt.OutlineWidthPoints, pixelX, pixelY, width, pixelHeight, scaledFont))
+        {
+            return;
+        }
+
+        if (TryRenderWordArtPathWarp(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, pixelX, pixelY, width, pixelHeight, scaledFont))
         {
             return;
         }

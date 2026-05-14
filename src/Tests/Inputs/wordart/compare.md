@@ -46,7 +46,7 @@ Now handled — see [`../wordart-envelope/notes.md`](../wordart-envelope/notes.m
 | <img src="expected_0002.png" width="500"> | <img src="results_skia%23page_0002.verified.png" width="500"> | <img src="results_imagesharp%23page_0002.verified.png" width="500"> |
 | **Page 3** | **Page 3. ErrorMetric: 0.2214** | **Page 3. ErrorMetric: 0.2269** |
 | <img src="expected_0003.png" width="500"> | <img src="results_skia%23page_0003.verified.png" width="500"> | <img src="results_imagesharp%23page_0003.verified.png" width="500"> |
-| **Page 4** | **Page 4. ErrorMetric: 0.2200** | **Page 4. ErrorMetric: 0.2290** |
+| **Page 4** | **Page 4. ErrorMetric: 0.2285** | **Page 4. ErrorMetric: 0.2404** |
 | <img src="expected_0004.png" width="500"> | <img src="results_skia%23page_0004.verified.png" width="500"> | <img src="results_imagesharp%23page_0004.verified.png" width="500"> |
 | **Page 5** | **Page 5. ErrorMetric: 0.0341** | **Page 5. ErrorMetric: 0.0309** |
 | <img src="expected_0005.png" width="500"> | <img src="results_skia%23page_0005.verified.png" width="500"> | <img src="results_imagesharp%23page_0005.verified.png" width="500"> |

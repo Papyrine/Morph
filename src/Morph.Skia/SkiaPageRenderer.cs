@@ -689,6 +689,12 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             return;
         }
 
+        if (TryRenderWordArtPathWarp(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, x, y, width, pixelHeight, typeface, pixelFontSize * scale))
+        {
+            context.CurrentY += height;
+            return;
+        }
+
         if (TryRenderWordArtEnvelope(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, x, y, width, pixelHeight, typeface, pixelFontSize * scale))
         {
             context.CurrentY += height;
@@ -832,6 +838,11 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         var scale = Math.Min(Math.Min(scaleX, scaleY), 1f);
 
         if (TryRenderWordArtOnPath(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, wordArt.OutlineColorHex, wordArt.OutlineWidthPoints, pixelX, pixelY, width, pixelHeight, typeface, pixelFontSize * scale))
+        {
+            return;
+        }
+
+        if (TryRenderWordArtPathWarp(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, pixelX, pixelY, width, pixelHeight, typeface, pixelFontSize * scale))
         {
             return;
         }
@@ -1084,6 +1095,152 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         var path = new SKPath();
         path.AddArc(oval, startAngle, sweepAngle);
         return path;
+    }
+
+    /// <summary>
+    /// Renders the box-filling envelope warps (Inflate / Deflate / CanUp / CanDown) by
+    /// extracting the text outline as an SKPath, walking each subpath as a polyline (via
+    /// SKPathMeasure), and remapping every sample point so each glyph's top and bottom
+    /// edges follow the envelope curve. Word distorts each glyph as a true non-affine
+    /// trapezoid; affine per-glyph scaling (the legacy fallback) only varies glyph height,
+    /// keeping each glyph rectangular. Path-level remap captures the per-column height
+    /// variation that makes the warp look right.
+    /// </summary>
+    bool TryRenderWordArtPathWarp(
+        WordArtTransform transform,
+        string text,
+        string? fillColorHex,
+        float x, float y, float width, float height,
+        SKTypeface typeface, float fontSize)
+    {
+        if (currentCanvas == null)
+        {
+            return false;
+        }
+
+        if (transform is not (WordArtTransform.Inflate or WordArtTransform.Deflate
+            or WordArtTransform.CanUp or WordArtTransform.CanDown))
+        {
+            return false;
+        }
+
+        using var paint = new SKPaint
+        {
+            Typeface = typeface,
+            TextSize = fontSize,
+            IsAntialias = true,
+            Color = fillColorHex != null ? ParseColor(fillColorHex) : SKColors.Black,
+            Style = SKPaintStyle.Fill
+        };
+
+        var totalWidth = paint.MeasureText(text);
+        if (totalWidth <= 0)
+        {
+            return false;
+        }
+
+        var fontMetrics = paint.FontMetrics;
+        // Generate text outline at text-local coords: origin (0, -ascent) puts baseline at
+        // y=0 with caps reaching up into negative Y. We use bounds-based normalisation, so
+        // the exact origin doesn't matter — only consistency between path and bounds.
+        using var textPath = paint.GetTextPath(text, 0, -fontMetrics.Ascent);
+        textPath.GetBounds(out var pathBounds);
+        var glyphsTop = pathBounds.Top;
+        var glyphsHeight = pathBounds.Height;
+        if (glyphsHeight <= 0)
+        {
+            return false;
+        }
+
+        // Sample every subpath of the text outline as a polyline. SKPathMeasure walks one
+        // contour at a time; NextContour advances. Sample at ~2-pixel intervals so the
+        // resulting polyline is dense enough to render the warp smoothly.
+        using var resultPath = new SKPath();
+        using var measure = new SKPathMeasure(textPath, false);
+        do
+        {
+            var contourLength = measure.Length;
+            if (contourLength <= 0)
+            {
+                continue;
+            }
+
+            var steps = Math.Max(8, (int) (contourLength / 2f));
+            var first = true;
+            for (var i = 0; i <= steps; i++)
+            {
+                var dist = (float) i / steps * contourLength;
+                if (!measure.GetPosition(dist, out var sample))
+                {
+                    continue;
+                }
+                var warped = WarpPoint(sample, totalWidth, glyphsTop, glyphsHeight, x, y, width, height, transform);
+                if (first)
+                {
+                    resultPath.MoveTo(warped);
+                    first = false;
+                }
+                else
+                {
+                    resultPath.LineTo(warped);
+                }
+            }
+            // Glyph contours are always closed.
+            resultPath.Close();
+        } while (measure.NextContour());
+
+        currentCanvas.DrawPath(resultPath, paint);
+        return true;
+    }
+
+    static SKPoint WarpPoint(SKPoint point, float totalWidth, float glyphsTop, float glyphsHeight,
+        float x, float y, float width, float height, WordArtTransform transform)
+    {
+        var t = Math.Clamp(point.X / totalWidth, 0f, 1f);
+        var newX = x + t * width;
+        var (top, bottom) = EnvelopeAt(t, transform, y, height);
+        var normY = (point.Y - glyphsTop) / glyphsHeight;
+        var newY = top + normY * (bottom - top);
+        return new SKPoint(newX, newY);
+    }
+
+    /// <summary>
+    /// Returns the (top Y, bottom Y) envelope curve at normalised text position t ∈ [0, 1]
+    /// for the given warp. Edge text height is <c>minRatio</c> of the bbox so glyphs at the
+    /// ends of the word stay readable instead of collapsing to a line.
+    /// </summary>
+    static (float top, float bottom) EnvelopeAt(float t, WordArtTransform transform, float bboxTop, float bboxHeight)
+    {
+        var sinT = (float) Math.Sin(Math.PI * t);
+        var bboxBottom = bboxTop + bboxHeight;
+        var bboxCentre = bboxTop + bboxHeight / 2f;
+        const float minRatio = 0.55f;
+
+        switch (transform)
+        {
+            case WordArtTransform.Inflate:
+            {
+                var h = bboxHeight * (minRatio + (1 - minRatio) * sinT);
+                return (bboxCentre - h / 2f, bboxCentre + h / 2f);
+            }
+            case WordArtTransform.Deflate:
+            {
+                var h = bboxHeight * (1f - (1 - minRatio) * sinT);
+                return (bboxCentre - h / 2f, bboxCentre + h / 2f);
+            }
+            case WordArtTransform.CanUp:
+            {
+                var h = bboxHeight * (minRatio + (1 - minRatio) * sinT);
+                return (bboxBottom - h, bboxBottom);
+            }
+            case WordArtTransform.CanDown:
+            {
+                var h = bboxHeight * (minRatio + (1 - minRatio) * sinT);
+                return (bboxTop, bboxTop + h);
+            }
+            default:
+                return (bboxTop, bboxBottom);
+        }
     }
 
     /// <summary>
