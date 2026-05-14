@@ -980,6 +980,17 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                     path = BuildArc(new(cx - radius, cy - radius, cx + radius, cy + radius), startAngle, sweepAngle);
                     break;
                 }
+            case WordArtTransform.ChevronUp:
+                // Word's textChevron renders as a single-peak smooth arch — same envelope as
+                // ArchUp. Sharp-corner ^ paths cause per-glyph overlap at the apex.
+                path = BuildChordSagittaArc(x, y, width, height, textWidth, archDown: false);
+                break;
+            case WordArtTransform.ChevronDown:
+                path = BuildChordSagittaArc(x, y, width, height, textWidth, archDown: true);
+                break;
+            case WordArtTransform.Wave:
+                path = BuildWavePath(x, y, width, height, textWidth);
+                break;
             default:
                 return false;
         }
@@ -1055,6 +1066,32 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
     {
         var path = new SKPath();
         path.AddArc(oval, startAngle, sweepAngle);
+        return path;
+    }
+
+    /// <summary>
+    /// Sine-wave polyline path (one full period across <paramref name="textWidth"/>) along the
+    /// bbox horizontal midline. Amplitude is bbox H/4 so the wave excursion stays gentle
+    /// relative to glyph height — matches Word's textWave1.
+    /// </summary>
+    static SKPath BuildWavePath(float x, float y, float width, float height, float textWidth)
+    {
+        var amplitude = height / 4f;
+        var midY = y + height / 2f;
+        var pathStartX = x + width / 2f - textWidth / 2f;
+
+        const int segments = 64;
+        var dx = textWidth / segments;
+        var phaseScale = 2.0 * Math.PI / textWidth;
+
+        var path = new SKPath();
+        path.MoveTo(pathStartX, midY - amplitude);
+        for (var i = 1; i <= segments; i++)
+        {
+            var t = i * dx;
+            var py = midY - amplitude * (float) Math.Cos(t * phaseScale);
+            path.LineTo(pathStartX + t, py);
+        }
         return path;
     }
 

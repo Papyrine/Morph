@@ -655,6 +655,18 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                     path = BuildArc(new(cx - radius, cy - radius, 2 * radius, 2 * radius), startAngle, sweepAngle);
                     break;
                 }
+            case WordArtTransform.ChevronUp:
+                // Word's textChevron renders as a single-peak smooth arch, not a sharp ^ —
+                // the chord-sagitta arc gives the right visual without per-glyph overlap at
+                // a discontinuous apex.
+                path = BuildChordSagittaArc(x, y, width, height, textWidthPixels, archDown: false);
+                break;
+            case WordArtTransform.ChevronDown:
+                path = BuildChordSagittaArc(x, y, width, height, textWidthPixels, archDown: true);
+                break;
+            case WordArtTransform.Wave:
+                path = BuildWavePath(x, y, width, height, textWidthPixels);
+                break;
             default:
                 return false;
         }
@@ -717,6 +729,40 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     {
         var builder = new PathBuilder();
         builder.AddArc(oval, rotation: 0, startAngle, sweepAngle);
+        return builder.Build();
+    }
+
+    /// <summary>
+    /// Builds a sine-wave polyline path centred on the bbox. Word's <c>textWave1</c> fits one
+    /// full period across the text length: text starts high, dips through the middle, and
+    /// ends high again — formula <c>y = midY - amplitude·cos(2π·t/textWidth)</c>. Amplitude
+    /// is bbox H/2; period is the rendered text width (not the bbox width). 64 polyline
+    /// segments per period — dense enough that per-glyph tangent jumps at segment joins are
+    /// visually smooth.
+    /// </summary>
+    static IPath BuildWavePath(float x, float y, float width, float height, float textWidth)
+    {
+        // Amplitude is bbox H/4 (not H/2) — half the box reserves space for the glyph height
+        // itself so text stays within the bbox visually, matching Word's textWave1 where the
+        // wave excursion is gentle relative to glyph size.
+        var amplitude = height / 4f;
+        var midY = y + height / 2f;
+        // Path covers exactly textWidth horizontal extent, centred on bbox horizontal centre.
+        var pathStartX = x + width / 2f - textWidth / 2f;
+
+        const int segmentsPerPeriod = 64;
+        var totalSegments = segmentsPerPeriod;
+        var dx = textWidth / totalSegments;
+        var phaseScale = 2.0 * Math.PI / textWidth;
+
+        var builder = new PathBuilder();
+        builder.MoveTo(new(pathStartX, midY - amplitude));
+        for (var i = 1; i <= totalSegments; i++)
+        {
+            var t = i * dx;
+            var py = midY - amplitude * (float) Math.Cos(t * phaseScale);
+            builder.LineTo(new(pathStartX + t, py));
+        }
         return builder.Build();
     }
 
