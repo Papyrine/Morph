@@ -1606,7 +1606,7 @@ Text warped into decorative shapes (arch, wave, chevron, etc.).
 - **OOXML**: `a:prstTxWarp` with `prst` attribute
 - **Model**: `WordArtElement.TransformPreset` — `WordArtTransform` enum
 
-Supported presets (12):
+Supported presets (16):
 
 | Transform | Description |
 |-----------|-------------|
@@ -1622,6 +1622,10 @@ Supported presets (12):
 | Triangle | Triangular shape |
 | FadeRight | Fading to the right |
 | FadeLeft | Fading to the left |
+| Inflate | Top bulges up, bottom bulges down (envelope) |
+| Deflate | Top dips down, bottom dips up (pinched) |
+| CanUp | Top arches up, bottom flat |
+| CanDown | Top flat, bottom arches down |
 
 > **AI**: Spec test `WordArtTransformTests` covers all preset parsing. To add new presets, add to `WordArtTransform` enum, map the OOXML preset string, and implement the transform math in `TextRenderer`.
 
