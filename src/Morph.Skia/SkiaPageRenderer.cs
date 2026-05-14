@@ -689,6 +689,12 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             return;
         }
 
+        if (TryRenderWordArtEnvelope(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, x, y, width, pixelHeight, typeface, pixelFontSize * scale))
+        {
+            context.CurrentY += height;
+            return;
+        }
+
         // Calculate centered position
         var scaledWidth = textBounds.Width * scale;
         var scaledHeight = textBounds.Height * scale;
@@ -826,6 +832,11 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         var scale = Math.Min(Math.Min(scaleX, scaleY), 1f);
 
         if (TryRenderWordArtOnPath(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, wordArt.OutlineColorHex, wordArt.OutlineWidthPoints, pixelX, pixelY, width, pixelHeight, typeface, pixelFontSize * scale))
+        {
+            return;
+        }
+
+        if (TryRenderWordArtEnvelope(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, pixelX, pixelY, width, pixelHeight, typeface, pixelFontSize * scale))
         {
             return;
         }
@@ -991,6 +1002,12 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             case WordArtTransform.Wave:
                 path = BuildWavePath(x, y, width, height, textWidth);
                 break;
+            case WordArtTransform.SlantUp:
+                path = BuildSlantPath(x, y, width, height, textWidth, slantUp: true);
+                break;
+            case WordArtTransform.SlantDown:
+                path = BuildSlantPath(x, y, width, height, textWidth, slantUp: false);
+                break;
             default:
                 return false;
         }
@@ -1066,6 +1083,97 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
     {
         var path = new SKPath();
         path.AddArc(oval, startAngle, sweepAngle);
+        return path;
+    }
+
+    /// <summary>
+    /// Per-glyph rendering for envelope warps that aren't text-on-path (Fade, Triangle).
+    /// Each glyph is drawn separately with a vertical scale anchored at the baseline so
+    /// the bottoms align and the tops shrink toward the baseline. Returns true when
+    /// handled.
+    /// </summary>
+    bool TryRenderWordArtEnvelope(
+        WordArtTransform transform,
+        string text,
+        string? fillColorHex,
+        float x, float y, float width, float height,
+        SKTypeface typeface, float fontSize)
+    {
+        if (currentCanvas == null)
+        {
+            return false;
+        }
+
+        Func<float, float>? scaleY = transform switch
+        {
+            WordArtTransform.FadeRight => t => 1f - 0.65f * t,
+            WordArtTransform.FadeLeft => t => 0.35f + 0.65f * t,
+            WordArtTransform.Triangle => t => 0.35f + 0.65f * (1f - Math.Abs(2f * t - 1f)),
+            _ => null
+        };
+        if (scaleY == null)
+        {
+            return false;
+        }
+
+        using var paint = new SKPaint
+        {
+            Typeface = typeface,
+            TextSize = fontSize,
+            IsAntialias = true,
+            Color = fillColorHex != null ? ParseColor(fillColorHex) : SKColors.Black,
+            Style = SKPaintStyle.Fill
+        };
+
+        var totalWidth = paint.MeasureText(text);
+        if (totalWidth <= 0)
+        {
+            return false;
+        }
+
+        // Skia DrawText takes a baseline Y. Centre the glyph cluster vertically using the
+        // font's ascent/descent so the visual midline of the unscaled text sits at bbox-centre.
+        var fontMetrics = paint.FontMetrics;
+        var glyphHeight = fontMetrics.Descent - fontMetrics.Ascent;
+        var topY = y + (height - glyphHeight) / 2f;
+        var baselineY = topY - fontMetrics.Ascent;
+
+        var startX = x + (width - totalWidth) / 2f;
+        var charCount = text.Length;
+        var cursorX = startX;
+        for (var i = 0; i < charCount; i++)
+        {
+            var ch = text[i].ToString();
+            var charAdvance = paint.MeasureText(ch);
+            var t = charCount > 1 ? (float) i / (charCount - 1) : 0f;
+            var sy = scaleY(t);
+
+            currentCanvas.Save();
+            currentCanvas.Scale(1f, sy, 0f, baselineY);
+            currentCanvas.DrawText(ch, cursorX, baselineY, paint);
+            currentCanvas.Restore();
+
+            cursorX += charAdvance;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Straight diagonal path through the bbox centre with slope ±H/W. Path length matches
+    /// <paramref name="textWidth"/> so glyphs sit on a slanted baseline.
+    /// </summary>
+    static SKPath BuildSlantPath(float x, float y, float width, float height, float textWidth, bool slantUp)
+    {
+        var slope = (slantUp ? -1f : 1f) * height / width;
+        var halfTextLength = textWidth / 2f;
+        var dx = halfTextLength / (float) Math.Sqrt(1 + slope * slope);
+        var dy = dx * slope;
+        var centerX = x + width / 2f;
+        var centerY = y + height / 2f;
+
+        var path = new SKPath();
+        path.MoveTo(centerX - dx, centerY - dy);
+        path.LineTo(centerX + dx, centerY + dy);
         return path;
     }
 

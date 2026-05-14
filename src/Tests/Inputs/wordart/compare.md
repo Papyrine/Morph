@@ -11,9 +11,15 @@ Path is sized to the rendered text width and centred on the arc peak/dip (or 3 o
 
 See `ImageSharpPageRenderer.TryRenderWordArtOnPath` / `BuildChordSagittaArc` and `SkiaPageRenderer.TryRenderWordArtOnPath` / `BuildChordSagittaArc`.
 
-### Other warps (Wave / Chevron / Slant / Triangle / Fade)
+### Wave + Chevron also use path-based rendering
 
-Still approximated via canvas transforms in `Morph.Skia.ApplyWordArtTransform`; ImageSharp falls back to flat shrink-to-fit text. Visually crude but not actively broken — full path-based warps would need a per-warp glyph-positioning step (each preset has its own envelope), bigger than the single-curve cases above.
+`textChevron` / `textChevronInverted` route through the same chord-sagitta arc as ArchUp/Down — Word's chevron renders as a single-peak smooth arch, not a sharp ^. (A literal polyline ^/v path causes per-glyph overlap at the discontinuous apex regardless of fillet size.)
+
+`textWave1` uses a 64-segment polyline approximation of one full cosine period across the rendered text width: `y = midY - amplitude·cos(2π·t/textWidth)`. Amplitude is bbox H/4 (not H/2) so the wave excursion stays gentle relative to glyph height, matching Word.
+
+### Remaining warps (Slant / Triangle / Fade / Inflate / Deflate / Can)
+
+Aren't text-on-path — they're *envelope warps* where each glyph is non-uniformly scaled or sheared. Skia today approximates Slant with a `RotateDegrees`, Fade with a `Skew`, and Triangle with an x-scale; ImageSharp falls back to flat. Real envelope rendering would need per-glyph affine transforms (draw each character through `canvas.Save(transform)` / `Restore`), bigger than the single-curve cases above.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
@@ -21,9 +27,9 @@ Still approximated via canvas transforms in `Morph.Skia.ApplyWordArtTransform`; 
 | <img src="expected_0001.png" width="500"> | <img src="results_skia%23page_0001.verified.png" width="500"> | <img src="results_imagesharp%23page_0001.verified.png" width="500"> |
 | **Page 2** | **Page 2. ErrorMetric: 0.0492** | **Page 2. ErrorMetric: 0.0541** |
 | <img src="expected_0002.png" width="500"> | <img src="results_skia%23page_0002.verified.png" width="500"> | <img src="results_imagesharp%23page_0002.verified.png" width="500"> |
-| **Page 3** | **Page 3. ErrorMetric: 0.2198** | **Page 3. ErrorMetric: 0.2252** |
+| **Page 3** | **Page 3. ErrorMetric: 0.2214** | **Page 3. ErrorMetric: 0.2269** |
 | <img src="expected_0003.png" width="500"> | <img src="results_skia%23page_0003.verified.png" width="500"> | <img src="results_imagesharp%23page_0003.verified.png" width="500"> |
-| **Page 4** | **Page 4. ErrorMetric: 0.2014** | **Page 4. ErrorMetric: 0.2047** |
+| **Page 4** | **Page 4. ErrorMetric: 0.2060** | **Page 4. ErrorMetric: 0.2077** |
 | <img src="expected_0004.png" width="500"> | <img src="results_skia%23page_0004.verified.png" width="500"> | <img src="results_imagesharp%23page_0004.verified.png" width="500"> |
 | **Page 5** | **Page 5. ErrorMetric: 0.0341** | **Page 5. ErrorMetric: 0.0309** |
 | <img src="expected_0005.png" width="500"> | <img src="results_skia%23page_0005.verified.png" width="500"> | <img src="results_imagesharp%23page_0005.verified.png" width="500"> |

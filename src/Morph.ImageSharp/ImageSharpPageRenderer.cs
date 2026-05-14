@@ -544,6 +544,12 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             return;
         }
 
+        if (TryRenderWordArtEnvelope(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, x, y, width, pixelHeight, scaledFont))
+        {
+            context.CurrentY += height;
+            return;
+        }
+
         var scaledSize = TextMeasurer.MeasureAdvance(
             wordArt.Text,
             new(scaledFont)
@@ -667,6 +673,12 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             case WordArtTransform.Wave:
                 path = BuildWavePath(x, y, width, height, textWidthPixels);
                 break;
+            case WordArtTransform.SlantUp:
+                path = BuildSlantPath(x, y, width, height, textWidthPixels, slantUp: true);
+                break;
+            case WordArtTransform.SlantDown:
+                path = BuildSlantPath(x, y, width, height, textWidthPixels, slantUp: false);
+                break;
             default:
                 return false;
         }
@@ -685,6 +697,85 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
 
         currentCanvas.DrawText(options, text.AsSpan(), path, context.GetBrush(fillColor), null);
+        return true;
+    }
+
+    /// <summary>
+    /// Renders WordArt envelope warps that aren't text-on-path — Fade and Triangle —
+    /// by drawing each glyph individually with a per-glyph vertical scale anchored at the
+    /// baseline. Returns true when the warp was handled. Per-glyph rendering is slower
+    /// than a single DrawText so the path-based warps are tried first.
+    /// </summary>
+    bool TryRenderWordArtEnvelope(
+        WordArtTransform transform,
+        string text,
+        string? fillColorHex,
+        float x, float y, float width, float height,
+        Font font)
+    {
+        if (currentCanvas == null)
+        {
+            return false;
+        }
+
+        // scaleY(t) returns the per-glyph vertical scale factor for normalised position
+        // t ∈ [0, 1] along the text. minScale floor avoids glyphs collapsing to invisibility.
+        Func<float, float>? scaleY = transform switch
+        {
+            WordArtTransform.FadeRight => t => 1f - 0.65f * t,
+            WordArtTransform.FadeLeft => t => 0.35f + 0.65f * t,
+            WordArtTransform.Triangle => t => 0.35f + 0.65f * (1f - Math.Abs(2f * t - 1f)),
+            _ => null
+        };
+        if (scaleY == null)
+        {
+            return false;
+        }
+
+        var measureOptions = new RichTextOptions(font) {Dpi = context.Dpi};
+        var totalWidth = TextMeasurer.MeasureAdvance(text, measureOptions).Width;
+        if (totalWidth <= 0)
+        {
+            return false;
+        }
+
+        var (glyphHeight, baselineFromTop) = ImageSharpRenderContext.GetFontMetrics(font);
+        var glyphHeightPixels = glyphHeight * context.Scale;
+        var baselineOffsetPixels = baselineFromTop * context.Scale;
+
+        var fillColor = fillColorHex == null ? Color.Black : ParseColor(fillColorHex);
+        var brush = context.GetBrush(fillColor);
+
+        // Centre the unscaled text horizontally and vertically in the bbox. Per-glyph scale
+        // anchors at the baseline so the bottoms align — top of the glyph moves down toward
+        // the baseline as scale shrinks.
+        var startX = x + (width - totalWidth) / 2f;
+        var topY = y + (height - glyphHeightPixels) / 2f;
+        var baselineY = topY + baselineOffsetPixels;
+
+        var charCount = text.Length;
+        var cursorX = startX;
+        for (var i = 0; i < charCount; i++)
+        {
+            var ch = text[i].ToString();
+            var charAdvance = TextMeasurer.MeasureAdvance(ch, measureOptions).Width;
+            var t = charCount > 1 ? (float) i / (charCount - 1) : 0f;
+            var sy = scaleY(t);
+
+            var matrix = Matrix3x2.CreateScale(new Vector2(1f, sy), new(0f, baselineY));
+            currentCanvas.Save(new DrawingOptions {Transform = new(matrix)});
+
+            var charOpts = new RichTextOptions(font)
+            {
+                Dpi = context.Dpi,
+                Origin = new(cursorX, topY)
+            };
+            currentCanvas.DrawText(charOpts, ch.AsSpan(), brush, null);
+            currentCanvas.Restore();
+
+            cursorX += charAdvance;
+        }
+
         return true;
     }
 
@@ -740,6 +831,28 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     /// segments per period — dense enough that per-glyph tangent jumps at segment joins are
     /// visually smooth.
     /// </summary>
+    /// <summary>
+    /// Straight diagonal path through the bbox centre with slope derived from bbox aspect
+    /// (dy/dx = ±H/W). Path length matches <paramref name="textWidth"/> so glyphs sit on a
+    /// slanted baseline. Text-on-path naturally rotates each glyph to the line angle —
+    /// a small visual difference from Word (which keeps glyphs upright) but captures the
+    /// slant effect with a single uniform path.
+    /// </summary>
+    static IPath BuildSlantPath(float x, float y, float width, float height, float textWidth, bool slantUp)
+    {
+        var slope = (slantUp ? -1f : 1f) * height / width;
+        var halfTextLength = textWidth / 2f;
+        var dx = halfTextLength / (float) Math.Sqrt(1 + slope * slope);
+        var dy = dx * slope;
+        var centerX = x + width / 2f;
+        var centerY = y + height / 2f;
+
+        var builder = new PathBuilder();
+        builder.MoveTo(new(centerX - dx, centerY - dy));
+        builder.LineTo(new(centerX + dx, centerY + dy));
+        return builder.Build();
+    }
+
     static IPath BuildWavePath(float x, float y, float width, float height, float textWidth)
     {
         // Amplitude is bbox H/4 (not H/2) — half the box reserves space for the glyph height
@@ -812,6 +925,11 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             wordArt.Italic);
 
         if (TryRenderWordArtOnPath(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, wordArt.OutlineColorHex, wordArt.OutlineWidthPoints, pixelX, pixelY, width, pixelHeight, scaledFont))
+        {
+            return;
+        }
+
+        if (TryRenderWordArtEnvelope(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, pixelX, pixelY, width, pixelHeight, scaledFont))
         {
             return;
         }

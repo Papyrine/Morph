@@ -15,6 +15,19 @@ See `ImageSharpPageRenderer.TryRenderWordArtOnPath` / `BuildChordSagittaArc` and
 
 `textWave1` uses a 64-segment polyline approximation of one full cosine period across the rendered text width: `y = midY - amplitude·cos(2π·t/textWidth)`. Amplitude is bbox H/4 (not H/2) so the wave excursion stays gentle relative to glyph height, matching Word.
 
-### Remaining warps (Slant / Triangle / Fade / Inflate / Deflate / Can)
+### Slant uses a straight diagonal path
 
-Aren't text-on-path — they're *envelope warps* where each glyph is non-uniformly scaled or sheared. Skia today approximates Slant with a `RotateDegrees`, Fade with a `Skew`, and Triangle with an x-scale; ImageSharp falls back to flat. Real envelope rendering would need per-glyph affine transforms (draw each character through `canvas.Save(transform)` / `Restore`), bigger than the single-curve cases above.
+`textSlantUp` / `textSlantDown` route through a straight diagonal `LineTo` path with slope ±H/W. Path-text rendering rotates each glyph to match the line angle, so letters lean at the slant angle (Word keeps glyphs upright on a slanted baseline — close approximation, not pixel-identical, but visually distinct from flat).
+
+### Fade and Triangle use per-glyph rendering
+
+`textFadeRight` / `textFadeLeft` / `textTriangle` are *envelope warps* — each glyph is vertically scaled relative to its position along the text. Implemented by drawing one `DrawText` per character with a `Scale(1, sy)` transform anchored at the baseline, so glyph bottoms align and tops shrink toward the baseline. Per-glyph rendering is slower than a single DrawText so the path-based warps are tried first.
+
+Scale curves:
+- FadeRight: `1.0 → 0.35` (full at left, reduced at right)
+- FadeLeft: `0.35 → 1.0`
+- Triangle: peaks at 1.0 mid-text, drops to 0.35 at edges (diamond envelope)
+
+### Still unhandled
+
+`textInflate` / `textDeflate` / `textCan*` aren't in the parser enum. They're top+bottom envelope warps (per-glyph height *and* baseline shift) — would need both a top and bottom curve interpolated per glyph. Not exercised by any input docx in the test corpus.
