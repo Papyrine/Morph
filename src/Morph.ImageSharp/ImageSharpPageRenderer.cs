@@ -1106,7 +1106,9 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             wordArt.HorizontalPositionPoints,
             wordArt.VerticalPositionPoints,
             wordArt.WidthPoints,
-            wordArt.HeightPoints);
+            wordArt.HeightPoints,
+            wordArt.HorizontalPositionPercent,
+            wordArt.VerticalPositionPercent);
         var pixelX = bounds.PixelX;
         var pixelY = bounds.PixelY;
         var width = bounds.PixelWidth;
@@ -1808,7 +1810,9 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             shape.HorizontalPositionPoints,
             shape.VerticalPositionPoints,
             width,
-            height);
+            height,
+            shape.HorizontalPositionPercent,
+            shape.VerticalPositionPercent);
         var pixelX = bounds.PixelX;
         var pixelY = bounds.PixelY;
         var pixelWidth = bounds.PixelWidth;
@@ -1976,7 +1980,9 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             image.HorizontalPositionPoints,
             image.VerticalPositionPoints,
             width,
-            height);
+            height,
+            image.HorizontalPositionPercent,
+            image.VerticalPositionPercent);
 
         DrawBlockImage(data, bounds.PixelX, bounds.PixelY, bounds.PixelWidth, bounds.PixelHeight, (float) image.RotationDegrees, image.Crop);
     }
@@ -1995,7 +2001,9 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             textBox.HorizontalPositionPoints,
             textBox.VerticalPositionPoints,
             textBox.WidthPoints,
-            textBox.HeightPoints);
+            textBox.HeightPoints,
+            textBox.HorizontalPositionPercent,
+            textBox.VerticalPositionPercent);
         var x = bounds.X;
         var y = bounds.Y;
         var pixelX = bounds.PixelX;

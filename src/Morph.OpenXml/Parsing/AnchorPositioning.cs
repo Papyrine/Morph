@@ -12,4 +12,17 @@ internal readonly struct AnchorPositioning
     public SizeRelativeFrom WidthRelativeFrom { get; init; }
     public double? HeightPercent { get; init; }
     public SizeRelativeFrom HeightRelativeFrom { get; init; }
+
+    /// <summary>
+    /// Horizontal position as a fraction (0..1) of the anchor's reference frame, parsed from
+    /// <c>wp14:pctPosHOffset</c>. Null when no percentage positioning is present.
+    /// When set, the renderer overrides <see cref="HorizontalPositionPoints"/>.
+    /// </summary>
+    public double? HorizontalPositionPercent { get; init; }
+
+    /// <summary>
+    /// Vertical position as a fraction (0..1) of the anchor's reference frame, parsed from
+    /// <c>wp14:pctPosVOffset</c>. Null when no percentage positioning is present.
+    /// </summary>
+    public double? VerticalPositionPercent { get; init; }
 }

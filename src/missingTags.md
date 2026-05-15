@@ -71,11 +71,7 @@ If a real document surfaces that needs VML rendering, the contained shape can be
 
 ### Floating drawing extensions
 
-| Tag | Notes |
-|-----|-------|
-| `wp14:pctPosHOffset` / `wp14:pctPosVOffset` | Percentage position offsets — only sizing is implemented; positioning is still EMU-only. |
-
-Percentage *sizing* (`wp14:sizeRelH`/`sizeRelV` + `wp14:pctWidth`/`pctHeight`) is now consumed — see `docs/word-features.md` "Percentage-Sized Floating Drawings" for status.
+Percentage *sizing* (`wp14:sizeRelH`/`sizeRelV` + `wp14:pctWidth`/`pctHeight`) and *positioning* (`wp14:pctPosHOffset` / `wp14:pctPosVOffset` inside `wp:positionH` / `wp:positionV`, including the common `mc:AlternateContent` Choice/Fallback wrapping) are both consumed — see `docs/word-features.md` "Percentage-Sized & Percentage-Positioned Floating Drawings" for status.
 
 ### Charts (entire family missing)
 

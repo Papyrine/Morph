@@ -2,17 +2,33 @@
 
 ### Inflate / Deflate / CanUp / CanDown — top+bottom envelope warps
 
-These four warps are *envelope* warps where the top edge and bottom edge of the rendered text follow independent curves. Each glyph is scaled non-uniformly to fit between them. Implemented in both backends as per-glyph `Save → Scale → DrawText → Restore` with:
+Per-glyph **path-level** distortion: each glyph's outline is extracted, every point on the outline is remapped so the glyph's top edge follows the envelope's top curve and the bottom edge follows the bottom curve. Each glyph ends up as a true non-affine trapezoid (or pillow / pinch shape), matching what Word does. The earlier affine-per-glyph version only varied glyph height while keeping each glyph rectangular — close enough to read but visibly wrong.
 
-- **Box-fill scaling** — unlike Fade / Triangle (which keep the natural font size and just modulate Y), the envelope warps stretch each glyph horizontally to fill the bbox width and vertically so the *peak* glyph fills the bbox height. `baseScaleY = bboxH / (peakScale × glyphH)` keeps the most-stretched glyph inside the bbox.
-- **Per-glyph scale curve** — `scaleY(t) = 1 + amplitude·sin(πt)` for Inflate / Can (peak in the middle), `1 - amplitude·sin(πt)` for Deflate (pinch in the middle). Amplitudes 0.5 / 0.45 chosen to give a visible bulge without exceeding the bbox at the centre.
-- **Anchor varies by warp** — Inflate / Deflate scale around the bbox vertical centre (both edges move symmetrically). CanUp scales around the baseline (bottom stays flat, top arches up). CanDown scales around the bbox top (top stays flat, bottom arches down).
+**Algorithm** (`TryRenderWordArtPathWarp` in both backends):
 
-This is an affine per-glyph approximation — Word actually distorts each glyph's path between two non-parallel curves, so individual glyphs in Word have slightly tapered sides where mine stay rectangular. The shape envelope and overall layout match; per-glyph trapezoid distortion would need glyph-path tessellation, much bigger than the linear-scale approach.
+1. Render the text outline once at natural size — `TextBuilder.GeneratePaths` (ImageSharp) / `SKPaint.GetTextPath` (Skia). Path is in text-local coords with X spanning `[0, totalWidth]`.
+2. Take the path's actual bounds (`pathsBounds.Top` / `pathsBounds.Height`). This is the *visible* glyph extent, tighter than the font's metric box, and is what the envelope curve should map onto.
+3. Walk every point. For each `(x, y)`:
+   - `t = x / totalWidth` — normalised position along the word
+   - `(top_y, bot_y) = EnvelopeAt(t)` — envelope curves at this column
+   - `normY = (y - bounds.Top) / bounds.Height` — relative position within the glyph row
+   - New point: `(x_box + t·width_box, top_y + normY·(bot_y - top_y))`
+4. Build the warped path and fill it.
 
-Single-character labels use `t = 0.5` for the box-filling warps so the centre amplitude still applies (a one-letter Inflate would otherwise compute `t=0` → no warp).
+ImageSharp uses `IPath.Flatten()` to get linear segments; Skia uses `SKPathMeasure` to walk each subpath as a polyline (~2-pixel sample interval).
 
-See `ImageSharpPageRenderer.TryRenderWordArtEnvelope` and `SkiaPageRenderer.TryRenderWordArtEnvelope`.
+**Envelope curves** (`EnvelopeAt`): edge text height is `minRatio` of the bbox (0.55) so glyphs at the ends of the word stay readable — without the floor, `sin(πt)·height` collapses to 0 at the edges.
+
+| Warp     | Top curve                | Bottom curve              | Centred on   |
+|----------|--------------------------|---------------------------|--------------|
+| Inflate  | bows up (peaks above)    | bows down (peaks below)   | bbox centre  |
+| Deflate  | dips down (peaks below)  | rises up (peaks above)    | bbox centre  |
+| CanUp    | arches up                | flat at bbox bottom       | bbox bottom  |
+| CanDown  | flat at bbox top         | arches down               | bbox top     |
+
+The legacy affine `TryRenderWordArtEnvelope` is still the fallback for Fade / Triangle (single-axis warps that don't need path distortion), and tries last in case the path-warp short-circuits.
+
+See `ImageSharpPageRenderer.TryRenderWordArtPathWarp` and `SkiaPageRenderer.TryRenderWordArtPathWarp`.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |

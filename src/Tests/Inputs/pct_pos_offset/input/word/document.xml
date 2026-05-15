@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" mc:Ignorable="w14 wp14">
+  <w:body>
+    <w:p>
+      <w:r>
+        <w:rPr><w:noProof /></w:rPr>
+        <mc:AlternateContent>
+          <mc:Choice Requires="wps">
+            <w:drawing>
+              <wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="251658240" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">
+                <wp:simplePos x="0" y="0" />
+                <wp:positionH relativeFrom="page">
+                  <wp14:pctPosHOffset>10000</wp14:pctPosHOffset>
+                </wp:positionH>
+                <wp:positionV relativeFrom="page">
+                  <wp14:pctPosVOffset>10000</wp14:pctPosVOffset>
+                </wp:positionV>
+                <wp:extent cx="1270000" cy="1270000" />
+                <wp:effectExtent l="0" t="0" r="0" b="0" />
+                <wp:wrapNone />
+                <wp:docPr id="1" name="Bare-wp14 red square at 10%/10%" />
+                <wp:cNvGraphicFramePr />
+                <a:graphic>
+                  <a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">
+                    <wps:wsp>
+                      <wps:cNvSpPr />
+                      <wps:spPr>
+                        <a:xfrm><a:off x="0" y="0" /><a:ext cx="1270000" cy="1270000" /></a:xfrm>
+                        <a:prstGeom prst="rect"><a:avLst /></a:prstGeom>
+                        <a:solidFill><a:srgbClr val="FF0000" /></a:solidFill>
+                        <a:ln><a:noFill /></a:ln>
+                      </wps:spPr>
+                      <wps:bodyPr />
+                    </wps:wsp>
+                  </a:graphicData>
+                </a:graphic>
+              </wp:anchor>
+            </w:drawing>
+          </mc:Choice>
+        </mc:AlternateContent>
+      </w:r>
+      <w:r>
+        <w:rPr><w:noProof /></w:rPr>
+        <mc:AlternateContent>
+          <mc:Choice Requires="wps">
+            <w:drawing>
+              <wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="251659264" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">
+                <wp:simplePos x="0" y="0" />
+                <mc:AlternateContent>
+                  <mc:Choice Requires="wp14">
+                    <wp:positionH relativeFrom="page">
+                      <wp14:pctPosHOffset>50000</wp14:pctPosHOffset>
+                    </wp:positionH>
+                  </mc:Choice>
+                  <mc:Fallback>
+                    <wp:positionH relativeFrom="page"><wp:posOffset>3886200</wp:posOffset></wp:positionH>
+                  </mc:Fallback>
+                </mc:AlternateContent>
+                <mc:AlternateContent>
+                  <mc:Choice Requires="wp14">
+                    <wp:positionV relativeFrom="page">
+                      <wp14:pctPosVOffset>50000</wp14:pctPosVOffset>
+                    </wp:positionV>
+                  </mc:Choice>
+                  <mc:Fallback>
+                    <wp:positionV relativeFrom="page"><wp:posOffset>5029200</wp:posOffset></wp:positionV>
+                  </mc:Fallback>
+                </mc:AlternateContent>
+                <wp:extent cx="1270000" cy="1270000" />
+                <wp:effectExtent l="0" t="0" r="0" b="0" />
+                <wp:wrapNone />
+                <wp:docPr id="2" name="AlternateContent-wrapped blue square centred at 50%/50%" />
+                <wp:cNvGraphicFramePr />
+                <a:graphic>
+                  <a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">
+                    <wps:wsp>
+                      <wps:cNvSpPr />
+                      <wps:spPr>
+                        <a:xfrm><a:off x="0" y="0" /><a:ext cx="1270000" cy="1270000" /></a:xfrm>
+                        <a:prstGeom prst="rect"><a:avLst /></a:prstGeom>
+                        <a:solidFill><a:srgbClr val="0000FF" /></a:solidFill>
+                        <a:ln><a:noFill /></a:ln>
+                      </wps:spPr>
+                      <wps:bodyPr />
+                    </wps:wsp>
+                  </a:graphicData>
+                </a:graphic>
+              </wp:anchor>
+            </w:drawing>
+          </mc:Choice>
+        </mc:AlternateContent>
+      </w:r>
+      <w:r><w:t>Percentage-positioned shapes: red at 10% / 10%, blue at 50% / 50%.</w:t></w:r>
+    </w:p>
+    <w:sectPr>
+      <w:pgSz w:w="12240" w:h="15840" w:orient="portrait" />
+      <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0" />
+    </w:sectPr>
+  </w:body>
+</w:document>

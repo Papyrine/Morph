@@ -100,64 +100,34 @@ static class OpenXmlExtensions
     {
         var hPosPoints = offsetX;
         var hAnchor = HorizontalAnchor.Column;
+        double? hPctOffset = null;
 
-        var posH = anchor.GetFirstChild<DW.HorizontalPosition>();
+        var posH = FindPositionElement(anchor, "positionH");
         if (posH != null)
         {
-            if (posH.RelativeFrom?.HasValue == true)
+            hAnchor = ReadHorizontalAnchor(posH);
+            var (emuOffset, pctOffset) = ReadPositionOffset(posH, "pctPosHOffset");
+            if (emuOffset.HasValue)
             {
-                var relFrom = posH.RelativeFrom.Value;
-                if (relFrom == DW.HorizontalRelativePositionValues.Page)
-                {
-                    hAnchor = HorizontalAnchor.Page;
-                }
-                else if (relFrom == DW.HorizontalRelativePositionValues.Margin)
-                {
-                    hAnchor = HorizontalAnchor.Margin;
-                }
-                else if (relFrom == DW.HorizontalRelativePositionValues.Column)
-                {
-                    hAnchor = HorizontalAnchor.Column;
-                }
+                hPosPoints += emuOffset.Value.EmuToPoints();
             }
-
-            var posOffset = posH.GetFirstChild<DW.PositionOffset>();
-            if (posOffset?.Text != null &&
-                long.TryParse(posOffset.Text, out var hOffsetEmu))
-            {
-                hPosPoints += hOffsetEmu.EmuToPoints();
-            }
+            hPctOffset = pctOffset;
         }
 
         var vPosPoints = offsetY;
         var vAnchor = VerticalAnchor.Paragraph;
+        double? vPctOffset = null;
 
-        var posV = anchor.GetFirstChild<DW.VerticalPosition>();
+        var posV = FindPositionElement(anchor, "positionV");
         if (posV != null)
         {
-            if (posV.RelativeFrom?.HasValue == true)
+            vAnchor = ReadVerticalAnchor(posV);
+            var (emuOffset, pctOffset) = ReadPositionOffset(posV, "pctPosVOffset");
+            if (emuOffset.HasValue)
             {
-                var relFrom = posV.RelativeFrom.Value;
-                if (relFrom == DW.VerticalRelativePositionValues.Page)
-                {
-                    vAnchor = VerticalAnchor.Page;
-                }
-                else if (relFrom == DW.VerticalRelativePositionValues.Margin)
-                {
-                    vAnchor = VerticalAnchor.Margin;
-                }
-                else if (relFrom == DW.VerticalRelativePositionValues.Paragraph)
-                {
-                    vAnchor = VerticalAnchor.Paragraph;
-                }
+                vPosPoints += emuOffset.Value.EmuToPoints();
             }
-
-            var posOffset = posV.GetFirstChild<DW.PositionOffset>();
-            if (posOffset?.Text != null &&
-                long.TryParse(posOffset.Text, out var vOffsetEmu))
-            {
-                vPosPoints += vOffsetEmu.EmuToPoints();
-            }
+            vPctOffset = pctOffset;
         }
 
         // wp14:sizeRelH / wp14:sizeRelV percentage sizing (Word 2010+).
@@ -189,8 +159,137 @@ static class OpenXmlExtensions
             WidthPercent = widthPct,
             WidthRelativeFrom = widthRel,
             HeightPercent = heightPct,
-            HeightRelativeFrom = heightRel
+            HeightRelativeFrom = heightRel,
+            HorizontalPositionPercent = hPctOffset,
+            VerticalPositionPercent = vPctOffset
         };
+    }
+
+    /// <summary>
+    /// Finds the <c>wp:positionH</c> or <c>wp:positionV</c> child of an anchor, descending into
+    /// <c>mc:AlternateContent</c> when present. Prefers the <c>mc:Choice</c> branch when its
+    /// <c>Requires</c> namespace is recognised (currently <c>wp14</c>) so that
+    /// <c>wp14:pctPosHOffset</c> / <c>wp14:pctPosVOffset</c> values are picked up; otherwise
+    /// falls back to <c>mc:Fallback</c>.
+    /// </summary>
+    static OpenXmlElement? FindPositionElement(DW.Anchor anchor, string localName)
+    {
+        foreach (var child in anchor.ChildElements)
+        {
+            if (child.LocalName == localName)
+            {
+                return child;
+            }
+        }
+
+        foreach (var child in anchor.ChildElements)
+        {
+            if (child.LocalName != "AlternateContent")
+            {
+                continue;
+            }
+
+            OpenXmlElement? choice = null;
+            OpenXmlElement? fallback = null;
+            foreach (var branch in child.ChildElements)
+            {
+                if (branch.LocalName == "Choice" && IsChoiceUnderstood(branch))
+                {
+                    choice = branch;
+                }
+                else if (branch.LocalName == "Fallback")
+                {
+                    fallback = branch;
+                }
+            }
+
+            var selected = choice ?? fallback;
+            if (selected == null)
+            {
+                continue;
+            }
+
+            foreach (var inner in selected.ChildElements)
+            {
+                if (inner.LocalName == localName)
+                {
+                    return inner;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    static bool IsChoiceUnderstood(OpenXmlElement choice)
+    {
+        var requires = choice.AttributeValue("Requires");
+        if (requires == null)
+        {
+            return true;
+        }
+        // Recognised extension namespaces — wp14 brings pctPosH/VOffset, w14/w15 add
+        // typography features Morph already consumes elsewhere in the tree.
+        foreach (var token in requires.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (token is not ("wp14" or "w14" or "w15" or "wps" or "wpg"))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    static HorizontalAnchor ReadHorizontalAnchor(OpenXmlElement positionH) =>
+        positionH.AttributeValue("relativeFrom") switch
+        {
+            "page" => HorizontalAnchor.Page,
+            "margin" or "leftMargin" or "rightMargin" or "insideMargin" or "outsideMargin" => HorizontalAnchor.Margin,
+            "character" => HorizontalAnchor.Character,
+            _ => HorizontalAnchor.Column
+        };
+
+    static VerticalAnchor ReadVerticalAnchor(OpenXmlElement positionV) =>
+        positionV.AttributeValue("relativeFrom") switch
+        {
+            "page" => VerticalAnchor.Page,
+            "margin" or "topMargin" or "bottomMargin" or "insideMargin" or "outsideMargin" => VerticalAnchor.Margin,
+            "line" => VerticalAnchor.Line,
+            _ => VerticalAnchor.Paragraph
+        };
+
+    /// <summary>
+    /// Reads either a <c>wp:posOffset</c> (EMU) or a <c>wp14:pctPosHOffset</c> /
+    /// <c>wp14:pctPosVOffset</c> (×1000 percent) from a <c>wp:positionH</c> / <c>wp:positionV</c>.
+    /// The two are mutually exclusive in the schema; the percent overrides if both somehow appear.
+    /// </summary>
+    static (long? emuOffset, double? pctOffset) ReadPositionOffset(OpenXmlElement positionElement, string pctLocalName)
+    {
+        long? emuOffset = null;
+        double? pctOffset = null;
+        foreach (var child in positionElement.ChildElements)
+        {
+            if (child.LocalName == "posOffset")
+            {
+                if (long.TryParse(child.InnerText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var emu))
+                {
+                    emuOffset = emu;
+                }
+            }
+            else if (child.LocalName == pctLocalName)
+            {
+                if (long.TryParse(child.InnerText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var thousandths))
+                {
+                    // Stored ×1000 of percent: 50000 = 50% = 0.5. Word emits 0 as a placeholder
+                    // alongside an explicit posOffset — treat zero as "no percentage in effect".
+                    if (thousandths != 0)
+                    {
+                        pctOffset = thousandths / 100_000.0;
+                    }
+                }
+            }
+        }
+        return (emuOffset, pctOffset);
     }
 
     static SizeRelativeFrom ParseSizeRelativeFrom(OpenXmlElement sizeRel) =>
