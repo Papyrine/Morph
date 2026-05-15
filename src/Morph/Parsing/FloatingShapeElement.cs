@@ -82,6 +82,18 @@ sealed class FloatingShapeElement : DocumentElement
 
     /// <summary>Reference area for <see cref="HeightPercent"/>.</summary>
     public SizeRelativeFrom HeightRelativeFrom { get; init; } = SizeRelativeFrom.Margin;
+
+    /// <summary>
+    /// Horizontal position as a fraction (0..1) of the anchor reference frame, parsed from
+    /// <c>wp14:pctPosHOffset</c>. When set, overrides <see cref="HorizontalPositionPoints"/>.
+    /// </summary>
+    public double? HorizontalPositionPercent { get; init; }
+
+    /// <summary>
+    /// Vertical position as a fraction (0..1) of the anchor reference frame, parsed from
+    /// <c>wp14:pctPosVOffset</c>. When set, overrides <see cref="VerticalPositionPoints"/>.
+    /// </summary>
+    public double? VerticalPositionPercent { get; init; }
 }
 
 /// <summary>Preset geometry kinds we render. Anything outside this enum falls back to Rect.</summary>

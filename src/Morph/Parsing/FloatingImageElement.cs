@@ -60,4 +60,18 @@ sealed class FloatingImageElement : DocumentElement
 
     /// <summary>Reference area for <see cref="HeightPercent"/>.</summary>
     public SizeRelativeFrom HeightRelativeFrom { get; init; } = SizeRelativeFrom.Margin;
+
+    /// <summary>
+    /// Horizontal position as a fraction (0..1) of the anchor reference frame, parsed from
+    /// <c>wp14:pctPosHOffset</c>. When set, overrides <see cref="HorizontalPositionPoints"/>;
+    /// the renderer multiplies it by the page or content-area width based on
+    /// <see cref="HorizontalAnchor"/>.
+    /// </summary>
+    public double? HorizontalPositionPercent { get; init; }
+
+    /// <summary>
+    /// Vertical position as a fraction (0..1) of the anchor reference frame, parsed from
+    /// <c>wp14:pctPosVOffset</c>. When set, overrides <see cref="VerticalPositionPoints"/>.
+    /// </summary>
+    public double? VerticalPositionPercent { get; init; }
 }

@@ -806,7 +806,9 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             wordArt.HorizontalPositionPoints,
             wordArt.VerticalPositionPoints,
             wordArt.WidthPoints,
-            wordArt.HeightPoints);
+            wordArt.HeightPoints,
+            wordArt.HorizontalPositionPercent,
+            wordArt.VerticalPositionPercent);
         var pixelX = bounds.PixelX;
         var pixelY = bounds.PixelY;
         var width = bounds.PixelWidth;
@@ -2251,7 +2253,9 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             shape.HorizontalPositionPoints,
             shape.VerticalPositionPoints,
             width,
-            height);
+            height,
+            shape.HorizontalPositionPercent,
+            shape.VerticalPositionPercent);
         var pixelX = bounds.PixelX;
         var pixelY = bounds.PixelY;
         var pixelWidth = bounds.PixelWidth;
@@ -2431,7 +2435,9 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             image.HorizontalPositionPoints,
             image.VerticalPositionPoints,
             width,
-            height);
+            height,
+            image.HorizontalPositionPercent,
+            image.VerticalPositionPercent);
 
         var destRect = new SKRect(bounds.PixelX, bounds.PixelY, bounds.PixelX + bounds.PixelWidth, bounds.PixelY + bounds.PixelHeight);
 
@@ -2453,7 +2459,9 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             textBox.HorizontalPositionPoints,
             textBox.VerticalPositionPoints,
             textBox.WidthPoints,
-            textBox.HeightPoints);
+            textBox.HeightPoints,
+            textBox.HorizontalPositionPercent,
+            textBox.VerticalPositionPercent);
         var x = bounds.X;
         var y = bounds.Y;
         var pixelX = bounds.PixelX;

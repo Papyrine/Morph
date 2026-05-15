@@ -5451,134 +5451,9 @@ sealed class DocumentParser(string defaultFont)
     /// <summary>
     /// Parses an anchored image with additional X/Y offset within a group.
     /// </summary>
-    /// <summary>
-    /// Reads <c>wp14:sizeRelH</c> / <c>wp14:sizeRelV</c> percentage sizing off a
-    /// <c>wp:anchor</c>. Returns null fractions when the percentage is missing or zero
-    /// (Word writes a <c>0</c> placeholder even when percentage sizing isn't in use).
-    /// Values are stored ×1000 in OOXML, e.g. 50000 = 50% = 0.5.
-    /// </summary>
-    static (double? widthPercent, SizeRelativeFrom widthRel, double? heightPercent, SizeRelativeFrom heightRel)
-        ReadAnchorPercentSize(DW.Anchor anchor)
-    {
-        double? widthPct = null;
-        var widthRel = SizeRelativeFrom.Margin;
-        double? heightPct = null;
-        var heightRel = SizeRelativeFrom.Margin;
-
-        // sizeRelH/sizeRelV live in the wp14 namespace and aren't typed by the SDK at this
-        // point — read them by local name to stay version-tolerant.
-        foreach (var child in anchor.ChildElements)
-        {
-            if (child.LocalName == "sizeRelH")
-            {
-                widthRel = ParseSizeRelativeFrom(child);
-                widthPct = ParsePercentChild(child, "pctWidth");
-            }
-            else if (child.LocalName == "sizeRelV")
-            {
-                heightRel = ParseSizeRelativeFrom(child);
-                heightPct = ParsePercentChild(child, "pctHeight");
-            }
-        }
-
-        return (widthPct, widthRel, heightPct, heightRel);
-    }
-
-    static SizeRelativeFrom ParseSizeRelativeFrom(OpenXmlElement sizeRel) =>
-        sizeRel.AttributeValue("relativeFrom") switch
-        {
-            "page" => SizeRelativeFrom.Page,
-            // margin / leftMargin / rightMargin / topMargin / bottomMargin / insideMargin / outsideMargin
-            // all collapse to the content area; mirror-margin layouts aren't yet honoured.
-            _ => SizeRelativeFrom.Margin
-        };
-
-    static double? ParsePercentChild(OpenXmlElement parent, string localName)
-    {
-        var pct = parent.ChildElements.FirstOrDefault(_ => _.LocalName == localName);
-        if (pct?.InnerText is not { } text || string.IsNullOrEmpty(text))
-        {
-            return null;
-        }
-
-        // Stored ×1000 of percent: 50000 = 50% = 0.5. A zero placeholder means "no
-        // percentage sizing applied" — treat as null so the renderer keeps the explicit extent.
-        if (!long.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var thousandths) || thousandths <= 0)
-        {
-            return null;
-        }
-
-        return thousandths / 100_000.0;
-    }
-
     static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null)
     {
-        // Parse horizontal position
-        var hPosPoints = offsetXPoints;
-        var hAnchor = HorizontalAnchor.Column;
-
-        var posH = anchor.GetFirstChild<DW.HorizontalPosition>();
-        if (posH != null)
-        {
-            if (posH.RelativeFrom?.HasValue == true)
-            {
-                var relFrom = posH.RelativeFrom.Value;
-                if (relFrom == DW.HorizontalRelativePositionValues.Page)
-                {
-                    hAnchor = HorizontalAnchor.Page;
-                }
-                else if (relFrom == DW.HorizontalRelativePositionValues.Margin)
-                {
-                    hAnchor = HorizontalAnchor.Margin;
-                }
-                else if (relFrom == DW.HorizontalRelativePositionValues.Column)
-                {
-                    hAnchor = HorizontalAnchor.Column;
-                }
-            }
-
-            var posOffset = posH.GetFirstChild<DW.PositionOffset>();
-            if (posOffset?.Text != null && long.TryParse(posOffset.Text, out var hOffsetEmu))
-            {
-                hPosPoints += hOffsetEmu / emusPerPoint;
-            }
-        }
-
-        // Parse vertical position
-        var vPosPoints = offsetYPoints;
-        var vAnchor = VerticalAnchor.Paragraph;
-
-        var posV = anchor.GetFirstChild<DW.VerticalPosition>();
-        if (posV != null)
-        {
-            if (posV.RelativeFrom?.HasValue == true)
-            {
-                var relFrom = posV.RelativeFrom.Value;
-                if (relFrom == DW.VerticalRelativePositionValues.Page)
-                {
-                    vAnchor = VerticalAnchor.Page;
-                }
-                else if (relFrom == DW.VerticalRelativePositionValues.Margin)
-                {
-                    vAnchor = VerticalAnchor.Margin;
-                }
-                else if (relFrom == DW.VerticalRelativePositionValues.Paragraph)
-                {
-                    vAnchor = VerticalAnchor.Paragraph;
-                }
-            }
-
-            var posOffset = posV.GetFirstChild<DW.PositionOffset>();
-            if (posOffset?.Text != null && long.TryParse(posOffset.Text, out var vOffsetEmu))
-            {
-                vPosPoints += vOffsetEmu / emusPerPoint;
-            }
-        }
-
-        // Check if behind text
-        var isBehindText = anchor.BehindDoc?.Value == true;
-
-        var (widthPct, widthRel, heightPct, heightRel) = ReadAnchorPercentSize(anchor);
+        var positioning = anchor.ParsePositioning(offsetXPoints, offsetYPoints);
 
         return new()
         {
@@ -5586,17 +5461,19 @@ sealed class DocumentParser(string defaultFont)
             WidthPoints = widthPoints,
             HeightPoints = heightPoints,
             ContentType = contentType,
-            HorizontalPositionPoints = hPosPoints,
-            VerticalPositionPoints = vPosPoints,
-            HorizontalAnchor = hAnchor,
-            VerticalAnchor = vAnchor,
-            BehindText = isBehindText,
+            HorizontalPositionPoints = positioning.HorizontalPositionPoints,
+            VerticalPositionPoints = positioning.VerticalPositionPoints,
+            HorizontalAnchor = positioning.HorizontalAnchor,
+            VerticalAnchor = positioning.VerticalAnchor,
+            BehindText = positioning.BehindText,
             RotationDegrees = rotationDegrees,
             Crop = crop,
-            WidthPercent = widthPct,
-            WidthRelativeFrom = widthRel,
-            HeightPercent = heightPct,
-            HeightRelativeFrom = heightRel,
+            WidthPercent = positioning.WidthPercent,
+            WidthRelativeFrom = positioning.WidthRelativeFrom,
+            HeightPercent = positioning.HeightPercent,
+            HeightRelativeFrom = positioning.HeightRelativeFrom,
+            HorizontalPositionPercent = positioning.HorizontalPositionPercent,
+            VerticalPositionPercent = positioning.VerticalPositionPercent,
             RasterFallbackData = rasterFallbackData,
             RasterFallbackContentType = rasterFallbackContentType
         };
@@ -5698,72 +5575,12 @@ sealed class DocumentParser(string defaultFont)
         }
 
         // Get position and wrap info from anchor
-        double hPosPoints = 0;
-        double vPosPoints = 0;
-        var hAnchor = HorizontalAnchor.Column;
-        var vAnchor = VerticalAnchor.Paragraph;
+        var positioning = anchor?.ParsePositioning() ?? default;
         var wrapType = WrapType.None;
-        var behindText = false;
         string? bgColor = null;
 
         if (anchor != null)
         {
-            // Parse horizontal position
-            var posH = anchor.GetFirstChild<DW.HorizontalPosition>();
-            if (posH != null)
-            {
-                if (posH.RelativeFrom?.HasValue == true)
-                {
-                    var relFrom = posH.RelativeFrom.Value;
-                    if (relFrom == DW.HorizontalRelativePositionValues.Page)
-                    {
-                        hAnchor = HorizontalAnchor.Page;
-                    }
-                    else if (relFrom == DW.HorizontalRelativePositionValues.Margin)
-                    {
-                        hAnchor = HorizontalAnchor.Margin;
-                    }
-                    else if (relFrom == DW.HorizontalRelativePositionValues.Column)
-                    {
-                        hAnchor = HorizontalAnchor.Column;
-                    }
-                }
-
-                var posOffset = posH.GetFirstChild<DW.PositionOffset>();
-                if (posOffset?.Text != null && long.TryParse(posOffset.Text, out var hOffsetEmu))
-                {
-                    hPosPoints = hOffsetEmu / emusPerPoint;
-                }
-            }
-
-            // Parse vertical position
-            var posV = anchor.GetFirstChild<DW.VerticalPosition>();
-            if (posV != null)
-            {
-                if (posV.RelativeFrom?.HasValue == true)
-                {
-                    var relFrom = posV.RelativeFrom.Value;
-                    if (relFrom == DW.VerticalRelativePositionValues.Page)
-                    {
-                        vAnchor = VerticalAnchor.Page;
-                    }
-                    else if (relFrom == DW.VerticalRelativePositionValues.Margin)
-                    {
-                        vAnchor = VerticalAnchor.Margin;
-                    }
-                    else if (relFrom == DW.VerticalRelativePositionValues.Paragraph)
-                    {
-                        vAnchor = VerticalAnchor.Paragraph;
-                    }
-                }
-
-                var posOffset = posV.GetFirstChild<DW.PositionOffset>();
-                if (posOffset?.Text != null && long.TryParse(posOffset.Text, out var vOffsetEmu))
-                {
-                    vPosPoints = vOffsetEmu / emusPerPoint;
-                }
-            }
-
             // Parse wrap type
             if (anchor.GetFirstChild<DW.WrapNone>() != null)
             {
@@ -5781,8 +5598,6 @@ sealed class DocumentParser(string defaultFont)
             {
                 wrapType = WrapType.TopAndBottom;
             }
-
-            behindText = anchor.BehindDoc?.Value ?? false;
         }
 
         // Parse background color from shape properties
@@ -5805,12 +5620,14 @@ sealed class DocumentParser(string defaultFont)
             Content = content,
             WidthPoints = widthPoints,
             HeightPoints = heightPoints,
-            HorizontalPositionPoints = hPosPoints,
-            VerticalPositionPoints = vPosPoints,
-            HorizontalAnchor = hAnchor,
-            VerticalAnchor = vAnchor,
+            HorizontalPositionPoints = positioning.HorizontalPositionPoints,
+            VerticalPositionPoints = positioning.VerticalPositionPoints,
+            HorizontalAnchor = positioning.HorizontalAnchor,
+            VerticalAnchor = positioning.VerticalAnchor,
+            HorizontalPositionPercent = positioning.HorizontalPositionPercent,
+            VerticalPositionPercent = positioning.VerticalPositionPercent,
             WrapType = wrapType,
-            BehindText = behindText,
+            BehindText = positioning.BehindText,
             BackgroundColorHex = bgColor
         };
     }
@@ -6050,6 +5867,8 @@ sealed class DocumentParser(string defaultFont)
             VerticalPositionPoints = yPt,
             HorizontalAnchor = positioning.HorizontalAnchor,
             VerticalAnchor = positioning.VerticalAnchor,
+            HorizontalPositionPercent = positioning.HorizontalPositionPercent,
+            VerticalPositionPercent = positioning.VerticalPositionPercent,
             WrapType = WrapType.None,
             BehindText = behindText,
             BackgroundColorHex = bgColor,
@@ -6246,6 +6065,8 @@ sealed class DocumentParser(string defaultFont)
             VerticalPositionPoints = yPt,
             HorizontalAnchor = positioning.HorizontalAnchor,
             VerticalAnchor = positioning.VerticalAnchor,
+            HorizontalPositionPercent = positioning.HorizontalPositionPercent,
+            VerticalPositionPercent = positioning.VerticalPositionPercent,
             BehindText = behindText,
             FillColorHex = fillColorHex,
             FillAlpha = fillAlpha,
@@ -6312,6 +6133,8 @@ sealed class DocumentParser(string defaultFont)
             VerticalPositionPoints = positioning.VerticalPositionPoints + finalY.EmuToPoints(),
             HorizontalAnchor = positioning.HorizontalAnchor,
             VerticalAnchor = positioning.VerticalAnchor,
+            HorizontalPositionPercent = positioning.HorizontalPositionPercent,
+            VerticalPositionPercent = positioning.VerticalPositionPercent,
             BehindText = behindText,
             LineColorHex = lineColor,
             LineWidthPoints = lineWidth
@@ -6531,6 +6354,8 @@ sealed class DocumentParser(string defaultFont)
             VerticalPositionPoints = yPt,
             HorizontalAnchor = positioning.HorizontalAnchor,
             VerticalAnchor = positioning.VerticalAnchor,
+            HorizontalPositionPercent = positioning.HorizontalPositionPercent,
+            VerticalPositionPercent = positioning.VerticalPositionPercent,
             WrapType = WrapType.None,
             BehindText = behindText,
             BackgroundColorHex = bgColor,
@@ -6752,80 +6577,20 @@ sealed class DocumentParser(string defaultFont)
         // For anchored WordArt, return a floating element with position info
         if (isAnchored && anchor != null)
         {
-            // Parse horizontal position
-            double hPosPoints = 0;
-            var hAnchor = HorizontalAnchor.Column;
-
-            var posH = anchor.GetFirstChild<DW.HorizontalPosition>();
-            if (posH != null)
-            {
-                if (posH.RelativeFrom?.HasValue == true)
-                {
-                    var relFrom = posH.RelativeFrom.Value;
-                    if (relFrom == DW.HorizontalRelativePositionValues.Page)
-                    {
-                        hAnchor = HorizontalAnchor.Page;
-                    }
-                    else if (relFrom == DW.HorizontalRelativePositionValues.Margin)
-                    {
-                        hAnchor = HorizontalAnchor.Margin;
-                    }
-                    else if (relFrom == DW.HorizontalRelativePositionValues.Character)
-                    {
-                        hAnchor = HorizontalAnchor.Character;
-                    }
-                }
-
-                var posOffset = posH.GetFirstChild<DW.PositionOffset>();
-                if (posOffset?.Text != null && long.TryParse(posOffset.Text, out var hOffsetEmu))
-                {
-                    hPosPoints = hOffsetEmu / emusPerPoint;
-                }
-            }
-
-            // Parse vertical position
-            double vPosPoints = 0;
-            var vAnchor = VerticalAnchor.Paragraph;
-
-            var posV = anchor.GetFirstChild<DW.VerticalPosition>();
-            if (posV != null)
-            {
-                if (posV.RelativeFrom?.HasValue == true)
-                {
-                    var relFrom = posV.RelativeFrom.Value;
-                    if (relFrom == DW.VerticalRelativePositionValues.Page)
-                    {
-                        vAnchor = VerticalAnchor.Page;
-                    }
-                    else if (relFrom == DW.VerticalRelativePositionValues.Margin)
-                    {
-                        vAnchor = VerticalAnchor.Margin;
-                    }
-                    else if (relFrom == DW.VerticalRelativePositionValues.Line)
-                    {
-                        vAnchor = VerticalAnchor.Line;
-                    }
-                }
-
-                var posOffset = posV.GetFirstChild<DW.PositionOffset>();
-                if (posOffset?.Text != null && long.TryParse(posOffset.Text, out var vOffsetEmu))
-                {
-                    vPosPoints = vOffsetEmu / emusPerPoint;
-                }
-            }
-
-            var isBehindText = anchor.BehindDoc?.Value == true;
+            var positioning = anchor.ParsePositioning();
 
             return new FloatingWordArtElement
             {
                 Text = wordArtText,
                 WidthPoints = widthPoints,
                 HeightPoints = heightPoints,
-                HorizontalPositionPoints = hPosPoints,
-                VerticalPositionPoints = vPosPoints,
-                HorizontalAnchor = hAnchor,
-                VerticalAnchor = vAnchor,
-                BehindText = isBehindText,
+                HorizontalPositionPoints = positioning.HorizontalPositionPoints,
+                VerticalPositionPoints = positioning.VerticalPositionPoints,
+                HorizontalAnchor = positioning.HorizontalAnchor,
+                VerticalAnchor = positioning.VerticalAnchor,
+                HorizontalPositionPercent = positioning.HorizontalPositionPercent,
+                VerticalPositionPercent = positioning.VerticalPositionPercent,
+                BehindText = positioning.BehindText,
                 FontFamily = fontFamily,
                 FontSizePoints = fontSize,
                 Bold = bold,
