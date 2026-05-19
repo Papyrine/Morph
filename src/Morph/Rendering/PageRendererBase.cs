@@ -812,14 +812,19 @@ abstract class PageRendererBase(RenderContextBase context)
         }
 
         var tableWidth = colWidths.Sum();
+        // w:tblInd shifts the table from the leading edge of the text column. It only applies
+        // to left-aligned tables — for centred/right alignment the indent collapses into the
+        // slack space, matching Word's behaviour.
+        var indent = (float) table.Properties.IndentPoints;
         var slack = context.ContentWidth - tableWidth;
         return table.Properties.Alignment switch
         {
             TextAlignment.Center => contentLeft + Math.Max(0, slack / 2),
             TextAlignment.Right => contentLeft + Math.Max(0, slack),
-            _ => contentLeft
+            _ => contentLeft + indent
         };
     }
+
 
     /// <summary>
     /// Renders all table rows at the current position (used when the table fits on one page).
