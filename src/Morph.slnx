@@ -1,0 +1,28 @@
+<Solution>
+  <Project Path="Morph/Morph.csproj" />
+  <Project Path="Morph.Html/Morph.Html.csproj" />
+  <Project Path="Morph.OpenXml/Morph.OpenXml.csproj" />
+  <Project Path="Morph.Skia/Morph.Skia.csproj" />
+  <Project Path="Morph.ImageSharp/Morph.ImageSharp.csproj" />
+  <Project Path="Morph.OpenXml.Skia/Morph.OpenXml.Skia.csproj" />
+  <Project Path="Morph.OpenXml.ImageSharp/Morph.OpenXml.ImageSharp.csproj" />
+  <Project Path="Morph.Html.Skia/Morph.Html.Skia.csproj" />
+  <Project Path="Morph.Html.ImageSharp/Morph.Html.ImageSharp.csproj" />
+  <Folder Name="/SolutionItems/">
+    <File Path="../.editorconfig" />
+    <File Path="../.gitattributes" />
+    <File Path="../docs/word-features.md" />
+    <File Path="../README.md" />
+    <File Path="appveyor.yml" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="mdsnippets.json" />
+    <File Path="missingTags.md" />
+  </Folder>
+  <Project Path="RenderHelper/RenderHelper.csproj">
+    <Build Solution="Release|*" Project="false" />
+  </Project>
+  <Project Path="Tests/Tests.csproj" />
+  <Project Path="StaticSettingTests/StaticSettingTests.csproj" />
+  <Project Path="Benchmarks/Benchmarks.csproj" />
+</Solution>
