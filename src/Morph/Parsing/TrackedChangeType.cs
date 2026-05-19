@@ -1,0 +1,5 @@
+enum TrackedChangeType
+{
+    Insertion,
+    Deletion
+}

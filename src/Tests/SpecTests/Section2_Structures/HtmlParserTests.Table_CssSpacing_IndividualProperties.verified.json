@@ -1,0 +1,103 @@
+﻿[
+  {
+    "Rows": [
+      {
+        "Cells": [
+          {
+            "Content": [
+              {
+                "Runs": [
+                  {
+                    "Text": "cell",
+                    "Properties": {
+                      "FontFamily": "Times New Roman",
+                      "FontSizePoints": 11.0,
+                      "Bold": false,
+                      "Italic": false,
+                      "Underline": false,
+                      "Strikethrough": false,
+                      "AllCaps": false,
+                      "SmallCaps": false,
+                      "Ligatures": "Standard",
+                      "IsRightToLeft": false,
+                      "HasReflection": false,
+                      "Hidden": false,
+                      "Emboss": false,
+                      "Imprint": false,
+                      "OutlineOnly": false
+                    },
+                    "IsTab": false
+                  }
+                ],
+                "Properties": {
+                  "LineSpacingMultiplier": 1.08,
+                  "ContextualSpacing": false,
+                  "SuppressLineNumbers": false,
+                  "SuppressAutoHyphens": false,
+                  "KeepLines": false,
+                  "KeepNext": false,
+                  "WidowControl": true,
+                  "PageBreakBefore": false,
+                  "BorderBetween": {
+                    "IsVisible": false,
+                    "WidthPoints": 0.5,
+                    "ColorHex": "000000"
+                  },
+                  "DefaultTabStopPoints": 36.0,
+                  "IsRightToLeft": false,
+                  "MirrorIndents": false
+                },
+                "IsAnchorOnlyMark": false
+              }
+            ],
+            "Properties": {
+              "Padding": {
+                "Top": 1.0,
+                "Right": 2.0,
+                "Bottom": 3.0,
+                "Left": 4.0,
+                "Horizontal": 6.0,
+                "Vertical": 4.0
+              },
+              "GridSpan": 1,
+              "HideMark": false,
+              "NoWrap": false
+            }
+          }
+        ],
+        "IsExactHeight": false,
+        "IsHeader": false
+      }
+    ],
+    "Properties": {
+      "IsFloating": false,
+      "DefaultBorders": {
+        "Top": {
+          "IsVisible": true,
+          "WidthPoints": 0.5,
+          "ColorHex": "000000"
+        },
+        "Right": {
+          "IsVisible": true,
+          "WidthPoints": 0.5,
+          "ColorHex": "000000"
+        },
+        "Bottom": {
+          "IsVisible": true,
+          "WidthPoints": 0.5,
+          "ColorHex": "000000"
+        },
+        "Left": {
+          "IsVisible": true,
+          "WidthPoints": 0.5,
+          "ColorHex": "000000"
+        },
+        "HasAnyBorder": true
+      },
+      "DefaultCellPadding": {},
+      "DefaultCellMargin": {},
+      "FillContainer": false,
+      "IsAutoFit": true
+    }
+  }
+]

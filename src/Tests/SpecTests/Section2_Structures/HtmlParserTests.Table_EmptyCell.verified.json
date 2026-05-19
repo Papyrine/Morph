@@ -1,0 +1,49 @@
+﻿[
+  {
+    "Rows": [
+      {
+        "Cells": [
+          {
+            "Properties": {
+              "GridSpan": 1,
+              "HideMark": false,
+              "NoWrap": false
+            }
+          }
+        ],
+        "IsExactHeight": false,
+        "IsHeader": false
+      }
+    ],
+    "Properties": {
+      "IsFloating": false,
+      "DefaultBorders": {
+        "Top": {
+          "IsVisible": true,
+          "WidthPoints": 0.5,
+          "ColorHex": "000000"
+        },
+        "Right": {
+          "IsVisible": true,
+          "WidthPoints": 0.5,
+          "ColorHex": "000000"
+        },
+        "Bottom": {
+          "IsVisible": true,
+          "WidthPoints": 0.5,
+          "ColorHex": "000000"
+        },
+        "Left": {
+          "IsVisible": true,
+          "WidthPoints": 0.5,
+          "ColorHex": "000000"
+        },
+        "HasAnyBorder": true
+      },
+      "DefaultCellPadding": {},
+      "DefaultCellMargin": {},
+      "FillContainer": false,
+      "IsAutoFit": true
+    }
+  }
+]

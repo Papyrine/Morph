@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Magick.NET-Q16-AnyCPU" />
+    <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
+    <PackageReference Include="ProjectFiles" />
+    <PackageReference Include="TUnit" />
+    <PackageReference Include="MarkdownSnippets.MsBuild" PrivateAssets="all" />
+    <PackageReference Include="Verify.DiffPlex" />
+    <PackageReference Include="Verify.ImageMagick" />
+    <PackageReference Include="Verify.TUnit" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <ProjectReference Include="..\Morph\Morph.csproj" />
+    <ProjectReference Include="..\Morph.Html\Morph.Html.csproj" />
+    <ProjectReference Include="..\Morph.OpenXml\Morph.OpenXml.csproj" />
+    <ProjectReference Include="..\Morph.Skia\Morph.Skia.csproj">
+      <Aliases>global,Skia</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\Morph.ImageSharp\Morph.ImageSharp.csproj">
+      <Aliases>global,ImageSharp</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\Morph.OpenXml.Skia\Morph.OpenXml.Skia.csproj">
+      <Aliases>global,Skia</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\Morph.OpenXml.ImageSharp\Morph.OpenXml.ImageSharp.csproj">
+      <Aliases>global,ImageSharp</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\Morph.Html.Skia\Morph.Html.Skia.csproj" />
+    <ProjectReference Include="..\Morph.Html.ImageSharp\Morph.Html.ImageSharp.csproj" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Win32" />
+    <PackageReference Include="SkiaSharp.NativeAssets.macOS" />
+    <None Update="sample.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
