@@ -754,7 +754,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         var pathOptions = new RichTextOptions(font)
         {
             Dpi = context.Dpi,
-            Origin = new Vector2(0, naturalAscent)
+            Origin = new(0, naturalAscent)
         };
         var glyphPaths = TextBuilder.GeneratePaths(text, pathOptions);
         var pathsBounds = glyphPaths.Bounds;
@@ -802,7 +802,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         var (top, bottom) = EnvelopeAt(t, transform, y, height);
         var normY = (point.Y - glyphsTop) / glyphsHeight;
         var newY = top + normY * (bottom - top);
-        return new PointF(newX, newY);
+        return new(newX, newY);
     }
 
     /// <summary>
@@ -967,14 +967,18 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             // For 1-character labels in a box-filling warp, t=0 collapses sin(πt)=0 (no
             // warp). Use 0.5 so a single glyph still gets the centre amplitude. For Fade /
             // Triangle a single glyph at the start (t=0) is intentional.
-            var t = charCount > 1 ? (float) i / (charCount - 1) : (fillsBox ? 0.5f : 0f);
+            var t = charCount > 1 ? (float) i / (charCount - 1) : fillsBox ? 0.5f : 0f;
             var sy = scaleY(t) * baseScaleY;
 
             // Scale anchored at (cursorX, anchorY): the X scale stretches each glyph
             // horizontally from its left edge so cursorX increments stay in stretched space;
             // the Y scale anchors at the warp anchor line so the chosen edge stays put.
             var matrix = Matrix3x2.CreateScale(new Vector2(sx, sy), new(cursorX, anchorY));
-            currentCanvas.Save(new DrawingOptions {Transform = new(matrix)});
+            currentCanvas.Save(
+                new()
+                {
+                    Transform = new(matrix)
+                });
 
             var charOpts = new RichTextOptions(font)
             {
