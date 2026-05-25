@@ -1203,7 +1203,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         var (top, bottom) = EnvelopeAt(t, transform, y, height);
         var normY = (point.Y - glyphsTop) / glyphsHeight;
         var newY = top + normY * (bottom - top);
-        return new SKPoint(newX, newY);
+        return new(newX, newY);
     }
 
     /// <summary>
@@ -1363,7 +1363,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             // For 1-character labels in a box-filling warp, t=0 collapses sin(πt)=0 (no
             // warp). Use 0.5 so a single glyph still gets the centre amplitude. For Fade /
             // Triangle a single glyph at the start (t=0) is intentional.
-            var t = charCount > 1 ? (float) i / (charCount - 1) : (fillsBox ? 0.5f : 0f);
+            var t = charCount > 1 ? (float) i / (charCount - 1) : fillsBox ? 0.5f : 0f;
             var sy = scaleY(t) * baseScaleY;
 
             currentCanvas.Save();

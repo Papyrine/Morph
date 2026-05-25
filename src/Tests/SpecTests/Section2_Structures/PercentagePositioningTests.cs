@@ -1,4 +1,3 @@
-using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Drawing.Wordprocessing;
 
 /// <summary>
@@ -12,15 +11,16 @@ using DocumentFormat.OpenXml.Drawing.Wordprocessing;
 /// </summary>
 public class PercentagePositioningTests
 {
-    const string Wp = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing";
-    const string Wp14 = "http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing";
-    const string Mc = "http://schemas.openxmlformats.org/markup-compatibility/2006";
+    const string wp = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing";
+    const string wp14 = "http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing";
+    const string mc = "http://schemas.openxmlformats.org/markup-compatibility/2006";
 
     [Test]
     public async Task ParsePositioning_ReadsPctPosHOffset_AsFraction()
     {
-        var anchor = LoadAnchor($$"""
-            <wp:anchor xmlns:wp="{{Wp}}" xmlns:wp14="{{Wp14}}" behindDoc="0" simplePos="0" relativeHeight="0" allowOverlap="1" layoutInCell="1" distT="0" distB="0" distL="0" distR="0" wp14:editId="0" wp14:anchorId="0">
+        var anchor = LoadAnchor(
+            $"""
+            <wp:anchor xmlns:wp="{wp}" xmlns:wp14="{wp14}" behindDoc="0" simplePos="0" relativeHeight="0" allowOverlap="1" layoutInCell="1" distT="0" distB="0" distL="0" distR="0" wp14:editId="0" wp14:anchorId="0">
               <wp:positionH relativeFrom="page">
                 <wp14:pctPosHOffset>50000</wp14:pctPosHOffset>
               </wp:positionH>
@@ -44,8 +44,9 @@ public class PercentagePositioningTests
         // A zero <pctPosHOffset> coexisting with an explicit <posOffset> means "this offset is
         // EMU-based, the percent placeholder is just zeroed out". Morph treats zero as null so
         // the EMU value wins.
-        var anchor = LoadAnchor($$"""
-            <wp:anchor xmlns:wp="{{Wp}}" xmlns:wp14="{{Wp14}}" behindDoc="0" simplePos="0" relativeHeight="0" allowOverlap="1" layoutInCell="1" distT="0" distB="0" distL="0" distR="0" wp14:editId="0" wp14:anchorId="0">
+        var anchor = LoadAnchor(
+            $"""
+            <wp:anchor xmlns:wp="{wp}" xmlns:wp14="{wp14}" behindDoc="0" simplePos="0" relativeHeight="0" allowOverlap="1" layoutInCell="1" distT="0" distB="0" distL="0" distR="0" wp14:editId="0" wp14:anchorId="0">
               <wp:positionH relativeFrom="page">
                 <wp14:pctPosHOffset>0</wp14:pctPosHOffset>
                 <wp:posOffset>914400</wp:posOffset>
@@ -65,8 +66,9 @@ public class PercentagePositioningTests
     {
         // Real-world layout: positionH wrapped in mc:AlternateContent with a wp14 Choice
         // (percent) and an EMU Fallback. Morph understands wp14, so it must pick the Choice.
-        var anchor = LoadAnchor($$"""
-            <wp:anchor xmlns:wp="{{Wp}}" xmlns:wp14="{{Wp14}}" xmlns:mc="{{Mc}}" behindDoc="0" simplePos="0" relativeHeight="0" allowOverlap="1" layoutInCell="1" distT="0" distB="0" distL="0" distR="0" wp14:editId="0" wp14:anchorId="0">
+        var anchor = LoadAnchor(
+            $"""
+            <wp:anchor xmlns:wp="{wp}" xmlns:wp14="{wp14}" xmlns:mc="{mc}" behindDoc="0" simplePos="0" relativeHeight="0" allowOverlap="1" layoutInCell="1" distT="0" distB="0" distL="0" distR="0" wp14:editId="0" wp14:anchorId="0">
               <mc:AlternateContent>
                 <mc:Choice Requires="wp14">
                   <wp:positionH relativeFrom="page">
@@ -94,8 +96,9 @@ public class PercentagePositioningTests
     {
         // If Choice requires an unknown namespace, Morph must fall back to mc:Fallback so it
         // still gets an offset (the EMU one) rather than dropping the position entirely.
-        var anchor = LoadAnchor($$"""
-            <wp:anchor xmlns:wp="{{Wp}}" xmlns:wp14="{{Wp14}}" xmlns:mc="{{Mc}}" behindDoc="0" simplePos="0" relativeHeight="0" allowOverlap="1" layoutInCell="1" distT="0" distB="0" distL="0" distR="0" wp14:editId="0" wp14:anchorId="0">
+        var anchor = LoadAnchor(
+            $"""
+            <wp:anchor xmlns:wp="{wp}" xmlns:wp14="{wp14}" xmlns:mc="{mc}" behindDoc="0" simplePos="0" relativeHeight="0" allowOverlap="1" layoutInCell="1" distT="0" distB="0" distL="0" distR="0" wp14:editId="0" wp14:anchorId="0">
               <mc:AlternateContent>
                 <mc:Choice Requires="someUnknownExt">
                   <wp:positionH relativeFrom="page">
