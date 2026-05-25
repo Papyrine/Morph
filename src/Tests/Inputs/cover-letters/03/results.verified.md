@@ -1,0 +1,28 @@
+﻿**Sheetal Parmar**
+
+PHLEBOTOMIST
+
+## **316.555.0136 | sheetal@example.com**
+
+|  |
+| --- |
+
+# 12 SEPTEMBER 20XX
+
+### **Hiring Manager**
+
+### **Bloom Naturopathic Medicine**
+
+### **678 Vine Street**
+
+### **Cincinnati, OH 10987**
+
+# DEAR NOA VIDAL,
+
+I am excited to apply for the Phlebotomist position at Bloom Naturopathic Medicine. With several years of experience working at healthcare facilities like Lamna Healthcare, Wholeness Healthcare, and Swan Sonia Healthcare, I have developed strong technical skills in venipuncture, capillary puncture, and laboratory procedures. I also hold an associate degree in Phlebotomy from Bellows College, where I gained in-depth knowledge of medical law, ethics, and patient care.
+
+Throughout my career, I have been recognized for delivering exceptional patient care while strictly following established protocols for blood sample processing. My ability to work efficiently in fast-paced environments and manage patient privacy ensures that I provide the highest quality of service. I am eager to bring my expertise and commitment to patient-centered care to your team.
+
+I look forward to discussing how my skills and experience align with the needs of Bloom Naturopathic Medicine. Thank you for your time and consideration.
+
+# SINCERELY, 
