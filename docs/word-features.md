@@ -2069,10 +2069,10 @@ Clickable links to external URLs or internal bookmarks. Rendered as styled text 
 
 - **OOXML**: `w:hyperlink` with `r:id` (external) or `w:anchor` (internal)
 - **Spec**: [Hyperlinks](http://officeopenxml.com/WPhyperlink.php)
-- **Model**: Parsed as styled runs within `ParagraphElement`
+- **Model**: Parsed as styled runs within `ParagraphElement`; the resolved target is captured on each run as `Run.HyperlinkUrl` (`r:id` → relationship URI, `w:anchor` → `#anchor`)
 - **Test**: `hyperlinks/`
 
-> **Consumers**: Hyperlink text renders with its styled formatting. Links are visual only — the output PNG does not contain clickable regions.
+> **Consumers**: Hyperlink text renders with its styled formatting. Links are visual only in the raster (PNG/PDF) output — the page does not contain clickable regions — but the HTML and Markdown exporters emit real `<a href>` / `[text](url)` links from `Run.HyperlinkUrl`.
 
 
 ### 11.2 Comments & Tracked Changes

@@ -1,0 +1,11 @@
+﻿<table>
+  <tbody>
+    <tr>
+      <td colspan="2">wide</td>
+    </tr>
+    <tr>
+      <td>a</td>
+      <td>b</td>
+    </tr>
+  </tbody>
+</table>

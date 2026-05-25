@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Magick.NET-Q16-AnyCPU" />
+    <PackageReference Include="Pandoc" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
     <PackageReference Include="ProjectFiles" />
     <PackageReference Include="TUnit" />
@@ -33,6 +34,9 @@
     </ProjectReference>
     <ProjectReference Include="..\Morph.Html.Skia\Morph.Html.Skia.csproj" />
     <ProjectReference Include="..\Morph.Html.ImageSharp\Morph.Html.ImageSharp.csproj" />
+    <ProjectReference Include="..\Morph.Pdf\Morph.Pdf.csproj" />
+    <ProjectReference Include="..\Morph.OpenXml.Pdf\Morph.OpenXml.Pdf.csproj" />
+    <ProjectReference Include="..\Morph.Html.Pdf\Morph.Html.Pdf.csproj" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
     <PackageReference Include="SkiaSharp.NativeAssets.Win32" />
     <PackageReference Include="SkiaSharp.NativeAssets.macOS" />

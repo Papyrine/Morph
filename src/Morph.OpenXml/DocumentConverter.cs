@@ -89,6 +89,45 @@ public abstract class DocumentConverter
     }
 
     /// <summary>
+    /// Converts a DOCX file to a semantic HTML fragment.
+    /// </summary>
+    /// <param name="docxPath">Path to the DOCX file.</param>
+    /// <param name="options">Conversion options (optional).</param>
+    /// <returns>An HTML fragment (body-level content, no <c>&lt;html&gt;</c> wrapper).</returns>
+    public static string ConvertToHtml(string docxPath, ConversionOptions? options = null)
+    {
+        using var stream = File.OpenRead(docxPath);
+        return ConvertToHtml(stream, options);
+    }
+
+    /// <summary>
+    /// Converts a DOCX stream to a semantic HTML fragment.
+    /// </summary>
+    public static string ConvertToHtml(Stream docxStream, ConversionOptions? options = null) =>
+        HtmlExporter.Export(Parse(docxStream, options));
+
+    /// <summary>
+    /// Converts a DOCX file to Pandoc-flavoured Markdown.
+    /// </summary>
+    public static string ConvertToMarkdown(string docxPath, ConversionOptions? options = null)
+    {
+        using var stream = File.OpenRead(docxPath);
+        return ConvertToMarkdown(stream, options);
+    }
+
+    /// <summary>
+    /// Converts a DOCX stream to Pandoc-flavoured Markdown.
+    /// </summary>
+    public static string ConvertToMarkdown(Stream docxStream, ConversionOptions? options = null) =>
+        MarkdownExporter.Export(Parse(docxStream, options));
+
+    static ParsedDocument Parse(Stream docxStream, ConversionOptions? options)
+    {
+        options ??= new();
+        return new DocumentParser(options.DefaultFont ?? DefaultFontSettings.DefaultFont).Parse(docxStream);
+    }
+
+    /// <summary>
     /// Renders a parsed document by calling pageCallback for each page.
     /// The callback receives an action that writes PNG data to a stream.
     /// Returns the total page count.

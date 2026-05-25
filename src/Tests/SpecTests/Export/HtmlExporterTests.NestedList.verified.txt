@@ -1,0 +1,8 @@
+﻿<ol>
+  <li>outer one
+    <ul>
+      <li>inner bullet</li>
+    </ul>
+  </li>
+  <li>outer two</li>
+</ol>

@@ -1,0 +1,11 @@
+﻿<table>
+  <tbody>
+    <tr>
+      <td rowspan="2">tall</td>
+      <td>r1</td>
+    </tr>
+    <tr>
+      <td>r2</td>
+    </tr>
+  </tbody>
+</table>

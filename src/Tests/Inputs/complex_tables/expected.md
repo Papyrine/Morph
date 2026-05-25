@@ -1,0 +1,224 @@
+Complex Table Examples
+
+This document demonstrates various complex table features in Word
+documents.
+
+1\. Horizontally Merged Cells
+
+Tables can have cells that span multiple columns using columnSpan.
+
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<tbody>
+<tr>
+<td colspan="3" style="text-align: center;"><strong>MERGED HEADER -
+SPANS 3 COLUMNS</strong></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>Column 1</strong></td>
+<td style="text-align: center;"><strong>Column 2</strong></td>
+<td style="text-align: center;"><strong>Column 3</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;">Data A1</td>
+<td style="text-align: left;">Data B1</td>
+<td style="text-align: left;">Data C1</td>
+</tr>
+<tr>
+<td colspan="2" style="text-align: center;"><strong>Merged: Columns 1
+&amp; 2</strong></td>
+<td style="text-align: left;">Data C2</td>
+</tr>
+</tbody>
+</table>
+
+2\. Vertically Merged Cells
+
+Tables can have cells that span multiple rows using rowSpan.
+
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>Section</strong></td>
+<td style="text-align: center;"><strong>Item</strong></td>
+<td style="text-align: center;"><strong>Value</strong></td>
+</tr>
+<tr>
+<td rowspan="3" style="text-align: center;"><strong>Section A (Merged 3
+rows)</strong></td>
+<td style="text-align: left;">Item 1</td>
+<td style="text-align: right;">$100</td>
+</tr>
+<tr>
+<td style="text-align: left;">Item 2</td>
+<td style="text-align: right;">$200</td>
+</tr>
+<tr>
+<td style="text-align: left;">Item 3</td>
+<td style="text-align: right;">$300</td>
+</tr>
+<tr>
+<td rowspan="2" style="text-align: center;"><strong>Section B (Merged 2
+rows)</strong></td>
+<td style="text-align: left;">Item 4</td>
+<td style="text-align: right;">$400</td>
+</tr>
+<tr>
+<td style="text-align: left;">Item 5</td>
+<td style="text-align: right;">$500</td>
+</tr>
+</tbody>
+</table>
+
+3\. Nested Tables
+
+Tables can contain other tables within their cells for complex layouts.
+
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<tbody>
+<tr>
+<td colspan="4" style="text-align: center;"><strong>NESTED TABLE
+EXAMPLE</strong></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>Q1</strong></td>
+<td style="text-align: center;"><strong>Q2</strong></td>
+<td style="text-align: center;"><strong>Q3</strong></td>
+<td style="text-align: center;"><strong>Q4</strong></td>
+</tr>
+<tr>
+<td style="text-align: center;">$25K</td>
+<td style="text-align: center;"><table style="width:26%;">
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 12%" />
+</colgroup>
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>Apr</strong></td>
+<td style="text-align: center;"><strong>May</strong></td>
+</tr>
+<tr>
+<td style="text-align: center;">$12K</td>
+<td style="text-align: center;">$18K</td>
+</tr>
+</tbody>
+</table></td>
+<td style="text-align: center;">$35K</td>
+<td style="text-align: center;">$40K</td>
+</tr>
+</tbody>
+</table>
+
+4\. Complex Mixed Merging
+
+Combining both horizontal and vertical merges in the same table.
+
+<table style="width:100%;">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<tbody>
+<tr>
+<td colspan="2" rowspan="2" style="text-align: center;"><strong>COMPLEX
+MERGE</strong></td>
+<td style="text-align: center;"><strong>Col 3</strong></td>
+<td style="text-align: center;"><strong>Col 4</strong></td>
+<td style="text-align: center;"><strong>Col 5</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;">Data 3-1</td>
+<td colspan="2" style="text-align: center;"><strong>Merged: Cols 4 &amp;
+5</strong></td>
+</tr>
+<tr>
+<td style="text-align: center;">A</td>
+<td style="text-align: center;">B</td>
+<td style="text-align: center;">C</td>
+<td rowspan="2" style="text-align: center;"><strong>Vertical
+Merge</strong></td>
+<td style="text-align: center;">E</td>
+</tr>
+<tr>
+<td colspan="3" style="text-align: center;"><strong>Wide merge across 3
+columns</strong></td>
+<td style="text-align: center;">F</td>
+</tr>
+</tbody>
+</table>
+
+5\. Calendar-Style Layout
+
+A practical example showing how merging can create calendar-like
+structures.
+
+<table>
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<tbody>
+<tr>
+<td colspan="7" style="text-align: center;"><strong>January
+2025</strong></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>Sun</strong></td>
+<td style="text-align: center;"><strong>Mon</strong></td>
+<td style="text-align: center;"><strong>Tue</strong></td>
+<td style="text-align: center;"><strong>Wed</strong></td>
+<td style="text-align: center;"><strong>Thu</strong></td>
+<td style="text-align: center;"><strong>Fri</strong></td>
+<td style="text-align: center;"><strong>Sat</strong></td>
+</tr>
+<tr>
+<td colspan="3" style="text-align: center;"><em>Previous Month</em></td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">4</td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">9</td>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;">11</td>
+</tr>
+<tr>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">14</td>
+<td colspan="2" style="text-align: center;"><strong>15-16
+Event</strong></td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">18</td>
+</tr>
+</tbody>
+</table>

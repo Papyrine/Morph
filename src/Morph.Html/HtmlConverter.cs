@@ -62,6 +62,18 @@ public abstract class HtmlConverter
         return imageData;
     }
 
+    /// <summary>
+    /// Converts HTML content to a normalized semantic HTML fragment.
+    /// </summary>
+    public static async Task<string> ConvertToHtml(string html, Cancel cancel = default) =>
+        HtmlExporter.Export(await ParseHtml(html, cancel));
+
+    /// <summary>
+    /// Converts HTML content to Pandoc-flavoured Markdown.
+    /// </summary>
+    public static async Task<string> ConvertToMarkdown(string html, Cancel cancel = default) =>
+        MarkdownExporter.Export(await ParseHtml(html, cancel));
+
     static async Task<ParsedDocument> ParseHtml(string html, Cancel cancel)
     {
         var elements = await HtmlParser.Parse(html, cancel);

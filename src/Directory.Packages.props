@@ -13,6 +13,8 @@
     <PackageVersion Include="NUnit" Version="4.6.1" />
     <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.2.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="6.2.0" />
+    <PackageVersion Include="Pandoc" Version="4.0.0" />
+    <PackageVersion Include="PdfSharp" Version="6.2.0" />
     <PackageVersion Include="ProjectDefaults" Version="1.0.174" />
     <PackageVersion Include="ProjectFiles" Version="1.1.1" />
     <PackageVersion Include="SkiaSharp" Version="3.119.2" />

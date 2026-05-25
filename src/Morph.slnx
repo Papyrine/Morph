@@ -8,6 +8,9 @@
   <Project Path="Morph.OpenXml.ImageSharp/Morph.OpenXml.ImageSharp.csproj" />
   <Project Path="Morph.Html.Skia/Morph.Html.Skia.csproj" />
   <Project Path="Morph.Html.ImageSharp/Morph.Html.ImageSharp.csproj" />
+  <Project Path="Morph.Pdf/Morph.Pdf.csproj" />
+  <Project Path="Morph.OpenXml.Pdf/Morph.OpenXml.Pdf.csproj" />
+  <Project Path="Morph.Html.Pdf/Morph.Html.Pdf.csproj" />
   <Folder Name="/SolutionItems/">
     <File Path="../.editorconfig" />
     <File Path="../.gitattributes" />

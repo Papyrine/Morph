@@ -1,0 +1,9 @@
+﻿<p>Nested list:</p>
+<ul>
+  <li>Main item 1</li>
+  <li>Sub-item 1.1</li>
+  <li>Sub-item 1.2</li>
+  <li>Main item 2</li>
+  <li>Sub-item 2.1</li>
+  <li>Sub-sub-item 2.1.1</li>
+</ul>

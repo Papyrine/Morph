@@ -4210,10 +4210,12 @@ sealed class DocumentParser(string defaultFont)
 
                 case Hyperlink hyperlink:
                     // w:hyperlink wraps runs that point at an external URL or internal anchor. The
-                    // visible content is the inner runs; rendering ignores the link target for now.
+                    // visible content is the inner runs; the link target is captured on each run so
+                    // the HTML/Markdown exporters can emit links (raster rendering ignores it).
+                    var hyperlinkUrl = ResolveHyperlinkUrl(hyperlink, mainPart);
                     foreach (var hlRun in hyperlink.Elements<OoxmlRun>())
                     {
-                        runs.AddRange(ParseRun(hlRun, mainPart, paragraphStyleId));
+                        runs.AddRange(ParseRun(hlRun, mainPart, paragraphStyleId, hyperlinkUrl));
                     }
 
                     break;
@@ -7529,7 +7531,32 @@ sealed class DocumentParser(string defaultFont)
     const char softHyphenChar = '\u00AD'; // Soft hyphen (optional break point)
     const char nonBreakingHyphenChar = '\u2011'; // Non-breaking hyphen
 
-    List<Run> ParseRun(OoxmlRun run, MainDocumentPart mainPart, string? paragraphStyleId = null)
+    static string? ResolveHyperlinkUrl(Hyperlink hyperlink, MainDocumentPart mainPart)
+    {
+        // External links carry an r:id pointing at a HyperlinkRelationship; internal links to a
+        // bookmark carry a w:anchor. Combine both: an external target may also include a sub-anchor.
+        string? target = null;
+        if (hyperlink.Id?.Value is { } relationshipId)
+        {
+            foreach (var relationship in mainPart.HyperlinkRelationships)
+            {
+                if (relationship.Id == relationshipId)
+                {
+                    target = relationship.Uri.IsAbsoluteUri ? relationship.Uri.AbsoluteUri : relationship.Uri.OriginalString;
+                    break;
+                }
+            }
+        }
+
+        if (hyperlink.Anchor?.Value is { Length: > 0 } anchor)
+        {
+            return target == null ? $"#{anchor}" : $"{target}#{anchor}";
+        }
+
+        return target;
+    }
+
+    List<Run> ParseRun(OoxmlRun run, MainDocumentPart mainPart, string? paragraphStyleId = null, string? hyperlinkUrl = null)
     {
         var result = new List<Run>();
         RunProperties? properties = null;
@@ -7558,7 +7585,8 @@ sealed class DocumentParser(string defaultFont)
                 new()
                 {
                     Text = textBuilder.ToString(),
-                    Properties = GetProperties()
+                    Properties = GetProperties(),
+                    HyperlinkUrl = hyperlinkUrl
                 });
             textBuilder.Clear();
         }
@@ -7583,7 +7611,8 @@ sealed class DocumentParser(string defaultFont)
                         {
                             Text = "\t",
                             Properties = GetProperties(),
-                            IsTab = true
+                            IsTab = true,
+                            HyperlinkUrl = hyperlinkUrl
                         });
                     break;
             }

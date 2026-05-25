@@ -1,0 +1,7 @@
+﻿<p>Bullet list:</p>
+<ul>
+  <li>First bullet point</li>
+  <li>Second bullet point</li>
+  <li>Third bullet point</li>
+  <li>Fourth bullet point</li>
+</ul>

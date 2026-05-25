@@ -97,7 +97,7 @@ internal sealed class HtmlParser
             case "h5":
             case "h6":
                 var level = int.Parse(element.TagName[1..]);
-                var headingPara = CreateParagraph(element, GetHeadingFontSize(level), true);
+                var headingPara = CreateParagraph(element, GetHeadingFontSize(level), true, styleId: $"Heading{level}");
                 elements.Add(headingPara);
                 break;
 
@@ -303,7 +303,7 @@ internal sealed class HtmlParser
         }
     }
 
-    ParagraphElement CreateParagraph(IElement element, double fontSize, bool bold, InlineStyle? style = null)
+    ParagraphElement CreateParagraph(IElement element, double fontSize, bool bold, InlineStyle? style = null, string? styleId = null)
     {
         var runs = ParseInlineElements(
             element,
@@ -334,7 +334,8 @@ internal sealed class HtmlParser
                 Alignment = style?.Alignment ?? TextAlignment.Left,
                 SpacingAfterPoints = fontSize > 14 ? 12 : 8,
                 FirstLineIndentPoints = style?.TextIndent ?? 0,
-                LineSpacingMultiplier = style?.LineHeight ?? 1.08
+                LineSpacingMultiplier = style?.LineHeight ?? 1.08,
+                StyleId = styleId
             }
         };
     }
