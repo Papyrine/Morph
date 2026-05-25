@@ -1,0 +1,113 @@
+<table style="width:85%;">
+<colgroup>
+<col style="width: 85%" />
+</colgroup>
+<thead>
+<tr>
+<th>Meeting Agenda</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Attendees: Helbe Sokk, Jessie Irwin, Allan Mattsson, Chanchal
+Sharma</td>
+</tr>
+</tbody>
+</table>
+
+<table style="width:86%;">
+<colgroup>
+<col style="width: 85%" />
+</colgroup>
+<thead>
+<tr>
+<th>Call to order</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chanchal Sharma called to order the regular meeting of the
+Homeowner’s Association at 2:00 PM on January 16th.</td>
+</tr>
+<tr>
+<td>Roll call</td>
+</tr>
+<tr>
+<td>Chanchal Sharma conducted a roll call. The following persons were
+present: Helbe Sokk, Jessie Irwin, Allan Mattsson, Chanchal Sharma</td>
+</tr>
+<tr>
+<td>Approval of minutes from last meeting</td>
+</tr>
+<tr>
+<td>Chanchal Sharma read the minutes from the last meeting. The minutes
+were approved as read.</td>
+</tr>
+<tr>
+<td>Open issues</td>
+</tr>
+<tr>
+<td>Member dues</td>
+</tr>
+<tr>
+<td>Vehicle speeding</td>
+</tr>
+<tr>
+<td>Neighborhood watch</td>
+</tr>
+<tr>
+<td>New business</td>
+</tr>
+<tr>
+<td>Valentine’s potluck</td>
+</tr>
+<tr>
+<td>Vote on dog park</td>
+</tr>
+<tr>
+<td>Pool maintenance</td>
+</tr>
+<tr>
+<td>Adjournment</td>
+</tr>
+<tr>
+<td>Chanchal Sharma adjourned the meeting at time.</td>
+</tr>
+<tr>
+<td>Minutes submitted by: Jessie Irwin</td>
+</tr>
+<tr>
+<td>Minutes approved by: Chanchal Sharma</td>
+</tr>
+<tr>
+<td></td>
+</tr>
+<tr>
+<td><table style="width:26%;">
+<colgroup>
+<col style="width: 5%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th><img src="media/image32.svg" style="width:0.15in;height:0.15in"
+alt="Home with solid fill" /></th>
+<th>Location: Clubhouse</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="media/image5.svg" style="width:0.15in;height:0.15in"
+alt="Daily calendar with solid fill" /></td>
+<td>Date: 1/16/23</td>
+</tr>
+<tr>
+<td><img src="media/image73.svg" style="width:0.15in;height:0.15in"
+alt="Stopwatch with solid fill" /></td>
+<td>Time: 2:00 PM</td>
+</tr>
+</tbody>
+</table></td>
+</tr>
+</tbody>
+</table>

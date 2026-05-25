@@ -1,0 +1,22 @@
+Quarterly results:
+
+<table style="width:40%;">
+<colgroup>
+<col style="width: 7%" />
+<col style="width: 32%" />
+</colgroup>
+<tbody>
+<tr>
+<td>Quarter</td>
+<td>Region</td>
+</tr>
+<tr>
+<td>Q1</td>
+<td>North</td>
+</tr>
+<tr>
+<td>Q2</td>
+<td>South</td>
+</tr>
+</tbody>
+</table>

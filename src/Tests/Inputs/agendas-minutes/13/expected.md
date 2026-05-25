@@ -1,0 +1,144 @@
+<table style="width:100%;">
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 81%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: center;"><img src="media/image2.svg"
+style="width:1in;height:1in" alt="Meeting with solid fill" /></th>
+<th style="text-align: center;"><p>Balsam Elementary</p>
+<p>pTA meeting - charity auction PLANning</p></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+
+<table>
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 16%" />
+<col style="width: 14%" />
+<col style="width: 16%" />
+<col style="width: 17%" />
+<col style="width: 20%" />
+</colgroup>
+<tbody>
+<tr>
+<td><h1 id="date">Date</h1></td>
+<td style="text-align: center;">March 14th</td>
+<td><h1 id="time">Time</h1></td>
+<td style="text-align: center;">11:30 AM</td>
+<td><h1 id="facilitator">Facilitator</h1></td>
+<td style="text-align: center;">Graham Barnes</td>
+</tr>
+</tbody>
+</table>
+
+<table>
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 24%" />
+<col style="width: 24%" />
+<col style="width: 25%" />
+</colgroup>
+<tbody>
+<tr>
+<td colspan="4"><h1 id="pta-members">PTA MEMBERS</h1></td>
+</tr>
+<tr>
+<td style="text-align: center;">Takuma Hayashi</td>
+<td style="text-align: center;">Mirjam Nilsson</td>
+<td style="text-align: center;">Flora Berggren</td>
+<td style="text-align: center;">Rajesh Santoshi</td>
+</tr>
+<tr>
+<td style="text-align: center;">Graham Barnes</td>
+<td style="text-align: center;">Rowan Murphy</td>
+<td style="text-align: center;">Elizabeth Moore</td>
+<td style="text-align: center;">Robin Kline</td>
+</tr>
+</tbody>
+</table>
+
+<table>
+<caption>Agenda items table</caption>
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 67%" />
+<col style="width: 17%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: center;"><h1 id="time-1">Time</h1></th>
+<th><strong>Item</strong></th>
+<th style="text-align: center;"><strong>Owner</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">11:30</td>
+<td>Welcome</td>
+<td style="text-align: center;">Graham Barnes</td>
+</tr>
+<tr>
+<td style="text-align: center;">11:35</td>
+<td>Old business and approval of last meeting’s minutes</td>
+<td style="text-align: center;">Graham Barnes</td>
+</tr>
+<tr>
+<td style="text-align: center;">11:50</td>
+<td>Vote on final charity auction items</td>
+<td style="text-align: center;">Graham Barnes</td>
+</tr>
+<tr>
+<td style="text-align: center;">12:00</td>
+<td>Discuss openings on advisory committees - any response from
+newsletter?</td>
+<td style="text-align: center;">Mirjam Nilsson</td>
+</tr>
+<tr>
+<td style="text-align: center;">12:15</td>
+<td>Vote on proposed budget</td>
+<td style="text-align: center;">Mirjam Nilsson</td>
+</tr>
+<tr>
+<td style="text-align: center;">12:20</td>
+<td>Principal's report</td>
+<td style="text-align: center;">Flora Berggren</td>
+</tr>
+<tr>
+<td style="text-align: center;">12:30</td>
+<td>Break</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td style="text-align: center;">12:40</td>
+<td>New Business<br />
+A. Charity auction event planning<br />
+B. Parent Education Programs<br />
+C. Teacher grants application process</td>
+<td style="text-align: center;">Graham Barnes</td>
+</tr>
+<tr>
+<td style="text-align: center;">1:00</td>
+<td>Committee Reports<br />
+A. Membership<br />
+B. Volunteers<br />
+C. Newsletter<br />
+D. Parent support</td>
+<td style="text-align: center;">Rajesh Santoshi</td>
+</tr>
+<tr>
+<td style="text-align: center;">1:20</td>
+<td>Announcements</td>
+<td style="text-align: center;">Takuma Hayashi</td>
+</tr>
+<tr>
+<td style="text-align: center;">1:30</td>
+<td>Adjournment</td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table>

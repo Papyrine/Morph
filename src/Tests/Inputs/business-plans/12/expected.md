@@ -1,0 +1,1851 @@
+<table>
+<colgroup>
+<col style="width: 65%" />
+<col style="width: 35%" />
+</colgroup>
+<tbody>
+<tr>
+<td colspan="2" style="text-align: center;"><img src="media/image1.jpeg"
+style="width:7.22202in;height:6.4in"
+alt="Various taxis on the road" /></td>
+</tr>
+<tr>
+<td colspan="2" style="text-align: left;">Business Plan</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">First Up Consultants</td>
+</tr>
+</tbody>
+</table>
+
+<img src="media/image2.jpeg" style="width:4in;height:10.99316in"
+alt="An airplane on the runway" />
+
+<table>
+<colgroup>
+<col style="width: 52%" />
+<col style="width: 47%" />
+</colgroup>
+<tbody>
+<tr>
+<td rowspan="2"></td>
+<td></td>
+</tr>
+<tr>
+<td><p>Table of contents</p>
+<p><a href="#introduction">introduction <span>3</span></a></p>
+<p><a href="#executive-summary">1. executive summary
+<span>4</span></a></p>
+<p><a href="#company-overview">2. company overview
+<span>5</span></a></p>
+<p><a href="#business-description">3. business description
+<span>6</span></a></p>
+<p><a href="#market-analysis">4. market analysis <span>8</span></a></p>
+<p><a href="#operating-plan">5. operating plan <span>10</span></a></p>
+<p><a href="#marketing-and-sales-plan">6. marketing and sales plan
+<span>11</span></a></p>
+<p><a href="#financial-plan">7. financial plan <span>12</span></a></p>
+<p><a href="#appendix">Appendix <span>15</span></a></p>
+<p><a
+href="#instructions-for-getting-started-with-estimated-start-up-costs">Instructions
+for Getting Started with Estimated Start-Up Costs
+<span>16</span></a></p>
+<p><a
+href="#instructions-for-getting-started-on-profit-loss-projections">Instructions
+for Getting Started on Profit &amp; Loss Projections
+<span>18</span></a></p></td>
+</tr>
+</tbody>
+</table>
+
+# introduction
+
+Creating an extensive business plan is unnecessary for most businesses
+to get started. However, creating a short business plan offers several
+benefits that more than outweigh the investment of time:
+
+- The process of thinking and writing the plan provides clarity for the
+  business.
+
+- If capital is needed from outside sources, investors want to see a
+  plan that demonstrates a solid understanding and vision for the
+  business.
+
+- The plan will help prioritize tasks that are most important.
+
+- With growth, the plan offers a common understanding of the vision to
+  new leaders.
+
+A simple business plan for a start-up service company can be completed
+rather quickly. Keeping in mind who the intended audience is, write
+simply. The plan needs to be understandable, readable, and realistic.
+
+This template is organized into seven sub-plans or sections to be
+completed.
+
+1.  Executive Summary
+
+2.  Company Overview
+
+3.  Business Description
+
+4.  Market Analysis
+
+5.  Operating Plan
+
+6.  Marketing and Sales Plan
+
+7.  Financial Plan
+
+It is recommended to complete the Executive Summary last, after all of
+the other sections have been completed. As information is filled in,
+from the Company Overview to the Financial Plan, the writing should tell
+the story of the motivation and vision behind the business. Be sure to
+include what will make the business successful, how success will be
+achieved, and how success will be measured.
+
+It is important to keep the business plan updated in order to see
+progress, celebrate success, and adjust where issues arise. This is best
+done on a quarterly, if not monthly, basis.
+
+# executive summary
+
+**The Executive Summary should be written last** after the remainder of
+the plan has been finished. It is an overview (with a suggested length
+of no more than one page) of the business, including the problem the
+business aims to solve, why this business’ solution is different, the
+business’ ideal customer, and the expected results. The Executive
+Summary should provide a high-level and optimistic description of the
+company.
+
+If the business requires outside investment or external investors,
+include how much is needed, how it will be used, and how it will make
+the business more profitable. Think of this section as the first thing a
+potential investor reads, thus, it must capture their interest quickly.
+
+Suggested headings to organize this business plan include the following.
+
+- **Opportunity:** What problem will the business solve?
+
+- **Mission:** What problem will the business solve?
+
+- **Solution:** How will the service uniquely solve the problem
+  identified?
+
+- **Market focus:** What market and ideal customers will the business
+  target?
+
+- **Competitive advantage:** How does the business intend to succeed
+  against its competitors?
+
+- **Ownership:** Who are the major stakeholders in the company?
+
+- **Expected returns:** What are the key milestones for revenue,
+  profits, growth, and customers?
+
+# company overview
+
+The Company Overview is a brief summary of the intended business,
+including what it uniquely delivers, the mission, how it got started,
+market positioning, operational structure, and financial goals. After
+reviewing this section, the reader should have a broad understanding of
+what the business is setting out to do and how it is organized.
+
+This section is not meant to be lengthy. Keep it short and succinct.
+This is a snapshot of the business. The type of business will determine
+which of the following sections will be required for the business plan.
+Only include what is needed to properly represent the business and
+remove anything else.
+
+- **Company summary:** This is the introductory section to the company,
+  also known as the ‘elevator pitch’ of what the company stands for and
+  is setting out to do. Include the company’s goals and some of the
+  near-term objectives. Even if it is a small, service-oriented company,
+  developing a summary is an important step to explain and focus on the
+  core business.
+
+- **Mission statement:** This is a concise statement on the guiding
+  principles of the company and what the company aims to do for
+  customers, employees, owners, and other stakeholders.
+
+- **Company history:** This provides the back story, especially the
+  personal story, of why the business was founded. Use this section to
+  give the overarching history of the company from its start and bring
+  the reader up-to-date on where the company is now in terms of sales,
+  profits, key services, and customers.
+
+- **Markets and services:** This outlines the target market and related
+  needs that the company will address. Include brief descriptions of
+  offered services and targeted markets and customer types. This section
+  can be a general overview as more details will be suggested in a later
+  section of this plan.
+
+- **Operational structure:** This describes the operational details of
+  the business. List any potential employees needed on the payroll to
+  make the business run.
+
+- **Financial goals:** This describes the start-up capital needed,
+  projected revenue and profits, forecast, and budget of the business.
+
+# business description
+
+This section will first frame the business opportunity and should answer
+the question: what problem(s) is the company trying to solve? Use a case
+example to describe the customers’ pain point and how it is solved
+today. If the business’ service addresses something the market has yet
+to identify as a problem (for instance, a new mobile app or a new
+clothing line), then also describe how the business’ solution reduces
+stress, saves money, or brings joy to the customer.
+
+After framing the opportunity, describe the service in detail and how it
+is the solution the business offers, how it solves that problem, and
+what benefits customers will receive.
+
+This section also describes in more detail how the services will be
+rendered and the pricing structure (e.g., fixed rate versus an hourly
+fee). Describe how the company plans to differentiate itself from its
+competitors. What is the target market and how can the customer
+capitalize on your unique offering?
+
+Depending on the type of business, the following sections may or may not
+be necessary. Only include relevant sections and remove everything else.
+
+- **Opportunity:** Describe the current market for the business’ offered
+  service. At a high level, what is the market and who are its
+  participants; is it business customers or consumers; what is the
+  specific geography, etc.? More details on the market will be provided
+  in the next section of the plan. Next, describe the current state of
+  available services and how the business will offer better. Also
+  discuss any additional services the company plans to offer in the
+  future.
+
+- **Product overview:** Describe the service offerings of the business
+  in as much detail as possible. If it is effective to include pictures,
+  this would be a good place to place them.
+
+- **Key participants:** Identify any strategic partners in the business,
+  such as critical suppliers, distributors, referral partners, or any
+  others. In some businesses, products are custom-made and any break in
+  their supply will impact the business. There may be key contributors
+  to the services offered, so it is important to identify them.
+
+- **Pricing:** Provide pricing of the service, gross margin projects,
+  and upgrade paths. Describe why the company’s pricing will be
+  attractive to the target market. Have a gauge on the competitor’s
+  pricing and explain how the business’ service is unique to justify its
+  pricing structure.
+
+  - Note the difference between working hours and billable hours. All
+    working hours are not billable. If the business has employees with
+    differing skill levels (for example, in a law practice, there are
+    associates, paralegals, lawyers, partners, etc.), indicate the
+    various billing rates.
+
+  - Communicate rates clearly to clients and customers. If there are
+    potential additional fees which will be passed on to clients or
+    customers, define and establish them up front.
+
+# market analysis
+
+The Market Analysis provides the reader with an understanding of how
+well the business knows and understands its market and if it is big
+enough to support the business objectives. This section provides an
+overview of the industry that the business will participate in. As this
+section is narrowed down to the ideal customer based on the business
+strategy, the plan will define the target market. A detailed description
+and sizing of the target market will help the reader understand the
+market value the business is pursuing (the number of potential customers
+multiplied by the average revenue for the product or service).
+
+In defining the target market, the plan will identify key elements such
+as geographic location, demographics, buyer characteristics, the target
+market's needs, and how market needs are currently being met. If there
+are any direct competitors, explain how the company’s service compares
+to the competitors in terms of solving the consumers’ problems.
+
+This section may also include a Strengths, Weaknesses, Opportunities,
+and Threats (SWOT) Analysis as necessary, to better assess the business’
+position against the competition.
+
+Depending on the type of business, the following sections may or may not
+be necessary. Only include what is needed and remove everything else.
+
+- **Industry type:** Begin with broader descriptions of the market
+  opportunity. For instance, if the intended business is a travel
+  agency, the industry type would be service industry. In this
+  particular market, the global revenues are projected to exceed $183
+  billion, but the local agency will have a much smaller market.
+  Identify the potential clientele in the company’s local geography that
+  might fit into the target demographic group. This section will also
+  identify any industry regulations and evaluate trends in market growth
+  and stability.
+
+- **Market segmentation:** This section defines the main market segments
+  and those the business is targeting now. A market segment is a group
+  of people (or other businesses) within the industry; identify smaller
+  segments, such as luxury travel or exotic cruisers. The market can
+  also be segmented by criteria such as quality, price, range of
+  products, geography, demographics, and others. Consider answering
+  questions such as: Is the segment growing, shrinking, or will it be
+  flat for the next few years? What percentage of the market will be
+  reachable? What share of the market is anticipated within the next 2-3
+  years? Graphics are best used in a section like this to either show
+  growth (line graph) or percentages of markets or groups (pie chart).
+
+**\**
+
+- **Competition:** All businesses compete in one way or another. It may
+  be with specific, direct competitors or it may be with the way
+  customers have been doing things for a long time. When identifying the
+  competition, identify who else is providing services to solve the same
+  problem the business seeks to address. What are the business’
+  advantages over these competitors? How will the company’s voice be
+  heard over the noise of competitors? Sometimes a business plan
+  includes a matrix of features and compares how each business offers or
+  does not offer those features. This section reflects how the company’s
+  solution is different and better suited for the identified target
+  market compared to the competition.
+
+- **SWOT analysis:** A SWOT analysis may be included by completing the
+  boxes below to assess the business’ current strengths and weaknesses
+  (internal) and opportunities and threats (external). This is a good
+  exercise to go through on an annual basis. After completing the
+  analysis, provide thoughts on: how the business’ strengths can help
+  maximize opportunities and minimize threats; how its weaknesses can
+  slow the company’s ability to capitalize on the opportunities; and how
+  the business’ weaknesses could expose it to threats.
+
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 48%" />
+<col style="width: 25%" />
+</colgroup>
+<tbody>
+<tr>
+<td><p>STRENGTHS</p>
+<ul>
+<li><p>Advantage</p></li>
+<li><p>Capabilities</p></li>
+<li><p>Assets, people</p></li>
+<li><p>Experience</p></li>
+<li><p>Financial reserves</p></li>
+<li><p>Value proposition</p></li>
+<li><p>Price, value, quality</p></li>
+</ul></td>
+<td rowspan="2"></td>
+<td><p>WEAKNESSES</p>
+<ul>
+<li><p>Disadvantages</p></li>
+<li><p>Gap in capabilities</p></li>
+<li><p>Cash Flow</p></li>
+<li><p>Suppliers</p></li>
+<li><p>Experience</p></li>
+<li><p>Areas to improve</p></li>
+<li><p>Causes of lose sales</p></li>
+</ul></td>
+</tr>
+<tr>
+<td><p>OPPORTUNITIES</p>
+<ul>
+<li><p>Areas to improve</p></li>
+<li><p>New segments</p></li>
+<li><p>Industry trends</p></li>
+<li><p>New products</p></li>
+<li><p>New innovations</p></li>
+<li><p>Key partnership</p></li>
+</ul></td>
+<td><p>THREATS</p>
+<ul>
+<li><p>Economy movement</p></li>
+<li><p>Obstacles faced</p></li>
+<li><p>Competitor actions</p></li>
+<li><p>Political impacts</p></li>
+<li><p>Environmental effects</p></li>
+<li><p>Loss of key staff</p></li>
+<li><p>Market demand</p></li>
+</ul></td>
+</tr>
+</tbody>
+</table>
+
+# operating plan
+
+Additionally, it is necessary to outline how the company will continue
+to develop and maintain a loyal customer base. This section includes
+management responsibilities. What are the envisioned phases for future
+growth and the capabilities that need to be in place to realize growth?
+
+The operating plan describes how the business works. Depending on the
+type of business, important elements of this plan should include how the
+company will bring services to market and how it will support customers.
+It is the logistics, technology, and basic blocking and tackling of the
+business.
+
+Depending on the type of business, the following sections may or may not
+be necessary. Only include what is needed and remove everything else.
+Remember: try to keep the business plan as short as possible. Excessive
+detail in this section could easily make the plan too long.
+
+- **Order fulfillment:** Describe the company’s procedures for
+  delivering services to its customers. As a service company, determine
+  how to keep track of the customer base, form of communications, and
+  how best to manage sales and data.
+
+- **Payment:** Describe the standard payment terms and the payment
+  methods accepted. Describe the pricing plans (one-time service fees,
+  hourly-based fees, markups, and any other fees) and any impact on cash
+  flow.
+
+- **Technology:** If technology is critical to the business, whether it
+  is part of the service offering or is fundamental to delivering a
+  service, describe the key technologies used that are proprietary. If
+  the business data (company or customer) is at risk, describe the data
+  security plan in place, as well as any backup or recovery in the case
+  of a disaster or outage.
+
+- **Key customers:** Identify any customers that are important to the
+  success of the business due to a partnership, volume, or pathway to a
+  new market. Also identify any customers who bring in more than 10% of
+  the company’s revenues.
+
+- **Key employees and organization:** Describe unique skills or
+  experiences that are required of the current team. If necessary,
+  describe any proprietary recruiting or training processes in place.
+  List key employees that are necessary for success. Include an
+  organization chart to support this section.
+
+# marketing and sales plan
+
+Promoting the business, whether through generating leads or traffic to a
+website or store, is one of the most important functions of any
+business. In this section of the plan, provide details of the intended
+marketing of the business. Describe the key messages and channels used
+for generating leads and promoting the business. This section should
+also describe any sales strategy. Depending on the type of business, the
+following sections may or may not be necessary. Only include what is
+needed and remove everything else.
+
+- **Key messages:** Describe the key messages that will elevate services
+  in the target customers’ eyes. If there are sample collateral or
+  graphical images of some messages, include them.
+
+- **Marketing activities:** Which of the following promotion options
+  provide the company the best chance of product recognition, qualified
+  leads, store traffic, or appointments?
+
+  - Media advertising (newspaper, magazine, television, radio)
+
+  - Direct mail
+
+  - Telephone solicitation
+
+  - Seminars or business conferences
+
+  - Word of mouth or fixed signage
+
+  - Digital marketing such as social media, email marketing, SEO, or
+    blogging
+
+  - Provide limited free consultations (such as free job pricing for
+    contractors, free landscaping consultation for landscapers, or free
+    pricing opinions for real estate agents)
+
+  - Sponsor local sports teams or other community events
+
+  - Give free informational talks either at the business offices or for
+    local businesses offering complementary services (such as a real
+    estate agent providing seminars about preparing a home to bring to
+    market)
+
+  - Do free work for local non-profits (such as an ad agency designing a
+    local farmer’s market’s website for free)
+
+- **Sales strategy:** If needed, what will be the sales approach? Will
+  there be full-time commissioned salespeople, contract sales, or
+  another approach? Many one-on-one service businesses are heavily
+  reliant on word of mouth. Take this into account when developing the
+  sales strategy.
+
+# financial plan
+
+Creating a financial plan is where all of the business planning comes
+together. Up to this point, the target market, target customers, and
+pricing have all been identified. These items, along with assumptions,
+will help estimate the company’s sales forecast. The other side of the
+business will be what expenses are expected. This is important on an
+ongoing basis to see when the business is profitable. It is also
+important to know what expenses will need to be funded before customer
+sales, or the cash they generate, is received.
+
+At a minimum, this section should include estimated start-up costs and
+projected profit and loss, along with a summary of the assumptions being
+made with these projections. Assumptions should include initial and
+ongoing sales, along with the timing of these inflows.
+
+- **Projected start-up costs:** The table below shows a sample of
+  ongoing and one-time cost items that the business might need in order
+  to open. Many businesses are paid on credit over time and do not have
+  cash coming in immediately. It is necessary to make assumptions about
+  how many months of recurring items, in addition to one-time expenses,
+  to estimate when cash will begin to flow into the company. To begin
+  with, the company will have to fund out of savings or an initial
+  investment. There is a blank table in the Appendix to complete
+  potential start-up cost projections.
+
+<table style="width:100%;">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr>
+<th colspan="5">START-UP COSTS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Your Office-Based Agency</td>
+<td colspan="4">January 1, 20XX</td>
+</tr>
+<tr>
+<td>COST ITEMS</td>
+<td>MONTHS</td>
+<td>COST/ MONTH</td>
+<td>ONE-TIME COST</td>
+<td>TOTAL COST</td>
+</tr>
+<tr>
+<td>Advertising/Marketing</td>
+<td>3</td>
+<td>$300</td>
+<td>$2,000</td>
+<td>$2,900</td>
+</tr>
+<tr>
+<td>Employee Salaries*</td>
+<td>4</td>
+<td>$500</td>
+<td>$2</td>
+<td>$2,002</td>
+</tr>
+<tr>
+<td>Employee Payroll Taxes and Benefits</td>
+<td>4</td>
+<td>$100</td>
+<td>$1,500</td>
+<td>$1,600</td>
+</tr>
+<tr>
+<td>Rent/Lease Payments/Utilities</td>
+<td>4</td>
+<td>$750</td>
+<td>$2,500</td>
+<td>$5,500</td>
+</tr>
+<tr>
+<td>Postage/Shipping</td>
+<td>1</td>
+<td>$25</td>
+<td>$25</td>
+<td>$50</td>
+</tr>
+<tr>
+<td>Communication/Telephone</td>
+<td>4</td>
+<td>$70</td>
+<td>$280</td>
+<td>$560</td>
+</tr>
+<tr>
+<td>Computer Equipment</td>
+<td></td>
+<td>$0</td>
+<td>$1,500</td>
+<td>$1,500</td>
+</tr>
+<tr>
+<td>Computer Software</td>
+<td></td>
+<td>$0</td>
+<td>$300</td>
+<td>$300</td>
+</tr>
+<tr>
+<td>Insurance</td>
+<td></td>
+<td>$0</td>
+<td>$60</td>
+<td>$60</td>
+</tr>
+<tr>
+<td>Interest Expense</td>
+<td></td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+</tr>
+<tr>
+<td>Bank Service Charges</td>
+<td></td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+</tr>
+<tr>
+<td>Supplies</td>
+<td></td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+</tr>
+<tr>
+<td>Travel &amp; Entertainment</td>
+<td></td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+</tr>
+<tr>
+<td>Equipment</td>
+<td></td>
+<td>$0</td>
+<td>$2,500</td>
+<td>$2,500</td>
+</tr>
+<tr>
+<td>Furniture &amp; Fixtures</td>
+<td></td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+</tr>
+<tr>
+<td>Leasehold Improvements</td>
+<td></td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+</tr>
+<tr>
+<td>Security Deposit(s)</td>
+<td></td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+</tr>
+<tr>
+<td>Business Licenses/Permits/Fees</td>
+<td></td>
+<td>$0</td>
+<td>$5,000</td>
+<td>$5,000</td>
+</tr>
+<tr>
+<td>Professional Services - Legal, Accounting</td>
+<td></td>
+<td>$0</td>
+<td>$1,500</td>
+<td>$1,500</td>
+</tr>
+<tr>
+<td>Consultant(s)</td>
+<td></td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+</tr>
+<tr>
+<td>Inventory</td>
+<td></td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+</tr>
+<tr>
+<td>Cash-On-Hand (Working Capital)</td>
+<td></td>
+<td>$0</td>
+<td>$1,000</td>
+<td>$1,000</td>
+</tr>
+<tr>
+<td>Miscellaneous</td>
+<td></td>
+<td>$0</td>
+<td>$2,000</td>
+<td>$2,000</td>
+</tr>
+<tr>
+<td><strong>ESTIMATED START-UP BUDGET</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td><strong>$26,472</strong></td>
+</tr>
+<tr>
+<td colspan="5"><blockquote>
+<p>*Based on part-time employees. This may change once you hit your
+growth benchmark.</p>
+</blockquote></td>
+</tr>
+</tbody>
+</table>
+
+**\**
+
+**Projected profit and loss model:** The model below shows a sample of
+the projections a small business is forecasting for their first 12
+months of operations. The top portion of the table shows projected sales
+and gross profit. This is a good place to begin creating the company’s
+sales forecast. The next section itemizes the recurring expenses the
+business is projecting for the same months. These should be consistent
+with the estimated start-up costs completed in the prior section. At the
+bottom of this model, it will be possible to see when the company is
+becoming profitable and what expense items are the most impactful to its
+profitability. There is a blank table in the Appendix to complete the
+business’ own start-up cost projections.
+
+<table style="width:100%;">
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 8%" />
+<col style="width: 5%" />
+<col style="width: 5%" />
+<col style="width: 6%" />
+<col style="width: 5%" />
+<col style="width: 2%" />
+<col style="width: 2%" />
+<col style="width: 5%" />
+<col style="width: 5%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 5%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+</colgroup>
+<thead>
+<tr>
+<th colspan="15">START-UP COSTS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="7">Your Office-Based Agency</td>
+<td colspan="8">January 1, 20XX</td>
+</tr>
+<tr>
+<td><strong>REVENUE</strong></td>
+<td><strong>JAN</strong></td>
+<td><strong>FEB</strong></td>
+<td><strong>MAR</strong></td>
+<td><strong>APR</strong></td>
+<td><strong>MAY</strong></td>
+<td colspan="2"><strong>JUN</strong></td>
+<td><strong>JUL</strong></td>
+<td><strong>AUG</strong></td>
+<td><strong>SEP</strong></td>
+<td><strong>OCT</strong></td>
+<td><strong>NOV</strong></td>
+<td><strong>DEC</strong></td>
+<td><strong>YTD</strong></td>
+</tr>
+<tr>
+<td>Estimated Sales</td>
+<td>$5,000</td>
+<td>$13,000</td>
+<td>$16,000</td>
+<td>$7,000</td>
+<td>$14,500</td>
+<td colspan="2">$16,400</td>
+<td>$22,500</td>
+<td>$23,125</td>
+<td>$24,549</td>
+<td>$22,000</td>
+<td>$25,000</td>
+<td>$27,349</td>
+<td>$216,423</td>
+</tr>
+<tr>
+<td>Less Sales Returns &amp; Discounts</td>
+<td>$0</td>
+<td>($350)</td>
+<td>$0</td>
+<td>($206)</td>
+<td>($234)</td>
+<td colspan="2">$0</td>
+<td>$0</td>
+<td>($280)</td>
+<td>($1,200)</td>
+<td>($1,600)</td>
+<td>$0</td>
+<td>($2,400)</td>
+<td>($6,270)</td>
+</tr>
+<tr>
+<td>Service Revenue</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td colspan="2">$250</td>
+<td>$350</td>
+<td>$100</td>
+<td>$0</td>
+<td>$0</td>
+<td>$1,245</td>
+<td>$1,360</td>
+<td>$3,305</td>
+</tr>
+<tr>
+<td>Other Revenue</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td colspan="2">$0</td>
+<td>$0</td>
+<td>$1,500</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$1,500</td>
+</tr>
+<tr>
+<td>Net Sales</td>
+<td>$5,000</td>
+<td>$12,650</td>
+<td>$16,000</td>
+<td>$6,794</td>
+<td>$14,266</td>
+<td colspan="2">$16,650</td>
+<td>$22,850</td>
+<td>$24,445</td>
+<td>$23,349</td>
+<td>$20,400</td>
+<td>$26,245</td>
+<td>$26,309</td>
+<td>$214,958</td>
+</tr>
+<tr>
+<td>Cost of Goods Sold*</td>
+<td>$2,000</td>
+<td>$5,200</td>
+<td>$6,400</td>
+<td>$2,800</td>
+<td>$5,800</td>
+<td colspan="2">$6,560</td>
+<td>$9,000</td>
+<td>$9,250</td>
+<td>$9,820</td>
+<td>$8,800</td>
+<td>$10,000</td>
+<td>$10,940</td>
+<td>$86,569</td>
+</tr>
+<tr>
+<td>Gross Profit</td>
+<td>$3,000</td>
+<td>$7,450</td>
+<td>$9,600</td>
+<td>$3,994</td>
+<td>$8,466</td>
+<td colspan="2">$10,090</td>
+<td>$13,850</td>
+<td>$15,195</td>
+<td>$13,529</td>
+<td>$11,600</td>
+<td>$16,245</td>
+<td>$15,369</td>
+<td>$128,389</td>
+</tr>
+<tr>
+<td><strong>EXPENSES</strong></td>
+<td><strong>JAN</strong></td>
+<td><strong>FEB</strong></td>
+<td><strong>MAR</strong></td>
+<td><strong>APR</strong></td>
+<td><strong>MAY</strong></td>
+<td colspan="2"><strong>JUN</strong></td>
+<td><strong>JUL</strong></td>
+<td><strong>AUG</strong></td>
+<td><strong>SEP</strong></td>
+<td><strong>OCT</strong></td>
+<td><strong>NOV</strong></td>
+<td><strong>DEC</strong></td>
+<td><strong>YTD</strong></td>
+</tr>
+<tr>
+<td>Salaries &amp; Wages</td>
+<td>$2,500</td>
+<td>$2,500</td>
+<td>$3,500</td>
+<td>$5,000</td>
+<td>$5,000</td>
+<td colspan="2">$5,000</td>
+<td>$8,000</td>
+<td>$9,000</td>
+<td>$9,000</td>
+<td>$9,000</td>
+<td>$9,000</td>
+<td>$9,000</td>
+<td>$76,500</td>
+</tr>
+<tr>
+<td>Marketing/Advertising</td>
+<td>$400</td>
+<td>$450</td>
+<td>$450</td>
+<td>$450</td>
+<td>$900</td>
+<td colspan="2">$900</td>
+<td>$900</td>
+<td>$900</td>
+<td>$900</td>
+<td>$900</td>
+<td>$1,200</td>
+<td>$1,200</td>
+<td>$9,550</td>
+</tr>
+<tr>
+<td>Sales Commissions</td>
+<td>$250</td>
+<td>$650</td>
+<td>$800</td>
+<td>$350</td>
+<td>$725</td>
+<td colspan="2">$820</td>
+<td>$1,125</td>
+<td>$1,156</td>
+<td>$1,227</td>
+<td>$1,100</td>
+<td>$1,250</td>
+<td>$1,367</td>
+<td>$10,821</td>
+</tr>
+<tr>
+<td>Rent</td>
+<td>$1,250</td>
+<td>$1,250</td>
+<td>$1,250</td>
+<td>$1,250</td>
+<td>$1,250</td>
+<td colspan="2">$1,250</td>
+<td>$1,250</td>
+<td>$1,250</td>
+<td>$1,250</td>
+<td>$1,250</td>
+<td>$1,250</td>
+<td>$1,250</td>
+<td>$15,000</td>
+</tr>
+<tr>
+<td>Utilities</td>
+<td>$250</td>
+<td>$150</td>
+<td>$200</td>
+<td>$200</td>
+<td>$200</td>
+<td colspan="2">$250</td>
+<td>$250</td>
+<td>$250</td>
+<td>$200</td>
+<td>$200</td>
+<td>$250</td>
+<td>$250</td>
+<td>$2,650</td>
+</tr>
+<tr>
+<td>Website Expenses</td>
+<td>$175</td>
+<td>$175</td>
+<td>$175</td>
+<td>$175</td>
+<td>$175</td>
+<td colspan="2">$175</td>
+<td>$175</td>
+<td>$175</td>
+<td>$175</td>
+<td>$175</td>
+<td>$225</td>
+<td>$225</td>
+<td>$2,200</td>
+</tr>
+<tr>
+<td>Insurance</td>
+<td>$165</td>
+<td>$165</td>
+<td>$165</td>
+<td>$165</td>
+<td>$165</td>
+<td colspan="2">$165</td>
+<td>$165</td>
+<td>$165</td>
+<td>$165</td>
+<td>$165</td>
+<td>$165</td>
+<td>$165</td>
+<td>$1,980</td>
+</tr>
+<tr>
+<td>Travel</td>
+<td>$100</td>
+<td>$0</td>
+<td>$0</td>
+<td>$250</td>
+<td>$0</td>
+<td colspan="2">$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$675</td>
+<td>$800</td>
+<td>$0</td>
+<td>$0</td>
+<td>$1,825</td>
+</tr>
+<tr>
+<td>Legal/Accounting</td>
+<td>$1,200</td>
+<td>$0</td>
+<td>$0</td>
+<td>$450</td>
+<td>$0</td>
+<td colspan="2">$500</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$250</td>
+<td>$2,400</td>
+</tr>
+<tr>
+<td>Office Supplies</td>
+<td>$125</td>
+<td>$125</td>
+<td>$125</td>
+<td>$125</td>
+<td>$125</td>
+<td colspan="2">$125</td>
+<td>$125</td>
+<td>$125</td>
+<td>$125</td>
+<td>$125</td>
+<td>$125</td>
+<td>$125</td>
+<td>$1,500</td>
+</tr>
+<tr>
+<td>Interest Expense</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td colspan="2">$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+</tr>
+<tr>
+<td>Total Expenses</td>
+<td>$6,525</td>
+<td>$5,575</td>
+<td>$6,775</td>
+<td>$8,525</td>
+<td>$8,650</td>
+<td colspan="2">$9,295</td>
+<td>$12,100</td>
+<td>$13,131</td>
+<td>$13,827</td>
+<td>$13,825</td>
+<td>$13,575</td>
+<td>$13,942</td>
+<td>$125,746</td>
+</tr>
+<tr>
+<td>Income Before Taxes</td>
+<td>($3,525)</td>
+<td>$1,875</td>
+<td>$2,825</td>
+<td>($4,531)</td>
+<td>($184)</td>
+<td colspan="2">$795</td>
+<td>$1,750</td>
+<td>$2,064</td>
+<td>($298)</td>
+<td>($2,225)</td>
+<td>$2,670</td>
+<td>$1,427</td>
+<td>$2,643</td>
+</tr>
+<tr>
+<td>Income Tax Expense</td>
+<td>($529)</td>
+<td>$281</td>
+<td>$424</td>
+<td>($680)</td>
+<td>($28)</td>
+<td colspan="2">$119</td>
+<td>$263</td>
+<td>$310</td>
+<td>($45)</td>
+<td>($334)</td>
+<td>$401</td>
+<td>$214</td>
+<td>$396</td>
+</tr>
+<tr>
+<td><strong>NET INCOME</strong></td>
+<td><strong>($2,996)</strong></td>
+<td><strong>$1,594</strong></td>
+<td><strong>$2,401</strong></td>
+<td><strong>($3,851)</strong></td>
+<td><strong>($156)</strong></td>
+<td colspan="2"><strong>$676</strong></td>
+<td><strong>$1,488</strong></td>
+<td><strong>$1,754</strong></td>
+<td><strong>($253)</strong></td>
+<td><strong>($1,891)</strong></td>
+<td><strong>$2,270</strong></td>
+<td><strong>$1,213</strong></td>
+<td><strong>$2,246</strong></td>
+</tr>
+<tr>
+<td colspan="15"><blockquote>
+<p>*In the service industry, Cost of Goods Sold is the monetized value
+of the time spent on the client.</p>
+</blockquote></td>
+</tr>
+</tbody>
+</table>
+
+# Appendix
+
+<table>
+<colgroup>
+<col style="width: 51%" />
+<col style="width: 48%" />
+</colgroup>
+<thead>
+<tr>
+<th>START-UP COSTS</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Office-Based Agency</td>
+<td>Date</td>
+</tr>
+</tbody>
+</table>
+
+<table style="width:100%;">
+<colgroup>
+<col style="width: 36%" />
+<col style="width: 15%" />
+<col style="width: 16%" />
+<col style="width: 17%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr>
+<th><strong>COST ITEMS</strong></th>
+<th><strong>MONTHS</strong></th>
+<th><strong>COST/ MONTH</strong></th>
+<th><strong>ONE-TIME COST</strong></th>
+<th><strong>TOTAL COST</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Advertising/Marketing</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Employee Salaries</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Employee Payroll Taxes and Benefits</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Rent/Lease Payments/Utilities</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Postage/Shipping</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Communication/Telephone</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Computer Equipment</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Computer Software</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Insurance</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Interest Expense</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Bank Service Charges</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Supplies</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Travel &amp; Entertainment</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Equipment</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Furniture &amp; Fixtures</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Leasehold Improvements</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Security Deposit(s)</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Business Licenses/Permits/Fees</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Professional Services - Legal, Accounting</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Consultant(s)</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Inventory</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Cash-On-Hand (Working Capital)</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Miscellaneous</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>ESTIMATED START-UP BUDGET</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+## Instructions for Getting Started with Estimated Start-Up Costs
+
+Determining a business' startup costs is critical to ensure enough cash
+is available to begin business operations within the budgeted time frame
+as well as within the cost budget. Startup costs typically fall within
+two categories: monthly costs and one-time costs. Monthly costs cover
+costs that occur each month during the startup period, and one-time
+costs are costs that will be incurred once during the startup period.
+
+**Steps for preparation:**
+
+- **Step 1:** Enter the company name and the date this estimate is being
+  prepared.
+
+- **Step 2:** Enter the number of months and the monthly cost for each
+  cost item that is recurring. For one-time costs only, skip the monthly
+  costs. If there are cost items that have both recurring and one-time
+  amounts, enter those as well.
+
+- **Step 3:** Once all of the costs are entered, review the individual
+  items and total amount to see where the budget can be fine-tuned or
+  move something out into the future when more revenue is coming in.
+
+<table style="width:100%;">
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 5%" />
+<col style="width: 6%" />
+<col style="width: 5%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 5%" />
+<col style="width: 0%" />
+<col style="width: 5%" />
+<col style="width: 5%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 5%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+</colgroup>
+<thead>
+<tr>
+<th colspan="15">START-UP COSTS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="8">Office-Based Agency</td>
+<td colspan="7">Date</td>
+</tr>
+<tr>
+<td><strong>REVENUE</strong></td>
+<td><strong>JAN</strong></td>
+<td><strong>FEB</strong></td>
+<td><strong>MAR</strong></td>
+<td><strong>APR</strong></td>
+<td><strong>MAY</strong></td>
+<td><strong>JUN</strong></td>
+<td colspan="2"><strong>JUL</strong></td>
+<td><strong>AUG</strong></td>
+<td><strong>SEP</strong></td>
+<td><strong>OCT</strong></td>
+<td><strong>NOV</strong></td>
+<td><strong>DEC</strong></td>
+<td><strong>YTD</strong></td>
+</tr>
+<tr>
+<td>Estimated Product Sales</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Less Sales Returns &amp; Discounts</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Service Revenue</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Other Revenue</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Net Sales</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Cost of Goods Sold</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Gross Profit</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>EXPENSES</strong></td>
+<td><strong>JAN</strong></td>
+<td><strong>FEB</strong></td>
+<td><strong>MAR</strong></td>
+<td><strong>APR</strong></td>
+<td><strong>MAY</strong></td>
+<td><strong>JUN</strong></td>
+<td colspan="2"><strong>JUL</strong></td>
+<td><strong>AUG</strong></td>
+<td><strong>SEP</strong></td>
+<td><strong>OCT</strong></td>
+<td><strong>NOV</strong></td>
+<td><strong>DEC</strong></td>
+<td><strong>YTD</strong></td>
+</tr>
+<tr>
+<td>Salaries &amp; Wages</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Marketing/Advertising</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Sales Commissions</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Rent</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Utilities</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Website Expenses</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Internet/Phone</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Insurance</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Travel</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Legal/Accounting</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Office Supplies</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Interest Expense</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Other 1</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Total Expenses</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Income Before Taxes</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Income Tax Expense</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>NET INCOME</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td colspan="15"><blockquote>
+<p>* In the service industry, Cost of Goods Sold is the monetized value
+of the time spent on the client.</p>
+</blockquote></td>
+</tr>
+</tbody>
+</table>
+
+## Instructions for Getting Started on Profit & Loss Projections 
+
+Completing projections for Profit and Loss of a new company is a good
+exercise to understand and communicate when the company will begin to
+break even and see how sales and profits will grow. The top portion of
+the model to the left, Revenue, is a good way to forecast sales, month
+by month for the first year. The lower portion then applies estimated
+expenses for the same period of time to derive the business'
+profitability.
+
+**Steps for preparation:**
+
+- **Step 1:** Enter the company name and the date this projection is
+  being prepared.
+
+- **Step 2:** For each month, beginning in January or whenever the start
+  is estimated, enter the expected sales to be. This could be for a
+  single service or multiple services. Add lines to this model for
+  additional offerings. From this, subtract any product returns or
+  discounts that are to be tracked (these should be shown as negative
+  numbers, for example, -10). Below Net Sales, enter the Cost of Goods
+  Sold. This refers to the monetized value of the time spent on a
+  particular client.
+
+- **Step 3:** For each month, enter the estimated salaries, marketing,
+  utilities, and other items that are projected.
+
+- **Step 4:** Once all of the costs have been entered, review the
+  individual items and total amount to see where projections can be
+  fine-tuned or move something out into the future when more revenue is
+  coming in. The objective is to get to profitability and positive cash
+  flow as quickly as possible.

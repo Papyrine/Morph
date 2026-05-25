@@ -1,0 +1,145 @@
+<table>
+<colgroup>
+<col style="width: 6%" />
+<col style="width: 3%" />
+<col style="width: 15%" />
+<col style="width: 10%" />
+<col style="width: 4%" />
+<col style="width: 31%" />
+<col style="width: 3%" />
+<col style="width: 23%" />
+<col style="width: 1%" />
+</colgroup>
+<tbody>
+<tr>
+<td></td>
+<td colspan="5"><p>NEWSLETTER</p>
+<p><strong>Title Here</strong></p></td>
+<td colspan="3"></td>
+</tr>
+<tr>
+<td></td>
+<td colspan="5">ISSUE NO | MONTH - MONTH YEAR | VOLUME</td>
+<td colspan="3"></td>
+</tr>
+<tr>
+<td></td>
+<td colspan="5" rowspan="3"></td>
+<td colspan="3"><p>Topic 01</p>
+<p>Give us a blurb about a story on page 2. Tell us what to expect and
+what the headline is.</p></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td colspan="3" rowspan="2"><p>Topic 02</p>
+<p>Give us a blurb about a story on page 3. Put a quote from the story
+here to get the audience interested.</p></td>
+</tr>
+<tr>
+<td></td>
+<td colspan="5">Our Services</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td rowspan="2"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td colspan="3">To change any of the text in this document, just click
+on the text you want to update and start typing.</td>
+<td>To change the images in this newsletter, delete the existing image
+and insert a new one in it’s place. You can use the Picture editing
+tools within Word to crop the image to suit.</td>
+<td colspan="3"><p>Topic 03</p>
+<p>Give us a blurb about a story on page 4. Make this your own!</p>
+<p>Give us a blurb about a story on page 4.</p></td>
+</tr>
+</tbody>
+</table>
+
+<table style="width:99%;">
+<colgroup>
+<col style="width: 1%" />
+<col style="width: 6%" />
+<col style="width: 14%" />
+<col style="width: 2%" />
+<col style="width: 9%" />
+<col style="width: 11%" />
+<col style="width: 18%" />
+<col style="width: 4%" />
+<col style="width: 1%" />
+<col style="width: 27%" />
+</colgroup>
+<tbody>
+<tr>
+<td></td>
+<td colspan="8">ISSUE NO | MONTH - MONTH YEAR | VOLUME</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td colspan="4">To change the images in this newsletter, delete the
+existing image and insert a new one in it’s place. You can use the
+Picture editing tools within Word to crop the image to suit.</td>
+<td colspan="5"></td>
+</tr>
+<tr>
+<td></td>
+<td colspan="6"><p>“We don’t merely book your travel; we can help you
+realize your travel dreams if you give us an idea of what kind of
+experience you seek.”</p>
+<p>- Henriette Andersen</p></td>
+<td></td>
+<td colspan="2">To change the images in this newsletter, delete the
+existing image and insert a new one in it’s place. You can use the
+Picture editing tools within Word to crop the image to suit.</td>
+</tr>
+<tr>
+<td></td>
+<td colspan="5"></td>
+<td colspan="4"></td>
+</tr>
+<tr>
+<td></td>
+<td colspan="5">MARGIE’S TRAVEL OFFERS YOU THE FOLLOWING:</td>
+<td colspan="4" rowspan="4"></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td colspan="2"></td>
+</tr>
+<tr>
+<td></td>
+<td colspan="2"><p>01</p>
+<p>Booking for any type of travel</p></td>
+<td></td>
+<td colspan="2"><p>02</p>
+<p>Quick, thorough, knowledgeable responses to calls and
+questions</p></td>
+</tr>
+<tr>
+<td></td>
+<td colspan="2"><p>03</p>
+<p>International services</p></td>
+<td></td>
+<td colspan="2"><p>04</p>
+<p>Resourceful and well-traveled agents</p></td>
+</tr>
+</tbody>
+</table>

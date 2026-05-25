@@ -1,0 +1,84 @@
+<table>
+<colgroup>
+<col style="width: 31%" />
+<col style="width: 3%" />
+<col style="width: 29%" />
+<col style="width: 2%" />
+<col style="width: 32%" />
+</colgroup>
+<tbody>
+<tr>
+<td><h1 id="join-our-team">Join our team</h1>
+<p>If you love the design and layout of this brochure, fantastic! If
+you’d like to change anything, you can make it yours by making a few
+minor design tweaks. Tips on updating specific features are available
+throughout this example text.</p>
+<p>If you think a document that looks this good has to be difficult to
+format, think again! We've created styles that let you match the
+formatting in this brochure with just a click. On the Home tab of the
+ribbon, check out the Styles gallery.</p></td>
+<td></td>
+<td><blockquote>
+<p>“Strive not to be a success, but rather to be of value.”<br />
+- Albert Einstein</p>
+</blockquote></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><p>12 Beacon Street</p>
+<p>Boston, ma 98765</p>
+<p>505-555-0155</p>
+<p>www.contoso.com</p>
+<p>info@contoso.com</p></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+<table>
+<colgroup>
+<col style="width: 31%" />
+<col style="width: 3%" />
+<col style="width: 29%" />
+<col style="width: 2%" />
+<col style="width: 32%" />
+</colgroup>
+<tbody>
+<tr>
+<td><h1 id="our-story">Our story</h1>
+<p>Have other images you wish to use? It is simple to replace any of the
+pictures in this pamphlet. Open the pamphlet in the Desktop App. Click
+twice on the image you wish to change. Images in the background might
+need an extra click as they are part of the background’s grouped images.
+Keep clicking until your selection handles are around the one image you
+wish to replace.</p>
+<p>Once the image you wish to replace is selected, go to “Shape Format”
+&gt; “Shape Fill” &gt; “Picture” and select your new image.</p>
+<p>If you replace a photo with your own and it’s not a flawless fit for
+the space, you can crop it to fit in almost no time. Just select the
+picture and then, on the Picture Format tab, click Crop.</p></td>
+<td></td>
+<td><p>MAKE IT YOURS BY ADDING A SECOND HEADING TITLE HERE</p>
+<p>Don’t be shy! Show them how fabulous you are. List or summarize key
+points here about what you do. And here’s one more tip for the road…</p>
+<p>You might want to mention a few of your most impressive clients
+here:</p>
+<ol type="1">
+<li><p>Big, important company</p></li>
+<li><p>Really well-known company</p></li>
+<li><p>Very impressive company</p></li>
+</ol></td>
+<td></td>
+<td><h1 id="contact-us" class="Heading-1-Space-Above">Contact us</h1>
+<h1 id="section" class="Heading-1-Space-Above"></h1>
+<p>If you think a document that looks this good has to be difficult to
+format, think again! We've created styles that let you match the
+formatting in this brochure with just a click. On the Home tab of the
+ribbon, check out the Styles gallery.</p></td>
+</tr>
+</tbody>
+</table>

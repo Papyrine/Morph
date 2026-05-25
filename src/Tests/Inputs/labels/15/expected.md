@@ -1,0 +1,379 @@
+------------------------------------------------------------------------
+
+<table style="width:98%;">
+<caption>Layout table to enter Name, Street Address, City, State, and
+Zip Code in 80 return address labels per page - when information is
+entered in one label, it automatically updates in all the rest</caption>
+<colgroup>
+<col style="width: 8%" />
+<col style="width: 16%" />
+<col style="width: 8%" />
+<col style="width: 16%" />
+<col style="width: 8%" />
+<col style="width: 16%" />
+<col style="width: 8%" />
+<col style="width: 16%" />
+</colgroup>
+<tbody>
+<tr>
+<td><h2 id="from">from</h2></td>
+<td><h1 id="abigail-jackson">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-1">from</h2></td>
+<td><h1 id="abigail-jackson-1">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-2">from</h2></td>
+<td><h1 id="abigail-jackson-2">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-3">from</h2></td>
+<td><h1 id="abigail-jackson-3">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-4">from</h2></td>
+<td><h1 id="abigail-jackson-4">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-5">from</h2></td>
+<td><h1 id="abigail-jackson-5">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-6">from</h2></td>
+<td><h1 id="abigail-jackson-6">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-7">from</h2></td>
+<td><h1 id="abigail-jackson-7">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-8">from</h2></td>
+<td><h1 id="abigail-jackson-8">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-9">from</h2></td>
+<td><h1 id="abigail-jackson-9">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-10">from</h2></td>
+<td><h1 id="abigail-jackson-10">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-11">from</h2></td>
+<td><h1 id="abigail-jackson-11">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-12">from</h2></td>
+<td><h1 id="abigail-jackson-12">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-13">from</h2></td>
+<td><h1 id="abigail-jackson-13">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-14">from</h2></td>
+<td><h1 id="abigail-jackson-14">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-15">from</h2></td>
+<td><h1 id="abigail-jackson-15">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-16">from</h2></td>
+<td><h1 id="abigail-jackson-16">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-17">from</h2></td>
+<td><h1 id="abigail-jackson-17">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-18">from</h2></td>
+<td><h1 id="abigail-jackson-18">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-19">from</h2></td>
+<td><h1 id="abigail-jackson-19">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-20">from</h2></td>
+<td><h1 id="abigail-jackson-20">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-21">from</h2></td>
+<td><h1 id="abigail-jackson-21">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-22">from</h2></td>
+<td><h1 id="abigail-jackson-22">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-23">from</h2></td>
+<td><h1 id="abigail-jackson-23">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-24">from</h2></td>
+<td><h1 id="abigail-jackson-24">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-25">from</h2></td>
+<td><h1 id="abigail-jackson-25">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-26">from</h2></td>
+<td><h1 id="abigail-jackson-26">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-27">from</h2></td>
+<td><h1 id="abigail-jackson-27">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-28">from</h2></td>
+<td><h1 id="abigail-jackson-28">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-29">from</h2></td>
+<td><h1 id="abigail-jackson-29">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-30">from</h2></td>
+<td><h1 id="abigail-jackson-30">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-31">from</h2></td>
+<td><h1 id="abigail-jackson-31">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-32">from</h2></td>
+<td><h1 id="abigail-jackson-32">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-33">from</h2></td>
+<td><h1 id="abigail-jackson-33">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-34">from</h2></td>
+<td><h1 id="abigail-jackson-34">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-35">from</h2></td>
+<td><h1 id="abigail-jackson-35">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-36">from</h2></td>
+<td><h1 id="abigail-jackson-36">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-37">from</h2></td>
+<td><h1 id="abigail-jackson-37">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-38">from</h2></td>
+<td><h1 id="abigail-jackson-38">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-39">from</h2></td>
+<td><h1 id="abigail-jackson-39">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-40">from</h2></td>
+<td><h1 id="abigail-jackson-40">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-41">from</h2></td>
+<td><h1 id="abigail-jackson-41">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-42">from</h2></td>
+<td><h1 id="abigail-jackson-42">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-43">from</h2></td>
+<td><h1 id="abigail-jackson-43">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-44">from</h2></td>
+<td><h1 id="abigail-jackson-44">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-45">from</h2></td>
+<td><h1 id="abigail-jackson-45">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-46">from</h2></td>
+<td><h1 id="abigail-jackson-46">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-47">from</h2></td>
+<td><h1 id="abigail-jackson-47">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-48">from</h2></td>
+<td><h1 id="abigail-jackson-48">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-49">from</h2></td>
+<td><h1 id="abigail-jackson-49">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-50">from</h2></td>
+<td><h1 id="abigail-jackson-50">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-51">from</h2></td>
+<td><h1 id="abigail-jackson-51">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-52">from</h2></td>
+<td><h1 id="abigail-jackson-52">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-53">from</h2></td>
+<td><h1 id="abigail-jackson-53">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-54">from</h2></td>
+<td><h1 id="abigail-jackson-54">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-55">from</h2></td>
+<td><h1 id="abigail-jackson-55">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-56">from</h2></td>
+<td><h1 id="abigail-jackson-56">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-57">from</h2></td>
+<td><h1 id="abigail-jackson-57">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-58">from</h2></td>
+<td><h1 id="abigail-jackson-58">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-59">from</h2></td>
+<td><h1 id="abigail-jackson-59">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-60">from</h2></td>
+<td><h1 id="abigail-jackson-60">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-61">from</h2></td>
+<td><h1 id="abigail-jackson-61">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-62">from</h2></td>
+<td><h1 id="abigail-jackson-62">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-63">from</h2></td>
+<td><h1 id="abigail-jackson-63">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-64">from</h2></td>
+<td><h1 id="abigail-jackson-64">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-65">from</h2></td>
+<td><h1 id="abigail-jackson-65">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-66">from</h2></td>
+<td><h1 id="abigail-jackson-66">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-67">from</h2></td>
+<td><h1 id="abigail-jackson-67">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-68">from</h2></td>
+<td><h1 id="abigail-jackson-68">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-69">from</h2></td>
+<td><h1 id="abigail-jackson-69">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-70">from</h2></td>
+<td><h1 id="abigail-jackson-70">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-71">from</h2></td>
+<td><h1 id="abigail-jackson-71">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-72">from</h2></td>
+<td><h1 id="abigail-jackson-72">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-73">from</h2></td>
+<td><h1 id="abigail-jackson-73">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-74">from</h2></td>
+<td><h1 id="abigail-jackson-74">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-75">from</h2></td>
+<td><h1 id="abigail-jackson-75">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+<tr>
+<td><h2 id="from-76">from</h2></td>
+<td><h1 id="abigail-jackson-76">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-77">from</h2></td>
+<td><h1 id="abigail-jackson-77">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-78">from</h2></td>
+<td><h1 id="abigail-jackson-78">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+<td><h2 id="from-79">from</h2></td>
+<td><h1 id="abigail-jackson-79">Abigail Jackson</h1>
+<p>4321 N. Broad Street</p>
+<p>Philadelphia, PA 21098</p></td>
+</tr>
+</tbody>
+</table>

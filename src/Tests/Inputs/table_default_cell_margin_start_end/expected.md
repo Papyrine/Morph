@@ -1,0 +1,14 @@
+Table with Office 2010+ start/end default cell margins:
+
+<table>
+<tbody>
+<tr>
+<td>Cell 1,1</td>
+<td>Cell 1,2</td>
+</tr>
+<tr>
+<td>Cell 2,1</td>
+<td>Cell 2,2</td>
+</tr>
+</tbody>
+</table>
