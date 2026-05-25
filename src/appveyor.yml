@@ -6,10 +6,14 @@ environment:
 init:
 - pwsh: |
     if ($isWindows) {
-      choco install pandoc
+      # pandoc + the two PDF engines the reference generator drives (typst and MiKTeX/xelatex)
+      choco install pandoc typst miktex -y
+      refreshenv
+      # Let MiKTeX fetch LaTeX packages on first use so xelatex runs non-interactively
+      try { initexmf --admin --set-config-value "[MPM]AutoInstall=1" } catch { Write-Host "MiKTeX auto-install config skipped" }
     }
     if ($isLinux) {
-      sudo apt-get -yq install pandoc
+      sudo apt-get -yq install pandoc texlive-xetex
     }
 build_script:
 - pwsh: |

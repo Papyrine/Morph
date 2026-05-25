@@ -1,5 +1,3 @@
-using static ExportTestBuilders;
-
 /// <summary>
 /// Low-level tests for <see cref="HtmlExporter"/>. Output is snapshotted; the shape of each case
 /// (which tags wrap which content) was cross-checked against Pandoc's DOCX → HTML behaviour.
@@ -7,7 +5,7 @@ using static ExportTestBuilders;
 public class HtmlExporterTests
 {
     static SettingsTask VerifyHtml(ParsedDocument document) =>
-        Verify(HtmlExporter.Export(document));
+        Verify(new Target("html", HtmlExporter.Export(document)));
 
     [Test]
     public Task Paragraph() =>

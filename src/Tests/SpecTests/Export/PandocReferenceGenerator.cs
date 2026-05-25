@@ -29,25 +29,58 @@ public class PandocReferenceGenerator
                 .Select(_ => _!)
             : ExportScenarioTests.Scenarios();
 
+        // Pandoc shells out to an external engine for PDF. Point at one or more via
+        // MORPH_PANDOC_PDF_ENGINE (comma-separated exe names on PATH or full paths, e.g.
+        // "xelatex,typst"). Each is tried in order until one yields a non-empty PDF — no single
+        // engine handles every document (typst stumbles on extracted images, Pandoc's LaTeX table
+        // writer stumbles on merged cells). Unset → Pandoc's default (pdflatex).
+        var pdfEngines = (Environment.GetEnvironmentVariable("MORPH_PANDOC_PDF_ENGINE") ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
         foreach (var directory in directories)
         {
             var input = Path.Combine(directory, "input.docx");
-            await TryConvert(() => PandocInstance.Convert<DocxIn, HtmlOut>(input, Path.Combine(directory, "expected.html")));
-            await TryConvert(() => PandocInstance.Convert<DocxIn, CommonMarkOut>(input, Path.Combine(directory, "expected.md")));
-            await TryConvert(() => PandocInstance.Convert<DocxIn, PdfOut>(input, Path.Combine(directory, "expected.pdf")));
+            await TryConvert(Path.Combine(directory, "expected.html"), output => PandocInstance.Convert<DocxIn, HtmlOut>(input, output));
+            await TryConvert(Path.Combine(directory, "expected.md"), output => PandocInstance.Convert<DocxIn, CommonMarkOut>(input, output));
+            await ConvertPdf(Path.Combine(directory, "expected.pdf"), input, pdfEngines);
         }
     }
 
-    static async Task TryConvert(Func<Task> convert)
+    static async Task ConvertPdf(string output, string input, string[] engines)
+    {
+        if (engines.Length == 0)
+        {
+            await TryConvert(output, target => PandocInstance.Convert<DocxIn, PdfOut>(input, target));
+            return;
+        }
+
+        foreach (var engine in engines)
+        {
+            await TryConvert(output, target => PandocInstance.Convert<DocxIn, PdfOut>(input, target, outOptions: new() {EnginePath = engine}));
+            if (File.Exists(output))
+            {
+                return;
+            }
+        }
+    }
+
+    static async Task TryConvert(string output, Func<string, Task> convert)
     {
         try
         {
-            await convert();
+            await convert(output);
         }
         catch
         {
-            // A format (typically PDF, which needs a LaTeX engine) may be unavailable on this
-            // machine — skip it rather than aborting the whole seeding pass.
+            // A format (notably PDF, which needs a LaTeX engine Pandoc shells out to) may be
+            // unavailable on this machine — fall through to the empty-file cleanup below.
+        }
+
+        // Pandoc opens the output before invoking its engine, so a failed conversion leaves a
+        // 0-byte file behind. Drop it rather than committing a misleading empty reference.
+        if (File.Exists(output) && new FileInfo(output).Length == 0)
+        {
+            File.Delete(output);
         }
     }
 }

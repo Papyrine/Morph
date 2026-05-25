@@ -542,7 +542,7 @@ sealed class PdfPageRenderer : PageRendererBase
     {
         if (HasOutput)
         {
-            Graphics.DrawLine(new XPen(PdfRenderContext.ParseColor(hexColor), Math.Max(0.4, pixelStrokeWidth)), pixelX1, pixelY, pixelX2, pixelY);
+            Graphics.DrawLine(new(PdfRenderContext.ParseColor(hexColor), Math.Max(0.4, pixelStrokeWidth)), pixelX1, pixelY, pixelX2, pixelY);
         }
     }
 

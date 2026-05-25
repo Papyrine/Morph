@@ -32,6 +32,16 @@ public class PdfConverterTests
     }
 
     [Test]
+    public async Task OutputIsDeterministic()
+    {
+        var input = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "bullet_list", "input.docx");
+        var first = PdfDocumentConverter.ConvertToPdf(input, new() {FontDirectory = fontsDirectory});
+        var second = PdfDocumentConverter.ConvertToPdf(input, new() {FontDirectory = fontsDirectory});
+
+        await Assert.That(second).IsEquivalentTo(first);
+    }
+
+    [Test]
     public async Task MultiPageDocumentPaginates()
     {
         var inputPath = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "agendas-minutes", "02", "input.docx");
