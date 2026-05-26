@@ -1,0 +1,39 @@
+# syntax=docker/dockerfile:1.7
+#
+# Morph test image — produces bit-identical Skia/ImageSharp output across
+# host OSes by pinning a single linux/amd64 .NET 10 SDK environment.
+#
+# This image is intentionally lightweight: source code, NuGet cache, and
+# test output are all volume-mounted from the host at runtime, not baked in.
+# That keeps iteration fast and keeps the image cache hit rate high.
+
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:10.0
+
+# SkiaSharp.NativeAssets.Linux.NoDependencies bundles freetype/expat itself,
+# but .NET globalization (we pin culture to en-AU in ModuleInitializer) still
+# needs ICU at runtime, and fontconfig is required for some text diagnostics
+# even when fonts are loaded explicitly via FontDirectory.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libfontconfig1 \
+        libicu-dev \
+        ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Pin culture at the OS level too so anything that reads LANG matches the
+# en-AU pin in ModuleInitializer.cs:13.
+ENV LANG=en_AU.UTF-8 \
+    LC_ALL=en_AU.UTF-8 \
+    DOTNET_NOLOGO=1 \
+    DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+    DOTNET_GENERATE_ASPNET_CERTIFICATE=false \
+    NUGET_PACKAGES=/nuget \
+    DOTNET_NUGET_SIGNATURE_VERIFICATION=false \
+    # Verify uses this to skip launching the local diff tool on test failure.
+    Verify_DisableDiff=true
+
+WORKDIR /src
+
+# No COPY of source — the wrapper script mounts the working tree as a volume.
+# Default command runs the full scenario + spec suite.
+CMD ["dotnet", "run", "--project", "src/Tests", "--configuration", "Release"]
