@@ -9,22 +9,17 @@
 
 FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:10.0
 
-# SkiaSharp.NativeAssets.Linux.NoDependencies bundles freetype/expat itself,
-# but .NET globalization (we pin culture to en-AU in ModuleInitializer) still
-# needs ICU at runtime, and fontconfig is required for some text diagnostics
-# even when fonts are loaded explicitly via FontDirectory.
+# SkiaSharp.NativeAssets.Linux.NoDependencies bundles freetype/expat itself.
+# The .NET SDK image already ships with ICU, so we only need to add fontconfig
+# (required by some text diagnostics even when fonts are loaded explicitly
+# via FontDirectory).
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libfontconfig1 \
-        libicu-dev \
         ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Pin culture at the OS level too so anything that reads LANG matches the
-# en-AU pin in ModuleInitializer.cs:13.
-ENV LANG=en_AU.UTF-8 \
-    LC_ALL=en_AU.UTF-8 \
-    DOTNET_NOLOGO=1 \
+ENV DOTNET_NOLOGO=1 \
     DOTNET_CLI_TELEMETRY_OPTOUT=1 \
     DOTNET_GENERATE_ASPNET_CERTIFICATE=false \
     NUGET_PACKAGES=/nuget \
