@@ -26,3 +26,6 @@ docs/
 tools/
 readme.md
 license.txt
+
+# Test inputs are bind-mounted at runtime, not needed in the image
+src/Tests/Inputs/

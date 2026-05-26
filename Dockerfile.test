@@ -11,13 +11,22 @@ FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:10.0
 
 # SkiaSharp.NativeAssets.Linux.NoDependencies bundles freetype/expat itself.
 # The .NET SDK image already ships with ICU, so we only need to add fontconfig
-# (required by some text diagnostics even when fonts are loaded explicitly
-# via FontDirectory).
+# (libfontconfig1 for Skia's text path; the `fontconfig` package adds fc-cache
+# which we run below to index the bundled fonts).
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libfontconfig1 \
+        fontconfig \
         ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+# Install the repo's bundled fonts at the standard Linux system path so tests
+# that don't pass ConversionOptions.FontDirectory (concurrency tests and the
+# FontResolution / FontStyleFromName spec tests) can still resolve fonts via
+# the default lookup. Scenario tests use FontDirectory exclusively and ignore
+# system fonts, so this does not change rendered output.
+COPY src/Fonts /usr/share/fonts/morph
+RUN fc-cache -f /usr/share/fonts/morph
 
 ENV DOTNET_NOLOGO=1 \
     DOTNET_CLI_TELEMETRY_OPTOUT=1 \
