@@ -50,3 +50,16 @@ jobs:
             src/Tests/Inputs/**/*.received.*
           if-no-files-found: ignore
           retention-days: 14
+
+      # The test build incidentally produces release nupkgs in ./nugets
+      # (every Morph.* project has IsPackable=true). Upload them only
+      # when the suite passes so a downloadable artifact corresponds to
+      # a green test run.
+      - name: Upload NuGet packages on success
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nupkgs
+          path: nugets/*.nupkg
+          if-no-files-found: warn
+          retention-days: 30
