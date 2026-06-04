@@ -50,15 +50,24 @@ public class PdfConverterTests
     [Test]
     public async Task ImageWithUndecodableFallbackIsSkippedNotThrown()
     {
-        var svg = Encoding.UTF8.GetBytes(
-            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"10\" height=\"10\"><rect width=\"10\" height=\"10\" /></svg>");
+        var svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"10\" height=\"10\"><rect width=\"10\" height=\"10\" /></svg>"u8.ToArray();
 
         var document = new ParsedDocument
         {
             PageSettings = new(),
             Elements =
             [
-                new ParagraphElement {Runs = [new() {Text = "anchor"}], Properties = new()},
+                new ParagraphElement
+                {
+                    Runs =
+                    [
+                        new()
+                        {
+                            Text = "anchor"
+                        }
+                    ],
+                    Properties = new()
+                },
                 new FloatingImageElement
                 {
                     ImageData = svg,
@@ -71,7 +80,12 @@ public class PdfConverterTests
             ]
         };
 
-        var pdf = PdfRenderer.Render(document, new() {FontDirectory = fontsDirectory});
+        var pdf = PdfRenderer.Render(
+            document,
+            new()
+            {
+                FontDirectory = fontsDirectory
+            });
 
         await Assert.That(pdf.Length).IsGreaterThan(1000);
         await Assert.That(Encoding.ASCII.GetString(pdf, 0, 5)).IsEqualTo("%PDF-");
@@ -86,7 +100,12 @@ public class PdfConverterTests
             return;
         }
 
-        var pdf = PdfDocumentConverter.ConvertToPdf(inputPath, new() {FontDirectory = fontsDirectory});
+        var pdf = PdfDocumentConverter.ConvertToPdf(
+            inputPath,
+            new()
+            {
+                FontDirectory = fontsDirectory
+            });
 
         using var document = PdfSharp.Pdf.IO.PdfReader.Open(new MemoryStream(pdf), PdfSharp.Pdf.IO.PdfDocumentOpenMode.Import);
         await Assert.That(document.PageCount).IsGreaterThanOrEqualTo(2);

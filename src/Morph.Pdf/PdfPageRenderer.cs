@@ -19,7 +19,7 @@ sealed class PdfPageRenderer : PageRendererBase
     bool currentPageFromExplicitBreak;
 
     /// <summary>Receives notices about elements the backend couldn't render. Set from
-    /// <see cref="PdfExportOptions.OnWarning"/>.</summary>
+    /// <see cref="ExportOptions.OnWarning"/>.</summary>
     public Action<ExportWarning>? OnWarning { get; init; }
 
     public PdfPageRenderer(PdfRenderContext context) : base(context)

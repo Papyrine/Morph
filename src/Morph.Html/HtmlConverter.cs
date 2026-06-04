@@ -1,8 +1,8 @@
 namespace Morph;
 
 /// <summary>
-/// Abstract base for the HTML → raster converters (<see cref="SkiaHtmlConverter"/> and
-/// <see cref="ImageSharpHtmlConverter"/>). Also exposes the backend-free text exporters
+/// Abstract base for the HTML → raster converters (<c>SkiaHtmlConverter</c> and
+/// <c>ImageSharpHtmlConverter</c>). Also exposes the backend-free text exporters
 /// (<see cref="ConvertToHtml(string, HtmlExportOptions?, Cancel)"/> for re-serialization and
 /// <see cref="ConvertToMarkdown(string, MarkdownExportOptions?, Cancel)"/> for conversion).
 /// For multi-format export from a single parse, see <see cref="HtmlDocument"/>.
