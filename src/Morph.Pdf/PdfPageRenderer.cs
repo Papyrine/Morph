@@ -614,9 +614,11 @@ sealed class PdfPageRenderer : PageRendererBase
 
     void DrawRaster(byte[] data, string? contentType, byte[]? fallbackData, string? fallbackContentType, double x, double y, double width, double height)
     {
-        if (contentType == "image/svg+xml")
+        // PDFsharp can't decode SVG (see CanRenderContentType); fall back to the raster blip behind
+        // it, but only if that fallback is itself something we can decode.
+        if (!CanRenderContentType(contentType))
         {
-            if (fallbackData == null)
+            if (fallbackData == null || !CanRenderContentType(fallbackContentType))
             {
                 return;
             }
@@ -624,15 +626,8 @@ sealed class PdfPageRenderer : PageRendererBase
             data = fallbackData;
         }
 
-        try
-        {
-            using var stream = new MemoryStream(data);
-            var image = XImage.FromStream(stream);
-            Graphics.DrawImage(image, x, y, width, height);
-        }
-        catch
-        {
-            // Unsupported raster format — skip rather than fail the whole document.
-        }
+        using var stream = new MemoryStream(data);
+        var image = XImage.FromStream(stream);
+        Graphics.DrawImage(image, x, y, width, height);
     }
 }

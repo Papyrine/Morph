@@ -146,7 +146,7 @@ static class DocumentExportHelpers
             if (merged.Count > 0 && CanMerge(merged[^1], run))
             {
                 var previous = merged[^1];
-                merged[^1] = new Run
+                merged[^1] = new()
                 {
                     Text = previous.Text + run.Text,
                     Properties = previous.Properties,

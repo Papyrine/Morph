@@ -138,7 +138,7 @@ public class Samples
         Directory.CreateDirectory("media");
         var html = DocumentConverter.ConvertToHtml(
             "document.docx",
-            new HtmlExportOptions
+            new()
             {
                 ImageHandler = image =>
                 {
@@ -166,7 +166,7 @@ public class Samples
         var warnings = new List<ExportWarning>();
         var html = DocumentConverter.ConvertToHtml(
             "document.docx",
-            new HtmlExportOptions
+            new()
             {
                 OnWarning = warning => warnings.Add(warning)
             });
@@ -186,7 +186,10 @@ public class Samples
         // Render only the first three pages of the document.
         var firstThreePages = PdfDocumentConverter.ConvertToPdf(
             "document.docx",
-            new PdfExportOptions {Pages = new(Start: 1, End: 3)});
+            new()
+            {
+                Pages = new(Start: 1, End: 3)
+            });
 
         File.WriteAllBytes("document-preview.pdf", firstThreePages);
 

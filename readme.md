@@ -270,7 +270,7 @@ By default Morph inlines images as base64 data URIs. Pass an `ImageHandler` to w
 Directory.CreateDirectory("media");
 var html = DocumentConverter.ConvertToHtml(
     "document.docx",
-    new HtmlExportOptions
+    new()
     {
         ImageHandler = image =>
         {
@@ -302,7 +302,7 @@ Some source features can't always be represented in the chosen output (ink strok
 var warnings = new List<ExportWarning>();
 var html = DocumentConverter.ConvertToHtml(
     "document.docx",
-    new HtmlExportOptions
+    new()
     {
         OnWarning = warning => warnings.Add(warning)
     });
@@ -326,11 +326,14 @@ Render only specific pages — useful for previews / thumbnails.
 // Render only the first three pages of the document.
 var firstThreePages = PdfDocumentConverter.ConvertToPdf(
     "document.docx",
-    new PdfExportOptions {Pages = new(Start: 1, End: 3)});
+    new()
+    {
+        Pages = new(Start: 1, End: 3)
+    });
 
 File.WriteAllBytes("document-preview.pdf", firstThreePages);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L184-L193' title='Snippet source file'>snippet source</a> | <a href='#snippet-PdfPageRange' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L184-L196' title='Snippet source file'>snippet source</a> | <a href='#snippet-PdfPageRange' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 

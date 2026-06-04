@@ -27,7 +27,7 @@ public class PdfConverterTests
 
         await Assert.That(pdf.Length).IsGreaterThan(1000);
         // Every PDF starts with the "%PDF-" header.
-        var header = System.Text.Encoding.ASCII.GetString(pdf, 0, 5);
+        var header = Encoding.ASCII.GetString(pdf, 0, 5);
         await Assert.That(header).IsEqualTo("%PDF-");
     }
 
@@ -39,6 +39,42 @@ public class PdfConverterTests
         var second = PdfDocumentConverter.ConvertToPdf(input, new() {FontDirectory = fontsDirectory});
 
         await Assert.That(second).IsEquivalentTo(first);
+    }
+
+    /// <summary>
+    /// When an image's primary content type is one PdfSharp can't decode (SVG) <em>and</em> its
+    /// raster fallback is equally undecodable, <c>PdfPageRenderer.DrawRaster</c> must skip the image
+    /// rather than hand the bytes to <c>XImage.FromStream</c> — which throws. Regression guard for
+    /// the fallback check; without it this render throws instead of producing a PDF.
+    /// </summary>
+    [Test]
+    public async Task ImageWithUndecodableFallbackIsSkippedNotThrown()
+    {
+        var svg = Encoding.UTF8.GetBytes(
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"10\" height=\"10\"><rect width=\"10\" height=\"10\" /></svg>");
+
+        var document = new ParsedDocument
+        {
+            PageSettings = new(),
+            Elements =
+            [
+                new ParagraphElement {Runs = [new() {Text = "anchor"}], Properties = new()},
+                new FloatingImageElement
+                {
+                    ImageData = svg,
+                    ContentType = "image/svg+xml",
+                    RasterFallbackData = svg,
+                    RasterFallbackContentType = "image/svg+xml",
+                    WidthPoints = 50,
+                    HeightPoints = 50
+                }
+            ]
+        };
+
+        var pdf = PdfRenderer.Render(document, new() {FontDirectory = fontsDirectory});
+
+        await Assert.That(pdf.Length).IsGreaterThan(1000);
+        await Assert.That(Encoding.ASCII.GetString(pdf, 0, 5)).IsEqualTo("%PDF-");
     }
 
     [Test]

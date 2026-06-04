@@ -1,6 +1,3 @@
-using System.Globalization;
-using System.Net;
-
 namespace Morph;
 
 /// <summary>
@@ -26,7 +23,7 @@ static class HtmlExporter
     /// once via the <c>&lt;style&gt;</c> block — rather than repeating them as inline styles on every
     /// element — keeps the individual elements clean.
     /// </summary>
-    const string DefaultStylesheet = """
+    const string defaultStylesheet = """
         body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; padding: 8pt; color: #000; }
         p { margin: 0 0 8pt; }
         h1, h2, h3, h4, h5, h6 { margin: 12pt 0 8pt; font-weight: bold; }
@@ -63,7 +60,7 @@ static class HtmlExporter
 
         var doc = new StringBuilder();
         doc.Append("<!doctype html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n<style>\n");
-        doc.Append(DefaultStylesheet);
+        doc.Append(defaultStylesheet);
         doc.Append("\n</style>\n</head>\n<body");
 
         var bodyStyle = new List<string>();
@@ -156,7 +153,7 @@ static class HtmlExporter
     {
         // Mirrors the body font-size in DefaultStylesheet — runs at this size inherit it and need no
         // inline override.
-        const double DefaultBodyFontSizePoints = 11;
+        const double defaultBodyFontSizePoints = 11;
 
         readonly StringBuilder builder = new();
         readonly HashSet<string> usedHeadingIds = [];
@@ -677,7 +674,7 @@ static class HtmlExporter
             // also recovers cases where a heading-styled paragraph carries a direct font-size that
             // shrinks (or grows) it away from the stylesheet's heading size — e.g. contact lines
             // styled Heading 1 but sized down to body text.
-            var hasFontSize = Math.Abs(properties.FontSizePoints - DefaultBodyFontSizePoints) > 0.01 &&
+            var hasFontSize = Math.Abs(properties.FontSizePoints - defaultBodyFontSizePoints) > 0.01 &&
                               properties.FontSizePoints > 0;
 
             // Headings are bold by default in the stylesheet; a non-bold run inside one (a "Prepared
@@ -689,8 +686,11 @@ static class HtmlExporter
             var hasFont = !string.IsNullOrEmpty(properties.FontFamily) &&
                           !string.Equals(properties.FontFamily, bodyFont, StringComparison.OrdinalIgnoreCase);
 
-            if (color == null && background == null && !properties.SmallCaps && !properties.AllCaps &&
-                !hasFontSize && !overrideWeight && !hasFont)
+            if (color == null &&
+                background == null &&
+                properties is {SmallCaps: false, AllCaps: false} &&
+                !hasFontSize &&
+                !overrideWeight && !hasFont)
             {
                 return null;
             }
@@ -743,7 +743,7 @@ static class HtmlExporter
             var index = imageIndex++;
             if (options.ImageHandler != null)
             {
-                return options.ImageHandler(new EmbeddedImage(data, contentType, widthPoints, heightPoints, index));
+                return options.ImageHandler(new(data, contentType, widthPoints, heightPoints, index));
             }
 
             if (options.EmbedImagesAsBase64)

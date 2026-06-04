@@ -377,7 +377,7 @@ static class MarkdownExporter
             string source;
             if (options.ImageHandler != null)
             {
-                source = options.ImageHandler(new EmbeddedImage(data, contentType, widthPoints, heightPoints, index));
+                source = options.ImageHandler(new(data, contentType, widthPoints, heightPoints, index));
             }
             else
             {

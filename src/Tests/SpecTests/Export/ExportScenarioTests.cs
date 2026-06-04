@@ -27,12 +27,12 @@ public class ExportScenarioTests
     {
         var html = DocumentConverter.ConvertToHtml(Path.Combine(directory, "input.docx"));
         var png = await BrowserScreenshot.RenderHtmlAsync(html);
+        Target[] targets = [
+            new("html", html),
+            new("png", new MemoryStream(png))
+        ];
         await Verify(
-                new[]
-                {
-                    new Target("html", html),
-                    new Target("png", new MemoryStream(png))
-                })
+            targets)
             .UseDirectory(directory)
             .UseFileName("html_result")
             .IgnoreParameters();
@@ -44,12 +44,13 @@ public class ExportScenarioTests
     {
         var markdown = DocumentConverter.ConvertToMarkdown(Path.Combine(directory, "input.docx"));
         var png = await BrowserScreenshot.RenderMarkdownAsync(markdown);
+        var targets = new[]
+        {
+            new Target("md", markdown),
+            new Target("png", new MemoryStream(png))
+        };
         await Verify(
-                new[]
-                {
-                    new Target("md", markdown),
-                    new Target("png", new MemoryStream(png))
-                })
+                targets)
             .UseDirectory(directory)
             .UseFileName("md_result")
             .IgnoreParameters();
@@ -60,7 +61,10 @@ public class ExportScenarioTests
     public async Task PdfOutput(string directory)
     {
         var input = Path.Combine(directory, "input.docx");
-        var pdf = PdfDocumentConverter.ConvertToPdf(input, new() {FontDirectory = fontsDirectory});
+        var pdf = PdfDocumentConverter.ConvertToPdf(input, new()
+        {
+            FontDirectory = fontsDirectory
+        });
 
         // Snapshotted as raw bytes — not via Verify, whose ImageMagick plugin would rasterize a
         // "pdf" target to PNG (pulling in a Ghostscript dependency). PdfRenderer makes the bytes

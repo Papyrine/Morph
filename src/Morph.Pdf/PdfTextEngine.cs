@@ -132,7 +132,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             {
                 penX += Math.Max(0, availableWidth - line.Width);
             }
-            else if (alignment == TextAlignment.Justify && !line.IsLast && line.SpaceCount > 0)
+            else if (alignment == TextAlignment.Justify && line is {IsLast: false, SpaceCount: > 0})
             {
                 extraSpace = Math.Max(0, availableWidth - line.Width) / line.SpaceCount;
             }
@@ -143,11 +143,11 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 markerDrawn = true;
                 if (graphics != null)
                 {
-                    var firstProperties = paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new RunProperties();
+                    var firstProperties = paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new();
                     var markerFont = context.GetFont(firstProperties.FontFamily, firstProperties.Bold, false, firstProperties.FontSizePoints);
                     var markerText = numbering.Text;
                     var markerWidth = measure.MeasureString(markerText, markerFont).Width;
-                    graphics.DrawString(markerText, markerFont, XBrushes.Black, new XPoint(penX - markerWidth - 3, baseline), BaselineFormat);
+                    graphics.DrawString(markerText, markerFont, XBrushes.Black, new XPoint(penX - markerWidth - 3, baseline), baselineFormat);
                 }
             }
 
@@ -192,7 +192,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         }
 
         var brush = new XSolidBrush(PdfRenderContext.ParseColor(properties.ColorHex));
-        graphics.DrawString(item.Text!, item.Font, brush, new XPoint(penX, drawBaseline), BaselineFormat);
+        graphics.DrawString(item.Text!, item.Font, brush, new XPoint(penX, drawBaseline), baselineFormat);
 
         if (properties.Underline)
         {
@@ -228,7 +228,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         }
     }
 
-    static readonly XStringFormat BaselineFormat = new()
+    static readonly XStringFormat baselineFormat = new()
     {
         Alignment = XStringAlignment.Near,
         LineAlignment = XLineAlignment.BaseLine
@@ -309,16 +309,17 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                     Flush();
                 }
 
-                Account(new LineItem
-                {
-                    IsImage = true,
-                    ImageData = data,
-                    ImageWidth = width,
-                    ImageHeight = height,
-                    Width = width,
-                    Ascent = height,
-                    Height = height
-                });
+                Account(
+                    new()
+                    {
+                        IsImage = true,
+                        ImageData = data,
+                        ImageWidth = width,
+                        ImageHeight = height,
+                        Width = width,
+                        Ascent = height,
+                        Height = height
+                    });
                 continue;
             }
 
@@ -357,16 +358,17 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 }
                 else if (pendingSpaceWidth > 0 && current.Items.Count > 0)
                 {
-                    Account(new LineItem
-                    {
-                        Text = " ",
-                        Props = pendingSpaceProps ?? run.Properties,
-                        Font = pendingSpaceFont ?? font,
-                        Width = pendingSpaceWidth,
-                        IsSpace = true,
-                        Ascent = Ascent(pendingSpaceFont ?? font),
-                        Height = (pendingSpaceFont ?? font).GetHeight() * multiplier
-                    });
+                    Account(
+                        new()
+                        {
+                            Text = " ",
+                            Props = pendingSpaceProps ?? run.Properties,
+                            Font = pendingSpaceFont ?? font,
+                            Width = pendingSpaceWidth,
+                            IsSpace = true,
+                            Ascent = Ascent(pendingSpaceFont ?? font),
+                            Height = (pendingSpaceFont ?? font).GetHeight() * multiplier
+                        });
                     current.SpaceCount++;
                 }
 
@@ -374,15 +376,16 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 pendingSpaceFont = null;
                 pendingSpaceProps = null;
 
-                Account(new LineItem
-                {
-                    Text = token.Text,
-                    Props = run.Properties,
-                    Font = font,
-                    Width = wordWidth,
-                    Ascent = ascent,
-                    Height = lineHeight
-                });
+                Account(
+                    new()
+                    {
+                        Text = token.Text,
+                        Props = run.Properties,
+                        Font = font,
+                        Width = wordWidth,
+                        Ascent = ascent,
+                        Height = lineHeight
+                    });
             }
         }
 

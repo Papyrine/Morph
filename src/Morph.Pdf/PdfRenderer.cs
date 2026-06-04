@@ -1,6 +1,3 @@
-using System.Text;
-using System.Text.RegularExpressions;
-
 namespace Morph;
 
 /// <summary>
@@ -74,7 +71,7 @@ static class PdfRenderer
     // patterns are tightly anchored so the binary (FlateDecode) streams are never touched; Latin1
     // round-trips every byte losslessly.
     static readonly Regex subsetTagPattern = new(@"(/BaseFont|/FontName)/([A-Z]{6})\+", RegexOptions.Compiled);
-    static readonly Regex xmpUuidPattern = new(@"uuid:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}", RegexOptions.Compiled);
+    static readonly Regex xmpUuidPattern = new("uuid:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}", RegexOptions.Compiled);
     const string fixedUuid = "uuid:00000000-0000-0000-0000-000000000000";
 
     static byte[] Normalize(byte[] pdf)
