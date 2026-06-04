@@ -1,25 +1,167 @@
+using System.Globalization;
 using System.Net;
 
 namespace Morph;
 
 /// <summary>
-/// Serializes a <see cref="ParsedDocument"/> to a semantic HTML fragment (body-level content, no
-/// <c>&lt;html&gt;</c> wrapper), mirroring the structure Pandoc produces for DOCX → HTML: headings,
-/// paragraphs, ordered/unordered lists, tables, images (as data URIs), links and inline formatting.
+/// Serializes a <see cref="ParsedDocument"/> to HTML. By default emits a full self-contained
+/// <c>&lt;!doctype html&gt;</c> document with an embedded stylesheet of Word-like defaults
+/// (Calibri 11pt body, sized headings, paragraph margins, table padding) so the output renders
+/// close to Word in any browser without inline CSS on every element. Set
+/// <see cref="HtmlExportOptions.EmitDocument"/> to <c>false</c> to get just the body-level fragment.
+///
+/// Inline content uses semantic tags — <c>&lt;strong&gt;</c>, <c>&lt;em&gt;</c>,
+/// <c>&lt;u&gt;</c>, <c>&lt;s&gt;</c>, <c>&lt;sup&gt;</c>, <c>&lt;sub&gt;</c>,
+/// <c>&lt;h1&gt;</c>-<c>&lt;h6&gt;</c>, <c>&lt;a&gt;</c>, <c>&lt;th&gt;</c>; <c>&lt;span
+/// style="…"&gt;</c> appears only for ad-hoc per-run overrides (custom colour, small-caps,
+/// all-caps text-transform, etc.).
 /// </summary>
 static class HtmlExporter
 {
-    public static string Export(ParsedDocument document)
+    /// <summary>
+    /// Embedded stylesheet of Word-like defaults. Body picks up Calibri 11pt with 1.08 line-height
+    /// (Word's "Normal" style); headings get the standard h1=24pt, h2=18pt, h3=14pt, h4=12pt-italic,
+    /// h5=11pt, h6=11pt-italic sizes; paragraphs and lists get 8pt bottom margin; tables collapse
+    /// borders with light grey 0.5pt cells; horizontal rules get a thin grey line. Applying these
+    /// once via the <c>&lt;style&gt;</c> block — rather than repeating them as inline styles on every
+    /// element — keeps the individual elements clean.
+    /// </summary>
+    const string DefaultStylesheet = """
+        body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; padding: 8pt; color: #000; }
+        p { margin: 0 0 8pt; }
+        h1, h2, h3, h4, h5, h6 { margin: 12pt 0 8pt; font-weight: bold; }
+        h1 { font-size: 24pt; }
+        h2 { font-size: 18pt; }
+        h3 { font-size: 14pt; }
+        h4 { font-size: 12pt; font-style: italic; }
+        h5 { font-size: 11pt; }
+        h6 { font-size: 11pt; font-style: italic; }
+        ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+        li { margin: 0; }
+        table { border-collapse: collapse; margin: 0 0 8pt; }
+        td, th { padding: 4pt 7pt; vertical-align: top; }
+        hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+        """;
+
+    public static string Export(ParsedDocument document, HtmlExportOptions? options = null)
     {
-        var writer = new HtmlWriter();
+        options ??= new();
+
+        // The document's dominant font (by character count) anchors the <body>; individual runs
+        // only carry a font-family when they deviate from it. This mirrors how Word's own HTML
+        // export structures fonts — one body default plus sparse per-run overrides — instead of
+        // tagging every run with the same family.
+        var bodyFont = DominantFont(document.Elements);
+        var writer = new HtmlWriter(options, bodyFont, document.PageSettings);
         writer.WriteElements(document.Elements, 0);
-        return writer.ToString();
+        var body = writer.ToString();
+
+        if (!options.EmitDocument)
+        {
+            return body;
+        }
+
+        var doc = new StringBuilder();
+        doc.Append("<!doctype html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n<style>\n");
+        doc.Append(DefaultStylesheet);
+        doc.Append("\n</style>\n</head>\n<body");
+
+        var bodyStyle = new List<string>();
+        if (bodyFont != null)
+        {
+            bodyStyle.Add($"font-family: {CssFontFamily(bodyFont)}, sans-serif");
+        }
+
+        // Background shapes are emitted as absolutely-positioned <svg> children; they resolve their
+        // top/left against the body, so the body must be a positioning context.
+        if (document.Elements.OfType<FloatingShapeElement>().Any())
+        {
+            bodyStyle.Add("position: relative");
+        }
+
+        // A document-level page background (w:background) becomes the body background so the page
+        // colour survives — many template documents (resumes, brochures) rely on it.
+        var pageBackground = DocumentExportHelpers.NormalizeColor(document.PageSettings.BackgroundColorHex);
+        if (pageBackground != null)
+        {
+            bodyStyle.Add($"background-color: {pageBackground}");
+        }
+
+        if (bodyStyle.Count > 0)
+        {
+            doc.Append(" style=\"").Append(string.Join("; ", bodyStyle)).Append('"');
+        }
+
+        doc.Append(">\n");
+        doc.Append(body);
+        doc.Append("</body>\n</html>");
+        return doc.ToString();
     }
 
-    sealed class HtmlWriter
+    /// <summary>
+    /// The most-used run font in the document, weighted by text length so a long body in one font
+    /// wins over a few short headings in another. Returns null for a document with no text runs.
+    /// </summary>
+    static string? DominantFont(IReadOnlyList<DocumentElement> elements)
     {
+        var weights = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+        AccumulateFontWeights(elements, weights);
+        return weights.Count == 0
+            ? null
+            : weights.OrderByDescending(_ => _.Value).ThenBy(_ => _.Key, StringComparer.Ordinal).First().Key;
+    }
+
+    static void AccumulateFontWeights(IReadOnlyList<DocumentElement> elements, Dictionary<string, long> weights)
+    {
+        foreach (var element in elements)
+        {
+            switch (element)
+            {
+                case ParagraphElement paragraph:
+                    foreach (var run in paragraph.Runs)
+                    {
+                        if (run.Properties.Hidden || run.IsTab || string.IsNullOrEmpty(run.Text) ||
+                            string.IsNullOrEmpty(run.Properties.FontFamily))
+                        {
+                            continue;
+                        }
+
+                        weights.TryGetValue(run.Properties.FontFamily, out var current);
+                        weights[run.Properties.FontFamily] = current + run.Text.Length;
+                    }
+
+                    break;
+                case TableElement table:
+                    foreach (var row in table.Rows)
+                    {
+                        foreach (var cell in row.Cells)
+                        {
+                            AccumulateFontWeights(cell.Content, weights);
+                        }
+                    }
+
+                    break;
+                case FloatingTextBoxElement textBox:
+                    AccumulateFontWeights(textBox.Content, weights);
+                    break;
+            }
+        }
+    }
+
+    // CSS font-family values containing whitespace must be quoted (e.g. 'Calibri Light'); single
+    // identifiers (Calibri) are left bare. Family names never contain quotes in practice.
+    static string CssFontFamily(string font) => font.Contains(' ') ? $"'{font}'" : font;
+
+    sealed class HtmlWriter(HtmlExportOptions options, string? bodyFont, PageSettings pageSettings)
+    {
+        // Mirrors the body font-size in DefaultStylesheet — runs at this size inherit it and need no
+        // inline override.
+        const double DefaultBodyFontSizePoints = 11;
+
         readonly StringBuilder builder = new();
         readonly HashSet<string> usedHeadingIds = [];
+        int imageIndex;
+        int shapeIndex;
 
         public override string ToString() => builder.ToString();
 
@@ -94,8 +236,16 @@ static class HtmlExporter
                 case CheckBoxFormFieldElement checkBox:
                     WriteTextParagraph(checkBox.Checked ? "☑" : "☐", depth);
                     break;
-                // PageBreak / ColumnBreak / SectionBreak / LineBreak / Ink / FloatingShape have no
-                // semantic representation in reflowable HTML and are intentionally omitted.
+                case FloatingShapeElement shape:
+                    WriteShape(shape, depth);
+                    break;
+                case InkElement:
+                    options.OnWarning?.Invoke(new(WarningKind.UnsupportedElement,
+                        $"{element.GetType().Name} cannot be represented in reflowable HTML and was dropped."));
+                    break;
+                // PageBreak / ColumnBreak / SectionBreak / LineBreak have no semantic representation
+                // in reflowable HTML and are intentionally omitted (no warning — they're flow hints,
+                // not content).
             }
         }
 
@@ -117,7 +267,7 @@ static class HtmlExporter
                 }
 
                 builder.Append('>');
-                AppendInline(paragraph.Runs);
+                AppendInline(paragraph.Runs, inHeading: true);
                 builder.Append("</h").Append(level).Append(">\n");
                 return;
             }
@@ -263,6 +413,12 @@ static class HtmlExporter
                     builder.Append(" rowspan=\"").Append(rowSpan).Append('"');
                 }
 
+                var cellStyle = CellStyle(cell.Properties);
+                if (cellStyle != null)
+                {
+                    builder.Append(" style=\"").Append(cellStyle).Append('"');
+                }
+
                 builder.Append('>');
                 AppendCellContent(cell.Content);
                 builder.Append("</").Append(tag).Append(">\n");
@@ -270,6 +426,38 @@ static class HtmlExporter
             }
 
             Indent(depth).Append("</tr>\n");
+        }
+
+        // Per-cell layout that the shared stylesheet can't express: explicit column width, shading,
+        // and a non-default vertical alignment. Top alignment is the td/th stylesheet default, so
+        // only middle/bottom are emitted.
+        static string? CellStyle(TableCellProperties properties)
+        {
+            var parts = new List<string>();
+
+            if (properties.WidthPoints is > 0)
+            {
+                parts.Add($"width: {properties.WidthPoints.Value.ToString("0.##", CultureInfo.InvariantCulture)}pt");
+            }
+
+            var background = DocumentExportHelpers.NormalizeColor(properties.BackgroundColorHex);
+            if (background != null)
+            {
+                parts.Add($"background-color: {background}");
+            }
+
+            var verticalAlign = properties.VerticalAlignment switch
+            {
+                CellVerticalAlignment.Center => "middle",
+                CellVerticalAlignment.Bottom => "bottom",
+                _ => null
+            };
+            if (verticalAlign != null)
+            {
+                parts.Add($"vertical-align: {verticalAlign}");
+            }
+
+            return parts.Count == 0 ? null : string.Join("; ", parts);
         }
 
         static int ComputeRowSpan(IReadOnlyList<TableRow> rows, int startRow, int gridColumn)
@@ -308,31 +496,49 @@ static class HtmlExporter
 
         void AppendCellContent(IReadOnlyList<DocumentElement> content)
         {
-            var first = true;
+            // Cell paragraphs render inline (separated by <br />) except heading-styled ones, which
+            // emit as real <hN> blocks (matches Pandoc's "<td><h1>SCHEDULE</h1></td>" treatment of a
+            // heading inside a table cell). Headings being block-level also mean no <br /> is needed
+            // either side of them.
+            var separatorPending = false;
             foreach (var element in content)
             {
-                if (element is not ParagraphElement paragraph)
+                if (element is not ParagraphElement paragraph || DocumentExportHelpers.IsBlank(paragraph))
                 {
                     continue;
                 }
 
-                if (DocumentExportHelpers.IsBlank(paragraph))
+                var level = DocumentExportHelpers.TryGetHeadingLevel(paragraph.Properties);
+                if (level != null)
                 {
-                    continue;
-                }
+                    var id = UniqueHeadingId(PlainText(paragraph.Runs));
+                    builder.Append("<h").Append(level);
+                    if (id.Length > 0)
+                    {
+                        builder.Append(" id=\"").Append(EncodeAttribute(id)).Append('"');
+                    }
 
-                if (!first)
+                    builder.Append('>');
+                    AppendInline(paragraph.Runs, inHeading: true);
+                    builder.Append("</h").Append(level).Append('>');
+                    separatorPending = false;
+                }
+                else
                 {
-                    builder.Append("<br />");
-                }
+                    if (separatorPending)
+                    {
+                        builder.Append("<br />");
+                    }
 
-                AppendInline(paragraph.Runs);
-                first = false;
+                    AppendInline(paragraph.Runs);
+                    separatorPending = true;
+                }
             }
         }
 
-        void AppendInline(IReadOnlyList<Run> runs)
+        void AppendInline(IReadOnlyList<Run> sourceRuns, bool inHeading = false)
         {
+            var runs = DocumentExportHelpers.CoalesceRuns(sourceRuns);
             var index = 0;
             while (index < runs.Count)
             {
@@ -348,7 +554,7 @@ static class HtmlExporter
                     builder.Append("<a href=\"").Append(EncodeAttribute(url)).Append("\">");
                     while (index < runs.Count && runs[index].HyperlinkUrl == url)
                     {
-                        AppendRun(runs[index]);
+                        AppendRun(runs[index], inHeading);
                         index++;
                     }
 
@@ -356,12 +562,12 @@ static class HtmlExporter
                     continue;
                 }
 
-                AppendRun(run);
+                AppendRun(run, inHeading);
                 index++;
             }
         }
 
-        void AppendRun(Run run)
+        void AppendRun(Run run, bool inHeading)
         {
             if (run.InlineImageData is {} imageData)
             {
@@ -381,11 +587,12 @@ static class HtmlExporter
             }
 
             var properties = run.Properties;
-            var (open, close) = FormattingTags(properties);
+            var (open, close) = FormattingTags(properties, inHeading, bodyFont);
             builder.Append(open);
 
-            var text = properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
-            AppendEncodedWithBreaks(text);
+            // AllCaps is handled by CSS (text-transform: uppercase) on the wrapping span — see
+            // InlineStyle — so the source text stays intact rather than being eagerly uppercased.
+            AppendEncodedWithBreaks(run.Text);
 
             builder.Append(close);
         }
@@ -404,7 +611,7 @@ static class HtmlExporter
             }
         }
 
-        static (string Open, string Close) FormattingTags(RunProperties properties)
+        static (string Open, string Close) FormattingTags(RunProperties properties, bool inHeading, string? bodyFont)
         {
             var open = new StringBuilder();
             var close = new StringBuilder();
@@ -415,7 +622,7 @@ static class HtmlExporter
                 close.Insert(0, $"</{tag}>");
             }
 
-            var style = InlineStyle(properties);
+            var style = InlineStyle(properties, inHeading, bodyFont);
             if (style != null)
             {
                 open.Append("<span style=\"").Append(style).Append("\">");
@@ -455,16 +662,50 @@ static class HtmlExporter
             return (open.ToString(), close.ToString());
         }
 
-        static string? InlineStyle(RunProperties properties)
+        static string? InlineStyle(RunProperties properties, bool inHeading, string? bodyFont)
         {
             var color = DocumentExportHelpers.NormalizeColor(properties.ColorHex);
+            // Black is the default text colour; emitting a span for it is just noise.
+            if (color == "#000000")
+            {
+                color = null;
+            }
+
             var background = DocumentExportHelpers.NormalizeColor(properties.BackgroundColorHex);
-            if (color == null && background == null && !properties.SmallCaps)
+
+            // The body stylesheet sets 11pt; only a run that overrides it needs an inline size. This
+            // also recovers cases where a heading-styled paragraph carries a direct font-size that
+            // shrinks (or grows) it away from the stylesheet's heading size — e.g. contact lines
+            // styled Heading 1 but sized down to body text.
+            var hasFontSize = Math.Abs(properties.FontSizePoints - DefaultBodyFontSizePoints) > 0.01 &&
+                              properties.FontSizePoints > 0;
+
+            // Headings are bold by default in the stylesheet; a non-bold run inside one (a "Prepared
+            // for:" label styled Heading 2, say) must override back to normal weight to match Word.
+            var overrideWeight = inHeading && !properties.Bold;
+
+            // Only a run whose font differs from the document's <body> font needs an inline family;
+            // the common case (run matches the body font) inherits and stays clean.
+            var hasFont = !string.IsNullOrEmpty(properties.FontFamily) &&
+                          !string.Equals(properties.FontFamily, bodyFont, StringComparison.OrdinalIgnoreCase);
+
+            if (color == null && background == null && !properties.SmallCaps && !properties.AllCaps &&
+                !hasFontSize && !overrideWeight && !hasFont)
             {
                 return null;
             }
 
             var style = new StringBuilder();
+            if (overrideWeight)
+            {
+                style.Append("font-weight: normal; ");
+            }
+
+            if (hasFont)
+            {
+                style.Append("font-family: ").Append(CssFontFamily(properties.FontFamily)).Append("; ");
+            }
+
             if (color != null)
             {
                 style.Append("color: ").Append(color).Append("; ");
@@ -475,19 +716,227 @@ static class HtmlExporter
                 style.Append("background-color: ").Append(background).Append("; ");
             }
 
+            if (hasFontSize)
+            {
+                style.Append("font-size: ")
+                    .Append(properties.FontSizePoints.ToString("0.##", CultureInfo.InvariantCulture))
+                    .Append("pt; ");
+            }
+
             if (properties.SmallCaps)
             {
                 style.Append("font-variant: small-caps; ");
             }
 
+            if (properties.AllCaps)
+            {
+                style.Append("text-transform: uppercase; ");
+            }
+
             return style.ToString().TrimEnd();
         }
 
+        // Maps embedded image bytes to an <img>/<image> source: a caller-supplied handler result, a
+        // base64 data URI, or null when neither is available (the image is then dropped).
+        string? ResolveImageSource(byte[] data, string? contentType, double widthPoints, double heightPoints)
+        {
+            var index = imageIndex++;
+            if (options.ImageHandler != null)
+            {
+                return options.ImageHandler(new EmbeddedImage(data, contentType, widthPoints, heightPoints, index));
+            }
+
+            if (options.EmbedImagesAsBase64)
+            {
+                var mime = string.IsNullOrEmpty(contentType) ? "image/png" : contentType;
+                return $"data:{mime};base64,{Convert.ToBase64String(data)}";
+            }
+
+            return null;
+        }
+
+        // A background shape (w:drawing anchored behindDoc) becomes an absolutely-positioned inline
+        // <svg> in the body's content-area coordinate space, drawn behind text via a negative
+        // z-index. The vector data — solid/gradient/image fill, stroke, preset rect/ellipse or a
+        // flattened custom polygon, plus rotation/flip — all map straight onto SVG primitives.
+        void WriteShape(FloatingShapeElement shape, int depth)
+        {
+            var (left, top, width, height) = ShapeBox(shape, pageSettings);
+            if (width <= 0.01 || height <= 0.01)
+            {
+                return;
+            }
+
+            var shapeId = shapeIndex++;
+            Indent(depth).Append("<svg style=\"position: absolute; left: ")
+                .Append(Length(left)).Append("; top: ").Append(Length(top))
+                .Append("; width: ").Append(Length(width)).Append("; height: ").Append(Length(height))
+                .Append("; z-index: ").Append(shape.BehindText ? "-1" : "1")
+                .Append("\" viewBox=\"0 0 ").Append(Number(width)).Append(' ').Append(Number(height))
+                .Append("\" preserveAspectRatio=\"none\" xmlns=\"http://www.w3.org/2000/svg\">");
+
+            if (shape is {ImageData: {} imageData, FillColorHex: null, Gradient: null})
+            {
+                // Image-filled shape: draw the bitmap stretched to the box (geometry clipping for
+                // image fills is rare and not worth a clipPath here).
+                var source = ResolveImageSource(imageData, shape.ImageContentType, width, height);
+                if (source != null)
+                {
+                    builder.Append("<image href=\"").Append(EncodeAttribute(source))
+                        .Append("\" width=\"").Append(Number(width)).Append("\" height=\"").Append(Number(height))
+                        .Append("\" preserveAspectRatio=\"none\"").Append(ShapeTransformAttribute(shape, width, height))
+                        .Append(" />");
+                }
+            }
+            else
+            {
+                string fill;
+                if (shape.Gradient is {} gradient)
+                {
+                    builder.Append("<defs>");
+                    AppendGradient(gradient, shapeId);
+                    builder.Append("</defs>");
+                    fill = $"url(#shape-grad-{shapeId})";
+                }
+                else
+                {
+                    fill = DocumentExportHelpers.NormalizeColor(shape.FillColorHex) ?? "none";
+                }
+
+                AppendShapeGeometry(shape, width, height, fill);
+            }
+
+            builder.Append("</svg>\n");
+        }
+
+        void AppendShapeGeometry(FloatingShapeElement shape, double width, double height, string fill)
+        {
+            var attributes = new StringBuilder();
+            attributes.Append(" fill=\"").Append(fill).Append('"');
+            if (shape.FillAlpha < 0.999)
+            {
+                attributes.Append(" fill-opacity=\"").Append(Number(shape.FillAlpha)).Append('"');
+            }
+
+            var stroke = DocumentExportHelpers.NormalizeColor(shape.LineColorHex);
+            if (stroke != null && shape.LineWidthPoints is > 0 and var lineWidth)
+            {
+                attributes.Append(" stroke=\"").Append(stroke)
+                    .Append("\" stroke-width=\"").Append(Number(lineWidth)).Append('"');
+            }
+
+            attributes.Append(ShapeTransformAttribute(shape, width, height));
+            var common = attributes.ToString();
+
+            if (shape.PolygonPoints is {Count: > 0} points)
+            {
+                builder.Append("<polygon points=\"");
+                for (var index = 0; index < points.Count; index++)
+                {
+                    if (index > 0)
+                    {
+                        builder.Append(' ');
+                    }
+
+                    builder.Append(Number(points[index].X * width)).Append(',').Append(Number(points[index].Y * height));
+                }
+
+                builder.Append('"').Append(common).Append(" />");
+            }
+            else if (shape.Preset == PresetShape.Ellipse)
+            {
+                builder.Append("<ellipse cx=\"").Append(Number(width / 2)).Append("\" cy=\"").Append(Number(height / 2))
+                    .Append("\" rx=\"").Append(Number(width / 2)).Append("\" ry=\"").Append(Number(height / 2))
+                    .Append('"').Append(common).Append(" />");
+            }
+            else
+            {
+                builder.Append("<rect x=\"0\" y=\"0\" width=\"").Append(Number(width))
+                    .Append("\" height=\"").Append(Number(height)).Append('"').Append(common).Append(" />");
+            }
+        }
+
+        void AppendGradient(GradientFill gradient, int shapeId)
+        {
+            // DirectionDegrees: 0 = top-to-bottom, clockwise positive. Project onto an
+            // objectBoundingBox axis through the box centre.
+            var radians = gradient.DirectionDegrees * Math.PI / 180.0;
+            var directionX = Math.Sin(radians);
+            var directionY = Math.Cos(radians);
+            var start = DocumentExportHelpers.NormalizeColor(gradient.StartColorHex) ?? "#000000";
+            var end = DocumentExportHelpers.NormalizeColor(gradient.EndColorHex) ?? "#000000";
+
+            builder.Append("<linearGradient id=\"shape-grad-").Append(shapeId)
+                .Append("\" x1=\"").Append(Number(0.5 - directionX / 2)).Append("\" y1=\"").Append(Number(0.5 - directionY / 2))
+                .Append("\" x2=\"").Append(Number(0.5 + directionX / 2)).Append("\" y2=\"").Append(Number(0.5 + directionY / 2))
+                .Append("\"><stop offset=\"0\" stop-color=\"").Append(start)
+                .Append("\" /><stop offset=\"1\" stop-color=\"").Append(end).Append("\" /></linearGradient>");
+        }
+
+        static string ShapeTransformAttribute(FloatingShapeElement shape, double width, double height)
+        {
+            var transforms = new List<string>();
+            if (Math.Abs(shape.RotationDegrees) > 0.01)
+            {
+                transforms.Add($"rotate({Number(shape.RotationDegrees)} {Number(width / 2)} {Number(height / 2)})");
+            }
+
+            if (shape.FlipHorizontal)
+            {
+                transforms.Add($"translate({Number(width)} 0) scale(-1 1)");
+            }
+
+            if (shape.FlipVertical)
+            {
+                transforms.Add($"translate(0 {Number(height)}) scale(1 -1)");
+            }
+
+            return transforms.Count == 0 ? "" : $" transform=\"{string.Join(" ", transforms)}\"";
+        }
+
+        // Resolves a shape's box into the body's content-area coordinate space (page coordinates
+        // minus the page margins — the body's padding box is the content origin). Mirrors
+        // FloatingPosition.ResolveShapeBounds, which needs a render context the exporter lacks.
+        static (double left, double top, double width, double height) ShapeBox(FloatingShapeElement shape, PageSettings page)
+        {
+            var contentWidth = page.ContentWidth;
+            var contentHeight = page.HeightPoints - page.MarginTop - page.MarginBottom;
+
+            var width = shape.WidthPercent is {} widthPercent
+                ? widthPercent * (shape.WidthRelativeFrom == SizeRelativeFrom.Page ? page.WidthPoints : contentWidth)
+                : shape.WidthPoints;
+            var height = shape.HeightPercent is {} heightPercent
+                ? heightPercent * (shape.HeightRelativeFrom == SizeRelativeFrom.Page ? page.HeightPoints : contentHeight)
+                : shape.HeightPoints;
+
+            var baseX = shape.HorizontalAnchor == HorizontalAnchor.Page ? 0.0 : page.MarginLeft;
+            var pageX = shape.HorizontalPositionPercent is {} horizontalPercent
+                ? baseX + horizontalPercent * (shape.HorizontalAnchor == HorizontalAnchor.Page ? page.WidthPoints : contentWidth)
+                : baseX + shape.HorizontalPositionPoints;
+
+            var baseY = shape.VerticalAnchor == VerticalAnchor.Page ? 0.0 : page.MarginTop;
+            var pageY = shape.VerticalPositionPercent is {} verticalPercent
+                ? baseY + verticalPercent * (shape.VerticalAnchor == VerticalAnchor.Page ? page.HeightPoints : contentHeight)
+                : baseY + shape.VerticalPositionPoints;
+
+            return (pageX - page.MarginLeft, pageY - page.MarginTop, width, height);
+        }
+
+        static string Number(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+
+        static string Length(double points) => $"{Number(points)}pt";
+
         void AppendImage(byte[] data, string? contentType, double widthPoints, double heightPoints, string? alt)
         {
-            var mime = string.IsNullOrEmpty(contentType) ? "image/png" : contentType;
-            builder.Append("<img src=\"data:").Append(mime).Append(";base64,")
-                .Append(Convert.ToBase64String(data)).Append('"');
+            var source = ResolveImageSource(data, contentType, widthPoints, heightPoints);
+            if (source == null)
+            {
+                // No handler and embedding disabled — drop the <img> entirely; surrounding markup
+                // (the paragraph it sits in) is still produced so the surrounding content remains.
+                return;
+            }
+
+            builder.Append("<img src=\"").Append(EncodeAttribute(source)).Append('"');
             if (widthPoints > 0)
             {
                 builder.Append(" width=\"").Append(ToPixels(widthPoints)).Append('"');
@@ -525,7 +974,7 @@ static class HtmlExporter
                 ? dropDown.Items[dropDown.SelectedIndex]
                 : "";
 
-        StringBuilder Indent(int depth) => builder.Append(' ', depth * 2);
+        StringBuilder Indent(int depth) => options.PrettyFormat ? builder.Append(' ', depth * 2) : builder;
 
         static int ToPixels(double points) => (int) Math.Round(points * 96.0 / 72.0);
 

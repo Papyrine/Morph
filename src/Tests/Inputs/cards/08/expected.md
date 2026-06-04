@@ -1,79 +1,15 @@
-<table>
-<caption>Layout table</caption>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 49%" />
-</colgroup>
-<tbody>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td style="text-align: left;"><img src="media/image13.jpeg"
-style="width:5in;height:3.75in" alt="Autumn" /></td>
-<td style="text-align: right;"><img src="media/image22.png"
-style="width:5in;height:3.75in" alt="Spring" /></td>
-</tr>
-</tbody>
-</table>
+|||
+| :- | :- |
+|||
 
-<table>
-<caption>Layout table</caption>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 49%" />
-</colgroup>
-<tbody>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Click and start typing to customize your message, or delete for a
-blank card</td>
-<td>Click and start typing to customize your message, or delete for a
-blank card</td>
-</tr>
-</tbody>
-</table>
+|||
+| :- | :- |
+|**Click and start typing to customize your message, or delete for a blank card**|**Click and start typing to customize your message, or delete for a blank card**|
 
-<table>
-<caption>Layout table</caption>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 49%" />
-</colgroup>
-<tbody>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td style="text-align: left;"><img src="media/image3.jpeg"
-style="width:5in;height:3.75in" alt="Summer " /></td>
-<td style="text-align: right;"><img src="media/image44.png"
-style="width:5in;height:3.75in" alt="Winter" /></td>
-</tr>
-</tbody>
-</table>
+|||
+| :- | :- |
+|||
 
-<table>
-<caption>Layout table</caption>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 49%" />
-</colgroup>
-<tbody>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Click and start typing to customize your message, or delete for a
-blank card</td>
-<td>Click and start typing to customize your message, or delete for a
-blank card</td>
-</tr>
-</tbody>
-</table>
+|||
+| :- | :- |
+|**Click and start typing to customize your message, or delete for a blank card**|**Click and start typing to customize your message, or delete for a blank card**|

@@ -1,6 +1,7 @@
-# school of
 
-Kristi Laar 
+# SCHOOL OF
+
+Kristi Laar
 
 kristi@example.com
 
@@ -16,17 +17,12 @@ www.fineartschool.net
 
 Dear Renata,
 
-It is with great enthusiasm that I recommend Mia Karlsson for the
-position at Printed Page Publishers. Mia has been an exceptional student
-in my creative writing courses, consistently demonstrating a strong work
-ethic and a passion for storytelling.
+It is with great enthusiasm that I recommend Mia Karlsson for the position at Printed Page Publishers. Mia has been an exceptional student in my creative writing courses, consistently demonstrating a strong work ethic and a passion for storytelling.
 
-Her ability to take constructive feedback and improve her craft is truly
-impressive. I am confident she will bring creativity and dedication to
-your team.
+Her ability to take constructive feedback and improve her craft is truly impressive. I am confident she will bring creativity and dedication to your team.
 
 Sincerely,
 
 Kristi Laar
 
-## Fine art
+## FINE ART

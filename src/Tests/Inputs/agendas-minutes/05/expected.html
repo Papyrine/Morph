@@ -1,84 +1,225 @@
-<table style="width:95%;">
-<colgroup>
-<col style="width: 95%" />
-</colgroup>
-<tbody>
-<tr>
-<td><img src="media/image1.png" style="width:2.275in;height:0.25in"
-alt="Logo placeholder" /></td>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; padding: 8pt; color: #000; }
+p { margin: 0 0 8pt; }
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 8pt; font-weight: bold; }
+h1 { font-size: 24pt; }
+h2 { font-size: 18pt; }
+h3 { font-size: 14pt; }
+h4 { font-size: 12pt; font-style: italic; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; font-style: italic; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+td, th { padding: 4pt 7pt; vertical-align: top; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+</style>
+</head>
+<body style="line-height:115%; font-family:'Century Gothic'; font-size:9pt">
+<p style="margin-bottom:0pt">
+<span style="height:0pt; display:block; position:absolute; z-index:-1"><img src="data:image/png;base64,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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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" width="818" height="1058" alt="" style="margin-top:-59.1pt; margin-left:-82.8pt; position:absolute" /></span>&#xa0;
+</p>
+<table cellspacing="0" cellpadding="0" style="border-collapse:collapse">
+<tr style="height:36.7pt">
+<td style="width:425.7pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; line-height:115%; font-size:9pt">
+<img src="data:image/png;base64,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" width="219" height="24" alt="Logo placeholder" />
+</p>
+</td>
 </tr>
-<tr>
-<td><h1 id="marketing-sales-team">MARKETING &amp; SALES TEAM</h1></td>
+<tr style="height:40.3pt">
+<td style="width:425.7pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<h1 style="margin-top:0pt; margin-bottom:0pt; page-break-after:avoid; font-size:26pt">
+<span style="text-transform:uppercase; letter-spacing:2pt; color:#000942">MARKETING &amp; SALES TEAM</span>
+</h1>
+</td>
 </tr>
-<tr>
-<td>MEETING MINUTES</td>
+<tr style="height:32.2pt">
+<td style="width:425.7pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; line-height:115%; font-size:16pt">
+<a name="OLE_LINK1"></a><a name="OLE_LINK2"><span style="text-transform:uppercase; letter-spacing:2pt; color:#000942">MEETING </span></a><span style="text-transform:uppercase; letter-spacing:2pt; color:#000942">MINUTES</span>
+</p>
+</td>
 </tr>
-</tbody>
 </table>
-<table style="width:75%;">
-<colgroup>
-<col style="width: 22%" />
-<col style="width: 52%" />
-</colgroup>
-<tbody>
-<tr>
-<td><h2 id="location">LOCATION: </h2></td>
-<td>Conference Room B</td>
+<p style="margin-bottom:0pt">
+&#xa0;
+</p>
+<table cellspacing="0" cellpadding="0" style="width:343.9pt; border-collapse:collapse">
+<tr style="height:22.05pt">
+<td style="width:92.7pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<h2 style="margin-top:0pt; margin-bottom:0pt; line-height:115%; font-size:9pt">
+<a name="OLE_LINK8"></a><a name="OLE_LINK9"><span style="text-transform:uppercase">LOCATION: </span></a>
+</h2>
+</td>
+<td style="width:229.6pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; line-height:115%; font-size:9pt">
+Conference Room B
+</p>
+</td>
 </tr>
-<tr>
-<td><h2 id="date">Date: </h2></td>
-<td>1/9/23</td>
+<tr style="height:21.6pt">
+<td style="width:92.7pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<h2 style="margin-top:0pt; margin-bottom:0pt; line-height:115%; font-size:9pt">
+<span style="text-transform:uppercase">Date: </span>
+</h2>
+</td>
+<td style="width:229.6pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; line-height:115%; font-size:9pt">
+1/9/23
+</p>
+</td>
 </tr>
-<tr>
-<td><h2 id="attendees">Attendees: </h2></td>
-<td>Jon, Serra, Lionel, Grace</td>
+<tr style="height:21.6pt">
+<td style="width:92.7pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<h2 style="margin-top:0pt; margin-bottom:0pt; line-height:115%; font-size:9pt">
+<span style="text-transform:uppercase">Attendees: </span>
+</h2>
+</td>
+<td style="width:229.6pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; line-height:115%; font-size:9pt">
+Jon, Serra, Lionel, Grace 
+</p>
+</td>
 </tr>
-<tr>
-<td><h2 id="time">Time: </h2></td>
-<td>2:00 PM</td>
+<tr style="height:21.15pt">
+<td style="width:92.7pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<h2 style="margin-top:0pt; margin-bottom:0pt; line-height:115%; font-size:9pt">
+<span style="text-transform:uppercase">Time: </span>
+</h2>
+</td>
+<td style="width:229.6pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; line-height:115%; font-size:9pt">
+2:00 PM 
+</p>
+</td>
 </tr>
-</tbody>
 </table>
-<p>Agenda Items</p>
-<ol type="I">
-<li><p>Call to order</p></li>
-<li><p>Roll call</p></li>
-<li><p>Approval of minutes from last meeting</p></li>
-<li><p>Open issues</p></li>
-<li><p>New business</p></li>
-<li><p>Adjournment</p></li>
+<p style="margin-bottom:0pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:115%; font-size:16pt">
+<span style="text-transform:uppercase; letter-spacing:2pt; color:#000942">Agenda Items</span>
+</p>
+<ol type="I" style="margin:0pt; padding-left:0pt">
+<li style="margin-top:12pt; margin-left:10.6pt; margin-bottom:5pt; line-height:115%; padding-left:7.4pt; font-size:10pt; font-weight:bold">
+<span style="line-height:115%; font-size:9pt; font-weight:normal">Call to order</span>
+</li>
+<li style="margin-top:12pt; margin-left:13.39pt; margin-bottom:5pt; line-height:115%; padding-left:4.61pt; font-size:10pt; font-weight:bold">
+<span style="line-height:115%; font-size:9pt; font-weight:normal">Roll call </span>
+</li>
+<li style="margin-top:12pt; margin-left:16.19pt; margin-bottom:5pt; line-height:115%; padding-left:1.81pt; font-size:10pt; font-weight:bold">
+<span style="line-height:115%; font-size:9pt; font-weight:normal">Approval of minutes from last meeting </span>
+</li>
+<li style="margin-top:12pt; margin-left:17.6pt; margin-bottom:5pt; line-height:115%; padding-left:0.4pt; font-size:10pt; font-weight:bold">
+<span style="line-height:115%; font-size:9pt; font-weight:normal">Open issues </span>
+</li>
+<li style="margin-top:12pt; margin-left:14.8pt; margin-bottom:5pt; line-height:115%; padding-left:3.2pt; font-size:10pt; font-weight:bold">
+<span style="line-height:115%; font-size:9pt; font-weight:normal">New business </span>
+</li>
+<li style="margin-top:12pt; margin-left:17.6pt; margin-bottom:5pt; line-height:115%; padding-left:0.4pt; font-size:10pt; font-weight:bold">
+<span style="line-height:115%; font-size:9pt; font-weight:normal">Adjournment </span>
+</li>
 </ol>
-<table style="width:96%;">
-<colgroup>
-<col style="width: 36%" />
-<col style="width: 19%" />
-<col style="width: 19%" />
-<col style="width: 19%" />
-</colgroup>
-<tbody>
-<tr>
-<td><h2 id="action-items">Action Items </h2></td>
-<td><h2 id="owner">Owner </h2></td>
-<td><h2 id="deadline">Deadline </h2></td>
-<td><h2 id="status">Status </h2></td>
+<p style="margin-top:20pt; margin-bottom:5pt">
+&#xa0;
+</p>
+<table cellspacing="0" cellpadding="0" style="border-collapse:collapse">
+<tr style="height:32.65pt">
+<td style="width:155.85pt; border-top-style:solid; border-top-width:3pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<h2 style="margin-top:0pt; margin-bottom:0pt; line-height:115%; font-size:9pt">
+<span style="text-transform:uppercase">Action Items </span>
+</h2>
+</td>
+<td style="width:79.2pt; border-top-style:solid; border-top-width:3pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<h2 style="margin-top:0pt; margin-bottom:0pt; line-height:115%; font-size:9pt">
+<span style="text-transform:uppercase">Owner </span>
+</h2>
+</td>
+<td style="width:79.2pt; border-top-style:solid; border-top-width:3pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<h2 style="margin-top:0pt; margin-bottom:0pt; line-height:115%; font-size:9pt">
+<span style="text-transform:uppercase">Deadline </span>
+</h2>
+</td>
+<td style="width:79.2pt; border-top-style:solid; border-top-width:3pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<h2 style="margin-top:0pt; margin-bottom:0pt; line-height:115%; font-size:9pt">
+<span style="text-transform:uppercase">Status </span>
+</h2>
+</td>
 </tr>
-<tr>
-<td>Budget assessment</td>
-<td>Jon</td>
-<td>2/10</td>
-<td>In progress</td>
+<tr style="height:32.65pt">
+<td style="width:155.85pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:115%; font-size:9pt">
+Budget assessment
+</p>
+</td>
+<td style="width:79.2pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:115%; font-size:9pt">
+Jon
+</p>
+</td>
+<td style="width:79.2pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:115%; font-size:9pt">
+2/10
+</p>
+</td>
+<td style="width:79.2pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:115%; font-size:9pt">
+In progress
+</p>
+</td>
 </tr>
-<tr>
-<td>Building maintenance</td>
-<td>Serra</td>
-<td>3/15</td>
-<td>Not started</td>
+<tr style="height:32.65pt">
+<td style="width:155.85pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:115%; font-size:9pt">
+Building maintenance
+</p>
+</td>
+<td style="width:79.2pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:115%; font-size:9pt">
+Serra
+</p>
+</td>
+<td style="width:79.2pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:115%; font-size:9pt">
+3/15
+</p>
+</td>
+<td style="width:79.2pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:115%; font-size:9pt">
+Not started
+</p>
+</td>
 </tr>
-<tr>
-<td>Hiring contractors</td>
-<td>Lionel</td>
-<td>1/30</td>
-<td>In progress</td>
+<tr style="height:32.65pt">
+<td style="width:155.85pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:115%; font-size:9pt">
+Hiring contractors
+</p>
+</td>
+<td style="width:79.2pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:115%; font-size:9pt">
+Lionel
+</p>
+</td>
+<td style="width:79.2pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:115%; font-size:9pt">
+1/30
+</p>
+</td>
+<td style="width:79.2pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:115%; font-size:9pt">
+In progress
+</p>
+</td>
 </tr>
-</tbody>
 </table>
+<p style="margin-top:20pt; margin-bottom:5pt">
+&#xa0;
+</p>
+</body>
+</html>

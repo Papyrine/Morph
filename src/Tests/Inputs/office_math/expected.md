@@ -1,4 +1,3 @@
-The Pythagorean theorem:
-*a*<sup>2</sup> + *b*<sup>2</sup> = *c*<sup>2</sup>
+The Pythagorean theorem: a2+b2=c2
 
-A simple fraction: $\frac{1}{2}$ is one half.
+A simple fraction: 12 is one half.

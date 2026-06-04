@@ -1,157 +1,25 @@
-<table>
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 68%" />
-<col style="width: 15%" />
-</colgroup>
-<tbody>
-<tr>
-<td style="text-align: center;"></td>
-<td><strong>MONTHLY MEAL PLANNER</strong></td>
-<td style="text-align: center;"></td>
-</tr>
-</tbody>
-</table>
 
-<table>
-<colgroup>
-<col style="width: 8%" />
-<col style="width: 24%" />
-<col style="width: 14%" />
-<col style="width: 3%" />
-<col style="width: 7%" />
-<col style="width: 6%" />
-<col style="width: 25%" />
-<col style="width: 8%" />
-</colgroup>
-<tbody>
-<tr>
-<td></td>
-<td></td>
-<td colspan="4" rowspan="2">November 20YY</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td colspan="3"><h1 id="week-1">Week 1</h1></td>
-<td style="text-align: center;"></td>
-<td colspan="4"><h1 id="week-2">Week 2</h1></td>
-</tr>
-<tr>
-<td>MON</td>
-<td colspan="2" style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td>MON</td>
-<td colspan="3" style="text-align: center;"></td>
-</tr>
-<tr>
-<td>TUE</td>
-<td colspan="2" style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td>TUE</td>
-<td colspan="3" style="text-align: center;"></td>
-</tr>
-<tr>
-<td>WED</td>
-<td colspan="2" style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td>WED</td>
-<td colspan="3" style="text-align: center;"></td>
-</tr>
-<tr>
-<td>THU</td>
-<td colspan="2" style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td>THU</td>
-<td colspan="3" style="text-align: center;"></td>
-</tr>
-<tr>
-<td>FRI</td>
-<td colspan="2" style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td>FRI</td>
-<td colspan="3" style="text-align: center;"></td>
-</tr>
-<tr>
-<td>SAT</td>
-<td colspan="2" style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td>SAT</td>
-<td colspan="3" style="text-align: center;"></td>
-</tr>
-<tr>
-<td>SUN</td>
-<td colspan="2" style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td>SUN</td>
-<td colspan="3" style="text-align: center;"></td>
-</tr>
-<tr>
-<td style="text-align: center;"></td>
-<td colspan="2" style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td></td>
-<td colspan="3" style="text-align: center;"></td>
-</tr>
-<tr>
-<td colspan="3"><h1 id="week-3">Week 3</h1></td>
-<td><h1 id="section"></h1></td>
-<td colspan="4"><h1 id="week-4">Week 4</h1></td>
-</tr>
-<tr>
-<td>MON</td>
-<td colspan="2" style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td>MON</td>
-<td colspan="3" style="text-align: center;"></td>
-</tr>
-<tr>
-<td>TUE</td>
-<td colspan="2" style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td>TUE</td>
-<td colspan="3" style="text-align: center;"></td>
-</tr>
-<tr>
-<td>WED</td>
-<td colspan="2" style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td>WED</td>
-<td colspan="3" style="text-align: center;"></td>
-</tr>
-<tr>
-<td>THU</td>
-<td colspan="2" style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td>THU</td>
-<td colspan="3" style="text-align: center;"></td>
-</tr>
-<tr>
-<td>FRI</td>
-<td colspan="2" style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td>FRI</td>
-<td colspan="3" style="text-align: center;"></td>
-</tr>
-<tr>
-<td>SAT</td>
-<td colspan="2" style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td>SAT</td>
-<td colspan="3" style="text-align: center;"></td>
-</tr>
-<tr>
-<td>SUN</td>
-<td colspan="2" style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td>SUN</td>
-<td colspan="3" style="text-align: center;"></td>
-</tr>
-</tbody>
+
+||**MONTHLY MEAL PLANNER**||
+| :-: | :-: | :-: |
+
+<table><tr><th colspan="1"></th><th colspan="1"></th><th colspan="4" rowspan="2">November 20YY</th><th colspan="1"></th><th colspan="1"></th></tr>
+<tr><td colspan="1"></td><td colspan="1"></td><td colspan="1"></td><td colspan="1"></td></tr>
+<tr><td colspan="3"><h1><b>Week 1</b></h1></td><td colspan="1"></td><td colspan="4"><h1><b>Week 2</b></h1></td></tr>
+<tr><td colspan="1"><i>MON</i> </td><td colspan="2"></td><td colspan="1" valign="top"></td><td colspan="1"><i>MON</i> </td><td colspan="3"></td></tr>
+<tr><td colspan="1"><i>TUE</i></td><td colspan="2"></td><td colspan="1" valign="top"></td><td colspan="1"><i>TUE</i></td><td colspan="3"></td></tr>
+<tr><td colspan="1"><i>WED</i></td><td colspan="2"></td><td colspan="1" valign="top"></td><td colspan="1"><i>WED</i></td><td colspan="3"></td></tr>
+<tr><td colspan="1"><i>THU</i></td><td colspan="2"></td><td colspan="1" valign="top"></td><td colspan="1"><i>THU</i></td><td colspan="3"></td></tr>
+<tr><td colspan="1"><i>FRI</i></td><td colspan="2"></td><td colspan="1" valign="top"></td><td colspan="1"><i>FRI</i></td><td colspan="3"></td></tr>
+<tr><td colspan="1"><i>SAT</i></td><td colspan="2"></td><td colspan="1" valign="top"></td><td colspan="1"><i>SAT</i></td><td colspan="3"></td></tr>
+<tr><td colspan="1"><i>SUN</i></td><td colspan="2"></td><td colspan="1" valign="top"></td><td colspan="1"><i>SUN</i></td><td colspan="3"></td></tr>
+<tr><td colspan="1" valign="top"></td><td colspan="2" valign="top"></td><td colspan="1" valign="top"></td><td colspan="1" valign="top"></td><td colspan="3" valign="top"></td></tr>
+<tr><td colspan="3"><h1><b>Week 3</b></h1></td><td colspan="1"><h1></h1></td><td colspan="4"><h1><b>Week 4</b></h1></td></tr>
+<tr><td colspan="1"><i>MON</i> </td><td colspan="2"></td><td colspan="1" valign="top"></td><td colspan="1"><i>MON</i> </td><td colspan="3"></td></tr>
+<tr><td colspan="1"><i>TUE</i></td><td colspan="2"></td><td colspan="1" valign="top"></td><td colspan="1"><i>TUE</i></td><td colspan="3"></td></tr>
+<tr><td colspan="1"><i>WED</i></td><td colspan="2"></td><td colspan="1" valign="top"></td><td colspan="1"><i>WED</i></td><td colspan="3"></td></tr>
+<tr><td colspan="1"><i>THU</i></td><td colspan="2"></td><td colspan="1" valign="top"></td><td colspan="1"><i>THU</i></td><td colspan="3"></td></tr>
+<tr><td colspan="1"><i>FRI</i></td><td colspan="2"></td><td colspan="1" valign="top"></td><td colspan="1"><i>FRI</i></td><td colspan="3"></td></tr>
+<tr><td colspan="1"><i>SAT</i></td><td colspan="2"></td><td colspan="1" valign="top"></td><td colspan="1"><i>SAT</i></td><td colspan="3"></td></tr>
+<tr><td colspan="1"><i>SUN</i></td><td colspan="2"></td><td colspan="1" valign="top"></td><td colspan="1"><i>SUN</i></td><td colspan="3"></td></tr>
 </table>

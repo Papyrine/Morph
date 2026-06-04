@@ -1,290 +1,58 @@
-<table style="width:100%;">
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 33%" />
-<col style="width: 1%" />
-<col style="width: 31%" />
-</colgroup>
-<tbody>
-<tr>
-<td colspan="3">JACOB HANCOCK</td>
-<td style="text-align: right;"><p>Nashville, TN</p>
-<p>805.555.0105 | jacob@example.com</p></td>
-</tr>
-<tr>
-<td colspan="4"><h1 id="objective">Objective</h1></td>
-</tr>
-<tr>
-<td colspan="4">To lead the development of a revolutionary artificial
-intelligence platform that will disrupt the financial industry and
-enhance customer experience, by collaborating with cross-functional
-teams and delivering on time, within budget, and with the highest
-quality standards.</td>
-</tr>
-<tr>
-<td colspan="4"><h1 id="education">Education</h1></td>
-</tr>
-<tr>
-<td colspan="3"><h2 id="mba-jasper-university">MBA | Jasper
-University</h2></td>
-<td style="text-align: right;"><h2 id="xx-20xx">20XX – 20XX</h2></td>
-</tr>
-<tr>
-<td colspan="4">Participated in a consulting project for a startup that
-resulted in a recommendation to pivot their business model, which was
-implemented and led to increased revenue</td>
-</tr>
-<tr>
-<td colspan="3"><h2 id="bs-computer-science-bellows-college">BS Computer
-Science | Bellows College</h2></td>
-<td style="text-align: right;"><h2 id="xx-20xx-1">20XX – 20XX</h2></td>
-</tr>
-<tr>
-<td colspan="4">Courses included Data Structures, Algorithms, Computer
-Architecture, Operating Systems, and Software Engineering</td>
-</tr>
-<tr>
-<td colspan="4"><h1 id="experience">Experience</h1></td>
-</tr>
-<tr>
-<td colspan="3"><h2 id="technical-program-manager-relecloud">Technical
-Program Manager | Relecloud</h2></td>
-<td style="text-align: right;"><h2 id="xx-20xx-2">20XX – 20XX</h2></td>
-</tr>
-<tr>
-<td colspan="4">Oversaw project scope, timelines, and budget, resulting
-in the successful launch of the new infrastructure and improved site
-reliability metrics</td>
-</tr>
-<tr>
-<td colspan="3"><h2 id="project-manager-proseware-inc.">Project Manager
-| Proseware, Inc.</h2></td>
-<td style="text-align: right;"><h2 id="xx-20xx-3">20XX – 20XX</h2></td>
-</tr>
-<tr>
-<td colspan="4">Managed a team of software developers and quality
-assurance specialists in the development and launch of a new customer
-relationship management (CRM) software product</td>
-</tr>
-<tr>
-<td colspan="4"><h1 id="skills">Skills</h1></td>
-</tr>
-<tr>
-<td><ul>
-<li><p>Project management</p></li>
-<li><p>Communication</p></li>
-</ul></td>
-<td><ul>
-<li><p>Technical expertise</p></li>
-<li><p>Problem-solving</p></li>
-</ul></td>
-<td colspan="2"><ul>
-<li><p>Leadership</p></li>
-<li><p>Attention to detail</p></li>
-</ul></td>
-</tr>
-<tr>
-<td colspan="4"><h1 id="activities">Activities</h1></td>
-</tr>
-<tr>
-<td colspan="4">Participated in several hackathons, including a winning
-team at the 20XX Hack event, demonstrating the ability to work under
-pressure and come up with innovative solutions to technical
-challenges.</td>
-</tr>
-</tbody>
-</table>
 
-<table style="width:100%;">
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 33%" />
-<col style="width: 1%" />
-<col style="width: 31%" />
-</colgroup>
-<tbody>
-<tr>
-<td colspan="3">JACOB HANCOCK</td>
-<td style="text-align: right;"><p>Nashville, TN</p>
-<p>805.555.0105 | jacob@example.com</p></td>
-</tr>
-<tr>
-<td colspan="4">Objective</td>
-</tr>
-<tr>
-<td colspan="4">To lead the development of a revolutionary artificial
-intelligence platform that will disrupt the financial industry and
-enhance customer experience, by collaborating with cross-functional
-teams and delivering on time, within budget, and with the highest
-quality standards.</td>
-</tr>
-<tr>
-<td colspan="4">Education</td>
-</tr>
-<tr>
-<td colspan="3"><h2 id="mba-jasper-university-1">MBA | Jasper
-University</h2></td>
-<td style="text-align: right;"><h2 id="xx-20xx-4">20XX – 20XX</h2></td>
-</tr>
-<tr>
-<td colspan="4">Participated in a consulting project for a startup that
-resulted in a recommendation to pivot their business model, which was
-implemented and led to increased revenue</td>
-</tr>
-<tr>
-<td colspan="3"><h2 id="bs-computer-science-bellows-college-1">BS
-Computer Science | Bellows College</h2></td>
-<td style="text-align: right;"><h2 id="xx-20xx-5">20XX – 20XX</h2></td>
-</tr>
-<tr>
-<td colspan="4">Courses included Data Structures, Algorithms, Computer
-Architecture, Operating Systems, and Software Engineering</td>
-</tr>
-<tr>
-<td colspan="4">Experience</td>
-</tr>
-<tr>
-<td colspan="3"><h2 id="technical-program-manager-relecloud-1">Technical
-Program Manager | Relecloud</h2></td>
-<td style="text-align: right;"><h2 id="xx-20xx-6">20XX – 20XX</h2></td>
-</tr>
-<tr>
-<td colspan="4">Oversaw project scope, timelines, and budget, resulting
-in the successful launch of the new infrastructure and improved site
-reliability metrics</td>
-</tr>
-<tr>
-<td colspan="3"><h2 id="project-manager-proseware-inc.-1">Project
-Manager | Proseware, Inc.</h2></td>
-<td style="text-align: right;"><h2 id="xx-20xx-7">20XX – 20XX</h2></td>
-</tr>
-<tr>
-<td colspan="4">Managed a team of software developers and quality
-assurance specialists in the development and launch of a new customer
-relationship management (CRM) software product</td>
-</tr>
-<tr>
-<td colspan="4">Skills</td>
-</tr>
-<tr>
-<td><ul>
-<li><p>Project management</p></li>
-<li><p>Communication</p></li>
-</ul></td>
-<td><ul>
-<li><p>Technical expertise</p></li>
-<li><p>Problem-solving</p></li>
-</ul></td>
-<td colspan="2"><ul>
-<li><p>Leadership</p></li>
-<li><p>Attention to detail</p></li>
-</ul></td>
-</tr>
-<tr>
-<td colspan="4">Activities</td>
-</tr>
-<tr>
-<td colspan="4">Participated in several hackathons, including a winning
-team at the 20XX Hack event, demonstrating the ability to work under
-pressure and come up with innovative solutions to technical
-challenges.</td>
-</tr>
-</tbody>
-</table>
 
-<table style="width:100%;">
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 33%" />
-<col style="width: 1%" />
-<col style="width: 31%" />
-</colgroup>
-<tbody>
-<tr>
-<td colspan="3">JACOB HANCOCK</td>
-<td style="text-align: right;"><p>Nashville, TN</p>
-<p>805.555.0105 | jacob@example.com</p></td>
-</tr>
-<tr>
-<td colspan="4">Objective</td>
-</tr>
-<tr>
-<td colspan="4">To lead the development of a revolutionary artificial
-intelligence platform that will disrupt the financial industry and
-enhance customer experience, by collaborating with cross-functional
-teams and delivering on time, within budget, and with the highest
-quality standards.</td>
-</tr>
-<tr>
-<td colspan="4">Education</td>
-</tr>
-<tr>
-<td colspan="3"><h2 id="mba-jasper-university-2">MBA | Jasper
-University</h2></td>
-<td style="text-align: right;"><h2 id="xx-20xx-8">20XX – 20XX</h2></td>
-</tr>
-<tr>
-<td colspan="4">Participated in a consulting project for a startup that
-resulted in a recommendation to pivot their business model, which was
-implemented and led to increased revenue</td>
-</tr>
-<tr>
-<td colspan="3"><h2 id="bs-computer-science-bellows-college-2">BS
-Computer Science | Bellows College</h2></td>
-<td style="text-align: right;"><h2 id="xx-20xx-9">20XX – 20XX</h2></td>
-</tr>
-<tr>
-<td colspan="4">Courses included Data Structures, Algorithms, Computer
-Architecture, Operating Systems, and Software Engineering</td>
-</tr>
-<tr>
-<td colspan="4">Experience</td>
-</tr>
-<tr>
-<td colspan="3"><h2 id="technical-program-manager-relecloud-2">Technical
-Program Manager | Relecloud</h2></td>
-<td style="text-align: right;"><h2 id="xx-20xx-10">20XX – 20XX</h2></td>
-</tr>
-<tr>
-<td colspan="4">Oversaw project scope, timelines, and budget, resulting
-in the successful launch of the new infrastructure and improved site
-reliability metrics</td>
-</tr>
-<tr>
-<td colspan="3"><h2 id="project-manager-proseware-inc.-2">Project
-Manager | Proseware, Inc.</h2></td>
-<td style="text-align: right;"><h2 id="xx-20xx-11">20XX – 20XX</h2></td>
-</tr>
-<tr>
-<td colspan="4">Managed a team of software developers and quality
-assurance specialists in the development and launch of a new customer
-relationship management (CRM) software product</td>
-</tr>
-<tr>
-<td colspan="4">Skills</td>
-</tr>
-<tr>
-<td><ul>
-<li><p>Project management</p></li>
-<li><p>Communication</p></li>
-</ul></td>
-<td><ul>
-<li><p>Technical expertise</p></li>
-<li><p>Problem-solving</p></li>
-</ul></td>
-<td colspan="2"><ul>
-<li><p>Leadership</p></li>
-<li><p>Attention to detail</p></li>
-</ul></td>
-</tr>
-<tr>
-<td colspan="4">Activities</td>
-</tr>
-<tr>
-<td colspan="4">Participated in several hackathons, including a winning
-team at the 20XX Hack event, demonstrating the ability to work under
-pressure and come up with innovative solutions to technical
-challenges.</td>
-</tr>
-</tbody>
-</table>
+|JACOB HANCOCK|<p>Nashville, TN </p><p>805\.555.0105 | jacob@example.com</p><p></p>|||
+| :- | -: | :- | :- |
+|<h1>OBJECTIVE</h1>||||
+|<p>To lead the development of a revolutionary artificial intelligence platform that will disrupt the financial industry and enhance customer experience, by collaborating with cross-functional teams and delivering on time, within budget, and with the highest quality standards.</p><p></p>||||
+|<h1>EDUCATION</h1>||||
+|<h2>**MBA | Jasper University**</h2>|<h2>**20XX – 20XX**</h2>|||
+|<p>Participated in a consulting project for a startup that resulted in a recommendation to pivot their business model, which was implemented and led to increased revenue</p><p></p>||||
+|<h2>**BS Computer Science | Bellows College**</h2>|<h2>**20XX – 20XX**</h2>|||
+|<p>Courses included Data Structures, Algorithms, Computer Architecture, Operating Systems, and Software Engineering</p><p></p>||||
+|<h1>EXPERIENCE</h1>||||
+|<h2>**Technical Program Manager | Relecloud**</h2>|<h2>**20XX – 20XX**</h2>|||
+|<p>Oversaw project scope, timelines, and budget, resulting in the successful launch of the new infrastructure and improved site reliability metrics</p><p></p>||||
+|<h2>**Project Manager | Proseware, Inc.**</h2>|<h2>**20XX – 20XX**</h2>|||
+|<p>Managed a team of software developers and quality assurance specialists in the development and launch of a new customer relationship management (CRM) software product</p><p></p>||||
+|<h1>SKILLS</h1>||||
+|<p>- Project management</p><p>- Communication</p><p></p>|<p>- Technical expertise</p><p>- Problem-solving</p><p></p>|<p>- Leadership</p><p>- Attention to detail</p><p></p>||
+|<h1>ACTIVITIES</h1>||||
+|Participated in several hackathons, including a winning team at the 20XX Hack event, demonstrating the ability to work under pressure and come up with innovative solutions to technical challenges.||||
+
+|JACOB HANCOCK|<p>Nashville, TN </p><p>805\.555.0105 | jacob@example.com</p><p></p>|||
+| :- | -: | :- | :- |
+|OBJECTIVE||||
+|<p>To lead the development of a revolutionary artificial intelligence platform that will disrupt the financial industry and enhance customer experience, by collaborating with cross-functional teams and delivering on time, within budget, and with the highest quality standards.</p><p></p>||||
+|EDUCATION||||
+|<h2>**MBA | Jasper University**</h2>|<h2>**20XX – 20XX**</h2>|||
+|<p>Participated in a consulting project for a startup that resulted in a recommendation to pivot their business model, which was implemented and led to increased revenue</p><p></p>||||
+|<h2>**BS Computer Science | Bellows College**</h2>|<h2>**20XX – 20XX**</h2>|||
+|<p>Courses included Data Structures, Algorithms, Computer Architecture, Operating Systems, and Software Engineering</p><p></p>||||
+|EXPERIENCE||||
+|<h2>**Technical Program Manager | Relecloud**</h2>|<h2>**20XX – 20XX**</h2>|||
+|<p>Oversaw project scope, timelines, and budget, resulting in the successful launch of the new infrastructure and improved site reliability metrics</p><p></p>||||
+|<h2>**Project Manager | Proseware, Inc.**</h2>|<h2>**20XX – 20XX**</h2>|||
+|<p>Managed a team of software developers and quality assurance specialists in the development and launch of a new customer relationship management (CRM) software product</p><p></p>||||
+|SKILLS||||
+|<p>- - Project management</p><p>- - Communication</p><p></p>|<p>- - Technical expertise</p><p>- - Problem-solving</p><p></p>|<p>- - Leadership</p><p>- - Attention to detail</p><p></p>||
+|ACTIVITIES||||
+|Participated in several hackathons, including a winning team at the 20XX Hack event, demonstrating the ability to work under pressure and come up with innovative solutions to technical challenges.||||
+
+|JACOB HANCOCK|<p>Nashville, TN </p><p>805\.555.0105 | jacob@example.com</p><p></p>|||
+| :- | -: | :- | :- |
+|OBJECTIVE||||
+|<p>To lead the development of a revolutionary artificial intelligence platform that will disrupt the financial industry and enhance customer experience, by collaborating with cross-functional teams and delivering on time, within budget, and with the highest quality standards.</p><p></p>||||
+|EDUCATION||||
+|<h2>**MBA | Jasper University**</h2>|<h2>**20XX – 20XX**</h2>|||
+|<p>Participated in a consulting project for a startup that resulted in a recommendation to pivot their business model, which was implemented and led to increased revenue</p><p></p>||||
+|<h2>**BS Computer Science | Bellows College**</h2>|<h2>**20XX – 20XX**</h2>|||
+|<p>Courses included Data Structures, Algorithms, Computer Architecture, Operating Systems, and Software Engineering</p><p></p>||||
+|EXPERIENCE||||
+|<h2>**Technical Program Manager | Relecloud**</h2>|<h2>**20XX – 20XX**</h2>|||
+|<p>Oversaw project scope, timelines, and budget, resulting in the successful launch of the new infrastructure and improved site reliability metrics</p><p></p>||||
+|<h2>**Project Manager | Proseware, Inc.**</h2>|<h2>**20XX – 20XX**</h2>|||
+|<p>Managed a team of software developers and quality assurance specialists in the development and launch of a new customer relationship management (CRM) software product</p><p></p>||||
+|SKILLS||||
+|<p>- - Project management</p><p>- - Communication</p><p></p>|<p>- - Technical expertise</p><p>- - Problem-solving</p><p></p>|<p>- - Leadership</p><p>- - Attention to detail</p><p></p>||
+|ACTIVITIES||||
+|Participated in several hackathons, including a winning team at the 20XX Hack event, demonstrating the ability to work under pressure and come up with innovative solutions to technical challenges.||||

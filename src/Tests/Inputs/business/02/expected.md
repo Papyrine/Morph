@@ -1,53 +1,13 @@
-<table>
-<caption>First table has company name and second table has memo
-information</caption>
-<colgroup>
-<col style="width: 100%" />
-</colgroup>
-<thead>
-<tr>
-<th>Company name</th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
+MEMO
 
-<table>
-<caption>First table has company name and second table has memo
-information</caption>
-<colgroup>
-<col style="width: 26%" />
-<col style="width: 73%" />
-</colgroup>
-<thead>
-<tr>
-<th><h1 id="to"><strong>To:</strong> </h1></th>
-<th>Mikaela Lee</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><h1 id="from">From: </h1></td>
-<td>Rene Skoko</td>
-</tr>
-<tr>
-<td><h1 id="cc">CC: </h1></td>
-<td>Luca Udinesi, Gael Torres, Viktor Klobucar</td>
-</tr>
-<tr>
-<td><h1 id="date">Date:</h1></td>
-<td>1/9/23</td>
-</tr>
-<tr>
-<td><h1 id="re">Re:</h1></td>
-<td>Welcome new team member</td>
-</tr>
-<tr>
-<td>Comments:</td>
-<td>Please welcome our newest team member, Mikaela Lee. Mikaela joins us
-from Printed Page Publishers. Complimentary snacks and beverages will be
-provided in the break room.</td>
-</tr>
-</tbody>
-</table>
+|**COMPANY NAME** |
+| :- |
+|<h1>**To:** </h1>|Mikaela Lee |
+| :- | :- |
+|<h1>**From:** </h1>|Rene Skoko |
+|<h1>**CC:** </h1>|Luca Udinesi, Gael Torres, Viktor Klobucar |
+|<h1>**Date:**</h1>|1/9/23 |
+|<h1>**Re:**</h1>|Welcome new team member |
+|**COMMENTS:** |Please welcome our newest team member, Mikaela Lee. Mikaela joins us from Printed Page Publishers. Complimentary snacks and beverages will be provided in the break room. |
+
+2

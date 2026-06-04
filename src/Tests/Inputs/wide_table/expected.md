@@ -1,38 +1,7 @@
 Wide table with 6 columns:
 
-<table>
-<tbody>
-<tr>
-<td>Col 1</td>
-<td>Col 2</td>
-<td>Col 3</td>
-<td>Col 4</td>
-<td>Col 5</td>
-<td>Col 6</td>
-</tr>
-<tr>
-<td>R1C1</td>
-<td>R1C2</td>
-<td>R1C3</td>
-<td>R1C4</td>
-<td>R1C5</td>
-<td>R1C6</td>
-</tr>
-<tr>
-<td>R2C1</td>
-<td>R2C2</td>
-<td>R2C3</td>
-<td>R2C4</td>
-<td>R2C5</td>
-<td>R2C6</td>
-</tr>
-<tr>
-<td>R3C1</td>
-<td>R3C2</td>
-<td>R3C3</td>
-<td>R3C4</td>
-<td>R3C5</td>
-<td>R3C6</td>
-</tr>
-</tbody>
-</table>
+|Col 1|Col 2|Col 3|Col 4|Col 5|Col 6|
+| :- | :- | :- | :- | :- | :- |
+|R1C1|R1C2|R1C3|R1C4|R1C5|R1C6|
+|R2C1|R2C2|R2C3|R2C4|R2C5|R2C6|
+|R3C1|R3C2|R3C3|R3C4|R3C5|R3C6|

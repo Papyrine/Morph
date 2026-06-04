@@ -1,48 +1,10 @@
-<img src="media/image1.jpeg" style="width:10.99in;height:8.5in" />
 
-<table style="width:96%;">
-<caption>Layout table to enter two menus per page with Event Intro and
-Event Date</caption>
-<colgroup>
-<col style="width: 31%" />
-<col style="width: 13%" />
-<col style="width: 3%" />
-<col style="width: 3%" />
-<col style="width: 43%" />
-</colgroup>
-<tbody>
-<tr>
-<td colspan="2">EVENT TITLE</td>
-<td rowspan="3"></td>
-<td rowspan="3"></td>
-<td rowspan="3"><h1 id="easily-copy-your-menu.-heres-how">Easily copy
-your menu. Here’s how:</h1>
-<h2 id="select-the-menu-content.">Select the menu content.</h2>
-<p>(Just drag to select the content. Don`t select the whole cell.)</p>
-<h2 id="press-ctrlc">Press Ctrl+C</h2>
-<p>(Copies the menu.)</p>
-<h2 id="select-all-of-this-tip-text.">Select all of this tip text.</h2>
-<h2 id="press-ctrlv."> Press Ctrl+V.</h2>
-<p>(Replace this text with a copy of your menu.)</p></td>
-</tr>
-<tr>
-<td colspan="2"></td>
-</tr>
-<tr>
-<td colspan="2" style="text-align: center;"><h2
-id="appetizer">APPETIZER</h2>
-<p>List or describe appetizers</p>
-<p>Appetizer item</p>
-<p>Appetizer item</p>
-<h2 id="first-course">FIRST COURSE</h2>
-<p>List or describe first course(s)</p>
-<p>First course item</p>
-<h2 id="main-course">MAIN COURSE</h2>
-<p>List or describe main course(s)</p>
-<p>Main course item</p>
-<h2 id="dessert">DESSERT</h2>
-<p>List or describe dessert(s)</p>
-<p>Dessert item</p></td>
-</tr>
-</tbody>
+
+<table><tr><th colspan="1" valign="top"><p>#
+</p><p></p></th><th colspan="1"><p>#
+</p><p>#
+</p><p></p></th><th colspan="1" valign="top"></th><th colspan="1" valign="top"></th><th colspan="1"></th></tr>
+<tr><td colspan="2" valign="top"><b>EVENT TITLE</b></td><td colspan="1" rowspan="3" valign="top"></td><td colspan="1" rowspan="3" valign="top"></td><td colspan="1" rowspan="3" valign="top"><p><h1><b>Easily copy your menu. Here’s how:</b></h1></p><p></p><p><h2>1. <b>Select the menu content.</b></h2></p><p>(Just drag to select the content. Don`t select the whole cell.)</p><p></p><p><h2>2. <b>Press Ctrl+C</b></h2></p><p>(Copies the menu.)</p><p></p><p><h2>3. <b>Select all of this tip text.</b></h2></p><p></p><p><h2>4. ` `<b>Press Ctrl+V.</b></h2></p><p>(Replace this text with a copy of your menu.)</p></td></tr>
+<tr><td colspan="2"></td></tr>
+<tr><td colspan="2"><p></p><p><h2><b>APPETIZER</b></h2></p><p>List or describe appetizers</p><p>Appetizer item</p><p>Appetizer item</p><p></p><p><h2><b>FIRST COURSE</b></h2></p><p>List or describe first course(s)</p><p>First course item</p><p></p><p><h2><b>MAIN COURSE</b></h2></p><p>List or describe main course(s)</p><p>Main course item</p><p></p><p><h2><b>DESSERT</b></h2></p><p>List or describe dessert(s)</p><p>Dessert item</p></td></tr>
 </table>

@@ -1,129 +1,16 @@
-<table style="width:100%;">
-<colgroup>
-<col style="width: 34%" />
-<col style="width: 2%" />
-<col style="width: 2%" />
-<col style="width: 27%" />
-<col style="width: 3%" />
-<col style="width: 30%" />
-</colgroup>
-<thead>
-<tr>
-<th style="text-align: center;"><blockquote>
-<p>“Add a quote here to highlight your business, provide feedback from
-happy customers, or share your company’s motto, tagline, or
-mission.”</p>
-</blockquote></th>
-<th colspan="2"></th>
-<th><p>Headline 1</p>
-<p>At any time, you can easily change the text of any section in this
-document by simply clicking and typing. The template is prepared so that
-formatting stays in tact with the new information you include.</p>
-<p>To update formatting, from the Home tab, you can use the Quick Styles
-gallery for the built in styles. You can also format text directly by
-using the other controls on the Home tab.</p></th>
-<th></th>
-<th></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td colspan="2" rowspan="3"></td>
-<td colspan="2" rowspan="3"><blockquote>
-<p>Company Address</p>
-<p>—</p>
-<p>Company Phone Number</p>
-<p>—</p>
-<p>Company Email</p>
-<p>—</p>
-<p>Company Website</p>
-</blockquote></td>
-<td rowspan="3"></td>
-<td><p>Brochure</p>
-<p>Title</p></td>
-</tr>
-<tr>
-<td>Brochure Subtitle</td>
-</tr>
-<tr>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td colspan="2"></td>
-<td style="text-align: center;"><img src="media/image42.png"
-style="width:1.33613in;height:0.43736in"
-alt="../../../../../../Dropbox/Microsoft%20Office%20Template%20Project/__Template_Images/Aleksey%20Belyalov/Logo%20Placeholder%20Wh" /></td>
-<td></td>
-<td><img src="media/image5.png" style="width:2.27639in;height:0.74514in"
-alt="../../../../../../Dropbox/Microsoft%20Office%20Template%20Project/__Template_Images/Aleksey%20Belyalov/Logo%20Placeholder%20Wh" /></td>
-</tr>
-<tr>
-<td></td>
-<td colspan="2"></td>
-<td style="text-align: center;"></td>
-<td></td>
-<td></td>
-</tr>
-</tbody>
+
+
+<table><tr><th colspan="1" valign="top"><p></p><p>> <b><i>“Add a quote here to highlight your business, provide feedback from happy customers, or share your company’s motto, tagline, or mission.”</i></b></p></th><th colspan="2" valign="top"></th><th colspan="1" valign="top"><p>![Decorative accent dark]</p><p><h1><b>Headline 1</b></h1></p><p>At any time, you can easily change the text of any section in this document by simply clicking and typing.  The template is prepared so that formatting stays in tact with the new information you include.</p><p>To update formatting, from the Home tab, you can use the Quick Styles gallery for the built in styles.  You can also format text directly by using the other controls on the Home tab.</p></th><th colspan="1" valign="top"></th><th colspan="1" valign="top"></th></tr>
+<tr><td colspan="2" rowspan="3" valign="top"><p></p><p></p></td><td colspan="2" rowspan="3"><p></p><p><b>Company Address</b></p><p><b>—</b></p><p><b>Company Phone Number</b></p><p><b>—</b></p><p><b>Company Email</b></p><p><b>—</b></p><p><b>Company Website</b></p></td><td colspan="1" rowspan="3" valign="top"></td><td colspan="1" valign="top"><p></p><p><b>Brochure</b></p><p><b>Title</b></p></td></tr>
+<tr><td colspan="1">Brochure Subtitle</td></tr>
+<tr><td colspan="1"></td></tr>
+<tr><td colspan="1" valign="top"></td><td colspan="2" valign="top"></td><td colspan="1"></td><td colspan="1" valign="top"></td><td colspan="1"></td></tr>
+<tr><td colspan="1" valign="top"></td><td colspan="2" valign="top"></td><td colspan="1"></td><td colspan="1" valign="top"></td><td colspan="1"></td></tr>
 </table>
 
-<table style="width:99%;">
-<colgroup>
-<col style="width: 31%" />
-<col style="width: 4%" />
-<col style="width: 28%" />
-<col style="width: 2%" />
-<col style="width: 31%" />
-</colgroup>
-<tbody>
-<tr>
-<td rowspan="2"><p>Headline 1</p>
-<p>At any time, you can easily change the text of any section in this
-document by simply clicking and typing. The template is prepared so that
-formatting stays in tact with the new information you include.</p>
-<p>To update formatting, from the Home tab, you can use the Quick Styles
-gallery for the built in styles. You can also format text directly by
-using the other controls on the Home tab.</p>
-<p>Add some bullets to your text too!</p>
-<p>Bullet Point Line N1</p>
-<p>Bullet Point Line N2</p>
-<p>Bullet Point Line N3</p>
-<p>Bullet Point Line N4</p>
-<p>Bullet Point Line N5</p></td>
-<td></td>
-<td><p>Headline 1</p>
-<p>Have other images you wish to use? It is simple to replace any of the
-pictures in this pamphlet. Simply double click in the Header of any
-page. Click on the image you wish to change. Images in the background
-might need an extra click as they are part of the background’s grouped
-images. Keep clicking until your selection handles are around the one
-image you wish to replace.</p>
-<p>Once the image you wish to replace is selected, you can either select
-“Change Picture” from the short cut menu, or click on “Fill” and choose
-the option for “Picture.”</p></td>
-<td></td>
-<td rowspan="2"><p>Headline 2</p>
-<p>You can easily change the overall colors of the template with just a
-few clicks. Go to the Design tab and click on Colors. From the list of
-colors, you can choose a different color scheme. As you hover over the
-different choices, you can see what the overall feel of the document
-will change with each different option.</p>
-<p>Headline 2</p>
-<p>Changed the color and want to go back to the original design? Easy!
-Just go back to the Design tab and choose the Themes option. From the
-list, click the option to reset the theme of this template. And just
-like that, your document color scheme will be restored to its
-original!</p>
-<p>Headline 2</p>
-<p>Plenty of text will fit in any of these panels. Simply click on the
-placeholders and add your own text.</p></td>
-</tr>
-<tr>
-<td></td>
-<td>Add another quote here about your business, about your clients, or
-about specials that you wish to highlight for all to read quickly!</td>
-<td></td>
-</tr>
-</tbody>
+<table><tr><th colspan="1">![Decorative accent dark]</th><th colspan="1"></th><th colspan="1">![Decorative accent dark]</th><th colspan="1"></th><th colspan="1"></th></tr>
+<tr><td colspan="1" rowspan="2" valign="top"><p><h1><b>Headline 1</b></h1></p><p>At any time, you can easily change the text of any section in this document by simply clicking and typing. The template is prepared so that formatting stays in tact with the new information you include.</p><p>To update formatting, from the Home tab, you can use the Quick Styles gallery for the built in styles. You can also format text directly by using the other controls on the Home tab.</p><p>Add some bullets to your text too!</p><p>- - Bullet Point Line N1</p><p>- - Bullet Point Line N2</p><p>- - Bullet Point Line N3</p><p>- - Bullet Point Line N4</p><p>- - Bullet Point Line N5</p></td><td colspan="1" valign="top"></td><td colspan="1" valign="top"><p><h1><b>Headline 1</b></h1></p><p>Have other images you wish to use?  It is simple to replace any of the pictures in this pamphlet.  Simply double click in the Header of any page.  Click on the image you wish to change.  Images in the background might need an extra click as they are part of the background’s grouped images.  Keep clicking until your selection handles are around the one image you wish to replace.</p><p>Once the image you wish to replace is selected, you can either select “Change Picture” from the short cut menu, or click on “Fill” and choose the option for “Picture.”</p></td><td colspan="1" valign="top"></td><td colspan="1" rowspan="2" valign="top"><p><h2><b>Headline 2</b></h2></p><p>You can easily change the overall colors of the template with just a few clicks.  Go to the Design tab and click on Colors.  From the list of colors, you can choose a different color scheme.  As you hover over the different choices, you can see what the overall feel of the document will change with each different option.</p><p><h2><b>Headline 2</b></h2></p><p>Changed the color and want to go back to the original design?  Easy!  Just go back to the Design tab and choose the Themes option.  From the list, click the option to reset the theme of this template.  And just like that, your document color scheme will be restored to its original!</p><p><h2><b>Headline 2</b></h2></p><p>Plenty of text will fit in any of these panels.  Simply click on the placeholders and add your own text.</p></td></tr>
+<tr><h1></h1><td colspan="1" valign="top"></td><td colspan="1">> <i>Add another quote here about your business, about your clients, or about specials that you wish to highlight for all to read quickly!</i></td><td colspan="1" valign="top"></td><h2></h2></tr>
 </table>
+
+[Decorative accent dark]: C:\Users\simon\AppData\Local\Temp\expected.005.png

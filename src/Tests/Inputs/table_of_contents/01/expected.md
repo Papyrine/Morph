@@ -1,13 +1,13 @@
 **Table of Contents**
 
-Introduction 1
+Introduction	1
 
-Background and motivation 3
+Background and motivation	3
 
-Method 7
+Method	7
 
-Results and discussion of preliminary findings 14
+Results and discussion of preliminary findings	14
 
-Conclusion 22
+Conclusion	22
 
-Appendix A 26
+Appendix A	26

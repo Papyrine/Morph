@@ -1,16 +1,65 @@
-<p>Paragraph with a full box border on all four edges.</p>
-<p>Plain paragraph between bordered ones.</p>
-<p>Paragraph with a thick blue left-only border (block-quote style).</p>
-<p>Plain paragraph between bordered ones.</p>
-<p>Paragraph with a red right-only border.</p>
-<p>Plain paragraph between bordered ones.</p>
-<p>Paragraph with top and bottom borders only.</p>
-<p>Plain paragraph between bordered ones.</p>
-<p>Paragraph with a box border and 16pt space on every edge.</p>
-<p>Plain paragraph between bordered ones.</p>
-<p>First of three paragraphs that share a w:between border — their
-adjacent edges collapse.</p>
-<p>Middle paragraph — both its top and bottom collapse into between
-lines.</p>
-<p>Last of three — its top collapses with the previous paragraph's
-bottom.</p>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; padding: 8pt; color: #000; }
+p { margin: 0 0 8pt; }
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 8pt; font-weight: bold; }
+h1 { font-size: 24pt; }
+h2 { font-size: 18pt; }
+h3 { font-size: 14pt; }
+h4 { font-size: 12pt; font-style: italic; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; font-style: italic; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+td, th { padding: 4pt 7pt; vertical-align: top; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+</style>
+</head>
+<body style="line-height:108%; font-family:Calibri; font-size:11pt">
+<p style="border:1pt solid #000000; padding:4pt">
+Paragraph with a full box border on all four edges.
+</p>
+<p>
+Plain paragraph between bordered ones.
+</p>
+<p style="border-left:3pt solid #2e74b5; padding-left:8pt">
+Paragraph with a thick blue left-only border (block-quote style).
+</p>
+<p>
+Plain paragraph between bordered ones.
+</p>
+<p style="border-right:1.5pt solid #c00000; padding-right:4pt">
+Paragraph with a red right-only border.
+</p>
+<p>
+Plain paragraph between bordered ones.
+</p>
+<p style="border-top:0.75pt solid #000000; border-bottom:0.75pt solid #000000; padding-top:2pt; padding-bottom:2pt">
+Paragraph with top and bottom borders only.
+</p>
+<p>
+Plain paragraph between bordered ones.
+</p>
+<p style="border:1pt solid #000000; padding:16pt">
+Paragraph with a box border and 16pt space on every edge.
+</p>
+<p>
+Plain paragraph between bordered ones.
+</p>
+<div style="margin-bottom:8pt; border:1pt solid #000000; clear:both">
+<p style="margin-bottom:0pt; border-bottom:1pt solid #000000; padding:4pt 4pt 12pt">
+First of three paragraphs that share a w:between border — their adjacent edges collapse.
+</p>
+<p style="margin-bottom:0pt; border-bottom:1pt solid #000000; padding:4pt 4pt 12pt">
+Middle paragraph — both its top and bottom collapse into between lines.
+</p>
+<p style="margin-bottom:0pt; padding:4pt">
+Last of three — its top collapses with the previous paragraph's bottom.
+</p>
+</div>
+</body>
+</html>

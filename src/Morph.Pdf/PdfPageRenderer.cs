@@ -18,6 +18,10 @@ sealed class PdfPageRenderer : PageRendererBase
     bool hasSignificantContentOnCurrentPage;
     bool currentPageFromExplicitBreak;
 
+    /// <summary>Receives notices about elements the backend couldn't render. Set from
+    /// <see cref="PdfExportOptions.OnWarning"/>.</summary>
+    public Action<ExportWarning>? OnWarning { get; init; }
+
     public PdfPageRenderer(PdfRenderContext context) : base(context)
     {
         this.context = context;
@@ -169,7 +173,12 @@ sealed class PdfPageRenderer : PageRendererBase
                 RenderContentControl(contentControl);
                 hasSignificantContentOnCurrentPage = true;
                 break;
-            // Ink, FloatingWordArt and (foreground) FloatingShape are not rendered by this backend.
+            case InkElement:
+            case FloatingShapeElement:
+            case FloatingWordArtElement:
+                OnWarning?.Invoke(new(WarningKind.UnsupportedElement,
+                    $"{element.GetType().Name} is not rendered by the PDF backend and was dropped."));
+                break;
         }
     }
 
@@ -591,7 +600,7 @@ sealed class PdfPageRenderer : PageRendererBase
         if (Math.Abs(rotation) > 0.01)
         {
             var state = Graphics.Save();
-            Graphics.RotateAtTransform(rotation, new XPoint(pixelX + pixelWidth / 2, pixelY + pixelHeight / 2));
+            Graphics.RotateAtTransform(rotation, new(pixelX + pixelWidth / 2, pixelY + pixelHeight / 2));
             DrawRaster(imageData, contentType, null, null, pixelX, pixelY, pixelWidth, pixelHeight);
             Graphics.Restore(state);
         }

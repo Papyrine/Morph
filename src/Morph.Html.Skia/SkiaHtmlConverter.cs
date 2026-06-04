@@ -5,7 +5,7 @@ namespace Morph;
 /// </summary>
 public sealed class SkiaHtmlConverter : HtmlConverter
 {
-    private protected override int RenderPages(ParsedDocument document, ConversionOptions options, Action<Action<Stream>> pageCallback)
+    private protected override int RenderPages(ParsedDocument document, ImageExportOptions options, Action<Action<Stream>> pageCallback)
     {
         using var context = new SkiaRenderContext(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory, options.DeterministicRendering);
         using var renderer = new SkiaPageRenderer(context);

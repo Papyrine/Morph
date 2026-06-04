@@ -1,70 +1,44 @@
-<img src="media/image1.png" style="width:2.275in;height:0.25in"
-alt="Logo placeholder" />
 
-# MARKETING & SALES TEAM 
 
-# Meeting minutes
+# **MARKETING & SALES TEAM**
+# MEETING MINUTES
 
-<table style="width:82%;">
-<colgroup>
-<col style="width: 24%" />
-<col style="width: 57%" />
-</colgroup>
-<tbody>
-<tr>
-<td>LOCATION:</td>
-<td>Conference Room B</td>
-</tr>
-<tr>
-<td>Date:</td>
-<td>1/9/23</td>
-</tr>
-<tr>
-<td>Attendees:</td>
-<td>Jon, Serra, Lionel, Grace</td>
-</tr>
-<tr>
-<td>Time:</td>
-<td>2:00 PM</td>
-</tr>
-</tbody>
-</table>
+|**LOCATION:** |Conference Room B** |
+| :- | :- |
+|**DATE:** |1/9/23 |
+|**ATTENDEES:** |Jon, Serra, Lionel, Grace |
+|**TIME:** |2:00 PM |
 
-1.  Call to order
+1. **CALL TO ORDER**
 
-Facilitator Name called to order the regular meeting of the Marketing &
-sales team at location or time on date
+   Facilitator Name called to order the regular meeting of the Marketing & sales team at location or time on date
 
-2.  Roll call
+1. **ROLL CALL**
 
-Facilitator Name conducted a roll call. The following persons were
-present: Marketing & sales team
+   Facilitator Name conducted a roll call. The following persons were present: Marketing & sales team
 
-3.  Approval of minutes from last meeting
+1. **APPROVAL OF MINUTES FROM LAST MEETING**
 
-Facilitator Name read the minutes from the last meeting. The minutes
-were approved as read.
+   Facilitator Name read the minutes from the last meeting. The minutes were approved as read.
 
-4.  Open issues
+1. **OPEN ISSUES**
 
-    1)  Budget assessment
+   1) Budget assessment
 
-    2)  Building maintenance
+   1) Building maintenance
 
-    3)  Board chair elections
+   1) Board chair elections
+1. **NEW BUSINESS**
 
-5.  New business
+   1) Marketing & sales team
 
-    1)  Marketing & sales team
+   1) Marketing & sales team
 
-    2)  Marketing & sales team
+   1) Marketing & sales team
+1. **ADJOURNMENT**
 
-    3)  Marketing & sales team
+   Facilitator Name adjourned the meeting at location or time.
 
-6.  Adjournment
+   Minutes submitted by: Marketing & sales team
 
-Facilitator Name adjourned the meeting at location or time.
-
-Minutes submitted by: Marketing & sales team
-
-Minutes approved by: Marketing & sales team
+   Minutes approved by: Marketing & sales team

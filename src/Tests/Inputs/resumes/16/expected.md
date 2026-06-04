@@ -1,9 +1,11 @@
-Chanchal\
+
+
+<a name="_hlk131061553"></a>Chanchal\
 Sharma
 
-Office Manager
+**Office Manager**
 
-\(718\) 555–0100
+(718) 555–0100
 
 chanchals@example.com
 
@@ -11,40 +13,27 @@ chanchals@example.com
 
 www.interestingsite.com
 
-Experience
-
-Office manager, The Phone Company
-
+**Experience**
+# **Office manager,** *The Phone Company*
 January 20XX - Current
 
-Summarize your key responsibilities and accomplishments. Where
-appropriate, use the language and words you find in the specific job
-description. Be concise, targeting 3-5 key areas.
-
-Office manager, Nod Publishing
-
+Summarize your key responsibilities and accomplishments. Where appropriate, use the language and words you find in the specific job description. Be concise, targeting 3-5 key areas.
+# **Office manager,** *Nod Publishing***
 March 20XX – December 20XX
 
-Summarize your key responsibilities and accomplishments. Here again,
-take any opportunity to use words you find in the job description. Be
-brief.
-
-Office manager, Southridge Video
-
+Summarize your key responsibilities and accomplishments. Here again, take any opportunity to use words you find in the job description. Be brief.
+# **Office manager,** *Southridge Video***
 August 20XX – March 20XX
 
-Summarize your key responsibilities and accomplishments. Here again,
-take any opportunity to use words you find in the job description. Be
-concise, targeting 3-5 key areas.
+Summarize your key responsibilities and accomplishments. Here again, take any opportunity to use words you find in the job description. Be concise, targeting 3-5 key areas.
 
-Education
+**Education**
 
 Sep 20XX - May 20XX
+## **Associate degree,** H.R. Management, Bellows College
 
-Associate degree, H.R. Management, Bellows College
+**Skills**
 
-Skills
+Project management	Data analysis	Communication
 
-Project management Data analysis Communication
-
-Organization Problem-solving Management
+Organization	Problem-solving 	Management

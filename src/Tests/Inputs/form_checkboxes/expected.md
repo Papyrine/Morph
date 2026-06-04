@@ -1,5 +1,5 @@
 Form with Checkboxes
 
-Option 1 (unchecked)
+` `FORMCHECKBOX  Option 1 (unchecked)
 
-Option 2 (checked)
+` `FORMCHECKBOX  Option 2 (checked)

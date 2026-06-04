@@ -1,42 +1,15 @@
-<table>
-<caption>Card layout table</caption>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<tbody>
-<tr>
-<td><img src="media/image1.png" style="width:0.70347in;height:0.52666in"
-alt="cake icon" /></td>
-<td><p><img src="media/image2.jpeg" style="width:4in;height:4in"
-alt="cake illustration" /></p>
-<p>Celebrate!</p></td>
-</tr>
-<tr>
-<td><img src="media/image1.png" style="width:0.70347in;height:0.52666in"
-alt="cake icon" /></td>
-<td><p><img src="media/image2.jpeg" style="width:4in;height:4in"
-alt="cake illustration" /></p>
-<p>Celebrate!</p></td>
-</tr>
-</tbody>
-</table>
+![ref1]![ref2]
+|![cake icon]|<p>![cake illustration]</p><p>Celebrate!</p>|
+| :- | :- |
+|![cake icon]|<p>![cake illustration]</p><p>Celebrate!</p>|
 
-<table>
-<caption>Card layout table</caption>
-<colgroup>
-<col style="width: 100%" />
-</colgroup>
-<tbody>
-<tr>
-<td>To get started right away, just tap any placeholder text (such as
-this) and start typing to replace it with your own or delete for a blank
-card.</td>
-</tr>
-<tr>
-<td>To get started right away, just tap any placeholder text (such as
-this) and start typing to replace it with your own or delete for a blank
-card.</td>
-</tr>
-</tbody>
-</table>
+<a name="_hlk16025230"></a>
+
+|To get started right away, just tap any placeholder text (such as this) and start typing to replace it with your own or delete for a blank card.|
+| :- |
+|To get started right away, just tap any placeholder text (such as this) and start typing to replace it with your own or delete for a blank card.|
+
+[ref1]: C:\Users\simon\AppData\Local\Temp\expected.001.png
+[ref2]: C:\Users\simon\AppData\Local\Temp\expected.002.png
+[cake icon]: C:\Users\simon\AppData\Local\Temp\expected.003.png
+[cake illustration]: C:\Users\simon\AppData\Local\Temp\expected.004.jpeg

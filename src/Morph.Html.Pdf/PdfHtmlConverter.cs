@@ -1,14 +1,14 @@
 namespace Morph;
 
 /// <summary>
-/// Converts HTML content to vector-text PDF using PdfSharp.
+/// Converts HTML content to vector-text PDF using PdfSharp. For parse-once / export-many
+/// workflows, prefer <see cref="HtmlDocument"/> plus its <c>ExportToPdf</c> extension.
 /// </summary>
 public sealed class PdfHtmlConverter
 {
     /// <summary>Converts an HTML string to a PDF byte array.</summary>
-    public static async Task<byte[]> ConvertToPdf(string html, ConversionOptions? options = null, Cancel cancel = default)
+    public static async Task<byte[]> ConvertToPdf(string html, PdfExportOptions? options = null, Cancel cancel = default)
     {
-        options ??= new();
         var elements = await HtmlParser.Parse(html, cancel);
         var document = new ParsedDocument
         {

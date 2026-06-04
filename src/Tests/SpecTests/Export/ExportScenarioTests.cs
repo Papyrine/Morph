@@ -1,13 +1,14 @@
 /// <summary>
 /// Scenario tests for the HTML, Markdown and PDF exporters, following the same per-input-directory
 /// Verify pattern as <c>SkiaScenarioTests</c> and enumerating every <c>input.docx</c> under
-/// <c>Inputs/</c>. Our output is snapshotted as <c>results.verified.html</c>, <c>results.verified.md</c>
-/// and <c>morph.pdf</c> beside each input; Pandoc's output (seeded by
-/// <see cref="PandocReferenceGenerator"/>) sits alongside as <c>expected.html</c> / <c>expected.md</c> /
-/// <c>expected.pdf</c> for visual comparison.
+/// <c>Inputs/</c>. Our output is snapshotted as <c>html_result.verified.html</c>,
+/// <c>md_result.verified.md</c> and <c>pdf_result.verified.pdf</c> beside each input; Pandoc's
+/// output (seeded by <see cref="PandocReferenceGenerator"/>) sits alongside as <c>expected.html</c> /
+/// <c>expected.md</c> / <c>expected.pdf</c> for visual comparison.
 ///
-/// Text and PDF are separate tests so a diff in one doesn't block the other (important when bulk
-/// re-seeding baselines).
+/// Each format is its own test so a diff in one doesn't block the others (important when bulk
+/// re-seeding baselines), and each uses a distinct file-name stem so the formats don't race over
+/// orphan-cleanup of each other's received/verified files.
 /// </summary>
 public class ExportScenarioTests
 {
@@ -22,22 +23,35 @@ public class ExportScenarioTests
 
     [Test]
     [MethodDataSource(nameof(Scenarios))]
-    public Task TextOutput(string directory)
+    public async Task HtmlOutput(string directory)
     {
-        var input = Path.Combine(directory, "input.docx");
-        var html = DocumentConverter.ConvertToHtml(input);
-        var markdown = DocumentConverter.ConvertToMarkdown(input);
-
-        // One verifier owns both text outputs so they share the "results" stem without the two
-        // formats fighting over orphan cleanup: results.verified.html and results.verified.md.
-        return Verify(
+        var html = DocumentConverter.ConvertToHtml(Path.Combine(directory, "input.docx"));
+        var png = await BrowserScreenshot.RenderHtmlAsync(html);
+        await Verify(
                 new[]
                 {
                     new Target("html", html),
-                    new Target("md", markdown)
+                    new Target("png", new MemoryStream(png))
                 })
             .UseDirectory(directory)
-            .UseFileName("results")
+            .UseFileName("html_result")
+            .IgnoreParameters();
+    }
+
+    [Test]
+    [MethodDataSource(nameof(Scenarios))]
+    public async Task MarkdownOutput(string directory)
+    {
+        var markdown = DocumentConverter.ConvertToMarkdown(Path.Combine(directory, "input.docx"));
+        var png = await BrowserScreenshot.RenderMarkdownAsync(markdown);
+        await Verify(
+                new[]
+                {
+                    new Target("md", markdown),
+                    new Target("png", new MemoryStream(png))
+                })
+            .UseDirectory(directory)
+            .UseFileName("md_result")
             .IgnoreParameters();
     }
 
@@ -48,13 +62,13 @@ public class ExportScenarioTests
         var input = Path.Combine(directory, "input.docx");
         var pdf = PdfDocumentConverter.ConvertToPdf(input, new() {FontDirectory = fontsDirectory});
 
-        // Snapshotted as raw bytes under the "morph" stem — not via Verify, whose ImageMagick plugin
-        // would rasterize a "pdf" target to PNG (pulling in a Ghostscript dependency), and not under
-        // the "results" stem (whose received-file cleanup in the parallel TextOutput run would race
-        // to delete it). PdfRenderer makes the bytes reproducible (pinned dates/ID, normalized
-        // font-subset tags) so a straight byte compare against the committed morph.pdf is stable.
-        var snapshot = Path.Combine(directory, "morph.pdf");
-        var received = Path.Combine(directory, "morph.received.pdf");
+        // Snapshotted as raw bytes — not via Verify, whose ImageMagick plugin would rasterize a
+        // "pdf" target to PNG (pulling in a Ghostscript dependency). PdfRenderer makes the bytes
+        // reproducible (pinned dates/ID, normalized font-subset tags) so a straight byte compare
+        // against the committed pdf_result.verified.pdf is stable. The "pdf_result" stem keeps it
+        // out of the html/md verifications' cleanup paths.
+        var snapshot = Path.Combine(directory, "pdf_result.verified.pdf");
+        var received = Path.Combine(directory, "pdf_result.received.pdf");
 
         if (File.Exists(snapshot) && File.ReadAllBytes(snapshot).AsSpan().SequenceEqual(pdf))
         {
@@ -63,7 +77,7 @@ public class ExportScenarioTests
         }
 
         await File.WriteAllBytesAsync(received, pdf);
-        throw new($"PDF output differs from morph.pdf in {directory}. " +
-                  "Review morph.received.pdf and, if correct, rename it over morph.pdf.");
+        throw new($"PDF output differs from pdf_result.verified.pdf in {directory}. " +
+                  "Review pdf_result.received.pdf and, if correct, rename it over pdf_result.verified.pdf.");
     }
 }

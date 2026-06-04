@@ -1,3 +1,7 @@
+**Company Name**
+
+Internal Document
+
 This document has both a header and footer.
 
 Content paragraph 1 to fill multiple pages.
@@ -59,3 +63,4 @@ Content paragraph 28 to fill multiple pages.
 Content paragraph 29 to fill multiple pages.
 
 Content paragraph 30 to fill multiple pages.
+© 2024 Company Name. All rights reserved.

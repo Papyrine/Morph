@@ -1,91 +1,27 @@
-<img src="media/image2.svg" style="width:3.56in;height:2.28in" />
 
-resume writing workshop
 
-Agenda
+RESUME WRITING WORKSHOP
 
-<table>
-<colgroup>
-<col style="width: 14%" />
-<col style="width: 85%" />
-</colgroup>
-<tbody>
-<tr>
-<td>Location:</td>
-<td>123 45<sup>th</sup> Ave</td>
-</tr>
-<tr>
-<td>Date:</td>
-<td>May 5<sup>th</sup></td>
-</tr>
-<tr>
-<td>Time:</td>
-<td>11:00am – 2:00pm</td>
-</tr>
-<tr>
-<td>Instructor:</td>
-<td>Michele Saaz</td>
-</tr>
-</tbody>
-</table>
+AGENDA
 
-<table>
-<colgroup>
-<col style="width: 34%" />
-<col style="width: 37%" />
-<col style="width: 27%" />
-</colgroup>
-<tbody>
-<tr>
-<td colspan="3"><h1 id="schedule">schedule</h1></td>
-</tr>
-<tr>
-<td>11:00 AM</td>
-<td>Registration &amp; sign-in</td>
-<td>1<sup>st</sup> floor lobby</td>
-</tr>
-<tr>
-<td>11:30 AM</td>
-<td>Defining goals</td>
-<td>Room 300</td>
-</tr>
-<tr>
-<td>12:15 PM</td>
-<td>Shaping your personal brand</td>
-<td>Room 300</td>
-</tr>
-<tr>
-<td>12:45 PM</td>
-<td>Lunch break</td>
-<td></td>
-</tr>
-<tr>
-<td>1:15 PM</td>
-<td>Efficient resume writing</td>
-<td>Room 305</td>
-</tr>
-<tr>
-<td>2:00 PM</td>
-<td>How to stand out</td>
-<td>Room 305</td>
-</tr>
-</tbody>
-</table>
+|Location:|123 45<sup>th</sup> Ave|
+| :- | :- |
+|Date:|May 5<sup>th</sup>|
+|Time:|11:00am – 2:00pm|
+|Instructor:|Michele Saaz|
 
-<table style="width:100%;">
-<colgroup>
-<col style="width: 99%" />
-</colgroup>
-<tbody>
-<tr>
-<td><h1 id="additional-information">additional information</h1></td>
-</tr>
-<tr>
-<td>Register in advance at www.interestingsite.com</td>
-</tr>
-<tr>
-<td>Bring your resume, a notebook and/or a personal electronic device to
-take notes.</td>
-</tr>
-</tbody>
-</table>
+|<h1>**SCHEDULE**</h1>|||
+| :- | :- | :- |
+|11:00 AM|Registration & sign-in|1<sup>st</sup> floor lobby|
+|11:30 AM|Defining goals|Room 300|
+|12:15 PM|Shaping your personal brand|Room 300|
+|12:45 PM|Lunch break||
+|1:15 PM|Efficient resume writing|Room 305|
+|2:00 PM|How to stand out|Room 305|
+
+|<h1>**ADDITIONAL INFORMATION**</h1>||
+| :- | :- |
+|Register in advance at www.interestingsite.com||
+|Bring your resume, a notebook and/or a personal electronic device to take notes.||
+
+**PAGE **1****

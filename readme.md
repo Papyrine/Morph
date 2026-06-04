@@ -184,7 +184,7 @@ var imageData = converter.ConvertToImageData(stream);
 ```cs
 var converter = new SkiaDocumentConverter();
 
-var options = new ConversionOptions
+var options = new ImageExportOptions
 {
     Dpi = 300,
     FontWidthScale = 1.07
@@ -196,6 +196,141 @@ var result = converter.ConvertToImages(
     options);
 ```
 <sup><a href='/src/Tests/ReadmeSamples.cs#L70-L85' title='Snippet source file'>snippet source</a> | <a href='#snippet-CustomOptions' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+### DOCX to HTML / Markdown / PDF
+
+Morph also serializes a DOCX directly to semantic HTML, Pandoc-flavoured Markdown, or a vector-text PDF — no backend choice needed for HTML / Markdown. Per-format options classes (`HtmlExportOptions`, `MarkdownExportOptions`, `PdfExportOptions`) carry the knobs relevant to each output.
+
+
+#### Basic — HTML
+
+<!-- snippet: ConvertToHtml -->
+<a id='snippet-ConvertToHtml'></a>
+```cs
+var html = DocumentConverter.ConvertToHtml("document.docx");
+File.WriteAllText("document.html", html);
+```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L90-L95' title='Snippet source file'>snippet source</a> | <a href='#snippet-ConvertToHtml' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+#### Basic — Markdown
+
+<!-- snippet: ConvertToMarkdown -->
+<a id='snippet-ConvertToMarkdown'></a>
+```cs
+var markdown = DocumentConverter.ConvertToMarkdown("document.docx");
+File.WriteAllText("document.md", markdown);
+```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L100-L105' title='Snippet source file'>snippet source</a> | <a href='#snippet-ConvertToMarkdown' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+#### Basic — PDF
+
+<!-- snippet: ConvertToPdf -->
+<a id='snippet-ConvertToPdf'></a>
+```cs
+var outputPath = "document.pdf";
+PdfDocumentConverter.ConvertToPdf("document.docx", outputPath);
+```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L110-L115' title='Snippet source file'>snippet source</a> | <a href='#snippet-ConvertToPdf' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+#### Parse once, export many
+
+For multi-format export, `WordDocument` parses the source a single time and supports calling as many `ExportToXxx` methods as needed. The PDF extension method comes from `Morph.OpenXml.Pdf`; HTML and Markdown are built in.
+
+<!-- snippet: ParseOnceExportMany -->
+<a id='snippet-ParseOnceExportMany'></a>
+```cs
+// Parse once with WordDocument, then export to as many formats as you like — the source
+// .docx is only opened and parsed a single time.
+var document = new WordDocument("document.docx");
+
+File.WriteAllText("document.html", document.ExportToHtml());
+File.WriteAllText("document.md",   document.ExportToMarkdown());
+document.ExportToPdf("document.pdf");   // extension method from Morph.OpenXml.Pdf
+```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L120-L130' title='Snippet source file'>snippet source</a> | <a href='#snippet-ParseOnceExportMany' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+#### Custom image handling
+
+By default Morph inlines images as base64 data URIs. Pass an `ImageHandler` to write images to disk, upload them to a CDN, or reference them however suits the calling pipeline.
+
+<!-- snippet: HtmlExportWithImageHandler -->
+<a id='snippet-HtmlExportWithImageHandler'></a>
+```cs
+// Write images to a media folder and reference them relatively, instead of base64-inlining.
+Directory.CreateDirectory("media");
+var html = DocumentConverter.ConvertToHtml(
+    "document.docx",
+    new HtmlExportOptions
+    {
+        ImageHandler = image =>
+        {
+            var extension = image.ContentType switch
+            {
+                "image/svg+xml" => "svg",
+                "image/jpeg"    => "jpg",
+                _               => "png"
+            };
+            var path = $"media/image-{image.Index}.{extension}";
+            File.WriteAllBytes(path, image.Data);
+            return path;
+        }
+    });
+```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L135-L157' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlExportWithImageHandler' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+#### Warning callback
+
+Some source features can't always be represented in the chosen output (ink strokes in HTML, foreground vector shapes in PDF, etc.). Pass an `OnWarning` callback to discover what was dropped.
+
+<!-- snippet: WarningCallback -->
+<a id='snippet-WarningCallback'></a>
+```cs
+// Discover features in the source that couldn't be fully represented in the output —
+// unsupported elements (ink strokes, vector shapes), missing fonts, etc.
+var warnings = new List<ExportWarning>();
+var html = DocumentConverter.ConvertToHtml(
+    "document.docx",
+    new HtmlExportOptions
+    {
+        OnWarning = warning => warnings.Add(warning)
+    });
+
+foreach (var warning in warnings)
+{
+    Console.WriteLine($"[{warning.Kind}] {warning.Message}");
+}
+```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L162-L179' title='Snippet source file'>snippet source</a> | <a href='#snippet-WarningCallback' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+#### PDF page range
+
+Render only specific pages — useful for previews / thumbnails.
+
+<!-- snippet: PdfPageRange -->
+<a id='snippet-PdfPageRange'></a>
+```cs
+// Render only the first three pages of the document.
+var firstThreePages = PdfDocumentConverter.ConvertToPdf(
+    "document.docx",
+    new PdfExportOptions {Pages = new(Start: 1, End: 3)});
+
+File.WriteAllBytes("document-preview.pdf", firstThreePages);
+```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L184-L193' title='Snippet source file'>snippet source</a> | <a href='#snippet-PdfPageRange' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 

@@ -1,203 +1,59 @@
-# Full Name 
+# Full Name
+yourname@example.com  •  (123) 456‐7890 •  www.example.com
 
-yourname@example.com • (123) 456‐7890 • www.example.com
+|<h2>EDUCATION </h2>|
+| :- |
 
-<table>
-<colgroup>
-<col style="width: 100%" />
-</colgroup>
-<tbody>
-<tr>
-<td><h2 id="education">Education </h2></td>
-</tr>
-</tbody>
-</table>
+|**College, location**|**Graduation year** |
+| :- | -: |
 
-<table>
-<colgroup>
-<col style="width: 79%" />
-<col style="width: 20%" />
-</colgroup>
-<tbody>
-<tr>
-<td>College, location</td>
-<td style="text-align: right;">Graduation year</td>
-</tr>
-</tbody>
-</table>
+- *Bachelor of Arts, Degree, GPA*
 
-Bachelor of Arts, Degree, GPA
+- *Relevant course work:*
 
-Relevant course work:
+|<h2>PROFESSIONAL EXPERIENCE </h2>|
+| :- |
 
-<table>
-<colgroup>
-<col style="width: 100%" />
-</colgroup>
-<tbody>
-<tr>
-<td><h2 id="professional-experience">Professional experience </h2></td>
-</tr>
-</tbody>
-</table>
-
-<table>
-<colgroup>
-<col style="width: 79%" />
-<col style="width: 20%" />
-</colgroup>
-<thead>
-<tr>
-<th>Company, location</th>
-<th style="text-align: right;">Month Year</th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-
-### Role 
-
+|**Company, location**|**Month Year**|
+| :- | -: |
+### *Role*
 - Describe what you did and what your impact was
-
 - Remember to be concise
-
-<table>
-<colgroup>
-<col style="width: 79%" />
-<col style="width: 20%" />
-</colgroup>
-<thead>
-<tr>
-<th>Company, location</th>
-<th style="text-align: right;">Month Year</th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-
-### Role 
-
+|**Company, location**|**Month Year**|
+| :- | -: |
+### *Role*
+- Describe what you did and what your impact was
+|**Company, location**|**Month Year**|
+| :- | -: |
+### *Role*
+- Describe what you did and what your impact was
+|**Company, location**|**Month Year**|
+| :- | -: |
+### *Role*
 - Describe what you did and what your impact was
 
-<table>
-<colgroup>
-<col style="width: 79%" />
-<col style="width: 20%" />
-</colgroup>
-<thead>
-<tr>
-<th>Company, location</th>
-<th style="text-align: right;">Month Year</th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
+|<h2>PROJECTS & EXTRACURRICULAR </h2>|
+| :- |
 
-### Role 
-
-- Describe what you did and what your impact was
-
-<table>
-<colgroup>
-<col style="width: 79%" />
-<col style="width: 20%" />
-</colgroup>
-<thead>
-<tr>
-<th>Company, location</th>
-<th style="text-align: right;">Month Year</th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-
-### Role 
-
-- Describe what you did and what your impact was
-
-<table>
-<colgroup>
-<col style="width: 100%" />
-</colgroup>
-<tbody>
-<tr>
-<td><h2 id="projects-extracurricular">Projects &amp; extracurricular
-</h2></td>
-</tr>
-</tbody>
-</table>
-
-<table>
-<colgroup>
-<col style="width: 79%" />
-<col style="width: 20%" />
-</colgroup>
-<thead>
-<tr>
-<th>Project title</th>
-<th style="text-align: right;">Month Year</th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
+|**Project title** |**Month Year**|
+| :- | -: |
 
 - Describe what you did/built etc.
-
-<table>
-<colgroup>
-<col style="width: 79%" />
-<col style="width: 20%" />
-</colgroup>
-<thead>
-<tr>
-<th>Activity</th>
-<th style="text-align: right;">Month Year</th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
+|**Activity**|**Month Year**|
+| :- | -: |
 
 - Describe what you did/built etc.
-
 - Accomplishments
-
-<table>
-<colgroup>
-<col style="width: 79%" />
-<col style="width: 20%" />
-</colgroup>
-<thead>
-<tr>
-<th>Leadership experience</th>
-<th style="text-align: right;">Month Year</th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
+|**Leadership experience**|**Month Year**|
+| :- | -: |
 
 - Describe what you did/built etc.
 
-<table>
-<colgroup>
-<col style="width: 100%" />
-</colgroup>
-<tbody>
-<tr>
-<td><h2 id="skills">Skills </h2></td>
-</tr>
-</tbody>
-</table>
+|<h2>SKILLS </h2>|
+| :- |
 
-Programming languages: **List programming languages or skills**
+**Programming languages:** List programming languages or skills
 
-Computer software/ frameworks: **Microsoft office, Adobe Photoshop,
-Maple, Git, React, jQuery**
+**Computer software/ frameworks:**  Microsoft office, Adobe Photoshop, Maple, Git, React, jQuery
 
-Languages: **Portuguese (advanced), French (advanced)**
+**Languages:**  Portuguese (advanced), French (advanced)

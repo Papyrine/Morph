@@ -1,91 +1,27 @@
-<table style="width:95%;">
-<colgroup>
-<col style="width: 95%" />
-</colgroup>
-<tbody>
-<tr>
-<td><img src="media/image1.png" style="width:2.275in;height:0.25in"
-alt="Logo placeholder" /></td>
-</tr>
-<tr>
-<td><h1 id="marketing-sales-team">MARKETING &amp; SALES TEAM</h1></td>
-</tr>
-<tr>
-<td>MEETING MINUTES</td>
-</tr>
-</tbody>
-</table>
+` `
 
-<table style="width:75%;">
-<colgroup>
-<col style="width: 22%" />
-<col style="width: 52%" />
-</colgroup>
-<tbody>
-<tr>
-<td><h2 id="location">LOCATION: </h2></td>
-<td>Conference Room B</td>
-</tr>
-<tr>
-<td><h2 id="date">Date: </h2></td>
-<td>1/9/23</td>
-</tr>
-<tr>
-<td><h2 id="attendees">Attendees: </h2></td>
-<td>Jon, Serra, Lionel, Grace</td>
-</tr>
-<tr>
-<td><h2 id="time">Time: </h2></td>
-<td>2:00 PM</td>
-</tr>
-</tbody>
-</table>
+||
+| :- |
+|<h1>**MARKETING & SALES TEAM**</h1>|
+|<a name="ole_link1"></a><a name="ole_link2"></a>MEETING MINUTES|
 
-Agenda Items
+|<h2><a name="ole_link8"></a><a name="ole_link9"></a>**LOCATION:** </h2>|Conference Room B|
+| :- | :- |
+|<h2>**DATE:** </h2>|1/9/23|
+|<h2>**ATTENDEES:** </h2>|Jon, Serra, Lionel, Grace |
+|<h2>**TIME:** </h2>|2:00 PM |
 
-1.  Call to order
+AGENDA ITEMS
 
-2.  Roll call
+1. Call to order
+1. Roll call
+1. Approval of minutes from last meeting
+1. Open issues
+1. New business
+1. Adjournment
 
-3.  Approval of minutes from last meeting
-
-4.  Open issues
-
-5.  New business
-
-6.  Adjournment
-
-<table style="width:96%;">
-<colgroup>
-<col style="width: 36%" />
-<col style="width: 19%" />
-<col style="width: 19%" />
-<col style="width: 19%" />
-</colgroup>
-<tbody>
-<tr>
-<td><h2 id="action-items">Action Items </h2></td>
-<td><h2 id="owner">Owner </h2></td>
-<td><h2 id="deadline">Deadline </h2></td>
-<td><h2 id="status">Status </h2></td>
-</tr>
-<tr>
-<td>Budget assessment</td>
-<td>Jon</td>
-<td>2/10</td>
-<td>In progress</td>
-</tr>
-<tr>
-<td>Building maintenance</td>
-<td>Serra</td>
-<td>3/15</td>
-<td>Not started</td>
-</tr>
-<tr>
-<td>Hiring contractors</td>
-<td>Lionel</td>
-<td>1/30</td>
-<td>In progress</td>
-</tr>
-</tbody>
-</table>
+|<h2>**ACTION ITEMS** </h2>|<h2>**OWNER** </h2>|<h2>**DEADLINE** </h2>|<h2>**STATUS** </h2>|
+| :- | :- | :- | :- |
+|Budget assessment|Jon|2/10|In progress|
+|Building maintenance|Serra|3/15|Not started|
+|Hiring contractors|Lionel|1/30|In progress|

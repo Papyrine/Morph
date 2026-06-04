@@ -1,43 +1,8 @@
-![](media/image53.png)
 
-<table>
-<caption>Ticket layout for 10 tickets per page</caption>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<thead>
-<tr>
-<th><p>Event</p>
-<p>Name</p></th>
-<th><p>Event</p>
-<p>Name</p></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><p>Event</p>
-<p>Name</p></td>
-<td><p>Event</p>
-<p>Name</p></td>
-</tr>
-<tr>
-<td><p>Event</p>
-<p>Name</p></td>
-<td><p>Event</p>
-<p>Name</p></td>
-</tr>
-<tr>
-<td><p>Event</p>
-<p>Name</p></td>
-<td><p>Event</p>
-<p>Name</p></td>
-</tr>
-<tr>
-<td><p>Event</p>
-<p>Name</p></td>
-<td><p>Event</p>
-<p>Name</p></td>
-</tr>
-</tbody>
-</table>
+
+|<p>**EVENT**</p><p>**NAME**</p>|<p>**EVENT**</p><p>**NAME**</p>|
+| :-: | :-: |
+|<p>**EVENT**</p><p>**NAME**</p>|<p>**EVENT**</p><p>**NAME**</p>|
+|<p>**EVENT**</p><p>**NAME**</p>|<p>**EVENT**</p><p>**NAME**</p>|
+|<p>**EVENT**</p><p>**NAME**</p>|<p>**EVENT**</p><p>**NAME**</p>|
+|<p>**EVENT**</p><p>**NAME**</p>|<p>**EVENT**</p><p>**NAME**</p>|

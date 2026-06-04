@@ -27,7 +27,7 @@ abstract class RenderContextBase
     /// <summary>
     /// When <c>true</c>, Skia renders glyphs with greyscale AA, integer x positions
     /// and no hinting for pixel-stable output across machines. Sourced from
-    /// <see cref="ConversionOptions.DeterministicRendering"/> or the
+    /// <see cref="ImageExportOptions.DeterministicRendering"/> or the
     /// <see cref="DefaultFontSettings.DeterministicRendering"/> static fallback.
     /// </summary>
     public bool DeterministicRendering { get; }

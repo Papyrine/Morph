@@ -1,42 +1,15 @@
-<table>
-<caption>Card layout table</caption>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<tbody>
-<tr>
-<td><img src="media/image2.png" style="width:0.70347in;height:0.55133in"
-alt="wedding ring icon" /></td>
-<td><p><img src="media/image3.jpeg" style="width:4in;height:4in"
-alt="wedding rings" /></p>
-<p>To the happy couple!</p></td>
-</tr>
-<tr>
-<td><img src="media/image2.png" style="width:0.70347in;height:0.55133in"
-alt="wedding ring icon" /></td>
-<td><p><img src="media/image3.jpeg" style="width:4in;height:4in"
-alt="wedding rings" /></p>
-<p>To the happy couple!</p></td>
-</tr>
-</tbody>
-</table>
+![ref1]![ref2]
+|![wedding ring icon]|<p>![wedding rings]</p><p>To the happy couple!</p>|
+| :- | :- |
+|![wedding ring icon]|<p>![wedding rings]</p><p>To the happy couple!</p>|
 
-<table>
-<caption>Card layout table</caption>
-<colgroup>
-<col style="width: 100%" />
-</colgroup>
-<tbody>
-<tr>
-<td>To get started right away, just tap any placeholder text (such as
-this) and start typing to replace it with your own or delete for a blank
-card.</td>
-</tr>
-<tr>
-<td>To get started right away, just tap any placeholder text (such as
-this) and start typing to replace it with your own or delete for a blank
-card.</td>
-</tr>
-</tbody>
-</table>
+<a name="_hlk16025230"></a>
+
+|To get started right away, just tap any placeholder text (such as this) and start typing to replace it with your own or delete for a blank card.|
+| :- |
+|To get started right away, just tap any placeholder text (such as this) and start typing to replace it with your own or delete for a blank card.|
+
+[ref1]: C:\Users\simon\AppData\Local\Temp\expected.001.png
+[ref2]: C:\Users\simon\AppData\Local\Temp\expected.002.png
+[wedding ring icon]: C:\Users\simon\AppData\Local\Temp\expected.003.png
+[wedding rings]: C:\Users\simon\AppData\Local\Temp\expected.004.jpeg

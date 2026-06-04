@@ -129,6 +129,70 @@ static class DocumentExportHelpers
     }
 
     /// <summary>
+    /// Merges adjacent runs that share identical export-relevant formatting (and the same
+    /// hyperlink target) into a single run with concatenated text. Word fragments runs at proofing,
+    /// revision, and rsid boundaries, producing sequences like <c>"Sep","tember"</c> or three
+    /// consecutive identically-bold runs. Left un-merged these bloat the HTML with a redundant tag
+    /// pair per fragment and — worse — corrupt Markdown emphasis, where <c>*a*</c> immediately
+    /// followed by <c>*b*</c> yields <c>*a**b*</c> (a stray <c>**</c> the parser reads as a bold
+    /// toggle) instead of <c>*ab*</c>. Tab, inline-image, and inline-shape runs are never merged —
+    /// they are atomic and carry payload beyond <see cref="Run.Text"/>.
+    /// </summary>
+    public static List<Run> CoalesceRuns(IReadOnlyList<Run> runs)
+    {
+        var merged = new List<Run>(runs.Count);
+        foreach (var run in runs)
+        {
+            if (merged.Count > 0 && CanMerge(merged[^1], run))
+            {
+                var previous = merged[^1];
+                merged[^1] = new Run
+                {
+                    Text = previous.Text + run.Text,
+                    Properties = previous.Properties,
+                    HyperlinkUrl = previous.HyperlinkUrl
+                };
+            }
+            else
+            {
+                merged.Add(run);
+            }
+        }
+
+        return merged;
+    }
+
+    static bool CanMerge(Run left, Run right)
+    {
+        if (left.IsTab || right.IsTab ||
+            left.InlineImageData != null || right.InlineImageData != null ||
+            left.InlineShapeGroup != null || right.InlineShapeGroup != null)
+        {
+            return false;
+        }
+
+        return left.HyperlinkUrl == right.HyperlinkUrl &&
+               SameFormatting(left.Properties, right.Properties);
+    }
+
+    // Compares only the run properties the text exporters actually emit. Two runs differing solely
+    // in an unexported field (character spacing, kerning, rsid-style metadata) render identically,
+    // so merging them is safe and keeps the merged run's properties for the survivor.
+    static bool SameFormatting(RunProperties left, RunProperties right) =>
+        left.Bold == right.Bold &&
+        left.Italic == right.Italic &&
+        left.Underline == right.Underline &&
+        left.Strikethrough == right.Strikethrough &&
+        left.AllCaps == right.AllCaps &&
+        left.SmallCaps == right.SmallCaps &&
+        left.Hidden == right.Hidden &&
+        left.VerticalAlignment == right.VerticalAlignment &&
+        left.ColorHex == right.ColorHex &&
+        left.BackgroundColorHex == right.BackgroundColorHex &&
+        left.FontFamily == right.FontFamily &&
+        Math.Abs(left.FontSizePoints - right.FontSizePoints) < 0.01;
+
+    /// <summary>
     /// Normalizes a model colour (a 6-digit hex string without "#", or "auto") to a CSS colour, or
     /// null when the value is absent / automatic.
     /// </summary>

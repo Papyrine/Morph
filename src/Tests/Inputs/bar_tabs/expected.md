@@ -1,6 +1,6 @@
-Column one Column two Column three
+Column one    Column two    Column three
 
-A B C
+A             B             C
 
 Vertical bar separators flank each line
 

@@ -1,179 +1,25 @@
-<table>
-<caption>Layout table to add meeting details</caption>
-<colgroup>
-<col style="width: 17%" />
-<col style="width: 34%" />
-<col style="width: 17%" />
-<col style="width: 30%" />
-</colgroup>
-<tbody>
-<tr>
-<td colspan="4">Event Planning Meeting</td>
-</tr>
-<tr>
-<td>Project:</td>
-<td>Fundraising – charity auction</td>
-<td>Meeting date:</td>
-<td>May 5, 20XX</td>
-</tr>
-<tr>
-<td>Facilitator:</td>
-<td>Gehad Kerazi</td>
-<td>Location:</td>
-<td>The Rosehip Hotel</td>
-</tr>
-</tbody>
-</table>
+##
 
-<table>
-<caption>Add Name, Title, Company, Phone and Fax numbers, and E-mail
-address in this table</caption>
-<colgroup>
-<col style="width: 17%" />
-<col style="width: 13%" />
-<col style="width: 13%" />
-<col style="width: 16%" />
-<col style="width: 16%" />
-<col style="width: 23%" />
-</colgroup>
-<thead>
-<tr>
-<th>Name</th>
-<th>Title</th>
-<th>Company</th>
-<th>Phone</th>
-<th>Fax</th>
-<th>Email</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Danielle Brasseur</td>
-<td>Event manager</td>
-<td>The Social Strategists</td>
-<td>(312) 555-0123</td>
-<td>(312) 555-0124</td>
-<td>danielle@example.com</td>
-</tr>
-<tr>
-<td>Si-hyeon Choi</td>
-<td>Event planner</td>
-<td>Starling and Copper</td>
-<td>(879) 555-0189</td>
-<td>(879) 555-0180</td>
-<td>Si_hyeon@example.com</td>
-</tr>
-<tr>
-<td>Kalavathi Rai</td>
-<td>Coordinator</td>
-<td>Olson Harris Ltd.</td>
-<td>(234) 555-0156</td>
-<td>(234) 555-0157</td>
-<td>kalavathi@example.com</td>
-</tr>
-<tr>
-<td>Miro Matkovic</td>
-<td>Meeting planner</td>
-<td>Mitchell, Morris, Ward, and Cook</td>
-<td>(507) 555-0178</td>
-<td>(507) 555-0179</td>
-<td>miro@example.com</td>
-</tr>
-<tr>
-<td>Hayden Cook</td>
-<td>Events specialist</td>
-<td>Northwind Traders</td>
-<td>(456) 555-0145</td>
-<td>(456) 555-0146</td>
-<td>hayden@example.com</td>
-</tr>
-<tr>
-<td>Riku Nakano</td>
-<td>Sponsorship coordinator</td>
-<td>VanArsdel, Ltd.</td>
-<td>(890) 555-0134</td>
-<td>(890) 555-0135</td>
-<td>riku@example.com</td>
-</tr>
-<tr>
-<td>Keita Aoki</td>
-<td>Special events coordinator</td>
-<td>Wide World Importers</td>
-<td>(305) 555-0190</td>
-<td>(305) 555-0191</td>
-<td>keita@example.com</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-</tbody>
-</table>
+|<h1>**EVENT PLANNING MEETING** </h1>||||
+| :- | :- | :- | :- |
+|<h2>**PROJECT:**</h2>|Fundraising – charity auction|<h2>**MEETING DATE:**</h2>|May 5, 20XX|
+|<h2>**FACILITATOR:**</h2>|Gehad Kerazi|<h2>**LOCATION:**</h2>|The Rosehip Hotel|
+
+|<h2>**NAME**</h2>|<h2>**TITLE**</h2>|<h2>**COMPANY**</h2>|<h2>**PHONE**</h2>|<h2>**FAX** </h2>|<h2>**EMAIL**</h2>|
+| :- | :- | :- | :- | :- | :- |
+|Danielle Brasseur|Event manager|The Social Strategists|(312) 555-0123|(312) 555-0124|danielle@example.com|
+|Si-hyeon Choi|Event planner|Starling and Copper|(879) 555-0189|(879) 555-0180|Si\_hyeon@example.com|
+|Kalavathi Rai|Coordinator|Olson Harris Ltd.|(234) 555-0156|(234) 555-0157|kalavathi@example.com|
+|Miro Matkovic|Meeting planner|Mitchell, Morris, Ward, and Cook|(507) 555-0178|(507) 555-0179|miro@example.com|
+|Hayden Cook|Events specialist|Northwind Traders|(456) 555-0145|(456) 555-0146|hayden@example.com|
+|Riku Nakano|Sponsorship coordinator|VanArsdel, Ltd. |(890) 555-0134|(890) 555-0135|riku@example.com|
+|Keita Aoki|Special events coordinator|Wide World Importers |(305) 555-0190|(305) 555-0191|keita@example.com|
+|||||||
+|||||||
+|||||||
+|||||||
+|||||||
+|||||||
+|||||||
+|||||||
+|||||||

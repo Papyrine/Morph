@@ -79,3 +79,4 @@ Content paragraph 38 to create multiple pages for page number testing.
 Content paragraph 39 to create multiple pages for page number testing.
 
 Content paragraph 40 to create multiple pages for page number testing.
+Page 1 of 2

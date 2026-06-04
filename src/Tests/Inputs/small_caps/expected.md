@@ -1,6 +1,5 @@
-<span class="smallcaps">Mixed Case Heading</span>
+Mixed Case Heading
 
-<span class="smallcaps">The quick brown fox jumps over the lazy
-DOG.</span>
+The quick brown fox jumps over the lazy DOG.
 
 Compare: lowercase letters in this paragraph render at full size.

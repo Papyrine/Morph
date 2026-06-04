@@ -1,120 +1,17 @@
-![](media/image4210.png)
 
-<table style="width:100%;">
-<colgroup>
-<col style="width: 49%" />
-<col style="width: 39%" />
-<col style="width: 7%" />
-<col style="width: 1%" />
-<col style="width: 2%" />
-</colgroup>
-<thead>
-<tr>
-<th rowspan="5"></th>
-<th>You are invited to join</th>
-<th></th>
-<th></th>
-<th></th>
-</tr>
-<tr>
-<th rowspan="3"><p>Flora Persson</p>
-<p>Kalle Astrom</p></th>
-<th><h4 id="section"></h4></th>
-<th><h4 id="section-1"></h4></th>
-<th><h4 id="section-2"></h4></th>
-</tr>
-<tr>
-<th colspan="2"><h1 id="section-3">&amp;</h1></th>
-<th></th>
-</tr>
-<tr>
-<th><h4 id="section-4"></h4></th>
-<th><h4 id="section-5"></h4></th>
-<th><h4 id="section-6"></h4></th>
-</tr>
-<tr>
-<th colspan="2"><h2 id="on-our-wedding-day">on our wedding day</h2></th>
-<th></th>
-<th></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td rowspan="5"></td>
-<td>You are invited to join</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td rowspan="3"><p>Flora Persson</p>
-<p>Kalle Astrom</p></td>
-<td><h4 id="section-7"></h4></td>
-<td><h4 id="section-8"></h4></td>
-<td><h4 id="section-9"></h4></td>
-</tr>
-<tr>
-<td colspan="2"><h1 id="section-10">&amp;</h1></td>
-<td></td>
-</tr>
-<tr>
-<td><h4 id="section-11"></h4></td>
-<td><h4 id="section-12"></h4></td>
-<td><h4 id="section-13"></h4></td>
-</tr>
-<tr>
-<td colspan="2"><h2 id="on-our-wedding-day-1">on our wedding
-day</h2></td>
-<td></td>
-<td></td>
-</tr>
-</tbody>
+
+<table><tr><th colspan="1" rowspan="5" valign="top"></th><th colspan="1" valign="top"><b>YOU ARE INVITED TO JOIN</b></th><th colspan="1" valign="top"></th><th colspan="1" valign="top"></th><th colspan="1" valign="top"></th></tr>
+<tr><h4></h4><td colspan="1" rowspan="3"><p>Flora Persson</p><p>Kalle Astrom</p></td><td colspan="1" valign="top"><h4></h4></td><td colspan="1" valign="top"><h4></h4></td><td colspan="1" valign="top"><h4></h4></td></tr>
+<tr><h4></h4><td colspan="2" valign="top"><h1>&</h1></td><td colspan="1" valign="top"></td></tr>
+<tr><h4></h4><td colspan="1" valign="top"><h4></h4></td><td colspan="1" valign="top"><h4></h4></td><td colspan="1" valign="top"><h4></h4></td></tr>
+<tr><td colspan="2" valign="top"><h2>on our wedding day</h2></td><td colspan="1" valign="top"></td><td colspan="1" valign="top"></td></tr>
+<tr><td colspan="1" rowspan="5" valign="top"></td><td colspan="1" valign="top"><b>YOU ARE INVITED TO JOIN</b></td><td colspan="1" valign="top"></td><td colspan="1" valign="top"></td><td colspan="1" valign="top"></td></tr>
+<tr><h4></h4><td colspan="1" rowspan="3"><p>Flora Persson</p><p>Kalle Astrom</p></td><td colspan="1" valign="top"><h4></h4></td><td colspan="1" valign="top"><h4></h4></td><td colspan="1" valign="top"><h4></h4></td></tr>
+<tr><h4></h4><td colspan="2" valign="top"><h1>&</h1></td><td colspan="1" valign="top"></td></tr>
+<tr><h4></h4><td colspan="1" valign="top"><h4></h4></td><td colspan="1" valign="top"><h4></h4></td><td colspan="1" valign="top"><h4></h4></td></tr>
+<tr><td colspan="2" valign="top"><h2>on our wedding day</h2></td><td colspan="1" valign="top"></td><td colspan="1" valign="top"></td></tr>
 </table>
 
-![](media/image939.png)
-
-<table>
-<colgroup>
-<col style="width: 49%" />
-<col style="width: 50%" />
-</colgroup>
-<thead>
-<tr>
-<th></th>
-<th><p><em>Mr. &amp; Mrs.</em> Flora Persson</p>
-<p>Request the honor of Your Presence</p>
-<p>At the marriage of their daughter</p>
-<h3 id="flora-persson">Flora Persson</h3>
-<p>To</p>
-<h3 id="kalle-astrom">Kalle Astrom</h3>
-<p>Son of</p>
-<p><em>Mr. &amp; Mrs.</em> Kalle Astrom</p>
-<h4 id="saturday-the-twenty-first-of-june">Saturday the Twenty-First of
-June</h4>
-<h4 id="two-thousand-and-year">Two thousand and [Year]</h4>
-<h4 id="eleven-oclock-in-the-morning">Eleven O’clock in the morning</h4>
-<h4 id="at-location-city-state.">At Location City, State.</h4>
-<h4 id="reception-to-follow">Reception to Follow</h4></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td></td>
-<td><p><em>Mr. &amp; Mrs.</em> Flora Persson</p>
-<p>Request the honor of Your Presence</p>
-<p>At the marriage of their daughter</p>
-<h3 id="flora-persson-1">Flora Persson</h3>
-<p>To</p>
-<h3 id="kalle-astrom-1">Kalle Astrom</h3>
-<p>Son of</p>
-<p><em>Mr. &amp; Mrs.</em> Kalle Astrom</p>
-<h4 id="saturday-the-twenty-first-of-june-1">Saturday the Twenty-First
-of June</h4>
-<h4 id="two-thousand-and-year-1">Two thousand and [Year]</h4>
-<h4 id="eleven-oclock-in-the-morning-1">Eleven O’clock in the
-morning</h4>
-<h4 id="at-location-city-state.-1">At Location City, State.</h4>
-<h4 id="reception-to-follow-1">Reception to Follow</h4></td>
-</tr>
-</tbody>
-</table>
+||<p>*Mr. & Mrs.* Flora Persson</p><p>Request the honor of Your Presence</p><p>At the marriage of their daughter</p><p><h3>**Flora Persson**</h3></p><p>To</p><p><h3>**Kalle Astrom**</h3></p><p>Son of</p><p>*Mr. & Mrs.* Kalle Astrom</p><p><h4>Saturday the Twenty-First of June</h4></p><p><h4>Two thousand and [Year]</h4></p><p><h4>Eleven O’clock in the morning</h4></p><p><h4>At Location City, State.</h4></p><p><h4>Reception to Follow</h4></p>|
+| :- | :- |
+||<p>*Mr. & Mrs.* Flora Persson</p><p>Request the honor of Your Presence</p><p>At the marriage of their daughter</p><p><h3>**Flora Persson**</h3></p><p>To</p><p><h3>**Kalle Astrom**</h3></p><p>Son of</p><p>*Mr. & Mrs.* Kalle Astrom</p><p><h4>Saturday the Twenty-First of June</h4></p><p><h4>Two thousand and [Year]</h4></p><p><h4>Eleven O’clock in the morning</h4></p><p><h4>At Location City, State.</h4></p><p><h4>Reception to Follow</h4></p>|

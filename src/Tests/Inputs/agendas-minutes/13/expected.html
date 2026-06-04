@@ -1,141 +1,366 @@
-<table style="width:100%;">
-<colgroup>
-<col style="width: 18%" />
-<col style="width: 81%" />
-</colgroup>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; padding: 8pt; color: #000; }
+p { margin: 0 0 8pt; }
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 8pt; font-weight: bold; }
+h1 { font-size: 24pt; }
+h2 { font-size: 18pt; }
+h3 { font-size: 14pt; }
+h4 { font-size: 12pt; font-style: italic; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; font-style: italic; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+td, th { padding: 4pt 7pt; vertical-align: top; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+</style>
+</head>
+<body style="line-height:110%; font-family:Corbel; font-size:9pt; color:#0d0d0d">
+<p style="margin-bottom:0pt">
+<span style="height:0pt; display:block; position:absolute; z-index:-1"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAzAAAAQgCAYAAAA5ebkOAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAFk9JREFUeJzt17ENwCAAwLDS/69FbAz0hW4okn1B1oy59nkAAAAC3tsBAAAAfxkYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJDxAUALDCDaDWoYAAAAAElFTkSuQmCC" width="816" height="1056" alt="" style="margin-top:-36pt; margin-left:-64.8pt; position:absolute" /></span>&#xa0;
+</p>
+<table cellspacing="0" cellpadding="0" style="width:481.5pt; border-collapse:collapse">
+<tr style="height:72pt">
+<td style="width:77.05pt; border-bottom:3pt solid #abbaf7; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+<svg height="96" id="Icons_Meeting" overflow="hidden" viewBox="0 0 96 96" width="96" xmlns="http://www.w3.org/2000/svg" style="overflow:hidden" xmlns:xlink="http://www.w3.org/1999/xlink">
+<style>
+.MsftOfcThm_Accent3_lumMod_75_Fill_v2 {
+fill:#2149EC; 
+}
+</style>
+<path class="MsftOfcThm_Accent3_lumMod_75_Fill_v2" d="M55 26.9C55 30.8 51.9 33.9 48 33.9 44.1 33.9 41 30.8 41 26.9 41 23 44.1 19.9 48 19.9 51.9 19.9 55 23.1 55 26.9" fill="#2149EC" style="fill:#2149EC" />
+<path class="MsftOfcThm_Accent3_lumMod_75_Fill_v2" d="M83 30.9C83 34.8 79.9 37.9 76 37.9 72.1 37.9 69 34.8 69 30.9 69 27 72.1 23.9 76 23.9 79.9 23.9 83 27 83 30.9" fill="#2149EC" style="fill:#2149EC" />
+<path class="MsftOfcThm_Accent3_lumMod_75_Fill_v2" d="M27 30.9C27 34.8 23.9 37.9 20 37.9 16.1 37.9 13 34.8 13 30.9 13 27 16.1 23.9 20 23.9 23.9 23.9 27 27 27 30.9" fill="#2149EC" style="fill:#2149EC" />
+<path class="MsftOfcThm_Accent3_lumMod_75_Fill_v2" d="M8.6 76.1C8.6 61.5 26.2 49.7 48 49.7 69.7 49.7 87.4 61.5 87.4 76.1L8.6 76.1Z" fill="#2149EC" style="fill:#2149EC" />
+<path class="MsftOfcThm_Accent3_lumMod_75_Fill_v2" d="M17.6 53.4C21.8 50.6 26.7 48.4 32 47L32 45.9C32 44.8 31.5 43.7 30.8 43 30.5 42.7 29.8 42.3 28.9 41.9 23.4 39.3 16.9 39.3 11.3 41.8 10.3 42.2 9.5 42.7 9.1 43 8.5 43.7 8 44.8 8 45.9L8 62.9C10.3 59.4 13.5 56.1 17.6 53.4" fill="#2149EC" style="fill:#2149EC" />
+<path class="MsftOfcThm_Accent3_lumMod_75_Fill_v2" d="M60 46 60 41.9C60 40.8 59.5 39.7 58.8 39 58.5 38.7 57.8 38.3 56.9 37.9 51.4 35.3 44.9 35.3 39.3 37.8 38.3 38.2 37.5 38.7 37.1 39 36.3 39.7 35.9 40.8 35.9 41.9L35.9 46C39.8 45.2 43.8 44.8 47.9 44.8 52 44.8 56.1 45.3 60 46" fill="#2149EC" style="fill:#2149EC" />
+<path class="MsftOfcThm_Accent3_lumMod_75_Fill_v2" d="M88 62.9 88 45.9C88 44.8 87.5 43.7 86.8 43 86.5 42.7 85.8 42.3 84.9 41.9 79.4 39.3 72.9 39.3 67.3 41.8 66.3 42.2 65.5 42.7 65.1 43 64.3 43.7 63.9 44.8 63.9 45.9L63.9 47C69.2 48.4 74.1 50.6 78.3 53.4 82.5 56.1 85.7 59.4 88 62.9" fill="#2149EC" style="fill:#2149EC" />
+</svg>
+</p>
+</td>
+<td style="width:382.85pt; border-bottom:3pt solid #abbaf7; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; text-align:center; line-height:26pt">
+<strong><span style="font-size:26pt; text-transform:uppercase; letter-spacing:1pt; color:#2048eb">Balsam Elementary</span></strong>
+</p>
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; font-size:16pt">
+<strong><span style="text-transform:uppercase; color:#2048eb">pTA meeting - charity auction PLANning</span></strong>
+</p>
+</td>
+</tr>
+</table>
+<p style="margin-top:6pt; margin-bottom:6pt">
+&#xa0;
+</p>
+<table cellspacing="0" cellpadding="0" style="width:482pt; border:0.75pt solid #748df3; border-collapse:collapse">
+<tr style="height:28.8pt">
+<td style="width:58.3pt; border-right:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle; background-color:#e3e8fc">
+<h1 style="margin-top:6pt; margin-bottom:6pt; text-align:center; page-break-inside:avoid; page-break-after:avoid; line-height:110%; font-size:10pt">
+<span style="text-transform:uppercase; letter-spacing:1pt; color:#2048eb">Date</span>
+</h1>
+</td>
+<td style="width:69.45pt; border-right:0.75pt solid #748df3; border-left:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+March 14th
+</p>
+</td>
+<td style="width:58.3pt; border-right:0.75pt solid #748df3; border-left:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle; background-color:#e3e8fc">
+<h1 style="margin-top:6pt; margin-bottom:6pt; text-align:center; page-break-inside:avoid; page-break-after:avoid; line-height:110%; font-size:10pt">
+<span style="text-transform:uppercase; letter-spacing:1pt; color:#2048eb">Time</span>
+</h1>
+</td>
+<td style="width:69.45pt; border-right:0.75pt solid #748df3; border-left:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+11:30 AM
+</p>
+</td>
+<td style="width:73pt; border-right:0.75pt solid #748df3; border-left:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle; background-color:#e3e8fc">
+<h1 style="margin-top:6pt; margin-bottom:6pt; text-align:center; page-break-inside:avoid; page-break-after:avoid; line-height:110%; font-size:10pt">
+<span style="text-transform:uppercase; letter-spacing:1pt; color:#2048eb">Facilitator</span>
+</h1>
+</td>
+<td style="width:87.95pt; border-left:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+Graham Barnes
+</p>
+</td>
+</tr>
+</table>
+<p style="margin-top:6pt; margin-bottom:6pt">
+&#xa0;
+</p>
+<table cellspacing="0" cellpadding="0" style="border:0.75pt solid #748df3; border-collapse:collapse">
+<tr style="height:28.8pt">
+<td colspan="4" style="width:470.45pt; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle; background-color:#e3e8fc">
+<h1 style="margin-top:6pt; margin-bottom:6pt; text-align:center; page-break-inside:avoid; page-break-after:avoid; line-height:110%; font-size:10pt">
+<span style="text-transform:uppercase; letter-spacing:1pt; color:#2048eb">PTA MEMBERS</span>
+</h1>
+</td>
+</tr>
+<tr style="height:25.2pt">
+<td style="width:109.5pt; border-top:0.75pt solid #748df3; border-right:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+Takuma Hayashi
+</p>
+</td>
+<td style="width:109.5pt; border:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+Mirjam Nilsson
+</p>
+</td>
+<td style="width:109.5pt; border:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+Flora Berggren
+</p>
+</td>
+<td style="width:109.55pt; border-top:0.75pt solid #748df3; border-left:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+Rajesh Santoshi
+</p>
+</td>
+</tr>
+<tr style="height:25.2pt">
+<td style="width:109.5pt; border-top:0.75pt solid #748df3; border-right:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+Graham Barnes
+</p>
+</td>
+<td style="width:109.5pt; border-top:0.75pt solid #748df3; border-right:0.75pt solid #748df3; border-left:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+Rowan Murphy
+</p>
+</td>
+<td style="width:109.5pt; border-top:0.75pt solid #748df3; border-right:0.75pt solid #748df3; border-left:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+Elizabeth Moore
+</p>
+</td>
+<td style="width:109.55pt; border-top:0.75pt solid #748df3; border-left:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+Robin Kline
+</p>
+</td>
+</tr>
+</table>
+<p style="margin-top:6pt; margin-bottom:6pt">
+&#xa0;
+</p>
+<table cellspacing="0" cellpadding="0" style="width:100%; border:0.75pt solid #748df3; border-collapse:collapse">
 <thead>
-<tr>
-<th style="text-align: center;"><img src="media/image2.svg"
-style="width:1in;height:1in" alt="Meeting with solid fill" /></th>
-<th style="text-align: center;"><p>Balsam Elementary</p>
-<p>pTA meeting - charity auction PLANning</p></th>
+<tr style="height:28.8pt">
+<td style="width:61.3pt; border-right:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt; background-color:#e3e8fc">
+<h1 style="margin-top:6pt; margin-bottom:6pt; text-align:center; page-break-inside:avoid; page-break-after:avoid; line-height:110%; font-size:10pt">
+<span style="text-transform:uppercase; letter-spacing:1pt; color:#2048eb">Time</span>
+</h1>
+</td>
+<td style="width:321.75pt; border-right:0.75pt solid #748df3; border-left:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.38pt; padding-left:14.02pt; background-color:#e3e8fc">
+<p style="margin-top:6pt; margin-bottom:6pt; line-height:110%; font-size:10pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt; color:#2048eb">Item</span></strong><span style="line-height:110%; font-size:9pt"> </span>
+</p>
+</td>
+<td style="width:79.2pt; border-left:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt; background-color:#e3e8fc">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:10pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt; color:#2048eb">Owner</span></strong><span style="line-height:110%; font-size:9pt"> </span>
+</p>
+</td>
 </tr>
 </thead>
 <tbody>
-</tbody>
-</table>
-<table>
-<colgroup>
-<col style="width: 14%" />
-<col style="width: 16%" />
-<col style="width: 14%" />
-<col style="width: 16%" />
-<col style="width: 17%" />
-<col style="width: 20%" />
-</colgroup>
-<tbody>
-<tr>
-<td><h1 id="date">Date</h1></td>
-<td style="text-align: center;">March 14th</td>
-<td><h1 id="time">Time</h1></td>
-<td style="text-align: center;">11:30 AM</td>
-<td><h1 id="facilitator">Facilitator</h1></td>
-<td style="text-align: center;">Graham Barnes</td>
+<tr style="height:25.2pt">
+<td style="width:61.3pt; border-top:0.75pt solid #748df3; border-right:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+11:30
+</p>
+</td>
+<td style="width:321.75pt; border:0.75pt solid #748df3; padding-right:5.38pt; padding-left:14.02pt">
+<p style="margin-top:6pt; margin-bottom:6pt; line-height:110%; font-size:9pt">
+Welcome 
+</p>
+</td>
+<td style="width:79.2pt; border-top:0.75pt solid #748df3; border-left:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+Graham Barnes
+</p>
+</td>
+</tr>
+<tr style="height:25.2pt">
+<td style="width:61.3pt; border-top:0.75pt solid #748df3; border-right:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+11:35
+</p>
+</td>
+<td style="width:321.75pt; border:0.75pt solid #748df3; padding-right:5.38pt; padding-left:14.02pt">
+<p style="margin-top:6pt; margin-bottom:6pt; line-height:110%; font-size:9pt">
+Old business and approval of last meeting’s minutes 
+</p>
+</td>
+<td style="width:79.2pt; border-top:0.75pt solid #748df3; border-left:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+Graham Barnes
+</p>
+</td>
+</tr>
+<tr style="height:25.2pt">
+<td style="width:61.3pt; border-top:0.75pt solid #748df3; border-right:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+11:50
+</p>
+</td>
+<td style="width:321.75pt; border:0.75pt solid #748df3; padding-right:5.38pt; padding-left:14.02pt">
+<p style="margin-top:6pt; margin-bottom:6pt; line-height:110%; font-size:9pt">
+Vote on final charity auction items
+</p>
+</td>
+<td style="width:79.2pt; border-top:0.75pt solid #748df3; border-left:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+Graham Barnes
+</p>
+</td>
+</tr>
+<tr style="height:25.2pt">
+<td style="width:61.3pt; border-top:0.75pt solid #748df3; border-right:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+12:00
+</p>
+</td>
+<td style="width:321.75pt; border:0.75pt solid #748df3; padding-right:5.38pt; padding-left:14.02pt">
+<p style="margin-top:6pt; margin-bottom:6pt; line-height:110%; font-size:9pt">
+Discuss openings on advisory committees - any response from newsletter?
+</p>
+</td>
+<td style="width:79.2pt; border-top:0.75pt solid #748df3; border-left:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+Mirjam Nilsson
+</p>
+</td>
+</tr>
+<tr style="height:25.2pt">
+<td style="width:61.3pt; border-top:0.75pt solid #748df3; border-right:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+12:15
+</p>
+</td>
+<td style="width:321.75pt; border:0.75pt solid #748df3; padding-right:5.38pt; padding-left:14.02pt">
+<p style="margin-top:6pt; margin-bottom:6pt; line-height:110%; font-size:9pt">
+Vote on proposed budget
+</p>
+</td>
+<td style="width:79.2pt; border-top:0.75pt solid #748df3; border-left:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+Mirjam Nilsson
+</p>
+</td>
+</tr>
+<tr style="height:25.2pt">
+<td style="width:61.3pt; border-top:0.75pt solid #748df3; border-right:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+12:20
+</p>
+</td>
+<td style="width:321.75pt; border:0.75pt solid #748df3; padding-right:5.38pt; padding-left:14.02pt">
+<p style="margin-top:6pt; margin-bottom:6pt; line-height:110%; font-size:9pt">
+Principal's report
+</p>
+</td>
+<td style="width:79.2pt; border-top:0.75pt solid #748df3; border-left:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+Flora Berggren
+</p>
+</td>
+</tr>
+<tr style="height:25.2pt">
+<td style="width:61.3pt; border-top:0.75pt solid #748df3; border-right:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+12:30
+</p>
+</td>
+<td style="width:321.75pt; border:0.75pt solid #748df3; padding-right:5.38pt; padding-left:14.02pt">
+<p style="margin-top:6pt; margin-bottom:6pt; line-height:110%; font-size:9pt">
+Break
+</p>
+</td>
+<td style="width:79.2pt; border-top:0.75pt solid #748df3; border-left:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+&#xa0;
+</p>
+</td>
+</tr>
+<tr style="height:55.15pt">
+<td style="width:61.3pt; border-top:0.75pt solid #748df3; border-right:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+12:40
+</p>
+</td>
+<td style="width:321.75pt; border:0.75pt solid #748df3; padding-right:5.38pt; padding-left:14.02pt">
+<p style="margin-top:6pt; margin-bottom:6pt; line-height:110%; font-size:9pt">
+New Business<br />A. Charity auction event planning<br />B. Parent Education Programs<br />C. Teacher grants application process
+</p>
+</td>
+<td style="width:79.2pt; border-top:0.75pt solid #748df3; border-left:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+Graham Barnes
+</p>
+</td>
+</tr>
+<tr style="height:65.2pt">
+<td style="width:61.3pt; border-top:0.75pt solid #748df3; border-right:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+1:00
+</p>
+</td>
+<td style="width:321.75pt; border:0.75pt solid #748df3; padding-right:5.38pt; padding-left:14.02pt">
+<p style="margin-top:6pt; margin-bottom:6pt; line-height:110%; font-size:9pt">
+Committee Reports<br />A. Membership<br />B. Volunteers<br />C. Newsletter<br />D. Parent support
+</p>
+</td>
+<td style="width:79.2pt; border-top:0.75pt solid #748df3; border-left:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+Rajesh Santoshi
+</p>
+</td>
+</tr>
+<tr style="height:25.2pt">
+<td style="width:61.3pt; border-top:0.75pt solid #748df3; border-right:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+1:20
+</p>
+</td>
+<td style="width:321.75pt; border:0.75pt solid #748df3; padding-right:5.38pt; padding-left:14.02pt">
+<p style="margin-top:6pt; margin-bottom:6pt; line-height:110%; font-size:9pt">
+Announcements 
+</p>
+</td>
+<td style="width:79.2pt; border-top:0.75pt solid #748df3; border-left:0.75pt solid #748df3; border-bottom:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+Takuma Hayashi
+</p>
+</td>
+</tr>
+<tr style="height:25.2pt">
+<td style="width:61.3pt; border-top:0.75pt solid #748df3; border-right:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+1:30
+</p>
+</td>
+<td style="width:321.75pt; border-top:0.75pt solid #748df3; border-right:0.75pt solid #748df3; border-left:0.75pt solid #748df3; padding-right:5.38pt; padding-left:14.02pt">
+<p style="margin-top:6pt; margin-bottom:6pt; line-height:110%; font-size:9pt">
+Adjournment 
+</p>
+</td>
+<td style="width:79.2pt; border-top:0.75pt solid #748df3; border-left:0.75pt solid #748df3; padding-right:5.03pt; padding-left:5.03pt">
+<p style="margin-top:6pt; margin-bottom:6pt; text-align:center; line-height:110%; font-size:9pt">
+&#xa0;
+</p>
+</td>
 </tr>
 </tbody>
 </table>
-<table>
-<colgroup>
-<col style="width: 24%" />
-<col style="width: 24%" />
-<col style="width: 24%" />
-<col style="width: 25%" />
-</colgroup>
-<tbody>
-<tr>
-<td colspan="4"><h1 id="pta-members">PTA MEMBERS</h1></td>
-</tr>
-<tr>
-<td style="text-align: center;">Takuma Hayashi</td>
-<td style="text-align: center;">Mirjam Nilsson</td>
-<td style="text-align: center;">Flora Berggren</td>
-<td style="text-align: center;">Rajesh Santoshi</td>
-</tr>
-<tr>
-<td style="text-align: center;">Graham Barnes</td>
-<td style="text-align: center;">Rowan Murphy</td>
-<td style="text-align: center;">Elizabeth Moore</td>
-<td style="text-align: center;">Robin Kline</td>
-</tr>
-</tbody>
-</table>
-<table>
-<caption>Agenda items table</caption>
-<colgroup>
-<col style="width: 14%" />
-<col style="width: 67%" />
-<col style="width: 17%" />
-</colgroup>
-<thead>
-<tr>
-<th style="text-align: center;"><h1 id="time-1">Time</h1></th>
-<th><strong>Item</strong></th>
-<th style="text-align: center;"><strong>Owner</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: center;">11:30</td>
-<td>Welcome</td>
-<td style="text-align: center;">Graham Barnes</td>
-</tr>
-<tr>
-<td style="text-align: center;">11:35</td>
-<td>Old business and approval of last meeting’s minutes</td>
-<td style="text-align: center;">Graham Barnes</td>
-</tr>
-<tr>
-<td style="text-align: center;">11:50</td>
-<td>Vote on final charity auction items</td>
-<td style="text-align: center;">Graham Barnes</td>
-</tr>
-<tr>
-<td style="text-align: center;">12:00</td>
-<td>Discuss openings on advisory committees - any response from
-newsletter?</td>
-<td style="text-align: center;">Mirjam Nilsson</td>
-</tr>
-<tr>
-<td style="text-align: center;">12:15</td>
-<td>Vote on proposed budget</td>
-<td style="text-align: center;">Mirjam Nilsson</td>
-</tr>
-<tr>
-<td style="text-align: center;">12:20</td>
-<td>Principal's report</td>
-<td style="text-align: center;">Flora Berggren</td>
-</tr>
-<tr>
-<td style="text-align: center;">12:30</td>
-<td>Break</td>
-<td style="text-align: center;"></td>
-</tr>
-<tr>
-<td style="text-align: center;">12:40</td>
-<td>New Business<br />
-A. Charity auction event planning<br />
-B. Parent Education Programs<br />
-C. Teacher grants application process</td>
-<td style="text-align: center;">Graham Barnes</td>
-</tr>
-<tr>
-<td style="text-align: center;">1:00</td>
-<td>Committee Reports<br />
-A. Membership<br />
-B. Volunteers<br />
-C. Newsletter<br />
-D. Parent support</td>
-<td style="text-align: center;">Rajesh Santoshi</td>
-</tr>
-<tr>
-<td style="text-align: center;">1:20</td>
-<td>Announcements</td>
-<td style="text-align: center;">Takuma Hayashi</td>
-</tr>
-<tr>
-<td style="text-align: center;">1:30</td>
-<td>Adjournment</td>
-<td style="text-align: center;"></td>
-</tr>
-</tbody>
-</table>
+<p style="margin-top:6pt; margin-bottom:6pt">
+&#xa0;
+</p>
+</body>
+</html>

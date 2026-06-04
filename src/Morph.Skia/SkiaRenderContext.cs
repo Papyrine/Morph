@@ -178,7 +178,7 @@ sealed class SkiaRenderContext(
 
     /// <summary>
     /// Applies hinting / subpixel / edging settings. When deterministic rendering is enabled
-    /// (via <see cref="ConversionOptions.DeterministicRendering"/> or the
+    /// (via <see cref="ImageExportOptions.DeterministicRendering"/> or the
     /// <see cref="DefaultFontSettings.DeterministicRendering"/> static fallback), falls back to
     /// integer-positioned greyscale anti-aliasing so output is identical across machines;
     /// otherwise uses the platform's full-fidelity subpixel LCD rendering.

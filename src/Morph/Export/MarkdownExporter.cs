@@ -7,16 +7,17 @@ namespace Morph;
 /// </summary>
 static class MarkdownExporter
 {
-    public static string Export(ParsedDocument document)
+    public static string Export(ParsedDocument document, MarkdownExportOptions? options = null)
     {
-        var writer = new MarkdownWriter();
+        var writer = new MarkdownWriter(options ?? new());
         writer.WriteElements(document.Elements);
         return writer.Finish();
     }
 
-    sealed class MarkdownWriter
+    sealed class MarkdownWriter(MarkdownExportOptions options)
     {
         readonly StringBuilder builder = new();
+        int imageIndex;
 
         public string Finish() => builder.ToString().TrimEnd('\n') + "\n";
 
@@ -57,10 +58,10 @@ static class MarkdownExporter
                     WriteTable(table);
                     break;
                 case ImageElement image:
-                    AppendBlock(Image(image.ImageData, image.ContentType));
+                    AppendBlock(Image(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints));
                     break;
                 case FloatingImageElement floatingImage:
-                    AppendBlock(Image(floatingImage.ImageData, floatingImage.ContentType));
+                    AppendBlock(Image(floatingImage.ImageData, floatingImage.ContentType, floatingImage.WidthPoints, floatingImage.HeightPoints));
                     break;
                 case HorizontalRuleElement:
                     AppendBlock("---");
@@ -95,6 +96,11 @@ static class MarkdownExporter
                 case DropDownFormFieldElement dropDown:
                     AppendBlock(EscapeInline(SelectedItem(dropDown), inTable: false));
                     break;
+                case InkElement:
+                case FloatingShapeElement:
+                    options.OnWarning?.Invoke(new(WarningKind.UnsupportedElement,
+                        $"{element.GetType().Name} cannot be represented in Markdown and was dropped."));
+                    break;
             }
         }
 
@@ -106,7 +112,7 @@ static class MarkdownExporter
             }
 
             var level = DocumentExportHelpers.TryGetHeadingLevel(paragraph.Properties);
-            var inline = Inline(paragraph.Runs, inTable: false);
+            var inline = Inline(paragraph.Runs, inTable: false, inHeading: level != null);
             if (inline.Length == 0)
             {
                 return;
@@ -211,7 +217,7 @@ static class MarkdownExporter
             builder.Append('\n');
         }
 
-        static string CellText(IReadOnlyList<DocumentElement> content)
+        string CellText(IReadOnlyList<DocumentElement> content)
         {
             var parts = new List<string>();
             foreach (var element in content)
@@ -225,8 +231,9 @@ static class MarkdownExporter
             return string.Join(" ", parts);
         }
 
-        static string Inline(IReadOnlyList<Run> runs, bool inTable)
+        string Inline(IReadOnlyList<Run> sourceRuns, bool inTable, bool inHeading = false)
         {
+            var runs = DocumentExportHelpers.CoalesceRuns(sourceRuns);
             var inline = new StringBuilder();
             var index = 0;
             while (index < runs.Count)
@@ -243,7 +250,7 @@ static class MarkdownExporter
                     var linkText = new StringBuilder();
                     while (index < runs.Count && runs[index].HyperlinkUrl == url)
                     {
-                        AppendRun(linkText, runs[index], inTable);
+                        AppendRun(linkText, runs[index], inTable, inHeading);
                         index++;
                     }
 
@@ -251,18 +258,18 @@ static class MarkdownExporter
                     continue;
                 }
 
-                AppendRun(inline, run, inTable);
+                AppendRun(inline, run, inTable, inHeading);
                 index++;
             }
 
             return inline.ToString();
         }
 
-        static void AppendRun(StringBuilder target, Run run, bool inTable)
+        void AppendRun(StringBuilder target, Run run, bool inTable, bool inHeading)
         {
             if (run.InlineImageData is {} imageData)
             {
-                target.Append(Image(imageData, run.InlineImageContentType));
+                target.Append(Image(imageData, run.InlineImageContentType, run.InlineImageWidthPoints, run.InlineImageHeightPoints));
                 return;
             }
 
@@ -277,8 +284,9 @@ static class MarkdownExporter
                 return;
             }
 
-            var raw = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
-            raw = raw.Replace('\n', ' ');
+            // Preserve source case for AllCaps (matches Pandoc) — Markdown has no styling layer
+            // to recover the visual uppercasing, but keeping the case makes the text reusable.
+            var raw = run.Text.Replace('\n', ' ');
 
             var leadingLength = LeadingWhitespaceLength(raw);
             var trailingLength = TrailingWhitespaceLength(raw);
@@ -290,11 +298,14 @@ static class MarkdownExporter
 
             var core = raw.Substring(leadingLength, raw.Length - leadingLength - trailingLength);
             target.Append(raw, 0, leadingLength);
-            target.Append(Decorate(EscapeInline(core, inTable), run.Properties));
+            target.Append(Decorate(EscapeInline(core, inTable), run.Properties, suppressBold: inHeading));
             target.Append(raw, raw.Length - trailingLength, trailingLength);
         }
 
-        static string Decorate(string text, RunProperties properties)
+        // A heading's leading "#" already carries the emphasis, so heading runs skip the bold marker
+        // (Word's Heading styles are bold by default, which would otherwise yield non-idiomatic
+        // "## **Title**"). Explicit italic/strike/under stay — they signal intent beyond the style.
+        static string Decorate(string text, RunProperties properties, bool suppressBold = false)
         {
             var prefix = new StringBuilder();
             var suffix = new StringBuilder();
@@ -305,7 +316,7 @@ static class MarkdownExporter
                 suffix.Insert(0, marker);
             }
 
-            if (properties.Bold)
+            if (properties.Bold && !suppressBold)
             {
                 Wrap("**");
             }
@@ -360,10 +371,21 @@ static class MarkdownExporter
             }
         }
 
-        static string Image(byte[] data, string? contentType)
+        string Image(byte[] data, string? contentType, double widthPoints, double heightPoints)
         {
-            var mime = string.IsNullOrEmpty(contentType) ? "image/png" : contentType;
-            return $"![](data:{mime};base64,{Convert.ToBase64String(data)})";
+            var index = imageIndex++;
+            string source;
+            if (options.ImageHandler != null)
+            {
+                source = options.ImageHandler(new EmbeddedImage(data, contentType, widthPoints, heightPoints, index));
+            }
+            else
+            {
+                var mime = string.IsNullOrEmpty(contentType) ? "image/png" : contentType;
+                source = $"data:{mime};base64,{Convert.ToBase64String(data)}";
+            }
+
+            return $"![]({EscapeUrl(source)})";
         }
 
         static string SelectedItem(DropDownFormFieldElement dropDown) =>

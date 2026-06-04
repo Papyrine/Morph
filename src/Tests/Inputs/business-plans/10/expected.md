@@ -1,6 +1,6 @@
-------------------------------------------------------------------------
 
-PRESENTED BY GURMEET DHILLON
+
+**PRESENTED BY GURMEET DHILLON**
 
 Spectration Labs
 
@@ -12,373 +12,107 @@ Version 3.0
 
 April 4, 20XX
 
-TACTICAL\
-MARKETING PLAN
+**TACTICAL \
+MARKETING PLAN**
 
-Advancing international strategies
+ADVANCING INTERNATIONAL STRATEGIES
 
-# Tactical Marketing Plan 
+|||1|
+| :- | :-: | -: |
 
-*Use the Tactical Marketing Plan to identify the action items and
-expectations that surround marketing your product or service. Use this
-template to begin the process of brainstorming and building your
-marketing plan.*
+# **TACTICAL MARKETING PLAN**
+*Use the Tactical Marketing Plan to identify the action items and expectations that surround marketing your product or service. Use this template to begin the process of brainstorming and building your marketing plan.*
 
-<table style="width:100%;">
-<colgroup>
-<col style="width: 99%" />
-</colgroup>
-<thead>
-<tr>
-<th><h2 id="plan-overview">Plan Overview</h2></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
+|<h2>**PLAN OVERVIEW**</h2>|
+| :- |
 
-<table>
-<caption>Plan overview</caption>
-<colgroup>
-<col style="width: 30%" />
-<col style="width: 69%" />
-</colgroup>
-<thead>
-<tr>
-<th>Practice:</th>
-<th>Name</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Name of Campaign:</td>
-<td>Expanding international interest</td>
-</tr>
-<tr>
-<td>Campaign Manager:</td>
-<td>Gurmeet Dhillon</td>
-</tr>
-<tr>
-<td>Subject Matter Expert:</td>
-<td>Isabel Gracia</td>
-</tr>
-</tbody>
-</table>
+|**Practice:**|**Name** |
+| :- | :- |
+|**Name of Campaign:**|Expanding international interest |
+|**Campaign Manager:**|Gurmeet Dhillon |
+|**Subject Matter Expert:**|Isabel Gracia |
 
-<table style="width:99%;">
-<colgroup>
-<col style="width: 99%" />
-</colgroup>
-<thead>
-<tr>
-<th><h2 id="objective">Objective</h2></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-
+|<h2><a name="_hlk197444869"></a>**OBJECTIVE**</h2>|
+| :- |
 Describe your objective.
 
-<table style="width:99%;">
-<colgroup>
-<col style="width: 99%" />
-</colgroup>
-<thead>
-<tr>
-<th><h2 id="target-market">Target Market</h2></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-
-*In this section, you need to define your current customers and the
-potential customers you want to target.*
-
-### Product Demographics
-
+|<h2>**TARGET MARKET**</h2>|
+| :- |
+*In this section, you need to define your current customers and the potential customers you want to target.*
+### **PRODUCT DEMOGRAPHICS**
 Describe your product demographics.
-
-### Target Contact Demographics
-
+### **TARGET CONTACT DEMOGRAPHICS**
 Describe your target contact demographics.
 
-<table style="width:100%;">
-<colgroup>
-<col style="width: 99%" />
-</colgroup>
-<thead>
-<tr>
-<th><h2 id="message-summary">Message Summary</h2></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-
+|<h2>**MESSAGE SUMMARY**</h2>|
+| :- |
 Summarize your message.
 
-<table style="width:100%;">
-<colgroup>
-<col style="width: 99%" />
-</colgroup>
-<thead>
-<tr>
-<th><h2 id="call-to-action">Call to Action</h2></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-
-*Use this section to brainstorm words or phrases that ask the customer
-to take action.*
-
-### What is the desired outcome?
-
+|<h2>**CALL TO ACTION**</h2>|
+| :- |
+*Use this section to brainstorm words or phrases that ask the customer to take action.*
+### **WHAT IS THE DESIRED OUTCOME?**
 Describe your desired outcome.
-
-### What is the pull-through offer?
-
+### **WHAT IS THE PULL-THROUGH OFFER?**
 Define your pull-through offer.
 
-<table style="width:100%;">
-<colgroup>
-<col style="width: 99%" />
-</colgroup>
-<thead>
-<tr>
-<th><h2 id="process">Process</h2></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-
-### List Development
-
+|<h2>**PROCESS**</h2>|
+| :- |
+### **LIST DEVELOPMENT**
 Describe your list development.
-
-### Prospecting Mechanism
-
+### **PROSPECTING MECHANISM**
 Describe your prospecting mechanism.
-
-### Pre-event Follow-up
-
+### **PRE-EVENT FOLLOW-UP**
 Define your pre-event follow-up.
-
-### Post-event Follow-up
-
+### **POST-EVENT FOLLOW-UP**
 Define your post-event follow-up.
 
-<table style="width:100%;">
-<colgroup>
-<col style="width: 99%" />
-</colgroup>
-<thead>
-<tr>
-<th><h2 id="opportunity-qualification-process-and-criteria">Opportunity
-Qualification Process and Criteria</h2></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-
+|<h2>**OPPORTUNITY QUALIFICATION PROCESS AND CRITERIA**</h2>|
+| :- |
 Define your opportunity qualification process and criteria.
 
-<table style="width:100%;">
-<colgroup>
-<col style="width: 99%" />
-</colgroup>
-<thead>
-<tr>
-<th><h2 id="project-plan">Project Plan </h2></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
+|<h2>**PROJECT PLAN**  </h2>|
+| :- |
+### **NECESSARY EVENT RESOURCES**
 
-### Necessary Event Resources
-
-<table>
-<caption>Project plan</caption>
-<colgroup>
-<col style="width: 42%" />
-<col style="width: 29%" />
-<col style="width: 27%" />
-</colgroup>
-<thead>
-<tr>
-<th>Resource</th>
-<th>Role</th>
-<th>Estimated Work Hours</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Resource 1</td>
-<td>Role</td>
-<td>Time</td>
-</tr>
-<tr>
-<td>Resource 2</td>
-<td>Role</td>
-<td>Time</td>
-</tr>
-<tr>
-<td>Resource 3</td>
-<td>Role</td>
-<td>Time</td>
-</tr>
-</tbody>
-</table>
-
-### Budget
-
-*Compile a list of pertinent items that you will use to create your
-budget line items (for example, booth rental, amenities, travel). Use
-the Marketing Budget Plan template to build your final budget.*
+|**Resource**|**Role**|**Estimated Work Hours**|
+| :- | :- | :- |
+|Resource 1 |Role |Time |
+|Resource 2 |Role |Time |
+|Resource 3 |Role |Time |
+### **BUDGET**
+*Compile a list of pertinent items that you will use to create your budget line items (for example, booth rental, amenities, travel). Use the Marketing Budget Plan template to build your final budget.*
 
 - List all pertinent items.
 
 Define all pertinent items.
-
-### Metrics and Expectations
-
+### **METRICS AND EXPECTATIONS**
 - List all metrics and expectations.
 
 Define all metrics and expectations.
+### **APPROVAL**
 
-### Approval
-
-<table>
-<caption>Approval with names and dates</caption>
-<colgroup>
-<col style="width: 36%" />
-<col style="width: 36%" />
-<col style="width: 13%" />
-<col style="width: 13%" />
-</colgroup>
-<thead>
-<tr>
-<th>Title</th>
-<th>Name</th>
-<th>Date 1</th>
-<th>Date 2</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>CEO</td>
-<td>Name</td>
-<td>Date 1</td>
-<td>Date 2</td>
-</tr>
-<tr>
-<td>Campaign Manager</td>
-<td>Name</td>
-<td>Date 1</td>
-<td>Date 2</td>
-</tr>
-<tr>
-<td>Product Manager</td>
-<td>Name</td>
-<td>Date 1</td>
-<td>Date 2</td>
-</tr>
-<tr>
-<td>Project Manager</td>
-<td>Name</td>
-<td>Date 1</td>
-<td>Date 2</td>
-</tr>
-<tr>
-<td>Title 5</td>
-<td>Name</td>
-<td>Date 1</td>
-<td>Date 2</td>
-</tr>
-<tr>
-<td>Title 6</td>
-<td>Name</td>
-<td>Date 1</td>
-<td>Date 2</td>
-</tr>
-</tbody>
-</table>
-
-# Campaign Sign-off
-
+|**Title**|**Name**|**Date 1**|**Date 2**|
+| :- | :- | :- | :- |
+|CEO |Name |Date 1 |Date 2 |
+|Campaign Manager |Name |Date 1 |Date 2 |
+|Product Manager |Name |Date 1 |Date 2 |
+|Project Manager |Name |Date 1 |Date 2 |
+|Title 5|Name |Date 1 |Date 2 |
+|Title 6 |Name |Date 1 |Date 2 |
+# **CAMPAIGN SIGN-OFF**
 The undersigned accept this Marketing Campaign as described herein.
 
-<table>
-<caption>Signature block</caption>
-<colgroup>
-<col style="width: 27%" />
-<col style="width: 27%" />
-<col style="width: 27%" />
-<col style="width: 17%" />
-</colgroup>
-<tbody>
-<tr>
-<td>Print First and Last Name</td>
-<td>Title</td>
-<td>Signature</td>
-<td>Date</td>
-</tr>
-<tr>
-<td>Print First and Last Name</td>
-<td>Title</td>
-<td>Signature</td>
-<td>Date</td>
-</tr>
-<tr>
-<td>Print First and Last Name</td>
-<td>Title</td>
-<td>Signature</td>
-<td>Date</td>
-</tr>
-<tr>
-<td>Print First and Last Name</td>
-<td>Title</td>
-<td>Signature</td>
-<td>Date</td>
-</tr>
-<tr>
-<td>Print First and Last Name</td>
-<td>Title</td>
-<td>Signature</td>
-<td>Date</td>
-</tr>
-<tr>
-<td>Print First and Last Name</td>
-<td>Title</td>
-<td>Signature</td>
-<td>Date</td>
-</tr>
-<tr>
-<td>Print First and Last Name</td>
-<td>Title</td>
-<td>Signature</td>
-<td>Date</td>
-</tr>
-<tr>
-<td>Print First and Last Name</td>
-<td>Title</td>
-<td>Signature</td>
-<td>Date</td>
-</tr>
-<tr>
-<td>Print First and Last Name</td>
-<td>Title</td>
-<td>Signature</td>
-<td>Date</td>
-</tr>
-</tbody>
-</table>
+|||||
+| :- | :- | :- | :- |
+|Print First and Last Name|Title|Signature|Date |
+|Print First and Last Name|Title|Signature|Date |
+|Print First and Last Name|Title|Signature|Date |
+|Print First and Last Name|Title|Signature|Date  |
+|Print First and Last Name|Title|Signature|Date |
+|Print First and Last Name|Title|Signature|Date |
+|Print First and Last Name|Title|Signature|Date |
+|Print First and Last Name|Title|Signature|Date |
+|Print First and Last Name |Title|Signature|Date |
 
-Note: Additional signatures might be required if the document changes
-significantly per the client’s request.
+Note: Additional signatures might be required if the document changes significantly per the client’s request.

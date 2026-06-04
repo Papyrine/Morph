@@ -10,7 +10,7 @@ namespace Morph;
 /// </summary>
 static class PdfRenderer
 {
-    public static byte[] Render(ParsedDocument document, ConversionOptions? options)
+    public static byte[] Render(ParsedDocument document, PdfExportOptions? options)
     {
         options ??= new();
         var context = new PdfRenderContext(
@@ -20,14 +20,38 @@ static class PdfRenderer
             options.FontFallback,
             options.FontDirectory);
 
-        var renderer = new PdfPageRenderer(context);
+        var renderer = new PdfPageRenderer(context) {OnWarning = options.OnWarning};
         renderer.RenderDocument(document);
 
         MakeDeterministic(context.Document);
 
+        if (options.Pages is { } range)
+        {
+            TrimPages(context.Document, range);
+        }
+
         using var stream = new MemoryStream();
         context.Document.Save(stream, closeStream: false);
         return Normalize(stream.ToArray());
+    }
+
+    /// <summary>
+    /// Drops any page outside <paramref name="range"/> (1-based, inclusive). The page numbers in
+    /// the PDF reset to 1..N over the kept pages.
+    /// </summary>
+    static void TrimPages(PdfSharp.Pdf.PdfDocument document, PageRange range)
+    {
+        var total = document.PageCount;
+        var keepFrom = Math.Max(1, range.Start);
+        var keepTo = Math.Min(total, range.End);
+
+        for (var index = total; index >= 1; index--)
+        {
+            if (index < keepFrom || index > keepTo)
+            {
+                document.Pages.RemoveAt(index - 1);
+            }
+        }
     }
 
     // A PDF's CreationDate/ModDate (stamped with DateTime.Now) and trailer /ID (a fresh GUID) vary

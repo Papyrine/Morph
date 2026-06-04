@@ -1,26 +1,6 @@
 Detached-border table (w:tblCellSpacing = 40 twips = 2pt):
 
-<table style="width:96%;">
-<colgroup>
-<col style="width: 32%" />
-<col style="width: 32%" />
-<col style="width: 32%" />
-</colgroup>
-<tbody>
-<tr>
-<td>R1 C1</td>
-<td>R1 C2</td>
-<td>R1 C3</td>
-</tr>
-<tr>
-<td>R2 C1</td>
-<td>R2 C2</td>
-<td>R2 C3</td>
-</tr>
-<tr>
-<td>R3 C1</td>
-<td>R3 C2</td>
-<td>R3 C3</td>
-</tr>
-</tbody>
-</table>
+|R1 C1|R1 C2|R1 C3|
+| :- | :- | :- |
+|R2 C1|R2 C2|R2 C3|
+|R3 C1|R3 C2|R3 C3|

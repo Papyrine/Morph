@@ -49,7 +49,7 @@ static class DefaultFontSettings
     /// </summary>
     /// <remarks>
     /// To override per-conversion without affecting other callers, use
-    /// <see cref="ConversionOptions.DefaultFont"/> instead.
+    /// <see cref="ExportOptions.DefaultFont"/> instead.
     /// </remarks>
     public static string DefaultFont
     {
@@ -100,7 +100,7 @@ static class DefaultFontSettings
         if (renderOccurred)
         {
             throw new InvalidOperationException(
-                $"DefaultFontSettings.{setting} cannot be changed after a render has started. Set it once during application startup, or use the matching ConversionOptions property per conversion.");
+                $"DefaultFontSettings.{setting} cannot be changed after a render has started. Set it once during application startup, or use the matching per-format export-options property per conversion.");
         }
     }
 }

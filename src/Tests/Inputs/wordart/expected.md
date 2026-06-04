@@ -58,13 +58,13 @@
 
 **Section 5: Text Decorations**
 
-**<u>UNDERLINED TEXT</u>**
+**UNDERLINED TEXT**
 
 **DOUBLE UNDERLINE**
 
-**<s>STRIKETHROUGH</s>**
+**~~STRIKETHROUGH~~**
 
-**<span class="smallcaps">SMALL CAPS STYLE</span>**
+**SMALL CAPS STYLE**
 
 **ALL CAPS STYLE**
 
@@ -72,21 +72,21 @@ Superscript<sup>2</sup> and Subscript<sub>2</sub>
 
 **Section 6: Highlighted Text**
 
-**<span class="mark">Yellow Highlight</span>**
+**Yellow Highlight**
 
-**<span class="mark">Cyan Highlight</span>**
+**Cyan Highlight**
 
-**<span class="mark">Green Highlight</span>**
+**Green Highlight**
 
-**<span class="mark">Magenta Highlight</span>**
+**Magenta Highlight**
 
-**<span class="mark">Red Highlight</span>**
+**Red Highlight**
 
 **Section 7: Combined Effects**
 
 ***Bold + Italic + Color***
 
-**<span class="mark"><u>Underline + Highlight</u></span>**
+**Underline + Highlight**
 
 **Multi-Color Word**
 
@@ -126,5 +126,4 @@ Superscript<sup>2</sup> and Subscript<sub>2</sub>
 
 Text Effects • Size Variations • Font Variety • Color Themes
 
-Text Decorations • Highlights • Combined Effects • Gradients • Waves •
-Emboss
+Text Decorations • Highlights • Combined Effects • Gradients • Waves • Emboss

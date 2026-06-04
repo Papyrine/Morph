@@ -1,1 +1,1 @@
-Normal text, <s>strikethrough text</s>, and normal again.
+Normal text, ~~strikethrough text~~, and normal again.

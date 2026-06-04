@@ -1,38 +1,11 @@
-<table>
-<colgroup>
-<col style="width: 100%" />
-</colgroup>
-<tbody>
-<tr>
-<td><p>New Year’s Eve</p>
-<p>Celebration</p></td>
-</tr>
-<tr>
-<td>Menu</td>
-</tr>
-<tr>
-<td><p>Crudités</p>
-<p>Fresh veggies, herbs, and dip</p></td>
-</tr>
-<tr>
-<td><p>Raw bar</p>
-<p>Oysters on the half-shell, sashimi, and caviar</p></td>
-</tr>
-<tr>
-<td><p>desserts</p>
-<p>Cheesecake, chocolate lava cake, and tiramisu</p></td>
-</tr>
-<tr>
-<td><p>beer</p>
-<p>Assorted foreign &amp; domestic</p></td>
-</tr>
-<tr>
-<td><p>wine</p>
-<p>White, red, and sparkling</p></td>
-</tr>
-<tr>
-<td><p>cocktails</p>
-<p>See back for cocktail menu</p></td>
-</tr>
-</tbody>
-</table>
+
+
+|<p>***New Year’s Eve*** </p><p>**CELEBRATION** </p>|
+| :- |
+|<h1>MENU</h1>|
+|<p><h2>CRUDITÉS </h2></p><p>Fresh veggies, herbs, and dip </p>|
+|<p><h2>RAW BAR</h2></p><p>Oysters on the half-shell, sashimi, and caviar</p>|
+|<p><h2>DESSERTS</h2></p><p>Cheesecake, chocolate lava cake, and tiramisu </p>|
+|<p><h2>BEER </h2></p><p>Assorted foreign & domestic </p>|
+|<p><h2>WINE </h2></p><p>White, red, and sparkling </p>|
+|<p><h2>COCKTAILS </h2></p><p>See back for cocktail menu </p>|

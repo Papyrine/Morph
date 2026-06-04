@@ -1,83 +1,10 @@
-<table>
-<caption>Business card layout for 10 cards per page</caption>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<thead>
-<tr>
-<th><p>Davide Milano</p>
-<p>333 3rd Ave.</p>
-<p>Seattle, WA 54321</p>
-<p>(417) 555-0123</p>
-<p>davide@contoso.com</p>
-<p>www.contoso.com</p></th>
-<th><p>Davide Milano</p>
-<p>333 3rd Ave.</p>
-<p>Seattle, WA 54321</p>
-<p>(417) 555-0123</p>
-<p>davide@contoso.com</p>
-<p>www.contoso.com</p></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><p>Davide Milano</p>
-<p>333 3rd Ave.</p>
-<p>Seattle, WA 54321</p>
-<p>(417) 555-0123</p>
-<p>davide@contoso.com</p>
-<p>www.contoso.com</p></td>
-<td><p>Davide Milano</p>
-<p>333 3rd Ave.</p>
-<p>Seattle, WA 54321</p>
-<p>(417) 555-0123</p>
-<p>davide@contoso.com</p>
-<p>www.contoso.com</p></td>
-</tr>
-<tr>
-<td><p>Davide Milano</p>
-<p>333 3rd Ave.</p>
-<p>Seattle, WA 54321</p>
-<p>(417) 555-0123</p>
-<p>davide@contoso.com</p>
-<p>www.contoso.com</p></td>
-<td><p>Davide Milano</p>
-<p>333 3rd Ave.</p>
-<p>Seattle, WA 54321</p>
-<p>(417) 555-0123</p>
-<p>davide@contoso.com</p>
-<p>www.contoso.com</p></td>
-</tr>
-<tr>
-<td><p>Davide Milano</p>
-<p>333 3rd Ave.</p>
-<p>Seattle, WA 54321</p>
-<p>(417) 555-0123</p>
-<p>davide@contoso.com</p>
-<p>www.contoso.com</p></td>
-<td><p>Davide Milano</p>
-<p>333 3rd Ave.</p>
-<p>Seattle, WA 54321</p>
-<p>(417) 555-0123</p>
-<p>davide@contoso.com</p>
-<p>www.contoso.com</p></td>
-</tr>
-<tr>
-<td><p>Davide Milano</p>
-<p>333 3rd Ave.</p>
-<p>Seattle, WA 54321</p>
-<p>(417) 555-0123</p>
-<p>davide@contoso.com</p>
-<p>www.contoso.com</p></td>
-<td><p>Davide Milano</p>
-<p>333 3rd Ave.</p>
-<p>Seattle, WA 54321</p>
-<p>(417) 555-0123</p>
-<p>davide@contoso.com</p>
-<p>www.contoso.com</p></td>
-</tr>
-</tbody>
-</table>
 
-­­­­­
+
+|<p>**DAVIDE MILANO** </p><p></p><p></p><p>333 3rd Ave. </p><p>Seattle, WA 54321 </p><p>(417) 555-0123 </p><p></p><p>davide@contoso.com </p><p>www.contoso.com</p>|<p>**DAVIDE MILANO** </p><p></p><p></p><p>333 3rd Ave. </p><p>Seattle, WA 54321 </p><p>(417) 555-0123 </p><p></p><p>davide@contoso.com </p><p>www.contoso.com</p>|
+| -: | -: |
+|<p>**DAVIDE MILANO** </p><p></p><p></p><p>333 3rd Ave. </p><p>Seattle, WA 54321 </p><p>(417) 555-0123 </p><p></p><p>davide@contoso.com </p><p>www.contoso.com</p>|<p>**DAVIDE MILANO** </p><p></p><p></p><p>333 3rd Ave. </p><p>Seattle, WA 54321 </p><p>(417) 555-0123 </p><p></p><p>davide@contoso.com </p><p>www.contoso.com</p>|
+|<p>**DAVIDE MILANO** </p><p></p><p></p><p>333 3rd Ave. </p><p>Seattle, WA 54321 </p><p>(417) 555-0123 </p><p></p><p>davide@contoso.com </p><p>www.contoso.com</p>|<p>**DAVIDE MILANO** </p><p></p><p></p><p>333 3rd Ave. </p><p>Seattle, WA 54321 </p><p>(417) 555-0123 </p><p></p><p>davide@contoso.com </p><p>www.contoso.com</p>|
+|<p>**DAVIDE MILANO** </p><p></p><p></p><p>333 3rd Ave. </p><p>Seattle, WA 54321 </p><p>(417) 555-0123 </p><p></p><p>davide@contoso.com </p><p>www.contoso.com</p>|<p>**DAVIDE MILANO** </p><p></p><p></p><p>333 3rd Ave. </p><p>Seattle, WA 54321 </p><p>(417) 555-0123 </p><p></p><p>davide@contoso.com </p><p>www.contoso.com</p>|
+|<p>**DAVIDE MILANO** </p><p></p><p></p><p>333 3rd Ave. </p><p>Seattle, WA 54321 </p><p>(417) 555-0123 </p><p></p><p>davide@contoso.com </p><p>www.contoso.com</p>|<p>**DAVIDE MILANO** </p><p></p><p></p><p>333 3rd Ave. </p><p>Seattle, WA 54321 </p><p>(417) 555-0123 </p><p></p><p>davide@contoso.com </p><p>www.contoso.com</p>|
+
+

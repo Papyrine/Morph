@@ -1,1 +1,1 @@
-This text should appear in all capitals.
+THIS TEXT SHOULD APPEAR IN ALL CAPITALS.

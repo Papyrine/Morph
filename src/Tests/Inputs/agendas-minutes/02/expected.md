@@ -1,135 +1,24 @@
-![](media/image2.png)
 
-<table style="width:100%;">
-<colgroup>
-<col style="width: 27%" />
-<col style="width: 32%" />
-<col style="width: 39%" />
-</colgroup>
-<tbody>
-<tr>
-<td colspan="2"><p>FINANCIAL MEETING</p>
-<p>AGENDA</p></td>
-<td><p>Date: September 9</p>
-<p>Time: 11:00 am</p>
-<p>Facilitator: Mirjam Nilsson</p></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td><p>Mirjam Nilsson</p>
-<p>President</p></td>
-<td><p>Rajesh Santoshi</p>
-<p>COO</p></td>
-<td><p>Elizabeth Moore</p>
-<p>SEO Strategist</p></td>
-</tr>
-<tr>
-<td><p>Flora Berggren</p>
-<p>CEO</p></td>
-<td><p>Graham Barne</p>
-<p>VP Marketing</p></td>
-<td><p>Robin Kline</p>
-<p>Product Designer</p></td>
-</tr>
-<tr>
-<td></td>
-<td><p>Mirjam Nilsson</p>
-<p>VP Product</p></td>
-<td><p>Takuma Hayashi</p>
-<p>Content Developer</p></td>
-</tr>
-</tbody>
-</table>
 
-<table>
-<caption>Agenda items table</caption>
-<colgroup>
-<col style="width: 26%" />
-<col style="width: 34%" />
-<col style="width: 38%" />
-</colgroup>
-<tbody>
-<tr>
-<td>TIME</td>
-<td>Item</td>
-<td>Owner</td>
-</tr>
-<tr>
-<td>11:00</td>
-<td>Welcome</td>
-<td>Mirjam Nilsson</td>
-</tr>
-<tr>
-<td>11:05</td>
-<td>Fiscal year review</td>
-<td>Flora Berggren</td>
-</tr>
-<tr>
-<td>11:15</td>
-<td>Vote on new secretary</td>
-<td>Rajesh Santoshi</td>
-</tr>
-<tr>
-<td>11:20</td>
-<td>Discuss advisory committees</td>
-<td>Graham Barnes</td>
-</tr>
-<tr>
-<td>11:30</td>
-<td>Vote on budget</td>
-<td>Rowan Murphy</td>
-</tr>
-<tr>
-<td>11:40</td>
-<td>Break</td>
-<td>Robin Kline</td>
-</tr>
-<tr>
-<td>11:45</td>
-<td><p>New Business</p>
-<p>Recap</p>
-<p>Programs</p></td>
-<td>Mirjam Nilsson</td>
-</tr>
-</tbody>
-</table>
+|<p>**FINANCIAL MEETING**</p><p>**AGENDA**</p>|<p><h1>**Date:** September 9</h1></p><p><h1>**Time:** 11:00 am </h1></p><p><h1>**Facilitator:** Mirjam Nilsson </h1></p>|||
+| :- | :- | :- | :- |
+|||||
+|<p><h1>**Mirjam Nilsson**</h1></p><p><h2>President</h2></p>|<p><h1>**Rajesh Santoshi**</h1></p><p><h2>COO</h2></p>|<p><h1>**Elizabeth Moore**</h1></p><p><h2>SEO Strategist</h2></p>||
+|<p><h1>**Flora Berggren**</h1></p><p><h2>CEO</h2></p>|<p><h1>**Graham Barne**</h1></p><p><h2>VP Marketing</h2></p>|<p><h1>**Robin Kline**</h1></p><p><h2>Product Designer</h2></p>||
+|<h1></h1>|<p><h1>Mirjam Nilsson</h1></p><p><h2>VP Product</h2></p>|<p><h1>**Takuma Hayashi**</h1></p><p><h2>Content Developer</h2></p>||
 
-![](media/image43.png)
+|<h3>**TIME**</h3>|<h3>**ITEM**</h3>|<h3>**OWNER**</h3>|
+| :- | :- | :- |
+|11:00|Welcome|Mirjam Nilsson|
+|11:05|Fiscal year review|Flora Berggren|
+|11:15|Vote on new secretary|Rajesh Santoshi|
+|11:20|Discuss advisory committees|Graham Barnes|
+|11:30|Vote on budget|Rowan Murphy|
+|11:40|Break|Robin Kline|
+|11:45|<p>New Business</p><p>- - Recap</p><p>- - Programs</p>|Mirjam Nilsson|
 
-<table>
-<caption>Agenda items table</caption>
-<colgroup>
-<col style="width: 26%" />
-<col style="width: 34%" />
-<col style="width: 38%" />
-</colgroup>
-<tbody>
-<tr>
-<td>TIME</td>
-<td>Item</td>
-<td>Owner</td>
-</tr>
-<tr>
-<td>12:00</td>
-<td><p>Committee Reports</p>
-<p>Membership</p>
-<p>Volunteers</p>
-<p>Newsletter</p></td>
-<td>Flora Berggren</td>
-</tr>
-<tr>
-<td>12:15</td>
-<td>Announcements</td>
-<td>Rajesh Santoshi</td>
-</tr>
-<tr>
-<td>12:30</td>
-<td>Adjournment</td>
-<td>Graham Barnes</td>
-</tr>
-</tbody>
-</table>
+|<h3>**TIME**</h3>|<h3>**ITEM**</h3>|<h3>**OWNER**</h3>|
+| :- | :- | :- |
+|12:00|<p>Committee** Reports</p><p>- - Membership </p><p>- - Volunteers </p><p>- - Newsletter </p>|Flora** Berggren|
+|12:15|Announcements|Rajesh Santoshi|
+|12:30|Adjournment|Graham Barnes|

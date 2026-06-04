@@ -21,7 +21,9 @@ static class ExportTestBuilders
     public static ParagraphElement Heading(int level, string text) =>
         new()
         {
-            Runs = [TextRun(text)],
+            // Word's Heading styles resolve to bold runs; the parser surfaces that as Bold=true, so
+            // the fixtures model it too (HTML emits <strong>, Markdown suppresses the redundant **).
+            Runs = [TextRun(text, bold: true)],
             Properties = new()
             {
                 StyleId = $"Heading{level}"

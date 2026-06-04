@@ -31,7 +31,7 @@ sealed class DocumentParser(string defaultFont)
     const double builtInDefaultFontSizePoints = 11.0;
 
     // Fallback font family to use when the document does not specify one in docDefaults.
-    // Passed in from ConversionOptions.DefaultFont or DefaultFontSettings.DefaultFont.
+    // Passed in from the export options' DefaultFont or DefaultFontSettings.DefaultFont.
 
     public DocumentParser()
         : this(DefaultFontSettings.DefaultFont)
@@ -57,6 +57,11 @@ sealed class DocumentParser(string defaultFont)
 
     // Style definitions cached during parsing (styleId -> full run properties)
     Dictionary<string, RunProperties>? styleRunProperties;
+
+    // Document default text colour from w:docDefaults/w:rPrDefault/w:color (theme-resolved). The
+    // base of the colour cascade: every run that doesn't get a colour from a style or inline rPr
+    // inherits this. Null when docDefaults sets no colour (the common case — runs stay black).
+    string? defaultRunColorHex;
 
     // Style paragraph properties cached during parsing (styleId -> paragraph properties)
     Dictionary<string, ParagraphProperties>? styleParagraphProperties;
@@ -885,6 +890,43 @@ sealed class DocumentParser(string defaultFont)
         return result;
     }
 
+    // Resolves a w:color element to a 6-hex string: a theme colour (w:themeColor with optional
+    // w:themeShade/w:themeTint) via the document's colour scheme, else the direct w:val. Returns
+    // null for "auto" or an unresolved/absent value.
+    string? ResolveRunColor(Color colorElement)
+    {
+        var themeColor = colorElement.ThemeColor?.Value;
+        if (themeColor != null && currentThemeColors != null)
+        {
+            byte? shade = null;
+            byte? tint = null;
+            if (colorElement.ThemeShade?.HasValue == true &&
+                byte.TryParse(colorElement.ThemeShade.Value, NumberStyles.HexNumber, null, out var shadeValue))
+            {
+                shade = shadeValue;
+            }
+
+            if (colorElement.ThemeTint?.HasValue == true &&
+                byte.TryParse(colorElement.ThemeTint.Value, NumberStyles.HexNumber, null, out var tintValue))
+            {
+                tint = tintValue;
+            }
+
+            var resolved = currentThemeColors.ResolveColor(((IEnumValue) themeColor).Value, shade, tint);
+            if (resolved != null)
+            {
+                return resolved;
+            }
+        }
+
+        if (colorElement.Val?.HasValue == true && colorElement.Val.Value != "auto")
+        {
+            return colorElement.Val.Value;
+        }
+
+        return null;
+    }
+
     Dictionary<string, RunProperties> ExtractStyleRunProperties(MainDocumentPart mainPart)
     {
         var styleProps = new Dictionary<string, RunProperties>(StringComparer.OrdinalIgnoreCase);
@@ -930,6 +972,22 @@ sealed class DocumentParser(string defaultFont)
             if (defaultSz?.Val?.HasValue == true)
             {
                 defaultFontSize = double.Parse(defaultSz.Val.Value!).HalfPointsToPoints();
+            }
+
+            // Text colour from docDefaults — the base of the run-colour cascade. Many templates set
+            // their body colour here as a theme colour (e.g. text2 #44546a) rather than on every run.
+            // A white default is the exception: card/invitation templates declare a white default
+            // (themeColor background1) for text that sits on coloured shapes, but Word renders runs
+            // that don't otherwise specify a colour as automatic black, not invisible white. Treat a
+            // white default as "no default" so it doesn't bleed onto ordinary body text.
+            var defaultColorElement = rPrDefault.GetFirstChild<Color>();
+            if (defaultColorElement != null)
+            {
+                var resolvedDefault = ResolveRunColor(defaultColorElement);
+                if (!string.Equals(resolvedDefault, "FFFFFF", StringComparison.OrdinalIgnoreCase))
+                {
+                    defaultRunColorHex = resolvedDefault;
+                }
             }
         }
 
@@ -990,7 +1048,7 @@ sealed class DocumentParser(string defaultFont)
                 var strikethrough = baseProps?.Strikethrough ?? false;
                 var allCaps = baseProps?.AllCaps ?? false;
                 var smallCaps = baseProps?.SmallCaps ?? false;
-                var color = baseProps?.ColorHex;
+                var color = baseProps?.ColorHex ?? defaultRunColorHex;
                 var backgroundColor = baseProps?.BackgroundColorHex;
                 var characterSpacing = baseProps?.CharacterSpacingPoints ?? 0.0;
 
@@ -7640,7 +7698,8 @@ sealed class DocumentParser(string defaultFont)
         {
             return styleDefaults ?? new RunProperties
             {
-                FontFamily = effectiveDefaultFont
+                FontFamily = effectiveDefaultFont,
+                ColorHex = defaultRunColorHex
             };
         }
 
@@ -7653,7 +7712,7 @@ sealed class DocumentParser(string defaultFont)
         var strikethrough = styleDefaults?.Strikethrough ?? false;
         var allCaps = styleDefaults?.AllCaps ?? false;
         var smallCaps = styleDefaults?.SmallCaps ?? false;
-        var color = styleDefaults?.ColorHex;
+        var color = styleDefaults?.ColorHex ?? defaultRunColorHex;
         var backgroundColor = styleDefaults?.BackgroundColorHex;
         var verticalAlignment = styleDefaults?.VerticalAlignment ?? VerticalRunAlignment.Baseline;
         var characterSpacing = styleDefaults?.CharacterSpacingPoints ?? 0.0;
@@ -7772,48 +7831,16 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
-        // Color - check for theme color first, then direct color as fallback
+        // An explicit w:color on the run overrides any inherited (style / docDefaults) colour.
+        // Crucially this includes w:val="auto": "automatic" means the run opts back out to Word's
+        // contrast colour (black on a light page), so it must RESET the inherited colour rather than
+        // fall through to it — otherwise a coloured docDefaults (e.g. a card template's white text
+        // default) would leak onto runs that explicitly asked for automatic. ResolveRunColor returns
+        // null for auto / unresolved, which is exactly the reset we want.
         var colorElement = props.GetFirstChild<Color>();
         if (colorElement != null)
         {
-            string? inlineColor = null;
-            var themeColor = colorElement.ThemeColor?.Value;
-            if (themeColor != null && currentThemeColors != null)
-            {
-                byte? shade = null;
-                byte? tint = null;
-
-                if (colorElement.ThemeShade?.HasValue == true)
-                {
-                    if (byte.TryParse(colorElement.ThemeShade.Value, NumberStyles.HexNumber, null, out var shadeVal))
-                    {
-                        shade = shadeVal;
-                    }
-                }
-
-                if (colorElement.ThemeTint?.HasValue == true)
-                {
-                    if (byte.TryParse(colorElement.ThemeTint.Value, NumberStyles.HexNumber, null, out var tintVal))
-                    {
-                        tint = tintVal;
-                    }
-                }
-
-                // Use IEnumValue.Value instead of ToString() to get actual enum value string
-                var themeColorValue = ((IEnumValue) themeColor).Value;
-                inlineColor = currentThemeColors.ResolveColor(themeColorValue, shade, tint);
-            }
-
-            // Fall back to direct value if theme resolution failed or no theme color
-            if (inlineColor == null && colorElement.Val?.HasValue == true && colorElement.Val.Value != "auto")
-            {
-                inlineColor = colorElement.Val.Value;
-            }
-
-            if (inlineColor != null)
-            {
-                color = inlineColor;
-            }
+            color = ResolveRunColor(colorElement);
         }
 
         // Background/shading color (w:shd element)

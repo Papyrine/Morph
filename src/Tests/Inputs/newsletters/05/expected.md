@@ -1,243 +1,30 @@
-<table>
-<colgroup>
-<col style="width: 23%" />
-<col style="width: 9%" />
-<col style="width: 66%" />
-</colgroup>
-<tbody>
-<tr>
-<td></td>
-<td></td>
-<td>Class News</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td><p>Ms. Tanaka</p>
-<p>(718) 555–0100</p>
-<p>sycamoremiddle.org</p>
-<p>ytanaka@sycamoremiddle.edu</p></td>
-<td></td>
-<td><img src="media/image12.jpeg"
-style="width:5.09264in;height:2.9537in" alt="elementary school" /></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td><p>Upcoming Events</p>
-<p>School Dance</p>
-<p>9.9 | 5-7pm</p>
-<p>Book Fair</p>
-<p>10.1 - 11.1</p>
-<p>Picture Day</p>
-<p>10.15</p></td>
-<td></td>
-<td><p>Welcome back to school!</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam non
-varius ipsum. Fusce venenatis quam vel libero scelerisque, a mattis diam
-sollicitudin. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-Aliquam non varius ipsum. Fusce venenatis quam vel libero sce lerisque,
-a mattis diam sollicitudin.</p>
-<p>Maecenas massa velit, consectetur sit amet da pibus et, dapibus sit
-amet odio. Vestibulum ultric ies erat sit amet massa ullamcorper ferm
-entum. Quisque a suscipit nulla, non posuere tellus. Vivamus justo erat,
-suscipit sit amet ultr icie. Ma ecenas massa velit, consectetur sit amet
-dapibus et, dapibus sit amet odio. Vestibulum ultricies erat sit amet
-massa ullamcorper.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipi scing elit. Aliquam non
-varius ipsum. Fusce ven enatis quam vel libero scelerisque, a mattis
-diam sollicitudin. Lorem ipsum dolor sit amet, cons ectetur adipiscing
-elit. Aliquam non varius ipsum. Fusce venenatis quam vel libero sce
-lerisque, a mattis diam sollicitudin. Quisque a suscipit nulla, non
-posuere tellus.</p></td>
-</tr>
-</tbody>
+
+
+|||Class News|
+| :- | :- | :- |
+||||
+|<p>Ms. Tanaka</p><p>(718) 555–0100 </p><p>sycamoremiddle.org </p><p>ytanaka@sycamoremiddle.edu </p>||![elementary school]|
+||||
+|<p>Upcoming Events</p><p>School Dance</p><p>9\.9 | 5-7pm</p><p></p><p>Book Fair</p><p>10\.1 - 11.1</p><p></p><p>Picture Day</p><p>10\.15</p>||<p>Welcome back to school!</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam non varius ipsum. Fusce venenatis quam vel libero scelerisque, a mattis diam sollicitudin. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam non varius ipsum. Fusce venenatis quam vel libero sce lerisque, a mattis diam sollicitudin.</p><p>Maecenas massa velit, consectetur sit amet da pibus et, dapibus sit amet odio. Vestibulum ultric ies erat sit amet massa ullamcorper ferm entum. Quisque a suscipit nulla, non posuere tellus. Vivamus justo erat, suscipit sit amet ultr icie. Ma ecenas massa velit, consectetur sit amet dapibus et, dapibus sit amet odio. Vestibulum ultricies erat sit amet massa ullamcorper.</p><p>Lorem ipsum dolor sit amet, consectetur adipi scing elit. Aliquam non varius ipsum. Fusce ven enatis quam vel libero scelerisque, a mattis diam sollicitudin. Lorem ipsum dolor sit amet, cons ectetur adipiscing elit. Aliquam non varius ipsum. Fusce venenatis quam vel libero sce lerisque, a mattis diam sollicitudin. Quisque a suscipit nulla, non posuere tellus.</p>|
+
+<table><tr><th colspan="1" valign="top"></th><th colspan="1" valign="top"></th><th colspan="1" valign="top"><p>Recent highlights</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam non varius ipsum. Fusce venenatis quam vel libero scelerisque, a mattis diam sollicitudin. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam non varius ipsum. Fusce venenatis quam vel libero scelerisque, a mattis diam sollicitudin.</p><p>Maecenas massa velit, consectetur sit amet dapibus et, dapibus sit amet odio. Vestibulum ultricies erat sit amet massa ullamco rper ferme ntum. Quisque a suscipit nulla, non posuere tellus. Viva mus justo erat, suscipit sit amet dui sed, ultricies porttitor mi.</p><p>Aliquam pharetra risus vitae odio imperdiet condimentum. Fusce in quam varius, dictum mi sit amet, aliquam mi. Suspe ndisse potenti. Pellentesque auctor id neque vel maximus.</p></th></tr>
+<tr><td colspan="1" rowspan="3"><p>Fall highlights</p><p>Lorem ipsum dolor sit amet, consec tetur adi piscing elit. Aliquam non varius ipsum. Fusce venenatis quam vel libero scelerisque. Quam vel libero sce lerisque, a matm.</p><p></p><p>Lorem ipsum dolor sit amet, consec tetur adi piscing elit. Aliquam non varius ipsum. Fusce venenatis quam vel libero scelerisque. Quam vel libero sce lerisque, a mattis diam venenatis quam vel.</p></td><td colspan="1" valign="top"></td><td colspan="1" valign="top">![desks in a classroom]</td></tr>
+<tr><td colspan="1" valign="top"></td><td colspan="1" valign="top"></td></tr>
+<tr><td colspan="1" valign="top"></td><td colspan="1" valign="top"><p>Our next area of focus</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ma ecenas massa velit, consectetur sit amet dapibus et, dapibus sit amet odio. Aliquam non varius ipsum. Fusce venenatis quam vel libero scelerisque, a mattis diam sollicitudin. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Non varius ipsum. Fusce venenatis quam vel libero sce lerisque, a mattis.</p><p>Maecenas massa velit, consectetur sit amet da pibus et, dapibus sit amet odio. Vestibulum ultric ies erat sit amet massa ullamcorper ferm entum. Quisque a suscipit nulla, non posuere tellus. Vivamus justo erat, suscipit sit amet ultr icie. Ma ecenas massa velit, consectetur sit amet dapibus et, dapibus sit amet odio. Vestibulum ultricies erat sit amet massa ullamcorper. nulla, non posuere tellus. Vivamus justo erat, suscipit sit amet dui sed, ultricie. Ma ecenas massa velit.</p></td></tr>
 </table>
 
-<table>
-<colgroup>
-<col style="width: 23%" />
-<col style="width: 9%" />
-<col style="width: 66%" />
-</colgroup>
-<tbody>
-<tr>
-<td></td>
-<td></td>
-<td><p>Recent highlights</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam non
-varius ipsum. Fusce venenatis quam vel libero scelerisque, a mattis diam
-sollicitudin. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-Aliquam non varius ipsum. Fusce venenatis quam vel libero scelerisque, a
-mattis diam sollicitudin.</p>
-<p>Maecenas massa velit, consectetur sit amet dapibus et, dapibus sit
-amet odio. Vestibulum ultricies erat sit amet massa ullamco rper ferme
-ntum. Quisque a suscipit nulla, non posuere tellus. Viva mus justo erat,
-suscipit sit amet dui sed, ultricies porttitor mi.</p>
-<p>Aliquam pharetra risus vitae odio imperdiet condimentum. Fusce in
-quam varius, dictum mi sit amet, aliquam mi. Suspe ndisse potenti.
-Pellentesque auctor id neque vel maximus.</p></td>
-</tr>
-<tr>
-<td rowspan="3"><p>Fall highlights</p>
-<p>Lorem ipsum dolor sit amet, consec tetur adi piscing elit. Aliquam
-non varius ipsum. Fusce venenatis quam vel libero scelerisque. Quam vel
-libero sce lerisque, a matm.</p>
-<p>Lorem ipsum dolor sit amet, consec tetur adi piscing elit. Aliquam
-non varius ipsum. Fusce venenatis quam vel libero scelerisque. Quam vel
-libero sce lerisque, a mattis diam venenatis quam vel.</p></td>
-<td></td>
-<td><img src="media/image2.jpeg" style="width:5.09147in;height:2.2963in"
-alt="desks in a classroom" /></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td><p>Our next area of focus</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ma ecenas
-massa velit, consectetur sit amet dapibus et, dapibus sit amet odio.
-Aliquam non varius ipsum. Fusce venenatis quam vel libero scelerisque, a
-mattis diam sollicitudin. Lorem ipsum dolor sit amet, consectetur
-adipiscing elit. Non varius ipsum. Fusce venenatis quam vel libero sce
-lerisque, a mattis.</p>
-<p>Maecenas massa velit, consectetur sit amet da pibus et, dapibus sit
-amet odio. Vestibulum ultric ies erat sit amet massa ullamcorper ferm
-entum. Quisque a suscipit nulla, non posuere tellus. Vivamus justo erat,
-suscipit sit amet ultr icie. Ma ecenas massa velit, consectetur sit amet
-dapibus et, dapibus sit amet odio. Vestibulum ultricies erat sit amet
-massa ullamcorper. nulla, non posuere tellus. Vivamus justo erat,
-suscipit sit amet dui sed, ultricie. Ma ecenas massa velit.</p></td>
-</tr>
-</tbody>
+|||Class News|
+| :- | :- | :- |
+||||
+|<p>Ms. Tanaka</p><p>(718) 555–0100 </p><p>sycamoremiddle.org </p><p>ytanaka@sycamoremiddle.edu</p>||![elementary school]|
+||||
+|<p>Upcoming Events</p><p>School Dance</p><p>9\.9 | 5-7pm</p><p></p><p>Book Fair</p><p>10\.1 - 11.1</p><p></p><p>Picture Day</p><p>10\.15</p>||<p>Welcome back to school!</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam non varius ipsum. Fusce venenatis quam vel libero scelerisque, a mattis diam sollicitudin. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam non varius ipsum. Fusce venenatis quam vel libero sce lerisque, a mattis diam sollicitudin.</p><p>Maecenas massa velit, consectetur sit amet da pibus et, dapibus sit amet odio. Vestibulum ultric ies erat sit amet massa ullamcorper ferm entum. Quisque a suscipit nulla, non posuere tellus. Vivamus justo erat, suscipit sit amet ultr icie. Ma ecenas massa velit, consectetur sit amet dapibus et, dapibus sit amet odio. Vestibulum ultricies erat sit amet massa ullamcorper.</p><p>Lorem ipsum dolor sit amet, consectetur adipi scing elit. Aliquam non varius ipsum. Fusce ven enatis quam vel libero scelerisque, a mattis diam sollicitudin. Lorem ipsum dolor sit amet, cons ectetur adipiscing elit. Aliquam non varius ipsum. Fusce venenatis quam vel libero sce lerisque, a mattis diam sollicitudin. Quisque a suscipit nulla, non posuere tellus.</p>|
+
+<table><tr><th colspan="1" valign="top"></th><th colspan="1" valign="top"></th><th colspan="1" valign="top"><p>Recent highlights</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam non varius ipsum. Fusce venenatis quam vel libero scelerisque, a mattis diam sollicitudin. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam non varius ipsum. Fusce venenatis quam vel libero scelerisque, a mattis diam sollicitudin.</p><p>Maecenas massa velit, consectetur sit amet dapibus et, dapibus sit amet odio. Vestibulum ultricies erat sit amet massa ullamco rper ferme ntum. Quisque a suscipit nulla, non posuere tellus. Viva mus justo erat, suscipit sit amet dui sed, ultricies porttitor mi.</p><p>Aliquam pharetra risus vitae odio imperdiet condimentum. Fusce in quam varius, dictum mi sit amet, aliquam mi. Suspe ndisse potenti. Pellentesque auctor id neque vel maximus.</p></th></tr>
+<tr><td colspan="1" rowspan="3"><p>Fall highlights</p><p>Lorem ipsum dolor sit amet, consec tetur adi piscing elit. Aliquam non varius ipsum. Fusce venenatis quam vel libero scelerisque. Quam vel libero sce lerisque, a matm.</p><p></p><p>Lorem ipsum dolor sit amet, consec tetur adi piscing elit. Aliquam non varius ipsum. Fusce venenatis quam vel libero scelerisque. Quam vel libero sce lerisque, a mattis diam venenatis quam vel.</p></td><td colspan="1" valign="top"></td><td colspan="1" valign="top">![desks in a classroom]</td></tr>
+<tr><td colspan="1" valign="top"></td><td colspan="1" valign="top"></td></tr>
+<tr><td colspan="1" valign="top"></td><td colspan="1" valign="top"><p>Our next area of focus</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ma ecenas massa velit, consectetur sit amet dapibus et, dapibus sit amet odio. Aliquam non varius ipsum. Fusce venenatis quam vel libero scelerisque, a mattis diam sollicitudin. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Non varius ipsum. Fusce venenatis quam vel libero sce lerisque, a mattis.</p><p>Maecenas massa velit, consectetur sit amet da pibus et, dapibus sit amet odio. Vestibulum ultric ies erat sit amet massa ullamcorper ferm entum. Quisque a suscipit nulla, non posuere tellus. Vivamus justo erat, suscipit sit amet ultr icie. Ma ecenas massa velit, consectetur sit amet dapibus et, dapibus sit amet odio. Vestibulum ultricies erat sit amet massa ullamcorper. nulla, non posuere tellus. Vivamus justo erat, suscipit sit amet dui sed, ultricie. Ma ecenas massa velit.</p></td></tr>
 </table>
 
-<table>
-<colgroup>
-<col style="width: 23%" />
-<col style="width: 9%" />
-<col style="width: 66%" />
-</colgroup>
-<tbody>
-<tr>
-<td></td>
-<td></td>
-<td>Class News</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td><p>Ms. Tanaka</p>
-<p>(718) 555–0100</p>
-<p>sycamoremiddle.org</p>
-<p>ytanaka@sycamoremiddle.edu</p></td>
-<td></td>
-<td><img src="media/image12.jpeg"
-style="width:5.09264in;height:2.9537in" alt="elementary school" /></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td><p>Upcoming Events</p>
-<p>School Dance</p>
-<p>9.9 | 5-7pm</p>
-<p>Book Fair</p>
-<p>10.1 - 11.1</p>
-<p>Picture Day</p>
-<p>10.15</p></td>
-<td></td>
-<td><p>Welcome back to school!</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam non
-varius ipsum. Fusce venenatis quam vel libero scelerisque, a mattis diam
-sollicitudin. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-Aliquam non varius ipsum. Fusce venenatis quam vel libero sce lerisque,
-a mattis diam sollicitudin.</p>
-<p>Maecenas massa velit, consectetur sit amet da pibus et, dapibus sit
-amet odio. Vestibulum ultric ies erat sit amet massa ullamcorper ferm
-entum. Quisque a suscipit nulla, non posuere tellus. Vivamus justo erat,
-suscipit sit amet ultr icie. Ma ecenas massa velit, consectetur sit amet
-dapibus et, dapibus sit amet odio. Vestibulum ultricies erat sit amet
-massa ullamcorper.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipi scing elit. Aliquam non
-varius ipsum. Fusce ven enatis quam vel libero scelerisque, a mattis
-diam sollicitudin. Lorem ipsum dolor sit amet, cons ectetur adipiscing
-elit. Aliquam non varius ipsum. Fusce venenatis quam vel libero sce
-lerisque, a mattis diam sollicitudin. Quisque a suscipit nulla, non
-posuere tellus.</p></td>
-</tr>
-</tbody>
-</table>
-
-<table>
-<colgroup>
-<col style="width: 23%" />
-<col style="width: 9%" />
-<col style="width: 66%" />
-</colgroup>
-<tbody>
-<tr>
-<td></td>
-<td></td>
-<td><p>Recent highlights</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam non
-varius ipsum. Fusce venenatis quam vel libero scelerisque, a mattis diam
-sollicitudin. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-Aliquam non varius ipsum. Fusce venenatis quam vel libero scelerisque, a
-mattis diam sollicitudin.</p>
-<p>Maecenas massa velit, consectetur sit amet dapibus et, dapibus sit
-amet odio. Vestibulum ultricies erat sit amet massa ullamco rper ferme
-ntum. Quisque a suscipit nulla, non posuere tellus. Viva mus justo erat,
-suscipit sit amet dui sed, ultricies porttitor mi.</p>
-<p>Aliquam pharetra risus vitae odio imperdiet condimentum. Fusce in
-quam varius, dictum mi sit amet, aliquam mi. Suspe ndisse potenti.
-Pellentesque auctor id neque vel maximus.</p></td>
-</tr>
-<tr>
-<td rowspan="3"><p>Fall highlights</p>
-<p>Lorem ipsum dolor sit amet, consec tetur adi piscing elit. Aliquam
-non varius ipsum. Fusce venenatis quam vel libero scelerisque. Quam vel
-libero sce lerisque, a matm.</p>
-<p>Lorem ipsum dolor sit amet, consec tetur adi piscing elit. Aliquam
-non varius ipsum. Fusce venenatis quam vel libero scelerisque. Quam vel
-libero sce lerisque, a mattis diam venenatis quam vel.</p></td>
-<td></td>
-<td><img src="media/image2.jpeg" style="width:5.09147in;height:2.2963in"
-alt="desks in a classroom" /></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td><p>Our next area of focus</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ma ecenas
-massa velit, consectetur sit amet dapibus et, dapibus sit amet odio.
-Aliquam non varius ipsum. Fusce venenatis quam vel libero scelerisque, a
-mattis diam sollicitudin. Lorem ipsum dolor sit amet, consectetur
-adipiscing elit. Non varius ipsum. Fusce venenatis quam vel libero sce
-lerisque, a mattis.</p>
-<p>Maecenas massa velit, consectetur sit amet da pibus et, dapibus sit
-amet odio. Vestibulum ultric ies erat sit amet massa ullamcorper ferm
-entum. Quisque a suscipit nulla, non posuere tellus. Vivamus justo erat,
-suscipit sit amet ultr icie. Ma ecenas massa velit, consectetur sit amet
-dapibus et, dapibus sit amet odio. Vestibulum ultricies erat sit amet
-massa ullamcorper. nulla, non posuere tellus. Vivamus justo erat,
-suscipit sit amet dui sed, ultricie. Ma ecenas massa velit.</p></td>
-</tr>
-</tbody>
-</table>
+[elementary school]: C:\Users\simon\AppData\Local\Temp\expected.002.jpeg
+[desks in a classroom]: C:\Users\simon\AppData\Local\Temp\expected.004.jpeg

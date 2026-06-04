@@ -1,1 +1,1 @@
-Normal text, <u>underlined text</u>, and normal again.
+Normal text, underlined text, and normal again.

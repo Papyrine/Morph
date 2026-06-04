@@ -1,38 +1,8 @@
-<table style="width:32%;">
-<colgroup>
-<col style="width: 16%" />
-<col style="width: 16%" />
-</colgroup>
-<tbody>
-<tr>
-<td>left</td>
-<td>right</td>
-</tr>
-</tbody>
-</table>
+|left|right|
+| :- | :- |
 
-<table style="width:32%;">
-<colgroup>
-<col style="width: 16%" />
-<col style="width: 16%" />
-</colgroup>
-<tbody>
-<tr>
-<td>center</td>
-<td>right</td>
-</tr>
-</tbody>
-</table>
+|center|right|
+| :- | :- |
 
-<table style="width:32%;">
-<colgroup>
-<col style="width: 16%" />
-<col style="width: 16%" />
-</colgroup>
-<tbody>
-<tr>
-<td>right</td>
-<td>right</td>
-</tr>
-</tbody>
-</table>
+|right|right|
+| :- | :- |

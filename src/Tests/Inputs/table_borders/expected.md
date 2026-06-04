@@ -1,21 +1,6 @@
 Table with borders:
 
-<table>
-<tbody>
-<tr>
-<td>Cell (1,1)</td>
-<td>Cell (1,2)</td>
-<td>Cell (1,3)</td>
-</tr>
-<tr>
-<td>Cell (2,1)</td>
-<td>Cell (2,2)</td>
-<td>Cell (2,3)</td>
-</tr>
-<tr>
-<td>Cell (3,1)</td>
-<td>Cell (3,2)</td>
-<td>Cell (3,3)</td>
-</tr>
-</tbody>
-</table>
+|Cell (1,1)|Cell (1,2)|Cell (1,3)|
+| :- | :- | :- |
+|Cell (2,1)|Cell (2,2)|Cell (2,3)|
+|Cell (3,1)|Cell (3,2)|Cell (3,3)|

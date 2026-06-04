@@ -1,0 +1,31 @@
+﻿Chanchal Sharma
+
+**Contact information**
+
+(718) 555–0100
+
+chanchals@example.com
+
+4567 Main Street City, ST 98052
+
+**To**
+
+Hailey Clark
+
+Kramer-Correia Construction
+
+123 Avenue A Metropolis, ST 54321
+
+**Dear Hailey Clark,**
+
+I am excited to apply for the office manager position at Kramer-Correia Construction. Although I do not have direct experience in the construction industry, I believe my skills in office management, organization, and communication will be highly valuable to your team.
+
+My experience in managing office operations, coordinating schedules, and overseeing administrative tasks will help ensure that your projects run smoothly and efficiently. Additionally, my ability to work well under pressure and to multitask effectively will enable me to handle the demands of a fast-paced construction environment.
+
+Thank you for considering my application. I look forward to Discussing my qualifications with you further.
+
+Sincerely,
+
+# Chanchal Sharma
+
+January 13, 20XX

@@ -1,20 +1,7 @@
-<span class="smallcaps"><span dir="rtl">All features</span></span>
+All features
 
-<table style="width:32%;">
-<colgroup>
-<col style="width: 16%" />
-<col style="width: 16%" />
-</colgroup>
-<thead>
-<tr>
-<th>Drop cap paragraphHeader</th>
-<th>Header2</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Data</td>
-<td>Data2</td>
-</tr>
-</tbody>
-</table>
+Drop cap paragraph
+
+|Header|Header2|
+| :- | :- |
+|Data|Data2|

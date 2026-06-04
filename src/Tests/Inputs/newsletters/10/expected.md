@@ -1,31 +1,9 @@
-<img src="media/image1.jpeg" style="width:7.41in;height:1.93in" />
 
-<table style="width:100%;">
-<colgroup>
-<col style="width: 99%" />
-</colgroup>
-<tbody>
-<tr>
-<td>My Journal</td>
-</tr>
-<tr>
-<td>DD/MM/YYYY</td>
-</tr>
-<tr>
-<td><p>Something that made me smile today…</p>
-<p>[Write entry here]</p></td>
-</tr>
-<tr>
-<td><p>Currently dealing with...</p>
-<p>[Write entry here]</p></td>
-</tr>
-<tr>
-<td><p>Thankful for...</p>
-<p>Thankful for...</p></td>
-</tr>
-<tr>
-<td><p>Looking forward to...</p>
-<p>Looking forward to...</p></td>
-</tr>
-</tbody>
-</table>
+
+|My Journal |
+| :-: |
+|**DD/MM/YYYY**|
+|<p><h3>**Something that made me smile today…** </h3></p><p>[Write entry here] </p>|
+|<p><h3>**Currently dealing with...** </h3></p><p>[Write entry here] </p>|
+|<p><h3>**Thankful for...** </h3></p><p>Thankful for...</p>|
+|<p><h3>**Looking forward to...** </h3></p><p>Looking forward to...</p>|

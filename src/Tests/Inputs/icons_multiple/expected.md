@@ -1,7 +1,11 @@
 Document with multiple icons:
 
-<img src="media/image.svg" style="width:0.33333in;height:0.33333in" />
+![ref1]
 
-<img src="media/image2.svg" style="width:0.33333in;height:0.33333in" />
+![ref2]
 
-<img src="media/image3.svg" style="width:0.33333in;height:0.33333in" />
+![ref3]
+
+[ref1]: C:\Users\simon\AppData\Local\Temp\expected.001.png
+[ref2]: C:\Users\simon\AppData\Local\Temp\expected.002.png
+[ref3]: C:\Users\simon\AppData\Local\Temp\expected.003.png

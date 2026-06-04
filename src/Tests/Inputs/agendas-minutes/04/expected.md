@@ -1,49 +1,19 @@
-<table>
-<caption>Top table contains the title. Bottom table has meeting
-location, date and time</caption>
-<colgroup>
-<col style="width: 17%" />
-<col style="width: 82%" />
-</colgroup>
-<thead>
-<tr>
-<th colspan="2">MEETING AGENDA</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Location:</td>
-<td>Room 914 B</td>
-</tr>
-<tr>
-<td>Date:</td>
-<td>January 9, 20XX</td>
-</tr>
-<tr>
-<td>Time:</td>
-<td>2:15 PM</td>
-</tr>
-</tbody>
-</table>
 
-# Agenda details 
 
-## Introductions 
-
-### Sarah will read the minutes from last month’s meeting 
-
-### John will take attendance 
-
-## New business 
-
-### Ordering new office chairs 
-
-### Holiday bonuses 
-
-## Old business 
-
-### Volunteers for holiday food drive 
-
-## Conclusion 
-
-### Next meeting will be held on February 6, 20XX 
+|**MEETING AGENDA** ||
+| :- | :- |
+|Location: |Room 914 B |
+|Date: |January 9, 20XX |
+|Time:  |2:15 PM |
+# **AGENDA DETAILS**
+1. ## **INTRODUCTIONS**
+   1. ### Sarah will read the minutes from last month’s meeting
+   1. ### John will take attendance
+1. ## **NEW BUSINESS**
+   1. ### Ordering new office chairs
+   1. ### Holiday bonuses
+1. ## **OLD BUSINESS**
+   1. ### Volunteers for holiday food drive
+1. ## **CONCLUSION**
+   1. ### Next meeting will be held on February 6, 20XX
+Page 2

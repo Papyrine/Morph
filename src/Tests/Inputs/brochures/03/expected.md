@@ -1,154 +1,20 @@
-![](media/image11.png)<img src="media/image16.png" style="width:2.25in;height:4.53in"
-alt="A hand using a ruler to measure a piece of paper" />
-<img src="media/image17.jpg" style="width:2.04in;height:4.51in"
-alt="A person using a ruler to draw something" />
 
-<table style="width:100%;">
-<colgroup>
-<col style="width: 3%" />
-<col style="width: 42%" />
-<col style="width: 12%" />
-<col style="width: 19%" />
-<col style="width: 2%" />
-<col style="width: 19%" />
-</colgroup>
-<tbody>
-<tr>
-<td rowspan="3"></td>
-<td><h3 id="join-the-community">Join the community</h3></td>
-<td rowspan="3"></td>
-<td colspan="3">Technology</td>
-</tr>
-<tr>
-<td style="text-align: right;">Subscribe to our newsletter and be a part
-of a<br />
-community that’s shaping the future. Follow us on<br />
-social media and stay tuned for exclusive webinars.</td>
-<td>For all</td>
-<td colspan="2">Building the business<br />
-world sky-bridge</td>
-</tr>
-<tr>
-<td style="text-align: right;">Relecloud.com</td>
-<td colspan="2"><strong>ConnectAbove</strong></td>
-<td style="text-align: right;">Launch event</td>
-</tr>
-</tbody>
+
+<table><tr><th colspan="1" rowspan="3" valign="top"></th><th colspan="1" valign="top"><h3><b>Join the community</b></h3></th><th colspan="1" rowspan="3" valign="top"></th><th colspan="3" valign="top"><b>Technology</b></th></tr>
+<tr><td colspan="1">Subscribe to our newsletter and be a part of a <br>community that’s shaping the future. Follow us on <br>social media and stay tuned for exclusive webinars.</td><td colspan="1" valign="top"><b>For all</b></td><td colspan="2">Building the business<br>world sky-bridge</td></tr>
+<tr><td colspan="1" valign="bottom">Relecloud.com</td><td colspan="2" valign="bottom"><b>ConnectAbove</b></td><td colspan="1" valign="bottom">Launch event</td></tr>
 </table>
 
-![](media/image14.png)
-
-<table style="width:100%;">
-<colgroup>
-<col style="width: 11%" />
-<col style="width: 34%" />
-<col style="width: 5%" />
-<col style="width: 4%" />
-<col style="width: 10%" />
-<col style="width: 9%" />
-<col style="width: 20%" />
-<col style="width: 3%" />
-</colgroup>
-<tbody>
-<tr>
-<td></td>
-<td rowspan="8"><h1 id="a-person-holding-a-pencil-and-a-ruler"><img
-src="media/image24.jpg" style="width:3.00556in;height:3.02083in"
-alt="A person holding a pencil and a ruler" /></h1>
-<h2 id="relecloud">Relecloud</h2></td>
-<td></td>
-<td></td>
-<td colspan="4"><h1 id="event-itinerary">Event itinerary</h1></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td colspan="4"></td>
-</tr>
-<tr>
-<td></td>
-<td><h1 id="section"></h1></td>
-<td><h1 id="section-1"></h1></td>
-<td><h1 id="am" class="Agenda"><strong>10:00 AM</strong></h1></td>
-<td colspan="2"><h1 id="doors-open" class="Agenda">Doors open</h1></td>
-<td><h1 id="section-2" class="Agenda"></h1></td>
-</tr>
-<tr>
-<td></td>
-<td><h1 id="section-3"></h1></td>
-<td><h1 id="section-4"></h1></td>
-<td><h1 id="am-1" class="Agenda"><strong>10:30 AM</strong></h1></td>
-<td colspan="2"><h1 id="welcome-address" class="Agenda">Welcome address
-</h1></td>
-<td><h1 id="section-5" class="Agenda"></h1></td>
-</tr>
-<tr>
-<td rowspan="4"></td>
-<td rowspan="4"></td>
-<td></td>
-<td><h1 id="am-2" class="Agenda"><strong>11:00 AM</strong></h1></td>
-<td colspan="2"><h1 id="connectabove-presentation"
-class="Agenda">ConnectAbove presentation</h1></td>
-<td><h1 id="section-6" class="Agenda"></h1></td>
-</tr>
-<tr>
-<td><h1 id="section-7"></h1></td>
-<td><h1 id="am-3" class="Agenda"><strong>11:30 AM</strong></h1></td>
-<td colspan="2"><h1 id="live-demo-features-walkthrough"
-class="Agenda">Live demo &amp; features walkthrough</h1></td>
-<td><h1 id="section-8" class="Agenda"></h1></td>
-</tr>
-<tr>
-<td></td>
-<td><h1 id="pm" class="Agenda"><strong>12:00 PM</strong></h1></td>
-<td colspan="2"><h1 id="networking-refreshments"
-class="Agenda">Networking &amp; refreshments</h1></td>
-<td><h1 id="section-9" class="Agenda"></h1></td>
-</tr>
-<tr>
-<td><h1 id="section-10"></h1></td>
-<td><h1 id="pm-1" class="Agenda"><strong>1:00 PM</strong></h1></td>
-<td colspan="2"><h1 id="qa-session" class="Agenda">Q&amp;A
-session</h1></td>
-<td><h1 id="section-11" class="Agenda"></h1></td>
-</tr>
-<tr>
-<td rowspan="2"><h1 id="section-12"></h1></td>
-<td rowspan="2">A celebration<br />
-of innovation</td>
-<td rowspan="2"></td>
-<td><h1 id="section-13"></h1></td>
-<td><h1 id="pm-2" class="Agenda"><strong>3:00 PM</strong></h1></td>
-<td colspan="2"><h1 id="future-vision" class="Agenda">Future
-vision</h1></td>
-<td><h1 id="section-14" class="Agenda"></h1></td>
-</tr>
-<tr>
-<td></td>
-<td><h1 id="pm-3" class="Agenda"><strong>4:30 PM</strong></h1></td>
-<td colspan="2"><h1 id="closing-remarks" class="Agenda">Closing
-remarks</h1></td>
-<td><h1 id="section-15" class="Agenda"></h1></td>
-</tr>
-<tr>
-<td></td>
-<td>Founded in 2001 by Benito Dellucci, Relecloud has pioneered cloud
-solutions that empower businesses worldwide. Inspired by the vision of
-making technology accessible and transformative, Relecloud has become
-synonymous with innovation.</td>
-<td></td>
-<td></td>
-<td colspan="2"></td>
-<td colspan="2"></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td colspan="2"><strong>ConnectAbove</strong></td>
-<td colspan="2" style="text-align: right;">Launch Event</td>
-</tr>
-</tbody>
+<table><tr><th colspan="1" valign="top"></th><th colspan="1" rowspan="8" valign="bottom"><p><h1></h1></p><p></p><p></p><p></p><p><h2><b>Relecloud</b></h2></p></th><th colspan="1" valign="top"></th><th colspan="1" valign="top"></th><th colspan="4" valign="bottom"><h1><b>Event itinerary</b></h1></th></tr>
+<tr><td colspan="1" valign="top"></td><h2></h2><td colspan="1" valign="top"></td><td colspan="1" valign="top"></td><td colspan="4" valign="bottom"></td></tr>
+<tr><td colspan="1" valign="top"></td><h2></h2><td colspan="1" valign="top"><h1></h1></td><td colspan="1" valign="top"><h1></h1></td><td colspan="1"><h1><b>10:00 AM</b></h1></td><td colspan="2"><h1>DOORS OPEN</h1></td><td colspan="1"><h1></h1></td></tr>
+<tr><td colspan="1" valign="top"></td><h2></h2><td colspan="1" valign="top"><h1></h1></td><td colspan="1" valign="top"><h1></h1></td><td colspan="1"><h1><b>10:30 AM</b></h1></td><td colspan="2"><h1>WELCOME ADDRESS </h1></td><td colspan="1"><h1></h1></td></tr>
+<tr><td colspan="1" rowspan="4" valign="top"></td><h2></h2><td colspan="1" rowspan="4" valign="bottom"></td><td colspan="1" valign="top"></td><td colspan="1"><h1><b>11:00 AM</b></h1></td><td colspan="2"><h1>CONNECTABOVE PRESENTATION</h1></td><td colspan="1"><h1></h1></td></tr>
+<tr><h1></h1><h1></h1><td colspan="1" valign="top"><h1></h1></td><td colspan="1"><h1><b>11:30 AM</b></h1></td><td colspan="2"><h1>LIVE DEMO & FEATURES WALKTHROUGH</h1></td><td colspan="1"><h1></h1></td></tr>
+<tr><td colspan="1" valign="top"></td><td colspan="1"><h1><b>12:00 PM</b></h1></td><td colspan="2"><h1>NETWORKING & REFRESHMENTS</h1></td><td colspan="1"><h1></h1></td></tr>
+<tr><h1></h1><h1></h1><td colspan="1" valign="top"><h1></h1></td><td colspan="1"><h1><b>1:00 PM</b></h1></td><td colspan="2"><h1>Q&A SESSION</h1></td><td colspan="1"><h1></h1></td></tr>
+<tr><td colspan="1" rowspan="2" valign="top"><h1></h1></td><td colspan="1" rowspan="2"><b>A celebration<br>of innovation</b></td><td colspan="1" rowspan="2"></td><td colspan="1" valign="top"><h1></h1></td><td colspan="1"><h1><b>3:00 PM</b></h1></td><td colspan="2"><h1>FUTURE VISION</h1></td><td colspan="1"><h1></h1></td></tr>
+<tr><td colspan="1" valign="top"></td><td colspan="1"><h1><b>4:30 PM</b></h1></td><td colspan="2"><h1>CLOSING REMARKS</h1></td><td colspan="1"><h1></h1></td></tr>
+<tr><td colspan="1" valign="top"></td><td colspan="1" valign="top">Founded in 2001 by Benito Dellucci, Relecloud has pioneered cloud solutions that empower businesses worldwide. Inspired by the vision of making technology accessible and transformative, Relecloud has become synonymous with innovation.</td><td colspan="1" valign="top"></td><td colspan="1" valign="top"></td><td colspan="2" valign="bottom"></td><td colspan="2" valign="bottom"></td></tr>
+<tr><td colspan="1" valign="top"></td><td colspan="1" valign="top"></td><td colspan="1" valign="top"></td><td colspan="1" valign="top"></td><td colspan="2" valign="bottom"><b>ConnectAbove</b></td><td colspan="2" valign="bottom">Launch Event</td></tr>
 </table>

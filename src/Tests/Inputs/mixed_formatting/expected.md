@@ -1,2 +1,1 @@
-Normal, **bold**, *italic*, ***bold italic***, <u>underlined</u>,
-***<u>all combined</u>***.
+Normal, **bold**, *italic*, ***bold italic***, underlined, ***all combined***.

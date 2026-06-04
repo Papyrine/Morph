@@ -18,8 +18,7 @@ Paragraph with a box border and 16pt space on every edge.
 
 Plain paragraph between bordered ones.
 
-First of three paragraphs that share a w:between border — their adjacent
-edges collapse.
+First of three paragraphs that share a w:between border — their adjacent edges collapse.
 
 Middle paragraph — both its top and bottom collapse into between lines.
 

@@ -1,4 +1,4 @@
-![](media/image53.png)
+
 
 Thinking of You…
 

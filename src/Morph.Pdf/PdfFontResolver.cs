@@ -6,7 +6,7 @@ namespace Morph;
 /// Maps font family + style requests onto the bundled TrueType files so PdfSharp can embed real
 /// glyphs. PdfSharp resolves fonts through a single process-global <see cref="GlobalFontSettings.FontResolver"/>,
 /// so this is a registered-once singleton; directories are added additively (keyed by absolute file
-/// path) which lets multiple <see cref="ConversionOptions.FontDirectory"/> values coexist.
+/// path) which lets multiple <see cref="ExportOptions.FontDirectory"/> values coexist.
 ///
 /// Font files follow the bundled naming convention <c>{Family}_{weight}[_Italic].ttf</c> (spaces in
 /// the family become underscores), e.g. <c>Arial_Nova_700.ttf</c>, <c>Aptos_400_Italic.ttf</c>.

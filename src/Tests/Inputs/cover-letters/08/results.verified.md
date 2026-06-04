@@ -1,5 +1,0 @@
-﻿| **ANGELICA ASTROM** (212) 555-0155 angelica@example.com 123 South St. Manhattan, NY 76543 |  | **Angelica** **Astrom** **UI/UX DESIGNER** I am passionate about designing digital experiences that are both visually stunning and intuitive, and always strive to create designs that delight and engage users. |
-| --- | --- | --- |
-|  |  |  |
-|  |  |  |
-|  |  | **DEAR JOSEPH PRICE****:** I am writing in response to your online advertisement for a UX designer. After reading your job description, I am confident that my skills and my passion for technology are a perfect match for this position. I would bring to your company a broad range of skills, including: UI/UX design User research Usability testing Wireframing & prototyping Project management & leadership I would welcome the opportunity to further discuss this position with you. If you have questions or would like to schedule an interview, please contact me by phone at **(212) 555-0155** or by email at **angelica@example.com**. I have enclosed my resume for your review, and I look forward to hearing from you.  Sincerely,  **Angelica Astrom** December 13, 20XX *Enclosure* |

@@ -20,6 +20,7 @@ build_script:
     Invoke-WebRequest "https://dot.net/v1/dotnet-install.ps1" -OutFile "./dotnet-install.ps1"
     ./dotnet-install.ps1 -JSonFile global.json -Architecture x64 -InstallDir 'C:\Program Files\dotnet'
 - dotnet build src --configuration Release
+- pwsh -File src/Tests/bin/Release/net10.0/playwright.ps1 install chromium --with-deps
 - dotnet run --project src/Tests --configuration Release --no-build
 - dotnet run --project src/StaticSettingTests --configuration Release --no-build
 test: off

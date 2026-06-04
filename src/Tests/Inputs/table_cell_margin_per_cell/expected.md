@@ -1,10 +1,4 @@
 Table with different margins per cell:
 
-<table>
-<tbody>
-<tr>
-<td>Top margin emphasis</td>
-<td>Left margin emphasis</td>
-</tr>
-</tbody>
-</table>
+|Top margin emphasis|Left margin emphasis|
+| :- | :- |

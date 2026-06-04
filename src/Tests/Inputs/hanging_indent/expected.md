@@ -1,3 +1,1 @@
-Hanging indent: The first line is at the margin, but subsequent lines in
-this paragraph are indented. This is commonly used for bibliographies
-and reference lists.
+Hanging indent: The first line is at the margin, but subsequent lines in this paragraph are indented. This is commonly used for bibliographies and reference lists.

@@ -1,71 +1,175 @@
-<table>
-<colgroup>
-<col style="width: 31%" />
-<col style="width: 3%" />
-<col style="width: 65%" />
-</colgroup>
-<thead>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; padding: 8pt; color: #000; }
+p { margin: 0 0 8pt; }
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 8pt; font-weight: bold; }
+h1 { font-size: 24pt; }
+h2 { font-size: 18pt; }
+h3 { font-size: 14pt; }
+h4 { font-size: 12pt; font-style: italic; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; font-style: italic; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+td, th { padding: 4pt 7pt; vertical-align: top; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+</style>
+</head>
+<body style="line-height:125%; font-family:'Trade Gothic Next'; font-size:10pt">
+<table cellspacing="0" cellpadding="0" style="width:100%; border-collapse:collapse">
 <tr>
-<th><img src="media/image1.png" style="width:1.11801in;height:0.34721in"
-alt="Example logo placeholder" /></th>
-<th></th>
-<th style="text-align: right;">April 4, 20XX</th>
+<td style="width:146.7pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:125%; font-size:10pt">
+<img src="data:image/png;base64,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" width="108" height="34" alt="Example logo placeholder" />
+</p>
+</td>
+<td style="width:7.2pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; line-height:125%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:317.2pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; text-align:right; line-height:125%; font-size:10pt">
+April 4, 20XX
+</p>
+</td>
 </tr>
-</thead>
-<tbody>
-<tr>
-<td colspan="3">b2b business proposal</td>
+<tr style="height:194.4pt">
+<td colspan="3" style="width:492.7pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-top:60pt; margin-bottom:54pt; line-height:80%; font-size:42pt">
+<strong><span style="text-transform:uppercase; letter-spacing:-0.5pt">b2b business proposal</span></strong>
+</p>
+</td>
 </tr>
-<tr>
-<td><p>Prepared for:</p>
-<p>Ares Grau</p>
-<p>Contoso, Ltd.</p>
-<p>ares@contoso.com</p>
-<p>www.contoso.com</p>
-<p>698-555-0133</p>
-<p>76 Bluebonnet Way,</p>
-<p>Cypress, TX 11490</p></td>
-<td></td>
-<td rowspan="3"><h1 id="summary">Summary</h1>
-<p>This proposal outlines a streamlined solution designed to address key
-business challenges and drive growth. Our approach leverages industry
-expertise, innovative strategies, and data-driven insights to create a
-tailored plan that delivers measurable results.</p>
-<h1 id="problem-statement">Problem statement</h1>
-<p>Businesses today face challenges such as inefficiencies, rising
-costs, and evolving market demands. Addressing these issues requires a
-well-structured, strategic approach that ensures long-term success.</p>
-<h1 id="solution">Solution</h1>
-<p>Our solution is designed to enhance operations, increase efficiency,
-and improve overall performance. By implementing best practices and
-modern technology, we help businesses optimize workflows, reduce costs,
-and drive innovation.</p>
-<h1 id="market-opportunity">Market opportunity</h1>
-<p>With industry trends shifting rapidly, adopting a flexible and
-forward-thinking model is essential. Our approach provides businesses
-with scalable, adaptable solutions that align with market demands and
-ensure long-term sustainability.</p>
-<h1 id="financial-summary">Financial summary</h1>
-<p>Based on market analysis, businesses that implement our strategies
-see an average 20% reduction in operational costs and a 35% improvement
-in workflow efficiency within the first year. Clients can expect a
-strong return on investment through improved productivity and
-streamlined operations.</p></td>
+<tr style="height:103pt">
+<td style="width:146.7pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; line-height:125%; font-size:9pt">
+Prepared for:
+</p>
+<p style="margin-bottom:0pt; line-height:125%; font-size:9pt">
+<strong>Ares Grau</strong>
+</p>
+<p style="margin-bottom:12pt; line-height:125%; font-size:9pt">
+<strong>Contoso, Ltd.</strong>
+</p>
+<p style="margin-bottom:0pt; line-height:150%; font-size:9pt">
+ares@contoso.com
+</p>
+<p style="margin-bottom:0pt; line-height:150%; font-size:9pt">
+www.contoso.com
+</p>
+<p style="margin-bottom:0pt; line-height:150%; font-size:9pt">
+698-555-0133
+</p>
+<p style="margin-bottom:0pt; line-height:150%; font-size:9pt">
+76 Bluebonnet Way,
+</p>
+<p style="margin-bottom:0pt; line-height:150%; font-size:9pt">
+Cypress, TX 11490
+</p>
+</td>
+<td style="width:7.2pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; line-height:125%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td rowspan="3" style="width:315.05pt; padding-right:7.2pt; padding-left:5.75pt; vertical-align:top">
+<h1 style="margin-top:0pt; margin-bottom:0pt; page-break-inside:avoid; page-break-after:avoid; line-height:125%; font-size:13pt">
+<span style="text-transform:uppercase">Summary</span>
+</h1>
+<p style="margin-bottom:0pt; line-height:125%; font-size:10pt">
+This proposal outlines a streamlined solution designed to address key business challenges and drive growth. Our approach leverages industry expertise, innovative strategies, and data-driven insights to create a tailored plan that delivers measurable results.
+</p>
+<p style="margin-bottom:0pt; line-height:125%; font-size:10pt">
+&#xa0;
+</p>
+<h1 style="margin-top:0pt; margin-bottom:0pt; page-break-inside:avoid; page-break-after:avoid; line-height:125%; font-size:13pt">
+<span style="text-transform:uppercase">Problem statement</span>
+</h1>
+<p style="margin-bottom:0pt; line-height:125%; font-size:10pt">
+Businesses today face challenges such as inefficiencies, rising costs, and evolving market demands. Addressing these issues requires a well-structured, strategic approach that ensures long-term success.
+</p>
+<p style="margin-bottom:0pt; line-height:125%; font-size:10pt">
+&#xa0;
+</p>
+<h1 style="margin-top:0pt; margin-bottom:0pt; page-break-inside:avoid; page-break-after:avoid; line-height:125%; font-size:13pt">
+<span style="text-transform:uppercase">Solution</span>
+</h1>
+<p style="margin-bottom:0pt; line-height:125%; font-size:10pt">
+Our solution is designed to enhance operations, increase efficiency, and improve overall performance. By implementing best practices and modern technology, we help businesses optimize workflows, reduce costs, and drive innovation.
+</p>
+<p style="margin-bottom:0pt; line-height:125%; font-size:10pt">
+&#xa0;
+</p>
+<h1 style="margin-top:0pt; margin-bottom:0pt; page-break-inside:avoid; page-break-after:avoid; line-height:125%; font-size:13pt">
+<span style="text-transform:uppercase">Market opportunity</span>
+</h1>
+<p style="margin-bottom:0pt; line-height:125%; font-size:10pt">
+With industry trends shifting rapidly, adopting a flexible and forward-thinking model is essential. Our approach provides businesses with scalable, adaptable solutions that align with market demands and ensure long-term sustainability.
+</p>
+<p style="margin-bottom:0pt; line-height:125%; font-size:10pt">
+&#xa0;
+</p>
+<h1 style="margin-top:0pt; margin-bottom:0pt; page-break-inside:avoid; page-break-after:avoid; line-height:125%; font-size:13pt">
+<span style="text-transform:uppercase">Financial summary</span>
+</h1>
+<p style="margin-bottom:0pt; line-height:125%; font-size:10pt">
+Based on market analysis, businesses that implement our strategies see an average 20% reduction in operational costs and a 35% improvement in workflow efficiency within the first year. Clients can expect a strong return on investment through improved productivity and streamlined operations.
+</p>
+</td>
 </tr>
-<tr>
-<td><img src="media/image2.png" style="height:2.25172in" /></td>
-<td></td>
+<tr style="height:191.25pt">
+<td style="width:146.7pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-top:12pt; margin-bottom:12pt; line-height:125%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAADZCAYAAADyrxo/AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAKNJREFUWIXtzzGOAVAABNDny4ZkRSkSFxDb7kW22Bu4gyhoOYbSITQKUbnBShSOgGIrDSEKUctMOy+ZDLfU0ccf2ijXonghQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUHvixpP8Ac6BTO0UH0ANfxgWdDDHJ07WMMvpljAN7ZYY4wdBthjcllR8IUNDvjHCSM07/er6GKFI4b4ROWV9+AMw6MTnFLqcqgAAAAASUVORK5CYII=" width="9" height="217" alt="" />
+</p>
+</td>
+<td style="width:7.2pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; line-height:125%; font-size:10pt">
+&#xa0;
+</p>
+</td>
 </tr>
-<tr>
-<td><p>Prepared by:</p>
-<p>Korakod Santisaku</p>
-<p><strong>Fabrikam, Inc.</strong></p>
-<p>korakod@fabrikam.com</p>
-<p>www.fabrikam.com</p>
-<p>755-555-0149</p>
-<p>2345 Creek Road</p>
-<p>Frankfort, KY 09876</p></td>
-<td></td>
+<tr style="height:135pt">
+<td style="width:146.7pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:bottom">
+<p style="margin-bottom:0pt; line-height:125%; font-size:9pt">
+Prepared by:
+</p>
+<p style="margin-bottom:0pt; line-height:125%; font-size:9pt">
+<strong>Korakod Santisaku</strong>
+</p>
+<p style="margin-bottom:12pt; line-height:125%; font-size:9pt">
+<strong>Fabrikam, Inc.</strong>
+</p>
+<p style="margin-bottom:0pt; line-height:150%; font-size:9pt">
+korakod@fabrikam.com
+</p>
+<p style="margin-bottom:0pt; line-height:150%; font-size:9pt">
+www.fabrikam.com
+</p>
+<p style="margin-bottom:0pt; line-height:150%; font-size:9pt">
+755-555-0149
+</p>
+<p style="margin-bottom:0pt; line-height:150%; font-size:9pt">
+2345 Creek Road
+</p>
+<p style="margin-bottom:0pt; line-height:150%; font-size:9pt">
+Frankfort, KY 09876
+</p>
+</td>
+<td style="width:7.2pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; line-height:125%; font-size:10pt">
+&#xa0;
+</p>
+</td>
 </tr>
-</tbody>
 </table>
+<p>
+&#xa0;
+</p>
+</body>
+</html>

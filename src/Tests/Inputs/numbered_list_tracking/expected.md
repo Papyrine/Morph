@@ -1,25 +1,18 @@
 Numbered list:
 
-1.  First item
-
-2.  Second item
-
-3.  Third item
-
-4.  Fourth item
-
-5.  Fifth item
+1. First item
+1. Second item
+1. Third item
+1. Fourth item
+1. Fifth item
 
 Interrupted, then continues:
 
-6.  Sixth item
-
-7.  Seventh item
+1. Sixth item
+1. Seventh item
 
 Second list (restarts at 1):
 
-1.  Alpha
-
-2.  Beta
-
-3.  Gamma
+1. Alpha
+1. Beta
+1. Gamma
