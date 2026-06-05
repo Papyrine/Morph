@@ -1,8 +1,8 @@
 namespace Morph;
 
 /// <summary>
-/// Abstract base for the DOCX → raster converters (<see cref="SkiaDocumentConverter"/> and
-/// <see cref="ImageSharpDocumentConverter"/>). Also exposes the backend-free text exporters
+/// Abstract base for the DOCX → raster converters (<c>SkiaDocumentConverter</c> and
+/// <c>ImageSharpDocumentConverter</c>). Also exposes the backend-free text exporters
 /// (<see cref="ConvertToHtml(string, HtmlExportOptions?)"/>, <see cref="ConvertToMarkdown(string, MarkdownExportOptions?)"/>)
 /// for callers that only need HTML or Markdown out of a DOCX. For multi-format export from a single
 /// parse, see <see cref="WordDocument"/>.
