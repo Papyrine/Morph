@@ -5,12 +5,28 @@ using Markdig;
 /// Shared Playwright (Chromium) instance for rendering HTML and Markdown fragments to PNG. The
 /// browser is launched lazily on first use and reused across all tests in the run; each call gets
 /// its own page so concurrent screenshots don't collide.
+///
+/// Rendering is pinned to the repo's bundled fonts (<c>src/Fonts/</c>) via injected
+/// <c>@font-face</c> rules so the screenshots are reproducible across machines. Without this,
+/// Chromium falls back to whatever fonts the host OS has installed, so text reflows between the
+/// local box and CI (different metrics → different line wrapping → different full-page height) and
+/// the pixel-diff comparison drifts. Loading <c>file://</c> font URLs requires the page to have a
+/// <c>file://</c> origin (hence the temp-file navigation rather than <c>SetContent</c>'s opaque
+/// <c>about:blank</c>) and the <c>--allow-file-access-from-files</c> launch arg.
 /// </summary>
 static class BrowserScreenshot
 {
     static readonly SemaphoreSlim launchLock = new(1, 1);
     static IPlaywright? playwright;
     static IBrowser? browser;
+
+    static readonly string fontsDirectory =
+        Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
+
+    // Built once on first use: an @font-face rule per bundled face (keyed by every family-name
+    // candidate, with its real weight/italic), pointing at the file on disk. Chromium only decodes
+    // the faces a page actually uses, so the unused rules are cheap.
+    static readonly Lazy<string> fontFaceCss = new(BuildFontFaceCss);
 
     static readonly MarkdownPipeline markdownPipeline = new MarkdownPipelineBuilder()
         .UseAdvancedExtensions()
@@ -21,11 +37,27 @@ static class BrowserScreenshot
         var instance = await GetBrowserAsync();
         await using var context = await instance.NewContextAsync(new()
         {
-            ViewportSize = new() {Width = 1024, Height = 768}
+            ViewportSize = new() {Width = 1024, Height = 768},
+            DeviceScaleFactor = 1
         });
         var page = await context.NewPageAsync();
-        await page.SetContentAsync(WrapHtmlFragment(html), new() {WaitUntil = WaitUntilState.Load});
-        return await page.ScreenshotAsync(new() {FullPage = true, Type = ScreenshotType.Png});
+
+        // Render from a real file:// page so the file:// @font-face URLs are same-scheme and load
+        // (SetContent runs on an opaque about:blank origin, which blocks local font files).
+        var tempFile = Path.Combine(Path.GetTempPath(), $"morph-screenshot-{Guid.NewGuid():N}.html");
+        await File.WriteAllTextAsync(tempFile, WrapHtmlFragment(html));
+        try
+        {
+            await page.GotoAsync(new Uri(tempFile).AbsoluteUri, new() {WaitUntil = WaitUntilState.Load});
+            // Block until every @font-face the page references has finished loading, so no glyph is
+            // captured mid-swap from a fallback face.
+            await page.EvaluateAsync("async () => { await document.fonts.ready; }");
+            return await page.ScreenshotAsync(new() {FullPage = true, Type = ScreenshotType.Png});
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
     }
 
     public static Task<byte[]> RenderMarkdownAsync(string markdown) =>
@@ -33,18 +65,78 @@ static class BrowserScreenshot
 
     static string WrapHtmlFragment(string html)
     {
-        // If the input already looks like a full document, hand it through; otherwise embed it in
-        // a minimal document with a neutral body so the rendered PNG isn't influenced by browser
-        // chrome / default margins.
+        var fontStyle = $"<style>{fontFaceCss.Value}</style>";
+
+        // If the input already looks like a full document, splice the bundled-font rules into its
+        // head (after <head>, else after <html>, else at the front) so they take effect there too.
         var trimmed = html.TrimStart();
         if (trimmed.StartsWith("<!doctype", StringComparison.OrdinalIgnoreCase) ||
             trimmed.StartsWith("<html", StringComparison.OrdinalIgnoreCase))
         {
-            return html;
+            var headIndex = html.IndexOf("<head", StringComparison.OrdinalIgnoreCase);
+            if (headIndex >= 0)
+            {
+                var afterHead = html.IndexOf('>', headIndex) + 1;
+                return html.Insert(afterHead, fontStyle);
+            }
+
+            var htmlIndex = html.IndexOf("<html", StringComparison.OrdinalIgnoreCase);
+            if (htmlIndex >= 0)
+            {
+                var afterHtml = html.IndexOf('>', htmlIndex) + 1;
+                return html.Insert(afterHtml, fontStyle);
+            }
+
+            return fontStyle + html;
         }
 
-        return $"<!doctype html><html><head><meta charset=\"utf-8\"></head><body>{html}</body></html>";
+        // Otherwise embed the fragment in a minimal document with a neutral body so the rendered PNG
+        // isn't influenced by browser chrome / default margins.
+        return $"<!doctype html><html><head><meta charset=\"utf-8\">{fontStyle}</head><body>{html}</body></html>";
     }
+
+    static string BuildFontFaceCss()
+    {
+        var builder = new StringBuilder();
+        var fontFiles = Directory.EnumerateFiles(fontsDirectory)
+            .Where(IsFontFile)
+            .OrderBy(_ => _, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var path in fontFiles)
+        {
+            var url = new Uri(path).AbsoluteUri;
+            foreach (var (face, names) in OpenTypeReader.ReadFaces(path))
+            {
+                var fontStyle = face.Italic ? "italic" : "normal";
+                var weight = face.Weight is >= 1 and <= 1000 ? face.Weight : 400;
+                foreach (var name in names.Distinct(StringComparer.OrdinalIgnoreCase))
+                {
+                    builder.Append("@font-face{font-family:\"");
+                    builder.Append(EscapeFamily(name));
+                    builder.Append("\";font-weight:");
+                    builder.Append(weight);
+                    builder.Append(";font-style:");
+                    builder.Append(fontStyle);
+                    builder.Append(";src:url(\"");
+                    builder.Append(url);
+                    builder.Append("\");}");
+                }
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    static bool IsFontFile(string path)
+    {
+        var extension = Path.GetExtension(path);
+        return extension.Equals(".ttf", StringComparison.OrdinalIgnoreCase) ||
+               extension.Equals(".otf", StringComparison.OrdinalIgnoreCase) ||
+               extension.Equals(".ttc", StringComparison.OrdinalIgnoreCase);
+    }
+
+    static string EscapeFamily(string name) =>
+        name.Replace("\\", "\\\\").Replace("\"", "\\\"");
 
     static async Task<IBrowser> GetBrowserAsync()
     {
@@ -62,7 +154,20 @@ static class BrowserScreenshot
             }
 
             playwright = await Playwright.CreateAsync();
-            browser = await playwright.Chromium.LaunchAsync(new() {Headless = true});
+            browser = await playwright.Chromium.LaunchAsync(new()
+            {
+                Headless = true,
+                Args =
+                [
+                    // Let the file:// page load the file:// @font-face URLs.
+                    "--allow-file-access-from-files",
+                    // Strip platform-specific text rasterization so two machines match: no hinting,
+                    // no LCD subpixel AA, fixed sRGB profile.
+                    "--font-render-hinting=none",
+                    "--disable-lcd-text",
+                    "--force-color-profile=srgb"
+                ]
+            });
         }
         finally
         {
