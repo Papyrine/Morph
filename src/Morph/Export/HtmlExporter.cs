@@ -301,6 +301,8 @@ static class HtmlExporter
 
         void AppendParagraphStyle(ParagraphProperties properties)
         {
+            var parts = new List<string>();
+
             var align = properties.Alignment switch
             {
                 TextAlignment.Center => "center",
@@ -308,10 +310,32 @@ static class HtmlExporter
                 TextAlignment.Justify => "justify",
                 _ => null
             };
-
             if (align != null)
             {
-                builder.Append(" style=\"text-align: ").Append(align).Append(";\"");
+                parts.Add($"text-align: {align}");
+            }
+
+            // Paragraph borders (w:pBdr) — each bordered paragraph renders as its own box. Word merges
+            // consecutive same-bordered paragraphs into one box; this independent-box form is the
+            // close-enough reflowable approximation.
+            if (properties.Borders is {HasAnyBorder: true} borders)
+            {
+                AppendBorders(parts, borders);
+
+                // w:pBdr/@w:space is the gap between each border and the text → CSS padding.
+                var top = properties.BorderTopSpacePoints;
+                var right = properties.BorderRightSpacePoints;
+                var bottom = properties.BorderBottomSpacePoints;
+                var left = properties.BorderLeftSpacePoints;
+                if (top > 0 || right > 0 || bottom > 0 || left > 0)
+                {
+                    parts.Add($"padding: {Length(top)} {Length(right)} {Length(bottom)} {Length(left)}");
+                }
+            }
+
+            if (parts.Count > 0)
+            {
+                builder.Append(" style=\"").Append(string.Join("; ", parts)).Append('"');
             }
         }
 
@@ -353,6 +377,18 @@ static class HtmlExporter
             Indent(depth).Append("<table>\n");
 
             var rows = table.Rows;
+            var totalColumns = 0;
+            foreach (var row in rows)
+            {
+                var width = 0;
+                foreach (var cell in row.Cells)
+                {
+                    width += Math.Max(1, cell.Properties.GridSpan);
+                }
+
+                totalColumns = Math.Max(totalColumns, width);
+            }
+
             var headerRowCount = 0;
             while (headerRowCount < rows.Count && rows[headerRowCount].IsHeader)
             {
@@ -364,7 +400,7 @@ static class HtmlExporter
                 Indent(depth + 1).Append("<thead>\n");
                 for (var rowIndex = 0; rowIndex < headerRowCount; rowIndex++)
                 {
-                    WriteRow(rows, rowIndex, depth + 2, header: true);
+                    WriteRow(table, rowIndex, depth + 2, header: true, totalColumns);
                 }
 
                 Indent(depth + 1).Append("</thead>\n");
@@ -373,17 +409,18 @@ static class HtmlExporter
             Indent(depth + 1).Append("<tbody>\n");
             for (var rowIndex = headerRowCount; rowIndex < rows.Count; rowIndex++)
             {
-                WriteRow(rows, rowIndex, depth + 2, header: false);
+                WriteRow(table, rowIndex, depth + 2, header: false, totalColumns);
             }
 
             Indent(depth + 1).Append("</tbody>\n");
             Indent(depth).Append("</table>\n");
         }
 
-        void WriteRow(IReadOnlyList<TableRow> rows, int rowIndex, int depth, bool header)
+        void WriteRow(TableElement table, int rowIndex, int depth, bool header, int totalColumns)
         {
             Indent(depth).Append("<tr>\n");
 
+            var rows = table.Rows;
             var cells = rows[rowIndex].Cells;
             var gridColumn = 0;
             foreach (var cell in cells)
@@ -410,7 +447,12 @@ static class HtmlExporter
                     builder.Append(" rowspan=\"").Append(rowSpan).Append('"');
                 }
 
-                var cellStyle = CellStyle(cell.Properties);
+                // Resolve the cell's effective borders through the shared cell→table→inside cascade,
+                // so a cell inherits the table's grid/outline borders when it sets none of its own.
+                var borders = TableLayout.ResolveCellBorders(
+                    cell.Properties, table.Properties, rowIndex, gridColumn, rows.Count, totalColumns, rows[rowIndex]);
+
+                var cellStyle = CellStyle(cell.Properties, borders);
                 if (cellStyle != null)
                 {
                     builder.Append(" style=\"").Append(cellStyle).Append('"');
@@ -426,9 +468,9 @@ static class HtmlExporter
         }
 
         // Per-cell layout that the shared stylesheet can't express: explicit column width, shading,
-        // and a non-default vertical alignment. Top alignment is the td/th stylesheet default, so
-        // only middle/bottom are emitted.
-        static string? CellStyle(TableCellProperties properties)
+        // a non-default vertical alignment, and resolved borders. Top alignment is the td/th
+        // stylesheet default, so only middle/bottom are emitted.
+        static string? CellStyle(TableCellProperties properties, CellBorders? borders)
         {
             var parts = new List<string>();
 
@@ -454,7 +496,58 @@ static class HtmlExporter
                 parts.Add($"vertical-align: {verticalAlign}");
             }
 
+            if (borders is {HasAnyBorder: true})
+            {
+                AppendBorders(parts, borders);
+            }
+
             return parts.Count == 0 ? null : string.Join("; ", parts);
+        }
+
+        // Emits the minimal CSS border declarations for a four-edge border set: a single shorthand
+        // when all four edges are present and identical, otherwise one declaration per visible edge.
+        static void AppendBorders(List<string> parts, CellBorders borders)
+        {
+            if (borders.Top.IsVisible && borders.Right.IsVisible &&
+                borders.Bottom.IsVisible && borders.Left.IsVisible &&
+                borders.Top == borders.Right && borders.Right == borders.Bottom && borders.Bottom == borders.Left)
+            {
+                parts.Add($"border: {BorderCss(borders.Top)}");
+                return;
+            }
+
+            if (borders.Top.IsVisible)
+            {
+                parts.Add($"border-top: {BorderCss(borders.Top)}");
+            }
+
+            if (borders.Right.IsVisible)
+            {
+                parts.Add($"border-right: {BorderCss(borders.Right)}");
+            }
+
+            if (borders.Bottom.IsVisible)
+            {
+                parts.Add($"border-bottom: {BorderCss(borders.Bottom)}");
+            }
+
+            if (borders.Left.IsVisible)
+            {
+                parts.Add($"border-left: {BorderCss(borders.Left)}");
+            }
+        }
+
+        static string BorderCss(BorderEdge edge)
+        {
+            var style = edge.Style switch
+            {
+                BorderLineStyle.Double => "double",
+                BorderLineStyle.Dotted => "dotted",
+                BorderLineStyle.Dashed => "dashed",
+                _ => "solid"
+            };
+            var color = DocumentExportHelpers.NormalizeColor(edge.ColorHex) ?? "#000000";
+            return $"{edge.WidthPoints.ToString("0.##", CultureInfo.InvariantCulture)}pt {style} {color}";
         }
 
         static int ComputeRowSpan(IReadOnlyList<TableRow> rows, int startRow, int gridColumn)
@@ -703,7 +796,9 @@ static class HtmlExporter
 
             if (hasFont)
             {
-                style.Append("font-family: ").Append(CssFontFamily(properties.FontFamily)).Append("; ");
+                // Append a generic fallback (as the body font does) so a run whose specific font
+                // isn't installed degrades to a sans-serif rather than the browser's default serif.
+                style.Append("font-family: ").Append(CssFontFamily(properties.FontFamily)).Append(", sans-serif; ");
             }
 
             if (color != null)

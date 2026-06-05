@@ -128,4 +128,36 @@ public class HtmlExporterTests
             Para(TextRun("above")),
             new HorizontalRuleElement(),
             Para(TextRun("below"))));
+
+    [Test]
+    public Task TableCellBorders()
+    {
+        // A cell with explicit borders renders them (collapsed to the CSS shorthand); a sibling cell
+        // with none stays borderless.
+        var table = Table(
+            new TableRow
+            {
+                Cells =
+                [
+                    new() {Content = [Para(TextRun("bordered"))], Properties = new() {Borders = CellBorders.All}},
+                    Cell("plain")
+                ]
+            });
+        return VerifyHtml(Doc(table));
+    }
+
+    [Test]
+    public Task ParagraphBorder() =>
+        VerifyHtml(Doc(new ParagraphElement
+        {
+            Runs = [TextRun("boxed")],
+            Properties = new()
+            {
+                Borders = CellBorders.All,
+                BorderTopSpacePoints = 4,
+                BorderRightSpacePoints = 6,
+                BorderBottomSpacePoints = 4,
+                BorderLeftSpacePoints = 6
+            }
+        }));
 }
