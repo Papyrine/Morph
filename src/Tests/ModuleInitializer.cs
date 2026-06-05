@@ -27,7 +27,7 @@ public static class ModuleInitializer
         // scenario verified PNGs/JSON don't drift between local and CI.
         DefaultFontSettings.DeterministicRendering = true;
 
-        VerifyImageMagick.RegisterComparers(threshold: 0.5);
+        VerifierSettings.UseSsimForPng();
         VerifyDiffPlex.Initialize(OutputType.Compact);
         VerifierSettings.InitializePlugins();
 

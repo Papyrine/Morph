@@ -1,0 +1,991 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; padding: 8pt; color: #000; }
+p { margin: 0 0 8pt; }
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 8pt; font-weight: bold; }
+h1 { font-size: 24pt; }
+h2 { font-size: 18pt; }
+h3 { font-size: 14pt; }
+h4 { font-size: 12pt; font-style: italic; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; font-style: italic; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+td, th { padding: 4pt 7pt; vertical-align: top; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+</style>
+</head>
+<body style="line-height:90%; font-family:Georgia, sans-serif; font-size:10pt; color:#a78470">
+<div style="text-align:center">
+<table cellspacing="0" cellpadding="0" style="width:585.5pt; margin-right:auto; margin-left:auto; border-collapse:collapse">
+<tr style="height:72pt">
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Coffee]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Tea]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Flour]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+</tr>
+<tr style="height:72pt">
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+</tr>
+<tr style="height:72pt">
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+</tr>
+<tr style="height:72pt">
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+</tr>
+<tr style="height:72pt">
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+</tr>
+<tr style="height:72pt">
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+</tr>
+<tr style="height:72pt">
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+</tr>
+<tr style="height:72pt">
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+</tr>
+<tr style="height:72pt">
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+</tr>
+<tr style="height:72pt">
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:8.65pt; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-right:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:156.95pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:7pt; text-align:center; line-height:90%; font-size:20pt">
+[Label]
+</p>
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL0AAAARCAYAAACICa2lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAWtJREFUaIHtms0NwyAMhZNJukBO2X+GnLJAJklPrSi1jW3+BHmfVLVpwTbh2UCVZQFVuM7j7h0DoFl7B1CD6zzu17avlPBe2/43Zk6gVFur/9BG6EdrO7YBwI+QalTX6zzu8KWNJ36n7Gn85o8ATAEnqPj3kr7C65QgSwg/NUYwOaFALCIoLRhOvFJbr/A148VqMBktJ1MrsPCzdE3ZpdpIwveuZkiCweghdKtfrp8k3pS4pYTg4tMm6MjE926KVa/mwbOET001jcVpEXYqZikxc8boSc6atPLZPCl63kxpkr12ue+8SZeq9lRfzxan55loGa0iUwKyLD8j4q3MNYTP2fbcc8tKkDunM+rikaQqrGaiPQklnSG0WzEpJkucUluIfDK0VVwz8Z6tF7caqAdgRJu8EPqDsYrAe+aovaXUxAWhgy9WMeQetmueq2YUOR5kKshHFJ4HxLi+Xps5AsUDbqAZmv/rAQDAzBt8C1Z+0DxanAAAAABJRU5ErkJggg==" width="189" height="17" alt="Filigree accent drawing with fork and knife in center" />
+</p>
+</td>
+<td style="width:2.15pt; border-right:0.75pt solid #c4ad9f; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+<td style="width:12.58pt; border-left:0.75pt solid #c4ad9f; vertical-align:bottom">
+<p style="margin-bottom:10pt; text-align:center; line-height:90%; font-size:10pt">
+&#xa0;
+</p>
+</td>
+</tr>
+</table>
+</div>
+<p style="margin-bottom:10pt">
+&#xa0;
+</p>
+</body>
+</html>

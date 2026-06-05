@@ -1,0 +1,20 @@
+
+|![red and white hat with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![gingerbread man with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![penguin with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>|
+| :- | :- | :- | :-: | :- | :- | :-: | :- |
+|![elf with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![red and white hat with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![snowman with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>|
+|![gingerbread man with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![snowman with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![gift with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>|
+|![snowman with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![elf with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![elf with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>|
+||<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![gift with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![red and white hat with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>|
+|![penguin with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![gingerbread man with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![penguin with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>|
+|![red and white hat with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![red and white hat with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![snowman with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>|
+|![elf with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![snowman with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![elf with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>|
+|![gingerbread man with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![elf with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![gift with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>|
+|![snowman with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![gift with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>||![penguin with snowflakes]|<p>**Name**</p><p>Address Line 1</p><p>Address Line 2</p><p>City, State, Zip Code</p>|
+
+[red and white hat with snowflakes]: C:\Users\simon\AppData\Local\Temp\expected.001.png
+[gingerbread man with snowflakes]: C:\Users\simon\AppData\Local\Temp\expected.002.png
+[penguin with snowflakes]: C:\Users\simon\AppData\Local\Temp\expected.003.png
+[elf with snowflakes]: C:\Users\simon\AppData\Local\Temp\expected.004.png
+[snowman with snowflakes]: C:\Users\simon\AppData\Local\Temp\expected.005.png
+[gift with snowflakes]: C:\Users\simon\AppData\Local\Temp\expected.006.png
+[gift with snowflakes]: C:\Users\simon\AppData\Local\Temp\expected.008.png

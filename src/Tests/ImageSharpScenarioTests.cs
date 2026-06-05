@@ -42,7 +42,7 @@ public class ImageSharpScenarioTests
         };
         await Verify(result, targets)
             .UseDirectory(directory)
-            .UseFileName("results_imagesharp")
+            .UseFileName("imagesharp_result")
             .IgnoreParameters();
 
         ScenarioMarkdownGenerator.Regenerate(directory);
@@ -68,7 +68,7 @@ public class ImageSharpScenarioTests
             expected.Compare(actual, ErrorMetric.Absolute, out var errorMetric);
 
             errorMetric = Math.Round(errorMetric, 4);
-            diffs.Add(new(i + 1, errorMetric, Path.GetFileName(expectedFile), $"results_imagesharp#page_{i + 1:0000}.verified.png", $"results_imagesharp#page_{i + 1:0000}.received.png"));
+            diffs.Add(new(i + 1, errorMetric, Path.GetFileName(expectedFile), $"imagesharp_result#page_{i + 1:0000}.verified.png", $"imagesharp_result#page_{i + 1:0000}.received.png"));
         }
 
         return diffs;

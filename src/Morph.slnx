@@ -1,13 +1,8 @@
 <Solution>
   <Project Path="Morph/Morph.csproj" />
-  <Project Path="Morph.Html/Morph.Html.csproj" />
-  <Project Path="Morph.OpenXml/Morph.OpenXml.csproj" />
   <Project Path="Morph.Skia/Morph.Skia.csproj" />
   <Project Path="Morph.ImageSharp/Morph.ImageSharp.csproj" />
-  <Project Path="Morph.OpenXml.Skia/Morph.OpenXml.Skia.csproj" />
-  <Project Path="Morph.OpenXml.ImageSharp/Morph.OpenXml.ImageSharp.csproj" />
-  <Project Path="Morph.Html.Skia/Morph.Html.Skia.csproj" />
-  <Project Path="Morph.Html.ImageSharp/Morph.Html.ImageSharp.csproj" />
+  <Project Path="Morph.Pdf/Morph.Pdf.csproj" />
   <Folder Name="/SolutionItems/">
     <File Path="../.editorconfig" />
     <File Path="../.gitattributes" />

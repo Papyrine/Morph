@@ -463,6 +463,45 @@ public class CT_SchemeColorTests
 
     #endregion
 
+    #region Word-Verified Saturated Shade/Tint (HSL luminance, not RGB blend)
+
+    [Test]
+    public async Task Shade_OnSaturatedAccent_PreservesSaturation_MatchesWord()
+    {
+        // From agendas-minutes/13: <w:color w:val="2048EB" w:themeColor="accent3" w:themeShade="BF"/>
+        // Word pre-computes the result into w:val. accent3 748DF3 shaded by BF (191) must stay a
+        // saturated blue (≈2048EB), not the desaturated 5669B6 an RGB blend produced.
+        var themeColors = new ThemeColors { Accent3 = "748DF3" };
+        var result = themeColors.ResolveColor("accent3", shade: 0xBF);
+        await Assert.That(result).IsEqualTo("2149EC");
+    }
+
+    [Test]
+    public async Task Tint_OnSaturatedAccent_PreservesSaturation()
+    {
+        // A saturated red lightened via tint keeps its hue/saturation (HSL luminance), so the red
+        // channel stays maxed rather than being averaged down toward grey.
+        var themeColors = new ThemeColors { Accent1 = "C00000" };
+        var result = themeColors.ResolveColor("accent1", tint: 128);
+        await Assert.That(result).IsNotNull();
+        var r = Convert.ToByte(result![0..2], 16);
+        var g = Convert.ToByte(result[2..4], 16);
+        await Assert.That(r).IsEqualTo((byte)255);
+        await Assert.That(g).IsLessThan((byte)0x60);
+    }
+
+    [Test]
+    public async Task Tint_OnGrayBase_UnchangedFromRgbBlend()
+    {
+        // Grayscale bases have no saturation, so HSL-luminance tint equals the old RGB blend —
+        // this is why the common text1 grays (262626, 595959, 0D0D0D) didn't shift.
+        var themeColors = new ThemeColors { Dark1 = "000000" };
+        await Assert.That(themeColors.ResolveColor("dark1", tint: 0xA6)).IsEqualTo("595959");
+        await Assert.That(themeColors.ResolveColor("dark1", tint: 0xF2)).IsEqualTo("0D0D0D");
+    }
+
+    #endregion
+
     #region ColorTransforms Record Tests
 
     [Test]
