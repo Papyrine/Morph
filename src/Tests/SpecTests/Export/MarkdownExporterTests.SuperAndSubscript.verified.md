@@ -1,1 +1,1 @@
-﻿E = mc^2^ and H~2~O
+E = mc^2^ and H~2~O

@@ -27,12 +27,12 @@ public class ExportScenarioTests
     {
         var html = DocumentConverter.ConvertToHtml(Path.Combine(directory, "input.docx"));
         var png = await BrowserScreenshot.RenderHtmlAsync(html);
-        Target[] targets = [
+        Target[] targets =
+        [
             new("html", html),
             new("png", new MemoryStream(png))
         ];
-        await Verify(
-            targets)
+        await Verify(targets)
             .UseDirectory(directory)
             .UseFileName("html_result")
             .IgnoreParameters();
@@ -49,8 +49,7 @@ public class ExportScenarioTests
             new Target("md", markdown),
             new Target("png", new MemoryStream(png))
         };
-        await Verify(
-                targets)
+        await Verify(targets)
             .UseDirectory(directory)
             .UseFileName("md_result")
             .IgnoreParameters();
@@ -61,27 +60,16 @@ public class ExportScenarioTests
     public async Task PdfOutput(string directory)
     {
         var input = Path.Combine(directory, "input.docx");
-        var pdf = PdfDocumentConverter.ConvertToPdf(input, new()
-        {
-            FontDirectory = fontsDirectory
-        });
+        var pdf = PdfDocumentConverter.ConvertToPdf(
+            input,
+            new()
+            {
+                FontDirectory = fontsDirectory
+            });
 
-        // Snapshotted as raw bytes — not via Verify, whose ImageMagick plugin would rasterize a
-        // "pdf" target to PNG (pulling in a Ghostscript dependency). PdfRenderer makes the bytes
-        // reproducible (pinned dates/ID, normalized font-subset tags) so a straight byte compare
-        // against the committed pdf_result.verified.pdf is stable. The "pdf_result" stem keeps it
-        // out of the html/md verifications' cleanup paths.
-        var snapshot = Path.Combine(directory, "pdf_result.verified.pdf");
-        var received = Path.Combine(directory, "pdf_result.received.pdf");
-
-        if (File.Exists(snapshot) && File.ReadAllBytes(snapshot).AsSpan().SequenceEqual(pdf))
-        {
-            File.Delete(received);
-            return;
-        }
-
-        await File.WriteAllBytesAsync(received, pdf);
-        throw new($"PDF output differs from pdf_result.verified.pdf in {directory}. " +
-                  "Review pdf_result.received.pdf and, if correct, rename it over pdf_result.verified.pdf.");
+        await Verify(pdf, extension: "pdf")
+            .UseDirectory(directory)
+            .UseFileName("pdf_result")
+            .IgnoreParameters();
     }
 }

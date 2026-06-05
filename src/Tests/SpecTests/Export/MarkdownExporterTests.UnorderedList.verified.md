@@ -1,2 +1,2 @@
-﻿- first
+- first
 - second

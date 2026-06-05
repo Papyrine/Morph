@@ -1,1 +1,1 @@
-﻿lead **bold** tail
+lead **bold** tail
