@@ -1,0 +1,7 @@
+At least 12pt line spacing. Lines are at minimum 12 points, but can be larger if text needs it.
+
+At least 18pt line spacing. Minimum 18 points between baselines.
+
+At least 24pt line spacing. Lines will expand if needed for larger fonts.
+
+At least 36pt line spacing. Comfortable minimum spacing for readability.

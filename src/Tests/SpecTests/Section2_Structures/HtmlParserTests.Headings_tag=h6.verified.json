@@ -33,6 +33,7 @@
       "KeepNext": false,
       "WidowControl": true,
       "PageBreakBefore": false,
+      "StyleId": "Heading6",
       "BorderBetween": {
         "IsVisible": false,
         "WidthPoints": 0.5,
