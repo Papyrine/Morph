@@ -15,7 +15,10 @@ static class ExportTestBuilders
         new()
         {
             Runs = runs,
-            Properties = new()
+            // Word's Normal style resolves to 8pt spacing-after; the parser surfaces that effective
+            // value, so fixtures use it too — otherwise the exporter would treat the record's 0
+            // default as a deviation and emit a spurious margin-bottom:0pt.
+            Properties = new() {SpacingAfterPoints = 8}
         };
 
     public static ParagraphElement Heading(int level, string text) =>
@@ -36,7 +39,8 @@ static class ExportTestBuilders
             Runs = [TextRun(text)],
             Properties = new()
             {
-                Alignment = alignment
+                Alignment = alignment,
+                SpacingAfterPoints = 8
             }
         };
 

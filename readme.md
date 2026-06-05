@@ -105,7 +105,7 @@ https://nuget.org/packages/Morph.Html.ImageSharp/
 
 The HTML, Markdown and PDF exporters share the DOCX parser above, so the same content carries across — each within the limits of its format:
 
-- **HTML** — semantic tags (`<strong>`, `<em>`, `<u>`, `<h1>`–`<h6>`, `<table>`, `<ul>`/`<ol>`) over one embedded stylesheet, with inline overrides only where a run deviates from the document defaults. Theme colours (including `themeShade` / `themeTint`), per-run fonts and sizes, the page background, and table cell widths / shading / vertical alignment are preserved; background shapes, gradients and accent panels are emitted as inline SVG behind the text.
+- **HTML** — semantic tags (`<strong>`, `<em>`, `<u>`, `<h1>`–`<h6>`, `<table>`, `<ul>`/`<ol>`) over one embedded stylesheet, with inline overrides only where a run or paragraph deviates from the document defaults. Theme colours (including `themeShade` / `themeTint`), per-run fonts (with generic fallbacks) and sizes, the page background, paragraph spacing / indentation / alignment / borders, and table cell widths / shading / borders / vertical alignment are preserved; background shapes, gradients and accent panels are emitted as inline SVG behind the text.
 - **Markdown** — Pandoc-flavoured CommonMark with GFM pipe tables; adjacent runs are coalesced so emphasis stays well-formed and headings stay clean.
 - **PDF** — vector text via PdfSharp, paginated to match the source page layout.
 

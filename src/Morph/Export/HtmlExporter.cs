@@ -155,6 +155,11 @@ static class HtmlExporter
         // inline override.
         const double defaultBodyFontSizePoints = 11;
 
+        // Mirror the stylesheet's paragraph spacing (p { margin: 0 0 8pt }) and line height
+        // (body { line-height: 1.08 }), so only paragraphs that deviate carry an inline override.
+        const double defaultSpacingAfterPoints = 8;
+        const double defaultLineHeightMultiplier = 1.08;
+
         readonly StringBuilder builder = new();
         readonly HashSet<string> usedHeadingIds = [];
         int imageIndex;
@@ -313,6 +318,61 @@ static class HtmlExporter
             if (align != null)
             {
                 parts.Add($"text-align: {align}");
+            }
+
+            // Vertical spacing — only deviations from the stylesheet's 0-before / 8pt-after default.
+            if (Math.Abs(properties.SpacingBeforePoints) > 0.01)
+            {
+                parts.Add($"margin-top: {Length(properties.SpacingBeforePoints)}");
+            }
+
+            if (Math.Abs(properties.SpacingAfterPoints - defaultSpacingAfterPoints) > 0.01)
+            {
+                parts.Add($"margin-bottom: {Length(properties.SpacingAfterPoints)}");
+            }
+
+            // Indentation. The left indent applies to the whole block; a hanging indent then pulls
+            // the first line back out of it (negative text-indent), while a first-line indent pushes
+            // only the first line in (OOXML makes the two mutually exclusive). Negative values
+            // (outdents) are valid CSS and emitted verbatim.
+            var marginLeft = properties.LeftIndentPoints;
+            var textIndent = 0.0;
+            if (properties.HangingIndentPoints > 0.01)
+            {
+                textIndent = -properties.HangingIndentPoints;
+            }
+            else if (properties.FirstLineIndentPoints > 0.01)
+            {
+                textIndent = properties.FirstLineIndentPoints;
+            }
+
+            if (Math.Abs(marginLeft) > 0.01)
+            {
+                parts.Add($"margin-left: {Length(marginLeft)}");
+            }
+
+            if (properties.RightIndentPoints > 0.01)
+            {
+                parts.Add($"margin-right: {Length(properties.RightIndentPoints)}");
+            }
+
+            if (Math.Abs(textIndent) > 0.01)
+            {
+                parts.Add($"text-indent: {Length(textIndent)}");
+            }
+
+            // Line spacing. Auto → a unitless multiplier (the body default is 1.08); Exactly / AtLeast
+            // → a fixed point height (CSS has no "at least", so AtLeast is approximated by the value).
+            if (properties.LineSpacingRule == LineSpacingRule.Auto)
+            {
+                if (Math.Abs(properties.LineSpacingMultiplier - defaultLineHeightMultiplier) > 0.001)
+                {
+                    parts.Add($"line-height: {Number(properties.LineSpacingMultiplier)}");
+                }
+            }
+            else if (properties.LineSpacingPoints > 0.01)
+            {
+                parts.Add($"line-height: {Length(properties.LineSpacingPoints)}");
             }
 
             // Paragraph borders (w:pBdr) — each bordered paragraph renders as its own box. Word merges

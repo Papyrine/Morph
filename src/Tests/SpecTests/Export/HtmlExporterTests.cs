@@ -147,12 +147,31 @@ public class HtmlExporterTests
     }
 
     [Test]
+    public Task ParagraphSpacingAndIndent() =>
+        // Spacing-after 18 deviates from the 8pt default (emitted); a hanging indent becomes an
+        // enlarged left margin plus a negative text-indent; 1.5 line spacing → unitless line-height.
+        VerifyHtml(Doc(new ParagraphElement
+        {
+            Runs = [TextRun("indented")],
+            Properties = new()
+            {
+                SpacingBeforePoints = 12,
+                SpacingAfterPoints = 18,
+                LeftIndentPoints = 36,
+                HangingIndentPoints = 18,
+                LineSpacingRule = LineSpacingRule.Auto,
+                LineSpacingMultiplier = 1.5
+            }
+        }));
+
+    [Test]
     public Task ParagraphBorder() =>
         VerifyHtml(Doc(new ParagraphElement
         {
             Runs = [TextRun("boxed")],
             Properties = new()
             {
+                SpacingAfterPoints = 8,
                 Borders = CellBorders.All,
                 BorderTopSpacePoints = 4,
                 BorderRightSpacePoints = 6,
