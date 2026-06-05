@@ -1,10 +1,8 @@
 # <img src='/src/icon.png' height='30px'> Morph
 
 [![Build status](https://img.shields.io/appveyor/build/SimonCropp/morph)](https://ci.appveyor.com/project/SimonCropp/morph)
-[![NuGet Status](https://img.shields.io/nuget/v/Morph.OpenXml.Skia.svg?label=Morph.OpenXml.Skia)](https://www.nuget.org/packages/Morph.OpenXml.Skia/)
-[![NuGet Status](https://img.shields.io/nuget/v/Morph.OpenXml.ImageSharp.svg?label=Morph.OpenXml.ImageSharp)](https://www.nuget.org/packages/Morph.OpenXml.ImageSharp/)
-[![NuGet Status](https://img.shields.io/nuget/v/Morph.Html.Skia.svg?label=Morph.Html.Skia)](https://www.nuget.org/packages/Morph.Html.Skia/)
-[![NuGet Status](https://img.shields.io/nuget/v/Morph.Html.ImageSharp.svg?label=Morph.Html.ImageSharp)](https://www.nuget.org/packages/Morph.Html.ImageSharp/)
+[![NuGet Status](https://img.shields.io/nuget/v/Morph.Skia.svg?label=Morph.Skia)](https://www.nuget.org/packages/Morph.Skia/)
+[![NuGet Status](https://img.shields.io/nuget/v/Morph.ImageSharp.svg?label=Morph.ImageSharp)](https://www.nuget.org/packages/Morph.ImageSharp/)
 
 A .NET library that converts Microsoft Word DOCX documents or HTML content into PNG images.
 
@@ -17,21 +15,13 @@ A .NET library that converts Microsoft Word DOCX documents or HTML content into 
 
 ## NuGet packages
 
-### DOCX to PNG
+### DOCX or HTML to PNG
 
-For converting Word documents to images:
+A single package per backend converts both Word documents and HTML content to images:
 
-https://nuget.org/packages/Morph.OpenXml.Skia/
+https://nuget.org/packages/Morph.Skia/
 
-https://nuget.org/packages/Morph.OpenXml.ImageSharp/
-
-### HTML to PNG
-
-For converting HTML content to images (no Microsoft Word / OpenXml dependency):
-
-https://nuget.org/packages/Morph.Html.Skia/
-
-https://nuget.org/packages/Morph.Html.ImageSharp/
+https://nuget.org/packages/Morph.ImageSharp/
 
 
 ## Features
@@ -114,10 +104,10 @@ The HTML, Markdown and PDF exporters share the DOCX parser above, so the same co
 
 Morph supports two rendering backends:
 
-| Backend | DOCX Package | HTML Package | Pros |
-|---------|-------------|-------------|------|
-| **SkiaSharp** | `Morph.OpenXml.Skia` | `Morph.Html.Skia` | Mature, includes SVG support |
-| **ImageSharp** | `Morph.OpenXml.ImageSharp` | `Morph.Html.ImageSharp` | Fully managed (no native dependencies) |
+| Backend | Package (DOCX + HTML) | Pros |
+|---------|----------------------|------|
+| **SkiaSharp** | `Morph.Skia` | Mature, includes SVG support |
+| **ImageSharp** | `Morph.ImageSharp` | Fully managed (no native dependencies) |
 
 
 ## Usage
@@ -253,7 +243,7 @@ PdfDocumentConverter.ConvertToPdf("document.docx", outputPath);
 
 #### Parse once, export many
 
-For multi-format export, `WordDocument` parses the source a single time and supports calling as many `ExportToXxx` methods as needed. The PDF extension method comes from `Morph.OpenXml.Pdf`; HTML and Markdown are built in.
+For multi-format export, `WordDocument` parses the source a single time and supports calling as many `ExportToXxx` methods as needed. The PDF extension method comes from `Morph.Pdf`; HTML and Markdown are built in.
 
 <!-- snippet: ParseOnceExportMany -->
 <a id='snippet-ParseOnceExportMany'></a>
@@ -264,7 +254,7 @@ var document = new WordDocument("document.docx");
 
 File.WriteAllText("document.html", document.ExportToHtml());
 File.WriteAllText("document.md",   document.ExportToMarkdown());
-document.ExportToPdf("document.pdf");   // extension method from Morph.OpenXml.Pdf
+document.ExportToPdf("document.pdf");   // extension method from Morph.Pdf
 ```
 <sup><a href='/src/Tests/ReadmeSamples.cs#L120-L130' title='Snippet source file'>snippet source</a> | <a href='#snippet-ParseOnceExportMany' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->

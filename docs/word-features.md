@@ -61,12 +61,10 @@ Key assemblies:
 
 | Assembly | Role |
 |----------|------|
-| `Morph` | Core model: `DocumentElements.cs`, `RenderContextBase`, `TableLayout`, `FontHelpers` |
-| `Morph.OpenXml` | DOCX parser: `DocumentParser.cs`, sub-parsers in `Parsers/` |
-| `Morph.Skia` | SkiaSharp rendering: `PageRenderer.cs`, `TextRenderer.cs`, `RenderContext.cs` |
-| `Morph.ImageSharp` | ImageSharp rendering: `PageRenderer.cs`, `TextRenderer.cs`, `RenderContext.cs` |
-| `Morph.OpenXml.Skia` | Entry point: `WordRender.Skia.DocumentConverter` |
-| `Morph.OpenXml.ImageSharp` | Entry point: `WordRender.ImageSharp.DocumentConverter` |
+| `Morph` | Core model + both parsers + exporters: `DocumentElements.cs`, `RenderContextBase`, `TableLayout`, `FontHelpers`; DOCX parser `OpenXml/Parsing/DocumentParser.cs` (+ sub-parsers); HTML parser `Html/HtmlParser.cs` |
+| `Morph.Skia` | SkiaSharp rendering (`PageRenderer.cs`, `TextRenderer.cs`, `RenderContext.cs`) + entry points `SkiaDocumentConverter` (DOCX→PNG), `SkiaHtmlConverter` (HTML→PNG) |
+| `Morph.ImageSharp` | ImageSharp rendering (`PageRenderer.cs`, `TextRenderer.cs`, `RenderContext.cs`) + entry points `ImageSharpDocumentConverter`, `ImageSharpHtmlConverter` |
+| `Morph.Pdf` | PDF rendering + DOCX→PDF / HTML→PDF converters |
 
 ---
 
@@ -668,7 +666,7 @@ Prevents automatic hyphenation for this paragraph.
 Borders around a paragraph (top, bottom, left, right, between).
 
 - **OOXML**: `w:pBdr` — `w:top`, `w:bottom`, `w:left`, `w:right`, `w:between`
-- **Parse**: `DocumentParser.ParseParagraphProperties()` and `ParseStyleParagraphProperties()` in `Morph.OpenXml/Parsing/DocumentParser.cs`; per-edge `w:space` via `ParseBorderSpace()`
+- **Parse**: `DocumentParser.ParseParagraphProperties()` and `ParseStyleParagraphProperties()` in `Morph/OpenXml/Parsing/DocumentParser.cs`; per-edge `w:space` via `ParseBorderSpace()`
 - **Model**: `ParagraphProperties.Borders` (reuses `CellBorders` for Top/Right/Bottom/Left), plus per-edge `BorderTopSpacePoints` / `BorderBottomSpacePoints` / `BorderLeftSpacePoints` / `BorderRightSpacePoints`, and `BorderBetween` / `BorderBetweenSpacePoints`
 - **Render**: paragraph-border block in `Morph.Skia/Rendering/TextRenderer.cs` and `Morph.ImageSharp/Rendering/TextRenderer.cs`. Between-border collapse uses `RenderContextBase.SuppressNextParagraphTopBorder` to coordinate neighbors.
 - **Test**: `paragraph_borders/`
@@ -1945,7 +1943,7 @@ Prevents hyphenation of all-uppercase words.
 Positioned alignment points within a paragraph. Types: left, center, right, decimal. Optional leader characters (dots, dashes, etc.).
 
 - **OOXML**: `w:tabs` > `w:tab` with `w:val` (type), `w:pos` (position), `w:leader`; `w:defaultTabStop` in settings.xml; `<w:tab/>` character in runs
-- **Parse**: `DocumentParser.ParseTabs()`, `ExtractDefaultTabStop()` in `Morph.OpenXml/Parsing/DocumentParser.cs`
+- **Parse**: `DocumentParser.ParseTabs()`, `ExtractDefaultTabStop()` in `Morph/OpenXml/Parsing/DocumentParser.cs`
 - **Model**: `ParagraphProperties.TabStops`, `ParagraphProperties.DefaultTabStopPoints`, `Run.IsTab` in `Morph/Parsing/DocumentElements.cs`
 - **Render**: `TabStopResolver` in `Morph/Rendering/TabStopResolver.cs`; `HandleTab` + `RenderTabFiller` in each `TextRenderer`
 - **Test**: `tab_stops`, `decimal_tabs`, plus `TabStopResolverTests` in `src/Tests/SpecTests/Section2_Structures/`

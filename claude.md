@@ -57,23 +57,17 @@ Brackets (`[...]`) in treenode filters are for property-bag filters (e.g. `[Cate
 
 The conversion pipeline is **Parse → Render**, split across multiple assemblies:
 
-**Core model** (`src/Morph/`): `ParsedDocument`, `DocumentElement` types (defined in `DocumentElements.cs`), shared rendering base (`RenderContextBase`, `FontCacheLoader`, `FontHelpers`, `TableLayout`), `ConversionOptions`, `ConversionResult`. No heavy dependencies.
+**Core** (`src/Morph/`): the model (`ParsedDocument`, `DocumentElement` types in `DocumentElements.cs`), shared rendering base (`RenderContextBase`, `FontCacheLoader`, `FontHelpers`, `TableLayout`), `ConversionOptions`, `ConversionResult`, the text exporters (HTML/Markdown), **and both parsers**:
+- **DOCX** (`src/Morph/OpenXml/`): `DocumentParser` reads OOXML via DocumentFormat.OpenXml and builds a `ParsedDocument`. Sub-parsers handle shapes, ink, themes, and HTML (AltChunk).
+- **HTML** (`src/Morph/Html/`): `HtmlParser` converts HTML to `DocumentElement` trees via AngleSharp. `HtmlConverter` is the abstract base for HTML→raster converters.
 
-**Parsers:**
-- **DOCX** (`src/Morph.OpenXml/`): `DocumentParser` reads OOXML via DocumentFormat.OpenXml and builds a `ParsedDocument`. Sub-parsers handle shapes, ink, themes, and HTML (AltChunk).
-- **HTML** (`src/Morph.Html/`): `HtmlParser` converts HTML to `DocumentElement` trees via AngleSharp. `HtmlConverter` abstract base class.
+Because both parsers live in core, `Morph` depends on both `DocumentFormat.OpenXml` and `AngleSharp`, and every downstream assembly transitively drags both.
 
-**Rendering backends** — each has its own `PageRenderer`, `TextRenderer`, and `RenderContext`:
-- **SkiaSharp** (`src/Morph.Skia/`): rendering engine using SkiaSharp + Svg.Skia
-- **ImageSharp** (`src/Morph.ImageSharp/`): rendering engine using SixLabors.ImageSharp / ImageSharp.Drawing / Fonts
+**Rendering backends** — each has its own `PageRenderer`, `TextRenderer`, `RenderContext`, **and the public entry-point converters** (DOCX→PNG and HTML→PNG live together in the same engine assembly):
+- **SkiaSharp** (`src/Morph.Skia/`): SkiaSharp + Svg.Skia. Entry points `SkiaDocumentConverter` (DOCX→PNG) and `SkiaHtmlConverter` (HTML→PNG).
+- **ImageSharp** (`src/Morph.ImageSharp/`): SixLabors.ImageSharp / ImageSharp.Drawing / Fonts. Entry points `ImageSharpDocumentConverter` and `ImageSharpHtmlConverter`.
 
-**Entry points** (thin wrappers combining a parser with a rendering backend):
-- `src/Morph.OpenXml.Skia/` — `WordRender.Skia.DocumentConverter` (DOCX → PNG via SkiaSharp)
-- `src/Morph.OpenXml.ImageSharp/` — `WordRender.ImageSharp.DocumentConverter` (DOCX → PNG via ImageSharp)
-- `src/Morph.Html.Skia/` — `HtmlRender.Skia.HtmlConverter` (HTML → PNG via SkiaSharp)
-- `src/Morph.Html.ImageSharp/` — `HtmlRender.ImageSharp.HtmlConverter` (HTML → PNG via ImageSharp)
-
-The HTML packages have no transitive dependency on `DocumentFormat.OpenXml`.
+**PDF** (`src/Morph.Pdf/`): `PdfRenderer` plus the DOCX→PDF and HTML→PDF converters, via PdfSharp.
 
 For a complete feature-by-feature mapping to code locations, see `docs/word-features.md`.
 

@@ -10,7 +10,7 @@ namespace Morph;
 /// var document = await HtmlDocument.LoadAsync(html);
 /// File.WriteAllText("page.html", document.ExportToHtml());
 /// File.WriteAllText("page.md",   document.ExportToMarkdown());
-/// File.WriteAllBytes("page.pdf", document.ExportToPdf());   // via Morph.Html.Pdf
+/// File.WriteAllBytes("page.pdf", document.ExportToPdf());   // via Morph.Pdf
 /// </code>
 /// </example>
 public sealed class HtmlDocument

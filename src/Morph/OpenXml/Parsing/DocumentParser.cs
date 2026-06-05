@@ -2867,7 +2867,7 @@ sealed class DocumentParser(string defaultFont)
         };
     }
 
-    string? ExtractDocumentBackgroundColor(Document document)
+    string? ExtractDocumentBackgroundColor(DocumentFormat.OpenXml.Wordprocessing.Document document)
     {
         // Look for w:background element (child of w:document)
         var background = document.GetFirstChild<DocumentBackground>();

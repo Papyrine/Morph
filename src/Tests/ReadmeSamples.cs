@@ -125,7 +125,7 @@ public class Samples
 
         File.WriteAllText("document.html", document.ExportToHtml());
         File.WriteAllText("document.md",   document.ExportToMarkdown());
-        document.ExportToPdf("document.pdf");   // extension method from Morph.OpenXml.Pdf
+        document.ExportToPdf("document.pdf");   // extension method from Morph.Pdf
 
         #endregion
     }

@@ -9,7 +9,7 @@ namespace Morph;
 /// var document = new WordDocument("report.docx");
 /// File.WriteAllText("report.html", document.ExportToHtml());
 /// File.WriteAllText("report.md",   document.ExportToMarkdown());
-/// File.WriteAllBytes("report.pdf", document.ExportToPdf());   // via Morph.OpenXml.Pdf
+/// File.WriteAllBytes("report.pdf", document.ExportToPdf());   // via Morph.Pdf
 /// </code>
 /// </example>
 public sealed class WordDocument
