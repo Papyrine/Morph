@@ -1,5 +1,3 @@
-namespace Morph;
-
 /// <summary>
 /// Serializes a <see cref="ParsedDocument"/> to Pandoc-flavoured Markdown (CommonMark + GFM pipe
 /// tables, strikeout, and Pandoc's <c>^sup^</c> / <c>~sub~</c> / <c>[x]{.underline}</c> spans),

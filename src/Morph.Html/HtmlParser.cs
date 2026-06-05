@@ -1,9 +1,7 @@
-using AngleSharp.Dom;
-
 /// <summary>
 /// Parses HTML content embedded in DOCX via AltChunk.
 /// </summary>
-internal sealed class HtmlParser
+sealed class HtmlParser
 {
     readonly string defaultFontFamily;
 

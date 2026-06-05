@@ -1,5 +1,3 @@
-namespace Morph;
-
 /// <summary>
 /// Serializes a <see cref="ParsedDocument"/> to HTML. By default emits a full self-contained
 /// <c>&lt;!doctype html&gt;</c> document with an embedded stylesheet of Word-like defaults

@@ -1,8 +1,3 @@
-using PdfSharp.Drawing;
-using PdfSharp.Pdf;
-
-namespace Morph;
-
 /// <summary>
 /// Drives the shared <see cref="PageRendererBase"/> layout engine onto PdfSharp pages. All table,
 /// pagination, form-field, content-control and header/footer logic is inherited; this class supplies

@@ -1,5 +1,3 @@
-namespace Morph;
-
 /// <summary>
 /// Renders a parsed document to a PDF byte array using PdfSharp. Shared entry point for the
 /// DOCX → PDF and HTML → PDF public converters. Output is made byte-reproducible (see
@@ -36,7 +34,7 @@ static class PdfRenderer
     /// Drops any page outside <paramref name="range"/> (1-based, inclusive). The page numbers in
     /// the PDF reset to 1..N over the kept pages.
     /// </summary>
-    static void TrimPages(PdfSharp.Pdf.PdfDocument document, PageRange range)
+    static void TrimPages(PdfDocument document, PageRange range)
     {
         var total = document.PageCount;
         var keepFrom = Math.Max(1, range.Start);
@@ -56,7 +54,7 @@ static class PdfRenderer
     static readonly DateTime fixedTimestamp = new(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
     const string fixedDocumentId = "MorphDeterminist";
 
-    static void MakeDeterministic(PdfSharp.Pdf.PdfDocument document)
+    static void MakeDeterministic(PdfDocument document)
     {
         document.Info.CreationDate = fixedTimestamp;
         document.Info.ModificationDate = fixedTimestamp;

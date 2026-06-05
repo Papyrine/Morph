@@ -1,7 +1,3 @@
-using PdfSharp.Fonts;
-
-namespace Morph;
-
 /// <summary>
 /// Maps font family + style requests onto the bundled TrueType files so PdfSharp can embed real
 /// glyphs. PdfSharp resolves fonts through a single process-global <see cref="GlobalFontSettings.FontResolver"/>,
@@ -15,10 +11,10 @@ sealed class PdfFontResolver : IFontResolver
 {
     public static PdfFontResolver Instance { get; } = new();
 
-    readonly Lock gate = new();
-    readonly Dictionary<string, string> faceToPath = new(StringComparer.OrdinalIgnoreCase);
-    readonly Dictionary<(string Family, bool Bold, bool Italic), string> index = [];
-    readonly HashSet<string> scannedDirectories = new(StringComparer.OrdinalIgnoreCase);
+    Lock gate = new();
+    Dictionary<string, string> faceToPath = new(StringComparer.OrdinalIgnoreCase);
+    Dictionary<(string Family, bool Bold, bool Italic), string> index = [];
+    HashSet<string> scannedDirectories = new(StringComparer.OrdinalIgnoreCase);
     string? defaultFace;
 
     PdfFontResolver()

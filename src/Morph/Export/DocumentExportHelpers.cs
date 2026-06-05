@@ -1,5 +1,3 @@
-namespace Morph;
-
 /// <summary>
 /// Model-traversal helpers shared by the text exporters (<see cref="HtmlExporter"/> and
 /// <see cref="MarkdownExporter"/>). These map the <see cref="ParsedDocument"/> tree onto the

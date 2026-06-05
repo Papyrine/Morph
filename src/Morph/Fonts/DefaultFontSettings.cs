@@ -1,5 +1,3 @@
-using Morph;
-
 /// <summary>
 /// Provides configurable font rendering settings to better match Microsoft Word.
 /// All settings are process-wide and must be configured before the first render;

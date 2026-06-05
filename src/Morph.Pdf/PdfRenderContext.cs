@@ -1,9 +1,3 @@
-using System.Globalization;
-using PdfSharp.Drawing;
-using PdfSharp.Pdf;
-
-namespace Morph;
-
 /// <summary>
 /// Rendering state for a PDF conversion. Coordinates are kept in points (the PDF user unit) by
 /// constructing the base with a 72-DPI scale, so <see cref="RenderContextBase.PointsToPixels"/> is

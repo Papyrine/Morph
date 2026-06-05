@@ -1,5 +1,3 @@
-using Morph;
-
 /// <summary>
 /// Base class for rendering context state shared across backends.
 /// Manages pagination, column layout, line numbering, and coordinate conversion.

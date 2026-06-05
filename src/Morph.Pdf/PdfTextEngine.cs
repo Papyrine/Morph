@@ -1,7 +1,3 @@
-using PdfSharp.Drawing;
-
-namespace Morph;
-
 /// <summary>
 /// Paragraph layout and drawing for the PDF backend. This is the part that cannot come from the
 /// shared engine (it depends on the backend's text metrics): it greedily wraps runs into lines
