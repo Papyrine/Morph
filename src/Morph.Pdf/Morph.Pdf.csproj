@@ -10,6 +10,7 @@
     <ProjectReference Include="..\Morph\Morph.csproj" />
     <PackageReference Include="PdfSharp" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
+    <PackageReference Include="SponsorCheck" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>
