@@ -2,7 +2,7 @@ using Pandoc;
 
 /// <summary>
 /// Dev-only utility that seeds Pandoc "ground truth" reference files (<c>expected.html</c>,
-/// <c>expected.md</c>, <c>expected.pdf</c>) beside each scenario <c>input.docx</c>, using PandocNet
+/// <c>expected.pdf</c>) beside each scenario <c>input.docx</c>, using PandocNet
 /// (a wrapper over the installed <c>pandoc</c> CLI). These sit next to the Verify-snapshotted
 /// <c>results_*</c> files the way Word's <c>expected_*.png</c> sits beside the raster snapshots.
 ///
@@ -41,7 +41,6 @@ public class PandocReferenceGenerator
         {
             var input = Path.Combine(directory, "input.docx");
             await TryConvert(Path.Combine(directory, "expected.html"), output => PandocInstance.Convert<DocxIn, HtmlOut>(input, output));
-            await TryConvert(Path.Combine(directory, "expected.md"), output => PandocInstance.Convert<DocxIn, CommonMarkOut>(input, output));
             await ConvertPdf(Path.Combine(directory, "expected.pdf"), input, pdfEngines);
         }
     }

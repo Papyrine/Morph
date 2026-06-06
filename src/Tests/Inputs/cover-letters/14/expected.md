@@ -1,7 +1,0 @@
-
-
-<table><tr><th colspan="5" valign="top"><b>Tonnie<br>Thomsen</b></th></tr>
-<tr><td colspan="1" valign="top"></td><td colspan="1" valign="top"></td><td colspan="3" valign="top"><h1><b>JUNE 30, 20XX</b></h1></td></tr>
-<tr><td colspan="1" rowspan="2" valign="top"><p><b>ADDRESS</b> </p><p>987 6<sup>th</sup> Ave<br>Santa Fe, NM 76543<br>USA</p><p><b>PHONE</b> </p><p>706\.555.0123</p><p><b>EMAIL</b> </p><p>tonnie@example.com</p><p><b>WEBSITE</b> </p><p>www.interestingsite.com </p></td><td colspan="1" rowspan="2" valign="top"></td><td colspan="1" valign="top"><p><b>LILLI ALLIK</b></p><p>Principal<br>Emerald View Elementary</p></td><td colspan="1" valign="top"><p></p><p>4321 Maplewood Ave<br>Nashville, TN 65432</p></td></tr>
-<tr><td colspan="2" valign="top"><p></p><p>Dear Principal Allik,</p><p></p><p>I am excited to submit my application for the Elementary School Teacher position at Emerald View Elementary. As a passionate and experienced educator, I believe in creating a positive and inclusive classroom environment that supports students' academic and social-emotional growth. </p><p></p><p>I have a strong commitment to student-centered learning and personalized instruction that engages and challenges every student. I am confident that my dedication, creativity, and expertise will make me a valuable addition to your school community.</p><p></p><p>Thank you for your consideration.</p><p> </p><p>Sincerely,</p><p>Tonnie Thomsen</p></td></tr>
-</table>

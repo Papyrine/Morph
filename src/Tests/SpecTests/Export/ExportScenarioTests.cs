@@ -4,7 +4,7 @@
 /// <c>Inputs/</c>. Our output is snapshotted as <c>html_result.verified.html</c>,
 /// <c>md_result.verified.md</c> and <c>pdf_result.verified.pdf</c> beside each input; Pandoc's
 /// output (seeded by <see cref="PandocReferenceGenerator"/>) sits alongside as <c>expected.html</c> /
-/// <c>expected.md</c> / <c>expected.pdf</c> for visual comparison.
+/// <c>expected.pdf</c> for visual comparison.
 ///
 /// Each format is its own test so a diff in one doesn't block the others (important when bulk
 /// re-seeding baselines), and each uses a distinct file-name stem so the formats don't race over

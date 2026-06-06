@@ -1,1 +1,0 @@
-This page has a half-inch gutter on the binding edge.

@@ -1,8 +1,7 @@
 /// <summary>
-/// Dev-only utility that renders the committed reference <c>expected.html</c> and
-/// <c>expected.md</c> files to PNG images using the shared Playwright pipeline, producing
-/// <c>expected.html.png</c> and <c>expected.md.png</c> beside them. Useful for eyeballing how the
-/// reference would actually look in a browser without opening every file by hand.
+/// Dev-only utility that renders the committed reference <c>expected.html</c> files to PNG images
+/// using the shared Playwright pipeline, producing <c>expected.html.png</c> beside them. Useful for
+/// eyeballing how the reference would actually look in a browser without opening every file by hand.
 ///
 /// Skipped during normal runs. Enable with <c>MORPH_RENDER_EXPECTED=1</c>.
 /// </summary>
@@ -33,19 +32,6 @@ public class ExpectedRenderTool
             catch (Exception ex)
             {
                 failures.Add((htmlPath, ex));
-            }
-        }
-
-        foreach (var markdownPath in Directory.GetFiles(inputs, "expected.md", SearchOption.AllDirectories))
-        {
-            try
-            {
-                var png = await BrowserScreenshot.RenderMarkdownAsync(File.ReadAllText(markdownPath));
-                await File.WriteAllBytesAsync(markdownPath + ".png", png);
-            }
-            catch (Exception ex)
-            {
-                failures.Add((markdownPath, ex));
             }
         }
 
