@@ -1,9 +1,0 @@
-
-
-|<p><a name="_hlk127839874"></a>**Fabrikam, Inc.***  </p><p></p><p>**Kristel Kangro** </p><p>1234 East Main Street </p><p>Portland, OR 54321 </p><p>www.fabrikam.com </p><p>(415) 555-0123| kristel@fabrikam.com</p><p></p>|<p>**Fabrikam, Inc.***  </p><p></p><p>**Kristel Kangro** </p><p>1234 East Main Street </p><p>Portland, OR 54321 </p><p>www.fabrikam.com </p><p>(415) 555-0123| kristel@fabrikam.com</p><p></p>|
-| :- | :- |
-|<p>**Fabrikam, Inc.***  </p><p></p><p>**Kristel Kangro** </p><p>1234 East Main Street </p><p>Portland, OR 54321 </p><p>www.fabrikam.com </p><p>(415) 555-0123| kristel@fabrikam.com</p><p></p>|<p>**Fabrikam, Inc.***  </p><p></p><p>**Kristel Kangro** </p><p>1234 East Main Street </p><p>Portland, OR 54321 </p><p>www.fabrikam.com </p><p>(415) 555-0123| kristel@fabrikam.com</p><p></p>|
-|<p>**Fabrikam, Inc.***  </p><p></p><p>**Kristel Kangro** </p><p>1234 East Main Street </p><p>Portland, OR 54321 </p><p>www.fabrikam.com </p><p>(415) 555-0123| kristel@fabrikam.com</p><p></p>|<p>**Fabrikam, Inc.***  </p><p></p><p>**Kristel Kangro** </p><p>1234 East Main Street </p><p>Portland, OR 54321 </p><p>www.fabrikam.com </p><p>(415) 555-0123| kristel@fabrikam.com</p><p></p>|
-|<p>**Fabrikam, Inc.***  </p><p></p><p>**Kristel Kangro** </p><p>1234 East Main Street </p><p>Portland, OR 54321 </p><p>www.fabrikam.com </p><p>(415) 555-0123| kristel@fabrikam.com</p><p></p>|<p>**Fabrikam, Inc.***  </p><p></p><p>**Kristel Kangro** </p><p>1234 East Main Street </p><p>Portland, OR 54321 </p><p>www.fabrikam.com </p><p>(415) 555-0123| kristel@fabrikam.com</p><p></p>|
-|<p>**Fabrikam, Inc.***  </p><p></p><p>**Kristel Kangro** </p><p>1234 East Main Street </p><p>Portland, OR 54321 </p><p>www.fabrikam.com </p><p>(415) 555-0123| kristel@fabrikam.com</p><p></p>|<p>**Fabrikam, Inc.***  </p><p></p><p>**Kristel Kangro** </p><p>1234 East Main Street </p><p>Portland, OR 54321 </p><p>www.fabrikam.com </p><p>(415) 555-0123| kristel@fabrikam.com</p><p></p>|
-
