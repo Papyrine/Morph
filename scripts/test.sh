@@ -16,6 +16,13 @@
 
 set -euo pipefail
 
+# On Git Bash / MSYS2 (Windows), the POSIX-path mangling layer rewrites Unix
+# paths in arguments to native Windows paths before handing them to docker.exe —
+# so `-w /src` becomes `C:/Program Files/Git/src` and the container fails to
+# start. Disable that conversion for this script's docker invocations. The
+# variable is MSYS-specific and ignored on Linux/macOS, so it's a no-op there.
+export MSYS_NO_PATHCONV=1
+
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 IMAGE_TAG="${MORPH_TEST_IMAGE:-morph-test:latest}"
 NUGET_CACHE="${MORPH_NUGET_CACHE:-${REPO_ROOT}/.nuget-cache}"
