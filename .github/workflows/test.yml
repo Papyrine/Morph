@@ -47,7 +47,7 @@ jobs:
       - name: Run static-setting tests
         run: ./scripts/test.sh dotnet run --project src/StaticSettingTests --configuration Release
 
-      - name: Upload received PNGs on failure
+      - name: Upload received on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:

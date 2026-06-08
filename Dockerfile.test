@@ -7,7 +7,12 @@
 # test output are all volume-mounted from the host at runtime, not baked in.
 # That keeps iteration fast and keeps the image cache hit rate high.
 
-FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:10.0
+# Pinned by digest (not just the mutable :10.0 tag) so every build — local and
+# CI — resolves the byte-identical SDK image; an SDK patch silently changing
+# under the tag is a source of cross-environment rendering drift. To bump:
+#   docker buildx imagetools inspect mcr.microsoft.com/dotnet/sdk:10.0
+# then update the digest below (and regenerate baselines in the container).
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:10.0@sha256:c0790639332692a0d56cdd81ed581cfd24d040d9839764c138994866df89a3b6
 
 # SkiaSharp.NativeAssets.Linux.NoDependencies bundles freetype/expat itself.
 # The .NET SDK image already ships with ICU, so we only need to add fontconfig
