@@ -8,31 +8,25 @@
 
   <ItemGroup>
     <PackageReference Include="Magick.NET-Q16-AnyCPU" />
+    <PackageReference Include="Markdig" />
+    <PackageReference Include="Microsoft.Playwright" />
+    <PackageReference Include="Pandoc" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
     <PackageReference Include="ProjectFiles" />
     <PackageReference Include="TUnit" />
     <PackageReference Include="MarkdownSnippets.MsBuild" PrivateAssets="all" />
     <PackageReference Include="Verify.DiffPlex" />
-    <PackageReference Include="Verify.ImageMagick" />
+    <PackageReference Include="Verify.QuestPDF" />
     <PackageReference Include="Verify.TUnit" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <ProjectReference Include="..\Morph\Morph.csproj" />
-    <ProjectReference Include="..\Morph.Html\Morph.Html.csproj" />
-    <ProjectReference Include="..\Morph.OpenXml\Morph.OpenXml.csproj" />
     <ProjectReference Include="..\Morph.Skia\Morph.Skia.csproj">
       <Aliases>global,Skia</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\Morph.ImageSharp\Morph.ImageSharp.csproj">
       <Aliases>global,ImageSharp</Aliases>
     </ProjectReference>
-    <ProjectReference Include="..\Morph.OpenXml.Skia\Morph.OpenXml.Skia.csproj">
-      <Aliases>global,Skia</Aliases>
-    </ProjectReference>
-    <ProjectReference Include="..\Morph.OpenXml.ImageSharp\Morph.OpenXml.ImageSharp.csproj">
-      <Aliases>global,ImageSharp</Aliases>
-    </ProjectReference>
-    <ProjectReference Include="..\Morph.Html.Skia\Morph.Html.Skia.csproj" />
-    <ProjectReference Include="..\Morph.Html.ImageSharp\Morph.Html.ImageSharp.csproj" />
+    <ProjectReference Include="..\Morph.Pdf\Morph.Pdf.csproj" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
     <PackageReference Include="SkiaSharp.NativeAssets.Win32" />
     <PackageReference Include="SkiaSharp.NativeAssets.macOS" />

@@ -24,7 +24,18 @@ static class ScenarioMarkdownGenerator
         AppendNotes(sb, directory);
         AppendTable(sb, pages, srcPrefix: "");
 
-        File.WriteAllText(Path.Combine(directory, "compare.md"), sb.ToString());
+        // Skia and ImageSharp scenarios for the same dir run concurrently and both regenerate
+        // compare.md; on Windows a contended write can fail with "user-mapped section open" /
+        // "in use". Swallow it — the second backend's content matches the first (same source),
+        // and the ModuleInitializer ProcessExit hook runs RegenerateAll at the end as the final
+        // reconciliation pass.
+        try
+        {
+            File.WriteAllText(Path.Combine(directory, "compare.md"), sb.ToString());
+        }
+        catch (IOException)
+        {
+        }
     }
 
     public static void RegenerateAll(string inputsDirectory)
@@ -144,11 +155,11 @@ static class ScenarioMarkdownGenerator
     static List<PageRow> CollectPages(string directory)
     {
         var expectedFiles = Directory.GetFiles(directory, "expected_*.png").Order().ToArray();
-        var skiaFiles = Directory.GetFiles(directory, "results_skia#page_*.verified.png").Order().ToArray();
-        var imagesharpFiles = Directory.GetFiles(directory, "results_imagesharp#page_*.verified.png").Order().ToArray();
+        var skiaFiles = Directory.GetFiles(directory, "skia_result#page_*.verified.png").Order().ToArray();
+        var imagesharpFiles = Directory.GetFiles(directory, "imagesharp_result#page_*.verified.png").Order().ToArray();
 
-        var skiaMetrics = ReadMetrics(Path.Combine(directory, "results_skia.verified.json"));
-        var imagesharpMetrics = ReadMetrics(Path.Combine(directory, "results_imagesharp.verified.json"));
+        var skiaMetrics = ReadMetrics(Path.Combine(directory, "skia_result.verified.json"));
+        var imagesharpMetrics = ReadMetrics(Path.Combine(directory, "imagesharp_result.verified.json"));
 
         var maxPages = Math.Max(expectedFiles.Length, Math.Max(skiaFiles.Length, imagesharpFiles.Length));
         var rows = new List<PageRow>(maxPages);

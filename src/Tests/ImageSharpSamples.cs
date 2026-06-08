@@ -55,7 +55,7 @@ public class ImageSharpSamples
     {
         var converter = new ImageSharpDocumentConverter();
 
-        var options = new ConversionOptions
+        var options = new ImageExportOptions
         {
             Dpi = 300,
             FontWidthScale = 1.07

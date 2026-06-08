@@ -1,0 +1,1 @@
+﻿This text is justified. Justified text is aligned to both the left and right margins, creating a clean block appearance. This is commonly used in newspapers, books, and formal documents. The spacing between words is adjusted to ensure each line reaches both margins.

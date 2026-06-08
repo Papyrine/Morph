@@ -42,7 +42,7 @@ public class SkiaScenarioTests
         };
         await Verify(result, targets)
             .UseDirectory(directory)
-            .UseFileName("results_skia")
+            .UseFileName("skia_result")
             .IgnoreParameters();
 
         ScenarioMarkdownGenerator.Regenerate(directory);
@@ -68,7 +68,7 @@ public class SkiaScenarioTests
             expected.Compare(actual, ErrorMetric.Absolute, out var errorMetric);
 
             errorMetric = Math.Round(errorMetric, 4);
-            diffs.Add(new(i + 1, errorMetric, Path.GetFileName(expectedFile), $"results_skia#page_{i+1:0000}.verified.png", $"results_skia#page_{i+1:0000}.received.png"));
+            diffs.Add(new(i + 1, errorMetric, Path.GetFileName(expectedFile), $"skia_result#page_{i+1:0000}.verified.png", $"skia_result#page_{i+1:0000}.received.png"));
         }
 
         return diffs;

@@ -1,0 +1,919 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; padding: 8pt; color: #000; }
+p { margin: 0 0 8pt; }
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 8pt; font-weight: bold; }
+h1 { font-size: 24pt; }
+h2 { font-size: 18pt; }
+h3 { font-size: 14pt; }
+h4 { font-size: 12pt; font-style: italic; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; font-style: italic; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+td, th { padding: 4pt 7pt; vertical-align: top; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+</style>
+</head>
+<body style="line-height:120%; font-family:'Lucida Sans Typewriter', sans-serif; font-size:9pt">
+<p style="margin-bottom:0pt; line-height:120%; font-size:4pt">
+<span style="height:0pt; display:block; position:absolute; z-index:-2"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAzcAAAQqCAYAAAB6PoERAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAFqFJREFUeJzt2cENglAABUExJkAB9l+gBfg5aRMknywzFbzr5i2fcfwecKLvts6eAABcxD6O2RO4ife2Ls/ZIwAAAM4gbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACDhNXsAPfs4Zk8AAOCGPDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAJAgbgAAgARxAwAAJIgbAAAgQdwAAAAJ4gYAAEgQNwAAQIK4AQAAEsQNAACQIG4AAIAEcQMAACSIGwAAIEHcAAAACeIGAABIEDcAAECCuAEAABLEDQAAkCBuAACABHEDAAAkiBsAACBB3AAAAAniBgAASBA3AABAgrgBAAASxA0AAAAAAMBV/AHTxRFOPTj+DwAAAABJRU5ErkJggg==" width="823" height="1066" alt="Decorative" style="margin-top:-36pt; margin-left:-36pt; position:absolute" /></span>&#xa0;
+</p>
+<table cellspacing="0" cellpadding="0" style="width:540pt; border-collapse:collapse">
+<tr style="height:79.2pt">
+<td colspan="4" style="width:529.2pt; border-bottom-style:solid; border-bottom-width:2.25pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; text-align:center; font-size:55pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; text-transform:uppercase; letter-spacing:5pt; color:#e20000">BISTRO MENU</span>
+</p>
+</td>
+</tr>
+<tr style="height:180pt">
+<td style="width:187.75pt; border-top-style:solid; border-top-width:2.25pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-top:10.8pt; padding-right:5.75pt; vertical-align:top">
+<h1 style="margin-top:0pt; margin-bottom:0pt; line-height:120%; font-size:12pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; font-weight:normal; text-transform:uppercase; letter-spacing:2pt; color:#e20000">DRINKS</span>
+</h1>
+<p style="margin-bottom:0pt; line-height:120%; font-size:5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">SODA – 3 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Cola, Lemon-Lime, Orange, Grape, Strawberry 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">LEMONADE – 3 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Strawberry, Mint, Blueberry, Mango, Peach 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">TEA – 2 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Chamomile, Black, Earl Grey, Matcha, Jasmine, Chai, Fruit blend 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.7pt; border-top-style:solid; border-top-width:2.25pt; border-right-style:solid; border-right-width:2.25pt; padding-top:10.8pt; padding-right:4.28pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.7pt; border-top-style:solid; border-top-width:2.25pt; border-left-style:solid; border-left-width:2.25pt; padding-top:10.8pt; padding-right:5.4pt; padding-left:4.28pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+</td>
+<td style="width:308.7pt; border-top-style:solid; border-top-width:2.25pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-top:10.8pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<h1 style="margin-top:0pt; margin-bottom:0pt; line-height:120%; font-size:12pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; font-weight:normal; text-transform:uppercase; letter-spacing:2pt; color:#e20000">SALADS</span>
+</h1>
+<p style="margin-bottom:0pt; line-height:120%; font-size:5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">cobb - 14 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Mixed greens, avocado, grilled chicken, tomato, hard-boiled egg, chives, blue cheese 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">CAESAR – 13 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Romaine, grilled chicken, croutons, pine nuts, Parmesan cheese 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">Greek - 12 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Iceberg, grape tomatoes, cucumbers, feta cheese, olives, croutons&#xa0; 
+</p>
+</td>
+</tr>
+<tr style="height:129.6pt">
+<td style="width:182.7pt; border-top-style:solid; border-top-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:12pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; letter-spacing:5pt; vertical-align:30pt">EST. </span><svg height="96" id="Icons_Rooster" overflow="hidden" viewBox="0 0 96 96" width="96" xmlns="http://www.w3.org/2000/svg" style="overflow:hidden" xmlns:xlink="http://www.w3.org/1999/xlink">
+<style>
+.MsftOfcThm_Accent2_Fill_v2 {
+fill:#E20000; 
+}
+</style>
+<path class="MsftOfcThm_Accent2_Fill_v2" d="M77.3 22.5C76.9 20.6 76 18.8 74.6 17.5 73.8 14.5 72.4 11.6 70.6 9.1 70.1 8.3 69.1 8 68.2 8.4 67.3 8.8 66.8 9.7 67 10.6 66.3 9.8 65.8 9.2 65.4 8.8 64.6 8 63.3 8 62.6 8.8 61.8 9.6 61.8 10.9 62.6 11.6L63 11.9C62 11.3 60.9 10.8 59.8 10.3 58.8 9.9 57.6 10.4 57.2 11.4 56.8 12.4 57.3 13.6 58.3 14L59.1 14.4C58.1 14.2 57.1 14.2 56 14.2 54.9 14.2 54 15.1 54 16.2 54 17.3 54.9 18.2 56 18.2 57.4 18.2 58.8 18.4 60.2 18.7 58.4 21.2 58 24.3 58.9 27.2L58.9 34.7C58.9 35.2 58.9 35.7 58.8 36.2L60.9 38.3 63.2 36C63.6 35.6 64.2 35.6 64.6 36L66.9 38.3 68.9 36.3 68.9 33.7C69.5 33.6 70.1 33.5 70.6 33.3L70.9 33.3 70.9 35.3C70.9 36.4 71.8 37.3 72.9 37.3 74 37.3 74.9 36.4 74.9 35.3L74.9 30.7C75.6 30 76.1 29.2 76.5 28.3L83 28.3C81.5 26 79.6 24 77.3 22.5Z" fill="#E20000" style="fill:#E20000" />
+<path class="MsftOfcThm_Accent2_Fill_v2" d="M66.3 40.5 64 38.2 61.7 40.5C61.3 40.9 60.7 40.9 60.3 40.5L58.3 38.5C56.8 42.8 52.8 45.3 48 45.3 45.6 45.3 43.5 43.7 42.8 41.4 42.1 39.1 43 36.6 45 35.3L45.6 34.9C50.9 31 52.4 23.7 49 18.1 43.3 6.8 22.7 11 15 22.2 13.9 23.8 13 25.6 12.3 27.5 12.2 27.8 12.3 28.2 12.5 28.4 12.7 28.6 13.1 28.7 13.4 28.5 16.7 26.5 20.4 25.3 24.3 25.1 18.2 28.2 13.8 33.7 12 40.3 11.5 42.2 11.2 44.2 11.1 46.2 11.1 46.5 11.3 46.9 11.6 47 11.9 47.1 12.3 47 12.5 46.8 15.1 43.7 18.5 41.3 22.3 39.8 17.2 45.8 15.4 53.9 17.3 61.5 17.4 61.8 17.7 62.1 18 62.1 18.3 62.1 18.7 62 18.8 61.6 19.9 59.4 21.2 57.3 22.8 55.3 22.8 59.2 28.2 66.3 29.8 68.3L29.9 68.2C32.7 71.3 36.8 73.5 42.8 73.8L42.8 79.7C41.7 79.7 40.8 80.6 40.8 81.7 40.8 82.8 41.7 83.7 42.8 83.7L44 83.7 47.4 87.1C47.8 87.5 48.3 87.7 48.8 87.7 49.3 87.7 49.8 87.5 50.2 87.1 50.6 86.7 50.8 86.2 50.8 85.7 50.8 85.2 50.6 84.7 50.2 84.3L49.6 83.7 52 83.7C53.1 83.7 54 82.8 54 81.7 54 80.6 53.1 79.7 52 79.7L47 79.7 47 73.7C47.4 73.7 47.8 73.6 48.2 73.6 49.1 73.5 50 73.4 51 73.2L51 75.7C49.9 75.7 49 76.6 49 77.7L52 77.7C53.3 77.7 54.6 78.4 55.3 79.5 56 80.6 56.2 82 55.7 83.2 56.1 83.5 56.5 83.7 57 83.7 57.5 83.7 58 83.5 58.4 83.1 58.8 82.7 59 82.2 59 81.7 59 81.2 58.8 80.7 58.4 80.3L57.8 79.7 60 79.7C61.1 79.7 62 78.8 62 77.7 62 76.6 61.1 75.7 60 75.7L55 75.7 55 71.7C63.5 67.8 69 59.3 69 49.9L69 39.2 67.7 40.5C67.3 40.8 66.7 40.8 66.3 40.5Z" fill="#E20000" style="fill:#E20000" />
+</svg><span style="font-family:'Source Sans Pro Black', sans-serif; letter-spacing:5pt; vertical-align:30pt"> 1981</span>
+</p>
+</td>
+<td rowspan="2" style="width:2.7pt; border-right-style:solid; border-right-width:2.25pt; padding-right:4.28pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+</td>
+<td rowspan="2" style="width:2.7pt; border-left-style:solid; border-left-width:2.25pt; padding-right:5.4pt; padding-left:4.28pt; vertical-align:top">
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+</td>
+<td rowspan="2" style="width:308.7pt; border-top-style:solid; border-top-width:0.75pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<h1 style="margin-top:0pt; margin-bottom:0pt; line-height:120%; font-size:12pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; font-weight:normal; text-transform:uppercase; letter-spacing:2pt; color:#e20000">ENTREES</span>
+</h1>
+<p style="margin-bottom:0pt; line-height:120%; font-size:5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">burger - 16 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+7oz custom ground beef patty, triple cream brie, alfalfa sprouts, caramelized onions 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">pasta - 15 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Hand-made pasta, black truffle, olive oil, shaved Parmesan 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">gnocchi – 14 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Potato dumplings, roasted mushrooms, spinach 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">grilled steak sandwich - 17 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Caramelized onions, roasted tomatoes, horseradish
+</p>
+</td>
+</tr>
+<tr style="height:93.6pt">
+<td rowspan="2" style="width:187.75pt; border-top-style:solid; border-top-width:0.75pt; padding-right:5.75pt; vertical-align:middle">
+<h1 style="margin-top:0pt; margin-bottom:0pt; line-height:120%; font-size:12pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; font-weight:normal; text-transform:uppercase; letter-spacing:2pt; color:#e20000">APPETIZERS</span>
+</h1>
+<p style="margin-bottom:0pt; line-height:120%; font-size:5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">potato cakes – 7 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Fried potato, apple jelly, sour cream 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">spinach dip - 5 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Spinach, cream cheese, spices, tortilla chips 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">oysters - 13 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Freshly shucked oysters 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">cheese fries - 4 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Hand-cut fries, cheese, bacon, chives, jalapeno, sour cream 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">onion rings - 7</span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Thick cut yellow onion, beer battered, panko coated 
+</p>
+</td>
+</tr>
+<tr style="height:194.4pt">
+<td style="width:2.7pt; border-right-style:solid; border-right-width:2.25pt; border-bottom-style:solid; border-bottom-width:2.25pt; padding-right:4.28pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+</td>
+<td style="width:2.7pt; border-left-style:solid; border-left-width:2.25pt; border-bottom-style:solid; border-bottom-width:2.25pt; padding-right:5.4pt; padding-left:4.28pt; vertical-align:top">
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+</td>
+<td style="width:308.7pt; border-top-style:solid; border-top-width:0.75pt; border-bottom-style:solid; border-bottom-width:2.25pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<h1 style="margin-top:0pt; margin-bottom:0pt; line-height:120%; font-size:12pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; font-weight:normal; text-transform:uppercase; letter-spacing:2pt; color:#e20000">DESSERTS</span>
+</h1>
+<p style="margin-bottom:0pt; line-height:120%; font-size:5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">caramel cheesecake - 13 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Caramelized banana, cream&#xa0;  
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">apple cobbler - 12 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Cinnamon crumble, vanilla ice cream, heirloom apples 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">brownie sundae - 9 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Dark chocolate, nuts, vanilla ice cream 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">flan - 8 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Vanilla custard with sweet caramel sauce 
+</p>
+</td>
+</tr>
+</table>
+<p style="margin-bottom:0pt; line-height:120%; font-size:4pt">
+&#xa0;
+</p>
+</div>
+<br style="page-break-before:always; clear:both; mso-break-type:section-break" />
+<div>
+<p style="margin-bottom:0pt">
+<span style="height:0pt; display:block; position:absolute; z-index:-1"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAzAAAAQgCAYAAAA5ebkOAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAFk9JREFUeJzt17ENwCAAwLDS/z/lAZjoC91QJPuCrBlz7fMAAAAEvLcDAAAA/jIwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDDwAAAABkGBgAAyDAwAABAhoEBAAAyDAwAAJBhYAAAgAwDAwAAZBgYAAAgw8AAAAAZBgYAAMgwMAAAQIaBAQAAMgwMAACQYWAAAIAMAwMAAGQYGAAAIMPAAAAAGQYGAADIMDAAAECGgQEAADIMDAAAkGFgAACADAMDAABkGBgAACDjAyQHDBs3TK8jAAAAAElFTkSuQmCC" width="816" height="1056" alt="Decorative" style="margin-top:-36pt; margin-left:-36.6pt; position:absolute" /></span>&#xa0;
+</p>
+<table cellspacing="0" cellpadding="0" style="width:540pt; border-collapse:collapse">
+<tr style="height:81.35pt">
+<td style="width:48.15pt; border-bottom:0.75pt solid #e20000; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:11pt">
+<span style="height:0pt; text-align:left; display:block; position:absolute; z-index:-4"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgcAAAAWCAYAAABUtD8sAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAH1JREFUeJzt1iEBgFAUwMD3MdShfwrqoEBPoEHcJZjcuo/9HgCAmVnntbavIwCAfzEHAECYAwAgzAEAEOYAAAhzAACEOQAAwhwAAGEOAIAwBwBAmAMAIMwBABDmAAAIcwAAhDkAAMIcAABhDgCAMAcAQJgDACDMAQAAAPDuAY31BCq4gD48AAAAAElFTkSuQmCC" width="519" height="22" alt="Decorative" style="margin-top:-736.35pt; margin-left:73.2pt; position:absolute" /></span><span style="font-family:'Source Sans Pro Black', sans-serif; text-transform:uppercase; letter-spacing:5pt">EST.</span>
+</p>
+</td>
+<td colspan="2" style="width:407.25pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; text-align:center; font-size:55pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; text-transform:uppercase; letter-spacing:5pt; color:#e20000">BISTRO MENU</span>
+</p>
+</td>
+<td style="width:52.2pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:11pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; text-transform:uppercase; letter-spacing:5pt">1981</span>
+</p>
+</td>
+</tr>
+<tr style="height:220pt">
+<td rowspan="4" style="width:48.15pt; border-top:0.75pt solid #e20000; border-bottom:0.75pt solid #e20000; padding-right:5.4pt; padding-left:5.4pt; vertical-align:bottom; background-color:#e20000">
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:8.5pt">
+<svg height="59.4" id="Icons_Sheep" overflow="hidden" viewBox="0 0 96 96" width="59.4" xmlns="http://www.w3.org/2000/svg" style="overflow:hidden" xmlns:xlink="http://www.w3.org/1999/xlink">
+<path d="M84.2 28.2 76.2 21C75.5 20.3 74.5 20 73.5 20L61.1 20C60.1 20 59.2 20.6 59 21.6 58.9 22.2 59.1 22.8 59.5 23.2 59.9 23.7 60.5 23.9 61 23.9L65 23.9 65 24.9 63.2 26.4C60.8 25.2 57.9 26.1 56.6 28.5 55.6 27.4 54.2 26.8 52.7 26.9 51.2 27 49.9 27.7 49 28.9 48.1 27.6 46.6 26.9 45 26.9 43.4 26.9 41.9 27.6 41 28.9 40.1 27.6 38.6 26.9 37 26.9 35.4 26.9 33.9 27.6 33 28.9 32 27.5 30.4 26.8 28.7 26.9 27 27 25.5 28 24.7 29.5 23.4 28.1 21.5 27.6 19.7 28.1 17.9 28.6 16.5 30.1 16.2 31.9L16 31.9C14.1 31.9 12.4 33 11.5 34.7 10.7 36.4 10.8 38.4 12 39.9 10.6 40.9 9.9 42.6 10 44.3 10.1 46 11.2 47.5 12.7 48.3 11.8 49.8 11.8 51.8 12.6 53.3 13.5 55 15.2 56 17 56 17.3 56 17.7 56 18 55.9L18 73C18 74.7 19.3 76 21 76 22.7 76 24 74.7 24 73L24 58.6C25.7 59.3 27.6 59.1 29 58 29.8 59.1 31 59.8 32.3 60 33.6 60.2 35 59.8 36 59 36.8 60.1 38 60.8 39.3 61 40.6 61.2 42 60.8 43 60 43.8 61.1 45 61.8 46.3 62 47.6 62.2 49 61.8 50 61 50.8 62.1 52 62.8 53.3 63 54.6 63.2 56 62.8 57 62L57 73C57 74.7 58.3 76 60 76 61.7 76 63 74.7 63 73L63 61.6C64.5 60.9 65.6 59.5 65.9 57.9 67.6 58.3 69.4 57.8 70.6 56.5 71.8 55.2 72.2 53.4 71.7 51.7 73.1 51.2 74.1 50.1 74.6 48.7 75.1 47.3 74.9 45.8 74.2 44.5 75.7 43.7 76.7 42.3 76.9 40.7 77.1 39.1 76.5 37.4 75.2 36.3 75.8 34.9 76 34 76 34L82.9 34C84.5 34 85.8 32.9 86 31.3 86.1 29.9 84.2 28.2 84.2 28.2Z" fill="#F7F5EF" />
+<path d="M28 73C28 74.7 29.3 76 31 76 32.7 76 34 74.7 34 73L34 61.5 28 61 28 73Z" fill="#F7F5EF" />
+<path d="M47 73C47 74.7 48.3 76 50 76 51.7 76 53 74.7 53 73L53 64.2 47 63.7 47 73Z" fill="#F7F5EF" />
+</svg>
+</p>
+</td>
+<td rowspan="2" style="width:125.75pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:14.02pt; padding-left:14.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:120%; font-size:12pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; letter-spacing:2pt; color:#e20000">Drinks</span>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">SODA – 3 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Cola, Lemon-Lime, Orange, Grape, Strawberry 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">LEMONADE – 3 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Strawberry, Mint, Blueberry, Mango, Peach 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">TEA – 2 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Chamomile, Black, Earl Grey, Matcha, Jasmine, Chai, Fruit blend 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">COFFEE- 2 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Dark roast, Blonde, Medium, French 
+</p>
+</td>
+<td colspan="2" style="width:297.7pt; border-style:solid; border-width:0.75pt; padding-right:14.02pt; padding-left:14.02pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:120%; font-size:12pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; letter-spacing:2pt; color:#e20000">Salads</span>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">ARUGULA – 11 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Lemon, olive oil, garlic, Parmesan cheese 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">&#xa0;</span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">CAESAR – 13 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Romaine, grilled chicken, croutons, pine nuts, Parmesan cheese 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">Greek - 12 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Iceberg, grape tomatoes, cucumbers, feta cheese, olives, croutons&#xa0; 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">cobb - 14 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Mixed greens, avocado, grilled chicken, tomato, hard-boiled egg, chives, blue cheese &#xa0;
+</p>
+</td>
+</tr>
+<tr style="height:36pt">
+<td colspan="2" rowspan="2" style="width:297.7pt; border-style:solid; border-width:0.75pt; padding-right:14.02pt; padding-left:14.02pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:120%; font-size:12pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; letter-spacing:2pt; color:#e20000">Entrees</span>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">burger - 16 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+7oz custom ground beef patty, triple cream brie, alfalfa sprouts, caramelized onions 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">pasta - 15 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Hand-made pasta, black truffle, olive oil, shaved Parmesan 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">gnocchi – 14 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Potato dumplings, roasted mushrooms, spinach 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">grilled steak sandwich - 17 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Caramelized onions, roasted tomatoes, horseradish
+</p>
+</td>
+</tr>
+<tr style="height:175pt">
+<td rowspan="2" style="width:125.75pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:14.02pt; padding-left:14.4pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:120%; font-size:12pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; letter-spacing:2pt; color:#e20000">Appetizers</span>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">potato cakes – 7 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Fried potato, apple jelly, sour cream 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">spinach dip - 5 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Spinach, cream cheese, spices, tortilla chips 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">oysters - 13 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Freshly shucked oysters 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">cheese fries - 4 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Hand-cut fries, cheese, bacon, chives, jalapeno, sour cream 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">onion rings - 7</span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Thick cut yellow onion, beer battered, panko coated
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">Fried Pickles - 5 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Battered + lightly fried dill pickles 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+</td>
+</tr>
+<tr style="height:180pt">
+<td colspan="2" style="width:297.7pt; border-style:solid; border-width:0.75pt; padding-right:14.02pt; padding-left:14.02pt; vertical-align:middle">
+<p style="margin-bottom:0pt; line-height:120%; font-size:12pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; letter-spacing:2pt; color:#e20000">Desserts</span>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">caramel cheesecake - 13 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Caramelized banana, cream&#xa0;  
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">apple cobbler - 12 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Cinnamon crumble, vanilla ice cream, heirloom apples 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">brownie sundae - 9 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Dark chocolate, nuts, vanilla ice cream 
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">flan - 8 </span></strong>
+</p>
+<p style="margin-bottom:0pt; line-height:120%; font-size:9pt">
+Vanilla custard with sweet caramel sauce
+</p>
+</td>
+</tr>
+<tr style="height:0pt">
+<td style="width:58.95pt">
+</td>
+<td style="width:154.55pt">
+</td>
+<td style="width:263.5pt">
+</td>
+<td style="width:63pt">
+</td>
+</tr>
+</table>
+<p style="margin-bottom:0pt; line-height:120%; font-size:4pt">
+&#xa0;
+</p>
+</div>
+<br style="page-break-before:always; clear:both; mso-break-type:section-break" />
+<div>
+<p style="margin-bottom:0pt; line-height:120%; font-size:4pt">
+<span style="height:0pt; display:block; position:absolute; z-index:-3"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAzAAAAQgCAYAAAA5ebkOAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAFmFJREFUeJzt2cEJwzAABEE5CBz332GaiP1KWtBPLMxUcN/ljs8YvwEAABDw2j0AAABglYABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABnzup/dGwAAAJZ4YAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADIEDAAAkCFgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAxvy+z90bAAAAlnhgAACADAEDAABkCBgAACBDwAAAABkCBgAAyBAwAABAhoABAAAyBAwAAJAhYAAAgAwBAwAAZAgYAAAgQ8AAAAAZAgYAAMgQMAAAQIaAAQAAMgQMAACQIWAAAIAMAQMAAGQIGAAAIEPAAAAAGQIGAADIEDAAAECGgAEAADLmdT+7NwAAACz5AwS/DyFPLxfSAAAAAElFTkSuQmCC" width="816" height="1056" alt="Decorative" style="margin-top:-36pt; margin-left:-36pt; position:absolute" /></span>&#xa0;
+</p>
+<table cellspacing="0" cellpadding="0" style="width:540pt; border-collapse:collapse">
+<tr style="height:79.2pt">
+<td style="width:48.15pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:11pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; text-transform:uppercase; letter-spacing:5pt">EST.</span>
+</p>
+</td>
+<td colspan="3" style="width:407.25pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; text-align:center; font-size:55pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; text-transform:uppercase; letter-spacing:5pt; color:#e20000">BISTRO MENU</span>
+</p>
+</td>
+<td style="width:52.2pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:11pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; text-transform:uppercase; letter-spacing:5pt">1981</span>
+</p>
+</td>
+</tr>
+<tr style="height:1pt">
+<td style="width:48.15pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; text-transform:uppercase; letter-spacing:5pt">&#xa0;</span>
+</p>
+</td>
+<td colspan="3" style="width:407.25pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:10pt">
+<strong><span style="text-transform:uppercase; letter-spacing:5pt; color:#ff3007">&#xa0;</span></strong>
+</p>
+</td>
+<td style="width:52.2pt; padding-right:5.4pt; padding-left:5.4pt; vertical-align:top">
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; text-transform:uppercase; letter-spacing:5pt">&#xa0;</span>
+</p>
+</td>
+</tr>
+<tr style="height:180pt">
+<td colspan="2" rowspan="4" style="width:117.9pt; border-right-style:solid; border-right-width:2.25pt; border-left-style:solid; border-left-width:0.75pt; padding-right:9.68pt; padding-left:10.42pt; vertical-align:middle">
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:10pt">
+<svg height="96" id="Icons_Rooster" overflow="hidden" viewBox="0 0 96 96" width="96" xmlns="http://www.w3.org/2000/svg" style="overflow:hidden" xmlns:xlink="http://www.w3.org/1999/xlink">
+<style>
+.MsftOfcThm_Accent2_Fill_v2 {
+fill:#E20000; 
+}
+</style>
+<path class="MsftOfcThm_Accent2_Fill_v2" d="M77.3 22.5C76.9 20.6 76 18.8 74.6 17.5 73.8 14.5 72.4 11.6 70.6 9.1 70.1 8.3 69.1 8 68.2 8.4 67.3 8.8 66.8 9.7 67 10.6 66.3 9.8 65.8 9.2 65.4 8.8 64.6 8 63.3 8 62.6 8.8 61.8 9.6 61.8 10.9 62.6 11.6L63 11.9C62 11.3 60.9 10.8 59.8 10.3 58.8 9.9 57.6 10.4 57.2 11.4 56.8 12.4 57.3 13.6 58.3 14L59.1 14.4C58.1 14.2 57.1 14.2 56 14.2 54.9 14.2 54 15.1 54 16.2 54 17.3 54.9 18.2 56 18.2 57.4 18.2 58.8 18.4 60.2 18.7 58.4 21.2 58 24.3 58.9 27.2L58.9 34.7C58.9 35.2 58.9 35.7 58.8 36.2L60.9 38.3 63.2 36C63.6 35.6 64.2 35.6 64.6 36L66.9 38.3 68.9 36.3 68.9 33.7C69.5 33.6 70.1 33.5 70.6 33.3L70.9 33.3 70.9 35.3C70.9 36.4 71.8 37.3 72.9 37.3 74 37.3 74.9 36.4 74.9 35.3L74.9 30.7C75.6 30 76.1 29.2 76.5 28.3L83 28.3C81.5 26 79.6 24 77.3 22.5Z" fill="#E20000" style="fill:#E20000" />
+<path class="MsftOfcThm_Accent2_Fill_v2" d="M66.3 40.5 64 38.2 61.7 40.5C61.3 40.9 60.7 40.9 60.3 40.5L58.3 38.5C56.8 42.8 52.8 45.3 48 45.3 45.6 45.3 43.5 43.7 42.8 41.4 42.1 39.1 43 36.6 45 35.3L45.6 34.9C50.9 31 52.4 23.7 49 18.1 43.3 6.8 22.7 11 15 22.2 13.9 23.8 13 25.6 12.3 27.5 12.2 27.8 12.3 28.2 12.5 28.4 12.7 28.6 13.1 28.7 13.4 28.5 16.7 26.5 20.4 25.3 24.3 25.1 18.2 28.2 13.8 33.7 12 40.3 11.5 42.2 11.2 44.2 11.1 46.2 11.1 46.5 11.3 46.9 11.6 47 11.9 47.1 12.3 47 12.5 46.8 15.1 43.7 18.5 41.3 22.3 39.8 17.2 45.8 15.4 53.9 17.3 61.5 17.4 61.8 17.7 62.1 18 62.1 18.3 62.1 18.7 62 18.8 61.6 19.9 59.4 21.2 57.3 22.8 55.3 22.8 59.2 28.2 66.3 29.8 68.3L29.9 68.2C32.7 71.3 36.8 73.5 42.8 73.8L42.8 79.7C41.7 79.7 40.8 80.6 40.8 81.7 40.8 82.8 41.7 83.7 42.8 83.7L44 83.7 47.4 87.1C47.8 87.5 48.3 87.7 48.8 87.7 49.3 87.7 49.8 87.5 50.2 87.1 50.6 86.7 50.8 86.2 50.8 85.7 50.8 85.2 50.6 84.7 50.2 84.3L49.6 83.7 52 83.7C53.1 83.7 54 82.8 54 81.7 54 80.6 53.1 79.7 52 79.7L47 79.7 47 73.7C47.4 73.7 47.8 73.6 48.2 73.6 49.1 73.5 50 73.4 51 73.2L51 75.7C49.9 75.7 49 76.6 49 77.7L52 77.7C53.3 77.7 54.6 78.4 55.3 79.5 56 80.6 56.2 82 55.7 83.2 56.1 83.5 56.5 83.7 57 83.7 57.5 83.7 58 83.5 58.4 83.1 58.8 82.7 59 82.2 59 81.7 59 81.2 58.8 80.7 58.4 80.3L57.8 79.7 60 79.7C61.1 79.7 62 78.8 62 77.7 62 76.6 61.1 75.7 60 75.7L55 75.7 55 71.7C63.5 67.8 69 59.3 69 49.9L69 39.2 67.7 40.5C67.3 40.8 66.7 40.8 66.3 40.5Z" fill="#E20000" style="fill:#E20000" />
+</svg>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:10pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; letter-spacing:1pt; color:#ff3007">&#xa0;</span>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:12pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; letter-spacing:2pt; color:#e20000">Appetizers</span>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">&#xa0;</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">potato cakes – 7</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Fried potato, apple jelly, sour cream
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">spinach dip - 5</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Spinach, cream cheese, spices, tortilla chips
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">oysters - 13</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Freshly shucked oysters
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">cheese fries - 4</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Hand-cut fries, cheese, bacon, chives, jalapeno, sour cream
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">onion rings - 7</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Thick cut yellow onion, beer battered, panko coated
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">Fried Pickles - 5</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Battered + lightly fried dill pickles
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">poutine – 4</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Gold potato fries, cheese curds, house-made veal gravy
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">house bread – 5</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+With balsamic and olive oil
+</p>
+</td>
+<td style="width:232.2pt; border-right-style:solid; border-right-width:2.25pt; border-left-style:solid; border-left-width:2.25pt; padding-right:13.28pt; padding-left:13.28pt; vertical-align:middle">
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:12pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; letter-spacing:2pt; color:#e20000">Salads</span>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">ARUGULA – 11</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Lemon, olive oil, garlic, Parmesan cheese
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">&#xa0;</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">CAESAR – 13</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Romaine, grilled chicken, croutons, pine nuts, Parmesan cheese
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">Greek - 12</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Iceberg, grape tomatoes, cucumbers, feta cheese, olives, croutons
+</p>
+</td>
+<td colspan="2" rowspan="3" style="width:117.9pt; border-right-style:solid; border-right-width:0.75pt; border-left-style:solid; border-left-width:2.25pt; padding-right:10.42pt; padding-left:9.68pt; vertical-align:middle">
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:12pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; letter-spacing:2pt; color:#e20000">Drinks</span>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">SODA – 3</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Cola, Lemon-Lime, Orange, Grape, Strawberry
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">LEMONADE – 3</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Strawberry, Mint, Blueberry, Mango, Peach
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">JUICE – 2</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Orange, Grapefruit, Apple, Grape
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">TEA – 2</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Chamomile, Black, Earl Grey, Matcha, Jasmine, Chai, Fruit blend
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">COFFEE - 2</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Dark roast, Blonde, Medium, French
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">CAPPUCCINO - 4</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Dark, rich espresso with a layer of thick milk foam
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">Espresso - 3</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Espresso roast with rich flavor and caramelly undertones
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:6pt">
+<span style="letter-spacing:1pt">&#xa0;</span>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">Flat white – 4</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Espresso with the perfect amount of steamed whole milk
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+</td>
+</tr>
+<tr style="height:230.4pt">
+<td style="width:232.2pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:2.25pt; border-left-style:solid; border-left-width:2.25pt; padding-right:13.28pt; padding-left:13.28pt; vertical-align:middle">
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:12pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; letter-spacing:2pt; color:#e20000">Entrees</span>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">burger - 16</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+7oz custom ground beef patty, triple cream brie, alfalfa sprouts, caramelized onions
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">pasta - 15</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Hand-made pasta, black truffle, olive oil, shaved Parmesan
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">gnocchi – 14</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Potato dumplings, roasted mushrooms, spinach
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">grilled steak sandwich - 17</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Caramelized onions, roasted tomatoes, horseradish
+</p>
+</td>
+</tr>
+<tr style="height:100.8pt">
+<td rowspan="2" style="width:232.2pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:2.25pt; border-left-style:solid; border-left-width:2.25pt; padding-right:13.28pt; padding-left:13.28pt; vertical-align:middle">
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:12pt">
+<span style="font-family:'Source Sans Pro Black', sans-serif; letter-spacing:2pt; color:#e20000">Desserts</span>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">caramel cheesecake - 13</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Caramelized banana, cream&#xa0; 
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">apple cobbler - 12</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Cinnamon crumble, vanilla ice cream, heirloom apples
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">brownie sundae - 9</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Dark chocolate, nuts, vanilla ice cream
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:8.5pt">
+&#xa0;
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+<strong><span style="text-transform:uppercase; letter-spacing:1pt">flan - 8</span></strong>
+</p>
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:9pt">
+Vanilla custard with sweet caramel sauce
+</p>
+</td>
+</tr>
+<tr style="height:88.85pt">
+<td colspan="2" style="width:128.7pt; border-right-style:solid; border-right-width:0.75pt; border-left-style:solid; border-left-width:2.25pt; padding-right:5.03pt; padding-left:4.28pt; vertical-align:bottom">
+<p style="margin-bottom:0pt; text-align:center; line-height:120%; font-size:8.5pt">
+<svg height="84.44" id="Icons_Sheep" overflow="hidden" viewBox="0 0 96 96" width="102.67" xmlns="http://www.w3.org/2000/svg" style="overflow:hidden" xmlns:xlink="http://www.w3.org/1999/xlink">
+<style>
+.MsftOfcThm_Accent2_Fill_v2 {
+fill:#E20000; 
+}
+</style>
+<path class="MsftOfcThm_Accent2_Fill_v2" d="M84.2 28.2 76.2 21C75.5 20.3 74.5 20 73.5 20L61.1 20C60.1 20 59.2 20.6 59 21.6 58.9 22.2 59.1 22.8 59.5 23.2 59.9 23.7 60.5 23.9 61 23.9L65 23.9 65 24.9 63.2 26.4C60.8 25.2 57.9 26.1 56.6 28.5 55.6 27.4 54.2 26.8 52.7 26.9 51.2 27 49.9 27.7 49 28.9 48.1 27.6 46.6 26.9 45 26.9 43.4 26.9 41.9 27.6 41 28.9 40.1 27.6 38.6 26.9 37 26.9 35.4 26.9 33.9 27.6 33 28.9 32 27.5 30.4 26.8 28.7 26.9 27 27 25.5 28 24.7 29.5 23.4 28.1 21.5 27.6 19.7 28.1 17.9 28.6 16.5 30.1 16.2 31.9L16 31.9C14.1 31.9 12.4 33 11.5 34.7 10.7 36.4 10.8 38.4 12 39.9 10.6 40.9 9.9 42.6 10 44.3 10.1 46 11.2 47.5 12.7 48.3 11.8 49.8 11.8 51.8 12.6 53.3 13.5 55 15.2 56 17 56 17.3 56 17.7 56 18 55.9L18 73C18 74.7 19.3 76 21 76 22.7 76 24 74.7 24 73L24 58.6C25.7 59.3 27.6 59.1 29 58 29.8 59.1 31 59.8 32.3 60 33.6 60.2 35 59.8 36 59 36.8 60.1 38 60.8 39.3 61 40.6 61.2 42 60.8 43 60 43.8 61.1 45 61.8 46.3 62 47.6 62.2 49 61.8 50 61 50.8 62.1 52 62.8 53.3 63 54.6 63.2 56 62.8 57 62L57 73C57 74.7 58.3 76 60 76 61.7 76 63 74.7 63 73L63 61.6C64.5 60.9 65.6 59.5 65.9 57.9 67.6 58.3 69.4 57.8 70.6 56.5 71.8 55.2 72.2 53.4 71.7 51.7 73.1 51.2 74.1 50.1 74.6 48.7 75.1 47.3 74.9 45.8 74.2 44.5 75.7 43.7 76.7 42.3 76.9 40.7 77.1 39.1 76.5 37.4 75.2 36.3 75.8 34.9 76 34 76 34L82.9 34C84.5 34 85.8 32.9 86 31.3 86.1 29.9 84.2 28.2 84.2 28.2Z" fill="#E20000" style="fill:#E20000" />
+<path class="MsftOfcThm_Accent2_Fill_v2" d="M28 73C28 74.7 29.3 76 31 76 32.7 76 34 74.7 34 73L34 61.5 28 61 28 73Z" fill="#E20000" style="fill:#E20000" />
+<path class="MsftOfcThm_Accent2_Fill_v2" d="M47 73C47 74.7 48.3 76 50 76 51.7 76 53 74.7 53 73L53 64.2 47 63.7 47 73Z" fill="#E20000" style="fill:#E20000" />
+</svg>
+</p>
+</td>
+</tr>
+<tr style="height:0pt">
+<td style="width:58.95pt">
+</td>
+<td style="width:80.55pt">
+</td>
+<td style="width:261pt">
+</td>
+<td style="width:76.5pt">
+</td>
+<td style="width:63pt">
+</td>
+</tr>
+</table>
+<p style="margin-bottom:0pt; line-height:120%; font-size:4pt">
+&#xa0;
+</p>
+</body>
+</html>

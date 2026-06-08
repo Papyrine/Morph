@@ -39,6 +39,13 @@ sealed class Run
     public bool IsTab { get; init; }
 
     /// <summary>
+    /// Target of the <c>w:hyperlink</c> that wraps this run (external URI or <c>#anchor</c> for
+    /// internal bookmarks). Null when the run is not part of a hyperlink. The raster renderers
+    /// ignore this; the HTML/Markdown exporters use it to emit links.
+    /// </summary>
+    public string? HyperlinkUrl { get; init; }
+
+    /// <summary>
     /// Inline shape group (<c>wpg:wgp</c>) attached to this run, when the run hosts a primitive
     /// drawing made of connector lines / rectangles instead of a picture. Mutually exclusive
     /// with <see cref="InlineImageData"/>.

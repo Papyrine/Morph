@@ -97,8 +97,20 @@ sealed class ThemeColors
     }
 
     /// <summary>
-    /// Applies all color transforms to a base color.
-    /// Order matters: lumMod/satMod first (HSL), then shade/tint (RGB).
+    /// Applies all colour transforms to a base colour in the HSL space Word uses.
+    ///
+    /// Both the DrawingML transforms (<c>lumMod</c>/<c>lumOff</c>/<c>satMod</c>/<c>satOff</c>, given
+    /// as percentages) and the WordprocessingML <c>w:themeShade</c>/<c>w:themeTint</c> bytes are
+    /// luminance modulation: Word scales (and offsets) the HSL <em>luminance</em> while preserving
+    /// hue and saturation. The byte forms map onto that model as
+    /// <list type="bullet">
+    /// <item><c>themeShade S</c>: <c>L' = L · (S/255)</c> — i.e. <c>lumMod = S/255</c>.</item>
+    /// <item><c>themeTint T</c>: <c>L' = L · (T/255) + (1 − T/255)</c> — i.e. <c>lumMod = T/255</c>,
+    /// <c>lumOff = (255 − T)/255</c>.</item>
+    /// </list>
+    /// The previous implementation applied shade/tint as an RGB blend toward black/white, which
+    /// <em>desaturates</em> the colour (a shaded accent came out muted, e.g. accent3 748DF3 +
+    /// shade BF gave 5669B6 instead of Word's 2048EB). Luminance-only scaling reproduces Word.
     /// </summary>
     static string ApplyColorTransforms(string hexColor, ColorTransforms transforms)
     {
@@ -107,64 +119,36 @@ sealed class ThemeColors
             return hexColor;
         }
 
-        // Apply HSL-based transforms first (lumMod, satMod, lumOff, satOff)
-        if (transforms.LumMod.HasValue || transforms.SatMod.HasValue ||
-            transforms.LumOff.HasValue || transforms.SatOff.HasValue)
+        var lumMod = (transforms.LumMod ?? 100.0) / 100.0;
+        var lumOff = (transforms.LumOff ?? 0.0) / 100.0;
+        var satMod = (transforms.SatMod ?? 100.0) / 100.0;
+        var satOff = (transforms.SatOff ?? 0.0) / 100.0;
+
+        // Fold the byte shade/tint into the luminance modulation (they never co-occur with the
+        // DrawingML lum/sat transforms on the same colour, but composing is harmless if they did).
+        // A byte shade of 0 is treated as "unspecified" rather than "scale luminance to zero"
+        // (a literal w:themeShade="00" never occurs; 0 is the absent-value sentinel here).
+        if (transforms.Shade is > 0 and { } shade)
         {
-            RgbToHsl(r, g, b, out var h, out var s, out var l);
-
-            // Apply saturation modulation (percentage)
-            if (transforms.SatMod.HasValue)
-            {
-                s *= transforms.SatMod.Value / 100.0;
-            }
-
-            // Apply saturation offset (percentage points)
-            if (transforms.SatOff.HasValue)
-            {
-                s += transforms.SatOff.Value / 100.0;
-            }
-
-            // Apply luminance modulation (percentage)
-            if (transforms.LumMod.HasValue)
-            {
-                l *= transforms.LumMod.Value / 100.0;
-            }
-
-            // Apply luminance offset (percentage points)
-            if (transforms.LumOff.HasValue)
-            {
-                l += transforms.LumOff.Value / 100.0;
-            }
-
-            // Clamp values
-            s = Math.Clamp(s, 0.0, 1.0);
-            l = Math.Clamp(l, 0.0, 1.0);
-
-            HslToRgb(h, s, l, out r, out g, out b);
+            lumMod *= shade / 255.0;
         }
 
-        // Apply RGB-based transforms (shade, tint)
-        // Per ECMA-376: shade darkens the color, tint lightens it
-        // Values are in 0-100 percentage scale
-        if (transforms.Shade is > 0)
+        if (transforms.Tint is { } tint)
         {
-            var shade = transforms.Shade.Value;
-            r = (byte)(r * shade / 255);
-            g = (byte)(g * shade / 255);
-            b = (byte)(b * shade / 255);
+            lumMod *= tint / 255.0;
+            lumOff += (255 - tint) / 255.0;
         }
 
-        if (transforms.Tint.HasValue)
+        // ReSharper disable once CompareOfFloatsByEqualityOperator — exact 1.0/0.0 means "no-op".
+        if (lumMod == 1.0 && lumOff == 0.0 && satMod == 1.0 && satOff == 0.0)
         {
-            // In OOXML, themeTint value is inverted: higher value = less tinting (closer to original)
-            // 0xFF (255) = no change, 0x00 (0) = full white
-            // So we use (255 - tint) as the amount of white to add
-            var tintAmount = 255 - transforms.Tint.Value;
-            r = (byte)(r + (255 - r) * tintAmount / 255);
-            g = (byte)(g + (255 - g) * tintAmount / 255);
-            b = (byte)(b + (255 - b) * tintAmount / 255);
+            return $"{r:X2}{g:X2}{b:X2}";
         }
+
+        RgbToHsl(r, g, b, out var h, out var s, out var l);
+        s = Math.Clamp(s * satMod + satOff, 0.0, 1.0);
+        l = Math.Clamp(l * lumMod + lumOff, 0.0, 1.0);
+        HslToRgb(h, s, l, out r, out g, out b);
 
         return $"{r:X2}{g:X2}{b:X2}";
     }
