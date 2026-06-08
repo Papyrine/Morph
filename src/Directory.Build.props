@@ -2,7 +2,7 @@
 <Project>
   <PropertyGroup>
     <Version>1.0.1</Version>
-    <NoWarn>NU1608</NoWarn>
+    <NoWarn>NU1608;SC023</NoWarn>
     <AssemblyVersion>1.0.0</AssemblyVersion>
     <LangVersion>preview</LangVersion>
     <Description>Convert docx to png</Description>
@@ -14,6 +14,7 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <SixLaborsLicenseFile>$(MSBuildThisFileDirectory)sixlabors.lic</SixLaborsLicenseFile>
+    <Papyrine_SponsorshipLicenseIgnored>true</Papyrine_SponsorshipLicenseIgnored>
   </PropertyGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\OsmfEula.txt" Pack="true" PackagePath="" Visible="false" />
