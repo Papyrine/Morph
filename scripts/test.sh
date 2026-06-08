@@ -35,6 +35,10 @@ mkdir -p "$NUGET_CACHE"
 
 # If args were provided, use them verbatim. Otherwise let the image's
 # CMD (full test suite) run.
+#
+# GitHubToken is forwarded (by name, so the value never appears on the command
+# line) so the in-container solution build can satisfy SponsorCheck's GitHub
+# Sponsors lookup; without it the build fails with SC102 (missing credential).
 docker run \
     --rm \
     --init \
@@ -42,5 +46,6 @@ docker run \
     -v "${REPO_ROOT}:/src" \
     -v "${NUGET_CACHE}:/nuget" \
     -w /src \
+    -e GitHubToken \
     "$IMAGE_TAG" \
     "$@"

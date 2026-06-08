@@ -34,7 +34,24 @@ ENV DOTNET_NOLOGO=1 \
     NUGET_PACKAGES=/nuget \
     DOTNET_NUGET_SIGNATURE_VERIFICATION=false \
     # Verify uses this to skip launching the local diff tool on test failure.
-    Verify_DisableDiff=true
+    Verify_DisableDiff=true \
+    # Where the baked-in Playwright browsers live; read at both install and run.
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
+# Bake Playwright's Chromium (+ its OS dependencies) into the image so the
+# HTML/Markdown export scenario tests can rasterize via headless Chromium.
+# The browser is pinned to the Microsoft.Playwright package version (kept in
+# sync with src/Directory.Packages.props) so rasterization is identical across
+# machines and CI. The real test build is volume-mounted only at runtime, so a
+# throwaway project at the same version supplies the matching install script
+# here at build time; its restore is isolated to /tmp so nothing leaks into the
+# runtime-mounted /nuget cache.
+RUN mkdir -p /tmp/pw && cd /tmp/pw \
+    && NUGET_PACKAGES=/tmp/pw/nuget dotnet new console >/dev/null \
+    && NUGET_PACKAGES=/tmp/pw/nuget dotnet add package Microsoft.Playwright --version 1.60.0 >/dev/null \
+    && NUGET_PACKAGES=/tmp/pw/nuget dotnet build -c Release >/dev/null \
+    && pwsh bin/Release/net10.0/playwright.ps1 install chromium --with-deps \
+    && cd / && rm -rf /tmp/pw
 
 WORKDIR /src
 
