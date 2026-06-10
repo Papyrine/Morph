@@ -25,10 +25,22 @@ public class ExtractPolygonPointsTests
     }
 
     static A.MoveTo Move(long x, long y) =>
-        new(new A.Point {X = x.ToString(), Y = y.ToString()});
+    [
+        with(new A.Point
+        {
+            X = x.ToString(),
+            Y = y.ToString()
+        })
+    ];
 
     static A.LineTo Line(long x, long y) =>
-        new(new A.Point {X = x.ToString(), Y = y.ToString()});
+    [
+        with(new A.Point
+        {
+            X = x.ToString(),
+            Y = y.ToString()
+        })
+    ];
 
     static A.CubicBezierCurveTo Cubic(long c1x, long c1y, long c2x, long c2y, long ex, long ey)
     {

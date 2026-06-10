@@ -14,7 +14,7 @@ sealed class PdfFontResolver : IFontResolver
     Lock gate = new();
     Dictionary<string, string> faceToPath = new(StringComparer.OrdinalIgnoreCase);
     Dictionary<(string Family, bool Bold, bool Italic), string> index = [];
-    HashSet<string> scannedDirectories = new(StringComparer.OrdinalIgnoreCase);
+    HashSet<string> scannedDirectories = [with(StringComparer.OrdinalIgnoreCase)];
     string? defaultFace;
 
     PdfFontResolver()
