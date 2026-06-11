@@ -12,7 +12,9 @@
 # under the tag is a source of cross-environment rendering drift. To bump:
 #   docker buildx imagetools inspect mcr.microsoft.com/dotnet/sdk:10.0
 # then update the digest below (and regenerate baselines in the container).
-FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:10.0@sha256:c0790639332692a0d56cdd81ed581cfd24d040d9839764c138994866df89a3b6
+# The pinned image's SDK must satisfy global.json (currently 10.0.301) — pinning
+# an older patch than global.json requires makes `dotnet` fail to find an SDK.
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:10.0@sha256:548d93f8a18a1acbe6cc127bc4f47281430d34a9e35c18afa80a8d6741c2adc3
 
 # SkiaSharp.NativeAssets.Linux.NoDependencies bundles freetype/expat itself.
 # The .NET SDK image already ships with ICU, so we only need to add fontconfig
@@ -41,7 +43,11 @@ ENV DOTNET_NOLOGO=1 \
     # Verify uses this to skip launching the local diff tool on test failure.
     Verify_DisableDiff=true \
     # Where the baked-in Playwright browsers live; read at both install and run.
-    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
+    # Marks "running inside the canonical test container". The scenario/render
+    # tests skip themselves (TUnit Skip) when this is absent, so a manual host
+    # run doesn't fail on container-specific Verify baselines.
+    MORPH_TEST_CONTAINER=1
 
 # Bake Playwright's Chromium (+ its OS dependencies) into the image so the
 # HTML/Markdown export scenario tests can rasterize via headless Chromium.

@@ -11,16 +11,16 @@
 # Notes:
 # - The working tree is mounted at /src; any file the container writes
 #   (test output, .received.* files, bin/obj artifacts) appears on the host.
-# - NuGet packages are cached in ./.nuget-cache on the host so repeated
-#   runs skip restore. Delete that directory to force a clean restore.
+# - NuGet packages are cached between runs to skip restore: in ./.nuget-cache on
+#   macOS/Linux, or a Docker named volume (morph-nuget-cache) on Windows, where a
+#   host bind mount hits MAX_PATH. Reset with `rm -rf ./.nuget-cache` or
+#   `docker volume rm morph-nuget-cache` respectively.
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 IMAGE_TAG="${MORPH_TEST_IMAGE:-morph-test:latest}"
 NUGET_CACHE="${MORPH_NUGET_CACHE:-${REPO_ROOT}/.nuget-cache}"
-
-mkdir -p "$NUGET_CACHE"
 
 # docker.exe wants different path styles for host vs container arguments. On Git Bash /
 # MSYS2 (Windows) it's a native Windows binary: the build context and bind-mount *sources*
@@ -30,11 +30,17 @@ mkdir -p "$NUGET_CACHE"
 # MSYS's automatic argument mangling. On Linux/macOS cygpath is absent, the host paths are
 # used unchanged, and the exported variable is a harmless no-op.
 HOST_ROOT="$REPO_ROOT"
-HOST_NUGET="$NUGET_CACHE"
+NUGET_MOUNT="$NUGET_CACHE"
 if command -v cygpath >/dev/null 2>&1; then
     export MSYS_NO_PATHCONV=1
     HOST_ROOT="$(cygpath -m "$REPO_ROOT")"
-    HOST_NUGET="$(cygpath -m "$NUGET_CACHE")"
+    # On Windows a host bind mount for the NuGet cache intermittently loses packages whose
+    # extracted paths exceed MAX_PATH (260): NuGet reports NETSDK1064 "package ... was not
+    # found ... maximum path length restrictions". Use a Docker-managed named volume (Linux
+    # ext4 inside the VM) instead — reliable and still persistent across runs.
+    NUGET_MOUNT="${MORPH_NUGET_VOLUME:-morph-nuget-cache}"
+else
+    mkdir -p "$NUGET_CACHE"
 fi
 
 # Build the image if it doesn't exist locally. Force a rebuild by passing
@@ -59,7 +65,7 @@ docker run \
     --init \
     --platform=linux/amd64 \
     -v "${HOST_ROOT}:/src" \
-    -v "${HOST_NUGET}:/nuget" \
+    -v "${NUGET_MOUNT}:/nuget" \
     -w /src \
     -e GitHubToken \
     "$IMAGE_TAG" \
