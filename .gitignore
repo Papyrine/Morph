@@ -20,3 +20,6 @@ tmp_*
 *.lock
 src/Tests/Inputs/**/input/
 
+# Host-side NuGet cache used by scripts/test.sh
+/.nuget-cache/
+

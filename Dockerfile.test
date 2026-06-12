@@ -1,0 +1,71 @@
+# syntax=docker/dockerfile:1.7
+#
+# Morph test image — produces bit-identical Skia/ImageSharp output across
+# host OSes by pinning a single linux/amd64 .NET 10 SDK environment.
+#
+# This image is intentionally lightweight: source code, NuGet cache, and
+# test output are all volume-mounted from the host at runtime, not baked in.
+# That keeps iteration fast and keeps the image cache hit rate high.
+
+# Pinned by digest (not just the mutable :10.0 tag) so every build — local and
+# CI — resolves the byte-identical SDK image; an SDK patch silently changing
+# under the tag is a source of cross-environment rendering drift. To bump:
+#   docker buildx imagetools inspect mcr.microsoft.com/dotnet/sdk:10.0
+# then update the digest below (and regenerate baselines in the container).
+# The pinned image's SDK must satisfy global.json (currently 10.0.301) — pinning
+# an older patch than global.json requires makes `dotnet` fail to find an SDK.
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:10.0@sha256:548d93f8a18a1acbe6cc127bc4f47281430d34a9e35c18afa80a8d6741c2adc3
+
+# SkiaSharp.NativeAssets.Linux.NoDependencies bundles freetype/expat itself.
+# The .NET SDK image already ships with ICU, so we only need to add fontconfig
+# (libfontconfig1 for Skia's text path; the `fontconfig` package adds fc-cache
+# which we run below to index the bundled fonts).
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libfontconfig1 \
+        fontconfig \
+        ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install the repo's bundled fonts at the standard Linux system path so tests
+# that don't pass ConversionOptions.FontDirectory (concurrency tests and the
+# FontResolution / FontStyleFromName spec tests) can still resolve fonts via
+# the default lookup. Scenario tests use FontDirectory exclusively and ignore
+# system fonts, so this does not change rendered output.
+COPY src/Fonts /usr/share/fonts/morph
+RUN fc-cache -f /usr/share/fonts/morph
+
+ENV DOTNET_NOLOGO=1 \
+    DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+    DOTNET_GENERATE_ASPNET_CERTIFICATE=false \
+    NUGET_PACKAGES=/nuget \
+    DOTNET_NUGET_SIGNATURE_VERIFICATION=false \
+    # Verify uses this to skip launching the local diff tool on test failure.
+    Verify_DisableDiff=true \
+    # Where the baked-in Playwright browsers live; read at both install and run.
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
+    # Marks "running inside the canonical test container". The scenario/render
+    # tests skip themselves (TUnit Skip) when this is absent, so a manual host
+    # run doesn't fail on container-specific Verify baselines.
+    MORPH_TEST_CONTAINER=1
+
+# Bake Playwright's Chromium (+ its OS dependencies) into the image so the
+# HTML/Markdown export scenario tests can rasterize via headless Chromium.
+# The browser is pinned to the Microsoft.Playwright package version (kept in
+# sync with src/Directory.Packages.props) so rasterization is identical across
+# machines and CI. The real test build is volume-mounted only at runtime, so a
+# throwaway project at the same version supplies the matching install script
+# here at build time; its restore is isolated to /tmp so nothing leaks into the
+# runtime-mounted /nuget cache.
+RUN mkdir -p /tmp/pw && cd /tmp/pw \
+    && NUGET_PACKAGES=/tmp/pw/nuget dotnet new console >/dev/null \
+    && NUGET_PACKAGES=/tmp/pw/nuget dotnet add package Microsoft.Playwright --version 1.60.0 >/dev/null \
+    && NUGET_PACKAGES=/tmp/pw/nuget dotnet build -c Release >/dev/null \
+    && pwsh bin/Release/net10.0/playwright.ps1 install chromium --with-deps \
+    && cd / && rm -rf /tmp/pw
+
+WORKDIR /src
+
+# No COPY of source — the wrapper script mounts the working tree as a volume.
+# Default command runs the full scenario + spec suite.
+CMD ["dotnet", "run", "--project", "src/Tests", "--configuration", "Release"]

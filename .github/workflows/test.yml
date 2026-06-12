@@ -1,0 +1,71 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel in-progress runs if a new push lands on the same branch.
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: linux/amd64 container suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    # Forwarded by scripts/test.sh into the container (-e GitHubToken) so the
+    # in-container build can satisfy SponsorCheck's authenticated GitHub API
+    # lookup; without it the build fails with SC102 (missing credential).
+    env:
+      GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build test image (with GHA cache)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.test
+          platforms: linux/amd64
+          tags: morph-test:latest
+          load: true
+          cache-from: type=gha,scope=morph-test
+          cache-to: type=gha,scope=morph-test,mode=max
+
+      - name: Run scenario + spec tests
+        run: ./scripts/test.sh
+        # Wrapper sees the image already exists locally so it won't rebuild.
+
+      - name: Run static-setting tests
+        run: ./scripts/test.sh dotnet run --project src/StaticSettingTests --configuration Release
+
+      - name: Upload received on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-received-files
+          path: |
+            src/Tests/Inputs/**/*.received.*
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # The test build incidentally produces release nupkgs in ./nugets
+      # (every Morph.* project has IsPackable=true). Upload them only
+      # when the suite passes so a downloadable artifact corresponds to
+      # a green test run.
+      - name: Upload NuGet packages on success
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nupkgs
+          path: nugets/*.nupkg
+          if-no-files-found: warn
+          retention-days: 30

@@ -25,6 +25,7 @@ public class ExportScenarioTests
     [MethodDataSource(nameof(Scenarios))]
     public async Task HtmlOutput(string directory)
     {
+        ContainerOnly.Require();
         var html = DocumentConverter.ConvertToHtml(Path.Combine(directory, "input.docx"));
         var png = await BrowserScreenshot.RenderHtmlAsync(html);
         Target[] targets =
@@ -42,6 +43,7 @@ public class ExportScenarioTests
     [MethodDataSource(nameof(Scenarios))]
     public async Task MarkdownOutput(string directory)
     {
+        ContainerOnly.Require();
         var markdown = DocumentConverter.ConvertToMarkdown(Path.Combine(directory, "input.docx"));
         var png = await BrowserScreenshot.RenderMarkdownAsync(markdown);
         var targets = new[]
@@ -59,6 +61,7 @@ public class ExportScenarioTests
     [MethodDataSource(nameof(Scenarios))]
     public async Task PdfOutput(string directory)
     {
+        ContainerOnly.Require();
         var input = Path.Combine(directory, "input.docx");
         var pdf = PdfDocumentConverter.ConvertToPdf(
             input,

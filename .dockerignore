@@ -1,0 +1,31 @@
+# Build artifacts
+**/bin/
+**/obj/
+**/TestResults/
+**/BenchmarkDotNet.Artifacts/
+
+# Local Verify state — never copy into the image build context
+**/*.received.*
+**/*.current.*
+
+# Host-side NuGet cache (we volume-mount this, not bake it in)
+.nuget-cache/
+
+# Editor / IDE / SCM
+.git/
+.github/
+.vs/
+.idea/
+.claude/
+**/*.suo
+**/*.user
+**/*.DotSettings.user
+
+# Docs / assets the test image doesn't need
+docs/
+tools/
+readme.md
+license.txt
+
+# Test inputs are bind-mounted at runtime, not needed in the image
+src/Tests/Inputs/

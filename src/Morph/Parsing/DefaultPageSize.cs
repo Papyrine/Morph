@@ -12,8 +12,9 @@ static class DefaultPageSize
     const double a4WidthPoints = 595.28;
     const double a4HeightPoints = 841.89;
 
-    static HashSet<string> letterRegions = new(StringComparer.OrdinalIgnoreCase)
-    {
+    static HashSet<string> letterRegions =
+    [
+        with(StringComparer.OrdinalIgnoreCase),
         "US", // United States
         "CA", // Canada
         "MX", // Mexico
@@ -23,8 +24,8 @@ static class DefaultPageSize
         "VE", // Venezuela
         "GT", // Guatemala
         "CR", // Costa Rica
-        "PA", // Panama
-    };
+        "PA" // Panama
+    ];
 
     static bool? useLetterSize;
 

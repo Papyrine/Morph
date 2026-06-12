@@ -8,22 +8,53 @@ Morph is a .NET library that converts Microsoft Word DOCX documents or HTML cont
 
 ## Build & Test Commands
 
+Tests must produce bit-identical output across machines because the suite compares rendered PNGs to checked-in Verify baselines. To guarantee that, all tests run inside a pinned `linux/amd64` Docker image defined by `Dockerfile.test`. **This is the canonical way to run tests — invoking `dotnet test` on the host will produce subpixel drift on a different OS/CPU and fail the Verify comparison.**
+
 ```bash
-# Build (always pass the `src` directory or an absolute path to `src/Morph.slnx`).
-# `dotnet build` with no arg or with a relative slnx path resolved against a
-# subdirectory cwd will fail with MSB1009 — the slnx file isn't auto-discovered
-# from arbitrary cwds the way a single .csproj is.
-dotnet build src --configuration Release
+# Run the full scenario + spec suite in the container
+./scripts/test.sh
 
-# Run all tests (TUnit via Microsoft.Testing.Platform; tests are an executable)
-dotnet run --project src/Tests --configuration Release
+# Run a specific test class (TUnit treenode filter, passed through to dotnet)
+./scripts/test.sh dotnet run --project src/Tests --configuration Release \
+    -- --treenode-filter "/*/*/SkiaScenarioTests/*"
 
-# Run tests with dotnet test
-dotnet test src/Tests
+# Run the static-setting tests (separate single-threaded project)
+./scripts/test.sh dotnet run --project src/StaticSettingTests --configuration Release
 
-# Limit test parallelism to half the CPU count to avoid resource contention
-dotnet run --project src/Tests --configuration Debug -- --maximum-parallel-tests $(( $(nproc) / 2 ))
+# Open an interactive shell inside the container
+./scripts/test.sh bash
+
+# Build only (no tests)
+./scripts/test.sh dotnet build src --configuration Release
 ```
+
+The wrapper builds `morph-test:latest` on first run, reuses it afterward, mounts the working tree at `/src`, and caches NuGet packages in `./.nuget-cache/` (gitignored). Set `MORPH_REBUILD=1` to force a rebuild after editing `Dockerfile.test`.
+
+### Apple Silicon: enable Rosetta
+
+On Apple Silicon (`arm64`), Docker Desktop must be configured to use Rosetta for `linux/amd64` emulation, **not** QEMU. QEMU's user-mode emulation crashes .NET 10's MSBuild with an `AccessViolationException` in its string-intern cache (SIGABRT mid-build). Rosetta is stable and ~native speed.
+
+1. Docker Desktop → Settings → General → enable **Use Rosetta for x86/amd64 emulation on Apple Silicon**.
+2. Restart Docker Desktop.
+3. Confirm by running `./scripts/test.sh dotnet build src --configuration Release` — it should complete in ~30s. If it aborts with `qemu: uncaught target signal 6`, Rosetta is not active.
+
+### Regenerating baselines after a rendering change
+
+When a deliberate change to the converter is expected to shift output, regenerate `*.verified.*` files **inside the container** using:
+
+```bash
+./scripts/regenerate-baselines.sh
+```
+
+The script refuses to run on a dirty tree, deletes existing `results_*.verified.*` snapshots, runs the suite once (expected to fail and produce `*.received.*` files), promotes the received files to verified, then re-runs to confirm stability. Commit the resulting binary diff in its own commit — never mix a baseline reset with code changes.
+
+### Running outside the container
+
+Non-scenario unit/spec tests do not depend on rendering output and can be run directly with `dotnet test src/Tests --treenode-filter ...` for fast iteration on a machine that has the .NET 10 SDK installed. But any test that touches `SkiaScenarioTests` or `ImageSharpScenarioTests` **must** use the container — the Verify comparison will fail on any machine whose rasterization diverges from the linux/amd64 baseline (which is everywhere except inside this image).
+
+### Known papercut: file mode flips
+
+Docker Desktop's bind-mount layer on macOS occasionally flips file modes from 644 to 755 on files near the container's writes (e.g. `.editorconfig`, `src/Shared.sln.DotSettings`). Content is unchanged. Restore with `git checkout -- <file>` after a test run if it happens.
 
 ### TUnit filter syntax (`--treenode-filter`)
 
@@ -36,10 +67,12 @@ Parameter values are **NOT** part of the filter path — they only appear in the
 
 ```bash
 # Run only the scenario test classes (skip the ~540 spec/unit tests)
-dotnet run --project src/Tests --configuration Debug -- --treenode-filter "/*/*/*ScenarioTests/*"
+./scripts/test.sh dotnet run --project src/Tests --configuration Debug \
+    -- --treenode-filter "/*/*/*ScenarioTests/*"
 
 # Run only the Skia scenario tests
-dotnet run --project src/Tests --configuration Debug -- --treenode-filter "/*/*/SkiaScenarioTests/*"
+./scripts/test.sh dotnet run --project src/Tests --configuration Debug \
+    -- --treenode-filter "/*/*/SkiaScenarioTests/*"
 ```
 
 **To target a single parameterized scenario (e.g. `cover-letters/02` alone)** — since the filter can't match parameter values, temporarily narrow `GetScenarioDirectories()` in `SkiaScenarioTests.cs` / `ImageSharpScenarioTests.cs`:
@@ -51,7 +84,7 @@ Then combine with `--treenode-filter "/*/*/*ScenarioTests/*"` to skip the spec t
 Brackets (`[...]`) in treenode filters are for property-bag filters (e.g. `[Category=Foo]`), not parameter matching — don't confuse them with LINQ-style filtering.
 
 
-**Prerequisites:** .NET SDK 10.0 (preview). See `global.json` for exact version. Tests load fonts directly from the bundled `src/Fonts/` directory via `ConversionOptions.FontDirectory`, so no OS-level font install is needed.
+**Prerequisites:** Docker Desktop (with Rosetta enabled on Apple Silicon — see above). The container ships its own .NET SDK matching `global.json`; no host install is required for the canonical workflow. For host-side `dotnet test` shortcuts, the host needs .NET SDK 10.0.300+ locally; see `global.json` for the exact pin. Tests load fonts from the bundled `src/Fonts/` directory via `ConversionOptions.FontDirectory`, so no OS-level font install is needed.
 
 ## Architecture
 

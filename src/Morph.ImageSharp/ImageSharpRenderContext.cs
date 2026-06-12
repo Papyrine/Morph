@@ -14,7 +14,7 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
     readonly FontCollection sharedFontCollection = new();
 
     /// <summary>Path-keyed dedupe for <see cref="sharedFontCollection"/> — files only get added once.</summary>
-    readonly HashSet<string> loadedPaths = new(StringComparer.OrdinalIgnoreCase);
+    readonly HashSet<string> loadedPaths = [with(StringComparer.OrdinalIgnoreCase)];
 
     readonly FontResolver<FontFamilyHandle> resolver;
 
