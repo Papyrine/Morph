@@ -1,6 +1,5 @@
 # <img src='/src/icon.png' height='30px'> Morph
 
-[![Build status](https://img.shields.io/appveyor/build/SimonCropp/morph)](https://ci.appveyor.com/project/SimonCropp/morph)
 [![NuGet Status](https://img.shields.io/nuget/v/Morph.svg?label=Morph)](https://www.nuget.org/packages/Morph/)
 [![NuGet Status](https://img.shields.io/nuget/v/Morph.Skia.svg?label=Morph.Skia)](https://www.nuget.org/packages/Morph.Skia/)
 [![NuGet Status](https://img.shields.io/nuget/v/Morph.ImageSharp.svg?label=Morph.ImageSharp)](https://www.nuget.org/packages/Morph.ImageSharp/)
