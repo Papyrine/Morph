@@ -1,0 +1,84 @@
+name: Publish NuGet
+
+# Packs the Morph.* packages and pushes them to nuget.org using Trusted
+# Publishing (OIDC) — no long-lived API key is stored. GitHub Actions mints a
+# short-lived OIDC token; the NuGet/login action exchanges it for a temporary
+# nuget.org API key, which is issued only because a matching trusted-publishing
+# policy is registered for this repo + workflow.
+#
+# Trigger: pushing a tag (aligns with milestone-release.yml, which also fires on
+# tags), or manually via the Actions tab. Packaging doesn't touch rendering, so
+# this runs on a plain runner rather than the linux/amd64 test container.
+#
+# One-time setup:
+#   1. nuget.org -> Account -> Trusted Publishing: add a policy for this GitHub
+#      owner + repository + workflow file (publish-nuget.yml), scoped to the
+#      Morph.* package owner.
+#   2. Repo -> Settings -> Secrets and variables -> Actions -> Variables: set
+#      NUGET_USER to your nuget.org username (a username is not sensitive, so it
+#      lives in a variable rather than a secret).
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+
+permissions:
+  id-token: write   # required: lets the job request a GitHub OIDC token
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    # SponsorCheck performs an authenticated GitHub Sponsors lookup during the
+    # build; without a token it fails with SC102. This is the *build* gate and is
+    # unrelated to publishing auth.
+    env:
+      GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: NuGet OIDC login
+        # Exchanges the workflow's GitHub OIDC token for a short-lived nuget.org
+        # API key. Requires the trusted-publishing policy described above; the
+        # temporary key is exposed to later steps as steps.login.outputs.NUGET_API_KEY.
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ vars.NUGET_USER }}
+
+      - name: Pack
+        # Pack to a clean throwaway dir so the stale nupkgs in ./nugets/ are never
+        # picked up. Only IsPackable projects (the Morph.* libraries) emit packages.
+        run: dotnet pack src/Morph.slnx --configuration Release --output "${{ runner.temp }}/nugets"
+
+      - name: Push to nuget.org
+        # --skip-duplicate makes re-runs idempotent: re-pushing an already-published
+        # version is a no-op instead of a hard failure.
+        run: >
+          dotnet nuget push "${{ runner.temp }}/nugets/*.nupkg"
+          --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+
+# ---------------------------------------------------------------------------
+# Fallback: static API-key publishing (no Trusted Publishing). To switch back,
+# remove `id-token: write` above, delete the "NuGet OIDC login" step, add a
+# NUGET_API_KEY repo secret, and use it in the push step instead:
+#
+#   - name: Push to nuget.org
+#     run: >
+#       dotnet nuget push "${{ runner.temp }}/nugets/*.nupkg"
+#       --api-key "${{ secrets.NUGET_API_KEY }}"
+#       --source https://api.nuget.org/v3/index.json
+#       --skip-duplicate
+# ---------------------------------------------------------------------------

@@ -134,5 +134,5 @@ public class PercentagePositioningTests
         await Assert.That(image.VerticalPositionPercent).IsNull();
     }
 
-    static Anchor LoadAnchor(string xml) => new(xml);
+    static Anchor LoadAnchor(string xml) => [with(xml)];
 }

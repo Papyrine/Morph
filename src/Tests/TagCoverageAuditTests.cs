@@ -21,34 +21,35 @@ public class TagCoverageAuditTests
     /// XML namespaces that surface in DOCX wordprocessing parts. Anything outside this set
     /// (DrawingML for spreadsheets, PowerPoint, etc.) is irrelevant for Morph.
     /// </summary>
-    static readonly HashSet<string> relevantNamespaces = new(StringComparer.Ordinal)
-    {
-        "http://schemas.openxmlformats.org/wordprocessingml/2006/main",                 // w
-        "http://schemas.microsoft.com/office/word/2010/wordml",                          // w14
-        "http://schemas.microsoft.com/office/word/2012/wordml",                          // w15
-        "http://schemas.microsoft.com/office/word/2018/wordml",                          // w16
-        "http://schemas.openxmlformats.org/officeDocument/2006/math",                    // m
-        "http://schemas.openxmlformats.org/drawingml/2006/main",                         // a
-        "http://schemas.microsoft.com/office/drawing/2010/main",                         // a14
-        "http://schemas.microsoft.com/office/drawing/2012/main",                         // a16
-        "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing",        // wp
-        "http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing",           // wp14
-        "http://schemas.openxmlformats.org/drawingml/2006/picture",                      // pic
-        "http://schemas.openxmlformats.org/markup-compatibility/2006",                   // mc
-        "http://schemas.microsoft.com/office/word/2010/wordprocessingShape",             // wps
-        "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup",             // wpg
-        "http://schemas.microsoft.com/office/word/2010/wordprocessingInk",               // wpi
-        "http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas",            // wpc
-        "http://schemas.microsoft.com/office/drawing/2014/chartex",                      // cx
-        "http://schemas.openxmlformats.org/officeDocument/2006/chartDrawing",            // cdr
-        "http://schemas.openxmlformats.org/drawingml/2006/chartDrawing",                 // cdr
-        "http://schemas.openxmlformats.org/drawingml/2006/diagram",                      // dgm
-        "http://schemas.openxmlformats.org/drawingml/2006/chart",                        // c
-        "urn:schemas-microsoft-com:vml",                                                 // v
-        "urn:schemas-microsoft-com:office:office",                                       // o
-        "urn:schemas-microsoft-com:office:word",                                         // w10
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships",           // r
-    };
+    static readonly HashSet<string> relevantNamespaces =
+    [
+        with(StringComparer.Ordinal),
+        "http://schemas.openxmlformats.org/wordprocessingml/2006/main", // w
+        "http://schemas.microsoft.com/office/word/2010/wordml", // w14
+        "http://schemas.microsoft.com/office/word/2012/wordml", // w15
+        "http://schemas.microsoft.com/office/word/2018/wordml", // w16
+        "http://schemas.openxmlformats.org/officeDocument/2006/math", // m
+        "http://schemas.openxmlformats.org/drawingml/2006/main", // a
+        "http://schemas.microsoft.com/office/drawing/2010/main", // a14
+        "http://schemas.microsoft.com/office/drawing/2012/main", // a16
+        "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing", // wp
+        "http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing", // wp14
+        "http://schemas.openxmlformats.org/drawingml/2006/picture", // pic
+        "http://schemas.openxmlformats.org/markup-compatibility/2006", // mc
+        "http://schemas.microsoft.com/office/word/2010/wordprocessingShape", // wps
+        "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup", // wpg
+        "http://schemas.microsoft.com/office/word/2010/wordprocessingInk", // wpi
+        "http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas", // wpc
+        "http://schemas.microsoft.com/office/drawing/2014/chartex", // cx
+        "http://schemas.openxmlformats.org/officeDocument/2006/chartDrawing", // cdr
+        "http://schemas.openxmlformats.org/drawingml/2006/chartDrawing", // cdr
+        "http://schemas.openxmlformats.org/drawingml/2006/diagram", // dgm
+        "http://schemas.openxmlformats.org/drawingml/2006/chart", // c
+        "urn:schemas-microsoft-com:vml", // v
+        "urn:schemas-microsoft-com:office:office", // o
+        "urn:schemas-microsoft-com:office:word", // w10
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships" // r
+    ];
 
     [Test]
     public async Task AuditSdkTagsAgainstDocs()

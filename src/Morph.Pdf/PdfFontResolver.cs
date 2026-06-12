@@ -14,7 +14,7 @@ sealed class PdfFontResolver : IFontResolver
     Lock gate = new();
     Dictionary<string, string> faceToPath = new(StringComparer.OrdinalIgnoreCase);
     Dictionary<(string Family, bool Bold, bool Italic), string> index = [];
-    HashSet<string> scannedDirectories = new(StringComparer.OrdinalIgnoreCase);
+    HashSet<string> scannedDirectories = [with(StringComparer.OrdinalIgnoreCase)];
     string? defaultFace;
 
     PdfFontResolver()
@@ -47,7 +47,14 @@ sealed class PdfFontResolver : IFontResolver
                 return;
             }
 
-            foreach (var path in Directory.EnumerateFiles(full, "*.ttf", SearchOption.AllDirectories))
+            // Sort ordinally so indexing is filesystem-order independent: Directory.EnumerateFiles
+            // has no defined order, yet that order decides the default fallback face (defaultFace is
+            // the first file seen) and which file wins when two map to the same family/style key.
+            // Without this the same FontDirectory embeds different fallback fonts on different
+            // filesystems (e.g. a Windows bind mount vs CI's ext4), so the generated PDF bytes differ
+            // across machines despite an identical container image.
+            foreach (var path in Directory.EnumerateFiles(full, "*.ttf", SearchOption.AllDirectories)
+                         .OrderBy(_ => _, StringComparer.Ordinal))
             {
                 IndexFile(path);
             }

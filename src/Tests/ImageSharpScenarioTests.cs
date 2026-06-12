@@ -13,6 +13,7 @@ public class ImageSharpScenarioTests
     [MethodDataSource(nameof(GetScenarioDirectories))]
     public async Task Scenario(string directory)
     {
+        ContainerOnly.Require();
         var converter = new ImageSharpDocumentConverter();
         var inputFile = Path.Combine(directory, "input.docx");
         var expectedFiles = Directory.GetFiles(directory, "expected_*.png")

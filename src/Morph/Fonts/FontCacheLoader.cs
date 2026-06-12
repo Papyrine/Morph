@@ -155,21 +155,26 @@ static class FontCacheLoader
     {
         if (!Directory.Exists(directory))
         {
-            yield break;
+            return [];
         }
 
         var option = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-        var files = Directory.EnumerateFiles(directory, "*", option);
 
-        foreach (var file in files)
-        {
-            if (file.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase) ||
-                file.EndsWith(".otf", StringComparison.OrdinalIgnoreCase) ||
-                file.EndsWith(".ttc", StringComparison.OrdinalIgnoreCase) ||
-                file.EndsWith(".woff2", StringComparison.OrdinalIgnoreCase))
-            {
-                yield return file;
-            }
-        }
+        // Sort by full path (ordinal) so the font index is built in an order independent of the
+        // filesystem's native enumeration order. Directory.EnumerateFiles has no defined order, and
+        // that order decides which face wins an ambiguous candidate-name match (FontFileCache appends
+        // faces in enumeration order, and the resolver's Array.Sort is not stable). Without this, the
+        // same FontDirectory resolves different fallback fonts on different filesystems — e.g. a
+        // Windows bind mount vs CI's ext4 — making rendered output non-deterministic across machines
+        // despite an identical container image.
+        return Directory.EnumerateFiles(directory, "*", option)
+            .Where(IsFontFile)
+            .OrderBy(_ => _, StringComparer.Ordinal);
     }
+
+    static bool IsFontFile(string path) =>
+        path.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase) ||
+        path.EndsWith(".otf", StringComparison.OrdinalIgnoreCase) ||
+        path.EndsWith(".ttc", StringComparison.OrdinalIgnoreCase) ||
+        path.EndsWith(".woff2", StringComparison.OrdinalIgnoreCase);
 }
