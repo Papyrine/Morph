@@ -168,7 +168,7 @@ public class Samples
             "document.docx",
             new()
             {
-                OnWarning = warning => warnings.Add(warning)
+                OnWarning = warnings.Add
             });
 
         foreach (var warning in warnings)
