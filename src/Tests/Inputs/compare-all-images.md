@@ -1,6 +1,7 @@
 # All scenarios (320)
 
-## Contents
+<details>
+<summary>Contents</summary>
 
 - [agendas-minutes/01](#agendas-minutes01)
 - [agendas-minutes/02](#agendas-minutes02)
@@ -322,6 +323,8 @@
 - [wide_table](#wide_table)
 - [wordart](#wordart)
 - [wordart-envelope](#wordart-envelope)
+
+</details>
 
 ## agendas-minutes/01
 

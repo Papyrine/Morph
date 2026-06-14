@@ -106,7 +106,11 @@ The HTML, Markdown and PDF exporters share the DOCX parser above, so the same co
 - **Markdown** — Pandoc-flavoured CommonMark with GFM pipe tables; adjacent runs are coalesced so emphasis stays well-formed and headings stay clean.
 - **PDF** — vector text via PdfSharp, paginated to match the source page layout.
 
-[Export comparison gallery](src/Tests/Inputs/compare-all-export.md) — every scenario's HTML, Markdown and PDF output side by side against the Pandoc reference (PDF pages rendered by [Verify.PDFium](https://github.com/VerifyTests/Verify.PDFium)).
+Export comparison galleries — every scenario's exporter output, side by side against the Pandoc reference:
+
+- [HTML](src/Tests/Inputs/compare-all-html.md)
+- [Markdown](src/Tests/Inputs/compare-all-markdown.md)
+- [PDF](src/Tests/Inputs/compare-all-pdf.md) — pages rendered by [Verify.PDFium](https://github.com/VerifyTests/Verify.PDFium)
 
 
 ## Rendering Backends
