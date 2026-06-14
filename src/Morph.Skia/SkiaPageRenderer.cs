@@ -1990,7 +1990,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             pageCount++;
             using var image = SKImage.FromBitmap(page);
             using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-            pageCallback!(stream => data.SaveTo(stream));
+            pageCallback!(data.SaveTo);
         }
     }
 
