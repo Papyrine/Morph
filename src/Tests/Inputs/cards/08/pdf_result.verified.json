@@ -1,0 +1,29 @@
+﻿{
+  "PageCount": 4,
+  "Pages": [
+    {
+      "Width": 792.0,
+      "Height": 612.0
+    },
+    {
+      "Width": 792.0,
+      "Height": 612.0,
+      "Text": "Click and start typing to\ncustomize your message\n,\nor delete for\na blank card\nClick and start typing to\ncustomize your message\n,\nor delete for\na blank card"
+    },
+    {
+      "Width": 792.0,
+      "Height": 612.0
+    },
+    {
+      "Width": 792.0,
+      "Height": 612.0,
+      "Text": "Click and start typing to\ncustomize your message\n,\nor delete for\na blank card\nClick and start typing to\ncustomize your message\n,\nor delete for\na blank card"
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}

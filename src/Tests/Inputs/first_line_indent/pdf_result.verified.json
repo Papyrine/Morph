@@ -1,0 +1,16 @@
+﻿{
+  "PageCount": 1,
+  "Pages": [
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "This paragraph has a first-line indent of 0.5 inches. Notice how the first line starts further to the\nright than subsequent lines in the paragraph.\nAnother paragraph with the same first-line indent to show consistency across the document."
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}

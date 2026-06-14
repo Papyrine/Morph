@@ -1,0 +1,16 @@
+﻿{
+  "PageCount": 1,
+  "Pages": [
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "Line 1 - Normal paragraph with line number.\nLine 2 - Normal paragraph with line number.\nThis paragraph has line numbers suppressed.\nLine continues from 3 - Normal paragraph.\nLine 4 - Normal paragraph.\nAnother suppressed paragraph - no line number shown.\nLine 5 - Final normal paragraph."
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}

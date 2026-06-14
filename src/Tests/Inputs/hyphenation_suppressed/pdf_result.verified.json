@@ -1,0 +1,16 @@
+﻿{
+  "PageCount": 1,
+  "Pages": [
+    {
+      "Width": 432.0,
+      "Height": 792.0,
+      "Text": "This paragraph allows automatic hyphenation. Long words\nlike internationalization may be hyphenated.\nThis paragraph has hyphenation suppressed. Even long\nwords like internationalization will not be hyphenated and\nwill wrap to the next line instead.\nThis paragraph allows hyphenation again.\nTelecommunications and electroencephalograph may break\nat syllables."
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}

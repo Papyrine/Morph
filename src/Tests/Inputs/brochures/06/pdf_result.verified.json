@@ -1,0 +1,21 @@
+﻿{
+  "PageCount": 2,
+  "Pages": [
+    {
+      "Width": 792.0,
+      "Height": 612.0,
+      "Text": "MARGIE’S\nTRAVEL LET MARGIE PLAN\nYOUR NEXT\nVACATION\nMARGIE’S TRAVEL\nStreet Address\nCity, St Zip Code\nPhone Number\nWebsite\nEmail\nMARGIE’S TRAVEL OFFERS\nYOU\n01 Booking for any type of travel\n02 Quick, thorough, knowledgeable\nresponses to calls and questions\n03 Resourceful and well-traveled agents\n04 International services"
+    },
+    {
+      "Width": 792.0,
+      "Height": 612.0,
+      "Text": "You are able to make this brochure yours\nby making a few minor design tweaks!\nOn the Home tab, check out the Styles\ngallery for styles already built into the\ntemplate. Clicking on any style will update\nthe format of your text easily.\n“We don’t merely book your travel; we can help you realize\nyour travel dreams if you give us an idea of what kind of\nexperience you seek.”\n- Henriette Andersen\nOUR SERVICES INCLUDE\nPassport Expediting Excursion Planning\nTo replace any of the\npictures in this pamphlet, just\nclick on the image you wish\nto change and delete it,\nthen insert your own.\nHotel, Air,\nTransportation\nArrangements\nTrip Insurance\nIf you replace a photo with your own and it’s\nnot a flawless fit for the space, you can crop\nit to fit in almost no time. To do this, select\nPicture > Crop from the ribbon."
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}

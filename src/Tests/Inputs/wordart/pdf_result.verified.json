@@ -1,0 +1,76 @@
+﻿{
+  "PageCount": 13,
+  "Pages": [
+    {
+      "Width": 595.2999877929688,
+      "Height": 841.9000244140625,
+      "Text": "WordArt Test Document\nFor Renderer Testing"
+    },
+    {
+      "Width": 595.2999877929688,
+      "Height": 841.9000244140625,
+      "Text": "ACTUAL WORDART SHAPES\nThese use DrawingML WordArt transforms\nArc Text Up\nArc Text Down\nCircle Text\nWavy WordArt\nChevron Up\nChevron Down\nFade Effect\nSlanted Up\nSlanted Down\nCan Shape\nInflated\nDeflated"
+    },
+    {
+      "Width": 595.2999877929688,
+      "Height": 841.9000244140625,
+      "Text": "Section 1: Text Effects\nBOLD IMPACT TEXT\nElegant Script Style\nRAINBOW"
+    },
+    {
+      "Width": 595.2999877929688,
+      "Height": 841.9000244140625,
+      "Text": "Section 2: Size Variations\nTINY\nSMALL\nMEDIUM\nLARGE\nHUGE\nGIANT"
+    },
+    {
+      "Width": 595.2999877929688,
+      "Height": 841.9000244140625,
+      "Text": "Section 3: Font Variety\nArial Black Style\nTimes New Roman\nGeorgia Elegance\nVerdana Clean\nTrebuchet MS\nCourier New Mono"
+    },
+    {
+      "Width": 595.2999877929688,
+      "Height": 841.9000244140625,
+      "Text": "Section 4: Color Themes\nOcean Blue\nForest Green\nSunset Orange\nRoyal Purple\nCherry Red\nGolden Yellow"
+    },
+    {
+      "Width": 595.2999877929688,
+      "Height": 841.9000244140625,
+      "Text": "Section 5: Text Decorations\nUNDERLINED TEXT\nDOUBLE UNDERLINE\nSTRIKETHROUGH\nSMALL CAPS STYLE\nALL CAPS STYLE\nSuperscript2 and Subscript2"
+    },
+    {
+      "Width": 595.2999877929688,
+      "Height": 841.9000244140625,
+      "Text": "Section 6: Highlighted Text\nYellow Highlight\nCyan Highlight\nGreen Highlight\nMagenta Highlight\nRed Highlight"
+    },
+    {
+      "Width": 595.2999877929688,
+      "Height": 841.9000244140625,
+      "Text": "Section 7: Combined Effects\nBold + Italic + Color\nUnderline + Highlight\nMulti-Color Word\nGoogle Style"
+    },
+    {
+      "Width": 595.2999877929688,
+      "Height": 841.9000244140625,
+      "Text": "Section 8: Gradient-Like Effects\nBLUE GRAD\nFIRE TEXT\nPURPLE"
+    },
+    {
+      "Width": 595.2999877929688,
+      "Height": 841.9000244140625,
+      "Text": "Section 9: Wave Effect (Size)\nWAVY TEXT!\nBOUNCY!"
+    },
+    {
+      "Width": 595.2999877929688,
+      "Height": 841.9000244140625,
+      "Text": "Section 10: Emboss Simulation\nEMBOSSED\nEMBOSSED\nIMPRINTED\nOUTLINED\nSHADOWED"
+    },
+    {
+      "Width": 595.2999877929688,
+      "Height": 841.9000244140625,
+      "Text": "End of WordArt Test Document\nThis document contains various text effects for testing docx renderers\nSections covered:\nText Effects • Size Variations • Font Variety • Color Themes\nText Decorations • Highlights • Combined Effects • Gradients • Waves • Emboss"
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}

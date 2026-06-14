@@ -1,0 +1,16 @@
+﻿{
+  "PageCount": 1,
+  "Pages": [
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "HTML inline styles:\nRed text using inline style\nGreen text using hex color\nBlue text using rgb()\nText with yellow background\nRed text on light red background\nLarger text at 18pt\nSmaller text at 8pt\nTimes New Roman font\nCourier New monospace font\nBold via font-weight\nItalic via font-style\nUnderline via text-decoration\nStrikethrough via text-decoration"
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}

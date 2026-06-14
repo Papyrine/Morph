@@ -1,0 +1,16 @@
+﻿{
+  "PageCount": 1,
+  "Pages": [
+    {
+      "Width": 432.0,
+      "Height": 792.0,
+      "Text": "This document has automatic hyphenation enabled. Long\nwords like internationalization, telecommunication, and\nconceptualization may be hyphenated at the end of lines.\nThe hyphenation zone is set to 0.25 inches, limiting hyphens\nto 2 consecutive lines, and CAPITALIZED words are not\nhyphenated.\nAntidisestablishmentarianism is a very long word that\ndemonstrates hyphenation. Electroencephalograph is\nanother example."
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}

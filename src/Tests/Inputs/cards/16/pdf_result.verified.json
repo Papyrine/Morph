@@ -1,0 +1,41 @@
+﻿{
+  "PageCount": 6,
+  "Pages": [
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "Merry\nChristmas\nMerry\nChristmas"
+    },
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "We hope you have a wonderful\nholiday!\nWe hope you have a wonderful\nholiday!"
+    },
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "Merry\nChristmas\nMerry\nChristmas"
+    },
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "We hope you have a wonderful\nholiday!\nWe hope you have a wonderful\nholiday!"
+    },
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "Merry\nChristmas\nMerry\nChristmas"
+    },
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "We hope you have a wonderful\nholiday!\nWe hope you have a wonderful\nholiday!"
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}

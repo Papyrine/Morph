@@ -29,9 +29,16 @@ public static class ModuleInitializer
 
         VerifierSettings.UseSsimForPng();
         VerifyDiffPlex.Initialize(OutputType.Compact);
+        // Expands pdf snapshots (ExportScenarioTests.PdfOutput) into info + the pdf +
+        // per-page PNGs rendered by PDFium
+        VerifyPDFium.Initialize();
         VerifierSettings.InitializePlugins();
 
         AppDomain.CurrentDomain.ProcessExit += (_, _) =>
-            ScenarioMarkdownGenerator.RegenerateAll(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs"));
+        {
+            var inputs = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
+            ScenarioMarkdownGenerator.RegenerateAll(inputs);
+            ScenarioMarkdownGenerator.RegenerateAllExport(inputs);
+        };
     }
 }

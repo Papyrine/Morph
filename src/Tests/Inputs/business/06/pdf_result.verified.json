@@ -1,0 +1,16 @@
+﻿{
+  "PageCount": 1,
+  "Pages": [
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "LOGO\nMemo\nTo: Recipient Name\nFrom: Your Name\nCC: Other recipients\nSome of the sample text in this document indicates the name of\nthe style applied, so that you can easily apply the same formatting\nagain. To get started right away, just tap any placeholder text\n(such as this) and start typing.\nView and edit this document in Word on your computer, tablet, or phone. You can edit\ntext; easily insert content such as pictures, shapes, or tables; and seamlessly save the\ndocument to the cloud from Word on your Windows, Mac, Android, or iOS device.\nWant to insert a picture from your files or add a shape, text box, or table? You got it! On\nthe Insert tab of the ribbon, just tap the option you need.\nFind even more easy-to-use tools on the Insert tab, such as to add a hyperlink or insert a\ncomment.\nSTREET ADDRESS, CITY, STATE ZIP CODE\nT: TELEPHONE W: WEBSITE"
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}

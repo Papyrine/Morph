@@ -1,0 +1,21 @@
+﻿{
+  "PageCount": 2,
+  "Pages": [
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "150220YY\n150220YY\nADMIT ONE\nKeep ticket stub\n150220YY\nADMIT ONE\nKeep ticket stub\n150220YY"
+    },
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "To get started right away,\njust tap any placeholder\ntext (such as this) and start\ntyping to replace it with\nyour own text.\nTo get started right away,\njust tap any placeholder\ntext (such as this) and start\ntyping to replace it with\nyour own text."
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}

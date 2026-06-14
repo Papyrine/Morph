@@ -1,0 +1,16 @@
+﻿{
+  "PageCount": 1,
+  "Pages": [
+    {
+      "Width": 792.0,
+      "Height": 612.0,
+      "Text": "Join us for a\nBRIDAL SHOWER\nhonoring the bride-to-be\n[BRIDE NAME]\nDay, Month, Date\nat 10:00 am\n[City Name]\n[Street, Address]"
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}

@@ -1,0 +1,21 @@
+﻿{
+  "PageCount": 2,
+  "Pages": [
+    {
+      "Width": 792.0,
+      "Height": 612.0,
+      "Text": "Easily\ncopy\nyour\nmenu.\nHere’s\nhow:\n1. Select\nthe\nmenu\ncontent.\n(Just\ndrag\nto\nselect\nthe\ncontent.\nDon`t\nselect\nthe\nwhole\ncell.)\n2. Press\nCtrl+C\n(Copies\nthe\nmenu.)\n3. Select\nall\nof\nthis\ntip\ntext.\n4. Press\nCtrl+V.\n(Replace\nthis\ntext\nwith\na\ncopy\nof\nyour\nmenu.)"
+    },
+    {
+      "Width": 792.0,
+      "Height": 612.0,
+      "Text": "APPETIZER\nList or describe appetizers\nAppetizer item\nAppetizer item\nFIRST COURSE\nList or describe first course(s)\nFirst course item\nMAIN COURSE\nList or describe main course(s)\nMain course item\nDESSERT\nList or describe dessert(s)\nDessert item"
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}

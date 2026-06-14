@@ -1,0 +1,21 @@
+﻿{
+  "PageCount": 2,
+  "Pages": [
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "ODD HEADER\nFirst page body."
+    },
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "EVEN HEADER\nSecond page body."
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}

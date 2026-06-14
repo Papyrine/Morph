@@ -1,11 +1,14 @@
 /// <summary>
-/// Generates a side-by-side markdown preview (compare.md) for a scenario directory,
-/// showing Expected vs Skia vs ImageSharp verified page renders. One table row per
-/// page, so multi-page scenarios (including ones where backends produced different
-/// page counts) can be scrolled through. Renders cleanly on GitHub.
+/// Generates side-by-side markdown previews for the scenario corpus, two flavours:
 ///
-/// Also generates an aggregate compare-all.md at the Inputs root that strings
-/// every scenario together for scrolling through the full corpus in one view.
+/// - Image rendering: per-scenario <c>compare.md</c> plus an aggregate
+///   <c>compare-all-images.md</c>, showing Expected (Word) vs Skia vs ImageSharp verified
+///   page renders. One table row per page, so multi-page scenarios (including ones where
+///   backends produced different page counts) can be scrolled through.
+/// - Export: an aggregate <c>compare-all-export.md</c> showing the HTML, Markdown and PDF
+///   exporters against the Pandoc reference (see <see cref="RegenerateAllExport"/>).
+///
+/// All render cleanly on GitHub.
 /// </summary>
 static class ScenarioMarkdownGenerator
 {
@@ -78,8 +81,106 @@ static class ScenarioMarkdownGenerator
             sb.Append('\n');
         }
 
-        File.WriteAllText(Path.Combine(inputsDirectory, "compare-all.md"), sb.ToString());
+        File.WriteAllText(Path.Combine(inputsDirectory, "compare-all-images.md"), sb.ToString());
     }
+
+    /// <summary>
+    /// Generates the aggregate <c>compare-all-export.md</c> at the Inputs root, the export-pipeline
+    /// counterpart to <see cref="RegenerateAll"/>. For each scenario it lays the HTML and Markdown
+    /// exporters side by side against the Pandoc reference (<c>expected.html.png</c>), all rendered
+    /// to PNG by the headless-browser screenshot pipeline, followed by the PDF exporter's per-page
+    /// renders (<c>pdf_result#page_*.verified.png</c>, produced by Verify.PDFium). The Pandoc
+    /// <c>expected.pdf</c> reference has no raster and is linked as a file.
+    /// </summary>
+    public static void RegenerateAllExport(string inputsDirectory)
+    {
+        var scenarios = Directory.GetFiles(inputsDirectory, "input.docx", SearchOption.AllDirectories)
+            .Select(_ => Path.GetDirectoryName(_)!)
+            .OrderBy(_ => _, StringComparer.OrdinalIgnoreCase)
+            .Select(_ => (Directory: _, Name: GetScenarioName(_)))
+            .Where(_ => File.Exists(Path.Combine(_.Directory, "html_result.verified.png")) ||
+                        File.Exists(Path.Combine(_.Directory, "md_result.verified.png")))
+            .ToArray();
+
+        if (scenarios.Length == 0)
+        {
+            return;
+        }
+
+        var sb = new StringBuilder();
+        sb.Append("# All export scenarios (").Append(scenarios.Length).Append(")\n\n");
+        sb.Append("The HTML, Markdown and PDF exporters side by side against the Pandoc reference. ");
+        sb.Append("HTML and Markdown are rendered to PNG via the headless-browser screenshot pipeline; ");
+        sb.Append("PDF pages are rendered by PDFium (Verify.PDFium). ");
+        sb.Append("The Pandoc expected.pdf reference has no raster, so it is linked as a file.\n\n");
+
+        sb.Append("## Contents\n\n");
+        foreach (var (_, name) in scenarios)
+        {
+            sb.Append("- [").Append(name).Append("](#").Append(GitHubAnchor(name)).Append(")\n");
+        }
+        sb.Append('\n');
+
+        foreach (var (dir, name) in scenarios)
+        {
+            sb.Append("## ").Append(name).Append("\n\n");
+            AppendExportTable(sb, dir, name);
+            sb.Append('\n');
+        }
+
+        File.WriteAllText(Path.Combine(inputsDirectory, "compare-all-export.md"), sb.ToString());
+    }
+
+    static void AppendExportTable(StringBuilder sb, string directory, string name)
+    {
+        var srcPrefix = $"{name}/";
+
+        sb.Append("| Reference (Pandoc HTML) | Morph HTML | Morph Markdown |\n");
+        sb.Append("| --- | --- | --- |\n");
+        sb.Append("| ");
+        sb.Append(RenderImage(FileNameIfExists(directory, "expected.html.png"), srcPrefix));
+        sb.Append(" | ");
+        sb.Append(RenderImage(FileNameIfExists(directory, "html_result.verified.png"), srcPrefix));
+        sb.Append(" | ");
+        sb.Append(RenderImage(FileNameIfExists(directory, "md_result.verified.png"), srcPrefix));
+        sb.Append(" |\n\n");
+
+        AppendPdf(sb, directory, srcPrefix);
+    }
+
+    static void AppendPdf(StringBuilder sb, string directory, string srcPrefix)
+    {
+        // Per-page renders of the PdfSharp output, produced by Verify.PDFium during
+        // ExportScenarioTests.PdfOutput. The file links stay alongside so the actual
+        // pdf (and the raster-less Pandoc reference) remain one click away.
+        var pdfPages = Directory.GetFiles(directory, "pdf_result#page_*.verified.png").Order().ToArray();
+        if (pdfPages.Length > 0)
+        {
+            sb.Append("| Morph PDF |\n| --- |\n");
+            foreach (var page in pdfPages)
+            {
+                sb.Append("| ").Append(RenderImage(Path.GetFileName(page), srcPrefix)).Append(" |\n");
+            }
+            sb.Append('\n');
+        }
+
+        var links = new List<string>();
+        if (File.Exists(Path.Combine(directory, "pdf_result.verified.pdf")))
+        {
+            links.Add($"[Morph PDF]({EncodeSrc(srcPrefix + "pdf_result.verified.pdf")})");
+        }
+        if (File.Exists(Path.Combine(directory, "expected.pdf")))
+        {
+            links.Add($"[Pandoc reference]({EncodeSrc(srcPrefix + "expected.pdf")})");
+        }
+        if (links.Count > 0)
+        {
+            sb.Append("PDF: ").Append(string.Join(" · ", links)).Append("\n\n");
+        }
+    }
+
+    static string? FileNameIfExists(string directory, string fileName) =>
+        File.Exists(Path.Combine(directory, fileName)) ? fileName : null;
 
     static void AppendNotes(StringBuilder sb, string directory)
     {
@@ -145,12 +246,13 @@ static class ScenarioMarkdownGenerator
             return "";
         }
 
-        var src = (srcPrefix + fileName).Replace("#", "%23");
         // Use an explicit width <img> rather than ![]() so all three columns get
         // identical image sizes — markdown renderers otherwise size columns by
         // text width and shrink images to fit.
-        return $"""<img src="{src}" width="500">""";
+        return $"""<img src="{EncodeSrc(srcPrefix + fileName)}" width="500">""";
     }
+
+    static string EncodeSrc(string path) => path.Replace("#", "%23");
 
     static List<PageRow> CollectPages(string directory)
     {

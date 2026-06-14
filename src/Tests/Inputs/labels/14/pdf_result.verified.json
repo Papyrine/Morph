@@ -1,0 +1,16 @@
+﻿{
+  "PageCount": 1,
+  "Pages": [
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "[Company Name]\n[Company Address]\n[City, ST Postal Code]\n[Company Name]\n[Company Address]\n[City, ST Postal Code]\n[Recipient Name]\n[Recipient Company]\n[Address]\n[City, ST Postal Code]\n[Country]\n[Recipient Name]\n[Recipient Company]\n[Address]\n[City, ST Postal Code]\n[Country]\n[Company Name]\n[Company Address]\n[City, ST Postal Code]\n[Company Name]\n[Company Address]\n[City, ST Postal Code]\n[Recipient Name]\n[Recipient Company]\n[Address]\n[City, ST Postal Code]\n[Country]\n[Recipient Name]\n[Recipient Company]\n[Address]\n[City, ST Postal Code]\n[Country]\n[Company Name]\n[Company Address]\n[City, ST Postal Code]\n[Company Name]\n[Company Address]\n[City, ST Postal Code]\n[Recipient Name]\n[Recipient Company]\n[Address]\n[City, ST Postal Code]\n[Country]\n[Recipient Name]\n[Recipient Company]\n[Address]\n[City, ST Postal Code]\n[Country]"
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}

@@ -1,0 +1,16 @@
+﻿{
+  "PageCount": 1,
+  "Pages": [
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "At least 12pt line spacing. Lines are at minimum 12 points, but can be larger if text needs it.\nAt least 18pt line spacing. Minimum 18 points between baselines.\nAt least 24pt line spacing. Lines will expand if needed for larger fonts.\nAt least 36pt line spacing. Comfortable minimum spacing for readability."
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}

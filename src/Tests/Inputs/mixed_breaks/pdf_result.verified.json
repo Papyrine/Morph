@@ -1,0 +1,31 @@
+﻿{
+  "PageCount": 4,
+  "Pages": [
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "Page 1, first paragraph.\nLine 1"
+    },
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "Page 2 content."
+    },
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "Content after column break."
+    },
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "Page 3 - Final page."
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}

@@ -1,0 +1,16 @@
+﻿{
+  "PageCount": 1,
+  "Pages": [
+    {
+      "Width": 612.0,
+      "Height": 792.0,
+      "Text": "Table with uniform cell padding (20 twips = 1pt):\nCell 1,1 with padding Cell 1,2 with padding Cell 1,3 with padding\nCell 2,1 with padding Cell 2,2 with padding Cell 2,3 with padding\nCell 3,1 with padding Cell 3,2 with padding Cell 3,3 with padding"
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}

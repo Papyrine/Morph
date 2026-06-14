@@ -1,0 +1,16 @@
+﻿{
+  "PageCount": 1,
+  "Pages": [
+    {
+      "Width": 792.0,
+      "Height": 612.0,
+      "Text": "EVENT INTRO EVENT DATE\nEVENT TITLE\nEasily copy your menu. Here’s how:\n1. Select the menu content.\n(Just drag to select the content. Don`t select the\nwhole cell.)\n2. Press Ctrl+C\n(Copies the menu.)\n3. Select all of this tip text.\n4. Press Ctrl+V.\n(Replace this text with a copy of your menu.)\nAPPETIZER\nList or describe appetizers\nAppetizer item\nAppetizer item\nFIRST COURSE\nList or describe first course(s)\nFirst course item\nMAIN COURSE\nList or describe main course(s)\nMain course item\nDESSERT\nList or describe dessert(s)\nDessert item"
+    }
+  ],
+  "Properties": {
+    "CreationDate": "D:20000101000000+00'00'",
+    "Creator": "Morph",
+    "ModDate": "D:20000101000000+00'00'",
+    "Producer": "PDFsharp 6.2.4"
+  }
+}
