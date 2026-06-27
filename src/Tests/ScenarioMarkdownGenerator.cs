@@ -6,8 +6,9 @@
 ///   page renders. One table row per page, so multi-page scenarios (including ones where
 ///   backends produced different page counts) can be scrolled through.
 /// - Export: a per-format aggregate each — <c>compare-all-html.md</c>,
-///   <c>compare-all-markdown.md</c>, <c>compare-all-pdf.md</c> — showing each exporter against
-///   the Pandoc reference (see <see cref="RegenerateAllExport"/>).
+///   <c>compare-all-markdown.md</c>, <c>compare-all-pdf.md</c> — showing each exporter beside a
+///   reference render: the Pandoc HTML for HTML/Markdown, the Word page render for PDF
+///   (see <see cref="RegenerateAllExport"/>).
 ///
 /// All render cleanly on GitHub.
 /// </summary>
@@ -114,7 +115,7 @@ static class ScenarioMarkdownGenerator
             inputsDirectory,
             "compare-all-pdf.md",
             "All PDF export scenarios",
-            "The PDF exporter's pages rendered by PDFium (Verify.PDFium). The Pandoc expected.pdf reference has no raster, so it is linked as a file.",
+            "The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium). The Pandoc expected.pdf reference has no raster, so it is linked as a file.",
             _ => Directory.GetFiles(_, "pdf_result#page_*.verified.png").Length > 0 ||
                  File.Exists(Path.Combine(_, "pdf_result.verified.pdf")),
             AppendPdf);
@@ -174,16 +175,36 @@ static class ScenarioMarkdownGenerator
     {
         var srcPrefix = $"{name}/";
 
-        // Per-page renders of the PdfSharp output, produced by Verify.PDFium during
-        // ExportScenarioTests.PdfOutput. The file links stay alongside so the actual
+        // Pair each Word reference page (rendered by Word via COM interop — the same expected_*.png
+        // the image aggregate uses) on the left with the matching Morph PDF page (rendered by
+        // PDFium during ExportScenarioTests.PdfOutput) on the right, one row per page — mirroring
+        // compare-all-images.md. Page counts can differ between the two, so rows run to the longer
+        // side and the short side shows a blank cell. The file links stay alongside so the actual
         // pdf (and the raster-less Pandoc reference) remain one click away.
+        var expectedPages = Directory.GetFiles(directory, "expected_*.png").Order().ToArray();
         var pdfPages = Directory.GetFiles(directory, "pdf_result#page_*.verified.png").Order().ToArray();
-        if (pdfPages.Length > 0)
+        if (expectedPages.Length > 0 || pdfPages.Length > 0)
         {
-            sb.Append("| Morph PDF |\n| --- |\n");
-            foreach (var page in pdfPages)
+            sb.Append("| Expected (Word) | Morph PDF |\n");
+            sb.Append("| --- | --- |\n");
+            var maxPages = Math.Max(expectedPages.Length, pdfPages.Length);
+            for (var i = 0; i < maxPages; i++)
             {
-                sb.Append("| ").Append(RenderImage(Path.GetFileName(page), srcPrefix)).Append(" |\n");
+                var expectedFile = i < expectedPages.Length ? Path.GetFileName(expectedPages[i]) : null;
+                var pdfFile = i < pdfPages.Length ? Path.GetFileName(pdfPages[i]) : null;
+                var pageLabel = $"Page {i + 1}";
+
+                sb.Append("| ");
+                sb.Append(RenderLabel(pageLabel, null, expectedFile));
+                sb.Append(" | ");
+                sb.Append(RenderLabel(pageLabel, null, pdfFile));
+                sb.Append(" |\n");
+
+                sb.Append("| ");
+                sb.Append(RenderImage(expectedFile, srcPrefix));
+                sb.Append(" | ");
+                sb.Append(RenderImage(pdfFile, srcPrefix));
+                sb.Append(" |\n");
             }
             sb.Append('\n');
         }

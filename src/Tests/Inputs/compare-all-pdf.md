@@ -1,6 +1,6 @@
 # All PDF export scenarios (320)
 
-The PDF exporter's pages rendered by PDFium (Verify.PDFium). The Pandoc expected.pdf reference has no raster, so it is linked as a file.
+The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium). The Pandoc expected.pdf reference has no raster, so it is linked as a file.
 
 <details>
 <summary>Contents</summary>
@@ -330,3134 +330,3716 @@ The PDF exporter's pages rendered by PDFium (Verify.PDFium). The Pandoc expected
 
 ## agendas-minutes/01
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/01/expected_0001.png" width="500"> | <img src="agendas-minutes/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/01/pdf_result.verified.pdf)
 
 
 ## agendas-minutes/02
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/02/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="agendas-minutes/02/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/02/expected_0001.png" width="500"> | <img src="agendas-minutes/02/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="agendas-minutes/02/expected_0002.png" width="500"> | <img src="agendas-minutes/02/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/02/pdf_result.verified.pdf) · [Pandoc reference](agendas-minutes/02/expected.pdf)
 
 
 ## agendas-minutes/03
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/03/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/03/expected_0001.png" width="500"> | <img src="agendas-minutes/03/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/03/pdf_result.verified.pdf) · [Pandoc reference](agendas-minutes/03/expected.pdf)
 
 
 ## agendas-minutes/04
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/04/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/04/expected_0001.png" width="500"> | <img src="agendas-minutes/04/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/04/pdf_result.verified.pdf) · [Pandoc reference](agendas-minutes/04/expected.pdf)
 
 
 ## agendas-minutes/05
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/05/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/05/expected_0001.png" width="500"> | <img src="agendas-minutes/05/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/05/pdf_result.verified.pdf) · [Pandoc reference](agendas-minutes/05/expected.pdf)
 
 
 ## agendas-minutes/06
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/06/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/06/expected_0001.png" width="500"> | <img src="agendas-minutes/06/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/06/pdf_result.verified.pdf) · [Pandoc reference](agendas-minutes/06/expected.pdf)
 
 
 ## agendas-minutes/07
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/07/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="agendas-minutes/07/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/07/expected_0001.png" width="500"> | <img src="agendas-minutes/07/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="agendas-minutes/07/expected_0002.png" width="500"> | <img src="agendas-minutes/07/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/07/pdf_result.verified.pdf)
 
 
 ## agendas-minutes/08
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/08/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="agendas-minutes/08/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="agendas-minutes/08/pdf_result%23page_0003.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/08/expected_0001.png" width="500"> | <img src="agendas-minutes/08/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="agendas-minutes/08/expected_0002.png" width="500"> | <img src="agendas-minutes/08/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** _(no page)_ | **Page 3** |
+|  | <img src="agendas-minutes/08/pdf_result%23page_0003.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/08/pdf_result.verified.pdf) · [Pandoc reference](agendas-minutes/08/expected.pdf)
 
 
 ## agendas-minutes/09
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/09/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/09/expected_0001.png" width="500"> | <img src="agendas-minutes/09/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/09/pdf_result.verified.pdf) · [Pandoc reference](agendas-minutes/09/expected.pdf)
 
 
 ## agendas-minutes/10
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/10/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/10/expected_0001.png" width="500"> | <img src="agendas-minutes/10/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/10/pdf_result.verified.pdf) · [Pandoc reference](agendas-minutes/10/expected.pdf)
 
 
 ## agendas-minutes/11
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/11/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/11/expected_0001.png" width="500"> | <img src="agendas-minutes/11/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/11/pdf_result.verified.pdf) · [Pandoc reference](agendas-minutes/11/expected.pdf)
 
 
 ## agendas-minutes/12
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/12/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/12/expected_0001.png" width="500"> | <img src="agendas-minutes/12/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/12/pdf_result.verified.pdf) · [Pandoc reference](agendas-minutes/12/expected.pdf)
 
 
 ## agendas-minutes/13
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/13/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/13/expected_0001.png" width="500"> | <img src="agendas-minutes/13/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/13/pdf_result.verified.pdf)
 
 
 ## agendas-minutes/14
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/14/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/14/expected_0001.png" width="500"> | <img src="agendas-minutes/14/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/14/pdf_result.verified.pdf)
 
 
 ## agendas-minutes/15
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/15/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/15/expected_0001.png" width="500"> | <img src="agendas-minutes/15/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/15/pdf_result.verified.pdf) · [Pandoc reference](agendas-minutes/15/expected.pdf)
 
 
 ## agendas-minutes/16
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/16/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/16/expected_0001.png" width="500"> | <img src="agendas-minutes/16/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/16/pdf_result.verified.pdf) · [Pandoc reference](agendas-minutes/16/expected.pdf)
 
 
 ## agendas-minutes/17
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/17/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/17/expected_0001.png" width="500"> | <img src="agendas-minutes/17/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/17/pdf_result.verified.pdf) · [Pandoc reference](agendas-minutes/17/expected.pdf)
 
 
 ## agendas-minutes/18
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/18/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/18/expected_0001.png" width="500"> | <img src="agendas-minutes/18/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/18/pdf_result.verified.pdf) · [Pandoc reference](agendas-minutes/18/expected.pdf)
 
 
 ## agendas-minutes/19
 
-| Morph PDF |
-| --- |
-| <img src="agendas-minutes/19/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="agendas-minutes/19/expected_0001.png" width="500"> | <img src="agendas-minutes/19/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/19/pdf_result.verified.pdf) · [Pandoc reference](agendas-minutes/19/expected.pdf)
 
 
 ## align_center
 
-| Morph PDF |
-| --- |
-| <img src="align_center/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="align_center/expected_0001.png" width="500"> | <img src="align_center/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](align_center/pdf_result.verified.pdf) · [Pandoc reference](align_center/expected.pdf)
 
 
 ## align_justified
 
-| Morph PDF |
-| --- |
-| <img src="align_justified/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="align_justified/expected_0001.png" width="500"> | <img src="align_justified/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](align_justified/pdf_result.verified.pdf) · [Pandoc reference](align_justified/expected.pdf)
 
 
 ## align_left
 
-| Morph PDF |
-| --- |
-| <img src="align_left/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="align_left/expected_0001.png" width="500"> | <img src="align_left/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](align_left/pdf_result.verified.pdf) · [Pandoc reference](align_left/expected.pdf)
 
 
 ## align_mixed
 
-| Morph PDF |
-| --- |
-| <img src="align_mixed/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="align_mixed/expected_0001.png" width="500"> | <img src="align_mixed/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](align_mixed/pdf_result.verified.pdf) · [Pandoc reference](align_mixed/expected.pdf)
 
 
 ## align_right
 
-| Morph PDF |
-| --- |
-| <img src="align_right/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="align_right/expected_0001.png" width="500"> | <img src="align_right/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](align_right/pdf_result.verified.pdf) · [Pandoc reference](align_right/expected.pdf)
 
 
 ## all_caps
 
-| Morph PDF |
-| --- |
-| <img src="all_caps/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="all_caps/expected_0001.png" width="500"> | <img src="all_caps/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](all_caps/pdf_result.verified.pdf) · [Pandoc reference](all_caps/expected.pdf)
 
 
 ## bar_tabs
 
-| Morph PDF |
-| --- |
-| <img src="bar_tabs/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="bar_tabs/expected_0001.png" width="500"> | <img src="bar_tabs/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](bar_tabs/pdf_result.verified.pdf) · [Pandoc reference](bar_tabs/expected.pdf)
 
 
 ## block_quote
 
-| Morph PDF |
-| --- |
-| <img src="block_quote/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="block_quote/expected_0001.png" width="500"> | <img src="block_quote/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](block_quote/pdf_result.verified.pdf) · [Pandoc reference](block_quote/expected.pdf)
 
 
 ## bold_text
 
-| Morph PDF |
-| --- |
-| <img src="bold_text/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="bold_text/expected_0001.png" width="500"> | <img src="bold_text/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](bold_text/pdf_result.verified.pdf) · [Pandoc reference](bold_text/expected.pdf)
 
 
 ## brochures/01
 
-| Morph PDF |
-| --- |
-| <img src="brochures/01/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="brochures/01/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="brochures/01/expected_0001.png" width="500"> | <img src="brochures/01/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="brochures/01/expected_0002.png" width="500"> | <img src="brochures/01/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](brochures/01/pdf_result.verified.pdf)
 
 
 ## brochures/02
 
-| Morph PDF |
-| --- |
-| <img src="brochures/02/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="brochures/02/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="brochures/02/expected_0001.png" width="500"> | <img src="brochures/02/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="brochures/02/expected_0002.png" width="500"> | <img src="brochures/02/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](brochures/02/pdf_result.verified.pdf)
 
 
 ## brochures/03
 
-| Morph PDF |
-| --- |
-| <img src="brochures/03/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="brochures/03/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="brochures/03/expected_0001.png" width="500"> | <img src="brochures/03/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="brochures/03/expected_0002.png" width="500"> | <img src="brochures/03/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](brochures/03/pdf_result.verified.pdf) · [Pandoc reference](brochures/03/expected.pdf)
 
 
 ## brochures/04
 
-| Morph PDF |
-| --- |
-| <img src="brochures/04/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="brochures/04/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="brochures/04/expected_0001.png" width="500"> | <img src="brochures/04/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="brochures/04/expected_0002.png" width="500"> | <img src="brochures/04/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](brochures/04/pdf_result.verified.pdf) · [Pandoc reference](brochures/04/expected.pdf)
 
 
 ## brochures/05
 
-| Morph PDF |
-| --- |
-| <img src="brochures/05/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="brochures/05/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="brochures/05/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="brochures/05/pdf_result%23page_0004.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="brochures/05/expected_0001.png" width="500"> | <img src="brochures/05/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="brochures/05/expected_0002.png" width="500"> | <img src="brochures/05/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="brochures/05/expected_0003.png" width="500"> | <img src="brochures/05/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="brochures/05/expected_0004.png" width="500"> | <img src="brochures/05/pdf_result%23page_0004.verified.png" width="500"> |
 
 PDF: [Morph PDF](brochures/05/pdf_result.verified.pdf) · [Pandoc reference](brochures/05/expected.pdf)
 
 
 ## brochures/06
 
-| Morph PDF |
-| --- |
-| <img src="brochures/06/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="brochures/06/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="brochures/06/expected_0001.png" width="500"> | <img src="brochures/06/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="brochures/06/expected_0002.png" width="500"> | <img src="brochures/06/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](brochures/06/pdf_result.verified.pdf) · [Pandoc reference](brochures/06/expected.pdf)
 
 
 ## brochures/07
 
-| Morph PDF |
-| --- |
-| <img src="brochures/07/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="brochures/07/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="brochures/07/pdf_result%23page_0003.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="brochures/07/expected_0001.png" width="500"> | <img src="brochures/07/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="brochures/07/expected_0002.png" width="500"> | <img src="brochures/07/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** _(no page)_ | **Page 3** |
+|  | <img src="brochures/07/pdf_result%23page_0003.verified.png" width="500"> |
 
 PDF: [Morph PDF](brochures/07/pdf_result.verified.pdf) · [Pandoc reference](brochures/07/expected.pdf)
 
 
 ## brochures/08
 
-| Morph PDF |
-| --- |
-| <img src="brochures/08/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="brochures/08/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="brochures/08/expected_0001.png" width="500"> | <img src="brochures/08/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="brochures/08/expected_0002.png" width="500"> | <img src="brochures/08/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](brochures/08/pdf_result.verified.pdf) · [Pandoc reference](brochures/08/expected.pdf)
 
 
 ## bullet_list
 
-| Morph PDF |
-| --- |
-| <img src="bullet_list/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="bullet_list/expected_0001.png" width="500"> | <img src="bullet_list/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](bullet_list/pdf_result.verified.pdf) · [Pandoc reference](bullet_list/expected.pdf)
 
 
 ## business-plans/01
 
-| Morph PDF |
-| --- |
-| <img src="business-plans/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business-plans/01/expected_0001.png" width="500"> | <img src="business-plans/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](business-plans/01/pdf_result.verified.pdf) · [Pandoc reference](business-plans/01/expected.pdf)
 
 
 ## business-plans/02
 
-| Morph PDF |
-| --- |
-| <img src="business-plans/02/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="business-plans/02/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="business-plans/02/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="business-plans/02/pdf_result%23page_0004.verified.png" width="500"> |
-| <img src="business-plans/02/pdf_result%23page_0005.verified.png" width="500"> |
-| <img src="business-plans/02/pdf_result%23page_0006.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business-plans/02/expected_0001.png" width="500"> | <img src="business-plans/02/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="business-plans/02/expected_0002.png" width="500"> | <img src="business-plans/02/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="business-plans/02/expected_0003.png" width="500"> | <img src="business-plans/02/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="business-plans/02/expected_0004.png" width="500"> | <img src="business-plans/02/pdf_result%23page_0004.verified.png" width="500"> |
+| **Page 5** | **Page 5** |
+| <img src="business-plans/02/expected_0005.png" width="500"> | <img src="business-plans/02/pdf_result%23page_0005.verified.png" width="500"> |
+| **Page 6** | **Page 6** |
+| <img src="business-plans/02/expected_0006.png" width="500"> | <img src="business-plans/02/pdf_result%23page_0006.verified.png" width="500"> |
 
 PDF: [Morph PDF](business-plans/02/pdf_result.verified.pdf) · [Pandoc reference](business-plans/02/expected.pdf)
 
 
 ## business-plans/03
 
-| Morph PDF |
-| --- |
-| <img src="business-plans/03/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business-plans/03/expected_0001.png" width="500"> | <img src="business-plans/03/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](business-plans/03/pdf_result.verified.pdf) · [Pandoc reference](business-plans/03/expected.pdf)
 
 
 ## business-plans/04
 
-| Morph PDF |
-| --- |
-| <img src="business-plans/04/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business-plans/04/expected_0001.png" width="500"> | <img src="business-plans/04/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](business-plans/04/pdf_result.verified.pdf) · [Pandoc reference](business-plans/04/expected.pdf)
 
 
 ## business-plans/05
 
-| Morph PDF |
-| --- |
-| <img src="business-plans/05/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business-plans/05/expected_0001.png" width="500"> | <img src="business-plans/05/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](business-plans/05/pdf_result.verified.pdf) · [Pandoc reference](business-plans/05/expected.pdf)
 
 
 ## business-plans/06
 
-| Morph PDF |
-| --- |
-| <img src="business-plans/06/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="business-plans/06/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business-plans/06/expected_0001.png" width="500"> | <img src="business-plans/06/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="business-plans/06/expected_0002.png" width="500"> | <img src="business-plans/06/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](business-plans/06/pdf_result.verified.pdf) · [Pandoc reference](business-plans/06/expected.pdf)
 
 
 ## business-plans/07
 
-| Morph PDF |
-| --- |
-| <img src="business-plans/07/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business-plans/07/expected_0001.png" width="500"> | <img src="business-plans/07/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](business-plans/07/pdf_result.verified.pdf) · [Pandoc reference](business-plans/07/expected.pdf)
 
 
 ## business-plans/08
 
-| Morph PDF |
-| --- |
-| <img src="business-plans/08/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="business-plans/08/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business-plans/08/expected_0001.png" width="500"> | <img src="business-plans/08/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="business-plans/08/expected_0002.png" width="500"> | <img src="business-plans/08/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](business-plans/08/pdf_result.verified.pdf) · [Pandoc reference](business-plans/08/expected.pdf)
 
 
 ## business-plans/09
 
-| Morph PDF |
-| --- |
-| <img src="business-plans/09/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="business-plans/09/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="business-plans/09/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="business-plans/09/pdf_result%23page_0004.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business-plans/09/expected_0001.png" width="500"> | <img src="business-plans/09/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="business-plans/09/expected_0002.png" width="500"> | <img src="business-plans/09/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="business-plans/09/expected_0003.png" width="500"> | <img src="business-plans/09/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="business-plans/09/expected_0004.png" width="500"> | <img src="business-plans/09/pdf_result%23page_0004.verified.png" width="500"> |
 
 PDF: [Morph PDF](business-plans/09/pdf_result.verified.pdf) · [Pandoc reference](business-plans/09/expected.pdf)
 
 
 ## business-plans/10
 
-| Morph PDF |
-| --- |
-| <img src="business-plans/10/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="business-plans/10/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="business-plans/10/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="business-plans/10/pdf_result%23page_0004.verified.png" width="500"> |
-| <img src="business-plans/10/pdf_result%23page_0005.verified.png" width="500"> |
-| <img src="business-plans/10/pdf_result%23page_0006.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business-plans/10/expected_0001.png" width="500"> | <img src="business-plans/10/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="business-plans/10/expected_0002.png" width="500"> | <img src="business-plans/10/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="business-plans/10/expected_0003.png" width="500"> | <img src="business-plans/10/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="business-plans/10/expected_0004.png" width="500"> | <img src="business-plans/10/pdf_result%23page_0004.verified.png" width="500"> |
+| **Page 5** | **Page 5** |
+| <img src="business-plans/10/expected_0005.png" width="500"> | <img src="business-plans/10/pdf_result%23page_0005.verified.png" width="500"> |
+| **Page 6** _(no page)_ | **Page 6** |
+|  | <img src="business-plans/10/pdf_result%23page_0006.verified.png" width="500"> |
 
 PDF: [Morph PDF](business-plans/10/pdf_result.verified.pdf) · [Pandoc reference](business-plans/10/expected.pdf)
 
 
 ## business-plans/12
 
-| Morph PDF |
-| --- |
-| <img src="business-plans/12/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0004.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0005.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0006.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0007.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0008.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0009.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0010.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0011.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0012.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0013.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0014.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0015.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0016.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0017.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0018.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0019.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0020.verified.png" width="500"> |
-| <img src="business-plans/12/pdf_result%23page_0021.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business-plans/12/expected_0001.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="business-plans/12/expected_0002.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="business-plans/12/expected_0003.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="business-plans/12/expected_0004.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0004.verified.png" width="500"> |
+| **Page 5** | **Page 5** |
+| <img src="business-plans/12/expected_0005.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0005.verified.png" width="500"> |
+| **Page 6** | **Page 6** |
+| <img src="business-plans/12/expected_0006.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0006.verified.png" width="500"> |
+| **Page 7** | **Page 7** |
+| <img src="business-plans/12/expected_0007.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0007.verified.png" width="500"> |
+| **Page 8** | **Page 8** |
+| <img src="business-plans/12/expected_0008.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0008.verified.png" width="500"> |
+| **Page 9** | **Page 9** |
+| <img src="business-plans/12/expected_0009.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0009.verified.png" width="500"> |
+| **Page 10** | **Page 10** |
+| <img src="business-plans/12/expected_0010.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0010.verified.png" width="500"> |
+| **Page 11** | **Page 11** |
+| <img src="business-plans/12/expected_0011.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0011.verified.png" width="500"> |
+| **Page 12** | **Page 12** |
+| <img src="business-plans/12/expected_0012.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0012.verified.png" width="500"> |
+| **Page 13** | **Page 13** |
+| <img src="business-plans/12/expected_0013.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0013.verified.png" width="500"> |
+| **Page 14** | **Page 14** |
+| <img src="business-plans/12/expected_0014.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0014.verified.png" width="500"> |
+| **Page 15** | **Page 15** |
+| <img src="business-plans/12/expected_0015.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0015.verified.png" width="500"> |
+| **Page 16** | **Page 16** |
+| <img src="business-plans/12/expected_0016.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0016.verified.png" width="500"> |
+| **Page 17** | **Page 17** |
+| <img src="business-plans/12/expected_0017.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0017.verified.png" width="500"> |
+| **Page 18** | **Page 18** |
+| <img src="business-plans/12/expected_0018.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0018.verified.png" width="500"> |
+| **Page 19** _(no page)_ | **Page 19** |
+|  | <img src="business-plans/12/pdf_result%23page_0019.verified.png" width="500"> |
+| **Page 20** _(no page)_ | **Page 20** |
+|  | <img src="business-plans/12/pdf_result%23page_0020.verified.png" width="500"> |
+| **Page 21** _(no page)_ | **Page 21** |
+|  | <img src="business-plans/12/pdf_result%23page_0021.verified.png" width="500"> |
 
 PDF: [Morph PDF](business-plans/12/pdf_result.verified.pdf) · [Pandoc reference](business-plans/12/expected.pdf)
 
 
 ## business-plans/13
 
-| Morph PDF |
-| --- |
-| <img src="business-plans/13/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0004.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0005.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0006.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0007.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0008.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0009.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0010.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0011.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0012.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0013.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0014.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0015.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0016.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0017.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0018.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0019.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0020.verified.png" width="500"> |
-| <img src="business-plans/13/pdf_result%23page_0021.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business-plans/13/expected_0001.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="business-plans/13/expected_0002.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="business-plans/13/expected_0003.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="business-plans/13/expected_0004.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0004.verified.png" width="500"> |
+| **Page 5** | **Page 5** |
+| <img src="business-plans/13/expected_0005.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0005.verified.png" width="500"> |
+| **Page 6** | **Page 6** |
+| <img src="business-plans/13/expected_0006.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0006.verified.png" width="500"> |
+| **Page 7** | **Page 7** |
+| <img src="business-plans/13/expected_0007.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0007.verified.png" width="500"> |
+| **Page 8** | **Page 8** |
+| <img src="business-plans/13/expected_0008.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0008.verified.png" width="500"> |
+| **Page 9** | **Page 9** |
+| <img src="business-plans/13/expected_0009.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0009.verified.png" width="500"> |
+| **Page 10** | **Page 10** |
+| <img src="business-plans/13/expected_0010.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0010.verified.png" width="500"> |
+| **Page 11** | **Page 11** |
+| <img src="business-plans/13/expected_0011.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0011.verified.png" width="500"> |
+| **Page 12** | **Page 12** |
+| <img src="business-plans/13/expected_0012.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0012.verified.png" width="500"> |
+| **Page 13** | **Page 13** |
+| <img src="business-plans/13/expected_0013.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0013.verified.png" width="500"> |
+| **Page 14** | **Page 14** |
+| <img src="business-plans/13/expected_0014.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0014.verified.png" width="500"> |
+| **Page 15** | **Page 15** |
+| <img src="business-plans/13/expected_0015.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0015.verified.png" width="500"> |
+| **Page 16** | **Page 16** |
+| <img src="business-plans/13/expected_0016.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0016.verified.png" width="500"> |
+| **Page 17** | **Page 17** |
+| <img src="business-plans/13/expected_0017.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0017.verified.png" width="500"> |
+| **Page 18** | **Page 18** |
+| <img src="business-plans/13/expected_0018.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0018.verified.png" width="500"> |
+| **Page 19** | **Page 19** |
+| <img src="business-plans/13/expected_0019.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0019.verified.png" width="500"> |
+| **Page 20** | **Page 20** |
+| <img src="business-plans/13/expected_0020.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0020.verified.png" width="500"> |
+| **Page 21** | **Page 21** |
+| <img src="business-plans/13/expected_0021.png" width="500"> | <img src="business-plans/13/pdf_result%23page_0021.verified.png" width="500"> |
 
 PDF: [Morph PDF](business-plans/13/pdf_result.verified.pdf) · [Pandoc reference](business-plans/13/expected.pdf)
 
 
 ## business-plans/15
 
-| Morph PDF |
-| --- |
-| <img src="business-plans/15/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0004.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0005.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0006.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0007.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0008.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0009.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0010.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0011.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0012.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0013.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0014.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0015.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0016.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0017.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0018.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0019.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0020.verified.png" width="500"> |
-| <img src="business-plans/15/pdf_result%23page_0021.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business-plans/15/expected_0001.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="business-plans/15/expected_0002.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="business-plans/15/expected_0003.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="business-plans/15/expected_0004.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0004.verified.png" width="500"> |
+| **Page 5** | **Page 5** |
+| <img src="business-plans/15/expected_0005.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0005.verified.png" width="500"> |
+| **Page 6** | **Page 6** |
+| <img src="business-plans/15/expected_0006.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0006.verified.png" width="500"> |
+| **Page 7** | **Page 7** |
+| <img src="business-plans/15/expected_0007.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0007.verified.png" width="500"> |
+| **Page 8** | **Page 8** |
+| <img src="business-plans/15/expected_0008.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0008.verified.png" width="500"> |
+| **Page 9** | **Page 9** |
+| <img src="business-plans/15/expected_0009.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0009.verified.png" width="500"> |
+| **Page 10** | **Page 10** |
+| <img src="business-plans/15/expected_0010.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0010.verified.png" width="500"> |
+| **Page 11** | **Page 11** |
+| <img src="business-plans/15/expected_0011.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0011.verified.png" width="500"> |
+| **Page 12** | **Page 12** |
+| <img src="business-plans/15/expected_0012.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0012.verified.png" width="500"> |
+| **Page 13** | **Page 13** |
+| <img src="business-plans/15/expected_0013.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0013.verified.png" width="500"> |
+| **Page 14** | **Page 14** |
+| <img src="business-plans/15/expected_0014.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0014.verified.png" width="500"> |
+| **Page 15** | **Page 15** |
+| <img src="business-plans/15/expected_0015.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0015.verified.png" width="500"> |
+| **Page 16** | **Page 16** |
+| <img src="business-plans/15/expected_0016.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0016.verified.png" width="500"> |
+| **Page 17** | **Page 17** |
+| <img src="business-plans/15/expected_0017.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0017.verified.png" width="500"> |
+| **Page 18** | **Page 18** |
+| <img src="business-plans/15/expected_0018.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0018.verified.png" width="500"> |
+| **Page 19** | **Page 19** |
+| <img src="business-plans/15/expected_0019.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0019.verified.png" width="500"> |
+| **Page 20** _(no page)_ | **Page 20** |
+|  | <img src="business-plans/15/pdf_result%23page_0020.verified.png" width="500"> |
+| **Page 21** _(no page)_ | **Page 21** |
+|  | <img src="business-plans/15/pdf_result%23page_0021.verified.png" width="500"> |
 
 PDF: [Morph PDF](business-plans/15/pdf_result.verified.pdf)
 
 
 ## business/01
 
-| Morph PDF |
-| --- |
-| <img src="business/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business/01/expected_0001.png" width="500"> | <img src="business/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](business/01/pdf_result.verified.pdf) · [Pandoc reference](business/01/expected.pdf)
 
 
 ## business/02
 
-| Morph PDF |
-| --- |
-| <img src="business/02/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business/02/expected_0001.png" width="500"> | <img src="business/02/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](business/02/pdf_result.verified.pdf) · [Pandoc reference](business/02/expected.pdf)
 
 
 ## business/03
 
-| Morph PDF |
-| --- |
-| <img src="business/03/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="business/03/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business/03/expected_0001.png" width="500"> | <img src="business/03/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="business/03/expected_0002.png" width="500"> | <img src="business/03/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](business/03/pdf_result.verified.pdf)
 
 
 ## business/04
 
-| Morph PDF |
-| --- |
-| <img src="business/04/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business/04/expected_0001.png" width="500"> | <img src="business/04/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](business/04/pdf_result.verified.pdf) · [Pandoc reference](business/04/expected.pdf)
 
 
 ## business/05
 
-| Morph PDF |
-| --- |
-| <img src="business/05/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="business/05/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business/05/expected_0001.png" width="500"> | <img src="business/05/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** _(no page)_ | **Page 2** |
+|  | <img src="business/05/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](business/05/pdf_result.verified.pdf) · [Pandoc reference](business/05/expected.pdf)
 
 
 ## business/06
 
-| Morph PDF |
-| --- |
-| <img src="business/06/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="business/06/expected_0001.png" width="500"> | <img src="business/06/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](business/06/pdf_result.verified.pdf) · [Pandoc reference](business/06/expected.pdf)
 
 
 ## cards/01
 
-| Morph PDF |
-| --- |
-| <img src="cards/01/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="cards/01/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cards/01/expected_0001.png" width="500"> | <img src="cards/01/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="cards/01/expected_0002.png" width="500"> | <img src="cards/01/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](cards/01/pdf_result.verified.pdf) · [Pandoc reference](cards/01/expected.pdf)
 
 
 ## cards/02
 
-| Morph PDF |
-| --- |
-| <img src="cards/02/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="cards/02/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cards/02/expected_0001.png" width="500"> | <img src="cards/02/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="cards/02/expected_0002.png" width="500"> | <img src="cards/02/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](cards/02/pdf_result.verified.pdf) · [Pandoc reference](cards/02/expected.pdf)
 
 
 ## cards/03
 
-| Morph PDF |
-| --- |
-| <img src="cards/03/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cards/03/expected_0001.png" width="500"> | <img src="cards/03/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cards/03/pdf_result.verified.pdf) · [Pandoc reference](cards/03/expected.pdf)
 
 
 ## cards/04
 
-| Morph PDF |
-| --- |
-| <img src="cards/04/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cards/04/expected_0001.png" width="500"> | <img src="cards/04/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cards/04/pdf_result.verified.pdf) · [Pandoc reference](cards/04/expected.pdf)
 
 
 ## cards/05
 
-| Morph PDF |
-| --- |
-| <img src="cards/05/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="cards/05/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="cards/05/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="cards/05/pdf_result%23page_0004.verified.png" width="500"> |
-| <img src="cards/05/pdf_result%23page_0005.verified.png" width="500"> |
-| <img src="cards/05/pdf_result%23page_0006.verified.png" width="500"> |
-| <img src="cards/05/pdf_result%23page_0007.verified.png" width="500"> |
-| <img src="cards/05/pdf_result%23page_0008.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cards/05/expected_0001.png" width="500"> | <img src="cards/05/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="cards/05/expected_0002.png" width="500"> | <img src="cards/05/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="cards/05/expected_0003.png" width="500"> | <img src="cards/05/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="cards/05/expected_0004.png" width="500"> | <img src="cards/05/pdf_result%23page_0004.verified.png" width="500"> |
+| **Page 5** | **Page 5** |
+| <img src="cards/05/expected_0005.png" width="500"> | <img src="cards/05/pdf_result%23page_0005.verified.png" width="500"> |
+| **Page 6** | **Page 6** |
+| <img src="cards/05/expected_0006.png" width="500"> | <img src="cards/05/pdf_result%23page_0006.verified.png" width="500"> |
+| **Page 7** | **Page 7** |
+| <img src="cards/05/expected_0007.png" width="500"> | <img src="cards/05/pdf_result%23page_0007.verified.png" width="500"> |
+| **Page 8** | **Page 8** |
+| <img src="cards/05/expected_0008.png" width="500"> | <img src="cards/05/pdf_result%23page_0008.verified.png" width="500"> |
 
 PDF: [Morph PDF](cards/05/pdf_result.verified.pdf) · [Pandoc reference](cards/05/expected.pdf)
 
 
 ## cards/06
 
-| Morph PDF |
-| --- |
-| <img src="cards/06/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="cards/06/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cards/06/expected_0001.png" width="500"> | <img src="cards/06/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="cards/06/expected_0002.png" width="500"> | <img src="cards/06/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](cards/06/pdf_result.verified.pdf) · [Pandoc reference](cards/06/expected.pdf)
 
 
 ## cards/07
 
-| Morph PDF |
-| --- |
-| <img src="cards/07/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="cards/07/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cards/07/expected_0001.png" width="500"> | <img src="cards/07/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="cards/07/expected_0002.png" width="500"> | <img src="cards/07/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](cards/07/pdf_result.verified.pdf) · [Pandoc reference](cards/07/expected.pdf)
 
 
 ## cards/08
 
-| Morph PDF |
-| --- |
-| <img src="cards/08/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="cards/08/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="cards/08/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="cards/08/pdf_result%23page_0004.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cards/08/expected_0001.png" width="500"> | <img src="cards/08/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="cards/08/expected_0002.png" width="500"> | <img src="cards/08/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="cards/08/expected_0003.png" width="500"> | <img src="cards/08/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="cards/08/expected_0004.png" width="500"> | <img src="cards/08/pdf_result%23page_0004.verified.png" width="500"> |
 
 PDF: [Morph PDF](cards/08/pdf_result.verified.pdf) · [Pandoc reference](cards/08/expected.pdf)
 
 
 ## cards/09
 
-| Morph PDF |
-| --- |
-| <img src="cards/09/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cards/09/expected_0001.png" width="500"> | <img src="cards/09/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cards/09/pdf_result.verified.pdf) · [Pandoc reference](cards/09/expected.pdf)
 
 
 ## cards/10
 
-| Morph PDF |
-| --- |
-| <img src="cards/10/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cards/10/expected_0001.png" width="500"> | <img src="cards/10/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cards/10/pdf_result.verified.pdf) · [Pandoc reference](cards/10/expected.pdf)
 
 
 ## cards/11
 
-| Morph PDF |
-| --- |
-| <img src="cards/11/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="cards/11/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cards/11/expected_0001.png" width="500"> | <img src="cards/11/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="cards/11/expected_0002.png" width="500"> | <img src="cards/11/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](cards/11/pdf_result.verified.pdf) · [Pandoc reference](cards/11/expected.pdf)
 
 
 ## cards/12
 
-| Morph PDF |
-| --- |
-| <img src="cards/12/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="cards/12/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cards/12/expected_0001.png" width="500"> | <img src="cards/12/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="cards/12/expected_0002.png" width="500"> | <img src="cards/12/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](cards/12/pdf_result.verified.pdf) · [Pandoc reference](cards/12/expected.pdf)
 
 
 ## cards/13
 
-| Morph PDF |
-| --- |
-| <img src="cards/13/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cards/13/expected_0001.png" width="500"> | <img src="cards/13/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cards/13/pdf_result.verified.pdf) · [Pandoc reference](cards/13/expected.pdf)
 
 
 ## cards/15
 
-| Morph PDF |
-| --- |
-| <img src="cards/15/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="cards/15/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cards/15/expected_0001.png" width="500"> | <img src="cards/15/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="cards/15/expected_0002.png" width="500"> | <img src="cards/15/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](cards/15/pdf_result.verified.pdf) · [Pandoc reference](cards/15/expected.pdf)
 
 
 ## cards/16
 
-| Morph PDF |
-| --- |
-| <img src="cards/16/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="cards/16/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="cards/16/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="cards/16/pdf_result%23page_0004.verified.png" width="500"> |
-| <img src="cards/16/pdf_result%23page_0005.verified.png" width="500"> |
-| <img src="cards/16/pdf_result%23page_0006.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cards/16/expected_0001.png" width="500"> | <img src="cards/16/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="cards/16/expected_0002.png" width="500"> | <img src="cards/16/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="cards/16/expected_0003.png" width="500"> | <img src="cards/16/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="cards/16/expected_0004.png" width="500"> | <img src="cards/16/pdf_result%23page_0004.verified.png" width="500"> |
+| **Page 5** | **Page 5** |
+| <img src="cards/16/expected_0005.png" width="500"> | <img src="cards/16/pdf_result%23page_0005.verified.png" width="500"> |
+| **Page 6** | **Page 6** |
+| <img src="cards/16/expected_0006.png" width="500"> | <img src="cards/16/pdf_result%23page_0006.verified.png" width="500"> |
 
 PDF: [Morph PDF](cards/16/pdf_result.verified.pdf) · [Pandoc reference](cards/16/expected.pdf)
 
 
 ## cards/18
 
-| Morph PDF |
-| --- |
-| <img src="cards/18/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cards/18/expected_0001.png" width="500"> | <img src="cards/18/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cards/18/pdf_result.verified.pdf) · [Pandoc reference](cards/18/expected.pdf)
 
 
 ## cards/19
 
-| Morph PDF |
-| --- |
-| <img src="cards/19/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="cards/19/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="cards/19/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="cards/19/pdf_result%23page_0004.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cards/19/expected_0001.png" width="500"> | <img src="cards/19/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="cards/19/expected_0002.png" width="500"> | <img src="cards/19/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="cards/19/expected_0003.png" width="500"> | <img src="cards/19/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="cards/19/expected_0004.png" width="500"> | <img src="cards/19/pdf_result%23page_0004.verified.png" width="500"> |
 
 PDF: [Morph PDF](cards/19/pdf_result.verified.pdf) · [Pandoc reference](cards/19/expected.pdf)
 
 
 ## colored_text
 
-| Morph PDF |
-| --- |
-| <img src="colored_text/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="colored_text/expected_0001.png" width="500"> | <img src="colored_text/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](colored_text/pdf_result.verified.pdf) · [Pandoc reference](colored_text/expected.pdf)
 
 
 ## column_breaks
 
-| Morph PDF |
-| --- |
-| <img src="column_breaks/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="column_breaks/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="column_breaks/expected_0001.png" width="500"> | <img src="column_breaks/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="column_breaks/expected_0002.png" width="500"> | <img src="column_breaks/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](column_breaks/pdf_result.verified.pdf) · [Pandoc reference](column_breaks/expected.pdf)
 
 
 ## comments/01
 
-| Morph PDF |
-| --- |
-| <img src="comments/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="comments/01/expected_0001.png" width="500"> | <img src="comments/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](comments/01/pdf_result.verified.pdf) · [Pandoc reference](comments/01/expected.pdf)
 
 
 ## compatibility_mode_14
 
-| Morph PDF |
-| --- |
-| <img src="compatibility_mode_14/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="compatibility_mode_14/expected_0001.png" width="500"> | <img src="compatibility_mode_14/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](compatibility_mode_14/pdf_result.verified.pdf)
 
 
 ## complex_document
 
-| Morph PDF |
-| --- |
-| <img src="complex_document/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="complex_document/expected_0001.png" width="500"> | <img src="complex_document/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](complex_document/pdf_result.verified.pdf) · [Pandoc reference](complex_document/expected.pdf)
 
 
 ## complex_spacing
 
-| Morph PDF |
-| --- |
-| <img src="complex_spacing/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="complex_spacing/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="complex_spacing/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="complex_spacing/pdf_result%23page_0004.verified.png" width="500"> |
-| <img src="complex_spacing/pdf_result%23page_0005.verified.png" width="500"> |
-| <img src="complex_spacing/pdf_result%23page_0006.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="complex_spacing/expected_0001.png" width="500"> | <img src="complex_spacing/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="complex_spacing/expected_0002.png" width="500"> | <img src="complex_spacing/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="complex_spacing/expected_0003.png" width="500"> | <img src="complex_spacing/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="complex_spacing/expected_0004.png" width="500"> | <img src="complex_spacing/pdf_result%23page_0004.verified.png" width="500"> |
+| **Page 5** | **Page 5** |
+| <img src="complex_spacing/expected_0005.png" width="500"> | <img src="complex_spacing/pdf_result%23page_0005.verified.png" width="500"> |
+| **Page 6** | **Page 6** |
+| <img src="complex_spacing/expected_0006.png" width="500"> | <img src="complex_spacing/pdf_result%23page_0006.verified.png" width="500"> |
+| **Page 7** | **Page 7** _(no page)_ |
+| <img src="complex_spacing/expected_0007.png" width="500"> |  |
 
 PDF: [Morph PDF](complex_spacing/pdf_result.verified.pdf) · [Pandoc reference](complex_spacing/expected.pdf)
 
 
 ## complex_tables
 
-| Morph PDF |
-| --- |
-| <img src="complex_tables/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="complex_tables/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="complex_tables/expected_0001.png" width="500"> | <img src="complex_tables/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="complex_tables/expected_0002.png" width="500"> | <img src="complex_tables/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](complex_tables/pdf_result.verified.pdf) · [Pandoc reference](complex_tables/expected.pdf)
 
 
 ## content_control_inline
 
-| Morph PDF |
-| --- |
-| <img src="content_control_inline/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="content_control_inline/expected_0001.png" width="500"> | <img src="content_control_inline/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](content_control_inline/pdf_result.verified.pdf) · [Pandoc reference](content_control_inline/expected.pdf)
 
 
 ## cover-letters/01
 
-| Morph PDF |
-| --- |
-| <img src="cover-letters/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cover-letters/01/expected_0001.png" width="500"> | <img src="cover-letters/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/01/pdf_result.verified.pdf) · [Pandoc reference](cover-letters/01/expected.pdf)
 
 
 ## cover-letters/02
 
-| Morph PDF |
-| --- |
-| <img src="cover-letters/02/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cover-letters/02/expected_0001.png" width="500"> | <img src="cover-letters/02/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/02/pdf_result.verified.pdf) · [Pandoc reference](cover-letters/02/expected.pdf)
 
 
 ## cover-letters/03
 
-| Morph PDF |
-| --- |
-| <img src="cover-letters/03/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="cover-letters/03/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cover-letters/03/expected_0001.png" width="500"> | <img src="cover-letters/03/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** _(no page)_ | **Page 2** |
+|  | <img src="cover-letters/03/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/03/pdf_result.verified.pdf) · [Pandoc reference](cover-letters/03/expected.pdf)
 
 
 ## cover-letters/04
 
-| Morph PDF |
-| --- |
-| <img src="cover-letters/04/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cover-letters/04/expected_0001.png" width="500"> | <img src="cover-letters/04/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/04/pdf_result.verified.pdf) · [Pandoc reference](cover-letters/04/expected.pdf)
 
 
 ## cover-letters/05
 
-| Morph PDF |
-| --- |
-| <img src="cover-letters/05/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="cover-letters/05/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="cover-letters/05/pdf_result%23page_0003.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cover-letters/05/expected_0001.png" width="500"> | <img src="cover-letters/05/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="cover-letters/05/expected_0002.png" width="500"> | <img src="cover-letters/05/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="cover-letters/05/expected_0003.png" width="500"> | <img src="cover-letters/05/pdf_result%23page_0003.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/05/pdf_result.verified.pdf) · [Pandoc reference](cover-letters/05/expected.pdf)
 
 
 ## cover-letters/06
 
-| Morph PDF |
-| --- |
-| <img src="cover-letters/06/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="cover-letters/06/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cover-letters/06/expected_0001.png" width="500"> | <img src="cover-letters/06/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** _(no page)_ | **Page 2** |
+|  | <img src="cover-letters/06/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/06/pdf_result.verified.pdf) · [Pandoc reference](cover-letters/06/expected.pdf)
 
 
 ## cover-letters/07
 
-| Morph PDF |
-| --- |
-| <img src="cover-letters/07/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cover-letters/07/expected_0001.png" width="500"> | <img src="cover-letters/07/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/07/pdf_result.verified.pdf) · [Pandoc reference](cover-letters/07/expected.pdf)
 
 
 ## cover-letters/08
 
-| Morph PDF |
-| --- |
-| <img src="cover-letters/08/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cover-letters/08/expected_0001.png" width="500"> | <img src="cover-letters/08/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/08/pdf_result.verified.pdf) · [Pandoc reference](cover-letters/08/expected.pdf)
 
 
 ## cover-letters/09
 
-| Morph PDF |
-| --- |
-| <img src="cover-letters/09/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="cover-letters/09/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cover-letters/09/expected_0001.png" width="500"> | <img src="cover-letters/09/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** _(no page)_ | **Page 2** |
+|  | <img src="cover-letters/09/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/09/pdf_result.verified.pdf)
 
 
 ## cover-letters/10
 
-| Morph PDF |
-| --- |
-| <img src="cover-letters/10/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cover-letters/10/expected_0001.png" width="500"> | <img src="cover-letters/10/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/10/pdf_result.verified.pdf) · [Pandoc reference](cover-letters/10/expected.pdf)
 
 
 ## cover-letters/11
 
-| Morph PDF |
-| --- |
-| <img src="cover-letters/11/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cover-letters/11/expected_0001.png" width="500"> | <img src="cover-letters/11/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/11/pdf_result.verified.pdf) · [Pandoc reference](cover-letters/11/expected.pdf)
 
 
 ## cover-letters/12
 
-| Morph PDF |
-| --- |
-| <img src="cover-letters/12/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cover-letters/12/expected_0001.png" width="500"> | <img src="cover-letters/12/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/12/pdf_result.verified.pdf) · [Pandoc reference](cover-letters/12/expected.pdf)
 
 
 ## cover-letters/14
 
-| Morph PDF |
-| --- |
-| <img src="cover-letters/14/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cover-letters/14/expected_0001.png" width="500"> | <img src="cover-letters/14/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/14/pdf_result.verified.pdf) · [Pandoc reference](cover-letters/14/expected.pdf)
 
 
 ## cover-letters/15
 
-| Morph PDF |
-| --- |
-| <img src="cover-letters/15/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="cover-letters/15/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cover-letters/15/expected_0001.png" width="500"> | <img src="cover-letters/15/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** _(no page)_ | **Page 2** |
+|  | <img src="cover-letters/15/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/15/pdf_result.verified.pdf) · [Pandoc reference](cover-letters/15/expected.pdf)
 
 
 ## cover-letters/16
 
-| Morph PDF |
-| --- |
-| <img src="cover-letters/16/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="cover-letters/16/expected_0001.png" width="500"> | <img src="cover-letters/16/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/16/pdf_result.verified.pdf) · [Pandoc reference](cover-letters/16/expected.pdf)
 
 
 ## custom_margins
 
-| Morph PDF |
-| --- |
-| <img src="custom_margins/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="custom_margins/expected_0001.png" width="500"> | <img src="custom_margins/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](custom_margins/pdf_result.verified.pdf) · [Pandoc reference](custom_margins/expected.pdf)
 
 
 ## decimal_tabs/01
 
-| Morph PDF |
-| --- |
-| <img src="decimal_tabs/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="decimal_tabs/01/expected_0001.png" width="500"> | <img src="decimal_tabs/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](decimal_tabs/01/pdf_result.verified.pdf) · [Pandoc reference](decimal_tabs/01/expected.pdf)
 
 
 ## deep_nested_list
 
-| Morph PDF |
-| --- |
-| <img src="deep_nested_list/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="deep_nested_list/expected_0001.png" width="500"> | <img src="deep_nested_list/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](deep_nested_list/pdf_result.verified.pdf) · [Pandoc reference](deep_nested_list/expected.pdf)
 
 
 ## document_capture/01
 
-| Morph PDF |
-| --- |
-| <img src="document_capture/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="document_capture/01/expected_0001.png" width="500"> | <img src="document_capture/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](document_capture/01/pdf_result.verified.pdf) · [Pandoc reference](document_capture/01/expected.pdf)
 
 
 ## document_protection/01
 
-| Morph PDF |
-| --- |
-| <img src="document_protection/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="document_protection/01/expected_0001.png" width="500"> | <img src="document_protection/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](document_protection/01/pdf_result.verified.pdf) · [Pandoc reference](document_protection/01/expected.pdf)
 
 
 ## dot_points
 
-| Morph PDF |
-| --- |
-| <img src="dot_points/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="dot_points/expected_0001.png" width="500"> | <img src="dot_points/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](dot_points/pdf_result.verified.pdf) · [Pandoc reference](dot_points/expected.pdf)
 
 
 ## embedded_font
 
-| Morph PDF |
-| --- |
-| <img src="embedded_font/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="embedded_font/expected_0001.png" width="500"> | <img src="embedded_font/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](embedded_font/pdf_result.verified.pdf) · [Pandoc reference](embedded_font/expected.pdf)
 
 
 ## empty_paragraphs
 
-| Morph PDF |
-| --- |
-| <img src="empty_paragraphs/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="empty_paragraphs/expected_0001.png" width="500"> | <img src="empty_paragraphs/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](empty_paragraphs/pdf_result.verified.pdf) · [Pandoc reference](empty_paragraphs/expected.pdf)
 
 
 ## even_odd_headers/01
 
-| Morph PDF |
-| --- |
-| <img src="even_odd_headers/01/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="even_odd_headers/01/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="even_odd_headers/01/expected_0001.png" width="500"> | <img src="even_odd_headers/01/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="even_odd_headers/01/expected_0002.png" width="500"> | <img src="even_odd_headers/01/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](even_odd_headers/01/pdf_result.verified.pdf) · [Pandoc reference](even_odd_headers/01/expected.pdf)
 
 
 ## even_odd_headers/02
 
-| Morph PDF |
-| --- |
-| <img src="even_odd_headers/02/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="even_odd_headers/02/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="even_odd_headers/02/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="even_odd_headers/02/pdf_result%23page_0004.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="even_odd_headers/02/expected_0001.png" width="500"> | <img src="even_odd_headers/02/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="even_odd_headers/02/expected_0002.png" width="500"> | <img src="even_odd_headers/02/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="even_odd_headers/02/expected_0003.png" width="500"> | <img src="even_odd_headers/02/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="even_odd_headers/02/expected_0004.png" width="500"> | <img src="even_odd_headers/02/pdf_result%23page_0004.verified.png" width="500"> |
 
 PDF: [Morph PDF](even_odd_headers/02/pdf_result.verified.pdf) · [Pandoc reference](even_odd_headers/02/expected.pdf)
 
 
 ## explicit_break_blank_page
 
-| Morph PDF |
-| --- |
-| <img src="explicit_break_blank_page/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="explicit_break_blank_page/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="explicit_break_blank_page/expected_0001.png" width="500"> | <img src="explicit_break_blank_page/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="explicit_break_blank_page/expected_0002.png" width="500"> | <img src="explicit_break_blank_page/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](explicit_break_blank_page/pdf_result.verified.pdf) · [Pandoc reference](explicit_break_blank_page/expected.pdf)
 
 
 ## feature_capture/01
 
-| Morph PDF |
-| --- |
-| <img src="feature_capture/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="feature_capture/01/expected_0001.png" width="500"> | <img src="feature_capture/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](feature_capture/01/pdf_result.verified.pdf) · [Pandoc reference](feature_capture/01/expected.pdf)
 
 
 ## field_codes_simple/01
 
-| Morph PDF |
-| --- |
-| <img src="field_codes_simple/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="field_codes_simple/01/expected_0001.png" width="500"> | <img src="field_codes_simple/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](field_codes_simple/01/pdf_result.verified.pdf) · [Pandoc reference](field_codes_simple/01/expected.pdf)
 
 
 ## first_line_indent
 
-| Morph PDF |
-| --- |
-| <img src="first_line_indent/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="first_line_indent/expected_0001.png" width="500"> | <img src="first_line_indent/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](first_line_indent/pdf_result.verified.pdf) · [Pandoc reference](first_line_indent/expected.pdf)
 
 
 ## font_families
 
-| Morph PDF |
-| --- |
-| <img src="font_families/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="font_families/expected_0001.png" width="500"> | <img src="font_families/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](font_families/pdf_result.verified.pdf) · [Pandoc reference](font_families/expected.pdf)
 
 
 ## font_sizes
 
-| Morph PDF |
-| --- |
-| <img src="font_sizes/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="font_sizes/expected_0001.png" width="500"> | <img src="font_sizes/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](font_sizes/pdf_result.verified.pdf) · [Pandoc reference](font_sizes/expected.pdf)
 
 
 ## footer
 
-| Morph PDF |
-| --- |
-| <img src="footer/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="footer/expected_0001.png" width="500"> | <img src="footer/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](footer/pdf_result.verified.pdf) · [Pandoc reference](footer/expected.pdf)
 
 
 ## form_checkboxes
 
-| Morph PDF |
-| --- |
-| <img src="form_checkboxes/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="form_checkboxes/expected_0001.png" width="500"> | <img src="form_checkboxes/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](form_checkboxes/pdf_result.verified.pdf) · [Pandoc reference](form_checkboxes/expected.pdf)
 
 
 ## form_dropdowns
 
-| Morph PDF |
-| --- |
-| <img src="form_dropdowns/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="form_dropdowns/expected_0001.png" width="500"> | <img src="form_dropdowns/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](form_dropdowns/pdf_result.verified.pdf) · [Pandoc reference](form_dropdowns/expected.pdf)
 
 
 ## form_text_fields
 
-| Morph PDF |
-| --- |
-| <img src="form_text_fields/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="form_text_fields/expected_0001.png" width="500"> | <img src="form_text_fields/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](form_text_fields/pdf_result.verified.pdf) · [Pandoc reference](form_text_fields/expected.pdf)
 
 
 ## gutter_margins/01
 
-| Morph PDF |
-| --- |
-| <img src="gutter_margins/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="gutter_margins/01/expected_0001.png" width="500"> | <img src="gutter_margins/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](gutter_margins/01/pdf_result.verified.pdf) · [Pandoc reference](gutter_margins/01/expected.pdf)
 
 
 ## hanging_indent
 
-| Morph PDF |
-| --- |
-| <img src="hanging_indent/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="hanging_indent/expected_0001.png" width="500"> | <img src="hanging_indent/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](hanging_indent/pdf_result.verified.pdf) · [Pandoc reference](hanging_indent/expected.pdf)
 
 
 ## header
 
-| Morph PDF |
-| --- |
-| <img src="header/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="header/expected_0001.png" width="500"> | <img src="header/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](header/pdf_result.verified.pdf) · [Pandoc reference](header/expected.pdf)
 
 
 ## header_footer
 
-| Morph PDF |
-| --- |
-| <img src="header_footer/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="header_footer/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="header_footer/expected_0001.png" width="500"> | <img src="header_footer/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="header_footer/expected_0002.png" width="500"> | <img src="header_footer/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](header_footer/pdf_result.verified.pdf) · [Pandoc reference](header_footer/expected.pdf)
 
 
 ## header_row_repeat/01
 
-| Morph PDF |
-| --- |
-| <img src="header_row_repeat/01/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="header_row_repeat/01/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="header_row_repeat/01/pdf_result%23page_0003.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="header_row_repeat/01/expected_0001.png" width="500"> | <img src="header_row_repeat/01/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="header_row_repeat/01/expected_0002.png" width="500"> | <img src="header_row_repeat/01/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="header_row_repeat/01/expected_0003.png" width="500"> | <img src="header_row_repeat/01/pdf_result%23page_0003.verified.png" width="500"> |
 
 PDF: [Morph PDF](header_row_repeat/01/pdf_result.verified.pdf) · [Pandoc reference](header_row_repeat/01/expected.pdf)
 
 
 ## headings
 
-| Morph PDF |
-| --- |
-| <img src="headings/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="headings/expected_0001.png" width="500"> | <img src="headings/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](headings/pdf_result.verified.pdf) · [Pandoc reference](headings/expected.pdf)
 
 
 ## html_basic_formatting
 
-| Morph PDF |
-| --- |
-| <img src="html_basic_formatting/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_basic_formatting/expected_0001.png" width="500"> | <img src="html_basic_formatting/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_basic_formatting/pdf_result.verified.pdf) · [Pandoc reference](html_basic_formatting/expected.pdf)
 
 
 ## html_complex
 
-| Morph PDF |
-| --- |
-| <img src="html_complex/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="html_complex/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_complex/expected_0001.png" width="500"> | <img src="html_complex/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="html_complex/expected_0002.png" width="500"> | <img src="html_complex/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_complex/pdf_result.verified.pdf) · [Pandoc reference](html_complex/expected.pdf)
 
 
 ## html_css_alignment
 
-| Morph PDF |
-| --- |
-| <img src="html_css_alignment/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_css_alignment/expected_0001.png" width="500"> | <img src="html_css_alignment/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_css_alignment/pdf_result.verified.pdf) · [Pandoc reference](html_css_alignment/expected.pdf)
 
 
 ## html_css_borders
 
-| Morph PDF |
-| --- |
-| <img src="html_css_borders/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_css_borders/expected_0001.png" width="500"> | <img src="html_css_borders/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_css_borders/pdf_result.verified.pdf) · [Pandoc reference](html_css_borders/expected.pdf)
 
 
 ## html_css_colors
 
-| Morph PDF |
-| --- |
-| <img src="html_css_colors/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_css_colors/expected_0001.png" width="500"> | <img src="html_css_colors/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_css_colors/pdf_result.verified.pdf) · [Pandoc reference](html_css_colors/expected.pdf)
 
 
 ## html_css_margin_padding
 
-| Morph PDF |
-| --- |
-| <img src="html_css_margin_padding/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_css_margin_padding/expected_0001.png" width="500"> | <img src="html_css_margin_padding/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_css_margin_padding/pdf_result.verified.pdf) · [Pandoc reference](html_css_margin_padding/expected.pdf)
 
 
 ## html_font_tag
 
-| Morph PDF |
-| --- |
-| <img src="html_font_tag/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_font_tag/expected_0001.png" width="500"> | <img src="html_font_tag/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_font_tag/pdf_result.verified.pdf) · [Pandoc reference](html_font_tag/expected.pdf)
 
 
 ## html_headings
 
-| Morph PDF |
-| --- |
-| <img src="html_headings/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_headings/expected_0001.png" width="500"> | <img src="html_headings/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_headings/pdf_result.verified.pdf) · [Pandoc reference](html_headings/expected.pdf)
 
 
 ## html_images
 
-| Morph PDF |
-| --- |
-| <img src="html_images/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_images/expected_0001.png" width="500"> | <img src="html_images/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_images/pdf_result.verified.pdf) · [Pandoc reference](html_images/expected.pdf)
 
 
 ## html_inline_styles
 
-| Morph PDF |
-| --- |
-| <img src="html_inline_styles/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_inline_styles/expected_0001.png" width="500"> | <img src="html_inline_styles/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_inline_styles/pdf_result.verified.pdf) · [Pandoc reference](html_inline_styles/expected.pdf)
 
 
 ## html_links
 
-| Morph PDF |
-| --- |
-| <img src="html_links/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_links/expected_0001.png" width="500"> | <img src="html_links/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_links/pdf_result.verified.pdf) · [Pandoc reference](html_links/expected.pdf)
 
 
 ## html_lists
 
-| Morph PDF |
-| --- |
-| <img src="html_lists/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_lists/expected_0001.png" width="500"> | <img src="html_lists/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_lists/pdf_result.verified.pdf) · [Pandoc reference](html_lists/expected.pdf)
 
 
 ## html_nested_lists
 
-| Morph PDF |
-| --- |
-| <img src="html_nested_lists/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_nested_lists/expected_0001.png" width="500"> | <img src="html_nested_lists/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_nested_lists/pdf_result.verified.pdf) · [Pandoc reference](html_nested_lists/expected.pdf)
 
 
 ## html_paragraphs
 
-| Morph PDF |
-| --- |
-| <img src="html_paragraphs/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_paragraphs/expected_0001.png" width="500"> | <img src="html_paragraphs/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_paragraphs/pdf_result.verified.pdf) · [Pandoc reference](html_paragraphs/expected.pdf)
 
 
 ## html_table
 
-| Morph PDF |
-| --- |
-| <img src="html_table/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_table/expected_0001.png" width="500"> | <img src="html_table/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_table/pdf_result.verified.pdf) · [Pandoc reference](html_table/expected.pdf)
 
 
 ## html_table_cellpadding
 
-| Morph PDF |
-| --- |
-| <img src="html_table_cellpadding/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_table_cellpadding/expected_0001.png" width="500"> | <img src="html_table_cellpadding/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_table_cellpadding/pdf_result.verified.pdf) · [Pandoc reference](html_table_cellpadding/expected.pdf)
 
 
 ## html_table_cell_margin_css
 
-| Morph PDF |
-| --- |
-| <img src="html_table_cell_margin_css/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_table_cell_margin_css/expected_0001.png" width="500"> | <img src="html_table_cell_margin_css/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_table_cell_margin_css/pdf_result.verified.pdf) · [Pandoc reference](html_table_cell_margin_css/expected.pdf)
 
 
 ## html_table_cell_padding_css
 
-| Morph PDF |
-| --- |
-| <img src="html_table_cell_padding_css/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_table_cell_padding_css/expected_0001.png" width="500"> | <img src="html_table_cell_padding_css/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_table_cell_padding_css/pdf_result.verified.pdf) · [Pandoc reference](html_table_cell_padding_css/expected.pdf)
 
 
 ## html_table_styled
 
-| Morph PDF |
-| --- |
-| <img src="html_table_styled/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="html_table_styled/expected_0001.png" width="500"> | <img src="html_table_styled/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_table_styled/pdf_result.verified.pdf) · [Pandoc reference](html_table_styled/expected.pdf)
 
 
 ## hyperlinks
 
-| Morph PDF |
-| --- |
-| <img src="hyperlinks/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="hyperlinks/expected_0001.png" width="500"> | <img src="hyperlinks/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](hyperlinks/pdf_result.verified.pdf) · [Pandoc reference](hyperlinks/expected.pdf)
 
 
 ## hyphenation_auto
 
-| Morph PDF |
-| --- |
-| <img src="hyphenation_auto/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="hyphenation_auto/expected_0001.png" width="500"> | <img src="hyphenation_auto/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](hyphenation_auto/pdf_result.verified.pdf) · [Pandoc reference](hyphenation_auto/expected.pdf)
 
 
 ## hyphenation_nonbreaking
 
-| Morph PDF |
-| --- |
-| <img src="hyphenation_nonbreaking/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="hyphenation_nonbreaking/expected_0001.png" width="500"> | <img src="hyphenation_nonbreaking/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](hyphenation_nonbreaking/pdf_result.verified.pdf) · [Pandoc reference](hyphenation_nonbreaking/expected.pdf)
 
 
 ## hyphenation_soft
 
-| Morph PDF |
-| --- |
-| <img src="hyphenation_soft/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="hyphenation_soft/expected_0001.png" width="500"> | <img src="hyphenation_soft/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](hyphenation_soft/pdf_result.verified.pdf) · [Pandoc reference](hyphenation_soft/expected.pdf)
 
 
 ## hyphenation_suppressed
 
-| Morph PDF |
-| --- |
-| <img src="hyphenation_suppressed/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="hyphenation_suppressed/expected_0001.png" width="500"> | <img src="hyphenation_suppressed/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](hyphenation_suppressed/pdf_result.verified.pdf) · [Pandoc reference](hyphenation_suppressed/expected.pdf)
 
 
 ## icons_multiple
 
-| Morph PDF |
-| --- |
-| <img src="icons_multiple/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="icons_multiple/expected_0001.png" width="500"> | <img src="icons_multiple/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](icons_multiple/pdf_result.verified.pdf)
 
 
 ## icon_svg
 
-| Morph PDF |
-| --- |
-| <img src="icon_svg/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="icon_svg/expected_0001.png" width="500"> | <img src="icon_svg/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](icon_svg/pdf_result.verified.pdf)
 
 
 ## icon_with_text
 
-| Morph PDF |
-| --- |
-| <img src="icon_with_text/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="icon_with_text/expected_0001.png" width="500"> | <img src="icon_with_text/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](icon_with_text/pdf_result.verified.pdf)
 
 
 ## image_cropping/01
 
-| Morph PDF |
-| --- |
-| <img src="image_cropping/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="image_cropping/01/expected_0001.png" width="500"> | <img src="image_cropping/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](image_cropping/01/pdf_result.verified.pdf) · [Pandoc reference](image_cropping/01/expected.pdf)
 
 
 ## image_rotation/01
 
-| Morph PDF |
-| --- |
-| <img src="image_rotation/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="image_rotation/01/expected_0001.png" width="500"> | <img src="image_rotation/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](image_rotation/01/pdf_result.verified.pdf) · [Pandoc reference](image_rotation/01/expected.pdf)
 
 
 ## inline_image
 
-| Morph PDF |
-| --- |
-| <img src="inline_image/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="inline_image/expected_0001.png" width="500"> | <img src="inline_image/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](inline_image/pdf_result.verified.pdf) · [Pandoc reference](inline_image/expected.pdf)
 
 
 ## inline_shape_arrows
 
-| Morph PDF |
-| --- |
-| <img src="inline_shape_arrows/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="inline_shape_arrows/expected_0001.png" width="500"> | <img src="inline_shape_arrows/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](inline_shape_arrows/pdf_result.verified.pdf) · [Pandoc reference](inline_shape_arrows/expected.pdf)
 
 
 ## italic_text
 
-| Morph PDF |
-| --- |
-| <img src="italic_text/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="italic_text/expected_0001.png" width="500"> | <img src="italic_text/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](italic_text/pdf_result.verified.pdf) · [Pandoc reference](italic_text/expected.pdf)
 
 
 ## labels/01
 
-| Morph PDF |
-| --- |
-| <img src="labels/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="labels/01/expected_0001.png" width="500"> | <img src="labels/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](labels/01/pdf_result.verified.pdf) · [Pandoc reference](labels/01/expected.pdf)
 
 
 ## labels/02
 
-| Morph PDF |
-| --- |
-| <img src="labels/02/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="labels/02/expected_0001.png" width="500"> | <img src="labels/02/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](labels/02/pdf_result.verified.pdf) · [Pandoc reference](labels/02/expected.pdf)
 
 
 ## labels/03
 
-| Morph PDF |
-| --- |
-| <img src="labels/03/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="labels/03/expected_0001.png" width="500"> | <img src="labels/03/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](labels/03/pdf_result.verified.pdf) · [Pandoc reference](labels/03/expected.pdf)
 
 
 ## labels/04
 
-| Morph PDF |
-| --- |
-| <img src="labels/04/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="labels/04/expected_0001.png" width="500"> | <img src="labels/04/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](labels/04/pdf_result.verified.pdf) · [Pandoc reference](labels/04/expected.pdf)
 
 
 ## labels/05
 
-| Morph PDF |
-| --- |
-| <img src="labels/05/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="labels/05/expected_0001.png" width="500"> | <img src="labels/05/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](labels/05/pdf_result.verified.pdf) · [Pandoc reference](labels/05/expected.pdf)
 
 
 ## labels/06
 
-| Morph PDF |
-| --- |
-| <img src="labels/06/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="labels/06/expected_0001.png" width="500"> | <img src="labels/06/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](labels/06/pdf_result.verified.pdf) · [Pandoc reference](labels/06/expected.pdf)
 
 
 ## labels/07
 
-| Morph PDF |
-| --- |
-| <img src="labels/07/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="labels/07/expected_0001.png" width="500"> | <img src="labels/07/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](labels/07/pdf_result.verified.pdf) · [Pandoc reference](labels/07/expected.pdf)
 
 
 ## labels/08
 
-| Morph PDF |
-| --- |
-| <img src="labels/08/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="labels/08/expected_0001.png" width="500"> | <img src="labels/08/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](labels/08/pdf_result.verified.pdf) · [Pandoc reference](labels/08/expected.pdf)
 
 
 ## labels/09
 
-| Morph PDF |
-| --- |
-| <img src="labels/09/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="labels/09/expected_0001.png" width="500"> | <img src="labels/09/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](labels/09/pdf_result.verified.pdf) · [Pandoc reference](labels/09/expected.pdf)
 
 
 ## labels/10
 
-| Morph PDF |
-| --- |
-| <img src="labels/10/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="labels/10/expected_0001.png" width="500"> | <img src="labels/10/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](labels/10/pdf_result.verified.pdf) · [Pandoc reference](labels/10/expected.pdf)
 
 
 ## labels/11
 
-| Morph PDF |
-| --- |
-| <img src="labels/11/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="labels/11/expected_0001.png" width="500"> | <img src="labels/11/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](labels/11/pdf_result.verified.pdf) · [Pandoc reference](labels/11/expected.pdf)
 
 
 ## labels/12
 
-| Morph PDF |
-| --- |
-| <img src="labels/12/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="labels/12/expected_0001.png" width="500"> | <img src="labels/12/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](labels/12/pdf_result.verified.pdf) · [Pandoc reference](labels/12/expected.pdf)
 
 
 ## labels/13
 
-| Morph PDF |
-| --- |
-| <img src="labels/13/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="labels/13/expected_0001.png" width="500"> | <img src="labels/13/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](labels/13/pdf_result.verified.pdf)
 
 
 ## labels/14
 
-| Morph PDF |
-| --- |
-| <img src="labels/14/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="labels/14/expected_0001.png" width="500"> | <img src="labels/14/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](labels/14/pdf_result.verified.pdf) · [Pandoc reference](labels/14/expected.pdf)
 
 
 ## labels/15
 
-| Morph PDF |
-| --- |
-| <img src="labels/15/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="labels/15/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="labels/15/expected_0001.png" width="500"> | <img src="labels/15/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** _(no page)_ | **Page 2** |
+|  | <img src="labels/15/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](labels/15/pdf_result.verified.pdf) · [Pandoc reference](labels/15/expected.pdf)
 
 
 ## labels/16
 
-| Morph PDF |
-| --- |
-| <img src="labels/16/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="labels/16/expected_0001.png" width="500"> | <img src="labels/16/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](labels/16/pdf_result.verified.pdf) · [Pandoc reference](labels/16/expected.pdf)
 
 
 ## left_indent
 
-| Morph PDF |
-| --- |
-| <img src="left_indent/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="left_indent/expected_0001.png" width="500"> | <img src="left_indent/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](left_indent/pdf_result.verified.pdf) · [Pandoc reference](left_indent/expected.pdf)
 
 
 ## letters/01
 
-| Morph PDF |
-| --- |
-| <img src="letters/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="letters/01/expected_0001.png" width="500"> | <img src="letters/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](letters/01/pdf_result.verified.pdf) · [Pandoc reference](letters/01/expected.pdf)
 
 
 ## letters/02
 
-| Morph PDF |
-| --- |
-| <img src="letters/02/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="letters/02/expected_0001.png" width="500"> | <img src="letters/02/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](letters/02/pdf_result.verified.pdf) · [Pandoc reference](letters/02/expected.pdf)
 
 
 ## letters/03
 
-| Morph PDF |
-| --- |
-| <img src="letters/03/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="letters/03/expected_0001.png" width="500"> | <img src="letters/03/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](letters/03/pdf_result.verified.pdf) · [Pandoc reference](letters/03/expected.pdf)
 
 
 ## letters/04
 
-| Morph PDF |
-| --- |
-| <img src="letters/04/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="letters/04/expected_0001.png" width="500"> | <img src="letters/04/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](letters/04/pdf_result.verified.pdf) · [Pandoc reference](letters/04/expected.pdf)
 
 
 ## letters/05
 
-| Morph PDF |
-| --- |
-| <img src="letters/05/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="letters/05/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="letters/05/pdf_result%23page_0003.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="letters/05/expected_0001.png" width="500"> | <img src="letters/05/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="letters/05/expected_0002.png" width="500"> | <img src="letters/05/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="letters/05/expected_0003.png" width="500"> | <img src="letters/05/pdf_result%23page_0003.verified.png" width="500"> |
 
 PDF: [Morph PDF](letters/05/pdf_result.verified.pdf) · [Pandoc reference](letters/05/expected.pdf)
 
 
 ## letters/06
 
-| Morph PDF |
-| --- |
-| <img src="letters/06/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="letters/06/expected_0001.png" width="500"> | <img src="letters/06/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](letters/06/pdf_result.verified.pdf) · [Pandoc reference](letters/06/expected.pdf)
 
 
 ## letters/07
 
-| Morph PDF |
-| --- |
-| <img src="letters/07/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="letters/07/expected_0001.png" width="500"> | <img src="letters/07/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](letters/07/pdf_result.verified.pdf) · [Pandoc reference](letters/07/expected.pdf)
 
 
 ## letters/08
 
-| Morph PDF |
-| --- |
-| <img src="letters/08/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="letters/08/expected_0001.png" width="500"> | <img src="letters/08/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](letters/08/pdf_result.verified.pdf) · [Pandoc reference](letters/08/expected.pdf)
 
 
 ## letters/09
 
-| Morph PDF |
-| --- |
-| <img src="letters/09/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="letters/09/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="letters/09/expected_0001.png" width="500"> | <img src="letters/09/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** _(no page)_ | **Page 2** |
+|  | <img src="letters/09/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](letters/09/pdf_result.verified.pdf) · [Pandoc reference](letters/09/expected.pdf)
 
 
 ## letters/10
 
-| Morph PDF |
-| --- |
-| <img src="letters/10/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="letters/10/expected_0001.png" width="500"> | <img src="letters/10/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](letters/10/pdf_result.verified.pdf)
 
 
 ## letters/11
 
-| Morph PDF |
-| --- |
-| <img src="letters/11/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="letters/11/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="letters/11/expected_0001.png" width="500"> | <img src="letters/11/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** _(no page)_ | **Page 2** |
+|  | <img src="letters/11/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](letters/11/pdf_result.verified.pdf) · [Pandoc reference](letters/11/expected.pdf)
 
 
 ## letters/12
 
-| Morph PDF |
-| --- |
-| <img src="letters/12/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="letters/12/expected_0001.png" width="500"> | <img src="letters/12/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](letters/12/pdf_result.verified.pdf) · [Pandoc reference](letters/12/expected.pdf)
 
 
 ## letters/13
 
-| Morph PDF |
-| --- |
-| <img src="letters/13/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="letters/13/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="letters/13/pdf_result%23page_0003.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="letters/13/expected_0001.png" width="500"> | <img src="letters/13/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="letters/13/expected_0002.png" width="500"> | <img src="letters/13/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="letters/13/expected_0003.png" width="500"> | <img src="letters/13/pdf_result%23page_0003.verified.png" width="500"> |
 
 PDF: [Morph PDF](letters/13/pdf_result.verified.pdf)
 
 
 ## line_breaks
 
-| Morph PDF |
-| --- |
-| <img src="line_breaks/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="line_breaks/expected_0001.png" width="500"> | <img src="line_breaks/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](line_breaks/pdf_result.verified.pdf) · [Pandoc reference](line_breaks/expected.pdf)
 
 
 ## line_numbers_continuous
 
-| Morph PDF |
-| --- |
-| <img src="line_numbers_continuous/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="line_numbers_continuous/expected_0001.png" width="500"> | <img src="line_numbers_continuous/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](line_numbers_continuous/pdf_result.verified.pdf) · [Pandoc reference](line_numbers_continuous/expected.pdf)
 
 
 ## line_numbers_count_by_5
 
-| Morph PDF |
-| --- |
-| <img src="line_numbers_count_by_5/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="line_numbers_count_by_5/expected_0001.png" width="500"> | <img src="line_numbers_count_by_5/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](line_numbers_count_by_5/pdf_result.verified.pdf) · [Pandoc reference](line_numbers_count_by_5/expected.pdf)
 
 
 ## line_numbers_custom_distance
 
-| Morph PDF |
-| --- |
-| <img src="line_numbers_custom_distance/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="line_numbers_custom_distance/expected_0001.png" width="500"> | <img src="line_numbers_custom_distance/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](line_numbers_custom_distance/pdf_result.verified.pdf) · [Pandoc reference](line_numbers_custom_distance/expected.pdf)
 
 
 ## line_numbers_restart_page
 
-| Morph PDF |
-| --- |
-| <img src="line_numbers_restart_page/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="line_numbers_restart_page/expected_0001.png" width="500"> | <img src="line_numbers_restart_page/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](line_numbers_restart_page/pdf_result.verified.pdf) · [Pandoc reference](line_numbers_restart_page/expected.pdf)
 
 
 ## line_numbers_restart_section
 
-| Morph PDF |
-| --- |
-| <img src="line_numbers_restart_section/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="line_numbers_restart_section/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="line_numbers_restart_section/expected_0001.png" width="500"> | <img src="line_numbers_restart_section/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="line_numbers_restart_section/expected_0002.png" width="500"> | <img src="line_numbers_restart_section/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](line_numbers_restart_section/pdf_result.verified.pdf) · [Pandoc reference](line_numbers_restart_section/expected.pdf)
 
 
 ## line_numbers_suppressed
 
-| Morph PDF |
-| --- |
-| <img src="line_numbers_suppressed/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="line_numbers_suppressed/expected_0001.png" width="500"> | <img src="line_numbers_suppressed/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](line_numbers_suppressed/pdf_result.verified.pdf) · [Pandoc reference](line_numbers_suppressed/expected.pdf)
 
 
 ## line_spacing
 
-| Morph PDF |
-| --- |
-| <img src="line_spacing/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="line_spacing/expected_0001.png" width="500"> | <img src="line_spacing/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](line_spacing/pdf_result.verified.pdf) · [Pandoc reference](line_spacing/expected.pdf)
 
 
 ## line_spacing_at_least
 
-| Morph PDF |
-| --- |
-| <img src="line_spacing_at_least/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="line_spacing_at_least/expected_0001.png" width="500"> | <img src="line_spacing_at_least/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](line_spacing_at_least/pdf_result.verified.pdf) · [Pandoc reference](line_spacing_at_least/expected.pdf)
 
 
 ## line_spacing_exactly
 
-| Morph PDF |
-| --- |
-| <img src="line_spacing_exactly/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="line_spacing_exactly/expected_0001.png" width="500"> | <img src="line_spacing_exactly/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](line_spacing_exactly/pdf_result.verified.pdf) · [Pandoc reference](line_spacing_exactly/expected.pdf)
 
 
 ## long_paragraph
 
-| Morph PDF |
-| --- |
-| <img src="long_paragraph/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="long_paragraph/expected_0001.png" width="500"> | <img src="long_paragraph/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](long_paragraph/pdf_result.verified.pdf) · [Pandoc reference](long_paragraph/expected.pdf)
 
 
 ## menus/01
 
-| Morph PDF |
-| --- |
-| <img src="menus/01/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="menus/01/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="menus/01/pdf_result%23page_0003.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="menus/01/expected_0001.png" width="500"> | <img src="menus/01/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="menus/01/expected_0002.png" width="500"> | <img src="menus/01/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="menus/01/expected_0003.png" width="500"> | <img src="menus/01/pdf_result%23page_0003.verified.png" width="500"> |
 
 PDF: [Morph PDF](menus/01/pdf_result.verified.pdf) · [Pandoc reference](menus/01/expected.pdf)
 
 
 ## menus/02
 
-| Morph PDF |
-| --- |
-| <img src="menus/02/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="menus/02/expected_0001.png" width="500"> | <img src="menus/02/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](menus/02/pdf_result.verified.pdf) · [Pandoc reference](menus/02/expected.pdf)
 
 
 ## menus/03
 
-| Morph PDF |
-| --- |
-| <img src="menus/03/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="menus/03/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="menus/03/expected_0001.png" width="500"> | <img src="menus/03/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** _(no page)_ | **Page 2** |
+|  | <img src="menus/03/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](menus/03/pdf_result.verified.pdf) · [Pandoc reference](menus/03/expected.pdf)
 
 
 ## menus/04
 
-| Morph PDF |
-| --- |
-| <img src="menus/04/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="menus/04/expected_0001.png" width="500"> | <img src="menus/04/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](menus/04/pdf_result.verified.pdf) · [Pandoc reference](menus/04/expected.pdf)
 
 
 ## menus/05
 
-| Morph PDF |
-| --- |
-| <img src="menus/05/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="menus/05/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="menus/05/pdf_result%23page_0003.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="menus/05/expected_0001.png" width="500"> | <img src="menus/05/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="menus/05/expected_0002.png" width="500"> | <img src="menus/05/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="menus/05/expected_0003.png" width="500"> | <img src="menus/05/pdf_result%23page_0003.verified.png" width="500"> |
 
 PDF: [Morph PDF](menus/05/pdf_result.verified.pdf)
 
 
 ## menus/06
 
-| Morph PDF |
-| --- |
-| <img src="menus/06/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="menus/06/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="menus/06/pdf_result%23page_0003.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="menus/06/expected_0001.png" width="500"> | <img src="menus/06/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="menus/06/expected_0002.png" width="500"> | <img src="menus/06/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="menus/06/expected_0003.png" width="500"> | <img src="menus/06/pdf_result%23page_0003.verified.png" width="500"> |
 
 PDF: [Morph PDF](menus/06/pdf_result.verified.pdf)
 
 
 ## menus/07
 
-| Morph PDF |
-| --- |
-| <img src="menus/07/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="menus/07/expected_0001.png" width="500"> | <img src="menus/07/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](menus/07/pdf_result.verified.pdf) · [Pandoc reference](menus/07/expected.pdf)
 
 
 ## menus/08
 
-| Morph PDF |
-| --- |
-| <img src="menus/08/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="menus/08/expected_0001.png" width="500"> | <img src="menus/08/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](menus/08/pdf_result.verified.pdf) · [Pandoc reference](menus/08/expected.pdf)
 
 
 ## menus/09
 
-| Morph PDF |
-| --- |
-| <img src="menus/09/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="menus/09/expected_0001.png" width="500"> | <img src="menus/09/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](menus/09/pdf_result.verified.pdf) · [Pandoc reference](menus/09/expected.pdf)
 
 
 ## mixed_breaks
 
-| Morph PDF |
-| --- |
-| <img src="mixed_breaks/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="mixed_breaks/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="mixed_breaks/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="mixed_breaks/pdf_result%23page_0004.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="mixed_breaks/expected_0001.png" width="500"> | <img src="mixed_breaks/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="mixed_breaks/expected_0002.png" width="500"> | <img src="mixed_breaks/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="mixed_breaks/expected_0003.png" width="500"> | <img src="mixed_breaks/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="mixed_breaks/expected_0004.png" width="500"> | <img src="mixed_breaks/pdf_result%23page_0004.verified.png" width="500"> |
 
 PDF: [Morph PDF](mixed_breaks/pdf_result.verified.pdf) · [Pandoc reference](mixed_breaks/expected.pdf)
 
 
 ## mixed_formatting
 
-| Morph PDF |
-| --- |
-| <img src="mixed_formatting/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="mixed_formatting/expected_0001.png" width="500"> | <img src="mixed_formatting/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](mixed_formatting/pdf_result.verified.pdf) · [Pandoc reference](mixed_formatting/expected.pdf)
 
 
 ## multiple_images
 
-| Morph PDF |
-| --- |
-| <img src="multiple_images/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="multiple_images/expected_0001.png" width="500"> | <img src="multiple_images/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](multiple_images/pdf_result.verified.pdf) · [Pandoc reference](multiple_images/expected.pdf)
 
 
 ## multiple_pages
 
-| Morph PDF |
-| --- |
-| <img src="multiple_pages/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="multiple_pages/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="multiple_pages/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="multiple_pages/pdf_result%23page_0004.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="multiple_pages/expected_0001.png" width="500"> | <img src="multiple_pages/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="multiple_pages/expected_0002.png" width="500"> | <img src="multiple_pages/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="multiple_pages/expected_0003.png" width="500"> | <img src="multiple_pages/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="multiple_pages/expected_0004.png" width="500"> | <img src="multiple_pages/pdf_result%23page_0004.verified.png" width="500"> |
+| **Page 5** | **Page 5** _(no page)_ |
+| <img src="multiple_pages/expected_0005.png" width="500"> |  |
 
 PDF: [Morph PDF](multiple_pages/pdf_result.verified.pdf) · [Pandoc reference](multiple_pages/expected.pdf)
 
 
 ## multiple_paragraphs
 
-| Morph PDF |
-| --- |
-| <img src="multiple_paragraphs/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="multiple_paragraphs/expected_0001.png" width="500"> | <img src="multiple_paragraphs/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](multiple_paragraphs/pdf_result.verified.pdf) · [Pandoc reference](multiple_paragraphs/expected.pdf)
 
 
 ## nested_list
 
-| Morph PDF |
-| --- |
-| <img src="nested_list/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="nested_list/expected_0001.png" width="500"> | <img src="nested_list/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](nested_list/pdf_result.verified.pdf) · [Pandoc reference](nested_list/expected.pdf)
 
 
 ## newsletters/01
 
-| Morph PDF |
-| --- |
-| <img src="newsletters/01/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="newsletters/01/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="newsletters/01/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="newsletters/01/pdf_result%23page_0004.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="newsletters/01/expected_0001.png" width="500"> | <img src="newsletters/01/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="newsletters/01/expected_0002.png" width="500"> | <img src="newsletters/01/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="newsletters/01/expected_0003.png" width="500"> | <img src="newsletters/01/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="newsletters/01/expected_0004.png" width="500"> | <img src="newsletters/01/pdf_result%23page_0004.verified.png" width="500"> |
 
 PDF: [Morph PDF](newsletters/01/pdf_result.verified.pdf) · [Pandoc reference](newsletters/01/expected.pdf)
 
 
 ## newsletters/02
 
-| Morph PDF |
-| --- |
-| <img src="newsletters/02/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="newsletters/02/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="newsletters/02/expected_0001.png" width="500"> | <img src="newsletters/02/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="newsletters/02/expected_0002.png" width="500"> | <img src="newsletters/02/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](newsletters/02/pdf_result.verified.pdf) · [Pandoc reference](newsletters/02/expected.pdf)
 
 
 ## newsletters/03
 
-| Morph PDF |
-| --- |
-| <img src="newsletters/03/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="newsletters/03/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="newsletters/03/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="newsletters/03/pdf_result%23page_0004.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="newsletters/03/expected_0001.png" width="500"> | <img src="newsletters/03/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="newsletters/03/expected_0002.png" width="500"> | <img src="newsletters/03/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="newsletters/03/expected_0003.png" width="500"> | <img src="newsletters/03/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="newsletters/03/expected_0004.png" width="500"> | <img src="newsletters/03/pdf_result%23page_0004.verified.png" width="500"> |
 
 PDF: [Morph PDF](newsletters/03/pdf_result.verified.pdf) · [Pandoc reference](newsletters/03/expected.pdf)
 
 
 ## newsletters/04
 
-| Morph PDF |
-| --- |
-| <img src="newsletters/04/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="newsletters/04/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="newsletters/04/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="newsletters/04/pdf_result%23page_0004.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="newsletters/04/expected_0001.png" width="500"> | <img src="newsletters/04/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="newsletters/04/expected_0002.png" width="500"> | <img src="newsletters/04/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="newsletters/04/expected_0003.png" width="500"> | <img src="newsletters/04/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="newsletters/04/expected_0004.png" width="500"> | <img src="newsletters/04/pdf_result%23page_0004.verified.png" width="500"> |
 
 PDF: [Morph PDF](newsletters/04/pdf_result.verified.pdf) · [Pandoc reference](newsletters/04/expected.pdf)
 
 
 ## newsletters/05
 
-| Morph PDF |
-| --- |
-| <img src="newsletters/05/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="newsletters/05/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="newsletters/05/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="newsletters/05/pdf_result%23page_0004.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="newsletters/05/expected_0001.png" width="500"> | <img src="newsletters/05/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="newsletters/05/expected_0002.png" width="500"> | <img src="newsletters/05/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="newsletters/05/expected_0003.png" width="500"> | <img src="newsletters/05/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="newsletters/05/expected_0004.png" width="500"> | <img src="newsletters/05/pdf_result%23page_0004.verified.png" width="500"> |
 
 PDF: [Morph PDF](newsletters/05/pdf_result.verified.pdf) · [Pandoc reference](newsletters/05/expected.pdf)
 
 
 ## newsletters/06
 
-| Morph PDF |
-| --- |
-| <img src="newsletters/06/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="newsletters/06/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="newsletters/06/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="newsletters/06/pdf_result%23page_0004.verified.png" width="500"> |
-| <img src="newsletters/06/pdf_result%23page_0005.verified.png" width="500"> |
-| <img src="newsletters/06/pdf_result%23page_0006.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="newsletters/06/expected_0001.png" width="500"> | <img src="newsletters/06/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="newsletters/06/expected_0002.png" width="500"> | <img src="newsletters/06/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="newsletters/06/expected_0003.png" width="500"> | <img src="newsletters/06/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="newsletters/06/expected_0004.png" width="500"> | <img src="newsletters/06/pdf_result%23page_0004.verified.png" width="500"> |
+| **Page 5** _(no page)_ | **Page 5** |
+|  | <img src="newsletters/06/pdf_result%23page_0005.verified.png" width="500"> |
+| **Page 6** _(no page)_ | **Page 6** |
+|  | <img src="newsletters/06/pdf_result%23page_0006.verified.png" width="500"> |
 
 PDF: [Morph PDF](newsletters/06/pdf_result.verified.pdf) · [Pandoc reference](newsletters/06/expected.pdf)
 
 
 ## newsletters/07
 
-| Morph PDF |
-| --- |
-| <img src="newsletters/07/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="newsletters/07/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="newsletters/07/expected_0001.png" width="500"> | <img src="newsletters/07/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="newsletters/07/expected_0002.png" width="500"> | <img src="newsletters/07/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](newsletters/07/pdf_result.verified.pdf) · [Pandoc reference](newsletters/07/expected.pdf)
 
 
 ## newsletters/08
 
-| Morph PDF |
-| --- |
-| <img src="newsletters/08/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="newsletters/08/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="newsletters/08/expected_0001.png" width="500"> | <img src="newsletters/08/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="newsletters/08/expected_0002.png" width="500"> | <img src="newsletters/08/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](newsletters/08/pdf_result.verified.pdf) · [Pandoc reference](newsletters/08/expected.pdf)
 
 
 ## newsletters/09
 
-| Morph PDF |
-| --- |
-| <img src="newsletters/09/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="newsletters/09/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="newsletters/09/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="newsletters/09/pdf_result%23page_0004.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="newsletters/09/expected_0001.png" width="500"> | <img src="newsletters/09/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="newsletters/09/expected_0002.png" width="500"> | <img src="newsletters/09/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="newsletters/09/expected_0003.png" width="500"> | <img src="newsletters/09/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="newsletters/09/expected_0004.png" width="500"> | <img src="newsletters/09/pdf_result%23page_0004.verified.png" width="500"> |
 
 PDF: [Morph PDF](newsletters/09/pdf_result.verified.pdf) · [Pandoc reference](newsletters/09/expected.pdf)
 
 
 ## newsletters/10
 
-| Morph PDF |
-| --- |
-| <img src="newsletters/10/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="newsletters/10/expected_0001.png" width="500"> | <img src="newsletters/10/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](newsletters/10/pdf_result.verified.pdf) · [Pandoc reference](newsletters/10/expected.pdf)
 
 
 ## newsletters/11
 
-| Morph PDF |
-| --- |
-| <img src="newsletters/11/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="newsletters/11/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="newsletters/11/expected_0001.png" width="500"> | <img src="newsletters/11/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="newsletters/11/expected_0002.png" width="500"> | <img src="newsletters/11/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](newsletters/11/pdf_result.verified.pdf) · [Pandoc reference](newsletters/11/expected.pdf)
 
 
 ## newsletters/12
 
-| Morph PDF |
-| --- |
-| <img src="newsletters/12/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="newsletters/12/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="newsletters/12/expected_0001.png" width="500"> | <img src="newsletters/12/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="newsletters/12/expected_0002.png" width="500"> | <img src="newsletters/12/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](newsletters/12/pdf_result.verified.pdf) · [Pandoc reference](newsletters/12/expected.pdf)
 
 
 ## newsletters/13
 
-| Morph PDF |
-| --- |
-| <img src="newsletters/13/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="newsletters/13/expected_0001.png" width="500"> | <img src="newsletters/13/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](newsletters/13/pdf_result.verified.pdf) · [Pandoc reference](newsletters/13/expected.pdf)
 
 
 ## newsletters/14
 
-| Morph PDF |
-| --- |
-| <img src="newsletters/14/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="newsletters/14/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="newsletters/14/expected_0001.png" width="500"> | <img src="newsletters/14/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="newsletters/14/expected_0002.png" width="500"> | <img src="newsletters/14/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](newsletters/14/pdf_result.verified.pdf) · [Pandoc reference](newsletters/14/expected.pdf)
 
 
 ## numbered_list
 
-| Morph PDF |
-| --- |
-| <img src="numbered_list/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="numbered_list/expected_0001.png" width="500"> | <img src="numbered_list/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](numbered_list/pdf_result.verified.pdf) · [Pandoc reference](numbered_list/expected.pdf)
 
 
 ## numbered_list_restart
 
-| Morph PDF |
-| --- |
-| <img src="numbered_list_restart/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="numbered_list_restart/expected_0001.png" width="500"> | <img src="numbered_list_restart/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](numbered_list_restart/pdf_result.verified.pdf) · [Pandoc reference](numbered_list_restart/expected.pdf)
 
 
 ## numbered_list_tracking
 
-| Morph PDF |
-| --- |
-| <img src="numbered_list_tracking/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="numbered_list_tracking/expected_0001.png" width="500"> | <img src="numbered_list_tracking/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](numbered_list_tracking/pdf_result.verified.pdf) · [Pandoc reference](numbered_list_tracking/expected.pdf)
 
 
 ## office_math
 
-| Morph PDF |
-| --- |
-| <img src="office_math/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="office_math/expected_0001.png" width="500"> | <img src="office_math/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](office_math/pdf_result.verified.pdf) · [Pandoc reference](office_math/expected.pdf)
 
 
 ## page_a4
 
-| Morph PDF |
-| --- |
-| <img src="page_a4/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="page_a4/expected_0001.png" width="500"> | <img src="page_a4/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](page_a4/pdf_result.verified.pdf) · [Pandoc reference](page_a4/expected.pdf)
 
 
 ## page_borders/01
 
-| Morph PDF |
-| --- |
-| <img src="page_borders/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="page_borders/01/expected_0001.png" width="500"> | <img src="page_borders/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](page_borders/01/pdf_result.verified.pdf) · [Pandoc reference](page_borders/01/expected.pdf)
 
 
 ## page_breaks
 
-| Morph PDF |
-| --- |
-| <img src="page_breaks/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="page_breaks/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="page_breaks/pdf_result%23page_0003.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="page_breaks/expected_0001.png" width="500"> | <img src="page_breaks/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="page_breaks/expected_0002.png" width="500"> | <img src="page_breaks/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="page_breaks/expected_0003.png" width="500"> | <img src="page_breaks/pdf_result%23page_0003.verified.png" width="500"> |
 
 PDF: [Morph PDF](page_breaks/pdf_result.verified.pdf) · [Pandoc reference](page_breaks/expected.pdf)
 
 
 ## page_landscape
 
-| Morph PDF |
-| --- |
-| <img src="page_landscape/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="page_landscape/expected_0001.png" width="500"> | <img src="page_landscape/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](page_landscape/pdf_result.verified.pdf) · [Pandoc reference](page_landscape/expected.pdf)
 
 
 ## page_legal
 
-| Morph PDF |
-| --- |
-| <img src="page_legal/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="page_legal/expected_0001.png" width="500"> | <img src="page_legal/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](page_legal/pdf_result.verified.pdf) · [Pandoc reference](page_legal/expected.pdf)
 
 
 ## page_letter
 
-| Morph PDF |
-| --- |
-| <img src="page_letter/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="page_letter/expected_0001.png" width="500"> | <img src="page_letter/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](page_letter/pdf_result.verified.pdf) · [Pandoc reference](page_letter/expected.pdf)
 
 
 ## page_numbers
 
-| Morph PDF |
-| --- |
-| <img src="page_numbers/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="page_numbers/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="page_numbers/expected_0001.png" width="500"> | <img src="page_numbers/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="page_numbers/expected_0002.png" width="500"> | <img src="page_numbers/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](page_numbers/pdf_result.verified.pdf) · [Pandoc reference](page_numbers/expected.pdf)
 
 
 ## paragraph_borders
 
-| Morph PDF |
-| --- |
-| <img src="paragraph_borders/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="paragraph_borders/expected_0001.png" width="500"> | <img src="paragraph_borders/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](paragraph_borders/pdf_result.verified.pdf) · [Pandoc reference](paragraph_borders/expected.pdf)
 
 
 ## paragraph_spacing
 
-| Morph PDF |
-| --- |
-| <img src="paragraph_spacing/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="paragraph_spacing/expected_0001.png" width="500"> | <img src="paragraph_spacing/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](paragraph_spacing/pdf_result.verified.pdf) · [Pandoc reference](paragraph_spacing/expected.pdf)
 
 
 ## pct_pos_offset
 
-| Morph PDF |
-| --- |
-| <img src="pct_pos_offset/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="pct_pos_offset/expected_0001.png" width="500"> | <img src="pct_pos_offset/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](pct_pos_offset/pdf_result.verified.pdf) · [Pandoc reference](pct_pos_offset/expected.pdf)
 
 
 ## postcards/01
 
-| Morph PDF |
-| --- |
-| <img src="postcards/01/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="postcards/01/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="postcards/01/expected_0001.png" width="500"> | <img src="postcards/01/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="postcards/01/expected_0002.png" width="500"> | <img src="postcards/01/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](postcards/01/pdf_result.verified.pdf)
 
 
 ## postcards/02
 
-| Morph PDF |
-| --- |
-| <img src="postcards/02/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="postcards/02/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="postcards/02/expected_0001.png" width="500"> | <img src="postcards/02/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="postcards/02/expected_0002.png" width="500"> | <img src="postcards/02/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](postcards/02/pdf_result.verified.pdf)
 
 
 ## postcards/03
 
-| Morph PDF |
-| --- |
-| <img src="postcards/03/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="postcards/03/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="postcards/03/expected_0001.png" width="500"> | <img src="postcards/03/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="postcards/03/expected_0002.png" width="500"> | <img src="postcards/03/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](postcards/03/pdf_result.verified.pdf)
 
 
 ## postcards/04
 
-| Morph PDF |
-| --- |
-| <img src="postcards/04/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="postcards/04/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="postcards/04/pdf_result%23page_0003.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="postcards/04/expected_0001.png" width="500"> | <img src="postcards/04/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="postcards/04/expected_0002.png" width="500"> | <img src="postcards/04/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="postcards/04/expected_0003.png" width="500"> | <img src="postcards/04/pdf_result%23page_0003.verified.png" width="500"> |
 
 PDF: [Morph PDF](postcards/04/pdf_result.verified.pdf) · [Pandoc reference](postcards/04/expected.pdf)
 
 
 ## resumes/01
 
-| Morph PDF |
-| --- |
-| <img src="resumes/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/01/expected_0001.png" width="500"> | <img src="resumes/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/01/pdf_result.verified.pdf)
 
 
 ## resumes/02
 
-| Morph PDF |
-| --- |
-| <img src="resumes/02/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="resumes/02/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/02/expected_0001.png" width="500"> | <img src="resumes/02/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** _(no page)_ | **Page 2** |
+|  | <img src="resumes/02/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/02/pdf_result.verified.pdf) · [Pandoc reference](resumes/02/expected.pdf)
 
 
 ## resumes/03
 
-| Morph PDF |
-| --- |
-| <img src="resumes/03/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/03/expected_0001.png" width="500"> | <img src="resumes/03/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/03/pdf_result.verified.pdf) · [Pandoc reference](resumes/03/expected.pdf)
 
 
 ## resumes/04
 
-| Morph PDF |
-| --- |
-| <img src="resumes/04/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/04/expected_0001.png" width="500"> | <img src="resumes/04/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/04/pdf_result.verified.pdf)
 
 
 ## resumes/05
 
-| Morph PDF |
-| --- |
-| <img src="resumes/05/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/05/expected_0001.png" width="500"> | <img src="resumes/05/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/05/pdf_result.verified.pdf)
 
 
 ## resumes/06
 
-| Morph PDF |
-| --- |
-| <img src="resumes/06/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="resumes/06/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="resumes/06/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="resumes/06/pdf_result%23page_0004.verified.png" width="500"> |
-| <img src="resumes/06/pdf_result%23page_0005.verified.png" width="500"> |
-| <img src="resumes/06/pdf_result%23page_0006.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/06/expected_0001.png" width="500"> | <img src="resumes/06/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="resumes/06/expected_0002.png" width="500"> | <img src="resumes/06/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="resumes/06/expected_0003.png" width="500"> | <img src="resumes/06/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** _(no page)_ | **Page 4** |
+|  | <img src="resumes/06/pdf_result%23page_0004.verified.png" width="500"> |
+| **Page 5** _(no page)_ | **Page 5** |
+|  | <img src="resumes/06/pdf_result%23page_0005.verified.png" width="500"> |
+| **Page 6** _(no page)_ | **Page 6** |
+|  | <img src="resumes/06/pdf_result%23page_0006.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/06/pdf_result.verified.pdf) · [Pandoc reference](resumes/06/expected.pdf)
 
 
 ## resumes/07
 
-| Morph PDF |
-| --- |
-| <img src="resumes/07/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="resumes/07/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/07/expected_0001.png" width="500"> | <img src="resumes/07/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** _(no page)_ | **Page 2** |
+|  | <img src="resumes/07/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/07/pdf_result.verified.pdf) · [Pandoc reference](resumes/07/expected.pdf)
 
 
 ## resumes/08
 
-| Morph PDF |
-| --- |
-| <img src="resumes/08/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/08/expected_0001.png" width="500"> | <img src="resumes/08/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/08/pdf_result.verified.pdf) · [Pandoc reference](resumes/08/expected.pdf)
 
 
 ## resumes/09
 
-| Morph PDF |
-| --- |
-| <img src="resumes/09/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/09/expected_0001.png" width="500"> | <img src="resumes/09/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/09/pdf_result.verified.pdf) · [Pandoc reference](resumes/09/expected.pdf)
 
 
 ## resumes/10
 
-| Morph PDF |
-| --- |
-| <img src="resumes/10/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="resumes/10/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="resumes/10/pdf_result%23page_0003.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/10/expected_0001.png" width="500"> | <img src="resumes/10/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="resumes/10/expected_0002.png" width="500"> | <img src="resumes/10/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="resumes/10/expected_0003.png" width="500"> | <img src="resumes/10/pdf_result%23page_0003.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/10/pdf_result.verified.pdf) · [Pandoc reference](resumes/10/expected.pdf)
 
 
 ## resumes/11
 
-| Morph PDF |
-| --- |
-| <img src="resumes/11/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="resumes/11/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/11/expected_0001.png" width="500"> | <img src="resumes/11/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** _(no page)_ | **Page 2** |
+|  | <img src="resumes/11/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/11/pdf_result.verified.pdf) · [Pandoc reference](resumes/11/expected.pdf)
 
 
 ## resumes/12
 
-| Morph PDF |
-| --- |
-| <img src="resumes/12/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/12/expected_0001.png" width="500"> | <img src="resumes/12/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/12/pdf_result.verified.pdf) · [Pandoc reference](resumes/12/expected.pdf)
 
 
 ## resumes/13
 
-| Morph PDF |
-| --- |
-| <img src="resumes/13/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="resumes/13/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="resumes/13/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="resumes/13/pdf_result%23page_0004.verified.png" width="500"> |
-| <img src="resumes/13/pdf_result%23page_0005.verified.png" width="500"> |
-| <img src="resumes/13/pdf_result%23page_0006.verified.png" width="500"> |
-| <img src="resumes/13/pdf_result%23page_0007.verified.png" width="500"> |
-| <img src="resumes/13/pdf_result%23page_0008.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/13/expected_0001.png" width="500"> | <img src="resumes/13/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="resumes/13/expected_0002.png" width="500"> | <img src="resumes/13/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="resumes/13/expected_0003.png" width="500"> | <img src="resumes/13/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="resumes/13/expected_0004.png" width="500"> | <img src="resumes/13/pdf_result%23page_0004.verified.png" width="500"> |
+| **Page 5** | **Page 5** |
+| <img src="resumes/13/expected_0005.png" width="500"> | <img src="resumes/13/pdf_result%23page_0005.verified.png" width="500"> |
+| **Page 6** _(no page)_ | **Page 6** |
+|  | <img src="resumes/13/pdf_result%23page_0006.verified.png" width="500"> |
+| **Page 7** _(no page)_ | **Page 7** |
+|  | <img src="resumes/13/pdf_result%23page_0007.verified.png" width="500"> |
+| **Page 8** _(no page)_ | **Page 8** |
+|  | <img src="resumes/13/pdf_result%23page_0008.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/13/pdf_result.verified.pdf) · [Pandoc reference](resumes/13/expected.pdf)
 
 
 ## resumes/14
 
-| Morph PDF |
-| --- |
-| <img src="resumes/14/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/14/expected_0001.png" width="500"> | <img src="resumes/14/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/14/pdf_result.verified.pdf) · [Pandoc reference](resumes/14/expected.pdf)
 
 
 ## resumes/15
 
-| Morph PDF |
-| --- |
-| <img src="resumes/15/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="resumes/15/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/15/expected_0001.png" width="500"> | <img src="resumes/15/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** _(no page)_ | **Page 2** |
+|  | <img src="resumes/15/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/15/pdf_result.verified.pdf) · [Pandoc reference](resumes/15/expected.pdf)
 
 
 ## resumes/16
 
-| Morph PDF |
-| --- |
-| <img src="resumes/16/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="resumes/16/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/16/expected_0001.png" width="500"> | <img src="resumes/16/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** _(no page)_ | **Page 2** |
+|  | <img src="resumes/16/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/16/pdf_result.verified.pdf) · [Pandoc reference](resumes/16/expected.pdf)
 
 
 ## resumes/17
 
-| Morph PDF |
-| --- |
-| <img src="resumes/17/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/17/expected_0001.png" width="500"> | <img src="resumes/17/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/17/pdf_result.verified.pdf) · [Pandoc reference](resumes/17/expected.pdf)
 
 
 ## resumes/18
 
-| Morph PDF |
-| --- |
-| <img src="resumes/18/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="resumes/18/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/18/expected_0001.png" width="500"> | <img src="resumes/18/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** _(no page)_ | **Page 2** |
+|  | <img src="resumes/18/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/18/pdf_result.verified.pdf) · [Pandoc reference](resumes/18/expected.pdf)
 
 
 ## resumes/19
 
-| Morph PDF |
-| --- |
-| <img src="resumes/19/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="resumes/19/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="resumes/19/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="resumes/19/pdf_result%23page_0004.verified.png" width="500"> |
-| <img src="resumes/19/pdf_result%23page_0005.verified.png" width="500"> |
-| <img src="resumes/19/pdf_result%23page_0006.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="resumes/19/expected_0001.png" width="500"> | <img src="resumes/19/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="resumes/19/expected_0002.png" width="500"> | <img src="resumes/19/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="resumes/19/expected_0003.png" width="500"> | <img src="resumes/19/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** _(no page)_ | **Page 4** |
+|  | <img src="resumes/19/pdf_result%23page_0004.verified.png" width="500"> |
+| **Page 5** _(no page)_ | **Page 5** |
+|  | <img src="resumes/19/pdf_result%23page_0005.verified.png" width="500"> |
+| **Page 6** _(no page)_ | **Page 6** |
+|  | <img src="resumes/19/pdf_result%23page_0006.verified.png" width="500"> |
 
 PDF: [Morph PDF](resumes/19/pdf_result.verified.pdf) · [Pandoc reference](resumes/19/expected.pdf)
 
 
 ## rtl_paragraph
 
-| Morph PDF |
-| --- |
-| <img src="rtl_paragraph/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="rtl_paragraph/expected_0001.png" width="500"> | <img src="rtl_paragraph/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](rtl_paragraph/pdf_result.verified.pdf) · [Pandoc reference](rtl_paragraph/expected.pdf)
 
 
 ## section_break_continuous
 
-| Morph PDF |
-| --- |
-| <img src="section_break_continuous/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="section_break_continuous/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="section_break_continuous/expected_0001.png" width="500"> | <img src="section_break_continuous/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="section_break_continuous/expected_0002.png" width="500"> | <img src="section_break_continuous/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](section_break_continuous/pdf_result.verified.pdf) · [Pandoc reference](section_break_continuous/expected.pdf)
 
 
 ## section_break_even_page
 
-| Morph PDF |
-| --- |
-| <img src="section_break_even_page/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="section_break_even_page/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="section_break_even_page/expected_0001.png" width="500"> | <img src="section_break_even_page/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="section_break_even_page/expected_0002.png" width="500"> | <img src="section_break_even_page/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](section_break_even_page/pdf_result.verified.pdf) · [Pandoc reference](section_break_even_page/expected.pdf)
 
 
 ## section_break_next_page
 
-| Morph PDF |
-| --- |
-| <img src="section_break_next_page/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="section_break_next_page/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="section_break_next_page/expected_0001.png" width="500"> | <img src="section_break_next_page/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="section_break_next_page/expected_0002.png" width="500"> | <img src="section_break_next_page/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](section_break_next_page/pdf_result.verified.pdf) · [Pandoc reference](section_break_next_page/expected.pdf)
 
 
 ## section_break_odd_page
 
-| Morph PDF |
-| --- |
-| <img src="section_break_odd_page/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="section_break_odd_page/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="section_break_odd_page/pdf_result%23page_0003.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="section_break_odd_page/expected_0001.png" width="500"> | <img src="section_break_odd_page/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="section_break_odd_page/expected_0002.png" width="500"> | <img src="section_break_odd_page/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="section_break_odd_page/expected_0003.png" width="500"> | <img src="section_break_odd_page/pdf_result%23page_0003.verified.png" width="500"> |
 
 PDF: [Morph PDF](section_break_odd_page/pdf_result.verified.pdf) · [Pandoc reference](section_break_odd_page/expected.pdf)
 
 
 ## simple_paragraph
 
-| Morph PDF |
-| --- |
-| <img src="simple_paragraph/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="simple_paragraph/expected_0001.png" width="500"> | <img src="simple_paragraph/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](simple_paragraph/pdf_result.verified.pdf) · [Pandoc reference](simple_paragraph/expected.pdf)
 
 
 ## simple_table
 
-| Morph PDF |
-| --- |
-| <img src="simple_table/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="simple_table/expected_0001.png" width="500"> | <img src="simple_table/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](simple_table/pdf_result.verified.pdf) · [Pandoc reference](simple_table/expected.pdf)
 
 
 ## small_caps
 
-| Morph PDF |
-| --- |
-| <img src="small_caps/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="small_caps/expected_0001.png" width="500"> | <img src="small_caps/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](small_caps/pdf_result.verified.pdf) · [Pandoc reference](small_caps/expected.pdf)
 
 
 ## strikethrough_text
 
-| Morph PDF |
-| --- |
-| <img src="strikethrough_text/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="strikethrough_text/expected_0001.png" width="500"> | <img src="strikethrough_text/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](strikethrough_text/pdf_result.verified.pdf) · [Pandoc reference](strikethrough_text/expected.pdf)
 
 
 ## subscript_superscript
 
-| Morph PDF |
-| --- |
-| <img src="subscript_superscript/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="subscript_superscript/expected_0001.png" width="500"> | <img src="subscript_superscript/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](subscript_superscript/pdf_result.verified.pdf) · [Pandoc reference](subscript_superscript/expected.pdf)
 
 
 ## table_alignment/01
 
-| Morph PDF |
-| --- |
-| <img src="table_alignment/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_alignment/01/expected_0001.png" width="500"> | <img src="table_alignment/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_alignment/01/pdf_result.verified.pdf) · [Pandoc reference](table_alignment/01/expected.pdf)
 
 
 ## table_autofit_no_widths
 
-| Morph PDF |
-| --- |
-| <img src="table_autofit_no_widths/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_autofit_no_widths/expected_0001.png" width="500"> | <img src="table_autofit_no_widths/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_autofit_no_widths/pdf_result.verified.pdf) · [Pandoc reference](table_autofit_no_widths/expected.pdf)
 
 
 ## table_borders
 
-| Morph PDF |
-| --- |
-| <img src="table_borders/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_borders/expected_0001.png" width="500"> | <img src="table_borders/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_borders/pdf_result.verified.pdf) · [Pandoc reference](table_borders/expected.pdf)
 
 
 ## table_cell_margin_per_cell
 
-| Morph PDF |
-| --- |
-| <img src="table_cell_margin_per_cell/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_cell_margin_per_cell/expected_0001.png" width="500"> | <img src="table_cell_margin_per_cell/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_cell_margin_per_cell/pdf_result.verified.pdf) · [Pandoc reference](table_cell_margin_per_cell/expected.pdf)
 
 
 ## table_cell_padding
 
-| Morph PDF |
-| --- |
-| <img src="table_cell_padding/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_cell_padding/expected_0001.png" width="500"> | <img src="table_cell_padding/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_cell_padding/pdf_result.verified.pdf) · [Pandoc reference](table_cell_padding/expected.pdf)
 
 
 ## table_cell_padding_varied
 
-| Morph PDF |
-| --- |
-| <img src="table_cell_padding_varied/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_cell_padding_varied/expected_0001.png" width="500"> | <img src="table_cell_padding_varied/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_cell_padding_varied/pdf_result.verified.pdf) · [Pandoc reference](table_cell_padding_varied/expected.pdf)
 
 
 ## table_cell_spacing/01
 
-| Morph PDF |
-| --- |
-| <img src="table_cell_spacing/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_cell_spacing/01/expected_0001.png" width="500"> | <img src="table_cell_spacing/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_cell_spacing/01/pdf_result.verified.pdf) · [Pandoc reference](table_cell_spacing/01/expected.pdf)
 
 
 ## table_colors
 
-| Morph PDF |
-| --- |
-| <img src="table_colors/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_colors/expected_0001.png" width="500"> | <img src="table_colors/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_colors/pdf_result.verified.pdf) · [Pandoc reference](table_colors/expected.pdf)
 
 
 ## table_default_cell_margin
 
-| Morph PDF |
-| --- |
-| <img src="table_default_cell_margin/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_default_cell_margin/expected_0001.png" width="500"> | <img src="table_default_cell_margin/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_default_cell_margin/pdf_result.verified.pdf) · [Pandoc reference](table_default_cell_margin/expected.pdf)
 
 
 ## table_default_cell_margin_start_end
 
-| Morph PDF |
-| --- |
-| <img src="table_default_cell_margin_start_end/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_default_cell_margin_start_end/expected_0001.png" width="500"> | <img src="table_default_cell_margin_start_end/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_default_cell_margin_start_end/pdf_result.verified.pdf) · [Pandoc reference](table_default_cell_margin_start_end/expected.pdf)
 
 
 ## table_default_style
 
-| Morph PDF |
-| --- |
-| <img src="table_default_style/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_default_style/expected_0001.png" width="500"> | <img src="table_default_style/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_default_style/pdf_result.verified.pdf) · [Pandoc reference](table_default_style/expected.pdf)
 
 
 ## table_default_style_first_row_run_color
 
-| Morph PDF |
-| --- |
-| <img src="table_default_style_first_row_run_color/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_default_style_first_row_run_color/expected_0001.png" width="500"> | <img src="table_default_style_first_row_run_color/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_default_style_first_row_run_color/pdf_result.verified.pdf) · [Pandoc reference](table_default_style_first_row_run_color/expected.pdf)
 
 
 ## table_default_style_first_row_shading
 
-| Morph PDF |
-| --- |
-| <img src="table_default_style_first_row_shading/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_default_style_first_row_shading/expected_0001.png" width="500"> | <img src="table_default_style_first_row_shading/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_default_style_first_row_shading/pdf_result.verified.pdf) · [Pandoc reference](table_default_style_first_row_shading/expected.pdf)
 
 
 ## table_default_style_inside_h
 
-| Morph PDF |
-| --- |
-| <img src="table_default_style_inside_h/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_default_style_inside_h/expected_0001.png" width="500"> | <img src="table_default_style_inside_h/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_default_style_inside_h/pdf_result.verified.pdf) · [Pandoc reference](table_default_style_inside_h/expected.pdf)
 
 
 ## table_default_style_outer_borders
 
-| Morph PDF |
-| --- |
-| <img src="table_default_style_outer_borders/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_default_style_outer_borders/expected_0001.png" width="500"> | <img src="table_default_style_outer_borders/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_default_style_outer_borders/pdf_result.verified.pdf) · [Pandoc reference](table_default_style_outer_borders/expected.pdf)
 
 
 ## table_diagonal_borders/01
 
-| Morph PDF |
-| --- |
-| <img src="table_diagonal_borders/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_diagonal_borders/01/expected_0001.png" width="500"> | <img src="table_diagonal_borders/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_diagonal_borders/01/pdf_result.verified.pdf) · [Pandoc reference](table_diagonal_borders/01/expected.pdf)
 
 
 ## table_explicit_heights
 
-| Morph PDF |
-| --- |
-| <img src="table_explicit_heights/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_explicit_heights/expected_0001.png" width="500"> | <img src="table_explicit_heights/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_explicit_heights/pdf_result.verified.pdf) · [Pandoc reference](table_explicit_heights/expected.pdf)
 
 
 ## table_grid_styling_padding
 
-| Morph PDF |
-| --- |
-| <img src="table_grid_styling_padding/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_grid_styling_padding/expected_0001.png" width="500"> | <img src="table_grid_styling_padding/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_grid_styling_padding/pdf_result.verified.pdf) · [Pandoc reference](table_grid_styling_padding/expected.pdf)
 
 
 ## table_indent
 
-| Morph PDF |
-| --- |
-| <img src="table_indent/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** _(no page)_ | **Page 1** |
+|  | <img src="table_indent/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_indent/pdf_result.verified.pdf) · [Pandoc reference](table_indent/expected.pdf)
 
 
 ## table_layout_tall_row
 
-| Morph PDF |
-| --- |
-| <img src="table_layout_tall_row/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="table_layout_tall_row/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_layout_tall_row/expected_0001.png" width="500"> | <img src="table_layout_tall_row/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="table_layout_tall_row/expected_0002.png" width="500"> | <img src="table_layout_tall_row/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_layout_tall_row/pdf_result.verified.pdf) · [Pandoc reference](table_layout_tall_row/expected.pdf)
 
 
 ## table_multipage
 
-| Morph PDF |
-| --- |
-| <img src="table_multipage/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="table_multipage/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_multipage/expected_0001.png" width="500"> | <img src="table_multipage/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="table_multipage/expected_0002.png" width="500"> | <img src="table_multipage/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_multipage/pdf_result.verified.pdf) · [Pandoc reference](table_multipage/expected.pdf)
 
 
 ## table_of_contents/01
 
-| Morph PDF |
-| --- |
-| <img src="table_of_contents/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_of_contents/01/expected_0001.png" width="500"> | <img src="table_of_contents/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_of_contents/01/pdf_result.verified.pdf) · [Pandoc reference](table_of_contents/01/expected.pdf)
 
 
 ## table_of_contents/02
 
-| Morph PDF |
-| --- |
-| <img src="table_of_contents/02/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_of_contents/02/expected_0001.png" width="500"> | <img src="table_of_contents/02/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_of_contents/02/pdf_result.verified.pdf) · [Pandoc reference](table_of_contents/02/expected.pdf)
 
 
 ## table_of_contents/03
 
-| Morph PDF |
-| --- |
-| <img src="table_of_contents/03/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_of_contents/03/expected_0001.png" width="500"> | <img src="table_of_contents/03/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_of_contents/03/pdf_result.verified.pdf) · [Pandoc reference](table_of_contents/03/expected.pdf)
 
 
 ## table_page_break
 
-| Morph PDF |
-| --- |
-| <img src="table_page_break/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="table_page_break/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="table_page_break/pdf_result%23page_0003.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_page_break/expected_0001.png" width="500"> | <img src="table_page_break/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="table_page_break/expected_0002.png" width="500"> | <img src="table_page_break/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="table_page_break/expected_0003.png" width="500"> | <img src="table_page_break/pdf_result%23page_0003.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_page_break/pdf_result.verified.pdf) · [Pandoc reference](table_page_break/expected.pdf)
 
 
 ## table_text_direction
 
-| Morph PDF |
-| --- |
-| <img src="table_text_direction/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_text_direction/expected_0001.png" width="500"> | <img src="table_text_direction/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_text_direction/pdf_result.verified.pdf) · [Pandoc reference](table_text_direction/expected.pdf)
 
 
 ## table_two_column_layout
 
-| Morph PDF |
-| --- |
-| <img src="table_two_column_layout/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_two_column_layout/expected_0001.png" width="500"> | <img src="table_two_column_layout/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_two_column_layout/pdf_result.verified.pdf) · [Pandoc reference](table_two_column_layout/expected.pdf)
 
 
 ## table_vmerge_basic
 
-| Morph PDF |
-| --- |
-| <img src="table_vmerge_basic/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_vmerge_basic/expected_0001.png" width="500"> | <img src="table_vmerge_basic/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_vmerge_basic/pdf_result.verified.pdf) · [Pandoc reference](table_vmerge_basic/expected.pdf)
 
 
 ## table_vmerge_explicit_heights
 
-| Morph PDF |
-| --- |
-| <img src="table_vmerge_explicit_heights/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="table_vmerge_explicit_heights/expected_0001.png" width="500"> | <img src="table_vmerge_explicit_heights/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_vmerge_explicit_heights/pdf_result.verified.pdf) · [Pandoc reference](table_vmerge_explicit_heights/expected.pdf)
 
 
 ## tab_stops
 
-| Morph PDF |
-| --- |
-| <img src="tab_stops/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** _(no page)_ | **Page 1** |
+|  | <img src="tab_stops/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](tab_stops/pdf_result.verified.pdf) · [Pandoc reference](tab_stops/expected.pdf)
 
 
 ## text_wrapping_break
 
-| Morph PDF |
-| --- |
-| <img src="text_wrapping_break/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="text_wrapping_break/expected_0001.png" width="500"> | <img src="text_wrapping_break/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](text_wrapping_break/pdf_result.verified.pdf) · [Pandoc reference](text_wrapping_break/expected.pdf)
 
 
 ## three_columns
 
-| Morph PDF |
-| --- |
-| <img src="three_columns/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="three_columns/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="three_columns/expected_0001.png" width="500"> | <img src="three_columns/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** _(no page)_ | **Page 2** |
+|  | <img src="three_columns/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](three_columns/pdf_result.verified.pdf) · [Pandoc reference](three_columns/expected.pdf)
 
 
 ## tracked_changes/01
 
-| Morph PDF |
-| --- |
-| <img src="tracked_changes/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="tracked_changes/01/expected_0001.png" width="500"> | <img src="tracked_changes/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](tracked_changes/01/pdf_result.verified.pdf) · [Pandoc reference](tracked_changes/01/expected.pdf)
 
 
 ## two_columns
 
-| Morph PDF |
-| --- |
-| <img src="two_columns/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="two_columns/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="two_columns/expected_0001.png" width="500"> | <img src="two_columns/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** _(no page)_ | **Page 2** |
+|  | <img src="two_columns/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](two_columns/pdf_result.verified.pdf) · [Pandoc reference](two_columns/expected.pdf)
 
 
 ## underline_text
 
-| Morph PDF |
-| --- |
-| <img src="underline_text/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="underline_text/expected_0001.png" width="500"> | <img src="underline_text/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](underline_text/pdf_result.verified.pdf) · [Pandoc reference](underline_text/expected.pdf)
 
 
 ## wedding/01
 
-| Morph PDF |
-| --- |
-| <img src="wedding/01/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="wedding/01/expected_0001.png" width="500"> | <img src="wedding/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](wedding/01/pdf_result.verified.pdf) · [Pandoc reference](wedding/01/expected.pdf)
 
 
 ## wedding/02
 
-| Morph PDF |
-| --- |
-| <img src="wedding/02/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="wedding/02/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="wedding/02/expected_0001.png" width="500"> | <img src="wedding/02/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="wedding/02/expected_0002.png" width="500"> | <img src="wedding/02/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](wedding/02/pdf_result.verified.pdf) · [Pandoc reference](wedding/02/expected.pdf)
 
 
 ## wedding/03
 
-| Morph PDF |
-| --- |
-| <img src="wedding/03/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="wedding/03/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="wedding/03/expected_0001.png" width="500"> | <img src="wedding/03/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="wedding/03/expected_0002.png" width="500"> | <img src="wedding/03/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](wedding/03/pdf_result.verified.pdf) · [Pandoc reference](wedding/03/expected.pdf)
 
 
 ## wedding/04
 
-| Morph PDF |
-| --- |
-| <img src="wedding/04/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="wedding/04/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="wedding/04/expected_0001.png" width="500"> | <img src="wedding/04/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="wedding/04/expected_0002.png" width="500"> | <img src="wedding/04/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](wedding/04/pdf_result.verified.pdf) · [Pandoc reference](wedding/04/expected.pdf)
 
 
 ## wedding/05
 
-| Morph PDF |
-| --- |
-| <img src="wedding/05/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="wedding/05/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="wedding/05/expected_0001.png" width="500"> | <img src="wedding/05/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="wedding/05/expected_0002.png" width="500"> | <img src="wedding/05/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](wedding/05/pdf_result.verified.pdf) · [Pandoc reference](wedding/05/expected.pdf)
 
 
 ## wedding/06
 
-| Morph PDF |
-| --- |
-| <img src="wedding/06/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="wedding/06/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="wedding/06/expected_0001.png" width="500"> | <img src="wedding/06/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="wedding/06/expected_0002.png" width="500"> | <img src="wedding/06/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](wedding/06/pdf_result.verified.pdf) · [Pandoc reference](wedding/06/expected.pdf)
 
 
 ## wedding/07
 
-| Morph PDF |
-| --- |
-| <img src="wedding/07/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="wedding/07/expected_0001.png" width="500"> | <img src="wedding/07/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](wedding/07/pdf_result.verified.pdf) · [Pandoc reference](wedding/07/expected.pdf)
 
 
 ## wedding/08
 
-| Morph PDF |
-| --- |
-| <img src="wedding/08/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="wedding/08/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="wedding/08/expected_0001.png" width="500"> | <img src="wedding/08/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="wedding/08/expected_0002.png" width="500"> | <img src="wedding/08/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](wedding/08/pdf_result.verified.pdf) · [Pandoc reference](wedding/08/expected.pdf)
 
 
 ## wedding/09
 
-| Morph PDF |
-| --- |
-| <img src="wedding/09/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="wedding/09/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="wedding/09/expected_0001.png" width="500"> | <img src="wedding/09/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="wedding/09/expected_0002.png" width="500"> | <img src="wedding/09/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](wedding/09/pdf_result.verified.pdf) · [Pandoc reference](wedding/09/expected.pdf)
 
 
 ## wedding/10
 
-| Morph PDF |
-| --- |
-| <img src="wedding/10/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="wedding/10/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="wedding/10/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="wedding/10/pdf_result%23page_0004.verified.png" width="500"> |
-| <img src="wedding/10/pdf_result%23page_0005.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="wedding/10/expected_0001.png" width="500"> | <img src="wedding/10/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="wedding/10/expected_0002.png" width="500"> | <img src="wedding/10/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="wedding/10/expected_0003.png" width="500"> | <img src="wedding/10/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="wedding/10/expected_0004.png" width="500"> | <img src="wedding/10/pdf_result%23page_0004.verified.png" width="500"> |
+| **Page 5** | **Page 5** |
+| <img src="wedding/10/expected_0005.png" width="500"> | <img src="wedding/10/pdf_result%23page_0005.verified.png" width="500"> |
 
 PDF: [Morph PDF](wedding/10/pdf_result.verified.pdf)
 
 
 ## wedding/11
 
-| Morph PDF |
-| --- |
-| <img src="wedding/11/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="wedding/11/pdf_result%23page_0002.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="wedding/11/expected_0001.png" width="500"> | <img src="wedding/11/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="wedding/11/expected_0002.png" width="500"> | <img src="wedding/11/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](wedding/11/pdf_result.verified.pdf) · [Pandoc reference](wedding/11/expected.pdf)
 
 
 ## wide_table
 
-| Morph PDF |
-| --- |
-| <img src="wide_table/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="wide_table/expected_0001.png" width="500"> | <img src="wide_table/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](wide_table/pdf_result.verified.pdf) · [Pandoc reference](wide_table/expected.pdf)
 
 
 ## wordart
 
-| Morph PDF |
-| --- |
-| <img src="wordart/pdf_result%23page_0001.verified.png" width="500"> |
-| <img src="wordart/pdf_result%23page_0002.verified.png" width="500"> |
-| <img src="wordart/pdf_result%23page_0003.verified.png" width="500"> |
-| <img src="wordart/pdf_result%23page_0004.verified.png" width="500"> |
-| <img src="wordart/pdf_result%23page_0005.verified.png" width="500"> |
-| <img src="wordart/pdf_result%23page_0006.verified.png" width="500"> |
-| <img src="wordart/pdf_result%23page_0007.verified.png" width="500"> |
-| <img src="wordart/pdf_result%23page_0008.verified.png" width="500"> |
-| <img src="wordart/pdf_result%23page_0009.verified.png" width="500"> |
-| <img src="wordart/pdf_result%23page_0010.verified.png" width="500"> |
-| <img src="wordart/pdf_result%23page_0011.verified.png" width="500"> |
-| <img src="wordart/pdf_result%23page_0012.verified.png" width="500"> |
-| <img src="wordart/pdf_result%23page_0013.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="wordart/expected_0001.png" width="500"> | <img src="wordart/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="wordart/expected_0002.png" width="500"> | <img src="wordart/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** | **Page 3** |
+| <img src="wordart/expected_0003.png" width="500"> | <img src="wordart/pdf_result%23page_0003.verified.png" width="500"> |
+| **Page 4** | **Page 4** |
+| <img src="wordart/expected_0004.png" width="500"> | <img src="wordart/pdf_result%23page_0004.verified.png" width="500"> |
+| **Page 5** | **Page 5** |
+| <img src="wordart/expected_0005.png" width="500"> | <img src="wordart/pdf_result%23page_0005.verified.png" width="500"> |
+| **Page 6** | **Page 6** |
+| <img src="wordart/expected_0006.png" width="500"> | <img src="wordart/pdf_result%23page_0006.verified.png" width="500"> |
+| **Page 7** | **Page 7** |
+| <img src="wordart/expected_0007.png" width="500"> | <img src="wordart/pdf_result%23page_0007.verified.png" width="500"> |
+| **Page 8** | **Page 8** |
+| <img src="wordart/expected_0008.png" width="500"> | <img src="wordart/pdf_result%23page_0008.verified.png" width="500"> |
+| **Page 9** | **Page 9** |
+| <img src="wordart/expected_0009.png" width="500"> | <img src="wordart/pdf_result%23page_0009.verified.png" width="500"> |
+| **Page 10** | **Page 10** |
+| <img src="wordart/expected_0010.png" width="500"> | <img src="wordart/pdf_result%23page_0010.verified.png" width="500"> |
+| **Page 11** | **Page 11** |
+| <img src="wordart/expected_0011.png" width="500"> | <img src="wordart/pdf_result%23page_0011.verified.png" width="500"> |
+| **Page 12** | **Page 12** |
+| <img src="wordart/expected_0012.png" width="500"> | <img src="wordart/pdf_result%23page_0012.verified.png" width="500"> |
+| **Page 13** | **Page 13** |
+| <img src="wordart/expected_0013.png" width="500"> | <img src="wordart/pdf_result%23page_0013.verified.png" width="500"> |
+| **Page 14** | **Page 14** _(no page)_ |
+| <img src="wordart/expected_0014.png" width="500"> |  |
+| **Page 15** | **Page 15** _(no page)_ |
+| <img src="wordart/expected_0015.png" width="500"> |  |
 
 PDF: [Morph PDF](wordart/pdf_result.verified.pdf) · [Pandoc reference](wordart/expected.pdf)
 
 
 ## wordart-envelope
 
-| Morph PDF |
-| --- |
-| <img src="wordart-envelope/pdf_result%23page_0001.verified.png" width="500"> |
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="wordart-envelope/expected_0001.png" width="500"> | <img src="wordart-envelope/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](wordart-envelope/pdf_result.verified.pdf) · [Pandoc reference](wordart-envelope/expected.pdf)
 
