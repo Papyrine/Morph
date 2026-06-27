@@ -120,7 +120,7 @@ static class ShapeParser
 
         var (lineColor, lineWidth) = ExtractLineStyle(wsp, shapeProps, themeColors);
         var preset = ExtractPresetShape(shapeProps);
-        var polygon = ExtractPolygonPoints(shapeProps);
+        var subpaths = ExtractSubpaths(shapeProps);
         var (rotation, flipH, flipV) = ExtractTransform(shapeProps.GetFirstChild<A.Transform2D>());
 
         // Try solid fill first
@@ -150,7 +150,7 @@ static class ShapeParser
                     LineColorHex = lineColor,
                     LineWidthPoints = lineWidth,
                     Preset = preset,
-                    PolygonPoints = polygon,
+                    Subpaths = subpaths,
                     RotationDegrees = rotation,
                     FlipHorizontal = flipH,
                     FlipVertical = flipV
@@ -185,7 +185,7 @@ static class ShapeParser
                     LineColorHex = lineColor,
                     LineWidthPoints = lineWidth,
                     Preset = preset,
-                    PolygonPoints = polygon,
+                    Subpaths = subpaths,
                     RotationDegrees = rotation,
                     FlipHorizontal = flipH,
                     FlipVertical = flipV
@@ -221,7 +221,7 @@ static class ShapeParser
                     LineColorHex = lineColor,
                     LineWidthPoints = lineWidth,
                     Preset = preset,
-                    PolygonPoints = polygon,
+                    Subpaths = subpaths,
                     RotationDegrees = rotation,
                     FlipHorizontal = flipH,
                     FlipVertical = flipV
@@ -322,51 +322,66 @@ static class ShapeParser
     }
 
     /// <summary>
-    /// Extracts a closed polyline from <c>a:custGeom</c> as points normalized into the unit
-    /// square (0..1) of the path's declared <c>w</c>/<c>h</c>. Cubic and quadratic bezier curves
-    /// are flattened into <see cref="bezierFlattenSegments"/> line segments so the polygon path
-    /// approximates the original curve. Returns null when the geometry is missing, uses ArcTo,
-    /// or has fewer than three points — those cases fall back to the bounding rect.
+    /// Extracts the closed contours of an <c>a:custGeom</c> as a list of sub-paths — each a
+    /// polyline of points normalized into the unit square (0..1) of its path's declared
+    /// <c>w</c>/<c>h</c>. Every <c>a:moveTo</c> begins a new contour, so disjoint pieces and
+    /// holes stay separate rather than being joined by connector lines. Cubic and quadratic
+    /// beziers are flattened into <see cref="bezierFlattenSegments"/> line segments. Returns
+    /// null when the geometry is missing, uses ArcTo (whose parameters the de Casteljau
+    /// flattening can't consume), or yields no contour with at least three points — those cases
+    /// fall back to the bounding rect.
     /// </summary>
-    public static IReadOnlyList<(double X, double Y)>? ExtractPolygonPoints(WPS.ShapeProperties shapeProps)
+    public static IReadOnlyList<IReadOnlyList<(double X, double Y)>>? ExtractSubpaths(WPS.ShapeProperties shapeProps)
     {
         var custGeom = shapeProps.GetFirstChild<A.CustomGeometry>();
         var pathList = custGeom?.GetFirstChild<A.PathList>();
-        var path = pathList?.GetFirstChild<A.Path>();
-        if (path == null)
+        if (pathList == null)
         {
             return null;
         }
 
-        // ArcTo isn't supported — its parameter set differs from the de Casteljau flattening
-        // used for beziers, so fall back to the bounding rect.
-        if (path.Descendants<A.ArcTo>().Any())
+        if (pathList.Descendants<A.ArcTo>().Any())
         {
             return null;
         }
 
+        var subpaths = new List<IReadOnlyList<(double X, double Y)>>();
+        foreach (var path in pathList.Elements<A.Path>())
+        {
+            AppendPathContours(path, subpaths);
+        }
+
+        return subpaths.Count > 0 ? subpaths : null;
+    }
+
+    /// <summary>
+    /// Walks a single <c>a:path</c>, banking each <c>moveTo</c>…<c>close</c> run as its own
+    /// contour. Points are normalized into the unit square of the path's <c>w</c>/<c>h</c>.
+    /// </summary>
+    static void AppendPathContours(A.Path path, List<IReadOnlyList<(double X, double Y)>> subpaths)
+    {
         var pathW = path.Width?.Value ?? 0;
         var pathH = path.Height?.Value ?? 0;
         if (pathW <= 0 || pathH <= 0)
         {
-            return null;
+            return;
         }
 
-        var points = new List<(double X, double Y)>();
         var currentX = 0d;
         var currentY = 0d;
+        List<(double X, double Y)>? contour = null;
 
-        bool TryReadPoint(A.Point? p, out double x, out double y)
+        bool TryReadPoint(A.Point? point, out double x, out double y)
         {
             x = 0;
             y = 0;
-            if (p?.X is null || p.Y is null)
+            if (point?.X is null || point.Y is null)
             {
                 return false;
             }
 
-            if (!long.TryParse(p.X.Value, out var px) ||
-                !long.TryParse(p.Y.Value, out var py))
+            if (!long.TryParse(point.X.Value, out var px) ||
+                !long.TryParse(point.Y.Value, out var py))
             {
                 return false;
             }
@@ -376,11 +391,14 @@ static class ShapeParser
             return true;
         }
 
-        void AddPoint(double x, double y)
+        // Bank the in-progress contour (if it has enough points to fill) and reset.
+        void Flush()
         {
-            currentX = x;
-            currentY = y;
-            points.Add((x, y));
+            if (contour is { Count: >= 3 })
+            {
+                subpaths.Add(contour);
+            }
+            contour = null;
         }
 
         foreach (var child in path.ChildElements)
@@ -388,24 +406,31 @@ static class ShapeParser
             switch (child)
             {
                 case A.MoveTo move:
+                    Flush();
                     if (TryReadPoint(move.Point, out var mx, out var my))
                     {
-                        AddPoint(mx, my);
+                        contour = [(mx, my)];
+                        currentX = mx;
+                        currentY = my;
                     }
                     break;
                 case A.LineTo line:
-                    if (TryReadPoint(line.Point, out var lx, out var ly))
+                    if (contour != null &&
+                        TryReadPoint(line.Point, out var lx, out var ly))
                     {
-                        AddPoint(lx, ly);
+                        contour.Add((lx, ly));
+                        currentX = lx;
+                        currentY = ly;
                     }
                     break;
                 case A.CubicBezierCurveTo cubic:
                     {
-                        var pts = cubic.Elements<A.Point>().ToList();
-                        if (pts.Count == 3 &&
-                            TryReadPoint(pts[0], out var c1x, out var c1y) &&
-                            TryReadPoint(pts[1], out var c2x, out var c2y) &&
-                            TryReadPoint(pts[2], out var ex, out var ey))
+                        var points = cubic.Elements<A.Point>().ToList();
+                        if (contour != null &&
+                            points.Count == 3 &&
+                            TryReadPoint(points[0], out var c1x, out var c1y) &&
+                            TryReadPoint(points[1], out var c2x, out var c2y) &&
+                            TryReadPoint(points[2], out var ex, out var ey))
                         {
                             for (var i = 1; i <= bezierFlattenSegments; i++)
                             {
@@ -419,7 +444,7 @@ static class ShapeParser
                                         3 * omt * omt * t * c1y +
                                         3 * omt * t * t * c2y +
                                         t * t * t * ey;
-                                points.Add((x, y));
+                                contour.Add((x, y));
                             }
                             currentX = ex;
                             currentY = ey;
@@ -428,10 +453,11 @@ static class ShapeParser
                     }
                 case A.QuadraticBezierCurveTo quad:
                     {
-                        var pts = quad.Elements<A.Point>().ToList();
-                        if (pts.Count == 2 &&
-                            TryReadPoint(pts[0], out var c1x, out var c1y) &&
-                            TryReadPoint(pts[1], out var ex, out var ey))
+                        var points = quad.Elements<A.Point>().ToList();
+                        if (contour != null &&
+                            points.Count == 2 &&
+                            TryReadPoint(points[0], out var c1x, out var c1y) &&
+                            TryReadPoint(points[1], out var ex, out var ey))
                         {
                             for (var i = 1; i <= bezierFlattenSegments; i++)
                             {
@@ -443,22 +469,20 @@ static class ShapeParser
                                 var y = omt * omt * currentY +
                                         2 * omt * t * c1y +
                                         t * t * ey;
-                                points.Add((x, y));
+                                contour.Add((x, y));
                             }
                             currentX = ex;
                             currentY = ey;
                         }
                         break;
                     }
+                case A.CloseShapePath:
+                    Flush();
+                    break;
             }
         }
 
-        if (points.Count < 3)
-        {
-            return null;
-        }
-
-        return points;
+        Flush();
     }
 
     const int bezierFlattenSegments = 12;
@@ -536,7 +560,7 @@ static class ShapeParser
 
         var (lineColor, lineWidth) = ExtractLineStyle(wsp, shapeProps, themeColors);
         var preset = ExtractPresetShape(shapeProps);
-        var polygon = ExtractPolygonPoints(shapeProps);
+        var subpaths = ExtractSubpaths(shapeProps);
         var (rotation, flipH, flipV) = ExtractTransform(xfrm);
 
         // Try solid fill first
@@ -563,7 +587,7 @@ static class ShapeParser
                     LineColorHex = lineColor,
                     LineWidthPoints = lineWidth,
                     Preset = preset,
-                    PolygonPoints = polygon,
+                    Subpaths = subpaths,
                     RotationDegrees = rotation,
                     FlipHorizontal = flipH,
                     FlipVertical = flipV
@@ -594,7 +618,7 @@ static class ShapeParser
                     LineColorHex = lineColor,
                     LineWidthPoints = lineWidth,
                     Preset = preset,
-                    PolygonPoints = polygon,
+                    Subpaths = subpaths,
                     RotationDegrees = rotation,
                     FlipHorizontal = flipH,
                     FlipVertical = flipV
@@ -607,7 +631,7 @@ static class ShapeParser
 
     /// <summary>
     /// Determines if a shape is too complex / degenerate to render as a fillable polygon.
-    /// Bezier curves are now flattened into polygon points by <see cref="ExtractPolygonPoints"/>,
+    /// Bezier curves are now flattened into contour points by <see cref="ExtractSubpaths"/>,
     /// so the only remaining filter is for ArcTo paths (unsupported flattening) and degenerate
     /// thin-line aspect ratios that would render as a line rather than a shape.
     /// </summary>

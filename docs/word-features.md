@@ -1540,11 +1540,11 @@ Linear or radial gradient fills for shapes.
 
 Shapes defined by custom geometry paths with curves and arcs.
 
-- **OOXML**: `a:custGeom` with `a:path` containing `a:moveTo`, `a:lnTo`, `a:cubicBezTo`, `a:arcTo`
-- **Model**: presence detected via `ParsedDocument.Features.HasBezierShapes`. Pure polyline custom geometries are parsed into `FloatingShapeElement.PolygonPoints` (normalized 0..1 in path coord space) along with `RotationDegrees` / `FlipHorizontal` / `FlipVertical` from the shape's `a:xfrm`.
-- **Render**: `ShapeParser.ExtractPolygonPoints` picks up polyline `a:custGeom` paths (moveTo/lnTo, no curves) and both renderers draw them as filled/stroked polygons through `BuildPolygonPath` (Skia) / `BuildPolygon` (ImageSharp), applying flip-then-rotate-then-translate around the bounding-box centre. `ShapeParser.IsDecorativeShape` still filters out shapes containing `a:cubicBezTo` / `a:quadBezTo` because those would need a proper bezier renderer.
+- **OOXML**: `a:custGeom` with `a:path` containing `a:moveTo`, `a:lnTo`, `a:cubicBezTo`, `a:quadBezTo`, `a:close`, `a:arcTo`
+- **Model**: presence detected via `ParsedDocument.Features.HasBezierShapes`. Custom geometries are parsed into `FloatingShapeElement.Subpaths` — a list of closed contours, each a flattened polyline (normalized 0..1 in path coord space) — along with `RotationDegrees` / `FlipHorizontal` / `FlipVertical` from the shape's `a:xfrm`.
+- **Render**: `ShapeParser.ExtractSubpaths` walks every `a:path`, starting a new contour at each `a:moveTo` and banking it at `a:close`, and flattens `a:cubicBezTo` / `a:quadBezTo` into line segments (de Casteljau, 12 per curve). Both renderers fill/stroke the multi-contour path with **nonzero winding** (DrawingML's default) through `BuildPolygonPath` (Skia `SKPath`) / `BuildPath` (ImageSharp `PathBuilder`), applying flip-then-rotate-then-translate around the bounding-box centre; the HTML exporter emits one `M…L…Z` sub-path per contour. Keeping the contours separate is what reproduces multi-piece line-art (e.g. a leaf-cluster silhouette) instead of fusing them into one self-crossing blob. `ShapeParser.IsDecorativeShape` only filters `a:arcTo` paths (unsupported flattening) and degenerate thin-line aspect ratios.
 
-> **AI**: Bezier-curve custGeom is still filtered (drawing it as a rectangle was worse than dropping it for templates that use it for scrollwork). To extend coverage to curves, the polygon path would need to grow `CubicTo` / `QuadTo` / `ArcTo` segment kinds and `BuildPolygonPath` would map `a:gd` formula guides through the path's coord space. Today's polyline-only support handles the common "geometric template" decoration case (triangles, diamonds, angled corner accents).
+> **AI**: Curves and disjoint contours are handled. Remaining gaps: `a:arcTo` segments (their parameter set differs from the bezier walk, so those custGeoms fall back to the bounding rect) and `a:gd` formula guides (path coordinates are read as literals, not evaluated expressions). The flattener uses a fixed 12 segments per curve rather than adapting to curve length.
 
 
 #### 3D Effects `DONE`

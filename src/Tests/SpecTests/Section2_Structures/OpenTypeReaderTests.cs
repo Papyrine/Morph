@@ -27,7 +27,7 @@ public class OpenTypeReaderTests
     [Test]
     public async Task SegoeRegular_BaseFamilyAndRegularWeight()
     {
-        var path = Path.Combine(ProjectFonts.Directory, "segoeui.ttf");
+        var path = Path.Combine(ProjectFonts.Directory, "Segoe_UI_400.ttf");
         var faces = OpenTypeReader.ReadFaces(path).ToList();
 
         await Assert.That(faces.Count).IsEqualTo(1);
@@ -41,7 +41,7 @@ public class OpenTypeReaderTests
     [Test]
     public async Task SegoeBoldItalic_ItalicFlagSet()
     {
-        var path = Path.Combine(ProjectFonts.Directory, "segoeuiz.ttf");
+        var path = Path.Combine(ProjectFonts.Directory, "Segoe_UI_700_Italic.ttf");
         var faces = OpenTypeReader.ReadFaces(path).ToList();
 
         await Assert.That(faces.Count).IsEqualTo(1);

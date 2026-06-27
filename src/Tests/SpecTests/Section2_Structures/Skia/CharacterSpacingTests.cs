@@ -148,7 +148,7 @@ public class CharacterSpacingTests
         // The wedding/01 document has Subtitle style with w:spacing w:val="20" (1pt).
         // Verify the parser extracts it correctly.
         var parser = new DocumentParser();
-        using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "wedding", "01", "input.docx"));
+        await using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "wedding", "01", "input.docx"));
         var doc = parser.Parse(stream);
 
         // Find a paragraph with the Subtitle style (has character spacing from style rPr)

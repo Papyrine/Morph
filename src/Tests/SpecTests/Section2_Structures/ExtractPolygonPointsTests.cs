@@ -59,19 +59,43 @@ public class ExtractPolygonPointsTests
         return q;
     }
 
+    static A.CloseShapePath Close() => new();
+
     [Test]
     public async Task LinePolygon_NormalizesToUnitSquare()
     {
         // Triangle: (0,0) → (100,0) → (50,200) → close
         var props = ShapeWithPath(100, 200, Move(0, 0), Line(100, 0), Line(50, 200));
 
-        var pts = ShapeParser.ExtractPolygonPoints(props);
+        var subpaths = ShapeParser.ExtractSubpaths(props);
 
-        await Assert.That(pts).IsNotNull();
-        await Assert.That(pts!.Count).IsEqualTo(3);
-        await Assert.That(pts[0]).IsEqualTo((0d, 0d));
-        await Assert.That(pts[1]).IsEqualTo((1d, 0d));
-        await Assert.That(pts[2]).IsEqualTo((0.5d, 1d));
+        await Assert.That(subpaths).IsNotNull();
+        await Assert.That(subpaths!.Count).IsEqualTo(1);
+
+        var contour = subpaths[0];
+        await Assert.That(contour.Count).IsEqualTo(3);
+        await Assert.That(contour[0]).IsEqualTo((0d, 0d));
+        await Assert.That(contour[1]).IsEqualTo((1d, 0d));
+        await Assert.That(contour[2]).IsEqualTo((0.5d, 1d));
+    }
+
+    [Test]
+    public async Task MultipleMoveTos_ProduceSeparateContours()
+    {
+        // Two disjoint triangles in one path. Each moveTo must begin a fresh contour rather
+        // than being fused into a single polyline by a connector line.
+        var props = ShapeWithPath(100, 100,
+            Move(0, 0), Line(40, 0), Line(0, 40), Close(),
+            Move(60, 60), Line(100, 60), Line(60, 100), Close());
+
+        var subpaths = ShapeParser.ExtractSubpaths(props);
+
+        await Assert.That(subpaths).IsNotNull();
+        await Assert.That(subpaths!.Count).IsEqualTo(2);
+        await Assert.That(subpaths[0].Count).IsEqualTo(3);
+        await Assert.That(subpaths[1].Count).IsEqualTo(3);
+        await Assert.That(subpaths[0][0]).IsEqualTo((0d, 0d));
+        await Assert.That(subpaths[1][0]).IsEqualTo((0.6d, 0.6d));
     }
 
     [Test]
@@ -83,21 +107,24 @@ public class ExtractPolygonPointsTests
             Move(0, 1000),
             Cubic(0, 0, 1000, 0, 1000, 0));
 
-        var pts = ShapeParser.ExtractPolygonPoints(props);
+        var subpaths = ShapeParser.ExtractSubpaths(props);
 
-        await Assert.That(pts).IsNotNull();
+        await Assert.That(subpaths).IsNotNull();
+        await Assert.That(subpaths!.Count).IsEqualTo(1);
+
+        var contour = subpaths[0];
         // 1 moveTo point + 12 flattened bezier points (segment count is the contract).
-        await Assert.That(pts!.Count).IsEqualTo(13);
+        await Assert.That(contour.Count).IsEqualTo(13);
 
         // First point is the moveTo.
-        await Assert.That(pts[0]).IsEqualTo((0d, 1d));
+        await Assert.That(contour[0]).IsEqualTo((0d, 1d));
         // Last point lands on the bezier endpoint.
-        await Assert.That(pts[^1]).IsEqualTo((1d, 0d));
+        await Assert.That(contour[^1]).IsEqualTo((1d, 0d));
 
         // Mid-curve sample should bow toward the (0,0) corner because both control points
         // sit there. A straight line from (0,1) to (1,0) would put the midpoint at y=0.5;
         // the curve pulling toward y=0 confirms the de Casteljau weights are applied.
-        var mid = pts[6];
+        var mid = contour[6];
         await Assert.That(mid.X).IsEqualTo(0.5).Within(0.05);
         await Assert.That(mid.Y).IsLessThan(0.3);
     }
@@ -110,15 +137,18 @@ public class ExtractPolygonPointsTests
             Move(0, 1000),
             Quad(500, 0, 1000, 1000));
 
-        var pts = ShapeParser.ExtractPolygonPoints(props);
+        var subpaths = ShapeParser.ExtractSubpaths(props);
 
-        await Assert.That(pts).IsNotNull();
-        await Assert.That(pts!.Count).IsEqualTo(13);
-        await Assert.That(pts[^1]).IsEqualTo((1d, 1d));
+        await Assert.That(subpaths).IsNotNull();
+        await Assert.That(subpaths!.Count).IsEqualTo(1);
+
+        var contour = subpaths[0];
+        await Assert.That(contour.Count).IsEqualTo(13);
+        await Assert.That(contour[^1]).IsEqualTo((1d, 1d));
 
         // Mid-curve sample should sit above the chord midpoint (smaller Y) — a sanity check
         // that the quadratic weights are applied, not a straight line from start to end.
-        var mid = pts[6];
+        var mid = contour[6];
         await Assert.That(mid.X).IsEqualTo(0.5).Within(0.01);
         await Assert.That(mid.Y).IsLessThan(0.6);
     }
@@ -147,9 +177,9 @@ public class ExtractPolygonPointsTests
         var props = new WPS.ShapeProperties();
         props.AppendChild(custGeom);
 
-        var pts = ShapeParser.ExtractPolygonPoints(props);
+        var subpaths = ShapeParser.ExtractSubpaths(props);
 
-        await Assert.That(pts).IsNull();
+        await Assert.That(subpaths).IsNull();
     }
 
     [Test]
@@ -157,8 +187,8 @@ public class ExtractPolygonPointsTests
     {
         var props = new WPS.ShapeProperties();
 
-        var pts = ShapeParser.ExtractPolygonPoints(props);
+        var subpaths = ShapeParser.ExtractSubpaths(props);
 
-        await Assert.That(pts).IsNull();
+        await Assert.That(subpaths).IsNull();
     }
 }

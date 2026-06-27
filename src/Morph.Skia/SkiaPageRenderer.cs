@@ -667,15 +667,8 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         var pixelFontSize = context.PointsToPixels((float) wordArt.FontSizePoints);
 
         // Measure text to calculate scale
-        using var measurePaint = new SKPaint
-        {
-            Typeface = typeface,
-            TextSize = pixelFontSize,
-            IsAntialias = true
-        };
-
-        var textBounds = new SKRect();
-        measurePaint.MeasureText(wordArt.Text, ref textBounds);
+        using var measureFont = new SKFont(typeface, pixelFontSize);
+        measureFont.MeasureText(wordArt.Text, out var textBounds);
 
         // Only shrink to fit; never enlarge past the explicit font size. The shape's
         // bounding box for arc/circle warps is sized for the curve, not the glyph cluster.
@@ -707,6 +700,14 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         var textX = x + (width - scaledWidth) / 2;
         var textY = y + (pixelHeight + scaledHeight) / 2;
 
+        // SkiaSharp 4 moved text size/typeface off SKPaint onto SKFont; one font, shared by
+        // every draw below (all at the same scaled size). Matches the Antialias edging used
+        // by the text-on-path WordArt helpers.
+        using var font = new SKFont(typeface, pixelFontSize * scale)
+        {
+            Edging = SKFontEdging.Antialias
+        };
+
         currentCanvas.Save();
 
         // Apply transform based on WordArt type
@@ -717,13 +718,11 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         {
             using var shadowPaint = new SKPaint
             {
-                Typeface = typeface,
-                TextSize = pixelFontSize * scale,
                 IsAntialias = true,
                 Color = new(0, 0, 0, 80),
                 Style = SKPaintStyle.Fill
             };
-            currentCanvas.DrawText(wordArt.Text, textX + 3, textY + 3, shadowPaint);
+            currentCanvas.DrawText(wordArt.Text, textX + 3, textY + 3, font, shadowPaint);
         }
 
         // Draw glow if enabled
@@ -731,15 +730,13 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         {
             using var glowPaint = new SKPaint
             {
-                Typeface = typeface,
-                TextSize = pixelFontSize * scale,
                 IsAntialias = true,
                 Color = new(255, 215, 0, 100), // Gold glow
                 Style = SKPaintStyle.Stroke,
                 StrokeWidth = context.PointsToPixels(4),
                 MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 3)
             };
-            currentCanvas.DrawText(wordArt.Text, textX, textY, glowPaint);
+            currentCanvas.DrawText(wordArt.Text, textX, textY, font, glowPaint);
         }
 
         // Draw outline if specified
@@ -747,26 +744,22 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         {
             using var outlinePaint = new SKPaint
             {
-                Typeface = typeface,
-                TextSize = pixelFontSize * scale,
                 IsAntialias = true,
                 Color = ParseColor(wordArt.OutlineColorHex),
                 Style = SKPaintStyle.Stroke,
                 StrokeWidth = context.PointsToPixels((float) wordArt.OutlineWidthPoints)
             };
-            currentCanvas.DrawText(wordArt.Text, textX, textY, outlinePaint);
+            currentCanvas.DrawText(wordArt.Text, textX, textY, font, outlinePaint);
         }
 
         // Draw text fill
         using var fillPaint = new SKPaint
         {
-            Typeface = typeface,
-            TextSize = pixelFontSize * scale,
             IsAntialias = true,
             Color = wordArt.FillColorHex != null ? ParseColor(wordArt.FillColorHex) : SKColors.Black,
             Style = SKPaintStyle.Fill
         };
-        currentCanvas.DrawText(wordArt.Text, textX, textY, fillPaint);
+        currentCanvas.DrawText(wordArt.Text, textX, textY, font, fillPaint);
 
         // Draw reflection if enabled
         if (wordArt.HasReflection)
@@ -776,13 +769,11 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
             using var reflectionPaint = new SKPaint
             {
-                Typeface = typeface,
-                TextSize = pixelFontSize * scale,
                 IsAntialias = true,
                 Color = fillPaint.Color.WithAlpha(60),
                 Style = SKPaintStyle.Fill
             };
-            currentCanvas.DrawText(wordArt.Text, textX, textY + scaledHeight * 2, reflectionPaint);
+            currentCanvas.DrawText(wordArt.Text, textX, textY + scaledHeight * 2, font, reflectionPaint);
             currentCanvas.Restore();
         }
 
@@ -824,15 +815,8 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         var pixelFontSize = context.PointsToPixels((float) wordArt.FontSizePoints);
 
         // Measure text to calculate scale
-        using var measurePaint = new SKPaint
-        {
-            Typeface = typeface,
-            TextSize = pixelFontSize,
-            IsAntialias = true
-        };
-
-        var textBounds = new SKRect();
-        measurePaint.MeasureText(wordArt.Text, ref textBounds);
+        using var measureFont = new SKFont(typeface, pixelFontSize);
+        measureFont.MeasureText(wordArt.Text, out var textBounds);
 
         // Only shrink to fit; never enlarge past the explicit font size — see note above.
         var scaleX = textBounds.Width > 0 ? width / textBounds.Width : 1;
@@ -860,6 +844,14 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         var textX = pixelX + (width - scaledWidth) / 2;
         var textY = pixelY + (pixelHeight + scaledHeight) / 2;
 
+        // SkiaSharp 4 moved text size/typeface off SKPaint onto SKFont; one font, shared by
+        // every draw below (all at the same scaled size). Matches the Antialias edging used
+        // by the text-on-path WordArt helpers.
+        using var font = new SKFont(typeface, pixelFontSize * scale)
+        {
+            Edging = SKFontEdging.Antialias
+        };
+
         currentCanvas.Save();
 
         // Apply transform based on WordArt type
@@ -870,13 +862,11 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         {
             using var shadowPaint = new SKPaint
             {
-                Typeface = typeface,
-                TextSize = pixelFontSize * scale,
                 IsAntialias = true,
                 Color = new(0, 0, 0, 80),
                 Style = SKPaintStyle.Fill
             };
-            currentCanvas.DrawText(wordArt.Text, textX + 3, textY + 3, shadowPaint);
+            currentCanvas.DrawText(wordArt.Text, textX + 3, textY + 3, font, shadowPaint);
         }
 
         // Draw glow if enabled
@@ -884,15 +874,13 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         {
             using var glowPaint = new SKPaint
             {
-                Typeface = typeface,
-                TextSize = pixelFontSize * scale,
                 IsAntialias = true,
                 Color = new(255, 215, 0, 100), // Gold glow
                 Style = SKPaintStyle.Stroke,
                 StrokeWidth = context.PointsToPixels(4),
                 MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 3)
             };
-            currentCanvas.DrawText(wordArt.Text, textX, textY, glowPaint);
+            currentCanvas.DrawText(wordArt.Text, textX, textY, font, glowPaint);
         }
 
         // Draw outline if specified
@@ -900,26 +888,22 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         {
             using var outlinePaint = new SKPaint
             {
-                Typeface = typeface,
-                TextSize = pixelFontSize * scale,
                 IsAntialias = true,
                 Color = ParseColor(wordArt.OutlineColorHex),
                 Style = SKPaintStyle.Stroke,
                 StrokeWidth = context.PointsToPixels((float) wordArt.OutlineWidthPoints)
             };
-            currentCanvas.DrawText(wordArt.Text, textX, textY, outlinePaint);
+            currentCanvas.DrawText(wordArt.Text, textX, textY, font, outlinePaint);
         }
 
         // Draw text fill
         using var fillPaint = new SKPaint
         {
-            Typeface = typeface,
-            TextSize = pixelFontSize * scale,
             IsAntialias = true,
             Color = wordArt.FillColorHex != null ? ParseColor(wordArt.FillColorHex) : SKColors.Black,
             Style = SKPaintStyle.Fill
         };
-        currentCanvas.DrawText(wordArt.Text, textX, textY, fillPaint);
+        currentCanvas.DrawText(wordArt.Text, textX, textY, font, fillPaint);
 
         // Draw reflection if enabled
         if (wordArt.HasReflection)
@@ -929,13 +913,11 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
             using var reflectionPaint = new SKPaint
             {
-                Typeface = typeface,
-                TextSize = pixelFontSize * scale,
                 IsAntialias = true,
                 Color = fillPaint.Color.WithAlpha(60),
                 Style = SKPaintStyle.Fill
             };
-            currentCanvas.DrawText(wordArt.Text, textX, textY + scaledHeight * 2, reflectionPaint);
+            currentCanvas.DrawText(wordArt.Text, textX, textY + scaledHeight * 2, font, reflectionPaint);
             currentCanvas.Restore();
         }
 
@@ -945,7 +927,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
     /// <summary>
     /// Renders WordArt that follows a curved path (ArchUp / ArchDown / Circle) via
-    /// <see cref="SKCanvas.DrawTextOnPath(string, SKPath, SKPoint, SKPaint)"/>.
+    /// <see cref="SKCanvas.DrawTextOnPath(string, SKPath, SKPoint, SKTextAlign, SKFont, SKPaint)"/>.
     /// Returns true when the warp was handled, false for warps that should fall back to
     /// flat-text rendering.
     /// </summary>
@@ -1126,26 +1108,25 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             return false;
         }
 
+        using var font = new SKFont(typeface, fontSize);
         using var paint = new SKPaint
         {
-            Typeface = typeface,
-            TextSize = fontSize,
             IsAntialias = true,
             Color = fillColorHex != null ? ParseColor(fillColorHex) : SKColors.Black,
             Style = SKPaintStyle.Fill
         };
 
-        var totalWidth = paint.MeasureText(text);
+        var totalWidth = font.MeasureText(text);
         if (totalWidth <= 0)
         {
             return false;
         }
 
-        var fontMetrics = paint.FontMetrics;
+        var fontMetrics = font.Metrics;
         // Generate text outline at text-local coords: origin (0, -ascent) puts baseline at
         // y=0 with caps reaching up into negative Y. We use bounds-based normalisation, so
         // the exact origin doesn't matter — only consistency between path and bounds.
-        using var textPath = paint.GetTextPath(text, 0, -fontMetrics.Ascent);
+        using var textPath = font.GetTextPath(text, new SKPoint(0, -fontMetrics.Ascent));
         textPath.GetBounds(out var pathBounds);
         var glyphsTop = pathBounds.Top;
         var glyphsHeight = pathBounds.Height;
@@ -1286,22 +1267,21 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             _ => EnvelopeAnchor.Baseline
         };
 
+        using var font = new SKFont(typeface, fontSize);
         using var paint = new SKPaint
         {
-            Typeface = typeface,
-            TextSize = fontSize,
             IsAntialias = true,
             Color = fillColorHex != null ? ParseColor(fillColorHex) : SKColors.Black,
             Style = SKPaintStyle.Fill
         };
 
-        var totalWidth = paint.MeasureText(text);
+        var totalWidth = font.MeasureText(text);
         if (totalWidth <= 0)
         {
             return false;
         }
 
-        var fontMetrics = paint.FontMetrics;
+        var fontMetrics = font.Metrics;
         var glyphHeight = fontMetrics.Descent - fontMetrics.Ascent;
 
         // Inflate / Deflate / Can warps fill the bbox horizontally AND vertically — Word
@@ -1359,7 +1339,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         for (var i = 0; i < charCount; i++)
         {
             var ch = text[i].ToString();
-            var charAdvance = paint.MeasureText(ch);
+            var charAdvance = font.MeasureText(ch);
             // For 1-character labels in a box-filling warp, t=0 collapses sin(πt)=0 (no
             // warp). Use 0.5 so a single glyph still gets the centre amplitude. For Fade /
             // Triangle a single glyph at the start (t=0) is intentional.
@@ -1368,7 +1348,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
             currentCanvas.Save();
             currentCanvas.Scale(sx, sy, cursorX, anchorY);
-            currentCanvas.DrawText(ch, cursorX, baselineY, paint);
+            currentCanvas.DrawText(ch, cursorX, baselineY, font, paint);
             currentCanvas.Restore();
 
             cursorX += charAdvance * sx;
@@ -2117,7 +2097,6 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         using var paint = new SKPaint
         {
             IsAntialias = true,
-            FilterQuality = SKFilterQuality.High,
             ColorFilter = SKColorFilter.CreateColorMatrix(colorMatrix)
         };
 
@@ -2143,7 +2122,10 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         var x = (pageWidth - drawW) / 2;
         var y = (pageHeight - drawH) / 2;
         var rect = new SKRect(x, y, x + drawW, y + drawH);
-        currentCanvas!.DrawBitmap(bitmap, rect, paint);
+        // SkiaSharp 4 removed SKPaint.FilterQuality; high-quality (bicubic Mitchell) resampling
+        // now travels with the draw call via SKSamplingOptions.
+        using var image = SKImage.FromBitmap(bitmap);
+        currentCanvas!.DrawImage(image, rect, new SKSamplingOptions(SKCubicResampler.Mitchell), paint);
     }
 
     void DrawTextWatermark(Watermark watermark)
@@ -2270,10 +2252,10 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 var destRect = new SKRect(pixelX, pixelY, pixelX + pixelWidth, pixelY + pixelHeight);
                 using var paint = new SKPaint
                 {
-                    IsAntialias = true,
-                    FilterQuality = SKFilterQuality.High
+                    IsAntialias = true
                 };
-                currentCanvas.DrawBitmap(bitmap, destRect, paint);
+                using var image = SKImage.FromBitmap(bitmap);
+                currentCanvas.DrawImage(image, destRect, new SKSamplingOptions(SKCubicResampler.Mitchell), paint);
             }
         }
         else if (shape.Gradient is { } gradient)
@@ -2325,7 +2307,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 StrokeWidth = context.PointsToPixels((float) lineWidthPt),
                 IsAntialias = true
             };
-            if (shape.PolygonPoints != null)
+            if (shape.Subpaths != null)
             {
                 using var path = BuildPolygonPath(shape, pixelX, pixelY, pixelWidth, pixelHeight);
                 currentCanvas.DrawPath(path, strokePaint);
@@ -2359,7 +2341,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
     void FillShape(FloatingShapeElement shape, float x, float y, float width, float height, SKPaint paint)
     {
-        if (shape.PolygonPoints != null)
+        if (shape.Subpaths != null)
         {
             using var path = BuildPolygonPath(shape, x, y, width, height);
             currentCanvas!.DrawPath(path, paint);
@@ -2378,26 +2360,31 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
     static SKPath BuildPolygonPath(FloatingShapeElement shape, float x, float y, float width, float height)
     {
-        var pts = shape.PolygonPoints!;
         var path = new SKPath();
-        for (var i = 0; i < pts.Count; i++)
+        // Each sub-path is its own closed contour. SKPath's default Winding (nonzero) fill type
+        // matches DrawingML's default custGeom fill, so oppositely-wound nested contours read as
+        // holes instead of being fused into one polygon by connector lines.
+        foreach (var contour in shape.Subpaths!)
         {
-            var (px, py) = pts[i];
-            // Apply flips around the unit-square center, then scale into the bounding box.
-            var ux = shape.FlipHorizontal ? 1 - px : px;
-            var uy = shape.FlipVertical ? 1 - py : py;
-            var localX = (float) (ux * width);
-            var localY = (float) (uy * height);
-            if (i == 0)
+            for (var i = 0; i < contour.Count; i++)
             {
-                path.MoveTo(localX, localY);
+                var (px, py) = contour[i];
+                // Apply flips around the unit-square center, then scale into the bounding box.
+                var ux = shape.FlipHorizontal ? 1 - px : px;
+                var uy = shape.FlipVertical ? 1 - py : py;
+                var localX = (float) (ux * width);
+                var localY = (float) (uy * height);
+                if (i == 0)
+                {
+                    path.MoveTo(localX, localY);
+                }
+                else
+                {
+                    path.LineTo(localX, localY);
+                }
             }
-            else
-            {
-                path.LineTo(localX, localY);
-            }
+            path.Close();
         }
-        path.Close();
 
         // Translate so (0,0) sits at the bbox top-left, then rotate around the bbox center.
         var matrix = SKMatrix.CreateTranslation(x, y);

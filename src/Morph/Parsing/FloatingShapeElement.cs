@@ -49,12 +49,15 @@ sealed class FloatingShapeElement : DocumentElement
     public PresetShape Preset { get; init; } = PresetShape.Rect;
 
     /// <summary>
-    /// Custom polygon path, expressed as points in the unit square (0..1) of the shape's
-    /// pre-rotation bounding box. When non-null, takes precedence over <see cref="Preset"/> and
-    /// the shape is rendered as a filled polygon (implicitly closed). Null for shapes without
-    /// a polygonal <c>a:custGeom</c>.
+    /// Custom geometry from <c>a:custGeom</c>, as one or more closed sub-path contours — each a
+    /// flattened polyline of points in the unit square (0..1) of the shape's pre-rotation
+    /// bounding box. When non-null, takes precedence over <see cref="Preset"/> and the shape is
+    /// rendered as a filled path (each contour implicitly closed, nonzero winding). Keeping the
+    /// contours separate preserves holes and disjoint pieces — e.g. the outlines in a leaf
+    /// cluster — that collapsing every <c>moveTo</c> into one polyline would fuse together with
+    /// spurious connector lines. Null for shapes without a custom geometry.
     /// </summary>
-    public IReadOnlyList<(double X, double Y)>? PolygonPoints { get; init; }
+    public IReadOnlyList<IReadOnlyList<(double X, double Y)>>? Subpaths { get; init; }
 
     /// <summary>Rotation in degrees clockwise around the bounding-box center. 0 = no rotation.</summary>
     public double RotationDegrees { get; init; }

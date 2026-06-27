@@ -981,17 +981,36 @@ static class HtmlExporter
             attributes.Append(ShapeTransformAttribute(shape, width, height));
             var common = attributes.ToString();
 
-            if (shape.PolygonPoints is {Count: > 0} points)
+            if (shape.Subpaths is {Count: > 0} subpaths)
             {
-                builder.Append("<polygon points=\"");
-                for (var index = 0; index < points.Count; index++)
+                // One SVG sub-path (M…L…Z) per contour; the default nonzero fill-rule matches
+                // SkiaSharp/DrawingML so disjoint pieces and holes stay separate.
+                builder.Append("<path d=\"");
+                for (var contourIndex = 0; contourIndex < subpaths.Count; contourIndex++)
                 {
-                    if (index > 0)
+                    var contour = subpaths[contourIndex];
+                    if (contour.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    if (contourIndex > 0)
                     {
                         builder.Append(' ');
                     }
 
-                    builder.Append(Number(points[index].X * width)).Append(',').Append(Number(points[index].Y * height));
+                    for (var index = 0; index < contour.Count; index++)
+                    {
+                        if (index > 0)
+                        {
+                            builder.Append(' ');
+                        }
+
+                        builder.Append(index == 0 ? 'M' : 'L')
+                            .Append(Number(contour[index].X * width)).Append(',').Append(Number(contour[index].Y * height));
+                    }
+
+                    builder.Append(" Z");
                 }
 
                 builder.Append('"').Append(common).Append(" />");
