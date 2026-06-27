@@ -1749,10 +1749,7 @@ sealed class DocumentParser(string defaultFont)
                 {
                     foreach (var (ilvl, styleId) in styleLinks)
                     {
-                        if (!result.ContainsKey(styleId))
-                        {
-                            result[styleId] = (numId, ilvl);
-                        }
+                        result.TryAdd(styleId, (numId, ilvl));
                     }
                 }
             }
@@ -5999,7 +5996,7 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
-        // No bezier-count fallback here — the polygon path flattener (ExtractPolygonPoints)
+        // No bezier-count fallback here — the path flattener (ExtractSubpaths)
         // now turns cubic / quadratic curves into a polyline approximation, so high-bezier
         // custGeoms render as fillable shapes. The earlier "skip when >50 beziers" guard
         // existed because we would otherwise have drawn the bounding rect as a solid colour
@@ -6133,7 +6130,7 @@ sealed class DocumentParser(string defaultFont)
             Preset = ShapeParser.ExtractPresetShape(shapeProps),
             // Without this, custGeom shapes (e.g. half-circle decorations with cubic-bezier
             // arcs) render as their bounding rect instead of the actual curved silhouette.
-            PolygonPoints = ShapeParser.ExtractPolygonPoints(shapeProps)
+            Subpaths = ShapeParser.ExtractSubpaths(shapeProps)
         };
     }
 
