@@ -1873,10 +1873,10 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             var strokeColor = ParseColor(lineColor);
             var strokePixels = context.PointsToPixels((float) lineWidthPt);
             var pen = context.GetPen(strokeColor, strokePixels);
-            if (shape.PolygonPoints != null)
+            if (shape.Subpaths != null)
             {
-                var polygon = BuildPolygon(shape, pixelX, pixelY, pixelWidth, pixelHeight);
-                currentCanvas.Draw(pen, polygon);
+                var path = BuildPath(shape, pixelX, pixelY, pixelWidth, pixelHeight);
+                currentCanvas.Draw(pen, path);
             }
             else if (shape.Preset == PresetShape.Ellipse)
             {
@@ -1905,10 +1905,14 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     void FillShape(FloatingShapeElement shape, float x, float y, float width, float height, Brush brush)
     {
-        if (shape.PolygonPoints != null)
+        if (shape.Subpaths != null)
         {
-            var polygon = BuildPolygon(shape, x, y, width, height);
-            currentCanvas!.Fill(brush, polygon);
+            var path = BuildPath(shape, x, y, width, height);
+            // DrawingCanvas.Fill takes no per-call options, so push the nonzero winding rule for
+            // this fill via Save/Restore (the same mechanism used for rotated content).
+            currentCanvas!.Save(nonzeroFill);
+            currentCanvas.Fill(brush, path);
+            currentCanvas.Restore();
             return;
         }
 
@@ -1923,30 +1927,44 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
     }
 
-    static Polygon BuildPolygon(FloatingShapeElement shape, float x, float y, float width, float height)
+    // custGeom fills use nonzero winding to match SkiaSharp's default and DrawingML — without
+    // this ImageSharp's default even-odd rule would punch holes wherever contours overlap.
+    static readonly DrawingOptions nonzeroFill = new()
     {
-        var pts = shape.PolygonPoints!;
+        ShapeOptions = new() { IntersectionRule = IntersectionRule.NonZero }
+    };
+
+    static IPath BuildPath(FloatingShapeElement shape, float x, float y, float width, float height)
+    {
         var rotRad = (float) (shape.RotationDegrees * Math.PI / 180.0);
         var cos = (float) Math.Cos(rotRad);
         var sin = (float) Math.Sin(rotRad);
         var halfW = width / 2f;
         var halfH = height / 2f;
 
-        var transformed = new PointF[pts.Count];
-        for (var i = 0; i < pts.Count; i++)
+        var builder = new PathBuilder();
+        foreach (var contour in shape.Subpaths!)
         {
-            var (px, py) = pts[i];
-            var ux = shape.FlipHorizontal ? 1 - px : px;
-            var uy = shape.FlipVertical ? 1 - py : py;
-            // Local coords with the bbox center at origin.
-            var lx = (float) (ux * width) - halfW;
-            var ly = (float) (uy * height) - halfH;
-            // Rotate clockwise (image-space y-down): standard 2D rotation matrix.
-            var rx = lx * cos - ly * sin;
-            var ry = lx * sin + ly * cos;
-            transformed[i] = new(x + halfW + rx, y + halfH + ry);
+            var transformed = new PointF[contour.Count];
+            for (var i = 0; i < contour.Count; i++)
+            {
+                var (px, py) = contour[i];
+                var ux = shape.FlipHorizontal ? 1 - px : px;
+                var uy = shape.FlipVertical ? 1 - py : py;
+                // Local coords with the bbox center at origin.
+                var lx = (float) (ux * width) - halfW;
+                var ly = (float) (uy * height) - halfH;
+                // Rotate clockwise (image-space y-down): standard 2D rotation matrix.
+                var rx = lx * cos - ly * sin;
+                var ry = lx * sin + ly * cos;
+                transformed[i] = new(x + halfW + rx, y + halfH + ry);
+            }
+            // Each contour is its own closed figure so disjoint pieces and holes stay separate
+            // instead of being fused into one polygon by connector lines.
+            builder.AddLines(transformed);
+            builder.CloseFigure();
         }
-        return new(transformed);
+        return builder.Build();
     }
 
     protected override void RenderFloatingImage(FloatingImageElement image)
