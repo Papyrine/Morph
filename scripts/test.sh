@@ -57,9 +57,10 @@ fi
 # If args were provided, use them verbatim. Otherwise let the image's
 # CMD (full test suite) run.
 #
-# GitHubToken is forwarded (by name, so the value never appears on the command
-# line) so the in-container solution build can satisfy SponsorCheck's GitHub
-# Sponsors lookup; without it the build fails with SC102 (missing credential).
+# SponsorCheck is intentionally not referenced inside the container (the
+# csproj references are gated on MORPH_TEST_CONTAINER, set in the image), so no
+# GitHub credential is forwarded — the in-container build only compiles and
+# tests, it never packs.
 docker run \
     --rm \
     --init \
@@ -67,6 +68,5 @@ docker run \
     -v "${HOST_ROOT}:/src" \
     -v "${NUGET_MOUNT}:/nuget" \
     -w /src \
-    -e GitHubToken \
     "$IMAGE_TAG" \
     "$@"

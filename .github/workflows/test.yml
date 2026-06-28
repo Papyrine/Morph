@@ -16,11 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
-    # Forwarded by scripts/test.sh into the container (-e GitHubToken) so the
-    # in-container build can satisfy SponsorCheck's authenticated GitHub API
-    # lookup; without it the build fails with SC102 (missing credential).
-    env:
-      GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+    # No GitHubToken is needed: SponsorCheck is gated off inside the container
+    # (the csproj references are conditioned on MORPH_TEST_CONTAINER, set in the
+    # image), so the in-container build only compiles and tests — it never packs.
 
     steps:
       - name: Checkout
