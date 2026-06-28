@@ -4,7 +4,7 @@
     {
       "Width": 612.0,
       "Height": 792.0,
-      "Text": "CSS text alignment:\nLeft aligned text (default)\nCenter aligned text\nRight aligned text\nJustified text - this paragraph has enough content to demonstrate how text is stretched to\nfill the entire line width from left to right margins creating even edges on both sides.\nTable cell vertical alignment:\nTop alignedMiddle alignedBottom aligned"
+      "Text": "CSS text alignment:\nLeft aligned text (default)\nCenter aligned text\nRight aligned text\nJustified text - this paragraph has enough content to demonstrate how text is stretched to fill the entire line\nwidth from left to right margins creating even edges on both sides.\nTable cell vertical alignment:\nTop alignedMiddle alignedBottom aligned"
     }
   ],
   "Properties": {

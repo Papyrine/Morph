@@ -4,12 +4,12 @@
     {
       "Width": 595.2999877929688,
       "Height": 841.9000244140625,
-      "Text": "Complex Table Examples\nThis document demonstrates various complex table features in Word documents.\n1. Horizontally Merged Cells\nTables can have cells that span multiple columns using columnSpan.\nMERGED HEADER - SPANS 3 COLUMNS\nColumn 1 Column 2 Column 3\nData A1 Data B1 Data C1\nMerged: Columns 1 & 2 Data C2\n2. Vertically Merged Cells\nTables can have cells that span multiple rows using rowSpan.\nSection Item Value\nSection A (Merged 3 rows)\nItem 1 $100\nItem 2 $200\nItem 3 $300\nSection B (Merged 2 rows)\nItem 4 $400\nItem 5 $500\n3. Nested Tables\nTables can contain other tables within their cells for complex layouts.\nNESTED TABLE EXAMPLE\nQ1 Q2 Q3 Q4\n$25K\nApr May\n$12K $18K $35K $40K"
+      "Text": "Complex Table Examples\nThis document demonstrates various complex table features in Word documents.\n1. Horizontally Merged Cells\nTables can have cells that span multiple columns using columnSpan.\nMERGED HEADER - SPANS 3 COLUMNS\nColumn 1 Column 2 Column 3\nData A1 Data B1 Data C1\nMerged: Columns 1 & 2 Data C2\n2. Vertically Merged Cells\nTables can have cells that span multiple rows using rowSpan.\nSection Item Value\nSection A (Merged 3\nrows)\nItem 1 $100\nItem 2 $200\nItem 3 $300\nSection B (Merged 2\nrows)\nItem 4 $400\nItem 5 $500\n3. Nested Tables\nTables can contain other tables within their cells for complex layouts."
     },
     {
       "Width": 595.2999877929688,
       "Height": 841.9000244140625,
-      "Text": "4. Complex Mixed Merging\nCombining both horizontal and vertical merges in the same table.\nCOMPLEX MERGE\nCol 3 Col 4 Col 5\nData 3-1 Merged: Cols 4 & 5\nA B C\nVertical Merge\nE\nWide merge across 3 columns F\n5. Calendar-Style Layout\nA practical example showing how merging can create calendar-like structures.\nJanuary 2025\nSun Mon Tue Wed Thu Fri Sat\nPrevious Month 1 2 3 4\n5 6 7 8 9 10 11\n12 13 14 15-16 Event 17 18"
+      "Text": "NESTED TABLE EXAMPLE\nQ1 Q2 Q3 Q4\n$25K\nApr May\n$12K $18K $35K $40K\n4. Complex Mixed Merging\nCombining both horizontal and vertical merges in the same table.\nCOMPLEX MERGE\nCol 3 Col 4 Col 5\nData 3-1 Merged: Cols 4 & 5\nA B C\nVertical\nMerge\nE\nWide merge across 3 columns F\n5. Calendar-Style Layout\nA practical example showing how merging can create calendar-like structures.\nJanuary 2025\nSun Mon Tue Wed Thu Fri Sat\nPrevious Month 1 2 3 4\n5 6 7 8 9 10 11\n12 13 14 15-16 Event 17 18"
     }
   ],
   "Properties": {
