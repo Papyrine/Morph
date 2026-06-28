@@ -10,7 +10,7 @@
     <ProjectReference Include="..\Morph\Morph.csproj" />
     <PackageReference Include="PdfSharp" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
-    <PackageReference Include="SponsorCheck" PrivateAssets="all" />
+    <PackageReference Include="SponsorCheck" PrivateAssets="all" Condition="'$(MORPH_TEST_CONTAINER)' != '1'" />
   </ItemGroup>
 
 </Project>
