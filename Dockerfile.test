@@ -59,7 +59,7 @@ ENV DOTNET_NOLOGO=1 \
 # runtime-mounted /nuget cache.
 RUN mkdir -p /tmp/pw && cd /tmp/pw \
     && NUGET_PACKAGES=/tmp/pw/nuget dotnet new console >/dev/null \
-    && NUGET_PACKAGES=/tmp/pw/nuget dotnet add package Microsoft.Playwright --version 1.60.0 >/dev/null \
+    && NUGET_PACKAGES=/tmp/pw/nuget dotnet add package Microsoft.Playwright --version 1.61.0 >/dev/null \
     && NUGET_PACKAGES=/tmp/pw/nuget dotnet build -c Release >/dev/null \
     && pwsh bin/Release/net10.0/playwright.ps1 install chromium --with-deps \
     && cd / && rm -rf /tmp/pw
