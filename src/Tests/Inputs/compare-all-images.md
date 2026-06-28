@@ -330,7 +330,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0744** | **Page 1. ErrorMetric: 0.0783** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0723** | **Page 1. ErrorMetric: 0.0758** |
 | <img src="agendas-minutes/01/expected_0001.png" width="500"> | <img src="agendas-minutes/01/skia_result%23page_0001.verified.png" width="500"> | <img src="agendas-minutes/01/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## agendas-minutes/02
@@ -2998,7 +2998,7 @@ magnitude.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1691** | **Page 1. ErrorMetric: 0.1713** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1671** | **Page 1. ErrorMetric: 0.1690** |
 | <img src="wedding/04/expected_0001.png" width="500"> | <img src="wedding/04/skia_result%23page_0001.verified.png" width="500"> | <img src="wedding/04/imagesharp_result%23page_0001.verified.png" width="500"> |
 | **Page 2** | **Page 2. ErrorMetric: 0.0921** | **Page 2. ErrorMetric: 0.0924** |
 | <img src="wedding/04/expected_0002.png" width="500"> | <img src="wedding/04/skia_result%23page_0002.verified.png" width="500"> | <img src="wedding/04/imagesharp_result%23page_0002.verified.png" width="500"> |

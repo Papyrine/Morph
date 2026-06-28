@@ -120,12 +120,18 @@ sealed class PdfFontResolver : IFontResolver
     bool TryResolve(string familyName, bool bold, bool italic, out string face)
     {
         var family = familyName.ToLowerInvariant();
+        // Order matters: keep the upright/italic axis correct before relaxing weight. When an
+        // upright face is requested but only the italic of that exact weight is bundled (e.g.
+        // Century Schoolbook ships 400-Italic, 700, 700-Italic but no 400 upright), falling back
+        // to a different-weight upright reads far closer than swapping in a slanted same-weight
+        // face. This mirrors the shared resolver's ScoreFace, where an italic mismatch (10_000)
+        // outweighs any weight mismatch.
         Span<(bool Bold, bool Italic)> attempts =
         [
             (bold, italic),
-            (bold, !italic),
             (!bold, italic),
-            (false, false)
+            (bold, !italic),
+            (!bold, !italic)
         ];
 
         foreach (var (attemptBold, attemptItalic) in attempts)
