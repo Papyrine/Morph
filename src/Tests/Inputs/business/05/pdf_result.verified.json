@@ -1,15 +1,10 @@
 ﻿{
-  "PageCount": 2,
+  "PageCount": 1,
   "Pages": [
     {
       "Width": 612.0,
       "Height": 792.0,
-      "Text": "LOGO\nMemorandum\nTo: Recipient Name\nFrom: Your Name\nCC: Other recipients"
-    },
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Some of the sample text in this document indicates the name of the style applied,\nso that you can easily apply the same formatting again. To get started right away,\njust tap any placeholder text (such as this) and start typing.\nView and edit this document in Word on your computer, tablet, or phone. You can edit text; easily insert\ncontent such as pictures, shapes, or tables; and seamlessly save the document to the cloud from Word on\nyour Windows, Mac, Android, or iOS device.\nWant to insert a picture from your files or add a shape, text box, or table? You got it! On the Insert tab of\nthe ribbon, just tap the option you need.\nFind even more easy-to-use tools on the Insert tab, such as to add a hyperlink or insert a comment.\nTo update the contact information at the bottom of the document, double click in the footer, select the item\nyou wish to update, and begin typing!\nSTREET ADDRESS, CITY, STATE ZIP CODE\nT: TELEPHONE W: WEBSITE"
+      "Text": "LOGO\nMemorandum\nTo: Recipient Name\nFrom: Your Name\nCC: Other recipients\nSome of the sample text in this document indicates the name of the style applied,\nso that you can easily apply the same formatting again. To get started right away,\njust tap any placeholder text (such as this) and start typing.\nView and edit this document in Word on your computer, tablet, or phone. You can edit text; easily insert\ncontent such as pictures, shapes, or tables; and seamlessly save the document to the cloud from Word on\nyour Windows, Mac, Android, or iOS device.\nWant to insert a picture from your files or add a shape, text box, or table? You got it! On the Insert tab of\nthe ribbon, just tap the option you need.\nFind even more easy-to-use tools on the Insert tab, such as to add a hyperlink or insert a comment.\nTo update the contact information at the bottom of the document, double click in the footer, select the item\nyou wish to update, and begin typing!\nSTREET ADDRESS, CITY, STATE ZIP CODE\nT: TELEPHONE W: WEBSITE"
     }
   ],
   "Properties": {

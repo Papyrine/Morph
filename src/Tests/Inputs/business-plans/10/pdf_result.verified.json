@@ -1,15 +1,10 @@
 ﻿{
-  "PageCount": 6,
+  "PageCount": 5,
   "Pages": [
     {
       "Width": 612.0,
       "Height": 792.0,
-      "Text": "PRESENTED BY GURMEET DHILLON\nSpectration Labs\n123 South St,\nManhattan, NY 54321\nVersion 3.0"
-    },
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "April 4, 20XX\nTACTICAL MARKETING\nPLAN\nADVANCING INTERNATIONAL STRATEGIES"
+      "Text": "PRESENTED BY GURMEET DHILLON\nSpectration Labs\n123 South St,\nManhattan, NY 54321\nVersion 3.0\nApril 4, 20XX\nTACTICAL MARKETING\nPLAN\nADVANCING INTERNATIONAL STRATEGIES"
     },
     {
       "Width": 612.0,

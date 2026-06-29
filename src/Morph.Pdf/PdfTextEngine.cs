@@ -47,7 +47,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     public double MeasureHeight(ParagraphElement paragraph, double maxWidth)
     {
         var lines = Layout(paragraph, maxWidth);
-        var total = paragraph.Properties.SpacingBeforePoints + paragraph.Properties.SpacingAfterPoints;
+        var total = SpacingBefore(paragraph) + SpacingAfter(paragraph);
         if (lines.Count == 0)
         {
             return total + EmptyLineHeight(paragraph);
@@ -66,6 +66,31 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         var size = paragraph.Properties.ParagraphMarkFontSizePoints ?? 11;
         var font = context.GetFont(DefaultFontSettings.DefaultFont, false, false, size);
         return font.GetHeight() * paragraph.Properties.LineSpacingMultiplier;
+    }
+
+    // ---- Paragraph spacing (mirrors the Skia/ImageSharp contextual-spacing collapse) ----
+
+    // Space above a paragraph, collapsed to zero when this paragraph and the previous one share a
+    // style and both opt into w:contextualSpacing — so a run of same-style lines (e.g. a Details
+    // block of Date/Time/Facilitator) sits tight instead of re-adding the style's before-spacing
+    // on every line.
+    double SpacingBefore(ParagraphElement paragraph)
+    {
+        var properties = paragraph.Properties;
+        var sameStyle = properties.StyleId != null && properties.StyleId == context.LastParagraphStyleId;
+        var collapse = properties.ContextualSpacing && context.LastParagraphHadContextualSpacing && sameStyle;
+        return collapse ? 0 : properties.SpacingBeforePoints;
+    }
+
+    // w:contextualSpacing also suppresses the paragraph's own after-spacing; the next same-style
+    // paragraph's collapsed before-spacing keeps the block tight.
+    static double SpacingAfter(ParagraphElement paragraph) =>
+        paragraph.Properties.ContextualSpacing ? 0 : paragraph.Properties.SpacingAfterPoints;
+
+    void TrackContextualSpacing(ParagraphElement paragraph)
+    {
+        context.LastParagraphStyleId = paragraph.Properties.StyleId;
+        context.LastParagraphHadContextualSpacing = paragraph.Properties.ContextualSpacing;
     }
 
     // ---- Drawing ----
@@ -92,12 +117,13 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     {
         var lines = Layout(paragraph, availableWidth);
 
-        context.CurrentY += (float) paragraph.Properties.SpacingBeforePoints;
+        context.CurrentY += (float) SpacingBefore(paragraph);
 
         if (lines.Count == 0)
         {
             context.CurrentY += (float) EmptyLineHeight(paragraph);
-            context.CurrentY += (float) paragraph.Properties.SpacingAfterPoints;
+            context.CurrentY += (float) SpacingAfter(paragraph);
+            TrackContextualSpacing(paragraph);
             return;
         }
 
@@ -171,7 +197,8 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             context.CurrentY += (float) line.Height;
         }
 
-        context.CurrentY += (float) paragraph.Properties.SpacingAfterPoints;
+        context.CurrentY += (float) SpacingAfter(paragraph);
+        TrackContextualSpacing(paragraph);
     }
 
     static void DrawItem(XGraphics graphics, LineItem item, double penX, double baseline)
