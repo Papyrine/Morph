@@ -56,10 +56,10 @@ sealed class PdfPageRenderer : PageRendererBase
         {
             var element = elements[index];
 
-            if (element is FloatingShapeElement {BehindText: true})
+            if (element is FloatingShapeElement {BehindText: true} backgroundShape)
             {
-                // Background shapes are not rendered by this backend (vector fills/gradients are
-                // out of scope); skip so they don't disturb flow.
+                AdvanceToBackgroundsTargetPage(elements, index);
+                RenderBackgroundShape(backgroundShape);
                 continue;
             }
 
@@ -552,7 +552,148 @@ sealed class PdfPageRenderer : PageRendererBase
 
     protected override void RenderBackgroundShape(FloatingShapeElement shape)
     {
-        // Vector shapes/gradients are out of scope for the PDF backend.
+        if (!HasOutput)
+        {
+            return;
+        }
+
+        var (width, height) = FloatingPosition.ResolveEffectiveSize(
+            context,
+            shape.WidthPoints,
+            shape.HeightPoints,
+            shape.WidthPercent,
+            shape.WidthRelativeFrom,
+            shape.HeightPercent,
+            shape.HeightRelativeFrom);
+
+        // Shapes are typically full-page backgrounds, so column/character anchors fall back to the
+        // page margin (matches the Skia/ImageSharp backends).
+        var bounds = FloatingPosition.ResolveShapeBounds(
+            context,
+            shape.HorizontalAnchor,
+            shape.VerticalAnchor,
+            shape.HorizontalPositionPoints,
+            shape.VerticalPositionPoints,
+            width,
+            height,
+            shape.HorizontalPositionPercent,
+            shape.VerticalPositionPercent);
+        var x = bounds.PixelX;
+        var y = bounds.PixelY;
+        var shapeWidth = bounds.PixelWidth;
+        var shapeHeight = bounds.PixelHeight;
+
+        if (shape.ImageData != null)
+        {
+            DrawRaster(shape.ImageData, shape.ImageContentType, null, null, x, y, shapeWidth, shapeHeight);
+        }
+        else if (shape.Gradient is { } gradient)
+        {
+            FillShape(shape, x, y, shapeWidth, shapeHeight, BuildGradientBrush(gradient, x, y, shapeWidth, shapeHeight));
+        }
+        else if (shape.FillColorHex != null)
+        {
+            var rgb = PdfRenderContext.ParseColor(shape.FillColorHex);
+            var color = XColor.FromArgb((int) Math.Round(Math.Clamp(shape.FillAlpha, 0, 1) * 255), rgb.R, rgb.G, rgb.B);
+            FillShape(shape, x, y, shapeWidth, shapeHeight, new XSolidBrush(color));
+        }
+
+        if (shape is {LineColorHex: { } lineColor, LineWidthPoints: { } lineWidth and > 0})
+        {
+            StrokeShape(shape, x, y, shapeWidth, shapeHeight, new XPen(PdfRenderContext.ParseColor(lineColor), Math.Max(0.4, lineWidth)));
+        }
+    }
+
+    void FillShape(FloatingShapeElement shape, double x, double y, double width, double height, XBrush brush)
+    {
+        if (shape.Subpaths != null)
+        {
+            Graphics.DrawPath(brush, BuildShapePath(shape, x, y, width, height));
+        }
+        else if (shape.Preset == PresetShape.Ellipse)
+        {
+            Graphics.DrawEllipse(brush, x, y, width, height);
+        }
+        else
+        {
+            Graphics.DrawRectangle(brush, x, y, width, height);
+        }
+    }
+
+    void StrokeShape(FloatingShapeElement shape, double x, double y, double width, double height, XPen pen)
+    {
+        if (shape.Subpaths != null)
+        {
+            Graphics.DrawPath(pen, BuildShapePath(shape, x, y, width, height));
+        }
+        else if (shape.Preset == PresetShape.Ellipse)
+        {
+            Graphics.DrawEllipse(pen, x, y, width, height);
+        }
+        else
+        {
+            Graphics.DrawRectangle(pen, x, y, width, height);
+        }
+    }
+
+    // Builds a path from custom geometry: each sub-path is its own closed contour, filled with
+    // nonzero winding so oppositely-wound nested contours read as holes (matching DrawingML's
+    // default custGeom fill) rather than fusing into one polygon.
+    static XGraphicsPath BuildShapePath(FloatingShapeElement shape, double x, double y, double width, double height)
+    {
+        var path = new XGraphicsPath
+        {
+            FillMode = XFillMode.Winding
+        };
+
+        // Flip in the unit square, scale into the bounding box, then rotate around its centre —
+        // matching the Skia/ImageSharp path transform so rotated custom geometry lines up.
+        var centerX = x + width / 2;
+        var centerY = y + height / 2;
+        var radians = shape.RotationDegrees * Math.PI / 180.0;
+        var cos = Math.Cos(radians);
+        var sin = Math.Sin(radians);
+
+        foreach (var contour in shape.Subpaths!)
+        {
+            var points = new XPoint[contour.Count];
+            for (var i = 0; i < contour.Count; i++)
+            {
+                var (pointX, pointY) = contour[i];
+                var unitX = shape.FlipHorizontal ? 1 - pointX : pointX;
+                var unitY = shape.FlipVertical ? 1 - pointY : pointY;
+                var absoluteX = x + unitX * width;
+                var absoluteY = y + unitY * height;
+                if (shape.RotationDegrees != 0)
+                {
+                    var deltaX = absoluteX - centerX;
+                    var deltaY = absoluteY - centerY;
+                    absoluteX = centerX + deltaX * cos - deltaY * sin;
+                    absoluteY = centerY + deltaX * sin + deltaY * cos;
+                }
+
+                points[i] = new(absoluteX, absoluteY);
+            }
+
+            path.AddPolygon(points);
+        }
+
+        return path;
+    }
+
+    // Linear gradient mirroring the Skia/ImageSharp backends: angle 0° points along +X, clockwise
+    // positive (OOXML a:lin/@ang), projected onto the bounding box as start/end points.
+    static XLinearGradientBrush BuildGradientBrush(GradientFill gradient, double x, double y, double width, double height)
+    {
+        var radians = gradient.DirectionDegrees * Math.PI / 180.0;
+        var directionX = Math.Cos(radians);
+        var directionY = Math.Sin(radians);
+        var centerX = x + width / 2;
+        var centerY = y + height / 2;
+        var halfDiagonal = Math.Sqrt(width * width + height * height) / 2;
+        var start = new XPoint(centerX - directionX * halfDiagonal, centerY - directionY * halfDiagonal);
+        var end = new XPoint(centerX + directionX * halfDiagonal, centerY + directionY * halfDiagonal);
+        return new(start, end, PdfRenderContext.ParseColor(gradient.StartColorHex), PdfRenderContext.ParseColor(gradient.EndColorHex));
     }
 
     protected override void RenderFloatingImage(FloatingImageElement image)
