@@ -270,6 +270,25 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         return paragraph.Properties.LeftIndentPoints;
     }
 
+    // Advance for a tab character. When the paragraph defines explicit Left tab stops and one lies
+    // past the cursor, snap to it; otherwise keep the historical fixed 0.5" advance so paragraphs
+    // without custom stops render unchanged. (Only Left stops are honoured — the merged text-frame
+    // icon/label gap is the sole caller that relies on this; richer tab alignment stays with Skia.)
+    static double ResolveTabAdvance(ParagraphProperties properties, double cursorFromLeft)
+    {
+        const double defaultTabWidth = 36d;
+        foreach (var stop in properties.TabStops)
+        {
+            if (stop.Alignment == TabAlignment.Left &&
+                stop.PositionPoints > cursorFromLeft)
+            {
+                return stop.PositionPoints - cursorFromLeft;
+            }
+        }
+
+        return defaultTabWidth;
+    }
+
     List<Line> Layout(ParagraphElement paragraph, double availableWidth)
     {
         var lines = new List<Line>();
@@ -282,10 +301,21 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             ? paragraph.Properties.LineSpacingMultiplier
             : 1;
 
+        var leftIndent = Indent(paragraph);
+
+        // A line carrying tab-positioned content may overflow the content width into the right margin
+        // (up to the page edge) without wrapping: Word/Skia place text at a tab stop and let it spill
+        // into the margin rather than breaking the word onto a new line. Plain (non-tab) lines still
+        // wrap at the content width.
+        var rightMarginPoints = (float) context.PageSettings.MarginRight;
+
         var current = new Line();
         var pendingSpaceWidth = 0d;
         var pendingSpaceFont = (XFont?) null;
         RunProperties? pendingSpaceProps = null;
+        var lineHasTab = false;
+
+        double WrapLimit() => lineHasTab ? availableWidth + rightMarginPoints : availableWidth;
 
         void Flush()
         {
@@ -298,6 +328,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             pendingSpaceWidth = 0;
             pendingSpaceFont = null;
             pendingSpaceProps = null;
+            lineHasTab = false;
         }
 
         void Account(LineItem item)
@@ -327,7 +358,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
                 var width = run.InlineImageWidthPoints > 0 ? run.InlineImageWidthPoints : 12;
                 var height = run.InlineImageHeightPoints > 0 ? run.InlineImageHeightPoints : 12;
-                if (current.Items.Count > 0 && current.Width + pendingSpaceWidth + width > availableWidth)
+                if (current.Items.Count > 0 && current.Width + pendingSpaceWidth + width > WrapLimit())
                 {
                     Flush();
                 }
@@ -352,12 +383,15 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
             if (run.IsTab)
             {
-                var tabWidth = 36d;
                 if (current.Items.Count > 0)
                 {
+                    // Current x measured from the line's left edge (= paragraph left indent).
+                    var cursorFromLeft = leftIndent + current.Width + pendingSpaceWidth;
+                    var tabWidth = ResolveTabAdvance(paragraph.Properties, cursorFromLeft);
                     pendingSpaceWidth += tabWidth;
                     pendingSpaceFont = font;
                     pendingSpaceProps = run.Properties;
+                    lineHasTab = true;
                 }
 
                 continue;
@@ -375,7 +409,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 }
 
                 var wordWidth = measure.MeasureString(token.Text, font).Width;
-                if (current.Items.Count > 0 && current.Width + pendingSpaceWidth + wordWidth > availableWidth)
+                if (current.Items.Count > 0 && current.Width + pendingSpaceWidth + wordWidth > WrapLimit())
                 {
                     Flush();
                 }

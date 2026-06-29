@@ -475,6 +475,134 @@ abstract class PageRendererBase(RenderContextBase context)
         }
     }
 
+    /// <summary>
+    /// Renders a floating text frame (Word's <c>w:framePr</c> positioning): measures the content to
+    /// auto-size, resolves an absolute position from the frame's anchors + alignment (or explicit
+    /// offset), then draws the inner paragraphs there without advancing the body cursor. Shared by
+    /// all backends — the frame has no fill, so only <see cref="Measurer"/> and
+    /// <see cref="RenderParagraphInBounds"/> are needed.
+    /// </summary>
+    protected void RenderPositionedFrame(PositionedFrameElement frame)
+    {
+        if (!HasOutput)
+        {
+            return;
+        }
+
+        // Auto-size: width is the widest content line, height the stacked content height. Explicit
+        // w:w / w:h from the frame override the measurement.
+        float measuredWidth = 0;
+        float measuredHeight = 0;
+        foreach (var element in frame.Content)
+        {
+            if (element is ParagraphElement paragraph)
+            {
+                measuredWidth = Math.Max(measuredWidth, Measurer.MeasureParagraphNaturalWidth(paragraph, context.ContentWidth));
+                measuredHeight += Measurer.MeasureParagraphHeightWithWidth(paragraph, context.ContentWidth);
+            }
+        }
+
+        // Pad the auto width by a hair: the measured natural width equals the exact line width, but
+        // the per-line wrap check is a strict ">", so rendering at exactly that width can spill the
+        // final word onto a second line. Two points is below visual threshold and avoids the wrap.
+        const float autoWidthPaddingPoints = 2;
+        var width = frame.WidthPoints is { } explicitWidth ? (float) explicitWidth : measuredWidth + autoWidthPaddingPoints;
+        var height = frame.HeightPoints is { } explicitHeight ? (float) explicitHeight : measuredHeight;
+        width = Math.Min(width, context.ContentWidth);
+
+        var x = ResolveFrameX(frame, width);
+        var y = ResolveFrameY(frame, height);
+
+        var savedY = context.CurrentY;
+        context.CurrentY = y;
+        foreach (var element in frame.Content)
+        {
+            if (element is ParagraphElement paragraph)
+            {
+                RenderParagraphInBounds(paragraph, x, width);
+            }
+        }
+
+        context.CurrentY = savedY;
+    }
+
+    float ResolveFrameX(PositionedFrameElement frame, float width)
+    {
+        // The frame's horizontal reference edge.
+        var anchorLeft = frame.HorizontalAnchor switch
+        {
+            HorizontalAnchor.Page => 0f,
+            HorizontalAnchor.Margin => (float) context.PageSettings.MarginLeft,
+            _ => context.ContentLeft
+        };
+        var anchorWidth = frame.HorizontalAnchor switch
+        {
+            HorizontalAnchor.Page => (float) context.PageSettings.WidthPoints,
+            HorizontalAnchor.Margin => (float) (context.PageSettings.WidthPoints - context.PageSettings.MarginLeft - context.PageSettings.MarginRight),
+            _ => context.ContentWidth
+        };
+
+        // Word's legacy text-frame layout does NOT right-align these footer blocks flush to the text
+        // margin — it leaves a wide band of empty space on the right. Measured from Word's
+        // agendas-minutes/14 render (the block's right edge lands ~0.9" / ~12.2% of the content width
+        // inside the right margin), and the inset isn't expressed anywhere in the frame markup
+        // (no w:w / w:x / right-indent), so it can only be reproduced empirically. Without it the
+        // block sits ~0.9" too far right.
+        const float frameRightInsetFraction = 0.122f;
+        var rightInset = anchorWidth * frameRightInsetFraction;
+
+        return frame.HorizontalAlignment switch
+        {
+            FrameHorizontalAlignment.Right => anchorLeft + Math.Max(0, anchorWidth - width - rightInset),
+            FrameHorizontalAlignment.Center => anchorLeft + Math.Max(0, (anchorWidth - width) / 2),
+            FrameHorizontalAlignment.Left => anchorLeft,
+            _ => anchorLeft + (float) frame.XPoints
+        };
+    }
+
+    // A page/margin-anchored frame with a small explicit y (under half an inch) sitting out of flow
+    // is Word's "footer info block" pattern (e.g. a right-aligned Location/Date/Time stack): Word
+    // floats it just above the bottom margin rather than at the literal y from the top. A larger y
+    // is an intentional upper-page placement (e.g. a centred sub-title) and is honoured from the top.
+    const float frameBottomAnchorYThresholdPoints = 36;
+
+    float ResolveFrameY(PositionedFrameElement frame, float height)
+    {
+        var anchorTop = frame.VerticalAnchor switch
+        {
+            VerticalAnchor.Page => 0f,
+            VerticalAnchor.Margin => context.ContentTop,
+            _ => context.CurrentY
+        };
+        var anchorBottom = frame.VerticalAnchor switch
+        {
+            VerticalAnchor.Page => (float) (context.PageSettings.HeightPoints - context.PageSettings.MarginBottom),
+            _ => context.ContentBottom
+        };
+
+        switch (frame.VerticalAlignment)
+        {
+            case FrameVerticalAlignment.Top:
+                return anchorTop + (float) frame.YPoints;
+            case FrameVerticalAlignment.Center:
+                return anchorTop + Math.Max(0, (anchorBottom - anchorTop - height) / 2);
+            case FrameVerticalAlignment.Bottom:
+                return anchorBottom - height;
+            default:
+                // Inline / None on a page/margin anchor: a sizeable explicit y means "place here
+                // from the anchor top"; a tiny (or absent) y is the trailing footer block, floated
+                // up so it sits just above the bottom margin and stays on-page.
+                if (frame.VerticalAnchor is VerticalAnchor.Page or VerticalAnchor.Margin)
+                {
+                    return frame.YPoints >= frameBottomAnchorYThresholdPoints
+                        ? anchorTop + (float) frame.YPoints
+                        : anchorBottom - height;
+                }
+
+                return context.CurrentY + (float) frame.YPoints;
+        }
+    }
+
     /// <summary>Renders a horizontal-rule element: 0.75pt gray line across the content width.</summary>
     protected void RenderHorizontalRule()
     {

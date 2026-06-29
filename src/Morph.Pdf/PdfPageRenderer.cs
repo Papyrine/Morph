@@ -141,6 +141,10 @@ sealed class PdfPageRenderer : PageRendererBase
                 RenderFloatingTextBox(textBox);
                 hasSignificantContentOnCurrentPage = true;
                 break;
+            case PositionedFrameElement frame:
+                RenderPositionedFrame(frame);
+                hasSignificantContentOnCurrentPage = true;
+                break;
             case TableElement table:
                 RenderTable(table);
                 hasSignificantContentOnCurrentPage = true;

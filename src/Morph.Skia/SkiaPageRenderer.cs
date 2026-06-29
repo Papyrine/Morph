@@ -277,6 +277,12 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 hasSignificantContentOnCurrentPage = true;
                 break;
 
+            case PositionedFrameElement positionedFrame:
+                // Word text frame (w:framePr): positioned out of flow, no CurrentY advancement.
+                RenderPositionedFrame(positionedFrame);
+                hasSignificantContentOnCurrentPage = true;
+                break;
+
             case TableElement table:
                 RenderTable(table);
                 hasSignificantContentOnCurrentPage = true;
