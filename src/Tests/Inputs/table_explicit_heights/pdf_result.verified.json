@@ -1,16 +1,27 @@
 ﻿{
-  "PageCount": 1,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Table with Explicit Row Heights\nRow 1: 100pt, Row 2: 200pt, Row 3: 150pt\nRow 1, Cell 1 (100pt height) Row 1, Cell 2\nRow 2, Cell 1 (200pt height) Row 2, Cell 2\nRow 3, Cell 1 (150pt height) Row 3, Cell 2"
+  "target": {
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Table with Explicit Row Heights\nRow 1: 100pt, Row 2: 200pt, Row 3: 150pt\nRow 1, Cell 1 (100pt height) Row 1, Cell 2\nRow 2, Cell 1 (200pt height) Row 2, Cell 2\nRow 3, Cell 1 (150pt height) Row 3, Cell 2"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0123,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
 }

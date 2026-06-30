@@ -1,16 +1,27 @@
 ﻿{
-  "PageCount": 1,
-  "Pages": [
-    {
-      "Width": 792.0,
-      "Height": 612.0,
-      "Text": "To replace placeholder text with your own, just click it and begin typing. From any placeholder, press the Tab key to move to the next.\nTo change colors in these invitations, on the Design tab, in the Themes group, click Colors. Point to built-in color schemes to see a preview and then\njust click to apply one you like. Or to use your wedding colors, at the bottom of the Colors gallery, click Create New Theme Colors. Select your own\ncolors for Accent 1, Accent 2, and Accent 3 and then, when you click Save, the colors will update.\nTHE PLEASURE OF YOUR PRESENCE IS REQUESTED AT THE\nMARRIAGE OF\nTHE PLEASURE OF YOUR PRESENCE IS REQUESTED AT THE\nMARRIAGE OF\nSARATO\nEVAN\nSARATO\nEVAN\nSATURDAY, THE 20TH OF MAY SATURDAY, THE 20TH OF MAY\nTWO THOUSAND AND TWENTY-THREE TWO THOUSAND AND TWENTY-THREE\nAT FIVE O’CLOCK | CREEKSIDE PARK SACRAMENTO, CA AT FIVE O’CLOCK | CREEKSIDE PARK SACRAMENTO, CA\nRECEPTION TO FOLLOW RECEPTION TO FOLLOW"
+  "target": {
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "To replace placeholder text with your own, just click it and begin typing. From any placeholder, press the Tab key to move to the next.\nTo change colors in these invitations, on the Design tab, in the Themes group, click Colors. Point to built-in color schemes to see a preview and then\njust click to apply one you like. Or to use your wedding colors, at the bottom of the Colors gallery, click Create New Theme Colors. Select your own\ncolors for Accent 1, Accent 2, and Accent 3 and then, when you click Save, the colors will update.\nTHE PLEASURE OF YOUR PRESENCE IS REQUESTED AT THE\nMARRIAGE OF\nTHE PLEASURE OF YOUR PRESENCE IS REQUESTED AT THE\nMARRIAGE OF\nSARATO\nEVAN\nSARATO\nEVAN\nSATURDAY, THE 20TH OF MAY SATURDAY, THE 20TH OF MAY\nTWO THOUSAND AND TWENTY-THREE TWO THOUSAND AND TWENTY-THREE\nAT FIVE O’CLOCK | CREEKSIDE PARK\nSACRAMENTO, CA\nAT FIVE O’CLOCK | CREEKSIDE PARK\nSACRAMENTO, CA\nRECEPTION TO FOLLOW RECEPTION TO FOLLOW"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.5567,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
 }

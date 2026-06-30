@@ -1,21 +1,39 @@
 ﻿{
-  "PageCount": 2,
-  "Pages": [
+  "target": {
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "MEETING\nMINUTES\nPTA\nDATE: TIME: FACILITATOR:\n9/8/23 6:00 PM Angelica Astrom\nIN ATTENDANCE APPROVAL OF MINUTES\nMira Karlsson, Angelica Astrom, August\nBergqvist, Allan Mattsson, Ian Hansson\nThe minutes were read from the August\nmeeting and approved.\nBOARD\nThe Board, new principal, and guests were introduced. Mira Karlsson was nominated as the\nnew Secretary. A motion to elect Mira was made by Angelica Astrom and seconded by\nAugust Bergqvist. All present voted in favor, and Mira Karlsson was confirmed as the new\nSecretary.\nADVISORY COMMITTEE\nThere are a number of parent openings on the Advisory Committee. These openings were\nlisted in the most recent newsletter. Three parents indicated an interest in serving on the\ncommittee. August Bergqvist will follow up with those parents and do some additional\nrecruiting to fill these openings."
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "BUDGET\nThe budget for the current school year was distributed by August Bergqvist, PTA Treasurer, and\nreviewed by the board and PTA members at the last meeting. In tonight’s meeting, Angelica\nAstrom made a motion to approve the budget which was seconded by Allan Mattsson. All\npresent voted in favor of approving the budget as presented.\nPRINCIPAL’S REPORT\nPrincipal Ian Hansson presented his report.\nNEW BUSINESS COMMITTEE REPORTS\n• Recap of Back-to-School night –\nSeptember 9\n• Parent Education Programs – Counselors\n• Teacher Grants Application Process –\nSchool Principal\n• Membership\n• Volunteers\n• Newsletter\n• Computer Support\nANNOUNCEMENTS\nNone\nNEXT MEETING\n13 October 2023| 6:00 p.m. in the cafeteria\nMotion to adjourn was made at 9:00 p.m. and was passed unanimously."
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
+    }
+  },
+  "PageDiffs": [
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "MEETING\nMINUTES\nPTA\nDATE: TIME: FACILITATOR:\n9/8/23 6:00 PM Angelica Astrom\nIN ATTENDANCE APPROVAL OF MINUTES\nMira Karlsson, Angelica Astrom, August\nBergqvist, Allan Mattsson, Ian Hansson\nThe minutes were read from the August\nmeeting and approved.\nBOARD\nThe Board, new principal, and guests were introduced. Mira Karlsson was nominated as the\nnew Secretary. A motion to elect Mira was made by Angelica Astrom and seconded by\nAugust Bergqvist. All present voted in favor, and Mira Karlsson was confirmed as the new\nSecretary.\nADVISORY COMMITTEE\nThere are a number of parent openings on the Advisory Committee. These openings were\nlisted in the most recent newsletter. Three parents indicated an interest in serving on the\ncommittee. August Bergqvist will follow up with those parents and do some additional\nrecruiting to fill these openings."
+      "Page": 1,
+      "ErrorMetric": 0.0995,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "BUDGET\nThe budget for the current school year was distributed by August Bergqvist, PTA Treasurer, and\nreviewed by the board and PTA members at the last meeting. In tonight’s meeting, Angelica\nAstrom made a motion to approve the budget which was seconded by Allan Mattsson. All\npresent voted in favor of approving the budget as presented.\nPRINCIPAL’S REPORT\nPrincipal Ian Hansson presented his report.\nNEW BUSINESS COMMITTEE REPORTS\n• Recap of Back-to-School night –\nSeptember 9\n• Parent Education Programs –\nCounselors\n• Teacher Grants Application Process –\n• Membership\n• Volunteers\n• Newsletter\n• Computer Support\nANNOUNCEMENTS\nNone\nNEXT MEETING\n13 October 2023| 6:00 p.m. in the cafeteria\nMotion to adjourn was made at 9:00 p.m. and was passed unanimously."
+      "Page": 2,
+      "ErrorMetric": 0.0834,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

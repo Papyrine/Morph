@@ -1,21 +1,27 @@
 ﻿{
-  "PageCount": 2,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Meeting Minutes\nCall to order\nA meeting of [Organization or team name] was held at [Location] on [Date].\nAttendees\nAttendees included [list attendee names].\nMembers not in attendance\nMembers not in attendance included [list names].\nApproval of minutes\n[To replace any placeholder text (such as this) with your own, just select a line or paragraph and\ntype. For best results, don’t include space to the left or right of the characters in your\nselection.]\nReports\n[Need to add your own headings or more text? No problem. On the Home tab of the ribbon,\ncheck out the Styles gallery to easily apply any text formatting you see in this document.]\nUnfinished business\n[Add your text here.]\nNew business\n[Add your text here.]\nAnnouncements\n[Add your text here.]"
-    },
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Secretary Date of approval\nPage 2"
+  "target": {
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Meeting Minutes\nCall to order\nA meeting of [Organization or team name] was held at [Location] on [Date].\nAttendees\nAttendees included [list attendee names].\nMembers not in attendance\nMembers not in attendance included [list names].\nApproval of minutes\n[To replace any placeholder text (such as this) with your own, just select a line or paragraph and\ntype. For best results, don’t include space to the left or right of the characters in your\nselection.]\nReports\n[Need to add your own headings or more text? No problem. On the Home tab of the ribbon,\ncheck out the Styles gallery to easily apply any text formatting you see in this document.]\nUnfinished business\n[Add your text here.]\nNew business\n[Add your text here.]\nAnnouncements\n[Add your text here.]\nSecretary Date of approval"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0675,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
 }

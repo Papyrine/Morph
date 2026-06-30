@@ -1,6 +1,6 @@
-﻿| ***Your Name***    | Letter of  Recommendation |
+﻿| ***Your Name Your Company Your Email Address Your Phone Number*** | Letter of  Recommendation |
 | --- | --- |
-| ***Recipient Name e***  | ***Date*** |
+| ***Recipient Name Recipient Company Name Recipient Address*** | ***Date*** |
 
 Dear Recipient, 
 
@@ -13,5 +13,7 @@ In addition to his technical and professional skills, Adrian is a person of high
 I am confident that Adrian will continue to make valuable contributions wherever he goes, and I highly recommend him for any business opportunity or position. Should you have any questions or need further information, please do not hesitate to contact me.
 
 Best Regards,
+
+ Your Name
 
 Your Position

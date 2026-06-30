@@ -1,21 +1,39 @@
 ﻿{
-  "PageCount": 2,
-  "Pages": [
+  "target": {
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "The Review August 20XX\nIssue #12\nThe latest news, views, and announcements\nINSIDE\n__\nNew finds this week\nAdd description text here\nto get your subscribers\ninterested in your topic.\n__\nCorporate newsletter\nAdd description text here\nto get your subscribers\ninterested in your topic.\n__\nThe observer\nAdd description text here\nto get your subscribers\ninterested in your topic.\nNew finds this week\n‒ By Peyton Davis\nNewsletters are periodicals used to advertise or update your subscribers with\ninformation about your product or blog. They can be printed or emailed and are\nan excellent way to maintain regular contact with your subscribers and drive\ntraffic to your site. Type the content of your newsletter here.\nNewsletters are periodicals used to advertise or update your subscribers with\ninformation about your product or blog. They can be printed or emailed and are an\nexcellent way to maintain regular contact with your subscribers and drive traffic to your\nsite. Type the content of your newsletter here.\nNewsletters are periodicals used to advertise or update your subscribers with\ninformation about your product or blog. They can be printed or emailed and are an\nexcellent way to maintain regular contact with your subscribers and drive traffic to your\nsite. Type the content of your newsletter here."
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "The Review\nCorporate newsletter\n‒ By Shir Rosenstein\nNewsletters are periodicals used to advertise or update\nyour subscribers with information about your product or\nblog. They can be printed or emailed and are an excellent\nway to maintain regular contact with your subscribers and\ndrive traffic to your site. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to advertise or update your\nsubscribers with information about your product or blog.\nNewsletters are periodicals used to advertise or update your\nsubscribers with information about your product or blog.\nThey can be printed or emailed and are an excellent way to\nmaintain regular contact with your subscribers and drive\ntraffic to your site. Type the content of your newsletter here.\nWork with the\nindustry’s best\n‒By Taylor Phillips\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product or\nblog. They can be printed or emailed\nand are an excellent way to maintain\nregular contact with your subscribers\nand drive traffic to your site. Type the\ncontent of your newsletter here.\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product or\nblog. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product or\nblog. They can be printed or emailed\nand are an excellent way to maintain\nregular contact with your subscribers\nand drive traffic to your site. Type the\ncontent of your newsletter here.\nThe observer\n‒By Chanchal Sharma\nNewsletters are periodicals used to advertise or update your subscribers with\ninformation about your product or blog. They can be printed or emailed and are an\nexcellent way to maintain regular contact with your subscribers and drive traffic to\nyour site. Type the content of your newsletter here.\nNewsletters are periodicals used to advertise or update your subscribers with\ninformation about your product or blog. They are an excellent way to maintain\nregular contact with your subscribers."
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
+    }
+  },
+  "PageDiffs": [
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "The Review August 20XX Issue #12\nThe latest news, views, and announcements\nINSIDE\n__\nNew finds this week\nAdd description text here\nto get your subscribers\ninterested in your topic.\n__\nCorporate newsletter\nAdd description text here\nto get your subscribers\ninterested in your topic.\n__\nThe observer\nAdd description text here\nto get your subscribers\ninterested in your topic.\nNew finds this week\n‒ By Peyton Davis\nNewsletters are periodicals used to advertise or update your subscribers with\ninformation about your product or blog. They can be printed or emailed and are\nan excellent way to maintain regular contact with your subscribers and drive\ntraffic to your site. Type the content of your newsletter here.\nNewsletters are periodicals used to advertise or update your subscribers with\ninformation about your product or blog. They can be printed or emailed and are an\nexcellent way to maintain regular contact with your subscribers and drive traffic to your\nsite. Type the content of your newsletter here.\nNewsletters are periodicals used to advertise or update your subscribers with\ninformation about your product or blog. They can be printed or emailed and are an\nexcellent way to maintain regular contact with your subscribers and drive traffic to your\nsite. Type the content of your newsletter here."
+      "Page": 1,
+      "ErrorMetric": 0.3408,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "The Review\nCorporate newsletter\n‒ By Shir Rosenstein\nNewsletters are periodicals used to advertise or update\nyour subscribers with information about your product or\nblog. They can be printed or emailed and are an excellent\nway to maintain regular contact with your subscribers and\ndrive traffic to your site. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to advertise or update your\nsubscribers with information about your product or blog.\nNewsletters are periodicals used to advertise or update your\nsubscribers with information about your product or blog.\nThey can be printed or emailed and are an excellent way to\nmaintain regular contact with your subscribers and drive\ntraffic to your site. Type the content of your newsletter here.\nWork with the\nindustry’s best\n‒By Taylor Phillips\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product or\nblog. They can be printed or emailed\nand are an excellent way to maintain\nregular contact with your subscribers\nand drive traffic to your site. Type the\ncontent of your newsletter here.\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product or\nblog. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product or\nblog. They can be printed or emailed\nand are an excellent way to maintain\nregular contact with your subscribers\nand drive traffic to your site. Type the\ncontent of your newsletter here.\nThe observer\n‒By Chanchal Sharma\nNewsletters are periodicals used to advertise or update your subscribers with\ninformation about your product or blog. They can be printed or emailed and are an\nexcellent way to maintain regular contact with your subscribers and drive traffic to\nyour site. Type the content of your newsletter here.\nNewsletters are periodicals used to advertise or update your subscribers with\ninformation about your product or blog. They are an excellent way to maintain\nregular contact with your subscribers."
+      "Page": 2,
+      "ErrorMetric": 0.2699,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

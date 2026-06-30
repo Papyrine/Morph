@@ -1,21 +1,39 @@
 ﻿{
-  "PageCount": 2,
-  "Pages": [
+  "target": {
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "JOIN OUR TEAM\nIf you love the design and layout of this\nbrochure, fantastic! If you’d like to change\nanything, you can make it yours by making a\nfew minor design tweaks. Tips on updating\nspecific features are available throughout this\nexample text.\nIf you think a document that looks this good\nhas to be difficult to format, think again! We've\ncreated styles that let you match the\nformatting in this brochure with just a click. On\nthe Home tab of the ribbon, check out the\nStyles gallery.\n“Strive not to be\na success, but\nrather to be of\nvalue.”\n- Albert Einstein\n12 BEACON STREET\nBOSTON, MA 98765\n505-555-0155\nWWW.CONTOSO.COM\nINFO@CONTOSO.COM"
+      },
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "OUR STORY\nHave other images you wish to use? It is\nsimple to replace any of the pictures in this\npamphlet. Open the pamphlet in the Desktop\nApp. Click twice on the image you wish to\nchange. Images in the background might need\nan extra click as they are part of the\nbackground’s grouped images. Keep clicking\nuntil your selection handles are around the\none image you wish to replace.\nOnce the image you wish to replace is\nselected, go to “Shape Format” > “Shape Fill”\n> “Picture” and select your new image.\nIf you replace a photo with your own and it’s\nnot a flawless fit for the space, you can crop it\nto fit in almost no time. Just select the picture\nand then, on the Picture Format tab, click\nCrop.\nMAKE IT YOURS\nBY ADDING A\nSECOND HEADING\nTITLE HERE\nDon’t be shy! Show them how fabulous you\nare. List or summarize key points here\nabout what you do. And here’s one more tip\nfor the road…\nYou might want to mention a few of your\nmost impressive clients here:\n1. Big, important company\n2. Really well-known company\n3. Very impressive company\nCONTACT US\nIf you think a document that looks this good\nhas to be difficult to format, think again! We've\ncreated styles that let you match the formatting\nin this brochure with just a click. On the Home\ntab of the ribbon, check out the Styles gallery."
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
+    }
+  },
+  "PageDiffs": [
     {
-      "Width": 792.0,
-      "Height": 612.0,
-      "Text": "JOIN OUR TEAM\nIf you love the design and layout of this\nbrochure, fantastic! If you’d like to change\nanything, you can make it yours by making a\nfew minor design tweaks. Tips on updating\nspecific features are available throughout this\nexample text.\nIf you think a document that looks this good\nhas to be difficult to format, think again! We've\ncreated styles that let you match the\nformatting in this brochure with just a click. On\nthe Home tab of the ribbon, check out the\nStyles gallery.\n“Strive not to be a\nsuccess, but rather\nto be of value.”-\nAlbert Einstein\n12 BEACON STREET\nBOSTON, MA 98765\n505-555-0155\nWWW.CONTOSO.COM\nINFO@CONTOSO.COM"
+      "Page": 1,
+      "ErrorMetric": 0.3892,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
-      "Width": 792.0,
-      "Height": 612.0,
-      "Text": "OUR STORY\nHave other images you wish to use? It is\nsimple to replace any of the pictures in this\npamphlet. Open the pamphlet in the Desktop\nApp. Click twice on the image you wish to\nchange. Images in the background might need\nan extra click as they are part of the\nbackground’s grouped images. Keep clicking\nuntil your selection handles are around the\none image you wish to replace.\nOnce the image you wish to replace is\nselected, go to “Shape Format” > “Shape Fill”\n> “Picture” and select your new image.\nIf you replace a photo with your own and it’s\nnot a flawless fit for the space, you can crop it\nto fit in almost no time. Just select the picture\nand then, on the Picture Format tab, click\nCrop.\nMAKE IT YOURS BY\nADDING A SECOND\nHEADING TITLE HERE\nDon’t be shy! Show them how fabulous you\nare. List or summarize key points here\nabout what you do. And here’s one more tip\nfor the road…\nYou might want to mention a few of your\nmost impressive clients here:\n1. Big, important company\n2. Really well-known company\n3. Very impressive company\nCONTACT US\nIf you think a document that looks this good\nhas to be difficult to format, think again! We've\ncreated styles that let you match the formatting\nin this brochure with just a click. On the Home\ntab of the ribbon, check out the Styles gallery."
+      "Page": 2,
+      "ErrorMetric": 0.4458,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

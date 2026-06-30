@@ -1,4 +1,4 @@
-﻿| INTERIOR    |  |  |  |
+﻿| INTERIOR  DESIGN  EXPO |  |  |  |
 | --- | --- | --- | --- |
 | Twine + Burlap |  |  |  |
 |  |  |  |  |

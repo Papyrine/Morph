@@ -1,21 +1,39 @@
 ﻿{
-  "PageCount": 2,
-  "Pages": [
+  "target": {
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Company Name\nDate\nReport Title\nSubtitle\nLorem ipsum dolor sit amet, harum patrioque cu vim. Debitis fastidii democritum ne vel, et ignota voluptua mel.\nNe euripidis appellantur pro, oratio utamur scripserit id nam. Indoctum scripserit no nam, eum rebum reque\nexerci ne.\nOblique adipisci vituperatoribus eu ius, ut mei omnes affert mandamus. Mel prima nobis\nullamcorper an, nec vitae scaevola ei. Nihil noster nec eu, est amet virtute an, ne has tollit\nhendrerit. Numquam deterruisset ex pro, errem viris prodesset ea sed. Nec te laoreet urbanitas\nquaerendum. Ei eum prodesset forensibus.\nIus te tempor aperiri mandamus, et est munere numquam partiendo. Vix an probo ludus adipisci, duo ea\nnominavi perfecto iudicabit. In ius appellantur signiferumque, illud postulant te his, at eam adhuc quodsi\ndocendi. Ex eos aliquid verterem moderatius, justo elaboraret at mel. Eam falli insolens in, soleat oportere has te.\nMalis iisque saperet ut nam.\nVim an iudico forensibus, ut purto clita civibus qui. Vis in adhuc maiorum voluptua, in epicurei facilisis patrioque\nius. Agam dictas blandit ad cum. Illud dicta mediocrem no mei, pro at eius mediocritatem. Ubique corpora at quo,\ncum magna impetus ne. Pri no conceptam voluptaria, dicat scripta intellegebat ei pro. Etiam alterum assentior\nmei ut, efficiendi reformidans sea cu, eos modo nibh ei."
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Report Title\nSubtitle\nSome of the sample text in this document indicates the name of the\nstyle applied, so that you can easily apply the same formatting again.\nTo get started right away, just tap any placeholder text (such as this)\nand start typing.\n01\nLorem ipsum dolor sit\namet, harum patrioque\ncu vim.\n02\nLorem ipsum dolor sit\namet, harum patrioque\ncu vim.\n03\nLorem ipsum dolor sit\namet, harum patrioque\ncu vim.\nHeading 1\nYou can easily change the formatting of selected text in the document text by choosing a\nlook for the selected text from the Styles gallery on the Home tab. You can also format text\ndirectly by using the other controls on the Home tab.\nHeading 2\nView and edit this document in Word on your computer, tablet, or phone. You can edit\ntext; easily insert content such as pictures, shapes, or tables; and seamlessly save the\ndocument to the cloud from Word on your Windows, Mac, Android, or iOS device.\nHeading 3\nWant to insert a picture from your files or add a shape, text box, or table? You got it! On\nthe Insert tab of the ribbon, just tap the option you need.\nFind even more easy-to-use tools on the Insert tab, such as to add a hyperlink or insert a\ncomment.\nLorem ipsum dolor sit amet, harum patrioque cu vim. Debitis fastidii democritum ne vel, et ignota voluptua mel.\nNe euripidis appellantur pro, oratio utamur scripserit id nam. Indoctum scripserit no nam, eum rebum reque\nexerci ne."
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
+    }
+  },
+  "PageDiffs": [
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Company Name\nDate\nReport Title\nSubtitle\nLorem ipsum dolor sit amet, harum patrioque cu vim. Debitis fastidii democritum ne vel, et ignota voluptua mel.\nNe euripidis appellantur pro, oratio utamur scripserit id nam. Indoctum scripserit no nam, eum rebum reque\nexerci ne.\nOblique adipisci vituperatoribus eu ius, ut mei omnes affert mandamus. Mel prima\nnobis ullamcorper an, nec vitae scaevola ei. Nihil noster nec eu, est amet virtute\nan, ne has tollit hendrerit. Numquam deterruisset ex pro, errem viris prodesset ea\nsed. Nec te laoreet urbanitas quaerendum. Ei eum prodesset forensibus.\nIus te tempor aperiri mandamus, et est munere numquam partiendo. Vix an probo ludus adipisci, duo ea\nnominavi perfecto iudicabit. In ius appellantur signiferumque, illud postulant te his, at eam adhuc quodsi\ndocendi. Ex eos aliquid verterem moderatius, justo elaboraret at mel. Eam falli insolens in, soleat oportere has te.\nMalis iisque saperet ut nam.\nVim an iudico forensibus, ut purto clita civibus qui. Vis in adhuc maiorum voluptua, in epicurei facilisis patrioque\nius. Agam dictas blandit ad cum. Illud dicta mediocrem no mei, pro at eius mediocritatem. Ubique corpora at quo,\ncum magna impetus ne. Pri no conceptam voluptaria, dicat scripta intellegebat ei pro. Etiam alterum assentior\nmei ut, efficiendi reformidans sea cu, eos modo nibh ei."
+      "Page": 1,
+      "ErrorMetric": 0.3063,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Report\nTitle\nSubtitle\nSome of the sample text in this document indicates the name of the\nstyle applied, so that you can easily apply the same formatting again.\nTo get started right away, just tap any placeholder text (such as this)\nand start typing.\n01\nLorem ipsum dolor\nsit amet, harum\npatrioque cu vim.\n02\nLorem ipsum dolor\nsit amet, harum\npatrioque cu vim.\n03\nLorem ipsum dolor\nsit amet, harum\npatrioque cu vim.\nHeading 1\nYou can easily change the formatting of selected text in the document text by choosing a\nlook for the selected text from the Styles gallery on the Home tab. You can also format text\ndirectly by using the other controls on the Home tab.\nHeading 2\nView and edit this document in Word on your computer, tablet, or phone. You can edit\ntext; easily insert content such as pictures, shapes, or tables; and seamlessly save the\ndocument to the cloud from Word on your Windows, Mac, Android, or iOS device.\nHeading 3\nWant to insert a picture from your files or add a shape, text box, or table? You got it! On\nthe Insert tab of the ribbon, just tap the option you need.\nFind even more easy-to-use tools on the Insert tab, such as to add a hyperlink or insert a\ncomment.\nLorem ipsum dolor sit amet, harum patrioque cu vim. Debitis fastidii democritum ne vel, et ignota voluptua mel.\nNe euripidis appellantur pro, oratio utamur scripserit id nam. Indoctum scripserit no nam, eum rebum reque\nexerci ne."
+      "Page": 2,
+      "ErrorMetric": 0.089,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

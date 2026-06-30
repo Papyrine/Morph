@@ -277,6 +277,12 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 hasSignificantContentOnCurrentPage = true;
                 break;
 
+            case PositionedFrameElement positionedFrame:
+                // Word text frame (w:framePr): positioned out of flow, no CurrentY advancement.
+                RenderPositionedFrame(positionedFrame);
+                hasSignificantContentOnCurrentPage = true;
+                break;
+
             case TableElement table:
                 RenderTable(table);
                 hasSignificantContentOnCurrentPage = true;
@@ -657,12 +663,10 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         var width = context.PointsToPixels((float) wordArt.WidthPoints);
         var pixelHeight = context.PointsToPixels(height);
 
-        // Create font with WordArt properties
-        var typeface = SKTypeface.FromFamilyName(
-            wordArt.FontFamily,
-            wordArt.Bold ? SKFontStyleWeight.Bold : SKFontStyleWeight.Normal,
-            SKFontStyleWidth.Normal,
-            wordArt.Italic ? SKFontStyleSlant.Italic : SKFontStyleSlant.Upright);
+        // Resolve through the bundled FontDirectory. SKTypeface.FromFamilyName only sees system
+        // fonts, so a bundled WordArt face like "Impact" returned a non-rendering typeface in the
+        // container (GetTextPath produced an empty outline) and the WordArt came out blank.
+        var typeface = context.GetTypeface(wordArt.FontFamily, wordArt.Bold, wordArt.Italic);
 
         var pixelFontSize = context.PointsToPixels((float) wordArt.FontSizePoints);
 
@@ -805,12 +809,10 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         var width = bounds.PixelWidth;
         var pixelHeight = bounds.PixelHeight;
 
-        // Create font with WordArt properties
-        var typeface = SKTypeface.FromFamilyName(
-            wordArt.FontFamily,
-            wordArt.Bold ? SKFontStyleWeight.Bold : SKFontStyleWeight.Normal,
-            SKFontStyleWidth.Normal,
-            wordArt.Italic ? SKFontStyleSlant.Italic : SKFontStyleSlant.Upright);
+        // Resolve through the bundled FontDirectory. SKTypeface.FromFamilyName only sees system
+        // fonts, so a bundled WordArt face like "Impact" returned a non-rendering typeface in the
+        // container (GetTextPath produced an empty outline) and the WordArt came out blank.
+        var typeface = context.GetTypeface(wordArt.FontFamily, wordArt.Bold, wordArt.Italic);
 
         var pixelFontSize = context.PointsToPixels((float) wordArt.FontSizePoints);
 
@@ -1135,45 +1137,72 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             return false;
         }
 
-        // Sample every subpath of the text outline as a polyline. SKPathMeasure walks one
-        // contour at a time; NextContour advances. Sample at ~2-pixel intervals so the
-        // resulting polyline is dense enough to render the warp smoothly.
+        // Walk the outline verb by verb, flattening each quad/cubic into short line segments,
+        // and warp every resulting point. (SKPathMeasure's contour sampling returns nothing for
+        // these glyph outlines under SkiaSharp 4.x, which left the warp blank — iterating the raw
+        // path is reliable and mirrors the ImageSharp backend's flatten-then-warp approach.)
         using var resultPath = new SKPath();
-        using var measure = new SKPathMeasure(textPath, false);
-        do
+        const int curveSteps = 12;
+        var iterator = textPath.CreateRawIterator();
+        var points = new SKPoint[4];
+        SKPathVerb verb;
+        while ((verb = iterator.Next(points)) != SKPathVerb.Done)
         {
-            var contourLength = measure.Length;
-            if (contourLength <= 0)
-            {
-                continue;
-            }
+            SKPoint Warp(SKPoint sample) =>
+                WarpPoint(sample, totalWidth, glyphsTop, glyphsHeight, x, y, width, height, transform);
 
-            var steps = Math.Max(8, (int) (contourLength / 2f));
-            var first = true;
-            for (var i = 0; i <= steps; i++)
+            switch (verb)
             {
-                var dist = (float) i / steps * contourLength;
-                if (!measure.GetPosition(dist, out var sample))
-                {
-                    continue;
-                }
-                var warped = WarpPoint(sample, totalWidth, glyphsTop, glyphsHeight, x, y, width, height, transform);
-                if (first)
-                {
-                    resultPath.MoveTo(warped);
-                    first = false;
-                }
-                else
-                {
-                    resultPath.LineTo(warped);
-                }
+                case SKPathVerb.Move:
+                    resultPath.MoveTo(Warp(points[0]));
+                    break;
+                case SKPathVerb.Line:
+                    resultPath.LineTo(Warp(points[1]));
+                    break;
+                case SKPathVerb.Quad:
+                case SKPathVerb.Conic:
+                    // Conics (rare in glyph outlines) are approximated as quads; the warp only
+                    // needs a dense polyline, not an exact conic.
+                    for (var step = 1; step <= curveSteps; step++)
+                    {
+                        resultPath.LineTo(Warp(QuadPoint(points[0], points[1], points[2], (float) step / curveSteps)));
+                    }
+
+                    break;
+                case SKPathVerb.Cubic:
+                    for (var step = 1; step <= curveSteps; step++)
+                    {
+                        resultPath.LineTo(Warp(CubicPoint(points[0], points[1], points[2], points[3], (float) step / curveSteps)));
+                    }
+
+                    break;
+                case SKPathVerb.Close:
+                    resultPath.Close();
+                    break;
             }
-            // Glyph contours are always closed.
-            resultPath.Close();
-        } while (measure.NextContour());
+        }
 
         currentCanvas.DrawPath(resultPath, paint);
         return true;
+    }
+
+    static SKPoint QuadPoint(SKPoint p0, SKPoint p1, SKPoint p2, float t)
+    {
+        var mt = 1 - t;
+        var a = mt * mt;
+        var b = 2 * mt * t;
+        var c = t * t;
+        return new(a * p0.X + b * p1.X + c * p2.X, a * p0.Y + b * p1.Y + c * p2.Y);
+    }
+
+    static SKPoint CubicPoint(SKPoint p0, SKPoint p1, SKPoint p2, SKPoint p3, float t)
+    {
+        var mt = 1 - t;
+        var a = mt * mt * mt;
+        var b = 3 * mt * mt * t;
+        var c = 3 * mt * t * t;
+        var d = t * t * t;
+        return new(a * p0.X + b * p1.X + c * p2.X + d * p3.X, a * p0.Y + b * p1.Y + c * p2.Y + d * p3.Y);
     }
 
     static SKPoint WarpPoint(SKPoint point, float totalWidth, float glyphsTop, float glyphsHeight,

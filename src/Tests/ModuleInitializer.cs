@@ -30,8 +30,11 @@ public static class ModuleInitializer
         VerifierSettings.UseSsimForPng();
         VerifyDiffPlex.Initialize(OutputType.Compact);
         // Expands pdf snapshots (ExportScenarioTests.PdfOutput) into info + the pdf +
-        // per-page PNGs rendered by PDFium
-        VerifyPDFium.Initialize();
+        // per-page PNGs rendered by PDFium. Render at 150 DPI to match the Skia/ImageSharp
+        // scenario renders (ImageExportOptions.Dpi) and the Word reference PNGs — at the
+        // library default of 96 DPI the page images were coarser, so thin vector strokes
+        // (e.g. custGeom leaf veins) rasterised heavier than the other backends.
+        VerifyPDFium.Initialize(150);
         VerifierSettings.InitializePlugins();
 
         AppDomain.CurrentDomain.ProcessExit += (_, _) =>

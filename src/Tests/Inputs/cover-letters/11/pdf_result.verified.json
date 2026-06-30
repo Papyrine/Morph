@@ -1,16 +1,27 @@
 ﻿{
-  "PageCount": 1,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Angelica Astrom\nUI/UX DESIGNER\nOBJECTIVE\nTo obtain a challenging UI/UX Designer position where my\ncreativity, problem-solving skills, and experience in designing\nengaging and user-friendly interfaces can be utilized to enhance\nuser experiences and drive business objectives.\nCONTACT\n(212) 555-0155\nangelica@example.com\n123 South St. Manhattan, NY 76543\nDEAR JOSEPH PRICE:\nI am writing in response to your online advertisement for a UX\ndesigner. After reading your job description, I am confident that\nmy skills and my passion for technology are a perfect match for\nthis position. I would bring to your company a broad range of\nskills, including:\n• UI/UX design\n• User research\n• Usability testing\n• Wireframing & prototyping\n• Project management & leadership\nI would welcome the opportunity to further discuss this position\nwith you. If you have questions or would like to schedule an\ninterview, please contact me by phone at (212) 555-0155 or by\nemail at angelica@example.com. I have enclosed my resume for\nyour review, and I look forward to hearing from you.\nSincerely,\nAngelica Astrom\nEnclosure\nUX MANAGER\nLifeDreamer Gaming\n333 3rd Avenue Seattle, WA 98765"
+  "target": {
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Angelica Astrom\nUI/UX DESIGNER\nOBJECTIVE\nTo obtain a challenging UI/UX Designer position where my\ncreativity, problem-solving skills, and experience in designing\nengaging and user-friendly interfaces can be utilized to enhance\nuser experiences and drive business objectives.\nCONTACT\n(212) 555-0155\nangelica@example.com\n123 South St. Manhattan, NY 76543\nDEAR JOSEPH PRICE:\nI am writing in response to your online advertisement for a UX\ndesigner. After reading your job description, I am confident that\nmy skills and my passion for technology are a perfect match for\nthis position. I would bring to your company a broad range of\nskills, including:\n• UI/UX design\n• User research\n• Usability testing\n• Wireframing & prototyping\n• Project management & leadership\nI would welcome the opportunity to further discuss this position\nwith you. If you have questions or would like to schedule an\ninterview, please contact me by phone at (212) 555-0155 or by\nemail at angelica@example.com. I have enclosed my resume for\nyour review, and I look forward to hearing from you.\nSincerely,\nAngelica Astrom\nEnclosure\nUX MANAGER\nLifeDreamer Gaming\n333 3rd Avenue Seattle, WA 98765"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.4279,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
 }

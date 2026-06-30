@@ -1,16 +1,27 @@
 ﻿{
-  "PageCount": 1,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "CSS margin and padding:\nParagraph with 50px left margin\nParagraph with 100px left margin\nParagraph with 20px margin all around\nContent inside padded div\nParagraph with 15px padding and visible background\nParagraph with extra vertical margins\nCentered table with padded cell"
+  "target": {
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "CSS margin and padding:\nParagraph with 50px left margin\nParagraph with 100px left margin\nParagraph with 20px margin all around\nContent inside padded div\nParagraph with 15px padding and visible background\nParagraph with extra vertical margins\nCentered table with padded cell"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0791,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
 }

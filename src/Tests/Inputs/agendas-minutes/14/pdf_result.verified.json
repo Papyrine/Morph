@@ -1,16 +1,27 @@
 ﻿{
-  "PageCount": 1,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "MEETING AGENDA\nAttendees:\nHelbe Sokk, Jessie Irwin, Allan Mattsson, Chanchal Sharma\nI. CALL TO ORDER\nChanchal Sharma called to order the regular meeting of the Homeowner’s Association at 2:00 PM on January 16th.\nII. ROLL CALL\nChanchal Sharma conducted a roll call. The following persons were present: Helbe Sokk, Jessie Irwin, Allan\nMattsson, Chanchal Sharma\nIII. APPROVAL OF MINUTES FROM LAST MEETING\nChanchal Sharma read the minutes from the last meeting. The minutes were approved as read.\nIV. OPEN ISSUES\na) Member dues\nb) Vehicle speeding\nc) Neighborhood watch\nV. NEW BUSINESS\na) Valentine’s potluck\nb) Vote on dog park\nc) Pool maintenance\nVI. ADJOURNMENT\nChanchal Sharma adjourned the meeting at time.\nMinutes submitted by: Jessie Irwin\nMinutes approved by: Chanchal Sharma\nLocation: Clubhouse\nDate: 1/16/23\nTime: 2:00 PM"
+  "target": {
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "MEETING AGENDA\nAttendees:\nHelbe Sokk, Jessie Irwin, Allan Mattsson, Chanchal Sharma\nI. CALL TO ORDER\nChanchal Sharma called to order the regular meeting of the Homeowner’s Association at 2:00 PM on January 16th.\nII.ROLL CALL\nChanchal Sharma conducted a roll call. The following persons were present: Helbe Sokk, Jessie Irwin, Allan\nMattsson, Chanchal Sharma\nIII.APPROVAL OF MINUTES FROM LAST MEETING\nChanchal Sharma read the minutes from the last meeting. The minutes were approved as read.\nIV.OPEN ISSUES\na) Member dues\nb) Vehicle speeding\nc) Neighborhood watch\nV.NEW BUSINESS\na) Valentine’s potluck\nb) Vote on dog park\nc) Pool maintenance\nVI.ADJOURNMENT\nChanchal Sharma adjourned the meeting at time.\nMinutes submitted by: Jessie Irwin\nMinutes approved by: Chanchal Sharma\nLocation: Clubhouse\nDate: 1/16/23\nTime: 2:00 PM"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0594,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
 }

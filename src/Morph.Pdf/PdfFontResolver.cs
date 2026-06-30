@@ -89,8 +89,39 @@ sealed class PdfFontResolver : IFontResolver
         var bold = weight >= 600;
 
         faceToPath[path] = path;
+
+        // The bundled file name is the authoritative key and overrides any earlier entry.
         index[(family.ToLowerInvariant(), bold, italic)] = path;
+
+        // Also index the font's own declared names (Family, Full, PostScript, Typographic
+        // from the name table) so a request using an abbreviated or alternate spelling — e.g.
+        // "Trade Gothic Next Cond" for Trade_Gothic_Next_Condensed — finds this exact file
+        // instead of being suffix-stripped onto a different family ("Trade Gothic Next").
+        // Mirrors the shared FontFileCache, which indexes every declared name. TryAdd keeps
+        // the file-name key (and the first file in ordinal order) authoritative on collisions.
+        foreach (var declaredName in ReadDeclaredNames(path))
+        {
+            index.TryAdd((declaredName.ToLowerInvariant(), bold, italic), path);
+        }
+
         defaultFace ??= path;
+    }
+
+    static IEnumerable<string> ReadDeclaredNames(string path)
+    {
+        try
+        {
+            return OpenTypeReader.ReadFaces(path)
+                .SelectMany(_ => _.Names)
+                .Where(_ => !string.IsNullOrEmpty(_))
+                .ToList();
+        }
+        catch
+        {
+            // A font we can't parse contributes no alternate names; the file-name index
+            // entry still serves it.
+            return [];
+        }
     }
 
     public FontResolverInfo? ResolveTypeface(string familyName, bool isBold, bool isItalic)
@@ -119,21 +150,35 @@ sealed class PdfFontResolver : IFontResolver
 
     bool TryResolve(string familyName, bool bold, bool italic, out string face)
     {
-        var family = familyName.ToLowerInvariant();
+        // Order matters: keep the upright/italic axis correct before relaxing weight. When an
+        // upright face is requested but only the italic of that exact weight is bundled (e.g.
+        // Century Schoolbook ships 400-Italic, 700, 700-Italic but no 400 upright), falling back
+        // to a different-weight upright reads far closer than swapping in a slanted same-weight
+        // face. This mirrors the shared resolver's ScoreFace, where an italic mismatch (10_000)
+        // outweighs any weight mismatch.
         Span<(bool Bold, bool Italic)> attempts =
         [
             (bold, italic),
-            (bold, !italic),
             (!bold, italic),
-            (false, false)
+            (bold, !italic),
+            (!bold, !italic)
         ];
 
-        foreach (var (attemptBold, attemptItalic) in attempts)
+        // Try the requested family, then its suffix-stripped base (e.g. "Bodoni MT Condensed"
+        // -> "Bodoni MT"), mirroring the shared resolver's candidate-name fallback so a width-
+        // or weight-suffixed request still finds the bundled base face instead of dropping to
+        // the default sans fallback.
+        var candidates = FontHelpers.GetCandidateNames(familyName, bold);
+        foreach (var candidateName in FontFileCache.EnumerateCandidateNames(candidates))
         {
-            if (index.TryGetValue((family, attemptBold, attemptItalic), out var found))
+            var family = candidateName.ToLowerInvariant();
+            foreach (var (attemptBold, attemptItalic) in attempts)
             {
-                face = found;
-                return true;
+                if (index.TryGetValue((family, attemptBold, attemptItalic), out var found))
+                {
+                    face = found;
+                    return true;
+                }
             }
         }
 

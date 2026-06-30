@@ -1,16 +1,27 @@
 ﻿{
-  "PageCount": 1,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "VanArsdel, Ltd.\nTaylor Phillips\n4321 N. Broad Street\nSeptember 16, 20XX\nDear Taylor Phillips,\nI am delighted to provide this employee recommendation letter for\nKendall Collins, who has consistently demonstrated professionalism,\ndedication, and outstanding problem-solving skills. Throughout their\ntenure, they have shown remarkable initiative, leadership, and a strong\nability to handle complex projects with efficiency.\nKendall is known for their exceptional communication skills, ability to\nadapt to evolving challenges, and commitment to exceeding\nexpectations. They foster a positive team environment and bring creative\nsolutions to any problem they encounter, making them a tremendous\nasset to any organization.\nFor any employer seeking a motivated, talented, and team-oriented\nprofessional, I strongly recommend Kendall. Please reach out if you need\nadditional information.\nSincerely,\nJordan Mitchell\nCEO\n5678 Main St.\nNew York, NY 90210\n212-555-0199\njordan@vanarsdelltd.com\nwww.vanarsdelltd.com"
+  "target": {
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "VanArsdel, Ltd.\nTaylor Phillips\n4321 N. Broad Street\nPhiladelphia, PA 21098\nSeptember 16, 20XX\nDear Taylor Phillips,\nI am delighted to provide this employee recommendation letter for\nKendall Collins, who has consistently demonstrated professionalism,\ndedication, and outstanding problem-solving skills. Throughout their\ntenure, they have shown remarkable initiative, leadership, and a strong\nability to handle complex projects with efficiency.\nKendall is known for their exceptional communication skills, ability to\nadapt to evolving challenges, and commitment to exceeding\nexpectations. They foster a positive team environment and bring creative\nsolutions to any problem they encounter, making them a tremendous\nasset to any organization.\nFor any employer seeking a motivated, talented, and team-oriented\nprofessional, I strongly recommend Kendall. Please reach out if you need\nadditional information.\nSincerely,\nJordan Mitchell\nCEO\n5678 Main St.\nNew York, NY 90210\n212-555-0199\njordan@vanarsdelltd.com\nwww.vanarsdelltd.com"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0756,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
 }

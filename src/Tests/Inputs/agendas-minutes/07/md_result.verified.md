@@ -28,7 +28,7 @@
 
 | **New business**  |  | **Committee reports**  |
 | --- | --- | --- |
-| Recap of Back-to-School night – September 9 Parent Education Programs – Counselors Teacher Grants Application Process –   |  | Membership Volunteers Newsletter Computer Support |
+| Recap of Back-to-School night – September 9 Parent Education Programs – Counselors Teacher Grants Application Process –  School Principal |  | Membership Volunteers Newsletter Computer Support |
 
 | **Announcements** |
 | --- |

@@ -42,11 +42,11 @@ Now handled — see [`../wordart-envelope/notes.md`](../wordart-envelope/notes.m
 | --- | --- | --- |
 | **Page 1** | **Page 1. ErrorMetric: 0.0073** | **Page 1. ErrorMetric: 0.0094** |
 | <img src="expected_0001.png" width="500"> | <img src="skia_result%23page_0001.verified.png" width="500"> | <img src="imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.0378** | **Page 2. ErrorMetric: 0.0541** |
+| **Page 2** | **Page 2. ErrorMetric: 0.0481** | **Page 2. ErrorMetric: 0.0541** |
 | <img src="expected_0002.png" width="500"> | <img src="skia_result%23page_0002.verified.png" width="500"> | <img src="imagesharp_result%23page_0002.verified.png" width="500"> |
-| **Page 3** | **Page 3. ErrorMetric: 0.2057** | **Page 3. ErrorMetric: 0.2269** |
+| **Page 3** | **Page 3. ErrorMetric: 0.2201** | **Page 3. ErrorMetric: 0.2269** |
 | <img src="expected_0003.png" width="500"> | <img src="skia_result%23page_0003.verified.png" width="500"> | <img src="imagesharp_result%23page_0003.verified.png" width="500"> |
-| **Page 4** | **Page 4. ErrorMetric: 0.2062** | **Page 4. ErrorMetric: 0.2404** |
+| **Page 4** | **Page 4. ErrorMetric: 0.2290** | **Page 4. ErrorMetric: 0.2404** |
 | <img src="expected_0004.png" width="500"> | <img src="skia_result%23page_0004.verified.png" width="500"> | <img src="imagesharp_result%23page_0004.verified.png" width="500"> |
 | **Page 5** | **Page 5. ErrorMetric: 0.0366** | **Page 5. ErrorMetric: 0.0323** |
 | <img src="expected_0005.png" width="500"> | <img src="skia_result%23page_0005.verified.png" width="500"> | <img src="imagesharp_result%23page_0005.verified.png" width="500"> |

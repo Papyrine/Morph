@@ -1,16 +1,27 @@
 ﻿{
-  "PageCount": 1,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "DONNA ROBBINS\nACCOUNTANT\n313.555.0100 | DONNA@EXAMPLE.COM | WWW.GREATSITEADDRESS.COM\n4 APRIL 20XX ESG FINANCIAL SERVICES\nDEAR LILLI ALLIK,\nI am writing to express my interest in the accountant position at ESG Financial Services.\nWith a Bachelor of Science in Accounting, a minor in Business Administration, and several\nyears of hands-on experience in both public accounting and private sectors, I am confident\nin my ability to provide valuable financial solutions to your organization. My expertise\nspans income tax preparation, financial statement preparation, and general ledger\naccounting, with a strong background in GAAP compliance.\nCurrently, as an Accountant at Trey Research, I support a wide range of clients, from\nindividuals to businesses, delivering accurate and efficient accounting services. My\nattention to detail, ownership mentality, and collaborative approach have enabled me to\nidentify and implement strategic solutions that enhance financial processes and support\nbusiness growth. Additionally, my proficiency in Microsoft NAV Dynamics, QuickBooks,\nand cashflow management ensures that I can handle the financial complexities of a\ndiverse client base.\nI am particularly drawn to ESG Financial Services because of its commitment to supporting\nwomen and minority owned businesses. I would be thrilled to bring my analytical skills,\norganizational abilities, and passion for accounting to contribute to your team’s success.\nThank you for considering my application. I look forward to the opportunity to discuss how\nmy qualifications align with the needs of your organization.\nSincerely,"
+  "target": {
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "DONNA ROBBINS\nACCOUNTANT\n313.555.0100 | DONNA@EXAMPLE.COM | WWW.GREATSITEADDRESS.COM\n4 APRIL 20XX\nHIRING MANAGER\nESG FINANCIAL SERVICES\n5678 MOUNTAIN DRIVE\nDENVER, CO 12345\nDEAR LILLI ALLIK,\nI am writing to express my interest in the accountant position at ESG Financial Services.\nWith a Bachelor of Science in Accounting, a minor in Business Administration, and several\nyears of hands-on experience in both public accounting and private sectors, I am confident\nin my ability to provide valuable financial solutions to your organization. My expertise\nspans income tax preparation, financial statement preparation, and general ledger\naccounting, with a strong background in GAAP compliance.\nCurrently, as an Accountant at Trey Research, I support a wide range of clients, from\nindividuals to businesses, delivering accurate and efficient accounting services. My\nattention to detail, ownership mentality, and collaborative approach have enabled me to\nidentify and implement strategic solutions that enhance financial processes and support\nbusiness growth. Additionally, my proficiency in Microsoft NAV Dynamics, QuickBooks,\nand cashflow management ensures that I can handle the financial complexities of a\ndiverse client base.\nI am particularly drawn to ESG Financial Services because of its commitment to supporting\nwomen and minority owned businesses. I would be thrilled to bring my analytical skills,\norganizational abilities, and passion for accounting to contribute to your team’s success.\nThank you for considering my application. I look forward to the opportunity to discuss how\nmy qualifications align with the needs of your organization.\nSincerely,\nDonna Robbins"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.1382,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
 }

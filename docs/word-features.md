@@ -677,13 +677,14 @@ Borders around a paragraph (top, bottom, left, right, between).
 
 #### Text Frames `PARTIAL`
 
-Floating text frame (pre-DrawingML era) defined directly on a paragraph. Drop-cap framing (`w:dropCap`) is fully supported via the Drop Caps feature. General-purpose absolute-positioned frames (`w:w`/`w:h`/`w:x`/`w:y`/`w:wrap`/`w:hAnchor`/`w:vAnchor`) are intentionally **not** rendered as floats: a paragraph carrying frame-positioning attributes is laid out inline at its current flow position. The frame attributes appear in the corpus mostly on header/footer cosmetics where the inline placement matches Word's output closely enough.
+Floating text frame (pre-DrawingML era) defined directly on a paragraph. Drop-cap framing (`w:dropCap`) is fully supported via the Drop Caps feature. Positioning frames (`w:hAnchor`/`w:vAnchor`/`w:xAlign`/`w:yAlign`/`w:x`/`w:y`/`w:w`/`w:h`) are parsed into a value-equatable `ParagraphFrame`; the style's frame takes precedence over the editor's neutral direct framePr. Consecutive same-frame paragraphs (even when scattered across the layout table's cells) are collected document-wide and merged into one floating block — empty paragraphs dropped, icon-only paragraphs folded onto the following label — and rendered out of flow as a `PositionedFrameElement`. To avoid disturbing layouts that already flow acceptably inline, only the page/margin-anchored **bottom footer-block** pattern is lifted (e.g. a right-aligned Location/Date/Time stack); text-anchored and upper-page frames stay inline.
 
-- **OOXML**: `w:framePr` with `w:dropCap`, `w:lines`, `w:w`, `w:h`, `w:x`, `w:y`, `w:wrap`, `w:hAnchor`, `w:vAnchor`
+- **OOXML**: `w:framePr` with `w:dropCap`, `w:lines`, `w:w`, `w:h`, `w:x`, `w:y`, `w:wrap`, `w:hAnchor`, `w:vAnchor`, `w:xAlign`, `w:yAlign`
 - **Spec**: [FrameProperties](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.frameproperties)
-- **Model**: `ParagraphProperties.DropCap`, `DropCapLines` (drop-cap subset only)
-- **Parse**: `DocumentParser` reads `dropCap` and `lines` raw attributes from `w:framePr`
-- **Render**: drop caps reflow surrounding lines; absolute positioning is a no-op
+- **Model**: `ParagraphProperties.DropCap`/`DropCapLines` (drop-cap subset); `ParagraphProperties.Frame` (`ParagraphFrame`) and `PositionedFrameElement` (positioning subset)
+- **Parse**: `DocumentParser.ParseParagraphFrame` reads the anchors/alignment/offset/size; `FrameGrouper` (`Morph/Parsing/FrameGrouper.cs`) collects and merges framed paragraphs into lifted frames
+- **Render**: `PageRendererBase.RenderPositionedFrame` measures the content to auto-size, resolves position from anchor + alignment, and draws the inner paragraphs out of flow in all three backends; drop caps still reflow surrounding lines
+- **Test**: `agendas-minutes/14` (bottom-right footer info block)
 
 
 #### Mirror Indents `DONE`
@@ -952,7 +953,7 @@ Explicit row height control: exact (fixed) or atLeast (minimum).
 - **Model**: `TableRow.HeightPoints`, `TableRow.ExactHeight`
 - **Test**: `table_explicit_heights/`, `table_layout_tall_row/`
 
-> **Contributors**: Multi-pass calculation: content heights first, then explicit heights, then vMerge adjustment.
+> **Contributors**: Multi-pass calculation in `TableHeightCalculator.CalculateRowHeights`: content heights first, then explicit `w:trHeight`, then vMerge distribution, then a border-collapse pass. Two Word-matching rules in the content pass: (1) the *last* paragraph's space-after **overlaps** the bottom cell margin instead of stacking on it — the cell bottom is sized as `max(after, bottomMargin)`, not their sum (inter-paragraph after-spacing is still added in full); (2) the border-collapse pass grows the first/last row by the table's *outer* horizontal border widths (shared inner edges collapse onto the content boundary and add no height). The same overlap rule is mirrored in `PageRendererBase` vertical-alignment measurement so centred/bottom content stays consistent.
 
 
 #### Multi-page Tables `DONE`
@@ -1496,7 +1497,7 @@ Positioned shapes with solid color fill, typically used as background decoration
 - **Model**: `FloatingShapeElement` with `FillColorHex`
 - **Parse**: `ShapeParser.cs`
 
-> **Contributors**: Shapes rendered as filled rectangles. Behind-text shapes are pre-scanned and rendered at page start before content.
+> **Contributors**: All three backends paint the fill (rectangle, ellipse, or custom path); behind-text shapes are pre-scanned and rendered at page start before content. Skia/ImageSharp via `RenderBackgroundShape`; the PDF backend via `PdfPageRenderer.RenderBackgroundShape` using `XGraphics` fills.
 
 
 #### Floating Shapes (Image Fill) `DONE`
@@ -1531,7 +1532,7 @@ Linear or radial gradient fills for shapes.
 - **OOXML**: `a:gradFill` with gradient stops and direction
 - **Model**: `GradientFill` record (start colour, end colour, angle in degrees) on `FloatingShapeElement.Gradient`. Multi-stop gradients are flattened to a 2-stop linear; radial / path gradients fall through to the start colour as a solid fill.
 - **Parse**: `ShapeParser.ExtractGradientFill` reads `a:gradFill > a:gsLst` stops (sorted by position) and `a:lin/@ang` (60000ths-of-degree → degrees).
-- **Render**: Skia uses `SKShader.CreateLinearGradient` with start/end points pivoted on the bounding box; ImageSharp uses `LinearGradientBrush` with two `ColorStop`s. Both fill the shape's bounding rectangle.
+- **Render**: Skia uses `SKShader.CreateLinearGradient` with start/end points pivoted on the bounding box; ImageSharp uses `LinearGradientBrush` with two `ColorStop`s; the PDF backend uses `XLinearGradientBrush` between the same two pivot points. All fill the shape's bounding rectangle.
 
 > **AI**: Radial / path gradients and intermediate stops aren't modelled — the 2-stop simplification covers most templates that use a "white-to-tint" feature box. Theme-coloured stops resolve through `ThemeColors.ResolveColor` so accent colours come through.
 
@@ -1542,7 +1543,7 @@ Shapes defined by custom geometry paths with curves and arcs.
 
 - **OOXML**: `a:custGeom` with `a:path` containing `a:moveTo`, `a:lnTo`, `a:cubicBezTo`, `a:quadBezTo`, `a:close`, `a:arcTo`
 - **Model**: presence detected via `ParsedDocument.Features.HasBezierShapes`. Custom geometries are parsed into `FloatingShapeElement.Subpaths` — a list of closed contours, each a flattened polyline (normalized 0..1 in path coord space) — along with `RotationDegrees` / `FlipHorizontal` / `FlipVertical` from the shape's `a:xfrm`.
-- **Render**: `ShapeParser.ExtractSubpaths` walks every `a:path`, starting a new contour at each `a:moveTo` and banking it at `a:close`, and flattens `a:cubicBezTo` / `a:quadBezTo` into line segments (de Casteljau, 12 per curve). Both renderers fill/stroke the multi-contour path with **nonzero winding** (DrawingML's default) through `BuildPolygonPath` (Skia `SKPath`) / `BuildPath` (ImageSharp `PathBuilder`), applying flip-then-rotate-then-translate around the bounding-box centre; the HTML exporter emits one `M…L…Z` sub-path per contour. Keeping the contours separate is what reproduces multi-piece line-art (e.g. a leaf-cluster silhouette) instead of fusing them into one self-crossing blob. `ShapeParser.IsDecorativeShape` only filters `a:arcTo` paths (unsupported flattening) and degenerate thin-line aspect ratios.
+- **Render**: `ShapeParser.ExtractSubpaths` walks every `a:path`, starting a new contour at each `a:moveTo` and banking it at `a:close`, and flattens `a:cubicBezTo` / `a:quadBezTo` into line segments (de Casteljau, 12 per curve). All three renderers fill/stroke the multi-contour path with **nonzero winding** (DrawingML's default) through `BuildPolygonPath` (Skia `SKPath`) / `BuildPath` (ImageSharp `PathBuilder`) / `BuildShapePath` (PDF `XGraphicsPath`), applying flip-then-rotate-then-translate around the bounding-box centre; the HTML exporter emits one `M…L…Z` sub-path per contour. Keeping the contours separate is what reproduces multi-piece line-art (e.g. a leaf-cluster silhouette) instead of fusing them into one self-crossing blob. `ShapeParser.IsDecorativeShape` only filters `a:arcTo` paths (unsupported flattening) and degenerate thin-line aspect ratios.
 
 > **AI**: Curves and disjoint contours are handled. Remaining gaps: `a:arcTo` segments (their parameter set differs from the bezier walk, so those custGeoms fall back to the bounding rect) and `a:gd` formula guides (path coordinates are read as literals, not evaluated expressions). The flattener uses a fixed 12 segments per curve rather than adapting to curve length.
 

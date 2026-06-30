@@ -1,16 +1,27 @@
 ﻿{
-  "PageCount": 1,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "April 4, 20XX\nONE PAGE\nPROPOSAL\nThis proposal outlines a streamlined solution designed to address key business challenges and\ndrive growth. Our approach leverages industry expertise, innovative strategies, and\ndata-driven insights to create a tailored plan that delivers measurable results.\nPROBLEM STATEMENT SOLUTION\nBusinesses today face challenges such as inefficiencies, rising\ncosts, and evolving market demands. Addressing these issues\nrequires a well-structured, strategic approach that ensures\nlong-term success.\nOur solution is designed to enhance operations, increase\nefficiency, and improve overall performance. By implementing\nbest practices and modern technology, we help businesses\noptimize workflows, reduce costs, and drive innovation.\nMARKET OPPORTUNITY FINANCIAL SUMMARY\nWith industry trends shifting rapidly, adopting a flexible and\nforward-thinking model is essential. Our approach provides\nbusinesses with scalable, adaptable solutions that align with\nmarket demands and ensure long-term sustainability.\nBased on market analysis, businesses that implement our\nstrategies see an average 20% reduction in operational costs and\na 35% improvement in workflow efficiency within the first year.\nClients can expect a strong return on investment through\nimproved productivity and streamlined operations.\nPrepared for: Prepared by:\nCasey Jensen, Fabrikam, Inc.\ncasey@fabrikam.com\n573-555-0172\nwww.fabrikam.com\nAvery Howard, Contoso, Ltd.\navery@contoso.com\n898-555-0111\nwww.contoso.com"
+  "target": {
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "April 4, 20XX\nONE PAGE\nPROPOSAL\nThis proposal outlines a streamlined solution designed to address key business challenges and\ndrive growth. Our approach leverages industry expertise, innovative strategies, and\ndata-driven insights to create a tailored plan that delivers measurable results.\nPROBLEM STATEMENT SOLUTION\nBusinesses today face challenges such as inefficiencies, rising\ncosts, and evolving market demands. Addressing these issues\nrequires a well-structured, strategic approach that ensures\nlong-term success.\nOur solution is designed to enhance operations, increase\nefficiency, and improve overall performance. By implementing\nbest practices and modern technology, we help businesses\noptimize workflows, reduce costs, and drive innovation.\nMARKET OPPORTUNITY FINANCIAL SUMMARY\nWith industry trends shifting rapidly, adopting a flexible and\nforward-thinking model is essential. Our approach provides\nbusinesses with scalable, adaptable solutions that align with\nmarket demands and ensure long-term sustainability.\nBased on market analysis, businesses that implement our\nstrategies see an average 20% reduction in operational costs and\na 35% improvement in workflow efficiency within the first year.\nClients can expect a strong return on investment through\nimproved productivity and streamlined operations.\nPrepared for: Prepared by:\nCasey Jensen, Fabrikam, Inc.\ncasey@fabrikam.com\n573-555-0172\nwww.fabrikam.com\nAvery Howard, Contoso, Ltd.\navery@contoso.com\n898-555-0111\nwww.contoso.com"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.1488,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
 }

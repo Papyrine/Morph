@@ -1,16 +1,27 @@
 ﻿{
-  "PageCount": 1,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Basic HTML table:\nHeader 1 Header 2 Header 3\nRow 1, Cell 1Row 1, Cell 2Row 1, Cell 3\nRow 2, Cell 1Row 2, Cell 2Row 2, Cell 3\nRow 3, Cell 1Row 3, Cell 2Row 3, Cell 3"
+  "target": {
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Basic HTML table:\nHeader 1 Header 2 Header 3\nRow 1, Cell 1Row 1, Cell 2Row 1, Cell 3\nRow 2, Cell 1Row 2, Cell 2Row 2, Cell 3\nRow 3, Cell 1Row 3, Cell 2Row 3, Cell 3"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0117,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
 }

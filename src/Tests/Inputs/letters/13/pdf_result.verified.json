@@ -1,26 +1,51 @@
 ﻿{
-  "PageCount": 3,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Taylor Phillips\n5678 Main St\nNew York, NY 90210\nSeptember 16, 20XX\nDear Taylor Phillips,\nWrite the body of your letter here. To update any of the letter's information,\nselect the text, and start typing.\nWant to change fonts? Go to the Home tab and choose Fonts. You can use a\nbuilt-in font combination or select one of your own.\nYou can also change the colors of the template to match your personal taste.\nGo to the Design tab and choose a color palette from the Colors menu.\nHovering over the different palettes will show you what your document would\nlook like with the new palette.\nTo change the color or font formatting back to the original settings, go to the\nDesign tab, and select the Theme menu. From there, choose the option to reset\nthe original template theme.\nWarm Regards,\nKalle Persson\nManager\n555-0100\nnodpublishers.com\nkalle@nodpublishers.com\nNP\nNod Publishers\n4567 Main St.\nBuffalo, NY 98052"
-    },
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "NP\nNod Publishers\n4567 Main St.\nBuffalo, NY 98052\n555-0100\nnodpublishers.com\nkalle@nodpublishers.com\nTaylor Phillips\n5678 Main St\nNew York, NY 90210\nSeptember 16, 20XX\nDear Taylor Phillips,\nWrite the body of your letter here. To update any of the letter's\ninformation, select the text, and start typing.\nWant to change fonts? Go to the Home tab and choose Fonts. You\ncan use a built-in font combination or select one of your own.\nYou can also change the colors of the template to match your\npersonal taste. Go to the Design tab and choose a color palette from\nthe Colors menu. Hovering over the different palettes will show you\nwhat your document would look like with the new palette.\nTo change the color or font formatting back to the original settings,\ngo to the Design tab, and select the Theme menu. From there,\nchoose the option to reset the original template theme.\nWarm Regards,\nKalle Persson\nManager"
-    },
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Taylor Phillips\n5678 Main St\nNew York, NY 90210\nSeptember 16, 20XX\nDear Taylor Phillips,\nWrite the body of your letter here. To update any of the letter's information, select the\ntext, and start typing.\nWant to change fonts? Go to the Home tab and choose Fonts. You can use a built-in\nfont combination or select one of your own.\nYou can also change the colors of the template to match your personal taste. Go to the\nDesign tab and choose a color palette from the Colors menu. Hovering over the\ndifferent palettes will show you what your document would look like with the new\npalette.\nTo change the color or font formatting back to the original settings, go to the Design\ntab, and select the Theme menu. From there, choose the option to reset the original\ntemplate theme.\nWarm Regards,\nKalle Persson\nManager\n555-0100\nnodpublishers.com\nkalle@nodpublishers.com\nNP\nNod Publishers\n4567 Main St.\nBuffalo, NY 98052"
+  "target": {
+    "PageCount": 3,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Taylor Phillips\n5678 Main St\nNew York, NY 90210\nSeptember 16, 20XX\nDear Taylor Phillips,\nWrite the body of your letter here. To update any of the letter's information,\nselect the text, and start typing.\nWant to change fonts? Go to the Home tab and choose Fonts. You can use a\nbuilt-in font combination or select one of your own.\nYou can also change the colors of the template to match your personal taste.\nGo to the Design tab and choose a color palette from the Colors menu.\nHovering over the different palettes will show you what your document would\nlook like with the new palette.\nTo change the color or font formatting back to the original settings, go to the\nDesign tab, and select the Theme menu. From there, choose the option to reset\nthe original template theme.\nWarm Regards,\nKalle Persson\nManager\n555-0100\nnodpublishers.com\nkalle@nodpublishers.com\nNP\nNod Publishers\n4567 Main St.\nBuffalo, NY 98052"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "NP\nNod Publishers\n4567 Main St.\nBuffalo, NY 98052\n555-0100\nnodpublishers.com\nkalle@nodpublishers.com\nTaylor Phillips\n5678 Main St\nNew York, NY 90210\nSeptember 16, 20XX\nDear Taylor Phillips,\nWrite the body of your letter here. To update any of the letter's\ninformation, select the text, and start typing.\nWant to change fonts? Go to the Home tab and choose Fonts. You\ncan use a built-in font combination or select one of your own.\nYou can also change the colors of the template to match your\npersonal taste. Go to the Design tab and choose a color palette from\nthe Colors menu. Hovering over the different palettes will show you\nwhat your document would look like with the new palette.\nTo change the color or font formatting back to the original settings,\ngo to the Design tab, and select the Theme menu. From there,\nchoose the option to reset the original template theme.\nWarm Regards,\nKalle Persson\nManager"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Taylor Phillips\n5678 Main St\nNew York, NY 90210\nSeptember 16, 20XX\nDear Taylor Phillips,\nWrite the body of your letter here. To update any of the letter's information, select the\ntext, and start typing.\nWant to change fonts? Go to the Home tab and choose Fonts. You can use a built-in\nfont combination or select one of your own.\nYou can also change the colors of the template to match your personal taste. Go to the\nDesign tab and choose a color palette from the Colors menu. Hovering over the\ndifferent palettes will show you what your document would look like with the new\npalette.\nTo change the color or font formatting back to the original settings, go to the Design\ntab, and select the Theme menu. From there, choose the option to reset the original\ntemplate theme.\nWarm Regards,\nKalle Persson\nManager\n555-0100\nnodpublishers.com\nkalle@nodpublishers.com\nNP\nNod Publishers\n4567 Main St.\nBuffalo, NY 98052"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.1013,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.1213,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.1752,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    }
+  ]
 }

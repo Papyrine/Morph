@@ -183,6 +183,7 @@ static class ScenarioMarkdownGenerator
         // pdf (and the raster-less Pandoc reference) remain one click away.
         var expectedPages = Directory.GetFiles(directory, "expected_*.png").Order().ToArray();
         var pdfPages = Directory.GetFiles(directory, "pdf_result#page_*.verified.png").Order().ToArray();
+        var pdfMetrics = ReadMetrics(Path.Combine(directory, "pdf_result.verified.json"));
         if (expectedPages.Length > 0 || pdfPages.Length > 0)
         {
             sb.Append("| Expected (Word) | Morph PDF |\n");
@@ -193,11 +194,13 @@ static class ScenarioMarkdownGenerator
                 var expectedFile = i < expectedPages.Length ? Path.GetFileName(expectedPages[i]) : null;
                 var pdfFile = i < pdfPages.Length ? Path.GetFileName(pdfPages[i]) : null;
                 var pageLabel = $"Page {i + 1}";
+                // No PageDiffs when PDF and Word page counts differ; show the page label alone then.
+                var pdfMetric = pdfMetrics.TryGetValue(i + 1, out var metric) ? metric : (double?) null;
 
                 sb.Append("| ");
                 sb.Append(RenderLabel(pageLabel, null, expectedFile));
                 sb.Append(" | ");
-                sb.Append(RenderLabel(pageLabel, null, pdfFile));
+                sb.Append(RenderLabel(pageLabel, pdfMetric, pdfFile));
                 sb.Append(" |\n");
 
                 sb.Append("| ");

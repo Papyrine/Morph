@@ -1,21 +1,39 @@
 ﻿{
-  "PageCount": 2,
-  "Pages": [
+  "target": {
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "MODERN LIVING\nYour guide to buy or rent\nOCTOBER / 20XX / ISSUE #10\nReady to settle?\nBy Peyton Davis\nNewsletters are periodicals used to advertise or update your\nsubscribers with information about your product or blog. They\ncan be printed or emailed and are an excellent way to maintain\nregular contact with your subscribers and drive traffic to your\nsite. Type the content of your newsletter here.\nNewsletters are periodicals used to advertise or update your\nsubscribers with information about your product or blog. They\nare an excellent way to maintain regular contact with your\nsubscribers. Type the content of your newsletter here.\nNewsletters are periodicals used to advertise or update your\nsubscribers with information about your product or blog. Type\nthe content of your newsletter here.\nWHAT’S NEW\nTAKE A LOOK INSIDE\nAdd description text here to get\nyour subscribers interested in\nyour topic\nPROPERTY TRENDS\nAdd description text here to get\nyour subscribers interested in\nyour topic\nARE YOU READY TO LIST?\nAdd description text here to get\nyour subscribers interested in\nyour topic"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Take a look inside\nBy Kemen Ikaztegieta\nNewsletters are periodicals used to advertise or\nupdate your subscribers with information about your\nproduct or blog. They can be printed or emailed and\nare an excellent way to maintain regular contact with\nyour subscribers and drive traffic to your site. Type the\ncontent of your newsletter here.\nNewsletters are periodicals use to advertise or update\nyour subscribers with information about your product\nor blog. They can be printed or emailed and are an\nexcellent way to maintain regular contact with your\nsubscribers and drive traffic to your site. Type your\ncontent here.\nNewsletters are periodicals use to advertise or update\nyour subscribers with information about your product\nor blog. Type the content of your newsletter here.\nProperty trends\nBy Vanja Jovanovic\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product\nor blog. They can be printed or\nemailed and are an excellent way\nto maintain regular contact with\nyour subscribers and drive traffic to\nyour site. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product\nor blog. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product\nor blog. Type the content of your\nnewsletter here.\nAre you\nready to list?\nBy Adrian King\nNewsletters are periodicals used to advertise or update your subscribers\nwith information about your product or blog. They can be printed or\nemailed and are an excellent way to maintain regular contact with your\nsubscribers and drive traffic to your site. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to advertise or update your subscribers\nwith information about your product or blog. Type the content of your\nnewsletter here."
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
+    }
+  },
+  "PageDiffs": [
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "MODERN LIVING\nYour guide to buy or rent\nOCTOBER / 20XX / ISSUE #10\nReady to settle?\nBy Peyton Davis\nNewsletters are periodicals used to advertise or update your\nsubscribers with information about your product or blog. They\ncan be printed or emailed and are an excellent way to maintain\nregular contact with your subscribers and drive traffic to your\nsite. Type the content of your newsletter here.\nNewsletters are periodicals used to advertise or update your\nsubscribers with information about your product or blog. They\nare an excellent way to maintain regular contact with your\nsubscribers. Type the content of your newsletter here.\nNewsletters are periodicals used to advertise or update your\nsubscribers with information about your product or blog. Type\nthe content of your newsletter here.\nWHAT’S NEW\nTAKE A LOOK INSIDE\nAdd description text here to get\nyour subscribers interested in\nyour topic\nPROPERTY TRENDS\nAdd description text here to get\nyour subscribers interested in\nyour topic\nARE YOU READY TO LIST?\nAdd description text here to get\nyour subscribers interested in\nyour topic"
+      "Page": 1,
+      "ErrorMetric": 0.4448,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Take a look inside\nBy Kemen Ikaztegieta\nNewsletters are periodicals used to advertise or\nupdate your subscribers with information about your\nproduct or blog. They can be printed or emailed and\nare an excellent way to maintain regular contact with\nyour subscribers and drive traffic to your site. Type the\ncontent of your newsletter here.\nNewsletters are periodicals use to advertise or update\nyour subscribers with information about your product\nor blog. They can be printed or emailed and are an\nexcellent way to maintain regular contact with your\nsubscribers and drive traffic to your site. Type your\ncontent here.\nNewsletters are periodicals use to advertise or update\nyour subscribers with information about your product\nor blog. Type the content of your newsletter here.\nProperty trends\nBy Vanja Jovanovic\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product\nor blog. They can be printed or\nemailed and are an excellent way\nto maintain regular contact with\nyour subscribers and drive traffic to\nyour site. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product\nor blog. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product\nor blog. Type the content of your\nnewsletter here.\nAre you\nready to list?\nBy Adrian King\nNewsletters are periodicals used to advertise or update your subscribers\nwith information about your product or blog. They can be printed or\nemailed and are an excellent way to maintain regular contact with your\nsubscribers and drive traffic to your site. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to advertise or update your subscribers\nwith information about your product or blog. Type the content of your\nnewsletter here."
+      "Page": 2,
+      "ErrorMetric": 0.5534,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

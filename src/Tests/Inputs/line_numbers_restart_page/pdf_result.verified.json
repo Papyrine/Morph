@@ -1,16 +1,27 @@
 ﻿{
-  "PageCount": 1,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Paragraph 1 - Line numbers restart on each page.\nParagraph 2 - Line numbers restart on each page.\nParagraph 3 - Line numbers restart on each page.\nParagraph 4 - Line numbers restart on each page.\nParagraph 5 - Line numbers restart on each page.\nParagraph 6 - Line numbers restart on each page.\nParagraph 7 - Line numbers restart on each page.\nParagraph 8 - Line numbers restart on each page.\nParagraph 9 - Line numbers restart on each page.\nParagraph 10 - Line numbers restart on each page.\nParagraph 11 - Line numbers restart on each page.\nParagraph 12 - Line numbers restart on each page.\nParagraph 13 - Line numbers restart on each page.\nParagraph 14 - Line numbers restart on each page.\nParagraph 15 - Line numbers restart on each page.\nParagraph 16 - Line numbers restart on each page.\nParagraph 17 - Line numbers restart on each page.\nParagraph 18 - Line numbers restart on each page."
+  "target": {
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Paragraph 1 - Line numbers restart on each page.\nParagraph 2 - Line numbers restart on each page.\nParagraph 3 - Line numbers restart on each page.\nParagraph 4 - Line numbers restart on each page.\nParagraph 5 - Line numbers restart on each page.\nParagraph 6 - Line numbers restart on each page.\nParagraph 7 - Line numbers restart on each page.\nParagraph 8 - Line numbers restart on each page.\nParagraph 9 - Line numbers restart on each page.\nParagraph 10 - Line numbers restart on each page.\nParagraph 11 - Line numbers restart on each page.\nParagraph 12 - Line numbers restart on each page.\nParagraph 13 - Line numbers restart on each page.\nParagraph 14 - Line numbers restart on each page.\nParagraph 15 - Line numbers restart on each page.\nParagraph 16 - Line numbers restart on each page.\nParagraph 17 - Line numbers restart on each page.\nParagraph 18 - Line numbers restart on each page."
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.061,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
 }
