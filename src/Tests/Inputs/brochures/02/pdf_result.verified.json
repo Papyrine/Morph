@@ -1,21 +1,39 @@
 ﻿{
-  "PageCount": 2,
-  "Pages": [
+  "target": {
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "Scoring information\nFor individual races 1st place earns 9 points,\ndecreasing down by place to 1 point for 8th\nRelays earn double points\nThe highest-scoring team wins\nEvent officials\nHead Referee: Laura Melgar\nJudge's coordinator: Shriya Nene\nMeet director: Ravi Costa\nJoin us next year for the 20XX Women's\nInter-Collegiate Swimming Championship.\nFollow our journey and celebrate female athletes with\nus on social media.\nwww.bellowscollege.com\nWomen's\nInter-Collegiate\nSwimming\nChampionship\nAugust 12th - 14th\nKristi Laar Aquatic Center\nSeattle, WA"
+      },
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "Day 2: August 13th, 20XX\nMORNING HEATS\n8:00 AM: 50m Freestyle\n9:30 AM: 100m Breaststroke\n11:00 AM: 200m Individual Medley\nAfternoon finals\n2:00 PM: 50m Freestyle\n3:30 PM: 100m Breaststroke\n5:00 PM: 200m Individual Medley\nDay 1: August 12th, 20XX\nMORNING HEATS\n8:00 AM: 400m Freestyle\n9:30 AM: 200m Butterfly\n11:00 AM: 100m Backstroke\nAfternoon finals\n2:00 PM: 400m Freestyle\n3:30 PM: 200m Butterfly\n5:00 PM: 100m Backstroke\nDay 3: August 14th, 20XX\nTEAM RELAYS AND SPECIAL EVENTS\n8:00 AM: 4x100m Freestyle relay\n10:00 AM: 4x100m Medley relay\n1:00 PM: Awards ceremony"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
+    }
+  },
+  "PageDiffs": [
     {
-      "Width": 792.0,
-      "Height": 612.0,
-      "Text": "Scoring information\nFor individual races 1st place earns 9 points,\ndecreasing down by place to 1 point for 8th\nRelays earn double points\nThe highest-scoring team wins\nEvent officials\nHead Referee: Laura Melgar\nJudge's coordinator: Shriya Nene\nMeet director: Ravi Costa\nJoin us next year for the 20XX Women's\nInter-Collegiate Swimming Championship.\nFollow our journey and celebrate female athletes with\nus on social media.\nwww.bellowscollege.com\nWomen's\nInter-Collegiate\nSwimming\nChampionship\nAugust 12th - 14th\nKristi Laar Aquatic Center\nSeattle, WA"
+      "Page": 1,
+      "ErrorMetric": 0.3632,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
-      "Width": 792.0,
-      "Height": 612.0,
-      "Text": "Day 2: August 13th, 20XX\nMORNING HEATS\n8:00 AM: 50m Freestyle\n9:30 AM: 100m Breaststroke\n11:00 AM: 200m Individual Medley\nAfternoon finals\n2:00 PM: 50m Freestyle\n3:30 PM: 100m Breaststroke\n5:00 PM: 200m Individual Medley\nDay 1: August 12th, 20XX\nMORNING HEATS\n8:00 AM: 400m Freestyle\n9:30 AM: 200m Butterfly\n11:00 AM: 100m Backstroke\nAfternoon finals\n2:00 PM: 400m Freestyle\n3:30 PM: 200m Butterfly\n5:00 PM: 100m Backstroke\nDay 3: August 14th, 20XX\nTEAM RELAYS AND SPECIAL EVENTS\n8:00 AM: 4x100m Freestyle relay\n10:00 AM: 4x100m Medley relay\n1:00 PM: Awards ceremony"
+      "Page": 2,
+      "ErrorMetric": 0.4225,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

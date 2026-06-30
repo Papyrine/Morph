@@ -1,51 +1,111 @@
 ﻿{
-  "PageCount": 8,
-  "Pages": [
-    {
-      "Width": 792.0,
-      "Height": 612.0,
-      "Text": "Autumn Autumn"
-    },
-    {
-      "Width": 792.0,
-      "Height": 612.0,
-      "Text": "To get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card.\nTo get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card."
-    },
-    {
-      "Width": 792.0,
-      "Height": 612.0,
-      "Text": "Spring Spring"
-    },
-    {
-      "Width": 792.0,
-      "Height": 612.0,
-      "Text": "To get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card.\nTo get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card."
-    },
-    {
-      "Width": 792.0,
-      "Height": 612.0,
-      "Text": "Summer Summer"
-    },
-    {
-      "Width": 792.0,
-      "Height": 612.0,
-      "Text": "To get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card.\nTo get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card."
-    },
-    {
-      "Width": 792.0,
-      "Height": 612.0,
-      "Text": "Winter Winter"
-    },
-    {
-      "Width": 792.0,
-      "Height": 612.0,
-      "Text": "To get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card.\nTo get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card."
+  "target": {
+    "PageCount": 8,
+    "Pages": [
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "Autumn Autumn"
+      },
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "To get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card.\nTo get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card."
+      },
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "Spring Spring"
+      },
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "To get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card.\nTo get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card."
+      },
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "Summer Summer"
+      },
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "To get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card.\nTo get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card."
+      },
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "Winter Winter"
+      },
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "To get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card.\nTo get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card."
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.3231,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0201,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.3164,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    },
+    {
+      "Page": 4,
+      "ErrorMetric": 0.0201,
+      "ExpectedFile": "expected_0004.png",
+      "VerifiedFile": "pdf_result#page_0004.verified.png",
+      "ReceivedFile": "pdf_result#page_0004.received.png"
+    },
+    {
+      "Page": 5,
+      "ErrorMetric": 0.3221,
+      "ExpectedFile": "expected_0005.png",
+      "VerifiedFile": "pdf_result#page_0005.verified.png",
+      "ReceivedFile": "pdf_result#page_0005.received.png"
+    },
+    {
+      "Page": 6,
+      "ErrorMetric": 0.0201,
+      "ExpectedFile": "expected_0006.png",
+      "VerifiedFile": "pdf_result#page_0006.verified.png",
+      "ReceivedFile": "pdf_result#page_0006.received.png"
+    },
+    {
+      "Page": 7,
+      "ErrorMetric": 0.323,
+      "ExpectedFile": "expected_0007.png",
+      "VerifiedFile": "pdf_result#page_0007.verified.png",
+      "ReceivedFile": "pdf_result#page_0007.received.png"
+    },
+    {
+      "Page": 8,
+      "ErrorMetric": 0.0201,
+      "ExpectedFile": "expected_0008.png",
+      "VerifiedFile": "pdf_result#page_0008.verified.png",
+      "ReceivedFile": "pdf_result#page_0008.received.png"
+    }
+  ]
 }

@@ -1,16 +1,27 @@
 ﻿{
-  "PageCount": 1,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Contoso\n89 Pacific Ave\nSan Francisco, CA 87654\n305.555.0135\nsara@contoso.com\nwww.contoso.com\n10 April 20XX\nAdatum Corp.\n210 Stars Ave.\nBerkeley, CA 76543\nDear Iris Lepek,\nI truly appreciate the opportunity to interview and learn more\nabout the team. It was great to discuss the company’s culture\nand how the role plays a key part in its ongoing success. The\nconversation left me even more excited about the possibility\nof joining such a dynamic and forward-thinking group.\nWarm regards,\nSara Steale"
+  "target": {
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Contoso\n89 Pacific Ave\nSan Francisco, CA 87654\n305.555.0135\nsara@contoso.com\nwww.contoso.com\n10 April 20XX\nAdatum Corp.\n210 Stars Ave.\nBerkeley, CA 76543\nDear Iris Lepek,\nI truly appreciate the opportunity to interview and learn more\nabout the team. It was great to discuss the company’s culture\nand how the role plays a key part in its ongoing success. The\nconversation left me even more excited about the possibility\nof joining such a dynamic and forward-thinking group.\nWarm regards,\nSara Steale"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.8134,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
 }

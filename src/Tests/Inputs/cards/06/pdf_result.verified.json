@@ -1,21 +1,39 @@
 ﻿{
-  "PageCount": 2,
-  "Pages": [
+  "target": {
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "It’s a\nBirthday\nParty!\nIt’s a\nBirthday\nParty!"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Your Name\nAddress\nCity, ST ZIP Code\nCome Celebrate\nEmmanuel’s\nBirthday\nDate\nVenue Name\nLocation\nRSVP: Telephone\nRecipient Name\nAddress\nCity, ST ZIP Code\nYour Name\nAddress\nCity, ST ZIP Code\nCome Celebrate\nEmmanuel’s\nBirthday\nDate\nVenue Name\nLocation\nRSVP: Telephone\nRecipient Name\nAddress\nCity, ST ZIP Code"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
+    }
+  },
+  "PageDiffs": [
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "It’s a\nBirthday\nParty!\nIt’s a\nBirthday\nParty!"
+      "Page": 1,
+      "ErrorMetric": 0.498,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Your Name\nAddress\nCity, ST ZIP Code\nCome Celebrate\nEmmanuel’s\nBirthday\nDate\nVenue Name\nLocation\nRSVP: Telephone\nRecipient Name\nAddress\nCity, ST ZIP Code\nYour Name\nAddress\nCity, ST ZIP Code\nCome Celebrate\nEmmanuel’s\nBirthday\nDate\nVenue Name\nLocation\nRSVP: Telephone\nRecipient Name\nAddress\nCity, ST ZIP Code"
+      "Page": 2,
+      "ErrorMetric": 0.0408,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

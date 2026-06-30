@@ -1,21 +1,39 @@
 ﻿{
-  "PageCount": 2,
-  "Pages": [
+  "target": {
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "FINANCIAL MEETING\nAGENDA\nDate: September 9\nTime: 11:00 am\nFacilitator: Mirjam Nilsson\nMirjam Nilsson\nPresident\nRajesh Santoshi\nCOO\nElizabeth Moore\nSEO Strategist\nFlora Berggren\nCEO\nGraham Barne\nVP Marketing\nRobin Kline\nProduct Designer\nMirjam Nilsson\nVP Product\nTakuma Hayashi\nContent Developer\nTIME ITEM OWNER\n11:00 Welcome Mirjam Nilsson\n11:05 Fiscal year review Flora Berggren\n11:15 Vote on new secretary Rajesh Santoshi\n11:20 Discuss advisory committees Graham Barnes\n11:30 Vote on budget Rowan Murphy\n11:40 Break Robin Kline\n11:45\nNew Business\n• Recap\n• Programs\nMirjam Nilsson"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "TIME ITEM OWNER\n12:00\nCommittee Reports\n• Membership\n• Volunteers\n• Newsletter\nFlora Berggren\n12:15 Announcements Rajesh Santoshi\n12:30 Adjournment Graham Barnes"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
+    }
+  },
+  "PageDiffs": [
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "FINANCIAL MEETING\nAGENDA\nDate: September 9\nTime: 11:00 am\nFacilitator: Mirjam Nilsson\nMirjam Nilsson\nPresident\nRajesh Santoshi\nCOO\nElizabeth Moore\nSEO Strategist\nFlora Berggren\nCEO\nGraham Barne\nVP Marketing\nRobin Kline\nProduct Designer\nMirjam Nilsson\nVP Product\nTakuma Hayashi\nContent Developer\nTIME ITEM OWNER\n11:00 Welcome Mirjam Nilsson\n11:05 Fiscal year review Flora Berggren\n11:15 Vote on new secretary Rajesh Santoshi\n11:20 Discuss advisory committees Graham Barnes\n11:30 Vote on budget Rowan Murphy\n11:40 Break Robin Kline\n11:45\nNew Business\n• Recap\n• Programs\nMirjam Nilsson"
+      "Page": 1,
+      "ErrorMetric": 0.3235,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "TIME ITEM OWNER\n12:00\nCommittee Reports\n• Membership\n• Volunteers\n• Newsletter\nFlora Berggren\n12:15 Announcements Rajesh Santoshi\n12:30 Adjournment Graham Barnes"
+      "Page": 2,
+      "ErrorMetric": 0.1647,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

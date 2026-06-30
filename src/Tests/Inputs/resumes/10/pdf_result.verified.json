@@ -1,26 +1,51 @@
 ﻿{
-  "PageCount": 3,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "JACOB HANCOCK Nashville, TN\n805.555.0105 | jacob@example.com\nOBJECTIVE\nTo lead the development of a revolutionary artificial intelligence platform that will disrupt the financial industry and\nenhance customer experience, by collaborating with cross-functional teams and delivering on time, within budget,\nand with the highest quality standards.\nEDUCATION\nMBA | Jasper University 20XX – 20XX\nParticipated in a consulting project for a startup that resulted in a recommendation to pivot their business model,\nwhich was implemented and led to increased revenue\nBS Computer Science | Bellows College 20XX – 20XX\nCourses included Data Structures, Algorithms, Computer Architecture, Operating Systems, and Software\nEngineering\nEXPERIENCE\nTechnical Program Manager | Relecloud 20XX – 20XX\nOversaw project scope, timelines, and budget, resulting in the successful launch of the new infrastructure and\nimproved site reliability metrics\nProject Manager | Proseware, Inc. 20XX – 20XX\nManaged a team of software developers and quality assurance specialists in the development and launch of a new\ncustomer relationship management (CRM) software product\nSKILLS\n• Project management\n• Communication\n• Technical expertise\n• Problem-solving\n• Leadership\n• Attention to detail\nACTIVITIES\nParticipated in several hackathons, including a winning team at the 20XX Hack event, demonstrating the ability to\nwork under pressure and come up with innovative solutions to technical challenges."
-    },
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "JACOB HANCOCK Nashville, TN\n805.555.0105 | jacob@example.com\nOBJECTIVE\nTo lead the development of a revolutionary artificial intelligence platform that will disrupt the financial industry and\nenhance customer experience, by collaborating with cross-functional teams and delivering on time, within budget,\nand with the highest quality standards.\nEDUCATION\nMBA | Jasper University 20XX – 20XX\nParticipated in a consulting project for a startup that resulted in a recommendation to pivot their business model,\nwhich was implemented and led to increased revenue\nBS Computer Science | Bellows College 20XX – 20XX\nCourses included Data Structures, Algorithms, Computer Architecture, Operating Systems, and Software\nEngineering\nEXPERIENCE\nTechnical Program Manager | Relecloud 20XX – 20XX\nOversaw project scope, timelines, and budget, resulting in the successful launch of the new infrastructure and\nimproved site reliability metrics\nProject Manager | Proseware, Inc. 20XX – 20XX\nManaged a team of software developers and quality assurance specialists in the development and launch of a new\ncustomer relationship management (CRM) software product\nSKILLS\n• Project management\n• Communication\n• Technical expertise\n• Problem-solving\n• Leadership\n• Attention to detail\nACTIVITIES\nParticipated in several hackathons, including a winning team at the 20XX Hack event, demonstrating the ability to\nwork under pressure and come up with innovative solutions to technical challenges."
-    },
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "JACOB HANCOCK Nashville, TN\n805.555.0105 | jacob@example.com\nOBJECTIVE\nTo lead the development of a revolutionary artificial intelligence platform that will disrupt the financial industry and\nenhance customer experience, by collaborating with cross-functional teams and delivering on time, within budget,\nand with the highest quality standards.\nEDUCATION\nMBA | Jasper University 20XX – 20XX\nParticipated in a consulting project for a startup that resulted in a recommendation to pivot their business model,\nwhich was implemented and led to increased revenue\nBS Computer Science | Bellows College 20XX – 20XX\nCourses included Data Structures, Algorithms, Computer Architecture, Operating Systems, and Software\nEngineering\nEXPERIENCE\nTechnical Program Manager | Relecloud 20XX – 20XX\nOversaw project scope, timelines, and budget, resulting in the successful launch of the new infrastructure and\nimproved site reliability metrics\nProject Manager | Proseware, Inc. 20XX – 20XX\nManaged a team of software developers and quality assurance specialists in the development and launch of a new\ncustomer relationship management (CRM) software product\nSKILLS\n• Project management\n• Communication\n• Technical expertise\n• Problem-solving\n• Leadership\n• Attention to detail\nACTIVITIES\nParticipated in several hackathons, including a winning team at the 20XX Hack event, demonstrating the ability to\nwork under pressure and come up with innovative solutions to technical challenges."
+  "target": {
+    "PageCount": 3,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "JACOB HANCOCK Nashville, TN\n805.555.0105 | jacob@example.com\nOBJECTIVE\nTo lead the development of a revolutionary artificial intelligence platform that will disrupt the financial industry and\nenhance customer experience, by collaborating with cross-functional teams and delivering on time, within budget,\nand with the highest quality standards.\nEDUCATION\nMBA | Jasper University 20XX – 20XX\nParticipated in a consulting project for a startup that resulted in a recommendation to pivot their business model,\nwhich was implemented and led to increased revenue\nBS Computer Science | Bellows College 20XX – 20XX\nCourses included Data Structures, Algorithms, Computer Architecture, Operating Systems, and Software\nEngineering\nEXPERIENCE\nTechnical Program Manager | Relecloud 20XX – 20XX\nOversaw project scope, timelines, and budget, resulting in the successful launch of the new infrastructure and\nimproved site reliability metrics\nProject Manager | Proseware, Inc. 20XX – 20XX\nManaged a team of software developers and quality assurance specialists in the development and launch of a new\ncustomer relationship management (CRM) software product\nSKILLS\n• Project management\n• Communication\n• Technical expertise\n• Problem-solving\n• Leadership\n• Attention to detail\nACTIVITIES\nParticipated in several hackathons, including a winning team at the 20XX Hack event, demonstrating the ability to\nwork under pressure and come up with innovative solutions to technical challenges."
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "JACOB HANCOCK Nashville, TN\n805.555.0105 | jacob@example.com\nOBJECTIVE\nTo lead the development of a revolutionary artificial intelligence platform that will disrupt the financial industry and\nenhance customer experience, by collaborating with cross-functional teams and delivering on time, within budget,\nand with the highest quality standards.\nEDUCATION\nMBA | Jasper University 20XX – 20XX\nParticipated in a consulting project for a startup that resulted in a recommendation to pivot their business model,\nwhich was implemented and led to increased revenue\nBS Computer Science | Bellows College 20XX – 20XX\nCourses included Data Structures, Algorithms, Computer Architecture, Operating Systems, and Software\nEngineering\nEXPERIENCE\nTechnical Program Manager | Relecloud 20XX – 20XX\nOversaw project scope, timelines, and budget, resulting in the successful launch of the new infrastructure and\nimproved site reliability metrics\nProject Manager | Proseware, Inc. 20XX – 20XX\nManaged a team of software developers and quality assurance specialists in the development and launch of a new\ncustomer relationship management (CRM) software product\nSKILLS\n• Project management\n• Communication\n• Technical expertise\n• Problem-solving\n• Leadership\n• Attention to detail\nACTIVITIES\nParticipated in several hackathons, including a winning team at the 20XX Hack event, demonstrating the ability to\nwork under pressure and come up with innovative solutions to technical challenges."
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "JACOB HANCOCK Nashville, TN\n805.555.0105 | jacob@example.com\nOBJECTIVE\nTo lead the development of a revolutionary artificial intelligence platform that will disrupt the financial industry and\nenhance customer experience, by collaborating with cross-functional teams and delivering on time, within budget,\nand with the highest quality standards.\nEDUCATION\nMBA | Jasper University 20XX – 20XX\nParticipated in a consulting project for a startup that resulted in a recommendation to pivot their business model,\nwhich was implemented and led to increased revenue\nBS Computer Science | Bellows College 20XX – 20XX\nCourses included Data Structures, Algorithms, Computer Architecture, Operating Systems, and Software\nEngineering\nEXPERIENCE\nTechnical Program Manager | Relecloud 20XX – 20XX\nOversaw project scope, timelines, and budget, resulting in the successful launch of the new infrastructure and\nimproved site reliability metrics\nProject Manager | Proseware, Inc. 20XX – 20XX\nManaged a team of software developers and quality assurance specialists in the development and launch of a new\ncustomer relationship management (CRM) software product\nSKILLS\n• Project management\n• Communication\n• Technical expertise\n• Problem-solving\n• Leadership\n• Attention to detail\nACTIVITIES\nParticipated in several hackathons, including a winning team at the 20XX Hack event, demonstrating the ability to\nwork under pressure and come up with innovative solutions to technical challenges."
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.1266,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.1247,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.1266,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    }
+  ]
 }

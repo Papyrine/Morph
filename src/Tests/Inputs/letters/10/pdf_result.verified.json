@@ -1,16 +1,27 @@
 ﻿{
-  "PageCount": 1,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "First Up\nTO\nShams Elmarakshi\nWide World Importers\nshams@wideworldimporters.com\n123 South St.\n4.4.20XX\nShams Elmarakshi,\nI am writing this job reference letter to highly recommend Luca Richter for regional\nmanager. They have proven to be a reliable and results-oriented individual, consistently\nexceeding expectations in their role. Their ability to analyze challenges, develop\nsolutions, and collaborate with colleagues makes them a valuable asset to any\nworkplace.\nWhat sets Luca apart is their strong interpersonal skills and ability to work seamlessly\nwith teams across different departments. Their proactive approach, attention to detail,\nand commitment to continuous learning have significantly contributed to their success.\nIf you are looking for a candidate who is hardworking, dependable, and possesses\nexcellent problem-solving skills, I highly encourage you to consider Luca for the role.\nPlease don’t hesitate to contact me if you require further insights.\nSincerely,\nPARKER MCLEAN\nFirst Up Consultants\nHR MANAGER\n4321 N. Broad Street\niladelphia, PA 21098"
+  "target": {
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "First Up\nTO\nShams Elmarakshi\nWide World Importers\nshams@wideworldimporters.com\n123 South St.\n4.4.20XX\nShams Elmarakshi,\nI am writing this job reference letter to highly recommend Luca Richter for regional\nmanager. They have proven to be a reliable and results-oriented individual, consistently\nexceeding expectations in their role. Their ability to analyze challenges, develop\nsolutions, and collaborate with colleagues makes them a valuable asset to any\nworkplace.\nWhat sets Luca apart is their strong interpersonal skills and ability to work seamlessly\nwith teams across different departments. Their proactive approach, attention to detail,\nand commitment to continuous learning have significantly contributed to their success.\nIf you are looking for a candidate who is hardworking, dependable, and possesses\nexcellent problem-solving skills, I highly encourage you to consider Luca for the role.\nPlease don’t hesitate to contact me if you require further insights.\nSincerely,\nPARKER MCLEAN\nFirst Up Consultants\nHR MANAGER\n4321 N. Broad Street\niladelphia, PA 21098"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.8654,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
 }

@@ -1,16 +1,27 @@
 ﻿{
-  "PageCount": 1,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Deeply nested list with 5 levels:\n• Level 1 - Item A\n○ Level 2 - Item A.1\nLevel 3 - Item A.1.a\n▪ Level 4 - Item A.1.a.i\nLevel 5 - Item A.1.a.i.α\nLevel 5 - Item A.1.a.i.β\n▪ Level 4 - Item A.1.a.ii\nLevel 3 - Item A.1.b\n○ Level 2 - Item A.2\n• Level 1 - Item B\n○ Level 2 - Item B.1\nLevel 3 - Item B.1.a"
+  "target": {
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Deeply nested list with 5 levels:\n• Level 1 - Item A\n○ Level 2 - Item A.1\nLevel 3 - Item A.1.a\n▪ Level 4 - Item A.1.a.i\nLevel 5 - Item A.1.a.i.α\nLevel 5 - Item A.1.a.i.β\n▪ Level 4 - Item A.1.a.ii\nLevel 3 - Item A.1.b\n○ Level 2 - Item A.2\n• Level 1 - Item B\n○ Level 2 - Item B.1\nLevel 3 - Item B.1.a"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0165,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
 }

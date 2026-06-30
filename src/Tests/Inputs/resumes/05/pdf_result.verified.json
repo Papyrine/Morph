@@ -1,16 +1,27 @@
 ﻿{
-  "PageCount": 1,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Tonnie Thomsen\nOBJECTIVE\nMy primary objective is to\nprovide a safe and nurturing\nlearning environment that\nencourages student growth\nand development. I aim to\nfacilitate engaging and\nchallenging instruction that\nfosters a love for learning,\ncritical thinking, and\nproblem-solving skills.\nSKILLS\nCommunication\nProblem-solving\nCritical thinking\nTime management\nLesson planning\nLeadership\nCreative writing\nADDRESS\n987 6th Ave\nSanta Fe, NM 76543\nUSA\nPHONE\n706.555.0123\nEMAIL\ntonnie@example.com\nWEBSITE\nwww.interestingsite.com\nEXPERIENCE\nJAN 20XX – AUG 20XX\nTeacher • Balsam Elementary School • Santa Fe, NM\nOCT 20XX – MAY 20XX\nTeacher’s Aide • Balsam Elementary School • Santa Fe, NM\nSEP 20XX – JUN 20XX\nTeacher’s Aide • Balsam Elementary School • Santa Fe, NM\nKey responsibilities: planning and delivering effective instruction across\nvarious subjects and grade levels, assessing and monitoring student\nprogress, and providing individualized support and intervention as needed.\nEDUCATION\nBellows College | Santa Fe, NM\nBachelor’s Degree in Elementary Education\nCOMMUNICATION\nCollaborating with colleagues, parents, and community members to support\nstudent learning and achievement is an essential responsibility of an\nelementary school teacher.\nLEADERSHIP\nAs a teacher, I maintain a positive classroom environment that promotes\nstudent engagement, behavior management, and social-emotional\ndevelopment.\nREFERENCES\nAvailable upon request."
+  "target": {
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Tonnie Thomsen\nOBJECTIVE\nMy primary objective is to\nprovide a safe and nurturing\nlearning environment that\nencourages student growth\nand development. I aim to\nfacilitate engaging and\nchallenging instruction that\nfosters a love for learning,\ncritical thinking, and\nproblem-solving skills.\nSKILLS\nCommunication\nProblem-solving\nCritical thinking\nTime management\nLesson planning\nLeadership\nCreative writing\nADDRESS\n987 6th Ave\nSanta Fe, NM 76543\nUSA\nPHONE\n706.555.0123\nEMAIL\ntonnie@example.com\nWEBSITE\nwww.interestingsite.com\nEXPERIENCE\nJAN 20XX – AUG 20XX\nTeacher • Balsam Elementary School • Santa Fe, NM\nOCT 20XX – MAY 20XX\nTeacher’s Aide • Balsam Elementary School • Santa Fe, NM\nSEP 20XX – JUN 20XX\nTeacher’s Aide • Balsam Elementary School • Santa Fe, NM\nKey responsibilities: planning and delivering effective instruction across\nvarious subjects and grade levels, assessing and monitoring student\nprogress, and providing individualized support and intervention as needed.\nEDUCATION\nBellows College | Santa Fe, NM\nBachelor’s Degree in Elementary Education\nCOMMUNICATION\nCollaborating with colleagues, parents, and community members to support\nstudent learning and achievement is an essential responsibility of an\nelementary school teacher.\nLEADERSHIP\nAs a teacher, I maintain a positive classroom environment that promotes\nstudent engagement, behavior management, and social-emotional\ndevelopment.\nREFERENCES\nAvailable upon request."
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.9895,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
 }

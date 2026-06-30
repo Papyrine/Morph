@@ -1,26 +1,51 @@
 ﻿{
-  "PageCount": 3,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Taylor Phillips\n5678 Main St\nNew York, NY 90210\nSeptember 16, 20XX\nCasey Jensen\nCEO\nContoso\n4567 Main St.\nBuffalo, NY 98052\n212-555-0199\nwww.contoso.com\ncasey@contoso.com\nDear Taylor Phillips,\nWrite the body of your letter here. To update any of the\nletter's information, select the text, and start typing.\nWant to change fonts? Go to the Home tab and choose Fonts.\nYou can use a built-in font combination or select one of your\nown.\nYou can also change the colors of the template to match your\npersonal taste. Go to the Design tab and choose a color\npalette from the Colors menu. Hovering over the different\npalettes will show you what your document would look like\nwith the new palette.\nTo change the color or font formatting back to the original\nsettings, go to the Design tab, and select the Theme menu.\nFrom there, choose the option to reset the original template\ntheme.\nWarm Regards,\nCasey Jensen"
-    },
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Contoso\n4567 Main St.\nBuffalo, NY 98052\nTaylor Phillips\n5678 Main St\nNew York, NY 90210\nSeptember 16, 20XX\nDear Taylor Phillips,\nWrite the body of your letter here. To update any of the letter's information, select the\ntext, and start typing.\nWant to change fonts? Go to the Home tab and choose Fonts. You can use a built-in\nfont combination or select one of your own.\nYou can also change the colors of the template to match your personal taste. Go to\nthe Design tab and choose a color palette from the Colors menu. Hovering over the\ndifferent palettes will show you what your document would look like with the new\npalette.\nTo change the color or font formatting back to the original settings, go to the Design\ntab, and select the Theme menu. From there, choose the option to reset the original\ntemplate theme.\nWarm Regards,\nCasey Jensen\nCEO\n212-555-0199\nwww.contoso.com\ncasey@contoso.com"
-    },
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Contoso\n4567 Main St.\nBuffalo, NY 98052\nTaylor Phillips\n5678 Main St\nNew York, NY 90210\nSeptember 16, 20XX\nDear Taylor Phillips,\nWrite the body of your letter here. To update any of the letter's\ninformation, select the text, and start typing.\nWant to change fonts? Go to the Home tab and choose Fonts. You can\nuse a built-in font combination or select one of your own.\nYou can also change the colors of the template to match your personal\ntaste. Go to the Design tab and choose a color palette from the Colors\nmenu. Hovering over the different palettes will show you what your\ndocument would look like with the new palette.\nTo change the color or font formatting back to the original settings, go\nto the Design tab, and select the Theme menu. From there, choose the\noption to reset the original template theme.\nWarm Regards,\nCasey Jensen\nCEO\n212-555-0199\nwww.contoso.com\ncasey@contoso.com"
+  "target": {
+    "PageCount": 3,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Taylor Phillips\n5678 Main St\nNew York, NY 90210\nSeptember 16, 20XX\nCasey Jensen\nCEO\nContoso\n4567 Main St.\nBuffalo, NY 98052\n212-555-0199\nwww.contoso.com\ncasey@contoso.com\nDear Taylor Phillips,\nWrite the body of your letter here. To update any of the\nletter's information, select the text, and start typing.\nWant to change fonts? Go to the Home tab and choose Fonts.\nYou can use a built-in font combination or select one of your\nown.\nYou can also change the colors of the template to match your\npersonal taste. Go to the Design tab and choose a color\npalette from the Colors menu. Hovering over the different\npalettes will show you what your document would look like\nwith the new palette.\nTo change the color or font formatting back to the original\nsettings, go to the Design tab, and select the Theme menu.\nFrom there, choose the option to reset the original template\ntheme.\nWarm Regards,\nCasey Jensen"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Contoso\n4567 Main St.\nBuffalo, NY 98052\nTaylor Phillips\n5678 Main St\nNew York, NY 90210\nSeptember 16, 20XX\nDear Taylor Phillips,\nWrite the body of your letter here. To update any of the letter's information, select the\ntext, and start typing.\nWant to change fonts? Go to the Home tab and choose Fonts. You can use a built-in\nfont combination or select one of your own.\nYou can also change the colors of the template to match your personal taste. Go to\nthe Design tab and choose a color palette from the Colors menu. Hovering over the\ndifferent palettes will show you what your document would look like with the new\npalette.\nTo change the color or font formatting back to the original settings, go to the Design\ntab, and select the Theme menu. From there, choose the option to reset the original\ntemplate theme.\nWarm Regards,\nCasey Jensen\nCEO\n212-555-0199\nwww.contoso.com\ncasey@contoso.com"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Contoso\n4567 Main St.\nBuffalo, NY 98052\nTaylor Phillips\n5678 Main St\nNew York, NY 90210\nSeptember 16, 20XX\nDear Taylor Phillips,\nWrite the body of your letter here. To update any of the letter's\ninformation, select the text, and start typing.\nWant to change fonts? Go to the Home tab and choose Fonts. You can\nuse a built-in font combination or select one of your own.\nYou can also change the colors of the template to match your personal\ntaste. Go to the Design tab and choose a color palette from the Colors\nmenu. Hovering over the different palettes will show you what your\ndocument would look like with the new palette.\nTo change the color or font formatting back to the original settings, go\nto the Design tab, and select the Theme menu. From there, choose the\noption to reset the original template theme.\nWarm Regards,\nCasey Jensen\nCEO\n212-555-0199\nwww.contoso.com\ncasey@contoso.com"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0875,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0623,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.0626,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    }
+  ]
 }

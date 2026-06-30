@@ -1,16 +1,27 @@
 ﻿{
-  "PageCount": 1,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Tonnie\nThomsen JUNE 30, 20XX\nADDRESS\n987 6\nth Ave\nSanta Fe, NM 76543\nUSA\nPHONE\n706.555.0123\nEMAIL\ntonnie@example.com\nWEBSITE\nwww.interestingsite.com\nLILLI ALLIK\nPrincipal\nEmerald View Elementary\n4321 Maplewood Ave\nNashville, TN 65432\nDear Principal Allik,\nI am excited to submit my application for the Elementary School Teacher\nposition at Emerald View Elementary. As a passionate and experienced\neducator, I believe in creating a positive and inclusive classroom environment\nthat supports students' academic and social-emotional growth.\nI have a strong commitment to student-centered learning and personalized\ninstruction that engages and challenges every student. I am confident that my\ndedication, creativity, and expertise will make me a valuable addition to your\nschool community.\nThank you for your consideration.\nSincerely,\nTonnie Thomsen"
+  "target": {
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Tonnie\nThomsen JUNE 30, 20XX\nADDRESS\n987 6\nth Ave\nSanta Fe, NM 76543\nUSA\nPHONE\n706.555.0123\nEMAIL\ntonnie@example.com\nWEBSITE\nwww.interestingsite.com\nLILLI ALLIK\nPrincipal\nEmerald View Elementary\n4321 Maplewood Ave\nNashville, TN 65432\nDear Principal Allik,\nI am excited to submit my application for the Elementary School Teacher\nposition at Emerald View Elementary. As a passionate and experienced\neducator, I believe in creating a positive and inclusive classroom environment\nthat supports students' academic and social-emotional growth.\nI have a strong commitment to student-centered learning and personalized\ninstruction that engages and challenges every student. I am confident that my\ndedication, creativity, and expertise will make me a valuable addition to your\nschool community.\nThank you for your consideration.\nSincerely,\nTonnie Thomsen"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.3699,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
 }

@@ -1,21 +1,39 @@
 ﻿{
-  "PageCount": 2,
-  "Pages": [
+  "target": {
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "f­­\nCelebrate!\nCelebrate!"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "To get started right away, just tap any\nplaceholder text (such as this) and\nstart typing to replace it with your\nown or delete for a blank card.\nTo get started right away, just tap any\nplaceholder text (such as this) and\nstart typing to replace it with your\nown or delete for a blank card."
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
+    }
+  },
+  "PageDiffs": [
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "f­­\nCelebrate!\nCelebrate!"
+      "Page": 1,
+      "ErrorMetric": 0.384,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "To get started right away, just tap any\nplaceholder text (such as this) and\nstart typing to replace it with your\nown or delete for a blank card.\nTo get started right away, just tap any\nplaceholder text (such as this) and\nstart typing to replace it with your\nown or delete for a blank card."
+      "Page": 2,
+      "ErrorMetric": 0.019,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

@@ -1,21 +1,39 @@
 ﻿{
-  "PageCount": 2,
-  "Pages": [
+  "target": {
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "This document has page numbers in the footer.\nContent paragraph 1 to create multiple pages for page number testing.\nContent paragraph 2 to create multiple pages for page number testing.\nContent paragraph 3 to create multiple pages for page number testing.\nContent paragraph 4 to create multiple pages for page number testing.\nContent paragraph 5 to create multiple pages for page number testing.\nContent paragraph 6 to create multiple pages for page number testing.\nContent paragraph 7 to create multiple pages for page number testing.\nContent paragraph 8 to create multiple pages for page number testing.\nContent paragraph 9 to create multiple pages for page number testing.\nContent paragraph 10 to create multiple pages for page number testing.\nContent paragraph 11 to create multiple pages for page number testing.\nContent paragraph 12 to create multiple pages for page number testing.\nContent paragraph 13 to create multiple pages for page number testing.\nContent paragraph 14 to create multiple pages for page number testing.\nContent paragraph 15 to create multiple pages for page number testing.\nContent paragraph 16 to create multiple pages for page number testing.\nContent paragraph 17 to create multiple pages for page number testing.\nContent paragraph 18 to create multiple pages for page number testing.\nContent paragraph 19 to create multiple pages for page number testing.\nContent paragraph 20 to create multiple pages for page number testing.\nContent paragraph 21 to create multiple pages for page number testing.\nContent paragraph 22 to create multiple pages for page number testing.\nContent paragraph 23 to create multiple pages for page number testing.\nContent paragraph 24 to create multiple pages for page number testing.\nContent paragraph 25 to create multiple pages for page number testing.\nContent paragraph 26 to create multiple pages for page number testing.\nContent paragraph 27 to create multiple pages for page number testing.\nContent paragraph 28 to create multiple pages for page number testing.\nPage 1 of 1"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Content paragraph 29 to create multiple pages for page number testing.\nContent paragraph 30 to create multiple pages for page number testing.\nContent paragraph 31 to create multiple pages for page number testing.\nContent paragraph 32 to create multiple pages for page number testing.\nContent paragraph 33 to create multiple pages for page number testing.\nContent paragraph 34 to create multiple pages for page number testing.\nContent paragraph 35 to create multiple pages for page number testing.\nContent paragraph 36 to create multiple pages for page number testing.\nContent paragraph 37 to create multiple pages for page number testing.\nContent paragraph 38 to create multiple pages for page number testing.\nContent paragraph 39 to create multiple pages for page number testing.\nContent paragraph 40 to create multiple pages for page number testing.\nPage 1 of 1"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
+    }
+  },
+  "PageDiffs": [
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "This document has page numbers in the footer.\nContent paragraph 1 to create multiple pages for page number testing.\nContent paragraph 2 to create multiple pages for page number testing.\nContent paragraph 3 to create multiple pages for page number testing.\nContent paragraph 4 to create multiple pages for page number testing.\nContent paragraph 5 to create multiple pages for page number testing.\nContent paragraph 6 to create multiple pages for page number testing.\nContent paragraph 7 to create multiple pages for page number testing.\nContent paragraph 8 to create multiple pages for page number testing.\nContent paragraph 9 to create multiple pages for page number testing.\nContent paragraph 10 to create multiple pages for page number testing.\nContent paragraph 11 to create multiple pages for page number testing.\nContent paragraph 12 to create multiple pages for page number testing.\nContent paragraph 13 to create multiple pages for page number testing.\nContent paragraph 14 to create multiple pages for page number testing.\nContent paragraph 15 to create multiple pages for page number testing.\nContent paragraph 16 to create multiple pages for page number testing.\nContent paragraph 17 to create multiple pages for page number testing.\nContent paragraph 18 to create multiple pages for page number testing.\nContent paragraph 19 to create multiple pages for page number testing.\nContent paragraph 20 to create multiple pages for page number testing.\nContent paragraph 21 to create multiple pages for page number testing.\nContent paragraph 22 to create multiple pages for page number testing.\nContent paragraph 23 to create multiple pages for page number testing.\nContent paragraph 24 to create multiple pages for page number testing.\nContent paragraph 25 to create multiple pages for page number testing.\nContent paragraph 26 to create multiple pages for page number testing.\nContent paragraph 27 to create multiple pages for page number testing.\nContent paragraph 28 to create multiple pages for page number testing.\nPage 1 of 1"
+      "Page": 1,
+      "ErrorMetric": 0.1371,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Content paragraph 29 to create multiple pages for page number testing.\nContent paragraph 30 to create multiple pages for page number testing.\nContent paragraph 31 to create multiple pages for page number testing.\nContent paragraph 32 to create multiple pages for page number testing.\nContent paragraph 33 to create multiple pages for page number testing.\nContent paragraph 34 to create multiple pages for page number testing.\nContent paragraph 35 to create multiple pages for page number testing.\nContent paragraph 36 to create multiple pages for page number testing.\nContent paragraph 37 to create multiple pages for page number testing.\nContent paragraph 38 to create multiple pages for page number testing.\nContent paragraph 39 to create multiple pages for page number testing.\nContent paragraph 40 to create multiple pages for page number testing.\nPage 1 of 1"
+      "Page": 2,
+      "ErrorMetric": 0.068,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

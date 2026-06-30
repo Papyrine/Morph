@@ -1,26 +1,51 @@
 ﻿{
-  "PageCount": 3,
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "ID Name Notes\n1 Person 1 Lorem ipsum dolor sit amet\n2 Person 2 Lorem ipsum dolor sit amet\n3 Person 3 Lorem ipsum dolor sit amet\n4 Person 4 Lorem ipsum dolor sit amet\n5 Person 5 Lorem ipsum dolor sit amet\n6 Person 6 Lorem ipsum dolor sit amet\n7 Person 7 Lorem ipsum dolor sit amet\n8 Person 8 Lorem ipsum dolor sit amet\n9 Person 9 Lorem ipsum dolor sit amet\n10 Person 10 Lorem ipsum dolor sit amet\n11 Person 11 Lorem ipsum dolor sit amet\n12 Person 12 Lorem ipsum dolor sit amet\n13 Person 13 Lorem ipsum dolor sit amet\n14 Person 14 Lorem ipsum dolor sit amet\n15 Person 15 Lorem ipsum dolor sit amet\n16 Person 16 Lorem ipsum dolor sit amet\n17 Person 17 Lorem ipsum dolor sit amet\n18 Person 18 Lorem ipsum dolor sit amet\n19 Person 19 Lorem ipsum dolor sit amet\n20 Person 20 Lorem ipsum dolor sit amet\n21 Person 21 Lorem ipsum dolor sit amet\n22 Person 22 Lorem ipsum dolor sit amet\n23 Person 23 Lorem ipsum dolor sit amet\n24 Person 24 Lorem ipsum dolor sit amet\n25 Person 25 Lorem ipsum dolor sit amet"
-    },
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "ID Name Notes\n26 Person 26 Lorem ipsum dolor sit amet\n27 Person 27 Lorem ipsum dolor sit amet\n28 Person 28 Lorem ipsum dolor sit amet\n29 Person 29 Lorem ipsum dolor sit amet\n30 Person 30 Lorem ipsum dolor sit amet\n31 Person 31 Lorem ipsum dolor sit amet\n32 Person 32 Lorem ipsum dolor sit amet\n33 Person 33 Lorem ipsum dolor sit amet\n34 Person 34 Lorem ipsum dolor sit amet\n35 Person 35 Lorem ipsum dolor sit amet\n36 Person 36 Lorem ipsum dolor sit amet\n37 Person 37 Lorem ipsum dolor sit amet\n38 Person 38 Lorem ipsum dolor sit amet\n39 Person 39 Lorem ipsum dolor sit amet\n40 Person 40 Lorem ipsum dolor sit amet\n41 Person 41 Lorem ipsum dolor sit amet\n42 Person 42 Lorem ipsum dolor sit amet\n43 Person 43 Lorem ipsum dolor sit amet\n44 Person 44 Lorem ipsum dolor sit amet\n45 Person 45 Lorem ipsum dolor sit amet\n46 Person 46 Lorem ipsum dolor sit amet\n47 Person 47 Lorem ipsum dolor sit amet\n48 Person 48 Lorem ipsum dolor sit amet\n49 Person 49 Lorem ipsum dolor sit amet\n50 Person 50 Lorem ipsum dolor sit amet"
-    },
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "ID Name Notes\n51 Person 51 Lorem ipsum dolor sit amet\n52 Person 52 Lorem ipsum dolor sit amet\n53 Person 53 Lorem ipsum dolor sit amet\n54 Person 54 Lorem ipsum dolor sit amet\n55 Person 55 Lorem ipsum dolor sit amet\n56 Person 56 Lorem ipsum dolor sit amet\n57 Person 57 Lorem ipsum dolor sit amet\n58 Person 58 Lorem ipsum dolor sit amet\n59 Person 59 Lorem ipsum dolor sit amet\n60 Person 60 Lorem ipsum dolor sit amet"
+  "target": {
+    "PageCount": 3,
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "ID Name Notes\n1 Person 1 Lorem ipsum dolor sit amet\n2 Person 2 Lorem ipsum dolor sit amet\n3 Person 3 Lorem ipsum dolor sit amet\n4 Person 4 Lorem ipsum dolor sit amet\n5 Person 5 Lorem ipsum dolor sit amet\n6 Person 6 Lorem ipsum dolor sit amet\n7 Person 7 Lorem ipsum dolor sit amet\n8 Person 8 Lorem ipsum dolor sit amet\n9 Person 9 Lorem ipsum dolor sit amet\n10 Person 10 Lorem ipsum dolor sit amet\n11 Person 11 Lorem ipsum dolor sit amet\n12 Person 12 Lorem ipsum dolor sit amet\n13 Person 13 Lorem ipsum dolor sit amet\n14 Person 14 Lorem ipsum dolor sit amet\n15 Person 15 Lorem ipsum dolor sit amet\n16 Person 16 Lorem ipsum dolor sit amet\n17 Person 17 Lorem ipsum dolor sit amet\n18 Person 18 Lorem ipsum dolor sit amet\n19 Person 19 Lorem ipsum dolor sit amet\n20 Person 20 Lorem ipsum dolor sit amet\n21 Person 21 Lorem ipsum dolor sit amet\n22 Person 22 Lorem ipsum dolor sit amet\n23 Person 23 Lorem ipsum dolor sit amet\n24 Person 24 Lorem ipsum dolor sit amet\n25 Person 25 Lorem ipsum dolor sit amet"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "ID Name Notes\n26 Person 26 Lorem ipsum dolor sit amet\n27 Person 27 Lorem ipsum dolor sit amet\n28 Person 28 Lorem ipsum dolor sit amet\n29 Person 29 Lorem ipsum dolor sit amet\n30 Person 30 Lorem ipsum dolor sit amet\n31 Person 31 Lorem ipsum dolor sit amet\n32 Person 32 Lorem ipsum dolor sit amet\n33 Person 33 Lorem ipsum dolor sit amet\n34 Person 34 Lorem ipsum dolor sit amet\n35 Person 35 Lorem ipsum dolor sit amet\n36 Person 36 Lorem ipsum dolor sit amet\n37 Person 37 Lorem ipsum dolor sit amet\n38 Person 38 Lorem ipsum dolor sit amet\n39 Person 39 Lorem ipsum dolor sit amet\n40 Person 40 Lorem ipsum dolor sit amet\n41 Person 41 Lorem ipsum dolor sit amet\n42 Person 42 Lorem ipsum dolor sit amet\n43 Person 43 Lorem ipsum dolor sit amet\n44 Person 44 Lorem ipsum dolor sit amet\n45 Person 45 Lorem ipsum dolor sit amet\n46 Person 46 Lorem ipsum dolor sit amet\n47 Person 47 Lorem ipsum dolor sit amet\n48 Person 48 Lorem ipsum dolor sit amet\n49 Person 49 Lorem ipsum dolor sit amet\n50 Person 50 Lorem ipsum dolor sit amet"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "ID Name Notes\n51 Person 51 Lorem ipsum dolor sit amet\n52 Person 52 Lorem ipsum dolor sit amet\n53 Person 53 Lorem ipsum dolor sit amet\n54 Person 54 Lorem ipsum dolor sit amet\n55 Person 55 Lorem ipsum dolor sit amet\n56 Person 56 Lorem ipsum dolor sit amet\n57 Person 57 Lorem ipsum dolor sit amet\n58 Person 58 Lorem ipsum dolor sit amet\n59 Person 59 Lorem ipsum dolor sit amet\n60 Person 60 Lorem ipsum dolor sit amet"
+      }
+    ],
+    "Properties": {
+      "CreationDate": "D:20000101000000+00'00'",
+      "Creator": "Morph",
+      "ModDate": "D:20000101000000+00'00'",
+      "Producer": "PDFsharp 6.2.4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.114,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.1165,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.0548,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    }
+  ]
 }
