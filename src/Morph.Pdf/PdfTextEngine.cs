@@ -159,7 +159,10 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 extraSpace = Math.Max(0, availableWidth - line.Width) / line.SpaceCount;
             }
 
-            // List marker hangs to the left of the first line's text.
+            // List marker hangs to the left of the first line's text by the numbering's
+            // hanging indent (Word's model, matching the Skia/ImageSharp backends), and takes
+            // the colour of the paragraph's first run so a white-on-dark list keeps white
+            // bullets. Falls back to a snug gap when no hanging indent is defined.
             if (!markerDrawn && paragraph.Properties.Numbering is {Text.Length: > 0} numbering)
             {
                 markerDrawn = true;
@@ -168,8 +171,11 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                     var firstProperties = paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new();
                     var markerFont = context.GetFont(firstProperties.FontFamily, firstProperties.Bold, false, firstProperties.FontSizePoints);
                     var markerText = numbering.Text;
-                    var markerWidth = measure.MeasureString(markerText, markerFont).Width;
-                    graphics.DrawString(markerText, markerFont, XBrushes.Black, new XPoint(penX - markerWidth - 3, baseline), baselineFormat);
+                    var markerBrush = new XSolidBrush(PdfRenderContext.ParseColor(firstProperties.ColorHex));
+                    var markerX = numbering.HangingIndentPoints > 0.01
+                        ? penX - numbering.HangingIndentPoints
+                        : penX - measure.MeasureString(markerText, markerFont).Width - 3;
+                    graphics.DrawString(markerText, markerFont, markerBrush, new XPoint(markerX, baseline), baselineFormat);
                 }
             }
 
