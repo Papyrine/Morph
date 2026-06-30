@@ -189,6 +189,17 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                     continue;
                 }
 
+                if (item.IsTabFiller)
+                {
+                    if (graphics != null)
+                    {
+                        DrawTabLeader(graphics, item, penX, baseline);
+                    }
+
+                    penX += item.Width;
+                    continue;
+                }
+
                 if (graphics != null && !string.IsNullOrEmpty(item.Text))
                 {
                     DrawItem(graphics, item, penX, baseline);
@@ -239,6 +250,49 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         }
     }
 
+    // Fills a tab gap with its leader: a baseline rule for Underscore, otherwise the leader glyph
+    // tiled across the gap (leaving ~one glyph of trailing padding). Mirrors the Skia backend.
+    void DrawTabLeader(XGraphics graphics, LineItem item, double penX, double baseline)
+    {
+        if (item.Width <= 0 || item.TabLeader == TabLeader.None)
+        {
+            return;
+        }
+
+        var color = PdfRenderContext.ParseColor(item.Props.ColorHex);
+
+        if (item.TabLeader == TabLeader.Underscore)
+        {
+            var pen = new XPen(color, Math.Max(0.5, item.Font.Size / 16));
+            var y = baseline + item.Font.Size * 0.12;
+            graphics.DrawLine(pen, penX, y, penX + item.Width, y);
+            return;
+        }
+
+        var leaderChar = item.TabLeader switch
+        {
+            TabLeader.Dot => '.',
+            TabLeader.Hyphen => '-',
+            TabLeader.MiddleDot => '·',
+            TabLeader.Heavy => '—',
+            _ => '.'
+        };
+
+        var glyphWidth = measure.MeasureString(leaderChar.ToString(), item.Font).Width;
+        if (glyphWidth <= 0)
+        {
+            return;
+        }
+
+        var count = (int) Math.Floor((item.Width - glyphWidth) / glyphWidth);
+        if (count <= 0)
+        {
+            return;
+        }
+
+        graphics.DrawString(new string(leaderChar, count), item.Font, new XSolidBrush(color), new XPoint(penX, baseline), baselineFormat);
+    }
+
     static void DrawImage(XGraphics? graphics, LineItem item, double penX, double baseline)
     {
         if (graphics == null || item.ImageData == null)
@@ -273,23 +327,88 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     static double Indent(ParagraphElement paragraph) =>
         paragraph.Properties.LeftIndentPoints;
 
-    // Advance for a tab character. When the paragraph defines explicit Left tab stops and one lies
-    // past the cursor, snap to it; otherwise keep the historical fixed 0.5" advance so paragraphs
-    // without custom stops render unchanged. (Only Left stops are honoured — the merged text-frame
-    // icon/label gap is the sole caller that relies on this; richer tab alignment stays with Skia.)
-    static double ResolveTabAdvance(ParagraphProperties properties, double cursorFromLeft)
+    // Width of the text that follows a tab, up to the next tab or a line break — what Right/Centre/
+    // Decimal stops need to know to place the following text so it ends at (Right) or straddles
+    // (Centre) the stop. Mirrors the Skia backend's MeasureFollowingWidthNoScale.
+    double MeasureFollowingWidth(IReadOnlyList<Run> runs, int startIndex)
     {
-        const double defaultTabWidth = 36d;
-        foreach (var stop in properties.TabStops)
+        var total = 0d;
+        for (var index = startIndex; index < runs.Count; index++)
         {
-            if (stop.Alignment == TabAlignment.Left &&
-                stop.PositionPoints > cursorFromLeft)
+            var run = runs[index];
+            if (run.IsTab)
             {
-                return stop.PositionPoints - cursorFromLeft;
+                break;
             }
+
+            if (run.InlineImageData is {Length: > 0})
+            {
+                total += run.InlineImageWidthPoints > 0 ? run.InlineImageWidthPoints : 12;
+                continue;
+            }
+
+            if (run.Text.Contains('\n') || run.Text.Contains('\r'))
+            {
+                break;
+            }
+
+            var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
+            total += measure.MeasureString(text, context.GetFont(run.Properties)).Width;
         }
 
-        return defaultTabWidth;
+        return total;
+    }
+
+    // Width of the text following a tab up to (but excluding) the first '.', for Decimal stops so
+    // the decimal points line up. Null when no '.' is found — the resolver then treats the Decimal
+    // stop as Right alignment, matching Word's fallback.
+    double? MeasureFollowingDecimalPrefix(IReadOnlyList<Run> runs, int startIndex)
+    {
+        var total = 0d;
+        for (var index = startIndex; index < runs.Count; index++)
+        {
+            var run = runs[index];
+            if (run.IsTab ||
+                run.InlineImageData is {Length: > 0} ||
+                run.Text.Contains('\n') ||
+                run.Text.Contains('\r'))
+            {
+                break;
+            }
+
+            var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
+            var font = context.GetFont(run.Properties);
+            var dotIndex = text.IndexOf('.');
+            if (dotIndex >= 0)
+            {
+                return total + measure.MeasureString(text[..dotIndex], font).Width;
+            }
+
+            total += measure.MeasureString(text, font).Width;
+        }
+
+        return null;
+    }
+
+    // When a Right/Centre/Decimal stop is clamped to the content edge (its real position lies past
+    // it), Word fills the leader to the edge and hides the post-tab text (a TOC page number that
+    // would overflow). Returns the last run index to consume so the caller skips that text.
+    static int SkipFollowingTabContent(IReadOnlyList<Run> runs, int tabRunIndex)
+    {
+        var lastConsumed = tabRunIndex;
+        for (var index = tabRunIndex + 1; index < runs.Count; index++)
+        {
+            var run = runs[index];
+            if (run.IsTab ||
+                (!string.IsNullOrEmpty(run.Text) && (run.Text.Contains('\n') || run.Text.Contains('\r'))))
+            {
+                break;
+            }
+
+            lastConsumed = index;
+        }
+
+        return lastConsumed;
     }
 
     List<Line> Layout(ParagraphElement paragraph, double availableWidth)
@@ -342,8 +461,9 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             current.Height = Math.Max(current.Height, item.Height);
         }
 
-        foreach (var run in paragraph.Runs)
+        for (var runIndex = 0; runIndex < paragraph.Runs.Count; runIndex++)
         {
+            var run = paragraph.Runs[runIndex];
             if (run.Properties.Hidden)
             {
                 continue;
@@ -388,13 +508,65 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             {
                 if (current.Items.Count > 0)
                 {
-                    // Current x measured from the line's left edge (= paragraph left indent).
-                    var cursorFromLeft = leftIndent + current.Width + pendingSpaceWidth;
-                    var tabWidth = ResolveTabAdvance(paragraph.Properties, cursorFromLeft);
-                    pendingSpaceWidth += tabWidth;
-                    pendingSpaceFont = font;
-                    pendingSpaceProps = run.Properties;
-                    lineHasTab = true;
+                    // Flush any pending space so the tab measures from the real cursor position.
+                    if (pendingSpaceWidth > 0)
+                    {
+                        Account(
+                            new()
+                            {
+                                Text = " ",
+                                Props = pendingSpaceProps ?? run.Properties,
+                                Font = pendingSpaceFont ?? font,
+                                Width = pendingSpaceWidth,
+                                IsSpace = true,
+                                Ascent = Ascent(pendingSpaceFont ?? font),
+                                Height = (pendingSpaceFont ?? font).GetHeight() * multiplier
+                            });
+                        current.SpaceCount++;
+                        pendingSpaceWidth = 0;
+                        pendingSpaceFont = null;
+                        pendingSpaceProps = null;
+                    }
+
+                    // Snap to the next tab stop via the shared resolver, which handles left/centre/
+                    // right/decimal alignment (Right is what TOC entries use) by measuring the text
+                    // that follows the tab. The gap becomes a tab-filler item carrying the stop's
+                    // leader (dots/hyphens/underscore) so it renders like Word, not a plain space.
+                    var cursorFromLeft = leftIndent + current.Width;
+                    var followingWidth = MeasureFollowingWidth(paragraph.Runs, runIndex + 1);
+                    var decimalPrefix = paragraph.Properties.HasDecimalTabStop()
+                        ? MeasureFollowingDecimalPrefix(paragraph.Runs, runIndex + 1)
+                        : null;
+                    var (destination, matchedStop, suppressFollowing) = TabStopResolver.Resolve(
+                        cursorFromLeft,
+                        followingWidth,
+                        paragraph.Properties.TabStops,
+                        paragraph.Properties.DefaultTabStopPoints,
+                        leftIndent,
+                        decimalPrefix,
+                        availableEndX: leftIndent + availableWidth);
+                    var gap = destination - cursorFromLeft;
+                    if (gap > 0 && current.Width + gap <= WrapLimit())
+                    {
+                        Account(
+                            new()
+                            {
+                                Text = "",
+                                Props = run.Properties,
+                                Font = font,
+                                Width = gap,
+                                IsTabFiller = true,
+                                TabLeader = matchedStop?.Leader ?? TabLeader.None,
+                                Ascent = ascent,
+                                Height = lineHeight
+                            });
+                        lineHasTab = true;
+                    }
+
+                    if (suppressFollowing)
+                    {
+                        runIndex = SkipFollowingTabContent(paragraph.Runs, runIndex);
+                    }
                 }
 
                 continue;
@@ -527,6 +699,8 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         public byte[]? ImageData;
         public double ImageWidth;
         public double ImageHeight;
+        public bool IsTabFiller;
+        public TabLeader TabLeader;
     }
 
     sealed class Line

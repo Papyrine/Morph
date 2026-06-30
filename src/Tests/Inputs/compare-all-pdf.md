@@ -668,7 +668,7 @@ PDF: [Morph PDF](brochures/04/pdf_result.verified.pdf) · [Pandoc reference](bro
 | --- | --- |
 | **Page 1** | **Page 1. ErrorMetric: 0.6284** |
 | <img src="brochures/05/expected_0001.png" width="500"> | <img src="brochures/05/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.1256** |
+| **Page 2** | **Page 2. ErrorMetric: 0.1301** |
 | <img src="brochures/05/expected_0002.png" width="500"> | <img src="brochures/05/pdf_result%23page_0002.verified.png" width="500"> |
 | **Page 3** | **Page 3. ErrorMetric: 0.1530** |
 | <img src="brochures/05/expected_0003.png" width="500"> | <img src="brochures/05/pdf_result%23page_0003.verified.png" width="500"> |
@@ -1560,7 +1560,7 @@ PDF: [Morph PDF](custom_margins/pdf_result.verified.pdf) · [Pandoc reference](c
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0030** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0026** |
 | <img src="decimal_tabs/01/expected_0001.png" width="500"> | <img src="decimal_tabs/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](decimal_tabs/01/pdf_result.verified.pdf) · [Pandoc reference](decimal_tabs/01/expected.pdf)
@@ -3702,7 +3702,7 @@ PDF: [Morph PDF](table_multipage/pdf_result.verified.pdf) · [Pandoc reference](
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0130** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0173** |
 | <img src="table_of_contents/01/expected_0001.png" width="500"> | <img src="table_of_contents/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_of_contents/01/pdf_result.verified.pdf) · [Pandoc reference](table_of_contents/01/expected.pdf)
@@ -3712,7 +3712,7 @@ PDF: [Morph PDF](table_of_contents/01/pdf_result.verified.pdf) · [Pandoc refere
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0136** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0164** |
 | <img src="table_of_contents/02/expected_0001.png" width="500"> | <img src="table_of_contents/02/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_of_contents/02/pdf_result.verified.pdf) · [Pandoc reference](table_of_contents/02/expected.pdf)
@@ -3722,7 +3722,7 @@ PDF: [Morph PDF](table_of_contents/02/pdf_result.verified.pdf) · [Pandoc refere
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0137** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0151** |
 | <img src="table_of_contents/03/expected_0001.png" width="500"> | <img src="table_of_contents/03/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_of_contents/03/pdf_result.verified.pdf) · [Pandoc reference](table_of_contents/03/expected.pdf)

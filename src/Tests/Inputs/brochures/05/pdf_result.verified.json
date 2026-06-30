@@ -10,7 +10,7 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "TABLE OF CONTENTS\nTABE OF CONTENTS 1\nGETTING STARTED 2\nWhat to include 2\nFocus on what you do best 2\nDON’T FORGET THE MISSION 3\nMAKE IT YOUR OWN 4\nCustomize in almost no time 4\nMake it picture perfect 4\nOur products and services 5\nOUR PRODUCTS & SERVICES\nAPPETIZERS AND HORS D'OEUVRES\nWondering why the page number on this\npage is 5? This is the inside back cover.\nThis booklet is setup to make it easy to print\na two-sided, eight-page booklet. The tips on\nthis page will help you get that done.\nBUFFET-STYLE MEALS\nPLATED DINNERS\n5"
+        "Text": "TABLE OF CONTENTS\nTABE OF CONTENTS................................................................................ 1\nGETTING STARTED................................................................................... 2\nWhat to include............................................................................................ 2\nFocus on what you do best........................................................................ 2\nDON’T FORGET THE MISSION............................................................ 3\nMAKE IT YOUR OWN............................................................................. 4\nCustomize in almost no time..................................................................... 4\nMake it picture perfect................................................................................ 4\nOur products and services......................................................................... 5\nOUR PRODUCTS & SERVICES\nAPPETIZERS AND HORS D'OEUVRES\nWondering why the page number on this\npage is 5? This is the inside back cover.\nThis booklet is setup to make it easy to print\na two-sided, eight-page booklet. The tips on\nthis page will help you get that done.\nBUFFET-STYLE MEALS\nPLATED DINNERS\n5"
       },
       {
         "Width": 792.0,
@@ -40,7 +40,7 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.1256,
+      "ErrorMetric": 0.1301,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
