@@ -60,16 +60,27 @@ jobs:
         with:
           user: ${{ vars.NUGET_USER }}
 
-      - name: Pack
-        # Pack to a clean throwaway dir so the stale nupkgs in ./nugets/ are never
-        # picked up. Only IsPackable projects (the Morph.* libraries) emit packages.
-        run: dotnet pack src/Morph.slnx --configuration Release --output "${{ runner.temp }}/nugets"
+      - name: Build & pack
+        # A plain build *is* the pack step here: ProjectDefaults sets
+        # GeneratePackageOnBuild=true for every Release package project, so each
+        # Morph.* library is packed as the final step of its *own* build, in
+        # project-dependency order, into ./nugets (RepoDir/nugets). This is the same
+        # path the test workflow relies on, so it's known-good.
+        #
+        # We deliberately do NOT use `dotnet pack`: on a solution it races with
+        # GeneratePackageOnBuild (NU5026 — the solution-level Pack fans out to the
+        # dependent projects before their build, gated behind Morph, has produced
+        # their DLLs), and disabling GeneratePackageOnBuild to dodge that would skip
+        # ProjectDefaults' GenerateNuspec hook, stripping PackageProjectUrl/Icon/
+        # Authors metadata. A clean CI checkout starts with an empty ./nugets, so
+        # there are no stale packages to exclude.
+        run: dotnet build src/Morph.slnx --configuration Release
 
       - name: Push to nuget.org
         # --skip-duplicate makes re-runs idempotent: re-pushing an already-published
         # version is a no-op instead of a hard failure.
         run: >
-          dotnet nuget push "${{ runner.temp }}/nugets/*.nupkg"
+          dotnet nuget push "nugets/*.nupkg"
           --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
           --source https://api.nuget.org/v3/index.json
           --skip-duplicate
@@ -81,7 +92,7 @@ jobs:
 #
 #   - name: Push to nuget.org
 #     run: >
-#       dotnet nuget push "${{ runner.temp }}/nugets/*.nupkg"
+#       dotnet nuget push "nugets/*.nupkg"
 #       --api-key "${{ secrets.NUGET_API_KEY }}"
 #       --source https://api.nuget.org/v3/index.json
 #       --skip-duplicate
