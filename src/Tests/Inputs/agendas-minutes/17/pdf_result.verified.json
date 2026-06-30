@@ -5,7 +5,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "TEAM\nAGENDA\nMeeting time 05/15, 11:30 – 1:00 PM\nMeeting called by Ian Hansson\nAttendees Petja Hrovat, Kristiina Mae, Lodovico Udinesi\nPlease read Reading list\nPlease bring Supplies\nTime 11:30 – 1:00 PM\nLocation Conference Room\nDiscussion\n• Fiscal review | Briana\nHernandez\n• New business | Asaf\nKarten\n• Team updates | Kristiina\nMae\nBoard vote\n• Vote 1 | Petja Hrovat\n• Vote 2 | Lodovico\nUdinesi\n• Vote 3 | Ian Hansson\nTeam building\n• Activity 1 | Kristiina Mae\n• Activity 2 | Lodovico\nUdinesi\n• Activity 3 | Ian Hansson\nAdditional Instructions\nUse this section for additional instructions, comments, or directions."
+        "Text": "TEAM\nAGENDA\nMeeting time 05/15, 11:30 – 1:00 PM\nMeeting called by Ian Hansson\nAttendees Petja Hrovat, Kristiina Mae, Lodovico Udinesi\nPlease read Reading list\nPlease bring Supplies\nTime 11:30 – 1:00 PM\nLocation Conference Room\nDiscussion\n• Fiscal review | Briana\nHernandez\n• New business | Asaf Karten\n• Team updates | Kristiina Mae\nBoard vote\n• Vote 1 | Petja Hrovat\n• Vote 2 | Lodovico Udinesi\n• Vote 3 | Ian Hansson\nTeam building\n• Activity 1 | Kristiina Mae\n• Activity 2 | Lodovico Udinesi\n• Activity 3 | Ian Hansson\nAdditional Instructions\nUse this section for additional instructions, comments, or directions."
       }
     ],
     "Properties": {
@@ -18,7 +18,7 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0486,
+      "ErrorMetric": 0.0481,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

@@ -159,10 +159,10 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 extraSpace = Math.Max(0, availableWidth - line.Width) / line.SpaceCount;
             }
 
-            // List marker hangs to the left of the first line's text by the numbering's
-            // hanging indent (Word's model, matching the Skia/ImageSharp backends), and takes
-            // the colour of the paragraph's first run so a white-on-dark list keeps white
-            // bullets. Falls back to a snug gap when no hanging indent is defined.
+            // List marker hangs to the left of the first line's text by the paragraph's cascaded
+            // hanging indent (Word's model, matching the Skia/ImageSharp backends), and takes the
+            // colour of the paragraph's first run so a white-on-dark list keeps white bullets.
+            // Falls back to a snug gap when no hanging indent is defined.
             if (!markerDrawn && paragraph.Properties.Numbering is {Text.Length: > 0} numbering)
             {
                 markerDrawn = true;
@@ -172,8 +172,9 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                     var markerFont = context.GetFont(firstProperties.FontFamily, firstProperties.Bold, false, firstProperties.FontSizePoints);
                     var markerText = numbering.Text;
                     var markerBrush = new XSolidBrush(PdfRenderContext.ParseColor(firstProperties.ColorHex));
-                    var markerX = numbering.HangingIndentPoints > 0.01
-                        ? penX - numbering.HangingIndentPoints
+                    var hangingIndent = paragraph.Properties.HangingIndentPoints;
+                    var markerX = hangingIndent > 0.01
+                        ? penX - hangingIndent
                         : penX - measure.MeasureString(markerText, markerFont).Width - 3;
                     graphics.DrawString(markerText, markerFont, markerBrush, new XPoint(markerX, baseline), baselineFormat);
                 }
@@ -265,16 +266,12 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
     // ---- Layout ----
 
-    static double Indent(ParagraphElement paragraph)
-    {
-        var numbering = paragraph.Properties.Numbering;
-        if (numbering != null)
-        {
-            return numbering.IndentPoints;
-        }
-
-        return paragraph.Properties.LeftIndentPoints;
-    }
+    // LeftIndentPoints already carries the resolved numbering cascade (direct <w:ind> > style
+    // <w:ind> > numbering level), so use it for numbered paragraphs too. Reading the raw
+    // numbering.IndentPoints instead ignored a style that tightens the list indent and made the
+    // list over-indent (e.g. agendas-minutes/17). Matches the Skia/ImageSharp backends.
+    static double Indent(ParagraphElement paragraph) =>
+        paragraph.Properties.LeftIndentPoints;
 
     // Advance for a tab character. When the paragraph defines explicit Left tab stops and one lies
     // past the cursor, snap to it; otherwise keep the historical fixed 0.5" advance so paragraphs
