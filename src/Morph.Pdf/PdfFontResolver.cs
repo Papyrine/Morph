@@ -119,7 +119,6 @@ sealed class PdfFontResolver : IFontResolver
 
     bool TryResolve(string familyName, bool bold, bool italic, out string face)
     {
-        var family = familyName.ToLowerInvariant();
         // Order matters: keep the upright/italic axis correct before relaxing weight. When an
         // upright face is requested but only the italic of that exact weight is bundled (e.g.
         // Century Schoolbook ships 400-Italic, 700, 700-Italic but no 400 upright), falling back
@@ -134,12 +133,21 @@ sealed class PdfFontResolver : IFontResolver
             (!bold, !italic)
         ];
 
-        foreach (var (attemptBold, attemptItalic) in attempts)
+        // Try the requested family, then its suffix-stripped base (e.g. "Bodoni MT Condensed"
+        // -> "Bodoni MT"), mirroring the shared resolver's candidate-name fallback so a width-
+        // or weight-suffixed request still finds the bundled base face instead of dropping to
+        // the default sans fallback.
+        var candidates = FontHelpers.GetCandidateNames(familyName, bold);
+        foreach (var candidateName in FontFileCache.EnumerateCandidateNames(candidates))
         {
-            if (index.TryGetValue((family, attemptBold, attemptItalic), out var found))
+            var family = candidateName.ToLowerInvariant();
+            foreach (var (attemptBold, attemptItalic) in attempts)
             {
-                face = found;
-                return true;
+                if (index.TryGetValue((family, attemptBold, attemptItalic), out var found))
+                {
+                    face = found;
+                    return true;
+                }
             }
         }
 
