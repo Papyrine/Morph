@@ -998,8 +998,6 @@ PDF: [Morph PDF](business-plans/13/pdf_result.verified.pdf) · [Pandoc reference
 | <img src="business-plans/15/expected_0019.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0019.verified.png" width="500"> |
 | **Page 20** _(no page)_ | **Page 20** |
 |  | <img src="business-plans/15/pdf_result%23page_0020.verified.png" width="500"> |
-| **Page 21** _(no page)_ | **Page 21** |
-|  | <img src="business-plans/15/pdf_result%23page_0021.verified.png" width="500"> |
 
 PDF: [Morph PDF](business-plans/15/pdf_result.verified.pdf)
 

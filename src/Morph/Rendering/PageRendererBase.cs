@@ -1193,8 +1193,12 @@ abstract class PageRendererBase(RenderContextBase context)
         var contentWidth = cellWidth - (float) padding.Horizontal;
         var availableHeight = cellHeight - (float) padding.Vertical;
 
-        // Measure content height for vertical alignment.
+        // Measure content height for vertical alignment. This must match the cell height that
+        // TableHeightCalculator allocates, including its rule that the LAST paragraph's
+        // after-spacing overlaps the bottom cell margin (max, not sum). Otherwise centred/bottom
+        // content would be offset too high by the part of that gap the margin already covers.
         float contentHeight = 0;
+        ParagraphElement? lastMeasuredParagraph = null;
         foreach (var element in cell.Content)
         {
             if (element is ParagraphElement para)
@@ -1202,6 +1206,7 @@ abstract class PageRendererBase(RenderContextBase context)
                 // Account for bullet indent to match RenderParagraphInBounds behavior.
                 float bulletIndent = para.Properties.Numbering != null ? 12 : 0;
                 contentHeight += Measurer.MeasureParagraphHeightWithWidth(para, contentWidth - bulletIndent);
+                lastMeasuredParagraph = para;
             }
             else if (element is ContentControlElement contentControl)
             {
@@ -1211,6 +1216,7 @@ abstract class PageRendererBase(RenderContextBase context)
                     Properties = new()
                 };
                 contentHeight += Measurer.MeasureParagraphHeightWithWidth(measurePara, contentWidth);
+                lastMeasuredParagraph = measurePara;
             }
             else if (element is ImageElement image)
             {
@@ -1224,6 +1230,14 @@ abstract class PageRendererBase(RenderContextBase context)
 
                 contentHeight += imageHeight;
             }
+        }
+
+        if (lastMeasuredParagraph != null)
+        {
+            // Only the portion of the trailing after-spacing the bottom margin already covers is
+            // removed (mirrors TableHeightCalculator's max-overlap); the rest is real content space.
+            var bottomInset = (float) padding.Bottom;
+            contentHeight -= Math.Min((float) lastMeasuredParagraph.Properties.SpacingAfterPoints, bottomInset);
         }
 
         var verticalOffset = cell.Properties.VerticalAlignment switch

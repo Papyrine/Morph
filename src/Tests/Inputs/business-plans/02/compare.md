@@ -10,7 +10,7 @@
 | <img src="expected_0003.png" width="500"> | <img src="skia_result%23page_0003.verified.png" width="500"> | <img src="imagesharp_result%23page_0003.verified.png" width="500"> |
 | **Page 4** | **Page 4. ErrorMetric: 0.0980** | **Page 4. ErrorMetric: 0.1005** |
 | <img src="expected_0004.png" width="500"> | <img src="skia_result%23page_0004.verified.png" width="500"> | <img src="imagesharp_result%23page_0004.verified.png" width="500"> |
-| **Page 5** | **Page 5. ErrorMetric: 0.0865** | **Page 5. ErrorMetric: 0.0870** |
+| **Page 5** | **Page 5. ErrorMetric: 0.0867** | **Page 5. ErrorMetric: 0.0867** |
 | <img src="expected_0005.png" width="500"> | <img src="skia_result%23page_0005.verified.png" width="500"> | <img src="imagesharp_result%23page_0005.verified.png" width="500"> |
-| **Page 6** | **Page 6. ErrorMetric: 0.0717** | **Page 6. ErrorMetric: 0.0742** |
+| **Page 6** | **Page 6. ErrorMetric: 0.0706** | **Page 6. ErrorMetric: 0.0731** |
 | <img src="expected_0006.png" width="500"> | <img src="skia_result%23page_0006.verified.png" width="500"> | <img src="imagesharp_result%23page_0006.verified.png" width="500"> |

@@ -953,7 +953,7 @@ Explicit row height control: exact (fixed) or atLeast (minimum).
 - **Model**: `TableRow.HeightPoints`, `TableRow.ExactHeight`
 - **Test**: `table_explicit_heights/`, `table_layout_tall_row/`
 
-> **Contributors**: Multi-pass calculation: content heights first, then explicit heights, then vMerge adjustment.
+> **Contributors**: Multi-pass calculation in `TableHeightCalculator.CalculateRowHeights`: content heights first, then explicit `w:trHeight`, then vMerge distribution, then a border-collapse pass. Two Word-matching rules in the content pass: (1) the *last* paragraph's space-after **overlaps** the bottom cell margin instead of stacking on it — the cell bottom is sized as `max(after, bottomMargin)`, not their sum (inter-paragraph after-spacing is still added in full); (2) the border-collapse pass grows the first/last row by the table's *outer* horizontal border widths (shared inner edges collapse onto the content boundary and add no height). The same overlap rule is mirrored in `PageRendererBase` vertical-alignment measurement so centred/bottom content stays consistent.
 
 
 #### Multi-page Tables `DONE`
