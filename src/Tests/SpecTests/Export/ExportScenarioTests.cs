@@ -1,3 +1,5 @@
+using Morph.PDFium;
+
 /// <summary>
 /// Scenario tests for the HTML, Markdown and PDF exporters, following the same per-input-directory
 /// Verify pattern as <c>SkiaScenarioTests</c> and enumerating every <c>input.docx</c> under
@@ -57,6 +59,11 @@ public class ExportScenarioTests
             .IgnoreParameters();
     }
 
+    // Render PDF pages at the same DPI VerifyPDFium uses (see VerifyPDFium.Initialize in
+    // ModuleInitializer) so the pixels measured here match the pdf_result#page_*.verified.png
+    // snapshots and the 150-DPI Word reference PNGs (expected_*.png) the metric compares against.
+    const double pdfRenderDpi = 150;
+
     [Test]
     [MethodDataSource(nameof(Scenarios))]
     public async Task PdfOutput(string directory)
@@ -70,9 +77,52 @@ public class ExportScenarioTests
                 FontDirectory = fontsDirectory
             });
 
-        await Verify(pdf, extension: "pdf")
+        // Record a per-page ErrorMetric against the Word reference (expected_*.png), mirroring the
+        // Skia/ImageSharp scenario tests, so pdf_result.verified.json carries the same PageDiffs and
+        // compare-all-pdf.md can show how close each PDF page is to Word.
+        var expectedFiles = Directory.GetFiles(directory, "expected_*.png")
+            .Order()
+            .ToArray();
+        var diffs = PdfPageDiffs(pdf, expectedFiles);
+
+        var settings = Verify(pdf, extension: "pdf")
             .UseDirectory(directory)
             .UseFileName("pdf_result")
             .IgnoreParameters();
+        if (diffs != null)
+        {
+            settings = settings.AppendValue("PageDiffs", diffs);
+        }
+
+        await settings;
+    }
+
+    // Mirrors ImageSharpScenarioTests.PageDiffs, but the pages come from rasterising the produced
+    // PDF with the same PDFium engine VerifyPDFium uses. Null when the page count doesn't match the
+    // Word reference (PDF pagination can differ), in which case no metric is recorded.
+    static List<PageDiff>? PdfPageDiffs(byte[] pdf, string[] expectedFiles)
+    {
+        using var document = PdfiumDocument.Load(pdf);
+        if (expectedFiles.Length != document.PageCount)
+        {
+            return null;
+        }
+
+        var diffs = new List<PageDiff>(document.PageCount);
+        for (var page = 0; page < document.PageCount; page++)
+        {
+            var expectedFile = expectedFiles[page];
+            var rendered = document.RenderPage(page, pdfRenderDpi);
+
+            using var expected = new MagickImage(expectedFile);
+            using var actual = new MagickImage(rendered);
+
+            expected.Compare(actual, ErrorMetric.Absolute, out var errorMetric);
+
+            errorMetric = Math.Round(errorMetric, 4);
+            diffs.Add(new(page + 1, errorMetric, Path.GetFileName(expectedFile), $"pdf_result#page_{page + 1:0000}.verified.png", $"pdf_result#page_{page + 1:0000}.received.png"));
+        }
+
+        return diffs;
     }
 }

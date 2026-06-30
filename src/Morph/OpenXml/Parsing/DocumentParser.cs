@@ -194,6 +194,11 @@ sealed class DocumentParser(string defaultFont)
             elements.AddRange(lifted);
             pendingLiftedFloatingTables = null;
         }
+
+        // Pull consecutive w:framePr-positioned paragraphs out of normal flow into floating
+        // text-frame elements (Word's text-frame feature).
+        elements = FrameGrouper.Group(elements);
+
         var header = ExtractHeaderFooter(body, mainPart, HeaderFooterValues.Default, isHeader: true);
         var footer = ExtractHeaderFooter(body, mainPart, HeaderFooterValues.Default, isHeader: false);
         var firstPageHeader = pageSettings.DifferentFirstPage
@@ -1340,11 +1345,21 @@ sealed class DocumentParser(string defaultFont)
                         WidowControl = widowControl,
                         BackgroundColorHex = backgroundColor,
                         TabStops = baseProps?.TabStops ?? [],
-                        DefaultTabStopPoints = defaultTabStopPoints
+                        DefaultTabStopPoints = defaultTabStopPoints,
+                        Frame = baseProps?.Frame
                         // PageBreakBefore intentionally not inherited from styles
                     };
                     processed.Add(styleId);
                     continue;
+                }
+
+                // Text-frame positioning (w:framePr). A style's own framePr replaces any inherited
+                // one; otherwise the base style's frame carries through.
+                var frame = baseProps?.Frame;
+                var styleFramePr = paraProps.GetFirstChild<FrameProperties>();
+                if (styleFramePr != null)
+                {
+                    frame = ParseParagraphFrame(styleFramePr);
                 }
 
                 // Parse alignment
@@ -1548,7 +1563,8 @@ sealed class DocumentParser(string defaultFont)
                     BorderBetween = borderBetween,
                     BorderBetweenSpacePoints = borderBetweenSpace,
                     TabStops = ParseTabs(paraProps, baseProps?.TabStops ?? []),
-                    DefaultTabStopPoints = defaultTabStopPoints
+                    DefaultTabStopPoints = defaultTabStopPoints,
+                    Frame = frame
                     // PageBreakBefore intentionally not inherited from styles
                 };
                 processed.Add(styleId);
@@ -4512,35 +4528,9 @@ sealed class DocumentParser(string defaultFont)
 
                                 result.Add(new ColumnBreakElement());
                             }
-                            else
-                            {
-                                // Line break (no type or TextWrapping) - add newline to text
-                                // Get current run properties for the line break
-                                var runProps = run.RunProperties;
-                                var parsedProps = ParseRunProperties(runProps, mainPart);
-
-                                // Add any text before the break
-                                var textBefore = string.Concat(run.Descendants<Text>()
-                                    .TakeWhile(_ => _ != runChild.NextSibling())
-                                    .Select(_ => _.Text));
-                                if (!string.IsNullOrEmpty(textBefore))
-                                {
-                                    runs.Add(
-                                        new()
-                                        {
-                                            Text = textBefore,
-                                            Properties = parsedProps
-                                        });
-                                }
-
-                                // Add the line break as a newline character
-                                runs.Add(
-                                    new()
-                                    {
-                                        Text = "\n",
-                                        Properties = parsedProps
-                                    });
-                            }
+                            // Line breaks (no type or TextWrapping) are emitted in document order
+                            // by ParseRun below (emitLineBreaks), so the text on both sides of the
+                            // break is preserved — nothing to do here.
                         }
                         else if (lastRenderedPageBreakCount >= 20 &&
                                  runChild is LastRenderedPageBreak &&
@@ -4571,19 +4561,18 @@ sealed class DocumentParser(string defaultFont)
                         }
                     }
 
-                    // Parse the run normally (this handles text content)
-                    // Skip if run only contains a drawing (no text)
+                    // Parse the run normally (this handles text content, with line breaks emitted as
+                    // "\n" runs in document order). Skip if the run only contains a drawing (no text).
                     if (!run.Descendants<Drawing>().Any())
                     {
-                        var parsedRuns = ParseRun(run, mainPart, paragraphStyleId);
-                        if (parsedRuns.Count > 0 && !run.Descendants<Break>().Any())
+                        var parsedRuns = ParseRun(run, mainPart, paragraphStyleId, emitLineBreaks: true);
+                        // A page/column break splits the paragraph above, so its run's content is
+                        // intentionally not appended here; line-break-only (or break-free) runs are.
+                        if (parsedRuns.Count > 0 &&
+                            run.Descendants<Break>().All(_ =>
+                                _.Type?.Value != BreakValues.Page && _.Type?.Value != BreakValues.Column))
                         {
                             runs.AddRange(parsedRuns);
-                        }
-                        else if (parsedRuns.Count > 0 && run.Descendants<Break>().All(_ =>
-                                     _.Type?.Value != BreakValues.Page && _.Type?.Value != BreakValues.Column))
-                        {
-                            // Has only line breaks, text already handled above
                         }
                     }
 
@@ -7524,6 +7513,7 @@ sealed class DocumentParser(string defaultFont)
         // is more reliable across SDK versions.
         var dropCap = DropCapPosition.None;
         var dropCapLines = 0;
+        var frame = styleDefaults?.Frame;
         var framePr = props.GetFirstChild<FrameProperties>();
         if (framePr != null)
         {
@@ -7542,6 +7532,15 @@ sealed class DocumentParser(string defaultFont)
             {
                 dropCapLines = parsedLines;
             }
+
+            // Frame positioning. When the paragraph's style carries a frame, its positioning is
+            // authoritative: Word's editor re-emits a direct framePr full of neutral defaults
+            // (xAlign="left", yAlign="inline", vAnchor="margin") whenever the framed paragraph is
+            // touched, and those defaults must not clobber the style's real placement (observed
+            // across the agendas / letters / labels templates, where the styled frame's xAlign and
+            // anchors are what Word actually renders). So prefer the style frame; only parse the
+            // direct framePr as the frame when the style has none.
+            frame = styleDefaults?.Frame ?? ParseParagraphFrame(framePr);
         }
 
         return new()
@@ -7577,8 +7576,80 @@ sealed class DocumentParser(string defaultFont)
             DefaultTabStopPoints = defaultTabStopPoints,
             DropCap = dropCap,
             DropCapLines = dropCapLines,
+            Frame = frame,
             IsRightToLeft = paraRtl,
             MirrorIndents = mirrorIndents
+        };
+    }
+
+    /// <summary>
+    /// Parses the positioning subset of a <c>w:framePr</c> (anchors, alignment, explicit offset,
+    /// and size) into a <see cref="ParagraphFrame"/>, layering present attributes over
+    /// <paramref name="baseFrame"/> (the style's frame). Returns null when neither the element nor
+    /// the base carries any positioning signal — i.e. a drop-cap-only frame — so drop-cap handling
+    /// is left untouched.
+    /// </summary>
+    static ParagraphFrame? ParseParagraphFrame(FrameProperties framePr, ParagraphFrame? baseFrame = null)
+    {
+        var attributes = framePr.GetAttributes();
+
+        var hAnchorRaw = attributes.AttributeValue("hAnchor");
+        var vAnchorRaw = attributes.AttributeValue("vAnchor");
+        var xAlignRaw = attributes.AttributeValue("xAlign");
+        var yAlignRaw = attributes.AttributeValue("yAlign");
+        var xRaw = attributes.AttributeValue("x");
+        var yRaw = attributes.AttributeValue("y");
+        var widthRaw = attributes.AttributeValue("w");
+        var heightRaw = attributes.AttributeValue("h");
+
+        // Only treat this as a positioning frame when this element or the inherited style frame
+        // carries a positioning attribute. A bare drop-cap frame (just dropCap/lines) with no
+        // inherited frame must NOT become a ParagraphFrame.
+        var hasPositioning = hAnchorRaw != null || vAnchorRaw != null ||
+                             xAlignRaw != null || yAlignRaw != null ||
+                             xRaw != null || yRaw != null ||
+                             widthRaw != null || heightRaw != null;
+        if (!hasPositioning && baseFrame == null)
+        {
+            return null;
+        }
+
+        return new()
+        {
+            HorizontalAnchor = hAnchorRaw switch
+            {
+                "page" => HorizontalAnchor.Page,
+                "margin" => HorizontalAnchor.Margin,
+                // "text" anchors to the text column's leading edge.
+                "text" or "column" => HorizontalAnchor.Column,
+                _ => baseFrame?.HorizontalAnchor ?? HorizontalAnchor.Column
+            },
+            VerticalAnchor = vAnchorRaw switch
+            {
+                "page" => VerticalAnchor.Page,
+                "text" => VerticalAnchor.Paragraph,
+                "margin" => VerticalAnchor.Margin,
+                _ => baseFrame?.VerticalAnchor ?? VerticalAnchor.Margin
+            },
+            HorizontalAlignment = xAlignRaw switch
+            {
+                "left" or "inside" => FrameHorizontalAlignment.Left,
+                "center" => FrameHorizontalAlignment.Center,
+                "right" or "outside" => FrameHorizontalAlignment.Right,
+                _ => baseFrame?.HorizontalAlignment ?? FrameHorizontalAlignment.None
+            },
+            VerticalAlignment = yAlignRaw switch
+            {
+                "top" or "inside" => FrameVerticalAlignment.Top,
+                "center" => FrameVerticalAlignment.Center,
+                "bottom" or "outside" => FrameVerticalAlignment.Bottom,
+                "inline" => FrameVerticalAlignment.Inline,
+                _ => baseFrame?.VerticalAlignment ?? FrameVerticalAlignment.None
+            },
+            XPoints = int.TryParse(xRaw, out var xTwips) ? xTwips / twipsPerPoint : baseFrame?.XPoints ?? 0,
+            YPoints = int.TryParse(yRaw, out var yTwips) ? yTwips / twipsPerPoint : baseFrame?.YPoints ?? 0,
+            WidthPoints = int.TryParse(widthRaw, out var widthTwips) && widthTwips > 0 ? widthTwips / twipsPerPoint : baseFrame?.WidthPoints,
+            HeightPoints = int.TryParse(heightRaw, out var heightTwips) && heightTwips > 0 ? heightTwips / twipsPerPoint : baseFrame?.HeightPoints
         };
     }
 
@@ -7611,7 +7682,7 @@ sealed class DocumentParser(string defaultFont)
         return target;
     }
 
-    List<Run> ParseRun(OoxmlRun run, MainDocumentPart mainPart, string? paragraphStyleId = null, string? hyperlinkUrl = null)
+    List<Run> ParseRun(OoxmlRun run, MainDocumentPart mainPart, string? paragraphStyleId = null, string? hyperlinkUrl = null, bool emitLineBreaks = false)
     {
         var result = new List<Run>();
         RunProperties? properties = null;
@@ -7667,6 +7738,22 @@ sealed class DocumentParser(string defaultFont)
                             Text = "\t",
                             Properties = GetProperties(),
                             IsTab = true,
+                            HyperlinkUrl = hyperlinkUrl
+                        });
+                    break;
+                // A <w:br/> inside a run becomes a newline at its document position, so text on
+                // either side of it (e.g. <w:r><w:br/><w:t>An</w:t></w:r>) survives in order.
+                // Opt-in: callers that emit their own break runs (the SDT paths) leave this off.
+                // Page/column breaks are structural and stay with the caller's paragraph splitting.
+                case Break breakChild when emitLineBreaks &&
+                                           breakChild.Type?.Value != BreakValues.Page &&
+                                           breakChild.Type?.Value != BreakValues.Column:
+                    FlushText();
+                    result.Add(
+                        new()
+                        {
+                            Text = "\n",
+                            Properties = GetProperties(),
                             HyperlinkUrl = hyperlinkUrl
                         });
                     break;

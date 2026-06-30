@@ -139,7 +139,47 @@ static class TableHeightCalculator
             }
         }
 
+        // Fourth pass: border-collapse height. Word grows the table box by its OUTER horizontal
+        // border widths — the top border of the first row and the bottom border of the last row
+        // occupy layout space above/below the content. Shared inner edges (between two rows)
+        // collapse onto the content boundary and add no measurable row height, so only the outer
+        // edges count. Without this a fully-bordered table renders up to ~2pt tighter than Word once
+        // the (correct) after-spacing overlap removes the bottom-margin slack that used to mask it —
+        // e.g. a 1-row table whose only borders are its own top+bottom edges. A single-row table is
+        // both first and last, so it correctly accrues both edges.
+        if (heights.Length > 0)
+        {
+            heights[0] += OuterHorizontalBorderWidth(table, colCount, rowIndex: 0, top: true);
+            var lastRowIndex = table.Rows.Count - 1;
+            heights[^1] += OuterHorizontalBorderWidth(table, colCount, lastRowIndex, top: false);
+        }
+
         return heights;
+    }
+
+    /// <summary>
+    /// Widest visible top (or bottom) border across the cells of one row, in points — the table's
+    /// outer horizontal edge. Used to grow the first/last row by the collapsed outer border width.
+    /// </summary>
+    static float OuterHorizontalBorderWidth(TableElement table, int colCount, int rowIndex, bool top)
+    {
+        var row = table.Rows[rowIndex];
+        var width = 0f;
+        var gridColIndex = 0;
+        for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
+        {
+            var cell = row.Cells[cellIndex];
+            var borders = TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row);
+            var edge = top ? borders?.Top : borders?.Bottom;
+            if (edge is {IsVisible: true})
+            {
+                width = Math.Max(width, (float) edge.WidthPoints);
+            }
+
+            gridColIndex += cell.Properties.GridSpan;
+        }
+
+        return width;
     }
 
     /// <summary>
@@ -237,7 +277,22 @@ static class TableHeightCalculator
                 height += lineHeight;
             }
 
-            height += (float) props.SpacingAfterPoints;
+            // The LAST paragraph's after-spacing OVERLAPS the cell's bottom margin rather than
+            // stacking on top of it: Word sizes the cell so its bottom = max(bottomMargin, after),
+            // not bottomMargin + after. (The base height already added the bottom margin, so add
+            // only the part of the after that sticks out past it.) Stacking inflated rows by up to
+            // the full after-spacing — agendas-minutes/01 rendered ~5pt/row taller than Word, with
+            // top-aligned content pushed up. Inter-paragraph after-spacing is unaffected: it forms
+            // the visible gap between consecutive paragraphs and is added in full.
+            if (i < paragraphs.Count - 1)
+            {
+                height += (float) props.SpacingAfterPoints;
+            }
+            else
+            {
+                var bottomInset = (float) (padding.Bottom + margin.Bottom);
+                height += Math.Max(0, (float) props.SpacingAfterPoints - bottomInset);
+            }
         }
 
         return height;

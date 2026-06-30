@@ -67,6 +67,9 @@ static class MarkdownExporter
                 case FloatingTextBoxElement textBox:
                     WriteElements(textBox.Content);
                     break;
+                case PositionedFrameElement frame:
+                    WriteElements(frame.Content);
+                    break;
                 case ContentControlElement contentControl:
                     if (contentControl.Runs is {Count: > 0} runs)
                     {

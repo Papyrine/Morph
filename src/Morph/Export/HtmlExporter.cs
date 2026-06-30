@@ -139,6 +139,9 @@ static class HtmlExporter
                 case FloatingTextBoxElement textBox:
                     AccumulateFontWeights(textBox.Content, weights);
                     break;
+                case PositionedFrameElement frame:
+                    AccumulateFontWeights(frame.Content, weights);
+                    break;
             }
         }
     }
@@ -216,6 +219,11 @@ static class HtmlExporter
                 case FloatingTextBoxElement textBox:
                     Indent(depth).Append("<div>\n");
                     WriteElements(textBox.Content, depth + 1);
+                    Indent(depth).Append("</div>\n");
+                    break;
+                case PositionedFrameElement frame:
+                    Indent(depth).Append("<div>\n");
+                    WriteElements(frame.Content, depth + 1);
                     Indent(depth).Append("</div>\n");
                     break;
                 case ContentControlElement contentControl:

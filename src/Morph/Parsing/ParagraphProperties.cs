@@ -190,6 +190,13 @@ sealed record ParagraphProperties
     public int DropCapLines { get; init; }
 
     /// <summary>
+    /// Text-frame positioning (w:framePr with anchors/alignment/offset/size). Null when the
+    /// paragraph is not framed, or when the frame is a drop-cap-only frame (see <see cref="DropCap"/>).
+    /// Consecutive paragraphs whose frames are value-equal form one floating text frame.
+    /// </summary>
+    public ParagraphFrame? Frame { get; init; }
+
+    /// <summary>
     /// Whether the paragraph reads right-to-left (w:bidi). Renderer does not yet reverse text order.
     /// </summary>
     public bool IsRightToLeft { get; init; }
