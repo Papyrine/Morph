@@ -32,11 +32,15 @@ jobs:
   publish:
     runs-on: ubuntu-latest
 
-    # SponsorCheck performs an authenticated GitHub Sponsors lookup during the
-    # build; without a token it fails with SC102. This is the *build* gate and is
-    # unrelated to publishing auth.
+    # SponsorCheck bundles the current GitHub Sponsors list into each nupkg during
+    # pack. That fetch hits the GitHub Sponsors GraphQL API, which the default
+    # Actions GITHUB_TOKEN *cannot* access — it returns FORBIDDEN ("Resource not
+    # accessible by integration") and fails the build with SC100. It needs a
+    # *classic* PAT with read:user + read:org scopes, owned by an admin of the
+    # Papyrine org; store it as the SPONSOR_CHECK_TOKEN repo/org secret. This is the
+    # *build* gate and is unrelated to publishing auth (handled by OIDC below).
     env:
-      GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+      GitHubToken: ${{ secrets.SPONSOR_CHECK_TOKEN }}
 
     steps:
       - name: Checkout
