@@ -396,7 +396,7 @@ PDF: [Morph PDF](agendas-minutes/06/pdf_result.verified.pdf) · [Pandoc referenc
 | --- | --- |
 | **Page 1** | **Page 1. ErrorMetric: 0.0995** |
 | <img src="agendas-minutes/07/expected_0001.png" width="500"> | <img src="agendas-minutes/07/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.0747** |
+| **Page 2** | **Page 2. ErrorMetric: 0.0832** |
 | <img src="agendas-minutes/07/expected_0002.png" width="500"> | <img src="agendas-minutes/07/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/07/pdf_result.verified.pdf)
@@ -642,9 +642,9 @@ PDF: [Morph PDF](brochures/02/pdf_result.verified.pdf)
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.2758** |
+| **Page 1** | **Page 1. ErrorMetric: 0.2760** |
 | <img src="brochures/03/expected_0001.png" width="500"> | <img src="brochures/03/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.2191** |
+| **Page 2** | **Page 2. ErrorMetric: 0.2212** |
 | <img src="brochures/03/expected_0002.png" width="500"> | <img src="brochures/03/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](brochures/03/pdf_result.verified.pdf) · [Pandoc reference](brochures/03/expected.pdf)
@@ -670,7 +670,7 @@ PDF: [Morph PDF](brochures/04/pdf_result.verified.pdf) · [Pandoc reference](bro
 | <img src="brochures/05/expected_0001.png" width="500"> | <img src="brochures/05/pdf_result%23page_0001.verified.png" width="500"> |
 | **Page 2** | **Page 2. ErrorMetric: 0.1256** |
 | <img src="brochures/05/expected_0002.png" width="500"> | <img src="brochures/05/pdf_result%23page_0002.verified.png" width="500"> |
-| **Page 3** | **Page 3. ErrorMetric: 0.1529** |
+| **Page 3** | **Page 3. ErrorMetric: 0.1530** |
 | <img src="brochures/05/expected_0003.png" width="500"> | <img src="brochures/05/pdf_result%23page_0003.verified.png" width="500"> |
 | **Page 4** | **Page 4. ErrorMetric: 0.2988** |
 | <img src="brochures/05/expected_0004.png" width="500"> | <img src="brochures/05/pdf_result%23page_0004.verified.png" width="500"> |
@@ -682,7 +682,7 @@ PDF: [Morph PDF](brochures/05/pdf_result.verified.pdf) · [Pandoc reference](bro
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.3399** |
+| **Page 1** | **Page 1. ErrorMetric: 0.3416** |
 | <img src="brochures/06/expected_0001.png" width="500"> | <img src="brochures/06/pdf_result%23page_0001.verified.png" width="500"> |
 | **Page 2** | **Page 2. ErrorMetric: 0.5179** |
 | <img src="brochures/06/expected_0002.png" width="500"> | <img src="brochures/06/pdf_result%23page_0002.verified.png" width="500"> |
@@ -740,17 +740,17 @@ PDF: [Morph PDF](business-plans/01/pdf_result.verified.pdf) · [Pandoc reference
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0334** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0338** |
 | <img src="business-plans/02/expected_0001.png" width="500"> | <img src="business-plans/02/pdf_result%23page_0001.verified.png" width="500"> |
 | **Page 2** | **Page 2. ErrorMetric: 0.2992** |
 | <img src="business-plans/02/expected_0002.png" width="500"> | <img src="business-plans/02/pdf_result%23page_0002.verified.png" width="500"> |
 | **Page 3** | **Page 3. ErrorMetric: 0.2603** |
 | <img src="business-plans/02/expected_0003.png" width="500"> | <img src="business-plans/02/pdf_result%23page_0003.verified.png" width="500"> |
-| **Page 4** | **Page 4. ErrorMetric: 0.0842** |
+| **Page 4** | **Page 4. ErrorMetric: 0.0851** |
 | <img src="business-plans/02/expected_0004.png" width="500"> | <img src="business-plans/02/pdf_result%23page_0004.verified.png" width="500"> |
-| **Page 5** | **Page 5. ErrorMetric: 0.0852** |
+| **Page 5** | **Page 5. ErrorMetric: 0.0780** |
 | <img src="business-plans/02/expected_0005.png" width="500"> | <img src="business-plans/02/pdf_result%23page_0005.verified.png" width="500"> |
-| **Page 6** | **Page 6. ErrorMetric: 0.0870** |
+| **Page 6** | **Page 6. ErrorMetric: 0.0878** |
 | <img src="business-plans/02/expected_0006.png" width="500"> | <img src="business-plans/02/pdf_result%23page_0006.verified.png" width="500"> |
 
 PDF: [Morph PDF](business-plans/02/pdf_result.verified.pdf) · [Pandoc reference](business-plans/02/expected.pdf)
@@ -1000,6 +1000,8 @@ PDF: [Morph PDF](business-plans/13/pdf_result.verified.pdf) · [Pandoc reference
 | <img src="business-plans/15/expected_0019.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0019.verified.png" width="500"> |
 | **Page 20** _(no page)_ | **Page 20** |
 |  | <img src="business-plans/15/pdf_result%23page_0020.verified.png" width="500"> |
+| **Page 21** _(no page)_ | **Page 21** |
+|  | <img src="business-plans/15/pdf_result%23page_0021.verified.png" width="500"> |
 
 PDF: [Morph PDF](business-plans/15/pdf_result.verified.pdf)
 
@@ -1396,7 +1398,7 @@ PDF: [Morph PDF](cover-letters/01/pdf_result.verified.pdf) · [Pandoc reference]
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0862** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0876** |
 | <img src="cover-letters/02/expected_0001.png" width="500"> | <img src="cover-letters/02/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/02/pdf_result.verified.pdf) · [Pandoc reference](cover-letters/02/expected.pdf)
@@ -1486,7 +1488,7 @@ PDF: [Morph PDF](cover-letters/09/pdf_result.verified.pdf)
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.8134** |
+| **Page 1** | **Page 1. ErrorMetric: 0.8133** |
 | <img src="cover-letters/10/expected_0001.png" width="500"> | <img src="cover-letters/10/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/10/pdf_result.verified.pdf) · [Pandoc reference](cover-letters/10/expected.pdf)
@@ -1506,7 +1508,7 @@ PDF: [Morph PDF](cover-letters/11/pdf_result.verified.pdf) · [Pandoc reference]
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.9978** |
+| **Page 1** | **Page 1. ErrorMetric: 0.9955** |
 | <img src="cover-letters/12/expected_0001.png" width="500"> | <img src="cover-letters/12/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/12/pdf_result.verified.pdf) · [Pandoc reference](cover-letters/12/expected.pdf)
@@ -1538,7 +1540,7 @@ PDF: [Morph PDF](cover-letters/15/pdf_result.verified.pdf) · [Pandoc reference]
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1337** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1382** |
 | <img src="cover-letters/16/expected_0001.png" width="500"> | <img src="cover-letters/16/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](cover-letters/16/pdf_result.verified.pdf) · [Pandoc reference](cover-letters/16/expected.pdf)
@@ -2298,7 +2300,7 @@ PDF: [Morph PDF](labels/15/pdf_result.verified.pdf) · [Pandoc reference](labels
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1649** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1629** |
 | <img src="labels/16/expected_0001.png" width="500"> | <img src="labels/16/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](labels/16/pdf_result.verified.pdf) · [Pandoc reference](labels/16/expected.pdf)
@@ -2328,7 +2330,7 @@ PDF: [Morph PDF](letters/01/pdf_result.verified.pdf) · [Pandoc reference](lette
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.3280** |
+| **Page 1** | **Page 1. ErrorMetric: 0.3320** |
 | <img src="letters/02/expected_0001.png" width="500"> | <img src="letters/02/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](letters/02/pdf_result.verified.pdf) · [Pandoc reference](letters/02/expected.pdf)
@@ -2382,7 +2384,7 @@ PDF: [Morph PDF](letters/06/pdf_result.verified.pdf) · [Pandoc reference](lette
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0632** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0660** |
 | <img src="letters/07/expected_0001.png" width="500"> | <img src="letters/07/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](letters/07/pdf_result.verified.pdf) · [Pandoc reference](letters/07/expected.pdf)
@@ -2414,7 +2416,7 @@ PDF: [Morph PDF](letters/09/pdf_result.verified.pdf) · [Pandoc reference](lette
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.8654** |
+| **Page 1** | **Page 1. ErrorMetric: 0.8653** |
 | <img src="letters/10/expected_0001.png" width="500"> | <img src="letters/10/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](letters/10/pdf_result.verified.pdf)
@@ -2434,7 +2436,7 @@ PDF: [Morph PDF](letters/11/pdf_result.verified.pdf) · [Pandoc reference](lette
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0748** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0756** |
 | <img src="letters/12/expected_0001.png" width="500"> | <img src="letters/12/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](letters/12/pdf_result.verified.pdf) · [Pandoc reference](letters/12/expected.pdf)
@@ -2458,7 +2460,7 @@ PDF: [Morph PDF](letters/13/pdf_result.verified.pdf)
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0087** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0101** |
 | <img src="line_breaks/expected_0001.png" width="500"> | <img src="line_breaks/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](line_breaks/pdf_result.verified.pdf) · [Pandoc reference](line_breaks/expected.pdf)
@@ -2674,7 +2676,7 @@ PDF: [Morph PDF](menus/09/pdf_result.verified.pdf) · [Pandoc reference](menus/0
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0025** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0033** |
 | <img src="mixed_breaks/expected_0001.png" width="500"> | <img src="mixed_breaks/pdf_result%23page_0001.verified.png" width="500"> |
 | **Page 2** | **Page 2. ErrorMetric: 0.0009** |
 | <img src="mixed_breaks/expected_0002.png" width="500"> | <img src="mixed_breaks/pdf_result%23page_0002.verified.png" width="500"> |
@@ -2918,7 +2920,7 @@ PDF: [Morph PDF](newsletters/12/pdf_result.verified.pdf) · [Pandoc reference](n
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.3344** |
+| **Page 1** | **Page 1. ErrorMetric: 0.3351** |
 | <img src="newsletters/13/expected_0001.png" width="500"> | <img src="newsletters/13/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](newsletters/13/pdf_result.verified.pdf) · [Pandoc reference](newsletters/13/expected.pdf)
@@ -3794,7 +3796,7 @@ PDF: [Morph PDF](tab_stops/pdf_result.verified.pdf) · [Pandoc reference](tab_st
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0053** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0068** |
 | <img src="text_wrapping_break/expected_0001.png" width="500"> | <img src="text_wrapping_break/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](text_wrapping_break/pdf_result.verified.pdf) · [Pandoc reference](text_wrapping_break/expected.pdf)

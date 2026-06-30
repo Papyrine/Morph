@@ -5,7 +5,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Contoso\n89 Pacific Ave\nSan Francisco, CA 87654\n305.555.0135\nsara@contoso.com\nwww.contoso.com\n10 April 20XX\nAdatum Corp.\n210 Stars Ave.\nBerkeley, CA 76543\nDear Iris Lepek,\nI truly appreciate the opportunity to interview and learn more\nabout the team. It was great to discuss the company’s culture\nand how the role plays a key part in its ongoing success. The\nconversation left me even more excited about the possibility\nof joining such a dynamic and forward-thinking group.\nWarm regards,\nSara Steale"
+        "Text": "Contoso\n89 Pacific Ave\nSan Francisco, CA 87654\n305.555.0135\nsara@contoso.com\nwww.contoso.com\n10 April 20XX\nAdatum Corp.\n210 Stars Ave.\nBerkeley, CA 76543\nDear Iris Lepek,\nI truly appreciate the opportunity to interview and learn more\nabout the team. It was great to discuss the company’s culture\nand how the role plays a key part in its ongoing success. The\nconversation left me even more excited about the possibility\nof joining such a dynamic and forward-thinking group.\nThe emphasis on collaboration and continuous growth stood\nout to me, and it’s clear the team fosters an environment\nwhere new ideas and innovation thrive. I enjoyed learning\nabout the company’s approach to problem-solving and how it\nvalues diverse perspectives to drive meaningful results.\nThank you again for your time and for sharing such valuable\ninsights. I look forward to what’s ahead and am happy to\nprovide any additional information if needed. I appreciate the\nopportunity to be considered and hope to contribute to the\nteam in the future.\nWarm regards,\nSara Steale"
       }
     ],
     "Properties": {
@@ -18,7 +18,7 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.8134,
+      "ErrorMetric": 0.8133,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

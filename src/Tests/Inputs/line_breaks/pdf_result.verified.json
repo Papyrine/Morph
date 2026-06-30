@@ -5,7 +5,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Paragraph without line breaks.\nFirst line\nFirst lineSecond line after line break\nNormal paragraph after the one with line breaks."
+        "Text": "Paragraph without line breaks.\nFirst line\nSecond line after line break\nThird line after another break\nNormal paragraph after the one with line breaks."
       }
     ],
     "Properties": {
@@ -18,7 +18,7 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0087,
+      "ErrorMetric": 0.0101,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

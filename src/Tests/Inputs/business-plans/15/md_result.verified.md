@@ -1,8 +1,8 @@
-﻿| 5-year   |
+﻿| 5-year Business Plan   |
 | --- |
 | Caneiro Group |
 
-| **Email** caneirogroup@example.com example.com | **Phone** p. 805.555.0155 f. 805.555.0156 | **Address** 456 7th Street  |
+| **Email** caneirogroup@example.com example.com | **Phone** p. 805.555.0155 f. 805.555.0156 | **Address** 456 7th Street Santa Monica, CA |
 | --- | --- | --- |
 
 Table of contents

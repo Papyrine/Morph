@@ -5,7 +5,7 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "MARGIE’S\nTRAVEL LET MARGIE PLAN\nYOUR NEXT\nVACATION\nMARGIE’S TRAVEL\nStreet Address\nCity, St Zip Code\nPhone Number\nWebsite\nEmail\nMARGIE’S TRAVEL OFFERS\nYOU\n01 Booking for any type\nof travel\n02 Quick, thorough, knowledgeable\nresponses to calls and questions\n03 Resourceful and\nwell-traveled agents\n04 International\nservices"
+        "Text": "MARGIE’S\nTRAVEL LET MARGIE PLAN\nYOUR NEXT\nVACATION\nMARGIE’S TRAVEL\nStreet Address\nCity, St Zip Code\nPhone Number\nWebsite\nEmail\nMARGIE’S TRAVEL OFFERS\nYOU\nTHE FOLLOWING:\n01 Booking for any type\nof travel\n02 Quick, thorough, knowledgeable\nresponses to calls and questions\n03 Resourceful and\nwell-traveled agents\n04 International\nservices"
       },
       {
         "Width": 792.0,
@@ -23,7 +23,7 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.3399,
+      "ErrorMetric": 0.3416,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

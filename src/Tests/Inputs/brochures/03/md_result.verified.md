@@ -24,7 +24,7 @@
 
 |  | **Join the community** |  | **Technology** |  |  |
 | --- | --- | --- | --- | --- | --- |
-|  | Subscribe to our newsletter and be a part of a  community that’s shaping the future. Follow us on  social media and stay tuned for exclusive webinars. |  | **For all** | Building the business  |  |
+|  | Subscribe to our newsletter and be a part of a  community that’s shaping the future. Follow us on  social media and stay tuned for exclusive webinars. |  | **For all** | Building the business world sky-bridge |  |
 |  | Relecloud.com |  | **ConnectAbove** |  | Launch event |
 
 ![](data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjAyLjY0IDIxMy4wNiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgaWQ9IkxheWVyXzEiIG92ZXJmbG93PSJoaWRkZW4iPjxzdHlsZT4NCi5Nc2Z0T2ZjVGhtX0JhY2tncm91bmQxX0ZpbGxfdjIgew0KIGZpbGw6I0ZGRkZGRjsgDQp9DQo8L3N0eWxlPg0KPGRlZnM+PC9kZWZzPjxwYXRoIGQ9Ik0xMzUuMDQgMTI5LjMzQzEzNC40NyAxMjkuMjQgMTMzLjkgMTI5LjQ4IDEzMy41NiAxMjkuOTUgMTMzLjIyIDEzMC40MiAxMzMuMTcgMTMxLjA0IDEzMy40MyAxMzEuNTVMMTYzLjk0IDE5Mi43MSAxMTUuMiAxNDQuNzlDMTE0Ljc5IDE0NC4zOCAxMTQuMTggMTQ0LjI0IDExMy42MyAxNDQuNDIgMTEzLjA4IDE0NC42IDExMi42OCAxNDUuMDcgMTEyLjU4IDE0NS42NEwxMDEuMzIgMjEzLjA2IDkwLjA2IDE0NS42NUM4OS45NiAxNDUuMDggODkuNTYgMTQ0LjYxIDg5LjAxIDE0NC40MyA4OC44NSAxNDQuMzggODguNjkgMTQ0LjM1IDg4LjUzIDE0NC4zNSA4OC4xMyAxNDQuMzUgODcuNzQgMTQ0LjUxIDg3LjQ0IDE0NC43OUwzOC43IDE5Mi43MSA2OS4yMSAxMzEuNTVDNjkuNDcgMTMxLjAzIDY5LjQyIDEzMC40MSA2OS4wOCAxMjkuOTUgNjguNzQgMTI5LjQ4IDY4LjE3IDEyOS4yNCA2Ny42IDEyOS4zM0wwIDEzOS40NSA2MC42NCAxMDcuOUM2MS4xNSAxMDcuNjMgNjEuNDcgMTA3LjEgNjEuNDcgMTA2LjUyIDYxLjQ3IDEwNS45NCA2MS4xNSAxMDUuNDEgNjAuNjQgMTA1LjE0TDAgNzMuNjEgNjcuNiA4My43M0M2OC4xNyA4My44MiA2OC43NCA4My41OCA2OS4wOCA4My4xMSA2OS40MiA4Mi42NCA2OS40NyA4Mi4wMiA2OS4yMSA4MS41MUwzOC43IDIwLjM0IDg3LjQ0IDY4LjI2Qzg3Ljg1IDY4LjY3IDg4LjQ2IDY4LjgxIDg5LjAxIDY4LjYzIDg5LjU2IDY4LjQ1IDg5Ljk2IDY3Ljk4IDkwLjA2IDY3LjQxTDEwMS4zMiAwIDExMi41OCA2Ny40MkMxMTIuNjggNjcuOTkgMTEzLjA4IDY4LjQ2IDExMy42MyA2OC42NCAxMTQuMTggNjguODIgMTE0Ljc4IDY4LjY4IDExNS4yIDY4LjI3TDE2My45NCAyMC4zNSAxMzMuNDMgODEuNTFDMTMzLjE3IDgyLjAzIDEzMy4yMiA4Mi42NSAxMzMuNTYgODMuMTEgMTMzLjkgODMuNTggMTM0LjQ3IDgzLjgyIDEzNS4wNCA4My43M0wyMDIuNjQgNzMuNjEgMTQyIDEwNS4xNkMxNDEuNDkgMTA1LjQzIDE0MS4xNyAxMDUuOTYgMTQxLjE3IDEwNi41NCAxNDEuMTcgMTA3LjEyIDE0MS40OSAxMDcuNjUgMTQyIDEwNy45MkwyMDIuNjQgMTM5LjQ3IDEzNS4wNCAxMjkuMzNaIiBjbGFzcz0iY2xzLTEgTXNmdE9mY1RobV9CYWNrZ3JvdW5kMV9GaWxsX3YyIiBzdHJva2Utd2lkdGg9IjAiIGZpbGw9IiNGRkZGRkYiLz48L3N2Zz4=)
@@ -68,7 +68,7 @@
 |  |  |  |  | **11:30 AM** | Live demo & features walkthrough |  |  |
 |  |  |  |  | **12:00 PM** | Networking & refreshments |  |  |
 |  |  |  |  | **1:00 PM** | Q&A session |  |  |
-|  | **A celebration**  |  |  | **3:00 PM** | Future vision |  |  |
+|  | **A celebration of innovation** |  |  | **3:00 PM** | Future vision |  |  |
 |  |  |  |  | **4:30 PM** | Closing remarks |  |  |
 |  | Founded in 2001 by Benito Dellucci, Relecloud has pioneered cloud solutions that empower businesses worldwide. Inspired by the vision of making technology accessible and transformative, Relecloud has become synonymous with innovation. |  |  |  |  |  |  |
 |  |  |  |  | **ConnectAbove** |  | Launch Event |  |

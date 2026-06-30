@@ -5,7 +5,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Page 1, first paragraph.\nLine 1"
+        "Text": "Page 1, first paragraph.\nLine 1\nLine 2 (after line break)"
       },
       {
         "Width": 612.0,
@@ -33,7 +33,7 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0025,
+      "ErrorMetric": 0.0033,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

@@ -42,3 +42,5 @@
 | <img src="expected_0019.png" width="500"> | <img src="skia_result%23page_0019.verified.png" width="500"> | <img src="imagesharp_result%23page_0019.verified.png" width="500"> |
 | **Page 20** _(no page)_ | **Page 20. ErrorMetric: 0.0000** | **Page 20. ErrorMetric: 0.0000** |
 |  | <img src="skia_result%23page_0020.verified.png" width="500"> | <img src="imagesharp_result%23page_0020.verified.png" width="500"> |
+| **Page 21** _(no page)_ | **Page 21. ErrorMetric: 0.0000** | **Page 21. ErrorMetric: 0.0000** |
+|  | <img src="skia_result%23page_0021.verified.png" width="500"> | <img src="imagesharp_result%23page_0021.verified.png" width="500"> |

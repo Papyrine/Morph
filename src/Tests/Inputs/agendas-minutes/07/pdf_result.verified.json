@@ -10,7 +10,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "BUDGET\nThe budget for the current school year was distributed by August Bergqvist, PTA Treasurer, and\nreviewed by the board and PTA members at the last meeting. In tonight’s meeting, Angelica\nAstrom made a motion to approve the budget which was seconded by Allan Mattsson. All\npresent voted in favor of approving the budget as presented.\nPRINCIPAL’S REPORT\nPrincipal Ian Hansson presented his report.\nNEW BUSINESS COMMITTEE REPORTS\n• Recap of Back-to-School night –\nSeptember 9\n• Parent Education Programs –\nCounselors\n• Teacher Grants Application Process –\n• Membership\n• Volunteers\n• Newsletter\n• Computer Support\nANNOUNCEMENTS\nNone\nNEXT MEETING\n13 October 2023| 6:00 p.m. in the cafeteria\nMotion to adjourn was made at 9:00 p.m. and was passed unanimously."
+        "Text": "BUDGET\nThe budget for the current school year was distributed by August Bergqvist, PTA Treasurer, and\nreviewed by the board and PTA members at the last meeting. In tonight’s meeting, Angelica\nAstrom made a motion to approve the budget which was seconded by Allan Mattsson. All\npresent voted in favor of approving the budget as presented.\nPRINCIPAL’S REPORT\nPrincipal Ian Hansson presented his report.\nNEW BUSINESS COMMITTEE REPORTS\n• Recap of Back-to-School night –\nSeptember 9\n• Parent Education Programs –\nCounselors\n• Teacher Grants Application Process –\nSchool Principal\n• Membership\n• Volunteers\n• Newsletter\n• Computer Support\nANNOUNCEMENTS\nNone\nNEXT MEETING\n13 October 2023| 6:00 p.m. in the cafeteria\nMotion to adjourn was made at 9:00 p.m. and was passed unanimously."
       }
     ],
     "Properties": {
@@ -30,7 +30,7 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0747,
+      "ErrorMetric": 0.0832,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

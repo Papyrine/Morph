@@ -4528,35 +4528,9 @@ sealed class DocumentParser(string defaultFont)
 
                                 result.Add(new ColumnBreakElement());
                             }
-                            else
-                            {
-                                // Line break (no type or TextWrapping) - add newline to text
-                                // Get current run properties for the line break
-                                var runProps = run.RunProperties;
-                                var parsedProps = ParseRunProperties(runProps, mainPart);
-
-                                // Add any text before the break
-                                var textBefore = string.Concat(run.Descendants<Text>()
-                                    .TakeWhile(_ => _ != runChild.NextSibling())
-                                    .Select(_ => _.Text));
-                                if (!string.IsNullOrEmpty(textBefore))
-                                {
-                                    runs.Add(
-                                        new()
-                                        {
-                                            Text = textBefore,
-                                            Properties = parsedProps
-                                        });
-                                }
-
-                                // Add the line break as a newline character
-                                runs.Add(
-                                    new()
-                                    {
-                                        Text = "\n",
-                                        Properties = parsedProps
-                                    });
-                            }
+                            // Line breaks (no type or TextWrapping) are emitted in document order
+                            // by ParseRun below (emitLineBreaks), so the text on both sides of the
+                            // break is preserved — nothing to do here.
                         }
                         else if (lastRenderedPageBreakCount >= 20 &&
                                  runChild is LastRenderedPageBreak &&
@@ -4587,19 +4561,18 @@ sealed class DocumentParser(string defaultFont)
                         }
                     }
 
-                    // Parse the run normally (this handles text content)
-                    // Skip if run only contains a drawing (no text)
+                    // Parse the run normally (this handles text content, with line breaks emitted as
+                    // "\n" runs in document order). Skip if the run only contains a drawing (no text).
                     if (!run.Descendants<Drawing>().Any())
                     {
-                        var parsedRuns = ParseRun(run, mainPart, paragraphStyleId);
-                        if (parsedRuns.Count > 0 && !run.Descendants<Break>().Any())
+                        var parsedRuns = ParseRun(run, mainPart, paragraphStyleId, emitLineBreaks: true);
+                        // A page/column break splits the paragraph above, so its run's content is
+                        // intentionally not appended here; line-break-only (or break-free) runs are.
+                        if (parsedRuns.Count > 0 &&
+                            run.Descendants<Break>().All(_ =>
+                                _.Type?.Value != BreakValues.Page && _.Type?.Value != BreakValues.Column))
                         {
                             runs.AddRange(parsedRuns);
-                        }
-                        else if (parsedRuns.Count > 0 && run.Descendants<Break>().All(_ =>
-                                     _.Type?.Value != BreakValues.Page && _.Type?.Value != BreakValues.Column))
-                        {
-                            // Has only line breaks, text already handled above
                         }
                     }
 
@@ -7709,7 +7682,7 @@ sealed class DocumentParser(string defaultFont)
         return target;
     }
 
-    List<Run> ParseRun(OoxmlRun run, MainDocumentPart mainPart, string? paragraphStyleId = null, string? hyperlinkUrl = null)
+    List<Run> ParseRun(OoxmlRun run, MainDocumentPart mainPart, string? paragraphStyleId = null, string? hyperlinkUrl = null, bool emitLineBreaks = false)
     {
         var result = new List<Run>();
         RunProperties? properties = null;
@@ -7765,6 +7738,22 @@ sealed class DocumentParser(string defaultFont)
                             Text = "\t",
                             Properties = GetProperties(),
                             IsTab = true,
+                            HyperlinkUrl = hyperlinkUrl
+                        });
+                    break;
+                // A <w:br/> inside a run becomes a newline at its document position, so text on
+                // either side of it (e.g. <w:r><w:br/><w:t>An</w:t></w:r>) survives in order.
+                // Opt-in: callers that emit their own break runs (the SDT paths) leave this off.
+                // Page/column breaks are structural and stay with the caller's paragraph splitting.
+                case Break breakChild when emitLineBreaks &&
+                                           breakChild.Type?.Value != BreakValues.Page &&
+                                           breakChild.Type?.Value != BreakValues.Column:
+                    FlushText();
+                    result.Add(
+                        new()
+                        {
+                            Text = "\n",
+                            Properties = GetProperties(),
                             HyperlinkUrl = hyperlinkUrl
                         });
                     break;

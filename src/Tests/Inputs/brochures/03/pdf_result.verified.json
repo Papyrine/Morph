@@ -5,12 +5,12 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "Join the community Technology\nSubscribe to our newsletter and be a part of a\ncommunity that’s shaping the future. Follow us on\nsocial media and stay tuned for exclusive webinars. For all Building the business\nRelecloud.com\nConnectAbove Launch event"
+        "Text": "Join the community Technology\nSubscribe to our newsletter and be a part of a\ncommunity that’s shaping the future. Follow us on\nsocial media and stay tuned for exclusive webinars. For all Building the business\nworld sky-bridge\nRelecloud.com\nConnectAbove Launch event"
       },
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "Relecloud\nEvent itinerary\n10:00 AM DOORS OPEN\n10:30 AM WELCOME ADDRESS\n11:00 AM CONNECTABOVE PRESENTATION\n11:30 AM LIVE DEMO & FEATURES WALKTHROUGH\n12:00 PM NETWORKING & REFRESHMENTS\n1:00 PM Q&A SESSION\nA celebration 3:00 PM FUTURE VISION\n4:30 PM CLOSING REMARKS\nFounded in 2001 by Benito Dellucci, Relecloud\nhas pioneered cloud solutions that empower\nbusinesses worldwide. Inspired by the vision of\nmaking technology accessible and\ntransformative, Relecloud has become\nsynonymous with innovation.\nConnectAbove Launch Event"
+        "Text": "Relecloud\nEvent itinerary\n10:00 AM DOORS OPEN\n10:30 AM WELCOME ADDRESS\n11:00 AM CONNECTABOVE PRESENTATION\n11:30 AM LIVE DEMO & FEATURES WALKTHROUGH\n12:00 PM NETWORKING & REFRESHMENTS\n1:00 PM Q&A SESSION\nA celebration\nof innovation\n3:00 PM FUTURE VISION\n4:30 PM CLOSING REMARKS\nFounded in 2001 by Benito Dellucci, Relecloud\nhas pioneered cloud solutions that empower\nbusinesses worldwide. Inspired by the vision of\nmaking technology accessible and\ntransformative, Relecloud has become\nsynonymous with innovation.\nConnectAbove Launch Event"
       }
     ],
     "Properties": {
@@ -23,14 +23,14 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.2758,
+      "ErrorMetric": 0.276,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.2191,
+      "ErrorMetric": 0.2212,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

@@ -15,7 +15,7 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "LET US DO THE COOKING\nCity Center Catering offers a wide range of products and services to\nmeet your catering needs. Some of our most popular options include:\nAppetizers and hors d’oeuvres, buffet style meals, plated dinners,\ndesserts and baked goods, beverage service, and professional event\ncoordination\n“City Center Catering made planning our wedding reception a breeze.”\nBrian and Sara K.\nPRICING\nAt City Center Catering, we believe that great catering shouldn't break\nthe bank. We offer competitive pricing on all of our products and\nservices, and we are happy to work with you to create a customized\npackage that fits your budget.\nMAKE IT PICTURE PERFECT\nWe can accommodate events of any size, from intimate dinners to\nlarge corporate events. Our team will work with you to customize a\nmenu that fits your tastes and budget, and we are happy to\naccommodate any dietary restrictions or special requests.\nPRODUCTS & SERVICES CONT.\nDESSERTS AND BAKED GOODS\nBUFFET-STYLE MEALS\nPLATED DINNERS\n4 1"
+        "Text": "LET US DO THE COOKING\nCity Center Catering offers a wide range of products and services to\nmeet your catering needs. Some of our most popular options include:\nAppetizers and hors d’oeuvres, buffet style meals, plated dinners,\ndesserts and baked goods, beverage service, and professional event\ncoordination\n“City Center Catering made planning our wedding reception a breeze.”\n- Brian and Sara K.\nPRICING\nAt City Center Catering, we believe that great catering shouldn't break\nthe bank. We offer competitive pricing on all of our products and\nservices, and we are happy to work with you to create a customized\npackage that fits your budget.\nMAKE IT PICTURE PERFECT\nWe can accommodate events of any size, from intimate dinners to\nlarge corporate events. Our team will work with you to customize a\nmenu that fits your tastes and budget, and we are happy to\naccommodate any dietary restrictions or special requests.\nPRODUCTS & SERVICES CONT.\nDESSERTS AND BAKED GOODS\nBUFFET-STYLE MEALS\nPLATED DINNERS\n4 1"
       },
       {
         "Width": 792.0,
@@ -47,7 +47,7 @@
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.1529,
+      "ErrorMetric": 0.153,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
