@@ -4,7 +4,7 @@
     {
       "Width": 612.0,
       "Height": 792.0,
-      "Text": "Paragraph without line breaks.\nFirst line First lineSecond line after line break\nNormal paragraph after the one with line breaks."
+      "Text": "Paragraph without line breaks.\nFirst line\nFirst lineSecond line after line break\nNormal paragraph after the one with line breaks."
     }
   ],
   "Properties": {

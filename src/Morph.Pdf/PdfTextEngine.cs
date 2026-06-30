@@ -408,6 +408,32 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             {
                 if (token.IsSpace)
                 {
+                    // An explicit line break (<w:br/>) reaches us as a "\n" run. Newlines are
+                    // whitespace, so without this they'd fold into the pending space and the
+                    // following text would stay on the same line. Break once per newline,
+                    // preserving blank lines for consecutive or leading breaks (matches the
+                    // Skia/ImageSharp engines).
+                    var breakCount = token.Text.Count(_ => _ == '\n');
+                    if (breakCount > 0)
+                    {
+                        for (var i = 0; i < breakCount; i++)
+                        {
+                            if (current.Items.Count > 0)
+                            {
+                                Flush();
+                            }
+                            else
+                            {
+                                lines.Add(new() {Ascent = ascent, Height = lineHeight});
+                                pendingSpaceWidth = 0;
+                                pendingSpaceFont = null;
+                                pendingSpaceProps = null;
+                            }
+                        }
+
+                        continue;
+                    }
+
                     pendingSpaceWidth += measure.MeasureString(" ", font).Width * token.Text.Length;
                     pendingSpaceFont = font;
                     pendingSpaceProps = run.Properties;
