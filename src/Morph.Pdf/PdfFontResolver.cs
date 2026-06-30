@@ -89,8 +89,39 @@ sealed class PdfFontResolver : IFontResolver
         var bold = weight >= 600;
 
         faceToPath[path] = path;
+
+        // The bundled file name is the authoritative key and overrides any earlier entry.
         index[(family.ToLowerInvariant(), bold, italic)] = path;
+
+        // Also index the font's own declared names (Family, Full, PostScript, Typographic
+        // from the name table) so a request using an abbreviated or alternate spelling — e.g.
+        // "Trade Gothic Next Cond" for Trade_Gothic_Next_Condensed — finds this exact file
+        // instead of being suffix-stripped onto a different family ("Trade Gothic Next").
+        // Mirrors the shared FontFileCache, which indexes every declared name. TryAdd keeps
+        // the file-name key (and the first file in ordinal order) authoritative on collisions.
+        foreach (var declaredName in ReadDeclaredNames(path))
+        {
+            index.TryAdd((declaredName.ToLowerInvariant(), bold, italic), path);
+        }
+
         defaultFace ??= path;
+    }
+
+    static IEnumerable<string> ReadDeclaredNames(string path)
+    {
+        try
+        {
+            return OpenTypeReader.ReadFaces(path)
+                .SelectMany(_ => _.Names)
+                .Where(_ => !string.IsNullOrEmpty(_))
+                .ToList();
+        }
+        catch
+        {
+            // A font we can't parse contributes no alternate names; the file-name index
+            // entry still serves it.
+            return [];
+        }
     }
 
     public FontResolverInfo? ResolveTypeface(string familyName, bool isBold, bool isItalic)
