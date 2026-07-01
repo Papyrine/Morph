@@ -1,0 +1,9 @@
+<div class="format-selector">
+    <label for="@($"format-{Label}")">@Label</label>
+    <select id="@($"format-{Label}")" class="format-select" value="@Selected" @onchange="OnChanged">
+        @foreach (var format in Formats)
+        {
+            <option value="@format.Format">@format.DisplayName (@format.Extension)</option>
+        }
+    </select>
+</div>

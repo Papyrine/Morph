@@ -6,6 +6,15 @@
   <ItemGroup>
     <PackageVersion Include="AngleSharp" Version="1.5.1" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
+    <!-- Blazor WASM web app (Morph.Web) + its bUnit/Playwright test project. Versions pinned to
+         match the .NET 10 runtime the web SDK ships. The web projects are in Morph.slnx but excluded
+         from Release solution builds (like RenderHelper), so the linux/amd64 Docker test image — which
+         has no wasm-tools workload — never builds a Blazor app. See Morph.Web/README.md. -->
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.9" />
+    <PackageVersion Include="bunit" Version="2.7.2" />
+    <PackageVersion Include="Verify.Bunit" Version="13.0.3" />
+    <PackageVersion Include="Verify.Playwright" Version="3.1.1" />
     <PackageVersion Include="DocumentFormat.OpenXml" Version="3.5.1" />
     <PackageVersion Include="Magick.NET-Q16-AnyCPU" Version="14.14.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />

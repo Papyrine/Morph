@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- Public test classes carry no XML docs; ProjectDefaults enables doc generation in Release. -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <BlazorPublishDir>$(MSBuildThisFileDirectory)bin\$(Configuration)\blazor-publish\</BlazorPublishDir>
+  </PropertyGroup>
+
+  <!-- Publish the Blazor app as part of build so the Playwright snapshot tests can serve pre-published output. -->
+  <Target Name="PublishBlazorForTests" AfterTargets="Build">
+    <MSBuild Projects="..\Morph.Web\Morph.Web.csproj" Targets="Publish" Properties="Configuration=$(Configuration);PublishDir=$(BlazorPublishDir)" />
+  </Target>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="ProjectFiles" />
+    <PackageReference Include="TUnit" />
+    <PackageReference Include="Verify.TUnit" />
+    <PackageReference Include="Verify.DiffPlex" />
+    <PackageReference Include="Verify.Playwright" />
+    <PackageReference Include="Verify.Bunit" />
+    <PackageReference Include="bunit" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" />
+    <PackageReference Include="Microsoft.Playwright" />
+    <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
+    <ProjectReference Include="..\Morph.Web\Morph.Web.csproj" />
+  </ItemGroup>
+
+  <!-- The service/bUnit tests need a real DOCX and the Aptos faces the PDF export resolves against;
+       copy both out of the web app so the tests are self-contained. -->
+  <ItemGroup>
+    <Content Include="..\Morph.Web\wwwroot\sample\sample.docx" Link="sample.docx" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\Morph.Web\wwwroot\fonts\*.ttf" Link="fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
