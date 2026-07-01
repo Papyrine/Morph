@@ -115,8 +115,23 @@ sealed class DocumentParser(string defaultFont)
 
     public ParsedDocument Parse(Stream stream)
     {
-        using var doc = WordprocessingDocument.Open(stream, false);
-        return ParseDocument(doc);
+        // Translate ISO 29500 Strict documents to Transitional first; the SDK's typed DOM only binds
+        // Transitional namespaces. For the common Transitional case Normalize returns the input stream
+        // unchanged (no copy), so only dispose the result when it produced a fresh buffer — never the
+        // caller's stream.
+        var normalized = StrictToTransitional.Normalize(stream);
+        try
+        {
+            using var doc = WordprocessingDocument.Open(normalized, false);
+            return ParseDocument(doc);
+        }
+        finally
+        {
+            if (!ReferenceEquals(normalized, stream))
+            {
+                normalized.Dispose();
+            }
+        }
     }
 
     ParsedDocument ParseDocument(WordprocessingDocument doc)
@@ -3782,13 +3797,13 @@ sealed class DocumentParser(string defaultFont)
         var topMargin = margin.TopMargin;
         if (topMargin?.Width?.HasValue == true)
         {
-            top = double.Parse(topMargin.Width.Value!) / twipsPerPoint;
+            top = TableWidthToPoints(topMargin.Width.Value!);
             hasAny = true;
         }
 
         if (margin.EndMargin?.Width?.HasValue == true)
         {
-            right = double.Parse(margin.EndMargin.Width.Value!) / twipsPerPoint;
+            right = TableWidthToPoints(margin.EndMargin.Width.Value!);
             hasAny = true;
         }
         else if (margin.TableCellRightMargin?.Width?.HasValue == true)
@@ -3800,13 +3815,13 @@ sealed class DocumentParser(string defaultFont)
         var bottomMargin = margin.BottomMargin;
         if (bottomMargin?.Width?.HasValue == true)
         {
-            bottom = double.Parse(bottomMargin.Width.Value!) / twipsPerPoint;
+            bottom = TableWidthToPoints(bottomMargin.Width.Value!);
             hasAny = true;
         }
 
         if (margin.StartMargin?.Width?.HasValue == true)
         {
-            left = double.Parse(margin.StartMargin.Width.Value!) / twipsPerPoint;
+            left = TableWidthToPoints(margin.StartMargin.Width.Value!);
             hasAny = true;
         }
         else if (margin.TableCellLeftMargin?.Width?.HasValue == true)
@@ -3818,6 +3833,44 @@ sealed class DocumentParser(string defaultFont)
         return hasAny ? new CellSpacing(top, right, bottom, left) : null;
     }
 
+    // Parses an OOXML table-width measure (CT_TblWidth/@w:w, type ST_MeasurementOrPercent) to points.
+    // Accepts a bare number in twips (the dxa form Word normally writes) or an ST_UniversalMeasure
+    // value carrying an explicit unit (e.g. "0pt", "1.5cm") — Aspose emits the latter for cell
+    // margins. Percent and unparseable values yield 0.
+    static double TableWidthToPoints(string value)
+    {
+        var span = value.AsSpan().Trim();
+        if (span.IsEmpty || span[^1] == '%')
+        {
+            return 0;
+        }
+
+        if (span.Length > 2 && char.IsAsciiLetter(span[^1]) && char.IsAsciiLetter(span[^2]))
+        {
+            if (!double.TryParse(span[..^2], NumberStyles.Float, CultureInfo.InvariantCulture, out var measure))
+            {
+                return 0;
+            }
+
+            return span[^2..].ToString().ToLowerInvariant() switch
+            {
+                "pt" => measure,
+                "pc" or "pi" => measure * 12,
+                "in" => measure * 72,
+                "cm" => measure * 72 / 2.54,
+                "mm" => measure * 72 / 25.4,
+                _ => 0
+            };
+        }
+
+        if (double.TryParse(span, NumberStyles.Float, CultureInfo.InvariantCulture, out var twips))
+        {
+            return twips / twipsPerPoint;
+        }
+
+        return 0;
+    }
+
     internal static CellSpacing? ParseCellMargin(TableCellMargin margin)
     {
         double top = 0, right = 0, bottom = 0, left = 0;
@@ -3826,36 +3879,36 @@ sealed class DocumentParser(string defaultFont)
         var topMargin = margin.TopMargin;
         if (topMargin?.Width?.HasValue == true)
         {
-            top = double.Parse(topMargin.Width.Value!) / twipsPerPoint;
+            top = TableWidthToPoints(topMargin.Width.Value!);
             hasAny = true;
         }
 
         if (margin.EndMargin?.Width?.HasValue == true)
         {
-            right = double.Parse(margin.EndMargin.Width.Value!) / twipsPerPoint;
+            right = TableWidthToPoints(margin.EndMargin.Width.Value!);
             hasAny = true;
         }
         else if (margin.RightMargin?.Width?.HasValue == true)
         {
-            right = double.Parse(margin.RightMargin.Width.Value!) / twipsPerPoint;
+            right = TableWidthToPoints(margin.RightMargin.Width.Value!);
             hasAny = true;
         }
 
         var bottomMargin = margin.BottomMargin;
         if (bottomMargin?.Width?.HasValue == true)
         {
-            bottom = double.Parse(bottomMargin.Width.Value!) / twipsPerPoint;
+            bottom = TableWidthToPoints(bottomMargin.Width.Value!);
             hasAny = true;
         }
 
         if (margin.StartMargin?.Width?.HasValue == true)
         {
-            left = double.Parse(margin.StartMargin.Width.Value!) / twipsPerPoint;
+            left = TableWidthToPoints(margin.StartMargin.Width.Value!);
             hasAny = true;
         }
         else if (margin.LeftMargin?.Width?.HasValue == true)
         {
-            left = double.Parse(margin.LeftMargin.Width.Value!) / twipsPerPoint;
+            left = TableWidthToPoints(margin.LeftMargin.Width.Value!);
             hasAny = true;
         }
 
