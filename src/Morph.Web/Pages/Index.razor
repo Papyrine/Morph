@@ -1,0 +1,96 @@
+@page "/"
+@inject FileDownloadService FileDownloadService
+@inject HttpClient Http
+@inject IJSRuntime JsRuntime
+
+<PageTitle>Morph — DOCX Converter</PageTitle>
+
+<div class="converter">
+    <div class="upload-panel">
+        <label class="file-drop" for="docx-file">
+            <span class="file-drop-icon">📄</span>
+            <span class="file-drop-text">
+                @if (sourceName is null)
+                {
+                    <strong>Choose a Word document</strong>
+                    <span>A .docx file — converted to PNG, PDF, Markdown or plain text</span>
+                }
+                else
+                {
+                    <strong>@sourceName</strong>
+                    <span>@pageCount page@(pageCount == 1 ? "" : "s")</span>
+                }
+            </span>
+            <InputFile id="docx-file" OnChange="OnFileSelected" class="file-input" accept="@ConversionService.ReadableAccept" />
+        </label>
+
+        <div class="upload-or"><span>or</span></div>
+
+        @* A cover-letter .docx bundled as a static web asset, fetched on demand so it only downloads
+           when asked — never at app startup. *@
+        <button class="sample-btn" @onclick="LoadSampleDocument" disabled="@isBusy">
+            📄 Try a sample document
+        </button>
+    </div>
+
+    @if (errorMessage is not null)
+    {
+        <ErrorPanel Message="@errorMessage" IssueUrl="@issueUrl" />
+    }
+
+    @* The read phase happens before the preview exists, so its progress shows here. The bar is
+       indeterminate — the single-threaded render can't animate it while it's crunching. *@
+    @if (isBusy && !isRendering && docxBytes is null)
+    {
+        <ConversionProgress Label="@progressLabel" Detail="@progressDetail" />
+    }
+
+    @if (docxBytes is not null)
+    {
+        @if (isRendering || previewPages is { Count: > 0 })
+        {
+            <div class="preview">
+                @if (isRendering)
+                {
+                    <div class="preview-busy">
+                        <ConversionProgress Label="@progressLabel" Detail="@progressDetail" />
+                    </div>
+                }
+                else
+                {
+                    @foreach (var pageUrl in previewPages!)
+                    {
+                        <img class="preview-page" src="@pageUrl" alt="Rendered page preview" />
+                    }
+                }
+            </div>
+        }
+
+        <div class="convert-panel">
+            <FormatSelector Label="Convert to"
+                            Formats="ConversionService.WritableFormats"
+                            Selected="target"
+                            SelectedChanged="OnTargetChanged" />
+        </div>
+
+        @* PNG exposes a resolution knob; the text formats (TXT/Markdown/PDF) show a short note. *@
+        <ExportOptions Target="target" Image="image" />
+
+        <div class="download-row">
+            <button class="convert-btn" @onclick="Download" disabled="@isBusy">
+                @if (isBusy)
+                {
+                    <span class="btn-spinner"></span>
+                }
+                Download @TargetInfo?.DisplayName
+            </button>
+        </div>
+
+        @* Clicking Download runs the actual conversion; show its progress right under the button.
+           !isRendering excludes the preview render, which has its own bar above. *@
+        @if (isBusy && !isRendering)
+        {
+            <ConversionProgress Label="@progressLabel" Detail="@progressDetail" />
+        }
+    }
+</div>
