@@ -1,0 +1,34 @@
+@inherits LayoutComponentBase
+@inject ThemePreferenceService ThemePreferenceService
+@inject IJSRuntime JSRuntime
+
+<header>
+    <h1>Morph</h1>
+    <p>Convert Word documents (.docx) to PNG, PDF, Markdown or plain text — entirely in your browser</p>
+    <ThemeToggle CurrentTheme="currentTheme" OnThemeChanged="HandleThemeChanged" />
+</header>
+
+<div class="container">
+    <ErrorBoundary>
+        <ChildContent>
+            @Body
+        </ChildContent>
+        <ErrorContent Context="exception">
+            <ErrorPanel Message="@($"Something went wrong: {exception.Message}")"
+                        IssueUrl="@IssueLauncher.ForException("Unhandled error", exception, AppInfo.Environment(userAgent))" />
+        </ErrorContent>
+    </ErrorBoundary>
+</div>
+
+<footer>
+    Powered by <a href="https://github.com/Papyrine/Morph" target="_blank">Morph</a> — no data leaves your device
+    <span class="footer-version">v@(AppInfo.Version)</span>
+    @if (downloadSize is { } size)
+    {
+        <span class="footer-size" title="Total app download — compressed over the wire / uncompressed">@FormatMb(size.Zipped) zipped · @FormatMb(size.Unzipped) unzipped</span>
+    }
+    @if (liveBytes is { } live && peakBytes is { } peak)
+    {
+        <span class="footer-ram" title="Memory the app is using — live .NET heap now / peak WebAssembly heap (never shrinks)">@FormatMb(live) RAM (@FormatMb(peak) peak)</span>
+    }
+</footer>

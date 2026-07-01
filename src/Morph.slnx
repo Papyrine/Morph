@@ -19,4 +19,17 @@
   <Project Path="Tests/Tests.csproj" />
   <Project Path="StaticSettingTests/StaticSettingTests.csproj" />
   <Project Path="Benchmarks/Benchmarks.csproj" />
+  <!--
+    The Blazor WASM converter app and its bUnit/Playwright tests. Like RenderHelper above, these are
+    excluded from Release solution builds: the canonical rendering suite builds inside a linux/amd64
+    Docker image with no wasm-tools workload, where a Blazor project can't build (the container's
+    full-solution build is `dotnet build src -c Release`). They still build locally in Debug and are
+    built by path in .github/workflows/deploy-blazor.yml. See Morph.Web/README.md.
+  -->
+  <Project Path="Morph.Web/Morph.Web.csproj">
+    <Build Solution="Release|*" Project="false" />
+  </Project>
+  <Project Path="Morph.Web.Tests/Morph.Web.Tests.csproj">
+    <Build Solution="Release|*" Project="false" />
+  </Project>
 </Solution>
