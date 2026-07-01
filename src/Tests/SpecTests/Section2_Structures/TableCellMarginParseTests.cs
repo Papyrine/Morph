@@ -114,4 +114,60 @@ public class TableCellMarginParseTests
 
         await Assert.That(result).IsNull();
     }
+
+    // The width can be a bare twips count (the dxa form Word writes) or an ST_UniversalMeasure value
+    // carrying an explicit unit — Aspose emits e.g. "0pt" for cell margins. TableWidthToPoints handles
+    // both; the unit-bearing forms are exercised here.
+
+    [Test]
+    public async Task TableCellMargin_ZeroPointUnit_IsZero()
+    {
+        var margin = new TableCellMargin(
+            $"""<w:tcMar {wNs}><w:top w:w="0pt" w:type="dxa"/><w:start w:w="0pt" w:type="dxa"/><w:bottom w:w="0pt" w:type="dxa"/><w:end w:w="0pt" w:type="dxa"/></w:tcMar>""");
+
+        var result = DocumentParser.ParseCellMargin(margin);
+
+        await Assert.That(result).IsNotNull();
+        await Assert.That(result!.Top).IsEqualTo(0);
+        await Assert.That(result.Left).IsEqualTo(0);
+        await Assert.That(result.Right).IsEqualTo(0);
+        await Assert.That(result.Bottom).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task TableCellMargin_UniversalMeasureUnits_ConvertToPoints()
+    {
+        var margin = new TableCellMargin(
+            $"""<w:tcMar {wNs}><w:top w:w="18pt" w:type="dxa"/><w:start w:w="1in" w:type="dxa"/><w:bottom w:w="1pc" w:type="dxa"/><w:end w:w="72pt" w:type="dxa"/></w:tcMar>""");
+
+        var result = DocumentParser.ParseCellMargin(margin);
+
+        await Assert.That(result!.Top).IsEqualTo(18);   // 18pt
+        await Assert.That(result.Left).IsEqualTo(72);   // 1in = 72pt
+        await Assert.That(result.Bottom).IsEqualTo(12); // 1pc = 12pt
+        await Assert.That(result.Right).IsEqualTo(72);  // 72pt
+    }
+
+    [Test]
+    public async Task TableCellMargin_CentimetreUnit_ConvertsToPoints()
+    {
+        var margin = new TableCellMargin(
+            $"""<w:tcMar {wNs}><w:start w:w="1cm" w:type="dxa"/><w:end w:w="1cm" w:type="dxa"/></w:tcMar>""");
+
+        var result = DocumentParser.ParseCellMargin(margin);
+
+        await Assert.That(result!.Left).IsEqualTo(1 * 72 / 2.54).Within(1e-9);
+        await Assert.That(result.Right).IsEqualTo(1 * 72 / 2.54).Within(1e-9);
+    }
+
+    [Test]
+    public async Task TableCellMargin_PercentValue_IsZero()
+    {
+        var margin = new TableCellMargin(
+            $"""<w:tcMar {wNs}><w:top w:w="50%" w:type="pct"/></w:tcMar>""");
+
+        var result = DocumentParser.ParseCellMargin(margin);
+
+        await Assert.That(result!.Top).IsEqualTo(0);
+    }
 }
