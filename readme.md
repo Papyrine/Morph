@@ -6,6 +6,8 @@
 
 A .NET library that converts Microsoft Word DOCX documents or HTML content into PNG images.
 
+**[Try it live in the browser](https://papyrine.github.io/Morph/)** — a Blazor WebAssembly app that converts a DOCX to PNG, PDF, Markdown or plain text client-side, built on `Morph.ImageSharp` and `Morph.Pdf`.
+
 
 ## Open Source Maintenance Fee
 

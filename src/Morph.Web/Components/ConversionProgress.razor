@@ -1,0 +1,19 @@
+@* An indeterminate progress bar for the read/render/convert phases. Morph's converters run to
+   completion without a per-item progress callback, so the bar always animates; the optional Detail
+   line reports a fact known after the fact (e.g. the page count) or the phase's target. *@
+
+<div class="progress" role="progressbar" aria-label="@(Label ?? "Working")">
+    <div class="progress-track">
+        <div class="progress-fill progress-fill-indeterminate"></div>
+    </div>
+    @if (Label is not null)
+    {
+        <div class="progress-label">
+            <span>@Label</span>
+            @if (Detail is not null)
+            {
+                <span class="progress-count">@Detail</span>
+            }
+        </div>
+    }
+</div>

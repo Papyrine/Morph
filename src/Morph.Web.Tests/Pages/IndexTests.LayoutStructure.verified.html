@@ -1,0 +1,18 @@
+﻿<div class="converter">
+  <div class="upload-panel">
+    <label class="file-drop" for="docx-file">
+      <span class="file-drop-icon">📄</span>
+      <span class="file-drop-text">
+        <strong>Choose a Word document</strong>
+        <span>A .docx file — converted to PNG, PDF, Markdown or plain text</span>
+      </span>
+      <input id="docx-file" class="file-input" accept=".docx" type="file" blazor:elementreference="scrubbed">
+    </label>
+    <div class="upload-or">
+      <span>or</span>
+    </div>
+    <button class="sample-btn" blazor:onclick="1">
+      📄 Try a sample document
+    </button>
+  </div>
+</div>

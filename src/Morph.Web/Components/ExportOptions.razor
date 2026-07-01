@@ -1,0 +1,32 @@
+@* Loads the option control for the selected output format. PNG exposes a render resolution; the
+   text formats (TXT, Markdown, PDF) have no knobs and show a short note instead. The host passes the
+   shared image-settings object, which the resolution editor mutates in place. *@
+
+@switch (Target)
+{
+    case OutputFormat.Png:
+        <div class="image-options">
+            <div class="format-selector">
+                <label for="dpi-select">Resolution</label>
+                <select id="dpi-select" class="format-select" @bind="Image.Dpi">
+                    @foreach (var option in ExportOptionChoices.Dpis)
+                    {
+                        <option value="@option.Value">@option.Label</option>
+                    }
+                </select>
+            </div>
+            <p class="option-note">Applies to the downloaded image. The preview above is a fixed-size thumbnail.</p>
+        </div>
+        break;
+    default:
+        <p class="no-options">No export options for @(ConversionService.Find(Target)?.DisplayName ?? Target.ToString()).</p>
+        break;
+}
+
+@code {
+    [Parameter]
+    public OutputFormat Target { get; set; }
+
+    [Parameter]
+    public ImageSettings Image { get; set; } = new();
+}

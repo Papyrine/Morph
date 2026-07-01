@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html><html lang="en" data-theme="dark" style="--blazor-load-percentage: 100%; --blazor-load-percentage-text: &quot;100%&quot;;"><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <base href="/">
+    <!-- Establishes cross-origin isolation (SharedArrayBuffer) for the multithreaded WASM runtime.
+         Must run before blazor.webassembly.js so isolation is in place before the runtime boots. -->
+    <script src="coi.js"></script>
+    <!-- Preload critical resources -->
+    <link rel="preload" href="css/app.css" as="style">
+    <link rel="preload" href="_framework/blazor.webassembly.js" as="script">
+    <link rel="preload" href="js/interop.js" as="script">
+    <link rel="stylesheet" href="css/app.css">
+<!--!--><!--!--><!--!--><title><!--!-->Morph — DOCX Converter</title><!--!--><!--!--><!--!--></head>
+
+<body>
+    <div id="app"><!--!--><!--!--><!--!--><!--!--><header><!--!--><h1 tabindex="-1">Morph</h1>
+    <!--!--><p>Convert Word documents (.docx) to PNG, PDF, Markdown or plain text — entirely in your browser</p>
+    <!--!--><div class="theme-toggle"><button class="theme-toggle-btn" aria-label="Toggle theme"><!--!--><span class="icon">☀️</span><!--!--><span class="text"> Light</span></button></div></header><!--!-->
+
+<div class="container"><!--!--><!--!--><!--!--><!--!--><!--!-->
+
+<div class="converter"><div class="upload-panel"><label class="file-drop" for="docx-file"><!--!--><span class="file-drop-icon">📄</span>
+            <span class="file-drop-text"><!--!--><strong>Choose a Word document</strong>
+                    <!--!--><span>A .docx file — converted to PNG, PDF, Markdown or plain text</span></span><!--!-->
+            <!--!--><input id="docx-file" class="file-input" accept=".docx" type="file" _bl_2="" style="caret-color: transparent !important;"></label><!--!-->
+
+        <!--!--><div class="upload-or"><span>or</span></div>
+
+        <button class="sample-btn"><!--!-->
+            📄 Try a sample document
+        </button></div></div></div><!--!-->
+
+<footer><!--!-->
+    Powered by <!--!--><a href="https://github.com/Papyrine/Morph" target="_blank">Morph</a> — no data leaves your device
+    <span class="footer-version">scrubbed</span><span class="footer-size" title="Total app download — compressed over the wire / uncompressed">scrubbed</span><span class="footer-ram" title="Memory the app is using — live .NET heap now / peak WebAssembly heap (never shrinks)">scrubbed</span></footer><!--!-->
+        <!--!--></div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">X</a>
+    </div>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="js/interop.js"></script>
+    <script>
+        window.themeManager.initializeTheme();
+    </script>
+
+
+
+</body></html>
