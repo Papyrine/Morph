@@ -278,12 +278,17 @@ header p {
 
 .progress-fill-indeterminate {
     width: 40%;
+    /* Animate transform, not margin-left. A conversion blocks the UI thread on the single-threaded
+       runtime; a main-thread (layout) animation freezes with it, whereas a compositor-driven transform
+       keeps sliding — so the bar stays alive while the render churns. will-change promotes it to its own
+       layer so the compositor owns the animation. */
     animation: progress-indeterminate 1.2s ease-in-out infinite;
+    will-change: transform;
 }
 
 @keyframes progress-indeterminate {
-    0% { margin-left: -40%; }
-    100% { margin-left: 100%; }
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(250%); }
 }
 
 .progress-label {
