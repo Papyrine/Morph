@@ -22,6 +22,13 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # SponsorCheck (referenced by Morph/Morph.ImageSharp/Morph.Pdf) is for the nuget pack builds and
+    # needs a GitHub credential this deploy has no reason to hold. The csprojs already drop the
+    # SponsorCheck reference when MORPH_TEST_CONTAINER=1 (the flag the linux/amd64 test container sets for
+    # its compile-and-test-only build). This deploy is the same shape — it compiles, tests and publishes
+    # the web app but never packs — so reuse that gate. It has no runtime effect on Morph.
+    env:
+      MORPH_TEST_CONTAINER: '1'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
