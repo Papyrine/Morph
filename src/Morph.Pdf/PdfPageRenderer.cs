@@ -604,7 +604,7 @@ sealed class PdfPageRenderer : PageRendererBase
 
         if (shape is {LineColorHex: { } lineColor, LineWidthPoints: { } lineWidth and > 0})
         {
-            StrokeShape(shape, x, y, shapeWidth, shapeHeight, new XPen(PdfRenderContext.ParseColor(lineColor), Math.Max(0.4, lineWidth)));
+            StrokeShape(shape, x, y, shapeWidth, shapeHeight, new(PdfRenderContext.ParseColor(lineColor), Math.Max(0.4, lineWidth)));
         }
     }
 

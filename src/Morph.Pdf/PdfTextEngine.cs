@@ -290,7 +290,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             return;
         }
 
-        graphics.DrawString(new string(leaderChar, count), item.Font, new XSolidBrush(color), new XPoint(penX, baseline), baselineFormat);
+        graphics.DrawString(new(leaderChar, count), item.Font, new XSolidBrush(color), new XPoint(penX, baseline), baselineFormat);
     }
 
     static void DrawImage(XGraphics? graphics, LineItem item, double penX, double baseline)
