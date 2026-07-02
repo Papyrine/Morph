@@ -23,7 +23,7 @@ static class DefaultFontSettings
     /// <summary>
     /// Gets or sets the font width scale factor for text measurements.
     /// Values > 1.0 make text appear wider (causes earlier line wrapping).
-    /// Default is 1.0. Use 1.07 to better match Microsoft Word's text rendering.
+    /// Default is 1.0. Use 1.08 to better match Microsoft Word's text rendering.
     /// Must be set before the first render; attempts to change it after any
     /// conversion has started will throw <see cref="InvalidOperationException"/>.
     /// </summary>

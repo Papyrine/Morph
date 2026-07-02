@@ -58,7 +58,7 @@ public class ImageSharpSamples
         var options = new ImageExportOptions
         {
             Dpi = 300,
-            FontWidthScale = 1.07
+            FontWidthScale = 1.08
         };
 
         var result = converter.ConvertToImages(

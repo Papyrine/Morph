@@ -73,8 +73,8 @@ All font-related configuration lives on [`ConversionOptions`](../src/Morph/Conve
 |---|---|---|---|
 | `FontDirectory` | `string?` | `null` | Path to a directory of fonts to use exclusively. When set, system/user/Office/cloud caches and OS font fallbacks are bypassed. |
 | `FontFallback` | `Func<string, string?>?` | `null` | Called when a requested font isn't resolved any other way. Return an alternative family name or `null` to throw. |
-| `DefaultFont` | `string?` | `null` (uses `Georgia`) | Family used when the document doesn't declare a default in `docDefaults`. Per-conversion override; doesn't affect other callers. |
-| `FontWidthScale` | `double` | `1.0` | Scale factor for measured glyph advances. `1.07` better matches Microsoft Word's text rendering and causes earlier line wrapping to compensate for Skia/ImageSharp running glyphs slightly tighter than GDI. |
+| `DefaultFont` | `string?` | `null` (uses `Aptos`) | Family used when the document doesn't declare a default in `docDefaults`. Per-conversion override; doesn't affect other callers. |
+| `FontWidthScale` | `double` | `1.0` | Scale factor for measured glyph advances. `1.08` better matches Microsoft Word's text rendering and causes earlier line wrapping to compensate for Skia/ImageSharp running glyphs slightly tighter than GDI. |
 | `DeterministicRendering` | `bool?` | `null` (uses static default `false`) | When `true`, the Skia backend disables sub-pixel positioning and font hinting, falling back to integer-positioned greyscale anti-aliasing. Output is pixel-identical across machines and rasterizer versions; text is slightly softer. Intended for snapshot tests; leave off in production. |
 
 ## Recipes
@@ -114,7 +114,7 @@ Returning `null` propagates to the next fallback tier (the OS font manager); thr
 Word's GDI rendering tends to be slightly looser than Skia/ImageSharp. If long lines are wrapping later than Word does, scale glyph advances up by ~7%:
 
 ```csharp
-var options = new ConversionOptions { FontWidthScale = 1.07 };
+var options = new ConversionOptions { FontWidthScale = 1.08 };
 ```
 
 ## Why this differs from `SKTypeface.FromFamilyName`
