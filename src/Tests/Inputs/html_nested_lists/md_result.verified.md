@@ -14,14 +14,17 @@
 
 Nested ordered lists:
 
-1. First                      First sub-item             Second sub-item
+1\. First\
+\
+First sub-item\
+Second sub-item
 
-2. Second
+2\. Second
 
 Mixed nested lists:
 
 • Bullet item
 
-1. Numbered sub-item 1
+1\. Numbered sub-item 1
 
-2. Numbered sub-item 2
+2\. Numbered sub-item 2

@@ -14,6 +14,6 @@ I am confident that Adrian will continue to make valuable contributions wherever
 
 Best Regards,
 
- Your Name
+Your Name
 
 Your Position

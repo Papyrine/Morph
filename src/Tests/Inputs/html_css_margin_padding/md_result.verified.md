@@ -8,7 +8,7 @@ Paragraph with 20px margin all around
 
 Content inside padded div
 
-     Paragraph with 15px padding and visible background 
+Paragraph with 15px padding and visible background
 
 Paragraph with extra vertical margins
 

@@ -1,6 +1,7 @@
 ﻿Page 1, first paragraph.
 
-Line 1 Line 2 (after line break)
+Line 1\
+Line 2 (after line break)
 
 Page 2 content.
 

@@ -31,7 +31,7 @@ Tables can contain other tables within their cells for complex layouts.
 | **NESTED TABLE EXAMPLE** |  |  |  |
 | --- | --- | --- | --- |
 | **Q1** | **Q2** | **Q3** | **Q4** |
-| $25K |  | $35K | $40K |
+| $25K | **Apr** **May** $12K $18K | $35K | $40K |
 
 ## 4. Complex Mixed Merging
 

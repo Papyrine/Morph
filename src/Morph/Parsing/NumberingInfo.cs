@@ -9,6 +9,13 @@ sealed record NumberingInfo
     public required string Text { get; init; }
 
     /// <summary>
+    /// Zero-based multilevel-list level (<c>w:ilvl</c>). Null when the source carries no level
+    /// concept (e.g. a synthetic document). The exporters use this to reconstruct list nesting;
+    /// visual indentation is resolved separately into <see cref="ParagraphProperties.LeftIndentPoints"/>.
+    /// </summary>
+    public int? Level { get; init; }
+
+    /// <summary>
     /// Font family for the numbering text. Null means use paragraph font.
     /// </summary>
     public string? FontFamily { get; init; }

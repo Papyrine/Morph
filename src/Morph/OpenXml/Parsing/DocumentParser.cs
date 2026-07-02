@@ -2387,6 +2387,7 @@ sealed class DocumentParser(string defaultFont)
         return new()
         {
             Text = text,
+            Level = ilvl,
             FontFamily = levelDef.FontFamily,
             IndentPoints = levelDef.LeftIndentPoints,
             HangingIndentPoints = levelDef.HangingIndentPoints

@@ -22,12 +22,21 @@ hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 <body style="font-family: Aptos, sans-serif">
 <p>Nested list:</p>
 <ul>
-  <li>Main item 1</li>
-  <li>Sub-item 1.1</li>
-  <li>Sub-item 1.2</li>
-  <li>Main item 2</li>
-  <li>Sub-item 2.1</li>
-  <li>Sub-sub-item 2.1.1</li>
+  <li>Main item 1
+    <ul>
+      <li>Sub-item 1.1</li>
+      <li>Sub-item 1.2</li>
+    </ul>
+  </li>
+  <li>Main item 2
+    <ul>
+      <li>Sub-item 2.1
+        <ul>
+          <li>Sub-sub-item 2.1.1</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
 </ul>
 </body>
 </html>

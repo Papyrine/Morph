@@ -12,6 +12,6 @@ List B (numId=2, same abstractNum, restarts at 1 via startOverride):
 
 List C (numId=3, starts at 10 via startOverride):
 
-1. Red
-2. Green
-3. Blue
+10. Red
+11. Green
+12. Blue
