@@ -1,0 +1,108 @@
+﻿[
+  {
+    "Runs": [
+      {
+        "Text": "five",
+        "Properties": {
+          "FontFamily": "Times New Roman",
+          "FontSizePoints": 11.0,
+          "Bold": false,
+          "Italic": false,
+          "Underline": false,
+          "Strikethrough": false,
+          "AllCaps": false,
+          "SmallCaps": false,
+          "Ligatures": "Standard",
+          "IsRightToLeft": false,
+          "HasReflection": false,
+          "Hidden": false,
+          "Emboss": false,
+          "Imprint": false,
+          "OutlineOnly": false
+        },
+        "IsTab": false
+      }
+    ],
+    "Properties": {
+      "SpacingAfterPoints": 4.0,
+      "LineSpacingMultiplier": 1.08,
+      "LeftIndentPoints": 36.0,
+      "HangingIndentPoints": 18.0,
+      "ContextualSpacing": false,
+      "SuppressLineNumbers": false,
+      "SuppressAutoHyphens": false,
+      "Numbering": {
+        "Text": "5.",
+        "Level": 0,
+        "IndentPoints": 36.0,
+        "HangingIndentPoints": 18.0
+      },
+      "KeepLines": false,
+      "KeepNext": false,
+      "WidowControl": true,
+      "PageBreakBefore": false,
+      "BorderBetween": {
+        "IsVisible": false,
+        "WidthPoints": 0.5,
+        "ColorHex": "000000"
+      },
+      "DefaultTabStopPoints": 36.0,
+      "IsRightToLeft": false,
+      "MirrorIndents": false
+    },
+    "IsAnchorOnlyMark": false
+  },
+  {
+    "Runs": [
+      {
+        "Text": "six",
+        "Properties": {
+          "FontFamily": "Times New Roman",
+          "FontSizePoints": 11.0,
+          "Bold": false,
+          "Italic": false,
+          "Underline": false,
+          "Strikethrough": false,
+          "AllCaps": false,
+          "SmallCaps": false,
+          "Ligatures": "Standard",
+          "IsRightToLeft": false,
+          "HasReflection": false,
+          "Hidden": false,
+          "Emboss": false,
+          "Imprint": false,
+          "OutlineOnly": false
+        },
+        "IsTab": false
+      }
+    ],
+    "Properties": {
+      "SpacingAfterPoints": 4.0,
+      "LineSpacingMultiplier": 1.08,
+      "LeftIndentPoints": 36.0,
+      "HangingIndentPoints": 18.0,
+      "ContextualSpacing": false,
+      "SuppressLineNumbers": false,
+      "SuppressAutoHyphens": false,
+      "Numbering": {
+        "Text": "6.",
+        "Level": 0,
+        "IndentPoints": 36.0,
+        "HangingIndentPoints": 18.0
+      },
+      "KeepLines": false,
+      "KeepNext": false,
+      "WidowControl": true,
+      "PageBreakBefore": false,
+      "BorderBetween": {
+        "IsVisible": false,
+        "WidthPoints": 0.5,
+        "ColorHex": "000000"
+      },
+      "DefaultTabStopPoints": 36.0,
+      "IsRightToLeft": false,
+      "MirrorIndents": false
+    },
+    "IsAnchorOnlyMark": false
+  }
+]

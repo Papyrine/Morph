@@ -864,8 +864,8 @@ sealed class TextRenderer(SkiaRenderContext context) :
     /// </summary>
     void RenderBullet(SKCanvas canvas, NumberingInfo numbering, float baselineY, ParagraphElement paragraph)
     {
-        // Position bullet at the cascaded paragraph indent (style's <w:ind> wins over the
-        // numbering level's, per the OOXML cascade), not the raw numbering value.
+        // Position bullet at the cascaded paragraph indent (the parser resolves direct,
+        // numbering-level and style <w:ind> per Word's precedence), not the raw numbering value.
         var bulletX = context.ContentLeft + (float)paragraph.Properties.LeftIndentPoints - (float)paragraph.Properties.HangingIndentPoints;
         var pixelX = context.PointsToPixels(bulletX);
         var pixelY = context.PointsToPixels(baselineY);

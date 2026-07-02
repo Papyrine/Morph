@@ -93,7 +93,7 @@
   {
     "Runs": [
       {
-        "Text": "• Item",
+        "Text": "Item",
         "Properties": {
           "FontFamily": "Times New Roman",
           "FontSizePoints": 11.0,
@@ -117,10 +117,17 @@
     "Properties": {
       "SpacingAfterPoints": 4.0,
       "LineSpacingMultiplier": 1.08,
-      "LeftIndentPoints": 18.0,
+      "LeftIndentPoints": 36.0,
+      "HangingIndentPoints": 18.0,
       "ContextualSpacing": false,
       "SuppressLineNumbers": false,
       "SuppressAutoHyphens": false,
+      "Numbering": {
+        "Text": "•",
+        "Level": 0,
+        "IndentPoints": 36.0,
+        "HangingIndentPoints": 18.0
+      },
       "KeepLines": false,
       "KeepNext": false,
       "WidowControl": true,

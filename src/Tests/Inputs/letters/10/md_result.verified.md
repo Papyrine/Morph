@@ -1,4 +1,5 @@
-﻿**First Up  Consultants** 
+﻿**First Up \
+Consultants** 
 
 # To
 
@@ -8,7 +9,8 @@ Wide World Importers 
 
 shams@wideworldimporters.com 
 
-123 South St. Manhattan, NY 15161 
+123 South St.\
+Manhattan, NY 15161 
 
 # 4.4.20XX
 

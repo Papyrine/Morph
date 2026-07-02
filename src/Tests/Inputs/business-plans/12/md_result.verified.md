@@ -50,7 +50,7 @@ Suggested headings to organize this business plan include the following.
 - **Ownership:** Who are the major stakeholders in the company?
 - **Expected returns:** What are the key milestones for revenue, profits, growth, and customers?
 
-1. **company overview**
+2. **company overview**
 
 The Company Overview is a brief summary of the intended business, including what it uniquely delivers, the mission, how it got started, market positioning, operational structure, and financial goals. After reviewing this section, the reader should have a broad understanding of what the business is setting out to do and how it is organized.
 
@@ -63,7 +63,7 @@ This section is not meant to be lengthy. Keep it short and succinct. This is a s
 - **Operational structure:** This describes the operational details of the business. List any potential employees needed on the payroll to make the business run.
 - **Financial goals:** This describes the start-up capital needed, projected revenue and profits, forecast, and budget of the business.
 
-1. **business description**
+3. **business description**
 
 This section will first frame the business opportunity and should answer the question: what problem(s) is the company trying to solve? Use a case example to describe the customers’ pain point and how it is solved today. If the business’ service addresses something the market has yet to identify as a problem (for instance, a new mobile app or a new clothing line), then also describe how the business’ solution reduces stress, saves money, or brings joy to the customer.
 
@@ -80,7 +80,7 @@ Depending on the type of business, the following sections may or may not be nece
     - Note the difference between working hours and billable hours. All working hours are not billable. If the business has employees with differing skill levels (for example, in a law practice, there are associates, paralegals, lawyers, partners, etc.), indicate the various billing rates.
     - Communicate rates clearly to clients and customers. If there are potential additional fees which will be passed on to clients or customers, define and establish them up front.
 
-1. **market analysis**
+4. **market analysis**
 
 The Market Analysis provides the reader with an understanding of how well the business knows and understands its market and if it is big enough to support the business objectives. This section provides an overview of the industry that the business will participate in. As this section is narrowed down to the ideal customer based on the business strategy, the plan will define the target market. A detailed description and sizing of the target market will help the reader understand the market value the business is pursuing (the number of potential customers multiplied by the average revenue for the product or service). 
 
@@ -100,7 +100,7 @@ Depending on the type of business, the following sections may or may not be nece
 | --- | --- | --- |
 | **OPPORTUNITIES** Areas to improve New segments Industry trends New products New innovations Key partnership |  | **THREATS** Economy movement Obstacles faced Competitor actions Political impacts Environmental effects Loss of key staff Market demand |
 
-1. **operating plan**
+5. **operating plan**
 
 Additionally, it is necessary to outline how the company will continue to develop and maintain a loyal customer base. This section includes management responsibilities. What are the envisioned phases for future growth and the capabilities that need to be in place to realize growth?
 
@@ -114,7 +114,7 @@ Depending on the type of business, the following sections may or may not be nece
 - **Key customers:** Identify any customers that are important to the success of the business due to a partnership, volume, or pathway to a new market. Also identify any customers who bring in more than 10% of the company’s revenues.
 - **Key employees and organization:** Describe unique skills or experiences that are required of the current team. If necessary, describe any proprietary recruiting or training processes in place. List key employees that are necessary for success. Include an organization chart to support this section.
 
-1. **marketing and sales plan**
+6. **marketing and sales plan**
 
 Promoting the business, whether through generating leads or traffic to a website or store, is one of the most important functions of any business. In this section of the plan, provide details of the intended marketing of the business. Describe the key messages and channels used for generating leads and promoting the business. This section should also describe any sales strategy. Depending on the type of business, the following sections may or may not be necessary. Only include what is needed and remove everything else.
 
@@ -132,7 +132,7 @@ Promoting the business, whether through generating leads or traffic to a website
     - Do free work for local non-profits (such as an ad agency designing a local farmer’s market’s website for free)
 - **Sales strategy:** If needed, what will be the sales approach? Will there be full-time commissioned salespeople, contract sales, or another approach? Many one-on-one service businesses are heavily reliant on word of mouth. Take this into account when developing the sales strategy.
 
-1. **financial plan**
+7. **financial plan**
 
 Creating a financial plan is where all of the business planning comes together. Up to this point, the target market, target customers, and pricing have all been identified. These items, along with assumptions, will help estimate the company’s sales forecast. The other side of the business will be what expenses are expected. This is important on an ongoing basis to see when the business is profitable. It is also important to know what expenses will need to be funded before customer sales, or the cash they generate, is received. 
 

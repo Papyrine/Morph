@@ -22,18 +22,36 @@ hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 <body style="font-family: Aptos, sans-serif">
 <p>Deeply nested list with 5 levels:</p>
 <ul>
-  <li>Level 1 - Item A</li>
-  <li>Level 2 - Item A.1</li>
-  <li>Level 3 - Item A.1.a</li>
-  <li>Level 4 - Item A.1.a.i</li>
-  <li>Level 5 - Item A.1.a.i.α</li>
-  <li>Level 5 - Item A.1.a.i.β</li>
-  <li>Level 4 - Item A.1.a.ii</li>
-  <li>Level 3 - Item A.1.b</li>
-  <li>Level 2 - Item A.2</li>
-  <li>Level 1 - Item B</li>
-  <li>Level 2 - Item B.1</li>
-  <li>Level 3 - Item B.1.a</li>
+  <li>Level 1 - Item A
+    <ul>
+      <li>Level 2 - Item A.1
+        <ul>
+          <li>Level 3 - Item A.1.a
+            <ul>
+              <li>Level 4 - Item A.1.a.i
+                <ul>
+                  <li>Level 5 - Item A.1.a.i.α</li>
+                  <li>Level 5 - Item A.1.a.i.β</li>
+                </ul>
+              </li>
+              <li>Level 4 - Item A.1.a.ii</li>
+            </ul>
+          </li>
+          <li>Level 3 - Item A.1.b</li>
+        </ul>
+      </li>
+      <li>Level 2 - Item A.2</li>
+    </ul>
+  </li>
+  <li>Level 1 - Item B
+    <ul>
+      <li>Level 2 - Item B.1
+        <ul>
+          <li>Level 3 - Item B.1.a</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
 </ul>
 </body>
 </html>

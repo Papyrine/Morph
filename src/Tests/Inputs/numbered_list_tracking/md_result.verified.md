@@ -8,8 +8,8 @@
 
 Interrupted, then continues:
 
-1. Sixth item
-2. Seventh item
+6. Sixth item
+7. Seventh item
 
 Second list (restarts at 1):
 

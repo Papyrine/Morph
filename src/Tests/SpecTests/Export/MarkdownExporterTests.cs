@@ -159,4 +159,191 @@ public class MarkdownExporterTests
                 Para(TextRun("below"))));
         return Verify(export, extension: "md");
     }
+
+    [Test]
+    public Task HardLineBreak()
+    {
+        // w:br arrives as '\n' in run text — body paragraphs render it as a Pandoc backslash
+        // hard break; a break at the very end of the paragraph is dropped.
+        var export = MarkdownExporter.Export(
+            Doc(
+                Para(TextRun("First line\nSecond line")),
+                Para(TextRun("trailing break dropped\n"))));
+        return Verify(export, extension: "md");
+    }
+
+    [Test]
+    public Task HardLineBreakContinuationEscaped()
+    {
+        // The continuation line after a hard break starts a new source line, so text that would
+        // re-parse as a block construct ("- x", "> y") gets its lead character escaped.
+        var export = MarkdownExporter.Export(
+            Doc(
+                Para(TextRun("Shopping:\n- milk\n- eggs"))));
+        return Verify(export, extension: "md");
+    }
+
+    [Test]
+    public Task LineBreakInTableCellBecomesSpace()
+    {
+        var export = MarkdownExporter.Export(
+            Doc(
+                Table(
+                    Row(header: true, "a", "b"),
+                    Row(header: false, "one\ntwo", "c"))));
+        return Verify(export, extension: "md");
+    }
+
+    [Test]
+    public Task HiddenRunsDropped()
+    {
+        // Hidden (w:vanish) text is skipped everywhere — including inside a hyperlink, where the
+        // two visible fragments merge into one link text.
+        var hidden = new Run
+        {
+            Text = "secret",
+            Properties = new()
+            {
+                Hidden = true
+            }
+        };
+        var hiddenLinked = new Run
+        {
+            Text = "secret",
+            HyperlinkUrl = "https://example.com",
+            Properties = new()
+            {
+                Hidden = true
+            }
+        };
+        var export = MarkdownExporter.Export(
+            Doc(
+                Para(TextRun("visible "), hidden, TextRun("tail")),
+                Para(
+                    TextRun("go", url: "https://example.com"),
+                    hiddenLinked,
+                    TextRun(" here", url: "https://example.com"))));
+        return Verify(export, extension: "md");
+    }
+
+    [Test]
+    public Task EscapesBlockStarters()
+    {
+        var export = MarkdownExporter.Export(
+            Doc(
+                Para(TextRun("# not a heading")),
+                Para(TextRun("> not a quote")),
+                Para(TextRun("- not a bullet")),
+                Para(TextRun("1998. was a year")),
+                Para(TextRun("--- not a rule")),
+                Para(TextRun("#hashtag stays"))));
+        return Verify(export, extension: "md");
+    }
+
+    [Test]
+    public Task EscapesHtmlAndEntities()
+    {
+        // '<' would inject raw HTML when the Markdown renders; "&copy;" would decode to ©.
+        // A bare ampersand stays untouched.
+        var export = MarkdownExporter.Export(
+            Doc(
+                Para(TextRun("use <b>tags</b> at AT&T for &copy; and &#169;"))));
+        return Verify(export, extension: "md");
+    }
+
+    [Test]
+    public Task OrderedListStartNumber()
+    {
+        // A startOverride list renders markers "10." / "11."; the export keeps the real ordinals.
+        var export = MarkdownExporter.Export(
+            Doc(
+                ListItem("10.", 18, "ten"),
+                ListItem("11.", 18, "eleven")));
+        return Verify(export, extension: "md");
+    }
+
+    [Test]
+    public Task NestedListFromLevels()
+    {
+        // ListParagraph-styled lists have one flat style indent for every level; nesting must
+        // follow the w:ilvl levels, not the visual indent.
+        var export = MarkdownExporter.Export(
+            Doc(
+                LevelListItem("•", 0, "level 0"),
+                LevelListItem("o", 1, "level 1"),
+                LevelListItem("▪", 2, "level 2"),
+                LevelListItem("•", 0, "level 0 again")));
+        return Verify(export, extension: "md");
+    }
+
+    [Test]
+    public Task NestedListFromIndentsAtSameLevel()
+    {
+        // ListBullet / ListBullet2-style documents: every item is level 0 of its own one-level
+        // list, so the nesting exists only in the visual indent.
+        static ParagraphElement Item(int level, double indent, string text) =>
+            new()
+            {
+                Runs = [TextRun(text)],
+                Properties = new()
+                {
+                    LeftIndentPoints = indent,
+                    Numbering = new()
+                    {
+                        Text = "•",
+                        Level = level
+                    }
+                }
+            };
+
+        var export = MarkdownExporter.Export(
+            Doc(
+                Item(0, 18, "outer"),
+                Item(0, 36, "inner"),
+                Item(0, 18, "outer again")));
+        return Verify(export, extension: "md");
+    }
+
+    [Test]
+    public Task NestedListFromParagraphIndents()
+    {
+        // Indents supplied by direct paragraph formatting only (numbering.xml defines none) —
+        // nesting must key off the paragraph's resolved LeftIndentPoints.
+        var export = MarkdownExporter.Export(
+            Doc(
+                DirectIndentListItem("•", 36, "level 1"),
+                DirectIndentListItem("•", 72, "level 2"),
+                DirectIndentListItem("•", 108, "level 3"),
+                DirectIndentListItem("•", 36, "level 1 again")));
+        return Verify(export, extension: "md");
+    }
+
+    [Test]
+    public Task NestedTableFlattenedIntoCell()
+    {
+        var inner = Table(Row(header: false, "inner a", "inner b"));
+        var outer = Table(
+            new TableRow
+            {
+                Cells =
+                [
+                    new()
+                    {
+                        Content = [Para(TextRun("outer text")), inner]
+                    },
+                    Cell("plain")
+                ]
+            });
+        var export = MarkdownExporter.Export(Doc(outer));
+        return Verify(export, extension: "md");
+    }
+
+    [Test]
+    public Task UrlParenthesesEncoded()
+    {
+        var export = MarkdownExporter.Export(
+            Doc(
+                Para(TextRun("wiki", url: "https://en.wikipedia.org/wiki/Foo_(bar)"))));
+        return Verify(export, extension: "md");
+    }
 }

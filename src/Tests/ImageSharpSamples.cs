@@ -6,6 +6,9 @@ public class ImageSharpSamples
     [Test]
     public Task Simple()
     {
+        // Page snapshots are container renders; host rasterization drifts subtly (fonts / AA)
+        // and only passed on Windows while the difference sat under the SSIM threshold.
+        ContainerOnly.Require();
         var converter = new ImageSharpDocumentConverter();
 
         var data = converter.ConvertToImageData("sample.docx");

@@ -4,13 +4,13 @@ Checkbox (checked):
 
 ☒
 
- Yes
+Yes
 
 Checkbox (unchecked): 
 
 ☐
 
- No
+No
 
 Dropdown: 
 

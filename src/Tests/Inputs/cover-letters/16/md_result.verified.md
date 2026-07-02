@@ -4,7 +4,11 @@ Accountant
 
 **313.555.0100   |   donna@example.com    |    www.greatsiteaddress.com**
 
-**4 April 20XX Hiring Manager ESG Financial Services 5678 Mountain Drive Denver, CO 12345**
+**4 April 20XX\
+Hiring Manager\
+ESG Financial Services\
+5678 Mountain Drive\
+Denver, CO 12345**
 
 # DEAR LILLI ALLIK,
 
@@ -16,4 +20,5 @@ I am particularly drawn to ESG Financial Services because of its commitment to s
 
 Thank you for considering my application. I look forward to the opportunity to discuss how my qualifications align with the needs of your organization.
 
-Sincerely, Donna Robbins
+Sincerely,\
+Donna Robbins
