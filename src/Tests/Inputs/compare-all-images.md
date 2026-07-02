@@ -419,7 +419,7 @@ ArcTo-based custGeom is still unsupported and falls back to the bounding rect.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0683** | **Page 1. ErrorMetric: 0.0709** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0681** | **Page 1. ErrorMetric: 0.0708** |
 | <img src="agendas-minutes/11/expected_0001.png" width="500"> | <img src="agendas-minutes/11/skia_result%23page_0001.verified.png" width="500"> | <img src="agendas-minutes/11/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## agendas-minutes/12
@@ -460,7 +460,7 @@ Pixel-level differences between Skia's SVG render and Word's renderer remain (gr
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1173** | **Page 1. ErrorMetric: 0.1174** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1172** | **Page 1. ErrorMetric: 0.1174** |
 | <img src="agendas-minutes/16/expected_0001.png" width="500"> | <img src="agendas-minutes/16/skia_result%23page_0001.verified.png" width="500"> | <img src="agendas-minutes/16/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## agendas-minutes/17

@@ -488,7 +488,7 @@ PDF: [Morph PDF](agendas-minutes/15/pdf_result.verified.pdf) · [Pandoc referenc
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1132** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1128** |
 | <img src="agendas-minutes/16/expected_0001.png" width="500"> | <img src="agendas-minutes/16/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/16/pdf_result.verified.pdf) · [Pandoc reference](agendas-minutes/16/expected.pdf)
@@ -1600,7 +1600,7 @@ PDF: [Morph PDF](document_protection/01/pdf_result.verified.pdf) · [Pandoc refe
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0010** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0009** |
 | <img src="dot_points/expected_0001.png" width="500"> | <img src="dot_points/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](dot_points/pdf_result.verified.pdf) · [Pandoc reference](dot_points/expected.pdf)
