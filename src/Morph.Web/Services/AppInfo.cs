@@ -1,5 +1,3 @@
-using System.Reflection;
-
 namespace Morph.Web.Services;
 
 /// <summary>Build/version facts worth attaching to a bug report.</summary>

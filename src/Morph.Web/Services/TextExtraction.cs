@@ -1,8 +1,3 @@
-using System.Linq;
-using System.Text;
-using AngleSharp.Dom;
-using AngleSharp.Html.Parser;
-
 namespace Morph.Web.Services;
 
 /// <summary>
@@ -14,11 +9,12 @@ namespace Morph.Web.Services;
 public static class TextExtraction
 {
     // Elements that force a line break around their content but carry no bullet / cell semantics.
-    static readonly HashSet<string> blockTags = new(StringComparer.Ordinal)
-    {
+    static readonly HashSet<string> blockTags =
+    [
+        with(StringComparer.Ordinal),
         "div", "section", "article", "header", "footer", "main", "aside", "nav", "figure",
-        "figcaption", "ul", "ol", "table", "thead", "tbody", "tfoot", "caption", "dl", "dt", "dd",
-    };
+        "figcaption", "ul", "ol", "table", "thead", "tbody", "tfoot", "caption", "dl", "dt", "dd"
+    ];
 
     public static string FromHtml(string html)
     {
