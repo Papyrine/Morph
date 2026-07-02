@@ -320,10 +320,10 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
     // ---- Layout ----
 
-    // LeftIndentPoints already carries the resolved numbering cascade (direct <w:ind> > style
-    // <w:ind> > numbering level), so use it for numbered paragraphs too. Reading the raw
-    // numbering.IndentPoints instead ignored a style that tightens the list indent and made the
-    // list over-indent (e.g. agendas-minutes/17). Matches the Skia/ImageSharp backends.
+    // LeftIndentPoints already carries the resolved numbering cascade (direct, numbering-level
+    // and style <w:ind> per Word's precedence), so use it for numbered paragraphs too. Reading
+    // the raw numbering.IndentPoints instead ignored a style that tightens the list indent and
+    // made the list over-indent (e.g. agendas-minutes/17). Matches the Skia/ImageSharp backends.
     static double Indent(ParagraphElement paragraph) =>
         paragraph.Properties.LeftIndentPoints;
 

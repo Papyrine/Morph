@@ -50,10 +50,53 @@ static class ExportTestBuilders
             Runs = [TextRun(text)],
             Properties = new()
             {
+                // The parser resolves the numbering-level indent into the paragraph's
+                // LeftIndentPoints (direct w:ind > style > numbering level); list nesting keys
+                // off that resolved value, so the fixture mirrors it.
+                LeftIndentPoints = indentPoints,
                 Numbering = new()
                 {
                     Text = marker,
                     IndentPoints = indentPoints
+                }
+            }
+        };
+
+    /// <summary>
+    /// A list item whose indent comes only from direct paragraph formatting (w:ind on the
+    /// paragraph), the shape the parser produces when numbering.xml defines no per-level indents
+    /// and the paragraphs carry no w:ilvl-derived level (synthetic documents).
+    /// <see cref="NumberingInfo.IndentPoints"/> stays 0.
+    /// </summary>
+    public static ParagraphElement DirectIndentListItem(string marker, double leftIndentPoints, string text) =>
+        new()
+        {
+            Runs = [TextRun(text)],
+            Properties = new()
+            {
+                LeftIndentPoints = leftIndentPoints,
+                Numbering = new()
+                {
+                    Text = marker
+                }
+            }
+        };
+
+    /// <summary>
+    /// A list item carrying a real multilevel-list level (w:ilvl) but a flat visual indent — the
+    /// shape Word's ListParagraph style produces (one style indent for every level).
+    /// </summary>
+    public static ParagraphElement LevelListItem(string marker, int level, string text) =>
+        new()
+        {
+            Runs = [TextRun(text)],
+            Properties = new()
+            {
+                LeftIndentPoints = 36,
+                Numbering = new()
+                {
+                    Text = marker,
+                    Level = level
                 }
             }
         };

@@ -106,7 +106,7 @@ sealed class HtmlParser
                 break;
 
             case "ul":
-                ParseList(element, elements, "\u2022 ");
+                ParseList(element, elements);
                 break;
 
             case "ol":
@@ -701,7 +701,7 @@ sealed class HtmlParser
         return result;
     }
 
-    void ParseList(IElement listElement, List<DocumentElement> elements, string bulletPrefix, int level = 0)
+    void ParseList(IElement listElement, List<DocumentElement> elements, int level = 0)
     {
         foreach (var child in listElement.Children)
         {
@@ -710,65 +710,29 @@ sealed class HtmlParser
                 continue;
             }
 
-            var textContent = new List<string>();
-            IElement? nestedList = null;
-
-            foreach (var node in child.ChildNodes)
-            {
-                if (node is IElement el && (el.TagName.Equals("ul", StringComparison.OrdinalIgnoreCase) ||
-                                            el.TagName.Equals("ol", StringComparison.OrdinalIgnoreCase)))
-                {
-                    nestedList = el;
-                }
-                else
-                {
-                    var text = node.TextContent.Trim();
-                    if (!string.IsNullOrEmpty(text))
-                    {
-                        textContent.Add(text);
-                    }
-                }
-            }
-
-            var itemText = string.Join(" ", textContent);
+            var (itemText, nestedList) = SplitListItem(child);
             if (!string.IsNullOrEmpty(itemText))
             {
-                var indent = 18 * (level + 1);
-                elements.Add(new ParagraphElement
-                {
-                    Runs =
-                    [
-                        new()
-                        {
-                            Text = bulletPrefix + itemText,
-                            Properties = DefaultRunProps()
-                        }
-                    ],
-                    Properties = new()
-                    {
-                        LeftIndentPoints = indent,
-                        SpacingAfterPoints = 4
-                    }
-                });
+                // Word's own HTML import uses \u2022 at the first level and an open bullet deeper.
+                elements.Add(ListItemParagraph(itemText, level == 0 ? "\u2022" : "\u25E6", level));
             }
 
             if (nestedList != null)
             {
-                if (nestedList.TagName.Equals("ul", StringComparison.OrdinalIgnoreCase))
-                {
-                    ParseList(nestedList, elements, "\u25E6 ", level + 1);
-                }
-                else
-                {
-                    ParseOrderedList(nestedList, elements, level + 1);
-                }
+                ParseNestedList(nestedList, elements, level + 1);
             }
         }
     }
 
     void ParseOrderedList(IElement listElement, List<DocumentElement> elements, int level = 0)
     {
-        var num = 1;
+        // <ol start="5"> shifts the first ordinal; absent or invalid values start at 1.
+        var number = 1;
+        if (int.TryParse(listElement.GetAttribute("start"), out var start))
+        {
+            number = start;
+        }
+
         foreach (var child in listElement.Children)
         {
             if (!child.TagName.Equals("li", StringComparison.OrdinalIgnoreCase))
@@ -776,29 +740,98 @@ sealed class HtmlParser
                 continue;
             }
 
-            var text = child.TextContent.Trim();
-            if (!string.IsNullOrEmpty(text))
+            var (itemText, nestedList) = SplitListItem(child);
+            if (!string.IsNullOrEmpty(itemText))
             {
-                var indent = 18 * (level + 1);
-                elements.Add(new ParagraphElement
-                {
-                    Runs =
-                    [
-                        new()
-                        {
-                            Text = $"{num}. {text}",
-                            Properties = DefaultRunProps()
-                        }
-                    ],
-                    Properties = new()
-                    {
-                        LeftIndentPoints = indent,
-                        SpacingAfterPoints = 4
-                    }
-                });
-                num++;
+                elements.Add(ListItemParagraph(itemText, $"{number}.", level));
+                number++;
+            }
+
+            if (nestedList != null)
+            {
+                ParseNestedList(nestedList, elements, level + 1);
             }
         }
+    }
+
+    void ParseNestedList(IElement nestedList, List<DocumentElement> elements, int level)
+    {
+        if (nestedList.TagName.Equals("ul", StringComparison.OrdinalIgnoreCase))
+        {
+            ParseList(nestedList, elements, level);
+        }
+        else
+        {
+            ParseOrderedList(nestedList, elements, level);
+        }
+    }
+
+    /// <summary>
+    /// Splits an <c>&lt;li&gt;</c> into its own text and the trailing nested list element (if
+    /// any), so nested <c>&lt;ul&gt;</c>/<c>&lt;ol&gt;</c> content becomes child items instead
+    /// of being flattened into the parent item's text.
+    /// </summary>
+    static (string Text, IElement? NestedList) SplitListItem(IElement listItem)
+    {
+        var textContent = new List<string>();
+        IElement? nestedList = null;
+
+        foreach (var node in listItem.ChildNodes)
+        {
+            if (node is IElement childElement &&
+                (childElement.TagName.Equals("ul", StringComparison.OrdinalIgnoreCase) ||
+                 childElement.TagName.Equals("ol", StringComparison.OrdinalIgnoreCase)))
+            {
+                nestedList = childElement;
+            }
+            else
+            {
+                var text = node.TextContent.Trim();
+                if (!string.IsNullOrEmpty(text))
+                {
+                    textContent.Add(text);
+                }
+            }
+        }
+
+        return (string.Join(" ", textContent), nestedList);
+    }
+
+    /// <summary>
+    /// A list-item paragraph with real <see cref="NumberingInfo"/> \u2014 marker text, w:ilvl-style
+    /// level and Word's standard list geometry (text at 36pt per level, marker hanging 18pt to
+    /// its left). Modelling the marker as numbering rather than baking it into the run text lets
+    /// the HTML/Markdown exporters reconstruct genuine lists and matches how Word itself imports
+    /// HTML list content.
+    /// </summary>
+    ParagraphElement ListItemParagraph(string text, string marker, int level)
+    {
+        var textIndent = 36 * (level + 1);
+        const double hangingIndent = 18;
+        return new()
+        {
+            Runs =
+            [
+                new()
+                {
+                    Text = text,
+                    Properties = DefaultRunProps()
+                }
+            ],
+            Properties = new()
+            {
+                LeftIndentPoints = textIndent,
+                HangingIndentPoints = hangingIndent,
+                SpacingAfterPoints = 4,
+                Numbering = new()
+                {
+                    Text = marker,
+                    Level = level,
+                    IndentPoints = textIndent,
+                    HangingIndentPoints = hangingIndent
+                }
+            }
+        };
     }
 
     TableElement? ParseTable(IElement tableElement)

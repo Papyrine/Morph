@@ -60,12 +60,17 @@ static class DocumentExportHelpers
     }
 
     /// <summary>
-    /// Groups a flat run of consecutive list paragraphs into a nesting forest keyed off each
-    /// paragraph's left indent. Deeper indents become children of the nearest shallower item.
+    /// Groups a flat run of consecutive list paragraphs into a nesting forest. Nesting depth
+    /// compares the multilevel-list level (<c>w:ilvl</c>) first when both items carry one — the
+    /// document's real list structure, robust against styles that flatten the visual indents
+    /// (Word's ListParagraph style sets one indent for every level). Equal or absent levels fall
+    /// back to the paragraph's resolved <see cref="ParagraphProperties.LeftIndentPoints"/> (the
+    /// full direct &gt; style &gt; numbering cascade) — this nests per-level indents supplied by
+    /// direct formatting, and separate one-level list styles (ListBullet / ListBullet2) whose
+    /// nesting exists only visually.
     /// </summary>
     public static List<ListNode> BuildListForest(IReadOnlyList<ParagraphElement> items)
     {
-        const double tolerance = 1;
         var roots = new List<ListNode>();
         var ancestors = new Stack<ListNode>();
         foreach (var paragraph in items)
@@ -74,12 +79,12 @@ static class DocumentExportHelpers
             var node = new ListNode
             {
                 Paragraph = paragraph,
-                Indent = numbering.IndentPoints,
+                Level = numbering.Level,
+                Indent = paragraph.Properties.LeftIndentPoints,
                 Ordered = IsOrderedList(numbering)
             };
 
-            while (ancestors.Count > 0 &&
-                   ancestors.Peek().Indent >= node.Indent - tolerance)
+            while (ancestors.Count > 0 && !IsShallower(ancestors.Peek(), node))
             {
                 ancestors.Pop();
             }
@@ -97,6 +102,19 @@ static class DocumentExportHelpers
         }
 
         return roots;
+    }
+
+    // Whether ancestor sits strictly shallower than node — a valid parent for it. Levels decide
+    // when they differ; ties (and level-less items) fall through to the visual indent.
+    static bool IsShallower(ListNode ancestor, ListNode node)
+    {
+        if (ancestor.Level is {} ancestorLevel && node.Level is {} nodeLevel && ancestorLevel != nodeLevel)
+        {
+            return ancestorLevel < nodeLevel;
+        }
+
+        const double tolerance = 1;
+        return ancestor.Indent < node.Indent - tolerance;
     }
 
     /// <summary>
@@ -127,20 +145,28 @@ static class DocumentExportHelpers
     }
 
     /// <summary>
-    /// Merges adjacent runs that share identical export-relevant formatting (and the same
-    /// hyperlink target) into a single run with concatenated text. Word fragments runs at proofing,
-    /// revision, and rsid boundaries, producing sequences like <c>"Sep","tember"</c> or three
-    /// consecutive identically-bold runs. Left un-merged these bloat the HTML with a redundant tag
-    /// pair per fragment and — worse — corrupt Markdown emphasis, where <c>*a*</c> immediately
-    /// followed by <c>*b*</c> yields <c>*a**b*</c> (a stray <c>**</c> the parser reads as a bold
-    /// toggle) instead of <c>*ab*</c>. Tab, inline-image, and inline-shape runs are never merged —
-    /// they are atomic and carry payload beyond <see cref="Run.Text"/>.
+    /// Drops hidden (<c>w:vanish</c>) runs, then merges adjacent runs that share identical
+    /// export-relevant formatting (and the same hyperlink target) into a single run with
+    /// concatenated text. Word fragments runs at proofing, revision, and rsid boundaries,
+    /// producing sequences like <c>"Sep","tember"</c> or three consecutive identically-bold runs.
+    /// Left un-merged these bloat the HTML with a redundant tag pair per fragment and — worse —
+    /// corrupt Markdown emphasis, where <c>*a*</c> immediately followed by <c>*b*</c> yields
+    /// <c>*a**b*</c> (a stray <c>**</c> the parser reads as a bold toggle) instead of <c>*ab*</c>.
+    /// Filtering hidden runs here (rather than in the emit loops) also lets two visible runs
+    /// separated only by hidden text merge, and keeps hidden text out of hyperlink groups.
+    /// Tab, inline-image, and inline-shape runs are never merged — they are atomic and carry
+    /// payload beyond <see cref="Run.Text"/>.
     /// </summary>
     public static List<Run> CoalesceRuns(IReadOnlyList<Run> runs)
     {
         var merged = new List<Run>(runs.Count);
         foreach (var run in runs)
         {
+            if (run.Properties.Hidden)
+            {
+                continue;
+            }
+
             if (merged.Count > 0 && CanMerge(merged[^1], run))
             {
                 var previous = merged[^1];
@@ -173,9 +199,10 @@ static class DocumentExportHelpers
                SameFormatting(left.Properties, right.Properties);
     }
 
-    // Compares only the run properties the text exporters actually emit. Two runs differing solely
-    // in an unexported field (character spacing, kerning, rsid-style metadata) render identically,
-    // so merging them is safe and keeps the merged run's properties for the survivor.
+    // Compares only the run properties the text exporters actually emit (hidden runs are dropped
+    // before merging, so Hidden needs no comparison). Two runs differing solely in an unexported
+    // field (character spacing, kerning, rsid-style metadata) render identically, so merging them
+    // is safe and keeps the merged run's properties for the survivor.
     static bool SameFormatting(RunProperties left, RunProperties right) =>
         left.Bold == right.Bold &&
         left.Italic == right.Italic &&
@@ -183,12 +210,47 @@ static class DocumentExportHelpers
         left.Strikethrough == right.Strikethrough &&
         left.AllCaps == right.AllCaps &&
         left.SmallCaps == right.SmallCaps &&
-        left.Hidden == right.Hidden &&
         left.VerticalAlignment == right.VerticalAlignment &&
         left.ColorHex == right.ColorHex &&
         left.BackgroundColorHex == right.BackgroundColorHex &&
         left.FontFamily == right.FontFamily &&
         Math.Abs(left.FontSizePoints - right.FontSizePoints) < 0.01;
+
+    /// <summary>
+    /// The ordinal an ordered list starts at, recovered from the first item's rendered marker
+    /// text — "10." → 10, "(3)" → 3, "2.4." (multilevel) → 4. The model keeps only the rendered
+    /// marker, so this is how a <c>w:startOverride</c> (or a list continuing an earlier one)
+    /// survives into <c>&lt;ol start&gt;</c> / a Markdown ordinal. The last integer wins because
+    /// multilevel markers put the item's own counter last. Null for non-numeric markers ("a)",
+    /// "iv.") — those fall back to 1, matching the previous behaviour.
+    /// </summary>
+    public static int? ListStartNumber(NumberingInfo numbering)
+    {
+        var text = numbering.Text;
+        int? result = null;
+        for (var index = 0; index < text.Length; index++)
+        {
+            if (!char.IsAsciiDigit(text[index]))
+            {
+                continue;
+            }
+
+            var start = index;
+            while (index < text.Length && char.IsAsciiDigit(text[index]))
+            {
+                index++;
+            }
+
+            // Cap the digit run so a pathological marker can't overflow; 6 digits is far beyond
+            // any real list ordinal.
+            if (index - start <= 6)
+            {
+                result = int.Parse(text.AsSpan(start, index - start), CultureInfo.InvariantCulture);
+            }
+        }
+
+        return result;
+    }
 
     /// <summary>
     /// Normalizes a model colour (a 6-digit hex string without "#", or "auto") to a CSS colour, or
@@ -217,6 +279,7 @@ static class DocumentExportHelpers
 sealed class ListNode
 {
     public required ParagraphElement Paragraph { get; init; }
+    public int? Level { get; init; }
     public double Indent { get; init; }
     public bool Ordered { get; init; }
     public List<ListNode> Children { get; } = [];

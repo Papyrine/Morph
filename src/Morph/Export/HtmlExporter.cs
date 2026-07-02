@@ -204,14 +204,10 @@ static class HtmlExporter
                     WriteTable(table, depth);
                     break;
                 case ImageElement image:
-                    Indent(depth).Append("<p>");
-                    AppendImage(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, null);
-                    builder.Append("</p>\n");
+                    WriteImageParagraph(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, depth);
                     break;
                 case FloatingImageElement floatingImage:
-                    Indent(depth).Append("<p>");
-                    AppendImage(floatingImage.ImageData, floatingImage.ContentType, floatingImage.WidthPoints, floatingImage.HeightPoints, null);
-                    builder.Append("</p>\n");
+                    WriteImageParagraph(floatingImage.ImageData, floatingImage.ContentType, floatingImage.WidthPoints, floatingImage.HeightPoints, depth);
                     break;
                 case HorizontalRuleElement:
                     Indent(depth).Append("<hr />\n");
@@ -295,6 +291,21 @@ static class HtmlExporter
             }
 
             Indent(depth).Append("<p>").Append(EncodeText(text)).Append("</p>\n");
+        }
+
+        // Resolves the image source before opening the <p> so a dropped image (no handler,
+        // embedding disabled) produces no empty paragraph.
+        void WriteImageParagraph(byte[] data, string? contentType, double widthPoints, double heightPoints, int depth)
+        {
+            var source = ResolveImageSource(data, contentType, widthPoints, heightPoints);
+            if (source == null)
+            {
+                return;
+            }
+
+            Indent(depth).Append("<p>");
+            AppendImageTag(source, widthPoints, heightPoints, null);
+            builder.Append("</p>\n");
         }
 
         void WriteContentControl(ContentControlElement contentControl, int depth)
@@ -413,7 +424,19 @@ static class HtmlExporter
             {
                 var ordered = nodes[index].Ordered;
                 var tag = ordered ? "ol" : "ul";
-                Indent(depth).Append('<').Append(tag).Append(">\n");
+                Indent(depth).Append('<').Append(tag);
+                if (ordered)
+                {
+                    // Carry the real start ordinal ("10." after a w:startOverride) so restarted /
+                    // continued lists keep their numbers.
+                    var start = DocumentExportHelpers.ListStartNumber(nodes[index].Paragraph.Properties.Numbering!);
+                    if (start is > 1)
+                    {
+                        builder.Append(" start=\"").Append(start.Value).Append('"');
+                    }
+                }
+
+                builder.Append(">\n");
                 while (index < nodes.Count && nodes[index].Ordered == ordered)
                 {
                     WriteListItem(nodes[index], depth + 1);
@@ -525,7 +548,7 @@ static class HtmlExporter
                 }
 
                 builder.Append('>');
-                AppendCellContent(cell.Content);
+                AppendCellContent(cell.Content, depth + 1);
                 builder.Append("</").Append(tag).Append(">\n");
                 gridColumn += span;
             }
@@ -650,44 +673,70 @@ static class HtmlExporter
             return false;
         }
 
-        void AppendCellContent(IReadOnlyList<DocumentElement> content)
+        void AppendCellContent(IReadOnlyList<DocumentElement> content, int depth)
         {
             // Cell paragraphs render inline (separated by <br />) except heading-styled ones, which
             // emit as real <hN> blocks (matches Pandoc's "<td><h1>SCHEDULE</h1></td>" treatment of a
             // heading inside a table cell). Headings being block-level also mean no <br /> is needed
-            // either side of them.
+            // either side of them. Nested tables and block images keep their content in the cell
+            // instead of being dropped.
             var separatorPending = false;
             foreach (var element in content)
             {
-                if (element is not ParagraphElement paragraph || DocumentExportHelpers.IsBlank(paragraph))
+                switch (element)
                 {
-                    continue;
-                }
+                    case ParagraphElement paragraph when !DocumentExportHelpers.IsBlank(paragraph):
+                        var level = DocumentExportHelpers.TryGetHeadingLevel(paragraph.Properties);
+                        if (level != null)
+                        {
+                            var id = UniqueHeadingId(PlainText(paragraph.Runs));
+                            builder.Append("<h").Append(level);
+                            if (id.Length > 0)
+                            {
+                                builder.Append(" id=\"").Append(EncodeAttribute(id)).Append('"');
+                            }
 
-                var level = DocumentExportHelpers.TryGetHeadingLevel(paragraph.Properties);
-                if (level != null)
-                {
-                    var id = UniqueHeadingId(PlainText(paragraph.Runs));
-                    builder.Append("<h").Append(level);
-                    if (id.Length > 0)
-                    {
-                        builder.Append(" id=\"").Append(EncodeAttribute(id)).Append('"');
-                    }
+                            builder.Append('>');
+                            AppendInline(paragraph.Runs, inHeading: true);
+                            builder.Append("</h").Append(level).Append('>');
+                            separatorPending = false;
+                        }
+                        else
+                        {
+                            if (separatorPending)
+                            {
+                                builder.Append("<br />");
+                            }
 
-                    builder.Append('>');
-                    AppendInline(paragraph.Runs, inHeading: true);
-                    builder.Append("</h").Append(level).Append('>');
-                    separatorPending = false;
-                }
-                else
-                {
-                    if (separatorPending)
-                    {
-                        builder.Append("<br />");
-                    }
+                            AppendInline(paragraph.Runs);
+                            separatorPending = true;
+                        }
 
-                    AppendInline(paragraph.Runs);
-                    separatorPending = true;
+                        break;
+                    case TableElement nestedTable:
+                        builder.Append('\n');
+                        WriteTable(nestedTable, depth + 1);
+                        Indent(depth);
+                        separatorPending = false;
+                        break;
+                    case ImageElement image:
+                        if (separatorPending)
+                        {
+                            builder.Append("<br />");
+                        }
+
+                        AppendImage(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, null);
+                        separatorPending = true;
+                        break;
+                    case FloatingImageElement floatingImage:
+                        if (separatorPending)
+                        {
+                            builder.Append("<br />");
+                        }
+
+                        AppendImage(floatingImage.ImageData, floatingImage.ContentType, floatingImage.WidthPoints, floatingImage.HeightPoints, null);
+                        separatorPending = true;
+                        break;
                 }
             }
         }
@@ -699,12 +748,6 @@ static class HtmlExporter
             while (index < runs.Count)
             {
                 var run = runs[index];
-                if (run.Properties.Hidden)
-                {
-                    index++;
-                    continue;
-                }
-
                 if (run.HyperlinkUrl is {Length: > 0} url)
                 {
                     builder.Append("<a href=\"").Append(EncodeAttribute(url)).Append("\">");
@@ -1116,6 +1159,11 @@ static class HtmlExporter
                 return;
             }
 
+            AppendImageTag(source, widthPoints, heightPoints, alt);
+        }
+
+        void AppendImageTag(string source, double widthPoints, double heightPoints, string? alt)
+        {
             builder.Append("<img src=\"").Append(EncodeAttribute(source)).Append('"');
             if (widthPoints > 0)
             {

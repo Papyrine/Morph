@@ -165,6 +165,102 @@ public class HtmlExporterTests
         }));
 
     [Test]
+    public Task HiddenRunsDropped()
+    {
+        // Hidden (w:vanish) text is skipped everywhere — including inside a hyperlink, where the
+        // two visible fragments merge into one link text.
+        var hidden = new Run
+        {
+            Text = "secret",
+            Properties = new()
+            {
+                Hidden = true
+            }
+        };
+        var hiddenLinked = new Run
+        {
+            Text = "secret",
+            HyperlinkUrl = "https://example.com",
+            Properties = new()
+            {
+                Hidden = true
+            }
+        };
+        return VerifyHtml(Doc(
+            Para(TextRun("visible "), hidden, TextRun("tail")),
+            Para(
+                TextRun("go", url: "https://example.com"),
+                hiddenLinked,
+                TextRun(" here", url: "https://example.com"))));
+    }
+
+    [Test]
+    public Task OrderedListStartNumber() =>
+        // A startOverride list renders markers "10." / "11." — the export keeps the real start.
+        VerifyHtml(Doc(
+            ListItem("10.", 18, "ten"),
+            ListItem("11.", 18, "eleven")));
+
+    [Test]
+    public Task NestedListFromLevels() =>
+        // ListParagraph-styled lists have one flat style indent for every level; nesting must
+        // follow the w:ilvl levels, not the visual indent.
+        VerifyHtml(Doc(
+            LevelListItem("•", 0, "level 0"),
+            LevelListItem("o", 1, "level 1"),
+            LevelListItem("▪", 2, "level 2"),
+            LevelListItem("•", 0, "level 0 again")));
+
+    [Test]
+    public Task NestedListFromParagraphIndents() =>
+        // Indents supplied by direct paragraph formatting only (numbering.xml defines none) —
+        // nesting must key off the paragraph's resolved LeftIndentPoints.
+        VerifyHtml(Doc(
+            DirectIndentListItem("•", 36, "level 1"),
+            DirectIndentListItem("•", 72, "level 2"),
+            DirectIndentListItem("•", 108, "level 3"),
+            DirectIndentListItem("•", 36, "level 1 again")));
+
+    [Test]
+    public Task NestedTableInCell()
+    {
+        var inner = Table(Row(header: false, "inner a", "inner b"));
+        var outer = Table(
+            new TableRow
+            {
+                Cells =
+                [
+                    new()
+                    {
+                        Content = [Para(TextRun("outer text")), inner]
+                    },
+                    Cell("plain")
+                ]
+            });
+        return VerifyHtml(Doc(outer));
+    }
+
+    [Test]
+    public Task ImageInTableCell()
+    {
+        var cell = new TableCell
+        {
+            Content =
+            [
+                Para(TextRun("logo:")),
+                new ImageElement
+                {
+                    ImageData = [1, 2, 3],
+                    ContentType = "image/png",
+                    WidthPoints = 24,
+                    HeightPoints = 12
+                }
+            ]
+        };
+        return VerifyHtml(Doc(Table(new TableRow {Cells = [cell]})));
+    }
+
+    [Test]
     public Task ParagraphBorder() =>
         VerifyHtml(Doc(new ParagraphElement
         {
