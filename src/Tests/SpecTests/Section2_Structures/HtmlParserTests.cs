@@ -242,6 +242,14 @@ public class HtmlParserTests
         Verify(HtmlParser.Parse("<ul><li>outer<ul><li>inner</li></ul></li></ul>"));
 
     [Test]
+    public Task NestedOrderedList() =>
+        Verify(HtmlParser.Parse("<ol><li>one<ol><li>one-a</li></ol></li><li>two</li></ol>"));
+
+    [Test]
+    public Task OrderedList_StartAttribute() =>
+        Verify(HtmlParser.Parse("<ol start=\"5\"><li>five</li><li>six</li></ol>"));
+
+    [Test]
     public Task List_SkipsNonLiChildren() =>
         Verify(HtmlParser.Parse("<ul><div>skip</div><li>item</li></ul>"));
 

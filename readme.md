@@ -152,7 +152,7 @@ foreach (var path in result.ImagePaths)
     Console.WriteLine($"Created: {path}");
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L18-L32' title='Snippet source file'>snippet source</a> | <a href='#snippet-BasicUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L21-L35' title='Snippet source file'>snippet source</a> | <a href='#snippet-BasicUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -170,7 +170,7 @@ foreach (var pngBytes in imageData)
     // Use the PNG byte array as needed
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L37-L48' title='Snippet source file'>snippet source</a> | <a href='#snippet-InMemoryConversion' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L40-L51' title='Snippet source file'>snippet source</a> | <a href='#snippet-InMemoryConversion' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -189,7 +189,7 @@ var result = converter.ConvertToImages(stream, "output-folder");
 // Or from stream to memory
 var imageData = converter.ConvertToImageData(stream);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L53-L65' title='Snippet source file'>snippet source</a> | <a href='#snippet-StreamBasedConversion' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L56-L68' title='Snippet source file'>snippet source</a> | <a href='#snippet-StreamBasedConversion' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -211,7 +211,7 @@ var result = converter.ConvertToImages(
     "output-folder",
     options);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L70-L85' title='Snippet source file'>snippet source</a> | <a href='#snippet-CustomOptions' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L73-L88' title='Snippet source file'>snippet source</a> | <a href='#snippet-CustomOptions' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -230,7 +230,7 @@ The HTML output renders background shapes, gradients and accent panels from the 
 var html = DocumentConverter.ConvertToHtml("document.docx");
 File.WriteAllText("document.html", html);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L90-L95' title='Snippet source file'>snippet source</a> | <a href='#snippet-ConvertToHtml' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L93-L98' title='Snippet source file'>snippet source</a> | <a href='#snippet-ConvertToHtml' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -242,7 +242,7 @@ File.WriteAllText("document.html", html);
 var markdown = DocumentConverter.ConvertToMarkdown("document.docx");
 File.WriteAllText("document.md", markdown);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L100-L105' title='Snippet source file'>snippet source</a> | <a href='#snippet-ConvertToMarkdown' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L103-L108' title='Snippet source file'>snippet source</a> | <a href='#snippet-ConvertToMarkdown' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -254,7 +254,7 @@ File.WriteAllText("document.md", markdown);
 var outputPath = "document.pdf";
 PdfDocumentConverter.ConvertToPdf("document.docx", outputPath);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L110-L115' title='Snippet source file'>snippet source</a> | <a href='#snippet-ConvertToPdf' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L113-L118' title='Snippet source file'>snippet source</a> | <a href='#snippet-ConvertToPdf' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -273,7 +273,7 @@ File.WriteAllText("document.html", document.ExportToHtml());
 File.WriteAllText("document.md",   document.ExportToMarkdown());
 document.ExportToPdf("document.pdf");   // extension method from Morph.Pdf
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L120-L130' title='Snippet source file'>snippet source</a> | <a href='#snippet-ParseOnceExportMany' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L123-L133' title='Snippet source file'>snippet source</a> | <a href='#snippet-ParseOnceExportMany' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -304,7 +304,7 @@ var html = DocumentConverter.ConvertToHtml(
         }
     });
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L135-L157' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlExportWithImageHandler' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L138-L160' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlExportWithImageHandler' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -330,7 +330,7 @@ foreach (var warning in warnings)
     Console.WriteLine($"[{warning.Kind}] {warning.Message}");
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L162-L179' title='Snippet source file'>snippet source</a> | <a href='#snippet-WarningCallback' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L165-L182' title='Snippet source file'>snippet source</a> | <a href='#snippet-WarningCallback' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -351,7 +351,7 @@ var firstThreePages = PdfDocumentConverter.ConvertToPdf(
 
 File.WriteAllBytes("document-preview.pdf", firstThreePages);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L184-L196' title='Snippet source file'>snippet source</a> | <a href='#snippet-PdfPageRange' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L187-L199' title='Snippet source file'>snippet source</a> | <a href='#snippet-PdfPageRange' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
