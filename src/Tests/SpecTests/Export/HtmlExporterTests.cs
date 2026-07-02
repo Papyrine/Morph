@@ -1,6 +1,5 @@
 /// <summary>
-/// Low-level tests for <see cref="HtmlExporter"/>. Output is snapshotted; the shape of each case
-/// (which tags wrap which content) was cross-checked against Pandoc's DOCX → HTML behaviour.
+/// Low-level tests for <see cref="HtmlExporter"/>. Output is snapshotted.
 /// </summary>
 public class HtmlExporterTests
 {

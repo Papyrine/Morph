@@ -10,7 +10,7 @@ Graphic Designer
 
 ## Em + En Design
 
-## 4321 N. Broad Street Philadelphia, PA 21098
+## 4321 N. Broad Street<br>Philadelphia, PA 21098
 
 # Dear Rowan Murphy
 

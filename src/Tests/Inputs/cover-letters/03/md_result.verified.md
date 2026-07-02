@@ -25,4 +25,4 @@ Throughout my career, I have been recognized for delivering exceptional patient 
 
 I look forward to discussing how my skills and experience align with the needs of Bloom Naturopathic Medicine. Thank you for your time and consideration.
 
-# SINCERELY, SHEETAL PARMAR
+# SINCERELY,<br>SHEETAL PARMAR

@@ -1,7 +1,7 @@
 /// <summary>
-/// Serializes a <see cref="ParsedDocument"/> to Pandoc-flavoured Markdown (CommonMark + GFM pipe
-/// tables, strikeout, and Pandoc's <c>^sup^</c> / <c>~sub~</c> / <c>[x]{.underline}</c> spans),
-/// mirroring what Pandoc produces for DOCX → Markdown.
+/// Serializes a <see cref="ParsedDocument"/> to Markdown: CommonMark with GFM pipe tables and
+/// strikeout, plus <c>^sup^</c> / <c>~sub~</c> superscript-subscript spans and
+/// <c>[x]{.underline}</c> underline spans.
 /// </summary>
 static class MarkdownExporter
 {
@@ -120,7 +120,7 @@ static class MarkdownExporter
 
             if (level != null)
             {
-                AppendBlock($"{new string('#', level.Value)} {inline}");
+                AppendBlock($"{new string('#', level.Value)} {HeadingBreaks(inline)}");
                 return;
             }
 
@@ -307,12 +307,13 @@ static class MarkdownExporter
                 return;
             }
 
-            // Preserve source case for AllCaps (matches Pandoc) — Markdown has no styling layer
-            // to recover the visual uppercasing, but keeping the case makes the text reusable.
-            // A w:br arrives as '\n' in run text: tables and headings are single-line constructs
-            // in Markdown so the break degrades to a space there; body text keeps the newline,
-            // which HardBreaks() later renders as a Pandoc-style backslash hard break.
-            var raw = inTable || inHeading ? run.Text.Replace('\n', ' ') : run.Text;
+            // Preserve source case for AllCaps — Markdown has no styling layer to recover the
+            // visual uppercasing, but keeping the case makes the text reusable.
+            // A w:br arrives as '\n' in run text. A table cell is a single-line construct, so the
+            // break degrades to a space there. Body text keeps the newline, which HardBreaks()
+            // later renders as a backslash hard break; a heading keeps it too, and WriteParagraph
+            // turns it into an inline <br> (an ATX heading cannot span source lines).
+            var raw = inTable ? run.Text.Replace('\n', ' ') : run.Text;
 
             var leadingLength = LeadingWhitespaceLength(raw);
             var trailingLength = TrailingWhitespaceLength(raw, leadingLength);
@@ -463,8 +464,8 @@ static class MarkdownExporter
             return count;
         }
 
-        // A '\n' surviving Inline() is a w:br hard line break. Render it Pandoc-style — a
-        // backslash before the newline. Continuation lines are left-trimmed (paragraph parsing
+        // A '\n' surviving Inline() is a w:br hard line break. Render it as a backslash before
+        // the newline. Continuation lines are left-trimmed (paragraph parsing
         // strips the whitespace anyway, and 0-3 leading spaces would not stop a block construct
         // from matching) and line-start escaped so "- next" cannot re-parse as a nested block.
         // Leading / trailing breaks are dropped: a backslash at the very start or end of a
@@ -500,6 +501,30 @@ static class MarkdownExporter
             }
 
             return joined.ToString();
+        }
+
+        // A '\n' surviving Inline() in a heading is a w:br. An ATX heading occupies a single source
+        // line — a real newline would end it — so the break becomes an inline <br>, matching the
+        // HTML exporter's <br /> in an <hN>. Leading / trailing breaks are dropped.
+        static string HeadingBreaks(string inline)
+        {
+            if (!inline.Contains('\n'))
+            {
+                return inline;
+            }
+
+            var segments = new List<string>(inline.Split('\n'));
+            while (segments.Count > 0 && string.IsNullOrWhiteSpace(segments[0]))
+            {
+                segments.RemoveAt(0);
+            }
+
+            while (segments.Count > 0 && string.IsNullOrWhiteSpace(segments[^1]))
+            {
+                segments.RemoveAt(segments.Count - 1);
+            }
+
+            return string.Join("<br>", segments);
         }
 
         // Escapes the leading character(s) of a line that would otherwise open a block construct

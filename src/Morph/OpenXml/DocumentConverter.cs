@@ -82,14 +82,14 @@ public abstract class DocumentConverter
     public static string ConvertToHtml(Stream docxStream, HtmlExportOptions? options = null) =>
         HtmlExporter.Export(Parse(docxStream, options?.DefaultFont), options);
 
-    /// <summary>Converts a DOCX file to Pandoc-flavoured Markdown.</summary>
+    /// <summary>Converts a DOCX file to Markdown.</summary>
     public static string ConvertToMarkdown(string docxPath, MarkdownExportOptions? options = null)
     {
         using var stream = File.OpenRead(docxPath);
         return ConvertToMarkdown(stream, options);
     }
 
-    /// <summary>Converts a DOCX stream to Pandoc-flavoured Markdown.</summary>
+    /// <summary>Converts a DOCX stream to Markdown.</summary>
     public static string ConvertToMarkdown(Stream docxStream, MarkdownExportOptions? options = null) =>
         MarkdownExporter.Export(Parse(docxStream, options?.DefaultFont), options);
 

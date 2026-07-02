@@ -1,6 +1,5 @@
 /// <summary>
-/// Low-level tests for <see cref="MarkdownExporter"/>. Output is snapshotted; the syntax for each
-/// case was cross-checked against Pandoc's DOCX → Markdown behaviour.
+/// Low-level tests for <see cref="MarkdownExporter"/>. Output is snapshotted.
 /// </summary>
 public class MarkdownExporterTests
 {
@@ -163,8 +162,8 @@ public class MarkdownExporterTests
     [Test]
     public Task HardLineBreak()
     {
-        // w:br arrives as '\n' in run text — body paragraphs render it as a Pandoc backslash
-        // hard break; a break at the very end of the paragraph is dropped.
+        // w:br arrives as '\n' in run text — body paragraphs render it as a backslash hard break;
+        // a break at the very end of the paragraph is dropped.
         var export = MarkdownExporter.Export(
             Doc(
                 Para(TextRun("First line\nSecond line")),
@@ -191,6 +190,16 @@ public class MarkdownExporterTests
                 Table(
                     Row(header: true, "a", "b"),
                     Row(header: false, "one\ntwo", "c"))));
+        return Verify(export, extension: "md");
+    }
+
+    [Test]
+    public Task LineBreakInHeadingBecomesBr()
+    {
+        // w:br arrives as '\n'. An ATX heading is a single line, so the break becomes an inline
+        // <br> (matching the HTML exporter) rather than a real newline, which would end the heading.
+        var export = MarkdownExporter.Export(
+            Doc(Heading(1, "SINCERELY,\nSHEETAL PARMAR")));
         return Verify(export, extension: "md");
     }
 

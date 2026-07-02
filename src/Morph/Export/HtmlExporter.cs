@@ -676,8 +676,8 @@ static class HtmlExporter
         void AppendCellContent(IReadOnlyList<DocumentElement> content, int depth)
         {
             // Cell paragraphs render inline (separated by <br />) except heading-styled ones, which
-            // emit as real <hN> blocks (matches Pandoc's "<td><h1>SCHEDULE</h1></td>" treatment of a
-            // heading inside a table cell). Headings being block-level also mean no <br /> is needed
+            // emit as real <hN> blocks — a heading inside a table cell stays a heading
+            // ("<td><h1>SCHEDULE</h1></td>"). Headings being block-level also mean no <br /> is needed
             // either side of them. Nested tables and block images keep their content in the cell
             // instead of being dropped.
             var separatorPending = false;

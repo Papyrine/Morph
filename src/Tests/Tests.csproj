@@ -10,7 +10,6 @@
     <PackageReference Include="Magick.NET-Q16-AnyCPU" />
     <PackageReference Include="Markdig" />
     <PackageReference Include="Microsoft.Playwright" />
-    <PackageReference Include="Pandoc" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
     <PackageReference Include="ProjectFiles" />
     <PackageReference Include="TUnit" />
