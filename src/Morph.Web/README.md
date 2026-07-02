@@ -95,5 +95,6 @@ To reset a snapshot after an intentional change, review then rename the `*.recei
 
 ## Deploy
 
-`.github/workflows/deploy-blazor.yml` builds, tests, publishes with `<base href="/Morph/">`, and pushes to
-GitHub Pages on every push to `main`.
+`.github/workflows/deploy-blazor.yml` builds, tests, publishes (with the source `<base href="/">`, since
+the custom domain `morph.papyrine.org` serves the site at its root), and pushes to GitHub Pages on every
+push to `main`.
