@@ -147,7 +147,7 @@ Text size in half-points (OOXML) converted to points for rendering.
 - **Model**: `RunProperties.FontSizePoints`
 - **Test**: `font_sizes/`
 
-> **Consumers**: Default size is 11pt (Georgia). Half-point values from OOXML are automatically converted.
+> **Consumers**: Default size is 11pt (Aptos). Half-point values from OOXML are automatically converted.
 
 
 ### 1.2 Character Formatting
@@ -1874,7 +1874,7 @@ Style definitions with inheritance chains. Properties cascade: document defaults
 Default paragraph and run properties applied when no style or direct formatting overrides.
 
 - **OOXML**: `w:docDefaults` > `w:rPrDefault`, `w:pPrDefault`
-- **Model**: `DefaultFontSettings` — font "Georgia" (configurable), size 11pt
+- **Model**: `DefaultFontSettings` — font "Aptos" (configurable), size 11pt
 
 ---
 
@@ -2038,11 +2038,11 @@ Output resolution in dots per inch (default 150).
 
 #### Font Width Scale `DONE`
 
-Multiplier applied to character width measurements for Word-compatible layout (default 1.07).
+Multiplier applied to character width measurements for Word-compatible layout (default 1.0; use 1.08 to better match Word).
 
 - **Model**: `ConversionOptions.FontWidthScale`
 
-> **Consumers**: Adjusts text wrapping to better match Word's layout engine. Values > 1.0 produce earlier line wrapping. The default 1.07 provides good compatibility.
+> **Consumers**: Adjusts text wrapping to better match Word's layout engine. Values > 1.0 produce earlier line wrapping. The default is 1.0; 1.08 provides good compatibility with Word.
 
 
 #### Custom Font Fallback Callback `DONE`
