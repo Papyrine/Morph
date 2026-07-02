@@ -56,8 +56,10 @@ jobs:
       - name: Publish
         run: dotnet publish src/Morph.Web --configuration Release --output publish
 
-      - name: Update base href for GitHub Pages
-        run: sed -i 's|<base href="/" />|<base href="/Morph/" />|g' publish/wwwroot/index.html
+      # The site is served at the root of the custom domain (morph.papyrine.org), so the
+      # published <base href="/" /> is already correct — no subpath rewrite. (When it was served
+      # from the GitHub Pages project subpath https://papyrine.github.io/Morph/, this step rewrote
+      # the base to "/Morph/"; the custom domain made that rewrite wrong.)
 
       - name: Add .nojekyll file
         run: touch publish/wwwroot/.nojekyll
