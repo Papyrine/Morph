@@ -1836,7 +1836,7 @@ PDF: [Morph PDF](html_basic_formatting/pdf_result.verified.pdf) · [Pandoc refer
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1495** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1494** |
 | <img src="html_complex/expected_0001.png" width="500"> | <img src="html_complex/pdf_result%23page_0001.verified.png" width="500"> |
 | **Page 2** | **Page 2. ErrorMetric: 0.0549** |
 | <img src="html_complex/expected_0002.png" width="500"> | <img src="html_complex/pdf_result%23page_0002.verified.png" width="500"> |
@@ -1938,7 +1938,7 @@ PDF: [Morph PDF](html_links/pdf_result.verified.pdf) · [Pandoc reference](html_
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0126** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0124** |
 | <img src="html_lists/expected_0001.png" width="500"> | <img src="html_lists/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_lists/pdf_result.verified.pdf) · [Pandoc reference](html_lists/expected.pdf)
@@ -1948,7 +1948,7 @@ PDF: [Morph PDF](html_lists/pdf_result.verified.pdf) · [Pandoc reference](html_
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0144** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0137** |
 | <img src="html_nested_lists/expected_0001.png" width="500"> | <img src="html_nested_lists/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](html_nested_lists/pdf_result.verified.pdf) · [Pandoc reference](html_nested_lists/expected.pdf)

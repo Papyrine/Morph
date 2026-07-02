@@ -20,17 +20,12 @@ superscript and subscript content.
 
 Key features:
 
-• Easy to use interface
-
-• Multiple format support
-
-◦ PDF export
-
-◦ HTML export
-
-◦ Image export
-
-• Cross-platform compatibility
+- Easy to use interface
+- Multiple format support
+    - PDF export
+    - HTML export
+    - Image export
+- Cross-platform compatibility
 
 ## 4. Image and Link
 

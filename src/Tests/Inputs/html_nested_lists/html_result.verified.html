@@ -21,18 +21,38 @@ hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 </head>
 <body style="font-family: 'Times New Roman', sans-serif">
 <p>Nested unordered lists:</p>
-<p style="margin-bottom: 4pt; margin-left: 18pt">• Item 1</p>
-<p style="margin-bottom: 4pt; margin-left: 36pt">◦ Item 1.1</p>
-<p style="margin-bottom: 4pt; margin-left: 36pt">◦ Item 1.2</p>
-<p style="margin-bottom: 4pt; margin-left: 54pt">◦ Item 1.2.1</p>
-<p style="margin-bottom: 4pt; margin-left: 54pt">◦ Item 1.2.2</p>
-<p style="margin-bottom: 4pt; margin-left: 18pt">• Item 2</p>
+<ul>
+  <li>Item 1
+    <ul>
+      <li>Item 1.1</li>
+      <li>Item 1.2
+        <ul>
+          <li>Item 1.2.1</li>
+          <li>Item 1.2.2</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Item 2</li>
+</ul>
 <p>Nested ordered lists:</p>
-<p style="margin-bottom: 4pt; margin-left: 18pt">1. First<br />        <br />            First sub-item<br />            Second sub-item</p>
-<p style="margin-bottom: 4pt; margin-left: 18pt">2. Second</p>
+<ol>
+  <li>First
+    <ol>
+      <li>First sub-item</li>
+      <li>Second sub-item</li>
+    </ol>
+  </li>
+  <li>Second</li>
+</ol>
 <p>Mixed nested lists:</p>
-<p style="margin-bottom: 4pt; margin-left: 18pt">• Bullet item</p>
-<p style="margin-bottom: 4pt; margin-left: 36pt">1. Numbered sub-item 1</p>
-<p style="margin-bottom: 4pt; margin-left: 36pt">2. Numbered sub-item 2</p>
+<ul>
+  <li>Bullet item
+    <ol>
+      <li>Numbered sub-item 1</li>
+      <li>Numbered sub-item 2</li>
+    </ol>
+  </li>
+</ul>
 </body>
 </html>

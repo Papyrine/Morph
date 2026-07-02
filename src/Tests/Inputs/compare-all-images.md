@@ -1503,7 +1503,7 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1326** | **Page 1. ErrorMetric: 0.1331** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1325** | **Page 1. ErrorMetric: 0.1330** |
 | <img src="html_complex/expected_0001.png" width="500"> | <img src="html_complex/skia_result%23page_0001.verified.png" width="500"> | <img src="html_complex/imagesharp_result%23page_0001.verified.png" width="500"> |
 | **Page 2** | **Page 2. ErrorMetric: 0.0793** | **Page 2. ErrorMetric: 0.0793** |
 | <img src="html_complex/expected_0002.png" width="500"> | <img src="html_complex/skia_result%23page_0002.verified.png" width="500"> | <img src="html_complex/imagesharp_result%23page_0002.verified.png" width="500"> |
@@ -1575,14 +1575,14 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0113** | **Page 1. ErrorMetric: 0.0115** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0111** | **Page 1. ErrorMetric: 0.0114** |
 | <img src="html_lists/expected_0001.png" width="500"> | <img src="html_lists/skia_result%23page_0001.verified.png" width="500"> | <img src="html_lists/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## html_nested_lists
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0131** | **Page 1. ErrorMetric: 0.0132** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0124** | **Page 1. ErrorMetric: 0.0124** |
 | <img src="html_nested_lists/expected_0001.png" width="500"> | <img src="html_nested_lists/skia_result%23page_0001.verified.png" width="500"> | <img src="html_nested_lists/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## html_paragraphs
