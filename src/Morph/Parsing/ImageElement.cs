@@ -8,6 +8,10 @@ sealed class ImageElement : DocumentElement
     public required double HeightPoints { get; init; }
     public string? ContentType { get; init; }
 
+    /// <summary>Alt text from <c>wp:docPr</c> / <c>pic:cNvPr</c> (@descr, else @title). Null when
+    /// the source supplies none. The text exporters surface it as the image's alt / caption.</summary>
+    public string? Description { get; init; }
+
     /// <summary>
     /// Raster fallback for backends that don't render <see cref="ContentType"/> = "image/svg+xml".
     /// OOXML stores both an SVG and a raster equivalent for high-DPI artwork; ImageSharp lacks

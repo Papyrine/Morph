@@ -47,8 +47,9 @@ static class HtmlExporter
         // export structures fonts — one body default plus sparse per-run overrides — instead of
         // tagging every run with the same family.
         var bodyFont = DominantFont(document.Elements);
-        var writer = new HtmlWriter(options, bodyFont, document.PageSettings);
+        var writer = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes);
         writer.WriteElements(document.Elements, 0);
+        writer.WriteNoteDefinitions();
         var body = writer.ToString();
 
         if (!options.EmitDocument)
@@ -150,7 +151,7 @@ static class HtmlExporter
     // identifiers (Calibri) are left bare. Family names never contain quotes in practice.
     static string CssFontFamily(string font) => font.Contains(' ') ? $"'{font}'" : font;
 
-    sealed class HtmlWriter(HtmlExportOptions options, string? bodyFont, PageSettings pageSettings)
+    sealed class HtmlWriter(HtmlExportOptions options, string? bodyFont, PageSettings pageSettings, IReadOnlyList<Footnote> footnotes, IReadOnlyList<Endnote> endnotes)
     {
         // Mirrors the body font-size in DefaultStylesheet — runs at this size inherit it and need no
         // inline override.
@@ -165,6 +166,11 @@ static class HtmlExporter
         readonly HashSet<string> usedHeadingIds = [];
         int imageIndex;
         int shapeIndex;
+
+        readonly Dictionary<string, string> footnoteTexts = footnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
+        readonly Dictionary<string, string> endnoteTexts = endnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
+        readonly List<(int Number, string Text)> notes = [];
+        readonly Dictionary<string, int> noteNumbers = [];
 
         public override string ToString() => builder.ToString();
 
@@ -221,10 +227,10 @@ static class HtmlExporter
                     WriteTable(table, depth);
                     break;
                 case ImageElement image:
-                    WriteImageParagraph(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, depth);
+                    WriteImageParagraph(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Description, depth);
                     break;
                 case FloatingImageElement floatingImage:
-                    WriteImageParagraph(floatingImage.ImageData, floatingImage.ContentType, floatingImage.WidthPoints, floatingImage.HeightPoints, depth);
+                    WriteImageParagraph(floatingImage.ImageData, floatingImage.ContentType, floatingImage.WidthPoints, floatingImage.HeightPoints, floatingImage.Description, depth);
                     break;
                 case HorizontalRuleElement:
                     Indent(depth).Append("<hr />\n");
@@ -333,9 +339,59 @@ static class HtmlExporter
             Indent(depth).Append("</blockquote>\n");
         }
 
+        // A footnote / endnote reference becomes a <sup> link to its entry in the trailing notes
+        // section. n counts up in first-reference order across footnotes and endnotes together;
+        // repeat references to one note reuse its number, and a reference whose note body is
+        // missing emits nothing.
+        string NoteMarker(string id, bool endnote)
+        {
+            var key = (endnote ? "e" : "f") + id;
+
+            // A repeat reference links to the note but omits the fnref id — the back-link already
+            // targets the first citation, and a duplicate id would be invalid HTML.
+            if (noteNumbers.TryGetValue(key, out var existing))
+            {
+                return $"<sup class=\"footnote-ref\"><a href=\"#fn-{existing}\">{existing}</a></sup>";
+            }
+
+            var texts = endnote ? endnoteTexts : footnoteTexts;
+            if (!texts.TryGetValue(id, out var text))
+            {
+                return "";
+            }
+
+            var number = notes.Count + 1;
+            noteNumbers[key] = number;
+            notes.Add((number, text));
+            return $"<sup class=\"footnote-ref\"><a href=\"#fn-{number}\" id=\"fnref-{number}\">{number}</a></sup>";
+        }
+
+        // Emits the trailing notes section (referenced footnotes and endnotes, in reference order),
+        // each list item carrying a back-link to its citation. Nothing is emitted when no note was
+        // referenced.
+        public void WriteNoteDefinitions()
+        {
+            if (notes.Count == 0)
+            {
+                return;
+            }
+
+            Indent(0).Append("<section class=\"footnotes\">\n");
+            Indent(1).Append("<ol>\n");
+            foreach (var (number, text) in notes)
+            {
+                Indent(2).Append("<li id=\"fn-").Append(number).Append("\">")
+                    .Append(EncodeText(text))
+                    .Append(" <a href=\"#fnref-").Append(number).Append("\">↩</a></li>\n");
+            }
+
+            Indent(1).Append("</ol>\n");
+            Indent(0).Append("</section>\n");
+        }
+
         // Resolves the image source before opening the <p> so a dropped image (no handler,
         // embedding disabled) produces no empty paragraph.
-        void WriteImageParagraph(byte[] data, string? contentType, double widthPoints, double heightPoints, int depth)
+        void WriteImageParagraph(byte[] data, string? contentType, double widthPoints, double heightPoints, string? description, int depth)
         {
             var source = ResolveImageSource(data, contentType, widthPoints, heightPoints);
             if (source == null)
@@ -344,7 +400,7 @@ static class HtmlExporter
             }
 
             Indent(depth).Append("<p>");
-            AppendImageTag(source, widthPoints, heightPoints, null);
+            AppendImageTag(source, widthPoints, heightPoints, description);
             builder.Append("</p>\n");
         }
 
@@ -765,7 +821,7 @@ static class HtmlExporter
                             builder.Append("<br />");
                         }
 
-                        AppendImage(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, null);
+                        AppendImage(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Description);
                         separatorPending = true;
                         break;
                     case FloatingImageElement floatingImage:
@@ -774,7 +830,7 @@ static class HtmlExporter
                             builder.Append("<br />");
                         }
 
-                        AppendImage(floatingImage.ImageData, floatingImage.ContentType, floatingImage.WidthPoints, floatingImage.HeightPoints, null);
+                        AppendImage(floatingImage.ImageData, floatingImage.ContentType, floatingImage.WidthPoints, floatingImage.HeightPoints, floatingImage.Description);
                         separatorPending = true;
                         break;
                 }
@@ -810,7 +866,19 @@ static class HtmlExporter
         {
             if (run.InlineImageData is {} imageData)
             {
-                AppendImage(imageData, run.InlineImageContentType, run.InlineImageWidthPoints, run.InlineImageHeightPoints, null);
+                AppendImage(imageData, run.InlineImageContentType, run.InlineImageWidthPoints, run.InlineImageHeightPoints, run.InlineImageDescription);
+                return;
+            }
+
+            if (run.FootnoteReferenceId is {} footnoteId)
+            {
+                builder.Append(NoteMarker(footnoteId, endnote: false));
+                return;
+            }
+
+            if (run.EndnoteReferenceId is {} endnoteId)
+            {
+                builder.Append(NoteMarker(endnoteId, endnote: true));
                 return;
             }
 

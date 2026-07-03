@@ -3955,6 +3955,7 @@ sealed class DocumentParser(string defaultFont)
                 InlineImageWidthPoints = run.InlineImageWidthPoints,
                 InlineImageHeightPoints = run.InlineImageHeightPoints,
                 InlineImageContentType = run.InlineImageContentType,
+                InlineImageDescription = run.InlineImageDescription,
                 InlineImageRotationDegrees = run.InlineImageRotationDegrees,
                 InlineImageCrop = run.InlineImageCrop,
                 IsTab = run.IsTab,
@@ -5018,6 +5019,7 @@ sealed class DocumentParser(string defaultFont)
             InlineImageWidthPoints = widthPoints,
             InlineImageHeightPoints = heightPoints,
             InlineImageContentType = contentType,
+            InlineImageDescription = ReadImageDescription(pic, drawing),
             InlineImageRasterFallbackData = rasterFallbackData,
             InlineImageRasterFallbackContentType = rasterFallbackContentType,
             InlineImageRotationDegrees = rotationDegrees,
@@ -5352,6 +5354,33 @@ sealed class DocumentParser(string defaultFont)
         return mainPart;
     }
 
+    // Alt text for a picture: the picture's own pic:cNvPr wins (most specific — e.g. per-image
+    // inside a group), falling back to the drawing-level wp:docPr. @descr is Word's "Description"
+    // alt-text field; @title ("Title") is the secondary fallback. The auto-generated @name
+    // ("Picture 1") is never used — it is a shape name, not alt text.
+    static string? ReadImageDescription(OpenXmlElement pic, Drawing drawing)
+    {
+        return Describe(pic.Descendants().FirstOrDefault(_ => _.LocalName == "cNvPr"))
+            ?? Describe(drawing.Descendants().FirstOrDefault(_ => _.LocalName == "docPr"));
+
+        static string? Describe(OpenXmlElement? properties)
+        {
+            if (properties == null)
+            {
+                return null;
+            }
+
+            if (properties.AttributeValue("descr") is {Length: > 0} descr && !string.IsNullOrWhiteSpace(descr))
+            {
+                return descr.Trim();
+            }
+
+            return properties.AttributeValue("title") is {Length: > 0} title && !string.IsNullOrWhiteSpace(title)
+                ? title.Trim()
+                : null;
+        }
+    }
+
     static List<DocumentElement> ParseDrawingElements(Drawing drawing, MainDocumentPart mainPart)
     {
         var hostPart = ResolveHostPart(drawing, mainPart);
@@ -5549,6 +5578,7 @@ sealed class DocumentParser(string defaultFont)
             }
 
             var colorEffect = ReadBlipColorEffect(blip);
+            var description = ReadImageDescription(pic, drawing);
 
             // Create the image element
             if (anchor == null)
@@ -5559,6 +5589,7 @@ sealed class DocumentParser(string defaultFont)
                     WidthPoints = widthPoints,
                     HeightPoints = heightPoints,
                     ContentType = contentType,
+                    Description = description,
                     RotationDegrees = rotationDegrees,
                     Crop = crop,
                     ColorEffect = colorEffect,
@@ -5568,7 +5599,7 @@ sealed class DocumentParser(string defaultFont)
             }
             else
             {
-                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees, crop, rasterFallbackData, rasterFallbackContentType);
+                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees, crop, rasterFallbackData, rasterFallbackContentType, description);
                 result.Add(floatingImage);
             }
         }
@@ -5579,7 +5610,7 @@ sealed class DocumentParser(string defaultFont)
     /// <summary>
     /// Parses an anchored image with additional X/Y offset within a group.
     /// </summary>
-    static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null)
+    static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null, string? description = null)
     {
         var positioning = anchor.ParsePositioning(offsetXPoints, offsetYPoints);
 
@@ -5589,6 +5620,7 @@ sealed class DocumentParser(string defaultFont)
             WidthPoints = widthPoints,
             HeightPoints = heightPoints,
             ContentType = contentType,
+            Description = description,
             HorizontalPositionPoints = positioning.HorizontalPositionPoints,
             VerticalPositionPoints = positioning.VerticalPositionPoints,
             HorizontalAnchor = positioning.HorizontalAnchor,
@@ -7821,6 +7853,32 @@ sealed class DocumentParser(string defaultFont)
                             Properties = GetProperties(),
                             IsTab = true,
                             HyperlinkUrl = hyperlinkUrl
+                        });
+                    break;
+                // A w:footnoteReference / w:endnoteReference marks where a note is cited. The note
+                // body lives in footnotes.xml / endnotes.xml (ExtractFootnotes / ExtractEndnotes);
+                // here we only record the citation position as an empty marker run so the text
+                // exporters can emit a reference and a trailing notes section.
+                case FootnoteReference footnoteReference when footnoteReference.Id?.Value is { } footnoteId:
+                    FlushText();
+                    result.Add(
+                        new()
+                        {
+                            Text = "",
+                            Properties = GetProperties(),
+                            HyperlinkUrl = hyperlinkUrl,
+                            FootnoteReferenceId = footnoteId.ToString()
+                        });
+                    break;
+                case EndnoteReference endnoteReference when endnoteReference.Id?.Value is { } endnoteId:
+                    FlushText();
+                    result.Add(
+                        new()
+                        {
+                            Text = "",
+                            Properties = GetProperties(),
+                            HyperlinkUrl = hyperlinkUrl,
+                            EndnoteReferenceId = endnoteId.ToString()
                         });
                     break;
                 // A <w:br/> inside a run becomes a newline at its document position, so text on
