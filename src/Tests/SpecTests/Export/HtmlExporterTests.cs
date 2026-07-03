@@ -418,6 +418,8 @@ public class HtmlExporterTests
 
     [Test]
     public Task ParagraphBorder() =>
+        // Symmetric border spaces collapse to the two-value padding shorthand; fully asymmetric
+        // ones stay four-part.
         VerifyHtml(
             Doc(
                 new ParagraphElement
@@ -431,6 +433,19 @@ public class HtmlExporterTests
                         BorderRightSpacePoints = 6,
                         BorderBottomSpacePoints = 4,
                         BorderLeftSpacePoints = 6
+                    }
+                },
+                new ParagraphElement
+                {
+                    Runs = [TextRun("asymmetric")],
+                    Properties = new()
+                    {
+                        SpacingAfterPoints = 8,
+                        Borders = CellBorders.All,
+                        BorderTopSpacePoints = 2,
+                        BorderRightSpacePoints = 4,
+                        BorderBottomSpacePoints = 6,
+                        BorderLeftSpacePoints = 8
                     }
                 }));
 }

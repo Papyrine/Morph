@@ -78,7 +78,7 @@ static class HtmlExporter
         // a default letter page keeps its inch of whitespace.
         var page = document.PageSettings;
         bodyStyle.Add($"max-width: {Length(page.ContentWidth)}");
-        bodyStyle.Add($"padding: {Length(page.MarginTop)} {Length(page.MarginRight)} {Length(page.MarginBottom)} {Length(page.MarginLeft)}");
+        bodyStyle.Add($"padding: {BoxShorthand(page.MarginTop, page.MarginRight, page.MarginBottom, page.MarginLeft)}");
 
         // Background shapes are emitted as absolutely-positioned <svg> children; they resolve their
         // top/left against the body, so the body must be a positioning context.
@@ -166,6 +166,29 @@ static class HtmlExporter
     static string Number(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
 
     static string Length(double points) => $"{Number(points)}pt";
+
+    // Shortest CSS box shorthand for top/right/bottom/left: one value when all four match,
+    // "vertical horizontal" when opposite edges match, "top horizontal bottom" when only the
+    // sides match, else all four.
+    static string BoxShorthand(double top, double right, double bottom, double left)
+    {
+        if (Math.Abs(left - right) > 0.01)
+        {
+            return $"{Length(top)} {Length(right)} {Length(bottom)} {Length(left)}";
+        }
+
+        if (Math.Abs(top - bottom) > 0.01)
+        {
+            return $"{Length(top)} {Length(right)} {Length(bottom)}";
+        }
+
+        if (Math.Abs(top - right) > 0.01)
+        {
+            return $"{Length(top)} {Length(right)}";
+        }
+
+        return Length(top);
+    }
 
     sealed class HtmlWriter(HtmlExportOptions options, string? bodyFont, PageSettings pageSettings, IReadOnlyList<Footnote> footnotes, IReadOnlyList<Endnote> endnotes)
     {
@@ -529,7 +552,7 @@ static class HtmlExporter
                 var left = properties.BorderLeftSpacePoints;
                 if (top > 0 || right > 0 || bottom > 0 || left > 0)
                 {
-                    parts.Add($"padding: {Length(top)} {Length(right)} {Length(bottom)} {Length(left)}");
+                    parts.Add($"padding: {BoxShorthand(top, right, bottom, left)}");
                 }
             }
 
