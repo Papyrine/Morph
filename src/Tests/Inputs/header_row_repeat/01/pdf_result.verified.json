@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 3,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
@@ -17,13 +23,7 @@
         "Height": 792.0,
         "Text": "ID Name Notes\n51 Person 51 Lorem ipsum dolor sit amet\n52 Person 52 Lorem ipsum dolor sit amet\n53 Person 53 Lorem ipsum dolor sit amet\n54 Person 54 Lorem ipsum dolor sit amet\n55 Person 55 Lorem ipsum dolor sit amet\n56 Person 56 Lorem ipsum dolor sit amet\n57 Person 57 Lorem ipsum dolor sit amet\n58 Person 58 Lorem ipsum dolor sit amet\n59 Person 59 Lorem ipsum dolor sit amet\n60 Person 60 Lorem ipsum dolor sit amet"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

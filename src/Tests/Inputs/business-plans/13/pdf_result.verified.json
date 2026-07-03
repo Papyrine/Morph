@@ -1,5 +1,11 @@
 ﻿{
   "PageCount": 22,
+  "Properties": {
+    "CreationDate": "DateTimeOffset_1",
+    "Creator": "Morph",
+    "ModDate": "DateTimeOffset_1",
+    "Producer": "PDFsharp 6.2.4"
+  },
   "Pages": [
     {
       "Width": 612.0,
@@ -111,11 +117,5 @@
       "Height": 792.0,
       "Text": "SMALL BUSINESS PLAN\nINSTRUCTIONS FOR GETTING STARTED ON PROFIT\n& LOSS PROJECTIONS\nCompleting projections for Profit and Loss of a new company is a good exercise to\nunderstand and communicate when the company will begin to break even and see\nhow sales and profits will grow. The top portion of the model to the left, Revenue, is a\ngood way to forecast sales, month by month for the first year. The lower portion then\napplies estimated expenses for the same period of time to derive the business'\nprofitability.\nSteps for preparation:\n• Step 1: Enter the company name and the date this projection is being prepared.\n• Step 2: For each month, beginning in January or whenever the start is estimated,\nenter the expected sales to be. This could be for a single service or multiple\nservices. Add lines to this model for additional offerings. From this, subtract any\nproduct returns or discounts that are to be tracked (these should be shown as\nnegative numbers, for example, -10). Below Net Sales, enter the Cost of Goods\nSold. This refers to the monetized value of the time spent on a particular client.\n• Step 3: For each month, enter the estimated salaries, marketing, utilities, and\nother items that are projected.\n• Step 4: Once all of the costs have been entered, review the individual items and\ntotal amount to see where projections can be fine-tuned or move something out\ninto the future when more revenue is coming in. The objective is to get to\nprofitability and positive cash flow as quickly as possible.\nSAND + POLISH CONTRACTORS 4"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

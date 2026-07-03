@@ -1,19 +1,19 @@
 ﻿{
   "target": {
     "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
         "Height": 792.0,
         "Text": "EVENT PLANNING MEETING\nPROJECT: Fundraising – charity auction MEETING\nDATE:\nMay 5, 20XX\nFACILITATOR: Gehad Kerazi LOCATION: The Rosehip Hotel\nNAME TITLE COMPANY PHONE FAX EMAIL\nDanielle Brasseur Event\nmanager\nThe Social\nStrategists (312) 555-0123 (312) 555-0124 danielle@example.com\nSi-hyeon Choi Event planner Starling and\nCopper (879) 555-0189 (879) 555-0180 Si_hyeon@example.com\nKalavathi Rai Coordinator Olson Harris\nLtd. (234) 555-0156 (234) 555-0157 kalavathi@example.com\nMiro Matkovic Meeting\nplanner\nMitchell,\nMorris, Ward,\nand Cook\n(507) 555-0178 (507) 555-0179 miro@example.com\nHayden Cook Events\nspecialist\nNorthwind\nTraders (456) 555-0145 (456) 555-0146 hayden@example.com\nRiku Nakano Sponsorship\ncoordinator\nVanArsdel,\nLtd. (890) 555-0134 (890) 555-0135 riku@example.com\nKeita Aoki Special events\ncoordinator\nWide World\nImporters (305) 555-0190 (305) 555-0191 keita@example.com"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

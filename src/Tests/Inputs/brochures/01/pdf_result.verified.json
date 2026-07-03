@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 792.0,
@@ -12,13 +18,7 @@
         "Height": 612.0,
         "Text": "USE ICONS TO ADD\nVISUAL INTEREST\nUSING ICONS\nInsert some icons here to make\nyour points. To insert a new\none, select the shape in the\ncircle and delete it, then insert\nthe icon you want to use.\nFINDING THE ICONS\nTo change the icon, select the\nshape in the circle and delete it,\nthen insert your new icon.\nFORMATTING ICONS\nYou can your icon in the Picture\ntab.\nMAKE IT YOURS\nTo get started right away, just select any\nplaceholder text (such as this) and start typing\nto replace it with your own.\n• GET THE EXACT RESULTS YOU\nWANT\nCustomize the look of this brochure by\nchanging the styles on the Home tab.\n“Insert a\nquote\nhere”\n- Quote source -"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

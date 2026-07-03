@@ -165,6 +165,31 @@ public class MarkdownExporterTests
     }
 
     [Test]
+    public Task ListInTableCell()
+    {
+        // A pipe-table cell cannot hold a real Markdown list, so list paragraphs keep their
+        // markers as literal text — "• item" / "1. item" — joined with <br> like any other
+        // cell paragraphs.
+        var cell = new TableCell
+        {
+            Content =
+            [
+                ListItem("•", 18, "first"),
+                ListItem("•", 18, "second"),
+                ListItem("1.", 18, "ordered")
+            ]
+        };
+        var export = MarkdownExporter.Export(
+            Doc(
+                Table(
+                    new TableRow
+                    {
+                        Cells = [cell]
+                    })));
+        return Verify(export, extension: "md");
+    }
+
+    [Test]
     public Task TableEscapesPipes()
     {
         var export = MarkdownExporter.Export(

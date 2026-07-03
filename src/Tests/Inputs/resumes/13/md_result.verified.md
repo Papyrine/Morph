@@ -18,17 +18,17 @@
 
 | **Research experience** |  | If you are applying for a teaching position, you might want to list the teaching experience section before the research experience section. Highlight important accomplishments, skills, and projects using concise sentences, beginning with an action verb. Complete sentences are not necessary. Be consistent in your grammatical style. |  |
 | --- | --- | --- | --- |
-|  |  | 20XX-20XX | **Dissertation** Jasper University, Frankfort, KY<br>Advisor: Name<br>Skill/Accomplishment/Project<br>Skill/Accomplishment/Project |
-|  |  | 20XX-20XX | **Institution/Company/Organization,** Location<br>**Position,** Lab or Advisor Name<br>Skill/Accomplishment/Project<br>Skill/Accomplishment/Project |
-|  |  | 20XX-20XX | **Company/Organization,** Location<br>**Position** Lab or Advisor Name<br>Skill/Accomplishment/Project<br>Skill/Accomplishment/Project |
+|  |  | 20XX-20XX | **Dissertation** Jasper University, Frankfort, KY<br>Advisor: Name<br>• Skill/Accomplishment/Project<br>• Skill/Accomplishment/Project |
+|  |  | 20XX-20XX | **Institution/Company/Organization,** Location<br>**Position,** Lab or Advisor Name<br>• Skill/Accomplishment/Project<br>• Skill/Accomplishment/Project |
+|  |  | 20XX-20XX | **Company/Organization,** Location<br>**Position** Lab or Advisor Name<br>• Skill/Accomplishment/Project<br>• Skill/Accomplishment/Project |
 
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
 |  |  |  |  |  |
 | **Teaching experience** |  | When you list courses, include a brief description so that the course can be compared to a similar course at another university. You might want to include the typical number of students in the course as well as list your responsibilities such as developing course materials, lecturing, grading, developing the syllabus, etc. How you decide to list or group your courses, skills, teaching methods, roles, and responsibilities will depend on your amount of experience. The examples below are just a few ideas. |  |  |
-|  |  | 20XX-20XX | **Name of University,** Location<br>**Associate Professor,** Department<br>Taught Name of Course, an undergraduate course averaging 120 students per semester, covering the following topics: topic, topic, topic, topic<br>Developed quizzes, exams, and homework<br>Revised the syllabus to meet accreditation standards<br>Coordinated grading and labs with a team of 4 teaching assistants |  |
+|  |  | 20XX-20XX | **Name of University,** Location<br>**Associate Professor,** Department<br>• Taught Name of Course, an undergraduate course averaging 120 students per semester, covering the following topics: topic, topic, topic, topic<br>• Developed quizzes, exams, and homework<br>• Revised the syllabus to meet accreditation standards<br>• Coordinated grading and labs with a team of 4 teaching assistants |  |
 |  |  |  |  | **Doctoral students advised**<br>Name, “Thesis Title”, Date Graduated<br>Name, “Thesis Title”, Date Graduated<br>Name, “Thesis Title”, Date Graduated<br>**Master’s students advised**<br>Name, “Thesis Title”, Date Graduated<br>Name, “Thesis Title”, Date Graduated<br>Name, “Thesis Title”, Date Graduated |
-|  |  | 20XX-20XX | **Name of University,** Location<br>**Teaching Assistant,** Department<br>Highlight important projects, duties, skills, and responsibilities following a consistent grammatical style |  |
+|  |  | 20XX-20XX | **Name of University,** Location<br>**Teaching Assistant,** Department<br>• Highlight important projects, duties, skills, and responsibilities following a consistent grammatical style |  |
 
 |  |  |  |  |
 | --- | --- | --- | --- |
@@ -58,7 +58,7 @@
 |  |  |  |  |
 | **Professional training** |  | 20XX-20XX | **Seminar or Workshop**<br>**Name of Institution, Location**<br>Description: Include a brief description, if necessary. |
 |  |  | 20XX-20XX | **ABC Certification, Name of Organization\]**<br>Description: Include a brief description, if necessary. |
-|  |  | 20XX | **Company/Organization, \[Position\], \[Department\], Dates**<br>Skill/Accomplishment/Award/Certification<br>Skill/Accomplishment/Award/Certification |
+|  |  | 20XX | **Company/Organization, \[Position\], \[Department\], Dates**<br>• Skill/Accomplishment/Award/Certification<br>• Skill/Accomplishment/Award/Certification |
 
 |  |  |  |  |
 | --- | --- | --- | --- |

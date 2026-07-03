@@ -1,5 +1,11 @@
 ﻿{
   "PageCount": 2,
+  "Properties": {
+    "CreationDate": "DateTimeOffset_1",
+    "Creator": "Morph",
+    "ModDate": "DateTimeOffset_1",
+    "Producer": "PDFsharp 6.2.4"
+  },
   "Pages": [
     {
       "Width": 612.0,
@@ -11,11 +17,5 @@
       "Height": 792.0,
       "Text": "tempor incididunt ut labore.\nParagraph 13: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 14: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 15: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 16: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 17: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 18: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 19: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 20: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore."
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

@@ -1,19 +1,19 @@
 ﻿{
   "target": {
     "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
         "Height": 792.0,
         "Text": "First paragraph with regular text content.\nSecond paragraph with more text.\nThird paragraph with a\nline break in the middle.\nFourth paragraph with multiple\nline\nbreaks.\nParagraph after an empty paragraph.\nParagraph with leading spaces (may be trimmed)."
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

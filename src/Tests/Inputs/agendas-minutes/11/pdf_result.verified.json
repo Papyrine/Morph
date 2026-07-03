@@ -1,19 +1,19 @@
 ﻿{
   "target": {
     "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
         "Height": 792.0,
         "Text": "MEETING MINUTES\nADMIN MEETING\nDate: January 9th\nTime: 2:15 PM\nMeeting called to order by: Helen Karu\nIN ATTENDANCE\nHelen, Sara, John, Gayle\nAPPROVAL OF MINUTES\nThe minutes were read from the December meeting and approved.\nBUDGET\nThe budget for the current fiscal year was distributed and reviewed at the last meeting. In to\nday's meeting, John made a motion to approve the budget which was seconded by Helen.\nAll present voted in favor of approving the budget as presented.\nREPORTS\nCommittee reports\n• Volunteers\n• Newsletter\n• Customer support\nNEXT MEETING\nNext meeting will be held on February 6\nth\nMotion to adjourn was made at 3:15 p.m. and was passed unanimously."
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

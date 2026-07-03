@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 3,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
@@ -17,13 +23,7 @@
         "Height": 792.0,
         "Text": "Taylor Phillips\n5678 Main St\nNew York, NY 90210\nSeptember 16, 20XX\nDear Taylor Phillips,\nWrite the body of your letter here. To update any of the letter's information, select the\ntext, and start typing.\nWant to change fonts? Go to the Home tab and choose Fonts. You can use a built-in\nfont combination or select one of your own.\nYou can also change the colors of the template to match your personal taste. Go to the\nDesign tab and choose a color palette from the Colors menu. Hovering over the\ndifferent palettes will show you what your document would look like with the new\npalette.\nTo change the color or font formatting back to the original settings, go to the Design\ntab, and select the Theme menu. From there, choose the option to reset the original\ntemplate theme.\nWarm Regards,\nKalle Persson\nManager\n555-0100\nnodpublishers.com\nkalle@nodpublishers.com\nNP\nNod Publishers\n4567 Main St.\nBuffalo, NY 98052"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

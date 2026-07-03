@@ -2,22 +2,22 @@
 | --- |
 |  Helbe Sokk, Jessie Irwin, Allan Mattsson, Chanchal Sharma |
 
-|  **Call to order** |
+| I.  **Call to order** |
 | --- |
 | Chanchal Sharma called to order the regular meeting of the Homeowner’s Association at 2:00 PM on January 16th. |
-|  **Roll call** |
+| II.  **Roll call** |
 | Chanchal Sharma conducted a roll call. The following persons were present: Helbe Sokk, Jessie Irwin, Allan Mattsson, Chanchal Sharma |
-|  **Approval of minutes from last meeting** |
+| III.  **Approval of minutes from last meeting** |
 | Chanchal Sharma read the minutes from the last meeting. The minutes were approved as read. |
-|  **Open issues** |
-| Member dues  |
-| Vehicle speeding   |
-| Neighborhood watch  |
-|  **New business** |
-| Valentine’s potluck  |
-| Vote on dog park  |
-| Pool maintenance  |
-|  **Adjournment** |
+| IV.  **Open issues** |
+| a) Member dues  |
+| b) Vehicle speeding   |
+| c) Neighborhood watch  |
+| V.  **New business** |
+| a) Valentine’s potluck  |
+| b) Vote on dog park  |
+| c) Pool maintenance  |
+| VI.  **Adjournment** |
 | Chanchal Sharma adjourned the meeting at time. |
 | Minutes submitted by: Jessie Irwin |
 | Minutes approved by: Chanchal Sharma |

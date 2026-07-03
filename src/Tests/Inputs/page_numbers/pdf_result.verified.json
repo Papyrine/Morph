@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
@@ -12,13 +18,7 @@
         "Height": 792.0,
         "Text": "Content paragraph 29 to create multiple pages for page number testing.\nContent paragraph 30 to create multiple pages for page number testing.\nContent paragraph 31 to create multiple pages for page number testing.\nContent paragraph 32 to create multiple pages for page number testing.\nContent paragraph 33 to create multiple pages for page number testing.\nContent paragraph 34 to create multiple pages for page number testing.\nContent paragraph 35 to create multiple pages for page number testing.\nContent paragraph 36 to create multiple pages for page number testing.\nContent paragraph 37 to create multiple pages for page number testing.\nContent paragraph 38 to create multiple pages for page number testing.\nContent paragraph 39 to create multiple pages for page number testing.\nContent paragraph 40 to create multiple pages for page number testing.\nPage 1 of 1"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

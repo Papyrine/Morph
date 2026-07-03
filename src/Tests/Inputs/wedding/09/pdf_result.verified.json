@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
@@ -12,13 +18,7 @@
         "Height": 792.0,
         "Text": "Mr. & Mrs. Robin Zupanc\nRequest the honor of Your Presence\nAt the marriage of\nRobin Zupanc\nTo\nPeyton Davis\nChild of\nMr. & Mrs. Peyton Davis\nSaturday the Twenty-First of June\nTwo thousand and [Year]\nEleven O’clock in the morning\nAt Location City, State.\nReception to Follow\nMr. & Mrs. Robin Zupanc\nRequest the honor of Your Presence\nAt the marriage of\nRobin Zupanc\nTo\nPeyton Davis\nChild of\nMr. & Mrs. Peyton Davis\nSaturday the Twenty-First of June\nTwo thousand and [Year]\nEleven O’clock in the morning\nAt Location City, State.\nReception to Follow"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

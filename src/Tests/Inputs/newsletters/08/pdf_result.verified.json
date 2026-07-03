@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
@@ -12,13 +18,7 @@
         "Height": 792.0,
         "Text": "From interior design trends to DIY projects, real\nestate insights, and lifestyle features, \"House &\nHome News\" is here to make your living experience\neven more delightful. \"Elevate your living space effortlessly!\nDiscover quick tips and trends for a home\nthat reflects your unique style.”\nJoin us on this journey of turning houses into homes and\nunlocking the secrets to a harmonious, stylish, and comfortable\nliving space.\nwww.example.com | 505.555.0155 | house@example.com"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

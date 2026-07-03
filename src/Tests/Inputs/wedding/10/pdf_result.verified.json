@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 5,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
@@ -27,13 +33,7 @@
         "Height": 792.0,
         "Text": " Arrival at reception venue  Grandparents dancing\n Wedding cake  Guests dancing\n Bar setup  Wedding couple greeting guests\n Groom’s cake  Cake cutting\n Buffet and servers  Cake feeding\n Band or DJ  Speeches/toasts\n Gift table  Bride tossing bouquet\n Centerpieces  Groom removing garter\n Floral arrangements  Groom throwing garter\n Favors  Bouquet and garter catchers\ndancing\n Entrance of wedding party  Bride and groom’s last dance\n Entrance of wedding couple  Decorated “just married” car\n Bride and groom’s first dance  Wedding couple exiting venue\n Bride’s dance with father  Guests at exit (throwing birdseed,\nblowing bubbles, etc.)\n Centerpieces  Wedding couple in car waving\ngoodbye"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

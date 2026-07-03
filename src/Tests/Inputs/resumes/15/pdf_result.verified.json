@@ -1,5 +1,11 @@
 ﻿{
   "PageCount": 2,
+  "Properties": {
+    "CreationDate": "DateTimeOffset_1",
+    "Creator": "Morph",
+    "ModDate": "DateTimeOffset_1",
+    "Producer": "PDFsharp 6.2.4"
+  },
   "Pages": [
     {
       "Width": 612.0,
@@ -11,11 +17,5 @@
       "Height": 792.0,
       "Text": "Activities\nLiterature • Environmental conservation • Art • Yoga • Skiing • Travel"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

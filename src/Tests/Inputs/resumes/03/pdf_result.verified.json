@@ -1,19 +1,19 @@
 ﻿{
   "target": {
     "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
         "Height": 792.0,
         "Text": "KAI CARTER\nGeneral Practitioner\n/ 678-555-0103\n/ lamnahealthcare.com\n/ kai@lamnahealthcare.com\nExperienced and compassionate GP dedicated to delivering excellent patient care.\nKnown for strong diagnostic skills and a patient-centered approach. Committed to\npromoting health and wellness through personalized treatment plans.\nWORK EXPERIENCE\nLamna Healthcare / General Practitioner\nDecember 20XX – present\nImplemented evidence-based medicine for accurate\ndiagnosis, spearheaded a community health fair, provided\nfree screenings to over 200 residents\nTyler Stein MD / Family Physician\nAugust 20XX – July 20XX\nManaged a diverse patient caseload, led a smoking\ncessation program resulting in a 30% increase in successful\nquit attempts\nCity Hospital / Medical Officer\nApril 20XX – August 20XX\nProvided emergency medical care with a focus on trauma\ncases, collaborated with specialists to enhance patient\noutcomes\nSKILLS\nClinical diagnosis\nPatient-centered care\nHealth promotion\nChronic disease management\nEDUCATION\nJasper University\nSeptember 20XX – June 20XX\nDean's List, Medical Research Award\nBellows College\nSeptember 20XX – May 20XX\nBachelor of Science in Biology, Cum Lau\nde, outstanding research thesis\nHOBBIES\nRunning\nPhotography\nTraveling\nCooking\nDancing\nCamping\nCONTACT\nPhone\n678-555-0103\nWebsite\nwww.lamnahealthcare.com\nEmail\nkai@lamnahealthcare.com"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

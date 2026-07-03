@@ -1,5 +1,11 @@
 ﻿{
   "PageCount": 2,
+  "Properties": {
+    "CreationDate": "DateTimeOffset_1",
+    "Creator": "Morph",
+    "ModDate": "DateTimeOffset_1",
+    "Producer": "PDFsharp 6.2.4"
+  },
   "Pages": [
     {
       "Width": 612.0,
@@ -11,11 +17,5 @@
       "Height": 792.0,
       "Text": "Item 17: Short text for\nnarrow columns.\nItem 18: Short text for\nnarrow columns.\nItem 19: Short text for\nnarrow columns.\nItem 20: Short text for\nnarrow columns.\nItem 21: Short text for\nnarrow columns.\nItem 22: Short text for\nnarrow columns.\nItem 23: Short text for\nnarrow columns.\nItem 24: Short text for\nnarrow columns.\nItem 25: Short text for\nnarrow columns.\nItem 26: Short text for\nnarrow columns.\nItem 27: Short text for\nnarrow columns.\nItem 28: Short text for\nnarrow columns.\nItem 29: Short text for\nnarrow columns.\nItem 30: Short text for\nnarrow columns."
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
@@ -12,13 +18,7 @@
         "Height": 792.0,
         "Text": " Order tuxedoes for the groom and groomsmen. 2 TO 4 WEEKS PRIOR:\n Meet with the caterer to go over menus.  Work on seating arrangements.\n Order the wedding cake.  Finalize arrangements for out-of-town people.\n Order the wedding rings.  Confirm details with all vendors.\n Finalize ceremony and reception music.  Have final fitting for wedding gown.\n Book a hotel room for the wedding night.  Write your rehearsal dinner toast.\n If writing vows, work on them now.  Purchase gifts for the wedding attendants.\n Look into where bridal party will get ready.\n1 WEEK PRIOR:  Communicate rehearsal dinner details.\n Plan for any fees due on the wedding day.\n Get final beauty treatments. THE DAY BEFORE THE WEDDING:\n Find someone to solve last minute issues.  Confirm honeymoon arrangements.\n Give the caterer a final head count.  Pack for the honeymoon.\n Give bridal party and parents their gift.\nWEDDING DAY:  Hand off rings to best man or ring bearer.\n Allow at least two hours to get dressed.  Attend the rehearsal dinner.\n Post wedding announcements in the mail.  Gather the following:\n Relax and remain calm.  Something old.\n Something new.\n Something borrowed.\n Click or tap here to enter text.\n Remember to eat something."
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

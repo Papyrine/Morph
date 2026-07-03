@@ -1,19 +1,19 @@
 ﻿{
   "target": {
     "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
         "Height": 792.0,
         "Text": "JOSEPH@EXAMPLE.COM 603 555 0163 5678 MOUNTAIN DR.\nDENVER, CO 12345\nDEAR AINO,\n23 NOVEMBER 20XX I wanted to take a moment to thank you for your\nwonderful hospitality during my recent visit to New\nYork.\nYour generosity and warmth made the trip\nunforgettable. It was a pleasure to spend time with\nyou, and I truly appreciate all the care you took in\nmaking sure everything was perfect.\nI hope we can meet again soon and continue our\ndiscussions.\nBest,\nJoseph Price\nJoseph Price"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

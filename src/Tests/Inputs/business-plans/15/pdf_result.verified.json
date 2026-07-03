@@ -1,5 +1,11 @@
 ﻿{
   "PageCount": 21,
+  "Properties": {
+    "CreationDate": "DateTimeOffset_1",
+    "Creator": "Morph",
+    "ModDate": "DateTimeOffset_1",
+    "Producer": "PDFsharp 6.2.4"
+  },
   "Pages": [
     {
       "Width": 612.0,
@@ -106,11 +112,5 @@
       "Height": 792.0,
       "Text": "To back up the statements you may have made in your business plan, you may need to include any or\nall the following documents in your appendix:\n• Personal resumes\n• Personal financial statements\n• Credit reports, business and personal\n• Copies of leases\n• Letter of reference\n• Contracts\n• Legal documents\n• Personal and business tax returns\n• Miscellaneous relevant documents.\n• Photographs\nBUSINESS PLAN | APRIL 25, 20XX 17"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

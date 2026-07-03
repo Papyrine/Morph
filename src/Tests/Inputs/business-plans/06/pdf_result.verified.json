@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
@@ -12,13 +18,7 @@
         "Height": 792.0,
         "Text": "01\nSUMMARY\nThis proposal outlines a streamlined solution designed to address key business\nchallenges and drive growth. Our approach leverages industry expertise,\ninnovative strategies, and data-driven insights to create a tailored plan that\ndelivers measurable results.\n02\nPROBLEM STATEMENT\nBusinesses today face challenges such as inefficiencies, rising costs, and\nevolving market demands. Addressing these issues requires a well-structured\napproach.\n03\nSOLUTION\nOur solution is designed to improve overall performance. Using best practices,\nwe help businesses optimize workflows and drive innovation.\n04\nMARKET OPPORTUNITY With industry trends shifting, adopting a forward-thinking model is essential. Our\napproach provides businesses with scalable solutions that align with market\ndemands.\n05\nFINANCIAL SUMMARY\nOur strategies see an average 20% reduction in operational costs and a 35%\nimprovement in workflow efficiency. Clients can expect a strong return on\ninvestment."
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

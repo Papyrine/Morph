@@ -1,19 +1,19 @@
 ﻿{
   "target": {
     "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
         "Height": 792.0,
         "Text": "Nested unordered lists:\n• Item 1\n◦ Item 1.1\n◦ Item 1.2\n◦ Item 1.2.1\n◦ Item 1.2.2\n• Item 2\nNested ordered lists:\n1. First\n1. First sub-item\n2. Second sub-item\n2. Second\nMixed nested lists:\n• Bullet item\n1. Numbered sub-item 1\n2. Numbered sub-item 2"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

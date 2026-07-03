@@ -1,19 +1,19 @@
 ﻿{
   "target": {
     "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
         "Height": 792.0,
         "Text": "Basic HTML text formatting:\nBold text using b tag\nStrong text using strong tag\nItalic text using i tag\nEmphasized text using em tag\nUnderlined text using u tag\nStrikethrough text using s tag\nStrike text using strike tag\nText with subscript using sub tag\nText with superscript using sup tag\nBold and italic combined\nBold and underlined combined\nItalic and underlined combined\nBold, italic, and underlined all combined"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {
