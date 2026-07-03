@@ -19,8 +19,9 @@ static class HtmlExporter
     /// <summary>
     /// Embedded stylesheet of Word-like defaults. Body picks up Calibri 11pt with 1.08 line-height
     /// (Word's "Normal" style) — its padding comes inline from the document's page margins;
-    /// headings get the standard h1=24pt, h2=18pt, h3=14pt, h4=12pt-italic,
-    /// h5=11pt, h6=11pt-italic sizes; paragraphs and lists get 8pt bottom margin; tables collapse
+    /// headings get the sizes Word's stock Heading styles resolve to (h1=16pt, h2=13pt, h3=12pt,
+    /// h4=11pt-italic, h5=11pt, h6=11pt-italic), so a stock document needs no per-heading
+    /// override; paragraphs and lists get 8pt bottom margin; tables collapse
     /// borders with light grey 0.5pt cells; horizontal rules get a thin grey line. Applying these
     /// once via the <c>&lt;style&gt;</c> block — rather than repeating them as inline styles on every
     /// element — keeps the individual elements clean.
@@ -29,10 +30,10 @@ static class HtmlExporter
         body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
         p { margin: 0 0 8pt; }
         h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; }
-        h1 { font-size: 24pt; }
-        h2 { font-size: 18pt; }
-        h3 { font-size: 14pt; }
-        h4 { font-size: 12pt; font-style: italic; }
+        h1 { font-size: 16pt; }
+        h2 { font-size: 13pt; }
+        h3 { font-size: 12pt; }
+        h4 { font-size: 11pt; font-style: italic; }
         h5 { font-size: 11pt; }
         h6 { font-size: 11pt; font-style: italic; }
         ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
@@ -207,6 +208,9 @@ static class HtmlExporter
         const double defaultHeadingSpacingBeforePoints = 12;
         const double defaultHeadingSpacingAfterPoints = 0;
 
+        // Mirrors the stylesheet's heading sizes (h1=16pt … h6=11pt); index = level - 1.
+        static readonly double[] headingFontSizePoints = [16, 13, 12, 11, 11, 11];
+
         readonly StringBuilder builder = new();
         readonly HashSet<string> usedHeadingIds = [];
         int imageIndex;
@@ -331,17 +335,9 @@ static class HtmlExporter
             var level = DocumentExportHelpers.TryGetHeadingLevel(paragraph.Properties);
             if (level != null)
             {
-                var id = UniqueHeadingId(PlainText(paragraph.Runs));
-                Indent(depth).Append("<h").Append(level);
-                if (id.Length > 0)
-                {
-                    builder.Append(" id=\"").Append(EncodeAttribute(id)).Append('"');
-                }
-
-                AppendParagraphStyle(paragraph.Properties, defaultHeadingSpacingBeforePoints, defaultHeadingSpacingAfterPoints);
-                builder.Append('>');
-                AppendInline(paragraph.Runs, inHeading: true);
-                builder.Append("</h").Append(level).Append(">\n");
+                Indent(depth);
+                AppendHeading(paragraph, level.Value);
+                builder.Append('\n');
                 return;
             }
 
@@ -350,6 +346,68 @@ static class HtmlExporter
             builder.Append('>');
             AppendInline(paragraph.Runs);
             builder.Append("</p>\n");
+        }
+
+        // Emits a heading paragraph as <hN ...>...</hN> (no indent or trailing newline — the body
+        // and cell emit paths bracket it differently).
+        void AppendHeading(ParagraphElement paragraph, int level)
+        {
+            var id = UniqueHeadingId(PlainText(paragraph.Runs));
+            builder.Append("<h").Append(level);
+            if (id.Length > 0)
+            {
+                builder.Append(" id=\"").Append(EncodeAttribute(id)).Append('"');
+            }
+
+            // The heading's stylesheet size (24pt for h1, …) sets the line-box strut even when
+            // every run inside is smaller — a 10pt-styled Heading 1 in a table strip would still
+            // get a ~25pt line and inflate the row well beyond Word. When the runs agree on one
+            // size, lift it onto the <hN> so the strut matches the text; the spans then inherit
+            // the size and stay clean.
+            var headingDefaultSize = headingFontSizePoints[level - 1];
+            var uniformSize = UniformRunFontSize(paragraph.Runs);
+            var effectiveSize = uniformSize ?? headingDefaultSize;
+            var liftedSize = uniformSize != null && Math.Abs(uniformSize.Value - headingDefaultSize) > 0.01
+                ? uniformSize
+                : null;
+
+            AppendParagraphStyle(paragraph.Properties, defaultHeadingSpacingBeforePoints, defaultHeadingSpacingAfterPoints, liftedSize);
+            builder.Append('>');
+            AppendInline(paragraph.Runs, inHeading: true, effectiveSize);
+            builder.Append("</h").Append(level).Append('>');
+        }
+
+        // The single font size shared by every visible text run, or null when the runs disagree or
+        // carry no explicit size.
+        static double? UniformRunFontSize(IReadOnlyList<Run> runs)
+        {
+            double? size = null;
+            foreach (var run in runs)
+            {
+                if (run.Properties.Hidden || run.IsTab || run.InlineImageData != null ||
+                    run.FootnoteReferenceId != null || run.EndnoteReferenceId != null ||
+                    string.IsNullOrEmpty(run.Text))
+                {
+                    continue;
+                }
+
+                var runSize = run.Properties.FontSizePoints;
+                if (runSize <= 0)
+                {
+                    return null;
+                }
+
+                if (size == null)
+                {
+                    size = runSize;
+                }
+                else if (Math.Abs(size.Value - runSize) > 0.01)
+                {
+                    return null;
+                }
+            }
+
+            return size;
         }
 
         void WriteTextParagraph(string text, int depth)
@@ -466,9 +524,16 @@ static class HtmlExporter
         void AppendParagraphStyle(
             ParagraphProperties properties,
             double defaultBeforePoints = 0,
-            double defaultAfterPoints = defaultSpacingAfterPoints)
+            double defaultAfterPoints = defaultSpacingAfterPoints,
+            double? fontSizePoints = null)
         {
             var parts = new List<string>();
+
+            // A heading's lifted uniform run size (see AppendHeading) rides on the same attribute.
+            if (fontSizePoints is {} fontSize)
+            {
+                parts.Add($"font-size: {Length(fontSize)}");
+            }
 
             var align = properties.Alignment switch
             {
@@ -869,17 +934,7 @@ static class HtmlExporter
                         var level = DocumentExportHelpers.TryGetHeadingLevel(paragraph.Properties);
                         if (level != null)
                         {
-                            var id = UniqueHeadingId(PlainText(paragraph.Runs));
-                            builder.Append("<h").Append(level);
-                            if (id.Length > 0)
-                            {
-                                builder.Append(" id=\"").Append(EncodeAttribute(id)).Append('"');
-                            }
-
-                            AppendParagraphStyle(paragraph.Properties, defaultHeadingSpacingBeforePoints, defaultHeadingSpacingAfterPoints);
-                            builder.Append('>');
-                            AppendInline(paragraph.Runs, inHeading: true);
-                            builder.Append("</h").Append(level).Append('>');
+                            AppendHeading(paragraph, level.Value);
                             separatorPending = false;
                         }
                         else
@@ -922,7 +977,7 @@ static class HtmlExporter
             }
         }
 
-        void AppendInline(IReadOnlyList<Run> sourceRuns, bool inHeading = false)
+        void AppendInline(IReadOnlyList<Run> sourceRuns, bool inHeading = false, double inheritedFontSizePoints = defaultBodyFontSizePoints)
         {
             var runs = DocumentExportHelpers.CoalesceRuns(sourceRuns);
             var index = 0;
@@ -934,7 +989,7 @@ static class HtmlExporter
                     builder.Append("<a href=\"").Append(EncodeAttribute(url)).Append("\">");
                     while (index < runs.Count && runs[index].HyperlinkUrl == url)
                     {
-                        AppendRun(runs[index], inHeading);
+                        AppendRun(runs[index], inHeading, inheritedFontSizePoints);
                         index++;
                     }
 
@@ -942,12 +997,12 @@ static class HtmlExporter
                     continue;
                 }
 
-                AppendRun(run, inHeading);
+                AppendRun(run, inHeading, inheritedFontSizePoints);
                 index++;
             }
         }
 
-        void AppendRun(Run run, bool inHeading)
+        void AppendRun(Run run, bool inHeading, double inheritedFontSizePoints)
         {
             if (run.InlineImageData is {} imageData)
             {
@@ -979,7 +1034,7 @@ static class HtmlExporter
             }
 
             var properties = run.Properties;
-            var (open, close) = FormattingTags(properties, inHeading, bodyFont);
+            var (open, close) = FormattingTags(properties, inHeading, bodyFont, inheritedFontSizePoints);
             builder.Append(open);
 
             // AllCaps is handled by CSS (text-transform: uppercase) on the wrapping span — see
@@ -1003,7 +1058,7 @@ static class HtmlExporter
             }
         }
 
-        static (string Open, string Close) FormattingTags(RunProperties properties, bool inHeading, string? bodyFont)
+        static (string Open, string Close) FormattingTags(RunProperties properties, bool inHeading, string? bodyFont, double inheritedFontSizePoints)
         {
             var open = new StringBuilder();
             var close = new StringBuilder();
@@ -1014,7 +1069,7 @@ static class HtmlExporter
                 close.Insert(0, $"</{tag}>");
             }
 
-            var style = InlineStyle(properties, inHeading, bodyFont);
+            var style = InlineStyle(properties, inHeading, bodyFont, inheritedFontSizePoints);
             if (style != null)
             {
                 open.Append("<span style=\"").Append(style).Append("\">");
@@ -1058,7 +1113,7 @@ static class HtmlExporter
             return (open.ToString(), close.ToString());
         }
 
-        static string? InlineStyle(RunProperties properties, bool inHeading, string? bodyFont)
+        static string? InlineStyle(RunProperties properties, bool inHeading, string? bodyFont, double inheritedFontSizePoints)
         {
             var color = DocumentExportHelpers.NormalizeColor(properties.ColorHex);
             // Black is the default text colour; emitting a span for it is just noise.
@@ -1069,11 +1124,10 @@ static class HtmlExporter
 
             var background = DocumentExportHelpers.NormalizeColor(properties.BackgroundColorHex);
 
-            // The body stylesheet sets 11pt; only a run that overrides it needs an inline size. This
-            // also recovers cases where a heading-styled paragraph carries a direct font-size that
-            // shrinks (or grows) it away from the stylesheet's heading size — e.g. contact lines
-            // styled Heading 1 but sized down to body text.
-            var hasFontSize = Math.Abs(properties.FontSizePoints - defaultBodyFontSizePoints) > 0.01 &&
+            // Only a run that deviates from the size its element already establishes needs an
+            // inline size — 11pt from the body stylesheet in flow content, the heading's effective
+            // size (stylesheet default or the lifted uniform run size) inside an <hN>.
+            var hasFontSize = Math.Abs(properties.FontSizePoints - inheritedFontSizePoints) > 0.01 &&
                               properties.FontSizePoints > 0;
 
             // Headings are bold by default in the stylesheet; a non-bold run inside one (a "Prepared

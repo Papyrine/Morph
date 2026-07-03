@@ -302,6 +302,16 @@ public class HtmlExporterTests
     }
 
     [Test]
+    public Task HeadingRunFontSizeLifting() =>
+        // A heading whose runs agree on one size carries it on the <hN> itself — otherwise the
+        // stylesheet heading size sets the line-box strut and a small-text heading (a 10pt table
+        // strip label) renders far taller than Word. Mixed sizes stay per-span under the
+        // stylesheet default.
+        VerifyHtml(Doc(
+            Styled("Heading1", TextRun("small strip label", fontSize: 10)),
+            Styled("Heading2", TextRun("mixed ", fontSize: 10), TextRun("sizes", fontSize: 14))));
+
+    [Test]
     public Task LetterSpacing() =>
         // Expanded tracking (w:spacing on the run) becomes letter-spacing; the zero-spacing run
         // stays clean.

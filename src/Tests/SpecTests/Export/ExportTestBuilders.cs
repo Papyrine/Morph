@@ -21,12 +21,17 @@ static class ExportTestBuilders
             Properties = new() {SpacingAfterPoints = 8}
         };
 
+    // The run sizes Word's stock Heading 1-6 styles resolve to; index = level - 1.
+    static readonly double[] stockHeadingFontSizes = [16, 13, 12, 11, 11, 11];
+
     public static ParagraphElement Heading(int level, string text) =>
         new()
         {
             // Word's Heading styles resolve to bold runs; the parser surfaces that as Bold=true, so
             // the fixtures model it too (HTML emits <strong>, Markdown suppresses the redundant **).
-            Runs = [TextRun(text, bold: true)],
+            // The run size mirrors the stock style's resolved size so the fixture stays free of a
+            // lifted font-size override.
+            Runs = [TextRun(text, bold: true, fontSize: stockHeadingFontSizes[Math.Min(level, 6) - 1])],
             Properties = new()
             {
                 StyleId = $"Heading{level}",
@@ -130,7 +135,10 @@ static class ExportTestBuilders
         VerticalRunAlignment vertical = VerticalRunAlignment.Baseline,
         string? color = null,
         string? url = null,
-        double characterSpacing = 0) =>
+        double characterSpacing = 0,
+        // The parser always resolves an effective size; 11 mirrors Word's Normal (and the
+        // RunProperties default), so fixtures model resolved runs, not "size unset".
+        double fontSize = 11) =>
         new()
         {
             Text = text,
@@ -144,7 +152,8 @@ static class ExportTestBuilders
                 AllCaps = allCaps,
                 VerticalAlignment = vertical,
                 ColorHex = color,
-                CharacterSpacingPoints = characterSpacing
+                CharacterSpacingPoints = characterSpacing,
+                FontSizePoints = fontSize
             }
         };
 
