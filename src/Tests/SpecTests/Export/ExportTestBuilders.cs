@@ -21,15 +21,24 @@ static class ExportTestBuilders
             Properties = new() {SpacingAfterPoints = 8}
         };
 
+    // The run sizes Word's stock Heading 1-6 styles resolve to; index = level - 1.
+    static readonly double[] stockHeadingFontSizes = [16, 13, 12, 11, 11, 11];
+
     public static ParagraphElement Heading(int level, string text) =>
         new()
         {
             // Word's Heading styles resolve to bold runs; the parser surfaces that as Bold=true, so
             // the fixtures model it too (HTML emits <strong>, Markdown suppresses the redundant **).
-            Runs = [TextRun(text, bold: true)],
+            // The run size mirrors the stock style's resolved size so the fixture stays free of a
+            // lifted font-size override.
+            Runs = [TextRun(text, bold: true, fontSize: stockHeadingFontSizes[Math.Min(level, 6) - 1])],
             Properties = new()
             {
-                StyleId = $"Heading{level}"
+                StyleId = $"Heading{level}",
+                // Stock Word Heading styles resolve to 12pt-before / 0-after; mirroring the
+                // resolved values keeps the fixture free of spurious margin overrides.
+                SpacingBeforePoints = 12,
+                SpacingAfterPoints = 0
             }
         };
 
@@ -125,7 +134,11 @@ static class ExportTestBuilders
         bool allCaps = false,
         VerticalRunAlignment vertical = VerticalRunAlignment.Baseline,
         string? color = null,
-        string? url = null) =>
+        string? url = null,
+        double characterSpacing = 0,
+        // The parser always resolves an effective size; 11 mirrors Word's Normal (and the
+        // RunProperties default), so fixtures model resolved runs, not "size unset".
+        double fontSize = 11) =>
         new()
         {
             Text = text,
@@ -138,7 +151,9 @@ static class ExportTestBuilders
                 Strikethrough = strike,
                 AllCaps = allCaps,
                 VerticalAlignment = vertical,
-                ColorHex = color
+                ColorHex = color,
+                CharacterSpacingPoints = characterSpacing,
+                FontSizePoints = fontSize
             }
         };
 

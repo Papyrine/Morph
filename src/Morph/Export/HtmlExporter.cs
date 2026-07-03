@@ -2,8 +2,11 @@
 /// Serializes a <see cref="ParsedDocument"/> to HTML. By default emits a full self-contained
 /// <c>&lt;!doctype html&gt;</c> document with an embedded stylesheet of Word-like defaults
 /// (Calibri 11pt body, sized headings, paragraph margins, table padding) so the output renders
-/// close to Word in any browser without inline CSS on every element. Set
-/// <see cref="HtmlExportOptions.EmitDocument"/> to <c>false</c> to get just the body-level fragment.
+/// close to Word in any browser without inline CSS on every element. The document's page geometry
+/// carries onto the <c>&lt;body&gt;</c> — page margins become the body padding and the content
+/// width becomes a <c>max-width</c> — so text wraps at Word's measure instead of the viewport's.
+/// Set <see cref="HtmlExportOptions.EmitDocument"/> to <c>false</c> to get just the body-level
+/// fragment.
 ///
 /// Inline content uses semantic tags — <c>&lt;strong&gt;</c>, <c>&lt;em&gt;</c>,
 /// <c>&lt;u&gt;</c>, <c>&lt;s&gt;</c>, <c>&lt;sup&gt;</c>, <c>&lt;sub&gt;</c>,
@@ -15,20 +18,22 @@ static class HtmlExporter
 {
     /// <summary>
     /// Embedded stylesheet of Word-like defaults. Body picks up Calibri 11pt with 1.08 line-height
-    /// (Word's "Normal" style); headings get the standard h1=24pt, h2=18pt, h3=14pt, h4=12pt-italic,
-    /// h5=11pt, h6=11pt-italic sizes; paragraphs and lists get 8pt bottom margin; tables collapse
+    /// (Word's "Normal" style) — its padding comes inline from the document's page margins;
+    /// headings get the sizes Word's stock Heading styles resolve to (h1=16pt, h2=13pt, h3=12pt,
+    /// h4=11pt-italic, h5=11pt, h6=11pt-italic), so a stock document needs no per-heading
+    /// override; paragraphs and lists get 8pt bottom margin; tables collapse
     /// borders with light grey 0.5pt cells; horizontal rules get a thin grey line. Applying these
     /// once via the <c>&lt;style&gt;</c> block — rather than repeating them as inline styles on every
     /// element — keeps the individual elements clean.
     /// </summary>
     const string defaultStylesheet = """
-        body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; padding: 8pt; color: #000; }
+        body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
         p { margin: 0 0 8pt; }
-        h1, h2, h3, h4, h5, h6 { margin: 12pt 0 8pt; font-weight: bold; }
-        h1 { font-size: 24pt; }
-        h2 { font-size: 18pt; }
-        h3 { font-size: 14pt; }
-        h4 { font-size: 12pt; font-style: italic; }
+        h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; }
+        h1 { font-size: 16pt; }
+        h2 { font-size: 13pt; }
+        h3 { font-size: 12pt; }
+        h4 { font-size: 11pt; font-style: italic; }
         h5 { font-size: 11pt; }
         h6 { font-size: 11pt; font-style: italic; }
         ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
@@ -67,6 +72,14 @@ static class HtmlExporter
         {
             bodyStyle.Add($"font-family: {CssFontFamily(bodyFont)}, sans-serif");
         }
+
+        // The page geometry travels onto the body: the content width becomes a max-width so text
+        // wraps at Word's measure rather than the viewport's, and the page margins become the body
+        // padding. Both use the real w:sectPr values, so a narrow-margin template stays dense while
+        // a default letter page keeps its inch of whitespace.
+        var page = document.PageSettings;
+        bodyStyle.Add($"max-width: {Length(page.ContentWidth)}");
+        bodyStyle.Add($"padding: {BoxShorthand(page.MarginTop, page.MarginRight, page.MarginBottom, page.MarginLeft)}");
 
         // Background shapes are emitted as absolutely-positioned <svg> children; they resolve their
         // top/left against the body, so the body must be a positioning context.
@@ -151,6 +164,33 @@ static class HtmlExporter
     // identifiers (Calibri) are left bare. Family names never contain quotes in practice.
     static string CssFontFamily(string font) => font.Contains(' ') ? $"'{font}'" : font;
 
+    static string Number(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+
+    static string Length(double points) => $"{Number(points)}pt";
+
+    // Shortest CSS box shorthand for top/right/bottom/left: one value when all four match,
+    // "vertical horizontal" when opposite edges match, "top horizontal bottom" when only the
+    // sides match, else all four.
+    static string BoxShorthand(double top, double right, double bottom, double left)
+    {
+        if (Math.Abs(left - right) > 0.01)
+        {
+            return $"{Length(top)} {Length(right)} {Length(bottom)} {Length(left)}";
+        }
+
+        if (Math.Abs(top - bottom) > 0.01)
+        {
+            return $"{Length(top)} {Length(right)} {Length(bottom)}";
+        }
+
+        if (Math.Abs(top - right) > 0.01)
+        {
+            return $"{Length(top)} {Length(right)}";
+        }
+
+        return Length(top);
+    }
+
     sealed class HtmlWriter(HtmlExportOptions options, string? bodyFont, PageSettings pageSettings, IReadOnlyList<Footnote> footnotes, IReadOnlyList<Endnote> endnotes)
     {
         // Mirrors the body font-size in DefaultStylesheet — runs at this size inherit it and need no
@@ -161,6 +201,15 @@ static class HtmlExporter
         // (body { line-height: 1.08 }), so only paragraphs that deviate carry an inline override.
         const double defaultSpacingAfterPoints = 8;
         const double defaultLineHeightMultiplier = 1.08;
+
+        // Mirror the stylesheet's heading spacing (h1-h6 { margin: 12pt 0 0 }) — the values Word's
+        // stock Heading styles resolve to — so only template headings that deviate carry an inline
+        // override.
+        const double defaultHeadingSpacingBeforePoints = 12;
+        const double defaultHeadingSpacingAfterPoints = 0;
+
+        // Mirrors the stylesheet's heading sizes (h1=16pt … h6=11pt); index = level - 1.
+        static readonly double[] headingFontSizePoints = [16, 13, 12, 11, 11, 11];
 
         readonly StringBuilder builder = new();
         readonly HashSet<string> usedHeadingIds = [];
@@ -286,16 +335,9 @@ static class HtmlExporter
             var level = DocumentExportHelpers.TryGetHeadingLevel(paragraph.Properties);
             if (level != null)
             {
-                var id = UniqueHeadingId(PlainText(paragraph.Runs));
-                Indent(depth).Append("<h").Append(level);
-                if (id.Length > 0)
-                {
-                    builder.Append(" id=\"").Append(EncodeAttribute(id)).Append('"');
-                }
-
-                builder.Append('>');
-                AppendInline(paragraph.Runs, inHeading: true);
-                builder.Append("</h").Append(level).Append(">\n");
+                Indent(depth);
+                AppendHeading(paragraph, level.Value);
+                builder.Append('\n');
                 return;
             }
 
@@ -304,6 +346,68 @@ static class HtmlExporter
             builder.Append('>');
             AppendInline(paragraph.Runs);
             builder.Append("</p>\n");
+        }
+
+        // Emits a heading paragraph as <hN ...>...</hN> (no indent or trailing newline — the body
+        // and cell emit paths bracket it differently).
+        void AppendHeading(ParagraphElement paragraph, int level)
+        {
+            var id = UniqueHeadingId(PlainText(paragraph.Runs));
+            builder.Append("<h").Append(level);
+            if (id.Length > 0)
+            {
+                builder.Append(" id=\"").Append(EncodeAttribute(id)).Append('"');
+            }
+
+            // The heading's stylesheet size (24pt for h1, …) sets the line-box strut even when
+            // every run inside is smaller — a 10pt-styled Heading 1 in a table strip would still
+            // get a ~25pt line and inflate the row well beyond Word. When the runs agree on one
+            // size, lift it onto the <hN> so the strut matches the text; the spans then inherit
+            // the size and stay clean.
+            var headingDefaultSize = headingFontSizePoints[level - 1];
+            var uniformSize = UniformRunFontSize(paragraph.Runs);
+            var effectiveSize = uniformSize ?? headingDefaultSize;
+            var liftedSize = uniformSize != null && Math.Abs(uniformSize.Value - headingDefaultSize) > 0.01
+                ? uniformSize
+                : null;
+
+            AppendParagraphStyle(paragraph.Properties, defaultHeadingSpacingBeforePoints, defaultHeadingSpacingAfterPoints, liftedSize);
+            builder.Append('>');
+            AppendInline(paragraph.Runs, inHeading: true, effectiveSize);
+            builder.Append("</h").Append(level).Append('>');
+        }
+
+        // The single font size shared by every visible text run, or null when the runs disagree or
+        // carry no explicit size.
+        static double? UniformRunFontSize(IReadOnlyList<Run> runs)
+        {
+            double? size = null;
+            foreach (var run in runs)
+            {
+                if (run.Properties.Hidden || run.IsTab || run.InlineImageData != null ||
+                    run.FootnoteReferenceId != null || run.EndnoteReferenceId != null ||
+                    string.IsNullOrEmpty(run.Text))
+                {
+                    continue;
+                }
+
+                var runSize = run.Properties.FontSizePoints;
+                if (runSize <= 0)
+                {
+                    return null;
+                }
+
+                if (size == null)
+                {
+                    size = runSize;
+                }
+                else if (Math.Abs(size.Value - runSize) > 0.01)
+                {
+                    return null;
+                }
+            }
+
+            return size;
         }
 
         void WriteTextParagraph(string text, int depth)
@@ -417,9 +521,19 @@ static class HtmlExporter
             WriteTextParagraph(contentControl.Content, depth);
         }
 
-        void AppendParagraphStyle(ParagraphProperties properties)
+        void AppendParagraphStyle(
+            ParagraphProperties properties,
+            double defaultBeforePoints = 0,
+            double defaultAfterPoints = defaultSpacingAfterPoints,
+            double? fontSizePoints = null)
         {
             var parts = new List<string>();
+
+            // A heading's lifted uniform run size (see AppendHeading) rides on the same attribute.
+            if (fontSizePoints is {} fontSize)
+            {
+                parts.Add($"font-size: {Length(fontSize)}");
+            }
 
             var align = properties.Alignment switch
             {
@@ -433,13 +547,14 @@ static class HtmlExporter
                 parts.Add($"text-align: {align}");
             }
 
-            // Vertical spacing — only deviations from the stylesheet's 0-before / 8pt-after default.
-            if (Math.Abs(properties.SpacingBeforePoints) > 0.01)
+            // Vertical spacing — only deviations from the stylesheet default (0-before / 8pt-after
+            // for paragraphs, 12pt-before / 8pt-after for headings).
+            if (Math.Abs(properties.SpacingBeforePoints - defaultBeforePoints) > 0.01)
             {
                 parts.Add($"margin-top: {Length(properties.SpacingBeforePoints)}");
             }
 
-            if (Math.Abs(properties.SpacingAfterPoints - defaultSpacingAfterPoints) > 0.01)
+            if (Math.Abs(properties.SpacingAfterPoints - defaultAfterPoints) > 0.01)
             {
                 parts.Add($"margin-bottom: {Length(properties.SpacingAfterPoints)}");
             }
@@ -502,7 +617,7 @@ static class HtmlExporter
                 var left = properties.BorderLeftSpacePoints;
                 if (top > 0 || right > 0 || bottom > 0 || left > 0)
                 {
-                    parts.Add($"padding: {Length(top)} {Length(right)} {Length(bottom)} {Length(left)}");
+                    parts.Add($"padding: {BoxShorthand(top, right, bottom, left)}");
                 }
             }
 
@@ -603,9 +718,20 @@ static class HtmlExporter
 
         void WriteRow(TableElement table, int rowIndex, int depth, bool header, int totalColumns)
         {
-            Indent(depth).Append("<tr>\n");
-
             var rows = table.Rows;
+            Indent(depth).Append("<tr");
+
+            // An explicit w:trHeight becomes a row height. CSS treats a table-row height as a
+            // minimum (the row still grows with its content), which matches Word's default
+            // "atLeast" rule; "exact" rows get the same treatment — close enough, since clipping
+            // overflow is not representable on a <tr>.
+            if (rows[rowIndex].HeightPoints is {} heightPoints && heightPoints > 0)
+            {
+                builder.Append(" style=\"height: ").Append(Length(heightPoints)).Append('"');
+            }
+
+            builder.Append(">\n");
+
             var cells = rows[rowIndex].Cells;
             var gridColumn = 0;
             foreach (var cell in cells)
@@ -777,24 +903,38 @@ static class HtmlExporter
             // either side of them. Nested tables and block images keep their content in the cell
             // instead of being dropped.
             var separatorPending = false;
-            foreach (var element in content)
+            for (var index = 0; index < content.Count; index++)
             {
+                var element = content[index];
+
+                // Consecutive numbered paragraphs become a real <ul>/<ol>, exactly as at body
+                // level — a bulleted cell keeps its bullets. Lists are block-level, so like
+                // headings they need no <br /> on either side.
+                if (element is ParagraphElement {Properties.Numbering: not null})
+                {
+                    var items = new List<ParagraphElement>();
+                    while (index < content.Count &&
+                           content[index] is ParagraphElement {Properties.Numbering: not null} listItem)
+                    {
+                        items.Add(listItem);
+                        index++;
+                    }
+
+                    index--;
+                    builder.Append('\n');
+                    WriteList(DocumentExportHelpers.BuildListForest(items), depth + 1);
+                    Indent(depth);
+                    separatorPending = false;
+                    continue;
+                }
+
                 switch (element)
                 {
                     case ParagraphElement paragraph when !DocumentExportHelpers.IsBlank(paragraph):
                         var level = DocumentExportHelpers.TryGetHeadingLevel(paragraph.Properties);
                         if (level != null)
                         {
-                            var id = UniqueHeadingId(PlainText(paragraph.Runs));
-                            builder.Append("<h").Append(level);
-                            if (id.Length > 0)
-                            {
-                                builder.Append(" id=\"").Append(EncodeAttribute(id)).Append('"');
-                            }
-
-                            builder.Append('>');
-                            AppendInline(paragraph.Runs, inHeading: true);
-                            builder.Append("</h").Append(level).Append('>');
+                            AppendHeading(paragraph, level.Value);
                             separatorPending = false;
                         }
                         else
@@ -837,7 +977,7 @@ static class HtmlExporter
             }
         }
 
-        void AppendInline(IReadOnlyList<Run> sourceRuns, bool inHeading = false)
+        void AppendInline(IReadOnlyList<Run> sourceRuns, bool inHeading = false, double inheritedFontSizePoints = defaultBodyFontSizePoints)
         {
             var runs = DocumentExportHelpers.CoalesceRuns(sourceRuns);
             var index = 0;
@@ -849,7 +989,7 @@ static class HtmlExporter
                     builder.Append("<a href=\"").Append(EncodeAttribute(url)).Append("\">");
                     while (index < runs.Count && runs[index].HyperlinkUrl == url)
                     {
-                        AppendRun(runs[index], inHeading);
+                        AppendRun(runs[index], inHeading, inheritedFontSizePoints);
                         index++;
                     }
 
@@ -857,12 +997,12 @@ static class HtmlExporter
                     continue;
                 }
 
-                AppendRun(run, inHeading);
+                AppendRun(run, inHeading, inheritedFontSizePoints);
                 index++;
             }
         }
 
-        void AppendRun(Run run, bool inHeading)
+        void AppendRun(Run run, bool inHeading, double inheritedFontSizePoints)
         {
             if (run.InlineImageData is {} imageData)
             {
@@ -894,7 +1034,7 @@ static class HtmlExporter
             }
 
             var properties = run.Properties;
-            var (open, close) = FormattingTags(properties, inHeading, bodyFont);
+            var (open, close) = FormattingTags(properties, inHeading, bodyFont, inheritedFontSizePoints);
             builder.Append(open);
 
             // AllCaps is handled by CSS (text-transform: uppercase) on the wrapping span — see
@@ -918,7 +1058,7 @@ static class HtmlExporter
             }
         }
 
-        static (string Open, string Close) FormattingTags(RunProperties properties, bool inHeading, string? bodyFont)
+        static (string Open, string Close) FormattingTags(RunProperties properties, bool inHeading, string? bodyFont, double inheritedFontSizePoints)
         {
             var open = new StringBuilder();
             var close = new StringBuilder();
@@ -929,7 +1069,7 @@ static class HtmlExporter
                 close.Insert(0, $"</{tag}>");
             }
 
-            var style = InlineStyle(properties, inHeading, bodyFont);
+            var style = InlineStyle(properties, inHeading, bodyFont, inheritedFontSizePoints);
             if (style != null)
             {
                 open.Append("<span style=\"").Append(style).Append("\">");
@@ -973,7 +1113,7 @@ static class HtmlExporter
             return (open.ToString(), close.ToString());
         }
 
-        static string? InlineStyle(RunProperties properties, bool inHeading, string? bodyFont)
+        static string? InlineStyle(RunProperties properties, bool inHeading, string? bodyFont, double inheritedFontSizePoints)
         {
             var color = DocumentExportHelpers.NormalizeColor(properties.ColorHex);
             // Black is the default text colour; emitting a span for it is just noise.
@@ -984,11 +1124,10 @@ static class HtmlExporter
 
             var background = DocumentExportHelpers.NormalizeColor(properties.BackgroundColorHex);
 
-            // The body stylesheet sets 11pt; only a run that overrides it needs an inline size. This
-            // also recovers cases where a heading-styled paragraph carries a direct font-size that
-            // shrinks (or grows) it away from the stylesheet's heading size — e.g. contact lines
-            // styled Heading 1 but sized down to body text.
-            var hasFontSize = Math.Abs(properties.FontSizePoints - defaultBodyFontSizePoints) > 0.01 &&
+            // Only a run that deviates from the size its element already establishes needs an
+            // inline size — 11pt from the body stylesheet in flow content, the heading's effective
+            // size (stylesheet default or the lifted uniform run size) inside an <hN>.
+            var hasFontSize = Math.Abs(properties.FontSizePoints - inheritedFontSizePoints) > 0.01 &&
                               properties.FontSizePoints > 0;
 
             // Headings are bold by default in the stylesheet; a non-bold run inside one (a "Prepared
@@ -1000,11 +1139,16 @@ static class HtmlExporter
             var hasFont = !string.IsNullOrEmpty(properties.FontFamily) &&
                           !string.Equals(properties.FontFamily, bodyFont, StringComparison.OrdinalIgnoreCase);
 
+            // Expanded / condensed tracking (w:spacing on the run) — template heading and body
+            // styles lean on it heavily, and without it text wraps at a different measure than
+            // Word. Zero is the default and stays clean.
+            var hasLetterSpacing = Math.Abs(properties.CharacterSpacingPoints) > 0.01;
+
             if (color == null &&
                 background == null &&
                 properties is {SmallCaps: false, AllCaps: false} &&
                 !hasFontSize &&
-                !overrideWeight && !hasFont)
+                !overrideWeight && !hasFont && !hasLetterSpacing)
             {
                 return null;
             }
@@ -1037,6 +1181,11 @@ static class HtmlExporter
                 style.Append("font-size: ")
                     .Append(properties.FontSizePoints.ToString("0.##", CultureInfo.InvariantCulture))
                     .Append("pt; ");
+            }
+
+            if (hasLetterSpacing)
+            {
+                style.Append("letter-spacing: ").Append(Length(properties.CharacterSpacingPoints)).Append("; ");
             }
 
             if (properties.SmallCaps)
@@ -1229,9 +1378,11 @@ static class HtmlExporter
             return transforms.Count == 0 ? "" : $" transform=\"{string.Join(" ", transforms)}\"";
         }
 
-        // Resolves a shape's box into the body's content-area coordinate space (page coordinates
-        // minus the page margins — the body's padding box is the content origin). Mirrors
-        // FloatingPosition.ResolveShapeBounds, which needs a render context the exporter lacks.
+        // Resolves a shape's box into page coordinates. The body's padding equals the page margins,
+        // and CSS resolves absolutely-positioned children against the padding box, so the
+        // positioning origin is the page origin and shapes place at their raw page position.
+        // Mirrors FloatingPosition.ResolveShapeBounds, which needs a render context the exporter
+        // lacks.
         static (double left, double top, double width, double height) ShapeBox(FloatingShapeElement shape, PageSettings page)
         {
             var contentWidth = page.ContentWidth;
@@ -1254,12 +1405,8 @@ static class HtmlExporter
                 ? baseY + verticalPercent * (shape.VerticalAnchor == VerticalAnchor.Page ? page.HeightPoints : contentHeight)
                 : baseY + shape.VerticalPositionPoints;
 
-            return (pageX - page.MarginLeft, pageY - page.MarginTop, width, height);
+            return (pageX, pageY, width, height);
         }
-
-        static string Number(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
-
-        static string Length(double points) => $"{Number(points)}pt";
 
         void AppendImage(byte[] data, string? contentType, double widthPoints, double heightPoints, string? alt)
         {

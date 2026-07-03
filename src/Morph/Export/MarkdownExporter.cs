@@ -309,8 +309,21 @@ static class MarkdownExporter
                 switch (element)
                 {
                     case ParagraphElement paragraph when !DocumentExportHelpers.IsBlank(paragraph):
-                        parts.Add(HtmlBreaks(Inline(paragraph.Runs, inTable: true)));
+                    {
+                        var paragraphText = HtmlBreaks(Inline(paragraph.Runs, inTable: true));
+
+                        // A pipe-table cell cannot hold a real Markdown list, so a list paragraph
+                        // keeps its marker as literal text — "• item" / "1. item" — the same way
+                        // paragraph boundaries survive as <br>.
+                        if (paragraph.Properties.Numbering is {} numbering)
+                        {
+                            var marker = DocumentExportHelpers.IsOrderedList(numbering) ? numbering.Text : "•";
+                            paragraphText = $"{marker} {paragraphText}";
+                        }
+
+                        parts.Add(paragraphText);
                         break;
+                    }
                     case TableElement nestedTable:
                         // A pipe-table cell cannot hold a table, so flatten the nested cells'
                         // text into the host cell rather than dropping the content.

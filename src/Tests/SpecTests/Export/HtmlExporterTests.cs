@@ -263,6 +263,81 @@ public class HtmlExporterTests
             DirectIndentListItem("•", 36, "level 1 again")));
 
     [Test]
+    public Task ListInTableCell()
+    {
+        // Numbered cell paragraphs become a real <ul>/<ol> inside the <td>, exactly as at body
+        // level — a bulleted agenda cell keeps its bullets instead of flattening to <br />-joined
+        // lines.
+        var cell = new TableCell
+        {
+            Content =
+            [
+                Para(TextRun("intro")),
+                ListItem("•", 18, "first"),
+                ListItem("•", 18, "second")
+            ]
+        };
+        return VerifyHtml(
+            Doc(
+                Table(
+                    new TableRow
+                    {
+                        Cells = [cell]
+                    })));
+    }
+
+    [Test]
+    public Task TableRowHeight()
+    {
+        // An explicit w:trHeight becomes a minimum row height; a row without one stays
+        // content-sized.
+        var table = Table(
+            new TableRow
+            {
+                HeightPoints = 30,
+                Cells = [Cell("tall")]
+            },
+            Row(header: false, "auto"));
+        return VerifyHtml(Doc(table));
+    }
+
+    [Test]
+    public Task HeadingRunFontSizeLifting() =>
+        // A heading whose runs agree on one size carries it on the <hN> itself — otherwise the
+        // stylesheet heading size sets the line-box strut and a small-text heading (a 10pt table
+        // strip label) renders far taller than Word. Mixed sizes stay per-span under the
+        // stylesheet default.
+        VerifyHtml(Doc(
+            Styled("Heading1", TextRun("small strip label", fontSize: 10)),
+            Styled("Heading2", TextRun("mixed ", fontSize: 10), TextRun("sizes", fontSize: 14))));
+
+    [Test]
+    public Task LetterSpacing() =>
+        // Expanded tracking (w:spacing on the run) becomes letter-spacing; the zero-spacing run
+        // stays clean.
+        VerifyHtml(Doc(Para(
+            TextRun("tracked", characterSpacing: 1),
+            TextRun(" normal"))));
+
+    [Test]
+    public Task PageGeometry() =>
+        // The page margins become the body padding and the content width its max-width, so text
+        // wraps at Word's measure.
+        VerifyHtml(new()
+        {
+            PageSettings = new()
+            {
+                WidthPoints = 612,
+                HeightPoints = 792,
+                MarginTop = 28.8,
+                MarginRight = 36,
+                MarginBottom = 72,
+                MarginLeft = 36
+            },
+            Elements = [Para(TextRun("wide measure"))]
+        });
+
+    [Test]
     public Task NestedTableInCell()
     {
         var inner = Table(Row(header: false, "inner a", "inner b"));
@@ -353,6 +428,8 @@ public class HtmlExporterTests
 
     [Test]
     public Task ParagraphBorder() =>
+        // Symmetric border spaces collapse to the two-value padding shorthand; fully asymmetric
+        // ones stay four-part.
         VerifyHtml(
             Doc(
                 new ParagraphElement
@@ -366,6 +443,19 @@ public class HtmlExporterTests
                         BorderRightSpacePoints = 6,
                         BorderBottomSpacePoints = 4,
                         BorderLeftSpacePoints = 6
+                    }
+                },
+                new ParagraphElement
+                {
+                    Runs = [TextRun("asymmetric")],
+                    Properties = new()
+                    {
+                        SpacingAfterPoints = 8,
+                        Borders = CellBorders.All,
+                        BorderTopSpacePoints = 2,
+                        BorderRightSpacePoints = 4,
+                        BorderBottomSpacePoints = 6,
+                        BorderLeftSpacePoints = 8
                     }
                 }));
 }
