@@ -8,15 +8,21 @@ static class MarkdownExporter
 {
     public static string Export(ParsedDocument document, MarkdownExportOptions? options = null)
     {
-        var writer = new MarkdownWriter(options ?? new());
+        var writer = new MarkdownWriter(options ?? new(), document.Footnotes, document.Endnotes);
         writer.WriteElements(document.Elements);
+        writer.WriteNoteDefinitions();
         return writer.Finish();
     }
 
-    sealed class MarkdownWriter(MarkdownExportOptions options)
+    sealed class MarkdownWriter(MarkdownExportOptions options, IReadOnlyList<Footnote> footnotes, IReadOnlyList<Endnote> endnotes)
     {
         readonly StringBuilder builder = new();
         int imageIndex;
+
+        readonly Dictionary<string, string> footnoteTexts = footnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
+        readonly Dictionary<string, string> endnoteTexts = endnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
+        readonly List<(int Number, string Text)> notes = [];
+        readonly Dictionary<string, int> noteNumbers = [];
 
         public string Finish() => builder.ToString().TrimEnd('\n') + "\n";
 
@@ -74,10 +80,10 @@ static class MarkdownExporter
                     WriteTable(table);
                     break;
                 case ImageElement image:
-                    AppendBlock(Image(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints));
+                    AppendBlock(Image(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Description));
                     break;
                 case FloatingImageElement floatingImage:
-                    AppendBlock(Image(floatingImage.ImageData, floatingImage.ContentType, floatingImage.WidthPoints, floatingImage.HeightPoints));
+                    AppendBlock(Image(floatingImage.ImageData, floatingImage.ContentType, floatingImage.WidthPoints, floatingImage.HeightPoints, floatingImage.Description));
                     break;
                 case HorizontalRuleElement:
                     AppendBlock("---");
@@ -322,10 +328,10 @@ static class MarkdownExporter
 
                         break;
                     case ImageElement image:
-                        parts.Add(Image(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints));
+                        parts.Add(Image(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Description));
                         break;
                     case FloatingImageElement floatingImage:
-                        parts.Add(Image(floatingImage.ImageData, floatingImage.ContentType, floatingImage.WidthPoints, floatingImage.HeightPoints));
+                        parts.Add(Image(floatingImage.ImageData, floatingImage.ContentType, floatingImage.WidthPoints, floatingImage.HeightPoints, floatingImage.Description));
                         break;
                 }
             }
@@ -423,7 +429,19 @@ static class MarkdownExporter
         {
             if (run.InlineImageData is {} imageData)
             {
-                target.Append(Image(imageData, run.InlineImageContentType, run.InlineImageWidthPoints, run.InlineImageHeightPoints));
+                target.Append(Image(imageData, run.InlineImageContentType, run.InlineImageWidthPoints, run.InlineImageHeightPoints, run.InlineImageDescription));
+                return;
+            }
+
+            if (run.FootnoteReferenceId is {} footnoteId)
+            {
+                target.Append(NoteMarker(footnoteId, endnote: false));
+                return;
+            }
+
+            if (run.EndnoteReferenceId is {} endnoteId)
+            {
+                target.Append(NoteMarker(endnoteId, endnote: true));
                 return;
             }
 
@@ -505,6 +523,39 @@ static class MarkdownExporter
             return properties.Underline ? $"<u>{decorated}</u>" : decorated;
         }
 
+        // A footnote / endnote reference becomes a GFM footnote marker "[^n]", where n counts up
+        // in first-reference order across footnotes and endnotes together (GFM has no separate
+        // endnote concept). Repeat references to one note reuse its number; a reference whose note
+        // body is missing emits nothing. WriteNoteDefinitions() emits the matching definitions.
+        string NoteMarker(string id, bool endnote)
+        {
+            var key = (endnote ? "e" : "f") + id;
+            if (!noteNumbers.TryGetValue(key, out var number))
+            {
+                var texts = endnote ? endnoteTexts : footnoteTexts;
+                if (!texts.TryGetValue(id, out var text))
+                {
+                    return "";
+                }
+
+                number = notes.Count + 1;
+                noteNumbers[key] = number;
+                notes.Add((number, text));
+            }
+
+            return $"[^{number}]";
+        }
+
+        // Emits the "[^n]: text" definitions for every referenced note, in reference order, after
+        // the body. GFM collects them into a footnotes section regardless of position.
+        public void WriteNoteDefinitions()
+        {
+            foreach (var (number, text) in notes)
+            {
+                AppendBlock($"[^{number}]: {EscapeInline(text.Replace('\n', ' '), inTable: false)}");
+            }
+        }
+
         /// <summary>Emits run-built inline content as a body block: hard breaks rendered, leading
         /// whitespace dropped (4+ spaces would re-parse as an indented code block; fewer are
         /// stripped by the parser anyway), and block-start characters escaped so the text cannot
@@ -553,7 +604,7 @@ static class MarkdownExporter
             }
         }
 
-        string Image(byte[] data, string? contentType, double widthPoints, double heightPoints)
+        string Image(byte[] data, string? contentType, double widthPoints, double heightPoints, string? description)
         {
             var index = imageIndex++;
             string source;
@@ -567,7 +618,32 @@ static class MarkdownExporter
                 source = $"data:{mime};base64,{Convert.ToBase64String(data)}";
             }
 
-            return $"![]({EscapeUrl(source)})";
+            var alt = string.IsNullOrEmpty(description) ? "" : EscapeImageAlt(description);
+            return $"![{alt}]({EscapeUrl(source)})";
+        }
+
+        // Alt text sits inside the ![...] brackets: flatten line breaks and escape the characters
+        // that would otherwise unbalance or terminate the bracket.
+        static string EscapeImageAlt(string text)
+        {
+            var escaped = new StringBuilder(text.Length);
+            foreach (var character in text)
+            {
+                switch (character)
+                {
+                    case '\r' or '\n':
+                        escaped.Append(' ');
+                        break;
+                    case '\\' or '[' or ']':
+                        escaped.Append('\\').Append(character);
+                        break;
+                    default:
+                        escaped.Append(character);
+                        break;
+                }
+            }
+
+            return escaped.ToString();
         }
 
         static string SelectedItem(DropDownFormFieldElement dropDown) =>

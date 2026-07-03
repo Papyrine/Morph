@@ -18,6 +18,10 @@ sealed class Run
     /// <summary>Content type of inline image (e.g., "image/png", "image/svg+xml").</summary>
     public string? InlineImageContentType { get; init; }
 
+    /// <summary>Alt text for the inline image, from <c>wp:docPr</c> / <c>pic:cNvPr</c>
+    /// (@descr, else @title). Null when the source supplies none.</summary>
+    public string? InlineImageDescription { get; init; }
+
     /// <summary>Raster bytes from the primary <c>a:blip r:embed</c>, retained when
     /// <see cref="InlineImageData"/> holds the SVG variant so backends without SVG
     /// support can use this fallback.</summary>
@@ -37,6 +41,15 @@ sealed class Run
     /// When true, <see cref="Text"/> is "\t" and the renderer snaps the cursor to the next tab stop.
     /// </summary>
     public bool IsTab { get; init; }
+
+    /// <summary>When set, this run is a footnote-reference marker (empty <see cref="Text"/>); the
+    /// id keys into <see cref="ParsedDocument.Footnotes"/>. The raster renderers ignore it; the
+    /// text exporters emit an inline marker and collect the note into a trailing notes section.</summary>
+    public string? FootnoteReferenceId { get; init; }
+
+    /// <summary>When set, this run is an endnote-reference marker (empty <see cref="Text"/>); the
+    /// id keys into <see cref="ParsedDocument.Endnotes"/>.</summary>
+    public string? EndnoteReferenceId { get; init; }
 
     /// <summary>
     /// Target of the <c>w:hyperlink</c> that wraps this run (external URI or <c>#anchor</c> for

@@ -176,6 +176,43 @@ public class MarkdownExporterTests
     }
 
     [Test]
+    public Task ImageAltText()
+    {
+        // wp:docPr/@descr becomes the ![alt]; brackets in the alt are escaped so they can't
+        // unbalance the ![...] span.
+        var export = MarkdownExporter.Export(
+            Doc(new ImageElement
+            {
+                ImageData = [1, 2, 3],
+                ContentType = "image/png",
+                WidthPoints = 24,
+                HeightPoints = 12,
+                Description = "A logo [PNG]"
+            }));
+        return Verify(export, extension: "md");
+    }
+
+    [Test]
+    public Task FootnotesAndEndnotes()
+    {
+        // Footnote and endnote citations both become GFM "[^n]" markers, numbered together in
+        // reference order (footnote id 1 -> 1, endnote id 1 -> 2 despite the id clash), with the
+        // definitions collected after the body.
+        var document = new ParsedDocument
+        {
+            PageSettings = new(),
+            Elements =
+            [
+                Para(TextRun("See note "), FootnoteRef("1"), TextRun(" and "), EndnoteRef("1"), TextRun(".")),
+                Para(TextRun("Reuse "), FootnoteRef("1"), TextRun(" here."))
+            ],
+            Footnotes = [new Footnote {Id = "1", Text = "The footnote body."}],
+            Endnotes = [new Endnote {Id = "1", Text = "The endnote body."}]
+        };
+        return Verify(MarkdownExporter.Export(document), extension: "md");
+    }
+
+    [Test]
     public Task HorizontalRule()
     {
         var export = MarkdownExporter.Export(

@@ -263,6 +263,34 @@ public class HtmlExporterTests
     }
 
     [Test]
+    public Task FootnotesAndEndnotes() =>
+        // Footnote and endnote citations become <sup> links, numbered together in reference order,
+        // plus a trailing <section class="footnotes"> of definitions with back-links.
+        VerifyHtml(new ParsedDocument
+        {
+            PageSettings = new(),
+            Elements =
+            [
+                Para(TextRun("See note "), FootnoteRef("1"), TextRun(" and "), EndnoteRef("1"), TextRun(".")),
+                Para(TextRun("Reuse "), FootnoteRef("1"), TextRun(" here."))
+            ],
+            Footnotes = [new Footnote {Id = "1", Text = "The footnote body."}],
+            Endnotes = [new Endnote {Id = "1", Text = "The endnote body."}]
+        });
+
+    [Test]
+    public Task ImageAltText() =>
+        // wp:docPr/@descr becomes the <img alt>; HTML-encoded, no escaping of [] needed.
+        VerifyHtml(Doc(new ImageElement
+        {
+            ImageData = [1, 2, 3],
+            ContentType = "image/png",
+            WidthPoints = 24,
+            HeightPoints = 12,
+            Description = "A logo [PNG]"
+        }));
+
+    [Test]
     public Task ImageInTableCell()
     {
         var cell = new TableCell

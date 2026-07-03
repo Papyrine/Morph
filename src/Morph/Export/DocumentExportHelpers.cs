@@ -165,6 +165,12 @@ static class DocumentExportHelpers
                 return false;
             }
 
+            // A footnote / endnote reference is content even though its marker run has no text.
+            if (run.FootnoteReferenceId != null || run.EndnoteReferenceId != null)
+            {
+                return false;
+            }
+
             if (!string.IsNullOrWhiteSpace(run.Text))
             {
                 return false;
@@ -220,7 +226,9 @@ static class DocumentExportHelpers
     {
         if (left.IsTab || right.IsTab ||
             left.InlineImageData != null || right.InlineImageData != null ||
-            left.InlineShapeGroup != null || right.InlineShapeGroup != null)
+            left.InlineShapeGroup != null || right.InlineShapeGroup != null ||
+            left.FootnoteReferenceId != null || right.FootnoteReferenceId != null ||
+            left.EndnoteReferenceId != null || right.EndnoteReferenceId != null)
         {
             return false;
         }
