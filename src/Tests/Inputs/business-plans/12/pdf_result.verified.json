@@ -1,5 +1,11 @@
 ﻿{
   "PageCount": 21,
+  "Properties": {
+    "CreationDate": "DateTimeOffset_1",
+    "Creator": "Morph",
+    "ModDate": "DateTimeOffset_1",
+    "Producer": "PDFsharp 6.2.4"
+  },
   "Pages": [
     {
       "Width": 612.0,
@@ -106,11 +112,5 @@
       "Height": 792.0,
       "Text": "Instructions for Getting Started on Profit & Loss\nProjections\nCompleting projections for Profit and Loss of a new company is a good exercise to understand\nand communicate when the company will begin to break even and see how sales and profits\nwill grow. The top portion of the model to the left, Revenue, is a good way to forecast sales,\nmonth by month for the first year. The lower portion then applies estimated expenses for the\nsame period of time to derive the business' profitability.\nSteps for preparation:\n• Step 1: Enter the company name and the date this projection is being prepared.\n• Step 2: For each month, beginning in January or whenever the start is estimated, enter\nthe expected sales to be. This could be for a single service or multiple services. Add lines\nto this model for additional offerings. From this, subtract any product returns or discounts\nthat are to be tracked (these should be shown as negative numbers, for example, -10).\nBelow Net Sales, enter the Cost of Goods Sold. This refers to the monetized value of the\ntime spent on a particular client.\n• Step 3: For each month, enter the estimated salaries, marketing, utilities, and other items\nthat are projected.\n• Step 4: Once all of the costs have been entered, review the individual items and total\namount to see where projections can be fine-tuned or move something out into the future\nwhen more revenue is coming in. The objective is to get to profitability and positive cash\nflow as quickly as possible."
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

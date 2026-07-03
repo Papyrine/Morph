@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 3,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
@@ -17,13 +23,7 @@
         "Height": 792.0,
         "Text": "Thanksgiving\nParty Menu\nAppetizer\nSelect the text to update it with your own. Use this space to add a description\nof your food or your appetizer options. The appetizer is usually the smallest\nportion and served before the meal starts. (Example: Cheese, fruit plate, or any\ntype of finger food.)\nFirst Course\nSelect the text to update it with your own. Use this space to add a description\nof your food or your first course options. The first course is lighter than your\nmain course. (Example: Salad.)\nMain Course\nSelect the text to update it with your own. Use this space to add a description\nof your food or your main course. The main course is usually the largest\nportion. (Hint: If you’re serving a meat option, don’t forget to include a\nvegetarian/vegan option too.)\nSides\nSelect the text to update it with your own. Use this space to add a description\nof your food or your side options. The side is usually a cooked vegetable.\n(Example: Green beans, corn, potatoes, and more.)\nDesserts\nSelect the text to update it with your own. Use this space to add a description\nof your food or your dessert options. The dessert can be served hot or cold.\n(Example: ice cream, fruit, dessert wine, and more.)"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

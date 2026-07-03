@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 6,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
@@ -32,13 +38,7 @@
         "Height": 792.0,
         "Text": "SUNKEN VALLEY FARM BUSINESS PLAN\nEXIT\nSTRATEGY\nLong-term goals include:\n• Expanding nationwide through franchise partnerships.\n• Exploring acquisition opportunities with major hospitality\nbrands.\n• Potential IPO or equity-based investment to scale operations\nglobally.\nMILESTONES &\nROADMAP\nQ2 20YY:\nSecure additional hotel and restaurant contracts\nQ4 20YY:\nComplete hydroponic farm expansion\nQ2 20YY:\nScale operations to additional cities\nQ4 20YY:\nReach $2M in revenue and expand national distribution\nNEXT\nSTEPS\nWe invite potential investors and business partners to join us in\ntransforming the hospitality industry with sustainable, locally sourced\norganic produce. To discuss investment opportunities, please contact\nJi-Min An at ji-min@sunkenvalleyfarm.com.\nJI-MIN\nAN\nSunken Valley Farm\nji-min@sunkenvalleyfarm.com\n210-555-0193\nwww.sunkenvalleyfarm.com"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

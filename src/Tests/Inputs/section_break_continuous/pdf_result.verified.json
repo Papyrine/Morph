@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
@@ -12,13 +18,7 @@
         "Height": 792.0,
         "Text": "Section 2 content - after continuous break.\nSection 2, paragraph 2.\nSection 2, paragraph 3.\nSection 2, paragraph 4.\nSection 2, paragraph 5.\nSection 2, paragraph 6.\nSection 2, paragraph 7.\nSection 2, paragraph 8.\nSection 2, paragraph 9.\nSection 2, paragraph 10.\nSection 2, paragraph 11.\nSection 2, paragraph 12.\nSection 2, paragraph 13.\nSection 2, paragraph 14.\nSection 2, paragraph 15.\nSection 2, paragraph 16.\nSection 2, paragraph 17.\nSection 2, paragraph 18.\nSection 2, paragraph 19.\nSection 2, paragraph 20.\nSection 2, paragraph 21.\nSection 2, paragraph 22.\nSection 2, paragraph 23.\nSection 2, paragraph 24.\nSection 2, paragraph 25.\nSection 2, paragraph 26."
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

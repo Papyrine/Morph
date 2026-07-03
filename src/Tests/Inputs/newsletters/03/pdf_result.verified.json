@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 4,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
@@ -22,13 +28,7 @@
         "Height": 792.0,
         "Text": "RISING STARS IN ARCHITECTURE\nMEET THE TOP 20 ENGINEERS IN THEIR FIELD\nSome of the sample text in this document indicates the name of the style applied, so that you can easily apply the same\nformatting again. For example, this is the Normal style."
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

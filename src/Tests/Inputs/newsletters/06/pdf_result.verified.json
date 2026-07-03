@@ -1,5 +1,11 @@
 ﻿{
   "PageCount": 6,
+  "Properties": {
+    "CreationDate": "DateTimeOffset_1",
+    "Creator": "Morph",
+    "ModDate": "DateTimeOffset_1",
+    "Producer": "PDFsharp 6.2.4"
+  },
   "Pages": [
     {
       "Width": 612.0,
@@ -31,11 +37,5 @@
       "Height": 792.0,
       "Text": "SYCAMORE NOTES\nAliquam auctor libero sed\nsagittis tristique. Aliquam\nlobortis sagittis congue.\nPhasellus laoreet egestas\nrhoncus. Ut gravida\nultricies cursus. Cras\nfermentum, massa sit\namet vehicula imperdiet,\nest neque fermentum\nmetus, eget mollis elit\nlibero sit amet risus.\nPellentesque in turpis sed\nelit tristique venenatis. Ut\niaculis, ante quis suscipit\naliquam, tortor eros\nfeugiat risus, nec\naccumsan metus ante a\nvelit. Nullam sit amet\nviverra purus, sit amet\nhendrerit sem.\nVestibulum nisl risus, tincidunt nec diam a,\nmollis laoreet ante. Curabitur mattis elit vitae\nante rutrum, sed dapibus diam mattis. Etiam\nsodales vitae sem vulputate interdum. Mauris\net turpis id lectus hendrerit gravida. Fusce\nefficitur tempus finibus. Maecenas interdum\nblandit magna porta convallis. Fusce eu\nfaucibus eros.\nPellentesque molestie euismod hendrerit.\nFusce luctus, justo sed sollicitudin tristique,\njusto sem ultrices orci, non gravida dui nulla at\nligula.\nRECENT\nHIGHLIGHTS\nNOTES\nFROM THE\nCOUNSELORS\nVestibulum ornare\njusto magna, ac\nmaximus mauris\nmaximus ac. Donec\nmattis, mauris et\nbibendum mattis,\narcu augue\ncondimentum mauris,\nvarius faucibus purus\nfelis non quam.\nSuspendisse\nelementum fringilla\nipsum quis luctus. In\nhac habitasse platea\ndictumst. Ut laoreet\nmagna a lacus cursus\nmollis.\nPraesent cursus\ncommodo sapien, quis\nmattis nisl tristique et.\nPhasellus dolor tellus,\nsemper vel cursus eu,\nauctor sed nulla. Nullam\ntortor risus, auctor vitae\npretium eu, ullamcorper\nsit amet orci. Morbi\nrhoncus lacus elit, vitae\nsagittis ante mattis nec.\nAenean blandit felis eget\nligula faucibus egestas.\nMauris molestie sem ac\ndictum porta. Nulla\npretium tortor dolor, ac\nblandit felis pretium sed.\nBOOK OF THE\nMONTH\nLorem ipsum dolor sit amet,\nconsectetur adipiscing elit.\nAenean mollis vel libero eget\niaculis. Praesent hendrerit\nmauris dui, ut condimentum\nnibh tempus egestas. Integer\nenim erat, suscipit in posuere\nsed, aliquet nec ex.\nPellentesque condimentum sem\nsit amet nisi lacinia dapibus.\nDuis dolor arcu, gravida non\npretium vitae, congue posuere\nlorem.\nPraesent interdum sagittis elit\nac laoreet. Phasellus porttitor\ndui id feugiat volutpat.\nOUR NEXT\nAREA\nOF FOCUS\nInterdum et malesuada\nfames ac ante ipsum\nprimis in faucibus.\nPellentesque pretium eros\na eleifend lacinia. Nam\naccumsan imperdiet\ntempor. Vivamus iaculis\neleifend risus nec facilisis.\nProin vehicula lobortis\npharetra. Duis lacinia\nvolutpat ex a aliquet.\nSuspendisse ornare ante\nquis cursus laoreet. Nam\nvulputate arcu et mi\negestas gravida. Nunc vel\nluctus erat, eu venenatis\norci."
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

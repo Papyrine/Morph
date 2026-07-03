@@ -1,19 +1,19 @@
 ﻿{
   "target": {
     "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
         "Height": 792.0,
         "Text": "Your Name\nCompany Name\nYour Address\nThank You\nDate\nDear Recipient,\nWe would like to extend our heartfelt thanks for your recent purchase of our new\ngeneration robot. We truly appreciate your support and are thrilled to have you as a\nvalued customer.\nYour order has been processed, and we hope you are excited about our state-of-the-art\nrobot. If you have any questions, please don't hesitate to reach out to our Customer S\nervice team. We are always here to help with anything you may need, whether it’s\nrelated to the vehicle or general inquiries.\nWe hope you enjoy your purchase, and we look forward to serving you again in the\nfuture. Your satisfaction is our top priority, and we value your feedback. Please feel free\nto share your experience with us.\nThank you once again for choosing Robotine Manufacturing. We are grateful for your\ntrust and look forward to building a lasting relationship with you.\nWarm regards,\nYour Name\nYour Title"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

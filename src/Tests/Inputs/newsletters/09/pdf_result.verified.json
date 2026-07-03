@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 4,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 792.0,
@@ -22,13 +28,7 @@
         "Height": 1224.0,
         "Text": "Tuesday Sep 20, 20XX NEWS TODAY Issue #10\nPicture Caption: To make your document look professionally produced, Word provides header, footer, cover page, and text box designs that complement each other.\nThe latest breaking news of the day\nThe latest updates to get you through the day\nTakuma Hayashi\nSave time in Word with new buttons that show up where\nyou need them. To change the way a picture fits in your\ndocument, click it and a button for layout options appears\nnext to it. When you work on a table, click where you\nwant to add a row or a column, and then click the plus\nsign. Reading is easier, too, in the new Reading view. You\ncan collapse parts of the document and focus on the text\nyou want.\n“Video provides a powerful\nway to help you prove your\npoint.”\n- Takuma Hayashi\nVideo provides a powerful way to help you prove your\npoint. When you click Online Video, you can paste in\nthe embed code for the video you want to add. You can\nalso type a keyword to search online for the video that\nbest fits your document. To make your document look\nprofessionally produced, Word provides header, footer,\ncover page, and text box designs that complement each\nother. For example, you can add a matching cover page,\nheader, and sidebar.\nClick Insert and then choose the elements you want from\nthe different galleries. Themes and styles also help keep\nyour document coordinated. When you click Design and\nchoose a new Theme, the pictures, charts, and SmartArt\ngraphics change to match your new theme.\nPage 4"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

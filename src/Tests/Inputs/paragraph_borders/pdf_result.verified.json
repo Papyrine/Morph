@@ -1,19 +1,19 @@
 ﻿{
   "target": {
     "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
         "Height": 792.0,
         "Text": "Paragraph with a full box border on all four edges.\nPlain paragraph between bordered ones.\nParagraph with a thick blue left-only border (block-quote style).\nPlain paragraph between bordered ones.\nParagraph with a red right-only border.\nPlain paragraph between bordered ones.\nParagraph with top and bottom borders only.\nPlain paragraph between bordered ones.\nParagraph with a box border and 16pt space on every edge.\nPlain paragraph between bordered ones.\nFirst of three paragraphs that share a w:between border — their adjacent edges collapse.\nMiddle paragraph — both its top and bottom collapse into between lines.\nLast of three — its top collapses with the previous paragraph's bottom."
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

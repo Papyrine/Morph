@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 792.0,
@@ -12,13 +18,7 @@
         "Height": 612.0,
         "Text": "Day 2: August 13th, 20XX\nMORNING HEATS\n8:00 AM: 50m Freestyle\n9:30 AM: 100m Breaststroke\n11:00 AM: 200m Individual Medley\nAfternoon finals\n2:00 PM: 50m Freestyle\n3:30 PM: 100m Breaststroke\n5:00 PM: 200m Individual Medley\nDay 1: August 12th, 20XX\nMORNING HEATS\n8:00 AM: 400m Freestyle\n9:30 AM: 200m Butterfly\n11:00 AM: 100m Backstroke\nAfternoon finals\n2:00 PM: 400m Freestyle\n3:30 PM: 200m Butterfly\n5:00 PM: 100m Backstroke\nDay 3: August 14th, 20XX\nTEAM RELAYS AND SPECIAL EVENTS\n8:00 AM: 4x100m Freestyle relay\n10:00 AM: 4x100m Medley relay\n1:00 PM: Awards ceremony"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

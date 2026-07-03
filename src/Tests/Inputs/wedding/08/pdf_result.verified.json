@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 792.0,
@@ -12,13 +18,7 @@
         "Height": 612.0,
         "Text": "The Ceremony\nPrelude\nProcessional\nOpening Words\nReadings\nDeclaration of Intent\nExchange of Vows\nExchange of Rings\nDeclaration of Marriage\nBlessings\nRecessional\nWedding Participants\nOfficiant(s)\nParents of the Bride\nParents of the Groom\nMaid/Matron of Honor\nBest Man\nBridesmaids\nGroomsmen\nReader(s)\nMusicians\nAdditional Text\nType\na quote\nOr\na poem\nabout marriage\nhere\nAdditional Text\nReadings\nHymns\nPoems"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

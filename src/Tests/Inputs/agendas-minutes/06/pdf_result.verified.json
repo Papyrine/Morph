@@ -1,19 +1,19 @@
 ﻿{
   "target": {
     "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
         "Height": 792.0,
         "Text": "MARKETING & SALES TEAM\nMEETING MINUTES\nLOCATION: Conference Room B\nDATE: 1/9/23\nATTENDEES: Jon, Serra, Lionel, Grace\nTIME: 2:00 PM\nI. CALL TO ORDER\nFacilitator Name called to order the regular meeting of the Marketing & sales team at\nlocation or time on date\nII. ROLL CALL\nFacilitator Name conducted a roll call. The following persons were present: Marketing &\nsales team\nIII. APPROVAL OF MINUTES FROM LAST MEETING\nFacilitator Name read the minutes from the last meeting. The minutes were approved as\nread.\nIV. OPEN ISSUES\na) Budget assessment\nb) Building maintenance\nc) Board chair elections\nV. NEW BUSINESS\na) Marketing & sales team\nb) Marketing & sales team\nc) Marketing & sales team\nVI. ADJOURNMENT\nFacilitator Name adjourned the meeting at location or time.\nMinutes submitted by: Marketing & sales team\nMinutes approved by: Marketing & sales team"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

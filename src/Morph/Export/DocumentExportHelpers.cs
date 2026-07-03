@@ -239,8 +239,8 @@ static class DocumentExportHelpers
 
     // Compares only the run properties the text exporters actually emit (hidden runs are dropped
     // before merging, so Hidden needs no comparison). Two runs differing solely in an unexported
-    // field (character spacing, kerning, rsid-style metadata) render identically, so merging them
-    // is safe and keeps the merged run's properties for the survivor.
+    // field (kerning, rsid-style metadata) render identically, so merging them is safe and keeps
+    // the merged run's properties for the survivor.
     static bool SameFormatting(RunProperties left, RunProperties right) =>
         left.Bold == right.Bold &&
         left.Italic == right.Italic &&
@@ -252,7 +252,8 @@ static class DocumentExportHelpers
         left.ColorHex == right.ColorHex &&
         left.BackgroundColorHex == right.BackgroundColorHex &&
         left.FontFamily == right.FontFamily &&
-        Math.Abs(left.FontSizePoints - right.FontSizePoints) < 0.01;
+        Math.Abs(left.FontSizePoints - right.FontSizePoints) < 0.01 &&
+        Math.Abs(left.CharacterSpacingPoints - right.CharacterSpacingPoints) < 0.01;
 
     /// <summary>
     /// The ordinal an ordered list starts at, recovered from the first item's rendered marker

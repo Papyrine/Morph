@@ -1,5 +1,11 @@
 ﻿{
   "PageCount": 8,
+  "Properties": {
+    "CreationDate": "DateTimeOffset_1",
+    "Creator": "Morph",
+    "ModDate": "DateTimeOffset_1",
+    "Producer": "PDFsharp 6.2.4"
+  },
   "Pages": [
     {
       "Width": 612.0,
@@ -41,11 +47,5 @@
       "Height": 792.0,
       "Text": "Languages English Native language\nSpanish Intermediate Listener, Novice Speaker, Advanced Reading\nand Writing\nComputer skills Programming skill 1, skill 2, skill 3, skill 4\nApplications skill 1, skill 2, skill 3, skill 4\nPlatforms skill 1, skill 2, skill 3, skill 4\nReferences Dr. Albert Jones [Title], [Department Name], [University Name]\n[Mailing Address], Phone: [Phone #], Email: [email address]\nDr. Anne Smith [Title], [Department Name], [University Name]\n[Mailing Address], Phone: [Phone #], Email: [email address]\nPlatforms skill 1, skill 2, skill 3, skill 4\nLIIDIA PEETRE | RESUME 3"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

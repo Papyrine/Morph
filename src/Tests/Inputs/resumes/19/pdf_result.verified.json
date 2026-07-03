@@ -1,5 +1,11 @@
 ﻿{
   "PageCount": 6,
+  "Properties": {
+    "CreationDate": "DateTimeOffset_1",
+    "Creator": "Morph",
+    "ModDate": "DateTimeOffset_1",
+    "Producer": "PDFsharp 6.2.4"
+  },
   "Pages": [
     {
       "Width": 612.0,
@@ -28,11 +34,5 @@
       "Height": 792.0,
       "Text": "Robin Zupanc\nParalegal State your career goals and show how\nthey align with the job description you’re\ntargeting. Be brief and keep it from\nsounding generic. Be yourself.\nExperience Education\n20XX - Current\nParalegal The Phone Company\nSummarize your key responsibilities and accomplishments. Where\nappropriate, use the language and words you find in the specific job\ndescription. Be concise, targeting 3-5 key areas.\n20XX – 20XX\nParalegal Trey Research\nSummarize your key responsibilities and accomplishments. Here again, take\nany opportunity to use words you find in the job description. Be brief.\n20XX – 20XX\nParalegal Adatum Corporation\nSummarize your key responsibilities and accomplishments. Where\nappropriate, use the language and words you find in the job description. Be\nconcise, targeting 3-5 key areas.\n20XX – 20XX\nA.A. Paralegal Studies\nJasper University\nSkills\nContact\n4567 Main Street\nCity, State 98052\n(718) 555–0100\nrobin@example.com"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 3,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
@@ -17,13 +23,7 @@
         "Height": 792.0,
         "Text": "Contoso\n4567 Main St.\nBuffalo, NY 98052\nTaylor Phillips\n5678 Main St\nNew York, NY 90210\nSeptember 16, 20XX\nDear Taylor Phillips,\nWrite the body of your letter here. To update any of the letter's\ninformation, select the text, and start typing.\nWant to change fonts? Go to the Home tab and choose Fonts. You can\nuse a built-in font combination or select one of your own.\nYou can also change the colors of the template to match your personal\ntaste. Go to the Design tab and choose a color palette from the Colors\nmenu. Hovering over the different palettes will show you what your\ndocument would look like with the new palette.\nTo change the color or font formatting back to the original settings, go\nto the Design tab, and select the Theme menu. From there, choose the\noption to reset the original template theme.\nWarm Regards,\nCasey Jensen\nCEO\n212-555-0199\nwww.contoso.com\ncasey@contoso.com"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

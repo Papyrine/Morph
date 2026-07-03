@@ -263,6 +263,71 @@ public class HtmlExporterTests
             DirectIndentListItem("•", 36, "level 1 again")));
 
     [Test]
+    public Task ListInTableCell()
+    {
+        // Numbered cell paragraphs become a real <ul>/<ol> inside the <td>, exactly as at body
+        // level — a bulleted agenda cell keeps its bullets instead of flattening to <br />-joined
+        // lines.
+        var cell = new TableCell
+        {
+            Content =
+            [
+                Para(TextRun("intro")),
+                ListItem("•", 18, "first"),
+                ListItem("•", 18, "second")
+            ]
+        };
+        return VerifyHtml(
+            Doc(
+                Table(
+                    new TableRow
+                    {
+                        Cells = [cell]
+                    })));
+    }
+
+    [Test]
+    public Task TableRowHeight()
+    {
+        // An explicit w:trHeight becomes a minimum row height; a row without one stays
+        // content-sized.
+        var table = Table(
+            new TableRow
+            {
+                HeightPoints = 30,
+                Cells = [Cell("tall")]
+            },
+            Row(header: false, "auto"));
+        return VerifyHtml(Doc(table));
+    }
+
+    [Test]
+    public Task LetterSpacing() =>
+        // Expanded tracking (w:spacing on the run) becomes letter-spacing; the zero-spacing run
+        // stays clean.
+        VerifyHtml(Doc(Para(
+            TextRun("tracked", characterSpacing: 1),
+            TextRun(" normal"))));
+
+    [Test]
+    public Task PageGeometry() =>
+        // The page margins become the body padding and the content width its max-width, so text
+        // wraps at Word's measure.
+        VerifyHtml(new()
+        {
+            PageSettings = new()
+            {
+                WidthPoints = 612,
+                HeightPoints = 792,
+                MarginTop = 28.8,
+                MarginRight = 36,
+                MarginBottom = 72,
+                MarginLeft = 36
+            },
+            Elements = [Para(TextRun("wide measure"))]
+        });
+
+    [Test]
     public Task NestedTableInCell()
     {
         var inner = Table(Row(header: false, "inner a", "inner b"));

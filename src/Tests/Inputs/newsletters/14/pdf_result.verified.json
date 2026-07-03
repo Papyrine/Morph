@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
@@ -12,13 +18,7 @@
         "Height": 792.0,
         "Text": "SPORTS & ACTIVITES\nSpring Soccer Tryouts in Jan\nAt any time, you can easily change the text of any\nsection in this document by simply clicking and\ntyping. The template is prepared so that formatting\nstays in tact with the new information you include.\nTo update formatting, from the Home tab, you can\nuse the Styles gallery for the built in styles. You can\nalso format text directly by using the other controls\non the Home tab.\nTo change any of the images, simply click on them\nand choose Insert > Picture.\nYou can easily change the formatting of selected text in the document text by\nchoosing a look for the selected text from the Styles gallery on the Home tab."
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

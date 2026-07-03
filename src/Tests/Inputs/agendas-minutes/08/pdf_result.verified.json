@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
@@ -12,13 +18,7 @@
         "Height": 792.0,
         "Text": "NEW BUSINESS\n• Recap of Back to School night – September 9\n• Parent Education Programs – Counselors\n• Teacher Grants Application Process – School Principal\nCOMMITTEE REPORTS\nCommittee reports\n• Membership\n• Volunteers\n• Newsletter\n• Computer Support\nANNOUNCEMENTS\nEnter Announcements\nNEXT MEETING\n1/16/23, Conference room\nMotion to adjourn was made at 11:00 AM and was passed unanimously.\n2"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

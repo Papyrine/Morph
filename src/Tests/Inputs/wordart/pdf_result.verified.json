@@ -1,5 +1,11 @@
 ﻿{
   "PageCount": 13,
+  "Properties": {
+    "CreationDate": "DateTimeOffset_1",
+    "Creator": "Morph",
+    "ModDate": "DateTimeOffset_1",
+    "Producer": "PDFsharp 6.2.4"
+  },
   "Pages": [
     {
       "Width": 595.2999877929688,
@@ -66,11 +72,5 @@
       "Height": 841.9000244140625,
       "Text": "End of WordArt Test Document\nThis document contains various text effects for testing docx renderers\nSections covered:\nText Effects • Size Variations • Font Variety • Color Themes\nText Decorations • Highlights • Combined Effects • Gradients • Waves • Emboss"
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

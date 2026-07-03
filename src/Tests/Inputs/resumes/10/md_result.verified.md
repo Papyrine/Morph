@@ -13,7 +13,7 @@
 | **Project Manager \| Proseware, Inc.** |  |  | **20XX – 20XX** |
 | Managed a team of software developers and quality assurance specialists in the development and launch of a new customer relationship management (CRM) software product |  |  |  |
 | Skills |  |  |  |
-| Project management<br>Communication | Technical expertise<br>Problem-solving | Leadership<br>Attention to detail |  |
+| • Project management<br>• Communication | • Technical expertise<br>• Problem-solving | • Leadership<br>• Attention to detail |  |
 | Activities |  |  |  |
 | Participated in several hackathons, including a winning team at the 20XX Hack event, demonstrating the ability to work under pressure and come up with innovative solutions to technical challenges. |  |  |  |
 
@@ -32,7 +32,7 @@
 | **Project Manager \| Proseware, Inc.** |  |  | **20XX – 20XX** |
 | Managed a team of software developers and quality assurance specialists in the development and launch of a new customer relationship management (CRM) software product |  |  |  |
 | Skills |  |  |  |
-| Project management<br>Communication | Technical expertise<br>Problem-solving | Leadership<br>Attention to detail |  |
+| • Project management<br>• Communication | • Technical expertise<br>• Problem-solving | • Leadership<br>• Attention to detail |  |
 | Activities |  |  |  |
 | Participated in several hackathons, including a winning team at the 20XX Hack event, demonstrating the ability to work under pressure and come up with innovative solutions to technical challenges. |  |  |  |
 
@@ -51,6 +51,6 @@
 | **Project Manager \| Proseware, Inc.** |  |  | **20XX – 20XX** |
 | Managed a team of software developers and quality assurance specialists in the development and launch of a new customer relationship management (CRM) software product |  |  |  |
 | Skills |  |  |  |
-| Project management<br>Communication | Technical expertise<br>Problem-solving | Leadership<br>Attention to detail |  |
+| • Project management<br>• Communication | • Technical expertise<br>• Problem-solving | • Leadership<br>• Attention to detail |  |
 | Activities |  |  |  |
 | Participated in several hackathons, including a winning team at the 20XX Hack event, demonstrating the ability to work under pressure and come up with innovative solutions to technical challenges. |  |  |  |

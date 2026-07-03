@@ -1,19 +1,19 @@
 ﻿{
   "target": {
     "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
         "Height": 792.0,
         "Text": "HTML font tag (legacy but supported):\nFont size 1 (smallest)\nFont size 2\nFont size 3 (default)\nFont size 4\nFont size 5\nFont size 6\nFont size 7 (largest)\nRed text\nBlue text using hex\nArial font\nTimes New Roman font\nCourier New font\nCombined: size 5, purple, Georgia"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

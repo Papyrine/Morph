@@ -1,5 +1,11 @@
 ﻿{
   "PageCount": 6,
+  "Properties": {
+    "CreationDate": "DateTimeOffset_1",
+    "Creator": "Morph",
+    "ModDate": "DateTimeOffset_1",
+    "Producer": "PDFsharp 6.2.4"
+  },
   "Pages": [
     {
       "Width": 612.0,
@@ -31,11 +37,5 @@
       "Height": 792.0,
       "Text": "Combination 6: Right indent only 1440, first line 1080, spacing before 720, 1.5 line spacing, all\npagination options enabled.\nFollowing paragraph for keep-with-next.\nCombination 7: Maximum complexity - left 2880, right 2880, hanging\n1440, mirror indents, before 840, after 840, at least 500 twips,\ncontextual spacing, all pagination controls, all formatting\nexceptions.\nFinal following paragraph to demonstrate keep-with-next.\n22. Document Summary\nThis document contains comprehensive examples of all spacing and formatting options available\nin Word documents, including indentations, line spacing variants, pagination controls, and\nformatting exceptions in various combinations."
     }
-  ],
-  "Properties": {
-    "CreationDate": "D:20000101000000+00'00'",
-    "Creator": "Morph",
-    "ModDate": "D:20000101000000+00'00'",
-    "Producer": "PDFsharp 6.2.4"
-  }
+  ]
 }

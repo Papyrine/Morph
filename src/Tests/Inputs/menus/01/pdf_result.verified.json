@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 3,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 612.0,
@@ -17,13 +23,7 @@
         "Height": 792.0,
         "Text": "DINNER\nMENU\n$30 per person\nSelect one dish from each course\nFIRST COURSE\nPotato cakes\nFried potato cakes, apple jelly, sour cream\nArugula salad\nLemon, olive oil, garlic, Parmesan\nSECOND COURSE\nWagyu burger\nBeef patty, triple cream brie, alfalfa sprouts, caramelized onions,\naioli\nTruffle mushroom pasta\nHand-made pasta, black truffle, Parmesan\nTHIRD COURSE\nCaramel cheesecake\nCaramelized banana, cream\nApple cobbler\nApples, cinnamon crumble, vanilla ice cream\nDRINKS\nSoda\nLemonade\nMineral water\nCoffee\nTea"
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {

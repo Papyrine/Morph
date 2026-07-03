@@ -29,7 +29,11 @@ static class ExportTestBuilders
             Runs = [TextRun(text, bold: true)],
             Properties = new()
             {
-                StyleId = $"Heading{level}"
+                StyleId = $"Heading{level}",
+                // Stock Word Heading styles resolve to 12pt-before / 0-after; mirroring the
+                // resolved values keeps the fixture free of spurious margin overrides.
+                SpacingBeforePoints = 12,
+                SpacingAfterPoints = 0
             }
         };
 
@@ -125,7 +129,8 @@ static class ExportTestBuilders
         bool allCaps = false,
         VerticalRunAlignment vertical = VerticalRunAlignment.Baseline,
         string? color = null,
-        string? url = null) =>
+        string? url = null,
+        double characterSpacing = 0) =>
         new()
         {
             Text = text,
@@ -138,7 +143,8 @@ static class ExportTestBuilders
                 Strikethrough = strike,
                 AllCaps = allCaps,
                 VerticalAlignment = vertical,
-                ColorHex = color
+                ColorHex = color,
+                CharacterSpacingPoints = characterSpacing
             }
         };
 

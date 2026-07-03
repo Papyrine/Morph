@@ -1,6 +1,12 @@
 ﻿{
   "target": {
     "PageCount": 8,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
     "Pages": [
       {
         "Width": 792.0,
@@ -42,13 +48,7 @@
         "Height": 612.0,
         "Text": "To get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card.\nTo get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card."
       }
-    ],
-    "Properties": {
-      "CreationDate": "D:20000101000000+00'00'",
-      "Creator": "Morph",
-      "ModDate": "D:20000101000000+00'00'",
-      "Producer": "PDFsharp 6.2.4"
-    }
+    ]
   },
   "PageDiffs": [
     {
