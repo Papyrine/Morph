@@ -254,6 +254,80 @@ header p {
     width: 100%;
 }
 
+/* Wraps the page preview and the result pane; on wide viewports they sit side by side. */
+.workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+}
+
+/* The selected format's converted output, shown beside the page preview on wide screens only. */
+.result-pane {
+    display: flex;
+    flex-direction: column;
+    height: 70vh;
+    overflow: hidden;
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.result-caption {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--surface-color);
+    color: var(--muted-color);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Document content is designed against paper, so the iframe stays white in both themes. */
+.result-frame {
+    flex: 1;
+    width: 100%;
+    border: 0;
+    background: #ffffff;
+}
+
+.result-text {
+    flex: 1;
+    margin: 0;
+    padding: 1rem;
+    overflow: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.result-busy {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+/* Wide screens: the page preview and the result pane sit side by side, and the container relaxes to
+   give the pair room. :has() scopes the wider layout to when a pane is actually present, so the
+   app keeps its narrow column whenever there is nothing to show on the right. */
+@media (min-width: 1200px) {
+    .container:has(.result-pane) {
+        max-width: 1400px;
+    }
+
+    .workspace:has(.result-pane) {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    /* Match the pane's fixed height so the pair reads as one row. */
+    .workspace:has(.result-pane) .preview {
+        height: 70vh;
+        max-height: none;
+    }
+}
+
 .progress {
     display: flex;
     flex-direction: column;

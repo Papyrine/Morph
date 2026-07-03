@@ -32,7 +32,7 @@ public class PdfContextualSpacingTests
             fontWidthScale: 1,
             fontFallback: null,
             fontDirectory: ProjectFonts.Directory);
-        return (context, new PdfTextEngine(context));
+        return (context, new(context));
     }
 
     static ParagraphElement Line(string text, bool contextual, string? styleId) =>

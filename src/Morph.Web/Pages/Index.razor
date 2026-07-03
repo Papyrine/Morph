@@ -13,7 +13,7 @@
                 @if (sourceName is null)
                 {
                     <strong>Choose a Word document</strong>
-                    <span>A .docx file — converted to PNG, PDF, Markdown or plain text</span>
+                    <span>A .docx file — converted to PNG, PDF, HTML, Markdown or plain text</span>
                 }
                 else
                 {
@@ -26,7 +26,7 @@
 
         <div class="upload-or"><span>or</span></div>
 
-        @* A cover-letter .docx bundled as a static web asset, fetched on demand so it only downloads
+        @* A sample .docx bundled as a static web asset, fetched on demand so it only downloads
            when asked — never at app startup. *@
         <button class="sample-btn" @onclick="LoadSampleDocument" disabled="@isBusy">
             📄 Try a sample document
@@ -47,24 +47,55 @@
 
     @if (docxBytes is not null)
     {
-        @if (isRendering || previewPages is { Count: > 0 })
-        {
-            <div class="preview">
-                @if (isRendering)
-                {
-                    <div class="preview-busy">
-                        <ConversionProgress Label="@progressLabel" Detail="@progressDetail" />
-                    </div>
-                }
-                else
-                {
-                    @foreach (var pageUrl in previewPages!)
+        <div class="workspace">
+            @if (isRendering || previewPages is { Count: > 0 })
+            {
+                <div class="preview">
+                    @if (isRendering)
                     {
-                        <img class="preview-page" src="@pageUrl" alt="Rendered page preview" />
+                        <div class="preview-busy">
+                            <ConversionProgress Label="@progressLabel" Detail="@progressDetail" />
+                        </div>
                     }
-                }
-            </div>
-        }
+                    else
+                    {
+                        @foreach (var pageUrl in previewPages!)
+                        {
+                            <img class="preview-page" src="@pageUrl" alt="Rendered page preview" />
+                        }
+                    }
+                </div>
+            }
+
+            @* On a wide viewport the selected format's actual output renders beside the page preview —
+               Markdown and plain text inline, PDF and HTML in an iframe. PNG needs no pane: the page
+               preview already shows it. *@
+            @if (wideViewport && target != OutputFormat.Png && (isConvertingResult || result is not null))
+            {
+                <div class="result-pane">
+                    <div class="result-caption">@TargetInfo?.DisplayName</div>
+                    @if (isConvertingResult)
+                    {
+                        <div class="result-busy">
+                            <ConversionProgress Label="@progressLabel" Detail="@progressDetail" />
+                        </div>
+                    }
+                    else if (result?.Url is { } resultUrl)
+                    {
+                        @* The HTML result is document-supplied content, so it renders fully sandboxed; the
+                           PDF iframe can't be — sandboxing disables the browser's built-in PDF viewer. *@
+                        <iframe class="result-frame"
+                                src="@resultUrl"
+                                title="@($"{TargetInfo?.DisplayName} preview")"
+                                sandbox="@(target == OutputFormat.Html ? "" : null)"></iframe>
+                    }
+                    else
+                    {
+                        <pre class="result-text">@result?.Text</pre>
+                    }
+                </div>
+            }
+        </div>
 
         <div class="convert-panel">
             <FormatSelector Label="Convert to"
@@ -87,8 +118,9 @@
         </div>
 
         @* Clicking Download runs the actual conversion; show its progress right under the button.
-           !isRendering excludes the preview render, which has its own bar above. *@
-        @if (isBusy && !isRendering)
+           !isRendering and !isConvertingResult exclude the page preview and the result pane, which
+           each show their own bar above. *@
+        @if (isBusy && !isRendering && !isConvertingResult)
         {
             <ConversionProgress Label="@progressLabel" Detail="@progressDetail" />
         }

@@ -17,8 +17,18 @@ public class TableRowHeightRulesTests
             [
                 new ParagraphElement
                 {
-                    Runs = [new() {Text = "x", Properties = new()}],
-                    Properties = new() {SpacingAfterPoints = spacingAfter}
+                    Runs =
+                    [
+                        new()
+                        {
+                            Text = "x",
+                            Properties = new()
+                        }
+                    ],
+                    Properties = new()
+                    {
+                        SpacingAfterPoints = spacingAfter
+                    }
                 }
             ],
             Properties = new()
@@ -64,12 +74,43 @@ public class TableRowHeightRulesTests
         {
             Content =
             [
-                new ParagraphElement {Runs = [new() {Text = "a", Properties = new()}], Properties = new() {SpacingAfterPoints = 8}},
-                new ParagraphElement {Runs = [new() {Text = "b", Properties = new()}], Properties = new() {SpacingAfterPoints = 8}}
+                new ParagraphElement
+                {
+                    Runs =
+                    [
+                        new()
+                        {
+                            Text = "a",
+                            Properties = new()
+                        }
+                    ],
+                    Properties = new()
+                    {
+                        SpacingAfterPoints = 8
+                    }
+                },
+                new ParagraphElement
+                {
+                    Runs =
+                    [
+                        new()
+                        {
+                            Text = "b",
+                            Properties = new()
+                        }
+                    ],
+                    Properties = new()
+                    {
+                        SpacingAfterPoints = 8
+                    }
+                }
             ],
             Properties = new()
         };
-        var tableProps = new TableProperties {DefaultCellPadding = new(top: 0, right: 0, bottom: 0, left: 0)};
+        var tableProps = new TableProperties
+        {
+            DefaultCellPadding = new(top: 0, right: 0, bottom: 0, left: 0)
+        };
 
         var height = TableHeightCalculator.MeasureCellHeight(cell, cellWidth: 100, tableProps, new StubMeasurer());
 
@@ -86,13 +127,44 @@ public class TableRowHeightRulesTests
             {
                 Borders = new()
                 {
-                    Top = new() {IsVisible = true, WidthPoints = 1},
-                    Bottom = new() {IsVisible = true, WidthPoints = 1}
+                    Top = new()
+                    {
+                        IsVisible = true,
+                        WidthPoints = 1
+                    },
+                    Bottom = new()
+                    {
+                        IsVisible = true,
+                        WidthPoints = 1
+                    }
                 }
             },
-            Content = [new ParagraphElement {Runs = [new() {Text = "x", Properties = new()}], Properties = new()}]
+            Content =
+            [
+                new ParagraphElement
+                {
+                    Runs =
+                    [
+                        new()
+                        {
+                            Text = "x",
+                            Properties = new()
+                        }
+                    ],
+                    Properties = new()
+                }
+            ]
         };
-        var table = new TableElement {Rows = [new TableRow {Cells = [cell]}]};
+        var table = new TableElement
+        {
+            Rows =
+            [
+                new()
+                {
+                    Cells = [cell]
+                }
+            ]
+        };
 
         var heights = TableHeightCalculator.CalculateRowHeights(table, [100f], new StubMeasurer(), hasVerticalMerge: false);
 
@@ -107,9 +179,32 @@ public class TableRowHeightRulesTests
         var cell = new TableCell
         {
             Properties = new(),
-            Content = [new ParagraphElement {Runs = [new() {Text = "x", Properties = new()}], Properties = new()}]
+            Content =
+            [
+                new ParagraphElement
+                {
+                    Runs =
+                    [
+                        new()
+                        {
+                            Text = "x",
+                            Properties = new()
+                        }
+                    ],
+                    Properties = new()
+                }
+            ]
         };
-        var table = new TableElement {Rows = [new TableRow {Cells = [cell]}]};
+        var table = new TableElement
+        {
+            Rows =
+            [
+                new()
+                {
+                    Cells = [cell]
+                }
+            ]
+        };
 
         var heights = TableHeightCalculator.CalculateRowHeights(table, [100f], new StubMeasurer(), hasVerticalMerge: false);
 

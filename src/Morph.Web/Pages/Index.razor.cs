@@ -1,12 +1,16 @@
 namespace Morph.Web.Pages;
 
-public partial class Index
+public partial class Index : IDisposable
 {
     const long maxFileSize = 25 * 1024 * 1024;
 
     // The preview is a fixed-size thumbnail render; the PNG download uses the user-chosen resolution
     // instead (see ImageSettings.Dpi). Kept low so uploading a long document paints quickly.
     const int previewDpi = 110;
+
+    // Below this viewport width the result pane never renders (and the conversion feeding it never
+    // runs); must match the app.css breakpoint that lays the two panes side by side.
+    const int resultPaneMinWidth = 1200;
 
     string? sourceName;
     byte[]? docxBytes;
@@ -19,13 +23,40 @@ public partial class Index
     readonly ImageSettings image = new();
     bool isBusy;
     bool isRendering;
+    bool isConvertingResult;
+    bool wideViewport;
     string? progressLabel;
     string? progressDetail;
+    ResultPreview? result;
+    readonly Dictionary<OutputFormat, ResultPreview> resultCache = new();
+    DotNetObjectReference<Index>? selfReference;
 
     FormatInfo? TargetInfo => ConversionService.Find(target);
 
     protected override async Task OnInitializedAsync() =>
         userAgent = await JsRuntime.InvokeAsync<string?>("appInfo.userAgent");
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        // Watch the viewport against the side-by-side breakpoint; the callback fires on every crossing.
+        selfReference = DotNetObjectReference.Create(this);
+        wideViewport = await JsRuntime.InvokeAsync<bool>("viewport.watchWide", selfReference, resultPaneMinWidth);
+    }
+
+    [JSInvokable]
+    public Task OnViewportWideChanged(bool wide) =>
+        InvokeAsync(async () =>
+        {
+            wideViewport = wide;
+            // Widening may reveal the pane for a target selected while narrow, never yet converted.
+            await EnsureResultPreviewAsync();
+            StateHasChanged();
+        });
 
     // Switches the visible phase and repaints. The conversion that follows is wrapped in Task.Run, which
     // yields once so this busy state paints before the (single-threaded) compute begins.
@@ -39,7 +70,7 @@ public partial class Index
 
     async Task OnFileSelected(InputFileChangeEventArgs args)
     {
-        Reset();
+        await ResetAsync();
 
         var file = args.File;
         sourceName = file.Name;
@@ -61,6 +92,7 @@ public partial class Index
             docxBytes = memory.ToArray();
 
             await RenderPreviewAsync();
+            await EnsureResultPreviewAsync();
         }
         catch (Exception exception)
         {
@@ -77,7 +109,7 @@ public partial class Index
     // read/render pipeline as an uploaded file.
     async Task LoadSampleDocument()
     {
-        Reset();
+        await ResetAsync();
         sourceName = "sample.docx";
 
         try
@@ -86,6 +118,7 @@ public partial class Index
             docxBytes = await Http.GetByteArrayAsync("sample/sample.docx");
 
             await RenderPreviewAsync();
+            await EnsureResultPreviewAsync();
         }
         catch (Exception exception)
         {
@@ -142,7 +175,101 @@ public partial class Index
     Task OnTargetChanged(OutputFormat format)
     {
         target = format;
-        return Task.CompletedTask;
+        // The pane must not keep showing the previous format while (or if) the new one converts.
+        result = null;
+        return EnsureResultPreviewAsync();
+    }
+
+    // Converts the loaded document to the selected format for the result pane. Skipped when the pane
+    // can't show: no document, PNG selected (the page preview already is the PNG), or a narrow viewport
+    // (the pane never renders there, so converting would be wasted work). Results are cached per format
+    // for the life of the document, so flipping between formats re-shows instantly.
+    async Task EnsureResultPreviewAsync()
+    {
+        if (docxBytes is not { } bytes ||
+            !wideViewport ||
+            isBusy ||
+            TargetInfo is not { } info ||
+            info.Format == OutputFormat.Png)
+        {
+            return;
+        }
+
+        if (resultCache.TryGetValue(info.Format, out var cached))
+        {
+            result = cached;
+            return;
+        }
+
+        isConvertingResult = true;
+        BeginPhase($"Converting to {info.DisplayName}…");
+        try
+        {
+            var fontDirectory = await FontStore.EnsureAsync(Http);
+            var payload = await Task.Run(() => ConversionService.BuildDownload(bytes, info.Format, image, fontDirectory));
+            var converted = await BuildResultPreviewAsync(info.Format, payload);
+
+            // The awaits above can interleave with a new upload (the file input stays active); a result
+            // for the replaced document must not be cached or shown against the new one.
+            if (!ReferenceEquals(docxBytes, bytes))
+            {
+                await RevokeAsync(converted);
+                return;
+            }
+
+            resultCache[info.Format] = converted;
+            if (target == info.Format)
+            {
+                result = converted;
+            }
+        }
+        catch (Exception exception)
+        {
+            ReportError($"Could not convert to {info.DisplayName}", exception);
+        }
+        finally
+        {
+            isBusy = false;
+            isConvertingResult = false;
+        }
+
+        // The selection can move on while the conversion runs (the dropdown stays enabled); catch up.
+        if (target != info.Format)
+        {
+            await EnsureResultPreviewAsync();
+        }
+    }
+
+    // Markdown and plain text show inline; PDF and HTML load into an <iframe> via a blob URL — the
+    // browser's PDF viewer needs a real URL, and an HTML result needs a document of its own.
+    async Task<ResultPreview> BuildResultPreviewAsync(OutputFormat format, DownloadPayload payload)
+    {
+        if (format is OutputFormat.Markdown or OutputFormat.Text)
+        {
+            var text = Encoding.UTF8.GetString(payload.Bytes);
+            if (format == OutputFormat.Markdown)
+            {
+                // Embedded images are megabytes of base64 that would drown the pane; the download
+                // still gets the full bytes.
+                text = MarkdownPreview.ElideImages(text);
+            }
+
+            return new(payload.Bytes, text, null);
+        }
+
+        var url = await JsRuntime.InvokeAsync<string>(
+            "resultPreview.createUrl",
+            payload.ContentType,
+            Convert.ToBase64String(payload.Bytes));
+        return new(payload.Bytes, null, url);
+    }
+
+    async Task RevokeAsync(ResultPreview preview)
+    {
+        if (preview.Url is { } url)
+        {
+            await JsRuntime.InvokeVoidAsync("resultPreview.revokeUrl", url);
+        }
     }
 
     async Task Download()
@@ -161,10 +288,20 @@ public partial class Index
         BeginPhase(target == OutputFormat.Png ? "Rendering image…" : $"Converting to {info.DisplayName}…");
         try
         {
-            // The rendered formats (PNG, PDF) resolve fonts against the bundled Aptos faces, materialised
-            // into the in-memory filesystem here; the text formats ignore the directory.
-            var fontDirectory = await FontStore.EnsureAsync(Http);
-            var payload = await Task.Run(() => ConversionService.BuildDownload(bytes, info.Format, image, fontDirectory));
+            DownloadPayload payload;
+            if (resultCache.TryGetValue(info.Format, out var cached))
+            {
+                // The result pane already produced exactly these bytes; don't convert twice.
+                payload = new(cached.Bytes, info.Extension, info.ContentType);
+            }
+            else
+            {
+                // The rendered formats (PNG, PDF) resolve fonts against the bundled Aptos faces,
+                // materialised into the in-memory filesystem here; the text formats ignore the directory.
+                var fontDirectory = await FontStore.EnsureAsync(Http);
+                payload = await Task.Run(() => ConversionService.BuildDownload(bytes, info.Format, image, fontDirectory));
+            }
+
             var baseName = Path.GetFileNameWithoutExtension(sourceName) ?? "document";
             await FileDownloadService.DownloadAsync($"{baseName}{payload.Extension}", payload.ContentType, payload.Bytes);
         }
@@ -184,7 +321,7 @@ public partial class Index
         issueUrl = IssueLauncher.ForException(action, exception, AppInfo.Environment(userAgent));
     }
 
-    void Reset()
+    async Task ResetAsync()
     {
         errorMessage = null;
         issueUrl = null;
@@ -194,7 +331,22 @@ public partial class Index
         previewPages = null;
         isBusy = false;
         isRendering = false;
+        isConvertingResult = false;
         progressLabel = null;
         progressDetail = null;
+        result = null;
+        foreach (var preview in resultCache.Values)
+        {
+            await RevokeAsync(preview);
+        }
+
+        resultCache.Clear();
     }
+
+    public void Dispose() =>
+        selfReference?.Dispose();
+
+    // One converted output, ready for the result pane: the exact bytes a download would produce, plus
+    // either the text to show inline (Markdown, plain text) or the blob URL an <iframe> loads (PDF, HTML).
+    sealed record ResultPreview(byte[] Bytes, string? Text, string? Url);
 }

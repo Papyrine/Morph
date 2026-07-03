@@ -130,8 +130,14 @@ public class HtmlExporterTests
     public Task TableColumnSpan()
     {
         var table = Table(
-            new TableRow {Cells = [Cell("wide", gridSpan: 2)]},
-            new TableRow {Cells = [Cell("a"), Cell("b")]});
+            new TableRow
+            {
+                Cells = [Cell("wide", gridSpan: 2)]
+            },
+            new TableRow
+            {
+                Cells = [Cell("a"), Cell("b")]
+            });
         return VerifyHtml(Doc(table));
     }
 
@@ -139,8 +145,14 @@ public class HtmlExporterTests
     public Task TableRowSpan()
     {
         var table = Table(
-            new TableRow {Cells = [Cell("tall", merge: VerticalMergeType.Restart), Cell("r1")]},
-            new TableRow {Cells = [Cell("", merge: VerticalMergeType.Continue), Cell("r2")]});
+            new TableRow
+            {
+                Cells = [Cell("tall", merge: VerticalMergeType.Restart), Cell("r1")]
+            },
+            new TableRow
+            {
+                Cells = [Cell("", merge: VerticalMergeType.Continue), Cell("r2")]
+            });
         return VerifyHtml(Doc(table));
     }
 
@@ -161,7 +173,14 @@ public class HtmlExporterTests
             {
                 Cells =
                 [
-                    new() {Content = [Para(TextRun("bordered"))], Properties = new() {Borders = CellBorders.All}},
+                    new()
+                    {
+                        Content = [Para(TextRun("bordered"))],
+                        Properties = new()
+                        {
+                            Borders = CellBorders.All
+                        }
+                    },
                     Cell("plain")
                 ]
             });
@@ -266,7 +285,7 @@ public class HtmlExporterTests
     public Task FootnotesAndEndnotes() =>
         // Footnote and endnote citations become <sup> links, numbered together in reference order,
         // plus a trailing <section class="footnotes"> of definitions with back-links.
-        VerifyHtml(new ParsedDocument
+        VerifyHtml(new()
         {
             PageSettings = new(),
             Elements =
@@ -274,21 +293,37 @@ public class HtmlExporterTests
                 Para(TextRun("See note "), FootnoteRef("1"), TextRun(" and "), EndnoteRef("1"), TextRun(".")),
                 Para(TextRun("Reuse "), FootnoteRef("1"), TextRun(" here."))
             ],
-            Footnotes = [new Footnote {Id = "1", Text = "The footnote body."}],
-            Endnotes = [new Endnote {Id = "1", Text = "The endnote body."}]
+            Footnotes =
+            [
+                new()
+                {
+                    Id = "1",
+                    Text = "The footnote body."
+                }
+            ],
+            Endnotes =
+            [
+                new()
+                {
+                    Id = "1",
+                    Text = "The endnote body."
+                }
+            ]
         });
 
     [Test]
     public Task ImageAltText() =>
         // wp:docPr/@descr becomes the <img alt>; HTML-encoded, no escaping of [] needed.
-        VerifyHtml(Doc(new ImageElement
-        {
-            ImageData = [1, 2, 3],
-            ContentType = "image/png",
-            WidthPoints = 24,
-            HeightPoints = 12,
-            Description = "A logo [PNG]"
-        }));
+        VerifyHtml(
+            Doc(
+                new ImageElement
+                {
+                    ImageData = [1, 2, 3],
+                    ContentType = "image/png",
+                    WidthPoints = 24,
+                    HeightPoints = 12,
+                    Description = "A logo [PNG]"
+                }));
 
     [Test]
     public Task ImageInTableCell()
@@ -307,22 +342,30 @@ public class HtmlExporterTests
                 }
             ]
         };
-        return VerifyHtml(Doc(Table(new TableRow {Cells = [cell]})));
+        return VerifyHtml(
+            Doc(
+                Table(
+                    new TableRow
+                    {
+                        Cells = [cell]
+                    })));
     }
 
     [Test]
     public Task ParagraphBorder() =>
-        VerifyHtml(Doc(new ParagraphElement
-        {
-            Runs = [TextRun("boxed")],
-            Properties = new()
-            {
-                SpacingAfterPoints = 8,
-                Borders = CellBorders.All,
-                BorderTopSpacePoints = 4,
-                BorderRightSpacePoints = 6,
-                BorderBottomSpacePoints = 4,
-                BorderLeftSpacePoints = 6
-            }
-        }));
+        VerifyHtml(
+            Doc(
+                new ParagraphElement
+                {
+                    Runs = [TextRun("boxed")],
+                    Properties = new()
+                    {
+                        SpacingAfterPoints = 8,
+                        Borders = CellBorders.All,
+                        BorderTopSpacePoints = 4,
+                        BorderRightSpacePoints = 6,
+                        BorderBottomSpacePoints = 4,
+                        BorderLeftSpacePoints = 6
+                    }
+                }));
 }

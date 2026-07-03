@@ -184,6 +184,32 @@ public class SnapshotTests
         await Assert.That(download.SuggestedFilename).EndsWith(".pdf");
     }
 
+    // On a wide viewport (Playwright's default 1280px exceeds the 1200px breakpoint) selecting a non-PNG
+    // format converts immediately and shows the output in the result pane: text formats inline, PDF and
+    // HTML through a blob-URL iframe. Selecting PNG removes the pane — the page preview already is the PNG.
+    [Test]
+    public async Task SelectingFormatShowsResultPane()
+    {
+        var page = await browser!.NewPageAsync();
+        await page.GotoAsync($"http://localhost:{port}/");
+        await SettleAsync(page);
+
+        await UploadSampleAsync(page);
+
+        await page.SelectOptionAsync(".convert-panel .format-select", "Markdown");
+        var text = await page.WaitForSelectorAsync(".result-text", new() { Timeout = 30000 });
+        // The sample document embeds images; the pane view swaps their base64 payloads for size notes.
+        await Assert.That(await text!.TextContentAsync()).Contains("KB elided");
+
+        await page.SelectOptionAsync(".convert-panel .format-select", "Html");
+        var frame = await page.WaitForSelectorAsync(".result-frame", new() { Timeout = 30000 });
+        var source = await frame!.GetAttributeAsync("src");
+        await Assert.That(source).StartsWith("blob:");
+
+        await page.SelectOptionAsync(".convert-panel .format-select", "Png");
+        await page.WaitForSelectorAsync(".result-pane", new() { State = WaitForSelectorState.Detached, Timeout = 30000 });
+    }
+
     [Test]
     public async Task HomePageMobile()
     {
