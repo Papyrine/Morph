@@ -24,6 +24,14 @@ public class HtmlExporterTests
             Heading(2, "Overview")));
 
     [Test]
+    public Task HeadingBoldSuppressed() =>
+        // A heading is bold by default, so a bold run drops its <strong> (inheriting the h1
+        // weight); an explicitly non-bold run in the same heading still gets font-weight: normal.
+        VerifyHtml(Doc(Styled("Heading1",
+            TextRun("Bold part ", bold: true),
+            TextRun("normal part"))));
+
+    [Test]
     public Task TitleAndSubtitleBecomeHeadings() =>
         VerifyHtml(Doc(
             Styled("Title", "My Document"),

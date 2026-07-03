@@ -868,7 +868,11 @@ static class HtmlExporter
                 close.Insert(0, "</span>");
             }
 
-            if (properties.Bold)
+            // A heading is bold by default — both the stylesheet's h1-h6 rule and every browser's
+            // UA default — so a <strong> inside one is redundant and is skipped, mirroring the
+            // Markdown exporter's heading bold suppression. A run that is explicitly non-bold in a
+            // heading is still honoured: InlineStyle emits font-weight: normal for it.
+            if (properties.Bold && !inHeading)
             {
                 Wrap("strong");
             }
