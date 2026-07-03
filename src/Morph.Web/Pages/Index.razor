@@ -73,7 +73,13 @@
             @if (wideViewport && target != OutputFormat.Png && (isConvertingResult || result is not null))
             {
                 <div class="result-pane">
-                    <div class="result-caption">@TargetInfo?.DisplayName</div>
+                    <div class="result-caption">
+                        <span>@TargetInfo?.DisplayName</span>
+                        @if (!isConvertingResult && result?.ImagesElided == true)
+                        {
+                            <span class="result-note">base64 encoded image omitted for brevity</span>
+                        }
+                    </div>
                     @if (isConvertingResult)
                     {
                         <div class="result-busy">

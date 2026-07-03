@@ -186,57 +186,64 @@ public partial class Index : IDisposable
     // for the life of the document, so flipping between formats re-shows instantly.
     async Task EnsureResultPreviewAsync()
     {
-        if (docxBytes is not { } bytes ||
-            !wideViewport ||
-            isBusy ||
-            TargetInfo is not { } info ||
-            info.Format == OutputFormat.Png)
+        // The selection can move on while a conversion runs (the dropdown stays enabled), so loop:
+        // each pass re-reads the current target and converts it, until the finished result matches
+        // the still-selected format.
+        while (true)
         {
-            return;
-        }
-
-        if (resultCache.TryGetValue(info.Format, out var cached))
-        {
-            result = cached;
-            return;
-        }
-
-        isConvertingResult = true;
-        BeginPhase($"Converting to {info.DisplayName}…");
-        try
-        {
-            var fontDirectory = await FontStore.EnsureAsync(Http);
-            var payload = await Task.Run(() => ConversionService.BuildDownload(bytes, info.Format, image, fontDirectory));
-            var converted = await BuildResultPreviewAsync(info.Format, payload);
-
-            // The awaits above can interleave with a new upload (the file input stays active); a result
-            // for the replaced document must not be cached or shown against the new one.
-            if (!ReferenceEquals(docxBytes, bytes))
+            if (docxBytes is not { } bytes ||
+                !wideViewport ||
+                isBusy ||
+                TargetInfo is not { } info ||
+                info.Format == OutputFormat.Png)
             {
-                await RevokeAsync(converted);
                 return;
             }
 
-            resultCache[info.Format] = converted;
+            if (resultCache.TryGetValue(info.Format, out var cached))
+            {
+                result = cached;
+                return;
+            }
+
+            isConvertingResult = true;
+            BeginPhase($"Converting to {info.DisplayName}…");
+            try
+            {
+                var fontDirectory = await FontStore.EnsureAsync(Http);
+                var payload = await Task.Run(() => ConversionService.BuildDownload(bytes, info.Format, image, fontDirectory));
+                var converted = await BuildResultPreviewAsync(info.Format, payload);
+
+                // The awaits above can interleave with a new upload (the file input stays active); a result
+                // for the replaced document must not be cached or shown against the new one.
+                if (!ReferenceEquals(docxBytes, bytes))
+                {
+                    await RevokeAsync(converted);
+                    return;
+                }
+
+                resultCache[info.Format] = converted;
+                if (target == info.Format)
+                {
+                    result = converted;
+                }
+            }
+            catch (Exception exception)
+            {
+                ReportError($"Could not convert to {info.DisplayName}", exception);
+            }
+            finally
+            {
+                isBusy = false;
+                isConvertingResult = false;
+            }
+
+            // If the target is still this format we're done; otherwise it moved mid-conversion — loop
+            // to catch up to the new selection.
             if (target == info.Format)
             {
-                result = converted;
+                return;
             }
-        }
-        catch (Exception exception)
-        {
-            ReportError($"Could not convert to {info.DisplayName}", exception);
-        }
-        finally
-        {
-            isBusy = false;
-            isConvertingResult = false;
-        }
-
-        // The selection can move on while the conversion runs (the dropdown stays enabled); catch up.
-        if (target != info.Format)
-        {
-            await EnsureResultPreviewAsync();
         }
     }
 
@@ -247,21 +254,23 @@ public partial class Index : IDisposable
         if (format is OutputFormat.Markdown or OutputFormat.Text)
         {
             var text = Encoding.UTF8.GetString(payload.Bytes);
+            var imagesElided = false;
             if (format == OutputFormat.Markdown)
             {
                 // Embedded images are megabytes of base64 that would drown the pane; the download
-                // still gets the full bytes.
+                // still gets the full bytes. The caption notes the swap when it happens.
+                imagesElided = MarkdownPreview.HasElidableImages(text);
                 text = MarkdownPreview.ElideImages(text);
             }
 
-            return new(payload.Bytes, text, null);
+            return new(payload.Bytes, text, null, imagesElided);
         }
 
         var url = await JsRuntime.InvokeAsync<string>(
             "resultPreview.createUrl",
             payload.ContentType,
             Convert.ToBase64String(payload.Bytes));
-        return new(payload.Bytes, null, url);
+        return new(payload.Bytes, null, url, false);
     }
 
     async Task RevokeAsync(ResultPreview preview)
@@ -348,5 +357,5 @@ public partial class Index : IDisposable
 
     // One converted output, ready for the result pane: the exact bytes a download would produce, plus
     // either the text to show inline (Markdown, plain text) or the blob URL an <iframe> loads (PDF, HTML).
-    sealed record ResultPreview(byte[] Bytes, string? Text, string? Url);
+    sealed record ResultPreview(byte[] Bytes, string? Text, string? Url, bool ImagesElided);
 }
