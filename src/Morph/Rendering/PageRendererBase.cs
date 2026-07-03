@@ -704,8 +704,9 @@ abstract class PageRendererBase(RenderContextBase context)
         for (var j = backgroundIndex + 1; j < elements.Count; j++)
         {
             var next = elements[j];
-            if (next is FloatingShapeElement {BehindText: true} ||
-                next is FloatingImageElement {BehindText: true})
+            if (next is
+                FloatingShapeElement {BehindText: true} or
+                FloatingImageElement {BehindText: true})
             {
                 continue;
             }
