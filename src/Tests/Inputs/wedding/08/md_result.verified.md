@@ -1,8 +1,8 @@
 ﻿|  |  |  |  |  |  |  |  |  |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-|  | Thanks and Dedication  We would like to express thanks to our parents, family, and friends for all their love and support. Thank you all for sharing this special day with us.  |  |  | BRIDE’S FULL NAME  Groom’S FULL NAME  |  |  |  |  |
+|  | Thanks and Dedication <br>We would like to express thanks to our parents, family, and friends for all their love and support. Thank you all for sharing this special day with us.  |  |  | BRIDE’S FULL NAME <br>Groom’S FULL NAME  |  |  |  |  |
 |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  | 00:00 PM  YEAR  VENUE/PLACE  | MONTH  01 |  |  |
+|  |  |  |  |  | 00:00 PM <br>YEAR <br>VENUE/PLACE  | MONTH <br>01 |  |  |
 |  |  |  |  |  |  |  |  |  |
 |  |  |  |  |  | ADDRESS OF THE CEREMONY  |  |  |  |
 |  |  |  |  |  | *dinner and dancing to follow*  |  |  |  |
@@ -10,6 +10,6 @@
 
 |  |  |  |  |  |  |  |  |  |  |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-|  |  | The Ceremony Prelude Processional  Opening Words Readings  Declaration of Intent Exchange of Vows Exchange of Rings Declaration of Marriage Blessings Recessional |  |  |  |  | Wedding Participants Officiant(s) Parents of the Bride Parents of the Groom Maid/Matron of Honor Best Man Bridesmaids Groomsmen Reader(s) Musicians |  |  |
-|  |  | Additional Text Type a quote  Or a poem   about marriage  here  |  |  |  |  | Additional Text Readings Hymns Poems |  |  |
+|  |  | The Ceremony<br>Prelude<br>Processional <br>Opening Words<br>Readings <br>Declaration of Intent<br>Exchange of Vows<br>Exchange of Rings<br>Declaration of Marriage<br>Blessings<br>Recessional |  |  |  |  | Wedding Participants<br>Officiant(s)<br>Parents of the Bride<br>Parents of the Groom<br>Maid/Matron of Honor<br>Best Man<br>Bridesmaids<br>Groomsmen<br>Reader(s)<br>Musicians |  |  |
+|  |  | Additional Text<br>Type a quote <br>Or a poem  <br>about marriage <br>here  |  |  |  |  | Additional Text<br>Readings<br>Hymns<br>Poems |  |  |
 |  |  |  |  |  |  |  |  |  |  |

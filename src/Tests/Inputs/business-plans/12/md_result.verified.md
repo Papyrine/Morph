@@ -7,7 +7,7 @@
 
 |  |  |
 | --- | --- |
-|  | **Table of contents** [<u>introduction</u> 3](#_Toc197443733) [<u>1.</u> <u>executive summary</u> 4](#_Toc197443734) [<u>2.</u> <u>company overview</u> 5](#_Toc197443735) [<u>3.</u> <u>business description</u> 6](#_Toc197443736) [<u>4.</u> <u>market analysis</u> 8](#_Toc197443737) [<u>5.</u> <u>operating plan</u> 10](#_Toc197443738) [<u>6.</u> <u>marketing and sales plan</u> 11](#_Toc197443739) [<u>7.</u> <u>financial plan</u> 12](#_Toc197443740) [<u>Appendix</u> 15](#_Toc197443741) [<u>Instructions for Getting Started with Estimated Start-Up Costs</u> 16](#_Toc197443742) [<u>Instructions for Getting Started on Profit & Loss Projections</u> 18](#_Toc197443743) |
+|  | **Table of contents**<br>[<u>introduction</u> 3](#_Toc197443733)<br>[<u>1.</u> <u>executive summary</u> 4](#_Toc197443734)<br>[<u>2.</u> <u>company overview</u> 5](#_Toc197443735)<br>[<u>3.</u> <u>business description</u> 6](#_Toc197443736)<br>[<u>4.</u> <u>market analysis</u> 8](#_Toc197443737)<br>[<u>5.</u> <u>operating plan</u> 10](#_Toc197443738)<br>[<u>6.</u> <u>marketing and sales plan</u> 11](#_Toc197443739)<br>[<u>7.</u> <u>financial plan</u> 12](#_Toc197443740)<br>[<u>Appendix</u> 15](#_Toc197443741)<br>[<u>Instructions for Getting Started with Estimated Start-Up Costs</u> 16](#_Toc197443742)<br>[<u>Instructions for Getting Started on Profit & Loss Projections</u> 18](#_Toc197443743) |
 
 # introduction
 
@@ -96,9 +96,9 @@ Depending on the type of business, the following sections may or may not be nece
 - **Competition:** All businesses compete in one way or another. It may be with specific, direct competitors or it may be with the way customers have been doing things for a long time. When identifying the competition, identify who else is providing services to solve the same problem the business seeks to address. What are the business’ advantages over these competitors? How will the company’s voice be heard over the noise of competitors? Sometimes a business plan includes a matrix of features and compares how each business offers or does not offer those features. This section reflects how the company’s solution is different and better suited for the identified target market compared to the competition.
 - **SWOT analysis:** A SWOT analysis may be included by completing the boxes below to assess the business’ current strengths and weaknesses (internal) and opportunities and threats (external). This is a good exercise to go through on an annual basis. After completing the analysis, provide thoughts on: how the business’ strengths can help maximize opportunities and minimize threats; how its weaknesses can slow the company’s ability to capitalize on the opportunities; and how the business’ weaknesses could expose it to threats.
 
-| **STRENGTHS** Advantage Capabilities Assets, people Experience Financial reserves Value proposition Price, value, quality |  | **WEAKNESSES** Disadvantages Gap in capabilities Cash Flow Suppliers Experience Areas to improve Causes of lose sales |
+| **STRENGTHS**<br>Advantage<br>Capabilities<br>Assets, people<br>Experience<br>Financial reserves<br>Value proposition<br>Price, value, quality |  | **WEAKNESSES**<br>Disadvantages<br>Gap in capabilities<br>Cash Flow<br>Suppliers<br>Experience<br>Areas to improve<br>Causes of lose sales |
 | --- | --- | --- |
-| **OPPORTUNITIES** Areas to improve New segments Industry trends New products New innovations Key partnership |  | **THREATS** Economy movement Obstacles faced Competitor actions Political impacts Environmental effects Loss of key staff Market demand |
+| **OPPORTUNITIES**<br>Areas to improve<br>New segments<br>Industry trends<br>New products<br>New innovations<br>Key partnership |  | **THREATS**<br>Economy movement<br>Obstacles faced<br>Competitor actions<br>Political impacts<br>Environmental effects<br>Loss of key staff<br>Market demand |
 
 5. **operating plan**
 

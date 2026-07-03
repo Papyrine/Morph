@@ -2,6 +2,6 @@
 
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
-|  |  | **Easily copy your menu. Here’s how:** **Select the menu content.** (Just drag to select the content. Don\`t select the whole cell.) **Press Ctrl+C** (Copies the menu.) **Select all of this tip text.**  **Press Ctrl+V.** (Replace this text with a copy of your menu.) |  |  |
+|  |  | **Easily copy your menu. Here’s how:**<br>**Select the menu content.**<br>(Just drag to select the content. Don\`t select the whole cell.)<br>**Press Ctrl+C**<br>(Copies the menu.)<br>**Select all of this tip text.**<br> **Press Ctrl+V.**<br>(Replace this text with a copy of your menu.) |  |  |
 |  |  |  |  |  |
-| **APPETIZER** List or describe appetizers Appetizer item Appetizer item **FIRST COURSE** List or describe first course(s) First course item **MAIN COURSE** List or describe main course(s) Main course item **DESSERT** List or describe dessert(s) Dessert item |  |  |  |  |
+| **APPETIZER**<br>List or describe appetizers<br>Appetizer item<br>Appetizer item<br>**FIRST COURSE**<br>List or describe first course(s)<br>First course item<br>**MAIN COURSE**<br>List or describe main course(s)<br>Main course item<br>**DESSERT**<br>List or describe dessert(s)<br>Dessert item |  |  |  |  |

@@ -1,7 +1,8 @@
 /// <summary>
 /// Serializes a <see cref="ParsedDocument"/> to Markdown: CommonMark with GFM pipe tables and
 /// strikeout. Where Markdown has no syntax the exporter falls back to inline HTML —
-/// <c>&lt;u&gt;</c>, <c>&lt;sup&gt;</c>, <c>&lt;sub&gt;</c>, and <c>&lt;br&gt;</c> in headings.
+/// <c>&lt;u&gt;</c>, <c>&lt;sup&gt;</c>, <c>&lt;sub&gt;</c>, and <c>&lt;br&gt;</c> for line
+/// breaks in headings and table cells.
 /// </summary>
 static class MarkdownExporter
 {
@@ -120,7 +121,7 @@ static class MarkdownExporter
 
             if (level != null)
             {
-                AppendBlock($"{new string('#', level.Value)} {HeadingBreaks(inline)}");
+                AppendBlock($"{new string('#', level.Value)} {HtmlBreaks(inline)}");
                 return;
             }
 
@@ -163,8 +164,6 @@ static class MarkdownExporter
                 return;
             }
 
-            EnsureBlankLine();
-
             var columnCount = 0;
             foreach (var row in table.Rows)
             {
@@ -176,6 +175,22 @@ static class MarkdownExporter
 
                 columnCount = Math.Max(columnCount, width);
             }
+
+            // A table with no cell content is decoration, not data — templates use bordered or
+            // shaded empty tables as dividers and colour blocks. An empty pipe table renders as a
+            // blank header strip, so a decorated blank table degrades to a thematic break and a
+            // bare one is dropped.
+            if (IsBlankTable(table))
+            {
+                if (HasVisibleDecoration(table, columnCount))
+                {
+                    AppendBlock("---");
+                }
+
+                return;
+            }
+
+            EnsureBlankLine();
 
             WriteTableRow(table.Rows[0], columnCount);
             builder.Append('|');
@@ -230,7 +245,7 @@ static class MarkdownExporter
                 switch (element)
                 {
                     case ParagraphElement paragraph when !DocumentExportHelpers.IsBlank(paragraph):
-                        parts.Add(Inline(paragraph.Runs, inTable: true));
+                        parts.Add(HtmlBreaks(Inline(paragraph.Runs, inTable: true)));
                         break;
                     case TableElement nestedTable:
                         // A pipe-table cell cannot hold a table, so flatten the nested cells'
@@ -257,7 +272,65 @@ static class MarkdownExporter
                 }
             }
 
-            return string.Join(" ", parts);
+            // A pipe-table cell cannot hold real block structure, so consecutive paragraphs join
+            // with <br> — keeping the paragraph boundaries visible instead of flowing into one line.
+            return string.Join("<br>", parts);
+        }
+
+        // Blank in the same sense CellText renders empty: no non-blank paragraph, no image, and no
+        // nested table with content anywhere in the cell tree.
+        static bool IsBlankTable(TableElement table)
+        {
+            foreach (var row in table.Rows)
+            {
+                foreach (var cell in row.Cells)
+                {
+                    foreach (var element in cell.Content)
+                    {
+                        switch (element)
+                        {
+                            case ParagraphElement paragraph when !DocumentExportHelpers.IsBlank(paragraph):
+                                return false;
+                            case ImageElement:
+                            case FloatingImageElement:
+                                return false;
+                            case TableElement nested when !IsBlankTable(nested):
+                                return false;
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        // Whether any cell shows a border (through the cell → row-override → table cascade) or a
+        // shading fill — the signals that a blank table is a visual divider / colour block.
+        static bool HasVisibleDecoration(TableElement table, int columnCount)
+        {
+            var rows = table.Rows;
+            for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
+            {
+                var gridColumn = 0;
+                foreach (var cell in rows[rowIndex].Cells)
+                {
+                    if (DocumentExportHelpers.NormalizeColor(cell.Properties.BackgroundColorHex) != null)
+                    {
+                        return true;
+                    }
+
+                    var borders = TableLayout.ResolveCellBorders(
+                        cell.Properties, table.Properties, rowIndex, gridColumn, rows.Count, columnCount, rows[rowIndex]);
+                    if (borders is {HasAnyBorder: true})
+                    {
+                        return true;
+                    }
+
+                    gridColumn += Math.Max(1, cell.Properties.GridSpan);
+                }
+            }
+
+            return false;
         }
 
         string Inline(IReadOnlyList<Run> sourceRuns, bool inTable, bool inHeading = false)
@@ -309,11 +382,10 @@ static class MarkdownExporter
 
             // Preserve source case for AllCaps — Markdown has no styling layer to recover the
             // visual uppercasing, but keeping the case makes the text reusable.
-            // A w:br arrives as '\n' in run text. A table cell is a single-line construct, so the
-            // break degrades to a space there. Body text keeps the newline, which HardBreaks()
-            // later renders as a backslash hard break; a heading keeps it too, and WriteParagraph
-            // turns it into an inline <br> (an ATX heading cannot span source lines).
-            var raw = inTable ? run.Text.Replace('\n', ' ') : run.Text;
+            // A w:br arrives as '\n' in run text and survives Inline(): body text renders it as a
+            // backslash hard break (HardBreaks); headings and table cells — single-line constructs
+            // where a real newline would end the block — render it as an inline <br> (HtmlBreaks).
+            var raw = run.Text;
 
             var leadingLength = LeadingWhitespaceLength(raw);
             var trailingLength = TrailingWhitespaceLength(raw, leadingLength);
@@ -506,10 +578,10 @@ static class MarkdownExporter
             return joined.ToString();
         }
 
-        // A '\n' surviving Inline() in a heading is a w:br. An ATX heading occupies a single source
-        // line — a real newline would end it — so the break becomes an inline <br>, matching the
-        // HTML exporter's <br /> in an <hN>. Leading / trailing breaks are dropped.
-        static string HeadingBreaks(string inline)
+        // A '\n' surviving Inline() is a w:br. Headings and table cells occupy a single source
+        // line — a real newline would end the heading / break the row — so the break becomes an
+        // inline <br>, matching the HTML exporter. Leading / trailing breaks are dropped.
+        static string HtmlBreaks(string inline)
         {
             if (!inline.Contains('\n'))
             {

@@ -183,13 +183,82 @@ public class MarkdownExporterTests
     }
 
     [Test]
-    public Task LineBreakInTableCellBecomesSpace()
+    public Task LineBreakInTableCellBecomesBr()
     {
+        // A pipe-table row is a single source line, so a w:br inside a cell becomes an inline
+        // <br> (matching the HTML exporter) rather than degrading to a space.
         var export = MarkdownExporter.Export(
             Doc(
                 Table(
                     Row(header: true, "a", "b"),
                     Row(header: false, "one\ntwo", "c"))));
+        return Verify(export, extension: "md");
+    }
+
+    [Test]
+    public Task MultiParagraphTableCellJoinsWithBr()
+    {
+        // A pipe-table cell cannot hold real block structure; consecutive paragraphs join with
+        // <br> so the paragraph boundaries stay visible.
+        var export = MarkdownExporter.Export(
+            Doc(
+                new TableElement
+                {
+                    Rows =
+                    [
+                        Row(header: true, "a"),
+                        new TableRow
+                        {
+                            IsHeader = false,
+                            Cells =
+                            [
+                                new TableCell
+                                {
+                                    Content =
+                                    [
+                                        Para(TextRun("first")),
+                                        Para(TextRun("second"))
+                                    ],
+                                    Properties = new()
+                                }
+                            ]
+                        }
+                    ]
+                }));
+        return Verify(export, extension: "md");
+    }
+
+    [Test]
+    public Task BlankTables()
+    {
+        // A blank table with a visible border is a decorative divider → thematic break; a blank
+        // undecorated table is dropped entirely instead of emitting an empty pipe table.
+        static TableElement BlankTable(CellBorders? borders) =>
+            new()
+            {
+                Rows =
+                [
+                    new TableRow
+                    {
+                        IsHeader = false,
+                        Cells =
+                        [
+                            new TableCell
+                            {
+                                Content = [],
+                                Properties = new() {Borders = borders}
+                            }
+                        ]
+                    }
+                ]
+            };
+
+        var export = MarkdownExporter.Export(
+            Doc(
+                Para(TextRun("above")),
+                BlankTable(new() {Bottom = BorderEdge.Default}),
+                BlankTable(null),
+                Para(TextRun("below"))));
         return Verify(export, extension: "md");
     }
 

@@ -4,8 +4,7 @@ Phlebotomist
 
 ## 316.555.0136 | sheetal@example.com
 
-|  |
-| --- |
+---
 
 # 12 SEPTEMBER 20XX
 

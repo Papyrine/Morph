@@ -3,7 +3,7 @@
 | My Journal  |
 | --- |
 | **DD/MM/YYYY** |
-| **Something that made me smile today…**  \[Write entry here\]  |
-| **Currently dealing with...**  \[Write entry here\]  |
-| **Thankful for...**  Thankful for... |
-| **Looking forward to...**  Looking forward to... |
+| **Something that made me smile today…** <br>\[Write entry here\]  |
+| **Currently dealing with...** <br>\[Write entry here\]  |
+| **Thankful for...** <br>Thankful for... |
+| **Looking forward to...** <br>Looking forward to... |

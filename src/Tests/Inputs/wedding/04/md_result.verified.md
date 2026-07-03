@@ -54,7 +54,7 @@ The following checklist is designed with the (ideal) timetable of twelve months.
 |  | **WEDDING DAY:**  |  | ☐ | Hand off rings to best man or ring bearer.  |
 | ☐ | Allow at least two hours to get dressed.  |  | ☐ | Attend the rehearsal dinner.  |
 | ☐ | Post wedding announcements in the mail.  |  | ☐ | Gather the following:  |
-| ☐ | Relax and remain calm.  |  |  | ☐ Something old. ☐ Something new. ☐ Something borrowed. ☐ Click or tap here to enter text. |
+| ☐ | Relax and remain calm.  |  |  | ☐ Something old.<br>☐ Something new.<br>☐ Something borrowed.<br>☐ Click or tap here to enter text. |
 | ☐ | Remember to eat something.  |  |  |  |
 |  |  |  |  |  |
 |  |  |  |  |  |

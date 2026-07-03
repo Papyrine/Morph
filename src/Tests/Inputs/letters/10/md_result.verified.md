@@ -28,4 +28,4 @@ Sincerely,
 
 |  |  |
 | --- | --- |
-| **Parker McLean**  First Up Consultants  parker@firstupconsultants.com  | **HR Manager**  4321 N. Broad Street  Philadelphia, PA 21098  |
+| **Parker McLean** <br>First Up Consultants <br>parker@firstupconsultants.com  | **HR Manager** <br>4321 N. Broad Street <br>Philadelphia, PA 21098  |

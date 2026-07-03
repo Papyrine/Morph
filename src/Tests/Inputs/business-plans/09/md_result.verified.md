@@ -23,7 +23,7 @@ Describe your company's mission and goals.
 
 | No. | Questions |
 | --- | --- |
-|  | Question for consumers #1 *List questions that you can use in your target audience profile.* |
+|  | Question for consumers #1<br>*List questions that you can use in your target audience profile.* |
 |  | Question for consumers #2 |
 |  | Question for consumers #3 |
 |  | Question for consumers #4 |
@@ -33,7 +33,7 @@ Describe your company's mission and goals.
 
 | No. | Audience and Market |
 | --- | --- |
-|  | Audience and market #1 *Identify who makes up your target audience and your market.* |
+|  | Audience and market #1<br>*Identify who makes up your target audience and your market.* |
 |  | Audience and market #2 |
 |  | Audience and market #3 |
 |  | Audience and market #4 |
@@ -43,7 +43,7 @@ Describe your company's mission and goals.
 
 | No. | Audience and Market |
 | --- | --- |
-|  | Questions to narrow down target audience #1 *List questions that you can use to help you narrow down who your target audience is.* |
+|  | Questions to narrow down target audience #1<br>*List questions that you can use to help you narrow down who your target audience is.* |
 |  | Questions to narrow down target audience #2 |
 |  | Questions to narrow down target audience #3 |
 |  | Questions to narrow down target audience #4 |
@@ -56,7 +56,7 @@ Describe your company's mission and goals.
 
 | No. | Questions |
 | --- | --- |
-|  | Consumer perceptions #1 *List consumer perceptions about your product or service.* |
+|  | Consumer perceptions #1<br>*List consumer perceptions about your product or service.* |
 |  | Consumer perceptions #2 |
 |  | Consumer perceptions #3 |
 |  | Consumer perceptions #4 |
@@ -66,7 +66,7 @@ Describe your company's mission and goals.
 
 | No. | Questions |
 | --- | --- |
-|  | Quantitative metrics #1 *List quantitative metrics that you will use to evaluate the effectiveness of the plan.* |
+|  | Quantitative metrics #1<br>*List quantitative metrics that you will use to evaluate the effectiveness of the plan.* |
 |  | Quantitative metrics #2 |
 |  | Quantitative metrics #3 |
 |  | Quantitative metrics #4 |
@@ -77,7 +77,7 @@ Describe your company's mission and goals.
 
 | No. | Questions |
 | --- | --- |
-|  | Adjust the plan #1 *List the changes that you need to make to your plan so that it will be more successful.* |
+|  | Adjust the plan #1<br>*List the changes that you need to make to your plan so that it will be more successful.* |
 |  | Adjust the plan #2 |
 |  | Adjust the plan #3 |
 |  | Adjust the plan #4 |

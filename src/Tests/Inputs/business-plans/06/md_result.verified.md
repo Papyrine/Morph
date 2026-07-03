@@ -6,7 +6,7 @@ April 4, 20XX
 
 | **Prepared for:** | **Prepared by:** |
 | --- | --- |
-| Chanok Rattanakoson chanok@tailwindtraders.com www.tailwindtraders.com | Carlota Melgar carlota@wideworldimporters.com www.wideworldimporters.com |
+| Chanok Rattanakoson<br>chanok@tailwindtraders.com<br>www.tailwindtraders.com | Carlota Melgar<br>carlota@wideworldimporters.com<br>www.wideworldimporters.com |
 
 | **01** | **Summary** |
 | --- | --- |

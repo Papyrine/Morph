@@ -28,7 +28,7 @@
 
 | **New business**  |  | **Committee reports**  |
 | --- | --- | --- |
-| Recap of Back-to-School night – September 9 Parent Education Programs – Counselors Teacher Grants Application Process –  School Principal |  | Membership Volunteers Newsletter Computer Support |
+| Recap of Back-to-School night – September 9<br>Parent Education Programs – Counselors<br>Teacher Grants Application Process – <br>School Principal |  | Membership<br>Volunteers<br>Newsletter<br>Computer Support |
 
 | **Announcements** |
 | --- |
@@ -36,4 +36,4 @@
 
 | **Next meeting**  |
 | --- |
-| 13 October 2023\| 6:00 p.m. in the cafeteria Motion to adjourn was made at 9:00 p.m. and was passed unanimously.  |
+| 13 October 2023\| 6:00 p.m. in the cafeteria<br>Motion to adjourn was made at 9:00 p.m. and was passed unanimously.  |

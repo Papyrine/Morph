@@ -1,6 +1,6 @@
-﻿| ***Your Name Your Company Your Email Address Your Phone Number*** | Letter of  Recommendation |
+﻿| ***Your Name<br>Your Company<br>Your Email Address<br>Your Phone Number*** | Letter of <br>Recommendation |
 | --- | --- |
-| ***Recipient Name Recipient Company Name Recipient Address*** | ***Date*** |
+| ***Recipient Name<br>Recipient Company Name<br>Recipient Address*** | ***Date*** |
 
 Dear Recipient, 
 

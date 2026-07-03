@@ -17,5 +17,5 @@ Want to insert a picture from your files or add a shape, text box, or table? You
 
 Find even more easy-to-use tools on the Insert tab, such as to add a hyperlink or insert a comment.
 
-| STREET ADDRESS, CITY, ST  ZIP CODE T: TELEPHONE  W: WEBSITE |
+| STREET ADDRESS, CITY, ST  ZIP CODE<br>T: TELEPHONE  W: WEBSITE |
 | --- |
