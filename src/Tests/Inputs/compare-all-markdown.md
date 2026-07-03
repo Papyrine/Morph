@@ -1,6 +1,6 @@
 # All Markdown export scenarios (320)
 
-The Markdown exporter rendered to PNG via the headless-browser screenshot pipeline, beside the Pandoc HTML reference.
+The Markdown exporter rendered to PNG via the headless-browser screenshot pipeline.
 
 <details>
 <summary>Contents</summary>
@@ -330,1921 +330,1921 @@ The Markdown exporter rendered to PNG via the headless-browser screenshot pipeli
 
 ## agendas-minutes/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/01/expected.html.png" width="500"> | <img src="agendas-minutes/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/01/md_result.verified.png" width="500"> |
 
 ## agendas-minutes/02
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/02/expected.html.png" width="500"> | <img src="agendas-minutes/02/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/02/md_result.verified.png" width="500"> |
 
 ## agendas-minutes/03
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/03/expected.html.png" width="500"> | <img src="agendas-minutes/03/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/03/md_result.verified.png" width="500"> |
 
 ## agendas-minutes/04
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/04/expected.html.png" width="500"> | <img src="agendas-minutes/04/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/04/md_result.verified.png" width="500"> |
 
 ## agendas-minutes/05
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/05/expected.html.png" width="500"> | <img src="agendas-minutes/05/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/05/md_result.verified.png" width="500"> |
 
 ## agendas-minutes/06
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/06/expected.html.png" width="500"> | <img src="agendas-minutes/06/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/06/md_result.verified.png" width="500"> |
 
 ## agendas-minutes/07
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/07/expected.html.png" width="500"> | <img src="agendas-minutes/07/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/07/md_result.verified.png" width="500"> |
 
 ## agendas-minutes/08
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/08/expected.html.png" width="500"> | <img src="agendas-minutes/08/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/08/md_result.verified.png" width="500"> |
 
 ## agendas-minutes/09
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/09/expected.html.png" width="500"> | <img src="agendas-minutes/09/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/09/md_result.verified.png" width="500"> |
 
 ## agendas-minutes/10
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/10/expected.html.png" width="500"> | <img src="agendas-minutes/10/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/10/md_result.verified.png" width="500"> |
 
 ## agendas-minutes/11
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/11/expected.html.png" width="500"> | <img src="agendas-minutes/11/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/11/md_result.verified.png" width="500"> |
 
 ## agendas-minutes/12
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/12/expected.html.png" width="500"> | <img src="agendas-minutes/12/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/12/md_result.verified.png" width="500"> |
 
 ## agendas-minutes/13
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/13/expected.html.png" width="500"> | <img src="agendas-minutes/13/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/13/md_result.verified.png" width="500"> |
 
 ## agendas-minutes/14
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/14/expected.html.png" width="500"> | <img src="agendas-minutes/14/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/14/md_result.verified.png" width="500"> |
 
 ## agendas-minutes/15
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/15/expected.html.png" width="500"> | <img src="agendas-minutes/15/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/15/md_result.verified.png" width="500"> |
 
 ## agendas-minutes/16
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/16/expected.html.png" width="500"> | <img src="agendas-minutes/16/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/16/md_result.verified.png" width="500"> |
 
 ## agendas-minutes/17
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/17/expected.html.png" width="500"> | <img src="agendas-minutes/17/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/17/md_result.verified.png" width="500"> |
 
 ## agendas-minutes/18
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/18/expected.html.png" width="500"> | <img src="agendas-minutes/18/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/18/md_result.verified.png" width="500"> |
 
 ## agendas-minutes/19
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="agendas-minutes/19/expected.html.png" width="500"> | <img src="agendas-minutes/19/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="agendas-minutes/19/md_result.verified.png" width="500"> |
 
 ## align_center
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="align_center/expected.html.png" width="500"> | <img src="align_center/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="align_center/md_result.verified.png" width="500"> |
 
 ## align_justified
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="align_justified/expected.html.png" width="500"> | <img src="align_justified/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="align_justified/md_result.verified.png" width="500"> |
 
 ## align_left
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="align_left/expected.html.png" width="500"> | <img src="align_left/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="align_left/md_result.verified.png" width="500"> |
 
 ## align_mixed
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="align_mixed/expected.html.png" width="500"> | <img src="align_mixed/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="align_mixed/md_result.verified.png" width="500"> |
 
 ## align_right
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="align_right/expected.html.png" width="500"> | <img src="align_right/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="align_right/md_result.verified.png" width="500"> |
 
 ## all_caps
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="all_caps/expected.html.png" width="500"> | <img src="all_caps/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="all_caps/md_result.verified.png" width="500"> |
 
 ## bar_tabs
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="bar_tabs/expected.html.png" width="500"> | <img src="bar_tabs/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="bar_tabs/md_result.verified.png" width="500"> |
 
 ## block_quote
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="block_quote/expected.html.png" width="500"> | <img src="block_quote/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="block_quote/md_result.verified.png" width="500"> |
 
 ## bold_text
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="bold_text/expected.html.png" width="500"> | <img src="bold_text/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="bold_text/md_result.verified.png" width="500"> |
 
 ## brochures/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="brochures/01/expected.html.png" width="500"> | <img src="brochures/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="brochures/01/md_result.verified.png" width="500"> |
 
 ## brochures/02
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="brochures/02/expected.html.png" width="500"> | <img src="brochures/02/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="brochures/02/md_result.verified.png" width="500"> |
 
 ## brochures/03
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="brochures/03/expected.html.png" width="500"> | <img src="brochures/03/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="brochures/03/md_result.verified.png" width="500"> |
 
 ## brochures/04
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="brochures/04/expected.html.png" width="500"> | <img src="brochures/04/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="brochures/04/md_result.verified.png" width="500"> |
 
 ## brochures/05
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="brochures/05/expected.html.png" width="500"> | <img src="brochures/05/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="brochures/05/md_result.verified.png" width="500"> |
 
 ## brochures/06
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="brochures/06/expected.html.png" width="500"> | <img src="brochures/06/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="brochures/06/md_result.verified.png" width="500"> |
 
 ## brochures/07
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="brochures/07/expected.html.png" width="500"> | <img src="brochures/07/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="brochures/07/md_result.verified.png" width="500"> |
 
 ## brochures/08
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="brochures/08/expected.html.png" width="500"> | <img src="brochures/08/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="brochures/08/md_result.verified.png" width="500"> |
 
 ## bullet_list
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="bullet_list/expected.html.png" width="500"> | <img src="bullet_list/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="bullet_list/md_result.verified.png" width="500"> |
 
 ## business-plans/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business-plans/01/expected.html.png" width="500"> | <img src="business-plans/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business-plans/01/md_result.verified.png" width="500"> |
 
 ## business-plans/02
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business-plans/02/expected.html.png" width="500"> | <img src="business-plans/02/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business-plans/02/md_result.verified.png" width="500"> |
 
 ## business-plans/03
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business-plans/03/expected.html.png" width="500"> | <img src="business-plans/03/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business-plans/03/md_result.verified.png" width="500"> |
 
 ## business-plans/04
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business-plans/04/expected.html.png" width="500"> | <img src="business-plans/04/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business-plans/04/md_result.verified.png" width="500"> |
 
 ## business-plans/05
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business-plans/05/expected.html.png" width="500"> | <img src="business-plans/05/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business-plans/05/md_result.verified.png" width="500"> |
 
 ## business-plans/06
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business-plans/06/expected.html.png" width="500"> | <img src="business-plans/06/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business-plans/06/md_result.verified.png" width="500"> |
 
 ## business-plans/07
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business-plans/07/expected.html.png" width="500"> | <img src="business-plans/07/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business-plans/07/md_result.verified.png" width="500"> |
 
 ## business-plans/08
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business-plans/08/expected.html.png" width="500"> | <img src="business-plans/08/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business-plans/08/md_result.verified.png" width="500"> |
 
 ## business-plans/09
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business-plans/09/expected.html.png" width="500"> | <img src="business-plans/09/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business-plans/09/md_result.verified.png" width="500"> |
 
 ## business-plans/10
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business-plans/10/expected.html.png" width="500"> | <img src="business-plans/10/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business-plans/10/md_result.verified.png" width="500"> |
 
 ## business-plans/12
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business-plans/12/expected.html.png" width="500"> | <img src="business-plans/12/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business-plans/12/md_result.verified.png" width="500"> |
 
 ## business-plans/13
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business-plans/13/expected.html.png" width="500"> | <img src="business-plans/13/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business-plans/13/md_result.verified.png" width="500"> |
 
 ## business-plans/15
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business-plans/15/expected.html.png" width="500"> | <img src="business-plans/15/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business-plans/15/md_result.verified.png" width="500"> |
 
 ## business/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business/01/expected.html.png" width="500"> | <img src="business/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business/01/md_result.verified.png" width="500"> |
 
 ## business/02
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business/02/expected.html.png" width="500"> | <img src="business/02/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business/02/md_result.verified.png" width="500"> |
 
 ## business/03
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business/03/expected.html.png" width="500"> | <img src="business/03/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business/03/md_result.verified.png" width="500"> |
 
 ## business/04
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business/04/expected.html.png" width="500"> | <img src="business/04/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business/04/md_result.verified.png" width="500"> |
 
 ## business/05
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business/05/expected.html.png" width="500"> | <img src="business/05/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business/05/md_result.verified.png" width="500"> |
 
 ## business/06
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="business/06/expected.html.png" width="500"> | <img src="business/06/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="business/06/md_result.verified.png" width="500"> |
 
 ## cards/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cards/01/expected.html.png" width="500"> | <img src="cards/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cards/01/md_result.verified.png" width="500"> |
 
 ## cards/02
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cards/02/expected.html.png" width="500"> | <img src="cards/02/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cards/02/md_result.verified.png" width="500"> |
 
 ## cards/03
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cards/03/expected.html.png" width="500"> | <img src="cards/03/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cards/03/md_result.verified.png" width="500"> |
 
 ## cards/04
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cards/04/expected.html.png" width="500"> | <img src="cards/04/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cards/04/md_result.verified.png" width="500"> |
 
 ## cards/05
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cards/05/expected.html.png" width="500"> | <img src="cards/05/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cards/05/md_result.verified.png" width="500"> |
 
 ## cards/06
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cards/06/expected.html.png" width="500"> | <img src="cards/06/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cards/06/md_result.verified.png" width="500"> |
 
 ## cards/07
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cards/07/expected.html.png" width="500"> | <img src="cards/07/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cards/07/md_result.verified.png" width="500"> |
 
 ## cards/08
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cards/08/expected.html.png" width="500"> | <img src="cards/08/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cards/08/md_result.verified.png" width="500"> |
 
 ## cards/09
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cards/09/expected.html.png" width="500"> | <img src="cards/09/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cards/09/md_result.verified.png" width="500"> |
 
 ## cards/10
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cards/10/expected.html.png" width="500"> | <img src="cards/10/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cards/10/md_result.verified.png" width="500"> |
 
 ## cards/11
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cards/11/expected.html.png" width="500"> | <img src="cards/11/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cards/11/md_result.verified.png" width="500"> |
 
 ## cards/12
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cards/12/expected.html.png" width="500"> | <img src="cards/12/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cards/12/md_result.verified.png" width="500"> |
 
 ## cards/13
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cards/13/expected.html.png" width="500"> | <img src="cards/13/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cards/13/md_result.verified.png" width="500"> |
 
 ## cards/15
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cards/15/expected.html.png" width="500"> | <img src="cards/15/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cards/15/md_result.verified.png" width="500"> |
 
 ## cards/16
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cards/16/expected.html.png" width="500"> | <img src="cards/16/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cards/16/md_result.verified.png" width="500"> |
 
 ## cards/18
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cards/18/expected.html.png" width="500"> | <img src="cards/18/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cards/18/md_result.verified.png" width="500"> |
 
 ## cards/19
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cards/19/expected.html.png" width="500"> | <img src="cards/19/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cards/19/md_result.verified.png" width="500"> |
 
 ## colored_text
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="colored_text/expected.html.png" width="500"> | <img src="colored_text/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="colored_text/md_result.verified.png" width="500"> |
 
 ## column_breaks
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="column_breaks/expected.html.png" width="500"> | <img src="column_breaks/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="column_breaks/md_result.verified.png" width="500"> |
 
 ## comments/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="comments/01/expected.html.png" width="500"> | <img src="comments/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="comments/01/md_result.verified.png" width="500"> |
 
 ## compatibility_mode_14
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="compatibility_mode_14/expected.html.png" width="500"> | <img src="compatibility_mode_14/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="compatibility_mode_14/md_result.verified.png" width="500"> |
 
 ## complex_document
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="complex_document/expected.html.png" width="500"> | <img src="complex_document/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="complex_document/md_result.verified.png" width="500"> |
 
 ## complex_spacing
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="complex_spacing/expected.html.png" width="500"> | <img src="complex_spacing/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="complex_spacing/md_result.verified.png" width="500"> |
 
 ## complex_tables
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="complex_tables/expected.html.png" width="500"> | <img src="complex_tables/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="complex_tables/md_result.verified.png" width="500"> |
 
 ## content_control_inline
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="content_control_inline/expected.html.png" width="500"> | <img src="content_control_inline/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="content_control_inline/md_result.verified.png" width="500"> |
 
 ## cover-letters/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cover-letters/01/expected.html.png" width="500"> | <img src="cover-letters/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cover-letters/01/md_result.verified.png" width="500"> |
 
 ## cover-letters/02
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cover-letters/02/expected.html.png" width="500"> | <img src="cover-letters/02/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cover-letters/02/md_result.verified.png" width="500"> |
 
 ## cover-letters/03
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cover-letters/03/expected.html.png" width="500"> | <img src="cover-letters/03/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cover-letters/03/md_result.verified.png" width="500"> |
 
 ## cover-letters/04
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cover-letters/04/expected.html.png" width="500"> | <img src="cover-letters/04/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cover-letters/04/md_result.verified.png" width="500"> |
 
 ## cover-letters/05
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cover-letters/05/expected.html.png" width="500"> | <img src="cover-letters/05/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cover-letters/05/md_result.verified.png" width="500"> |
 
 ## cover-letters/06
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cover-letters/06/expected.html.png" width="500"> | <img src="cover-letters/06/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cover-letters/06/md_result.verified.png" width="500"> |
 
 ## cover-letters/07
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cover-letters/07/expected.html.png" width="500"> | <img src="cover-letters/07/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cover-letters/07/md_result.verified.png" width="500"> |
 
 ## cover-letters/08
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cover-letters/08/expected.html.png" width="500"> | <img src="cover-letters/08/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cover-letters/08/md_result.verified.png" width="500"> |
 
 ## cover-letters/09
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cover-letters/09/expected.html.png" width="500"> | <img src="cover-letters/09/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cover-letters/09/md_result.verified.png" width="500"> |
 
 ## cover-letters/10
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cover-letters/10/expected.html.png" width="500"> | <img src="cover-letters/10/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cover-letters/10/md_result.verified.png" width="500"> |
 
 ## cover-letters/11
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cover-letters/11/expected.html.png" width="500"> | <img src="cover-letters/11/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cover-letters/11/md_result.verified.png" width="500"> |
 
 ## cover-letters/12
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cover-letters/12/expected.html.png" width="500"> | <img src="cover-letters/12/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cover-letters/12/md_result.verified.png" width="500"> |
 
 ## cover-letters/14
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cover-letters/14/expected.html.png" width="500"> | <img src="cover-letters/14/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cover-letters/14/md_result.verified.png" width="500"> |
 
 ## cover-letters/15
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cover-letters/15/expected.html.png" width="500"> | <img src="cover-letters/15/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cover-letters/15/md_result.verified.png" width="500"> |
 
 ## cover-letters/16
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="cover-letters/16/expected.html.png" width="500"> | <img src="cover-letters/16/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="cover-letters/16/md_result.verified.png" width="500"> |
 
 ## custom_margins
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="custom_margins/expected.html.png" width="500"> | <img src="custom_margins/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="custom_margins/md_result.verified.png" width="500"> |
 
 ## decimal_tabs/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="decimal_tabs/01/expected.html.png" width="500"> | <img src="decimal_tabs/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="decimal_tabs/01/md_result.verified.png" width="500"> |
 
 ## deep_nested_list
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="deep_nested_list/expected.html.png" width="500"> | <img src="deep_nested_list/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="deep_nested_list/md_result.verified.png" width="500"> |
 
 ## document_capture/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="document_capture/01/expected.html.png" width="500"> | <img src="document_capture/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="document_capture/01/md_result.verified.png" width="500"> |
 
 ## document_protection/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="document_protection/01/expected.html.png" width="500"> | <img src="document_protection/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="document_protection/01/md_result.verified.png" width="500"> |
 
 ## dot_points
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="dot_points/expected.html.png" width="500"> | <img src="dot_points/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="dot_points/md_result.verified.png" width="500"> |
 
 ## embedded_font
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="embedded_font/expected.html.png" width="500"> | <img src="embedded_font/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="embedded_font/md_result.verified.png" width="500"> |
 
 ## empty_paragraphs
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="empty_paragraphs/expected.html.png" width="500"> | <img src="empty_paragraphs/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="empty_paragraphs/md_result.verified.png" width="500"> |
 
 ## even_odd_headers/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="even_odd_headers/01/expected.html.png" width="500"> | <img src="even_odd_headers/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="even_odd_headers/01/md_result.verified.png" width="500"> |
 
 ## even_odd_headers/02
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="even_odd_headers/02/expected.html.png" width="500"> | <img src="even_odd_headers/02/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="even_odd_headers/02/md_result.verified.png" width="500"> |
 
 ## explicit_break_blank_page
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="explicit_break_blank_page/expected.html.png" width="500"> | <img src="explicit_break_blank_page/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="explicit_break_blank_page/md_result.verified.png" width="500"> |
 
 ## feature_capture/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="feature_capture/01/expected.html.png" width="500"> | <img src="feature_capture/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="feature_capture/01/md_result.verified.png" width="500"> |
 
 ## field_codes_simple/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="field_codes_simple/01/expected.html.png" width="500"> | <img src="field_codes_simple/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="field_codes_simple/01/md_result.verified.png" width="500"> |
 
 ## first_line_indent
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="first_line_indent/expected.html.png" width="500"> | <img src="first_line_indent/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="first_line_indent/md_result.verified.png" width="500"> |
 
 ## font_families
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="font_families/expected.html.png" width="500"> | <img src="font_families/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="font_families/md_result.verified.png" width="500"> |
 
 ## font_sizes
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="font_sizes/expected.html.png" width="500"> | <img src="font_sizes/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="font_sizes/md_result.verified.png" width="500"> |
 
 ## footer
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="footer/expected.html.png" width="500"> | <img src="footer/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="footer/md_result.verified.png" width="500"> |
 
 ## form_checkboxes
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="form_checkboxes/expected.html.png" width="500"> | <img src="form_checkboxes/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="form_checkboxes/md_result.verified.png" width="500"> |
 
 ## form_dropdowns
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="form_dropdowns/expected.html.png" width="500"> | <img src="form_dropdowns/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="form_dropdowns/md_result.verified.png" width="500"> |
 
 ## form_text_fields
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="form_text_fields/expected.html.png" width="500"> | <img src="form_text_fields/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="form_text_fields/md_result.verified.png" width="500"> |
 
 ## gutter_margins/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="gutter_margins/01/expected.html.png" width="500"> | <img src="gutter_margins/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="gutter_margins/01/md_result.verified.png" width="500"> |
 
 ## hanging_indent
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="hanging_indent/expected.html.png" width="500"> | <img src="hanging_indent/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="hanging_indent/md_result.verified.png" width="500"> |
 
 ## header
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="header/expected.html.png" width="500"> | <img src="header/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="header/md_result.verified.png" width="500"> |
 
 ## header_footer
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="header_footer/expected.html.png" width="500"> | <img src="header_footer/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="header_footer/md_result.verified.png" width="500"> |
 
 ## header_row_repeat/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="header_row_repeat/01/expected.html.png" width="500"> | <img src="header_row_repeat/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="header_row_repeat/01/md_result.verified.png" width="500"> |
 
 ## headings
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="headings/expected.html.png" width="500"> | <img src="headings/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="headings/md_result.verified.png" width="500"> |
 
 ## html_basic_formatting
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_basic_formatting/expected.html.png" width="500"> | <img src="html_basic_formatting/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_basic_formatting/md_result.verified.png" width="500"> |
 
 ## html_complex
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_complex/expected.html.png" width="500"> | <img src="html_complex/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_complex/md_result.verified.png" width="500"> |
 
 ## html_css_alignment
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_css_alignment/expected.html.png" width="500"> | <img src="html_css_alignment/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_css_alignment/md_result.verified.png" width="500"> |
 
 ## html_css_borders
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_css_borders/expected.html.png" width="500"> | <img src="html_css_borders/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_css_borders/md_result.verified.png" width="500"> |
 
 ## html_css_colors
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_css_colors/expected.html.png" width="500"> | <img src="html_css_colors/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_css_colors/md_result.verified.png" width="500"> |
 
 ## html_css_margin_padding
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_css_margin_padding/expected.html.png" width="500"> | <img src="html_css_margin_padding/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_css_margin_padding/md_result.verified.png" width="500"> |
 
 ## html_font_tag
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_font_tag/expected.html.png" width="500"> | <img src="html_font_tag/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_font_tag/md_result.verified.png" width="500"> |
 
 ## html_headings
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_headings/expected.html.png" width="500"> | <img src="html_headings/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_headings/md_result.verified.png" width="500"> |
 
 ## html_images
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_images/expected.html.png" width="500"> | <img src="html_images/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_images/md_result.verified.png" width="500"> |
 
 ## html_inline_styles
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_inline_styles/expected.html.png" width="500"> | <img src="html_inline_styles/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_inline_styles/md_result.verified.png" width="500"> |
 
 ## html_links
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_links/expected.html.png" width="500"> | <img src="html_links/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_links/md_result.verified.png" width="500"> |
 
 ## html_lists
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_lists/expected.html.png" width="500"> | <img src="html_lists/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_lists/md_result.verified.png" width="500"> |
 
 ## html_nested_lists
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_nested_lists/expected.html.png" width="500"> | <img src="html_nested_lists/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_nested_lists/md_result.verified.png" width="500"> |
 
 ## html_paragraphs
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_paragraphs/expected.html.png" width="500"> | <img src="html_paragraphs/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_paragraphs/md_result.verified.png" width="500"> |
 
 ## html_table
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_table/expected.html.png" width="500"> | <img src="html_table/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_table/md_result.verified.png" width="500"> |
 
 ## html_table_cellpadding
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_table_cellpadding/expected.html.png" width="500"> | <img src="html_table_cellpadding/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_table_cellpadding/md_result.verified.png" width="500"> |
 
 ## html_table_cell_margin_css
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_table_cell_margin_css/expected.html.png" width="500"> | <img src="html_table_cell_margin_css/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_table_cell_margin_css/md_result.verified.png" width="500"> |
 
 ## html_table_cell_padding_css
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_table_cell_padding_css/expected.html.png" width="500"> | <img src="html_table_cell_padding_css/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_table_cell_padding_css/md_result.verified.png" width="500"> |
 
 ## html_table_styled
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="html_table_styled/expected.html.png" width="500"> | <img src="html_table_styled/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="html_table_styled/md_result.verified.png" width="500"> |
 
 ## hyperlinks
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="hyperlinks/expected.html.png" width="500"> | <img src="hyperlinks/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="hyperlinks/md_result.verified.png" width="500"> |
 
 ## hyphenation_auto
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="hyphenation_auto/expected.html.png" width="500"> | <img src="hyphenation_auto/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="hyphenation_auto/md_result.verified.png" width="500"> |
 
 ## hyphenation_nonbreaking
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="hyphenation_nonbreaking/expected.html.png" width="500"> | <img src="hyphenation_nonbreaking/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="hyphenation_nonbreaking/md_result.verified.png" width="500"> |
 
 ## hyphenation_soft
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="hyphenation_soft/expected.html.png" width="500"> | <img src="hyphenation_soft/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="hyphenation_soft/md_result.verified.png" width="500"> |
 
 ## hyphenation_suppressed
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="hyphenation_suppressed/expected.html.png" width="500"> | <img src="hyphenation_suppressed/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="hyphenation_suppressed/md_result.verified.png" width="500"> |
 
 ## icons_multiple
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="icons_multiple/expected.html.png" width="500"> | <img src="icons_multiple/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="icons_multiple/md_result.verified.png" width="500"> |
 
 ## icon_svg
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="icon_svg/expected.html.png" width="500"> | <img src="icon_svg/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="icon_svg/md_result.verified.png" width="500"> |
 
 ## icon_with_text
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="icon_with_text/expected.html.png" width="500"> | <img src="icon_with_text/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="icon_with_text/md_result.verified.png" width="500"> |
 
 ## image_cropping/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="image_cropping/01/expected.html.png" width="500"> | <img src="image_cropping/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="image_cropping/01/md_result.verified.png" width="500"> |
 
 ## image_rotation/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="image_rotation/01/expected.html.png" width="500"> | <img src="image_rotation/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="image_rotation/01/md_result.verified.png" width="500"> |
 
 ## inline_image
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="inline_image/expected.html.png" width="500"> | <img src="inline_image/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="inline_image/md_result.verified.png" width="500"> |
 
 ## inline_shape_arrows
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="inline_shape_arrows/expected.html.png" width="500"> | <img src="inline_shape_arrows/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="inline_shape_arrows/md_result.verified.png" width="500"> |
 
 ## italic_text
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="italic_text/expected.html.png" width="500"> | <img src="italic_text/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="italic_text/md_result.verified.png" width="500"> |
 
 ## labels/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="labels/01/expected.html.png" width="500"> | <img src="labels/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="labels/01/md_result.verified.png" width="500"> |
 
 ## labels/02
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="labels/02/expected.html.png" width="500"> | <img src="labels/02/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="labels/02/md_result.verified.png" width="500"> |
 
 ## labels/03
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="labels/03/expected.html.png" width="500"> | <img src="labels/03/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="labels/03/md_result.verified.png" width="500"> |
 
 ## labels/04
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="labels/04/expected.html.png" width="500"> | <img src="labels/04/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="labels/04/md_result.verified.png" width="500"> |
 
 ## labels/05
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="labels/05/expected.html.png" width="500"> | <img src="labels/05/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="labels/05/md_result.verified.png" width="500"> |
 
 ## labels/06
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="labels/06/expected.html.png" width="500"> | <img src="labels/06/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="labels/06/md_result.verified.png" width="500"> |
 
 ## labels/07
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="labels/07/expected.html.png" width="500"> | <img src="labels/07/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="labels/07/md_result.verified.png" width="500"> |
 
 ## labels/08
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="labels/08/expected.html.png" width="500"> | <img src="labels/08/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="labels/08/md_result.verified.png" width="500"> |
 
 ## labels/09
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="labels/09/expected.html.png" width="500"> | <img src="labels/09/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="labels/09/md_result.verified.png" width="500"> |
 
 ## labels/10
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="labels/10/expected.html.png" width="500"> | <img src="labels/10/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="labels/10/md_result.verified.png" width="500"> |
 
 ## labels/11
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="labels/11/expected.html.png" width="500"> | <img src="labels/11/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="labels/11/md_result.verified.png" width="500"> |
 
 ## labels/12
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="labels/12/expected.html.png" width="500"> | <img src="labels/12/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="labels/12/md_result.verified.png" width="500"> |
 
 ## labels/13
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="labels/13/expected.html.png" width="500"> | <img src="labels/13/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="labels/13/md_result.verified.png" width="500"> |
 
 ## labels/14
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="labels/14/expected.html.png" width="500"> | <img src="labels/14/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="labels/14/md_result.verified.png" width="500"> |
 
 ## labels/15
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="labels/15/expected.html.png" width="500"> | <img src="labels/15/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="labels/15/md_result.verified.png" width="500"> |
 
 ## labels/16
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="labels/16/expected.html.png" width="500"> | <img src="labels/16/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="labels/16/md_result.verified.png" width="500"> |
 
 ## left_indent
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="left_indent/expected.html.png" width="500"> | <img src="left_indent/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="left_indent/md_result.verified.png" width="500"> |
 
 ## letters/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="letters/01/expected.html.png" width="500"> | <img src="letters/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="letters/01/md_result.verified.png" width="500"> |
 
 ## letters/02
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="letters/02/expected.html.png" width="500"> | <img src="letters/02/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="letters/02/md_result.verified.png" width="500"> |
 
 ## letters/03
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="letters/03/expected.html.png" width="500"> | <img src="letters/03/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="letters/03/md_result.verified.png" width="500"> |
 
 ## letters/04
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="letters/04/expected.html.png" width="500"> | <img src="letters/04/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="letters/04/md_result.verified.png" width="500"> |
 
 ## letters/05
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="letters/05/expected.html.png" width="500"> | <img src="letters/05/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="letters/05/md_result.verified.png" width="500"> |
 
 ## letters/06
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="letters/06/expected.html.png" width="500"> | <img src="letters/06/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="letters/06/md_result.verified.png" width="500"> |
 
 ## letters/07
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="letters/07/expected.html.png" width="500"> | <img src="letters/07/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="letters/07/md_result.verified.png" width="500"> |
 
 ## letters/08
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="letters/08/expected.html.png" width="500"> | <img src="letters/08/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="letters/08/md_result.verified.png" width="500"> |
 
 ## letters/09
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="letters/09/expected.html.png" width="500"> | <img src="letters/09/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="letters/09/md_result.verified.png" width="500"> |
 
 ## letters/10
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="letters/10/expected.html.png" width="500"> | <img src="letters/10/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="letters/10/md_result.verified.png" width="500"> |
 
 ## letters/11
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="letters/11/expected.html.png" width="500"> | <img src="letters/11/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="letters/11/md_result.verified.png" width="500"> |
 
 ## letters/12
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="letters/12/expected.html.png" width="500"> | <img src="letters/12/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="letters/12/md_result.verified.png" width="500"> |
 
 ## letters/13
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="letters/13/expected.html.png" width="500"> | <img src="letters/13/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="letters/13/md_result.verified.png" width="500"> |
 
 ## line_breaks
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="line_breaks/expected.html.png" width="500"> | <img src="line_breaks/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="line_breaks/md_result.verified.png" width="500"> |
 
 ## line_numbers_continuous
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="line_numbers_continuous/expected.html.png" width="500"> | <img src="line_numbers_continuous/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="line_numbers_continuous/md_result.verified.png" width="500"> |
 
 ## line_numbers_count_by_5
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="line_numbers_count_by_5/expected.html.png" width="500"> | <img src="line_numbers_count_by_5/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="line_numbers_count_by_5/md_result.verified.png" width="500"> |
 
 ## line_numbers_custom_distance
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="line_numbers_custom_distance/expected.html.png" width="500"> | <img src="line_numbers_custom_distance/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="line_numbers_custom_distance/md_result.verified.png" width="500"> |
 
 ## line_numbers_restart_page
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="line_numbers_restart_page/expected.html.png" width="500"> | <img src="line_numbers_restart_page/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="line_numbers_restart_page/md_result.verified.png" width="500"> |
 
 ## line_numbers_restart_section
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="line_numbers_restart_section/expected.html.png" width="500"> | <img src="line_numbers_restart_section/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="line_numbers_restart_section/md_result.verified.png" width="500"> |
 
 ## line_numbers_suppressed
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="line_numbers_suppressed/expected.html.png" width="500"> | <img src="line_numbers_suppressed/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="line_numbers_suppressed/md_result.verified.png" width="500"> |
 
 ## line_spacing
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="line_spacing/expected.html.png" width="500"> | <img src="line_spacing/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="line_spacing/md_result.verified.png" width="500"> |
 
 ## line_spacing_at_least
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="line_spacing_at_least/expected.html.png" width="500"> | <img src="line_spacing_at_least/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="line_spacing_at_least/md_result.verified.png" width="500"> |
 
 ## line_spacing_exactly
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="line_spacing_exactly/expected.html.png" width="500"> | <img src="line_spacing_exactly/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="line_spacing_exactly/md_result.verified.png" width="500"> |
 
 ## long_paragraph
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="long_paragraph/expected.html.png" width="500"> | <img src="long_paragraph/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="long_paragraph/md_result.verified.png" width="500"> |
 
 ## menus/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="menus/01/expected.html.png" width="500"> | <img src="menus/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="menus/01/md_result.verified.png" width="500"> |
 
 ## menus/02
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="menus/02/expected.html.png" width="500"> | <img src="menus/02/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="menus/02/md_result.verified.png" width="500"> |
 
 ## menus/03
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="menus/03/expected.html.png" width="500"> | <img src="menus/03/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="menus/03/md_result.verified.png" width="500"> |
 
 ## menus/04
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="menus/04/expected.html.png" width="500"> | <img src="menus/04/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="menus/04/md_result.verified.png" width="500"> |
 
 ## menus/05
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="menus/05/expected.html.png" width="500"> | <img src="menus/05/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="menus/05/md_result.verified.png" width="500"> |
 
 ## menus/06
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="menus/06/expected.html.png" width="500"> | <img src="menus/06/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="menus/06/md_result.verified.png" width="500"> |
 
 ## menus/07
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="menus/07/expected.html.png" width="500"> | <img src="menus/07/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="menus/07/md_result.verified.png" width="500"> |
 
 ## menus/08
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="menus/08/expected.html.png" width="500"> | <img src="menus/08/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="menus/08/md_result.verified.png" width="500"> |
 
 ## menus/09
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="menus/09/expected.html.png" width="500"> | <img src="menus/09/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="menus/09/md_result.verified.png" width="500"> |
 
 ## mixed_breaks
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="mixed_breaks/expected.html.png" width="500"> | <img src="mixed_breaks/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="mixed_breaks/md_result.verified.png" width="500"> |
 
 ## mixed_formatting
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="mixed_formatting/expected.html.png" width="500"> | <img src="mixed_formatting/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="mixed_formatting/md_result.verified.png" width="500"> |
 
 ## multiple_images
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="multiple_images/expected.html.png" width="500"> | <img src="multiple_images/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="multiple_images/md_result.verified.png" width="500"> |
 
 ## multiple_pages
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="multiple_pages/expected.html.png" width="500"> | <img src="multiple_pages/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="multiple_pages/md_result.verified.png" width="500"> |
 
 ## multiple_paragraphs
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="multiple_paragraphs/expected.html.png" width="500"> | <img src="multiple_paragraphs/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="multiple_paragraphs/md_result.verified.png" width="500"> |
 
 ## nested_list
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="nested_list/expected.html.png" width="500"> | <img src="nested_list/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="nested_list/md_result.verified.png" width="500"> |
 
 ## newsletters/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="newsletters/01/expected.html.png" width="500"> | <img src="newsletters/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="newsletters/01/md_result.verified.png" width="500"> |
 
 ## newsletters/02
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="newsletters/02/expected.html.png" width="500"> | <img src="newsletters/02/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="newsletters/02/md_result.verified.png" width="500"> |
 
 ## newsletters/03
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="newsletters/03/expected.html.png" width="500"> | <img src="newsletters/03/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="newsletters/03/md_result.verified.png" width="500"> |
 
 ## newsletters/04
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="newsletters/04/expected.html.png" width="500"> | <img src="newsletters/04/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="newsletters/04/md_result.verified.png" width="500"> |
 
 ## newsletters/05
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="newsletters/05/expected.html.png" width="500"> | <img src="newsletters/05/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="newsletters/05/md_result.verified.png" width="500"> |
 
 ## newsletters/06
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="newsletters/06/expected.html.png" width="500"> | <img src="newsletters/06/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="newsletters/06/md_result.verified.png" width="500"> |
 
 ## newsletters/07
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="newsletters/07/expected.html.png" width="500"> | <img src="newsletters/07/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="newsletters/07/md_result.verified.png" width="500"> |
 
 ## newsletters/08
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="newsletters/08/expected.html.png" width="500"> | <img src="newsletters/08/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="newsletters/08/md_result.verified.png" width="500"> |
 
 ## newsletters/09
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="newsletters/09/expected.html.png" width="500"> | <img src="newsletters/09/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="newsletters/09/md_result.verified.png" width="500"> |
 
 ## newsletters/10
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="newsletters/10/expected.html.png" width="500"> | <img src="newsletters/10/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="newsletters/10/md_result.verified.png" width="500"> |
 
 ## newsletters/11
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="newsletters/11/expected.html.png" width="500"> | <img src="newsletters/11/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="newsletters/11/md_result.verified.png" width="500"> |
 
 ## newsletters/12
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="newsletters/12/expected.html.png" width="500"> | <img src="newsletters/12/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="newsletters/12/md_result.verified.png" width="500"> |
 
 ## newsletters/13
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="newsletters/13/expected.html.png" width="500"> | <img src="newsletters/13/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="newsletters/13/md_result.verified.png" width="500"> |
 
 ## newsletters/14
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="newsletters/14/expected.html.png" width="500"> | <img src="newsletters/14/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="newsletters/14/md_result.verified.png" width="500"> |
 
 ## numbered_list
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="numbered_list/expected.html.png" width="500"> | <img src="numbered_list/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="numbered_list/md_result.verified.png" width="500"> |
 
 ## numbered_list_restart
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="numbered_list_restart/expected.html.png" width="500"> | <img src="numbered_list_restart/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="numbered_list_restart/md_result.verified.png" width="500"> |
 
 ## numbered_list_tracking
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="numbered_list_tracking/expected.html.png" width="500"> | <img src="numbered_list_tracking/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="numbered_list_tracking/md_result.verified.png" width="500"> |
 
 ## office_math
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="office_math/expected.html.png" width="500"> | <img src="office_math/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="office_math/md_result.verified.png" width="500"> |
 
 ## page_a4
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="page_a4/expected.html.png" width="500"> | <img src="page_a4/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="page_a4/md_result.verified.png" width="500"> |
 
 ## page_borders/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="page_borders/01/expected.html.png" width="500"> | <img src="page_borders/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="page_borders/01/md_result.verified.png" width="500"> |
 
 ## page_breaks
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="page_breaks/expected.html.png" width="500"> | <img src="page_breaks/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="page_breaks/md_result.verified.png" width="500"> |
 
 ## page_landscape
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="page_landscape/expected.html.png" width="500"> | <img src="page_landscape/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="page_landscape/md_result.verified.png" width="500"> |
 
 ## page_legal
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="page_legal/expected.html.png" width="500"> | <img src="page_legal/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="page_legal/md_result.verified.png" width="500"> |
 
 ## page_letter
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="page_letter/expected.html.png" width="500"> | <img src="page_letter/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="page_letter/md_result.verified.png" width="500"> |
 
 ## page_numbers
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="page_numbers/expected.html.png" width="500"> | <img src="page_numbers/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="page_numbers/md_result.verified.png" width="500"> |
 
 ## paragraph_borders
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="paragraph_borders/expected.html.png" width="500"> | <img src="paragraph_borders/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="paragraph_borders/md_result.verified.png" width="500"> |
 
 ## paragraph_spacing
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="paragraph_spacing/expected.html.png" width="500"> | <img src="paragraph_spacing/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="paragraph_spacing/md_result.verified.png" width="500"> |
 
 ## pct_pos_offset
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="pct_pos_offset/expected.html.png" width="500"> | <img src="pct_pos_offset/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="pct_pos_offset/md_result.verified.png" width="500"> |
 
 ## postcards/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="postcards/01/expected.html.png" width="500"> | <img src="postcards/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="postcards/01/md_result.verified.png" width="500"> |
 
 ## postcards/02
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="postcards/02/expected.html.png" width="500"> | <img src="postcards/02/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="postcards/02/md_result.verified.png" width="500"> |
 
 ## postcards/03
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="postcards/03/expected.html.png" width="500"> | <img src="postcards/03/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="postcards/03/md_result.verified.png" width="500"> |
 
 ## postcards/04
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="postcards/04/expected.html.png" width="500"> | <img src="postcards/04/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="postcards/04/md_result.verified.png" width="500"> |
 
 ## resumes/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/01/expected.html.png" width="500"> | <img src="resumes/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/01/md_result.verified.png" width="500"> |
 
 ## resumes/02
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/02/expected.html.png" width="500"> | <img src="resumes/02/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/02/md_result.verified.png" width="500"> |
 
 ## resumes/03
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/03/expected.html.png" width="500"> | <img src="resumes/03/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/03/md_result.verified.png" width="500"> |
 
 ## resumes/04
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/04/expected.html.png" width="500"> | <img src="resumes/04/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/04/md_result.verified.png" width="500"> |
 
 ## resumes/05
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/05/expected.html.png" width="500"> | <img src="resumes/05/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/05/md_result.verified.png" width="500"> |
 
 ## resumes/06
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/06/expected.html.png" width="500"> | <img src="resumes/06/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/06/md_result.verified.png" width="500"> |
 
 ## resumes/07
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/07/expected.html.png" width="500"> | <img src="resumes/07/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/07/md_result.verified.png" width="500"> |
 
 ## resumes/08
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/08/expected.html.png" width="500"> | <img src="resumes/08/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/08/md_result.verified.png" width="500"> |
 
 ## resumes/09
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/09/expected.html.png" width="500"> | <img src="resumes/09/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/09/md_result.verified.png" width="500"> |
 
 ## resumes/10
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/10/expected.html.png" width="500"> | <img src="resumes/10/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/10/md_result.verified.png" width="500"> |
 
 ## resumes/11
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/11/expected.html.png" width="500"> | <img src="resumes/11/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/11/md_result.verified.png" width="500"> |
 
 ## resumes/12
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/12/expected.html.png" width="500"> | <img src="resumes/12/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/12/md_result.verified.png" width="500"> |
 
 ## resumes/13
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/13/expected.html.png" width="500"> | <img src="resumes/13/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/13/md_result.verified.png" width="500"> |
 
 ## resumes/14
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/14/expected.html.png" width="500"> | <img src="resumes/14/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/14/md_result.verified.png" width="500"> |
 
 ## resumes/15
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/15/expected.html.png" width="500"> | <img src="resumes/15/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/15/md_result.verified.png" width="500"> |
 
 ## resumes/16
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/16/expected.html.png" width="500"> | <img src="resumes/16/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/16/md_result.verified.png" width="500"> |
 
 ## resumes/17
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/17/expected.html.png" width="500"> | <img src="resumes/17/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/17/md_result.verified.png" width="500"> |
 
 ## resumes/18
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/18/expected.html.png" width="500"> | <img src="resumes/18/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/18/md_result.verified.png" width="500"> |
 
 ## resumes/19
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="resumes/19/expected.html.png" width="500"> | <img src="resumes/19/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="resumes/19/md_result.verified.png" width="500"> |
 
 ## rtl_paragraph
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="rtl_paragraph/expected.html.png" width="500"> | <img src="rtl_paragraph/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="rtl_paragraph/md_result.verified.png" width="500"> |
 
 ## section_break_continuous
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="section_break_continuous/expected.html.png" width="500"> | <img src="section_break_continuous/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="section_break_continuous/md_result.verified.png" width="500"> |
 
 ## section_break_even_page
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="section_break_even_page/expected.html.png" width="500"> | <img src="section_break_even_page/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="section_break_even_page/md_result.verified.png" width="500"> |
 
 ## section_break_next_page
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="section_break_next_page/expected.html.png" width="500"> | <img src="section_break_next_page/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="section_break_next_page/md_result.verified.png" width="500"> |
 
 ## section_break_odd_page
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="section_break_odd_page/expected.html.png" width="500"> | <img src="section_break_odd_page/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="section_break_odd_page/md_result.verified.png" width="500"> |
 
 ## simple_paragraph
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="simple_paragraph/expected.html.png" width="500"> | <img src="simple_paragraph/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="simple_paragraph/md_result.verified.png" width="500"> |
 
 ## simple_table
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="simple_table/expected.html.png" width="500"> | <img src="simple_table/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="simple_table/md_result.verified.png" width="500"> |
 
 ## small_caps
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="small_caps/expected.html.png" width="500"> | <img src="small_caps/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="small_caps/md_result.verified.png" width="500"> |
 
 ## strikethrough_text
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="strikethrough_text/expected.html.png" width="500"> | <img src="strikethrough_text/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="strikethrough_text/md_result.verified.png" width="500"> |
 
 ## subscript_superscript
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="subscript_superscript/expected.html.png" width="500"> | <img src="subscript_superscript/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="subscript_superscript/md_result.verified.png" width="500"> |
 
 ## table_alignment/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_alignment/01/expected.html.png" width="500"> | <img src="table_alignment/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_alignment/01/md_result.verified.png" width="500"> |
 
 ## table_autofit_no_widths
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_autofit_no_widths/expected.html.png" width="500"> | <img src="table_autofit_no_widths/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_autofit_no_widths/md_result.verified.png" width="500"> |
 
 ## table_borders
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_borders/expected.html.png" width="500"> | <img src="table_borders/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_borders/md_result.verified.png" width="500"> |
 
 ## table_cell_margin_per_cell
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_cell_margin_per_cell/expected.html.png" width="500"> | <img src="table_cell_margin_per_cell/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_cell_margin_per_cell/md_result.verified.png" width="500"> |
 
 ## table_cell_padding
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_cell_padding/expected.html.png" width="500"> | <img src="table_cell_padding/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_cell_padding/md_result.verified.png" width="500"> |
 
 ## table_cell_padding_varied
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_cell_padding_varied/expected.html.png" width="500"> | <img src="table_cell_padding_varied/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_cell_padding_varied/md_result.verified.png" width="500"> |
 
 ## table_cell_spacing/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_cell_spacing/01/expected.html.png" width="500"> | <img src="table_cell_spacing/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_cell_spacing/01/md_result.verified.png" width="500"> |
 
 ## table_colors
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_colors/expected.html.png" width="500"> | <img src="table_colors/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_colors/md_result.verified.png" width="500"> |
 
 ## table_default_cell_margin
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_default_cell_margin/expected.html.png" width="500"> | <img src="table_default_cell_margin/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_default_cell_margin/md_result.verified.png" width="500"> |
 
 ## table_default_cell_margin_start_end
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_default_cell_margin_start_end/expected.html.png" width="500"> | <img src="table_default_cell_margin_start_end/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_default_cell_margin_start_end/md_result.verified.png" width="500"> |
 
 ## table_default_style
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_default_style/expected.html.png" width="500"> | <img src="table_default_style/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_default_style/md_result.verified.png" width="500"> |
 
 ## table_default_style_first_row_run_color
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_default_style_first_row_run_color/expected.html.png" width="500"> | <img src="table_default_style_first_row_run_color/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_default_style_first_row_run_color/md_result.verified.png" width="500"> |
 
 ## table_default_style_first_row_shading
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_default_style_first_row_shading/expected.html.png" width="500"> | <img src="table_default_style_first_row_shading/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_default_style_first_row_shading/md_result.verified.png" width="500"> |
 
 ## table_default_style_inside_h
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_default_style_inside_h/expected.html.png" width="500"> | <img src="table_default_style_inside_h/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_default_style_inside_h/md_result.verified.png" width="500"> |
 
 ## table_default_style_outer_borders
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_default_style_outer_borders/expected.html.png" width="500"> | <img src="table_default_style_outer_borders/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_default_style_outer_borders/md_result.verified.png" width="500"> |
 
 ## table_diagonal_borders/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_diagonal_borders/01/expected.html.png" width="500"> | <img src="table_diagonal_borders/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_diagonal_borders/01/md_result.verified.png" width="500"> |
 
 ## table_explicit_heights
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_explicit_heights/expected.html.png" width="500"> | <img src="table_explicit_heights/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_explicit_heights/md_result.verified.png" width="500"> |
 
 ## table_grid_styling_padding
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_grid_styling_padding/expected.html.png" width="500"> | <img src="table_grid_styling_padding/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_grid_styling_padding/md_result.verified.png" width="500"> |
 
 ## table_indent
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_indent/expected.html.png" width="500"> | <img src="table_indent/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_indent/md_result.verified.png" width="500"> |
 
 ## table_layout_tall_row
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_layout_tall_row/expected.html.png" width="500"> | <img src="table_layout_tall_row/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_layout_tall_row/md_result.verified.png" width="500"> |
 
 ## table_multipage
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_multipage/expected.html.png" width="500"> | <img src="table_multipage/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_multipage/md_result.verified.png" width="500"> |
 
 ## table_of_contents/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_of_contents/01/expected.html.png" width="500"> | <img src="table_of_contents/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_of_contents/01/md_result.verified.png" width="500"> |
 
 ## table_of_contents/02
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_of_contents/02/expected.html.png" width="500"> | <img src="table_of_contents/02/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_of_contents/02/md_result.verified.png" width="500"> |
 
 ## table_of_contents/03
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_of_contents/03/expected.html.png" width="500"> | <img src="table_of_contents/03/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_of_contents/03/md_result.verified.png" width="500"> |
 
 ## table_page_break
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_page_break/expected.html.png" width="500"> | <img src="table_page_break/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_page_break/md_result.verified.png" width="500"> |
 
 ## table_text_direction
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_text_direction/expected.html.png" width="500"> | <img src="table_text_direction/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_text_direction/md_result.verified.png" width="500"> |
 
 ## table_two_column_layout
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_two_column_layout/expected.html.png" width="500"> | <img src="table_two_column_layout/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_two_column_layout/md_result.verified.png" width="500"> |
 
 ## table_vmerge_basic
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_vmerge_basic/expected.html.png" width="500"> | <img src="table_vmerge_basic/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_vmerge_basic/md_result.verified.png" width="500"> |
 
 ## table_vmerge_explicit_heights
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="table_vmerge_explicit_heights/expected.html.png" width="500"> | <img src="table_vmerge_explicit_heights/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="table_vmerge_explicit_heights/md_result.verified.png" width="500"> |
 
 ## tab_stops
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="tab_stops/expected.html.png" width="500"> | <img src="tab_stops/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="tab_stops/md_result.verified.png" width="500"> |
 
 ## text_wrapping_break
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="text_wrapping_break/expected.html.png" width="500"> | <img src="text_wrapping_break/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="text_wrapping_break/md_result.verified.png" width="500"> |
 
 ## three_columns
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="three_columns/expected.html.png" width="500"> | <img src="three_columns/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="three_columns/md_result.verified.png" width="500"> |
 
 ## tracked_changes/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="tracked_changes/01/expected.html.png" width="500"> | <img src="tracked_changes/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="tracked_changes/01/md_result.verified.png" width="500"> |
 
 ## two_columns
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="two_columns/expected.html.png" width="500"> | <img src="two_columns/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="two_columns/md_result.verified.png" width="500"> |
 
 ## underline_text
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="underline_text/expected.html.png" width="500"> | <img src="underline_text/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="underline_text/md_result.verified.png" width="500"> |
 
 ## wedding/01
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="wedding/01/expected.html.png" width="500"> | <img src="wedding/01/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="wedding/01/md_result.verified.png" width="500"> |
 
 ## wedding/02
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="wedding/02/expected.html.png" width="500"> | <img src="wedding/02/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="wedding/02/md_result.verified.png" width="500"> |
 
 ## wedding/03
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="wedding/03/expected.html.png" width="500"> | <img src="wedding/03/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="wedding/03/md_result.verified.png" width="500"> |
 
 ## wedding/04
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="wedding/04/expected.html.png" width="500"> | <img src="wedding/04/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="wedding/04/md_result.verified.png" width="500"> |
 
 ## wedding/05
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="wedding/05/expected.html.png" width="500"> | <img src="wedding/05/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="wedding/05/md_result.verified.png" width="500"> |
 
 ## wedding/06
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="wedding/06/expected.html.png" width="500"> | <img src="wedding/06/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="wedding/06/md_result.verified.png" width="500"> |
 
 ## wedding/07
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="wedding/07/expected.html.png" width="500"> | <img src="wedding/07/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="wedding/07/md_result.verified.png" width="500"> |
 
 ## wedding/08
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="wedding/08/expected.html.png" width="500"> | <img src="wedding/08/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="wedding/08/md_result.verified.png" width="500"> |
 
 ## wedding/09
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="wedding/09/expected.html.png" width="500"> | <img src="wedding/09/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="wedding/09/md_result.verified.png" width="500"> |
 
 ## wedding/10
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="wedding/10/expected.html.png" width="500"> | <img src="wedding/10/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="wedding/10/md_result.verified.png" width="500"> |
 
 ## wedding/11
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="wedding/11/expected.html.png" width="500"> | <img src="wedding/11/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="wedding/11/md_result.verified.png" width="500"> |
 
 ## wide_table
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="wide_table/expected.html.png" width="500"> | <img src="wide_table/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="wide_table/md_result.verified.png" width="500"> |
 
 ## wordart
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="wordart/expected.html.png" width="500"> | <img src="wordart/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="wordart/md_result.verified.png" width="500"> |
 
 ## wordart-envelope
 
-| Reference (Pandoc HTML) | Morph Markdown |
-| --- | --- |
-| <img src="wordart-envelope/expected.html.png" width="500"> | <img src="wordart-envelope/md_result.verified.png" width="500"> |
+| Morph Markdown |
+| --- |
+| <img src="wordart-envelope/md_result.verified.png" width="500"> |
 

@@ -1,8 +1,8 @@
-﻿Amari Rivera
+﻿# Amari Rivera
 
 Digital Marketing
 
-| Adrian King Express Shippers Ltd. 89 Pacific Ave,  San Francisco, CA 65432 | 14 September, 20XX |
+| Adrian King<br>Express Shippers Ltd.<br>89 Pacific Ave, <br>San Francisco, CA 65432 | 14 September, 20XX |
 | --- | --- |
 
 Dear Adrian King,
@@ -17,5 +17,5 @@ Sincerely,
 
 Amari Rivera
 
-| 909-555-0155 | 321 Avenue A Portland, OR 76543 | amari@example.com |
+| 909-555-0155 | 321 Avenue A<br>Portland, OR 76543 | amari@example.com |
 | --- | --- | --- |

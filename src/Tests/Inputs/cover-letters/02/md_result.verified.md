@@ -1,6 +1,6 @@
-﻿Manasi Goyal
+﻿# Manasi Goyal
 
-Graphic Designer
+## Graphic Designer
 
 +91 915 5894669 | www.interestingsite.com | manasi@example.com
 
@@ -10,7 +10,7 @@ Graphic Designer
 
 ## Em + En Design
 
-## 4321 N. Broad Street Philadelphia, PA 21098
+## 4321 N. Broad Street<br>Philadelphia, PA 21098
 
 # Dear Rowan Murphy
 

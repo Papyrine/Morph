@@ -9,7 +9,7 @@ public enum OutputFormat
     /// <summary>Plain-text rendition, extracted from the HTML export.</summary>
     Text,
 
-    /// <summary>Pandoc-flavoured Markdown.</summary>
+    /// <summary>Markdown.</summary>
     Markdown,
 
     /// <summary>Vector-text PDF.</summary>

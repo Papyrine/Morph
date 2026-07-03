@@ -27,6 +27,6 @@ Committee reports
 
 # Next meeting 
 
-## Next meeting will be held on February 6^th^ 
+## Next meeting will be held on February 6<sup>th</sup> 
 
 Motion to adjourn was made at 3:15 p.m. and was passed unanimously. 

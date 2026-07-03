@@ -1,4 +1,4 @@
-﻿**PTA MEETING MINUTES**
+﻿# PTA MEETING MINUTES
 
 **Date:** 1/9/23
 

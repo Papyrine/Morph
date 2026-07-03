@@ -1,6 +1,6 @@
-﻿April 4, 20XX
+﻿## April 4, 20XX
 
-Business proposal
+# Business proposal
 
 This proposal outlines a streamlined solution designed to address key business challenges and drive growth. Our approach leverages industry expertise, innovative strategies, and data-driven insights to create a tailored plan that delivers measurable results.
 
@@ -10,4 +10,4 @@ This proposal outlines a streamlined solution designed to address key business c
 | market opportunity | financial summary |
 | With industry trends shifting rapidly, adopting a flexible and forward-thinking model is essential. Our approach provides businesses with scalable, adaptable solutions that align with market demands and ensure long-term sustainability. | Based on market analysis, businesses that implement our strategies see an average 20% reduction in operational costs and a 35% improvement in workflow efficiency within the first year. Clients can expect a strong return on investment through improved productivity and streamlined operations.  |
 | prepared for: | Prepared by: |
-| Casey Jensen, Fabrikam, Inc. casey@fabrikam.com 573-555-0172  www.fabrikam.com 333 3rd Avenue, Seattle, WA 89101 | Avery Howard, Contoso, Ltd. avery@contoso.com 898-555-0111 www.contoso.com 987 6th Ave, Santa Fe, NM 11121 |
+| Casey Jensen, Fabrikam, Inc.<br>casey@fabrikam.com<br>573-555-0172 <br>www.fabrikam.com<br>333 3rd Avenue, Seattle, WA 89101 | Avery Howard, Contoso, Ltd.<br>avery@contoso.com<br>898-555-0111<br>www.contoso.com<br>987 6th Ave, Santa Fe, NM 11121 |

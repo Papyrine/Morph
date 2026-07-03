@@ -98,9 +98,9 @@ ADMIT ONE
 
 ADMIT ONE
 
-| **Event** **Name** | **Event** **Name** |
+| **Event**<br>**Name** | **Event**<br>**Name** |
 | --- | --- |
-| **Event** **Name** | **Event** **Name** |
-| **Event** **Name** | **Event** **Name** |
-| **Event** **Name** | **Event** **Name** |
-| **Event** **Name** | **Event** **Name** |
+| **Event**<br>**Name** | **Event**<br>**Name** |
+| **Event**<br>**Name** | **Event**<br>**Name** |
+| **Event**<br>**Name** | **Event**<br>**Name** |
+| **Event**<br>**Name** | **Event**<br>**Name** |

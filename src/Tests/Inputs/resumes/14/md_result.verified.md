@@ -1,6 +1,6 @@
-﻿**Andree Rocher**
+﻿# Andree Rocher
 
-Professional Title 
+## Professional Title 
 
 # Philadelphia, PA | 705.555.0121 | andree@example.com 
 

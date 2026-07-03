@@ -1,3 +1,3 @@
-﻿Water: H~2~O
+﻿Water: H<sub>2</sub>O
 
-Einstein: E=mc^2^
+Einstein: E=mc<sup>2</sup>

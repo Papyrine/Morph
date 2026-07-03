@@ -1,1 +1,1 @@
-normal **bold** *italic* [under]{.underline} ~~struck~~
+normal **bold** *italic* <u>under</u> ~~struck~~

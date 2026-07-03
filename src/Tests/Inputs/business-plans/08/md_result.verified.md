@@ -1,8 +1,8 @@
 ﻿|  |  | **April 4, 20XX** |
 | --- | --- | --- |
-| **Business proposal** |  |  |
+| **Business<br>proposal** |  |  |
 |  | **Prepared for:** | **Prepared by:** |
-|  | Casey Jensen casey@fabrikam.com  573-555-0172  Fabrikam, Inc. www.fabrikam.com 333 3rd Avenue Seattle, WA 89101 | Avery Howard avery@contoso.com 898-555-0111 Contoso, Ltd. www.contoso.com 987 6th Ave Santa Fe, NM 11121 |
+|  | Casey Jensen<br>casey@fabrikam.com <br>573-555-0172 <br>Fabrikam, Inc.<br>www.fabrikam.com<br>333 3rd Avenue<br>Seattle, WA 89101 | Avery Howard<br>avery@contoso.com<br>898-555-0111<br>Contoso, Ltd.<br>www.contoso.com<br>987 6th Ave<br>Santa Fe, NM 11121 |
 
 1. **Summary**
 

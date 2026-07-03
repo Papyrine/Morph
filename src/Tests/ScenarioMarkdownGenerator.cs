@@ -6,9 +6,9 @@
 ///   page renders. One table row per page, so multi-page scenarios (including ones where
 ///   backends produced different page counts) can be scrolled through.
 /// - Export: a per-format aggregate each — <c>compare-all-html.md</c>,
-///   <c>compare-all-markdown.md</c>, <c>compare-all-pdf.md</c> — showing each exporter beside a
-///   reference render: the Pandoc HTML for HTML/Markdown, the Word page render for PDF
-///   (see <see cref="RegenerateAllExport"/>).
+///   <c>compare-all-markdown.md</c>, <c>compare-all-pdf.md</c>. The HTML and Markdown aggregates
+///   are a visual index of each exporter's render; the PDF aggregate sets each Morph PDF page
+///   beside the Word page render (see <see cref="RegenerateAllExport"/>).
 ///
 /// All render cleanly on GitHub.
 /// </summary>
@@ -85,13 +85,12 @@ static class ScenarioMarkdownGenerator
     /// Generates the per-format export aggregates at the Inputs root, the export-pipeline
     /// counterparts to <see cref="RegenerateAll"/>:
     /// <list type="bullet">
-    /// <item><c>compare-all-html.md</c> — the HTML exporter beside the Pandoc reference</item>
-    /// <item><c>compare-all-markdown.md</c> — the Markdown exporter beside the Pandoc reference</item>
-    /// <item><c>compare-all-pdf.md</c> — the PDF exporter's per-page renders, plus file links</item>
+    /// <item><c>compare-all-html.md</c> — a visual index of the HTML exporter's renders</item>
+    /// <item><c>compare-all-markdown.md</c> — a visual index of the Markdown exporter's renders</item>
+    /// <item><c>compare-all-pdf.md</c> — each Morph PDF page beside the Word page render</item>
     /// </list>
     /// HTML and Markdown render to PNG via the headless-browser screenshot pipeline; PDF pages
-    /// are rendered by PDFium (Verify.PDFium). The Pandoc <c>expected.pdf</c> reference has no
-    /// raster and is linked as a file.
+    /// are rendered by PDFium (Verify.PDFium).
     /// </summary>
     public static void RegenerateAllExport(string inputsDirectory)
     {
@@ -99,23 +98,23 @@ static class ScenarioMarkdownGenerator
             inputsDirectory,
             "compare-all-html.md",
             "All HTML export scenarios",
-            "The HTML exporter rendered to PNG via the headless-browser screenshot pipeline, beside the Pandoc HTML reference.",
+            "The HTML exporter rendered to PNG via the headless-browser screenshot pipeline.",
             _ => File.Exists(Path.Combine(_, "html_result.verified.png")),
-            (sb, dir, name) => AppendReferenceComparison(sb, dir, name, "Morph HTML", "html_result.verified.png"));
+            (sb, dir, name) => AppendRender(sb, dir, name, "Morph HTML", "html_result.verified.png"));
 
         WriteExportAggregate(
             inputsDirectory,
             "compare-all-markdown.md",
             "All Markdown export scenarios",
-            "The Markdown exporter rendered to PNG via the headless-browser screenshot pipeline, beside the Pandoc HTML reference.",
+            "The Markdown exporter rendered to PNG via the headless-browser screenshot pipeline.",
             _ => File.Exists(Path.Combine(_, "md_result.verified.png")),
-            (sb, dir, name) => AppendReferenceComparison(sb, dir, name, "Morph Markdown", "md_result.verified.png"));
+            (sb, dir, name) => AppendRender(sb, dir, name, "Morph Markdown", "md_result.verified.png"));
 
         WriteExportAggregate(
             inputsDirectory,
             "compare-all-pdf.md",
             "All PDF export scenarios",
-            "The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium). The Pandoc expected.pdf reference has no raster, so it is linked as a file.",
+            "The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).",
             _ => Directory.GetFiles(_, "pdf_result#page_*.verified.png").Length > 0 ||
                  File.Exists(Path.Combine(_, "pdf_result.verified.pdf")),
             AppendPdf);
@@ -157,16 +156,14 @@ static class ScenarioMarkdownGenerator
         File.WriteAllText(Path.Combine(inputsDirectory, fileName), sb.ToString());
     }
 
-    // Two columns: the Pandoc HTML render as the shared visual reference, then this format's render.
-    static void AppendReferenceComparison(StringBuilder sb, string directory, string name, string resultLabel, string resultFile)
+    // A single-column visual index: this format's rendered output, one row per scenario.
+    static void AppendRender(StringBuilder sb, string directory, string name, string resultLabel, string resultFile)
     {
         var srcPrefix = $"{name}/";
 
-        sb.Append("| Reference (Pandoc HTML) | ").Append(resultLabel).Append(" |\n");
-        sb.Append("| --- | --- |\n");
+        sb.Append("| ").Append(resultLabel).Append(" |\n");
+        sb.Append("| --- |\n");
         sb.Append("| ");
-        sb.Append(RenderImage(FileNameIfExists(directory, "expected.html.png"), srcPrefix));
-        sb.Append(" | ");
         sb.Append(RenderImage(FileNameIfExists(directory, resultFile), srcPrefix));
         sb.Append(" |\n");
     }
@@ -179,8 +176,8 @@ static class ScenarioMarkdownGenerator
         // the image aggregate uses) on the left with the matching Morph PDF page (rendered by
         // PDFium during ExportScenarioTests.PdfOutput) on the right, one row per page — mirroring
         // compare-all-images.md. Page counts can differ between the two, so rows run to the longer
-        // side and the short side shows a blank cell. The file links stay alongside so the actual
-        // pdf (and the raster-less Pandoc reference) remain one click away.
+        // side and the short side shows a blank cell. The Morph PDF file link stays alongside so
+        // the actual pdf is one click away.
         var expectedPages = Directory.GetFiles(directory, "expected_*.png").Order().ToArray();
         var pdfPages = Directory.GetFiles(directory, "pdf_result#page_*.verified.png").Order().ToArray();
         var pdfMetrics = ReadMetrics(Path.Combine(directory, "pdf_result.verified.json"));
@@ -212,18 +209,9 @@ static class ScenarioMarkdownGenerator
             sb.Append('\n');
         }
 
-        var links = new List<string>();
         if (File.Exists(Path.Combine(directory, "pdf_result.verified.pdf")))
         {
-            links.Add($"[Morph PDF]({EncodeSrc(srcPrefix + "pdf_result.verified.pdf")})");
-        }
-        if (File.Exists(Path.Combine(directory, "expected.pdf")))
-        {
-            links.Add($"[Pandoc reference]({EncodeSrc(srcPrefix + "expected.pdf")})");
-        }
-        if (links.Count > 0)
-        {
-            sb.Append("PDF: ").Append(string.Join(" · ", links)).Append("\n\n");
+            sb.Append("PDF: ").Append($"[Morph PDF]({EncodeSrc(srcPrefix + "pdf_result.verified.pdf")})").Append("\n\n");
         }
     }
 

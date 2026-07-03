@@ -1,4 +1,4 @@
-﻿| **Your Logo Here** | **Date** **Your Name** **Your Address** **Your Phone Number** |
+﻿| **Your Logo Here** | **Date**<br>**Your Name**<br>**Your Address**<br>**Your Phone Number** |
 | --- | --- |
 
 **Recipient Name**

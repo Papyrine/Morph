@@ -1,7 +1,7 @@
-﻿| Liane Cormier Hasrat World Market | 456 East 78th Ave Denver, CO 12345 |
+﻿| Liane Cormier<br>Hasrat World Market | 456 East 78th Ave<br>Denver, CO 12345 |
 | --- | --- |
 
-RIO BANK
+# RIO BANK
 
 7-15-20XX 
 
@@ -17,5 +17,5 @@ Sincerely,
 
 Itamar Epstein
 
-| Itamar Epstein ROI Bank | 4321 N. Broad St. Philadelphia, PA 21098 |
+| Itamar Epstein<br>ROI Bank | 4321 N. Broad St.<br>Philadelphia, PA 21098 |
 | --- | --- |

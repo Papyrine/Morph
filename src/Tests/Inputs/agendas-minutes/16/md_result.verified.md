@@ -39,4 +39,4 @@ Date and venue for the company holiday party have been confirmed. More details c
 
 ## Next meeting 
 
-October 28^th^, conference room A 
+October 28<sup>th</sup>, conference room A 

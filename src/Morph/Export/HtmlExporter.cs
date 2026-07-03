@@ -189,6 +189,23 @@ static class HtmlExporter
                     continue;
                 }
 
+                if (element is ParagraphElement quoteParagraph &&
+                    DocumentExportHelpers.IsQuote(quoteParagraph.Properties))
+                {
+                    var quoteItems = new List<ParagraphElement>();
+                    while (index < elements.Count &&
+                           elements[index] is ParagraphElement candidate &&
+                           DocumentExportHelpers.IsQuote(candidate.Properties))
+                    {
+                        quoteItems.Add(candidate);
+                        index++;
+                    }
+
+                    index--;
+                    WriteBlockQuote(quoteItems, depth);
+                    continue;
+                }
+
                 WriteBlock(element, depth);
             }
         }
@@ -291,6 +308,29 @@ static class HtmlExporter
             }
 
             Indent(depth).Append("<p>").Append(EncodeText(text)).Append("</p>\n");
+        }
+
+        // Consecutive Quote / Intense Quote paragraphs become one <blockquote> of plain <p>
+        // children. The blockquote is the semantic stand-in for the Quote style's visual indent, so
+        // the paragraph-level style (its indent / spacing) is dropped; run formatting — the style's
+        // italic in particular — still flows through AppendInline.
+        void WriteBlockQuote(IReadOnlyList<ParagraphElement> paragraphs, int depth)
+        {
+            var visible = paragraphs.Where(_ => !DocumentExportHelpers.IsBlank(_)).ToList();
+            if (visible.Count == 0)
+            {
+                return;
+            }
+
+            Indent(depth).Append("<blockquote>\n");
+            foreach (var paragraph in visible)
+            {
+                Indent(depth + 1).Append("<p>");
+                AppendInline(paragraph.Runs);
+                builder.Append("</p>\n");
+            }
+
+            Indent(depth).Append("</blockquote>\n");
         }
 
         // Resolves the image source before opening the <p> so a dropped image (no handler,
@@ -676,8 +716,8 @@ static class HtmlExporter
         void AppendCellContent(IReadOnlyList<DocumentElement> content, int depth)
         {
             // Cell paragraphs render inline (separated by <br />) except heading-styled ones, which
-            // emit as real <hN> blocks (matches Pandoc's "<td><h1>SCHEDULE</h1></td>" treatment of a
-            // heading inside a table cell). Headings being block-level also mean no <br /> is needed
+            // emit as real <hN> blocks — a heading inside a table cell stays a heading
+            // ("<td><h1>SCHEDULE</h1></td>"). Headings being block-level also mean no <br /> is needed
             // either side of them. Nested tables and block images keep their content in the cell
             // instead of being dropped.
             var separatorPending = false;
@@ -828,7 +868,11 @@ static class HtmlExporter
                 close.Insert(0, "</span>");
             }
 
-            if (properties.Bold)
+            // A heading is bold by default — both the stylesheet's h1-h6 rule and every browser's
+            // UA default — so a <strong> inside one is redundant and is skipped, mirroring the
+            // Markdown exporter's heading bold suppression. A run that is explicitly non-bold in a
+            // heading is still honoured: InlineStyle emits font-weight: normal for it.
+            if (properties.Bold && !inHeading)
             {
                 Wrap("strong");
             }

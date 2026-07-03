@@ -8,7 +8,7 @@
 
 *Emphasized text* using em tag
 
-[Underlined text]{.underline} using u tag
+<u>Underlined text</u> using u tag
 
 ~~Strikethrough text~~ using s tag
 
@@ -20,8 +20,8 @@ Text with superscript using sup tag
 
 ***Bold and italic*** combined
 
-[**Bold and underlined**]{.underline} combined
+<u>**Bold and underlined**</u> combined
 
-[*Italic and underlined*]{.underline} combined
+<u>*Italic and underlined*</u> combined
 
-[***Bold, italic, and underlined***]{.underline} all combined
+<u>***Bold, italic, and underlined***</u> all combined

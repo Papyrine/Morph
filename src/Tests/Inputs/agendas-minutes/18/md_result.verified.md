@@ -1,4 +1,4 @@
-﻿\[Meeting name\] meeting minutes
+﻿# \[Meeting name\] meeting minutes
 
 | Location: | \[Address or room number\] |
 | --- | --- |

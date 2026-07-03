@@ -20,17 +20,17 @@
 
 |  |  |  |  |  |  |
 | --- | --- | --- | --- | --- | --- |
-|  | **Your Event Name** Ticket |  |  | **Your Event Name** Ticket |  |
+|  | **Your Event Name**<br>Ticket |  |  | **Your Event Name**<br>Ticket |  |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |
-|  | **Your Event Name** Ticket |  |  | **Your Event Name** Ticket |  |
+|  | **Your Event Name**<br>Ticket |  |  | **Your Event Name**<br>Ticket |  |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |
-|  | **Your Event Name** Ticket |  |  | **Your Event Name** Ticket |  |
+|  | **Your Event Name**<br>Ticket |  |  | **Your Event Name**<br>Ticket |  |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |
-|  | **Your Event Name** Ticket |  |  | **Your Event Name** Ticket |  |
+|  | **Your Event Name**<br>Ticket |  |  | **Your Event Name**<br>Ticket |  |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |
-|  | **Your Event Name** Ticket |  |  | **Your Event Name** Ticket |  |
+|  | **Your Event Name**<br>Ticket |  |  | **Your Event Name**<br>Ticket |  |
 |  |  |  |  |  |  |

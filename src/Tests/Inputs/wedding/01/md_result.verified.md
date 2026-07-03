@@ -8,8 +8,8 @@ To change colors in these invitations, on the **Design** tab, in the **Themes** 
 
 | The pleasure of your presence is requested at the marriage of |  | The pleasure of your presence is requested at the marriage of |
 | --- | --- | --- |
-| Sara **to**  Evan |  | Sara **to** Evan |
+| Sara<br>**to** <br>Evan |  | Sara<br>**to**<br>Evan |
 | **Saturday, the 20th of May**  |  | **Saturday, the 20th of May** |
 | **Two thousand and twenty-three**  |  | **Two thousand and twenty-three** |
-| at five o’clock \| Creekside Park Sacramento, CA |  | at five o’clock \| Creekside Park Sacramento, CA |
+| at five o’clock \| Creekside Park<br>Sacramento, CA |  | at five o’clock \| Creekside Park<br>Sacramento, CA |
 | Reception to follow  |  | Reception to follow |
