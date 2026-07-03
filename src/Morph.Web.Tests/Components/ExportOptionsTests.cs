@@ -15,6 +15,10 @@ public class ExportOptionsTests : BunitTestContext
         Verify(Render<ExportOptions>(_ => _.Add(component => component.Target, OutputFormat.Pdf)));
 
     [Test]
+    public Task Options_html() =>
+        Verify(Render<ExportOptions>(_ => _.Add(component => component.Target, OutputFormat.Html)));
+
+    [Test]
     public Task Options_markdown() =>
         Verify(Render<ExportOptions>(_ => _.Add(component => component.Target, OutputFormat.Markdown)));
 

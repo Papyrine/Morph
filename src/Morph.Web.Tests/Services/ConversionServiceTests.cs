@@ -3,12 +3,13 @@ public class ConversionServiceTests
     static readonly byte[] pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
 
     [Test]
-    public async Task WritableFormats_CoverAllFour()
+    public async Task WritableFormats_CoverAllFive()
     {
         var formats = ConversionService.WritableFormats.Select(_ => _.Format).ToList();
 
         await Assert.That(formats).Contains(OutputFormat.Png);
         await Assert.That(formats).Contains(OutputFormat.Pdf);
+        await Assert.That(formats).Contains(OutputFormat.Html);
         await Assert.That(formats).Contains(OutputFormat.Markdown);
         await Assert.That(formats).Contains(OutputFormat.Text);
     }
@@ -55,6 +56,10 @@ public class ConversionServiceTests
         Verify(ConversionService.ToText(Sample.DocxBytes), extension: "txt");
 
     [Test]
+    public Task ToHtml_Snapshot() =>
+        Verify(ConversionService.ToHtml(Sample.DocxBytes), extension: "html");
+
+    [Test]
     public async Task ToPdf_ProducesPdfSignature()
     {
         var pdf = ConversionService.ToPdf(Sample.DocxBytes, Sample.FontDirectory);
@@ -93,6 +98,16 @@ public class ConversionServiceTests
         await Assert.That(payload.Extension).IsEqualTo(".md");
         await Assert.That(payload.ContentType).IsEqualTo("text/markdown");
         await Assert.That(Encoding.UTF8.GetString(payload.Bytes).Length).IsGreaterThan(0);
+    }
+
+    [Test]
+    public async Task BuildDownload_Html_IsHtmlFile()
+    {
+        var payload = ConversionService.BuildDownload(Sample.DocxBytes, OutputFormat.Html, new(), Sample.FontDirectory);
+
+        await Assert.That(payload.Extension).IsEqualTo(".html");
+        await Assert.That(payload.ContentType).IsEqualTo("text/html");
+        await Assert.That(Encoding.UTF8.GetString(payload.Bytes)).Contains("<html");
     }
 
     [Test]

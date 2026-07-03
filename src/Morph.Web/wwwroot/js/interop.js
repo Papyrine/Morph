@@ -30,6 +30,35 @@ window.fileDownload = {
     }
 };
 
+window.resultPreview = {
+    // Wraps conversion output in a blob URL an <iframe> can load (the browser's PDF viewer needs a real
+    // URL, and an HTML result needs a document of its own). The caller revokes it when done.
+    createUrl: function (contentType, base64Content) {
+        const byteCharacters = atob(base64Content);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: contentType });
+        return URL.createObjectURL(blob);
+    },
+    revokeUrl: function (url) {
+        URL.revokeObjectURL(url);
+    }
+};
+
+window.viewport = {
+    // Reports whether the viewport is at least minWidth CSS pixels wide, and notifies dotNetReference on
+    // every crossing of that threshold — drives the result pane, which only exists on wide screens.
+    watchWide: function (dotNetReference, minWidth) {
+        const query = window.matchMedia(`(min-width: ${minWidth}px)`);
+        query.addEventListener('change', event =>
+            dotNetReference.invokeMethodAsync('OnViewportWideChanged', event.matches));
+        return query.matches;
+    }
+};
+
 window.appInfo = {
     userAgent: function () {
         return navigator.userAgent;

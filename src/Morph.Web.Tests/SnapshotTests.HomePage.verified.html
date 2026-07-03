@@ -4,9 +4,6 @@
     
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <base href="/">
-    <!-- Establishes cross-origin isolation (SharedArrayBuffer) for the multithreaded WASM runtime.
-         Must run before blazor.webassembly.js so isolation is in place before the runtime boots. -->
-    <script src="coi.js"></script>
     <!-- Preload critical resources -->
     <link rel="preload" href="css/app.css" as="style">
     <link rel="preload" href="_framework/blazor.webassembly.js" as="script">
@@ -16,14 +13,14 @@
 
 <body>
     <div id="app"><!--!--><!--!--><!--!--><!--!--><header><!--!--><h1 tabindex="-1">Morph</h1>
-    <!--!--><p>Convert Word documents (.docx) to PNG, PDF, Markdown or plain text — entirely in your browser</p>
+    <!--!--><p>Convert Word documents (.docx) to PNG, PDF, HTML, Markdown or plain text — entirely in your browser</p>
     <!--!--><div class="theme-toggle"><button class="theme-toggle-btn" aria-label="Toggle theme"><!--!--><span class="icon">🌙</span><!--!--><span class="text"> Dark</span></button></div></header><!--!-->
 
 <div class="container"><!--!--><!--!--><!--!--><!--!--><!--!-->
 
 <div class="converter"><div class="upload-panel"><label class="file-drop" for="docx-file"><!--!--><span class="file-drop-icon">📄</span>
             <span class="file-drop-text"><!--!--><strong>Choose a Word document</strong>
-                    <!--!--><span>A .docx file — converted to PNG, PDF, Markdown or plain text</span></span><!--!-->
+                    <!--!--><span>A .docx file — converted to PNG, PDF, HTML, Markdown or plain text</span></span><!--!-->
             <!--!--><input id="docx-file" class="file-input" accept=".docx" type="file" _bl_2="" style="caret-color: transparent !important;"></label><!--!-->
 
         <!--!--><div class="upload-or"><span>or</span></div>

@@ -1,11 +1,16 @@
 # Morph.Web
 
-A Blazor WebAssembly single-page app that converts a Word `.docx` to **PNG**, **PDF**, **Markdown** or
-**plain text** — entirely in the browser. No file ever leaves the device. Modelled on the
+A Blazor WebAssembly single-page app that converts a Word `.docx` to **PNG**, **PDF**, **HTML**,
+**Markdown** or **plain text** — entirely in the browser. No file ever leaves the device. Modelled on the
 [GeoConvert](https://github.com/Papyrine/GeoConvert) web app (layout, theming, testing and deployment).
 
 Live behaviour: upload a `.docx` (or click **Try a sample document**), see each page rendered as a live
-preview, pick an output format, and download.
+preview, pick an output format, and download. On a wide viewport (≥1200px) every non-PNG format also
+renders its actual output in a pane beside the page preview — PDF and HTML in an iframe (blob URL),
+Markdown and plain text inline — converted on selection and cached per format for the life of the
+document (a download of the same format reuses the cached bytes). The Markdown view swaps each embedded
+base64 image payload for a short size note ([`MarkdownPreview`](Services/MarkdownPreview.cs)); the
+downloaded `.md` keeps the full data URIs.
 
 ## Backend choice — ImageSharp, not Skia
 
@@ -15,9 +20,9 @@ The app references **`Morph.ImageSharp`** and **`Morph.Pdf`**:
   WebAssembly with no native assets. `SkiaDocumentConverter` is deliberately avoided — SkiaSharp needs a
   native `browser-wasm` build the NuGet packages don't ship.
 - `PdfDocumentConverter` renders DOCX → PDF (PdfSharp, also pure-managed).
-- `DocumentConverter.ConvertToMarkdown` / `ConvertToHtml` (in core `Morph`) produce the text outputs;
-  plain text is derived from the HTML by [`TextExtraction`](Services/TextExtraction.cs) (Morph has no
-  text exporter).
+- `DocumentConverter.ConvertToMarkdown` / `ConvertToHtml` (in core `Morph`) produce the text outputs
+  (HTML ships as a self-contained document — styles inline, images embedded as data URIs); plain text is
+  derived from the HTML by [`TextExtraction`](Services/TextExtraction.cs) (Morph has no text exporter).
 
 ## Fonts
 
@@ -34,7 +39,7 @@ Why a directory rather than the fonts embedded in `Morph.dll`: PdfSharp resolves
 global resolver that can't reach Morph's embedded fonts at all, and the ImageSharp path, given no
 directory, walks an OS-font fallback chain that throws in the browser (and on a clean CI runner) the
 moment a document names a weight the embedded set doesn't include. A pinned directory sidesteps both.
-The text exports (Markdown, plain text) don't rasterise, so they need no fonts.
+The text exports (HTML, Markdown, plain text) don't rasterise, so they need no fonts.
 
 ## Single-threaded runtime
 

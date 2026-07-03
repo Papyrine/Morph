@@ -206,8 +206,22 @@ public class MarkdownExporterTests
                 Para(TextRun("See note "), FootnoteRef("1"), TextRun(" and "), EndnoteRef("1"), TextRun(".")),
                 Para(TextRun("Reuse "), FootnoteRef("1"), TextRun(" here."))
             ],
-            Footnotes = [new Footnote {Id = "1", Text = "The footnote body."}],
-            Endnotes = [new Endnote {Id = "1", Text = "The endnote body."}]
+            Footnotes =
+            [
+                new()
+                {
+                    Id = "1",
+                    Text = "The footnote body."
+                }
+            ],
+            Endnotes =
+            [
+                new()
+                {
+                    Id = "1",
+                    Text = "The endnote body."
+                }
+            ]
         };
         return Verify(MarkdownExporter.Export(document), extension: "md");
     }
@@ -271,12 +285,12 @@ public class MarkdownExporterTests
                     Rows =
                     [
                         Row(header: true, "a"),
-                        new TableRow
+                        new()
                         {
                             IsHeader = false,
                             Cells =
                             [
-                                new TableCell
+                                new()
                                 {
                                     Content =
                                     [
@@ -302,15 +316,18 @@ public class MarkdownExporterTests
             {
                 Rows =
                 [
-                    new TableRow
+                    new()
                     {
                         IsHeader = false,
                         Cells =
                         [
-                            new TableCell
+                            new()
                             {
                                 Content = [],
-                                Properties = new() {Borders = borders}
+                                Properties = new()
+                                {
+                                    Borders = borders
+                                }
                             }
                         ]
                     }
@@ -320,7 +337,10 @@ public class MarkdownExporterTests
         var export = MarkdownExporter.Export(
             Doc(
                 Para(TextRun("above")),
-                BlankTable(new() {Bottom = BorderEdge.Default}),
+                BlankTable(new()
+                {
+                    Bottom = BorderEdge.Default
+                }),
                 BlankTable(null),
                 Para(TextRun("below"))));
         return Verify(export, extension: "md");

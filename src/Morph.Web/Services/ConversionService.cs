@@ -7,7 +7,7 @@ namespace Morph.Web.Services;
 /// backend would need a native wasm build that the NuGet assets don't ship. The rendered formats (PNG,
 /// PDF) resolve fonts against a directory of bundled Aptos faces (<see cref="FontStore"/>) with every
 /// other family mapped onto Aptos — so any document renders, its own fonts substituted rather than
-/// failing. The text formats (Markdown, plain text) need no fonts.
+/// failing. The text formats (HTML, Markdown, plain text) need no fonts.
 /// </summary>
 public static class ConversionService
 {
@@ -15,6 +15,7 @@ public static class ConversionService
     [
         new(OutputFormat.Png, "PNG image", ".png", "image/png"),
         new(OutputFormat.Pdf, "PDF", ".pdf", "application/pdf"),
+        new(OutputFormat.Html, "HTML", ".html", "text/html"),
         new(OutputFormat.Markdown, "Markdown", ".md", "text/markdown"),
         new(OutputFormat.Text, "Plain text", ".txt", "text/plain"),
     ];
@@ -65,6 +66,17 @@ public static class ConversionService
     }
 
     /// <summary>
+    /// Exports the DOCX as a self-contained HTML document — the exporter's defaults emit the full
+    /// document wrapper with styles inline and images embedded as data URIs, so the single file views
+    /// anywhere with no companion assets.
+    /// </summary>
+    public static string ToHtml(byte[] docx)
+    {
+        using var stream = new MemoryStream(docx);
+        return DocumentConverter.ConvertToHtml(stream);
+    }
+
+    /// <summary>
     /// Exports the DOCX as plain text. Morph has no text exporter, so this renders the semantic HTML
     /// fragment (no document wrapper, image references dropped) and flattens it via <see cref="TextExtraction"/>.
     /// </summary>
@@ -110,6 +122,7 @@ public static class ConversionService
         {
             OutputFormat.Png => PngDownload(RenderPngPages(docx, image, fontDirectory)),
             OutputFormat.Pdf => new(ToPdf(docx, fontDirectory), ".pdf", "application/pdf"),
+            OutputFormat.Html => new(Encoding.UTF8.GetBytes(ToHtml(docx)), ".html", "text/html"),
             OutputFormat.Markdown => new(Encoding.UTF8.GetBytes(ToMarkdown(docx)), ".md", "text/markdown"),
             OutputFormat.Text => new(Encoding.UTF8.GetBytes(ToText(docx)), ".txt", "text/plain"),
             _ => throw new ArgumentOutOfRangeException(nameof(format), format, "Unknown output format."),
