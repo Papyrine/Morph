@@ -274,12 +274,24 @@ header p {
 }
 
 .result-caption {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
     padding: 0.5rem 1rem;
     border-bottom: 1px solid var(--border-color);
     background: var(--surface-color);
     color: var(--muted-color);
     font-size: 0.85rem;
     font-weight: 600;
+}
+
+/* Annotation to the right of the caption title, explaining the "… KB elided …" markers in the text below. */
+.result-note {
+    font-size: 0.75rem;
+    font-weight: 400;
+    font-style: italic;
+    white-space: nowrap;
 }
 
 /* Document content is designed against paper, so the iframe stays white in both themes. */

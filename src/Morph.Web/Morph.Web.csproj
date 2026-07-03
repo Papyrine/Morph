@@ -7,12 +7,16 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <!--
-      Trimming is OFF. The conversion pipeline drags DocumentFormat.OpenXml and AngleSharp (both
-      heavily reflection-based) plus ImageSharp and PdfSharp; full-trim silently removes types they
-      resolve by name at runtime, which surfaces only as a browser-side crash mid-conversion. The
-      untrimmed bundle is larger but correct. Revisit with a curated ILLink descriptor if size matters.
+      Selective trim. Trimming is ON so the BCL, the ASP.NET Components framework and Morph's own
+      assemblies (verified reflection-free) shrink to what's actually reached. The conversion pipeline's
+      four reflection-heavy libraries — DocumentFormat.OpenXml, AngleSharp, ImageSharp (+ Drawing/Fonts)
+      and PdfSharp — resolve types by name at runtime, so full-trim would silently strip types they need
+      and surface only as a browser-side crash mid-conversion. Those are rooted (kept whole) via the
+      TrimmerRootAssembly items below. Residual risk: a rooted library reflecting into a *framework* type
+      the trimmer removed — validate any change here by running a real DOCX through every output format on
+      the published build (the Playwright suite in Morph.Web.Tests exercises DOCX->PNG and DOCX->PDF).
     -->
-    <PublishTrimmed>false</PublishTrimmed>
+    <PublishTrimmed>true</PublishTrimmed>
     <InvariantGlobalization>true</InvariantGlobalization>
     <!--
       Single-threaded runtime (WasmEnableThreads deliberately NOT set). The multithreaded runtime needs
@@ -39,6 +43,24 @@
          Skia is deliberately avoided — it needs a native WebAssembly build the NuGet assets don't ship. -->
     <ProjectReference Include="..\Morph.ImageSharp\Morph.ImageSharp.csproj" />
     <ProjectReference Include="..\Morph.Pdf\Morph.Pdf.csproj" />
+  </ItemGroup>
+
+  <!-- Reflection-heavy libraries preserved whole under trimming (see PublishTrimmed note above).
+       Names are logical assembly names; each is rooted so none of its own members are removed. -->
+  <ItemGroup>
+    <TrimmerRootAssembly Include="DocumentFormat.OpenXml" />
+    <TrimmerRootAssembly Include="DocumentFormat.OpenXml.Framework" />
+    <TrimmerRootAssembly Include="AngleSharp" />
+    <TrimmerRootAssembly Include="SixLabors.ImageSharp" />
+    <TrimmerRootAssembly Include="SixLabors.ImageSharp.Drawing" />
+    <TrimmerRootAssembly Include="SixLabors.Fonts" />
+    <TrimmerRootAssembly Include="SixLabors.PolygonClipper" />
+    <TrimmerRootAssembly Include="PdfSharp" />
+    <TrimmerRootAssembly Include="PdfSharp.Charting" />
+    <TrimmerRootAssembly Include="PdfSharp.Cryptography" />
+    <TrimmerRootAssembly Include="PdfSharp.Shared" />
+    <TrimmerRootAssembly Include="PdfSharp.System" />
+    <TrimmerRootAssembly Include="PdfSharp.WPFonts" />
   </ItemGroup>
 
 </Project>

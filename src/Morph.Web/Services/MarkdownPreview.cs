@@ -9,6 +9,13 @@ namespace Morph.Web.Services;
 /// </summary>
 public static partial class MarkdownPreview
 {
+    /// <summary>
+    /// Whether the Markdown carries a base64 payload large enough that <see cref="ElideImages"/> would
+    /// replace it — i.e. whether the pane should caption that an image was omitted.
+    /// </summary>
+    public static bool HasElidableImages(string markdown) =>
+        DataUriPayload().IsMatch(markdown);
+
     public static string ElideImages(string markdown) =>
         DataUriPayload().Replace(
             markdown,

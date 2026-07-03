@@ -200,6 +200,9 @@ public class SnapshotTests
         var text = await page.WaitForSelectorAsync(".result-text", new() { Timeout = 30000 });
         // The sample document embeds images; the pane view swaps their base64 payloads for size notes.
         await Assert.That(await text!.TextContentAsync()).Contains("KB elided");
+        // ...and captions that swap under the header.
+        var note = await page.WaitForSelectorAsync(".result-note", new() { Timeout = 30000 });
+        await Assert.That(await note!.TextContentAsync()).Contains("omitted for brevity");
 
         await page.SelectOptionAsync(".convert-panel .format-select", "Html");
         var frame = await page.WaitForSelectorAsync(".result-frame", new() { Timeout = 30000 });

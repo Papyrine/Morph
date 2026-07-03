@@ -14,6 +14,18 @@ public class MarkdownPreviewTests
     }
 
     [Test]
+    public async Task HasElidableImages_TracksWhatElideImagesWouldReplace()
+    {
+        var withImage = $"![alt](data:image/svg+xml;base64,{new string('A', 300)})";
+        var shortDataUri = "![icon](data:image/png;base64,iVBORw0KGgo=)";
+        var plain = "# Title\n\nSome text.";
+
+        await Assert.That(MarkdownPreview.HasElidableImages(withImage)).IsTrue();
+        await Assert.That(MarkdownPreview.HasElidableImages(shortDataUri)).IsFalse();
+        await Assert.That(MarkdownPreview.HasElidableImages(plain)).IsFalse();
+    }
+
+    [Test]
     public async Task ElideImages_KeepsShortDataUris()
     {
         var markdown = "![icon](data:image/png;base64,iVBORw0KGgo=)";
