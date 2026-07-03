@@ -1,1 +1,1 @@
-﻿Normal, **bold**, *italic*, ***bold italic***, [underlined]{.underline}, [***all combined***]{.underline}.
+﻿Normal, **bold**, *italic*, ***bold italic***, <u>underlined</u>, <u>***all combined***</u>.

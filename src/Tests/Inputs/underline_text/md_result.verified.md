@@ -1,1 +1,1 @@
-﻿Normal text, [underlined text]{.underline}, and normal again.
+﻿Normal text, <u>underlined text</u>, and normal again.

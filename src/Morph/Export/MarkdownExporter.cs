@@ -1,7 +1,7 @@
 /// <summary>
 /// Serializes a <see cref="ParsedDocument"/> to Markdown: CommonMark with GFM pipe tables and
-/// strikeout, plus <c>^sup^</c> / <c>~sub~</c> superscript-subscript spans and
-/// <c>[x]{.underline}</c> underline spans.
+/// strikeout. Where Markdown has no syntax the exporter falls back to inline HTML —
+/// <c>&lt;u&gt;</c>, <c>&lt;sup&gt;</c>, <c>&lt;sub&gt;</c>, and <c>&lt;br&gt;</c> in headings.
 /// </summary>
 static class MarkdownExporter
 {
@@ -332,44 +332,47 @@ static class MarkdownExporter
         // A heading's leading "#" already carries the emphasis, so heading runs skip the bold marker
         // (Word's Heading styles are bold by default, which would otherwise yield non-idiomatic
         // "## **Title**"). Explicit italic/strike/under stay — they signal intent beyond the style.
+        // Underline, superscript and subscript have no Markdown syntax, so they fall back to inline
+        // HTML (<u>, <sup>, <sub>), which Markdown renderers pass through; literal '<' in the text
+        // is already escaped by EscapeInline, so the generated tags stay unambiguous.
         static string Decorate(string text, RunProperties properties, bool suppressBold = false)
         {
             var prefix = new StringBuilder();
             var suffix = new StringBuilder();
 
-            void Wrap(string marker)
+            void Wrap(string open, string close)
             {
-                prefix.Append(marker);
-                suffix.Insert(0, marker);
+                prefix.Append(open);
+                suffix.Insert(0, close);
             }
 
             if (properties.Bold && !suppressBold)
             {
-                Wrap("**");
+                Wrap("**", "**");
             }
 
             if (properties.Italic)
             {
-                Wrap("*");
+                Wrap("*", "*");
             }
 
             if (properties.Strikethrough)
             {
-                Wrap("~~");
+                Wrap("~~", "~~");
             }
 
             switch (properties.VerticalAlignment)
             {
                 case VerticalRunAlignment.Superscript:
-                    Wrap("^");
+                    Wrap("<sup>", "</sup>");
                     break;
                 case VerticalRunAlignment.Subscript:
-                    Wrap("~");
+                    Wrap("<sub>", "</sub>");
                     break;
             }
 
             var decorated = $"{prefix}{text}{suffix}";
-            return properties.Underline ? $"[{decorated}]{{.underline}}" : decorated;
+            return properties.Underline ? $"<u>{decorated}</u>" : decorated;
         }
 
         /// <summary>Emits run-built inline content as a body block: hard breaks rendered, leading

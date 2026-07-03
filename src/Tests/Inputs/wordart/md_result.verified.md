@@ -82,9 +82,9 @@ Deflated
 
 **Section 5: Text Decorations**
 
-[**UNDERLINED TEXT**]{.underline}
+<u>**UNDERLINED TEXT**</u>
 
-[**DOUBLE UNDERLINE**]{.underline}
+<u>**DOUBLE UNDERLINE**</u>
 
 **~~STRIKETHROUGH~~**
 
@@ -92,7 +92,7 @@ Deflated
 
 **ALL CAPS STYLE**
 
-Superscript^2^ and Subscript~2~
+Superscript<sup>2</sup> and Subscript<sub>2</sub>
 
 **Section 6: Highlighted Text**
 
@@ -110,7 +110,7 @@ Superscript^2^ and Subscript~2~
 
 ***Bold + Italic + Color***
 
-[**Underline + Highlight**]{.underline}
+<u>**Underline + Highlight**</u>
 
 **Multi****-****Color** **Word**
 

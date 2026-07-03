@@ -1,15 +1,15 @@
 ﻿HTML hyperlinks:
 
-[Simple link to example.com]{.underline}
+<u>Simple link to example.com</u>
 
-[Link with title attribute]{.underline}
+<u>Link with title attribute</u>
 
-Text before [inline link]{.underline} and text after.
+Text before <u>inline link</u> and text after.
 
-[Email link]{.underline}
+<u>Email link</u>
 
-[Internal anchor link]{.underline}
+<u>Internal anchor link</u>
 
-[**Bold link**]{.underline}
+<u>**Bold link**</u>
 
-[*Italic link*]{.underline}
+<u>*Italic link*</u>

@@ -1,4 +1,4 @@
-﻿| [**\[Your Name\]**]{.underline} |
+﻿| <u>**\[Your Name\]**</u> |
 | --- |
 
 |  | \[Street Address\], \[City, ST Zip Code\] |  |  |

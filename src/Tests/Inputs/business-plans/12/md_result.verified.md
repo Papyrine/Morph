@@ -7,7 +7,7 @@
 
 |  |  |
 | --- | --- |
-|  | **Table of contents** [[introduction]{.underline} 3](#_Toc197443733) [[1.]{.underline} [executive summary]{.underline} 4](#_Toc197443734) [[2.]{.underline} [company overview]{.underline} 5](#_Toc197443735) [[3.]{.underline} [business description]{.underline} 6](#_Toc197443736) [[4.]{.underline} [market analysis]{.underline} 8](#_Toc197443737) [[5.]{.underline} [operating plan]{.underline} 10](#_Toc197443738) [[6.]{.underline} [marketing and sales plan]{.underline} 11](#_Toc197443739) [[7.]{.underline} [financial plan]{.underline} 12](#_Toc197443740) [[Appendix]{.underline} 15](#_Toc197443741) [[Instructions for Getting Started with Estimated Start-Up Costs]{.underline} 16](#_Toc197443742) [[Instructions for Getting Started on Profit & Loss Projections]{.underline} 18](#_Toc197443743) |
+|  | **Table of contents** [<u>introduction</u> 3](#_Toc197443733) [<u>1.</u> <u>executive summary</u> 4](#_Toc197443734) [<u>2.</u> <u>company overview</u> 5](#_Toc197443735) [<u>3.</u> <u>business description</u> 6](#_Toc197443736) [<u>4.</u> <u>market analysis</u> 8](#_Toc197443737) [<u>5.</u> <u>operating plan</u> 10](#_Toc197443738) [<u>6.</u> <u>marketing and sales plan</u> 11](#_Toc197443739) [<u>7.</u> <u>financial plan</u> 12](#_Toc197443740) [<u>Appendix</u> 15](#_Toc197443741) [<u>Instructions for Getting Started with Estimated Start-Up Costs</u> 16](#_Toc197443742) [<u>Instructions for Getting Started on Profit & Loss Projections</u> 18](#_Toc197443743) |
 
 # introduction
 

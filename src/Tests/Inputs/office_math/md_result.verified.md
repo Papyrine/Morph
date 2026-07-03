@@ -1,3 +1,3 @@
-﻿The Pythagorean theorem: *a*^2^+*b*^2^=*c*^2^
+﻿The Pythagorean theorem: *a*<sup>2</sup>+*b*<sup>2</sup>=*c*<sup>2</sup>
 
 A simple fraction: 1/2 is one half.

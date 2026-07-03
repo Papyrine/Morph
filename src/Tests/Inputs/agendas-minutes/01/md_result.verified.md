@@ -4,15 +4,15 @@ resume writing workshop
 
 Agenda 
 
-| Location: | 123 45^th^ Ave |
+| Location: | 123 45<sup>th</sup> Ave |
 | --- | --- |
-| Date: | May 5^th^ |
+| Date: | May 5<sup>th</sup> |
 | Time: | 11:00am – 2:00pm |
 | Instructor: | Michele Saaz |
 
 | **schedule** |  |  |
 | --- | --- | --- |
-| 11:00 AM | Registration & sign-in | 1^st^ floor lobby |
+| 11:00 AM | Registration & sign-in | 1<sup>st</sup> floor lobby |
 | 11:30 AM | Defining goals | Room 300 |
 | 12:15 PM | Shaping your personal brand | Room 300 |
 | 12:45 PM | Lunch break |  |
