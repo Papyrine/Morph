@@ -8,9 +8,9 @@ Company Name
 
 210 Stars Avenue, Berkley 
 
-**Target Audience Profiling Plan** 
+# Target Audience Profiling Plan 
 
-**INTERNAL DOCUMENT** 
+## INTERNAL DOCUMENT 
 
 | Develop a plan |
 | --- |

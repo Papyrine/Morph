@@ -1,11 +1,10 @@
-﻿**Chanchal**\
-**Sharma**
+﻿# Chanchal<br>Sharma
 
-**OFFICE MANAGER**
+## OFFICE MANAGER
 
 chanchals@example.com (718) 555–0100 LinkedIn profile
 
-**EXPERIENCE**
+## EXPERIENCE
 
 January 20xx - Current 
 
@@ -25,13 +24,13 @@ August 20xx – March 20xx
 
 Summarize your key responsibilities and accomplishments. Here again, take any opportunity to use words you find in the job description. Be concise, targeting 3-5 key areas.
 
-**education**
+## education
 
 Sep 20xx - May 20xx
 
 ## Associate degree, H.R. Management, Bellows College
 
-**SKILLS**
+## SKILLS
 
 Project management Data analysis Communication
 

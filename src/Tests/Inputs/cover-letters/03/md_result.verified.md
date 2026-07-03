@@ -1,6 +1,6 @@
-﻿**Sheetal Parmar**
+﻿# Sheetal Parmar
 
-Phlebotomist
+## Phlebotomist
 
 ## 316.555.0136 | sheetal@example.com
 

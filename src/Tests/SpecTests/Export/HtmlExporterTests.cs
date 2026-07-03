@@ -24,6 +24,21 @@ public class HtmlExporterTests
             Heading(2, "Overview")));
 
     [Test]
+    public Task TitleAndSubtitleBecomeHeadings() =>
+        VerifyHtml(Doc(
+            Styled("Title", "My Document"),
+            Styled("Subtitle", "A subtitle"),
+            Heading(1, "First Section")));
+
+    [Test]
+    public Task QuoteBecomesBlockQuote() =>
+        VerifyHtml(Doc(
+            Para(TextRun("Intro")),
+            Styled("Quote", TextRun("First quoted line.", italic: true)),
+            Styled("Quote", TextRun("Second quoted line.", italic: true)),
+            Para(TextRun("Outro"))));
+
+    [Test]
     public Task InlineFormatting() =>
         VerifyHtml(Doc(Para(
             TextRun("normal "),

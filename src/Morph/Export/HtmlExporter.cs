@@ -189,6 +189,23 @@ static class HtmlExporter
                     continue;
                 }
 
+                if (element is ParagraphElement quoteParagraph &&
+                    DocumentExportHelpers.IsQuote(quoteParagraph.Properties))
+                {
+                    var quoteItems = new List<ParagraphElement>();
+                    while (index < elements.Count &&
+                           elements[index] is ParagraphElement candidate &&
+                           DocumentExportHelpers.IsQuote(candidate.Properties))
+                    {
+                        quoteItems.Add(candidate);
+                        index++;
+                    }
+
+                    index--;
+                    WriteBlockQuote(quoteItems, depth);
+                    continue;
+                }
+
                 WriteBlock(element, depth);
             }
         }
@@ -291,6 +308,29 @@ static class HtmlExporter
             }
 
             Indent(depth).Append("<p>").Append(EncodeText(text)).Append("</p>\n");
+        }
+
+        // Consecutive Quote / Intense Quote paragraphs become one <blockquote> of plain <p>
+        // children. The blockquote is the semantic stand-in for the Quote style's visual indent, so
+        // the paragraph-level style (its indent / spacing) is dropped; run formatting — the style's
+        // italic in particular — still flows through AppendInline.
+        void WriteBlockQuote(IReadOnlyList<ParagraphElement> paragraphs, int depth)
+        {
+            var visible = paragraphs.Where(_ => !DocumentExportHelpers.IsBlank(_)).ToList();
+            if (visible.Count == 0)
+            {
+                return;
+            }
+
+            Indent(depth).Append("<blockquote>\n");
+            foreach (var paragraph in visible)
+            {
+                Indent(depth + 1).Append("<p>");
+                AppendInline(paragraph.Runs);
+                builder.Append("</p>\n");
+            }
+
+            Indent(depth).Append("</blockquote>\n");
         }
 
         // Resolves the image source before opening the <p> so a dropped image (no handler,

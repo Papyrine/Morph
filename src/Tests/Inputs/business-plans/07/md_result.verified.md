@@ -1,6 +1,6 @@
-﻿April 4, 20XX
+﻿## April 4, 20XX
 
-Business proposal
+# Business proposal
 
 This proposal outlines a streamlined solution designed to address key business challenges and drive growth. Our approach leverages industry expertise, innovative strategies, and data-driven insights to create a tailored plan that delivers measurable results.
 

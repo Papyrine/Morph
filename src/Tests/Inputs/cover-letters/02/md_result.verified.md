@@ -1,6 +1,6 @@
-﻿Manasi Goyal
+﻿# Manasi Goyal
 
-Graphic Designer
+## Graphic Designer
 
 +91 915 5894669 | www.interestingsite.com | manasi@example.com
 

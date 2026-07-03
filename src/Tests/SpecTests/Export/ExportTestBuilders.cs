@@ -33,6 +33,21 @@ static class ExportTestBuilders
             }
         };
 
+    // A paragraph carrying a named Word style (e.g. "Title", "Subtitle", "Quote"), the way the
+    // parser surfaces w:pStyle. Runs are passed explicitly so a test can set italic etc.
+    public static ParagraphElement Styled(string styleId, params Run[] runs) =>
+        new()
+        {
+            Runs = runs,
+            Properties = new()
+            {
+                StyleId = styleId,
+                SpacingAfterPoints = 8
+            }
+        };
+
+    public static ParagraphElement Styled(string styleId, string text) => Styled(styleId, TextRun(text));
+
     public static ParagraphElement Aligned(TextAlignment alignment, string text) =>
         new()
         {

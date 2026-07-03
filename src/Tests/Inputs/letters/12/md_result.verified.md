@@ -1,4 +1,4 @@
-﻿**VanArsdel, Ltd.**
+﻿# VanArsdel, Ltd.
 
 | Taylor Phillips<br>4321 N. Broad Street<br>Philadelphia, PA 21098 |  |
 | --- | --- |

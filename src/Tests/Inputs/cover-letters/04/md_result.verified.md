@@ -1,6 +1,6 @@
-﻿**Danielle Brasseur**
+﻿# Danielle Brasseur
 
-**4567 8****<sup>th</sup>** **Avenue, Carson City, NV 10111 | (313) 555-0100 | danielle@example.com | www.linkedin.com** 
+## 4567 8<sup>th</sup> Avenue, Carson City, NV 10111 | (313) 555-0100 | danielle@example.com | www.linkedin.com 
 
 ---
 

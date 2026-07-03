@@ -1,7 +1,6 @@
-﻿Chanchal\
-Sharma
+﻿# Chanchal<br>Sharma
 
-**Office Manager**
+## Office Manager
 
 (718) 555–0100
 
@@ -11,7 +10,7 @@ chanchals@example.com
 
 www.interestingsite.com
 
-**Experience**
+## Experience
 
 # Office manager, *The Phone Company* 
 
@@ -31,13 +30,13 @@ August 20XX – March 20XX
 
 Summarize your key responsibilities and accomplishments. Here again, take any opportunity to use words you find in the job description. Be concise, targeting 3-5 key areas.
 
-**Education**
+## Education
 
 Sep 20XX - May 20XX
 
 ## Associate degree, H.R. Management, Bellows College
 
-**Skills**
+## Skills
 
 Project management Data analysis Communication
 

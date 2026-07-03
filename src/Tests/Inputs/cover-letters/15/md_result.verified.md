@@ -1,7 +1,6 @@
-﻿Chanchal\
-Sharma
+﻿# Chanchal<br>Sharma
 
-**Contact information**
+## Contact information
 
 (718) 555–0100
 
@@ -9,7 +8,7 @@ chanchals@example.com
 
 4567 Main Street City, ST 98052
 
-**To**
+## To
 
 Hailey Clark
 
@@ -17,7 +16,7 @@ Kramer-Correia Construction
 
 123 Avenue A Metropolis, ST 54321
 
-**Dear Hailey Clark,**
+## Dear Hailey Clark,
 
 I am excited to apply for the office manager position at Kramer-Correia Construction. Although I do not have direct experience in the construction industry, I believe my skills in office management, organization, and communication will be highly valuable to your team.
 

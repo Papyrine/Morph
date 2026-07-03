@@ -10,10 +10,9 @@ Version 3.0
 
 April 4, 20XX
 
-**TACTICAL \
-MARKETING PLAN**
+# TACTICAL <br>MARKETING PLAN
 
-Advancing international strategies
+## Advancing international strategies
 
 # Tactical Marketing Plan 
 

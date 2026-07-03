@@ -22,6 +22,33 @@ public class MarkdownExporterTests
     }
 
     [Test]
+    public Task TitleAndSubtitleBecomeHeadings()
+    {
+        // Word's Title / Subtitle styles have no heading level of their own; they map to # / ##
+        // so the document's own title outranks the section headings below it.
+        var export = MarkdownExporter.Export(
+            Doc(
+                Styled("Title", "My Document"),
+                Styled("Subtitle", "A subtitle"),
+                Heading(1, "First Section")));
+        return Verify(export, extension: "md");
+    }
+
+    [Test]
+    public Task QuoteBecomesBlockQuote()
+    {
+        // Consecutive Quote-styled paragraphs collapse into one "> " block quote, separated by a
+        // bare ">" line; surrounding body paragraphs stay outside it.
+        var export = MarkdownExporter.Export(
+            Doc(
+                Para(TextRun("Intro")),
+                Styled("Quote", TextRun("First quoted line.", italic: true)),
+                Styled("Quote", TextRun("Second quoted line.", italic: true)),
+                Para(TextRun("Outro"))));
+        return Verify(export, extension: "md");
+    }
+
+    [Test]
     public Task InlineFormatting()
     {
         var export = MarkdownExporter.Export(

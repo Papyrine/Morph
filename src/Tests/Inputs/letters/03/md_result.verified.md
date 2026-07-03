@@ -1,12 +1,12 @@
-﻿*Your Name*
+﻿## *Your Name*
 
-*Company Name*
+## *Company Name*
 
-*Your Address*
+## *Your Address*
 
-Thank You
+# Thank You
 
-*Date*
+## *Date*
 
 Dear Recipient,
 

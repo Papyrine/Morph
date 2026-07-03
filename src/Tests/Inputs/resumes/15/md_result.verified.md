@@ -1,6 +1,6 @@
-﻿**Janna Gardner**
+﻿# Janna Gardner
 
-4567 Main Street, Chicago, Illinois 98052 • (716) 555-0100 • janna@example.com
+## 4567 Main Street, Chicago, Illinois 98052 • (716) 555-0100 • janna@example.com
 
 **Human Resources Generalist** with 6+ years of experience assisting with and fulfilling organization staffing needs and requirements. A proven track record of using my excellent personal, communication and organization skills to lead and improve HR departments, recruit excellent personnel, and improve department efficiencies. Team player with excellent communication skills, high quality of work, driven and highly self-motivated. Strong negotiating skills and business acumen and able to work independently.
 

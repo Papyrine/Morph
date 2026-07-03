@@ -42,6 +42,23 @@ static class MarkdownExporter
                     continue;
                 }
 
+                if (element is ParagraphElement {} quoteParagraph &&
+                    DocumentExportHelpers.IsQuote(quoteParagraph.Properties))
+                {
+                    var quoteItems = new List<ParagraphElement>();
+                    while (index < elements.Count &&
+                           elements[index] is ParagraphElement candidate &&
+                           DocumentExportHelpers.IsQuote(candidate.Properties))
+                    {
+                        quoteItems.Add(candidate);
+                        index++;
+                    }
+
+                    index--;
+                    WriteBlockQuote(quoteItems);
+                    continue;
+                }
+
                 WriteBlock(element);
             }
         }
@@ -126,6 +143,47 @@ static class MarkdownExporter
             }
 
             AppendInlineBlock(inline);
+        }
+
+        // Consecutive Quote / Intense Quote paragraphs become one CommonMark block quote: every
+        // line is prefixed with "> ", and paragraphs are separated by a bare ">" line so they stay
+        // in the same quote instead of splitting into adjacent ones.
+        void WriteBlockQuote(IReadOnlyList<ParagraphElement> paragraphs)
+        {
+            var lines = new List<string>();
+            foreach (var paragraph in paragraphs)
+            {
+                if (DocumentExportHelpers.IsBlank(paragraph))
+                {
+                    continue;
+                }
+
+                var inline = EscapeLineStart(HardBreaks(Inline(paragraph.Runs, inTable: false)).TrimStart(' ', '\t'));
+                if (inline.Length == 0)
+                {
+                    continue;
+                }
+
+                if (lines.Count > 0)
+                {
+                    lines.Add("");
+                }
+
+                lines.AddRange(inline.Split('\n'));
+            }
+
+            if (lines.Count == 0)
+            {
+                return;
+            }
+
+            EnsureBlankLine();
+            foreach (var line in lines)
+            {
+                builder.Append(line.Length == 0 ? ">" : "> ").Append(line).Append('\n');
+            }
+
+            builder.Append('\n');
         }
 
         void WriteList(IReadOnlyList<ListNode> nodes, string indent)
