@@ -7,8 +7,11 @@
 static class DocumentExportHelpers
 {
     /// <summary>
-    /// Returns the heading level (1-6) for a paragraph styled as <c>HeadingN</c>, or null when the
-    /// paragraph is not a heading. Levels beyond 6 are clamped to 6 (HTML has no <c>h7</c>).
+    /// Returns the heading level (1-6) to export a paragraph at, or null when it is not a heading.
+    /// <c>HeadingN</c> maps to level N (clamped to 6 — HTML has no <c>h7</c>). Word's <c>Title</c>
+    /// and <c>Subtitle</c> styles sit above the heading scale visually, so they map to levels 1
+    /// and 2 — otherwise the document's own title exports as an ordinary paragraph while
+    /// template-styled section labels below it become headings.
     /// </summary>
     public static int? TryGetHeadingLevel(ParagraphProperties properties)
     {
@@ -25,7 +28,34 @@ static class DocumentExportHelpers
             return Math.Min(level, 6);
         }
 
+        if (compact.Equals("Title", StringComparison.OrdinalIgnoreCase))
+        {
+            return 1;
+        }
+
+        if (compact.Equals("Subtitle", StringComparison.OrdinalIgnoreCase))
+        {
+            return 2;
+        }
+
         return null;
+    }
+
+    /// <summary>
+    /// Whether a paragraph uses Word's built-in <c>Quote</c> or <c>Intense Quote</c> style — the
+    /// paragraphs the exporters gather into a block quote. Custom template quote styles
+    /// (e.g. "Quotecentred") are deliberately not matched.
+    /// </summary>
+    public static bool IsQuote(ParagraphProperties properties)
+    {
+        if (properties.StyleId is not {Length: > 0} styleId)
+        {
+            return false;
+        }
+
+        var compact = styleId.Replace(" ", "");
+        return compact.Equals("Quote", StringComparison.OrdinalIgnoreCase) ||
+               compact.Equals("IntenseQuote", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

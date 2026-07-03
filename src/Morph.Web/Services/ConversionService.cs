@@ -57,7 +57,7 @@ public static class ConversionService
             });
     }
 
-    /// <summary>Exports the DOCX as Pandoc-flavoured Markdown.</summary>
+    /// <summary>Exports the DOCX as Markdown.</summary>
     public static string ToMarkdown(byte[] docx)
     {
         using var stream = new MemoryStream(docx);

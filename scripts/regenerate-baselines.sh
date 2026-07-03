@@ -8,8 +8,8 @@
 #      a baseline reset must be its own commit).
 #   2. Deletes every *.verified.* baseline under src/Tests/Inputs/ — the Skia
 #      and ImageSharp page PNGs/JSON plus the HTML/Markdown/PDF export snapshots
-#      (NOT the expected_*.png Word references or Pandoc's expected.* files,
-#      none of which carry the .verified. infix).
+#      (NOT the expected_*.png Word references, which do not carry the
+#      .verified. infix).
 #   3. Runs the test suite via scripts/test.sh — every scenario fails because
 #      .verified.* is missing, producing .received.* files.
 #   4. Promotes every *.received.* to *.verified.* in place.
@@ -36,8 +36,8 @@ INPUTS_DIR="src/Tests/Inputs"
 echo ">>> Removing existing Verify baselines under ${INPUTS_DIR}"
 # Every Verify baseline carries the ".verified." infix: the Skia/ImageSharp
 # page PNGs and result JSON, plus the HTML/Markdown/PDF export snapshots. The
-# Word references (expected_*.png) and Pandoc references (expected.*) have no
-# such infix, so they are left untouched.
+# Word references (expected_*.png) have no such infix, so they are left
+# untouched.
 find "$INPUTS_DIR" -name "*.verified.*" -delete
 
 echo ">>> Running test suite to produce .received.* files (failures are expected)"

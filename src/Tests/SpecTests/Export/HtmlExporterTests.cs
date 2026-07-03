@@ -1,6 +1,5 @@
 /// <summary>
-/// Low-level tests for <see cref="HtmlExporter"/>. Output is snapshotted; the shape of each case
-/// (which tags wrap which content) was cross-checked against Pandoc's DOCX → HTML behaviour.
+/// Low-level tests for <see cref="HtmlExporter"/>. Output is snapshotted.
 /// </summary>
 public class HtmlExporterTests
 {
@@ -23,6 +22,29 @@ public class HtmlExporterTests
         VerifyHtml(Doc(
             Heading(1, "Overview"),
             Heading(2, "Overview")));
+
+    [Test]
+    public Task HeadingBoldSuppressed() =>
+        // A heading is bold by default, so a bold run drops its <strong> (inheriting the h1
+        // weight); an explicitly non-bold run in the same heading still gets font-weight: normal.
+        VerifyHtml(Doc(Styled("Heading1",
+            TextRun("Bold part ", bold: true),
+            TextRun("normal part"))));
+
+    [Test]
+    public Task TitleAndSubtitleBecomeHeadings() =>
+        VerifyHtml(Doc(
+            Styled("Title", "My Document"),
+            Styled("Subtitle", "A subtitle"),
+            Heading(1, "First Section")));
+
+    [Test]
+    public Task QuoteBecomesBlockQuote() =>
+        VerifyHtml(Doc(
+            Para(TextRun("Intro")),
+            Styled("Quote", TextRun("First quoted line.", italic: true)),
+            Styled("Quote", TextRun("Second quoted line.", italic: true)),
+            Para(TextRun("Outro"))));
 
     [Test]
     public Task InlineFormatting() =>

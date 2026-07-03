@@ -57,7 +57,7 @@ public abstract class HtmlConverter
     public static async Task<string> ConvertToHtml(string html, HtmlExportOptions? options = null, Cancel cancel = default) =>
         HtmlExporter.Export(await ParseHtml(html, cancel), options);
 
-    /// <summary>Converts an HTML string to Pandoc-flavoured Markdown.</summary>
+    /// <summary>Converts an HTML string to Markdown.</summary>
     public static async Task<string> ConvertToMarkdown(string html, MarkdownExportOptions? options = null, Cancel cancel = default) =>
         MarkdownExporter.Export(await ParseHtml(html, cancel), options);
 

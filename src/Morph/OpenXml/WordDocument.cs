@@ -34,7 +34,7 @@ public sealed class WordDocument
     public string ExportToHtml(HtmlExportOptions? options = null) =>
         HtmlExporter.Export(Document, options);
 
-    /// <summary>Exports the document as Pandoc-flavoured Markdown.</summary>
+    /// <summary>Exports the document as Markdown.</summary>
     public string ExportToMarkdown(MarkdownExportOptions? options = null) =>
         MarkdownExporter.Export(Document, options);
 }

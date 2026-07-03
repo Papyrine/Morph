@@ -1,7 +1,8 @@
 /// <summary>
-/// Serializes a <see cref="ParsedDocument"/> to Pandoc-flavoured Markdown (CommonMark + GFM pipe
-/// tables, strikeout, and Pandoc's <c>^sup^</c> / <c>~sub~</c> / <c>[x]{.underline}</c> spans),
-/// mirroring what Pandoc produces for DOCX → Markdown.
+/// Serializes a <see cref="ParsedDocument"/> to Markdown: CommonMark with GFM pipe tables and
+/// strikeout. Where Markdown has no syntax the exporter falls back to inline HTML —
+/// <c>&lt;u&gt;</c>, <c>&lt;sup&gt;</c>, <c>&lt;sub&gt;</c>, and <c>&lt;br&gt;</c> for line
+/// breaks in headings and table cells.
 /// </summary>
 static class MarkdownExporter
 {
@@ -38,6 +39,23 @@ static class MarkdownExporter
                     index--;
                     WriteList(DocumentExportHelpers.BuildListForest(items), "");
                     builder.Append('\n');
+                    continue;
+                }
+
+                if (element is ParagraphElement {} quoteParagraph &&
+                    DocumentExportHelpers.IsQuote(quoteParagraph.Properties))
+                {
+                    var quoteItems = new List<ParagraphElement>();
+                    while (index < elements.Count &&
+                           elements[index] is ParagraphElement candidate &&
+                           DocumentExportHelpers.IsQuote(candidate.Properties))
+                    {
+                        quoteItems.Add(candidate);
+                        index++;
+                    }
+
+                    index--;
+                    WriteBlockQuote(quoteItems);
                     continue;
                 }
 
@@ -120,11 +138,52 @@ static class MarkdownExporter
 
             if (level != null)
             {
-                AppendBlock($"{new string('#', level.Value)} {inline}");
+                AppendBlock($"{new string('#', level.Value)} {HtmlBreaks(inline)}");
                 return;
             }
 
             AppendInlineBlock(inline);
+        }
+
+        // Consecutive Quote / Intense Quote paragraphs become one CommonMark block quote: every
+        // line is prefixed with "> ", and paragraphs are separated by a bare ">" line so they stay
+        // in the same quote instead of splitting into adjacent ones.
+        void WriteBlockQuote(IReadOnlyList<ParagraphElement> paragraphs)
+        {
+            var lines = new List<string>();
+            foreach (var paragraph in paragraphs)
+            {
+                if (DocumentExportHelpers.IsBlank(paragraph))
+                {
+                    continue;
+                }
+
+                var inline = EscapeLineStart(HardBreaks(Inline(paragraph.Runs, inTable: false)).TrimStart(' ', '\t'));
+                if (inline.Length == 0)
+                {
+                    continue;
+                }
+
+                if (lines.Count > 0)
+                {
+                    lines.Add("");
+                }
+
+                lines.AddRange(inline.Split('\n'));
+            }
+
+            if (lines.Count == 0)
+            {
+                return;
+            }
+
+            EnsureBlankLine();
+            foreach (var line in lines)
+            {
+                builder.Append(line.Length == 0 ? ">" : "> ").Append(line).Append('\n');
+            }
+
+            builder.Append('\n');
         }
 
         void WriteList(IReadOnlyList<ListNode> nodes, string indent)
@@ -163,8 +222,6 @@ static class MarkdownExporter
                 return;
             }
 
-            EnsureBlankLine();
-
             var columnCount = 0;
             foreach (var row in table.Rows)
             {
@@ -176,6 +233,22 @@ static class MarkdownExporter
 
                 columnCount = Math.Max(columnCount, width);
             }
+
+            // A table with no cell content is decoration, not data — templates use bordered or
+            // shaded empty tables as dividers and colour blocks. An empty pipe table renders as a
+            // blank header strip, so a decorated blank table degrades to a thematic break and a
+            // bare one is dropped.
+            if (IsBlankTable(table))
+            {
+                if (HasVisibleDecoration(table, columnCount))
+                {
+                    AppendBlock("---");
+                }
+
+                return;
+            }
+
+            EnsureBlankLine();
 
             WriteTableRow(table.Rows[0], columnCount);
             builder.Append('|');
@@ -230,7 +303,7 @@ static class MarkdownExporter
                 switch (element)
                 {
                     case ParagraphElement paragraph when !DocumentExportHelpers.IsBlank(paragraph):
-                        parts.Add(Inline(paragraph.Runs, inTable: true));
+                        parts.Add(HtmlBreaks(Inline(paragraph.Runs, inTable: true)));
                         break;
                     case TableElement nestedTable:
                         // A pipe-table cell cannot hold a table, so flatten the nested cells'
@@ -257,7 +330,65 @@ static class MarkdownExporter
                 }
             }
 
-            return string.Join(" ", parts);
+            // A pipe-table cell cannot hold real block structure, so consecutive paragraphs join
+            // with <br> — keeping the paragraph boundaries visible instead of flowing into one line.
+            return string.Join("<br>", parts);
+        }
+
+        // Blank in the same sense CellText renders empty: no non-blank paragraph, no image, and no
+        // nested table with content anywhere in the cell tree.
+        static bool IsBlankTable(TableElement table)
+        {
+            foreach (var row in table.Rows)
+            {
+                foreach (var cell in row.Cells)
+                {
+                    foreach (var element in cell.Content)
+                    {
+                        switch (element)
+                        {
+                            case ParagraphElement paragraph when !DocumentExportHelpers.IsBlank(paragraph):
+                                return false;
+                            case ImageElement:
+                            case FloatingImageElement:
+                                return false;
+                            case TableElement nested when !IsBlankTable(nested):
+                                return false;
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        // Whether any cell shows a border (through the cell → row-override → table cascade) or a
+        // shading fill — the signals that a blank table is a visual divider / colour block.
+        static bool HasVisibleDecoration(TableElement table, int columnCount)
+        {
+            var rows = table.Rows;
+            for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
+            {
+                var gridColumn = 0;
+                foreach (var cell in rows[rowIndex].Cells)
+                {
+                    if (DocumentExportHelpers.NormalizeColor(cell.Properties.BackgroundColorHex) != null)
+                    {
+                        return true;
+                    }
+
+                    var borders = TableLayout.ResolveCellBorders(
+                        cell.Properties, table.Properties, rowIndex, gridColumn, rows.Count, columnCount, rows[rowIndex]);
+                    if (borders is {HasAnyBorder: true})
+                    {
+                        return true;
+                    }
+
+                    gridColumn += Math.Max(1, cell.Properties.GridSpan);
+                }
+            }
+
+            return false;
         }
 
         string Inline(IReadOnlyList<Run> sourceRuns, bool inTable, bool inHeading = false)
@@ -307,12 +438,12 @@ static class MarkdownExporter
                 return;
             }
 
-            // Preserve source case for AllCaps (matches Pandoc) — Markdown has no styling layer
-            // to recover the visual uppercasing, but keeping the case makes the text reusable.
-            // A w:br arrives as '\n' in run text: tables and headings are single-line constructs
-            // in Markdown so the break degrades to a space there; body text keeps the newline,
-            // which HardBreaks() later renders as a Pandoc-style backslash hard break.
-            var raw = inTable || inHeading ? run.Text.Replace('\n', ' ') : run.Text;
+            // Preserve source case for AllCaps — Markdown has no styling layer to recover the
+            // visual uppercasing, but keeping the case makes the text reusable.
+            // A w:br arrives as '\n' in run text and survives Inline(): body text renders it as a
+            // backslash hard break (HardBreaks); headings and table cells — single-line constructs
+            // where a real newline would end the block — render it as an inline <br> (HtmlBreaks).
+            var raw = run.Text;
 
             var leadingLength = LeadingWhitespaceLength(raw);
             var trailingLength = TrailingWhitespaceLength(raw, leadingLength);
@@ -331,44 +462,47 @@ static class MarkdownExporter
         // A heading's leading "#" already carries the emphasis, so heading runs skip the bold marker
         // (Word's Heading styles are bold by default, which would otherwise yield non-idiomatic
         // "## **Title**"). Explicit italic/strike/under stay — they signal intent beyond the style.
+        // Underline, superscript and subscript have no Markdown syntax, so they fall back to inline
+        // HTML (<u>, <sup>, <sub>), which Markdown renderers pass through; literal '<' in the text
+        // is already escaped by EscapeInline, so the generated tags stay unambiguous.
         static string Decorate(string text, RunProperties properties, bool suppressBold = false)
         {
             var prefix = new StringBuilder();
             var suffix = new StringBuilder();
 
-            void Wrap(string marker)
+            void Wrap(string open, string close)
             {
-                prefix.Append(marker);
-                suffix.Insert(0, marker);
+                prefix.Append(open);
+                suffix.Insert(0, close);
             }
 
             if (properties.Bold && !suppressBold)
             {
-                Wrap("**");
+                Wrap("**", "**");
             }
 
             if (properties.Italic)
             {
-                Wrap("*");
+                Wrap("*", "*");
             }
 
             if (properties.Strikethrough)
             {
-                Wrap("~~");
+                Wrap("~~", "~~");
             }
 
             switch (properties.VerticalAlignment)
             {
                 case VerticalRunAlignment.Superscript:
-                    Wrap("^");
+                    Wrap("<sup>", "</sup>");
                     break;
                 case VerticalRunAlignment.Subscript:
-                    Wrap("~");
+                    Wrap("<sub>", "</sub>");
                     break;
             }
 
             var decorated = $"{prefix}{text}{suffix}";
-            return properties.Underline ? $"[{decorated}]{{.underline}}" : decorated;
+            return properties.Underline ? $"<u>{decorated}</u>" : decorated;
         }
 
         /// <summary>Emits run-built inline content as a body block: hard breaks rendered, leading
@@ -463,8 +597,8 @@ static class MarkdownExporter
             return count;
         }
 
-        // A '\n' surviving Inline() is a w:br hard line break. Render it Pandoc-style — a
-        // backslash before the newline. Continuation lines are left-trimmed (paragraph parsing
+        // A '\n' surviving Inline() is a w:br hard line break. Render it as a backslash before
+        // the newline. Continuation lines are left-trimmed (paragraph parsing
         // strips the whitespace anyway, and 0-3 leading spaces would not stop a block construct
         // from matching) and line-start escaped so "- next" cannot re-parse as a nested block.
         // Leading / trailing breaks are dropped: a backslash at the very start or end of a
@@ -500,6 +634,30 @@ static class MarkdownExporter
             }
 
             return joined.ToString();
+        }
+
+        // A '\n' surviving Inline() is a w:br. Headings and table cells occupy a single source
+        // line — a real newline would end the heading / break the row — so the break becomes an
+        // inline <br>, matching the HTML exporter. Leading / trailing breaks are dropped.
+        static string HtmlBreaks(string inline)
+        {
+            if (!inline.Contains('\n'))
+            {
+                return inline;
+            }
+
+            var segments = new List<string>(inline.Split('\n'));
+            while (segments.Count > 0 && string.IsNullOrWhiteSpace(segments[0]))
+            {
+                segments.RemoveAt(0);
+            }
+
+            while (segments.Count > 0 && string.IsNullOrWhiteSpace(segments[^1]))
+            {
+                segments.RemoveAt(segments.Count - 1);
+            }
+
+            return string.Join("<br>", segments);
         }
 
         // Escapes the leading character(s) of a line that would otherwise open a block construct
