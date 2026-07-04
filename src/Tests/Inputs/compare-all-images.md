@@ -673,7 +673,7 @@ The remaining ~5pt gap (linePitch 18 + cell padding 7.2 = 25.2pt vs Word's 30pt)
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1485** | **Page 1. ErrorMetric: 0.9965** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1485** | **Page 1. ErrorMetric: 0.1382** |
 | <img src="business-plans/04/expected_0001.png" width="500"> | <img src="business-plans/04/skia_result%23page_0001.verified.png" width="500"> | <img src="business-plans/04/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## business-plans/05
@@ -689,14 +689,14 @@ The remaining ~5pt gap (linePitch 18 + cell padding 7.2 = 25.2pt vs Word's 30pt)
 | --- | --- | --- |
 | **Page 1** | **Page 1. ErrorMetric: 0.4007** | **Page 1. ErrorMetric: 0.4065** |
 | <img src="business-plans/06/expected_0001.png" width="500"> | <img src="business-plans/06/skia_result%23page_0001.verified.png" width="500"> | <img src="business-plans/06/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.1103** | **Page 2. ErrorMetric: 0.9903** |
+| **Page 2** | **Page 2. ErrorMetric: 0.1103** | **Page 2. ErrorMetric: 0.1035** |
 | <img src="business-plans/06/expected_0002.png" width="500"> | <img src="business-plans/06/skia_result%23page_0002.verified.png" width="500"> | <img src="business-plans/06/imagesharp_result%23page_0002.verified.png" width="500"> |
 
 ## business-plans/07
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1100** | **Page 1. ErrorMetric: 0.7998** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1100** | **Page 1. ErrorMetric: 0.1124** |
 | <img src="business-plans/07/expected_0001.png" width="500"> | <img src="business-plans/07/skia_result%23page_0001.verified.png" width="500"> | <img src="business-plans/07/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## business-plans/08
@@ -705,7 +705,7 @@ The remaining ~5pt gap (linePitch 18 + cell padding 7.2 = 25.2pt vs Word's 30pt)
 | --- | --- | --- |
 | **Page 1** | **Page 1. ErrorMetric: 0.0925** | **Page 1. ErrorMetric: 0.0837** |
 | <img src="business-plans/08/expected_0001.png" width="500"> | <img src="business-plans/08/skia_result%23page_0001.verified.png" width="500"> | <img src="business-plans/08/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.1235** | **Page 2. ErrorMetric: 0.8288** |
+| **Page 2** | **Page 2. ErrorMetric: 0.1235** | **Page 2. ErrorMetric: 0.1240** |
 | <img src="business-plans/08/expected_0002.png" width="500"> | <img src="business-plans/08/skia_result%23page_0002.verified.png" width="500"> | <img src="business-plans/08/imagesharp_result%23page_0002.verified.png" width="500"> |
 
 ## business-plans/09

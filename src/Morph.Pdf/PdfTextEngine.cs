@@ -11,6 +11,28 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 {
     readonly XGraphics measure = XGraphics.CreateMeasureContext(new(2000, 2000), XGraphicsUnit.Point, XPageDirection.Downwards);
 
+    // A table-cell paragraph is laid out ~5× (autofit natural + minimum width, row height,
+    // vertical-align measure, draw); positioned frames 3×. The layout is pure per
+    // (paragraph, width), so memoize it for the engine's lifetime (one document render) —
+    // the same design as the Skia/ImageSharp paged/bounded layout caches. Draw() never
+    // mutates the returned lines.
+    readonly Dictionary<(ParagraphElement Paragraph, double Width), List<Line>> layoutCache = [];
+
+    // Space width, ascent and raw line height are constant per XFont; the layout loop used to
+    // re-measure a space per whitespace token and recompute ascent/height per run.
+    readonly Dictionary<XFont, (double SpaceWidth, double Ascent, double RawHeight)> fontMetricsCache = [];
+
+    (double SpaceWidth, double Ascent, double RawHeight) Metrics(XFont font)
+    {
+        if (!fontMetricsCache.TryGetValue(font, out var metrics))
+        {
+            metrics = (measure.MeasureString(" ", font).Width, ComputeAscent(font), font.GetHeight());
+            fontMetricsCache[font] = metrics;
+        }
+
+        return metrics;
+    }
+
     // ---- IParagraphMeasurer (used by shared table-layout / pagination math) ----
 
     public List<float> LayoutParagraphForMeasurement(ParagraphElement paragraph, float maxWidth)
@@ -171,7 +193,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                     var firstProperties = paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new();
                     var markerFont = context.GetFont(firstProperties.FontFamily, firstProperties.Bold, false, firstProperties.FontSizePoints);
                     var markerText = numbering.Text;
-                    var markerBrush = new XSolidBrush(PdfRenderContext.ParseColor(firstProperties.ColorHex));
+                    var markerBrush = context.GetBrush(PdfRenderContext.ParseColor(firstProperties.ColorHex));
                     var hangingIndent = paragraph.Properties.HangingIndentPoints;
                     var markerX = hangingIndent > 0.01
                         ? penX - hangingIndent
@@ -219,7 +241,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         TrackContextualSpacing(paragraph);
     }
 
-    static void DrawItem(XGraphics graphics, LineItem item, double penX, double baseline)
+    void DrawItem(XGraphics graphics, LineItem item, double penX, double baseline)
     {
         var properties = item.Props;
         var drawBaseline = baseline;
@@ -232,19 +254,19 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             drawBaseline += properties.FontSizePoints * 0.14;
         }
 
-        var brush = new XSolidBrush(PdfRenderContext.ParseColor(properties.ColorHex));
-        graphics.DrawString(item.Text!, item.Font, brush, new XPoint(penX, drawBaseline), baselineFormat);
+        var color = PdfRenderContext.ParseColor(properties.ColorHex);
+        graphics.DrawString(item.Text!, item.Font, context.GetBrush(color), new XPoint(penX, drawBaseline), baselineFormat);
 
         if (properties.Underline)
         {
-            var pen = new XPen(PdfRenderContext.ParseColor(properties.ColorHex), Math.Max(0.5, item.Font.Size / 16));
+            var pen = context.GetPen(color, Math.Max(0.5, item.Font.Size / 16));
             var y = drawBaseline + item.Font.Size * 0.12;
             graphics.DrawLine(pen, penX, y, penX + item.Width, y);
         }
 
         if (properties.Strikethrough)
         {
-            var pen = new XPen(PdfRenderContext.ParseColor(properties.ColorHex), Math.Max(0.5, item.Font.Size / 16));
+            var pen = context.GetPen(color, Math.Max(0.5, item.Font.Size / 16));
             var y = drawBaseline - item.Ascent * 0.3;
             graphics.DrawLine(pen, penX, y, penX + item.Width, y);
         }
@@ -263,7 +285,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
         if (item.TabLeader == TabLeader.Underscore)
         {
-            var pen = new XPen(color, Math.Max(0.5, item.Font.Size / 16));
+            var pen = context.GetPen(color, Math.Max(0.5, item.Font.Size / 16));
             var y = baseline + item.Font.Size * 0.12;
             graphics.DrawLine(pen, penX, y, penX + item.Width, y);
             return;
@@ -278,7 +300,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             _ => '.'
         };
 
-        var glyphWidth = measure.MeasureString(leaderChar.ToString(), item.Font).Width;
+        var glyphWidth = LeaderGlyphWidth(leaderChar, item.Font);
         if (glyphWidth <= 0)
         {
             return;
@@ -290,10 +312,25 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             return;
         }
 
-        graphics.DrawString(new(leaderChar, count), item.Font, new XSolidBrush(color), new XPoint(penX, baseline), baselineFormat);
+        graphics.DrawString(new(leaderChar, count), item.Font, context.GetBrush(color), new XPoint(penX, baseline), baselineFormat);
     }
 
-    static void DrawImage(XGraphics? graphics, LineItem item, double penX, double baseline)
+    // A TOC redraws the same dot leader on every entry; the glyph width is constant per font.
+    readonly Dictionary<(char Leader, XFont Font), double> leaderGlyphWidths = [];
+
+    double LeaderGlyphWidth(char leaderChar, XFont font)
+    {
+        var key = (leaderChar, font);
+        if (!leaderGlyphWidths.TryGetValue(key, out var width))
+        {
+            width = measure.MeasureString(leaderChar.ToString(), font).Width;
+            leaderGlyphWidths[key] = width;
+        }
+
+        return width;
+    }
+
+    void DrawImage(XGraphics? graphics, LineItem item, double penX, double baseline)
     {
         if (graphics == null || item.ImageData == null)
         {
@@ -302,8 +339,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
         try
         {
-            using var stream = new MemoryStream(item.ImageData);
-            var image = XImage.FromStream(stream);
+            var image = context.GetImage(item.ImageData);
             graphics.DrawImage(image, penX, baseline - item.ImageHeight, item.ImageWidth, item.ImageHeight);
         }
         catch
@@ -413,6 +449,12 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
     List<Line> Layout(ParagraphElement paragraph, double availableWidth)
     {
+        var cacheKey = (paragraph, availableWidth);
+        if (layoutCache.TryGetValue(cacheKey, out var cachedLines))
+        {
+            return cachedLines;
+        }
+
         var lines = new List<Line>();
         if (availableWidth <= 0)
         {
@@ -501,8 +543,8 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             }
 
             var font = context.GetFont(run.Properties);
-            var ascent = Ascent(font);
-            var lineHeight = font.GetHeight() * multiplier;
+            var (spaceWidth, ascent, rawHeight) = Metrics(font);
+            var lineHeight = rawHeight * multiplier;
 
             if (run.IsTab)
             {
@@ -520,7 +562,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                                 Width = pendingSpaceWidth,
                                 IsSpace = true,
                                 Ascent = Ascent(pendingSpaceFont ?? font),
-                                Height = (pendingSpaceFont ?? font).GetHeight() * multiplier
+                                Height = Metrics(pendingSpaceFont ?? font).RawHeight * multiplier
                             });
                         current.SpaceCount++;
                         pendingSpaceWidth = 0;
@@ -533,13 +575,13 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                     // that follows the tab. The gap becomes a tab-filler item carrying the stop's
                     // leader (dots/hyphens/underscore) so it renders like Word, not a plain space.
                     var cursorFromLeft = leftIndent + current.Width;
-                    var followingWidth = MeasureFollowingWidth(paragraph.Runs, runIndex + 1);
+                    var tabRunIndex = runIndex;
                     var decimalPrefix = paragraph.Properties.HasDecimalTabStop()
                         ? MeasureFollowingDecimalPrefix(paragraph.Runs, runIndex + 1)
                         : null;
                     var (destination, matchedStop, suppressFollowing) = TabStopResolver.Resolve(
                         cursorFromLeft,
-                        followingWidth,
+                        () => MeasureFollowingWidth(paragraph.Runs, tabRunIndex + 1),
                         paragraph.Properties.TabStops,
                         paragraph.Properties.DefaultTabStopPoints,
                         leftIndent,
@@ -603,7 +645,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                         continue;
                     }
 
-                    pendingSpaceWidth += measure.MeasureString(" ", font).Width * token.Text.Length;
+                    pendingSpaceWidth += spaceWidth * token.Text.Length;
                     pendingSpaceFont = font;
                     pendingSpaceProps = run.Properties;
                     continue;
@@ -625,7 +667,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                             Width = pendingSpaceWidth,
                             IsSpace = true,
                             Ascent = Ascent(pendingSpaceFont ?? font),
-                            Height = (pendingSpaceFont ?? font).GetHeight() * multiplier
+                            Height = Metrics(pendingSpaceFont ?? font).RawHeight * multiplier
                         });
                     current.SpaceCount++;
                 }
@@ -654,10 +696,13 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             lines[^1].IsLast = true;
         }
 
+        layoutCache[cacheKey] = lines;
         return lines;
     }
 
-    static double Ascent(XFont font)
+    double Ascent(XFont font) => Metrics(font).Ascent;
+
+    static double ComputeAscent(XFont font)
     {
         var metrics = font.Metrics;
         if (metrics.UnitsPerEm > 0)

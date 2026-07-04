@@ -12,7 +12,7 @@ static class ShapeParser
     /// Parses a Drawing element to extract background shapes (solid fill or image fill shapes behind text).
     /// Filters out decorative shapes (those with complex bezier paths) and returns remaining shapes.
     /// </summary>
-    public static List<FloatingShapeElement> ParseBackgroundShapes(Drawing drawing, ThemeColors? themeColors, MainDocumentPart? mainPart = null, double paragraphSpacingBeforePoints = 0)
+    public static List<FloatingShapeElement> ParseBackgroundShapes(Drawing drawing, ThemeColors? themeColors, MainDocumentPart? mainPart = null, double paragraphSpacingBeforePoints = 0, Func<OpenXmlPart, byte[]>? partBytes = null)
     {
         var result = new List<FloatingShapeElement>();
 
@@ -76,7 +76,7 @@ static class ShapeParser
             foreach (var wsp in wgp.Descendants<WPS.WordprocessingShape>())
             {
                 var shapeElement = ParseGroupedShape(wsp, themeColors, positioning,
-                    chOffX, chOffY, scaleX, scaleY, mainPart);
+                    chOffX, chOffY, scaleX, scaleY, mainPart, partBytes);
                 if (shapeElement != null)
                 {
                     result.Add(shapeElement);
@@ -90,7 +90,7 @@ static class ShapeParser
             if (wsp != null)
             {
                 var shapeElement = ParseStandaloneShape(wsp, themeColors, positioning,
-                    anchorWidthPt, anchorHeightPt, mainPart);
+                    anchorWidthPt, anchorHeightPt, mainPart, partBytes);
                 if (shapeElement != null)
                 {
                     result.Add(shapeElement);
@@ -110,7 +110,8 @@ static class ShapeParser
         AnchorPositioning positioning,
         double widthPoints,
         double heightPoints,
-        MainDocumentPart? mainPart)
+        MainDocumentPart? mainPart,
+        Func<OpenXmlPart, byte[]>? partBytes)
     {
         var shapeProps = wsp.GetFirstChild<WPS.ShapeProperties>();
         if (shapeProps == null)
@@ -198,7 +199,7 @@ static class ShapeParser
         if (blipFill != null &&
             mainPart != null)
         {
-            var (imageData, contentType) = ExtractBlipFillImage(blipFill, mainPart);
+            var (imageData, contentType) = ExtractBlipFillImage(blipFill, mainPart, partBytes);
             if (imageData != null)
             {
                 return new()
@@ -512,7 +513,8 @@ static class ShapeParser
         AnchorPositioning positioning,
         long chOffX, long chOffY,
         double scaleX, double scaleY,
-        MainDocumentPart? mainPart)
+        MainDocumentPart? mainPart,
+        Func<OpenXmlPart, byte[]>? partBytes)
     {
         var shapeProps = wsp.GetFirstChild<WPS.ShapeProperties>();
         if (shapeProps == null)
@@ -600,7 +602,7 @@ static class ShapeParser
         if (blipFill != null &&
             mainPart != null)
         {
-            var (imageData, contentType) = ExtractBlipFillImage(blipFill, mainPart);
+            var (imageData, contentType) = ExtractBlipFillImage(blipFill, mainPart, partBytes);
             if (imageData != null)
             {
                 return new()
@@ -788,9 +790,10 @@ static class ShapeParser
     }
 
     /// <summary>
-    /// Extracts image data from a blip fill element.
+    /// Extracts image data from a blip fill element. <paramref name="partBytes"/> is the
+    /// caller's per-parse part-buffer cache, so repeated references share one array.
     /// </summary>
-    static (byte[]? ImageData, string? ContentType) ExtractBlipFillImage(A.BlipFill blipFill, MainDocumentPart mainPart)
+    static (byte[]? ImageData, string? ContentType) ExtractBlipFillImage(A.BlipFill blipFill, MainDocumentPart mainPart, Func<OpenXmlPart, byte[]>? partBytes)
     {
         var blip = blipFill.GetFirstChild<A.Blip>();
         if (blip == null)
@@ -810,10 +813,18 @@ static class ShapeParser
             return (null, null);
         }
 
-        using var stream = imagePart.GetStream();
-        using var ms = new MemoryStream();
-        stream.CopyTo(ms);
-        var imageData = ms.ToArray();
+        byte[] imageData;
+        if (partBytes != null)
+        {
+            imageData = partBytes(imagePart);
+        }
+        else
+        {
+            using var stream = imagePart.GetStream();
+            using var ms = new MemoryStream();
+            stream.CopyTo(ms);
+            imageData = ms.ToArray();
+        }
 
         if (imageData.Length == 0)
         {

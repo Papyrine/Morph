@@ -8,17 +8,6 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
     protected override IParagraphMeasurer Measurer => textRenderer;
     protected override bool HasOutput => currentCanvas != null;
 
-    /// <summary>
-    /// Safely decodes image data, returning null for unsupported formats
-    /// instead of throwing when <see cref="SKCodec"/> cannot handle the data.
-    /// </summary>
-    static SKBitmap? DecodeBitmap(byte[] data)
-    {
-        using var skData = SKData.CreateCopy(data);
-        using var codec = SKCodec.Create(skData);
-        return codec != null ? SKBitmap.Decode(codec) : null;
-    }
-
     TextRenderer textRenderer = new(context);
 
     Action<Action<Stream>>? pageCallback;
@@ -528,7 +517,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
         else
         {
-            using var skImage = DecodeBitmap(imageData);
+            var skImage = context.GetBitmap(imageData);
             if (skImage != null)
             {
                 using var paint = BuildBlipColorEffectPaint(colorEffect);
@@ -577,12 +566,14 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 new()
                 {
                     // Match Word's "Washout" picture preset: brightness +70%, contrast −50% — i.e.
-                    // gain 0.50 + bias 128 on each channel, producing a faded version of the image.
+                    // gain 0.50 + half-scale bias on each channel, producing a faded version of the
+                    // image. The matrix translate column is 0..1-normalized in SkiaSharp, so the
+                    // bias is 0.5 (a 255-scaled value saturates every channel to white).
                     ColorFilter = SKColorFilter.CreateColorMatrix(
                     [
-                        0.5f, 0, 0, 0, 128,
-                        0, 0.5f, 0, 0, 128,
-                        0, 0, 0.5f, 0, 128,
+                        0.5f, 0, 0, 0, 0.5f,
+                        0, 0.5f, 0, 0, 0.5f,
+                        0, 0, 0.5f, 0, 0.5f,
                         0, 0, 0, 1, 0
                     ])
                 },
@@ -597,55 +588,14 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             return;
         }
 
-        var processedData = SvgPreprocessor.StripStyleAndClass(svgData);
-
-        using var svg = new SKSvg();
-        using var stream = new MemoryStream(processedData);
-        var picture = svg.Load(stream);
-
-        if (picture == null)
+        // Preprocessing, parsing and rasterization are cached on the context — an SVG header
+        // logo repeats on every page with a stable destination size. The raster draws to a
+        // bitmap first because DrawPicture is unreliable on some canvases.
+        var bitmap = context.GetSvgRaster(svgData, destRect.Width, destRect.Height, crop, originAdjusted: true);
+        if (bitmap != null)
         {
-            return;
+            currentCanvas.DrawBitmap(bitmap, destRect.Left, destRect.Top);
         }
-
-        // Calculate scale to fit the destination rectangle
-        var svgBounds = picture.CullRect;
-        if (svgBounds is not {Width: > 0, Height: > 0})
-        {
-            return;
-        }
-
-        // a:srcRect crop: stretch only the requested sub-rect of the SVG into destRect.
-        // l/t/r/b are fractions of the source extent (Right/Bottom are insets from the edge).
-        var srcLeft = svgBounds.Left;
-        var srcTop = svgBounds.Top;
-        var srcWidth = svgBounds.Width;
-        var srcHeight = svgBounds.Height;
-        if (crop is {IsCropped: true} c)
-        {
-            srcLeft = svgBounds.Left + (float) c.Left * svgBounds.Width;
-            srcTop = svgBounds.Top + (float) c.Top * svgBounds.Height;
-            srcWidth = (float) (1 - c.Left - c.Right) * svgBounds.Width;
-            srcHeight = (float) (1 - c.Top - c.Bottom) * svgBounds.Height;
-            if (srcWidth <= 0 || srcHeight <= 0)
-            {
-                return;
-            }
-        }
-
-        var scaleX = destRect.Width / srcWidth;
-        var scaleY = destRect.Height / srcHeight;
-
-        // Render SVG to a bitmap first (more reliable than DrawPicture on some canvases).
-        // Translate so the source sub-rect's top-left lands at the bitmap origin, then scale.
-        using var bitmap = new SKBitmap((int) destRect.Width, (int) destRect.Height);
-        using var tempCanvas = new SKCanvas(bitmap);
-        tempCanvas.Clear(SKColors.Transparent);
-        tempCanvas.Scale(scaleX, scaleY);
-        tempCanvas.Translate(-srcLeft, -srcTop);
-        tempCanvas.DrawPicture(picture);
-
-        currentCanvas.DrawBitmap(bitmap, destRect.Left, destRect.Top);
     }
 
     void RenderWordArt(WordArtElement wordArt)
@@ -1597,7 +1547,9 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
     }
 
     /// <summary>
-    /// Measures the total height of a table for pagination purposes.
+    /// Measures the total height of a table for pagination purposes. Shares the memoized
+    /// layout with <see cref="PageRendererBase.RenderTable"/>, so the follow-up render
+    /// doesn't recompute it.
     /// </summary>
     float MeasureTableHeight(TableElement table)
     {
@@ -1606,12 +1558,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             return 0;
         }
 
-        var colCount = TableLayout.GetColumnCount(table);
-
-        var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth, textRenderer);
-        var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, textRenderer, TableLayout.HasVerticalMerge(table));
-
-        return rowHeights.Sum();
+        return GetTableLayout(table).RowHeights.Sum();
     }
 
 
@@ -1699,7 +1646,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
         else
         {
-            using var skImage = DecodeBitmap(image.ImageData);
+            var skImage = context.GetBitmap(image.ImageData);
             if (skImage != null)
             {
                 currentCanvas.DrawBitmap(skImage, destRect);
@@ -1761,11 +1708,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             return;
         }
 
-        using var bgPaint = new SKPaint
-        {
-            Color = ParseColor(hexColor),
-            Style = SKPaintStyle.Fill
-        };
+        var bgPaint = context.GetReusableFillPaint(ParseColor(hexColor), antialias: false);
         currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, bgPaint);
     }
 
@@ -1997,8 +1940,10 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             using var page = pendingPage;
             pendingPage = null;
             pageCount++;
-            using var image = SKImage.FromBitmap(page);
-            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            // Encode straight from the bitmap's pixels — SKImage.FromBitmap would snapshot a
+            // full copy of the page (~33 MB at Letter/300 DPI) only to feed the same encoder.
+            using var pixmap = page.PeekPixels();
+            using var data = pixmap.Encode(SKEncodedImageFormat.Png, 100)!;
             pageCallback!(data.SaveTo);
         }
     }
@@ -2073,88 +2018,16 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         foreach (var watermark in watermarks)
         {
-            if (watermark.ImageData != null)
-            {
-                DrawPictureWatermark(watermark);
-            }
-            else if (!string.IsNullOrEmpty(watermark.Text))
+            // Picture watermarks are intentionally not drawn: Word's own page exports leave no
+            // visible trace of them (verified against the Word-generated references — standard
+            // washout picture watermarks render as nothing, even over colored page backgrounds),
+            // so drawing any wash diverges from the reference output. Text watermarks do render
+            // in Word and keep drawing.
+            if (watermark.ImageData == null && !string.IsNullOrEmpty(watermark.Text))
             {
                 DrawTextWatermark(watermark);
             }
         }
-    }
-
-    void DrawPictureWatermark(Watermark watermark)
-    {
-        using var bitmap = DecodeBitmap(watermark.ImageData!);
-        if (bitmap == null)
-        {
-            return;
-        }
-
-        // Word's gain/blacklevel washout: out = in * gain + blackLevel (per channel). The
-        // documented formula compresses dynamic range to e.g. 35–65% grey at gain=0.30 / bl=0.35,
-        // but Word also alpha-blends the result so the page background bleeds through, which is
-        // how it ends up nearly invisible. Without that extra alpha the watermark dominates.
-        var gain = (float) watermark.Gain;
-        var bias = (float) watermark.BlackLevel * 255f;
-        var alpha = (float) Math.Clamp(watermark.Gain, 0.2, 1.0);
-        var colorMatrix = new[]
-        {
-            gain,
-            0,
-            0,
-            0,
-            bias,
-            0,
-            gain,
-            0,
-            0,
-            bias,
-            0,
-            0,
-            gain,
-            0,
-            bias,
-            0,
-            0,
-            0,
-            alpha,
-            0
-        };
-
-        using var paint = new SKPaint
-        {
-            IsAntialias = true,
-            ColorFilter = SKColorFilter.CreateColorMatrix(colorMatrix)
-        };
-
-        // Word's emitted style typically says "width:612pt;height:11in" — full letter page,
-        // not just the content area. Scale the image uniformly to fit the full page.
-        var pageWidth = (float) context.PageWidthPixels;
-        var pageHeight = (float) context.PageHeightPixels;
-        var imageAspect = (float) bitmap.Width / bitmap.Height;
-        var pageAspect = pageWidth / pageHeight;
-
-        float drawW, drawH;
-        if (imageAspect > pageAspect)
-        {
-            drawW = pageWidth;
-            drawH = drawW / imageAspect;
-        }
-        else
-        {
-            drawH = pageHeight;
-            drawW = drawH * imageAspect;
-        }
-
-        var x = (pageWidth - drawW) / 2;
-        var y = (pageHeight - drawH) / 2;
-        var rect = new SKRect(x, y, x + drawW, y + drawH);
-        // SkiaSharp 4 removed SKPaint.FilterQuality; high-quality (bicubic Mitchell) resampling
-        // now travels with the draw call via SKSamplingOptions.
-        using var image = SKImage.FromBitmap(bitmap);
-        currentCanvas!.DrawImage(image, rect, new SKSamplingOptions(SKCubicResampler.Mitchell), paint);
     }
 
     void DrawTextWatermark(Watermark watermark)
@@ -2275,15 +2148,14 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         // Check for image fill first
         if (shape.ImageData != null)
         {
-            using var bitmap = DecodeBitmap(shape.ImageData);
-            if (bitmap != null)
+            var image = context.GetImage(shape.ImageData);
+            if (image != null)
             {
                 var destRect = new SKRect(pixelX, pixelY, pixelX + pixelWidth, pixelY + pixelHeight);
                 using var paint = new SKPaint
                 {
                     IsAntialias = true
                 };
-                using var image = SKImage.FromBitmap(bitmap);
                 currentCanvas.DrawImage(image, destRect, new SKSamplingOptions(SKCubicResampler.Mitchell), paint);
             }
         }

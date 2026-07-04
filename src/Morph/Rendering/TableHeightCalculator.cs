@@ -223,32 +223,9 @@ static class TableHeightCalculator
             }
             else if (element is ContentControlElement contentControl)
             {
-                ParagraphElement? measurePara = null;
-                if (contentControl.Runs is {Count: > 0})
-                {
-                    measurePara = new()
-                    {
-                        Runs = contentControl.Runs,
-                        Properties = new()
-                    };
-                }
-                else if (!string.IsNullOrEmpty(contentControl.Content))
-                {
-                    measurePara = new()
-                    {
-                        Runs =
-                        [
-                            new()
-                            {
-                                Text = contentControl.Content,
-                                Properties = new()
-                            }
-                        ],
-                        Properties = new()
-                    };
-                }
-
-                if (measurePara != null)
+                // The shared wrapper keeps the layout-cache key identical across the
+                // measure/render pipeline stages.
+                if (contentControl.CellParagraph is { } measurePara)
                 {
                     paragraphs.Add((measurePara, 0));
                 }

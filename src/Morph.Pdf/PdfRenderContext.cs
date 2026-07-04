@@ -66,6 +66,65 @@ sealed class PdfRenderContext : RenderContextBase
         return font;
     }
 
+    // Brushes and pens were allocated per drawn word / underline / border edge. Documents use a
+    // small set of colours and widths, so cache by value — PdfSharp reads them at draw time and
+    // never mutates them.
+    readonly Dictionary<XColor, XSolidBrush> brushCache = [];
+    readonly Dictionary<(XColor Color, double Width), XPen> penCache = [];
+
+    public XSolidBrush GetBrush(XColor color)
+    {
+        if (!brushCache.TryGetValue(color, out var brush))
+        {
+            brush = new(color);
+            brushCache[color] = brush;
+        }
+
+        return brush;
+    }
+
+    public XPen GetPen(XColor color, double width)
+    {
+        var key = (color, width);
+        if (!penCache.TryGetValue(key, out var pen))
+        {
+            pen = new(color, width);
+            penCache[key] = pen;
+        }
+
+        return pen;
+    }
+
+    // PdfSharp dedupes embedded image XObjects per XImage *instance* — a fresh XImage from the
+    // same bytes is decoded again and embedded again in the output PDF (a header logo on an
+    // N-page document used to embed N copies). Cache per source array (reference identity: the
+    // parsed elements hold stable arrays). Decode failures propagate to the caller, matching
+    // the uncached XImage.FromStream behaviour — nothing is cached for a throwing source.
+    readonly Dictionary<byte[], XImage> imageCache = new(ReferenceEqualityComparer.Instance);
+
+    public XImage GetImage(byte[] data)
+    {
+        if (!imageCache.TryGetValue(data, out var image))
+        {
+            using var stream = new MemoryStream(data);
+            image = XImage.FromStream(stream);
+            imageCache[data] = image;
+        }
+
+        return image;
+    }
+
+    /// <summary>Disposes every cached image. Called once the document has been saved.</summary>
+    public void DisposeImages()
+    {
+        foreach (var image in imageCache.Values)
+        {
+            image.Dispose();
+        }
+
+        imageCache.Clear();
+    }
+
     public static XColor ParseColor(string? hex)
     {
         if (string.IsNullOrEmpty(hex) || hex == "auto")
