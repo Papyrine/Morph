@@ -688,16 +688,29 @@ sealed class HtmlParser
     static Dictionary<string, string> ParseStyleAttribute(string style)
     {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        var declarations = style.Split(';', StringSplitOptions.RemoveEmptyEntries);
+        var remaining = style.AsSpan();
 
-        foreach (var declaration in declarations)
+        while (!remaining.IsEmpty)
         {
+            ReadOnlySpan<char> declaration;
+            var semicolon = remaining.IndexOf(';');
+            if (semicolon < 0)
+            {
+                declaration = remaining;
+                remaining = default;
+            }
+            else
+            {
+                declaration = remaining[..semicolon];
+                remaining = remaining[(semicolon + 1)..];
+            }
+
             var colonIndex = declaration.IndexOf(':');
             if (colonIndex > 0)
             {
                 var property = declaration[..colonIndex].Trim();
                 var value = declaration[(colonIndex + 1)..].Trim();
-                result[property] = value;
+                result[property.ToString()] = value.ToString();
             }
         }
 
