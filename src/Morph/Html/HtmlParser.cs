@@ -1336,14 +1336,14 @@ sealed class HtmlParser
                     widthPt = pt;
                 }
             }
-            else if (part.SequenceEqual("solid") || part.SequenceEqual("dashed") ||
-                     part.SequenceEqual("dotted") || part.SequenceEqual("double") ||
-                     part.SequenceEqual("groove") || part.SequenceEqual("ridge") ||
-                     part.SequenceEqual("inset") || part.SequenceEqual("outset"))
+            else if (part is "solid" || part is "dashed" ||
+                     part is "dotted" || part is "double" ||
+                     part is "groove" || part is "ridge" ||
+                     part is "inset" || part is "outset")
             {
                 // Style token — skip (we treat all visible styles the same)
             }
-            else if (part.SequenceEqual("none"))
+            else if (part is "none")
             {
                 return new();
             }
