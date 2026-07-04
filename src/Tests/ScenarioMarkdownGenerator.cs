@@ -25,7 +25,7 @@ static class ScenarioMarkdownGenerator
         var scenarioName = GetScenarioName(directory);
 
         var sb = new StringBuilder();
-        sb.Append("# ").Append(scenarioName).Append("\n\n");
+        sb.Append($"# {scenarioName}\n\n");
         AppendNotes(sb, directory);
         AppendTable(sb, pages, srcPrefix: "");
 
@@ -66,13 +66,13 @@ static class ScenarioMarkdownGenerator
         }
 
         var sb = new StringBuilder();
-        sb.Append("# All scenarios (").Append(scenarios.Length).Append(")\n\n");
+        sb.Append($"# All scenarios ({scenarios.Length})\n\n");
 
         AppendContents(sb, scenarios.Select(_ => _.Name));
 
         foreach (var (dir, name, pages) in scenarios)
         {
-            sb.Append("## ").Append(name).Append("\n\n");
+            sb.Append($"## {name}\n\n");
             AppendNotes(sb, dir);
             AppendTable(sb, pages, srcPrefix: $"{name}/");
             sb.Append('\n');
@@ -141,14 +141,14 @@ static class ScenarioMarkdownGenerator
         }
 
         var sb = new StringBuilder();
-        sb.Append("# ").Append(title).Append(" (").Append(scenarios.Length).Append(")\n\n");
+        sb.Append($"# {title} ({scenarios.Length})\n\n");
         sb.Append(intro).Append("\n\n");
 
         AppendContents(sb, scenarios.Select(_ => _.Name));
 
         foreach (var (dir, name) in scenarios)
         {
-            sb.Append("## ").Append(name).Append("\n\n");
+            sb.Append($"## {name}\n\n");
             appendBody(sb, dir, name);
             sb.Append('\n');
         }
@@ -161,7 +161,7 @@ static class ScenarioMarkdownGenerator
     {
         var srcPrefix = $"{name}/";
 
-        sb.Append("| ").Append(resultLabel).Append(" |\n");
+        sb.Append($"| {resultLabel} |\n");
         sb.Append("| --- |\n");
         sb.Append("| ");
         sb.Append(RenderImage(FileNameIfExists(directory, resultFile), srcPrefix));
@@ -270,7 +270,7 @@ static class ScenarioMarkdownGenerator
         sb.Append("<details>\n<summary>Contents</summary>\n\n");
         foreach (var name in names)
         {
-            sb.Append("- [").Append(name).Append("](#").Append(GitHubAnchor(name)).Append(")\n");
+            sb.Append($"- [{name}](#{GitHubAnchor(name)})\n");
         }
         sb.Append("\n</details>\n\n");
     }

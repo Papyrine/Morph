@@ -35,16 +35,14 @@ public class HtmlBenchmarks
     {
         var builder = new StringBuilder();
         builder.Append("<html><body>");
-        builder.Append("<h2 style=\"color: rgb(10, 20, 30);\">Styled section</h2>");
-        builder.Append("<table style=\"border: 1px solid #336699;\">");
+        builder.Append("""<h2 style="color: rgb(10, 20, 30);">Styled section</h2>""");
+        builder.Append("""<table style="border: 1px solid #336699;">""");
         for (var row = 0; row < 8; row++)
         {
             builder.Append("<tr>");
             for (var col = 0; col < 5; col++)
             {
-                builder.Append("<td style=\"border: 0.75pt dashed rgb(200, 100, 50); padding: 4px;\">");
-                builder.Append("Cell ").Append(row).Append(',').Append(col);
-                builder.Append("</td>");
+                builder.Append($"""<td style="border: 0.75pt dashed rgb(200, 100, 50); padding: 4px;">Cell {row},{col}</td>""");
             }
             builder.Append("</tr>");
         }
@@ -59,19 +57,15 @@ public class HtmlBenchmarks
         builder.Append("<html><body>");
         for (var section = 0; section < 20; section++)
         {
-            builder.Append("<h2>Section ").Append(section).Append("</h2>");
+            builder.Append($"<h2>Section {section}</h2>");
             for (var paragraph = 0; paragraph < 6; paragraph++)
             {
-                builder.Append("<p style=\"color: #444444;\">Paragraph ")
-                    .Append(paragraph)
-                    .Append(" of section ")
-                    .Append(section)
-                    .Append(" — lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>");
+                builder.Append($"""<p style="color: #444444;">Paragraph {paragraph} of section {section} — lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>""");
             }
             builder.Append("<ul>");
             for (var item = 0; item < 4; item++)
             {
-                builder.Append("<li>Item ").Append(item).Append("</li>");
+                builder.Append($"<li>Item {item}</li>");
             }
             builder.Append("</ul>");
         }

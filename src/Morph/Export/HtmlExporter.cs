@@ -380,7 +380,7 @@ static class HtmlExporter
             AppendParagraphStyle(paragraph.Properties, defaultHeadingSpacingBeforePoints, defaultHeadingSpacingAfterPoints, liftedSize);
             builder.Append('>');
             AppendInline(paragraph.Runs, inHeading: true, effectiveSize);
-            builder.Append("</h").Append(level).Append('>');
+            builder.Append($"</h{level}>");
         }
 
         // The single font size shared by every visible text run, or null when the runs disagree or
@@ -423,7 +423,7 @@ static class HtmlExporter
                 return;
             }
 
-            Indent(depth).Append("<p>").Append(EncodeText(text)).Append("</p>\n");
+            Indent(depth).Append($"<p>{EncodeText(text)}</p>\n");
         }
 
         // Consecutive Quote / Intense Quote paragraphs become one <blockquote> of plain <p>
@@ -490,9 +490,9 @@ static class HtmlExporter
             Indent(1).Append("<ol>\n");
             foreach (var (number, text) in notes)
             {
-                Indent(2).Append("<li id=\"fn-").Append(number).Append("\">")
-                    .Append(EncodeText(text))
-                    .Append(" <a href=\"#fnref-").Append(number).Append("\">↩</a></li>\n");
+                Indent(2)
+                    .Append($"""<li id="fn-{number}">{EncodeText(text)} <a href="#fnref-{number}">↩</a></li>""")
+                    .Append('\n');
             }
 
             Indent(1).Append("</ol>\n");
@@ -660,7 +660,7 @@ static class HtmlExporter
                     index++;
                 }
 
-                Indent(depth).Append("</").Append(tag).Append(">\n");
+                Indent(depth).Append($"</{tag}>\n");
             }
         }
 
@@ -777,7 +777,7 @@ static class HtmlExporter
 
                 builder.Append('>');
                 AppendCellContent(cell.Content, depth + 1);
-                builder.Append("</").Append(tag).Append(">\n");
+                builder.Append($"</{tag}>\n");
                 gridColumn += span;
             }
 
@@ -992,7 +992,7 @@ static class HtmlExporter
                 var run = runs[index];
                 if (run.HyperlinkUrl is {Length: > 0} url)
                 {
-                    builder.Append("<a href=\"").Append(EncodeAttribute(url)).Append("\">");
+                    builder.Append($"""<a href="{EncodeAttribute(url)}">""");
                     while (index < runs.Count && runs[index].HyperlinkUrl == url)
                     {
                         AppendRun(runs[index], inHeading, inheritedFontSizePoints);
@@ -1079,7 +1079,7 @@ static class HtmlExporter
             var style = InlineStyle(properties, inHeading, bodyFont, inheritedFontSizePoints);
             if (style != null)
             {
-                builder.Append("<span style=\"").Append(style).Append("\">");
+                builder.Append($"""<span style="{style}">""");
             }
 
             // A heading is bold by default — both the stylesheet's h1-h6 rule and every browser's
@@ -1208,29 +1208,27 @@ static class HtmlExporter
             {
                 // Append a generic fallback (as the body font does) so a run whose specific font
                 // isn't installed degrades to a sans-serif rather than the browser's default serif.
-                style.Append("font-family: ").Append(CssFontFamily(properties.FontFamily)).Append(", sans-serif; ");
+                style.Append($"font-family: {CssFontFamily(properties.FontFamily)}, sans-serif; ");
             }
 
             if (color != null)
             {
-                style.Append("color: ").Append(color).Append("; ");
+                style.Append($"color: {color}; ");
             }
 
             if (background != null)
             {
-                style.Append("background-color: ").Append(background).Append("; ");
+                style.Append($"background-color: {background}; ");
             }
 
             if (hasFontSize)
             {
-                style.Append("font-size: ")
-                    .Append(properties.FontSizePoints.ToString("0.##", CultureInfo.InvariantCulture))
-                    .Append("pt; ");
+                style.Append($"font-size: {Length(properties.FontSizePoints)}; ");
             }
 
             if (hasLetterSpacing)
             {
-                style.Append("letter-spacing: ").Append(Length(properties.CharacterSpacingPoints)).Append("; ");
+                style.Append($"letter-spacing: {Length(properties.CharacterSpacingPoints)}; ");
             }
 
             if (properties.SmallCaps)
@@ -1278,12 +1276,7 @@ static class HtmlExporter
             }
 
             var shapeId = shapeIndex++;
-            Indent(depth).Append("<svg style=\"position: absolute; left: ")
-                .Append(Length(left)).Append("; top: ").Append(Length(top))
-                .Append("; width: ").Append(Length(width)).Append("; height: ").Append(Length(height))
-                .Append("; z-index: ").Append(shape.BehindText ? "-1" : "1")
-                .Append("\" viewBox=\"0 0 ").Append(Number(width)).Append(' ').Append(Number(height))
-                .Append("\" preserveAspectRatio=\"none\" xmlns=\"http://www.w3.org/2000/svg\">");
+            Indent(depth).Append($"""<svg style="position: absolute; left: {Length(left)}; top: {Length(top)}; width: {Length(width)}; height: {Length(height)}; z-index: {(shape.BehindText ? "-1" : "1")}" viewBox="0 0 {Number(width)} {Number(height)}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">""");
 
             if (shape is {ImageData: {} imageData, FillColorHex: null, Gradient: null})
             {
@@ -1292,10 +1285,7 @@ static class HtmlExporter
                 var source = ResolveImageSource(imageData, shape.ImageContentType, width, height);
                 if (source != null)
                 {
-                    builder.Append("<image href=\"").Append(EncodeAttribute(source))
-                        .Append("\" width=\"").Append(Number(width)).Append("\" height=\"").Append(Number(height))
-                        .Append("\" preserveAspectRatio=\"none\"").Append(ShapeTransformAttribute(shape, width, height))
-                        .Append(" />");
+                    builder.Append($"""<image href="{EncodeAttribute(source)}" width="{Number(width)}" height="{Number(height)}" preserveAspectRatio="none"{ShapeTransformAttribute(shape, width, height)} />""");
                 }
             }
             else
@@ -1374,14 +1364,11 @@ static class HtmlExporter
             }
             else if (shape.Preset == PresetShape.Ellipse)
             {
-                builder.Append("<ellipse cx=\"").Append(Number(width / 2)).Append("\" cy=\"").Append(Number(height / 2))
-                    .Append("\" rx=\"").Append(Number(width / 2)).Append("\" ry=\"").Append(Number(height / 2))
-                    .Append('"').Append(common).Append(" />");
+                builder.Append($"""<ellipse cx="{Number(width / 2)}" cy="{Number(height / 2)}" rx="{Number(width / 2)}" ry="{Number(height / 2)}"{common} />""");
             }
             else
             {
-                builder.Append("<rect x=\"0\" y=\"0\" width=\"").Append(Number(width))
-                    .Append("\" height=\"").Append(Number(height)).Append('"').Append(common).Append(" />");
+                builder.Append($"""<rect x="0" y="0" width="{Number(width)}" height="{Number(height)}"{common} />""");
             }
         }
 
@@ -1395,11 +1382,7 @@ static class HtmlExporter
             var start = DocumentExportHelpers.NormalizeColor(gradient.StartColorHex) ?? "#000000";
             var end = DocumentExportHelpers.NormalizeColor(gradient.EndColorHex) ?? "#000000";
 
-            builder.Append("<linearGradient id=\"shape-grad-").Append(shapeId)
-                .Append("\" x1=\"").Append(Number(0.5 - directionX / 2)).Append("\" y1=\"").Append(Number(0.5 - directionY / 2))
-                .Append("\" x2=\"").Append(Number(0.5 + directionX / 2)).Append("\" y2=\"").Append(Number(0.5 + directionY / 2))
-                .Append("\"><stop offset=\"0\" stop-color=\"").Append(start)
-                .Append("\" /><stop offset=\"1\" stop-color=\"").Append(end).Append("\" /></linearGradient>");
+            builder.Append($"""<linearGradient id="shape-grad-{shapeId}" x1="{Number(0.5 - directionX / 2)}" y1="{Number(0.5 - directionY / 2)}" x2="{Number(0.5 + directionX / 2)}" y2="{Number(0.5 + directionY / 2)}"><stop offset="0" stop-color="{start}" /><stop offset="1" stop-color="{end}" /></linearGradient>""");
         }
 
         static string ShapeTransformAttribute(FloatingShapeElement shape, double width, double height)

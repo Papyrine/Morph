@@ -132,19 +132,15 @@ static class BenchmarkDocs
                 body.Append("<w:p>");
                 if (index % 3 == 0)
                 {
-                    body.Append("<w:r><w:rPr><w:b/><w:rFonts w:ascii=\"Aptos\" w:hAnsi=\"Aptos\"/></w:rPr><w:t xml:space=\"preserve\">Item ")
-                        .Append(seed)
-                        .Append(": </w:t></w:r>");
+                    body.Append($"""<w:r><w:rPr><w:b/><w:rFonts w:ascii="Aptos" w:hAnsi="Aptos"/></w:rPr><w:t xml:space="preserve">Item {seed}: </w:t></w:r>""");
                 }
 
-                body.Append("<w:r><w:t xml:space=\"preserve\">")
-                    .Append(Sentence(seed, 12 + seed % 5))
-                    .Append("</w:t></w:r></w:p>");
+                body.Append($"""<w:r><w:t xml:space="preserve">{Sentence(seed, 12 + seed % 5)}</w:t></w:r></w:p>""");
             }
 
             if (page < pages - 1)
             {
-                body.Append("<w:p><w:r><w:br w:type=\"page\"/></w:r></w:p>");
+                body.Append("""<w:p><w:r><w:br w:type="page"/></w:r></w:p>""");
             }
         }
     }
@@ -245,21 +241,16 @@ static class BenchmarkDocs
     static string BuildLogoSvg()
     {
         var builder = new StringBuilder();
-        builder.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-        builder.Append("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 240\" width=\"240\" height=\"240\">");
+        builder.Append("""<?xml version="1.0" encoding="UTF-8"?>""");
+        builder.Append("""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">""");
         // A <style> element plus class attributes so SvgPreprocessor.StripStyleAndClass has
         // representative work to do per load.
         builder.Append("<style>.accent{fill:#336699;}.muted{fill:#88aacc;}</style>");
         for (var i = 0; i < 20; i++)
         {
-            builder.Append("<circle class=\"accent\" cx=\"").Append(20 + i * 10)
-                .Append("\" cy=\"").Append(30 + i % 5 * 40)
-                .Append("\" r=\"9\"/>");
-            builder.Append("<rect class=\"muted\" x=\"").Append(10 + i * 11)
-                .Append("\" y=\"").Append(120 + i % 4 * 25)
-                .Append("\" width=\"14\" height=\"14\" rx=\"3\"/>");
-            builder.Append("<path fill=\"#e89c2e\" d=\"M").Append(12 + i * 11)
-                .Append(" 220 l8 -14 l8 14 z\"/>");
+            builder.Append($"""<circle class="accent" cx="{20 + i * 10}" cy="{30 + i % 5 * 40}" r="9"/>""");
+            builder.Append($"""<rect class="muted" x="{10 + i * 11}" y="{120 + i % 4 * 25}" width="14" height="14" rx="3"/>""");
+            builder.Append($"""<path fill="#e89c2e" d="M{12 + i * 11} 220 l8 -14 l8 14 z"/>""");
         }
 
         builder.Append("</svg>");
@@ -291,7 +282,7 @@ static class BenchmarkDocs
         {
             (contentTypesPath, Utf8(ContentTypes(header: true, styles: false, svg: useSvg))),
             ("_rels/.rels", Utf8(packageRels)),
-            ("word/document.xml", Utf8($"<?xml version=\"1.0\" encoding=\"utf-8\"?><w:document {documentNamespaces}><w:body>{body}</w:body></w:document>")),
+            ("word/document.xml", Utf8($"""<?xml version="1.0" encoding="utf-8"?><w:document {documentNamespaces}><w:body>{body}</w:body></w:document>""")),
             ("word/_rels/document.xml.rels", Utf8($"""<?xml version="1.0" encoding="utf-8"?><Relationships xmlns="{relsNs}"><Relationship Id="rHdr" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header1.xml"/></Relationships>""")),
             ("word/header1.xml", Utf8(header)),
             ("word/_rels/header1.xml.rels", Utf8(headerRels)),
@@ -319,7 +310,7 @@ static class BenchmarkDocs
         [
             (contentTypesPath, Utf8(ContentTypes(header: true, styles: false, svg: false))),
             ("_rels/.rels", Utf8(packageRels)),
-            ("word/document.xml", Utf8($"<?xml version=\"1.0\" encoding=\"utf-8\"?><w:document {documentNamespaces}><w:body>{body}</w:body></w:document>")),
+            ("word/document.xml", Utf8($"""<?xml version="1.0" encoding="utf-8"?><w:document {documentNamespaces}><w:body>{body}</w:body></w:document>""")),
             ("word/_rels/document.xml.rels", Utf8($"""<?xml version="1.0" encoding="utf-8"?><Relationships xmlns="{relsNs}"><Relationship Id="rHdr" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header1.xml"/></Relationships>""")),
             ("word/header1.xml", Utf8(header)),
             ("word/_rels/header1.xml.rels", Utf8($"""<?xml version="1.0" encoding="utf-8"?><Relationships xmlns="{relsNs}"><Relationship Id="rWm" Type="{imageRelType}" Target="media/watermark.png"/></Relationships>""")),
@@ -335,16 +326,12 @@ static class BenchmarkDocs
             for (var index = 0; index < 10; index++)
             {
                 var id = page * 10 + index + 1;
-                body.Append("<w:p><w:r>")
-                    .Append(InlineImage(id, "rImg", 457200, 457200))
-                    .Append("</w:r><w:r><w:t xml:space=\"preserve\"> Repeated icon ")
-                    .Append(id)
-                    .Append("</w:t></w:r></w:p>");
+                body.Append($"""<w:p><w:r>{InlineImage(id, "rImg", 457200, 457200)}</w:r><w:r><w:t xml:space="preserve"> Repeated icon {id}</w:t></w:r></w:p>""");
             }
 
             if (page < 5)
             {
-                body.Append("<w:p><w:r><w:br w:type=\"page\"/></w:r></w:p>");
+                body.Append("""<w:p><w:r><w:br w:type="page"/></w:r></w:p>""");
             }
         }
 
@@ -354,7 +341,7 @@ static class BenchmarkDocs
         [
             (contentTypesPath, Utf8(ContentTypes(header: false, styles: false, svg: false))),
             ("_rels/.rels", Utf8(packageRels)),
-            ("word/document.xml", Utf8($"<?xml version=\"1.0\" encoding=\"utf-8\"?><w:document {documentNamespaces}><w:body>{body}</w:body></w:document>")),
+            ("word/document.xml", Utf8($"""<?xml version="1.0" encoding="utf-8"?><w:document {documentNamespaces}><w:body>{body}</w:body></w:document>""")),
             ("word/_rels/document.xml.rels", Utf8($"""<?xml version="1.0" encoding="utf-8"?><Relationships xmlns="{relsNs}"><Relationship Id="rImg" Type="{imageRelType}" Target="media/icon.png"/></Relationships>""")),
             ("word/media/icon.png", BuildIconPng())
         ]);
@@ -372,19 +359,13 @@ static class BenchmarkDocs
 
         for (var i = 0; i < entries; i++)
         {
-            rels.Append($"<Relationship Id=\"lnk{i}\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink\" Target=\"https://example.com/section/{i}\" TargetMode=\"External\"/>");
-            body.Append("<w:p><w:pPr><w:tabs><w:tab w:val=\"right\" w:leader=\"dot\" w:pos=\"9350\"/></w:tabs></w:pPr>")
-                .Append($"<w:hyperlink r:id=\"lnk{i}\" w:history=\"1\"><w:r><w:rPr><w:rStyle w:val=\"Hyperlink\"/></w:rPr><w:t xml:space=\"preserve\">Section {i}: {Sentence(i, 6)}</w:t></w:r></w:hyperlink>")
-                .Append($"<w:r><w:tab/></w:r><w:r><w:t>{i + 1}</w:t></w:r></w:p>");
+            rels.Append($"""<Relationship Id="lnk{i}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://example.com/section/{i}" TargetMode="External"/>""");
+            body.Append($"""<w:p><w:pPr><w:tabs><w:tab w:val="right" w:leader="dot" w:pos="9350"/></w:tabs></w:pPr><w:hyperlink r:id="lnk{i}" w:history="1"><w:r><w:rPr><w:rStyle w:val="Hyperlink"/></w:rPr><w:t xml:space="preserve">Section {i}: {Sentence(i, 6)}</w:t></w:r></w:hyperlink><w:r><w:tab/></w:r><w:r><w:t>{i + 1}</w:t></w:r></w:p>""");
         }
 
         for (var i = 0; i < plainTabLines; i++)
         {
-            body.Append("<w:p><w:r><w:t xml:space=\"preserve\">Field ")
-                .Append(i)
-                .Append("</w:t></w:r><w:r><w:tab/></w:r><w:r><w:t xml:space=\"preserve\">")
-                .Append(Sentence(i + entries, 5))
-                .Append("</w:t></w:r></w:p>");
+            body.Append($"""<w:p><w:r><w:t xml:space="preserve">Field {i}</w:t></w:r><w:r><w:tab/></w:r><w:r><w:t xml:space="preserve">{Sentence(i + entries, 5)}</w:t></w:r></w:p>""");
         }
 
         body.Append(SectionProperties(null));
@@ -393,20 +374,20 @@ static class BenchmarkDocs
         // 200 filler character styles ahead of Hyperlink so a linear styles.xml scan pays a
         // representative cost for every styled run.
         var styles = new StringBuilder();
-        styles.Append("<?xml version=\"1.0\" encoding=\"utf-8\"?><w:styles xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\">");
+        styles.Append("""<?xml version="1.0" encoding="utf-8"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">""");
         for (var i = 0; i < 200; i++)
         {
-            styles.Append($"<w:style w:type=\"character\" w:styleId=\"Filler{i}\"><w:name w:val=\"Filler {i}\"/><w:rPr><w:color w:val=\"3355{i % 100:00}\"/></w:rPr></w:style>");
+            styles.Append($"""<w:style w:type="character" w:styleId="Filler{i}"><w:name w:val="Filler {i}"/><w:rPr><w:color w:val="3355{i % 100:00}"/></w:rPr></w:style>""");
         }
 
-        styles.Append("<w:style w:type=\"character\" w:styleId=\"Hyperlink\"><w:name w:val=\"Hyperlink\"/><w:rPr><w:color w:val=\"0563C1\"/><w:u w:val=\"single\"/></w:rPr></w:style>");
+        styles.Append("""<w:style w:type="character" w:styleId="Hyperlink"><w:name w:val="Hyperlink"/><w:rPr><w:color w:val="0563C1"/><w:u w:val="single"/></w:rPr></w:style>""");
         styles.Append("</w:styles>");
 
         return Zip(
         [
             (contentTypesPath, Utf8(ContentTypes(header: false, styles: true, svg: false))),
             ("_rels/.rels", Utf8(packageRels)),
-            ("word/document.xml", Utf8($"<?xml version=\"1.0\" encoding=\"utf-8\"?><w:document {documentNamespaces}><w:body>{body}</w:body></w:document>")),
+            ("word/document.xml", Utf8($"""<?xml version="1.0" encoding="utf-8"?><w:document {documentNamespaces}><w:body>{body}</w:body></w:document>""")),
             ("word/_rels/document.xml.rels", Utf8(rels.ToString())),
             ("word/styles.xml", Utf8(styles.ToString()))
         ]);
