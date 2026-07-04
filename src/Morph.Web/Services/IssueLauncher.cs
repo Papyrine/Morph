@@ -9,7 +9,7 @@ namespace Morph.Web.Services;
 /// </summary>
 public static class IssueLauncher
 {
-    const string NewIssue = "https://github.com/Papyrine/Morph/issues/new";
+    const string newIssue = "https://github.com/Papyrine/Morph/issues/new";
 
     /// <summary>
     /// Produces a `…/issues/new?title=…&amp;body=…` URL describing <paramref name="exception"/>.
@@ -38,8 +38,8 @@ public static class IssueLauncher
         lines.Add(exception.ToString());
         lines.Add("```");
 
-        var body = WebUtility.UrlEncode(string.Join("\n", lines));
+        var body = WebUtility.UrlEncode(string.Join('\n', lines));
 
-        return $"{NewIssue}?title={title}&body={body}";
+        return $"{newIssue}?title={title}&body={body}";
     }
 }

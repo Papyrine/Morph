@@ -296,7 +296,7 @@ static class MarkdownExporter
                 var text = cell.Properties.VerticalMerge == VerticalMergeType.Continue
                     ? ""
                     : CellText(cell.Content);
-                builder.Append(' ').Append(text).Append(" |");
+                builder.Append($" {text} |");
                 // GFM has no column spanning; pad spanned columns with empty cells.
                 for (var extra = 1; extra < span; extra++)
                 {
@@ -440,7 +440,7 @@ static class MarkdownExporter
                         index++;
                     }
 
-                    inline.Append('[').Append(linkText).Append("](").Append(EscapeUrl(url)).Append(')');
+                    inline.Append($"[{linkText}]({EscapeUrl(url)})");
                     continue;
                 }
 
@@ -675,7 +675,7 @@ static class MarkdownExporter
             var index = imageIndex++;
             if (!string.IsNullOrEmpty(description))
             {
-                target.Append("![").Append(EscapeImageAlt(description)).Append("](");
+                target.Append($"![{EscapeImageAlt(description)}](");
             }
             else
             {

@@ -458,4 +458,22 @@ public class HtmlExporterTests
                         BorderLeftSpacePoints = 8
                     }
                 }));
+
+    [Test]
+    public Task FloatingShapeGradientFill() =>
+        // A gradient-filled floating shape emits a <defs><linearGradient> whose axis is derived from
+        // the direction (90° → horizontal: x1=0 → x2=1), then fills the geometry via
+        // url(#shape-grad-N). Guards the gradient SVG emission, which nothing under Inputs exercises.
+        VerifyHtml(Doc(new FloatingShapeElement
+        {
+            WidthPoints = 120,
+            HeightPoints = 60,
+            BehindText = true,
+            Gradient = new()
+            {
+                StartColorHex = "FF0000",
+                EndColorHex = "0000FF",
+                DirectionDegrees = 90
+            }
+        }));
 }

@@ -114,7 +114,8 @@ static class DocumentExportHelpers
                 Ordered = IsOrderedList(numbering)
             };
 
-            while (ancestors.Count > 0 && !IsShallower(ancestors.Peek(), node))
+            while (ancestors.Count > 0 &&
+                   !IsShallower(ancestors.Peek(), node))
             {
                 ancestors.Pop();
             }
@@ -138,7 +139,8 @@ static class DocumentExportHelpers
     // when they differ; ties (and level-less items) fall through to the visual indent.
     static bool IsShallower(ListNode ancestor, ListNode node)
     {
-        if (ancestor.Level is {} ancestorLevel && node.Level is {} nodeLevel && ancestorLevel != nodeLevel)
+        if (ancestor.Level is {} ancestorLevel &&
+            node.Level is {} nodeLevel && ancestorLevel != nodeLevel)
         {
             return ancestorLevel < nodeLevel;
         }
@@ -166,7 +168,8 @@ static class DocumentExportHelpers
             }
 
             // A footnote / endnote reference is content even though its marker run has no text.
-            if (run.FootnoteReferenceId != null || run.EndnoteReferenceId != null)
+            if (run.FootnoteReferenceId != null ||
+                run.EndnoteReferenceId != null)
             {
                 return false;
             }
@@ -340,14 +343,4 @@ static class DocumentExportHelpers
 
         return $"#{hex.ToLowerInvariant()}";
     }
-}
-
-/// <summary>A node in a list-nesting forest produced by <see cref="DocumentExportHelpers.BuildListForest"/>.</summary>
-sealed class ListNode
-{
-    public required ParagraphElement Paragraph { get; init; }
-    public int? Level { get; init; }
-    public double Indent { get; init; }
-    public bool Ordered { get; init; }
-    public List<ListNode> Children { get; } = [];
 }

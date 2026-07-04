@@ -1046,13 +1046,12 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         var pathStartX = x + width / 2f - textWidth / 2f;
 
         const int segmentsPerPeriod = 64;
-        var totalSegments = segmentsPerPeriod;
-        var dx = textWidth / totalSegments;
+        var dx = textWidth / segmentsPerPeriod;
         var phaseScale = 2.0 * Math.PI / textWidth;
 
         var builder = new PathBuilder();
         builder.MoveTo(new(pathStartX, midY - amplitude));
-        for (var i = 1; i <= totalSegments; i++)
+        for (var i = 1; i <= segmentsPerPeriod; i++)
         {
             var t = i * dx;
             var py = midY - amplitude * (float) Math.Cos(t * phaseScale);

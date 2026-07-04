@@ -724,7 +724,7 @@ sealed class DocumentParser(string defaultFont)
                         break;
 
                     case FieldChar fc when fc.FieldCharType?.Value == FieldCharValues.End && instructionStack.Count > 0:
-                        var instruction = instructionStack.Pop().ToString().Trim();
+                        var instruction = instructionStack.Pop().TrimmedToString();
                         var resultText = resultStack.Pop().ToString();
                         inResult.Pop();
                         if (instruction.Length > 0)
@@ -745,8 +745,8 @@ sealed class DocumentParser(string defaultFont)
         // cached result is the descendant text.
         foreach (var simple in body.Descendants<SimpleField>())
         {
-            var instruction = simple.Instruction?.Value?.Trim() ?? string.Empty;
-            if (instruction.Length == 0)
+            var rawInstruction = simple.Instruction?.Value;
+            if (!rawInstruction.TryTrim(out var instruction))
             {
                 continue;
             }
@@ -6640,8 +6640,8 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
-        var wordArtText = textBuilder.ToString().Trim();
-        if (string.IsNullOrEmpty(wordArtText))
+        var wordArtText = textBuilder.TrimmedToString();
+        if (wordArtText.Length == 0)
         {
             return null;
         }
@@ -7129,7 +7129,7 @@ sealed class DocumentParser(string defaultFont)
             }
 
             // Also build plain text content for backward compatibility
-            content = string.Join("", styledRuns.Select(_ => _.Text));
+            content = string.Concat(styledRuns.Select(_ => _.Text));
         }
 
         return new()

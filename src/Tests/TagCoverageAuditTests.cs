@@ -146,7 +146,8 @@ public class TagCoverageAuditTests
                 continue;
             }
 
-            if (string.IsNullOrEmpty(instance.LocalName) || string.IsNullOrEmpty(instance.Prefix))
+            if (string.IsNullOrEmpty(instance.LocalName) ||
+                string.IsNullOrEmpty(instance.Prefix))
             {
                 continue;
             }
@@ -175,7 +176,8 @@ public class TagCoverageAuditTests
 
         foreach (var type in typeof(Body).Assembly.GetTypes())
         {
-            if (type.IsAbstract || !elementBase.IsAssignableFrom(type))
+            if (type.IsAbstract ||
+                !elementBase.IsAssignableFrom(type))
             {
                 continue;
             }
@@ -296,8 +298,8 @@ public class TagCoverageAuditTests
         var result = new HashSet<string>(StringComparer.Ordinal);
         var paths = new[]
         {
-            Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "..", "docs", "word-features.md")),
-            Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "missingTags.md")),
+            Path.GetFullPath(Path.Combine(ProjectFiles.SolutionDirectory, "..", "docs", "word-features.md")),
+            Path.Combine(ProjectFiles.SolutionDirectory, "missingTags.md"),
         };
 
         // Match prefix:localName. Constrain prefixes to the known wordprocessing-doc set so we

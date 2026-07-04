@@ -23,19 +23,20 @@ public sealed class HtmlDocument
     public static async Task<HtmlDocument> LoadAsync(string html, Cancel cancel = default)
     {
         var elements = await HtmlParser.Parse(html, cancel);
-        return new(new()
-        {
-            PageSettings = new()
+        return new(
+            new()
             {
-                WidthPoints = DefaultPageSize.WidthPoints,
-                HeightPoints = DefaultPageSize.HeightPoints,
-                MarginTop = 72,
-                MarginBottom = 72,
-                MarginLeft = 72,
-                MarginRight = 72
-            },
-            Elements = elements
-        });
+                PageSettings = new()
+                {
+                    WidthPoints = DefaultPageSize.WidthPoints,
+                    HeightPoints = DefaultPageSize.HeightPoints,
+                    MarginTop = 72,
+                    MarginBottom = 72,
+                    MarginLeft = 72,
+                    MarginRight = 72
+                },
+                Elements = elements
+            });
     }
 
     /// <summary>Exports the document as a normalized semantic HTML fragment.</summary>

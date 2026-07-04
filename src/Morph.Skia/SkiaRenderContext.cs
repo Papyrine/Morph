@@ -343,12 +343,12 @@ sealed class SkiaRenderContext(
         var srcTop = svgBounds.Top;
         var srcWidth = svgBounds.Width;
         var srcHeight = svgBounds.Height;
-        if (crop is {IsCropped: true} c)
+        if (crop is {IsCropped: true})
         {
-            srcLeft = svgBounds.Left + (float) c.Left * svgBounds.Width;
-            srcTop = svgBounds.Top + (float) c.Top * svgBounds.Height;
-            srcWidth = (float) (1 - c.Left - c.Right) * svgBounds.Width;
-            srcHeight = (float) (1 - c.Top - c.Bottom) * svgBounds.Height;
+            srcLeft = svgBounds.Left + (float) crop.Left * svgBounds.Width;
+            srcTop = svgBounds.Top + (float) crop.Top * svgBounds.Height;
+            srcWidth = (float) (1 - crop.Left - crop.Right) * svgBounds.Width;
+            srcHeight = (float) (1 - crop.Top - crop.Bottom) * svgBounds.Height;
             if (srcWidth <= 0 || srcHeight <= 0)
             {
                 return null;

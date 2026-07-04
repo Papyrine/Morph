@@ -6,6 +6,27 @@ using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 static class OpenXmlExtensions
 {
     /// <summary>
+    /// Materialises the builder's content with leading and trailing whitespace removed,
+    /// trimming in place so only the final string is allocated (unlike
+    /// <c>builder.ToString().Trim()</c>, which also allocates the untrimmed intermediate).
+    /// </summary>
+    public static string TrimmedToString(this StringBuilder builder)
+    {
+        while (builder.Length > 0 && char.IsWhiteSpace(builder[^1]))
+        {
+            builder.Length--;
+        }
+
+        var start = 0;
+        while (start < builder.Length && char.IsWhiteSpace(builder[start]))
+        {
+            start++;
+        }
+
+        return builder.ToString(start, builder.Length - start);
+    }
+
+    /// <summary>
     /// Conversion constant: EMUs per point.
     /// </summary>
     public const double EmusPerPoint = 914400.0 / 72.0;

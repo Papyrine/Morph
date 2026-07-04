@@ -63,8 +63,7 @@ sealed class HtmlParser
         switch (node)
         {
             case IText textNode:
-                var text = textNode.TextContent.Trim();
-                if (!string.IsNullOrEmpty(text))
+                if (textNode.TextContent.TryTrim(out var text))
                 {
                     elements.Add(new ParagraphElement
                     {
@@ -293,8 +292,7 @@ sealed class HtmlParser
 
             default:
                 // For other elements, try to extract content
-                var text = element.TextContent.Trim();
-                if (!string.IsNullOrEmpty(text))
+                if (!string.IsNullOrWhiteSpace(element.TextContent))
                 {
                     var defaultPara = CreateParagraph(element, 11, false);
                     elements.Add(defaultPara);
@@ -688,16 +686,29 @@ sealed class HtmlParser
     static Dictionary<string, string> ParseStyleAttribute(string style)
     {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        var declarations = style.Split(';', StringSplitOptions.RemoveEmptyEntries);
+        var remaining = style.AsSpan();
 
-        foreach (var declaration in declarations)
+        while (!remaining.IsEmpty)
         {
+            ReadOnlySpan<char> declaration;
+            var semicolon = remaining.IndexOf(';');
+            if (semicolon < 0)
+            {
+                declaration = remaining;
+                remaining = default;
+            }
+            else
+            {
+                declaration = remaining[..semicolon];
+                remaining = remaining[(semicolon + 1)..];
+            }
+
             var colonIndex = declaration.IndexOf(':');
             if (colonIndex > 0)
             {
                 var property = declaration[..colonIndex].Trim();
                 var value = declaration[(colonIndex + 1)..].Trim();
-                result[property] = value;
+                result[property.ToString()] = value.ToString();
             }
         }
 
@@ -789,15 +800,14 @@ sealed class HtmlParser
             }
             else
             {
-                var text = node.TextContent.Trim();
-                if (!string.IsNullOrEmpty(text))
+                if (node.TextContent.TryTrim(out var text))
                 {
                     textContent.Add(text);
                 }
             }
         }
 
-        return (string.Join(" ", textContent), nestedList);
+        return (string.Join(' ', textContent), nestedList);
     }
 
     /// <summary>
@@ -931,7 +941,6 @@ sealed class HtmlParser
                 }
 
                 var isHeader = cell.TagName.Equals("th", StringComparison.OrdinalIgnoreCase);
-                var text = cell.TextContent.Trim();
 
                 CellSpacing? cellPadding = null;
                 CellSpacing? cellMargin = null;
@@ -966,7 +975,7 @@ sealed class HtmlParser
                 }
 
                 var cellElements = new List<DocumentElement>();
-                if (!string.IsNullOrEmpty(text))
+                if (cell.TextContent.TryTrim(out var text))
                 {
                     cellElements.Add(new ParagraphElement
                     {
@@ -1323,14 +1332,14 @@ sealed class HtmlParser
                     widthPt = pt;
                 }
             }
-            else if (part.SequenceEqual("solid") || part.SequenceEqual("dashed") ||
-                     part.SequenceEqual("dotted") || part.SequenceEqual("double") ||
-                     part.SequenceEqual("groove") || part.SequenceEqual("ridge") ||
-                     part.SequenceEqual("inset") || part.SequenceEqual("outset"))
+            else if (part is "solid" || part is "dashed" ||
+                     part is "dotted" || part is "double" ||
+                     part is "groove" || part is "ridge" ||
+                     part is "inset" || part is "outset")
             {
                 // Style token — skip (we treat all visible styles the same)
             }
-            else if (part.SequenceEqual("none"))
+            else if (part is "none")
             {
                 return new();
             }

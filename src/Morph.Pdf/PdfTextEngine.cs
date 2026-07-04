@@ -475,7 +475,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
         var current = new Line();
         var pendingSpaceWidth = 0d;
-        var pendingSpaceFont = (XFont?) null;
+        XFont? pendingSpaceFont = null;
         RunProperties? pendingSpaceProps = null;
         var lineHasTab = false;
 

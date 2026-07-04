@@ -331,12 +331,12 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         try
         {
             image = Image.Load<Rgba32>(data);
-            if (crop is {IsCropped: true} c)
+            if (crop is {IsCropped: true})
             {
-                var srcLeft = (int) (c.Left * image.Width);
-                var srcTop = (int) (c.Top * image.Height);
-                var srcWidth = Math.Max(1, image.Width - srcLeft - (int) (c.Right * image.Width));
-                var srcHeight = Math.Max(1, image.Height - srcTop - (int) (c.Bottom * image.Height));
+                var srcLeft = (int) (crop.Left * image.Width);
+                var srcTop = (int) (crop.Top * image.Height);
+                var srcWidth = Math.Max(1, image.Width - srcLeft - (int) (crop.Right * image.Width));
+                var srcHeight = Math.Max(1, image.Height - srcTop - (int) (crop.Bottom * image.Height));
                 image.Mutate(_ => _.Crop(new(srcLeft, srcTop, srcWidth, srcHeight)));
             }
 

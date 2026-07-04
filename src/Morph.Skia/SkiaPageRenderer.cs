@@ -521,12 +521,12 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             if (skImage != null)
             {
                 using var paint = BuildBlipColorEffectPaint(colorEffect);
-                if (crop is {IsCropped: true} c)
+                if (crop is {IsCropped: true})
                 {
-                    var srcLeft = (float) (c.Left * skImage.Width);
-                    var srcTop = (float) (c.Top * skImage.Height);
-                    var srcRight = (float) ((1 - c.Right) * skImage.Width);
-                    var srcBottom = (float) ((1 - c.Bottom) * skImage.Height);
+                    var srcLeft = (float) (crop.Left * skImage.Width);
+                    var srcTop = (float) (crop.Top * skImage.Height);
+                    var srcRight = (float) ((1 - crop.Right) * skImage.Width);
+                    var srcBottom = (float) ((1 - crop.Bottom) * skImage.Height);
                     currentCanvas.DrawBitmap(skImage, new(srcLeft, srcTop, srcRight, srcBottom), destRect, paint);
                 }
                 else
