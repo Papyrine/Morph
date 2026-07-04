@@ -63,8 +63,7 @@ sealed class HtmlParser
         switch (node)
         {
             case IText textNode:
-                var text = textNode.TextContent.Trim();
-                if (!string.IsNullOrEmpty(text))
+                if (textNode.TextContent.TryTrim(out var text))
                 {
                     elements.Add(new ParagraphElement
                     {
@@ -293,8 +292,7 @@ sealed class HtmlParser
 
             default:
                 // For other elements, try to extract content
-                var text = element.TextContent.Trim();
-                if (!string.IsNullOrEmpty(text))
+                if (!string.IsNullOrWhiteSpace(element.TextContent))
                 {
                     var defaultPara = CreateParagraph(element, 11, false);
                     elements.Add(defaultPara);
@@ -802,8 +800,7 @@ sealed class HtmlParser
             }
             else
             {
-                var text = node.TextContent.Trim();
-                if (!string.IsNullOrEmpty(text))
+                if (node.TextContent.TryTrim(out var text))
                 {
                     textContent.Add(text);
                 }
@@ -944,7 +941,6 @@ sealed class HtmlParser
                 }
 
                 var isHeader = cell.TagName.Equals("th", StringComparison.OrdinalIgnoreCase);
-                var text = cell.TextContent.Trim();
 
                 CellSpacing? cellPadding = null;
                 CellSpacing? cellMargin = null;
@@ -979,7 +975,7 @@ sealed class HtmlParser
                 }
 
                 var cellElements = new List<DocumentElement>();
-                if (!string.IsNullOrEmpty(text))
+                if (cell.TextContent.TryTrim(out var text))
                 {
                     cellElements.Add(new ParagraphElement
                     {

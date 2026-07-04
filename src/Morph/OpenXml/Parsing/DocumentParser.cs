@@ -745,8 +745,8 @@ sealed class DocumentParser(string defaultFont)
         // cached result is the descendant text.
         foreach (var simple in body.Descendants<SimpleField>())
         {
-            var instruction = simple.Instruction?.Value?.Trim() ?? string.Empty;
-            if (instruction.Length == 0)
+            var rawInstruction = simple.Instruction?.Value;
+            if (!rawInstruction.TryTrim(out var instruction))
             {
                 continue;
             }
