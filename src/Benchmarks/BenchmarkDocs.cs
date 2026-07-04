@@ -187,15 +187,15 @@ static class BenchmarkDocs
     {
         using var bitmap = new SKBitmap(300, 80);
         using var canvas = new SKCanvas(bitmap);
-        canvas.Clear(new SKColor(240, 244, 252));
+        canvas.Clear(new(240, 244, 252));
         using var paint = new SKPaint();
         paint.IsAntialias = true;
-        paint.Color = new SKColor(0x33, 0x66, 0x99);
-        canvas.DrawRoundRect(new SKRect(8, 8, 120, 72), 12, 12, paint);
-        paint.Color = new SKColor(0xE8, 0x9C, 0x2E);
+        paint.Color = new(0x33, 0x66, 0x99);
+        canvas.DrawRoundRect(new(8, 8, 120, 72), 12, 12, paint);
+        paint.Color = new(0xE8, 0x9C, 0x2E);
         canvas.DrawCircle(160, 40, 28, paint);
-        paint.Color = new SKColor(0x2E, 0x7D, 0x32);
-        canvas.DrawRect(new SKRect(200, 16, 288, 64), paint);
+        paint.Color = new(0x2E, 0x7D, 0x32);
+        canvas.DrawRect(new(200, 16, 288, 64), paint);
         using var image = SKImage.FromBitmap(bitmap);
         using var data = image.Encode(SKEncodedImageFormat.Png, 90);
         return data.ToArray();
@@ -205,12 +205,12 @@ static class BenchmarkDocs
     {
         using var bitmap = new SKBitmap(64, 64);
         using var canvas = new SKCanvas(bitmap);
-        canvas.Clear(new SKColor(255, 255, 255));
+        canvas.Clear(new(255, 255, 255));
         using var paint = new SKPaint();
         paint.IsAntialias = true;
-        paint.Color = new SKColor(0xC6, 0x28, 0x28);
+        paint.Color = new(0xC6, 0x28, 0x28);
         canvas.DrawCircle(32, 32, 26, paint);
-        paint.Color = new SKColor(0xFF, 0xF9, 0xC4);
+        paint.Color = new(0xFF, 0xF9, 0xC4);
         canvas.DrawCircle(32, 32, 12, paint);
         using var image = SKImage.FromBitmap(bitmap);
         using var data = image.Encode(SKEncodedImageFormat.Png, 90);
@@ -223,15 +223,15 @@ static class BenchmarkDocs
         using var canvas = new SKCanvas(bitmap);
         using var paint = new SKPaint();
         using var shader = SKShader.CreateLinearGradient(
-            new SKPoint(0, 0),
-            new SKPoint(1200, 1600),
-            [new SKColor(0x1A, 0x23, 0x7E), new SKColor(0x00, 0x83, 0x8F), new SKColor(0xF9, 0xA8, 0x25)],
+            new(0, 0),
+            new(1200, 1600),
+            [new(0x1A, 0x23, 0x7E), new(0x00, 0x83, 0x8F), new(0xF9, 0xA8, 0x25)],
             SKShaderTileMode.Clamp);
         paint.Shader = shader;
-        canvas.DrawRect(new SKRect(0, 0, 1200, 1600), paint);
+        canvas.DrawRect(new(0, 0, 1200, 1600), paint);
         paint.Shader = null;
         paint.IsAntialias = true;
-        paint.Color = new SKColor(255, 255, 255, 90);
+        paint.Color = new(255, 255, 255, 90);
         for (var i = 0; i < 12; i++)
         {
             canvas.DrawCircle(100 + i * 95, 200 + i % 4 * 350, 130, paint);
@@ -368,7 +368,7 @@ static class BenchmarkDocs
         var body = new StringBuilder();
         var rels = new StringBuilder();
         rels.Append($"""<?xml version="1.0" encoding="utf-8"?><Relationships xmlns="{relsNs}">""");
-        rels.Append($"""<Relationship Id="rStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>""");
+        rels.Append("""<Relationship Id="rStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>""");
 
         for (var i = 0; i < entries; i++)
         {
@@ -393,7 +393,7 @@ static class BenchmarkDocs
         // 200 filler character styles ahead of Hyperlink so a linear styles.xml scan pays a
         // representative cost for every styled run.
         var styles = new StringBuilder();
-        styles.Append($"<?xml version=\"1.0\" encoding=\"utf-8\"?><w:styles xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\">");
+        styles.Append("<?xml version=\"1.0\" encoding=\"utf-8\"?><w:styles xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\">");
         for (var i = 0; i < 200; i++)
         {
             styles.Append($"<w:style w:type=\"character\" w:styleId=\"Filler{i}\"><w:name w:val=\"Filler {i}\"/><w:rPr><w:color w:val=\"3355{i % 100:00}\"/></w:rPr></w:style>");

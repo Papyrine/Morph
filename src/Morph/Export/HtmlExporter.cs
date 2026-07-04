@@ -731,7 +731,7 @@ static class HtmlExporter
             // minimum (the row still grows with its content), which matches Word's default
             // "atLeast" rule; "exact" rows get the same treatment — close enough, since clipping
             // overflow is not representable on a <tr>.
-            if (rows[rowIndex].HeightPoints is {} heightPoints && heightPoints > 0)
+            if (rows[rowIndex].HeightPoints is {} heightPoints and > 0)
             {
                 builder.Append(" style=\"height: ").Append(Length(heightPoints)).Append('"');
             }
