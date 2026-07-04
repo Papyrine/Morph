@@ -35,7 +35,7 @@ public class InkBenchmarks
                 builder.Append('\'');
             }
 
-            builder.Append(i * 7).Append(' ').Append(i * 11);
+            builder.Append($"{i * 7} {i * 11}");
         }
         return builder.ToString();
     }
