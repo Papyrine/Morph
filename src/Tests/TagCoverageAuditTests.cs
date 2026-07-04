@@ -298,8 +298,8 @@ public class TagCoverageAuditTests
         var result = new HashSet<string>(StringComparer.Ordinal);
         var paths = new[]
         {
-            Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "..", "docs", "word-features.md")),
-            Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "missingTags.md")),
+            Path.GetFullPath(Path.Combine(ProjectFiles.SolutionDirectory, "..", "docs", "word-features.md")),
+            Path.Combine(ProjectFiles.SolutionDirectory, "missingTags.md"),
         };
 
         // Match prefix:localName. Constrain prefixes to the known wordprocessing-doc set so we

@@ -1,4 +1,3 @@
-using System.Text;
 using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 
 /// <summary>
