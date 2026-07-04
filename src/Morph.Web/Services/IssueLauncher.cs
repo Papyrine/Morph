@@ -38,7 +38,7 @@ public static class IssueLauncher
         lines.Add(exception.ToString());
         lines.Add("```");
 
-        var body = WebUtility.UrlEncode(string.Join("\n", lines));
+        var body = WebUtility.UrlEncode(string.Join('\n', lines));
 
         return $"{NewIssue}?title={title}&body={body}";
     }

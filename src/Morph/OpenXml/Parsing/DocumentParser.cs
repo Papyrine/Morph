@@ -7129,7 +7129,7 @@ sealed class DocumentParser(string defaultFont)
             }
 
             // Also build plain text content for backward compatibility
-            content = string.Join("", styledRuns.Select(_ => _.Text));
+            content = string.Concat(styledRuns.Select(_ => _.Text));
         }
 
         return new()

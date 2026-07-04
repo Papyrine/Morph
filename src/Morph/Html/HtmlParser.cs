@@ -810,7 +810,7 @@ sealed class HtmlParser
             }
         }
 
-        return (string.Join(" ", textContent), nestedList);
+        return (string.Join(' ', textContent), nestedList);
     }
 
     /// <summary>

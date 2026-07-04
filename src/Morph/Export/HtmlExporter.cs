@@ -1420,7 +1420,7 @@ static class HtmlExporter
                 transforms.Add($"translate(0 {Number(height)}) scale(1 -1)");
             }
 
-            return transforms.Count == 0 ? "" : $" transform=\"{string.Join(" ", transforms)}\"";
+            return transforms.Count == 0 ? "" : $" transform=\"{string.Join(' ', transforms)}\"";
         }
 
         // Resolves a shape's box into page coordinates. The body's padding equals the page margins,
