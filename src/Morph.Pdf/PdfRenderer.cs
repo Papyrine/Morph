@@ -15,7 +15,11 @@ static class PdfRenderer
             options.FontFallback,
             options.FontDirectory);
 
-        var renderer = new PdfPageRenderer(context) {OnWarning = options.OnWarning};
+        var renderer = new PdfPageRenderer(context)
+        {
+            OnWarning = options.OnWarning,
+            Pages = options.Pages
+        };
         renderer.RenderDocument(document);
 
         MakeDeterministic(context.Document);
@@ -27,6 +31,7 @@ static class PdfRenderer
 
         using var stream = new MemoryStream();
         context.Document.Save(stream, closeStream: false);
+        context.DisposeImages();
         return Normalize(stream.ToArray());
     }
 
@@ -66,32 +71,129 @@ static class PdfRenderer
     // "YZGTLG+Aptos") generated from a GUID, and writes random XMP DocumentID/InstanceID UUIDs —
     // neither has an override hook, and they're the last sources of per-save variance. Remap subset
     // tags to deterministic ones (AAAAAA, AAAAAB, … by first appearance) and pin the UUIDs. Both
-    // patterns are tightly anchored so the binary (FlateDecode) streams are never touched; Latin1
-    // round-trips every byte losslessly.
-    static readonly Regex subsetTagPattern = new(@"(/BaseFont|/FontName)/([A-Z]{6})\+", RegexOptions.Compiled);
-    static readonly Regex xmpUuidPattern = new("uuid:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}", RegexOptions.Compiled);
-    const string fixedUuid = "uuid:00000000-0000-0000-0000-000000000000";
+    // patterns are tightly anchored so the binary (FlateDecode) streams are never touched. Every
+    // replacement is the same length as what it replaces, so the buffer is patched in place —
+    // this used to round-trip the whole PDF through a Latin1 string and two regex passes
+    // (~5× the file size in transient allocations).
+    static readonly byte[] baseFontMarker = "/BaseFont/"u8.ToArray();
+    static readonly byte[] fontNameMarker = "/FontName/"u8.ToArray();
+    static readonly byte[] uuidMarker = "uuid:"u8.ToArray();
+    static readonly byte[] fixedUuid = "uuid:00000000-0000-0000-0000-000000000000"u8.ToArray();
 
     static byte[] Normalize(byte[] pdf)
     {
-        var text = Encoding.Latin1.GetString(pdf);
-        var map = new Dictionary<string, string>();
+        PatchSubsetTags(pdf);
+        PatchXmpUuids(pdf);
+        return pdf;
+    }
 
-        text = subsetTagPattern.Replace(text, match =>
+    static void PatchSubsetTags(byte[] pdf)
+    {
+        var map = new Dictionary<string, string>();
+        var index = 0;
+        while (index < pdf.Length)
         {
-            var original = match.Groups[2].Value;
+            var marker = MatchesAt(pdf, index, baseFontMarker) ? baseFontMarker
+                : MatchesAt(pdf, index, fontNameMarker) ? fontNameMarker
+                : null;
+            if (marker == null)
+            {
+                index++;
+                continue;
+            }
+
+            // A match needs six uppercase letters and a '+' right after the marker; anything
+            // else means the regex this replaces would have kept scanning from the next byte.
+            var tagStart = index + marker.Length;
+            if (tagStart + 7 > pdf.Length || pdf[tagStart + 6] != (byte) '+' || !IsUppercaseTag(pdf, tagStart))
+            {
+                index++;
+                continue;
+            }
+
+            var original = Encoding.ASCII.GetString(pdf, tagStart, 6);
             if (!map.TryGetValue(original, out var replacement))
             {
                 replacement = DeterministicTag(map.Count);
                 map[original] = replacement;
             }
 
-            return $"{match.Groups[1].Value}/{replacement}+";
-        });
+            for (var offset = 0; offset < 6; offset++)
+            {
+                pdf[tagStart + offset] = (byte) replacement[offset];
+            }
 
-        text = xmpUuidPattern.Replace(text, fixedUuid);
+            index = tagStart + 7;
+        }
+    }
 
-        return Encoding.Latin1.GetBytes(text);
+    static bool IsUppercaseTag(byte[] pdf, int start)
+    {
+        for (var offset = 0; offset < 6; offset++)
+        {
+            if (pdf[start + offset] is < (byte) 'A' or > (byte) 'Z')
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    static void PatchXmpUuids(byte[] pdf)
+    {
+        var index = 0;
+        while (index <= pdf.Length - fixedUuid.Length)
+        {
+            if (!MatchesAt(pdf, index, uuidMarker) || !IsUuidBody(pdf, index + uuidMarker.Length))
+            {
+                index++;
+                continue;
+            }
+
+            fixedUuid.CopyTo(pdf, index);
+            index += fixedUuid.Length;
+        }
+    }
+
+    // 8-4-4-4-12 hex groups separated by dashes, immediately after "uuid:".
+    static bool IsUuidBody(byte[] pdf, int start)
+    {
+        for (var offset = 0; offset < 36; offset++)
+        {
+            var value = pdf[start + offset];
+            if (offset is 8 or 13 or 18 or 23)
+            {
+                if (value != (byte) '-')
+                {
+                    return false;
+                }
+            }
+            else if (!char.IsAsciiHexDigit((char) value))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    static bool MatchesAt(byte[] pdf, int index, byte[] pattern)
+    {
+        if (index + pattern.Length > pdf.Length)
+        {
+            return false;
+        }
+
+        for (var offset = 0; offset < pattern.Length; offset++)
+        {
+            if (pdf[index + offset] != pattern[offset])
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     static string DeterministicTag(int index)

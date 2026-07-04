@@ -24,7 +24,20 @@ static class MarkdownExporter
         readonly List<(int Number, string Text)> notes = [];
         readonly Dictionary<string, int> noteNumbers = [];
 
-        public string Finish() => builder.ToString().TrimEnd('\n') + "\n";
+        public string Finish()
+        {
+            // Trim trailing newlines in place — ToString().TrimEnd() duplicated the whole
+            // document to drop a few characters.
+            var length = builder.Length;
+            while (length > 0 && builder[length - 1] == '\n')
+            {
+                length--;
+            }
+
+            builder.Length = length;
+            builder.Append('\n');
+            return builder.ToString();
+        }
 
         public void WriteElements(IReadOnlyList<DocumentElement> elements)
         {
@@ -442,7 +455,7 @@ static class MarkdownExporter
         {
             if (run.InlineImageData is {} imageData)
             {
-                target.Append(Image(imageData, run.InlineImageContentType, run.InlineImageWidthPoints, run.InlineImageHeightPoints, run.InlineImageDescription));
+                AppendImage(target, imageData, run.InlineImageContentType, run.InlineImageWidthPoints, run.InlineImageHeightPoints, run.InlineImageDescription);
                 return;
             }
 
@@ -486,7 +499,7 @@ static class MarkdownExporter
 
             var core = raw.Substring(leadingLength, raw.Length - leadingLength - trailingLength);
             target.Append(raw, 0, leadingLength);
-            target.Append(Decorate(EscapeInline(core, inTable), run.Properties, suppressBold: inHeading));
+            AppendDecorated(target, EscapeInline(core, inTable), run.Properties, suppressBold: inHeading);
             target.Append(raw, raw.Length - trailingLength, trailingLength);
         }
 
@@ -496,44 +509,75 @@ static class MarkdownExporter
         // Underline, superscript and subscript have no Markdown syntax, so they fall back to inline
         // HTML (<u>, <sup>, <sub>), which Markdown renderers pass through; literal '<' in the text
         // is already escaped by EscapeInline, so the generated tags stay unambiguous.
-        static string Decorate(string text, RunProperties properties, bool suppressBold = false)
+        // Appends the decorated run directly into the destination: markers open in fixed order
+        // (bold, italic, strike, sup/sub) and close in exact reverse, with underline's HTML
+        // fallback wrapping the whole thing — the same nesting the old
+        // prefix/Insert(0)-suffix builders produced, without the per-run builder churn.
+        static void AppendDecorated(StringBuilder target, string text, RunProperties properties, bool suppressBold = false)
         {
-            var prefix = new StringBuilder();
-            var suffix = new StringBuilder();
+            var bold = properties.Bold && !suppressBold;
+            var sup = properties.VerticalAlignment == VerticalRunAlignment.Superscript;
+            var sub = properties.VerticalAlignment == VerticalRunAlignment.Subscript;
 
-            void Wrap(string open, string close)
+            if (properties.Underline)
             {
-                prefix.Append(open);
-                suffix.Insert(0, close);
+                target.Append("<u>");
             }
 
-            if (properties.Bold && !suppressBold)
+            if (bold)
             {
-                Wrap("**", "**");
+                target.Append("**");
             }
 
             if (properties.Italic)
             {
-                Wrap("*", "*");
+                target.Append('*');
             }
 
             if (properties.Strikethrough)
             {
-                Wrap("~~", "~~");
+                target.Append("~~");
             }
 
-            switch (properties.VerticalAlignment)
+            if (sup)
             {
-                case VerticalRunAlignment.Superscript:
-                    Wrap("<sup>", "</sup>");
-                    break;
-                case VerticalRunAlignment.Subscript:
-                    Wrap("<sub>", "</sub>");
-                    break;
+                target.Append("<sup>");
+            }
+            else if (sub)
+            {
+                target.Append("<sub>");
             }
 
-            var decorated = $"{prefix}{text}{suffix}";
-            return properties.Underline ? $"<u>{decorated}</u>" : decorated;
+            target.Append(text);
+
+            if (sup)
+            {
+                target.Append("</sup>");
+            }
+            else if (sub)
+            {
+                target.Append("</sub>");
+            }
+
+            if (properties.Strikethrough)
+            {
+                target.Append("~~");
+            }
+
+            if (properties.Italic)
+            {
+                target.Append('*');
+            }
+
+            if (bold)
+            {
+                target.Append("**");
+            }
+
+            if (properties.Underline)
+            {
+                target.Append("</u>");
+            }
         }
 
         // A footnote / endnote reference becomes a GFM footnote marker "[^n]", where n counts up
@@ -617,22 +661,41 @@ static class MarkdownExporter
             }
         }
 
+        // Block-level call sites (standalone image elements, table-cell flattening) still want a
+        // string; the run-level path appends straight into the destination via AppendImage.
         string Image(byte[] data, string? contentType, double widthPoints, double heightPoints, string? description)
         {
+            var image = new StringBuilder();
+            AppendImage(image, data, contentType, widthPoints, heightPoints, description);
+            return image.ToString();
+        }
+
+        void AppendImage(StringBuilder target, byte[] data, string? contentType, double widthPoints, double heightPoints, string? description)
+        {
             var index = imageIndex++;
-            string source;
-            if (options.ImageHandler != null)
+            if (!string.IsNullOrEmpty(description))
             {
-                source = options.ImageHandler(new(data, contentType, widthPoints, heightPoints, index));
+                target.Append("![").Append(EscapeImageAlt(description)).Append("](");
             }
             else
             {
-                var mime = string.IsNullOrEmpty(contentType) ? "image/png" : contentType;
-                source = $"data:{mime};base64,{Convert.ToBase64String(data)}";
+                target.Append("![](");
             }
 
-            var alt = string.IsNullOrEmpty(description) ? "" : EscapeImageAlt(description);
-            return $"![{alt}]({EscapeUrl(source)})";
+            if (options.ImageHandler != null)
+            {
+                target.Append(EscapeUrl(options.ImageHandler(new(data, contentType, widthPoints, heightPoints, index))));
+            }
+            else
+            {
+                // Base64 never contains the characters EscapeUrl guards against (space and
+                // parens), so the data URI is appended directly — a multi-megabyte image used
+                // to be copied several times through interpolation and escaping on its way in.
+                var mime = string.IsNullOrEmpty(contentType) ? "image/png" : contentType;
+                target.Append("data:").Append(mime).Append(";base64,").Append(Convert.ToBase64String(data));
+            }
+
+            target.Append(')');
         }
 
         // Alt text sits inside the ![...] brackets: flatten line breaks and escape the characters

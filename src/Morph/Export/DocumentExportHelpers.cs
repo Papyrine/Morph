@@ -196,26 +196,54 @@ static class DocumentExportHelpers
     public static List<Run> CoalesceRuns(IReadOnlyList<Run> runs)
     {
         var merged = new List<Run>(runs.Count);
-        foreach (var run in runs)
+        var index = 0;
+        while (index < runs.Count)
         {
+            var run = runs[index];
+            index++;
             if (run.Properties.Hidden)
             {
                 continue;
             }
 
-            if (merged.Count > 0 && CanMerge(merged[^1], run))
+            // Absorb the whole mergeable group in one forward scan, building the combined text
+            // once — re-copying the accumulated prefix per fragment made a k-fragment group cost
+            // O(k²) in text length. CanMerge only inspects flags/properties/link target, so
+            // comparing against the group's first run is equivalent to comparing against the
+            // accumulated run.
+            StringBuilder? combined = null;
+            while (index < runs.Count)
             {
-                var previous = merged[^1];
-                merged[^1] = new()
+                var next = runs[index];
+                if (next.Properties.Hidden)
                 {
-                    Text = previous.Text + run.Text,
-                    Properties = previous.Properties,
-                    HyperlinkUrl = previous.HyperlinkUrl
-                };
+                    index++;
+                    continue;
+                }
+
+                if (!CanMerge(run, next))
+                {
+                    break;
+                }
+
+                combined ??= new(run.Text);
+                combined.Append(next.Text);
+                index++;
+            }
+
+            if (combined == null)
+            {
+                merged.Add(run);
             }
             else
             {
-                merged.Add(run);
+                merged.Add(
+                    new()
+                    {
+                        Text = combined.ToString(),
+                        Properties = run.Properties,
+                        HyperlinkUrl = run.HyperlinkUrl
+                    });
             }
         }
 

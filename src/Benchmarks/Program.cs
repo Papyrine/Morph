@@ -1,3 +1,9 @@
+if (args is ["smoke"])
+{
+    BenchmarkSmoke.Run();
+    return;
+}
+
 BenchmarkSwitcher.FromAssemblies([typeof(ConversionBenchmarks).Assembly]).Run(args);
 
 [MemoryDiagnoser]

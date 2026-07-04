@@ -52,16 +52,18 @@ static class HtmlExporter
         // export structures fonts — one body default plus sparse per-run overrides — instead of
         // tagging every run with the same family.
         var bodyFont = DominantFont(document.Elements);
-        var writer = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes);
-        writer.WriteElements(document.Elements, 0);
-        writer.WriteNoteDefinitions();
-        var body = writer.ToString();
 
         if (!options.EmitDocument)
         {
-            return body;
+            var fragmentWriter = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes);
+            fragmentWriter.WriteElements(document.Elements, 0);
+            fragmentWriter.WriteNoteDefinitions();
+            return fragmentWriter.ToString();
         }
 
+        // Everything the prelude needs is known before the body is written, so the writer
+        // streams the body straight into the document builder — the whole output used to be
+        // materialized as a body string and copied into a second builder at the end.
         var doc = new StringBuilder();
         doc.Append("<!doctype html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n<style>\n");
         doc.Append(defaultStylesheet);
@@ -102,7 +104,9 @@ static class HtmlExporter
         }
 
         doc.Append(">\n");
-        doc.Append(body);
+        var writer = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes, doc);
+        writer.WriteElements(document.Elements, 0);
+        writer.WriteNoteDefinitions();
         doc.Append("</body>\n</html>");
         return doc.ToString();
     }
@@ -191,7 +195,7 @@ static class HtmlExporter
         return Length(top);
     }
 
-    sealed class HtmlWriter(HtmlExportOptions options, string? bodyFont, PageSettings pageSettings, IReadOnlyList<Footnote> footnotes, IReadOnlyList<Endnote> endnotes)
+    sealed class HtmlWriter(HtmlExportOptions options, string? bodyFont, PageSettings pageSettings, IReadOnlyList<Footnote> footnotes, IReadOnlyList<Endnote> endnotes, StringBuilder? output = null)
     {
         // Mirrors the body font-size in DefaultStylesheet — runs at this size inherit it and need no
         // inline override.
@@ -211,7 +215,9 @@ static class HtmlExporter
         // Mirrors the stylesheet's heading sizes (h1=16pt … h6=11pt); index = level - 1.
         static readonly double[] headingFontSizePoints = [16, 13, 12, 11, 11, 11];
 
-        readonly StringBuilder builder = new();
+        // Full-document exports pass their prelude-seeded builder so the body streams straight
+        // into the final output instead of being materialized and copied once more at the end.
+        readonly StringBuilder builder = output ?? new();
         readonly HashSet<string> usedHeadingIds = [];
         int imageIndex;
         int shapeIndex;
@@ -1034,18 +1040,23 @@ static class HtmlExporter
             }
 
             var properties = run.Properties;
-            var (open, close) = FormattingTags(properties, inHeading, bodyFont, inheritedFontSizePoints);
-            builder.Append(open);
+            var tags = AppendOpenTags(properties, inHeading, inheritedFontSizePoints);
 
             // AllCaps is handled by CSS (text-transform: uppercase) on the wrapping span — see
             // InlineStyle — so the source text stays intact rather than being eagerly uppercased.
             AppendEncodedWithBreaks(run.Text);
 
-            builder.Append(close);
+            AppendCloseTags(tags);
         }
 
         void AppendEncodedWithBreaks(string text)
         {
+            if (!text.Contains('\n'))
+            {
+                builder.Append(EncodeText(text));
+                return;
+            }
+
             var segments = text.Split('\n');
             for (var index = 0; index < segments.Length; index++)
             {
@@ -1058,59 +1069,93 @@ static class HtmlExporter
             }
         }
 
-        static (string Open, string Close) FormattingTags(RunProperties properties, bool inHeading, string? bodyFont, double inheritedFontSizePoints)
+        readonly record struct RunTags(bool HasStyle, bool Strong, bool Em, bool U, bool S, bool Sup, bool Sub);
+
+        // Opens the run's formatting tags directly into the output; the returned flags drive
+        // AppendCloseTags (exact reverse order). Replaces a per-run pair of StringBuilders
+        // that assembled the same fixed tag strings via Insert(0).
+        RunTags AppendOpenTags(RunProperties properties, bool inHeading, double inheritedFontSizePoints)
         {
-            var open = new StringBuilder();
-            var close = new StringBuilder();
-
-            void Wrap(string tag)
-            {
-                open.Append('<').Append(tag).Append('>');
-                close.Insert(0, $"</{tag}>");
-            }
-
             var style = InlineStyle(properties, inHeading, bodyFont, inheritedFontSizePoints);
             if (style != null)
             {
-                open.Append("<span style=\"").Append(style).Append("\">");
-                close.Insert(0, "</span>");
+                builder.Append("<span style=\"").Append(style).Append("\">");
             }
 
             // A heading is bold by default — both the stylesheet's h1-h6 rule and every browser's
             // UA default — so a <strong> inside one is redundant and is skipped, mirroring the
             // Markdown exporter's heading bold suppression. A run that is explicitly non-bold in a
             // heading is still honoured: InlineStyle emits font-weight: normal for it.
-            if (properties.Bold && !inHeading)
+            var strong = properties.Bold && !inHeading;
+            if (strong)
             {
-                Wrap("strong");
+                builder.Append("<strong>");
             }
 
             if (properties.Italic)
             {
-                Wrap("em");
+                builder.Append("<em>");
             }
 
             if (properties.Underline)
             {
-                Wrap("u");
+                builder.Append("<u>");
             }
 
             if (properties.Strikethrough)
             {
-                Wrap("s");
+                builder.Append("<s>");
             }
 
-            switch (properties.VerticalAlignment)
+            var sup = properties.VerticalAlignment == VerticalRunAlignment.Superscript;
+            var sub = properties.VerticalAlignment == VerticalRunAlignment.Subscript;
+            if (sup)
             {
-                case VerticalRunAlignment.Superscript:
-                    Wrap("sup");
-                    break;
-                case VerticalRunAlignment.Subscript:
-                    Wrap("sub");
-                    break;
+                builder.Append("<sup>");
+            }
+            else if (sub)
+            {
+                builder.Append("<sub>");
             }
 
-            return (open.ToString(), close.ToString());
+            return new(style != null, strong, properties.Italic, properties.Underline, properties.Strikethrough, sup, sub);
+        }
+
+        void AppendCloseTags(RunTags tags)
+        {
+            if (tags.Sub)
+            {
+                builder.Append("</sub>");
+            }
+            else if (tags.Sup)
+            {
+                builder.Append("</sup>");
+            }
+
+            if (tags.S)
+            {
+                builder.Append("</s>");
+            }
+
+            if (tags.U)
+            {
+                builder.Append("</u>");
+            }
+
+            if (tags.Em)
+            {
+                builder.Append("</em>");
+            }
+
+            if (tags.Strong)
+            {
+                builder.Append("</strong>");
+            }
+
+            if (tags.HasStyle)
+            {
+                builder.Append("</span>");
+            }
         }
 
         static string? InlineStyle(RunProperties properties, bool inHeading, string? bodyFont, double inheritedFontSizePoints)

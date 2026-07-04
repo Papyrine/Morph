@@ -407,13 +407,12 @@ static class TableLayout
             {
                 para = direct;
             }
-            else if (element is ContentControlElement {Runs.Count: > 0 } cc)
+            else if (element is ContentControlElement {Runs.Count: > 0} contentControl)
             {
-                para = new()
-                {
-                    Runs = cc.Runs,
-                    Properties = new()
-                };
+                // Autofit deliberately measures only runs-backed controls (text-only controls
+                // never participated in width measurement); the shared wrapper keeps the
+                // layout-cache key identical across the measure/render pipeline stages.
+                para = contentControl.CellParagraph;
             }
 
             if (para == null)

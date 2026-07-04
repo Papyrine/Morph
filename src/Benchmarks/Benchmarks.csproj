@@ -14,6 +14,7 @@
     <ProjectReference Include="..\Morph\Morph.csproj" />
     <ProjectReference Include="..\Morph.Skia\Morph.Skia.csproj" />
     <ProjectReference Include="..\Morph.ImageSharp\Morph.ImageSharp.csproj" />
+    <ProjectReference Include="..\Morph.Pdf\Morph.Pdf.csproj" />
     <PackageReference Include="SkiaSharp.NativeAssets.Win32" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
     <PackageReference Include="SkiaSharp.NativeAssets.macOS" />

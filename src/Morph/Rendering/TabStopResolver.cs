@@ -8,9 +8,11 @@ static class TabStopResolver
     /// Resolves the destination X coordinate for a tab character starting at <paramref name="cursorX"/>.
     /// </summary>
     /// <param name="cursorX">Current cursor X (points from left margin).</param>
-    /// <param name="followingWidth">
-    /// Width of the text fragment that follows the tab, up to the next tab or end-of-line.
-    /// Used by Center and Right tabs to compute the destination.
+    /// <param name="measureFollowingWidth">
+    /// Measures the width of the text fragment that follows the tab, up to the next tab or
+    /// end-of-line. Only Center and Right stops (and Decimal without a prefix) need it, so it is
+    /// invoked lazily — Left/default tabs, the common case, skip the measurement entirely (the
+    /// layout loop re-measures the same text word-by-word right after).
     /// </param>
     /// <param name="tabStops">Paragraph tab stops sorted ascending by <see cref="TabStop.PositionPoints"/>.</param>
     /// <param name="defaultTabStopPoints">Document-level default tab width (typically 36 pt = 0.5").</param>
@@ -39,13 +41,16 @@ static class TabStopResolver
     /// </returns>
     public static (double destinationX, TabStop? stop, bool suppressFollowing) Resolve(
         double cursorX,
-        double followingWidth,
+        Func<double> measureFollowingWidth,
         IReadOnlyList<TabStop> tabStops,
         double defaultTabStopPoints,
         double leftIndentPoints,
         double? decimalPrefixWidth = null,
         double? availableEndX = null)
     {
+        double? measuredFollowingWidth = null;
+        double FollowingWidth() => measuredFollowingWidth ??= measureFollowingWidth();
+
         // Try each explicit stop whose position is strictly beyond the cursor.
         // For Right/Center/Decimal, the effective destination may land behind the cursor if the
         // measured following text is too wide — in that case skip to the next stop.
@@ -79,12 +84,12 @@ static class TabStopResolver
 
             var destination = stop.Alignment switch
             {
-                TabAlignment.Center => stopPosition - followingWidth / 2.0,
-                TabAlignment.Right => stopPosition - followingWidth,
+                TabAlignment.Center => stopPosition - FollowingWidth() / 2.0,
+                TabAlignment.Right => stopPosition - FollowingWidth(),
                 // Decimal: align the decimal point of the following text at the tab position.
                 // If the caller didn't measure a decimal-prefix width (or the following text has no
                 // decimal point), behave like Right — that's what Word does as a fallback.
-                TabAlignment.Decimal => stopPosition - (decimalPrefixWidth ?? followingWidth),
+                TabAlignment.Decimal => stopPosition - (decimalPrefixWidth ?? FollowingWidth()),
                 _ => stopPosition
             };
 

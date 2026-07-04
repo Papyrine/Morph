@@ -586,14 +586,14 @@ sealed class TextRenderer(SkiaRenderContext context) :
             // Tab snap: emit a tab-filler fragment that advances the cursor to the next tab stop.
             if (run.IsTab)
             {
-                var followingWidth = MeasureFollowingWidthNoScale(runs, runIndex + 1);
+                var tabRunIndex = runIndex;
                 var leftIndentPts = (float) props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
                 double? decimalPrefix = hasDecimalTabStop
                     ? MeasureFollowingDecimalPrefixNoScale(runs, runIndex + 1)
                     : null;
                 var (destinationAbs, matchedStop, suppressFollowing) = TabStopResolver.Resolve(
-                    cursorAbs, followingWidth,
+                    cursorAbs, () => MeasureFollowingWidthNoScale(runs, tabRunIndex + 1),
                     props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
                     decimalPrefix,
                     leftIndentPts + effectiveWidth);
@@ -1103,12 +1103,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
             var textTop = pixelY + metrics.Ascent;
             var textBottom = pixelY + metrics.Descent;
 
-            using var bgPaint = new SKPaint
-            {
-                Color = bgColor,
-                Style = SKPaintStyle.Fill,
-                IsAntialias = true
-            };
+            var bgPaint = context.GetReusableFillPaint(bgColor, antialias: true);
             canvas.DrawRect(pixelX, textTop, textWidth, textBottom - textTop, bgPaint);
         }
 
@@ -1196,12 +1191,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
         {
             var underlineY = pixelY + 2 * context.Scale;
             var width = context.PointsToPixels(fragment.Width);
-            using var linePaint = new SKPaint
-            {
-                Color = paint.Color,
-                StrokeWidth = 1 * context.Scale,
-                IsAntialias = true
-            };
+            var linePaint = context.GetReusableRulePaint(paint.Color, 1 * context.Scale);
             canvas.DrawLine(pixelX, underlineY, pixelX + width, underlineY, linePaint);
         }
 
@@ -1210,12 +1200,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
         {
             var strikeY = pixelY - font.Size * 0.3f;
             var width = context.PointsToPixels(fragment.Width);
-            using var linePaint = new SKPaint
-            {
-                Color = paint.Color,
-                StrokeWidth = 1 * context.Scale,
-                IsAntialias = true
-            };
+            var linePaint = context.GetReusableRulePaint(paint.Color, 1 * context.Scale);
             canvas.DrawLine(pixelX, strikeY, pixelX + width, strikeY, linePaint);
         }
     }
@@ -1497,55 +1482,32 @@ sealed class TextRenderer(SkiaRenderContext context) :
 
         if (fragment.InlineImageContentType == "image/svg+xml")
         {
-            var processedData = SvgPreprocessor.StripStyleAndClass(fragment.InlineImageData!);
-
-            // Render SVG
-            using var svg = new SKSvg();
-            using var stream = new MemoryStream(processedData);
-            var picture = svg.Load(stream);
-
-            if (picture != null)
+            // Preprocess/parse/rasterize cached on the context; a repeated inline SVG icon
+            // pays them once. Inline images draw the picture untranslated (no CullRect origin
+            // adjustment) — that's what originAdjusted: false preserves.
+            var bitmap = context.GetSvgRaster(fragment.InlineImageData!, destRect.Width, destRect.Height, crop: null, originAdjusted: false);
+            if (bitmap != null)
             {
-                var svgBounds = picture.CullRect;
-                if (svgBounds is {Width: > 0, Height: > 0})
-                {
-                    var scaleX = destRect.Width / svgBounds.Width;
-                    var scaleY = destRect.Height / svgBounds.Height;
-
-                    // Render SVG to a bitmap first (more reliable than DrawPicture on some canvases)
-                    using var bitmap = new SKBitmap((int) destRect.Width, (int) destRect.Height);
-                    using var tempCanvas = new SKCanvas(bitmap);
-                    tempCanvas.Clear(SKColors.Transparent);
-                    tempCanvas.Scale(scaleX, scaleY);
-                    tempCanvas.DrawPicture(picture);
-
-                    canvas.DrawBitmap(bitmap, destRect.Left, destRect.Top);
-                }
+                canvas.DrawBitmap(bitmap, destRect.Left, destRect.Top);
             }
         }
         else
         {
-            // Render bitmap image
-            using var skData = SKData.CreateCopy(fragment.InlineImageData);
-            using var codec = SKCodec.Create(skData);
-            if (codec != null)
+            var skImage = context.GetBitmap(fragment.InlineImageData!);
+            if (skImage != null)
             {
-                using var skImage = SKBitmap.Decode(codec);
-                if (skImage != null)
+                if (fragment.InlineImageCrop is { IsCropped: true } crop)
                 {
-                    if (fragment.InlineImageCrop is { IsCropped: true } crop)
-                    {
-                        var srcLeft = (float) (crop.Left * skImage.Width);
-                        var srcTop = (float) (crop.Top * skImage.Height);
-                        var srcRight = (float) ((1 - crop.Right) * skImage.Width);
-                        var srcBottom = (float) ((1 - crop.Bottom) * skImage.Height);
-                        var srcRect = new SKRect(srcLeft, srcTop, srcRight, srcBottom);
-                        canvas.DrawBitmap(skImage, srcRect, destRect);
-                    }
-                    else
-                    {
-                        canvas.DrawBitmap(skImage, destRect);
-                    }
+                    var srcLeft = (float) (crop.Left * skImage.Width);
+                    var srcTop = (float) (crop.Top * skImage.Height);
+                    var srcRight = (float) ((1 - crop.Right) * skImage.Width);
+                    var srcBottom = (float) ((1 - crop.Bottom) * skImage.Height);
+                    var srcRect = new SKRect(srcLeft, srcTop, srcRight, srcBottom);
+                    canvas.DrawBitmap(skImage, srcRect, destRect);
+                }
+                else
+                {
+                    canvas.DrawBitmap(skImage, destRect);
                 }
             }
         }
@@ -1598,14 +1560,14 @@ sealed class TextRenderer(SkiaRenderContext context) :
             // Tab snap: emit a tab-filler fragment that advances the cursor to the next tab stop.
             if (run.IsTab)
             {
-                var followingWidth = MeasureFollowingWidthScaled(runs, runIndex + 1);
+                var tabRunIndex = runIndex;
                 var leftIndentPts = (float) props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
                 double? decimalPrefix = hasDecimalTabStop
                     ? MeasureFollowingDecimalPrefixScaled(runs, runIndex + 1)
                     : null;
                 var (destinationAbs, matchedStop, suppressFollowing) = TabStopResolver.Resolve(
-                    cursorAbs, followingWidth,
+                    cursorAbs, () => MeasureFollowingWidthScaled(runs, tabRunIndex + 1),
                     props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
                     decimalPrefix,
                     leftIndentPts + effectiveWidth);

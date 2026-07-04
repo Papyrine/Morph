@@ -560,14 +560,14 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             // Tab snap: emit a tab-filler fragment that advances the cursor to the next tab stop.
             if (run.IsTab)
             {
-                var followingWidth = MeasureFollowingWidth(runs, runIndex + 1);
+                var tabRunIndex = runIndex;
                 var leftIndentPts = (float)props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
                 double? decimalPrefix = hasDecimalTabStop
                     ? MeasureFollowingDecimalPrefix(runs, runIndex + 1)
                     : null;
                 var (destinationAbs, matchedStop, suppressFollowing) = TabStopResolver.Resolve(
-                    cursorAbs, followingWidth,
+                    cursorAbs, () => MeasureFollowingWidth(runs, tabRunIndex + 1),
                     props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
                     decimalPrefix,
                     leftIndentPts + effectiveWidth);
@@ -703,7 +703,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 }
 
                 // Measure word width in points, including character spacing
-                var wordWidth = ImageSharpRenderContext.MeasureText(font, word, ResolveKerningMode(run.Properties))
+                var wordWidth = context.MeasureText(font, word, ResolveKerningMode(run.Properties))
                                 + (float) (run.Properties.CharacterSpacingPoints * word.Length);
 
                 // Check if we need to wrap
@@ -823,7 +823,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var numberText = lineNumber.ToString();
 
         // Measure text width so we can right-align it
-        var textWidth = ImageSharpRenderContext.MeasureText(font, numberText) * context.Scale;
+        var textWidth = context.MeasureText(font, numberText) * context.Scale;
 
         var textOptions = new RichTextOptions(font)
         {
@@ -1293,7 +1293,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         };
 
         var font = context.GetFont(fragment.Properties);
-        var glyphWidthPoints = ImageSharpRenderContext.MeasureText(font, leaderChar.ToString());
+        var glyphWidthPoints = context.MeasureText(font, leaderChar.ToString());
         if (glyphWidthPoints <= 0)
         {
             return;
@@ -1434,39 +1434,25 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             imageBytes = fragment.InlineImageRasterFallbackData;
         }
 
-        // Render bitmap image
-        try
+        // Decode + crop + resize + rotate are cached on the context — a repeated inline icon
+        // processes once per document.
+        var rotation = (float) fragment.InlineImageRotationDegrees;
+        var img = context.GetProcessedImage(imageBytes!, (int) pixelWidth, (int) pixelHeight, fragment.InlineImageCrop, BlipColorEffect.None, rotation);
+        if (img == null)
         {
-            var img = Image.Load<Rgba32>(imageBytes!);
-            context.RetainForPage(img);
-
-            if (fragment.InlineImageCrop is { IsCropped: true } crop)
-            {
-                var srcLeft = (int) (crop.Left * img.Width);
-                var srcTop = (int) (crop.Top * img.Height);
-                var srcWidth = Math.Max(1, img.Width - srcLeft - (int) (crop.Right * img.Width));
-                var srcHeight = Math.Max(1, img.Height - srcTop - (int) (crop.Bottom * img.Height));
-                img.Mutate(_ => _.Crop(new(srcLeft, srcTop, srcWidth, srcHeight)));
-            }
-
-            img.Mutate(_ => _.Resize(new Size((int)pixelWidth, (int)pixelHeight)));
-            var rotation = (float) fragment.InlineImageRotationDegrees;
-            if (rotation == 0)
-            {
-                canvas.DrawImage(img, new((int) pixelX, (int) pixelY));
-            }
-            else
-            {
-                img.Mutate(_ => _.Rotate(rotation));
-                // After rotation the image's bounding box grew; recentre over the original location.
-                var newX = pixelX + pixelWidth / 2 - img.Width / 2f;
-                var newY = pixelY + pixelHeight / 2 - img.Height / 2f;
-                canvas.DrawImage(img, new((int) newX, (int) newY));
-            }
+            return;
         }
-        catch
+
+        if (rotation == 0)
         {
-            // Skip images that fail to decode
+            canvas.DrawImage(img, new((int) pixelX, (int) pixelY));
+        }
+        else
+        {
+            // After rotation the image's bounding box grew; recentre over the original location.
+            var newX = pixelX + pixelWidth / 2 - img.Width / 2f;
+            var newY = pixelY + pixelHeight / 2 - img.Height / 2f;
+            canvas.DrawImage(img, new((int) newX, (int) newY));
         }
     }
 
@@ -1516,14 +1502,14 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 // measurement that feeds the tab-stop resolver must apply the same scale — otherwise
                 // a Right tab snaps to a destination that's just-too-tight, and the page-number
                 // word wraps to the next line (TOC dot-leader case).
-                var followingWidth = MeasureFollowingWidth(runs, runIndex + 1, applyFontWidthScale: true);
+                var tabRunIndex = runIndex;
                 var leftIndentPts = (float) props.LeftIndentPoints;
                 var cursorAbs = leftIndentPts + currentLineWidth;
                 double? decimalPrefix = hasDecimalTabStop
                     ? MeasureFollowingDecimalPrefix(runs, runIndex + 1, applyFontWidthScale: true)
                     : null;
                 var (destinationAbs, matchedStop, suppressFollowing) = TabStopResolver.Resolve(
-                    cursorAbs, followingWidth,
+                    cursorAbs, () => MeasureFollowingWidth(runs, tabRunIndex + 1, applyFontWidthScale: true),
                     props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
                     decimalPrefix,
                     leftIndentPts + effectiveWidth);
@@ -1666,7 +1652,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
 
                 // Measure the display word (without soft hyphen)
                 // Apply FontWidthScale and character spacing to better match Word's text rendering
-                var wordWidth = ImageSharpRenderContext.MeasureText(font, displayWord, ResolveKerningMode(run.Properties)) * context.FontWidthScale
+                var wordWidth = context.MeasureText(font, displayWord, ResolveKerningMode(run.Properties)) * context.FontWidthScale
                                 + (float) (run.Properties.CharacterSpacingPoints * displayWord.Length);
 
                 // Check if we need to wrap to a new line
@@ -1846,12 +1832,12 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             if (dotIndex >= 0)
             {
                 var prefix = text[..dotIndex];
-                total += ImageSharpRenderContext.MeasureText(font, prefix, ResolveKerningMode(run.Properties)) * scale
+                total += context.MeasureText(font, prefix, ResolveKerningMode(run.Properties)) * scale
                          + (float)(run.Properties.CharacterSpacingPoints * prefix.Length);
                 return total;
             }
 
-            total += ImageSharpRenderContext.MeasureText(font, text, ResolveKerningMode(run.Properties)) * scale
+            total += context.MeasureText(font, text, ResolveKerningMode(run.Properties)) * scale
                      + (float)(run.Properties.CharacterSpacingPoints * text.Length);
         }
 
@@ -1910,7 +1896,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
 
             var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
             var font = context.GetFont(run.Properties);
-            total += ImageSharpRenderContext.MeasureText(font, text, ResolveKerningMode(run.Properties)) * scale
+            total += context.MeasureText(font, text, ResolveKerningMode(run.Properties)) * scale
                      + (float)(run.Properties.CharacterSpacingPoints * text.Length);
         }
 

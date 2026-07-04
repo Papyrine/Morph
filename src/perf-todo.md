@@ -1,5 +1,36 @@
 # Performance TODO
 
+## Status (2026-07-04 implementation pass)
+
+Implemented and verified (scenario suite green, zero baseline changes): **P1a–P1e, P2 (+all
+satellites), P3, P4a/P4b/P4c/P4d/P4f, P5a/P5b/P5c/P5d, P5e (ImageSharp space-width/TextOptions
+memo), P6a–P6g** (P6g safe subset). Render benchmarks, PDF benchmarks, export benchmarks and the
+`smoke` harness were added under `src/Benchmarks/` per the Measurement section.
+
+Deferred, in scope for a follow-up pass:
+- **P4e** — the ParseRunProperties/ParseParagraphProperties child-loop rewrite (~500 mechanical
+  lines for a moderate parse-time gain; the other P4 items landed first).
+- **P4c (optional part)** — folding the remaining single-purpose extractor walks into one
+  dispatch walk.
+- **P5d (width-alignment part)** — measuring numbered cell paragraphs at `contentWidth - 12` but
+  rendering at `contentWidth` is a fidelity bug whose fix shifts row heights; not a pure perf
+  change, so it stays out of this pass.
+- **P5e** — vMerge grid-occupancy pass, autofit longest-token measurement, and the
+  `AdvanceToBackgroundsTargetPage` lookahead cap (the last one risks output changes).
+- **P6g** — the `QuerySelectorAll("tr")` nested-table quirk (behavior change).
+
+Discovered while validating (not perf): the Skia color matrix passed biases in 0..255 scale
+where SkiaSharp expects 0..1 (saturating channels to white); the Washout recolor preset kept a
+corrected 0..1 matrix. Separately, Word's own reference exports render picture watermarks as
+nothing at all (zero pixel trace on business-plans/04/06/07/08, even over coloured pages), so
+both raster backends now skip drawing picture watermarks entirely — ImageSharp previously drew
+a visible wash and its four baselines were regenerated, moving those scenarios sharply closer
+to the Word reference (e.g. 04 page 1: 0.9965 → 0.1382 error). Skia's committed baselines
+already matched the no-watermark output. Text watermarks still render. The PDF backend renders
+no watermarks at all.
+
+---
+
 Findings from a full perf review (2026-07-04) of the parser, shared layout core, Skia/ImageSharp
 backends, PDF backend, and text exporters. Every HIGH/MEDIUM item was verified by reading the code
 at the cited location, including at least one call chain from a public converter entry point.
@@ -99,7 +130,7 @@ it to ImageSharp bulk ops is optional after that.)
   `XImage.FromStream(new MemoryStream(data))` per call. PdfSharp dedupes embedded image XObjects
   per `XImage` *instance* only — a fresh instance from the same bytes is decoded again **and
   embedded again in the output PDF**. Header logo on a 200-page doc = 200 decodes + 200 embedded
-  copies (file size, not just CPU). The `XImage` is also never disposed.
+  copies (file size, not only CPU). The `XImage` is also never disposed.
 - `src/Morph.Pdf/PdfTextEngine.cs:296-313` — `DrawImage` (inline images), same pattern.
 
 **Fix:** cache `XImage` per `byte[]` reference on `PdfRenderContext`; dispose all at end of render.
@@ -199,7 +230,7 @@ Each an independent full-DOM walk:
 - :173 `Descendants<SectionProperties>().ToList()` → `sectionPropsList`
 - :217-234 `ExtractHeaderFooter` called 2–6×, and **each call re-runs
   `body.Descendants<SectionProperties>()` from scratch** (:3022) even though `sectionPropsList`
-  already exists → pass it in (easy first step)
+  already exists → pass it in (low-effort first step)
 - :237 `ExtractBookmarks` builds a paragraph-ordinal map over all `Descendants<Paragraph>`
   **even when there are zero bookmarks** (:872-880) → enumerate `BookmarkStart` first, bail if none
 - :238 `ExtractComments` rebuilds the *same* paragraph-ordinal map (:816-821) → share it

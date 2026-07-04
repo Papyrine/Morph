@@ -763,37 +763,36 @@ abstract class PageRendererBase(RenderContextBase context)
             return;
         }
 
-        // Use styled runs if available, otherwise fall back to plain text.
-        ParagraphElement para;
-        if (control.Runs is {Count: > 0})
-        {
-            para = new()
-            {
-                Runs = control.Runs,
-                Properties = new()
-            };
-        }
-        else if (!string.IsNullOrEmpty(control.Content))
-        {
-            para = new()
-            {
-                Runs =
-                [
-                    new()
-                    {
-                        Text = control.Content,
-                        Properties = new()
-                    }
-                ],
-                Properties = new()
-            };
-        }
-        else
+        // Use styled runs if available, otherwise fall back to plain text. The shared wrapper
+        // means the layout computed during cell measurement is reused here by identity.
+        if (control.CellParagraph is not { } para)
         {
             return;
         }
 
         RenderParagraphInBounds(para, x, maxWidth);
+    }
+
+    // Table layout is computed when a KeepNext lookahead measures the table's height and then
+    // again by RenderTable; both run the full column-count + autofit column-width + vMerge +
+    // row-height pipeline. The results are pure per (table, available width) — memoize per
+    // renderer instance (one document render). The cached arrays are shared and never mutated.
+    readonly Dictionary<(TableElement Table, float Width), (int ColCount, float[] ColWidths, bool HasVerticalMerge, float[] RowHeights)> tableLayoutCache = [];
+
+    protected (int ColCount, float[] ColWidths, bool HasVerticalMerge, float[] RowHeights) GetTableLayout(TableElement table)
+    {
+        var key = (table, context.ContentWidth);
+        if (!tableLayoutCache.TryGetValue(key, out var layout))
+        {
+            var colCount = TableLayout.GetColumnCount(table);
+            var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth, Measurer);
+            var hasVerticalMerge = TableLayout.HasVerticalMerge(table);
+            var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, Measurer, hasVerticalMerge);
+            layout = (colCount, colWidths, hasVerticalMerge, rowHeights);
+            tableLayoutCache[key] = layout;
+        }
+
+        return layout;
     }
 
     /// <summary>
@@ -816,11 +815,7 @@ abstract class PageRendererBase(RenderContextBase context)
             context.CurrentY = ResolveFloatingTableY(table);
         }
 
-        var colCount = TableLayout.GetColumnCount(table);
-        var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth, Measurer);
-        var hasVerticalMerge = TableLayout.HasVerticalMerge(table);
-
-        var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, Measurer, hasVerticalMerge);
+        var (colCount, colWidths, hasVerticalMerge, rowHeights) = GetTableLayout(table);
         var totalHeight = rowHeights.Sum();
 
         // Allow a 10% tolerance on the page-overflow check; row-height measurement is conservative.
@@ -1198,47 +1193,50 @@ abstract class PageRendererBase(RenderContextBase context)
         // TableHeightCalculator allocates, including its rule that the LAST paragraph's
         // after-spacing overlaps the bottom cell margin (max, not sum). Otherwise centred/bottom
         // content would be offset too high by the part of that gap the margin already covers.
+        // Top alignment — the default for the vast majority of cells — never reads the measured
+        // height (its offset is always 0), so the whole measurement pass is skipped for it.
         float contentHeight = 0;
-        ParagraphElement? lastMeasuredParagraph = null;
-        foreach (var element in cell.Content)
+        if (cell.Properties.VerticalAlignment != CellVerticalAlignment.Top)
         {
-            if (element is ParagraphElement para)
+            ParagraphElement? lastMeasuredParagraph = null;
+            foreach (var element in cell.Content)
             {
-                // Account for bullet indent to match RenderParagraphInBounds behavior.
-                float bulletIndent = para.Properties.Numbering != null ? 12 : 0;
-                contentHeight += Measurer.MeasureParagraphHeightWithWidth(para, contentWidth - bulletIndent);
-                lastMeasuredParagraph = para;
-            }
-            else if (element is ContentControlElement contentControl)
-            {
-                var measurePara = new ParagraphElement
+                if (element is ParagraphElement para)
                 {
-                    Runs = contentControl.Runs!,
-                    Properties = new()
-                };
-                contentHeight += Measurer.MeasureParagraphHeightWithWidth(measurePara, contentWidth);
-                lastMeasuredParagraph = measurePara;
-            }
-            else if (element is ImageElement image)
-            {
-                var imageWidth = (float) image.WidthPoints;
-                var imageHeight = (float) image.HeightPoints;
-                if (imageWidth > contentWidth)
-                {
-                    var scale = contentWidth / imageWidth;
-                    imageHeight *= scale;
+                    // Account for bullet indent to match RenderParagraphInBounds behavior.
+                    float bulletIndent = para.Properties.Numbering != null ? 12 : 0;
+                    contentHeight += Measurer.MeasureParagraphHeightWithWidth(para, contentWidth - bulletIndent);
+                    lastMeasuredParagraph = para;
                 }
+                else if (element is ContentControlElement contentControl)
+                {
+                    if (contentControl.CellParagraph is { } measurePara)
+                    {
+                        contentHeight += Measurer.MeasureParagraphHeightWithWidth(measurePara, contentWidth);
+                        lastMeasuredParagraph = measurePara;
+                    }
+                }
+                else if (element is ImageElement image)
+                {
+                    var imageWidth = (float) image.WidthPoints;
+                    var imageHeight = (float) image.HeightPoints;
+                    if (imageWidth > contentWidth)
+                    {
+                        var scale = contentWidth / imageWidth;
+                        imageHeight *= scale;
+                    }
 
-                contentHeight += imageHeight;
+                    contentHeight += imageHeight;
+                }
             }
-        }
 
-        if (lastMeasuredParagraph != null)
-        {
-            // Only the portion of the trailing after-spacing the bottom margin already covers is
-            // removed (mirrors TableHeightCalculator's max-overlap); the rest is real content space.
-            var bottomInset = (float) padding.Bottom;
-            contentHeight -= Math.Min((float) lastMeasuredParagraph.Properties.SpacingAfterPoints, bottomInset);
+            if (lastMeasuredParagraph != null)
+            {
+                // Only the portion of the trailing after-spacing the bottom margin already covers is
+                // removed (mirrors TableHeightCalculator's max-overlap); the rest is real content space.
+                var bottomInset = (float) padding.Bottom;
+                contentHeight -= Math.Min((float) lastMeasuredParagraph.Properties.SpacingAfterPoints, bottomInset);
+            }
         }
 
         var verticalOffset = cell.Properties.VerticalAlignment switch
