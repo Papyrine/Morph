@@ -146,7 +146,8 @@ public class TagCoverageAuditTests
                 continue;
             }
 
-            if (string.IsNullOrEmpty(instance.LocalName) || string.IsNullOrEmpty(instance.Prefix))
+            if (string.IsNullOrEmpty(instance.LocalName) ||
+                string.IsNullOrEmpty(instance.Prefix))
             {
                 continue;
             }
@@ -175,7 +176,8 @@ public class TagCoverageAuditTests
 
         foreach (var type in typeof(Body).Assembly.GetTypes())
         {
-            if (type.IsAbstract || !elementBase.IsAssignableFrom(type))
+            if (type.IsAbstract ||
+                !elementBase.IsAssignableFrom(type))
             {
                 continue;
             }
