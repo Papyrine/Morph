@@ -19,6 +19,8 @@ public class ParseBenchmarks
     byte[] complexTablesBytes = [];
     byte[] watermarkBytes = [];
     byte[] largeBytes = [];
+    byte[] tocBytes = [];
+    byte[] repeatedImageBytes = [];
 
     [GlobalSetup]
     public void Setup()
@@ -27,6 +29,8 @@ public class ParseBenchmarks
         complexTablesBytes = File.ReadAllBytes(complexTablesDoc);
         watermarkBytes = File.ReadAllBytes(watermarkDoc);
         largeBytes = File.ReadAllBytes(largeDoc);
+        tocBytes = BenchmarkDocs.Toc;
+        repeatedImageBytes = BenchmarkDocs.RepeatedImage;
     }
 
     [Benchmark]
@@ -44,4 +48,17 @@ public class ParseBenchmarks
     [Benchmark]
     [BenchmarkCategory("Parse")]
     public object Parse_Large() => new DocumentParser().Parse(new MemoryStream(largeBytes));
+
+    // Hyperlink/style-heavy synthetic document: 300 hyperlinked runs carrying rStyle against a
+    // 200-style styles.xml — exercises the per-run style lookup and per-link relationship
+    // resolution paths.
+    [Benchmark]
+    [BenchmarkCategory("Parse")]
+    public object Parse_Toc() => new DocumentParser().Parse(new MemoryStream(tocBytes));
+
+    // 60 inline drawings all referencing the same image part — exercises per-reference image
+    // part buffering.
+    [Benchmark]
+    [BenchmarkCategory("Parse")]
+    public object Parse_RepeatedImage() => new DocumentParser().Parse(new MemoryStream(repeatedImageBytes));
 }

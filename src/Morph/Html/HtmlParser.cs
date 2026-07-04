@@ -17,12 +17,15 @@ sealed class HtmlParser
     public static List<DocumentElement> Parse(string html) =>
         Parse(html, "Times New Roman");
 
+    // AngleSharp's parser is reusable (each ParseDocument call builds its own context);
+    // constructing one per Parse call re-created its options and factories every time.
+    static readonly AngleSharp.Html.Parser.HtmlParser angleSharpParser = new();
+
     public static List<DocumentElement> Parse(string html, string defaultFontFamily)
     {
         var instance = new HtmlParser(defaultFontFamily);
         var elements = new List<DocumentElement>();
-        var parser = new AngleSharp.Html.Parser.HtmlParser();
-        var document = parser.ParseDocument(html);
+        var document = angleSharpParser.ParseDocument(html);
 
         var body = document.Body;
         if (body == null)
@@ -86,7 +89,7 @@ sealed class HtmlParser
 
     void ParseElement(IElement element, List<DocumentElement> elements)
     {
-        switch (element.TagName.ToLowerInvariant())
+        switch (element.LocalName)
         {
             case "h1":
             case "h2":
@@ -374,7 +377,7 @@ sealed class HtmlParser
 
     static void ParseInlineElement(IElement element, List<Run> runs, RunProperties props)
     {
-        switch (element.TagName.ToLowerInvariant())
+        switch (element.LocalName)
         {
             case "b":
             case "strong":
@@ -878,13 +881,13 @@ sealed class HtmlParser
         var tableStyle = tableElement.GetAttribute("style");
         if (!string.IsNullOrEmpty(tableStyle))
         {
-            var tablePadding = ParseCssSpacing(tableStyle, "padding");
+            var tableStyles = ParseStyleAttribute(tableStyle);
+            var tablePadding = ParseCssSpacing(tableStyles, "padding");
             if (tablePadding != null)
             {
                 defaultCellPadding = tablePadding;
             }
 
-            var tableStyles = ParseStyleAttribute(tableStyle);
             if (tableStyles.TryGetValue("border", out var cssBorder))
             {
                 var parsed = ParseCssBorderShorthand(cssBorder);
@@ -936,9 +939,9 @@ sealed class HtmlParser
                 var cellStyle = cell.GetAttribute("style");
                 if (!string.IsNullOrEmpty(cellStyle))
                 {
-                    cellPadding = ParseCssSpacing(cellStyle, "padding");
-                    cellMargin = ParseCssSpacing(cellStyle, "margin");
                     var cellStyles = ParseStyleAttribute(cellStyle);
+                    cellPadding = ParseCssSpacing(cellStyles, "padding");
+                    cellMargin = ParseCssSpacing(cellStyles, "margin");
                     if (cellStyles.TryGetValue("background-color", out var bg))
                     {
                         cellBgColor = NormalizeColor(bg);
@@ -1057,10 +1060,13 @@ sealed class HtmlParser
         };
     }
 
-    static CellSpacing? ParseCssSpacing(string style, string property)
-    {
-        var styles = ParseStyleAttribute(style);
+    static CellSpacing? ParseCssSpacing(string style, string property) =>
+        ParseCssSpacing(ParseStyleAttribute(style), property);
 
+    // Overload for callers that already parsed the style attribute — a table cell's style
+    // used to be tokenized three times (padding, margin, then the general lookup).
+    static CellSpacing? ParseCssSpacing(Dictionary<string, string> styles, string property)
+    {
         // Try shorthand property
         if (styles.TryGetValue(property, out var all))
         {
@@ -1179,7 +1185,7 @@ sealed class HtmlParser
     {
         foreach (var child in element.Children)
         {
-            switch (child.TagName.ToLowerInvariant())
+            switch (child.LocalName)
             {
                 case "dt":
                     elements.Add(CreateParagraph(child, 11, true));

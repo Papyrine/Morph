@@ -58,6 +58,22 @@ sealed class DocumentParser(string defaultFont)
     // Style definitions cached during parsing (styleId -> full run properties)
     Dictionary<string, RunProperties>? styleRunProperties;
 
+    // Raw style elements by styleId, first-wins to match the Elements<Style>().FirstOrDefault
+    // scan it replaces. ParseRunProperties consults the original style XML for every run that
+    // carries w:rStyle (hyperlinks, TOC entries, note refs) to know which properties the
+    // character style explicitly defines — that was a linear styles.xml scan per run.
+    Dictionary<string, Style>? stylesById;
+
+    // Hyperlink relationship id → resolved URL. mainPart.HyperlinkRelationships is an OfType<>
+    // filter over the part's full relationship list, re-enumerated per w:hyperlink — quadratic
+    // on link-heavy documents (TOCs, bibliographies).
+    Dictionary<string, string>? hyperlinkUrlsByRelId;
+
+    // One decompressed buffer per image part: every drawing referencing a part used to copy its
+    // own byte[], so repeated logos/icons retained N identical arrays in the model. Sharing one
+    // array also lets the render-side byte[]-identity caches dedupe repeats across elements.
+    readonly Dictionary<OpenXmlPart, byte[]> imagePartBytes = [];
+
     // Document default text colour from w:docDefaults/w:rPrDefault/w:color (theme-resolved). The
     // base of the colour cascade: every run that doesn't get a colour from a style or inline rPr
     // inherits this. Null when docDefaults sets no colour (the common case — runs stay black).
@@ -171,6 +187,9 @@ sealed class DocumentParser(string defaultFont)
         // SectionProperties (sectPr) describes the section it belongs to, and the section break is stored
         // on the last paragraph of the section. The next section's properties are stored in the next sectPr.
         var sectionPropsList = body.Descendants<SectionProperties>().ToList();
+        stylesById = null;
+        hyperlinkUrlsByRelId = null;
+        imagePartBytes.Clear();
         nextSectionSettings = new();
         for (var i = 0; i < sectionPropsList.Count; i++)
         {
@@ -214,28 +233,47 @@ sealed class DocumentParser(string defaultFont)
         // text-frame elements (Word's text-frame feature).
         elements = FrameGrouper.Group(elements);
 
-        var header = ExtractHeaderFooter(body, mainPart, HeaderFooterValues.Default, isHeader: true);
-        var footer = ExtractHeaderFooter(body, mainPart, HeaderFooterValues.Default, isHeader: false);
+        var header = ExtractHeaderFooter(sectionPropsList, mainPart, HeaderFooterValues.Default, isHeader: true);
+        var footer = ExtractHeaderFooter(sectionPropsList, mainPart, HeaderFooterValues.Default, isHeader: false);
         var firstPageHeader = pageSettings.DifferentFirstPage
-            ? ExtractHeaderFooter(body, mainPart, HeaderFooterValues.First, isHeader: true)
+            ? ExtractHeaderFooter(sectionPropsList, mainPart, HeaderFooterValues.First, isHeader: true)
             : null;
         var firstPageFooter = pageSettings.DifferentFirstPage
-            ? ExtractHeaderFooter(body, mainPart, HeaderFooterValues.First, isHeader: false)
+            ? ExtractHeaderFooter(sectionPropsList, mainPart, HeaderFooterValues.First, isHeader: false)
             : null;
 
         // w:settings/w:evenAndOddHeaders opts the document into separate even-page parts.
         var evenAndOddHeaders = mainPart.DocumentSettingsPart?.Settings?
             .GetFirstChild<EvenAndOddHeaders>().IsOn() ?? false;
         var evenPageHeader = evenAndOddHeaders
-            ? ExtractHeaderFooter(body, mainPart, HeaderFooterValues.Even, isHeader: true)
+            ? ExtractHeaderFooter(sectionPropsList, mainPart, HeaderFooterValues.Even, isHeader: true)
             : null;
         var evenPageFooter = evenAndOddHeaders
-            ? ExtractHeaderFooter(body, mainPart, HeaderFooterValues.Even, isHeader: false)
+            ? ExtractHeaderFooter(sectionPropsList, mainPart, HeaderFooterValues.Even, isHeader: false)
             : null;
         var hyphenation = ExtractHyphenationSettings(mainPart);
         var compatibility = ExtractCompatibilitySettings(mainPart);
-        var bookmarks = ExtractBookmarks(body);
-        var comments = ExtractComments(mainPart, body);
+
+        // Both bookmark and comment extraction anchor to paragraph ordinals; the map costs a
+        // full body walk, so it's built at most once and only when either feature is present.
+        Dictionary<Paragraph, int>? paragraphOrdinals = null;
+        Dictionary<Paragraph, int> ParagraphOrdinals()
+        {
+            if (paragraphOrdinals == null)
+            {
+                paragraphOrdinals = new();
+                var ordinal = 0;
+                foreach (var paragraph in body.Descendants<Paragraph>())
+                {
+                    paragraphOrdinals[paragraph] = ordinal++;
+                }
+            }
+
+            return paragraphOrdinals;
+        }
+
+        var bookmarks = ExtractBookmarks(body, ParagraphOrdinals);
+        var comments = ExtractComments(mainPart, body, ParagraphOrdinals);
         var trackedChanges = ExtractTrackedChanges(body);
         var protection = ExtractDocumentProtection(mainPart);
         var fieldCodes = ExtractFieldCodes(body);
@@ -381,7 +419,7 @@ sealed class DocumentParser(string defaultFont)
         return result;
     }
 
-    static List<Watermark> ExtractWatermarks(MainDocumentPart mainPart)
+    List<Watermark> ExtractWatermarks(MainDocumentPart mainPart)
     {
         var result = new List<Watermark>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -438,7 +476,7 @@ sealed class DocumentParser(string defaultFont)
         return result;
     }
 
-    static Watermark? ParsePictureWatermark(DocumentFormat.OpenXml.Vml.ImageData imageData, HeaderPart headerPart)
+    Watermark? ParsePictureWatermark(DocumentFormat.OpenXml.Vml.ImageData imageData, HeaderPart headerPart)
     {
         var relId = imageData.RelationshipId?.Value
                     ?? imageData.GetAttributes().FirstOrDefault(_ => _.LocalName == "id" && _.NamespaceUri.EndsWith("/relationships")).Value;
@@ -452,10 +490,6 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
-        using var stream = imagePart.GetStream();
-        using var memory = new MemoryStream();
-        stream.CopyTo(memory);
-
         // Word stores gain/blacklevel as fixed-point /65536 (the trailing "f" is a hint for that).
         // 65536 → 1.0; default Gain = 1.0 (no contrast change), default BlackLevel = 0.
         var gain = ParseFixedPoint(imageData.Gain?.Value, defaultValue: 1.0);
@@ -463,7 +497,7 @@ sealed class DocumentParser(string defaultFont)
 
         return new()
         {
-            ImageData = memory.ToArray(),
+            ImageData = GetPartBytes(imagePart),
             ContentType = imagePart.ContentType,
             Gain = gain,
             BlackLevel = blackLevel
@@ -804,7 +838,7 @@ sealed class DocumentParser(string defaultFont)
         }
     }
 
-    static List<Comment> ExtractComments(MainDocumentPart mainPart, Body body)
+    static List<Comment> ExtractComments(MainDocumentPart mainPart, Body body, Func<Dictionary<Paragraph, int>> getParagraphOrdinals)
     {
         var commentsPart = mainPart.WordprocessingCommentsPart;
         if (commentsPart?.Comments == null)
@@ -812,14 +846,9 @@ sealed class DocumentParser(string defaultFont)
             return [];
         }
 
-        // Map each w:commentRangeStart's id → enclosing paragraph ordinal.
-        var paragraphOrdinals = new Dictionary<Paragraph, int>();
-        var ordinal = 0;
-        foreach (var paragraph in body.Descendants<Paragraph>())
-        {
-            paragraphOrdinals[paragraph] = ordinal++;
-        }
-
+        // Map each w:commentRangeStart's id → enclosing paragraph ordinal. The ordinal map is
+        // shared with bookmark extraction and only materialized when a range start exists.
+        Dictionary<Paragraph, int>? paragraphOrdinals = null;
         var anchorByCommentId = new Dictionary<string, int>(StringComparer.Ordinal);
         foreach (var rangeStart in body.Descendants<CommentRangeStart>())
         {
@@ -828,6 +857,7 @@ sealed class DocumentParser(string defaultFont)
                 continue;
             }
 
+            paragraphOrdinals ??= getParagraphOrdinals();
             for (var current = rangeStart.Parent; current != null; current = current.Parent)
             {
                 if (current is Paragraph paragraph && paragraphOrdinals.TryGetValue(paragraph, out var idx))
@@ -869,15 +899,11 @@ sealed class DocumentParser(string defaultFont)
         return result;
     }
 
-    static List<Bookmark> ExtractBookmarks(Body body)
+    static List<Bookmark> ExtractBookmarks(Body body, Func<Dictionary<Paragraph, int>> getParagraphOrdinals)
     {
-        // Pre-compute a map from each Paragraph element to its ordinal among paragraphs in the body.
-        var paragraphOrdinals = new Dictionary<Paragraph, int>();
-        var ordinal = 0;
-        foreach (var paragraph in body.Descendants<Paragraph>())
-        {
-            paragraphOrdinals[paragraph] = ordinal++;
-        }
+        // The paragraph-ordinal map costs a full body walk; most documents have no bookmarks,
+        // so it's only materialized (shared with comment extraction) once a bookmark is found.
+        Dictionary<Paragraph, int>? paragraphOrdinals = null;
 
         var result = new List<Bookmark>();
         foreach (var start in body.Descendants<BookmarkStart>())
@@ -887,6 +913,8 @@ sealed class DocumentParser(string defaultFont)
             {
                 continue;
             }
+
+            paragraphOrdinals ??= getParagraphOrdinals();
 
             int? paragraphIndex = null;
             for (var current = start.Parent; current != null; current = current.Parent)
@@ -3011,15 +3039,16 @@ sealed class DocumentParser(string defaultFont)
 
     }
 
-    HeaderFooterContent? ExtractHeaderFooter(Body body, MainDocumentPart mainPart, HeaderFooterValues type, bool isHeader)
+    HeaderFooterContent? ExtractHeaderFooter(IReadOnlyList<SectionProperties> sectionPropsList, MainDocumentPart mainPart, HeaderFooterValues type, bool isHeader)
     {
         // Search every section's properties for a matching reference, not just the last sectPr.
         // The last sectPr is the trailing/document-level one and often has no header refs; earlier
         // sectPrs (e.g. section 0/1) carry the actual references for cover-page and body sections.
         // Picking up MainPart.HeaderParts.FirstOrDefault as a blind fallback risks landing on the
         // wrong header (e.g. an unreferenced cover-page header that paints a coloured background).
+        // The caller passes the body's already-materialized sectPr list — this runs 2–6× per parse.
         OpenXmlPart? part = null;
-        foreach (var sectionProps in body.Descendants<SectionProperties>())
+        foreach (var sectionProps in sectionPropsList)
         {
             if (isHeader)
             {
@@ -4208,8 +4237,16 @@ sealed class DocumentParser(string defaultFont)
                                     });
                             }
 
-                            // Check for drawings (images/icons) within the SdtRun child
+                            // Check for drawings (images/icons) within the SdtRun child.
+                            // Collected once — the drawing loop and the text-content guard
+                            // below used to walk the same subtree twice.
+                            List<Drawing>? sdtRunDrawings = null;
                             foreach (var drawing in sdtChildRun.Descendants<Drawing>())
+                            {
+                                (sdtRunDrawings ??= []).Add(drawing);
+                            }
+
+                            foreach (var drawing in sdtRunDrawings ?? (IReadOnlyList<Drawing>) [])
                             {
                                 var imageElements = ParseDrawingElements(drawing, mainPart);
                                 if (imageElements.Count > 0)
@@ -4230,7 +4267,7 @@ sealed class DocumentParser(string defaultFont)
                             }
 
                             // Parse the run for text content (skip if it only contains a drawing)
-                            if (!sdtChildRun.Descendants<Drawing>().Any())
+                            if (sdtRunDrawings == null)
                             {
                                 runs.AddRange(ParseRun(sdtChildRun, mainPart, paragraphStyleId));
                             }
@@ -4420,12 +4457,30 @@ sealed class DocumentParser(string defaultFont)
                         break;
                     }
 
+                    // One walk over the run's subtree collects everything the branches below
+                    // need — this block used to re-traverse it three times (drawings loop,
+                    // drawing-presence check, break scan) for every run in the document.
+                    List<Drawing>? runDrawings = null;
+                    var hasPageOrColumnBreak = false;
+                    foreach (var descendant in run.Descendants())
+                    {
+                        if (descendant is Drawing descendantDrawing)
+                        {
+                            (runDrawings ??= []).Add(descendantDrawing);
+                        }
+                        else if (descendant is Break descendantBreak &&
+                                 (descendantBreak.Type?.Value == BreakValues.Page || descendantBreak.Type?.Value == BreakValues.Column))
+                        {
+                            hasPageOrColumnBreak = true;
+                        }
+                    }
+
                     // Check for drawings (images/icons/WordArt/ink/shapes) within run
-                    foreach (var drawing in run.Descendants<Drawing>())
+                    foreach (var drawing in runDrawings ?? (IReadOnlyList<Drawing>) [])
                     {
                         // Try background shapes first (solid fill behind text)
                         // May return multiple shapes when a WordprocessingGroup contains multiple non-decorative shapes
-                        var shapeElements = ShapeParser.ParseBackgroundShapes(drawing, currentThemeColors, mainPart, props.SpacingBeforePoints);
+                        var shapeElements = ShapeParser.ParseBackgroundShapes(drawing, currentThemeColors, mainPart, props.SpacingBeforePoints, GetPartBytes);
 
                         // Check if there's a group - groups may contain text boxes and images even without shapes
                         var hasGroup = drawing.Descendants<WPG.WordprocessingGroup>().Any();
@@ -4646,14 +4701,12 @@ sealed class DocumentParser(string defaultFont)
 
                     // Parse the run normally (this handles text content, with line breaks emitted as
                     // "\n" runs in document order). Skip if the run only contains a drawing (no text).
-                    if (!run.Descendants<Drawing>().Any())
+                    if (runDrawings == null)
                     {
                         var parsedRuns = ParseRun(run, mainPart, paragraphStyleId, emitLineBreaks: true);
                         // A page/column break splits the paragraph above, so its run's content is
                         // intentionally not appended here; line-break-only (or break-free) runs are.
-                        if (parsedRuns.Count > 0 &&
-                            run.Descendants<Break>().All(_ =>
-                                _.Type?.Value != BreakValues.Page && _.Type?.Value != BreakValues.Column))
+                        if (parsedRuns.Count > 0 && !hasPageOrColumnBreak)
                         {
                             runs.AddRange(parsedRuns);
                         }
@@ -4973,10 +5026,7 @@ sealed class DocumentParser(string defaultFont)
                 }
 
                 var svgPart = hostPart.GetPartById(svgEmbed);
-                using var stream = svgPart.GetStream();
-                using var ms = new MemoryStream();
-                stream.CopyTo(ms);
-                imageData = ms.ToArray();
+                imageData = GetPartBytes(svgPart);
                 contentType = "image/svg+xml";
             }
         }
@@ -4986,10 +5036,7 @@ sealed class DocumentParser(string defaultFont)
         // primary imageData.
         if (hostPart.GetPartById(embed) is ImagePart imagePart)
         {
-            using var stream = imagePart.GetStream();
-            using var ms = new MemoryStream();
-            stream.CopyTo(ms);
-            var rasterBytes = ms.ToArray();
+            var rasterBytes = GetPartBytes(imagePart);
             if (rasterBytes.Length > 0)
             {
                 if (imageData == null)
@@ -5381,7 +5428,7 @@ sealed class DocumentParser(string defaultFont)
         }
     }
 
-    static List<DocumentElement> ParseDrawingElements(Drawing drawing, MainDocumentPart mainPart)
+    List<DocumentElement> ParseDrawingElements(Drawing drawing, MainDocumentPart mainPart)
     {
         var hostPart = ResolveHostPart(drawing, mainPart);
         var result = new List<DocumentElement>();
@@ -5537,10 +5584,7 @@ sealed class DocumentParser(string defaultFont)
                             if (svgBlip.AttributeValue("embed") is { } svgEmbed)
                             {
                                 var svgPart = hostPart.GetPartById(svgEmbed);
-                                using var stream = svgPart.GetStream();
-                                using var ms = new MemoryStream();
-                                stream.CopyTo(ms);
-                                imageData = ms.ToArray();
+                                imageData = GetPartBytes(svgPart);
                                 contentType = "image/svg+xml";
                             }
                         }
@@ -5553,10 +5597,7 @@ sealed class DocumentParser(string defaultFont)
             // primary imageData.
             if (hostPart.GetPartById(embed) is ImagePart rasterPart)
             {
-                using var stream = rasterPart.GetStream();
-                using var ms = new MemoryStream();
-                stream.CopyTo(ms);
-                var rasterBytes = ms.ToArray();
+                var rasterBytes = GetPartBytes(rasterPart);
                 if (rasterBytes.Length > 0)
                 {
                     if (imageData == null)
@@ -7771,21 +7812,25 @@ sealed class DocumentParser(string defaultFont)
     const char softHyphenChar = '\u00AD'; // Soft hyphen (optional break point)
     const char nonBreakingHyphenChar = '\u2011'; // Non-breaking hyphen
 
-    static string? ResolveHyperlinkUrl(Hyperlink hyperlink, MainDocumentPart mainPart)
+    string? ResolveHyperlinkUrl(Hyperlink hyperlink, MainDocumentPart mainPart)
     {
         // External links carry an r:id pointing at a HyperlinkRelationship; internal links to a
         // bookmark carry a w:anchor. Combine both: an external target may also include a sub-anchor.
         string? target = null;
         if (hyperlink.Id?.Value is { } relationshipId)
         {
-            foreach (var relationship in mainPart.HyperlinkRelationships)
+            if (hyperlinkUrlsByRelId == null)
             {
-                if (relationship.Id == relationshipId)
+                hyperlinkUrlsByRelId = new(StringComparer.Ordinal);
+                foreach (var relationship in mainPart.HyperlinkRelationships)
                 {
-                    target = relationship.Uri.IsAbsoluteUri ? relationship.Uri.AbsoluteUri : relationship.Uri.OriginalString;
-                    break;
+                    hyperlinkUrlsByRelId.TryAdd(
+                        relationship.Id,
+                        relationship.Uri.IsAbsoluteUri ? relationship.Uri.AbsoluteUri : relationship.Uri.OriginalString);
                 }
             }
+
+            hyperlinkUrlsByRelId.TryGetValue(relationshipId, out target);
         }
 
         if (hyperlink.Anchor?.Value is { Length: > 0 } anchor)
@@ -7794,6 +7839,43 @@ sealed class DocumentParser(string defaultFont)
         }
 
         return target;
+    }
+
+    // Decompressed part bytes, one buffer per part per parse (see imagePartBytes).
+    byte[] GetPartBytes(OpenXmlPart part)
+    {
+        if (!imagePartBytes.TryGetValue(part, out var bytes))
+        {
+            using var stream = part.GetStream();
+            using var buffer = new MemoryStream();
+            stream.CopyTo(buffer);
+            bytes = buffer.ToArray();
+            imagePartBytes[part] = bytes;
+        }
+
+        return bytes;
+    }
+
+    // First-wins on duplicate style ids, matching the FirstOrDefault scan this replaces.
+    Style? LookupStyle(MainDocumentPart mainPart, string styleId)
+    {
+        if (stylesById == null)
+        {
+            stylesById = new(StringComparer.Ordinal);
+            var styles = mainPart.StyleDefinitionsPart?.Styles;
+            if (styles != null)
+            {
+                foreach (var style in styles.Elements<Style>())
+                {
+                    if (style.StyleId?.Value is { } id)
+                    {
+                        stylesById.TryAdd(id, style);
+                    }
+                }
+            }
+        }
+
+        return stylesById.TryGetValue(styleId, out var match) ? match : null;
     }
 
     List<Run> ParseRun(OoxmlRun run, MainDocumentPart mainPart, string? paragraphStyleId = null, string? hyperlinkUrl = null, bool emitLineBreaks = false)
@@ -8114,9 +8196,7 @@ sealed class DocumentParser(string defaultFont)
         if (runStyleId != null && styleRunProperties != null && styleRunProperties.TryGetValue(runStyleId, out var runStyleProps))
         {
             // Look up the original style definition to check which properties are explicitly defined
-            var stylesPart = mainPart.StyleDefinitionsPart;
-            var originalStyle = stylesPart?.Styles?.Elements<Style>()
-                .FirstOrDefault(_ => _.StyleId?.Value == runStyleId);
+            var originalStyle = LookupStyle(mainPart, runStyleId);
             var originalRPr = originalStyle?.StyleRunProperties;
 
             // Only override with run style properties that are EXPLICITLY defined in the style

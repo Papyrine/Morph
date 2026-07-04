@@ -21,6 +21,53 @@ sealed class ContentControlElement : DocumentElement
     /// <summary>Styled runs within the content control (preserves formatting).</summary>
     public IReadOnlyList<Run>? Runs { get; init; }
 
+    ParagraphElement? cellParagraph;
+    bool cellParagraphBuilt;
+
+    /// <summary>
+    /// The synthetic paragraph wrapping this control's runs (falling back to plain-text
+    /// content) for table-cell measurement and rendering. A single shared instance: the render
+    /// backends' layout caches key on <see cref="ParagraphElement"/> identity, so if each
+    /// pipeline stage (autofit, row height, vertical-align measure, draw) wrapped the runs in
+    /// its own fresh paragraph, every stage would re-lay the same content out from cold.
+    /// Null when the control has neither runs nor text.
+    /// </summary>
+    public ParagraphElement? CellParagraph
+    {
+        get
+        {
+            if (!cellParagraphBuilt)
+            {
+                cellParagraphBuilt = true;
+                if (Runs is {Count: > 0})
+                {
+                    cellParagraph = new()
+                    {
+                        Runs = Runs,
+                        Properties = new()
+                    };
+                }
+                else if (!string.IsNullOrEmpty(Content))
+                {
+                    cellParagraph = new()
+                    {
+                        Runs =
+                        [
+                            new()
+                            {
+                                Text = Content,
+                                Properties = new()
+                            }
+                        ],
+                        Properties = new()
+                    };
+                }
+            }
+
+            return cellParagraph;
+        }
+    }
+
     /// <summary>For checkbox controls, whether it's checked.</summary>
     public bool? Checked { get; init; }
 

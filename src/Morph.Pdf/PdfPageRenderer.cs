@@ -13,6 +13,14 @@ sealed class PdfPageRenderer : PageRendererBase
     bool hasSignificantContentOnCurrentPage;
     bool currentPageFromExplicitBreak;
 
+    /// <summary>
+    /// When set, rendering stops once every page in the range is complete: layout is strictly
+    /// forward, so once the page in progress is past <see cref="PageRange.End"/> everything
+    /// that follows lands on pages <c>TrimPages</c> deletes anyway. Requesting page 1 of a
+    /// 500-page document used to lay out and draw all 500.
+    /// </summary>
+    public PageRange? Pages { get; init; }
+
     /// <summary>Receives notices about elements the backend couldn't render. Set from
     /// <see cref="ExportOptions.OnWarning"/>.</summary>
     public Action<ExportWarning>? OnWarning { get; init; }
@@ -54,6 +62,13 @@ sealed class PdfPageRenderer : PageRendererBase
         var elements = document.Elements;
         for (var index = 0; index < elements.Count; index++)
         {
+            // pagesAdded counts pages started, so once it passes the requested range's end the
+            // page in progress (and everything after it) is guaranteed to be trimmed.
+            if (Pages is { } range && pagesAdded > range.End)
+            {
+                break;
+            }
+
             var element = elements[index];
 
             if (element is FloatingShapeElement {BehindText: true} backgroundShape)
@@ -323,8 +338,8 @@ sealed class PdfPageRenderer : PageRendererBase
         }
     }
 
-    static XPen EdgePen(BorderEdge edge) =>
-        new(PdfRenderContext.ParseColor(edge.ColorHex ?? "000000"), Math.Max(0.5, edge.WidthPoints));
+    XPen EdgePen(BorderEdge edge) =>
+        context.GetPen(PdfRenderContext.ParseColor(edge.ColorHex ?? "000000"), Math.Max(0.5, edge.WidthPoints));
 
     // ---- Drawing primitives required by PageRendererBase ----
 
@@ -766,8 +781,7 @@ sealed class PdfPageRenderer : PageRendererBase
             data = fallbackData;
         }
 
-        using var stream = new MemoryStream(data);
-        var image = XImage.FromStream(stream);
+        var image = context.GetImage(data);
         Graphics.DrawImage(image, x, y, width, height);
     }
 }

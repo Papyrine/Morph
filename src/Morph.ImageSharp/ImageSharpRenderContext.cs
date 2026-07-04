@@ -119,9 +119,13 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
     // determined by (family, size, style) — cache for the lifetime of the context.
     readonly Dictionary<(FontFamily, float, FontStyle), Font> fontCache = [];
 
+    // First-level memo keyed by the raw run request so the per-fragment path is one
+    // dictionary hit — the resolver walk, ImpliesBold suffix scans and the
+    // PickAvailableStyle TryGetMetrics probes only run for new combinations.
+    readonly Dictionary<(string Family, bool Bold, bool Italic, float Size), Font> requestFontCache = [];
+
     public Font GetFont(RunProperties props)
     {
-        var family = GetFontFamily(props.FontFamily, props.Bold, props.Italic);
         var fontSize = (float) props.FontSizePoints;
 
         // Subscript and superscript use reduced font size (approximately 58% per OpenXML convention)
@@ -130,24 +134,7 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
             fontSize *= 0.58f;
         }
 
-        var bold = props.Bold || FontHelpers.ImpliesBold(props.FontFamily);
-        var italic = props.Italic;
-
-        var style = FontStyle.Regular;
-        if (bold && italic)
-        {
-            style = FontStyle.BoldItalic;
-        }
-        else if (bold)
-        {
-            style = FontStyle.Bold;
-        }
-        else if (italic)
-        {
-            style = FontStyle.Italic;
-        }
-
-        return GetOrCreateCachedFont(family, fontSize, PickAvailableStyle(family, style));
+        return GetFontForFamily(props.FontFamily, fontSize, props.Bold, props.Italic);
     }
 
     Font GetOrCreateCachedFont(FontFamily family, float fontSize, FontStyle style)
@@ -201,6 +188,12 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
     /// </summary>
     public Font GetFontForFamily(string fontFamily, float sizePoints, bool bold, bool italic)
     {
+        var requestKey = (fontFamily, bold, italic, sizePoints);
+        if (requestFontCache.TryGetValue(requestKey, out var cached))
+        {
+            return cached;
+        }
+
         var family = GetFontFamily(fontFamily, bold, italic);
 
         var effectiveBold = bold || FontHelpers.ImpliesBold(fontFamily);
@@ -219,21 +212,46 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
             style = FontStyle.Italic;
         }
 
-        return GetOrCreateCachedFont(family, sizePoints, PickAvailableStyle(family, style));
+        var font = GetOrCreateCachedFont(family, sizePoints, PickAvailableStyle(family, style));
+        requestFontCache[requestKey] = font;
+        return font;
     }
+
+    // TextOptions carries only (font, dpi=72, kerning) here and is never mutated after
+    // construction — reuse one instance per combination instead of allocating per measured
+    // token. Whitespace tokenizes into single-space words, so a large share of measure calls
+    // are the same space glyph in a handful of fonts; its advance is memoized outright.
+    readonly Dictionary<(Font Font, KerningMode Kerning), TextOptions> textOptionsCache = [];
+    readonly Dictionary<(Font Font, KerningMode Kerning), float> spaceWidthCache = [];
 
     /// <summary>
     /// Measures text width in points. Uses DPI=72 so pixels equal points.
     /// </summary>
-    public static float MeasureText(Font font, string text, KerningMode kerning = KerningMode.Standard)
+    public float MeasureText(Font font, string text, KerningMode kerning = KerningMode.Standard)
     {
-        var options = new TextOptions(font)
+        var key = (font, kerning);
+        var isSpace = text == " ";
+        if (isSpace && spaceWidthCache.TryGetValue(key, out var spaceWidth))
         {
-            Dpi = 72,
-            KerningMode = kerning
-        };
+            return spaceWidth;
+        }
+
+        if (!textOptionsCache.TryGetValue(key, out var options))
+        {
+            options = new(font)
+            {
+                Dpi = 72,
+                KerningMode = kerning
+            };
+            textOptionsCache[key] = options;
+        }
 
         var advance = TextMeasurer.MeasureAdvance(text, options);
+        if (isSpace)
+        {
+            spaceWidthCache[key] = advance.Width;
+        }
+
         return advance.Width;
     }
 
@@ -286,24 +304,72 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         return pen;
     }
 
+    // ---- processed-image cache ----
+    // Decode + bicubic resize dominate repeated image draws: a header/footer logo pays them on
+    // every page, a repeated body image on every occurrence. The pipeline mutates the image in
+    // place, so the cache keys the source array identity plus the full processing recipe. The
+    // ImageBrush that DrawingCanvas.DrawImage queues holds the source image until the page's
+    // canvas timeline renders, so cached images live for the whole document and are disposed
+    // with the context (this replaced the old per-page RetainForPage sink). Failed decodes
+    // cache null — the call sites deliberately swallow undecodable images.
+
+    readonly Dictionary<(byte[] Data, int Width, int Height, ImageCrop? Crop, BlipColorEffect Effect, float Rotation), Image<Rgba32>?> processedImageCache = [];
+
     /// <summary>
-    /// Per-page sink for source images handed to <c>DrawingCanvas.DrawImage</c>. The canvas queues
-    /// an <c>ImageBrush</c> that retains the source image until the canvas is disposed and its
-    /// timeline is rendered, so the image must outlive any caller-side <c>using</c>. Page renderer
-    /// drains this list after canvas dispose in <c>FinishCurrentPage</c>/<c>DiscardCurrentPage</c>.
+    /// Decoded image with crop → resize → recolor → rotate applied, cached for the context's
+    /// lifetime. Callers must not mutate or dispose the result.
     /// </summary>
-    public List<IDisposable> PendingPageDisposables { get; } = [];
-
-    public void RetainForPage(IDisposable disposable) =>
-        PendingPageDisposables.Add(disposable);
-
-    public void DisposePendingPageDisposables()
+    public Image<Rgba32>? GetProcessedImage(byte[] data, int width, int height, ImageCrop? crop, BlipColorEffect effect, float rotationDegrees)
     {
-        foreach (var disposable in PendingPageDisposables)
+        var key = (data, width, height, crop, effect, rotationDegrees);
+        if (processedImageCache.TryGetValue(key, out var cached))
         {
-            disposable.Dispose();
+            return cached;
         }
-        PendingPageDisposables.Clear();
+
+        Image<Rgba32>? image = null;
+        try
+        {
+            image = Image.Load<Rgba32>(data);
+            if (crop is {IsCropped: true} c)
+            {
+                var srcLeft = (int) (c.Left * image.Width);
+                var srcTop = (int) (c.Top * image.Height);
+                var srcWidth = Math.Max(1, image.Width - srcLeft - (int) (c.Right * image.Width));
+                var srcHeight = Math.Max(1, image.Height - srcTop - (int) (c.Bottom * image.Height));
+                image.Mutate(_ => _.Crop(new(srcLeft, srcTop, srcWidth, srcHeight)));
+            }
+
+            image.Mutate(_ => _.Resize(width, height));
+
+            // Word's "Recolor" gallery presets.
+            switch (effect)
+            {
+                case BlipColorEffect.Grayscale:
+                case BlipColorEffect.Duotone:
+                    image.Mutate(_ => _.Grayscale());
+                    break;
+                case BlipColorEffect.Washout:
+                    // Word's washout: brightness +70%, contrast -50%. ImageSharp's
+                    // Brightness/Contrast operate in 0–N space — these constants line up
+                    // visually with Skia's color-matrix branch.
+                    image.Mutate(_ => _.Brightness(1.7f).Contrast(0.5f));
+                    break;
+            }
+
+            if (rotationDegrees != 0)
+            {
+                image.Mutate(_ => _.Rotate(rotationDegrees));
+            }
+        }
+        catch
+        {
+            image?.Dispose();
+            image = null;
+        }
+
+        processedImageCache[key] = image;
+        return image;
     }
 
     public static Color ParseColor(string? hexColor)
@@ -335,7 +401,15 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         return Color.Black;
     }
 
-    public void Dispose() => resolver.Dispose();
+    public void Dispose()
+    {
+        foreach (var image in processedImageCache.Values)
+        {
+            image?.Dispose();
+        }
+        processedImageCache.Clear();
+        resolver.Dispose();
+    }
 }
 
 /// <summary>

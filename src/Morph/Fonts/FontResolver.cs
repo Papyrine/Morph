@@ -117,18 +117,32 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
         }
     }
 
+    // Memo keyed by the raw request. Computing the canonical key below costs ~50–70 string
+    // suffix scans (GetCandidateNames + ResolveTargetWeight) — and Resolve is called per text
+    // fragment on the render hot path, so a 100% canonical-cache hit rate still paid full
+    // price on every call. The canonical cache stays as the second level so raw aliases that
+    // normalize to the same face share one font.
+    Dictionary<(string Family, bool Bold, bool Italic), TFont> rawRequestCache = new();
+
     /// <summary>
     /// Resolves <paramref name="fontFamily"/> + style flags to a backend font, throwing
     /// when nothing matches.
     /// </summary>
     public TFont Resolve(string fontFamily, bool bold, bool italic)
     {
+        var rawKey = (fontFamily, bold, italic);
+        if (rawRequestCache.TryGetValue(rawKey, out var rawHit))
+        {
+            return rawHit;
+        }
+
         var candidates = FontHelpers.GetCandidateNames(fontFamily, bold);
         var targetWeight = FontHelpers.ResolveTargetWeight(fontFamily, bold);
         var key = (candidates.Effective, targetWeight, italic);
 
         if (cache.TryGetValue(key, out var font))
         {
+            rawRequestCache[rawKey] = font;
             return font;
         }
 
@@ -147,6 +161,7 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
         }
 
         cache[key] = font;
+        rawRequestCache[rawKey] = font;
         return font;
     }
 

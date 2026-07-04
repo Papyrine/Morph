@@ -299,9 +299,6 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     {
         currentCanvas?.Dispose();
         currentCanvas = null;
-        // Source images held by ImageBrush instances on the canvas timeline are safe to dispose
-        // once the canvas has rendered (canvas.Dispose above flushes the timeline).
-        context.DisposePendingPageDisposables();
         currentPage?.Dispose();
         currentPage = null;
     }
@@ -444,62 +441,24 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             return;
         }
 
-        try
+        // Decode + crop + resize + recolor + rotate are cached on the context, so a repeated
+        // image (header logo, duplicated body icon) processes once per document.
+        var img = context.GetProcessedImage(imageData, (int) pixelWidth, (int) pixelHeight, crop, colorEffect, rotation);
+        if (img == null)
         {
-            // Retain for the page's lifetime — canvas.DrawImage queues an ImageBrush that holds
-            // this Image until the canvas timeline renders on FinishCurrentPage's Dispose.
-            var img = Image.Load<Rgba32>(imageData);
-            context.RetainForPage(img);
-
-            if (crop is { IsCropped: true } c)
-            {
-                var srcLeft = (int) (c.Left * img.Width);
-                var srcTop = (int) (c.Top * img.Height);
-                var srcWidth = Math.Max(1, img.Width - srcLeft - (int) (c.Right * img.Width));
-                var srcHeight = Math.Max(1, img.Height - srcTop - (int) (c.Bottom * img.Height));
-                img.Mutate(_ => _.Crop(new(srcLeft, srcTop, srcWidth, srcHeight)));
-            }
-
-            img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
-
-            // Apply Word's "Recolor" gallery preset before drawing.
-            if (colorEffect != BlipColorEffect.None)
-            {
-                ApplyBlipColorEffect(img, colorEffect);
-            }
-
-            if (rotation != 0)
-            {
-                img.Mutate(_ => _.Rotate(rotation));
-                var newX = pixelX + pixelWidth / 2 - img.Width / 2f;
-                var newY = pixelY + pixelHeight / 2 - img.Height / 2f;
-                currentCanvas.DrawImage(img, new((int) newX, (int) newY));
-            }
-            else
-            {
-                currentCanvas.DrawImage(img, new((int) pixelX, (int) pixelY));
-            }
+            return;
         }
-        catch
-        {
-            // Ignore image decode errors
-        }
-    }
 
-    static void ApplyBlipColorEffect(Image<Rgba32> img, BlipColorEffect effect)
-    {
-        switch (effect)
+        if (rotation != 0)
         {
-            case BlipColorEffect.Grayscale:
-            case BlipColorEffect.Duotone:
-                img.Mutate(_ => _.Grayscale());
-                break;
-            case BlipColorEffect.Washout:
-                // Word's washout: brightness +70%, contrast -50%. ImageSharp's
-                // Brightness/Contrast operate in 0–N space — these constants line up
-                // visually with Skia's color-matrix branch.
-                img.Mutate(_ => _.Brightness(1.7f).Contrast(0.5f));
-                break;
+            // After rotation the image's bounding box grew; recentre over the original location.
+            var newX = pixelX + pixelWidth / 2 - img.Width / 2f;
+            var newY = pixelY + pixelHeight / 2 - img.Height / 2f;
+            currentCanvas.DrawImage(img, new((int) newX, (int) newY));
+        }
+        else
+        {
+            currentCanvas.DrawImage(img, new((int) pixelX, (int) pixelY));
         }
     }
 
@@ -1249,6 +1208,8 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         context.CurrentY += height;
     }
 
+    // Shares the memoized layout with PageRendererBase.RenderTable, so the follow-up render
+    // doesn't recompute it.
     float MeasureTableHeight(TableElement table)
     {
         if (table.Rows.Count == 0)
@@ -1256,12 +1217,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             return 0;
         }
 
-        var colCount = TableLayout.GetColumnCount(table);
-
-        var colWidths = TableLayout.CalculateColumnWidths(table, colCount, context.ContentWidth, textRenderer);
-        var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, textRenderer, TableLayout.HasVerticalMerge(table));
-
-        return rowHeights.Sum();
+        return GetTableLayout(table).RowHeights.Sum();
     }
 
 
@@ -1466,16 +1422,10 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         var pixelWidth = context.PointsToPixels(imageWidth);
         var pixelHeight = context.PointsToPixels(imageHeight);
 
-        try
+        var img = context.GetProcessedImage(data, (int) pixelWidth, (int) pixelHeight, crop: null, BlipColorEffect.None, rotationDegrees: 0);
+        if (img != null)
         {
-            var img = Image.Load<Rgba32>(data);
-            context.RetainForPage(img);
-            img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
             currentCanvas.DrawImage(img, new((int) pixelX, (int) pixelY));
-        }
-        catch
-        {
-            // Ignore image decode errors
         }
 
         context.CurrentY += imageHeight;
@@ -1621,8 +1571,6 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             // otherwise the saved file would be missing every queued command on this page.
             currentCanvas?.Dispose();
             currentCanvas = null;
-            // Source images retained for ImageBrush rendering are safe to free now.
-            context.DisposePendingPageDisposables();
             pendingPage = currentPage;
             currentPage = null;
         }
@@ -1637,79 +1585,15 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         foreach (var watermark in watermarks)
         {
-            if (watermark.ImageData != null)
-            {
-                DrawPictureWatermark(watermark);
-            }
-            else if (!string.IsNullOrEmpty(watermark.Text))
+            // Picture watermarks are intentionally not drawn: Word's own page exports leave no
+            // visible trace of them (verified against the Word-generated references — standard
+            // washout picture watermarks render as nothing, even over colored page backgrounds),
+            // so drawing any wash diverges from the reference output. Text watermarks do render
+            // in Word and keep drawing.
+            if (watermark.ImageData == null && !string.IsNullOrEmpty(watermark.Text))
             {
                 DrawTextWatermark(watermark);
             }
-        }
-    }
-
-    void DrawPictureWatermark(Watermark watermark)
-    {
-        try
-        {
-            var img = Image.Load<Rgba32>(watermark.ImageData!);
-            context.RetainForPage(img);
-
-            // Word's gain/blacklevel washout: out = in * gain + blackLevel (per channel).
-            // Bake the alpha-fade into the pixel alpha so DrawImage doesn't have to do it —
-            // ImageSharp's DrawImage opacity parameter sometimes blends differently from
-            // straight alpha multiplication.
-            var gain = (float) watermark.Gain;
-            var bias = (byte) Math.Clamp(watermark.BlackLevel * 255, 0, 255);
-            // ImageSharp's blending is more conservative than Skia's — without a stronger alpha
-            // cut the watermark stays too dark over the page. Half the gain matches Word's near-
-            // invisible rendering of the standard washout preset (0.30 * 0.5 ≈ 0.15 alpha).
-            var alphaScale = (float) Math.Clamp(watermark.Gain * 0.5, 0.1, 1.0);
-            img.ProcessPixelRows(accessor =>
-            {
-                for (var y = 0; y < accessor.Height; y++)
-                {
-                    var row = accessor.GetRowSpan(y);
-                    for (var x = 0; x < row.Length; x++)
-                    {
-                        var pixel = row[x];
-                        row[x] = new(
-                            (byte) Math.Clamp(pixel.R * gain + bias, 0, 255),
-                            (byte) Math.Clamp(pixel.G * gain + bias, 0, 255),
-                            (byte) Math.Clamp(pixel.B * gain + bias, 0, 255),
-                            (byte) (pixel.A * alphaScale));
-                    }
-                }
-            });
-
-            // Scale to full page (matches Word's typical "width:612pt;height:11in" watermark sizing).
-            var pageWidth = (float) context.PageWidthPixels;
-            var pageHeight = (float) context.PageHeightPixels;
-            var imageAspect = (float) img.Width / img.Height;
-            var pageAspect = pageWidth / pageHeight;
-
-            int drawW, drawH;
-            if (imageAspect > pageAspect)
-            {
-                drawW = (int) pageWidth;
-                drawH = (int) (drawW / imageAspect);
-            }
-            else
-            {
-                drawH = (int) pageHeight;
-                drawW = (int) (drawH * imageAspect);
-            }
-
-            img.Mutate(_ => _.Resize(drawW, drawH));
-
-            var x = (int) ((pageWidth - drawW) / 2);
-            var y = (int) ((pageHeight - drawH) / 2);
-            // Alpha already baked into pixels above; DrawImage opacity stays at 1.0.
-            currentCanvas!.DrawImage(img, new(x, y));
-        }
-        catch
-        {
-            // Ignore image decode errors — watermark just won't appear, document still renders.
         }
     }
 
@@ -1830,16 +1714,10 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         if (shape.ImageData != null)
         {
-            try
+            var img = context.GetProcessedImage(shape.ImageData, (int) pixelWidth, (int) pixelHeight, crop: null, BlipColorEffect.None, rotationDegrees: 0);
+            if (img != null)
             {
-                var img = Image.Load<Rgba32>(shape.ImageData);
-                context.RetainForPage(img);
-                img.Mutate(_ => _.Resize((int) pixelWidth, (int) pixelHeight));
                 currentCanvas.DrawImage(img, new((int) pixelX, (int) pixelY));
-            }
-            catch
-            {
-                // Ignore image decode errors
             }
         }
         else if (shape.Gradient is { } gradient)
