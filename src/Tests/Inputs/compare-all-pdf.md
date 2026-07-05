@@ -3683,8 +3683,8 @@ PDF: [Morph PDF](table_grid_styling_padding/pdf_result.verified.pdf)
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** _(no page)_ | **Page 1** |
-|  | <img src="table_indent/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 1** | **Page 1. ErrorMetric: 0.0430** |
+| <img src="table_indent/expected_0001.png" width="500"> | <img src="table_indent/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](table_indent/pdf_result.verified.pdf)
 
@@ -3801,8 +3801,8 @@ PDF: [Morph PDF](table_vmerge_explicit_heights/pdf_result.verified.pdf)
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1** _(no page)_ | **Page 1** |
-|  | <img src="tab_stops/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 1** | **Page 1. ErrorMetric: 0.0237** |
+| <img src="tab_stops/expected_0001.png" width="500"> | <img src="tab_stops/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](tab_stops/pdf_result.verified.pdf)
 

@@ -44,7 +44,12 @@ the cover-letters cluster) moved under any metric change. `FontWidthScale` is a 
 structural** (keepNext amplification, floating-shape spill near the bottom margin, cumulative
 per-line drift, section handling), not calibration, and were left unchanged: fixing them means
 per-mechanism work with real regression risk against the ~290 currently-matching scenarios, not a
-metric tweak. `tab_stops`/`table_indent` still lack a Word reference (`expected_*.png`).
+metric tweak.
+
+`tab_stops` and `table_indent` were never rendering bugs — they had no Word reference. Both now have
+`expected_0001.png` generated via RenderHelper (Word COM → XPS → PNG); Word produces **1 page** for
+each, matching all three backends (Skia error metric 0.02 — a near-perfect match). They are no
+longer mismatches.
 
 The original per-cause diagnosis follows, kept for the structural detail; read C1/C2/C5 as
 "contributing factor, not a fix lever".
@@ -79,8 +84,8 @@ The original per-cause diagnosis follows, kept for the structural detail; read C
 | resumes/16 | 1 | 2 | 2 | 2 | C1 |
 | resumes/18 | 1 | 2 | 2 | 2 | C1 |
 | resumes/19 | 3 | 3 | 3 | 6 | C5, C8 |
-| tab_stops | — | 1 | 1 | 1 | Missing baseline (no `expected_*.png`) |
-| table_indent | — | 1 | 1 | 1 | Missing baseline (no `expected_*.png`) |
+| tab_stops | 1 | 1 | 1 | 1 | ~~Missing baseline~~ — Word reference generated; all match |
+| table_indent | 1 | 1 | 1 | 1 | ~~Missing baseline~~ — Word reference generated; all match |
 | three_columns | 1 | 1 | 1 | 2 | C7 (PDF has no column flow) |
 | two_columns | 1 | 2 | 2 | 2 | C6-raster (widow path skips columns), C7 (PDF) |
 | wedding/05 | 2 | 2 | 2 | 3 | C5 |
@@ -307,12 +312,13 @@ text in the PDF: 13 pages instead of 15. The 12 explicit page breaks keep the re
   backends: the right-tabbed `20XX – 20XX` dates wrap to two lines (C1), contributing the
   marginal height.
 
-### Missing baselines (not rendering bugs)
+### Missing baselines (RESOLVED — references generated)
 
-- **tab_stops**, **table_indent** — synthetic test documents with no `expected_*.png` at all;
-  RenderHelper was never run for them. All three backends agree on 1 page. Either generate the
-  Word reference (RenderHelper, single scenario) or exclude these directories from
-  expected-vs-actual page-count comparisons.
+- **tab_stops**, **table_indent** — synthetic test documents that had no `expected_*.png`.
+  RenderHelper (`GenerateExpectedImage`, single-scenario, Word COM → XPS → PNG) has now been run for
+  both: Word produces **1 page** each, matching all three backends (Skia error metric ≈ 0.02). The
+  `expected_0001.png` references and regenerated `*_result.verified.json` (ExpectedPageCount 0→1)
+  are committed with the rest of the change.
 
 ## Cross-cutting observations
 
