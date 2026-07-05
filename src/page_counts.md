@@ -9,6 +9,30 @@ directories in `src/Tests/Inputs/`.
 `pdf_result.verified.json`, inspected `document.xml`/`styles.xml` of each mismatched `input.docx`,
 compared the page images of all four renderers side by side, and traced the responsible code paths.
 
+## Resolution, pass 3: remaining-mismatch experiments (2026-07-05, final)
+
+Three further experiments targeted the 21 remaining mismatches, each measured against the
+pass-2 model and each reverted as a wash or net negative:
+
+- **Raster `FontWidthScale` sweep (1.0, 1.04)**: 307 → 307 both times (+business-plans/12,
+  −complex_spacing). The trailing-spill cluster (cover-letters/03/06/15, letters/09,
+  resumes/11/16/18) does not move at any width — those spills are not wrap-driven.
+- **PDF width scaling**: 301 → 299. Fixed nothing (multiple_pages stayed at 4); broke
+  business-plans/15 and newsletters/09.
+- **PDF keep-next/keep-lines rules**: 301 → 300. complex_spacing stayed at 6 (its deficit is
+  the wrap difference, not keep handling); business-plans/15 regressed.
+
+Root-cause finding from the XPS glyph data: Word lays out with advances **quantised to 0.05 em**
+(read from the XPS `Indices` attributes). Frequency-weighted, that runs Aptos text ~2–4% wider
+than linear advances while leaving Calibri/Segoe-class text at ~natural width — a flat
+multiplier cannot reproduce it in either backend, which is why every width experiment washes.
+Faithful emulation would mean quantising per-glyph advances the way Word does; that is the one
+identified lever left for the wrap-sensitive residue and is out of scope here.
+
+The 21 remaining mismatches stand as the asymptote for global fixes: what remains is
+per-scenario structural work (floats anchored to spacer paragraphs, keep-cascades over
+20-page documents, compat-mode metrics) with regression risk against the ~300 now matching.
+
 ## Resolution, pass 2: the measured height model (2026-07-05, later the same day)
 
 The "metrics are a dead end" conclusion below was drawn from single-knob experiments run against
