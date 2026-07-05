@@ -380,6 +380,18 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             currentPageFromExplicitBreak = true;
         }
 
+        // Float wrap: a paragraph starting beside a wrap-enabled floating image is measured and
+        // rendered inside the widest free band next to it (Word additionally reflows back to
+        // full width below the float mid-paragraph; here the band holds for the paragraph's
+        // whole height). A wrapTopAndBottom float advances Y below itself instead.
+        var (bandX, bandWidth, bandY, bandConstrained) = context.ResolveFlowBand(context.CurrentY);
+        if (bandY > context.CurrentY)
+        {
+            context.CurrentY = bandY;
+        }
+
+        using var floatScope = bandConstrained ? context.PushContentContainer(bandX, bandWidth) : null;
+
         var height = textRenderer.MeasureParagraphHeight(paragraph);
 
         // Handle KeepWithNext (KeepNext) - keep this paragraph on the same page as the next element
@@ -2326,6 +2338,10 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             height,
             image.HorizontalPositionPercent,
             image.VerticalPositionPercent);
+
+        // Wrap-enabled floats reserve their footprint so following flow text lays out beside
+        // them instead of over them.
+        context.RegisterFloatExclusion(image, bounds.X, bounds.Y, (float) width, (float) height);
 
         var destRect = new SKRect(bounds.PixelX, bounds.PixelY, bounds.PixelX + bounds.PixelWidth, bounds.PixelY + bounds.PixelHeight);
 

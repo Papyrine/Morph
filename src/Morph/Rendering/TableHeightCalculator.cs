@@ -213,13 +213,12 @@ static class TableHeightCalculator
         }
 
         // Collect paragraphs (and content-control wrappers) so we know first/last for spacing collapse.
-        var paragraphs = new List<(ParagraphElement para, float bulletIndent)>();
+        var paragraphs = new List<ParagraphElement>();
         foreach (var element in cell.Content)
         {
             if (element is ParagraphElement para)
             {
-                float bulletIndent = para.Properties.Numbering != null ? 12 : 0;
-                paragraphs.Add((para, bulletIndent));
+                paragraphs.Add(para);
             }
             else if (element is ContentControlElement contentControl)
             {
@@ -227,7 +226,7 @@ static class TableHeightCalculator
                 // measure/render pipeline stages.
                 if (contentControl.CellParagraph is { } measurePara)
                 {
-                    paragraphs.Add((measurePara, 0));
+                    paragraphs.Add(measurePara);
                 }
             }
             else if (element is TableElement {Properties.IsFloating: false})
@@ -238,8 +237,13 @@ static class TableHeightCalculator
 
         for (var i = 0; i < paragraphs.Count; i++)
         {
-            var (para, bulletIndent) = paragraphs[i];
-            var lines = measurer.LayoutParagraphForMeasurement(para, contentWidth - bulletIndent);
+            // Measured at exactly the width the cell render lays out at — the render path
+            // subtracts the paragraph's own indents internally and draws list markers into the
+            // hanging area, so no extra marker inset belongs here (an earlier 12pt inset for
+            // numbered paragraphs measured narrower lines than the render produced, inflating
+            // row heights and splitting the layout cache per paragraph).
+            var para = paragraphs[i];
+            var lines = measurer.LayoutParagraphForMeasurement(para, contentWidth);
             var props = para.Properties;
 
             // Cell padding sits between the border and the content area; paragraph

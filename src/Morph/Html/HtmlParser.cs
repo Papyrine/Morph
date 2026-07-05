@@ -911,7 +911,7 @@ sealed class HtmlParser
         // Track active rowspans: column index -> remaining rows
         var activeRowspans = new Dictionary<int, int>();
 
-        foreach (var tr in tableElement.QuerySelectorAll("tr"))
+        foreach (var tr in DirectRows(tableElement))
         {
             var cells = new List<TableCell>();
             var newRowspans = new Dictionary<int, int>();
@@ -1067,6 +1067,30 @@ sealed class HtmlParser
                 DefaultCellPadding = defaultCellPadding ?? new CellSpacing()
             }
         };
+    }
+
+    // Direct structural rows only: QuerySelectorAll("tr") also matched the rows of NESTED
+    // tables, duplicating their content into the outer table. Rows sit either directly under
+    // the table element or under its thead/tbody/tfoot sections.
+    static IEnumerable<IElement> DirectRows(IElement tableElement)
+    {
+        foreach (var child in tableElement.Children)
+        {
+            if (child.LocalName == "tr")
+            {
+                yield return child;
+            }
+            else if (child.LocalName is "thead" or "tbody" or "tfoot")
+            {
+                foreach (var row in child.Children)
+                {
+                    if (row.LocalName == "tr")
+                    {
+                        yield return row;
+                    }
+                }
+            }
+        }
     }
 
     static CellSpacing? ParseCssSpacing(string style, string property) =>

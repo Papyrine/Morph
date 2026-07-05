@@ -36,6 +36,19 @@ sealed class FloatingImageElement : DocumentElement
     /// <summary>How text wraps around this image.</summary>
     public WrapType WrapType { get; init; } = WrapType.None;
 
+    /// <summary>Which side(s) the wrapped text may flow on (wp @wrapText).</summary>
+    public WrapTextSide WrapTextSide { get; init; } = WrapTextSide.BothSides;
+
+    /// <summary>Wrap clearance (wp:wrapSquare @distL etc.) between the image edge and wrapped
+    /// text, in points. Zero when the document doesn't specify one.</summary>
+    public double WrapDistanceLeftPoints { get; init; }
+
+    public double WrapDistanceTopPoints { get; init; }
+
+    public double WrapDistanceRightPoints { get; init; }
+
+    public double WrapDistanceBottomPoints { get; init; }
+
     /// <summary>Whether this image is behind text (vs in front).</summary>
     public bool BehindText { get; init; }
 

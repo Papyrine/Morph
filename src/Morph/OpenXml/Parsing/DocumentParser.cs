@@ -5654,6 +5654,7 @@ sealed class DocumentParser(string defaultFont)
     static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null, string? description = null)
     {
         var positioning = anchor.ParsePositioning(offsetXPoints, offsetYPoints);
+        var wrap = ParseWrap(anchor);
 
         return new()
         {
@@ -5666,6 +5667,12 @@ sealed class DocumentParser(string defaultFont)
             VerticalPositionPoints = positioning.VerticalPositionPoints,
             HorizontalAnchor = positioning.HorizontalAnchor,
             VerticalAnchor = positioning.VerticalAnchor,
+            WrapType = wrap.Type,
+            WrapTextSide = wrap.Side,
+            WrapDistanceLeftPoints = wrap.DistLeft,
+            WrapDistanceTopPoints = wrap.DistTop,
+            WrapDistanceRightPoints = wrap.DistRight,
+            WrapDistanceBottomPoints = wrap.DistBottom,
             BehindText = positioning.BehindText,
             RotationDegrees = rotationDegrees,
             Crop = crop,
@@ -5678,6 +5685,83 @@ sealed class DocumentParser(string defaultFont)
             RasterFallbackData = rasterFallbackData,
             RasterFallbackContentType = rasterFallbackContentType
         };
+    }
+
+    /// <summary>
+    /// Reads the anchor's wrap element (wp:wrapSquare / wrapTight / wrapThrough /
+    /// wrapTopAndBottom), its side preference (@wrapText) and clearance distances. Distances
+    /// are EMU in OOXML; absent attributes mean zero clearance / both sides.
+    /// </summary>
+    static (WrapType Type, WrapTextSide Side, double DistLeft, double DistTop, double DistRight, double DistBottom) ParseWrap(DW.Anchor anchor)
+    {
+        const double emusPerPoint = 12700.0;
+
+        if (anchor.GetFirstChild<DW.WrapSquare>() is { } square)
+        {
+            return (WrapType.Square,
+                ParseWrapTextSide(square.WrapText),
+                (square.DistanceFromLeft?.Value ?? 0) / emusPerPoint,
+                (square.DistanceFromTop?.Value ?? 0) / emusPerPoint,
+                (square.DistanceFromRight?.Value ?? 0) / emusPerPoint,
+                (square.DistanceFromBottom?.Value ?? 0) / emusPerPoint);
+        }
+
+        if (anchor.GetFirstChild<DW.WrapTight>() is { } tight)
+        {
+            return (WrapType.Tight,
+                ParseWrapTextSide(tight.WrapText),
+                (tight.DistanceFromLeft?.Value ?? 0) / emusPerPoint,
+                0,
+                (tight.DistanceFromRight?.Value ?? 0) / emusPerPoint,
+                0);
+        }
+
+        if (anchor.GetFirstChild<DW.WrapThrough>() is { } through)
+        {
+            return (WrapType.Through,
+                ParseWrapTextSide(through.WrapText),
+                (through.DistanceFromLeft?.Value ?? 0) / emusPerPoint,
+                0,
+                (through.DistanceFromRight?.Value ?? 0) / emusPerPoint,
+                0);
+        }
+
+        if (anchor.GetFirstChild<DW.WrapTopBottom>() is { } topBottom)
+        {
+            return (WrapType.TopAndBottom,
+                WrapTextSide.BothSides,
+                0,
+                (topBottom.DistanceFromTop?.Value ?? 0) / emusPerPoint,
+                0,
+                (topBottom.DistanceFromBottom?.Value ?? 0) / emusPerPoint);
+        }
+
+        return (WrapType.None, WrapTextSide.BothSides, 0, 0, 0, 0);
+    }
+
+    static WrapTextSide ParseWrapTextSide(EnumValue<DW.WrapTextValues>? wrapText)
+    {
+        if (wrapText?.Value is not { } value)
+        {
+            return WrapTextSide.BothSides;
+        }
+
+        if (value == DW.WrapTextValues.Left)
+        {
+            return WrapTextSide.Left;
+        }
+
+        if (value == DW.WrapTextValues.Right)
+        {
+            return WrapTextSide.Right;
+        }
+
+        if (value == DW.WrapTextValues.Largest)
+        {
+            return WrapTextSide.Largest;
+        }
+
+        return WrapTextSide.BothSides;
     }
 
     /// <summary>

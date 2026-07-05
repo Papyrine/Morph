@@ -363,7 +363,18 @@ sealed class PdfPageRenderer : PageRendererBase
             currentPageFromExplicitBreak = true;
         }
 
-        textEngine.Render(paragraph);
+        // Float wrap: a paragraph starting beside a wrap-enabled floating image lays out inside
+        // the widest free band next to it; a wrapTopAndBottom float advances Y below itself.
+        var (bandX, bandWidth, bandY, bandConstrained) = context.ResolveFlowBand(context.CurrentY);
+        if (bandY > context.CurrentY)
+        {
+            context.CurrentY = bandY;
+        }
+
+        using (bandConstrained ? context.PushContentContainer(bandX, bandWidth) : null)
+        {
+            textEngine.Render(paragraph);
+        }
 
         if (hasContent)
         {
@@ -742,6 +753,10 @@ sealed class PdfPageRenderer : PageRendererBase
             image.HorizontalPositionPercent,
             image.VerticalPositionPercent);
 
+        // Wrap-enabled floats reserve their footprint so following flow text lays out beside
+        // them instead of over them.
+        context.RegisterFloatExclusion(image, bounds.X, bounds.Y, (float) width, (float) height);
+
         DrawRaster(image.ImageData, image.ContentType, image.RasterFallbackData, image.RasterFallbackContentType, bounds.X, bounds.Y, bounds.PixelWidth, bounds.PixelHeight);
     }
 
@@ -781,7 +796,18 @@ sealed class PdfPageRenderer : PageRendererBase
             data = fallbackData;
         }
 
-        var image = context.GetImage(data);
-        Graphics.DrawImage(image, x, y, width, height);
+        try
+        {
+            var image = context.GetImage(data);
+            Graphics.DrawImage(image, x, y, width, height);
+        }
+        catch (Exception exception)
+        {
+            // PDFsharp's cross-platform build only decodes BMP/PNG/JPEG — a GIF (or other
+            // unsupported format) used to crash the whole export here. Drop the image and
+            // keep the document.
+            OnWarning?.Invoke(new(WarningKind.ImageRenderingFailed,
+                $"Image ({contentType ?? "unknown content type"}) could not be embedded in the PDF and was dropped: {exception.Message}"));
+        }
     }
 }

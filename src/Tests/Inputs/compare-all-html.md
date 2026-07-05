@@ -1,4 +1,4 @@
-# All HTML export scenarios (320)
+# All HTML export scenarios (321)
 
 The HTML exporter rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -156,6 +156,7 @@ The HTML exporter rendered to PNG via the headless-browser screenshot pipeline.
 - [icon_with_text](#icon_with_text)
 - [image_cropping/01](#image_cropping01)
 - [image_rotation/01](#image_rotation01)
+- [image_wrap_square](#image_wrap_square)
 - [inline_image](#inline_image)
 - [inline_shape_arrows](#inline_shape_arrows)
 - [italic_text](#italic_text)
@@ -1233,6 +1234,12 @@ The HTML exporter rendered to PNG via the headless-browser screenshot pipeline.
 | Morph HTML |
 | --- |
 | <img src="image_rotation/01/html_result.verified.png" width="500"> |
+
+## image_wrap_square
+
+| Morph HTML |
+| --- |
+| <img src="image_wrap_square/html_result.verified.png" width="500"> |
 
 ## inline_image
 
