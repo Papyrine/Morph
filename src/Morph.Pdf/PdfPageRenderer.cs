@@ -32,8 +32,14 @@ sealed class PdfPageRenderer : PageRendererBase
         {
             RequestNewPage = () =>
             {
-                FinishCurrentPage();
-                StartNewPage();
+                // Flow into the next column of a multi-column section before spilling to a new
+                // page — mirrors EnsureSpaceFor in the shared engine. For single-column sections
+                // MoveToNextColumn returns false and this is an ordinary page break.
+                if (!context.MoveToNextColumn())
+                {
+                    FinishCurrentPage();
+                    StartNewPage();
+                }
             }
         };
     }
@@ -168,7 +174,7 @@ sealed class PdfPageRenderer : PageRendererBase
                 context.LastParagraphStyleId = null;
                 break;
             case WordArtElement wordArt:
-                RenderTextAsParagraph(wordArt.Text);
+                RenderWordArtBlock(wordArt);
                 hasSignificantContentOnCurrentPage = true;
                 break;
             case TextFormFieldElement textField:
@@ -208,6 +214,23 @@ sealed class PdfPageRenderer : PageRendererBase
             Runs = [new() {Text = text, Properties = new()}],
             Properties = new()
         });
+    }
+
+    // The PDF backend draws WordArt as its plain text (no glyph warps), but it must still occupy the
+    // shape's declared block height so pagination lines up with Word and the raster backends. Without
+    // this a tall section of WordArt shapes collapses to a few text lines and the pages that Word
+    // spreads them across are lost. Mirrors SkiaPageRenderer.RenderWordArt's space handling.
+    void RenderWordArtBlock(WordArtElement wordArt)
+    {
+        var height = (float) wordArt.HeightPoints;
+        if (height > 0)
+        {
+            EnsureSpaceFor(height);
+        }
+
+        var startY = context.CurrentY;
+        RenderTextAsParagraph(wordArt.Text);
+        context.CurrentY = Math.Max(context.CurrentY, startY + height);
     }
 
     void RenderFloatingTextBox(FloatingTextBoxElement textBox)

@@ -160,6 +160,10 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 RequestNewPage != null)
             {
                 RequestNewPage();
+                // RequestNewPage may advance to the next column instead of a new page; either way
+                // the section's content-left can shift, so rebase this line's start onto the
+                // current column. (availableWidth is the column width, unchanged by the move.)
+                left = context.ContentLeft + Indent(paragraph);
             }
 
             var graphics = context.Graphics;

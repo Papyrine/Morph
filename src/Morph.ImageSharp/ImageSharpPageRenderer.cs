@@ -357,8 +357,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 combinedHeight <= context.ContentHeight &&
                 context.CurrentY > context.ContentTop)
             {
-                FinishCurrentPage();
-                StartNewPage();
+                AdvanceToNextColumnOrPage();
             }
         }
 
@@ -369,8 +368,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 height <= context.ContentHeight &&
                 context.CurrentY > context.ContentTop)
             {
-                FinishCurrentPage();
-                StartNewPage();
+                AdvanceToNextColumnOrPage();
             }
         }
 
@@ -399,8 +397,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 }
                 if (fit == 1 || fit == lineHeights.Count - 1)
                 {
-                    FinishCurrentPage();
-                    StartNewPage();
+                    AdvanceToNextColumnOrPage();
                 }
             }
         }

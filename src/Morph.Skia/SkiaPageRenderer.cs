@@ -403,14 +403,13 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             var nextHeight = MeasureElementHeight(nextElement);
             var combinedHeight = height + nextHeight;
 
-            // If combined height won't fit on current page, but both would fit on a new page,
-            // move to new page before rendering this paragraph
+            // If combined height won't fit in the current column, but both would fit in a fresh
+            // one, advance to the next column (or page) before rendering this paragraph.
             if (!context.HasSpaceFor(combinedHeight) &&
                 combinedHeight <= context.ContentHeight &&
                 context.CurrentY > context.ContentTop)
             {
-                FinishCurrentPage();
-                StartNewPage();
+                AdvanceToNextColumnOrPage();
             }
         }
 
@@ -423,8 +422,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 height <= context.ContentHeight &&
                 context.CurrentY > context.ContentTop)
             {
-                FinishCurrentPage();
-                StartNewPage();
+                AdvanceToNextColumnOrPage();
             }
         }
 
@@ -459,8 +457,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 // Widow: lines split such that only 1 wraps to next page → also push whole paragraph.
                 if (fit == 1 || fit == lineHeights.Count - 1)
                 {
-                    FinishCurrentPage();
-                    StartNewPage();
+                    AdvanceToNextColumnOrPage();
                 }
             }
         }
