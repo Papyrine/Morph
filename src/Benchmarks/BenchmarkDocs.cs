@@ -149,8 +149,8 @@ static class BenchmarkDocs
     {
         var headerReference = headerRelId == null
             ? ""
-            : $"<w:headerReference w:type=\"default\" r:id=\"{headerRelId}\"/>";
-        return $"<w:sectPr>{headerReference}<w:pgSz w:w=\"12240\" w:h=\"15840\"/><w:pgMar w:top=\"1440\" w:right=\"1440\" w:bottom=\"1440\" w:left=\"1440\" w:header=\"720\" w:footer=\"720\" w:gutter=\"0\"/></w:sectPr>";
+            : $"""<w:headerReference w:type="default" r:id="{headerRelId}"/>""";
+        return $"""<w:sectPr>{headerReference}<w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr>""";
     }
 
     // ---- drawings ----
@@ -159,23 +159,23 @@ static class BenchmarkDocs
     {
         var svgExtension = svgRelId == null
             ? ""
-            : "<a:extLst><a:ext uri=\"{96DAC541-7B7A-43D3-8B79-37D633B846F1}\"><asvg:svgBlip r:embed=\"" + svgRelId + "\"/></a:ext></a:extLst>";
+            : $$"""<a:extLst><a:ext uri="{96DAC541-7B7A-43D3-8B79-37D633B846F1}"><asvg:svgBlip r:embed="{{svgRelId}}"/></a:ext></a:extLst>""";
         return
-            $"<w:drawing><wp:inline distT=\"0\" distB=\"0\" distL=\"0\" distR=\"0\"><wp:extent cx=\"{cx}\" cy=\"{cy}\"/><wp:effectExtent l=\"0\" t=\"0\" r=\"0\" b=\"0\"/><wp:docPr id=\"{id}\" name=\"Image {id}\"/><wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect=\"1\"/></wp:cNvGraphicFramePr>" +
-            $"<a:graphic><a:graphicData uri=\"http://schemas.openxmlformats.org/drawingml/2006/picture\"><pic:pic><pic:nvPicPr><pic:cNvPr id=\"0\" name=\"image{id}\"/><pic:cNvPicPr/></pic:nvPicPr>" +
-            $"<pic:blipFill><a:blip r:embed=\"{relId}\">{svgExtension}</a:blip><a:stretch><a:fillRect/></a:stretch></pic:blipFill>" +
-            $"<pic:spPr><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\"{cx}\" cy=\"{cy}\"/></a:xfrm><a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing>";
+            $"""<w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="{cx}" cy="{cy}"/><wp:effectExtent l="0" t="0" r="0" b="0"/><wp:docPr id="{id}" name="Image {id}"/><wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr>""" +
+            $"""<a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="0" name="image{id}"/><pic:cNvPicPr/></pic:nvPicPr>""" +
+            $"""<pic:blipFill><a:blip r:embed="{relId}">{svgExtension}</a:blip><a:stretch><a:fillRect/></a:stretch></pic:blipFill>""" +
+            $"""<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="{cx}" cy="{cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing>""";
     }
 
     // VML picture watermark matching the shape Word emits (and DocumentParser.ExtractWatermarks
     // expects): a v:shape whose id carries the WordPictureWatermark marker, with washout
     // gain/blacklevel on v:imagedata. Boilerplate copied from a Word-authored document.
     static string WatermarkPict(string relId) =>
-        "<w:pict><v:shapetype id=\"_x0000_t75\" coordsize=\"21600,21600\" o:spt=\"75\" o:preferrelative=\"t\" path=\"m@4@5l@4@11@9@11@9@5xe\" filled=\"f\" stroked=\"f\">" +
-        "<v:stroke joinstyle=\"miter\"/><v:formulas><v:f eqn=\"if lineDrawn pixelLineWidth 0\"/><v:f eqn=\"sum @0 1 0\"/><v:f eqn=\"sum 0 0 @1\"/><v:f eqn=\"prod @2 1 2\"/><v:f eqn=\"prod @3 21600 pixelWidth\"/><v:f eqn=\"prod @3 21600 pixelHeight\"/><v:f eqn=\"sum @0 0 1\"/><v:f eqn=\"prod @6 1 2\"/><v:f eqn=\"prod @7 21600 pixelWidth\"/><v:f eqn=\"sum @8 21600 0\"/><v:f eqn=\"prod @7 21600 pixelHeight\"/><v:f eqn=\"sum @10 21600 0\"/></v:formulas>" +
-        "<v:path o:extrusionok=\"f\" gradientshapeok=\"t\" o:connecttype=\"rect\"/><o:lock v:ext=\"edit\" aspectratio=\"t\"/></v:shapetype>" +
-        "<v:shape id=\"WordPictureWatermark1\" o:spid=\"_x0000_s1026\" type=\"#_x0000_t75\" style=\"position:absolute;margin-left:0;margin-top:0;width:612pt;height:11in;z-index:-251653120;mso-position-horizontal:center;mso-position-horizontal-relative:margin;mso-position-vertical:center;mso-position-vertical-relative:margin\" o:allowincell=\"f\">" +
-        $"<v:imagedata r:id=\"{relId}\" o:title=\"benchmark-watermark\" gain=\"19661f\" blacklevel=\"22938f\"/><w10:wrap anchorx=\"margin\" anchory=\"margin\"/></v:shape></w:pict>";
+        """<w:pict><v:shapetype id="_x0000_t75" coordsize="21600,21600" o:spt="75" o:preferrelative="t" path="m@4@5l@4@11@9@11@9@5xe" filled="f" stroked="f">""" +
+        """<v:stroke joinstyle="miter"/><v:formulas><v:f eqn="if lineDrawn pixelLineWidth 0"/><v:f eqn="sum @0 1 0"/><v:f eqn="sum 0 0 @1"/><v:f eqn="prod @2 1 2"/><v:f eqn="prod @3 21600 pixelWidth"/><v:f eqn="prod @3 21600 pixelHeight"/><v:f eqn="sum @0 0 1"/><v:f eqn="prod @6 1 2"/><v:f eqn="prod @7 21600 pixelWidth"/><v:f eqn="sum @8 21600 0"/><v:f eqn="prod @7 21600 pixelHeight"/><v:f eqn="sum @10 21600 0"/></v:formulas>""" +
+        """<v:path o:extrusionok="f" gradientshapeok="t" o:connecttype="rect"/><o:lock v:ext="edit" aspectratio="t"/></v:shapetype>""" +
+        """<v:shape id="WordPictureWatermark1" o:spid="_x0000_s1026" type="#_x0000_t75" style="position:absolute;margin-left:0;margin-top:0;width:612pt;height:11in;z-index:-251653120;mso-position-horizontal:center;mso-position-horizontal-relative:margin;mso-position-vertical:center;mso-position-vertical-relative:margin" o:allowincell="f">""" +
+        $"""<v:imagedata r:id="{relId}" o:title="benchmark-watermark" gain="19661f" blacklevel="22938f"/><w10:wrap anchorx="margin" anchory="margin"/></v:shape></w:pict>""";
 
     // ---- images ----
 
@@ -271,8 +271,7 @@ static class BenchmarkDocs
             ? InlineImage(1, "rLogoFallback", 365760, 365760, svgRelId: "rLogoSvg")
             : InlineImage(1, "rLogo", 1371600, 365760);
         var header =
-            $"<?xml version=\"1.0\" encoding=\"utf-8\"?><w:hdr {documentNamespaces}>" +
-            $"<w:p><w:r>{headerImage}</w:r><w:r><w:t xml:space=\"preserve\"> Morph benchmark report</w:t></w:r></w:p></w:hdr>";
+            $"""<?xml version="1.0" encoding="utf-8"?><w:hdr {documentNamespaces}><w:p><w:r>{headerImage}</w:r><w:r><w:t xml:space="preserve"> Morph benchmark report</w:t></w:r></w:p></w:hdr>""";
 
         var headerRels = useSvg
             ? $"""<?xml version="1.0" encoding="utf-8"?><Relationships xmlns="{relsNs}"><Relationship Id="rLogoSvg" Type="{imageRelType}" Target="media/logo.svg"/><Relationship Id="rLogoFallback" Type="{imageRelType}" Target="media/logo.png"/></Relationships>"""
@@ -303,8 +302,7 @@ static class BenchmarkDocs
         body.Append(SectionProperties("rHdr"));
 
         var header =
-            $"<?xml version=\"1.0\" encoding=\"utf-8\"?><w:hdr {documentNamespaces}>" +
-            $"<w:p><w:r>{WatermarkPict("rWm")}</w:r></w:p></w:hdr>";
+            $"""<?xml version="1.0" encoding="utf-8"?><w:hdr {documentNamespaces}><w:p><w:r>{WatermarkPict("rWm")}</w:r></w:p></w:hdr>""";
 
         return Zip(
         [
