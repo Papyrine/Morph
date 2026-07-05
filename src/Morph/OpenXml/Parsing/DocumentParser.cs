@@ -7539,8 +7539,77 @@ sealed class DocumentParser(string defaultFont)
             };
         }
 
-        // Override with inline properties
-        var justification = props.GetFirstChild<Justification>();
+        // Override with inline properties. One pass over the children replaces ~20
+        // GetFirstChild probes (each restarts at FirstChild and rescans the siblings);
+        // ??= keeps GetFirstChild's first-in-document-order semantics on duplicates.
+        Justification? justification = null;
+        SpacingBetweenLines? spacing = null;
+        Indentation? indentation = null;
+        SuppressLineNumbers? suppressLineNumbersElement = null;
+        SuppressAutoHyphens? suppressAutoHyphensElement = null;
+        ContextualSpacing? contextualSpacingElement = null;
+        KeepLines? keepLinesElement = null;
+        KeepNext? keepNextElement = null;
+        WidowControl? widowControlEl = null;
+        PageBreakBefore? pageBreakBeforeElement = null;
+        MirrorIndents? mirrorIndentsElement = null;
+        Shading? shadingElement = null;
+        ParagraphBorders? pBdr = null;
+        BiDi? bidi = null;
+        FrameProperties? framePr = null;
+
+        foreach (var child in props.ChildElements)
+        {
+            switch (child)
+            {
+                case Justification element:
+                    justification ??= element;
+                    break;
+                case SpacingBetweenLines element:
+                    spacing ??= element;
+                    break;
+                case Indentation element:
+                    indentation ??= element;
+                    break;
+                case SuppressLineNumbers element:
+                    suppressLineNumbersElement ??= element;
+                    break;
+                case SuppressAutoHyphens element:
+                    suppressAutoHyphensElement ??= element;
+                    break;
+                case ContextualSpacing element:
+                    contextualSpacingElement ??= element;
+                    break;
+                case KeepLines element:
+                    keepLinesElement ??= element;
+                    break;
+                case KeepNext element:
+                    keepNextElement ??= element;
+                    break;
+                case WidowControl element:
+                    widowControlEl ??= element;
+                    break;
+                case PageBreakBefore element:
+                    pageBreakBeforeElement ??= element;
+                    break;
+                case MirrorIndents element:
+                    mirrorIndentsElement ??= element;
+                    break;
+                case Shading element:
+                    shadingElement ??= element;
+                    break;
+                case ParagraphBorders element:
+                    pBdr ??= element;
+                    break;
+                case BiDi element:
+                    bidi ??= element;
+                    break;
+                case FrameProperties element:
+                    framePr ??= element;
+                    break;
+            }
+        }
+
         if (justification?.Val?.HasValue == true)
         {
             var justVal = justification.Val.Value;
@@ -7562,7 +7631,6 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
-        var spacing = props.GetFirstChild<SpacingBetweenLines>();
         if (spacing != null)
         {
             if (spacing.Before?.HasValue == true)
@@ -7600,7 +7668,6 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
-        var indentation = props.GetFirstChild<Indentation>();
         if (indentation != null)
         {
             if (indentation.FirstLine?.HasValue == true)
@@ -7625,28 +7692,27 @@ sealed class DocumentParser(string defaultFont)
         }
 
         // Check if line numbers are suppressed for this paragraph
-        suppressLineNumbers = props.GetFirstChild<SuppressLineNumbers>() != null;
-        suppressAutoHyphens = props.GetFirstChild<SuppressAutoHyphens>() != null;
+        suppressLineNumbers = suppressLineNumbersElement != null;
+        suppressAutoHyphens = suppressAutoHyphensElement != null;
 
         // Contextual spacing collapses space between paragraphs with matching styles
-        if (props.GetFirstChild<ContextualSpacing>() != null)
+        if (contextualSpacingElement != null)
         {
             contextualSpacing = true;
         }
 
         // Parse pagination properties
-        if (props.GetFirstChild<KeepLines>() != null)
+        if (keepLinesElement != null)
         {
             keepLines = true;
         }
 
-        if (props.GetFirstChild<KeepNext>() != null)
+        if (keepNextElement != null)
         {
             keepNext = true;
         }
 
         // WidowControl element toggles the control - presence means off if val is false/0, on if val is true/1 or absent
-        var widowControlEl = props.GetFirstChild<WidowControl>();
         if (widowControlEl != null)
         {
             // If the element exists with val="0" or val="false", widow control is disabled
@@ -7662,16 +7728,15 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
-        if (props.GetFirstChild<PageBreakBefore>() != null)
+        if (pageBreakBeforeElement != null)
         {
             pageBreakBefore = true;
         }
 
         // w:mirrorIndents — left/right indents swap on even pages (mirror printing).
-        var mirrorIndents = (styleDefaults?.MirrorIndents ?? false) || props.GetFirstChild<MirrorIndents>() != null;
+        var mirrorIndents = (styleDefaults?.MirrorIndents ?? false) || mirrorIndentsElement != null;
 
         // Parse paragraph shading/background color (w:shd element)
-        var shadingElement = props.GetFirstChild<Shading>();
         if (shadingElement != null)
         {
             string? inlineBgColor = null;
@@ -7704,7 +7769,6 @@ sealed class DocumentParser(string defaultFont)
         var borderRightSpace = styleDefaults?.BorderRightSpacePoints ?? 0;
         var borderBetween = styleDefaults?.BorderBetween ?? BorderEdge.None;
         var borderBetweenSpace = styleDefaults?.BorderBetweenSpacePoints ?? 0;
-        var pBdr = props.GetFirstChild<ParagraphBorders>();
         if (pBdr != null)
         {
             var topBorder = pBdr.GetFirstChild<TopBorder>();
@@ -7741,7 +7805,6 @@ sealed class DocumentParser(string defaultFont)
 
         // RTL paragraph (w:bidi)
         var paraRtl = false;
-        var bidi = props.GetFirstChild<BiDi>();
         if (bidi != null)
         {
             paraRtl = bidi.IsOn();
@@ -7753,7 +7816,6 @@ sealed class DocumentParser(string defaultFont)
         var dropCap = DropCapPosition.None;
         var dropCapLines = 0;
         var frame = styleDefaults?.Frame;
-        var framePr = props.GetFirstChild<FrameProperties>();
         if (framePr != null)
         {
             var attributes = framePr.GetAttributes();
@@ -8107,8 +8169,129 @@ sealed class DocumentParser(string defaultFont)
         var verticalAlignment = styleDefaults?.VerticalAlignment ?? VerticalRunAlignment.Baseline;
         var characterSpacing = styleDefaults?.CharacterSpacingPoints ?? 0.0;
 
-        // Override with inline properties if specified
-        var runFonts = props.GetFirstChild<RunFonts>();
+        // Override with inline properties if specified. One pass over the children replaces
+        // ~35 GetFirstChild probes (each restarts at FirstChild and rescans the siblings);
+        // ??= keeps GetFirstChild's first-in-document-order semantics on duplicate children.
+        RunFonts? runFonts = null;
+        FontSize? fontSizeElement = null;
+        Bold? boldElement = null;
+        Italic? italicElement = null;
+        Underline? underlineElement = null;
+        Strike? strikeElement = null;
+        Caps? capsElement = null;
+        SmallCaps? smallCapsElement = null;
+        Spacing? spacingElement = null;
+        Kern? kernElement = null;
+        DocumentFormat.OpenXml.Office2010.Word.Ligatures? ligaturesElement = null;
+        RightToLeftText? rtlElement = null;
+        DocumentFormat.OpenXml.Office2010.Word.TextOutlineEffect? outlineEffectElement = null;
+        DocumentFormat.OpenXml.Office2010.Word.Shadow? shadowElement = null;
+        DocumentFormat.OpenXml.Office2010.Word.Glow? glowElement = null;
+        DocumentFormat.OpenXml.Office2010.Word.Reflection? reflectionElement = null;
+        VerticalTextAlignment? vertAlignElement = null;
+        Color? colorElement = null;
+        Shading? shadingElement = null;
+        Highlight? highlightElement = null;
+        RunStyle? runStyleElement = null;
+        Vanish? vanishElement = null;
+        SpecVanish? specVanishElement = null;
+        Position? positionElement = null;
+        Border? bdrElement = null;
+        Emboss? embossElement = null;
+        Imprint? imprintElement = null;
+        Outline? outlineElement = null;
+
+        foreach (var child in props.ChildElements)
+        {
+            switch (child)
+            {
+                case RunFonts element:
+                    runFonts ??= element;
+                    break;
+                case FontSize element:
+                    fontSizeElement ??= element;
+                    break;
+                case Bold element:
+                    boldElement ??= element;
+                    break;
+                case Italic element:
+                    italicElement ??= element;
+                    break;
+                case Underline element:
+                    underlineElement ??= element;
+                    break;
+                case Strike element:
+                    strikeElement ??= element;
+                    break;
+                case Caps element:
+                    capsElement ??= element;
+                    break;
+                case SmallCaps element:
+                    smallCapsElement ??= element;
+                    break;
+                case Spacing element:
+                    spacingElement ??= element;
+                    break;
+                case Kern element:
+                    kernElement ??= element;
+                    break;
+                case DocumentFormat.OpenXml.Office2010.Word.Ligatures element:
+                    ligaturesElement ??= element;
+                    break;
+                case RightToLeftText element:
+                    rtlElement ??= element;
+                    break;
+                case DocumentFormat.OpenXml.Office2010.Word.TextOutlineEffect element:
+                    outlineEffectElement ??= element;
+                    break;
+                case DocumentFormat.OpenXml.Office2010.Word.Shadow element:
+                    shadowElement ??= element;
+                    break;
+                case DocumentFormat.OpenXml.Office2010.Word.Glow element:
+                    glowElement ??= element;
+                    break;
+                case DocumentFormat.OpenXml.Office2010.Word.Reflection element:
+                    reflectionElement ??= element;
+                    break;
+                case VerticalTextAlignment element:
+                    vertAlignElement ??= element;
+                    break;
+                case Color element:
+                    colorElement ??= element;
+                    break;
+                case Shading element:
+                    shadingElement ??= element;
+                    break;
+                case Highlight element:
+                    highlightElement ??= element;
+                    break;
+                case RunStyle element:
+                    runStyleElement ??= element;
+                    break;
+                case Vanish element:
+                    vanishElement ??= element;
+                    break;
+                case SpecVanish element:
+                    specVanishElement ??= element;
+                    break;
+                case Position element:
+                    positionElement ??= element;
+                    break;
+                case Border element:
+                    bdrElement ??= element;
+                    break;
+                case Emboss element:
+                    embossElement ??= element;
+                    break;
+                case Imprint element:
+                    imprintElement ??= element;
+                    break;
+                case Outline element:
+                    outlineElement ??= element;
+                    break;
+            }
+        }
+
         if (runFonts != null)
         {
             // First try theme font reference
@@ -8128,50 +8311,42 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
-        var fontSizeElement = props.GetFirstChild<FontSize>();
         if (fontSizeElement?.Val?.HasValue == true)
         {
             fontSize = double.Parse(fontSizeElement.Val.Value!).HalfPointsToPoints();
         }
 
-        var boldElement = props.GetFirstChild<Bold>();
         if (boldElement != null)
         {
             bold = boldElement.IsOn();
         }
 
-        var italicElement = props.GetFirstChild<Italic>();
         if (italicElement != null)
         {
             italic = italicElement.IsOn();
         }
 
-        var underlineElement = props.GetFirstChild<Underline>();
         if (underlineElement != null && underlineElement.Val?.Value != UnderlineValues.None)
         {
             underline = true;
         }
 
-        var strikeElement = props.GetFirstChild<Strike>();
         if (strikeElement != null)
         {
             strikethrough = strikeElement.IsOn();
         }
 
-        var capsElement = props.GetFirstChild<Caps>();
         if (capsElement != null)
         {
             allCaps = capsElement.IsOn();
         }
 
-        var smallCapsElement = props.GetFirstChild<SmallCaps>();
         if (smallCapsElement != null)
         {
             smallCaps = smallCapsElement.IsOn();
         }
 
         // Character spacing (w:spacing in rPr — extra space between characters, in twips)
-        var spacingElement = props.GetFirstChild<Spacing>();
         if (spacingElement?.Val?.HasValue == true)
         {
             characterSpacing = spacingElement.Val.Value / twipsPerPoint;
@@ -8179,31 +8354,28 @@ sealed class DocumentParser(string defaultFont)
 
         // Kerning threshold (w:kern in rPr — half-points; 0 means kerning is off)
         double kerningMinFontSize = 0;
-        var kernElement = props.GetFirstChild<Kern>();
         if (kernElement?.Val?.HasValue == true)
         {
             kerningMinFontSize = kernElement.Val.Value.HalfPointsToPoints();
         }
 
         // Ligature mode (w14:ligatures in rPr — Word 2010+ extension)
-        var ligatures = ParseLigatureMode(props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Ligatures>());
+        var ligatures = ParseLigatureMode(ligaturesElement);
 
         // RTL run (w:rtl)
         var runRtl = false;
-        var rtlElement = props.GetFirstChild<RightToLeftText>();
         if (rtlElement != null)
         {
             runRtl = rtlElement.IsOn();
         }
 
         // w14 text effects (parameters captured for outline/shadow/glow; reflection is presence-only)
-        var outline = ParseTextOutline(props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.TextOutlineEffect>(), color);
-        var shadow = ParseTextShadow(props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Shadow>());
-        var glow = ParseTextGlow(props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Glow>());
-        var hasReflection = props.GetFirstChild<DocumentFormat.OpenXml.Office2010.Word.Reflection>() != null;
+        var outline = ParseTextOutline(outlineEffectElement, color);
+        var shadow = ParseTextShadow(shadowElement);
+        var glow = ParseTextGlow(glowElement);
+        var hasReflection = reflectionElement != null;
 
         // Vertical alignment (subscript/superscript)
-        var vertAlignElement = props.GetFirstChild<VerticalTextAlignment>();
         if (vertAlignElement?.Val?.HasValue == true)
         {
             var vertAlignVal = vertAlignElement.Val.Value;
@@ -8227,14 +8399,12 @@ sealed class DocumentParser(string defaultFont)
         // fall through to it — otherwise a coloured docDefaults (e.g. a card template's white text
         // default) would leak onto runs that explicitly asked for automatic. ResolveRunColor returns
         // null for auto / unresolved, which is exactly the reset we want.
-        var colorElement = props.GetFirstChild<Color>();
         if (colorElement != null)
         {
             color = ResolveRunColor(colorElement);
         }
 
         // Background/shading color (w:shd element)
-        var shadingElement = props.GetFirstChild<Shading>();
         if (shadingElement != null)
         {
             string? inlineBgColor = null;
@@ -8262,7 +8432,6 @@ sealed class DocumentParser(string defaultFont)
         // w:highlight — Word's highlighter pen, distinct from w:shd. Values are a fixed
         // palette of named colors (yellow, green, cyan, ...). Mapped to BackgroundColorHex
         // so the same renderer path that handles shading paints the highlight.
-        var highlightElement = props.GetFirstChild<Highlight>();
         if (highlightElement?.Val?.HasValue == true)
         {
             var highlightHex = HighlightToHex(highlightElement.Val.Value);
@@ -8276,7 +8445,7 @@ sealed class DocumentParser(string defaultFont)
         // IMPORTANT: Only apply properties that are EXPLICITLY defined in the character style,
         // not inherited defaults. This ensures character styles like "Shade" (which only defines
         // background color) don't override font size from paragraph styles like Heading1.
-        var runStyleId = props.GetFirstChild<RunStyle>()?.Val?.Value;
+        var runStyleId = runStyleElement?.Val?.Value;
         if (runStyleId != null && styleRunProperties != null && styleRunProperties.TryGetValue(runStyleId, out var runStyleProps))
         {
             // Look up the original style definition to check which properties are explicitly defined
@@ -8284,62 +8453,62 @@ sealed class DocumentParser(string defaultFont)
             var originalRPr = originalStyle?.StyleRunProperties;
 
             // Only override with run style properties that are EXPLICITLY defined in the style
-            if (props.GetFirstChild<RunFonts>() == null && originalRPr?.GetFirstChild<RunFonts>() != null)
+            if (runFonts == null && originalRPr?.GetFirstChild<RunFonts>() != null)
             {
                 fontFamily = runStyleProps.FontFamily;
             }
 
-            if (props.GetFirstChild<FontSize>() == null && originalRPr?.GetFirstChild<FontSize>() != null)
+            if (fontSizeElement == null && originalRPr?.GetFirstChild<FontSize>() != null)
             {
                 fontSize = runStyleProps.FontSizePoints;
             }
 
-            if (props.GetFirstChild<Bold>() == null && originalRPr?.GetFirstChild<Bold>() != null)
+            if (boldElement == null && originalRPr?.GetFirstChild<Bold>() != null)
             {
                 bold = runStyleProps.Bold;
             }
 
-            if (props.GetFirstChild<Italic>() == null && originalRPr?.GetFirstChild<Italic>() != null)
+            if (italicElement == null && originalRPr?.GetFirstChild<Italic>() != null)
             {
                 italic = runStyleProps.Italic;
             }
 
-            if (props.GetFirstChild<Underline>() == null && originalRPr?.GetFirstChild<Underline>() != null)
+            if (underlineElement == null && originalRPr?.GetFirstChild<Underline>() != null)
             {
                 underline = runStyleProps.Underline;
             }
 
-            if (props.GetFirstChild<Strike>() == null && originalRPr?.GetFirstChild<Strike>() != null)
+            if (strikeElement == null && originalRPr?.GetFirstChild<Strike>() != null)
             {
                 strikethrough = runStyleProps.Strikethrough;
             }
 
-            if (props.GetFirstChild<Caps>() == null && originalRPr?.GetFirstChild<Caps>() != null)
+            if (capsElement == null && originalRPr?.GetFirstChild<Caps>() != null)
             {
                 allCaps = runStyleProps.AllCaps;
             }
 
-            if (props.GetFirstChild<SmallCaps>() == null && originalRPr?.GetFirstChild<SmallCaps>() != null)
+            if (smallCapsElement == null && originalRPr?.GetFirstChild<SmallCaps>() != null)
             {
                 smallCaps = runStyleProps.SmallCaps;
             }
 
-            if (props.GetFirstChild<Spacing>() == null && originalRPr?.GetFirstChild<Spacing>() != null)
+            if (spacingElement == null && originalRPr?.GetFirstChild<Spacing>() != null)
             {
                 characterSpacing = runStyleProps.CharacterSpacingPoints;
             }
 
-            if (props.GetFirstChild<Color>() == null && originalRPr?.GetFirstChild<Color>() != null)
+            if (colorElement == null && originalRPr?.GetFirstChild<Color>() != null)
             {
                 color = runStyleProps.ColorHex;
             }
 
-            if (props.GetFirstChild<Shading>() == null && originalRPr?.GetFirstChild<Shading>() != null)
+            if (shadingElement == null && originalRPr?.GetFirstChild<Shading>() != null)
             {
                 backgroundColor = runStyleProps.BackgroundColorHex;
             }
 
-            if (props.GetFirstChild<VerticalTextAlignment>() == null && originalRPr?.GetFirstChild<VerticalTextAlignment>() != null)
+            if (vertAlignElement == null && originalRPr?.GetFirstChild<VerticalTextAlignment>() != null)
             {
                 verticalAlignment = runStyleProps.VerticalAlignment;
             }
@@ -8349,13 +8518,12 @@ sealed class DocumentParser(string defaultFont)
         // w:webHidden is intentionally not consumed: it hides only in web view, and Morph
         // renders for print/image so the runs stay visible (parsed-and-discarded).
         var hidden = styleDefaults?.Hidden ?? false;
-        var vanish = props.GetFirstChild<Vanish>();
-        if (vanish != null)
+        if (vanishElement != null)
         {
-            hidden = vanish.IsOn();
+            hidden = vanishElement.IsOn();
         }
 
-        if (props.GetFirstChild<SpecVanish>() != null)
+        if (specVanishElement != null)
         {
             hidden = true;
         }
@@ -8363,7 +8531,6 @@ sealed class DocumentParser(string defaultFont)
         // w:position — baseline shift in half-points (positive = up, negative = down).
         // Distinct from w:vertAlign which also resizes the glyph.
         var baselineShift = styleDefaults?.BaselineShiftPoints ?? 0.0;
-        var positionElement = props.GetFirstChild<Position>();
         if (positionElement?.Val?.HasValue == true &&
             double.TryParse(positionElement.Val.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var posHalfPts))
         {
@@ -8373,7 +8540,6 @@ sealed class DocumentParser(string defaultFont)
         // w:bdr — per-run border, modelled as a single BorderEdge applied around the run's
         // measured box. Reuses ParseBorderEdge so dotted/dashed/single all flow through.
         var runBorder = styleDefaults?.Border;
-        var bdrElement = props.GetFirstChild<Border>();
         if (bdrElement != null)
         {
             var parsed = ParseBorderEdge(bdrElement);
@@ -8383,21 +8549,18 @@ sealed class DocumentParser(string defaultFont)
         // w:emboss / w:imprint / w:outline — three glyph-fill modifiers. Each is a presence
         // toggle (val="0" / val="false" turns it back off).
         var emboss = styleDefaults?.Emboss ?? false;
-        var embossElement = props.GetFirstChild<Emboss>();
         if (embossElement != null)
         {
             emboss = embossElement.IsOn();
         }
 
         var imprint = styleDefaults?.Imprint ?? false;
-        var imprintElement = props.GetFirstChild<Imprint>();
         if (imprintElement != null)
         {
             imprint = imprintElement.IsOn();
         }
 
         var outlineOnly = styleDefaults?.OutlineOnly ?? false;
-        var outlineElement = props.GetFirstChild<Outline>();
         if (outlineElement != null)
         {
             outlineOnly = outlineElement.IsOn();
