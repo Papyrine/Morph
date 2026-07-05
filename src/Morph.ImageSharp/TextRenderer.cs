@@ -22,7 +22,13 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                         props.StyleId == context.LastParagraphStyleId;
         var collapseSpacingBefore = props.ContextualSpacing &&
                                     context.LastParagraphHadContextualSpacing && sameStyle;
-        var totalHeight = collapseSpacingBefore ? 0 : (float)props.SpacingBeforePoints;
+        // Mirror the render path's margin collapse (Word uses max(after, before) between
+        // adjacent paragraphs — verified against Word XPS output): only the excess of this
+        // paragraph's spacing-before over the previous paragraph's spacing-after consumes
+        // page space, so pagination decisions see the height that will actually render.
+        var totalHeight = collapseSpacingBefore
+            ? 0
+            : Math.Max(0, (float)props.SpacingBeforePoints - context.LastParagraphSpacingAfterPoints);
 
         foreach (var line in lines)
         {
@@ -135,6 +141,11 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     /// </summary>
     float CalculateLineHeight(TextLine line, ParagraphProperties props)
     {
+        // Word's line pitch, verified against Word-generated XPS baselines: the font's full
+        // hhea line box (ascent + descent + line gap — line.Height carries all three) scaled
+        // by the Auto multiplier, the exact value for Exactly, and the larger of the two for
+        // AtLeast. No additional floor or leading correction: Word applies none (measured for
+        // Aptos 14.65pt/12pt and Calibri 13.18pt/10.8pt at single spacing).
         var naturalHeight = line.Height;
         var lineHeight = props.LineSpacingRule switch
         {
@@ -142,33 +153,6 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             LineSpacingRule.AtLeast => Math.Max(naturalHeight, (float)props.LineSpacingPoints),
             _ => naturalHeight * (float)props.LineSpacingMultiplier // Auto
         };
-
-        // Word compatibility floor: when the font's metrics under-report (Ascent+Descent
-        // gives less than 120% of font size), lift the line height to match Word's "single
-        // line spacing" rule (~120%). For fonts already at/above 120% (Calibri ≈137%) the
-        // floor is a no-op. Only applied for Auto with multiplier in the "single-ish"
-        // range; compact (<0.9) is intentional and exact is exact.
-        if (props is {LineSpacingRule: LineSpacingRule.Auto, LineSpacingMultiplier: >= 0.9 and <= 1.15})
-        {
-            var largestFontSize = LargestFontSizePoints(line, props);
-            if (largestFontSize > 0)
-            {
-                var floor = largestFontSize * 1.20f * (float)props.LineSpacingMultiplier;
-                lineHeight = Math.Max(lineHeight, floor);
-            }
-
-            // Empirical leading boost: Word's pagination for documents that use the
-            // built-in Normal-with-1.08-multiplier style packs slightly less per page
-            // than ImageSharp's natural metrics × 1.08 alone produces. Apply a small
-            // extra boost only for the 1.08-ish range so it kicks in for Word's built-in
-            // default and explicit settings near 1.08, but not for our 1.04 styled
-            // default (which already bakes in just enough leading on its own).
-            if (props.LineSpacingMultiplier >= 1.06)
-            {
-                var boost = 1.0f + 0.50f * (1.15f - (float)props.LineSpacingMultiplier);
-                lineHeight *= Math.Max(1.0f, boost);
-            }
-        }
 
         // Only apply document-grid line pitch when Word pagination hints are prevalent in the document.
         // (Some docs contain a handful of markers that don't correspond to stable pagination.)
@@ -774,6 +758,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 var firstRun = paragraph.Runs[0];
                 var font = context.GetFont(firstRun.Properties);
                 (emptyHeight, emptyBaseline) = ImageSharpRenderContext.GetFontMetrics(font);
+                // Empty paragraphs take the bare ascent+descent box (no external leading):
+                // Word sizes spacer paragraphs to the mark's cell height, and gap-inclusive
+                // empties inflate template layouts that stack many spacers between blocks.
+                emptyHeight -= ImageSharpRenderContext.GetLineGap(font);
             }
             else if (props.ParagraphMarkFontSizePoints.HasValue)
             {
@@ -1730,6 +1718,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 var firstRun = paragraph.Runs[0];
                 var font = context.GetFont(firstRun.Properties);
                 (emptyHeight, emptyBaseline) = ImageSharpRenderContext.GetFontMetrics(font);
+                // Empty paragraphs take the bare ascent+descent box (no external leading):
+                // Word sizes spacer paragraphs to the mark's cell height, and gap-inclusive
+                // empties inflate template layouts that stack many spacers between blocks.
+                emptyHeight -= ImageSharpRenderContext.GetLineGap(font);
             }
             else if (props.ParagraphMarkFontSizePoints.HasValue)
             {

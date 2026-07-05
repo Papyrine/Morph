@@ -9,6 +9,42 @@ directories in `src/Tests/Inputs/`.
 `pdf_result.verified.json`, inspected `document.xml`/`styles.xml` of each mismatched `input.docx`,
 compared the page images of all four renderers side by side, and traced the responsible code paths.
 
+## Resolution, pass 2: the measured height model (2026-07-05, later the same day)
+
+The "metrics are a dead end" conclusion below was drawn from single-knob experiments run against
+a stack of mutually-compensating approximations. A second pass replaced the whole stack with a
+model calibrated against **Word's own rendered geometry**: XPS exports (Word COM) of every
+mismatched scenario were parsed for exact per-line baseline positions, decoding Word's rules
+directly. Verified findings, each confirmed against two or more fonts:
+
+- **Line pitch = hhea (ascent + descent + line gap) × the Auto multiplier** (exact for Exactly,
+  max for AtLeast). Measured: Aptos 12pt single = 14.65pt, Calibri 10.8pt single = 13.18pt.
+  PdfSharp's `GetHeight()` and SkiaSharp's `ascent+descent+leading` both equal this quantity for
+  every bundled font (probed in-container).
+- **Adjacent paragraph spacing collapses to max(after, before)** — not the sum. Decoded from the
+  complex_spacing ladder (before-360/after-360 pairs). The raster *render* path already did this;
+  the raster *measure* path, the PDF flow path, and shared table-cell measurement all summed.
+- **No 1.20×size floor and no ×1.035 leading boost** — Word applies neither. Both were
+  calibration fudges compensating for the missing line gap (they cancel almost exactly for
+  Calibri-class fonts, which is why most scenarios matched despite the wrong model).
+
+Code changes (all backends): gap-inclusive natural line heights in Skia/ImageSharp (floor and
+boost removed; empty spacer paragraphs keep the bare box), measure-path and PDF-flow spacing
+collapse, in-cell spacing collapse in `TableHeightCalculator`, the 20pt minimum row height scoped
+to rows without a declared `w:trHeight`, and trailing table rows with no visible content no
+longer force a page break (Word absorbs an empty spacer row into the bottom margin — this also
+removed cover-letters/09's blank PDF page).
+
+Word-match scoreboard (page counts, 321 scenarios): **Skia 304 → 307, ImageSharp 305 → 307,
+PDF 296 → 301.** Newly matching: business-plans/10 (raster 4→5), business-plans/12 (PDF 21→18
+exact; raster 22→19), business-plans/15 (21→19 in all three), cover-letters/09 (all three),
+resumes/06 (raster 6→3), resumes/14 (Skia 2→1), resumes/15 (PDF 2→1), resumes/19 (PDF 6→3).
+One known regression: **resumes/02 (raster 1→2)** — a page-exact template whose Word reference
+was rendered with a substituted font (Word used Calibri where the document declares Bahnschrift),
+sitting within ~2% of the page boundary; the old model matched it only through the compensating
+fudges. 21 scenarios still differ overall (was 32 at the start, 26 after pass 1). Full suite
+green after baseline regeneration: 2493/2493 + 9/9 static.
+
 ## Resolution (what was fixed)
 
 The page-count match is **recorded but not asserted** by the scenario tests, so these mismatches

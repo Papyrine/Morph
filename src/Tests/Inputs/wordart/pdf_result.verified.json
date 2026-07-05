@@ -16,17 +16,17 @@
       {
         "Width": 595.2999877929688,
         "Height": 841.9000244140625,
-        "Text": "ACTUAL WORDART SHAPES\nThese use DrawingML WordArt transforms\nArc Text Up\nArc Text Down\nCircle Text"
+        "Text": "ACTUAL WORDART SHAPES\nThese use DrawingML WordArt transforms\nArc Text Up\nArc Text Down\nCircle Text\nWavy WordArt"
       },
       {
         "Width": 595.2999877929688,
         "Height": 841.9000244140625,
-        "Text": "Wavy WordArt\nChevron Up\nChevron Down\nFade Effect\nSlanted Up"
+        "Text": "Chevron Up\nChevron Down\nFade Effect\nSlanted Up\nSlanted Down"
       },
       {
         "Width": 595.2999877929688,
         "Height": 841.9000244140625,
-        "Text": "Slanted Down\nCan Shape\nInflated\nDeflated"
+        "Text": "Can Shape\nInflated\nDeflated"
       },
       {
         "Width": 595.2999877929688,
@@ -95,21 +95,21 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0462,
+      "ErrorMetric": 0.0399,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.2078,
+      "ErrorMetric": 0.2074,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.2076,
+      "ErrorMetric": 0.207,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"
@@ -123,70 +123,70 @@
     },
     {
       "Page": 6,
-      "ErrorMetric": 0.0491,
+      "ErrorMetric": 0.0463,
       "ExpectedFile": "expected_0006.png",
       "VerifiedFile": "pdf_result#page_0006.verified.png",
       "ReceivedFile": "pdf_result#page_0006.received.png"
     },
     {
       "Page": 7,
-      "ErrorMetric": 0.0505,
+      "ErrorMetric": 0.0525,
       "ExpectedFile": "expected_0007.png",
       "VerifiedFile": "pdf_result#page_0007.verified.png",
       "ReceivedFile": "pdf_result#page_0007.received.png"
     },
     {
       "Page": 8,
-      "ErrorMetric": 0.0722,
+      "ErrorMetric": 0.0746,
       "ExpectedFile": "expected_0008.png",
       "VerifiedFile": "pdf_result#page_0008.verified.png",
       "ReceivedFile": "pdf_result#page_0008.received.png"
     },
     {
       "Page": 9,
-      "ErrorMetric": 0.0574,
+      "ErrorMetric": 0.057,
       "ExpectedFile": "expected_0009.png",
       "VerifiedFile": "pdf_result#page_0009.verified.png",
       "ReceivedFile": "pdf_result#page_0009.received.png"
     },
     {
       "Page": 10,
-      "ErrorMetric": 0.0672,
+      "ErrorMetric": 0.0667,
       "ExpectedFile": "expected_0010.png",
       "VerifiedFile": "pdf_result#page_0010.verified.png",
       "ReceivedFile": "pdf_result#page_0010.received.png"
     },
     {
       "Page": 11,
-      "ErrorMetric": 0.0613,
+      "ErrorMetric": 0.0656,
       "ExpectedFile": "expected_0011.png",
       "VerifiedFile": "pdf_result#page_0011.verified.png",
       "ReceivedFile": "pdf_result#page_0011.received.png"
     },
     {
       "Page": 12,
-      "ErrorMetric": 0.039,
+      "ErrorMetric": 0.0378,
       "ExpectedFile": "expected_0012.png",
       "VerifiedFile": "pdf_result#page_0012.verified.png",
       "ReceivedFile": "pdf_result#page_0012.received.png"
     },
     {
       "Page": 13,
-      "ErrorMetric": 0.0257,
+      "ErrorMetric": 0.023,
       "ExpectedFile": "expected_0013.png",
       "VerifiedFile": "pdf_result#page_0013.verified.png",
       "ReceivedFile": "pdf_result#page_0013.received.png"
     },
     {
       "Page": 14,
-      "ErrorMetric": 0.0743,
+      "ErrorMetric": 0.0701,
       "ExpectedFile": "expected_0014.png",
       "VerifiedFile": "pdf_result#page_0014.verified.png",
       "ReceivedFile": "pdf_result#page_0014.received.png"
     },
     {
       "Page": 15,
-      "ErrorMetric": 0.0351,
+      "ErrorMetric": 0.0359,
       "ExpectedFile": "expected_0015.png",
       "VerifiedFile": "pdf_result#page_0015.verified.png",
       "ReceivedFile": "pdf_result#page_0015.received.png"

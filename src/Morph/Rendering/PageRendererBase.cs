@@ -1089,12 +1089,26 @@ abstract class PageRendererBase(RenderContextBase context)
             headerCount++;
         }
 
+        // Trailing rows with nothing visible in them never force a page break: Word absorbs a
+        // trailing empty spacer row (a letter template commonly ends its layout table with an
+        // empty fixed-height row) into the bottom margin instead of starting a page that
+        // renders nothing but would still count toward the page total.
+        var lastVisibleRow = table.Rows.Count - 1;
+        while (lastVisibleRow >= 0 && !RowHasVisibleContent(table.Rows[lastVisibleRow]))
+        {
+            lastVisibleRow--;
+        }
+
         for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
         {
             var rowHeight = rowHeights[rowIndex];
 
             var yBefore = context.CurrentY;
-            EnsureSpaceFor(rowHeight);
+            if (rowIndex <= lastVisibleRow)
+            {
+                EnsureSpaceFor(rowHeight);
+            }
+
             var pageBroke = context.CurrentY < yBefore;
 
             // After a page break, re-emit the header rows — but skip when the current row is itself
@@ -1117,6 +1131,38 @@ abstract class PageRendererBase(RenderContextBase context)
             RenderTableRow(table, rowIndex, colCount, colWidths, rowHeights, tableX, currentY);
             context.CurrentY += rowHeight;
         }
+    }
+
+    static bool RowHasVisibleContent(TableRow row)
+    {
+        foreach (var cell in row.Cells)
+        {
+            if (!string.IsNullOrEmpty(cell.Properties.BackgroundColorHex))
+            {
+                return true;
+            }
+
+            foreach (var element in cell.Content)
+            {
+                if (element is ParagraphElement paragraph)
+                {
+                    foreach (var run in paragraph.Runs)
+                    {
+                        if (run.InlineImageData != null || !string.IsNullOrWhiteSpace(run.Text))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                else
+                {
+                    // Nested tables, images, content controls, form fields — all draw something.
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     void RenderTableRow(TableElement table, int rowIndex, int colCount, float[] colWidths, float[] rowHeights, float tableX, float currentY)

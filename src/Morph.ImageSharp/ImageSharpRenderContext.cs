@@ -270,9 +270,21 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         // Descender is negative in design units, we want positive value
         var descent = Math.Abs(metrics.HorizontalMetrics.Descender) * pointSize / unitsPerEm;
 
-        var height = ascent + descent;
+        // Include the hhea line gap: Word's single-spacing line box is the full
+        // ascent + descent + line gap (verified against Word XPS output), and the
+        // Skia backend and PdfSharp's GetHeight() use the same three-term box.
+        var lineGap = Math.Max(0f, metrics.HorizontalMetrics.LineGap * pointSize / unitsPerEm);
+
+        var height = ascent + descent + lineGap;
 
         return (height, ascent);
+    }
+
+    /// <summary>The font's external leading (hhea line gap) in points; 0 when the font has none.</summary>
+    public static float GetLineGap(Font font)
+    {
+        var metrics = font.FontMetrics;
+        return Math.Max(0f, metrics.HorizontalMetrics.LineGap * font.Size / metrics.UnitsPerEm);
     }
 
     // SolidBrush and SolidPen are immutable in ImageSharp.Drawing — every fragment

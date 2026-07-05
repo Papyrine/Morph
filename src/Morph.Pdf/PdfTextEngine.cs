@@ -139,13 +139,29 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     {
         var lines = Layout(paragraph, availableWidth);
 
-        context.CurrentY += (float) SpacingBefore(paragraph);
+        // Word collapses adjacent paragraph spacing to max(after, before) — verified against
+        // Word-generated XPS baselines — so in the page flow only the excess of this
+        // paragraph's spacing-before over the previous paragraph's spacing-after consumes
+        // height. Bounded (table-cell) rendering keeps the raw value: cell measurement runs
+        // repeatedly and must stay independent of flow state.
+        var spacingBefore = SpacingBefore(paragraph);
+        if (allowPageBreak)
+        {
+            spacingBefore = Math.Max(0, spacingBefore - context.LastParagraphSpacingAfterPoints);
+        }
+
+        context.CurrentY += (float) spacingBefore;
 
         if (lines.Count == 0)
         {
             context.CurrentY += (float) EmptyLineHeight(paragraph);
             context.CurrentY += (float) SpacingAfter(paragraph);
             TrackContextualSpacing(paragraph);
+            if (allowPageBreak)
+            {
+                context.LastParagraphSpacingAfterPoints = (float) SpacingAfter(paragraph);
+            }
+
             return;
         }
 
@@ -243,6 +259,10 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
         context.CurrentY += (float) SpacingAfter(paragraph);
         TrackContextualSpacing(paragraph);
+        if (allowPageBreak)
+        {
+            context.LastParagraphSpacingAfterPoints = (float) SpacingAfter(paragraph);
+        }
     }
 
     void DrawItem(XGraphics graphics, LineItem item, double penX, double baseline)
