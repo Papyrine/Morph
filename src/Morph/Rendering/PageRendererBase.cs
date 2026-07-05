@@ -686,6 +686,14 @@ abstract class PageRendererBase(RenderContextBase context)
     /// would page-break before rendering, advance the cursor first so the background lands
     /// on the page where the actual content will be.
     /// </summary>
+    // Suffix lookup for AdvanceToBackgroundsTargetPage: nextRequiredHeights[j] is the estimated
+    // height of the first break-driving element at index >= j (0 when none remains). Built once
+    // per document with a backward pass — the old forward scan re-walked the whole tail for
+    // every behind-text drawing, and in table-free documents that meant scanning to the end of
+    // the document per background.
+    IReadOnlyList<DocumentElement>? nextRequiredHeightsSource;
+    float[]? nextRequiredHeights;
+
     protected void AdvanceToBackgroundsTargetPage(IReadOnlyList<DocumentElement> elements, int backgroundIndex)
     {
         if (context.CurrentY <= context.ContentTop)
@@ -694,38 +702,37 @@ abstract class PageRendererBase(RenderContextBase context)
             return;
         }
 
-        // Walk forward to find the next element with a known significant height (typically
-        // a table). Paragraphs and other small elements rarely force the page break by
-        // themselves, so we skip past them looking for the real break-driving element.
-        // Skip over later backgrounds too — when a sequence of behind-text drawings precedes
-        // a table that needs the next page, all the drawings belong on that next page; we
-        // don't want the first decoration in the sequence to anchor itself to the current
-        // page while subsequent ones lift to the next.
-        for (var j = backgroundIndex + 1; j < elements.Count; j++)
+        // The next element with a known significant height (typically a table) dictates which
+        // page the background belongs to. Paragraphs and other small elements estimate zero
+        // (they rarely force the break themselves), and that makes later backgrounds skip
+        // through to the same driving element too — when a sequence of behind-text drawings
+        // precedes a table that needs the next page, all the drawings lift to that page
+        // together. Since the estimate is position-independent, the whole forward scan
+        // collapses to a precomputed suffix lookup.
+        if (!ReferenceEquals(nextRequiredHeightsSource, elements))
         {
-            var next = elements[j];
-            if (next is
-                FloatingShapeElement {BehindText: true} or
-                FloatingImageElement {BehindText: true})
+            nextRequiredHeightsSource = elements;
+            nextRequiredHeights = new float[elements.Count + 1];
+            for (var j = elements.Count - 1; j >= 0; j--)
             {
-                continue;
+                var own = EstimatedNextElementHeight(elements[j]);
+                nextRequiredHeights[j] = own > 0 ? own : nextRequiredHeights[j + 1];
             }
+        }
 
-            var required = EstimatedNextElementHeight(next);
-            if (required <= 0)
-            {
-                continue;
-            }
-
-            if (!context.HasSpaceFor(required) && required <= context.ContentHeight)
-            {
-                if (!context.MoveToNextColumn())
-                {
-                    FinishCurrentPage();
-                    StartNewPage();
-                }
-            }
+        var required = nextRequiredHeights![backgroundIndex + 1];
+        if (required <= 0)
+        {
             return;
+        }
+
+        if (!context.HasSpaceFor(required) && required <= context.ContentHeight)
+        {
+            if (!context.MoveToNextColumn())
+            {
+                FinishCurrentPage();
+                StartNewPage();
+            }
         }
     }
 
