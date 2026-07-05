@@ -1,4 +1,4 @@
-# All PDF export scenarios (320)
+# All PDF export scenarios (321)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -156,6 +156,7 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [icon_with_text](#icon_with_text)
 - [image_cropping/01](#image_cropping01)
 - [image_rotation/01](#image_rotation01)
+- [image_wrap_square](#image_wrap_square)
 - [inline_image](#inline_image)
 - [inline_shape_arrows](#inline_shape_arrows)
 - [italic_text](#italic_text)
@@ -396,7 +397,7 @@ PDF: [Morph PDF](agendas-minutes/06/pdf_result.verified.pdf)
 | --- | --- |
 | **Page 1** | **Page 1. ErrorMetric: 0.0995** |
 | <img src="agendas-minutes/07/expected_0001.png" width="500"> | <img src="agendas-minutes/07/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.0834** |
+| **Page 2** | **Page 2. ErrorMetric: 0.0752** |
 | <img src="agendas-minutes/07/expected_0002.png" width="500"> | <img src="agendas-minutes/07/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](agendas-minutes/07/pdf_result.verified.pdf)
@@ -750,7 +751,7 @@ PDF: [Morph PDF](business-plans/01/pdf_result.verified.pdf)
 | <img src="business-plans/02/expected_0004.png" width="500"> | <img src="business-plans/02/pdf_result%23page_0004.verified.png" width="500"> |
 | **Page 5** | **Page 5. ErrorMetric: 0.0780** |
 | <img src="business-plans/02/expected_0005.png" width="500"> | <img src="business-plans/02/pdf_result%23page_0005.verified.png" width="500"> |
-| **Page 6** | **Page 6. ErrorMetric: 0.0878** |
+| **Page 6** | **Page 6. ErrorMetric: 0.0923** |
 | <img src="business-plans/02/expected_0006.png" width="500"> | <img src="business-plans/02/pdf_result%23page_0006.verified.png" width="500"> |
 
 PDF: [Morph PDF](business-plans/02/pdf_result.verified.pdf)
@@ -2112,6 +2113,20 @@ PDF: [Morph PDF](image_cropping/01/pdf_result.verified.pdf)
 | <img src="image_rotation/01/expected_0001.png" width="500"> | <img src="image_rotation/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](image_rotation/01/pdf_result.verified.pdf)
+
+
+## image_wrap_square
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1** | **Page 1** |
+| <img src="image_wrap_square/expected_0001.png" width="500"> | <img src="image_wrap_square/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2** |
+| <img src="image_wrap_square/expected_0002.png" width="500"> | <img src="image_wrap_square/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3** _(no page)_ | **Page 3** |
+|  | <img src="image_wrap_square/pdf_result%23page_0003.verified.png" width="500"> |
+
+PDF: [Morph PDF](image_wrap_square/pdf_result.verified.pdf)
 
 
 ## inline_image

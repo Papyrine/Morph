@@ -1203,9 +1203,10 @@ abstract class PageRendererBase(RenderContextBase context)
             {
                 if (element is ParagraphElement para)
                 {
-                    // Account for bullet indent to match RenderParagraphInBounds behavior.
-                    float bulletIndent = para.Properties.Numbering != null ? 12 : 0;
-                    contentHeight += Measurer.MeasureParagraphHeightWithWidth(para, contentWidth - bulletIndent);
+                    // Measured at exactly the width RenderParagraphInBounds lays out at (it
+                    // subtracts the paragraph's own indents internally and draws list markers
+                    // into the hanging area — no extra marker inset applies).
+                    contentHeight += Measurer.MeasureParagraphHeightWithWidth(para, contentWidth);
                     lastMeasuredParagraph = para;
                 }
                 else if (element is ContentControlElement contentControl)

@@ -142,6 +142,144 @@ abstract class RenderContextBase
         CurrentPageNumber++;
         CurrentColumn = 0;
         CurrentY = ContentTop;
+        floatExclusions.Clear();
+    }
+
+    // ---- float text-wrap exclusions ----
+
+    // Rectangles (points, absolute page coordinates) that body-flow paragraphs must not
+    // overlap, registered when a floating image with a wrapping mode (wp:wrapSquare /
+    // wrapTight / wrapThrough / wrapTopAndBottom) renders. Page-scoped: cleared when a new
+    // page starts. wrapNone / behind-text floats register nothing — overlap is their design.
+    readonly List<FloatExclusion> floatExclusions = [];
+
+    readonly record struct FloatExclusion(float Left, float Top, float Right, float Bottom, bool FullWidth, WrapTextSide Side);
+
+    public void RegisterFloatExclusion(FloatingImageElement image, float leftPoints, float topPoints, float widthPoints, float heightPoints)
+    {
+        if (image.BehindText)
+        {
+            return;
+        }
+
+        // Tight/Through wrap along the image outline in Word; the rectangular extent is the
+        // v1 approximation for both (same as Square).
+        switch (image.WrapType)
+        {
+            case WrapType.Square or WrapType.Tight or WrapType.Through:
+                floatExclusions.Add(new(
+                    leftPoints - (float) image.WrapDistanceLeftPoints,
+                    topPoints - (float) image.WrapDistanceTopPoints,
+                    leftPoints + widthPoints + (float) image.WrapDistanceRightPoints,
+                    topPoints + heightPoints + (float) image.WrapDistanceBottomPoints,
+                    FullWidth: false,
+                    image.WrapTextSide));
+                break;
+            case WrapType.TopAndBottom:
+                floatExclusions.Add(new(
+                    ContentLeft,
+                    topPoints - (float) image.WrapDistanceTopPoints,
+                    ContentLeft + ContentWidth,
+                    topPoints + heightPoints + (float) image.WrapDistanceBottomPoints,
+                    FullWidth: true,
+                    WrapTextSide.BothSides));
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Resolves where a flow paragraph starting at <paramref name="y"/> can lay out, given the
+    /// active float exclusions: the widest free horizontal segment of the content area beside
+    /// the floats. When no usable segment exists at <paramref name="y"/> (a wrapTopAndBottom
+    /// band, or floats covering the whole measure), Y advances below the blocking floats.
+    /// Constrained is false when the paragraph gets the full content width.
+    /// </summary>
+    public (float X, float Width, float Y, bool Constrained) ResolveFlowBand(float y)
+    {
+        var contentLeft = ContentLeft;
+        var contentRight = ContentLeft + ContentWidth;
+        if (floatExclusions.Count == 0)
+        {
+            return (contentLeft, contentRight - contentLeft, y, false);
+        }
+
+        // The paragraph's exact first-line height isn't known yet; probe with a nominal line so
+        // a paragraph starting just above a float still wraps around it.
+        const float probeHeight = 12f;
+        // Below this the band is unusable — skip below the floats instead (half an inch, about
+        // where Word's own wrapping stops squeezing words in).
+        const float minUsableWidth = 36f;
+
+        var currentY = y;
+        for (var guard = 0; guard < 8; guard++)
+        {
+            float? clearTo = null;
+            var segments = new List<(float Start, float End)>
+            {
+                (contentLeft, contentRight)
+            };
+            foreach (var exclusion in floatExclusions)
+            {
+                if (currentY + probeHeight <= exclusion.Top || currentY >= exclusion.Bottom)
+                {
+                    continue;
+                }
+
+                clearTo = clearTo is { } clear ? Math.Max(clear, exclusion.Bottom) : exclusion.Bottom;
+                var blockLeft = exclusion.FullWidth ? contentLeft : Math.Max(contentLeft, exclusion.Left);
+                var blockRight = exclusion.FullWidth ? contentRight : Math.Min(contentRight, exclusion.Right);
+                var remaining = new List<(float Start, float End)>();
+                foreach (var (start, end) in segments)
+                {
+                    if (blockRight <= start || blockLeft >= end)
+                    {
+                        remaining.Add((start, end));
+                        continue;
+                    }
+
+                    // An explicit @wrapText side restricts which side of THIS float text may
+                    // use; BothSides/Largest leave both free segments available (the caller
+                    // takes the widest — Word's "largest" — since a single band can't carry
+                    // both sides at once).
+                    if (blockLeft > start && exclusion.Side != WrapTextSide.Right)
+                    {
+                        remaining.Add((start, blockLeft));
+                    }
+
+                    if (blockRight < end && exclusion.Side != WrapTextSide.Left)
+                    {
+                        remaining.Add((blockRight, end));
+                    }
+                }
+
+                segments = remaining;
+            }
+
+            if (clearTo == null)
+            {
+                return (contentLeft, contentRight - contentLeft, currentY, false);
+            }
+
+            var bestStart = 0f;
+            var bestWidth = 0f;
+            foreach (var (start, end) in segments)
+            {
+                if (end - start > bestWidth)
+                {
+                    bestStart = start;
+                    bestWidth = end - start;
+                }
+            }
+
+            if (bestWidth >= minUsableWidth)
+            {
+                return (bestStart, bestWidth, currentY, true);
+            }
+
+            currentY = clearTo.Value;
+        }
+
+        return (contentLeft, contentRight - contentLeft, currentY, false);
     }
 
     public bool MoveToNextColumn()

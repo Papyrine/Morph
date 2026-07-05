@@ -285,7 +285,7 @@ static class HtmlExporter
                     WriteImageParagraph(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Description, depth);
                     break;
                 case FloatingImageElement floatingImage:
-                    WriteImageParagraph(floatingImage.ImageData, floatingImage.ContentType, floatingImage.WidthPoints, floatingImage.HeightPoints, floatingImage.Description, depth);
+                    WriteFloatingImage(floatingImage, depth);
                     break;
                 case HorizontalRuleElement:
                     Indent(depth).Append("<hr />\n");
@@ -512,6 +512,48 @@ static class HtmlExporter
             Indent(depth).Append("<p>");
             AppendImageTag(source, widthPoints, heightPoints, description);
             builder.Append("</p>\n");
+        }
+
+        // A wrap-enabled float becomes a CSS float so the following text flows beside it — the
+        // same layout the raster backends produce for wrapSquare/Tight/Through. wrapNone
+        // (overlap) and wrapTopAndBottom (text above and below) keep the block treatment,
+        // which is already HTML's closest match for them.
+        void WriteFloatingImage(FloatingImageElement image, int depth)
+        {
+            if (image.WrapType is not (WrapType.Square or WrapType.Tight or WrapType.Through))
+            {
+                WriteImageParagraph(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Description, depth);
+                return;
+            }
+
+            var source = ResolveImageSource(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints);
+            if (source == null)
+            {
+                return;
+            }
+
+            // An explicit @wrapText side dictates where the text goes (so the image floats the
+            // opposite way); otherwise float to whichever half of the content area holds the
+            // image's centre. The same-side clear keeps successive floats stacked vertically —
+            // in Word each float's Y comes from its anchor paragraph, which flows below the
+            // previous float's wrapped text, so side-by-side pile-ups don't happen there. The
+            // wrap clearances (wp @dist*) become margins so the wrapped text keeps Word's gap.
+            var side = image.WrapTextSide switch
+            {
+                WrapTextSide.Left => "right",
+                WrapTextSide.Right => "left",
+                _ => image.HorizontalPositionPoints + image.WidthPoints / 2 <= pageSettings.ContentWidth / 2 ? "left" : "right"
+            };
+            var style = $"float: {side}; clear: {side}";
+            if (image.WrapDistanceTopPoints > 0.01 || image.WrapDistanceRightPoints > 0.01 ||
+                image.WrapDistanceBottomPoints > 0.01 || image.WrapDistanceLeftPoints > 0.01)
+            {
+                style += $"; margin: {BoxShorthand(image.WrapDistanceTopPoints, image.WrapDistanceRightPoints, image.WrapDistanceBottomPoints, image.WrapDistanceLeftPoints)}";
+            }
+
+            Indent(depth);
+            AppendImageTag(source, image.WidthPoints, image.HeightPoints, image.Description, style);
+            builder.Append('\n');
         }
 
         void WriteContentControl(ContentControlElement contentControl, int depth)
@@ -1454,7 +1496,7 @@ static class HtmlExporter
             AppendImageTag(source, widthPoints, heightPoints, alt);
         }
 
-        void AppendImageTag(string source, double widthPoints, double heightPoints, string? alt)
+        void AppendImageTag(string source, double widthPoints, double heightPoints, string? alt, string? style = null)
         {
             builder.Append("<img src=\"").Append(EncodeAttribute(source)).Append('"');
             if (widthPoints > 0)
@@ -1465,6 +1507,11 @@ static class HtmlExporter
             if (heightPoints > 0)
             {
                 builder.Append(" height=\"").Append(ToPixels(heightPoints)).Append('"');
+            }
+
+            if (style != null)
+            {
+                builder.Append(" style=\"").Append(style).Append('"');
             }
 
             builder.Append(" alt=\"").Append(EncodeAttribute(alt ?? "")).Append("\" />");

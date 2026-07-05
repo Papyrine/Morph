@@ -14,3 +14,18 @@ enum WrapType
     /// <summary>Text appears above and below but not beside.</summary>
     TopAndBottom
 }
+
+/// <summary>
+/// Which side(s) of a wrapped float the text may flow on (wp @wrapText).
+/// </summary>
+enum WrapTextSide
+{
+    /// <summary>Text flows on both sides of the float.</summary>
+    BothSides,
+    /// <summary>Text flows only on the left side of the float.</summary>
+    Left,
+    /// <summary>Text flows only on the right side of the float.</summary>
+    Right,
+    /// <summary>Text flows on whichever side is wider.</summary>
+    Largest
+}

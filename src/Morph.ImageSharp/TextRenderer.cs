@@ -4,8 +4,9 @@
 sealed class TextRenderer(ImageSharpRenderContext context) :
     IParagraphMeasurer
 {
-    // See SkiaTextRenderer for the rationale — same shape, same hot-path benefit.
-    readonly Dictionary<ParagraphElement, List<TextLine>> pagedLayoutCache = [];
+    // See SkiaTextRenderer for the rationale — same shape, same hot-path benefit. The width
+    // key matters: float text-wrap bands render flow paragraphs at reduced widths.
+    readonly Dictionary<(ParagraphElement, float), List<TextLine>> pagedLayoutCache = [];
     readonly Dictionary<(ParagraphElement, float), List<TextLine>> boundedLayoutCache = [];
     /// <summary>
     /// Measures the height of a paragraph when rendered at the given width.
@@ -1461,12 +1462,13 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     /// </summary>
     List<TextLine> LayoutParagraph(ParagraphElement paragraph)
     {
-        if (pagedLayoutCache.TryGetValue(paragraph, out var cached))
+        var cacheKey = (paragraph, context.ContentWidth);
+        if (pagedLayoutCache.TryGetValue(cacheKey, out var cached))
         {
             return cached;
         }
         var result = LayoutParagraphCore(paragraph);
-        pagedLayoutCache[paragraph] = result;
+        pagedLayoutCache[cacheKey] = result;
         return result;
     }
 

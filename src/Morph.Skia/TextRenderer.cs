@@ -6,11 +6,12 @@ sealed class TextRenderer(SkiaRenderContext context) :
 {
     // LayoutParagraph runs once per measure-pass and once per render-pass for the same
     // paragraph; tables hit the same paragraph 2-3 times per cell across the height-calc
-    // and render phases. Keying by paragraph identity (and width for the bounded variant)
-    // turns those repeated layouts into single-allocation hits. Cache lifetime matches
+    // and render phases. Keying by paragraph identity and width turns those repeated
+    // layouts into single-allocation hits (the width matters: float text-wrap bands render
+    // flow paragraphs at reduced widths via PushContentContainer). Cache lifetime matches
     // this TextRenderer instance — i.e. one document render — so layout state never
     // leaks between conversions.
-    readonly Dictionary<ParagraphElement, List<TextLine>> pagedLayoutCache = [];
+    readonly Dictionary<(ParagraphElement, float), List<TextLine>> pagedLayoutCache = [];
     readonly Dictionary<(ParagraphElement, float), List<TextLine>> boundedLayoutCache = [];
     /// <summary>
     /// Measures the height of a paragraph when rendered at the given width.
@@ -1523,12 +1524,13 @@ sealed class TextRenderer(SkiaRenderContext context) :
     /// </summary>
     List<TextLine> LayoutParagraph(ParagraphElement paragraph)
     {
-        if (pagedLayoutCache.TryGetValue(paragraph, out var cached))
+        var cacheKey = (paragraph, context.ContentWidth);
+        if (pagedLayoutCache.TryGetValue(cacheKey, out var cached))
         {
             return cached;
         }
         var result = LayoutParagraphCore(paragraph);
-        pagedLayoutCache[paragraph] = result;
+        pagedLayoutCache[cacheKey] = result;
         return result;
     }
 

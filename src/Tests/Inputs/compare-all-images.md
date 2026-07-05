@@ -1,4 +1,4 @@
-# All scenarios (320)
+# All scenarios (321)
 
 <details>
 <summary>Contents</summary>
@@ -154,6 +154,7 @@
 - [icon_with_text](#icon_with_text)
 - [image_cropping/01](#image_cropping01)
 - [image_rotation/01](#image_rotation01)
+- [image_wrap_square](#image_wrap_square)
 - [inline_image](#inline_image)
 - [inline_shape_arrows](#inline_shape_arrows)
 - [italic_text](#italic_text)
@@ -376,7 +377,7 @@
 | --- | --- | --- |
 | **Page 1** | **Page 1. ErrorMetric: 0.1406** | **Page 1. ErrorMetric: 0.1441** |
 | <img src="agendas-minutes/07/expected_0001.png" width="500"> | <img src="agendas-minutes/07/skia_result%23page_0001.verified.png" width="500"> | <img src="agendas-minutes/07/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.1376** | **Page 2. ErrorMetric: 0.1393** |
+| **Page 2** | **Page 2. ErrorMetric: 0.1094** | **Page 2. ErrorMetric: 0.1120** |
 | <img src="agendas-minutes/07/expected_0002.png" width="500"> | <img src="agendas-minutes/07/skia_result%23page_0002.verified.png" width="500"> | <img src="agendas-minutes/07/imagesharp_result%23page_0002.verified.png" width="500"> |
 
 ## agendas-minutes/08
@@ -467,7 +468,7 @@ Pixel-level differences between Skia's SVG render and Word's renderer remain (gr
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.0475** | **Page 1. ErrorMetric: 0.0464** |
+| **Page 1** | **Page 1. ErrorMetric: 0.0488** | **Page 1. ErrorMetric: 0.0475** |
 | <img src="agendas-minutes/17/expected_0001.png" width="500"> | <img src="agendas-minutes/17/skia_result%23page_0001.verified.png" width="500"> | <img src="agendas-minutes/17/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## agendas-minutes/18
@@ -1696,6 +1697,17 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 | --- | --- | --- |
 | **Page 1** | **Page 1. ErrorMetric: 0.0389** | **Page 1. ErrorMetric: 0.0395** |
 | <img src="image_rotation/01/expected_0001.png" width="500"> | <img src="image_rotation/01/skia_result%23page_0001.verified.png" width="500"> | <img src="image_rotation/01/imagesharp_result%23page_0001.verified.png" width="500"> |
+
+## image_wrap_square
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1** | **Page 1. ErrorMetric: 0.0000** | **Page 1. ErrorMetric: 0.0000** |
+| <img src="image_wrap_square/expected_0001.png" width="500"> | <img src="image_wrap_square/skia_result%23page_0001.verified.png" width="500"> | <img src="image_wrap_square/imagesharp_result%23page_0001.verified.png" width="500"> |
+| **Page 2** | **Page 2. ErrorMetric: 0.0000** | **Page 2. ErrorMetric: 0.0000** |
+| <img src="image_wrap_square/expected_0002.png" width="500"> | <img src="image_wrap_square/skia_result%23page_0002.verified.png" width="500"> | <img src="image_wrap_square/imagesharp_result%23page_0002.verified.png" width="500"> |
+| **Page 3** _(no page)_ | **Page 3. ErrorMetric: 0.0000** | **Page 3. ErrorMetric: 0.0000** |
+|  | <img src="image_wrap_square/skia_result%23page_0003.verified.png" width="500"> | <img src="image_wrap_square/imagesharp_result%23page_0003.verified.png" width="500"> |
 
 ## inline_image
 
