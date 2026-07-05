@@ -8,21 +8,29 @@ memo), P6a–P6g** (P6g safe subset). Render benchmarks, PDF benchmarks, export 
 `smoke` harness were added under `src/Benchmarks/` per the Measurement section.
 
 Deferred, in scope for a follow-up pass:
-- **P4e** — the ParseRunProperties/ParseParagraphProperties child-loop rewrite (~500 mechanical
-  lines for a moderate parse-time gain; the other P4 items landed first).
 - **P4c (optional part)** — folding the remaining single-purpose extractor walks into one
   dispatch walk.
-- **P5e** — vMerge grid-occupancy pass, autofit longest-token measurement, and the
-  `AdvanceToBackgroundsTargetPage` lookahead cap (the last one risks producing WRONG output,
-  not merely different baselines).
+- **P5e (Tight/Through outline wrap)** — rectangular extent approximation stands; a true
+  outline wrap is a layout feature, tracked in the feature matrix.
 
-Completed in the 2026-07-05 follow-up pass (baselines regenerated where output changed):
+Completed in the 2026-07-05 follow-up passes (baselines regenerated where output changed):
+- **P4e** — ParseRunProperties/ParseParagraphProperties collect their children in one
+  dispatch pass into locals (first-wins preserved with `??=`); ~35/~20 sibling rescans gone.
+  Byte-identical output (suite-verified).
 - **P5d (width-alignment part)** — numbered cell paragraphs are now measured at exactly the
   width the cell render lays out at; the phantom 12pt marker inset inflated row heights and
   split the layout cache (affected: agendas-minutes/07+17, resumes/13, business-plans/02+15,
   cover-letters/09).
+- **P5e** — vMerge span/height lookups now walk a per-table occupancy map (one O(R·C) pass,
+  weakly keyed) instead of rescanning rows per Restart cell; the autofit minimum-width probe
+  bypasses the layout caches instead of retaining a line per word;
+  `AdvanceToBackgroundsTargetPage` reads a precomputed suffix of next-element height
+  estimates instead of rescanning the document tail per background (provably identical —
+  the estimate is position-independent).
 - **P6g** — `QuerySelectorAll("tr")` replaced with direct structural-row traversal, so nested
   tables' rows are no longer parsed into the outer table as well.
+- **HTML headings clear floats** — `h1-h6 { clear: both }` in the exporter stylesheet;
+  every html snapshot regenerated (the embedded stylesheet is part of each).
 
 Discovered while validating (not perf): the Skia color matrix passed biases in 0..255 scale
 where SkiaSharp expects 0..1 (saturating channels to white); the Washout recolor preset kept a

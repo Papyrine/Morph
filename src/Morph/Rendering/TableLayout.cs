@@ -440,34 +440,51 @@ static class TableLayout
         return (pref, min);
     }
 
-    internal static float CalculateVerticalMergeHeight(TableElement table, int startRowIndex, int gridColIndex, float[] rowHeights)
-    {
-        var height = rowHeights[startRowIndex];
-        for (var r = startRowIndex + 1; r < table.Rows.Count; r++)
+    // Vertical-merge occupancy, one pass per table: row index → the starting grid columns of
+    // that row's vMerge-Continue cells. The span/height lookups walk rows through this map
+    // instead of rescanning each row's cells from column zero for every Restart cell, which
+    // was O(rows² × cells) on merge-heavy tables. A row accumulates into a merge run exactly
+    // when a cell STARTS at the merge's grid column and is a Continue — a row whose cells jump
+    // past the column ends the run, same as the old scan. Weakly keyed per parsed table, so
+    // concurrent conversions and repeated measure/render passes share one map.
+    static readonly ConditionalWeakTable<TableElement, HashSet<int>[]> verticalMergeContinueStarts = new();
+
+    static HashSet<int>[] GetVerticalMergeContinueStarts(TableElement table) =>
+        verticalMergeContinueStarts.GetValue(table, static keyTable =>
         {
-            var row = table.Rows[r];
-            var col = 0;
-            var found = false;
-            foreach (var cell in row.Cells)
+            var map = new HashSet<int>[keyTable.Rows.Count];
+            for (var r = 0; r < keyTable.Rows.Count; r++)
             {
-                if (col == gridColIndex)
+                var starts = new HashSet<int>();
+                var col = 0;
+                foreach (var cell in keyTable.Rows[r].Cells)
                 {
                     if (cell.Properties.VerticalMerge == VerticalMergeType.Continue)
                     {
-                        height += rowHeights[r];
-                        found = true;
+                        starts.Add(col);
                     }
 
-                    break;
+                    col += cell.Properties.GridSpan;
                 }
 
-                col += cell.Properties.GridSpan;
+                map[r] = starts;
             }
 
-            if (!found)
+            return map;
+        });
+
+    internal static float CalculateVerticalMergeHeight(TableElement table, int startRowIndex, int gridColIndex, float[] rowHeights)
+    {
+        var continueStarts = GetVerticalMergeContinueStarts(table);
+        var height = rowHeights[startRowIndex];
+        for (var r = startRowIndex + 1; r < table.Rows.Count; r++)
+        {
+            if (!continueStarts[r].Contains(gridColIndex))
             {
                 break;
             }
+
+            height += rowHeights[r];
         }
 
         return height;
@@ -475,32 +492,16 @@ static class TableLayout
 
     internal static int CalculateVerticalMergeRowSpan(TableElement table, int startRowIndex, int gridColIndex)
     {
+        var continueStarts = GetVerticalMergeContinueStarts(table);
         var rowSpan = 1;
         for (var r = startRowIndex + 1; r < table.Rows.Count; r++)
         {
-            var row = table.Rows[r];
-            var col = 0;
-            var found = false;
-            foreach (var cell in row.Cells)
-            {
-                if (col == gridColIndex)
-                {
-                    if (cell.Properties.VerticalMerge == VerticalMergeType.Continue)
-                    {
-                        rowSpan++;
-                        found = true;
-                    }
-
-                    break;
-                }
-
-                col += cell.Properties.GridSpan;
-            }
-
-            if (!found)
+            if (!continueStarts[r].Contains(gridColIndex))
             {
                 break;
             }
+
+            rowSpan++;
         }
 
         return rowSpan;

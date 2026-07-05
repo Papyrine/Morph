@@ -20,8 +20,9 @@ static class HtmlExporter
     /// Embedded stylesheet of Word-like defaults. Body picks up Calibri 11pt with 1.08 line-height
     /// (Word's "Normal" style) — its padding comes inline from the document's page margins;
     /// headings get the sizes Word's stock Heading styles resolve to (h1=16pt, h2=13pt, h3=12pt,
-    /// h4=11pt-italic, h5=11pt, h6=11pt-italic), so a stock document needs no per-heading
-    /// override; paragraphs and lists get 8pt bottom margin; tables collapse
+    /// h4=11pt-italic, h5=11pt, h6=11pt-italic) and clear floats — a heading typically opens a
+    /// section below any wrapped image, matching Word's layout in the common case — so a stock
+    /// document needs no per-heading override; paragraphs and lists get 8pt bottom margin; tables collapse
     /// borders with light grey 0.5pt cells; horizontal rules get a thin grey line. Applying these
     /// once via the <c>&lt;style&gt;</c> block — rather than repeating them as inline styles on every
     /// element — keeps the individual elements clean.
@@ -29,7 +30,7 @@ static class HtmlExporter
     const string defaultStylesheet = """
         body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
         p { margin: 0 0 8pt; }
-        h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; }
+        h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; clear: both; }
         h1 { font-size: 16pt; }
         h2 { font-size: 13pt; }
         h3 { font-size: 12pt; }

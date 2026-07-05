@@ -116,7 +116,12 @@ sealed class TextRenderer(SkiaRenderContext context) :
     /// </summary>
     public float MeasureParagraphNaturalWidth(ParagraphElement paragraph, float maxWidth)
     {
-        var lines = LayoutParagraphWithWidth(paragraph, maxWidth);
+        // The autofit minimum-width probe (1pt) wraps at every word, materializing a line per
+        // word. Those lines are reduced to a single max here and never drawn, so they bypass
+        // the bounded cache instead of being retained for the rest of the render.
+        var lines = maxWidth <= 1f
+            ? LayoutParagraphWithWidthCore(paragraph, maxWidth)
+            : LayoutParagraphWithWidth(paragraph, maxWidth);
         var widest = 0f;
         foreach (var line in lines)
         {

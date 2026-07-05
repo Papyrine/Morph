@@ -449,8 +449,11 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
     List<Line> Layout(ParagraphElement paragraph, double availableWidth)
     {
+        // The autofit minimum-width probe (1pt) produces a line per word that is only reduced
+        // to a max; keep those out of the cache instead of retaining them for the render.
+        var cacheable = availableWidth > 1;
         var cacheKey = (paragraph, availableWidth);
-        if (layoutCache.TryGetValue(cacheKey, out var cachedLines))
+        if (cacheable && layoutCache.TryGetValue(cacheKey, out var cachedLines))
         {
             return cachedLines;
         }
@@ -696,7 +699,11 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             lines[^1].IsLast = true;
         }
 
-        layoutCache[cacheKey] = lines;
+        if (cacheable)
+        {
+            layoutCache[cacheKey] = lines;
+        }
+
         return lines;
     }
 
