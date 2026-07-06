@@ -2649,22 +2649,20 @@ sealed class DocumentParser(string defaultFont)
 
     static CompatibilitySettings ExtractCompatibilitySettings(MainDocumentPart mainPart)
     {
+        // Word treats a document that declares no compatibilityMode as mode 12 (ECMA-376 /
+        // Word 2007 rules) — not as a modern document.
         var settingsPart = mainPart.DocumentSettingsPart;
-        if (settingsPart?.Settings == null)
-        {
-            return new();
-        }
-
-        var settings = settingsPart.Settings;
-        var compat = settings.GetFirstChild<Compatibility>();
+        var compat = settingsPart?.Settings?.GetFirstChild<Compatibility>();
         if (compat == null)
         {
-            return new();
+            return new()
+            {
+                CompatibilityMode = 12
+            };
         }
 
         // Look for compatibilityMode in CompatSetting elements
-        // Default to Word 2013+ mode
-        var compatMode = 15;
+        var compatMode = 12;
 
         foreach (var compatSetting in compat.Elements<CompatibilitySetting>())
         {
@@ -3556,6 +3554,20 @@ sealed class DocumentParser(string defaultFont)
                     }
                 }
 
+                // Word collapses the unavoidable empty end-of-cell paragraph mark that directly
+                // follows a nested table to zero height.
+                if (cellContent.Count >= 2 &&
+                    cellContent[^1] is ParagraphElement {Runs.Count: 0, IsAnchorOnlyMark: false} endMark &&
+                    cellContent[^2] is TableElement)
+                {
+                    cellContent[^1] = new ParagraphElement
+                    {
+                        Runs = endMark.Runs,
+                        Properties = endMark.Properties,
+                        IsCollapsedCellMark = true
+                    };
+                }
+
                 cells.Add(
                     new()
                     {
@@ -4082,7 +4094,10 @@ sealed class DocumentParser(string defaultFont)
 
         // Get paragraph style ID for style-based property resolution
         var paragraphStyleId = paraProps?.ParagraphStyleId?.Val?.Value;
-        var props = ParseParagraphProperties(paraProps, paragraphStyleId);
+        var inScopedPart = para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any()
+            || para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.Header>().Any()
+            || para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.Footer>().Any();
+        var props = ParseParagraphProperties(paraProps, mainPart, paragraphStyleId, omitParagraphMark: inScopedPart);
 
         // Check for numbering (direct on paragraph or from style)
         var numberingInfo = GetNumberingInfo(paraProps, paragraphStyleId);
@@ -7472,7 +7487,7 @@ sealed class DocumentParser(string defaultFont)
             _ => TabLeader.None
         };
 
-    ParagraphProperties ParseParagraphProperties(OoxmlParagraphProperties? props, string? styleId = null)
+    ParagraphProperties ParseParagraphProperties(OoxmlParagraphProperties? props, MainDocumentPart mainPart, string? styleId = null, bool omitParagraphMark = false)
     {
         // Get style defaults if available. Paragraphs without an explicit w:pStyle still
         // inherit the document's default paragraph style (the one with w:default="1",
@@ -7484,6 +7499,17 @@ sealed class DocumentParser(string defaultFont)
         {
             styleParagraphProperties.TryGetValue(effectiveStyleId, out styleDefaults);
         }
+
+        // Resolve the paragraph mark's run formatting (w:pPr/w:rPr over the paragraph style
+        // chain) the same way a run without direct formatting resolves. Word derives an empty
+        // paragraph's line height from the mark, not from the first run or a fixed default.
+        // Table cells and headers/footers are excluded for now: cell empty-mark heights are
+        // entangled with exact-row clipping and Word's end-of-cell mark collapse, and a footer
+        // empty changes the content box of every page — both need their own rules first
+        // (see page_counts.md, pass 4).
+        var paragraphMark = omitParagraphMark
+            ? null
+            : ParseRunProperties(props?.ParagraphMarkRunProperties, mainPart, styleId);
 
         // Start with style defaults or document defaults (pPrDefault)
         var alignment = styleDefaults?.Alignment ?? TextAlignment.Left;
@@ -7532,6 +7558,7 @@ sealed class DocumentParser(string defaultFont)
                 KeepNext = keepNext,
                 WidowControl = widowControl,
                 PageBreakBefore = pageBreakBefore,
+                ParagraphMarkRunProperties = paragraphMark,
                 BackgroundColorHex = backgroundColor,
                 StyleId = styleId,
                 TabStops = styleDefaults?.TabStops ?? [],
@@ -7864,6 +7891,7 @@ sealed class DocumentParser(string defaultFont)
             WidowControl = widowControl,
             PageBreakBefore = pageBreakBefore,
             ParagraphMarkFontSizePoints = paragraphMarkFontSize,
+            ParagraphMarkRunProperties = paragraphMark,
             BackgroundColorHex = backgroundColor,
             StyleId = styleId,
             Borders = borders,
@@ -8132,7 +8160,9 @@ sealed class DocumentParser(string defaultFont)
         return result;
     }
 
-    RunProperties ParseRunProperties(OoxmlRunProperties? props, MainDocumentPart mainPart, string? paragraphStyleId = null)
+    // props is any rPr-shaped element: a run's w:rPr (OoxmlRunProperties) or a paragraph
+    // mark's w:pPr/w:rPr (ParagraphMarkRunProperties) — both carry the same children.
+    RunProperties ParseRunProperties(OpenXmlElement? props, MainDocumentPart mainPart, string? paragraphStyleId = null)
     {
         // Start with defaults from paragraph style if available
         // If no explicit style, default to "Normal" which is the implicit default style in Word

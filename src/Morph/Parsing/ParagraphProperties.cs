@@ -88,6 +88,15 @@ sealed record ParagraphProperties
     public double? ParagraphMarkFontSizePoints { get; init; }
 
     /// <summary>
+    /// Run formatting of the paragraph mark (w:pPr/w:rPr resolved over the paragraph style
+    /// chain, exactly like a run without direct formatting). Word derives an empty paragraph's
+    /// line height from the mark. Null for HTML-sourced paragraphs and for paragraphs inside
+    /// table cells and headers/footers, where the mark height is entangled with row-height and
+    /// content-box rules not yet modelled.
+    /// </summary>
+    public RunProperties? ParagraphMarkRunProperties { get; init; }
+
+    /// <summary>
     /// Background/shading color for the paragraph (from w:shd element in w:pPr).
     /// </summary>
     public string? BackgroundColorHex { get; init; }

@@ -1,21 +1,27 @@
 ﻿{
-  "PageCount": 2,
-  "Properties": {
-    "CreationDate": "DateTimeOffset_1",
-    "Creator": "Morph",
-    "ModDate": "DateTimeOffset_1",
-    "Producer": "PDFsharp 6.2.4"
-  },
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Two-Column Layout\nParagraph 1: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 2: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 3: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 4: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 5: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 6: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 7: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 8: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 9: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 10: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 11: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 12: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod"
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
     },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Two-Column Layout\nParagraph 1: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 2: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 3: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 4: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 5: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 6: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 7: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 8: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 9: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 10: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 11: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 12: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 13: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 14: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 15: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 16: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 17: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 18: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 19: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 20: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore."
+      }
+    ]
+  },
+  "PageDiffs": [
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "tempor incididunt ut labore.\nParagraph 13: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 14: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 15: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 16: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 17: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 18: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 19: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore.\nParagraph 20: Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore."
+      "Page": 1,
+      "ErrorMetric": 0.1507,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
     }
   ]
 }

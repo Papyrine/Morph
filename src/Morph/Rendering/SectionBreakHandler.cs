@@ -33,10 +33,24 @@ static class SectionBreakHandler
                 break;
 
             case SectionBreakType.Continuous:
-                // Continuous break — apply new settings but stay on the same page.
-                ApplySectionSettings(sectionBreak.NewSectionSettings, context);
-                // Reset to first column if column count changed.
-                context.ResetColumn();
+                // A continuous break normally stays on the same page. But when the previous section
+                // already filled the page — typically a page-height table that ran to (or past) the
+                // bottom margin — Word flows the next section onto a new page rather than piling it
+                // on top of the overflow. Without this the following section renders below the
+                // bottom margin, off the sheet, and is silently lost.
+                if (!isCurrentPageBlank() && context.CurrentY >= context.ContentBottom)
+                {
+                    finishCurrentPage();
+                    ApplySectionSettings(sectionBreak.NewSectionSettings, context);
+                    startNewExplicitPage();
+                }
+                else
+                {
+                    ApplySectionSettings(sectionBreak.NewSectionSettings, context);
+                    // Reset to first column if column count changed.
+                    context.ResetColumn();
+                }
+
                 break;
 
             case SectionBreakType.EvenPage:
