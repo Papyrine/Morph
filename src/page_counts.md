@@ -9,6 +9,42 @@ directories in `src/Tests/Inputs/`.
 `pdf_result.verified.json`, inspected `document.xml`/`styles.xml` of each mismatched `input.docx`,
 compared the page images of all four renderers side by side, and traced the responsible code paths.
 
+## Pass 4, experiment 6: Word's advance model measured; PDF quantization a wash (2026-07-06)
+
+A per-glyph XPS probe (single-glyph runs for Aptos/Calibri/Times New Roman/Segoe UI/Arial at
+11 pt and 22 pt, advances read from the `Indices` attributes) pinned Word's true text-width
+model, **correcting pass 3's "quantised to 0.05 em" reading**:
+
+- **Advances are integer pixels at 120 dpi** — one pixel = 72/120 = 0.6 pt; 124/124 probed
+  glyphs sat on that grid at both sizes. Pass 3's "0.05 em" was the 0.6 pt grid seen on 12 pt
+  text; the layout dpi follows the display scaling of the machine that rendered the references
+  (125% here), a corpus-internal constant.
+- **The rendering em snaps to whole pixels**: ppem = round(size × 120∕72), so 11 pt and 10.5 pt
+  both lay out at 18 px (em 10.8 pt — the origin of pass 2's mysterious "Calibri 10.8pt"), 22 pt
+  at 37 px.
+- **Letter advances ≈ round(linearEm × ppem) pixels** (57–62 of 62 per font; every miss is the
+  TrueType-hinted advance running exactly one pixel wider — Times New Roman h/m/n/t/u, Calibri
+  f/g/o, Aptos e/C).
+- **Inter-word spaces are elastic upward**: Word tracks the linear ideal at the *nominal* size
+  cumulatively and stretches a space by whole pixels when the quantised text falls behind; it
+  never compresses when ahead. Net effect measured over the probe: Calibri 0.9998×, Arial
+  1.0000×, Segoe UI 1.0008× — dead on linear — while Aptos (rounds ahead, never corrected) runs
+  1.0125× and Times New Roman (hinted-wide spaces) 1.0213×.
+
+The model was implemented in `PdfTextEngine` (per-char quantised advances + elastic-space lag
+tracking) and measured: 315 PDF scenarios shifted pixels, 215 changed text positions, **zero
+page counts moved**, and the error metrics vs Word came out a wash (129 pages improved, 112
+worsened, net −0.024). Reverted per the pass-3 protocol; the model above is the keeper.
+
+Attribution corrections that came out of the run:
+
+- **multiple_pages (PDF 4 vs 5) and complex_spacing (PDF 6 vs 7) are not wrap-width driven.**
+  Neither re-wrapped a single line under the quantised widths, matching the pass-3 finding that
+  the raster counts were insensitive to width sweeps. The same documents produce the right
+  counts in the raster backends — the raster-vs-PDF divergence for identical flowing text must
+  live in vertical geometry or pagination structure, and a line-by-line raster-vs-PDF diff of
+  one such document is the next lever for the PDF residue.
+
 ## Pass 4, experiment 5: compatibilityMode defaults to 12 (2026-07-06)
 
 P4-5's remaining piece: Word treats a document that declares no compatibilityMode as **mode 12**
