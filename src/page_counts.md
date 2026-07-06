@@ -9,6 +9,31 @@ directories in `src/Tests/Inputs/`.
 `pdf_result.verified.json`, inspected `document.xml`/`styles.xml` of each mismatched `input.docx`,
 compared the page images of all four renderers side by side, and traced the responsible code paths.
 
+## Pass 4, experiment 13: PDF gains the Exactly/AtLeast line-spacing rules (2026-07-07)
+
+First of the structural items: the complex_spacing raster-vs-PDF hunt. The PDF backend packs
+two extra paragraphs onto page 1 and the drift accumulates to a full page by the document's
+end. Code inspection found a missing feature before any geometry diff: `PdfTextEngine.Layout`
+reduced the line-spacing model to `Auto ? multiplier : 1` — **`Exactly` and `AtLeast` were
+never applied**, so complex_spacing's exactly-550-twip lines rendered at natural ~13.8 pt
+instead of 27.5 pt, and at-least floors were ignored. The raster `CalculateLineHeight` had all
+three rules; the PDF engine now mirrors it (per finished line, on blank explicit-break lines,
+and on empty-paragraph mark lines).
+
+**Result: count-neutral (306/306/305, zero moves, zero regressions); 17 scenarios churned
+PDF-only, all toward correctness** — the dedicated line_spacing_exactly / line_spacing_at_least
+scenarios finally render their pitches right, and complex_spacing's exact-spacing section grew
+to true height (absorbed within its pages, so its 6-vs-7 deficit stands). Accepted on the
+experiment-4 precedent: rule-correct, backend-parity, no losses.
+
+Attribution advanced: with spacing rules now equal, complex_spacing's remaining PDF drift —
+already visible as two extra paragraphs on page 1, where only Auto spacing appears — points at
+the **natural line pitch itself**: `PdfSharp font.GetHeight()` versus the raster hhea box
+(ascent + descent + line gap). A fraction of a point per line across ~35 lines per page
+compounds to a paragraph per page and a page per document, which also fits the other
+PDF-under-Word residuals. Measuring the per-font delta between the two backends is the next
+step of this hunt.
+
 ## Pass 4, experiment 12: the fit tolerance is load-bearing; mapped and restored (2026-07-07)
 
 P4-8. Word's bottom-of-page fit test is exact (`widorp.cxx:157`, `nDiff >= 0`, space-after

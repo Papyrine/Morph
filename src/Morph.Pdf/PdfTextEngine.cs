@@ -101,11 +101,17 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
         var properties = paragraph.Properties;
         // An empty paragraph's line takes the paragraph mark's resolved formatting
-        // (w:pPr/w:rPr over the style chain) — not the default face at a fixed size.
+        // (w:pPr/w:rPr over the style chain) — not the default face at a fixed size — under
+        // the paragraph's line-spacing rule (Auto multiplies, Exactly forces, AtLeast floors).
         var font = properties.ParagraphMarkRunProperties is { } markProps
             ? context.GetFont(markProps)
             : context.GetFont(DefaultFontSettings.DefaultFont, false, false, properties.ParagraphMarkFontSizePoints ?? 11);
-        return font.GetHeight() * properties.LineSpacingMultiplier;
+        return properties.LineSpacingRule switch
+        {
+            LineSpacingRule.Exactly => properties.LineSpacingPoints,
+            LineSpacingRule.AtLeast => Math.Max(font.GetHeight(), properties.LineSpacingPoints),
+            _ => font.GetHeight() * properties.LineSpacingMultiplier
+        };
     }
 
     // ---- Paragraph spacing (mirrors the Skia/ImageSharp contextual-spacing collapse) ----
@@ -590,6 +596,17 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             ? paragraph.Properties.LineSpacingMultiplier
             : 1;
 
+        // Word's line-spacing rules beyond Auto, mirrored from the raster CalculateLineHeight:
+        // Exactly forces the specified pitch (smaller or larger than natural), AtLeast is a
+        // floor. Applied per finished line so the tallest run still wins under AtLeast.
+        double ApplyLineSpacingRule(double naturalHeight) =>
+            paragraph.Properties.LineSpacingRule switch
+            {
+                LineSpacingRule.Exactly => paragraph.Properties.LineSpacingPoints,
+                LineSpacingRule.AtLeast => Math.Max(naturalHeight, paragraph.Properties.LineSpacingPoints),
+                _ => naturalHeight
+            };
+
         var leftIndent = Indent(paragraph);
 
         // A line carrying tab-positioned content may overflow the content width into the right margin
@@ -610,6 +627,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         {
             if (current.Items.Count > 0)
             {
+                current.Height = ApplyLineSpacingRule(current.Height);
                 lines.Add(current);
             }
 
@@ -760,7 +778,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                             }
                             else
                             {
-                                lines.Add(new() {Ascent = ascent, Height = lineHeight});
+                                lines.Add(new() {Ascent = ascent, Height = ApplyLineSpacingRule(lineHeight)});
                                 pendingSpaceWidth = 0;
                                 pendingSpaceFont = null;
                                 pendingSpaceProps = null;
