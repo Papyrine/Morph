@@ -918,11 +918,11 @@ Vertical positioning of content within a cell: top, center, or bottom.
 
 Column width determination from explicit cell widths or table grid definitions.
 
-- **OOXML**: `w:tblGrid` > `w:gridCol`, `w:tcW`
+- **OOXML**: `w:tblGrid` > `w:gridCol`, `w:tcW` (`dxa` and `pct`)
 - **Layout**: `TableLayout.CalculateColumnWidths()`
-- **Test**: `wide_table/`, `table_autofit_no_widths/`
+- **Test**: `wide_table/`, `table_autofit_no_widths/`, `table_two_column_layout/`
 
-> **Contributors**: Four sources, in order: explicit cell widths (`w:tcW`), grid column widths (`w:tblGrid`), content-based autofit when both are absent and `w:tblLayout` is autofit, or equal distribution as the last-resort fallback. Width scaling applied when content exceeds available page width.
+> **Contributors**: Sources, in order: explicit cell widths (`w:tcW w:type="dxa"`), percent-preferred cell widths (`w:tcW w:type="pct"`, in fiftieths of a percent, resolved against the table's available width via `TableCellProperties.WidthFraction`), grid column widths (`w:tblGrid`), content-based autofit when all are absent and `w:tblLayout` is autofit, or equal distribution as the last-resort fallback. Width scaling applied when content exceeds available page width, so percent proportions survive the normalisation.
 
 
 #### Horizontal Merge (GridSpan) `DONE`

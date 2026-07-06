@@ -3373,6 +3373,7 @@ sealed class DocumentParser(string defaultFont)
 
                 // Get cell properties
                 double? width = null;
+                double? widthFraction = null;
                 string? bgColor = null;
                 CellSpacing? cellPadding = null;
                 CellSpacing? cellMargin = null;
@@ -3383,6 +3384,14 @@ sealed class DocumentParser(string defaultFont)
                     if (cellWidth?.Width?.HasValue == true && cellWidth.Type?.Value == TableWidthUnitValues.Dxa)
                     {
                         width = double.Parse(cellWidth.Width.Value!) / twipsPerPoint;
+                    }
+                    else if (cellWidth?.Width?.HasValue == true &&
+                             cellWidth.Type?.Value == TableWidthUnitValues.Pct &&
+                             double.TryParse(cellWidth.Width.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var tcPct) &&
+                             tcPct > 0)
+                    {
+                        // w:tcW pct is in fiftieths of a percent (5000 = 100% of table width).
+                        widthFraction = tcPct / 5000.0;
                     }
 
                     var shading = cellProps.GetFirstChild<Shading>();
@@ -3575,6 +3584,7 @@ sealed class DocumentParser(string defaultFont)
                         Properties = new()
                         {
                             WidthPoints = width,
+                            WidthFraction = widthFraction,
                             BackgroundColorHex = bgColor,
                             Padding = cellPadding,
                             Margin = cellMargin,

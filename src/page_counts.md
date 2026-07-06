@@ -9,6 +9,25 @@ directories in `src/Tests/Inputs/`.
 `pdf_result.verified.json`, inspected `document.xml`/`styles.xml` of each mismatched `input.docx`,
 compared the page images of all four renderers side by side, and traced the responsible code paths.
 
+## Pass 4, experiment 14: percent-preferred table cell widths (2026-07-07)
+
+The menus/03 hunt. Its instruction cell (the "Easily copy your menu" tip) rendered too narrow,
+wrapping the tip text into extra lines that spilled the PDF to a second page. Root cause: the
+table declares its columns with `w:tcW w:type="pct"` (percent of table width) and carries **no
+`w:tblGrid` widths at all**, and Morph only honoured `w:tcW w:type="dxa"` — the percent
+preference fell through to an equal-column fallback, so a 45%/32%/… layout became evenly split.
+The parser now reads `pct` cell widths (OOXML stores them in fiftieths of a percent — 5000 =
+100%) into `TableCellProperties.WidthFraction`, and `TableLayout.CalculateColumnWidths` resolves
+each against the table's available width; the existing over-width clamp normalises the row, so
+the resolved *proportions* are what land.
+
+**Result: PDF 305 → 306, menus/03 PDF 2 → 1 matching Word; 18 mismatches (was 19); all three
+backends now at 306; zero count regressions.** The fix re-rendered 23 table scenarios (percent
+columns are common in the template corpus): the counts held everywhere, and the proportions
+moved toward Word — `table_two_column_layout`, a purpose-built 50/50 percent table, corrected
+from a wrong ~40/60 split to Word's exact 50/50. Accepted on the experiment-4 precedent
+(rule-correct, backend-parity, net Word-match gain, no losses).
+
 ## Pass 4, experiment 13: PDF gains the Exactly/AtLeast line-spacing rules (2026-07-07)
 
 First of the structural items: the complex_spacing raster-vs-PDF hunt. The PDF backend packs

@@ -132,6 +132,13 @@ static class TableLayout
                     widths[gridColIndex] = Math.Max(widths[gridColIndex], (float) props.WidthPoints.Value);
                     hasExplicitWidths = true;
                 }
+                else if (span == 1 && props.WidthFraction.HasValue)
+                {
+                    // Percent-preferred cell (w:tcW type="pct"): resolve against the table's
+                    // available width so a 45% layout cell gets 45%, not an equal share.
+                    widths[gridColIndex] = Math.Max(widths[gridColIndex], (float) (props.WidthFraction.Value * availableWidth));
+                    hasExplicitWidths = true;
+                }
 
                 gridColIndex += span;
             }
