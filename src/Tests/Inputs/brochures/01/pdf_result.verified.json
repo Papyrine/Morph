@@ -1,0 +1,39 @@
+﻿{
+  "target": {
+    "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "HOW DO YOU GET\nSTARTED WITH THIS\nTEMPLATE?\nYou can use this fresh, professional\nbrochure just as it is or customize it.\nWe’ve included a few tips throughout the\ntemplate to help you get started.\nADDRESS\n4567 Main St Buffalo, NY 98052\nCONTACT US\nThe Phone Company | (206) 5550100 |\ninfo@thephone-company.com\nwww.thephone-company.com\nEVENT SUBTITLE\nEVENT\nSERIES\nNAME\nAdd a brief description of the event series\nhere"
+      },
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "USE ICONS TO ADD\nVISUAL INTEREST\nUSING ICONS\nInsert some icons here to make\nyour points. To insert a new\none, select the shape in the\ncircle and delete it, then insert\nthe icon you want to use.\nFINDING THE ICONS\nTo change the icon, select the\nshape in the circle and delete it,\nthen insert your new icon.\nFORMATTING ICONS\nYou can your icon in the Picture\ntab.\nMAKE IT YOURS\nTo get started right away, just select any\nplaceholder text (such as this) and start typing\nto replace it with your own.\n• GET THE EXACT RESULTS YOU\nWANT\nCustomize the look of this brochure by\nchanging the styles on the Home tab.\n“Insert a\nquote\nhere”\n- Quote source -"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.2262,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.263,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

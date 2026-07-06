@@ -1,0 +1,103 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
+p { margin: 0 0 8pt; }
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; clear: both; }
+h1 { font-size: 16pt; }
+h2 { font-size: 13pt; }
+h3 { font-size: 12pt; }
+h4 { font-size: 11pt; font-style: italic; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; font-style: italic; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+td, th { padding: 4pt 7pt; vertical-align: top; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+</style>
+</head>
+<body style="font-family: Aptos, sans-serif; max-width: 468pt; padding: 72pt">
+<h1 id="1-left-and-right-indentation" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">1. Left and Right Indentation</span></h1>
+<p>No indentation - This paragraph has no left or right indentation applied.</p>
+<p style="margin-left: 36pt">Left indent 720 twips (0.5 inch) - This paragraph is indented from the left margin.</p>
+<p style="margin-right: 36pt">Right indent 720 twips (0.5 inch) - This paragraph is indented from the right margin.</p>
+<p style="margin-left: 72pt; margin-right: 72pt">Both left (1440) and right (1440) indent - This paragraph is indented from both margins, creating a narrower text column.</p>
+<h1 id="2-first-line-indentation" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">2. First Line Indentation</span></h1>
+<p style="text-indent: 36pt">First line indent 720 twips - This paragraph has its first line indented further than subsequent lines. This is commonly used in traditional book formatting and formal documents.</p>
+<p style="text-indent: 72pt">First line indent 1440 twips - A larger first line indent. The first line starts further in, while all subsequent lines in this paragraph begin at the normal left margin.</p>
+<h1 id="3-hanging-indentation" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">3. Hanging Indentation</span></h1>
+<p style="text-indent: -36pt">Hanging indent 720 twips - This paragraph has a hanging indent where the first line starts at the margin but all subsequent lines are indented. This is commonly used for bibliographies and lists.</p>
+<p style="margin-left: 36pt; text-indent: -72pt">Hanging indent 1440 twips with left indent 720 - The first line is at 720 twips, but subsequent lines are indented an additional 1440 twips from there, creating a pronounced hanging effect.</p>
+<h1 id="4-mirror-indents" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">4. Mirror Indents</span></h1>
+<p style="margin-left: 72pt">Mirror indents enabled with left 1440 - In a two-sided document, this becomes the inside margin indent, mirroring on odd/even pages.</p>
+<h1 id="5-spacing-before" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">5. Spacing Before</span></h1>
+<p>No spacing before - This paragraph has the default spacing.</p>
+<p style="margin-top: 12pt">Spacing before 240 twips (12pt) - This paragraph has additional space above it.</p>
+<p style="margin-top: 24pt">Spacing before 480 twips (24pt) - Even more space above this paragraph.</p>
+<h1 id="6-spacing-after" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">6. Spacing After</span></h1>
+<p style="margin-bottom: 12pt">Spacing after 240 twips (12pt) - This paragraph has space below it.</p>
+<p>Following paragraph to show the effect.</p>
+<p style="margin-bottom: 24pt">Spacing after 480 twips (24pt) - Larger space below.</p>
+<p>Following paragraph to show the effect.</p>
+<h1 id="7-combined-before-and-after-spacing" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">7. Combined Before and After Spacing</span></h1>
+<p style="margin-top: 18pt; margin-bottom: 18pt">Before 360, After 360 - This paragraph has space both above and below.</p>
+<p style="margin-top: 6pt; margin-bottom: 24pt">Before 120, After 480 - Asymmetric spacing.</p>
+<h1 id="8-line-spacing-single" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">8. Line Spacing: Single</span></h1>
+<p style="line-height: 1">Single line spacing - This paragraph uses single line spacing. The lines are spaced at the normal single-space interval. This is the default spacing for most documents and provides compact text layout.</p>
+<h1 id="9-line-spacing-15-lines" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">9. Line Spacing: 1.5 Lines</span></h1>
+<p style="line-height: 1.5">1.5 line spacing - This paragraph uses 1.5 line spacing. The lines have half again as much space between them compared to single spacing. This is often used for drafts and documents that need more breathing room.</p>
+<h1 id="10-line-spacing-double" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">10. Line Spacing: Double</span></h1>
+<p style="line-height: 2">Double line spacing - This paragraph uses double line spacing. The lines have twice the normal amount of space between them. This is commonly required for academic papers and manuscripts under review.</p>
+<h1 id="11-line-spacing-at-least" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">11. Line Spacing: At Least</span></h1>
+<p style="line-height: 15pt">At least 300 twips - This paragraph uses &#39;at least&#39; line spacing of 300 twips. Word will use at least this spacing, but may expand if the content requires it.</p>
+<p style="line-height: 24pt">At least 480 twips - A larger &#39;at least&#39; value of 480 twips (24pt).</p>
+<h1 id="12-line-spacing-exactly" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">12. Line Spacing: Exactly</span></h1>
+<p style="line-height: 10pt">Exactly 200 twips - This paragraph uses exactly 200 twips of line spacing. The spacing is fixed and will not expand even if content requires it. Text may overlap if too tight.</p>
+<p style="line-height: 30pt">Exactly 600 twips - Very generous fixed spacing of 600 twips.</p>
+<h1 id="13-line-spacing-multiple" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">13. Line Spacing: Multiple</span></h1>
+<p style="line-height: 2.5">Multiple 2.5 - This paragraph uses multiple line spacing at 2.5 times the normal spacing. The value is specified as 240 * 2.5 = 600 twips.</p>
+<p style="line-height: 3">Multiple 3.0 - Triple line spacing (720 twips).</p>
+<h1 id="14-contextual-spacing-same-style" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">14. Contextual Spacing (Same Style)</span></h1>
+<p style="margin-bottom: 12pt; line-height: 1.04">First paragraph with style, spacing after 240 - contextual spacing OFF. Space will appear below.</p>
+<p style="margin-bottom: 12pt; line-height: 1.04">Second paragraph with same style, spacing after 240 - contextual spacing OFF. Space will appear below.</p>
+<p style="margin-bottom: 12pt; line-height: 1.04">Third paragraph with style, spacing after 240 - contextual spacing ON. No space between same-style paragraphs.</p>
+<p style="margin-bottom: 12pt; line-height: 1.04">Fourth paragraph with style, spacing after 240 - contextual spacing ON.</p>
+<h1 id="15-widoworphan-control" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">15. Widow/Orphan Control</span></h1>
+<p>Widow/Orphan control ON - This paragraph has widow and orphan control enabled, which prevents single lines from being left alone at the top or bottom of a page. This is a longer paragraph to demonstrate the effect when it wraps across pages.</p>
+<p>Widow/Orphan control OFF - This paragraph has widow and orphan control disabled. Single lines may be left alone at page boundaries. This is a longer paragraph to demonstrate the effect when it wraps across pages.</p>
+<h1 id="16-keep-with-next" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">16. Keep With Next</span></h1>
+<p>Keep with next paragraph ENABLED - This paragraph will stay with the following paragraph on the same page.</p>
+<p>This paragraph is kept with the previous one.</p>
+<p>Keep with next paragraph DISABLED - Normal behavior.</p>
+<h1 id="17-keep-lines-together" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">17. Keep Lines Together</span></h1>
+<p>Keep lines together ENABLED - All lines of this paragraph will be kept on the same page. This is useful for paragraphs that should not be split across page boundaries, such as important statements or short critical sections.</p>
+<p>Keep lines together DISABLED - This paragraph can be split across pages normally if needed. Lines may appear on different pages when the paragraph is long enough and crosses a page boundary.</p>
+<h1 id="18-page-break-before" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">18. Page Break Before</span></h1>
+<p>Normal paragraph before page break.</p>
+<p>Page break before ENABLED - This paragraph will always start on a new page.</p>
+<p>Normal paragraph after the forced page break.</p>
+<h1 id="19-suppress-line-numbers" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">19. Suppress Line Numbers</span></h1>
+<p>Suppress line numbers ENABLED - This paragraph will not show line numbers even if the document has line numbering enabled.</p>
+<p>Suppress line numbers DISABLED - This paragraph will show line numbers if document line numbering is enabled.</p>
+<h1 id="20-hyphenation" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">20. Hyphenation</span></h1>
+<p>Hyphenation allowed - This paragraph with extraordinarily long words like &#39;characterization&#39; and &#39;incomprehensibility&#39; can be hyphenated at line breaks.</p>
+<p>Hyphenation suppressed - This paragraph with extraordinarily long words like &#39;characterization&#39; and &#39;incomprehensibility&#39; will not be hyphenated at line breaks.</p>
+<h1 id="21-complex-combinations" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">21. Complex Combinations</span></h1>
+<p style="margin-top: 12pt; margin-bottom: 12pt; margin-left: 36pt; margin-right: 36pt; text-indent: 18pt; line-height: 2">Combination 1: Left indent 720, right indent 720, first line 360, before 240, after 240, double spacing, keep with next, suppress line numbers.</p>
+<p>This follows the previous paragraph with keep-with-next.</p>
+<p style="margin-top: 18pt; text-indent: -72pt; line-height: 20pt">Combination 2: Hanging indent 1440, spacing before 360, exactly 400 twips line spacing, keep lines together, widow/orphan control, don&#39;t hyphenate.</p>
+<p style="margin-top: 24pt; margin-bottom: 6pt; margin-left: 72pt; margin-right: 36pt; text-indent: -36pt; line-height: 17.5pt">Combination 3: Left 1440, right 720, hanging 720, before 480, after 120, at least 350 twips, contextual spacing, page break before.</p>
+<p style="margin-top: 30pt; margin-bottom: 30pt; margin-left: 108pt; text-indent: 36pt; line-height: 2">Combination 4: Mirror indents, left 2160, first line 720, before 600, after 600, multiple 2.0 spacing, keep with next, keep lines together, suppress line numbers, don&#39;t hyphenate.</p>
+<p>Following paragraph for keep-with-next demonstration.</p>
+<p style="margin-top: 10pt; margin-bottom: 20pt; margin-left: 90pt; margin-right: 90pt; text-indent: -45pt; line-height: 27.5pt">Combination 5: Both left and right 1800, hanging 900, before 200, after 400, exactly 550 twips, widow/orphan OFF, contextual spacing.</p>
+<p style="margin-top: 36pt; margin-right: 72pt; text-indent: 54pt; line-height: 1.5">Combination 6: Right indent only 1440, first line 1080, spacing before 720, 1.5 line spacing, all pagination options enabled.</p>
+<p>Following paragraph for keep-with-next.</p>
+<p style="margin-top: 42pt; margin-bottom: 42pt; margin-left: 144pt; margin-right: 144pt; text-indent: -72pt; line-height: 25pt">Combination 7: Maximum complexity - left 2880, right 2880, hanging 1440, mirror indents, before 840, after 840, at least 500 twips, contextual spacing, all pagination controls, all formatting exceptions.</p>
+<p>Final following paragraph to demonstrate keep-with-next.</p>
+<h1 id="22-document-summary" style="font-size: 11pt; margin-top: 0pt; margin-bottom: 8pt"><span style="font-weight: normal;">22. Document Summary</span></h1>
+<p>This document contains comprehensive examples of all spacing and formatting options available in Word documents, including indentations, line spacing variants, pagination controls, and formatting exceptions in various combinations.</p>
+</body>
+</html>

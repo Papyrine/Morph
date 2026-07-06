@@ -1,0 +1,27 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "MORGAN CONNORS\nUI/UX DESIGNER\nOBJECTIVE\nTo obtain a challenging UI/UX Designer position where my\ncreativity, problem-solving skills, and experience in designing\nengaging and user-friendly interfaces can be utilized to enhance\nuser experiences and drive business objectives.\nCONTACT\nmorgan@example.com\n(212) 555-0155\nwww.interestingsite.com\nNew York City, NY\nEXPERIENCE\nSENIOR UI/UX DESIGNER\nJan 20XX - Dec 20XX\nManaged the design team and mentored junior designers to\nimprove design quality and efficiency. Created wireframes,\nprototypes, and high-fidelity mockups for a variety of web and\nmobile projects. Worked closely with clients to understand their\nneeds and goals and translate them into effective design\nsolutions.\nUI/UX DESIGNER\nOct 20XX - Jul 20XX\nLed the redesign of the company's e-commerce platform,\nresulting in a 25% increase in sales. Conducted user research and\nusability testing to inform design decisions and improve the user\nexperience. Collaborated with development teams to ensure\ndesigns were implemented accurately and efficiently.\nUX DESIGNER\nFeb 20XX - Oct 20XX\nConducted user research and developed user personas to inform\nproduct design and development. Designed user flows,\nwireframes, and prototypes for a mobile app that won several\nindustry awards. Worked closely with the development team to\nensure designs were implemented accurately and efficiently.\nABOUT ME\nI am passionate about designing\ndigital experiences that are both\nvisually stunning and intuitive, and\nalways strive to create designs that\ndelight and engage users.\nEDUCATION\nSCHOOL OF FINE ART, 20XX\nBA of Fine Arts, Graphic Design\nSKILLS\nUsability testing\nProject management\nUser research"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.3578,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

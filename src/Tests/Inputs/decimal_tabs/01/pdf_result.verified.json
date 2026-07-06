@@ -1,0 +1,27 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Apples 12.50\nBananas 3.14\nCherries 100.99\nDates 0.05"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0026,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

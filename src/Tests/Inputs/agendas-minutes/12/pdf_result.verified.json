@@ -1,0 +1,27 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "[Date]\nMeeting Notes\nAttending\n[Name 1]\n[Name 2]\nAnnouncements\n[List all announcements made at the meeting. For example, new members, change of event, and so\nforth.]\n• [Need a heading? On the Home tab, in the Styles gallery, just tap the heading style you\nwant.]\n• [Notice other styles in that gallery as well, such as for a numbered list, or a bulleted list like\nthis one.]\nDiscussion\n[Summarize the discussion for each issue, state the outcome, and assign any action items.]\nRoundtable\n[Summarize the status of each area/department.]"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0382,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

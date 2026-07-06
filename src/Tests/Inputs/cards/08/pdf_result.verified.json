@@ -1,0 +1,61 @@
+﻿{
+  "target": {
+    "PageCount": 4,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 792.0,
+        "Height": 612.0
+      },
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "Click and start typing to\ncustomize your message\n,\nor delete for\na blank card\nClick and start typing to\ncustomize your message\n,\nor delete for\na blank card"
+      },
+      {
+        "Width": 792.0,
+        "Height": 612.0
+      },
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "Click and start typing to\ncustomize your message\n,\nor delete for\na blank card\nClick and start typing to\ncustomize your message\n,\nor delete for\na blank card"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.3947,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0172,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.3894,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    },
+    {
+      "Page": 4,
+      "ErrorMetric": 0.0172,
+      "ExpectedFile": "expected_0004.png",
+      "VerifiedFile": "pdf_result#page_0004.verified.png",
+      "ReceivedFile": "pdf_result#page_0004.received.png"
+    }
+  ]
+}

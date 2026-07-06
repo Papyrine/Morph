@@ -1,0 +1,27 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Complex Document Example\nA demonstration of various formatting features\n1. Introduction\nThis document demonstrates various formatting capabilities including text styles, alignment, lists,\nand tables. The purpose is to test the rendering accuracy of our document converter.\n2. Text Formatting\nThis section shows bold, italic, and colored text.\n3. Key Features\n• Multiple text formatting options\n• Table support with borders\n• Various page sizes\n• Paragraph alignment\n4. Sample Data\nItem QuantityPrice\nProduct 110 $9.99\nProduct 220 $19.98\nProduct 330 $29.97\n5. Conclusion\nThis document has demonstrated various formatting features. A good document converter should\nbe able to render all these elements accurately."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0592,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

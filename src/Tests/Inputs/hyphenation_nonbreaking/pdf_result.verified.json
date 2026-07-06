@@ -1,0 +1,27 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "This paragraph contains a nonbreakinghyphen. The phrase 'nonbreaking'will not break at the\nhyphen.\nCall us at 18005551234 where the phone number stays on one line.\nRegular text with normal hyphens: co-worker, self-aware, twenty-one."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0157,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

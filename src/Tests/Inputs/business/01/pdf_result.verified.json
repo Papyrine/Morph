@@ -1,0 +1,27 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "05.26.2023 Memo\nTO\nAll\nFROM\nAyano\nHarada\nCC\nNone\nRE\nHoliday\nclosure\nCOMMENTS:\nPlease be advised that all offices will be closed Monday, May\n29th for Memorial Day. We will return to our normal business\nhours on Tuesday, May 30th\n.\nThank you,\nAyano Harada\nOffice Manager\nCANEIRO GROUP\nTel 123-456-7890\nFax 123-456-7891"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0475,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

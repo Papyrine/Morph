@@ -1,0 +1,27 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Employee\nID\nFull\nName\nEmail Address Hire Date Annual\nSalary\nIs\nActive\nStatus\n1 John Doe john@company.com 2020-01-15 75000 True Full Time\n2 Jane\nSmith\njane@company.com 2019-03-22 120000 True Full Time\n3 Bob\nJohnson\nbob@company.com 2021-07-10 45000 False Part\nTime\n4 Alice\nBrown\nalice@company.com 2018-11-05 95000 True Contract"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0445,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "MEMO\nCOMPANY NAME\nTo: Mikaela Lee\nFrom: Rene Skoko\nCC: Luca Udinesi, Gael Torres, Viktor Klobucar\nDate: 1/9/23\nRe: Welcome new team member\nCOMMENTS: Please welcome our newest team member, Mikaela Lee. Mikaela joins us from\nPrinted Page Publishers. Complimentary snacks and beverages will be\nprovided in the break room."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0257,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

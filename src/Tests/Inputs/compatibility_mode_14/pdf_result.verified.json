@@ -1,0 +1,27 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "kai@lamnahealthcare.com\nwww.lamnahealthcare.com\n678-555-0103 Kai Carter\nGENERAL PRACTITIONER\nExperienced and compassionate GP dedicated to delivering excellent patient care. Known for\nstrong diagnostic skills and a patient-centered approach. Committed to promoting health and\nwellness through personalized treatment plans.\nSKILLS\nClinical diagnosis\nPatient-centered care\nHealth promotion\nChronic disease management\nElectronic health records\nEDUCATION\nJasper University\nSeptember 20XX – June 20XX\nDean's List, Medical Research Award\nBellows College\nSeptember 20XX – May 20XX\nBachelor of Science in Biology, Cum Laude, outstanding research thesis\nHOBBIES\nRunning\nPhotography\nTravel\nCooking\nDancing\nWORK EXPERIENCE\nLamna Healthcare | General Practitioner\nDecember 20XX – present\nImplemented evidence-based medicine for accurate diagnosis,\nspearheaded a community health fair, provided free screenings to over\n200 residents.\nTyler Stein MD | Family Physician\nAugust 20XX – July 20XX\nManaged a diverse patient caseload, led a smoking cessation program\nresulting in a 30% increase in successful quit attempts.\nCity Hospital | Medical Officer\nApril 20XX – August 20XX\nProvided emergency medical care with a focus on trauma cases,\ncollaborated with specialists to enhance patient outcomes."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.1208,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

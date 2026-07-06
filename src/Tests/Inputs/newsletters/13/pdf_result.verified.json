@@ -1,0 +1,27 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "INTERIOR\nDESIGN\nEXPO\nTwine +\nBurlap Discover the art of interior\ndesign at the Twine & Burlap\nInterior Design Expo.\nJoin us for a captivating showcase of home decor trends, expert tips, and\nexclusive deals. Get inspired and transform your living spaces. Save the date\nand get ready to elevate your home.\nDAY ONE\nColor Exploration\nDAY TWO\nTexture & Materials\nDAY THREE\nLighting Aesthetics\nDAY FOUR\nFurniture & Space\n(901) 555-0189 tandb@example.com"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.3397,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

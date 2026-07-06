@@ -1,0 +1,39 @@
+﻿{
+  "target": {
+    "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Section 1 content - before continuous break.\nSection 1, paragraph 2.\nSection 1, paragraph 3.\nSection 1, paragraph 4.\nSection 1, paragraph 5.\nSection 1, paragraph 6.\nSection 1, paragraph 7.\nSection 1, paragraph 8.\nSection 1, paragraph 9.\nSection 1, paragraph 10.\nSection 1, paragraph 11.\nSection 1, paragraph 12.\nSection 1, paragraph 13.\nSection 1, paragraph 14.\nSection 1, paragraph 15.\nSection 1, paragraph 16.\nSection 1, paragraph 17.\nSection 1, paragraph 18.\nSection 1, paragraph 19.\nSection 1, paragraph 20.\nSection 1, paragraph 21."
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Section 2 content - after continuous break.\nSection 2, paragraph 2.\nSection 2, paragraph 3.\nSection 2, paragraph 4.\nSection 2, paragraph 5.\nSection 2, paragraph 6.\nSection 2, paragraph 7.\nSection 2, paragraph 8.\nSection 2, paragraph 9.\nSection 2, paragraph 10.\nSection 2, paragraph 11.\nSection 2, paragraph 12.\nSection 2, paragraph 13.\nSection 2, paragraph 14.\nSection 2, paragraph 15.\nSection 2, paragraph 16.\nSection 2, paragraph 17.\nSection 2, paragraph 18.\nSection 2, paragraph 19.\nSection 2, paragraph 20.\nSection 2, paragraph 21.\nSection 2, paragraph 22.\nSection 2, paragraph 23.\nSection 2, paragraph 24.\nSection 2, paragraph 25.\nSection 2, paragraph 26."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0342,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0436,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "April 4, 20XX\nBUSINESS\nPROPOSAL\nThis proposal outlines a streamlined solution designed to address key business challenges\nand drive growth. Our approach leverages industry expertise, innovative strategies, and\ndata-driven insights to create a tailored plan that delivers measurable results.\nPROBLEM STATEMENT SOLUTION\nBusinesses today face challenges such as inefficiencies,\nrising costs, and evolving market demands. Addressing\nthese issues requires a well-structured, strategic approach\nthat ensures long-term success.\nOur solution is designed to enhance operations, increase\nefficiency, and improve overall performance. By implementing\nbest practices and modern technology, we help businesses\noptimize workflows, reduce costs, and drive innovation.\nMARKET OPPORTUNITY FINANCIAL SUMMARY\nWith industry trends shifting rapidly, adopting a flexible\nand forward-thinking model is essential. Our approach\nprovides businesses with scalable, adaptable solutions\nthat align with market demands and ensure long-term\nsustainability.\nBased on market analysis, businesses that implement our\nstrategies see an average 20% reduction in operational costs\nand a 35% improvement in workflow efficiency within the first\nyear. Clients can expect a strong return on investment through\nimproved productivity and streamlined operations.\nPREPARED FOR: PREPARED BY:\nCasey Jensen, Fabrikam, Inc.\ncasey@fabrikam.com\n573-555-0172\nwww.fabrikam.com\n333 3rd Avenue, Seattle, WA 89101\nAvery Howard, Contoso, Ltd.\navery@contoso.com\n898-555-0111\nwww.contoso.com\n987 6th Ave, Santa Fe, NM 11121"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.1402,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

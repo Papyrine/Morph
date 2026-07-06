@@ -1,0 +1,3 @@
+﻿Arrow variants: 
+
+Thinner stroke: 

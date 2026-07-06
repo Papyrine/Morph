@@ -1,0 +1,39 @@
+﻿{
+  "target": {
+    "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Complex HTML Document\nDemonstrating multiple HTML features together\n1. Formatted Text Section\nThis section contains bold, italic, underlined, and\ncolored text. We also have\nsuperscript and subscript content.\n2. Data Table\nProduct Category Price In Stock\nWidget A Electronics $29.99 Yes\nGadget B Accessories $49.99 No\nDevice C Hardware $199.99 Yes\n3. Lists\nKey features:\n• Easy to use interface\n• Multiple format support\n◦ PDF export\n◦ HTML export\n◦ Image export\n• Cross-platform compatibility\n4. Image and Link"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Visit our website for more information.\n5. Styled Boxes\nInfo: This is an information box with custom styling.\nWarning: This is a warning box.\nError: This is an error box."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.1494,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0538,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

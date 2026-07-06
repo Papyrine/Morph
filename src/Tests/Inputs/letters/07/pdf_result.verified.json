@@ -1,0 +1,27 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "ESG Financial Services\nAmelie Lochwud\nHiring Manager\nDucat Bank\n1234 Sunset Lane\nBellingham, WA 43210\nDear Amelie Lochwud,\nIt is my pleasure to recommend Adrian King for the open\nposition at your organization. During their time at ESG\nFinancial Services, Adrian consistently demonstrated\nexceptional leadership, problem-solving skills, and an\nunparalleled ability to drive projects to successful\ncompletion.\nAdrian’s strong analytical mindset and ability to work\nseamlessly with cross-functional teams make them an ideal\ncandidate. I am confident they would be a tremendous\nasset to your team.\nSincerely,\nFrancis Ribeiro\nESG Financial Services\n4321 Maplewood Ave\nNashville, TN 13141"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0634,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

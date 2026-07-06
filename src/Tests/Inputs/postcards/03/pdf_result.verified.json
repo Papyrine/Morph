@@ -1,0 +1,38 @@
+﻿{
+  "target": {
+    "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 792.0,
+        "Height": 612.0
+      },
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "Click or tap here to\nenter text.\nClick or tap here to\nenter text.\nClick or tap here to\nenter text.\nClick or tap here to\nenter text."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.7799,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0322,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

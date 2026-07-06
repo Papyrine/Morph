@@ -1,0 +1,27 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "ANGELICA ASTROM\n(212) 555-0155\nangelica@example.com\n123 South St.\nManhattan, NY 76543\nAngelica\nAstrom\nUI/UX DESIGNER\nI am passionate about designing digital experiences that are\nboth visually stunning and intuitive, and always strive to create\ndesigns that delight and engage users.\nDEAR JOSEPH PRICE:\nI am writing in response to your online advertisement for a UX\ndesigner. After reading your job description, I am confident that\nmy skills and my passion for technology are a perfect match for\nthis position. I would bring to your company a broad range of\nskills, including:\n• UI/UX design\n• User research\n• Usability testing\n• Wireframing & prototyping\n• Project management & leadership\nI would welcome the opportunity to further discuss this position\nwith you. If you have questions or would like to schedule an\ninterview, please contact me by phone at (212) 555-0155 or by\nemail at angelica@example.com. I have enclosed my resume for\nyour review, and I look forward to hearing from you.\nSincerely,\nAngelica Astrom\nDecember 13, 20XX\nEnclosure"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.069,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

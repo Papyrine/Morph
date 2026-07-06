@@ -1,0 +1,75 @@
+﻿{
+  "target": {
+    "PageCount": 5,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Paragraph 1: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 2: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 3: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 4: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 5: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 6: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 7: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 8: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 9: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 10: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 11: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 12: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris."
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Paragraph 13: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 14: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 15: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 16: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 17: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 18: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 19: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 20: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 21: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 22: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 23: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 24: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris."
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Paragraph 25: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 26: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 27: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 28: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 29: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 30: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 31: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 32: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 33: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 34: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 35: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 36: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris."
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Paragraph 37: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 38: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 39: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 40: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 41: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 42: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 43: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 44: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 45: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 46: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 47: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 48: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris."
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Paragraph 49: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris.\nParagraph 50: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.1592,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.16,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.1603,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    },
+    {
+      "Page": 4,
+      "ErrorMetric": 0.1603,
+      "ExpectedFile": "expected_0004.png",
+      "VerifiedFile": "pdf_result#page_0004.verified.png",
+      "ReceivedFile": "pdf_result#page_0004.received.png"
+    },
+    {
+      "Page": 5,
+      "ErrorMetric": 0.0561,
+      "ExpectedFile": "expected_0005.png",
+      "VerifiedFile": "pdf_result#page_0005.verified.png",
+      "ReceivedFile": "pdf_result#page_0005.received.png"
+    }
+  ]
+}

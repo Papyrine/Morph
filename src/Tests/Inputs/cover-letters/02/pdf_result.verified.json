@@ -1,0 +1,27 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "MANASI GOYAL\nGraphicDesigner\n+91 915 5894669 | www.interestingsite.com | manasi@example.com\n9.10.XX\nHIRING MANAGER\nEM + EN DESIGN\n4321 N. BROAD STREET\nPHILADELPHIA, PA 21098\nDEAR ROWAN MURPHY\nI’m excited to apply for the Graphic Designer position atEm +En Design. With years of experience working\nwith cross-functional teams at Sundara Design Co., Prem Rekhaen, and Kala Aaj, I’ve led projects that span\nbranding, editorial design, and integrated campaigns. My passion for design, paired with my skills in visual\ncommunication and project management, allows me to bring creative concepts to life while meeting client\ngoals.\nAt Sundara Design Co., I’ve had the opportunity to collaborate with diverse teams and bring my design vision\nto a wide range of media channels. I’m confident that my expertise, from concept development to execution,\nwould be a great asset to your team. I’m drawn toEm +En Design’s focus on inclusivity and diversity and\nwould love the chance to contribute to your creative projects.\nThank you for considering my application. I look forward to discussing how I can contribute to your team’s\nsuccess.\nBEST REGARDS,\nMANASI GOYAL"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0866,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

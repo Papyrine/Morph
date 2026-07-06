@@ -1,0 +1,51 @@
+﻿{
+  "target": {
+    "PageCount": 3,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "4567 Main Street\nCity, State 98052\n(718) 555–0100\nyuuri@example.com\nYuuri Tanaka\nAdrian King\nHiring Manager\nVanArsdel, Ltd.\n123 Elm Avenue\nCity, State 98052\nDear Adrian King,\nStart with a statement about why you are excited about the job you are seeking.\nEnthusiasm is key, and your personal connection to the role is much more important than\nflashy words and exclamation marks. Keep it brief and easy to read quickly.\nIf you feel a second paragraph is needed, touch on areas of the role that interest you. State\nyour desire to learn more, suggest a follow up call or email. Be clear about your respect for\nbusy schedules.\n(Here’s a tip: be sure to try Word Editor for suggestions on how to make this cover letter the\nbest it can be.)\nSincerely,\nYuuri Tanaka"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "4567 Main Street\nCity, State 98052\n(718) 555–0100\nyuuri@example.com\nYuuri Tanaka\nAdrian King\nHiring Manager\nVanArsdel, Ltd.\n123 Elm Avenue\nCity, State 98052\nDear Adrian King,\nStart with a statement about why you are excited about the job you are seeking.\nEnthusiasm is key, and your personal connection to the role is much more important than\nflashy words and exclamation marks. Keep it brief and easy to read quickly.\nIf you feel a second paragraph is needed, touch on areas of the role that interest you. State\nyour desire to learn more, suggest a follow up call or email. Be clear about your respect for\nbusy schedules.\n(Here’s a tip: be sure to try Word Editor for suggestions on how to make this cover letter the\nbest it can be.)\nSincerely,\nYuuri Tanaka"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "4567 Main Street\nCity, State 98052\n(718) 555–0100\nyuuri@example.com\nYuuri Tanaka\nAdrian King\nHiring Manager\nVanArsdel, Ltd.\n123 Elm Avenue\nCity, State 98052\nDear Adrian King,\nStart with a statement about why you are excited about the job you are seeking.\nEnthusiasm is key, and your personal connection to the role is much more important than\nflashy words and exclamation marks. Keep it brief and easy to read quickly.\nIf you feel a second paragraph is needed, touch on areas of the role that interest you. State\nyour desire to learn more, suggest a follow up call or email. Be clear about your respect for\nbusy schedules.\n(Here’s a tip: be sure to try Word Editor for suggestions on how to make this cover letter the\nbest it can be.)\nSincerely,\nYuuri Tanaka"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0536,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0546,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.0731,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    }
+  ]
+}

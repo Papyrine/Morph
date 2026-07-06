@@ -1,0 +1,63 @@
+﻿{
+  "target": {
+    "PageCount": 4,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Page 1, first paragraph.\nLine 1\nLine 2 (after line break)"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Page 2 content."
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Content after column break."
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Page 3 - Final page."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0033,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0009,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.002,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    },
+    {
+      "Page": 4,
+      "ErrorMetric": 0.0011,
+      "ExpectedFile": "expected_0004.png",
+      "VerifiedFile": "pdf_result#page_0004.verified.png",
+      "ReceivedFile": "pdf_result#page_0004.received.png"
+    }
+  ]
+}

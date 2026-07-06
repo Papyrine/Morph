@@ -1,0 +1,27 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "[Company Name]\n[Company Address]\n[City, ST Postal Code]\n[Company Name]\n[Company Address]\n[City, ST Postal Code]\n[Recipient Name]\n[Recipient Company]\n[Address]\n[City, ST Postal Code]\n[Country]\n[Recipient Name]\n[Recipient Company]\n[Address]\n[City, ST Postal Code]\n[Country]\n[Company Name]\n[Company Address]\n[City, ST Postal Code]\n[Company Name]\n[Company Address]\n[City, ST Postal Code]\n[Recipient Name]\n[Recipient Company]\n[Address]\n[City, ST Postal Code]\n[Country]\n[Recipient Name]\n[Recipient Company]\n[Address]\n[City, ST Postal Code]\n[Country]\n[Company Name]\n[Company Address]\n[City, ST Postal Code]\n[Company Name]\n[Company Address]\n[City, ST Postal Code]\n[Recipient Name]\n[Recipient Company]\n[Address]\n[City, ST Postal Code]\n[Country]\n[Recipient Name]\n[Recipient Company]\n[Address]\n[City, ST Postal Code]\n[Country]"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.8773,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

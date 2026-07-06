@@ -1,0 +1,27 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "MARKETING & SALES TEAM\nMEETING MINUTES\nLOCATION: Conference Room B\nDATE: 1/9/23\nATTENDEES: Jon, Serra, Lionel, Grace\nTIME: 2:00 PM\nAGENDA ITEMS\nI. Call to order\nII. Roll call\nIII. Approval of minutes from last meeting\nIV. Open issues\nV. New business\nVI. Adjournment\nACTION ITEMS OWNER DEADLINE STATUS\nBudget assessment Jon 2/10 In progress\nBuilding maintenance Serra 3/15 Not started\nHiring contractors Lionel 1/30 In progress"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0449,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

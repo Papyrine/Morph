@@ -1,0 +1,39 @@
+﻿{
+  "target": {
+    "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "April 4, 20XX\nBusiness\nproposal\nPrepared for: Prepared by:\nCasey Jensen\ncasey@fabrikam.com\n573-555-0172\nFabrikam, Inc.\nwww.fabrikam.com\n333 3rd Avenue\nSeattle, WA 89101\nAvery Howard\navery@contoso.com\n898-555-0111\nContoso, Ltd.\nwww.contoso.com\n987 6th Ave\nSanta Fe, NM 11121"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "1. Summary\nThis proposal outlines a streamlined solution designed to address key\nbusiness challenges and drive growth. Our approach leverages industry\nexpertise, innovative strategies, and data-driven insights to create a\ntailored plan that delivers measurable results.\n2. Problem Statement\nBusinesses today face challenges such as inefficiencies, rising costs, and\nevolving market demands. Addressing these issues requires a\nwell-structured, strategic approach that ensures long-term success.\n3. Solution\nOur solution is designed to enhance operations, increase efficiency, and\nimprove overall performance. By implementing best practices and modern\ntechnology, we help businesses optimize workflows, reduce costs, and\ndrive innovation.\n4. Market Opportunity\nWith industry trends shifting rapidly, adopting a flexible and\nforward-thinking model is essential. Our approach provides businesses\nwith scalable, adaptable solutions that align with market demands and\nensure long-term sustainability.\n5. Financial Summary\nBased on market analysis, businesses that implement our strategies see\nan average 20% reduction in operational costs and a 35% improvement in\nworkflow efficiency within the first year. Clients can expect a strong return\non investment through improved productivity and streamlined operations."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0944,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.1323,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}
