@@ -672,11 +672,24 @@ abstract class PageRendererBase(RenderContextBase context)
         if (!context.HasSpaceFor(height) &&
             context.CurrentY > context.ContentTop)
         {
-            if (!context.MoveToNextColumn())
-            {
-                FinishCurrentPage();
-                StartNewPage();
-            }
+            AdvanceToNextColumnOrPage();
+        }
+    }
+
+    /// <summary>
+    /// Advances the flow to the next column of the current section, or — when the last column is
+    /// already in use — finishes the page and starts a new one. Pagination decisions that must
+    /// respect multi-column sections (keep-with-next, keep-lines, widow/orphan control) route
+    /// through here instead of calling <see cref="FinishCurrentPage"/>/<see cref="StartNewPage"/>
+    /// directly, so a forced break lands in the next column rather than skipping the remaining
+    /// columns of the page.
+    /// </summary>
+    protected void AdvanceToNextColumnOrPage()
+    {
+        if (!context.MoveToNextColumn())
+        {
+            FinishCurrentPage();
+            StartNewPage();
         }
     }
 
@@ -854,7 +867,11 @@ abstract class PageRendererBase(RenderContextBase context)
                         break;
                     }
                 }
-                if (hasExactRow)
+                // Only pre-advance when there is content above on the current page. At the top of
+                // a fresh page the table already has the whole page to itself; a table taller than
+                // one page gains nothing from another break and would strand an empty page in front
+                // of it (e.g. a full-sheet label grid whose exact rows measure a hair over a page).
+                if (hasExactRow && context.CurrentY > context.ContentTop)
                 {
                     FinishCurrentPage();
                     StartNewPage();
@@ -1072,12 +1089,26 @@ abstract class PageRendererBase(RenderContextBase context)
             headerCount++;
         }
 
+        // Trailing rows with nothing visible in them never force a page break: Word absorbs a
+        // trailing empty spacer row (a letter template commonly ends its layout table with an
+        // empty fixed-height row) into the bottom margin instead of starting a page that
+        // renders nothing but would still count toward the page total.
+        var lastVisibleRow = table.Rows.Count - 1;
+        while (lastVisibleRow >= 0 && !RowHasVisibleContent(table.Rows[lastVisibleRow]))
+        {
+            lastVisibleRow--;
+        }
+
         for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
         {
             var rowHeight = rowHeights[rowIndex];
 
             var yBefore = context.CurrentY;
-            EnsureSpaceFor(rowHeight);
+            if (rowIndex <= lastVisibleRow)
+            {
+                EnsureSpaceFor(rowHeight);
+            }
+
             var pageBroke = context.CurrentY < yBefore;
 
             // After a page break, re-emit the header rows — but skip when the current row is itself
@@ -1100,6 +1131,38 @@ abstract class PageRendererBase(RenderContextBase context)
             RenderTableRow(table, rowIndex, colCount, colWidths, rowHeights, tableX, currentY);
             context.CurrentY += rowHeight;
         }
+    }
+
+    static bool RowHasVisibleContent(TableRow row)
+    {
+        foreach (var cell in row.Cells)
+        {
+            if (!string.IsNullOrEmpty(cell.Properties.BackgroundColorHex))
+            {
+                return true;
+            }
+
+            foreach (var element in cell.Content)
+            {
+                if (element is ParagraphElement paragraph)
+                {
+                    foreach (var run in paragraph.Runs)
+                    {
+                        if (run.InlineImageData != null || !string.IsNullOrWhiteSpace(run.Text))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                else
+                {
+                    // Nested tables, images, content controls, form fields — all draw something.
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     void RenderTableRow(TableElement table, int rowIndex, int colCount, float[] colWidths, float[] rowHeights, float tableX, float currentY)

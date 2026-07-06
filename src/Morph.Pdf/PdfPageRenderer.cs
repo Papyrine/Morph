@@ -9,6 +9,10 @@ sealed class PdfPageRenderer : PageRendererBase
     readonly PdfTextEngine textEngine;
 
     int pagesAdded;
+
+    // Track whether the current page was started by a section break (a new page setup):
+    // Word keeps a paragraph's spacing-before at the top of such pages in every mode.
+    bool currentPageFromSectionBreak;
     PdfPage? currentPage;
     bool hasSignificantContentOnCurrentPage;
     bool currentPageFromExplicitBreak;
@@ -32,8 +36,14 @@ sealed class PdfPageRenderer : PageRendererBase
         {
             RequestNewPage = () =>
             {
-                FinishCurrentPage();
-                StartNewPage();
+                // Flow into the next column of a multi-column section before spilling to a new
+                // page — mirrors EnsureSpaceFor in the shared engine. For single-column sections
+                // MoveToNextColumn returns false and this is an ordinary page break.
+                if (!context.MoveToNextColumn())
+                {
+                    FinishCurrentPage();
+                    StartNewPage();
+                }
             }
         };
     }
@@ -134,6 +144,7 @@ sealed class PdfPageRenderer : PageRendererBase
                     FinishCurrentPage();
                     StartNewPage();
                     currentPageFromExplicitBreak = true;
+                    currentPageFromSectionBreak = true;
                 }
 
                 break;
@@ -168,7 +179,7 @@ sealed class PdfPageRenderer : PageRendererBase
                 context.LastParagraphStyleId = null;
                 break;
             case WordArtElement wordArt:
-                RenderTextAsParagraph(wordArt.Text);
+                RenderWordArtBlock(wordArt);
                 hasSignificantContentOnCurrentPage = true;
                 break;
             case TextFormFieldElement textField:
@@ -208,6 +219,23 @@ sealed class PdfPageRenderer : PageRendererBase
             Runs = [new() {Text = text, Properties = new()}],
             Properties = new()
         });
+    }
+
+    // The PDF backend draws WordArt as its plain text (no glyph warps), but it must still occupy the
+    // shape's declared block height so pagination lines up with Word and the raster backends. Without
+    // this a tall section of WordArt shapes collapses to a few text lines and the pages that Word
+    // spreads them across are lost. Mirrors SkiaPageRenderer.RenderWordArt's space handling.
+    void RenderWordArtBlock(WordArtElement wordArt)
+    {
+        var height = (float) wordArt.HeightPoints;
+        if (height > 0)
+        {
+            EnsureSpaceFor(height);
+        }
+
+        var startY = context.CurrentY;
+        RenderTextAsParagraph(wordArt.Text);
+        context.CurrentY = Math.Max(context.CurrentY, startY + height);
     }
 
     void RenderFloatingTextBox(FloatingTextBoxElement textBox)
@@ -276,6 +304,7 @@ sealed class PdfPageRenderer : PageRendererBase
 
         hasSignificantContentOnCurrentPage = false;
         currentPageFromExplicitBreak = false;
+        currentPageFromSectionBreak = false;
     }
 
     protected override void FinishCurrentPage()
@@ -373,6 +402,36 @@ sealed class PdfPageRenderer : PageRendererBase
 
         using (bandConstrained ? context.PushContentContainer(bandX, bandWidth) : null)
         {
+            // KeepNext / KeepLines with Word's abandonment guards, mirroring the raster
+            // renderers: no push when already at the top of the page (pushing again cannot
+            // help) and no push when the kept content cannot fit a fresh column either.
+            if (paragraph.Properties.KeepNext && nextElement != null && !isEmpty)
+            {
+                var nextHeight = MeasureElementHeight(nextElement);
+                if (nextHeight > 0)
+                {
+                    var combinedHeight = textEngine.MeasureParagraphHeightWithWidth(paragraph, context.ContentWidth) + nextHeight;
+                    if (!context.HasSpaceFor(combinedHeight) &&
+                        combinedHeight <= context.ContentHeight &&
+                        context.CurrentY > context.ContentTop)
+                    {
+                        AdvanceToNextColumnOrPage();
+                    }
+                }
+            }
+
+            if (paragraph.Properties.KeepLines && !isEmpty)
+            {
+                var height = textEngine.MeasureParagraphHeightWithWidth(paragraph, context.ContentWidth);
+                if (!context.HasSpaceFor(height) &&
+                    height <= context.ContentHeight &&
+                    context.CurrentY > context.ContentTop)
+                {
+                    AdvanceToNextColumnOrPage();
+                }
+            }
+
+            context.SuppressPageTopSpacingBefore = ShouldSuppressPageTopSpacingBefore();
             textEngine.Render(paragraph);
         }
 
@@ -380,6 +439,43 @@ sealed class PdfPageRenderer : PageRendererBase
         {
             hasSignificantContentOnCurrentPage = true;
         }
+    }
+
+    // Height of the element a KeepNext paragraph must share its page with. Tables return 0
+    // (keep-before-table stays inert in the PDF backend until it has a table pre-measure).
+    float MeasureElementHeight(DocumentElement element) =>
+        element switch
+        {
+            ParagraphElement para => textEngine.MeasureParagraphHeightWithWidth(para, context.ContentWidth),
+            ImageElement img => (float) img.HeightPoints,
+            _ => 0
+        };
+
+    // Word does not apply a body paragraph's spacing-before at the top of a page reached by an
+    // automatic break; compatibilityMode 15 also drops it after explicit page breaks, while a
+    // section break (a new page setup) and the document's first page keep it. Column tops are
+    // left unchanged (Word drops there too on automatic flow, but Morph's column handling is
+    // measured separately). See page_counts.md, pass 4.
+    bool ShouldSuppressPageTopSpacingBefore()
+    {
+        if (pagesAdded <= 1 ||
+            context.CurrentColumn != 0 ||
+            context.CurrentY > context.ContentTop + 0.01f)
+        {
+            return false;
+        }
+
+        if (currentPageFromSectionBreak)
+        {
+            return false;
+        }
+
+        if (currentPageFromExplicitBreak)
+        {
+            return context.Compatibility.CompatibilityMode >= 15;
+        }
+
+        return true;
     }
 
     protected override void RenderParagraphInBounds(ParagraphElement paragraph, float x, float maxWidth)

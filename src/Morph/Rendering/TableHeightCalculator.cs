@@ -35,8 +35,11 @@ static class TableHeightCalculator
         for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
         {
             var row = table.Rows[rowIndex];
-            // Minimum row height
-            float maxHeight = 20;
+            // Rows without a declared height keep a legacy 20pt minimum. Rows WITH a declared
+            // w:trHeight take it verbatim via the second pass — Word renders a 14.4pt atLeast
+            // row at 14.4pt when its content is shorter, and a blanket 20pt floor inflates
+            // sidebar/spacer grids (several such rows push a page-exact template overfull).
+            float maxHeight = row.HeightPoints.HasValue ? 0 : 20;
 
             var gridColIndex = 0;
             for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
@@ -235,6 +238,7 @@ static class TableHeightCalculator
             }
         }
 
+        float previousAfter = 0;
         for (var i = 0; i < paragraphs.Count; i++)
         {
             // Measured at exactly the width the cell render lays out at — the render path
@@ -251,7 +255,10 @@ static class TableHeightCalculator
             // (An earlier version subtracted padding from spacing on the assumption that
             // padding "absorbed" leading/trailing spacing, but Word doesn't collapse
             // them — tables with explicit w:tblCellMar rendered too tight as a result.)
-            height += (float) props.SpacingBeforePoints;
+            // Between consecutive paragraphs Word charges max(after, before), not the sum
+            // (verified against Word XPS baselines), so only the excess of this paragraph's
+            // before over the previous paragraph's after adds height.
+            height += Math.Max(0, (float) props.SpacingBeforePoints - previousAfter);
 
             foreach (var lineHeight in lines)
             {
@@ -268,6 +275,7 @@ static class TableHeightCalculator
             if (i < paragraphs.Count - 1)
             {
                 height += (float) props.SpacingAfterPoints;
+                previousAfter = (float) props.SpacingAfterPoints;
             }
             else
             {

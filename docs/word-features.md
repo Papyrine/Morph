@@ -522,7 +522,7 @@ Vertical space above and below a paragraph, in points.
 - **Model**: `ParagraphProperties.SpacingBeforePoints`, `SpacingAfterPoints`
 - **Test**: `paragraph_spacing/`
 
-> **Contributors**: Adjacent paragraph spacing uses margin collapsing: `max(after, before)`, not sum. Implemented in `TextRenderer`.
+> **Contributors**: Adjacent paragraph spacing uses margin collapsing: `max(after, before)`, not sum. A body paragraph at the top of an automatically broken page gets no spacing-before (compatibilityMode 15 also after explicit page breaks; section breaks and the first page keep it) — one-shot `SuppressPageTopSpacingBefore` computed by the page renderers, consumed in `TextRenderer` / `PdfTextEngine`.
 
 
 #### Line Spacing `DONE`
@@ -534,7 +534,7 @@ Vertical distance between lines within a paragraph. Three modes: Auto (multiplie
 - **Model**: `ParagraphProperties.LineSpacingMultiplier`, `LineSpacingPoints`, `LineSpacingRule`
 - **Test**: `line_spacing/`, `line_spacing_at_least/`, `line_spacing_exactly/`
 
-> **Contributors**: Auto mode applies a Word compatibility boost (~7.5% for 1.0x spacing, graduated). Document grid line pitch enforced when >= 20 page break markers detected. See `TextRenderer` line spacing logic.
+> **Contributors**: Auto mode multiplies the font's full hhea line box (ascent + descent + line gap) with no extra floor or leading correction, verified against Word XPS baselines. Document grid line pitch enforced when >= 20 page break markers detected. An empty paragraph's line takes the paragraph mark's style-resolved formatting (`ParagraphProperties.ParagraphMarkRunProperties`, from `w:pPr/w:rPr`), matching Word. See `TextRenderer` line spacing logic.
 > **Consumers**: Single (1.0), 1.5, and Double (2.0) spacing all supported. Exactly mode fixes line height; AtLeast sets a minimum.
 
 
@@ -599,7 +599,7 @@ Prevents a page break between this paragraph and the next.
 - **OOXML**: `w:keepNext`
 - **Model**: `ParagraphProperties.KeepNext`
 
-> **Contributors**: Implemented by measuring the next element and ensuring both fit on the current page. See `PageRenderer` keep-next logic.
+> **Contributors**: Implemented by measuring the next element and ensuring both fit on the current page, in all three backends (the PDF renderer mirrors the raster handlers; its keep-before-table stays inert until it has a table pre-measure). Word's abandonment guards apply: no push when already at the top of a page, and none when the kept pair cannot fit a fresh column either. See `PageRenderer` keep-next logic and `PdfPageRenderer.RenderParagraph`.
 
 
 #### Keep Lines Together `DONE`
@@ -1106,6 +1106,8 @@ Suppresses the end-of-cell paragraph mark for height measurement so an empty cel
 - **Parse**: `DocumentParser` reads the presence of the element (no value to parse)
 - **Render**: `TableHeightCalculator.MeasureCellHeight` short-circuits to padding-only when `HideMark` is set and the cell holds a single empty paragraph
 - **Test**: `TableHideMarkTests`
+
+> **Contributors**: Independently of `w:hideMark`, Word collapses the unavoidable empty end-of-cell paragraph mark that directly follows a nested table to zero height. `DocumentParser` marks it (`ParagraphElement.IsCollapsedCellMark`) and all three backends skip its line.
 
 
 #### Row Banding Size `DONE`
@@ -1989,7 +1991,7 @@ Word version compatibility affecting layout behavior (Word 2010 = mode 14, Word 
 - **Model**: `CompatibilitySettings.CompatibilityMode`
 - **Test**: `compatibility_mode_14/`
 
-> **Contributors**: Mode affects line spacing tolerances and table cell spacing rules. Mode 15 = 2% page tolerance, mode <= 14 = 1%.
+> **Contributors**: Mode affects line spacing tolerances and table cell spacing rules. Mode 15 = 2% page tolerance, mode <= 14 = 1%. A document that declares no compatibilityMode parses as mode 12 (ECMA-376), matching Word; the `CompatibilitySettings` record default of 15 applies only to HTML-sourced documents. Mode >= 15 also gates the drop of spacing-before after explicit page breaks (see Spacing Before / After).
 
 
 ### 10.2 Font Resolution

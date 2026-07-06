@@ -85,9 +85,19 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
     double EmptyLineHeight(ParagraphElement paragraph)
     {
-        var size = paragraph.Properties.ParagraphMarkFontSizePoints ?? 11;
-        var font = context.GetFont(DefaultFontSettings.DefaultFont, false, false, size);
-        return font.GetHeight() * paragraph.Properties.LineSpacingMultiplier;
+        // Word collapses the end-of-cell mark after a nested table to zero height.
+        if (paragraph.IsCollapsedCellMark || paragraph.IsAnchorOnlyMark)
+        {
+            return 0;
+        }
+
+        var properties = paragraph.Properties;
+        // An empty paragraph's line takes the paragraph mark's resolved formatting
+        // (w:pPr/w:rPr over the style chain) — not the default face at a fixed size.
+        var font = properties.ParagraphMarkRunProperties is { } markProps
+            ? context.GetFont(markProps)
+            : context.GetFont(DefaultFontSettings.DefaultFont, false, false, properties.ParagraphMarkFontSizePoints ?? 11);
+        return font.GetHeight() * properties.LineSpacingMultiplier;
     }
 
     // ---- Paragraph spacing (mirrors the Skia/ImageSharp contextual-spacing collapse) ----
@@ -139,13 +149,37 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     {
         var lines = Layout(paragraph, availableWidth);
 
-        context.CurrentY += (float) SpacingBefore(paragraph);
+        // Word collapses adjacent paragraph spacing to max(after, before) — verified against
+        // Word-generated XPS baselines — so in the page flow only the excess of this
+        // paragraph's spacing-before over the previous paragraph's spacing-after consumes
+        // height. Bounded (table-cell) rendering keeps the raw value: cell measurement runs
+        // repeatedly and must stay independent of flow state.
+        var spacingBefore = SpacingBefore(paragraph);
+        if (allowPageBreak)
+        {
+            spacingBefore = Math.Max(0, spacingBefore - context.LastParagraphSpacingAfterPoints);
+
+            // Word drops spacing-before at the top of an automatically broken page (one-shot,
+            // set by the page renderer).
+            if (context.SuppressPageTopSpacingBefore)
+            {
+                spacingBefore = 0;
+            }
+        }
+
+        context.SuppressPageTopSpacingBefore = false;
+        context.CurrentY += (float) spacingBefore;
 
         if (lines.Count == 0)
         {
             context.CurrentY += (float) EmptyLineHeight(paragraph);
             context.CurrentY += (float) SpacingAfter(paragraph);
             TrackContextualSpacing(paragraph);
+            if (allowPageBreak)
+            {
+                context.LastParagraphSpacingAfterPoints = (float) SpacingAfter(paragraph);
+            }
+
             return;
         }
 
@@ -160,6 +194,10 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 RequestNewPage != null)
             {
                 RequestNewPage();
+                // RequestNewPage may advance to the next column instead of a new page; either way
+                // the section's content-left can shift, so rebase this line's start onto the
+                // current column. (availableWidth is the column width, unchanged by the move.)
+                left = context.ContentLeft + Indent(paragraph);
             }
 
             var graphics = context.Graphics;
@@ -239,6 +277,10 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
         context.CurrentY += (float) SpacingAfter(paragraph);
         TrackContextualSpacing(paragraph);
+        if (allowPageBreak)
+        {
+            context.LastParagraphSpacingAfterPoints = (float) SpacingAfter(paragraph);
+        }
     }
 
     void DrawItem(XGraphics graphics, LineItem item, double penX, double baseline)

@@ -13,4 +13,11 @@ sealed class ParagraphElement : DocumentElement
     /// only honour the paragraph's spacing-after.
     /// </summary>
     public bool IsAnchorOnlyMark { get; init; }
+
+    /// <summary>
+    /// Set when this paragraph is the unavoidable empty end-of-cell mark directly after a
+    /// nested table. Word collapses it to zero height — the renderers skip synthesizing
+    /// its empty line.
+    /// </summary>
+    public bool IsCollapsedCellMark { get; init; }
 }

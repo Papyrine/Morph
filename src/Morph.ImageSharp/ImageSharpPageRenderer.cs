@@ -21,6 +21,14 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     bool hasSignificantContentOnCurrentPage;
     bool currentPageFromExplicitBreak;
 
+    // Track whether the current page was started by a section break (a new page setup):
+    // Word keeps a paragraph's spacing-before at the top of such pages in every mode.
+    bool currentPageFromSectionBreak;
+
+    // Pages started so far (incremented in StartNewPage; pageCount only counts flushed pages,
+    // which lags behind while a finished page is still pending).
+    int pagesStarted;
+
     Dictionary<string, Color> colorCache = [];
 
     Color ParseColor(string? hexColor)
@@ -307,6 +315,34 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     {
         StartNewPage();
         currentPageFromExplicitBreak = true;
+        currentPageFromSectionBreak = true;
+    }
+
+    // Word does not apply a body paragraph's spacing-before at the top of a page reached by an
+    // automatic break; compatibilityMode 15 also drops it after explicit page breaks, while a
+    // section break (a new page setup) and the document's first page keep it. Column tops are
+    // left unchanged (Word drops there too on automatic flow, but Morph's column handling is
+    // measured separately). See page_counts.md, pass 4.
+    bool ShouldSuppressPageTopSpacingBefore()
+    {
+        if (pagesStarted <= 1 ||
+            context.CurrentColumn != 0 ||
+            context.CurrentY > context.ContentTop + 0.01f)
+        {
+            return false;
+        }
+
+        if (currentPageFromSectionBreak)
+        {
+            return false;
+        }
+
+        if (currentPageFromExplicitBreak)
+        {
+            return context.Compatibility.CompatibilityMode >= 15;
+        }
+
+        return true;
     }
 
     float MeasureElementHeight(DocumentElement element) =>
@@ -357,8 +393,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 combinedHeight <= context.ContentHeight &&
                 context.CurrentY > context.ContentTop)
             {
-                FinishCurrentPage();
-                StartNewPage();
+                AdvanceToNextColumnOrPage();
             }
         }
 
@@ -369,8 +404,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 height <= context.ContentHeight &&
                 context.CurrentY > context.ContentTop)
             {
-                FinishCurrentPage();
-                StartNewPage();
+                AdvanceToNextColumnOrPage();
             }
         }
 
@@ -399,8 +433,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 }
                 if (fit == 1 || fit == lineHeights.Count - 1)
                 {
-                    FinishCurrentPage();
-                    StartNewPage();
+                    AdvanceToNextColumnOrPage();
                 }
             }
         }
@@ -412,6 +445,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         if (currentCanvas != null)
         {
+            context.SuppressPageTopSpacingBefore = ShouldSuppressPageTopSpacingBefore();
             textRenderer.RenderParagraph(currentCanvas, paragraph, nextElement);
         }
 
@@ -1570,6 +1604,8 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         hasSignificantContentOnCurrentPage = false;
         currentPageFromExplicitBreak = false;
+        currentPageFromSectionBreak = false;
+        pagesStarted++;
     }
 
     protected override void FinishCurrentPage()
