@@ -85,6 +85,12 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
     double EmptyLineHeight(ParagraphElement paragraph)
     {
+        // Word collapses the end-of-cell mark after a nested table to zero height.
+        if (paragraph.IsCollapsedCellMark || paragraph.IsAnchorOnlyMark)
+        {
+            return 0;
+        }
+
         var properties = paragraph.Properties;
         // An empty paragraph's line takes the paragraph mark's resolved formatting
         // (w:pPr/w:rPr over the style chain) — not the default face at a fixed size.

@@ -9,6 +9,36 @@ directories in `src/Tests/Inputs/`.
 `pdf_result.verified.json`, inspected `document.xml`/`styles.xml` of each mismatched `input.docx`,
 compared the page images of all four renderers side by side, and traced the responsible code paths.
 
+## Pass 4, experiment 3: end-of-cell mark collapse (2026-07-06)
+
+Planned as P4-3 (floats never paginate), but the diagnosis redirected it. Morph's float
+renderers already comply with the Word rule — `FloatingPosition` resolves anchor coordinates and
+draws with no page forcing, and floats may overhang freely. resumes/06's interleaved PDF pages
+carry the spilled bar at the **top** of each inserted page: the bar renders exactly at its
+anchor; it is the anchor's carrier that gets displaced to a fresh page by overflowing cell
+content. Every float-cluster residual decomposes the same way (anchor displacement from
+flow/table height error), so the actual lever is the in-cell empty rules — which experiment 1's
+variant A had already demonstrated by fixing resumes/06 PDF 6→3 when cells were un-gated.
+
+Implemented (3a): **Word collapses the unavoidable empty end-of-cell paragraph mark that
+directly follows a nested table to zero height** (LibreOffice: `CollapseEmptyCellPara`,
+unconditional for DOCX; `SwTextNode::IsCollapse`, `sw/source/core/layout/calcmove.cxx:1088` —
+empty text node, in a table, previous node is an end node, next node ends the cell, no anchored
+objects). Parser detects [.., TableElement, empty ¶ (last, not anchor-only)] in a cell and marks
+`ParagraphElement.IsCollapsedCellMark`; the raster empty-line synthesis skips it and the PDF
+`EmptyLineHeight` returns 0 (which now also honours `IsAnchorOnlyMark`, aligning PDF with the
+raster backends' documented contract).
+
+**Result: Skia 306, ImageSharp 306, PDF 302 → 304 — two fixes, zero regressions.**
+resumes/06 PDF 6→3 and labels/15 PDF 2→1 now match Word fully; the mismatch list drops to 20
+scenarios, and the pass-4 total (916 backend-matches) is now net **+1** over the pass-2
+baseline's 915.
+
+Also measured (3b, reverted): un-gating experiment 1's mark heights in table cells on top of 3a.
+Skia/ImageSharp 306→305 (wedding/05 raster 2→3 again — its empty Heading1-mark cell paragraphs
+grow to ~43 pt and tip the atLeast card rows past the page), PDF unchanged. The cell gate stays
+until the in-cell height model (spacing, atLeast interplay) is measured against Word directly.
+
 ## Pass 4, experiment 2: space-before dropped at page tops (2026-07-06)
 
 Implemented P4-2's page-top tiers in all three backends, layered on experiment 1: a body

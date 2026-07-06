@@ -3556,6 +3556,20 @@ sealed class DocumentParser(string defaultFont)
                     }
                 }
 
+                // Word collapses the unavoidable empty end-of-cell paragraph mark that directly
+                // follows a nested table to zero height.
+                if (cellContent.Count >= 2 &&
+                    cellContent[^1] is ParagraphElement {Runs.Count: 0, IsAnchorOnlyMark: false} endMark &&
+                    cellContent[^2] is TableElement)
+                {
+                    cellContent[^1] = new ParagraphElement
+                    {
+                        Runs = endMark.Runs,
+                        Properties = endMark.Properties,
+                        IsCollapsedCellMark = true
+                    };
+                }
+
                 cells.Add(
                     new()
                     {

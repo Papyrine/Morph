@@ -1107,6 +1107,8 @@ Suppresses the end-of-cell paragraph mark for height measurement so an empty cel
 - **Render**: `TableHeightCalculator.MeasureCellHeight` short-circuits to padding-only when `HideMark` is set and the cell holds a single empty paragraph
 - **Test**: `TableHideMarkTests`
 
+> **Contributors**: Independently of `w:hideMark`, Word collapses the unavoidable empty end-of-cell paragraph mark that directly follows a nested table to zero height. `DocumentParser` marks it (`ParagraphElement.IsCollapsedCellMark`) and all three backends skip its line.
+
 
 #### Row Banding Size `DONE`
 

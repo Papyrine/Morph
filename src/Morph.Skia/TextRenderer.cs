@@ -779,7 +779,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
         }
 
         // Handle empty paragraph - Word derives the line from the paragraph mark's formatting
-        if (lines.Count == 0)
+        if (lines.Count == 0 && !paragraph.IsCollapsedCellMark)
         {
             // Fallback default
             float emptyHeight = 12;
@@ -1777,7 +1777,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
         }
 
         // Handle empty paragraph - Word derives the line from the paragraph mark's formatting
-        if (lines.Count == 0 && !paragraph.IsAnchorOnlyMark)
+        if (lines.Count == 0 && !paragraph.IsAnchorOnlyMark && !paragraph.IsCollapsedCellMark)
         {
             // Fallback default
             float emptyHeight = 12;
