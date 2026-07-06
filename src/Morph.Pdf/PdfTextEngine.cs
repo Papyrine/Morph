@@ -186,11 +186,38 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         var alignment = paragraph.Properties.Alignment;
         var markerDrawn = false;
 
-        foreach (var line in lines)
+        // Word's widow/orphan control (w:widowControl, on by default — mapped to two lines on
+        // each side of a split): a paragraph may not break leaving fewer than two lines at the
+        // page bottom or carrying fewer than two lines forward. When fewer than two lines fit —
+        // or trimming the split to carry two forward would leave fewer than two behind — the
+        // whole paragraph moves; otherwise a split that would carry a single line forward breaks
+        // one line earlier. Abandoned at the top of a page/column (moving cannot gain space),
+        // the same family as the keep-rule guards.
+        var widowControlled = allowPageBreak && paragraph.Properties.WidowControl && lines.Count >= 2;
+        var forcedBreakIndex = -1;
+        if (widowControlled && RequestNewPage != null)
         {
+            var fit = CountLinesThatFit(lines, 0);
+            if (fit < lines.Count)
+            {
+                var carried = lines.Count - fit;
+                var moveWhole = fit < 2 || (carried == 1 && fit - 1 < 2);
+                if (moveWhole && context.CurrentY > context.ContentTop)
+                {
+                    RequestNewPage();
+                    left = context.ContentLeft + Indent(paragraph);
+                }
+
+                forcedBreakIndex = PlanWidowBreak(lines, 0);
+            }
+        }
+
+        for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
+        {
+            var line = lines[lineIndex];
             if (allowPageBreak &&
                 context.CurrentY > context.ContentTop &&
-                context.CurrentY + line.Height > context.ContentBottom &&
+                (context.CurrentY + line.Height > context.ContentBottom || lineIndex == forcedBreakIndex) &&
                 RequestNewPage != null)
             {
                 RequestNewPage();
@@ -198,6 +225,10 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 // the section's content-left can shift, so rebase this line's start onto the
                 // current column. (availableWidth is the column width, unchanged by the move.)
                 left = context.ContentLeft + Indent(paragraph);
+                if (widowControlled)
+                {
+                    forcedBreakIndex = PlanWidowBreak(lines, lineIndex);
+                }
             }
 
             var graphics = context.Graphics;
@@ -281,6 +312,46 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         {
             context.LastParagraphSpacingAfterPoints = (float) SpacingAfter(paragraph);
         }
+    }
+
+    // Consecutive lines from startIndex that fit above the page bottom, measured from the
+    // current flow position with the same float accumulation and comparison as the draw loop.
+    int CountLinesThatFit(List<Line> lines, int startIndex)
+    {
+        var y = context.CurrentY;
+        var count = 0;
+        for (var index = startIndex; index < lines.Count; index++)
+        {
+            if (y + lines[index].Height > context.ContentBottom)
+            {
+                break;
+            }
+
+            y += (float) lines[index].Height;
+            count++;
+        }
+
+        return count;
+    }
+
+    // Index of the line to force onto the next page so the split carries at least two lines
+    // forward while leaving at least two behind, or -1 when the natural break already
+    // satisfies the widow rule (or no earlier break can produce a valid split).
+    int PlanWidowBreak(List<Line> lines, int startIndex)
+    {
+        var fit = CountLinesThatFit(lines, startIndex);
+        var remaining = lines.Count - startIndex;
+        if (fit >= remaining)
+        {
+            return -1;
+        }
+
+        if (remaining - fit == 1 && fit - 1 >= 2)
+        {
+            return startIndex + fit - 1;
+        }
+
+        return -1;
     }
 
     void DrawItem(XGraphics graphics, LineItem item, double penX, double baseline)

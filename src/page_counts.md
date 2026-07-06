@@ -9,6 +9,139 @@ directories in `src/Tests/Inputs/`.
 `pdf_result.verified.json`, inspected `document.xml`/`styles.xml` of each mismatched `input.docx`,
 compared the page images of all four renderers side by side, and traced the responsible code paths.
 
+## Pass 4, experiment 7: widow/orphan control in the PDF backend (2026-07-06)
+
+P4-6 implemented. `w:widowControl` (on by default) maps to two-line minimums on each side of a
+paragraph split (`dmapper/DomainMapper.cxx:2061` — one value writes ParaWidows and ParaOrphans
+together). `PdfTextEngine.Draw` now plans its line-level page breaks accordingly: fewer than two
+lines fitting at the page bottom — or a trim that would leave fewer than two behind — moves the
+whole paragraph; a split that would carry a single line forward breaks one line earlier; the
+rule is abandoned at the top of a page/column (the keep-rule guard family) and re-planned after
+every mid-paragraph break so paragraphs spanning three or more pages stay valid. The planning
+helpers mirror the draw loop's float accumulation exactly, so plan and execution cannot diverge.
+The raster backends keep their existing whole-paragraph approximation (that pipeline cannot
+split mid-paragraph).
+
+**Result: Skia 306, ImageSharp 306, PDF 305 — multiple_pages PDF 4 → 5, now Word-exact in all
+three backends; 19 mismatching scenarios (was 20); zero regressions.** Six other scenarios
+churned pixels without moving counts (business-plans/12/13/15, resumes/18, html_complex,
+two_columns — the last confirming the rule coexists with column flow). Attribution updates:
+
+- complex_spacing (PDF 6 vs 7) did **not** move — its paragraphs never trip the two-line rule,
+  so its PDF deficit sits elsewhere in vertical geometry.
+- business-plans/15 (PDF 18 vs 19) and resumes/18 (PDF 2 vs 1) reshuffled lines under the new
+  pushes without changing counts — those deficits are height accumulation, not split placement.
+
+The sibling P4-6 piece — `MeasureParagraphHeightWithWidth` feeding the keep gates without the
+`max(0, before − prevAfter)` collapse that `Draw` applies — stays unimplemented, to be measured
+as its own experiment.
+
+## Pass 4, second LibreOffice sweep: candidates P4-6 to P4-11 (2026-07-06)
+
+With the width story closed by experiment 6, a second survey cross-referenced LibreOffice's
+complete DOCX compat-flag wiring (`sw/source/writerfilter/filter/WriterFilter.cxx` +
+`dmapper/SettingsTable.cxx`) against Morph's actual pagination machinery, and scanned the
+`document.xml` of every residual input for structural markers (tables, `w:trHeight` rules,
+columns, floats). Four decisive claims were re-verified in-source line by line; the remaining
+file references come from the survey and get re-verified when an experiment picks them up.
+
+### P4-6 — Word's widow/orphan control; the PDF backend has none
+
+`dmapper/DomainMapper.cxx:2061`: `w:widowControl` maps to `sal_Int8(nIntValue ? 2 : 0)` written
+to **both** `ParaWidows` and `ParaOrphans` — on (the OOXML default when absent) means *2 lines
+minimum at each side of a paragraph split*, explicit off means no constraint. Not gated on
+compatibilityMode. The layout enforcement (`sw/source/core/text/widorp.cxx:453-660` FindWidows,
+`:766-837` WouldFit): a split must leave at least 2 lines at the page bottom and carry at least
+2 lines forward; when no split point satisfies both, the whole paragraph moves; the rule is
+abandoned when the frame is already first on its page (no move can help — same abandonment
+family as P4-4).
+
+Morph today: the raster backends approximate this (whole-paragraph push when a split would
+strand a single line at either side, `SkiaPageRenderer.cs:465` / `ImageSharpPageRenderer.cs:410`,
+gated on `WidowControl`), but **the PDF backend has no widow/orphan logic at all** — its
+per-line loop in `PdfTextEngine.Draw` splits a paragraph at whichever line hits the page bottom.
+No 2-line minimums means the PDF backend packs pages tighter than Word, which is exactly the
+signature of the two flagship PDF deficits: multiple_pages (4 vs Word 5) and complex_spacing
+(6 vs Word 7), both confirmed table-free pure-pagination documents by the structural scan. This
+is the "vertical geometry or pagination structure" residue experiment 6 pointed at. A sibling
+internal asymmetry to fix alongside: `PdfTextEngine.MeasureParagraphHeightWithWidth` (feeding
+the keep gates) omits the `max(0, before − prevAfter)` spacing collapse that `Draw` applies, so
+PDF fit pre-checks disagree with what rendering does.
+
+### P4-7 — Header content pushes the body area down
+
+`dmapper/PropertyMap.cxx:1149` (PrepareHeaderFooterProperties): the header band is
+`topMargin − headerTop` (1 mm minimum) with **dynamic height and dynamic spacing** — header
+content taller than the band pushes the body start down; a *negative* `w:pgMar/@w:top` means a
+fixed body top even when the header overlaps it. Morph parses header distances and
+`RenderContextBase.SetHeaderFooterSpace:121` already implements the push formula — but all
+three backends feed it zero (`SkiaPageRenderer.cs:126` returns 0 under a "For now" comment,
+`ImageSharpPageRenderer.cs:118`, `PdfPageRenderer.cs:67`), so a letterhead of any height never
+displaces body text. Candidates among the residuals: letters/09 and the cover-letters cluster;
+a `w:headerReference` scan of the residual inputs is the cheap first step, then an XPS probe
+with an oversized header pins the exact push.
+
+### P4-8 — Word's bottom-of-page fit is exact; Morph's raster grants ~13 pt of slack
+
+`widorp.cxx:134,157`: the fit test adds the frame's bottom margin (space-after included) to the
+line height and requires `nDiff >= 0` — no tolerance, no descender grace, nothing may cross the
+body bottom. Morph raster's `HasSpaceFor` grants `ContentHeight × 0.02` (~13 pt on letter, most
+of a text line) and the table pre-check uses 10%; the PDF backend tests exactly. The slack is
+Morph-invented and now the prime suspect for the knife-edge scenarios — business-plans/02
+flipped on a 3.8 pt margin inside that window, business-plans/15 sits in the same family. High
+blast radius: the tolerance currently compensates unknown measurement error across the whole
+corpus, so this experiment runs late, in isolation, expecting churn.
+
+### P4-9 — Trailing blanks overhang the wrap boundary
+
+`MsWordCompTrailingBlanks` is set unconditionally for DOCX (`dmapper/DomainMapper.cxx:142`);
+the rule lives in the line-break guesser (`sw/source/core/text/guess.cxx:99-116`, plus
+`portxt.cxx:256` for decorations): Word lets spaces at a line's end run past the margin or wrap
+boundary rather than wrapping on them. Morph's wrapper emits whitespace as ordinary wrap tokens
+(`TextRenderer` word loop, width check at ~:1725) — an overflowing space wraps early and then
+leads the next line, shifting every subsequent word. Direction: extra wraps → longer paragraphs
+→ the spill cluster (cover-letters/06/15, letters/09, resumes/11/16/18). The LO condition's
+polarity is subtle (cut-vs-keep branches per adjustment mode and RTL) — re-verify in `guess.cxx`
+before implementing.
+
+### P4-10 — Tabs and blanks do not drive line height on non-empty lines
+
+`IgnoreTabsAndBlanksForLineCalculation` (unconditional for DOCX, `WriterFilter.cxx:318`) was
+already cited by P4-1 for empty paragraphs, but it equally applies to *populated* lines: a
+tab or space run carrying an oversized `w:sz` does not raise the line it sits on. Whether Morph
+sizes lines from whitespace-only runs is unmapped; a two-run XPS probe (small text + huge-font
+tab) settles it.
+
+### P4-11 — The mode-≤14 flag set, confirmed
+
+The complete `compatibilityMode <= 14` gate (`dmapper/SettingsTable.cxx:685-691`):
+`MsWordCompMinLineHeightByFly` (an inline shape alone on a line sets the line's ascent and
+height, `itrform2.cxx:358`), `TabOverMargin`, `AddFrameOffsets`, and — new to this sweep —
+`HiddenParagraphMarkPerLineProperties`. Related but ungated: `UseFormerTextWrapping` wraps text
+against the paragraph's *print area* rather than the full frame area (`txtfly.cxx:863`).
+Targets image_wrap_square (a mode-14 document) and the wrapNone/textbox scenarios (wedding/05,
+menus/03).
+
+### Dead ends and parked items from the sweep
+
+- The structural scan found **zero `hRule="exact"` rows and zero multi-column sections across
+  all residual inputs** — LO's fixed-row rule (`tabfrm.cxx:5070`: a fixed row's height is
+  returned verbatim, content ignored) and its column-balancing rules (balanced by default,
+  sequential for the last section or under `w:noColumnBalance`, `PropertyMap.cxx:900`) cannot
+  move this corpus. Recorded so neither gets re-chased.
+- **Cell-height conflict, parked**: LO adds the last paragraph's full space-after (and, with
+  `AddParaLineSpacingToTableCells`, its line spacing) to the cell
+  (`flowfrm.cxx:1946` CalcAddLowerSpaceAsLastInTableCell; both flags unconditional,
+  `WriterFilter.cxx:313`) — Morph's XPS-validated model instead overlaps space-after with the
+  bottom cell margin (`TableHeightCalculator.cs:268`). The two cannot both match Word; a
+  dedicated cell probe settles it before anything changes.
+- resumes/13 restated by the scan: 13 nested tables, every `w:trHeight` atLeast, no floats, no
+  exact rows — the +3 pages are accumulated cell-content measurement, not keeps (experiment 4),
+  not floats, not row rules. The 20 pt floor for height-less rows was already scoped in a prior
+  pass (`TableHeightCalculator.cs:39` — explicit-height rows exempt).
+- `w:cantSplit` is unparsed (rows always splittable); no residual is known to use it — check
+  the inputs before chasing.
+
 ## Pass 4, experiment 6: Word's advance model measured; PDF quantization a wash (2026-07-06)
 
 A per-glyph XPS probe (single-glyph runs for Aptos/Calibri/Times New Roman/Segoe UI/Arial at

@@ -616,9 +616,9 @@ Prevents single lines from appearing alone at the top (widow) or bottom (orphan)
 
 - **OOXML**: `w:widowControl`
 - **Model**: `ParagraphProperties.WidowControl`
-- **Render**: both backends look ahead at per-line heights via `LayoutParagraphForMeasurement` when a paragraph won't fit on the current page. If the split would leave exactly 1 line on either side (orphan or widow), the whole paragraph is pushed to the next page instead.
+- **Render**: the raster backends look ahead at per-line heights via `LayoutParagraphForMeasurement` when a paragraph won't fit on the current page; a split that would leave exactly 1 line on either side (orphan or widow) pushes the whole paragraph instead. The PDF backend (`PdfTextEngine.Draw`) plans real line-level splits: fewer than two lines fitting at the page bottom moves the whole paragraph, a split that would carry a single line forward breaks one line earlier, and the rule is abandoned at the top of a page/column.
 
-> **AI**: Mid-paragraph splits aren't supported in the current pipeline, so the only enforceable case is "push the whole paragraph to the next page". Cases that would need 3-line splits (e.g. 5-line paragraph that needs to break 3+2) still split arbitrarily and may produce a 1+4 split — those are rare in practice but a future enhancement could route through a per-line break-point list.
+> **AI**: The raster pipeline cannot split mid-paragraph, so its only enforceable move is pushing the whole paragraph — a 5-line paragraph needing a 3+2 break still splits arbitrarily there. The PDF backend enforces the full Word rule (two lines minimum on each side of a split, matching `w:widowControl`'s widows=2/orphans=2 semantics), re-planning after every mid-paragraph break so paragraphs spanning several pages stay valid.
 
 
 ### 2.5 Paragraph Decoration
