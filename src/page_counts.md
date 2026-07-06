@@ -39,9 +39,10 @@ content toward Word's geometry even where counts don't change.
 Combined disposition (experiments 1+2, unchanged from experiment 1): page-count net −1 vs the
 pass-2 baseline (won cover-letters/03 + resumes/14 on PDF; lost knife-edge business-plans/02
 raster and business-plans/15 PDF), pixel fidelity clearly improved, both rules verified against
-Word ground truth. Whether to accept (regenerate baselines, accepting the two knife-edge
-exposures the way pass 2 accepted resumes/02) or hold for a compensating-error fix in
-business-plans/02/15 is an open decision.
+Word ground truth. **Accepted** — the same trade pass 2 made with resumes/02: verified-correct
+rules land, the two knife-edge exposures are recorded as hunting targets. Baselines regenerated
+(2493/2493 + 9/9 static green); the new Word-match scoreboard is **Skia 306, ImageSharp 306,
+PDF 302** with 22 mismatching scenarios.
 
 ## Pass 4, experiment 1: empty-paragraph mark heights (2026-07-06)
 
@@ -89,8 +90,8 @@ P4-2 (space-before dropped at page tops) removes height in exactly the document 
 business-plans/02 has; running experiments 1+2 together is the natural next measurement before
 deciding whether this lands or reverts.
 
-Code state: change present in the working tree (parser + 3 backends + model), baselines **not**
-regenerated, disposition pending the experiment-2 combination run.
+Code state: accepted together with experiment 2 (see the section above) after the combination
+run measured page-count neutral for experiment 2; baselines regenerated.
 
 ## Pass 4 candidates: rules from LibreOffice's Word-compat layout (2026-07-06)
 
