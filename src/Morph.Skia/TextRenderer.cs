@@ -209,7 +209,11 @@ sealed class TextRenderer(SkiaRenderContext context) :
         // Also collapse when we're continuing a w:between border chain — the borders fuse,
         // so there must be no gap between this paragraph and the previous one.
         var inBetweenChain = context.SuppressNextParagraphTopBorder;
-        if (!collapseSpacingBefore && !inBetweenChain)
+        // Word drops spacing-before at the top of an automatically broken page (one-shot,
+        // set by the page renderer).
+        var suppressPageTopSpacing = context.SuppressPageTopSpacingBefore;
+        context.SuppressPageTopSpacingBefore = false;
+        if (!collapseSpacingBefore && !inBetweenChain && !suppressPageTopSpacing)
         {
             var spacingBefore = (float)props.SpacingBeforePoints;
             var lastSpacingAfter = context.LastParagraphSpacingAfterPoints;
@@ -774,21 +778,29 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 });
         }
 
-        // Handle empty paragraph - use font metrics from runs or paragraph mark font size
+        // Handle empty paragraph - Word derives the line from the paragraph mark's formatting
         if (lines.Count == 0)
         {
             // Fallback default
             float emptyHeight = 12;
             float emptyBaseline = 10;
 
-            if (paragraph.Runs.Count > 0)
+            if (props.ParagraphMarkRunProperties is { } markProps)
             {
+                // An empty paragraph's line takes the paragraph mark's resolved formatting
+                // (w:pPr/w:rPr over the style chain) with the same full line box as any
+                // other line — not the first run's font and not a fixed 12pt.
+                var font = context.CreateFont(markProps);
+                var metrics = font.Metrics;
+                emptyHeight = (-metrics.Ascent + metrics.Descent + metrics.Leading) / context.Scale;
+                emptyBaseline = -metrics.Ascent / context.Scale;
+            }
+            else if (paragraph.Runs.Count > 0)
+            {
+                // HTML paragraphs carry no mark: keep the first run's bare ascent+descent box.
                 var firstRun = paragraph.Runs[0];
                 var font = context.CreateFont(firstRun.Properties);
                 var metrics = font.Metrics;
-                // Empty paragraphs take the bare ascent+descent box (no external leading):
-                // Word sizes spacer paragraphs to the mark's cell height, and gap-inclusive
-                // empties inflate template layouts that stack many spacers between blocks.
                 emptyHeight = (-metrics.Ascent + metrics.Descent) / context.Scale;
                 emptyBaseline = -metrics.Ascent / context.Scale;
             }
@@ -1764,22 +1776,29 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 });
         }
 
-        // Handle empty paragraph - use font metrics from runs if available
+        // Handle empty paragraph - Word derives the line from the paragraph mark's formatting
         if (lines.Count == 0 && !paragraph.IsAnchorOnlyMark)
         {
             // Fallback default
             float emptyHeight = 12;
             float emptyBaseline = 10;
 
-            // Get height from first run's font if available
-            if (paragraph.Runs.Count > 0)
+            if (props.ParagraphMarkRunProperties is { } markProps)
             {
+                // An empty paragraph's line takes the paragraph mark's resolved formatting
+                // (w:pPr/w:rPr over the style chain) with the same full line box as any
+                // other line — not the first run's font and not a fixed 12pt.
+                var font = context.CreateFont(markProps);
+                var metrics = font.Metrics;
+                emptyHeight = (-metrics.Ascent + metrics.Descent + metrics.Leading) / context.Scale;
+                emptyBaseline = -metrics.Ascent / context.Scale;
+            }
+            else if (paragraph.Runs.Count > 0)
+            {
+                // HTML paragraphs carry no mark: keep the first run's bare ascent+descent box.
                 var firstRun = paragraph.Runs[0];
                 var font = context.CreateFont(firstRun.Properties);
                 var metrics = font.Metrics;
-                // Empty paragraphs take the bare ascent+descent box (no external leading):
-                // Word sizes spacer paragraphs to the mark's cell height, and gap-inclusive
-                // empties inflate template layouts that stack many spacers between blocks.
                 emptyHeight = (-metrics.Ascent + metrics.Descent) / context.Scale;
                 emptyBaseline = -metrics.Ascent / context.Scale;
             }

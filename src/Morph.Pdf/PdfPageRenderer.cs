@@ -9,6 +9,10 @@ sealed class PdfPageRenderer : PageRendererBase
     readonly PdfTextEngine textEngine;
 
     int pagesAdded;
+
+    // Track whether the current page was started by a section break (a new page setup):
+    // Word keeps a paragraph's spacing-before at the top of such pages in every mode.
+    bool currentPageFromSectionBreak;
     PdfPage? currentPage;
     bool hasSignificantContentOnCurrentPage;
     bool currentPageFromExplicitBreak;
@@ -140,6 +144,7 @@ sealed class PdfPageRenderer : PageRendererBase
                     FinishCurrentPage();
                     StartNewPage();
                     currentPageFromExplicitBreak = true;
+                    currentPageFromSectionBreak = true;
                 }
 
                 break;
@@ -299,6 +304,7 @@ sealed class PdfPageRenderer : PageRendererBase
 
         hasSignificantContentOnCurrentPage = false;
         currentPageFromExplicitBreak = false;
+        currentPageFromSectionBreak = false;
     }
 
     protected override void FinishCurrentPage()
@@ -396,6 +402,7 @@ sealed class PdfPageRenderer : PageRendererBase
 
         using (bandConstrained ? context.PushContentContainer(bandX, bandWidth) : null)
         {
+            context.SuppressPageTopSpacingBefore = ShouldSuppressPageTopSpacingBefore();
             textEngine.Render(paragraph);
         }
 
@@ -403,6 +410,33 @@ sealed class PdfPageRenderer : PageRendererBase
         {
             hasSignificantContentOnCurrentPage = true;
         }
+    }
+
+    // Word does not apply a body paragraph's spacing-before at the top of a page reached by an
+    // automatic break; compatibilityMode 15 also drops it after explicit page breaks, while a
+    // section break (a new page setup) and the document's first page keep it. Column tops are
+    // left unchanged (Word drops there too on automatic flow, but Morph's column handling is
+    // measured separately). See page_counts.md, pass 4.
+    bool ShouldSuppressPageTopSpacingBefore()
+    {
+        if (pagesAdded <= 1 ||
+            context.CurrentColumn != 0 ||
+            context.CurrentY > context.ContentTop + 0.01f)
+        {
+            return false;
+        }
+
+        if (currentPageFromSectionBreak)
+        {
+            return false;
+        }
+
+        if (currentPageFromExplicitBreak)
+        {
+            return context.Compatibility.CompatibilityMode >= 15;
+        }
+
+        return true;
     }
 
     protected override void RenderParagraphInBounds(ParagraphElement paragraph, float x, float maxWidth)

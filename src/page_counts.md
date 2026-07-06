@@ -9,6 +9,199 @@ directories in `src/Tests/Inputs/`.
 `pdf_result.verified.json`, inspected `document.xml`/`styles.xml` of each mismatched `input.docx`,
 compared the page images of all four renderers side by side, and traced the responsible code paths.
 
+## Pass 4, experiment 2: space-before dropped at page tops (2026-07-06)
+
+Implemented P4-2's page-top tiers in all three backends, layered on experiment 1: a body
+paragraph rendered at the very top of a non-first page (first column) gets no spacing-before
+when the page came from an **automatic** break; compatibilityMode 15 also drops it after
+**explicit** page breaks; pages started by a **section break** (a new page setup) and the
+document's first page keep it. Mechanics: the page renderers compute a one-shot
+`SuppressPageTopSpacingBefore` on the shared context immediately before rendering a body
+paragraph (a new `currentPageFromSectionBreak` flag distinguishes section starts from plain
+explicit breaks); the text engines consume it in their spacing-before logic. Column tops were
+left unchanged (Word also drops on automatic column flow, but the column docs all match today
+and the explicit-column-break exemption would need its own state).
+
+**Result: page-count neutral.** The scoreboard is identical to experiment 1 alone (Skia 306,
+ImageSharp 306, PDF 302; same four movers). Six additional scenarios shift pixels only. The
+explanation: template spacing lives overwhelmingly in spacing-after, and the existing cross-page
+collapse (`before = max(0, before − prevAfter)`, which Morph applies across page boundaries)
+already ate most page-top spacing-before; the residue (headings with large space-before pushed to
+page tops) is a few points per document — not enough to flip any current count.
+
+**Pixel-level effect of the combined tree (experiments 1+2)** against the Word references, over
+all pages comparable to the checked-in baselines: **220 pages improved, 117 worsened, 114
+unchanged**; every one of the 15 largest movements is an improvement (cards/16 −0.03…−0.05 per
+page, postcards/04 −0.06, agendas-minutes/02 −0.045, labels/01 −0.036), while the worst
+regressions are +0.008…+0.028 wobble on pages whose content shifted. The rule stack is moving
+content toward Word's geometry even where counts don't change.
+
+Combined disposition (experiments 1+2, unchanged from experiment 1): page-count net −1 vs the
+pass-2 baseline (won cover-letters/03 + resumes/14 on PDF; lost knife-edge business-plans/02
+raster and business-plans/15 PDF), pixel fidelity clearly improved, both rules verified against
+Word ground truth. Whether to accept (regenerate baselines, accepting the two knife-edge
+exposures the way pass 2 accepted resumes/02) or hold for a compensating-error fix in
+business-plans/02/15 is an open decision.
+
+## Pass 4, experiment 1: empty-paragraph mark heights (2026-07-06)
+
+Implemented P4-1 (below) across all three backends: an empty paragraph's line takes the
+paragraph mark's style-resolved run formatting (`ParagraphProperties.ParagraphMarkRunProperties`,
+parsed via the same `ParseRunProperties` chain as a run without direct formatting) with the same
+full hhea line box as any other line, passed through the normal line-spacing rules. Previously:
+Skia/ImageSharp used the first run's bare (gap-free) box, or `sz × 1.2` when a direct mark size
+existed, or a flat 12 pt; PDF used the global default face at `sz ?? 11`.
+
+**Ground truth (Word COM → XPS probe, deciding the box question):** a purpose-built probe docx
+(anchor "X" lines around 8-empty blocks; baseline positions read from the XPS) measured Word's
+empty-line pitch directly:
+
+| case | Word | mark full box | old model |
+|---|---:|---:|---:|
+| default mark, Calibri 11pt | 13.434 pt | 13.43 | 12.00 |
+| mark `w:sz` 9pt, Calibri | 10.957 pt | 10.99 | 10.80 |
+| mark 9pt, Segoe UI | 12.007 pt | 11.97 | 10.80 |
+| empty 24pt run, 11pt mark | 13.506 pt | 13.43 | ~24 (run-driven) |
+
+The mark-resolved full box is Word-exact to ±0.07 pt in all four cases, including the decisive
+fourth: **an empty run's size does not drive the line — the mark does.** The rule is verified;
+`probe_empty_heights` generation lives in the session notes and is trivially recreatable.
+
+**Suite results (no-regen scoreboard, 321 scenarios):**
+
+- Variant A — rule applied everywhere: Skia 307→305, ImageSharp 307→305, PDF 301→302.
+  PDF fixed cover-letters/03 (2→1), resumes/06 (6→3), resumes/14 (2→1); PDF broke
+  business-plans/15 (19→18) and letters/07 (1→2); raster broke wedding/05 (2→3, empty
+  Heading1 marks in card cells growing 12→43 pt) and business-plans/02 (6→7).
+- Variant C — cells and headers/footers excluded (mark left null there; renderers fall back):
+  **Skia 306, ImageSharp 306, PDF 302** (net −1 vs 915 baseline). Wins kept: cover-letters/03
+  PDF, resumes/14 PDF. Remaining losses: business-plans/02 raster 6→7 (three body empties grew
+  a combined ~+3.8 pt — a knife-edge document) and business-plans/15 PDF 19→18 (26 body 9pt
+  empties shrank from the 11pt-default model — the pass-2 win there rested on the old
+  overestimate).
+
+**Interpretation:** the rule is Word-correct; the two page-count losses are compensating-error
+exposure in knife-edge documents, the same pattern pass 2 hit with resumes/02. The in-cell and
+header/footer variants stay excluded until their sibling rules exist (exact-row clipping,
+end-of-cell mark collapse, footer content-box handling) — enabling cells inflated card templates
+(wedding/05) while PDF cell shrinkage fixed resumes/06, confirming the entanglement both ways.
+P4-2 (space-before dropped at page tops) removes height in exactly the document shape
+business-plans/02 has; running experiments 1+2 together is the natural next measurement before
+deciding whether this lands or reverts.
+
+Code state: change present in the working tree (parser + 3 backends + model), baselines **not**
+regenerated, disposition pending the experiment-2 combination run.
+
+## Pass 4 candidates: rules from LibreOffice's Word-compat layout (2026-07-06)
+
+Survey of the LibreOffice Writer source (`C:\Code\LibreOffice`, post-26.8 branch point) for
+reverse-engineered Word pagination rules applicable to the 21 remaining mismatches. Writer encodes
+these as document compat settings with the Word behaviour documented in code comments; every quote
+below was verified in-source, and the file references are evidence for the rule, not code to port
+(LO is MPL-2.0 — adopt the behaviour, don't copy the implementation).
+
+Confirmed dead end first: **LO has no counterpart to the 0.05 em advance quantisation** (pass 3's
+root-cause finding). Its closest mechanisms are integer-pixel advance rounding
+(`vcl/source/gdi/CommonSalLayout.cxx:826`) and selecting `DWRITE_RENDERING_MODE_GDI_CLASSIC`
+(`vcl/win/gdi/DWriteTextRenderer.cxx:101`) — Word's widths come from the hinted/GDI advance
+family, but emulating the quantisation stays original work.
+
+Five rules Morph does not implement, ordered by expected yield:
+
+### P4-1 — Empty-paragraph line height comes from the paragraph mark (experiment 1)
+
+`ApplyParagraphMarkFormatToEmptyLineAtEndOfParagraph` is set unconditionally for every DOCX
+(`sw/source/writerfilter/dmapper/SettingsTable.cxx:679`); the layout comment states the Word rule:
+*"for empty last line, line height is based on paragraph marker formatting, ignoring blanks/tabs"*
+(`sw/source/core/text/porlay.cxx` ~594). The sibling DOCX-unconditional flag
+`IgnoreTabsAndBlanksForLineCalculation` makes whitespace-only content not affect line height. An
+empty paragraph therefore takes the line pitch of its `w:pPr/w:rPr` (paragraph-mark) formatting —
+not the paragraph's style-default run font. Scan of the remaining inputs for empty paragraphs
+carrying an explicit `w:sz`: business-plans/12 **401**, business-plans/13 **221**, newsletters/06
+18, resumes/11 + /14 + cover-letters/06 4 each, resumes/02 + /06 + /18 3 each, cover-letters/03 +
+/15 + resumes/16 1 each — nearly every residual scenario, with counts large enough to drive both
+the business-plans cumulative drift and single-spacer 1→2 spills.
+
+### P4-2 — Space-before is dropped at the top of pages
+
+Three-tier rule, all verified:
+
+- After an **automatic** page break the first paragraph's space-before is not applied, in every
+  Word mode (`sw/source/core/layout/flowfrm.cxx:1415`, `HasParaSpaceAtPages` — kept on the first
+  page, after explicit breaks (subject to the next tier), after column breaks, and inside
+  cells/flys/headers/footers).
+- **compatibilityMode 15** drops it after *explicit* page breaks too: *"Word >= 2013 style: when
+  [...] at the top of the page's body, but not on the first page, then ignore the upper margin"*
+  (`sw/source/core/layout/calcmove.cxx:1132`, `IsCollapseUpper`; exception — kept right after a
+  page-style/section change).
+- Where it survives (compat ≤ 14 after explicit breaks), Word consolidates:
+  `upper = max(upper − prev.lower, 0)`, and contextualSpacing suppresses the gap even across
+  section page breaks (`sw/source/core/layout/flowfrm.cxx:1538`, `lcl_PartiallyCollapseUpper` —
+  *"Implement top-of-the-page layout anomalies needed to match MS Word"*).
+
+Morph applies space-before at page tops, accruing surplus on every page of business-plans/12/13
+and double-charging resumes/13 (every keepNext-pushed heading lands at a page top carrying spacing
+Word discards). LO also confirms pass 2's max-collapse as the default and that
+`w:doNotUseHTMLParagraphAutoSpacing` switches adjacent-paragraph spacing to *sum*
+(`dmapper/DomainMapper_Impl.cxx:10112`).
+
+### P4-3 — Floating objects never cause pagination
+
+An anchored object never pushes itself or its anchor to the next page; the anchor's text position
+decides the page, then the object overhangs or is clamped *upward*:
+
+- Word ≤ 2010: *"the fly can overlap with the bottom margin / footer area in case the fly height
+  fits the body height and the fly bottom fits the page"* (`sw/source/core/layout/fly.cxx:132`).
+- Word ≥ 2013: *"the fly has to stay inside the body frame"* (`fly.cxx:161`) — clamped up into the
+  body, still no page break; compatMode 15 uses the text body as the vertical limit for
+  paragraph-anchored non-wrapthrough objects
+  (`sw/source/core/objectpositioning/anchoredobjectposition.cxx:492-514`).
+- Wrap-through objects under `DoNotCaptureDrawObjsOnPage` (unconditional for DOCX) are returned
+  **unadjusted** — they may leave the page entirely (`anchoredobjectposition.cxx:457`).
+- Floats contribute no height to their anchor paragraph (empty anchor-carrier paragraphs stay
+  minimal).
+
+Directly targets resumes/06 and newsletters/06 (inserted shape-only pages), brochures/07's
+stranded floats, and the leftover C8 family.
+
+### P4-4 — Word abandons keep rules rather than cascading them
+
+`sw/source/core/text/widorp.cxx:313-395` and `sw/source/core/layout/tabfrm.cxx:2945`: keep-with-next
+is ignored when the kept frame is already first on its page (pushing again cannot help), when the
+next frame needs a full page, and when an explicit break sits in the chain; a kept table chain that
+cannot move forward is allowed to split (`bEmulateTableKeepSplitAllowed`); split retries are capped
+(5) with oscillation detection. Honouring keepNext unconditionally is what turns a small height
+error into resumes/13's 5→8 amplification.
+
+### P4-5 — compatibilityMode is per-document; half the residual docs are not mode 15
+
+From the inputs: business-plans/12/13, resumes/11/13/18, cover-letters/03/06, letters/09,
+newsletters/06, brochures/07, resumes/02 are **15**; image_wrap_square is **14**; cover-letters/15,
+resumes/06/14/16, complex_spacing, multiple_pages have *no* compatSetting → Word defaults to **12**
+(`dmapper/SettingsTable.cxx:633`). LO gates real layout behaviour on ≤ 14: `TabOverMargin`,
+`AddFrameOffsets`, and `MsWordCompMinLineHeightByFly` (*an inline shape alone on a line defines the
+line height regardless of font*, `sw/source/core/text/itrform2.cxx:358`). Morph already parses the
+mode into `CompatibilitySettings` (page tolerance, legacy table line spacing) — but its default for
+a missing compatSetting is **15** where Word's is **12** (`CompatibilitySettings.cs:12`), and the
+≤ 14 rule set above plus the P4-2/P4-3 tiers are not modelled.
+
+### Cautions surfaced by the survey
+
+- **The pass-2 "line pitch = hhea" model was only validated on fonts where it is unfalsifiable**:
+  for Aptos and Calibri, hhea/typo coincide (Aptos sets `USE_TYPO_METRICS`; its win sum is 5.24%
+  *larger* than hhea, so Word demonstrably did not use win there). The bundled corpus has fonts
+  where the tables diverge (Helvetica hhea-sum 1.00 em vs win 1.18; Baskerville Old Face 1.00 vs
+  1.14). One RenderHelper probe with a divergent font would pin Word's actual rule (likely: typo
+  when `USE_TYPO_METRICS`, else the GDI win-based height + external leading) before hhea drifts a
+  future scenario.
+- Word scales line height ×1.27 for fonts self-reporting certain CJK codepages even for Latin text
+  (tdf#129808, `sw/source/core/txtnode/fntcache.cxx:269`); LO gates it on FE-layout settings, and
+  resumes/02 and resumes/18 both carry `useFELayout` in their compat sections.
+
+Protocol per experiment: same as pass 2 — implement the rule across all three backends, validate
+in-container with a no-regen scenario run isolating exactly which scenarios move, accept only net
+Word-match gains.
+
 ## Resolution, pass 3: remaining-mismatch experiments (2026-07-05, final)
 
 Three further experiments targeted the 21 remaining mismatches, each measured against the

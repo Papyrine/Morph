@@ -53,6 +53,14 @@ abstract class RenderContextBase
     /// </summary>
     public bool SuppressNextParagraphTopBorder { get; set; }
 
+    /// <summary>
+    /// One-shot: the next flow paragraph starts at the top of a page produced by an automatic
+    /// break, where Word does not apply the paragraph's spacing-before. Set by the page
+    /// renderers immediately before rendering a body paragraph; consumed and cleared by the
+    /// text engines' spacing-before logic.
+    /// </summary>
+    public bool SuppressPageTopSpacingBefore { get; set; }
+
     // Page dimensions in pixels
     public int PageWidthPixels { get; private set; }
     public int PageHeightPixels { get; private set; }

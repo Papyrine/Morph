@@ -85,9 +85,13 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
     double EmptyLineHeight(ParagraphElement paragraph)
     {
-        var size = paragraph.Properties.ParagraphMarkFontSizePoints ?? 11;
-        var font = context.GetFont(DefaultFontSettings.DefaultFont, false, false, size);
-        return font.GetHeight() * paragraph.Properties.LineSpacingMultiplier;
+        var properties = paragraph.Properties;
+        // An empty paragraph's line takes the paragraph mark's resolved formatting
+        // (w:pPr/w:rPr over the style chain) — not the default face at a fixed size.
+        var font = properties.ParagraphMarkRunProperties is { } markProps
+            ? context.GetFont(markProps)
+            : context.GetFont(DefaultFontSettings.DefaultFont, false, false, properties.ParagraphMarkFontSizePoints ?? 11);
+        return font.GetHeight() * properties.LineSpacingMultiplier;
     }
 
     // ---- Paragraph spacing (mirrors the Skia/ImageSharp contextual-spacing collapse) ----
@@ -148,8 +152,16 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         if (allowPageBreak)
         {
             spacingBefore = Math.Max(0, spacingBefore - context.LastParagraphSpacingAfterPoints);
+
+            // Word drops spacing-before at the top of an automatically broken page (one-shot,
+            // set by the page renderer).
+            if (context.SuppressPageTopSpacingBefore)
+            {
+                spacingBefore = 0;
+            }
         }
 
+        context.SuppressPageTopSpacingBefore = false;
         context.CurrentY += (float) spacingBefore;
 
         if (lines.Count == 0)
