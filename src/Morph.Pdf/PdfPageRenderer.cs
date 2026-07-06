@@ -402,6 +402,35 @@ sealed class PdfPageRenderer : PageRendererBase
 
         using (bandConstrained ? context.PushContentContainer(bandX, bandWidth) : null)
         {
+            // KeepNext / KeepLines with Word's abandonment guards, mirroring the raster
+            // renderers: no push when already at the top of the page (pushing again cannot
+            // help) and no push when the kept content cannot fit a fresh column either.
+            if (paragraph.Properties.KeepNext && nextElement != null && !isEmpty)
+            {
+                var nextHeight = MeasureElementHeight(nextElement);
+                if (nextHeight > 0)
+                {
+                    var combinedHeight = textEngine.MeasureParagraphHeightWithWidth(paragraph, context.ContentWidth) + nextHeight;
+                    if (!context.HasSpaceFor(combinedHeight) &&
+                        combinedHeight <= context.ContentHeight &&
+                        context.CurrentY > context.ContentTop)
+                    {
+                        AdvanceToNextColumnOrPage();
+                    }
+                }
+            }
+
+            if (paragraph.Properties.KeepLines && !isEmpty)
+            {
+                var height = textEngine.MeasureParagraphHeightWithWidth(paragraph, context.ContentWidth);
+                if (!context.HasSpaceFor(height) &&
+                    height <= context.ContentHeight &&
+                    context.CurrentY > context.ContentTop)
+                {
+                    AdvanceToNextColumnOrPage();
+                }
+            }
+
             context.SuppressPageTopSpacingBefore = ShouldSuppressPageTopSpacingBefore();
             textEngine.Render(paragraph);
         }
@@ -411,6 +440,16 @@ sealed class PdfPageRenderer : PageRendererBase
             hasSignificantContentOnCurrentPage = true;
         }
     }
+
+    // Height of the element a KeepNext paragraph must share its page with. Tables return 0
+    // (keep-before-table stays inert in the PDF backend until it has a table pre-measure).
+    float MeasureElementHeight(DocumentElement element) =>
+        element switch
+        {
+            ParagraphElement para => textEngine.MeasureParagraphHeightWithWidth(para, context.ContentWidth),
+            ImageElement img => (float) img.HeightPoints,
+            _ => 0
+        };
 
     // Word does not apply a body paragraph's spacing-before at the top of a page reached by an
     // automatic break; compatibilityMode 15 also drops it after explicit page breaks, while a

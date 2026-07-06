@@ -9,6 +9,30 @@ directories in `src/Tests/Inputs/`.
 `pdf_result.verified.json`, inspected `document.xml`/`styles.xml` of each mismatched `input.docx`,
 compared the page images of all four renderers side by side, and traced the responsible code paths.
 
+## Pass 4, experiment 4: keep rules in the PDF backend (2026-07-06)
+
+P4-4's implementable half: the PDF backend had **no** keep handling at all (C6), so
+`PdfPageRenderer.RenderParagraph` now mirrors the raster keepNext/keepLines handlers, including
+Word's abandonment guards verified from LibreOffice (`widorp.cxx:313-395`): no push when the
+paragraph already sits at the top of the page (pushing again cannot help) and no push when the
+kept content cannot fit a fresh column either. Keep-before-table stays inert in PDF until it has
+a table pre-measure.
+
+**Result: page-count neutral (Skia 306, ImageSharp 306, PDF 304), one scenario pixel-shifted** —
+business-plans/13 PDF, where keep pushes now move section headings to the top of the following
+page (pages 4/5 and 11/12), matching Word's structure. Two attribution findings came free:
+
+- **complex_spacing's PDF deficit (6 vs 7) is pure wrap difference.** With its 5 keepNext +
+  6 keepLines paragraphs now honoured, nothing pushes: under the PDF engine's narrower text
+  metrics every kept pair fits. The remaining page is the C5/advance-quantisation residue, not
+  keep handling.
+- **resumes/13 (5 vs 8/8/8) is not keep-driven.** The PDF backend produced the same 8 pages with
+  zero keep handling as it does with keeps — the original "keepNext amplification" attribution
+  is disproven; its overshoot lives in accumulated flow/table heights.
+
+The other half of P4-4 (abandonment guards on the raster side) needed no work: both raster
+handlers already carry the top-of-page and fits-a-fresh-page guards.
+
 ## Pass 4, experiment 3: end-of-cell mark collapse (2026-07-06)
 
 Planned as P4-3 (floats never paginate), but the diagnosis redirected it. Morph's float

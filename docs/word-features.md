@@ -599,7 +599,7 @@ Prevents a page break between this paragraph and the next.
 - **OOXML**: `w:keepNext`
 - **Model**: `ParagraphProperties.KeepNext`
 
-> **Contributors**: Implemented by measuring the next element and ensuring both fit on the current page. See `PageRenderer` keep-next logic.
+> **Contributors**: Implemented by measuring the next element and ensuring both fit on the current page, in all three backends (the PDF renderer mirrors the raster handlers; its keep-before-table stays inert until it has a table pre-measure). Word's abandonment guards apply: no push when already at the top of a page, and none when the kept pair cannot fit a fresh column either. See `PageRenderer` keep-next logic and `PdfPageRenderer.RenderParagraph`.
 
 
 #### Keep Lines Together `DONE`
