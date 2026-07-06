@@ -9,6 +9,22 @@ directories in `src/Tests/Inputs/`.
 `pdf_result.verified.json`, inspected `document.xml`/`styles.xml` of each mismatched `input.docx`,
 compared the page images of all four renderers side by side, and traced the responsible code paths.
 
+## Pass 4, experiment 8: keep gates measure flow-true heights (2026-07-06)
+
+The deferred sibling of experiment 7. The PDF keep gates tested `MeasureParagraphHeightWithWidth`,
+which charges the raw spacing-before, while `Draw` renders with the neighbour collapse
+`max(0, before − prevAfter)` — so keepNext/keepLines could demand up to `min(before, prevAfter)`
+more room than rendering would use and push a paragraph Word keeps in place. The raster backends
+already collapse inside `MeasureParagraphHeight`, so the gates disagreed across backends too.
+`PdfTextEngine.MeasureFlowHeight` now folds the collapse into the measurement (the kept-next
+element collapses against the *current* paragraph's after-spacing), and both gates use it.
+
+**Result: bit-identical output — 2494/2494 tests green against unchanged baselines; zero
+snapshots moved, no regen required.** The corpus never exercises the window: every keep push is
+decided by a margin wider than the spacing collapse. Kept as measurement-consistency groundwork —
+the P4-8 fit-tolerance experiment changes exactly the boundary these gates test against, and
+gates measuring fat by a spacing collapse would contaminate its attribution.
+
 ## Pass 4, experiment 7: widow/orphan control in the PDF backend (2026-07-06)
 
 P4-6 implemented. `w:widowControl` (on by default) maps to two-line minimums on each side of a

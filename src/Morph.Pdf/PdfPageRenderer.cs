@@ -407,10 +407,10 @@ sealed class PdfPageRenderer : PageRendererBase
             // help) and no push when the kept content cannot fit a fresh column either.
             if (paragraph.Properties.KeepNext && nextElement != null && !isEmpty)
             {
-                var nextHeight = MeasureElementHeight(nextElement);
+                var nextHeight = MeasureElementHeight(nextElement, PdfTextEngine.SpacingAfter(paragraph));
                 if (nextHeight > 0)
                 {
-                    var combinedHeight = textEngine.MeasureParagraphHeightWithWidth(paragraph, context.ContentWidth) + nextHeight;
+                    var combinedHeight = textEngine.MeasureFlowHeight(paragraph, context.ContentWidth, context.LastParagraphSpacingAfterPoints) + nextHeight;
                     if (!context.HasSpaceFor(combinedHeight) &&
                         combinedHeight <= context.ContentHeight &&
                         context.CurrentY > context.ContentTop)
@@ -422,7 +422,7 @@ sealed class PdfPageRenderer : PageRendererBase
 
             if (paragraph.Properties.KeepLines && !isEmpty)
             {
-                var height = textEngine.MeasureParagraphHeightWithWidth(paragraph, context.ContentWidth);
+                var height = textEngine.MeasureFlowHeight(paragraph, context.ContentWidth, context.LastParagraphSpacingAfterPoints);
                 if (!context.HasSpaceFor(height) &&
                     height <= context.ContentHeight &&
                     context.CurrentY > context.ContentTop)
@@ -441,12 +441,14 @@ sealed class PdfPageRenderer : PageRendererBase
         }
     }
 
-    // Height of the element a KeepNext paragraph must share its page with. Tables return 0
-    // (keep-before-table stays inert in the PDF backend until it has a table pre-measure).
-    float MeasureElementHeight(DocumentElement element) =>
+    // Height of the element a KeepNext paragraph must share its page with, charged the way the
+    // flow will charge it (a following paragraph collapses its spacing-before against this
+    // paragraph's spacing-after). Tables return 0 (keep-before-table stays inert in the PDF
+    // backend until it has a table pre-measure).
+    float MeasureElementHeight(DocumentElement element, double previousSpacingAfter) =>
         element switch
         {
-            ParagraphElement para => textEngine.MeasureParagraphHeightWithWidth(para, context.ContentWidth),
+            ParagraphElement para => textEngine.MeasureFlowHeight(para, context.ContentWidth, previousSpacingAfter),
             ImageElement img => (float) img.HeightPoints,
             _ => 0
         };

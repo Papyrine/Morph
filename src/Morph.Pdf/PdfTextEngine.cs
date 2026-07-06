@@ -66,6 +66,14 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     public float MeasureParagraphHeightWithWidth(ParagraphElement paragraph, float maxWidth) =>
         (float) MeasureHeight(paragraph, maxWidth);
 
+    /// <summary>Height the paragraph will consume in the page flow: <see cref="MeasureHeight"/>
+    /// with the cross-paragraph spacing collapse that <see cref="Render"/> applies
+    /// (max(after, before) between neighbours) folded in, so keep decisions test the height
+    /// that drawing will actually use. <paramref name="previousSpacingAfter"/> is the
+    /// spacing-after of whatever renders before this paragraph.</summary>
+    public float MeasureFlowHeight(ParagraphElement paragraph, double maxWidth, double previousSpacingAfter) =>
+        (float) (MeasureHeight(paragraph, maxWidth) - Math.Min(SpacingBefore(paragraph), previousSpacingAfter));
+
     public double MeasureHeight(ParagraphElement paragraph, double maxWidth)
     {
         var lines = Layout(paragraph, maxWidth);
@@ -115,8 +123,9 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     }
 
     // w:contextualSpacing also suppresses the paragraph's own after-spacing; the next same-style
-    // paragraph's collapsed before-spacing keeps the block tight.
-    static double SpacingAfter(ParagraphElement paragraph) =>
+    // paragraph's collapsed before-spacing keeps the block tight. Exposed so the page renderer's
+    // keep gates can collapse a kept-next paragraph against this paragraph's after-spacing.
+    internal static double SpacingAfter(ParagraphElement paragraph) =>
         paragraph.Properties.ContextualSpacing ? 0 : paragraph.Properties.SpacingAfterPoints;
 
     void TrackContextualSpacing(ParagraphElement paragraph)
