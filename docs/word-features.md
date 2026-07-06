@@ -1991,7 +1991,7 @@ Word version compatibility affecting layout behavior (Word 2010 = mode 14, Word 
 - **Model**: `CompatibilitySettings.CompatibilityMode`
 - **Test**: `compatibility_mode_14/`
 
-> **Contributors**: Mode affects line spacing tolerances and table cell spacing rules. Mode 15 = 2% page tolerance, mode <= 14 = 1%.
+> **Contributors**: Mode affects line spacing tolerances and table cell spacing rules. Mode 15 = 2% page tolerance, mode <= 14 = 1%. A document that declares no compatibilityMode parses as mode 12 (ECMA-376), matching Word; the `CompatibilitySettings` record default of 15 applies only to HTML-sourced documents. Mode >= 15 also gates the drop of spacing-before after explicit page breaks (see Spacing Before / After).
 
 
 ### 10.2 Font Resolution

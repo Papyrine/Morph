@@ -9,6 +9,26 @@ directories in `src/Tests/Inputs/`.
 `pdf_result.verified.json`, inspected `document.xml`/`styles.xml` of each mismatched `input.docx`,
 compared the page images of all four renderers side by side, and traced the responsible code paths.
 
+## Pass 4, experiment 5: compatibilityMode defaults to 12 (2026-07-06)
+
+P4-5's remaining piece: Word treats a document that declares no compatibilityMode as **mode 12**
+(ECMA-376; `dmapper/SettingsTable.cxx:633`), while Morph defaulted to 15. The DOCX parser now
+supplies 12 when the setting (or the whole settings part) is absent; the `CompatibilitySettings`
+record default of 15 still applies to HTML-sourced documents. Affected inputs: every
+no-compatSetting document — cover-letters/15, resumes/06/14/16, complex_spacing, multiple_pages
+and most synthetic inputs — which real Word also rendered under mode-12 rules when the references
+were generated.
+
+**Result: page-count neutral (Skia 306, ImageSharp 306, PDF 304); exactly one scenario shifted.**
+complex_spacing (3 × `pageBreakBefore`, no compatSetting) now keeps spacing-before after its
+explicit page breaks (the mode-15 drop no longer applies), moving raster pages 6–7 by +0.0015 in
+error metric — sub-line displacement, direction marginally away from Word, suggesting Word's
+reference sits between the full drop and the max-collapse value there. The tolerance flip
+(2% → 1% for mode < 15) moved nothing anywhere. The correctness gain is structural: every
+mode-gated rule — the exp-2 spacing tier today, the ≤ 14 set (TabOverMargin,
+MsWordCompMinLineHeightByFly, legacy float bottom-margin overlap) when implemented — now keys off
+the mode Word actually uses for these documents.
+
 ## Pass 4, experiment 4: keep rules in the PDF backend (2026-07-06)
 
 P4-4's implementable half: the PDF backend had **no** keep handling at all (C6), so

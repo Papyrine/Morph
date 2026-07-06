@@ -7,7 +7,8 @@ sealed class CompatibilitySettings
     /// <summary>
     /// Word compatibility mode version.
     /// 11 = Word 2003, 12 = Word 2007 (ECMA-376), 14 = Word 2010, 15 = Word 2013+
-    /// Default is 15 (modern Word behavior).
+    /// The record default of 15 (modern behavior) applies to HTML-sourced documents; the DOCX
+    /// parser supplies 12 when the document declares no compatibilityMode, matching Word.
     /// </summary>
     public int CompatibilityMode { get; init; } = 15;
 

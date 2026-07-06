@@ -2649,22 +2649,20 @@ sealed class DocumentParser(string defaultFont)
 
     static CompatibilitySettings ExtractCompatibilitySettings(MainDocumentPart mainPart)
     {
+        // Word treats a document that declares no compatibilityMode as mode 12 (ECMA-376 /
+        // Word 2007 rules) — not as a modern document.
         var settingsPart = mainPart.DocumentSettingsPart;
-        if (settingsPart?.Settings == null)
-        {
-            return new();
-        }
-
-        var settings = settingsPart.Settings;
-        var compat = settings.GetFirstChild<Compatibility>();
+        var compat = settingsPart?.Settings?.GetFirstChild<Compatibility>();
         if (compat == null)
         {
-            return new();
+            return new()
+            {
+                CompatibilityMode = 12
+            };
         }
 
         // Look for compatibilityMode in CompatSetting elements
-        // Default to Word 2013+ mode
-        var compatMode = 15;
+        var compatMode = 12;
 
         foreach (var compatSetting in compat.Elements<CompatibilitySetting>())
         {
