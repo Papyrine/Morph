@@ -1149,7 +1149,7 @@ The remaining ~5pt gap (linePitch 18 + cell padding 7.2 = 25.2pt vs Word's 30pt)
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1868** | **Page 1. ErrorMetric: 0.1876** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1870** | **Page 1. ErrorMetric: 0.1880** |
 | <img src="complex_tables/expected_0001.png" width="500"> | <img src="complex_tables/skia_result%23page_0001.verified.png" width="500"> | <img src="complex_tables/imagesharp_result%23page_0001.verified.png" width="500"> |
 | **Page 2** | **Page 2. ErrorMetric: 0.2053** | **Page 2. ErrorMetric: 0.2070** |
 | <img src="complex_tables/expected_0002.png" width="500"> | <img src="complex_tables/skia_result%23page_0002.verified.png" width="500"> | <img src="complex_tables/imagesharp_result%23page_0002.verified.png" width="500"> |
@@ -2506,11 +2506,11 @@ magnitude.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1. ErrorMetric: 0.1227** | **Page 1. ErrorMetric: 0.1263** |
+| **Page 1** | **Page 1. ErrorMetric: 0.1169** | **Page 1. ErrorMetric: 0.1206** |
 | <img src="resumes/06/expected_0001.png" width="500"> | <img src="resumes/06/skia_result%23page_0001.verified.png" width="500"> | <img src="resumes/06/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2** | **Page 2. ErrorMetric: 0.1163** | **Page 2. ErrorMetric: 0.1201** |
+| **Page 2** | **Page 2. ErrorMetric: 0.1132** | **Page 2. ErrorMetric: 0.1169** |
 | <img src="resumes/06/expected_0002.png" width="500"> | <img src="resumes/06/skia_result%23page_0002.verified.png" width="500"> | <img src="resumes/06/imagesharp_result%23page_0002.verified.png" width="500"> |
-| **Page 3** | **Page 3. ErrorMetric: 0.1148** | **Page 3. ErrorMetric: 0.1186** |
+| **Page 3** | **Page 3. ErrorMetric: 0.1048** | **Page 3. ErrorMetric: 0.1084** |
 | <img src="resumes/06/expected_0003.png" width="500"> | <img src="resumes/06/skia_result%23page_0003.verified.png" width="500"> | <img src="resumes/06/imagesharp_result%23page_0003.verified.png" width="500"> |
 
 ## resumes/07

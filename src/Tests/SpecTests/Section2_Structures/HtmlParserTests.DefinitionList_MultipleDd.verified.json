@@ -42,7 +42,8 @@
       "IsRightToLeft": false,
       "MirrorIndents": false
     },
-    "IsAnchorOnlyMark": false
+    "IsAnchorOnlyMark": false,
+    "IsCollapsedCellMark": false
   },
   {
     "Runs": [
@@ -88,7 +89,8 @@
       "IsRightToLeft": false,
       "MirrorIndents": false
     },
-    "IsAnchorOnlyMark": false
+    "IsAnchorOnlyMark": false,
+    "IsCollapsedCellMark": false
   },
   {
     "Runs": [
@@ -134,6 +136,7 @@
       "IsRightToLeft": false,
       "MirrorIndents": false
     },
-    "IsAnchorOnlyMark": false
+    "IsAnchorOnlyMark": false,
+    "IsCollapsedCellMark": false
   }
 ]

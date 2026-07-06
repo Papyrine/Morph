@@ -42,7 +42,7 @@
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.0624,
+      "ErrorMetric": 0.0654,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"

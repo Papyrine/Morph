@@ -41,6 +41,7 @@
       "IsRightToLeft": false,
       "MirrorIndents": false
     },
-    "IsAnchorOnlyMark": false
+    "IsAnchorOnlyMark": false,
+    "IsCollapsedCellMark": false
   }
 ]
