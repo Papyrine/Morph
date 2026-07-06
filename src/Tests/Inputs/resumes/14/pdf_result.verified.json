@@ -1,21 +1,27 @@
 ﻿{
-  "PageCount": 2,
-  "Properties": {
-    "CreationDate": "DateTimeOffset_1",
-    "Creator": "Morph",
-    "ModDate": "DateTimeOffset_1",
-    "Producer": "PDFsharp 6.2.4"
-  },
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Andree Rocher\nPROFESSIONAL TITLE\nPhiladelphia, PA | 705.555.0121 | andree@example.com\nObjective\nTo obtain a challenging data scientist position in a dynamic and innovative organization where I can use\nmy technical and analytical skills.\nExperience\nFlueroGen | Data Scientist 20XX – 20XX\n• Increased customer retention by 20%\n• Reduced fraudulent charges by 50%\n• Improved product recommendations and increased sales\n• Drove business decisions and reduced operational costs\nPantheros Labs | Junior Data Scientist 20XX – 20XX\n• Cleaned and preprocessed data\n• Conducted statistical tests for decision support\n• Developed machine learning models for prediction\n• Collaborated on A/B tests, increased click-through\nEducation\nJasper University, MS Data Science 20XX\nMajor: Data Science | Minor: Machine Learning\nBellows College, BS Mathematics 20XX\nMajor: Mathematics | Minor: Computer Science\nSkills & abilities\n• Management\n• Problem solving\n• Communication"
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
     },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Andree Rocher\nPROFESSIONAL TITLE\nPhiladelphia, PA | 705.555.0121 | andree@example.com\nObjective\nTo obtain a challenging data scientist position in a dynamic and innovative organization where I can use\nmy technical and analytical skills.\nExperience\nFlueroGen | Data Scientist 20XX – 20XX\n• Increased customer retention by 20%\n• Reduced fraudulent charges by 50%\n• Improved product recommendations and increased sales\n• Drove business decisions and reduced operational costs\nPantheros Labs | Junior Data Scientist 20XX – 20XX\n• Cleaned and preprocessed data\n• Conducted statistical tests for decision support\n• Developed machine learning models for prediction\n• Collaborated on A/B tests, increased click-through\nEducation\nJasper University, MS Data Science 20XX\nMajor: Data Science | Minor: Machine Learning\nBellows College, BS Mathematics 20XX\nMajor: Mathematics | Minor: Computer Science\nSkills & abilities\n• Management\n• Problem solving\n• Communication\n• Leadership"
+      }
+    ]
+  },
+  "PageDiffs": [
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "• Leadership"
+      "Page": 1,
+      "ErrorMetric": 0.0837,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
     }
   ]
 }
