@@ -1,1 +1,0 @@
-﻿Normal text, <u>underlined text</u>, and normal again.
