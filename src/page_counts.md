@@ -9,6 +9,122 @@ directories in `src/Tests/Inputs/`.
 `pdf_result.verified.json`, inspected `document.xml`/`styles.xml` of each mismatched `input.docx`,
 compared the page images of all four renderers side by side, and traced the responsible code paths.
 
+## Pass 4, experiment 12: the fit tolerance is load-bearing; mapped and restored (2026-07-07)
+
+P4-8. Word's bottom-of-page fit test is exact (`widorp.cxx:157`, `nDiff >= 0`, space-after
+included, no descender grace); Morph's shared `HasSpaceFor` grants `ContentHeight × 0.02`
+(~13 pt on letter) — an invented slack all three backends consume, since the PDF keep gates and
+the table paths also route through it. The experiment zeroed it and measured.
+
+**Net −6; reverted. The slack is compensating for systematic over-measurement, and the run
+produced the exact map of who depends on it:**
+
+- **Regressions under exact fit**: compatibility_mode_14 1 → 2 in *all three* backends,
+  resumes/01 (PDF 1 → 2), resumes/14 (Skia 1 → 2 — un-fixing experiment 1's win),
+  resumes/15 (raster 1 → 2), and business-plans/12/13 drifting further over (raster 19 → 20,
+  ImageSharp 23 → 24). These documents render within 13 pt of a page edge, so they measure
+  Morph's residual height error directly — the error-hunt shortlist.
+- **One true positive**: business-plans/15 PDF 18 → **19, matching Word** — its long-standing
+  PDF deficit is caused by the tolerance itself letting one boundary element overpack. The
+  scenario flips the moment the tolerance can shrink.
+
+The tolerance stays until the underlying per-page height error shrinks below the knife-edges;
+each accepted height rule tightens the corpus toward the day the exact test is affordable.
+
+## Pass 4, experiment 11: image_wrap_square's real defect is a section-type off-by-one; fix built, reverted pending column-flow work (2026-07-07)
+
+P4-11's premise — the compat-14 fly line-height rules — was retired by diagnosis before any
+implementation: image_wrap_square's extra page has nothing to do with fly heights. Its "Columns"
+heading lands on page 2 in Morph at nearly Word's position with ~150 pt of room below, and the
+two-column text still moves wholesale to page 3. The document ends with a **continuous** section
+(`w:type="continuous"`, `w:cols w:num="2"`, plus an explicit column break between the two
+paragraphs — no balancing involved).
+
+Root cause, per ECMA-376 §17.6.22: `sectPr/w:type` declares how the section *owning* the sectPr
+begins, so the break at a mid-document sectPr takes the **following** sectPr's type. Morph read
+the mid sectPr's own type — here absent, defaulting to nextPage — while the following section is
+continuous; the settings already had the correct lookahead (`nextSectionSettings`), the type did
+not. The two-column section therefore page-broke. Fix implemented: a type lookahead mirroring
+the settings map, plus a column band anchored at the break position (`MoveToNextColumn`
+previously returned to the page top, so a mid-page continuous section's second column would
+overlap earlier content).
+
+**Measured: count-neutral (306/306/305, zero moves) and reverted, with the mechanism verified
+and two hazards exposed.** section_break_continuous churned toward Word — its new page 1 is
+structurally identical to the reference. image_wrap_square improved structurally in ImageSharp
+(the first column paragraph now renders mid-page) but stayed at 3 pages: the paragraph (~85 pt)
+misses the ~70 pt left in column 1, and the raster whole-paragraph push advances it to column 2,
+where the explicit column break then spills paragraph 2 to page 3 — Word splits paragraphs
+across columns line-by-line, machinery the raster pipeline lacks. The hazards: (1) Skia and
+ImageSharp diverged — Skia's page 2 stayed byte-identical and the first column paragraph
+appeared on no page at all, a possible off-page render that shared flow code should make
+impossible; (2) the PDF backend's output did not change — it bypasses `SectionBreakHandler`, so
+it needs the same continuous handling separately. Reinstatement needs paragraph splitting
+across column bands, the Skia divergence resolved, and PDF routed through the shared section
+logic; the diagnosis stands as the attribution for image_wrap_square's +1 page in all three
+backends.
+
+## Pass 4, experiment 10: whitespace wrap + line-height rules verified; a wash with one knife-edge loss; reverted (2026-07-06)
+
+P4-9 and P4-10 together. A Word COM → XPS probe (control pitch, oversized-font spaces and tab
+mid-line, oversized trailing spaces, a spaces-only line, 40 spaces straddling the wrap boundary)
+confirmed both rules exactly:
+
+- **Word never wraps on whitespace** (P4-9): all 40 boundary-straddling spaces stayed on their
+  line — total advance 518.4 pt in a 468 pt column, a 50 pt overhang past the margin — and the
+  next line starts flush with the following word.
+- **Whitespace never sizes a line** (P4-10): 28 pt spaces mid-line, a 28 pt tab, and 28 pt
+  trailing spaces all leave the line at the 11 pt control pitch (13.2 pt); 28 pt *text* raises
+  it to ~35 pt; a line holding only 28 pt spaces takes an 11 pt default-height line — the
+  glyphs still render at their font's advances, only the line box ignores them.
+
+Both were implemented across the three backends (raster: whitespace words drop at the wrap
+boundary with a forced break latched for the following word, whitespace excluded from
+line-height maxes, whitespace-only lines fall back to the paragraph-mark box; PDF: space and
+tab-filler items contribute zero height with the same fallback — its pending-space wrap already
+matched Word). The line-height side was gated to DOCX via a parser-set
+`IgnoreWhitespaceForLineHeight`; HTML keeps CSS semantics, where a styled whitespace span sizes
+its line box.
+
+**Measured: 67 snapshots churned, one count moved — menus/03 raster 1 → 2, a regression; no
+residual gained on any backend. Reverted (net −2).** A decomposition run with the height rules
+gated off showed the wrap-drop alone still flips menus/03, so the height rules are
+count-neutral on this corpus and the wrap rule carries the loss. The mechanism: menus/03 (a
+knife-edge residual — PDF already 2 vs Word 1) renders its template-instruction textbox
+degenerately narrow, and the old artifact — boundary spaces wrapping into space-only lines —
+was load-bearing for the raster count. The Word-true tighter text re-flowed the page-exact body
+over the edge. The real menus/03 defect sits in the float/textbox geometry, not the text
+engine; when that is fixed, these two rules become safe to reinstate (probe scripts
+`make_textmeasure_probe.py` / `parse_textmeasure_probe.py`; the implementation is
+reconstructable from this section).
+
+## Pass 4, experiment 9: header growth probed and verified; implementation deferred (2026-07-06)
+
+P4-7 ran its gate first: a corpus scan for `w:headerReference` with an inline-content height
+estimate against each document's header band (`pgMar` top − header). A Word COM → XPS probe
+(oversized 4-line header, fitting header, and a header band taller than the top margin) then
+pinned the rule exactly:
+
+- **body top = max(pgMar.top, pgMar.header + headerContentHeight)**, measured to ±0.2 pt: the
+  fitting header leaves the body at the top margin (72 pt exactly); the oversized header puts
+  the body top at the header's content bottom (headerDistance 36 pt + 4 quantised 22 pt lines
+  ≈ 143.3 pt, body top 143.5 pt); the negative-band case follows the max rule, not the fixed
+  margin. Header line 1 starts exactly at `pgMar.header`. (The probe also re-confirmed the
+  experiment-6 em snap: 22 pt text rendered at em 22.225 = ppem 37.)
+- Anchored (floating) header content does not participate — cover-letters/03 carries a 792 pt
+  anchored letterhead image over a 28.8 pt band and Word keeps the body at the top margin.
+- `RenderContextBase.SetHeaderFooterSpace` already implements this exact formula; the gap is
+  only that every backend passes it zero.
+
+**Deferred: the scan found no winnable scenario.** 49 corpus documents carry headers, ~15 with
+inline content over the band — every one currently page-count matching (business/01 +80 pt over,
+business/05 +63.5, cover-letters/02 +45, a cards/wedding cluster ~+6). Among the residuals the
+only over-band document is business-plans/12 (+6.2 pt), where the raster backends already
+overshoot Word (19 vs 18) — shortening its pages moves the wrong way and risks its PDF match.
+No under-Word residual has a header at all. Implementing today buys zero count gains and
+exposes up to 15 matching scenarios; the verified rule and probe files stay banked for the day
+an input needs them (`scratchpad make_header_probe.py` / `parse_header_probe.py` pattern).
+
 ## Pass 4, experiment 8: keep gates measure flow-true heights (2026-07-06)
 
 The deferred sibling of experiment 7. The PDF keep gates tested `MeasureParagraphHeightWithWidth`,
