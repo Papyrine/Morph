@@ -10,11 +10,5 @@
 | <img src="expected_0003.png" width="500"> | <img src="skia_result%23page_0003.verified.png" width="500"> | <img src="imagesharp_result%23page_0003.verified.png" width="500"> |
 | **Page 4** | **Page 4. ErrorMetric: 0.0000** | **Page 4. ErrorMetric: 0.0000** |
 | <img src="expected_0004.png" width="500"> | <img src="skia_result%23page_0004.verified.png" width="500"> | <img src="imagesharp_result%23page_0004.verified.png" width="500"> |
-| **Page 5** | **Page 5. ErrorMetric: 0.0000** | **Page 5. ErrorMetric: 0.0000** |
-| <img src="expected_0005.png" width="500"> | <img src="skia_result%23page_0005.verified.png" width="500"> | <img src="imagesharp_result%23page_0005.verified.png" width="500"> |
-| **Page 6** _(no page)_ | **Page 6. ErrorMetric: 0.0000** | **Page 6. ErrorMetric: 0.0000** |
-|  | <img src="skia_result%23page_0006.verified.png" width="500"> | <img src="imagesharp_result%23page_0006.verified.png" width="500"> |
-| **Page 7** _(no page)_ | **Page 7. ErrorMetric: 0.0000** | **Page 7. ErrorMetric: 0.0000** |
-|  | <img src="skia_result%23page_0007.verified.png" width="500"> | <img src="imagesharp_result%23page_0007.verified.png" width="500"> |
-| **Page 8** _(no page)_ | **Page 8. ErrorMetric: 0.0000** | **Page 8. ErrorMetric: 0.0000** |
-|  | <img src="skia_result%23page_0008.verified.png" width="500"> | <img src="imagesharp_result%23page_0008.verified.png" width="500"> |
+| **Page 5** | **Page 5** _(no page)_ | **Page 5** _(no page)_ |
+| <img src="expected_0005.png" width="500"> |  |  |

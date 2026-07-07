@@ -4,6 +4,12 @@
 sealed record TableCellProperties
 {
     public double? WidthPoints { get; init; }
+
+    /// <summary>Preferred width as a fraction of the table width (<c>w:tcW w:type="pct"</c>,
+    /// stored in fiftieths of a percent in OOXML — 2500 means half). Resolved against the
+    /// table's available width at layout time.</summary>
+    public double? WidthFraction { get; init; }
+
     public string? BackgroundColorHex { get; init; }
 
     /// <summary>Cell padding (inset from border to content). Null means use table default.</summary>
