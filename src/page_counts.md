@@ -9,6 +9,40 @@ directories in `src/Tests/Inputs/`.
 `pdf_result.verified.json`, inspected `document.xml`/`styles.xml` of each mismatched `input.docx`,
 compared the page images of all four renderers side by side, and traced the responsible code paths.
 
+## Pass 4, experiment 15: default paragraph after-spacing when docDefaults omits it (2026-07-07)
+
+The resumes/13 hunt (Morph 8 pages vs Word 5). A host-side parse dump showed every cell
+paragraph resolving to **after=8pt** even though the document declares no spacing anywhere — no
+docDefaults paragraph properties, no style spacing, no direct spacing, no contextualSpacing.
+`DocumentParser.ExtractDefaultParagraphProperties` was seeding `defaultSpacingAfterPoints = 8`
+whenever the document lacked an explicit paragraph default, on the theory that Word fills the gap
+with its normal.dotm 8pt built-in. That fabricated 8pt after every paragraph (and every empty
+spacer), accumulating to the extra pages.
+
+A first, blanket fix (default 0 for all three "no paragraph default" branches) fixed the real
+templates but **broke six previously-matching minimal docs** (multiple_pages — undoing
+experiment 7 — header_footer, page_numbers, table_multipage, table_layout_tall_row,
+header_row_repeat, all 2/3 → 1/2). A structural scan of winners vs losers found the exact
+discriminator:
+
+- **Losers** have *no `styles.xml` at all* — truly minimal hand-built docx. Word genuinely
+  applies its built-in 8pt here.
+- **Winners** (resumes/13, cover-letters/03, letters/09, wedding/05, brochures/07) have a
+  `<w:docDefaults>` element that simply omits paragraph defaults. Word reads that as an explicit
+  **zero**, not the built-in.
+
+So the rule keys on whether `docDefaults` exists: absent (no styles, or no docDefaults element)
+→ keep Word's 8pt built-in; present but without a `pPrDefault` paragraph base → 0.
+
+**Result: Skia 306→313, ImageSharp 306→313, PDF 306→316; mismatches 18→10; zero regressions**
+(the after-list is a strict subset of the before-list — no previously-matching scenario moved).
+Fully fixed: brochures/07, cover-letters/03/15, letters/09, resumes/02/11/18, wedding/05. PDF
+fixed (raster residual): cover-letters/06, newsletters/06, resumes/16. The named target
+resumes/13 went 8 → 4 — its cell spacing is now Word-correct (tight), but the removed height
+tips it one page *under* Word's 5, so it stays a mismatch (improved from +3 to −1). Its residual
+is a different lever (line-height or empty-mark height in its 13-table structure), not
+after-spacing, which the 8 exact wins depend on being 0.
+
 ## Pass 4, experiment 14: percent-preferred table cell widths (2026-07-07)
 
 The menus/03 hunt. Its instruction cell (the "Easily copy your menu" tip) rendered too narrow,

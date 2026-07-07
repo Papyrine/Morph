@@ -107,8 +107,11 @@ sealed class DocumentParser(string defaultFont)
     // Document-level background color (applies to all pages)
     string? documentBackgroundColor;
 
-    // Document default paragraph properties (from docDefaults/pPrDefault or Word built-in defaults)
-    double defaultSpacingAfterPoints = 8;
+    // Document default paragraph properties (from docDefaults/pPrDefault). When a document
+    // specifies no paragraph-spacing default, Word reads that as zero — not as its normal.dotm
+    // 8pt-after built-in — so the fallback is 0 (verified against resumes/13, which has styles
+    // but no docDefaults and renders tight in Word).
+    double defaultSpacingAfterPoints;
     double defaultSpacingBeforePoints;
     double defaultLeftIndentPoints;
     double defaultRightIndentPoints;
@@ -2978,17 +2981,16 @@ sealed class DocumentParser(string defaultFont)
     {
         var stylesPart = mainPart.StyleDefinitionsPart;
 
-        // No styles.xml at all - use Word's built-in defaults (8pt spacing after)
+        // No styles.xml, or styles with no docDefaults element at all: the document declares
+        // no document-wide defaults, so Word supplies its normal.dotm built-in 8pt-after.
+        // Minimal hand-built docx (multiple_pages, table_multipage, header_footer) have no
+        // styles.xml and rely on this.
         if (stylesPart?.Styles == null)
         {
             defaultSpacingAfterPoints = 8;
             return;
         }
 
-        // Look for docDefaults/pPrDefault. When the docx has styles but no docDefaults
-        // section (or no paragraph defaults inside), Word still applies its built-in
-        // 8pt-after default — minimal docs (e.g. a hand-built table-only template) come
-        // through this path and rely on Word filling in the gap.
         var docDefaults = stylesPart.Styles.DocDefaults;
         if (docDefaults == null)
         {
@@ -2996,10 +2998,14 @@ sealed class DocumentParser(string defaultFont)
             return;
         }
 
+        // docDefaults IS present but carries no paragraph defaults: the document explicitly
+        // configured its document-wide defaults and omitted paragraph spacing, which Word
+        // reads as zero — not the 8pt built-in. Verified against resumes/13, cover-letters/03,
+        // letters/09, wedding/05 (all have <w:docDefaults> without a pPrDefault and render
+        // tight in Word). The field is already 0.
         var pPrDefault = docDefaults.ParagraphPropertiesDefault;
         if (pPrDefault?.ParagraphPropertiesBaseStyle == null)
         {
-            defaultSpacingAfterPoints = 8;
             return;
         }
 

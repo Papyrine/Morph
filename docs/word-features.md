@@ -522,7 +522,7 @@ Vertical space above and below a paragraph, in points.
 - **Model**: `ParagraphProperties.SpacingBeforePoints`, `SpacingAfterPoints`
 - **Test**: `paragraph_spacing/`
 
-> **Contributors**: Adjacent paragraph spacing uses margin collapsing: `max(after, before)`, not sum. A body paragraph at the top of an automatically broken page gets no spacing-before (compatibilityMode 15 also after explicit page breaks; section breaks and the first page keep it) — one-shot `SuppressPageTopSpacingBefore` computed by the page renderers, consumed in `TextRenderer` / `PdfTextEngine`.
+> **Contributors**: Adjacent paragraph spacing uses margin collapsing: `max(after, before)`, not sum. A body paragraph at the top of an automatically broken page gets no spacing-before (compatibilityMode 15 also after explicit page breaks; section breaks and the first page keep it) — one-shot `SuppressPageTopSpacingBefore` computed by the page renderers, consumed in `TextRenderer` / `PdfTextEngine`. The document default after-spacing (`DocumentParser.ExtractDefaultParagraphProperties`) is Word's 8pt built-in only when the document has no `docDefaults` element (or no `styles.xml`); when `docDefaults` is present but omits paragraph defaults, the default is 0 — Word reads the omission as an explicit zero.
 
 
 #### Line Spacing `DONE`
