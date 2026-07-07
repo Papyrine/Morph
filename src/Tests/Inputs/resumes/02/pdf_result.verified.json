@@ -1,21 +1,27 @@
 ﻿{
-  "PageCount": 2,
-  "Properties": {
-    "CreationDate": "DateTimeOffset_1",
-    "Creator": "Morph",
-    "ModDate": "DateTimeOffset_1",
-    "Producer": "PDFsharp 6.2.4"
-  },
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "KAI CARTER\nGENERAL PRACTITIONER\nCONTACT\nPHONE: 678-555-0103\nWEBSITE: www.lamnahealthcare.com\nEMAIL: kai@lamnahealthcare.com"
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
     },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "KAI CARTER\nGENERAL PRACTITIONER\nCONTACT\nPHONE: 678-555-0103\nWEBSITE: www.lamnahealthcare.com\nEMAIL: kai@lamnahealthcare.com\nPROFILE\nExperienced and compassionate GP dedicated to delivering\nexcellent patient care. Known for strong diagnostic skills and a\npatient-centered approach. Committed to promoting health and\nwellness through personalized treatment plans.\nWORK EXPERIENCE\nLAMNA HEALTHCARE, GENERAL PRACTITIONER\n20XX – PRESENT\nImplemented evidence-based medicine for accurate diagnosis,\nspearheaded a community health fair, provided free screenings to\nover 200 residents\nTYLER STEIN MD, FAMILY PHYSICIAN\n20XX – 20XX\nManaged a diverse patient caseload, led a smoking cessation\nprogram resulting in a 30% increase in successful quit attempts\nCITY HOSPITAL, MEDICAL OFFICER\n20XX – 20XX\nProvided emergency medical care with a focus on trauma cases,\ncollaborated with specialists to enhance patient outcomes\nEDUCATION\nJASPER UNIVERSITY\n20XX – 20XX\nDean's list, medical research award\nBELLOWS COLLEGE\n20XX – 20XX\nBachelor of Science in Biology,\nCum Laude, outstanding research\nthesis\nSKILLS\nClinical diagnosis\nPatient-centered care\nChronic disease management\nElectronic health records\nHealth promotion\nHOBBIES\nRunning\nPhotography\nTraveling\nCooking"
+      }
+    ]
+  },
+  "PageDiffs": [
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "PROFILE\nExperienced and compassionate GP dedicated to delivering\nexcellent patient care. Known for strong diagnostic skills and a\npatient-centered approach. Committed to promoting health and\nwellness through personalized treatment plans.\nWORK EXPERIENCE\nLAMNA HEALTHCARE, GENERAL PRACTITIONER\n20XX – PRESENT\nImplemented evidence-based medicine for accurate diagnosis,\nspearheaded a community health fair, provided free screenings to\nover 200 residents\nTYLER STEIN MD, FAMILY PHYSICIAN\n20XX – 20XX\nManaged a diverse patient caseload, led a smoking cessation\nprogram resulting in a 30% increase in successful quit attempts\nCITY HOSPITAL, MEDICAL OFFICER\n20XX – 20XX\nProvided emergency medical care with a focus on trauma cases,\ncollaborated with specialists to enhance patient outcomes\nEDUCATION\nJASPER UNIVERSITY\n20XX – 20XX\nDean's list, medical research award\nBELLOWS COLLEGE\n20XX – 20XX\nBachelor of Science in Biology,\nCum Laude, outstanding research\nthesis\nSKILLS\nClinical diagnosis\nPatient-centered care\nChronic disease management\nElectronic health records\nHealth promotion\nHOBBIES\nRunning\nPhotography\nTraveling\nCooking"
+      "Page": 1,
+      "ErrorMetric": 0.118,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
     }
   ]
 }

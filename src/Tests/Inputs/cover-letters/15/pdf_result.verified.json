@@ -1,21 +1,27 @@
 ﻿{
-  "PageCount": 2,
-  "Properties": {
-    "CreationDate": "DateTimeOffset_1",
-    "Creator": "Morph",
-    "ModDate": "DateTimeOffset_1",
-    "Producer": "PDFsharp 6.2.4"
-  },
-  "Pages": [
-    {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "Chanchal\nSharma\nContact information\n(718) 555–0100\nchanchals@example.com\n4567 Main Street City, ST 98052\nTo\nHailey Clark\nKramer-Correia Construction\n123 Avenue A Metropolis, ST 54321\nDear Hailey Clark,\nI am excited to apply for the office manager position at Kramer-Correia Construction. Although I do\nnot have direct experience in the construction industry, I believe my skills in office management,\norganization, and communication will be highly valuable to your team.\nMy experience in managing office operations, coordinating schedules, and overseeing administrative\ntasks will help ensure that your projects run smoothly and efficiently. Additionally, my ability to work"
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
     },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Chanchal\nSharma\nContact information\n(718) 555–0100\nchanchals@example.com\n4567 Main Street City, ST 98052\nTo\nHailey Clark\nKramer-Correia Construction\n123 Avenue A Metropolis, ST 54321\nDear Hailey Clark,\nI am excited to apply for the office manager position at Kramer-Correia Construction. Although I do\nnot have direct experience in the construction industry, I believe my skills in office management,\norganization, and communication will be highly valuable to your team.\nMy experience in managing office operations, coordinating schedules, and overseeing administrative\ntasks will help ensure that your projects run smoothly and efficiently. Additionally, my ability to work\nwell under pressure and to multitask effectively will enable me to handle the demands of a fast-paced\nconstruction environment.\nThank you for considering my application. I look forward to Discussing my qualifications with you\nfurther.\nSincerely,\nChanchal Sharma\nJanuary 13, 20XX"
+      }
+    ]
+  },
+  "PageDiffs": [
     {
-      "Width": 612.0,
-      "Height": 792.0,
-      "Text": "well under pressure and to multitask effectively will enable me to handle the demands of a fast-paced\nconstruction environment.\nThank you for considering my application. I look forward to Discussing my qualifications with you\nfurther.\nSincerely,\nChanchal Sharma\nJanuary 13, 20XX"
+      "Page": 1,
+      "ErrorMetric": 0.0745,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
     }
   ]
 }

@@ -1,25 +1,39 @@
 ﻿{
-  "PageCount": 3,
-  "Properties": {
-    "CreationDate": "DateTimeOffset_1",
-    "Creator": "Morph",
-    "ModDate": "DateTimeOffset_1",
-    "Producer": "PDFsharp 6.2.4"
+  "target": {
+    "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "LOREM\nIPSUM\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\nCONTACT US\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\n[address]\n[phone]\n[website]\n[email]\nBROCHURE\nNAME\nSUBTITLE"
+      },
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "LOREM\nIPSUM\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\nLOREM\nIPSUM\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\nABOUT US\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\nSUBTITLE\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\nLorem ipsum dolor sit nibh\neuismod tincidunt ut laoreet\ndolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut\noreet dolore magna aliquam."
+      }
+    ]
   },
-  "Pages": [
+  "PageDiffs": [
     {
-      "Width": 792.0,
-      "Height": 612.0,
-      "Text": "LOREM\nIPSUM\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\nCONTACT US\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\n[address]\n[phone]\n[website]\n[email]\nBROCHURE\nNAME\nSUBTITLE"
+      "Page": 1,
+      "ErrorMetric": 0.4666,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
-      "Width": 792.0,
-      "Height": 612.0
-    },
-    {
-      "Width": 792.0,
-      "Height": 612.0,
-      "Text": "LOREM\nIPSUM\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\nLOREM\nIPSUM\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\nABOUT US\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\nSUBTITLE\nLorem ipsum dolor sit nibh euismod tincidunt\nut laoreet dolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut oreet dolore magna\naliquam.\nLorem ipsum dolor sit nibh\neuismod tincidunt ut laoreet\ndolore m. Lorem ipsum dolor\nsinoneuismod tincidunt ut\noreet dolore magna aliquam."
+      "Page": 2,
+      "ErrorMetric": 0.4167,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
     }
   ]
 }
