@@ -11,38 +11,38 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Robin Zupanc\nParalegal\nState your career goals and show how\nthey align with the job description you’re\ntargeting. Be brief and keep it from\nsounding generic. Be yourself.\nExperience Education\n20XX – Current\nParalegal The Phone Company\nSummarize your key responsibilities and accomplishments. Where\nappropriate, use the language and words you find in the specific job\ndescription. Be concise, targeting 3-5 key areas.\n20XX – 20XX\nParalegal Trey Research\nSummarize your key responsibilities and accomplishments. Here again, take\nany opportunity to use words you find in the job description. Be brief.\n20XX – 20XX\nParalegal Adatum Corporation\nSummarize your key responsibilities and accomplishments. Where\nappropriate, use the language and words you find in the job description. Be\nconcise, targeting 3-5 key areas.\n20XX – 20XX\nA.A. Paralegal Studies\nJasper University\nSkills\nContact\n4567 Main Street\nCity, State 98052\n(718) 555–0100\nrobin@example.com"
+        "Text": "Robin Zupanc\nParalegal State your career goals and show how\nthey align with the job description you’re\ntargeting. Be brief and keep it from\nsounding generic. Be yourself.\nExperience Education\n20XX – Current\nParalegal The Phone Company\nSummarize your key responsibilities and accomplishments. Where\nappropriate, use the language and words you find in the specific job\ndescription. Be concise, targeting 3-5 key areas.\n20XX – 20XX\nParalegal Trey Research\nSummarize your key responsibilities and accomplishments. Here again, take\nany opportunity to use words you find in the job description. Be brief.\n20XX – 20XX\nParalegal Adatum Corporation\nSummarize your key responsibilities and accomplishments. Where\nappropriate, use the language and words you find in the job description. Be\nconcise, targeting 3-5 key areas.\n20XX – 20XX\nA.A. Paralegal Studies\nJasper University\nSkills\nContact\n4567 Main Street\nCity, State 98052\n(718) 555–0100\nrobin@example.com"
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Robin Zupanc\nParalegal\nState your career goals and show how\nthey align with the job description you’re\ntargeting. Be brief and keep it from\nsounding generic. Be yourself.\nExperience Education\n20XX - Current\nParalegal The Phone Company\nSummarize your key responsibilities and accomplishments. Where\nappropriate, use the language and words you find in the specific job\ndescription. Be concise, targeting 3-5 key areas.\n20XX – 20XX\nParalegal Trey Research\nSummarize your key responsibilities and accomplishments. Here again, take\nany opportunity to use words you find in the job description. Be brief.\n20XX – 20XX\nParalegal Adatum Corporation\nSummarize your key responsibilities and accomplishments. Where\nappropriate, use the language and words you find in the job description. Be\nconcise, targeting 3-5 key areas.\n20XX – 20XX\nA.A. Paralegal Studies\nJasper University\nSkills\nContact\n4567 Main Street\nCity, State 98052\n(718) 555–0100\nrobin@example.com"
+        "Text": "Robin Zupanc\nParalegal State your career goals and show how\nthey align with the job description you’re\ntargeting. Be brief and keep it from\nsounding generic. Be yourself.\nExperience Education\n20XX - Current\nParalegal The Phone Company\nSummarize your key responsibilities and accomplishments. Where\nappropriate, use the language and words you find in the specific job\ndescription. Be concise, targeting 3-5 key areas.\n20XX – 20XX\nParalegal Trey Research\nSummarize your key responsibilities and accomplishments. Here again, take\nany opportunity to use words you find in the job description. Be brief.\n20XX – 20XX\nParalegal Adatum Corporation\nSummarize your key responsibilities and accomplishments. Where\nappropriate, use the language and words you find in the job description. Be\nconcise, targeting 3-5 key areas.\n20XX – 20XX\nA.A. Paralegal Studies\nJasper University\nSkills\nContact\n4567 Main Street\nCity, State 98052\n(718) 555–0100\nrobin@example.com"
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Robin Zupanc\nParalegal\nState your career goals and show how\nthey align with the job description you’re\ntargeting. Be brief and keep it from\nsounding generic. Be yourself.\nExperience Education\n20XX - Current\nParalegal The Phone Company\nSummarize your key responsibilities and accomplishments. Where\nappropriate, use the language and words you find in the specific job\ndescription. Be concise, targeting 3-5 key areas.\n20XX – 20XX\nParalegal Trey Research\nSummarize your key responsibilities and accomplishments. Here again, take\nany opportunity to use words you find in the job description. Be brief.\n20XX – 20XX\nParalegal Adatum Corporation\nSummarize your key responsibilities and accomplishments. Where\nappropriate, use the language and words you find in the job description. Be\nconcise, targeting 3-5 key areas.\n20XX – 20XX\nA.A. Paralegal Studies\nJasper University\nSkills\nContact\n4567 Main Street\nCity, State 98052\n(718) 555–0100\nrobin@example.com"
+        "Text": "Robin Zupanc\nParalegal State your career goals and show how\nthey align with the job description you’re\ntargeting. Be brief and keep it from\nsounding generic. Be yourself.\nExperience Education\n20XX - Current\nParalegal The Phone Company\nSummarize your key responsibilities and accomplishments. Where\nappropriate, use the language and words you find in the specific job\ndescription. Be concise, targeting 3-5 key areas.\n20XX – 20XX\nParalegal Trey Research\nSummarize your key responsibilities and accomplishments. Here again, take\nany opportunity to use words you find in the job description. Be brief.\n20XX – 20XX\nParalegal Adatum Corporation\nSummarize your key responsibilities and accomplishments. Where\nappropriate, use the language and words you find in the job description. Be\nconcise, targeting 3-5 key areas.\n20XX – 20XX\nA.A. Paralegal Studies\nJasper University\nSkills\nContact\n4567 Main Street\nCity, State 98052\n(718) 555–0100\nrobin@example.com"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0744,
+      "ErrorMetric": 0.0775,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0743,
+      "ErrorMetric": 0.0775,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.0743,
+      "ErrorMetric": 0.0774,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"

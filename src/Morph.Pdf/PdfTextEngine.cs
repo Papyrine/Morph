@@ -66,6 +66,14 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     public float MeasureParagraphHeightWithWidth(ParagraphElement paragraph, float maxWidth) =>
         (float) MeasureHeight(paragraph, maxWidth);
 
+    /// <summary>Height the paragraph will consume in the page flow: <see cref="MeasureHeight"/>
+    /// with the cross-paragraph spacing collapse that <see cref="Render"/> applies
+    /// (max(after, before) between neighbours) folded in, so keep decisions test the height
+    /// that drawing will actually use. <paramref name="previousSpacingAfter"/> is the
+    /// spacing-after of whatever renders before this paragraph.</summary>
+    public float MeasureFlowHeight(ParagraphElement paragraph, double maxWidth, double previousSpacingAfter) =>
+        (float) (MeasureHeight(paragraph, maxWidth) - Math.Min(SpacingBefore(paragraph), previousSpacingAfter));
+
     public double MeasureHeight(ParagraphElement paragraph, double maxWidth)
     {
         var lines = Layout(paragraph, maxWidth);
@@ -93,11 +101,17 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
         var properties = paragraph.Properties;
         // An empty paragraph's line takes the paragraph mark's resolved formatting
-        // (w:pPr/w:rPr over the style chain) — not the default face at a fixed size.
+        // (w:pPr/w:rPr over the style chain) — not the default face at a fixed size — under
+        // the paragraph's line-spacing rule (Auto multiplies, Exactly forces, AtLeast floors).
         var font = properties.ParagraphMarkRunProperties is { } markProps
             ? context.GetFont(markProps)
             : context.GetFont(DefaultFontSettings.DefaultFont, false, false, properties.ParagraphMarkFontSizePoints ?? 11);
-        return font.GetHeight() * properties.LineSpacingMultiplier;
+        return properties.LineSpacingRule switch
+        {
+            LineSpacingRule.Exactly => properties.LineSpacingPoints,
+            LineSpacingRule.AtLeast => Math.Max(font.GetHeight(), properties.LineSpacingPoints),
+            _ => font.GetHeight() * properties.LineSpacingMultiplier
+        };
     }
 
     // ---- Paragraph spacing (mirrors the Skia/ImageSharp contextual-spacing collapse) ----
@@ -115,8 +129,9 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     }
 
     // w:contextualSpacing also suppresses the paragraph's own after-spacing; the next same-style
-    // paragraph's collapsed before-spacing keeps the block tight.
-    static double SpacingAfter(ParagraphElement paragraph) =>
+    // paragraph's collapsed before-spacing keeps the block tight. Exposed so the page renderer's
+    // keep gates can collapse a kept-next paragraph against this paragraph's after-spacing.
+    internal static double SpacingAfter(ParagraphElement paragraph) =>
         paragraph.Properties.ContextualSpacing ? 0 : paragraph.Properties.SpacingAfterPoints;
 
     void TrackContextualSpacing(ParagraphElement paragraph)
@@ -581,6 +596,17 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             ? paragraph.Properties.LineSpacingMultiplier
             : 1;
 
+        // Word's line-spacing rules beyond Auto, mirrored from the raster CalculateLineHeight:
+        // Exactly forces the specified pitch (smaller or larger than natural), AtLeast is a
+        // floor. Applied per finished line so the tallest run still wins under AtLeast.
+        double ApplyLineSpacingRule(double naturalHeight) =>
+            paragraph.Properties.LineSpacingRule switch
+            {
+                LineSpacingRule.Exactly => paragraph.Properties.LineSpacingPoints,
+                LineSpacingRule.AtLeast => Math.Max(naturalHeight, paragraph.Properties.LineSpacingPoints),
+                _ => naturalHeight
+            };
+
         var leftIndent = Indent(paragraph);
 
         // A line carrying tab-positioned content may overflow the content width into the right margin
@@ -601,6 +627,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         {
             if (current.Items.Count > 0)
             {
+                current.Height = ApplyLineSpacingRule(current.Height);
                 lines.Add(current);
             }
 
@@ -751,7 +778,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                             }
                             else
                             {
-                                lines.Add(new() {Ascent = ascent, Height = lineHeight});
+                                lines.Add(new() {Ascent = ascent, Height = ApplyLineSpacingRule(lineHeight)});
                                 pendingSpaceWidth = 0;
                                 pendingSpaceFont = null;
                                 pendingSpaceProps = null;

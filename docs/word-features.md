@@ -522,7 +522,7 @@ Vertical space above and below a paragraph, in points.
 - **Model**: `ParagraphProperties.SpacingBeforePoints`, `SpacingAfterPoints`
 - **Test**: `paragraph_spacing/`
 
-> **Contributors**: Adjacent paragraph spacing uses margin collapsing: `max(after, before)`, not sum. A body paragraph at the top of an automatically broken page gets no spacing-before (compatibilityMode 15 also after explicit page breaks; section breaks and the first page keep it) — one-shot `SuppressPageTopSpacingBefore` computed by the page renderers, consumed in `TextRenderer` / `PdfTextEngine`.
+> **Contributors**: Adjacent paragraph spacing uses margin collapsing: `max(after, before)`, not sum. A body paragraph at the top of an automatically broken page gets no spacing-before (compatibilityMode 15 also after explicit page breaks; section breaks and the first page keep it) — one-shot `SuppressPageTopSpacingBefore` computed by the page renderers, consumed in `TextRenderer` / `PdfTextEngine`. The document default after-spacing (`DocumentParser.ExtractDefaultParagraphProperties`) is Word's 8pt built-in only when the document has no `docDefaults` element (or no `styles.xml`); when `docDefaults` is present but omits paragraph defaults, the default is 0 — Word reads the omission as an explicit zero.
 
 
 #### Line Spacing `DONE`
@@ -534,7 +534,7 @@ Vertical distance between lines within a paragraph. Three modes: Auto (multiplie
 - **Model**: `ParagraphProperties.LineSpacingMultiplier`, `LineSpacingPoints`, `LineSpacingRule`
 - **Test**: `line_spacing/`, `line_spacing_at_least/`, `line_spacing_exactly/`
 
-> **Contributors**: Auto mode multiplies the font's full hhea line box (ascent + descent + line gap) with no extra floor or leading correction, verified against Word XPS baselines. Document grid line pitch enforced when >= 20 page break markers detected. An empty paragraph's line takes the paragraph mark's style-resolved formatting (`ParagraphProperties.ParagraphMarkRunProperties`, from `w:pPr/w:rPr`), matching Word. See `TextRenderer` line spacing logic.
+> **Contributors**: Auto mode multiplies the font's full hhea line box (ascent + descent + line gap) with no extra floor or leading correction, verified against Word XPS baselines. Document grid line pitch enforced when >= 20 page break markers detected. An empty paragraph's line takes the paragraph mark's style-resolved formatting (`ParagraphProperties.ParagraphMarkRunProperties`, from `w:pPr/w:rPr`), matching Word. See `TextRenderer` line spacing logic. The PDF backend applies the same three rules in `PdfTextEngine` (per finished line, on blank explicit-break lines, and on empty-paragraph mark lines), mirroring the raster `CalculateLineHeight`.
 > **Consumers**: Single (1.0), 1.5, and Double (2.0) spacing all supported. Exactly mode fixes line height; AtLeast sets a minimum.
 
 
@@ -918,11 +918,11 @@ Vertical positioning of content within a cell: top, center, or bottom.
 
 Column width determination from explicit cell widths or table grid definitions.
 
-- **OOXML**: `w:tblGrid` > `w:gridCol`, `w:tcW`
+- **OOXML**: `w:tblGrid` > `w:gridCol`, `w:tcW` (`dxa` and `pct`)
 - **Layout**: `TableLayout.CalculateColumnWidths()`
-- **Test**: `wide_table/`, `table_autofit_no_widths/`
+- **Test**: `wide_table/`, `table_autofit_no_widths/`, `table_two_column_layout/`
 
-> **Contributors**: Four sources, in order: explicit cell widths (`w:tcW`), grid column widths (`w:tblGrid`), content-based autofit when both are absent and `w:tblLayout` is autofit, or equal distribution as the last-resort fallback. Width scaling applied when content exceeds available page width.
+> **Contributors**: Sources, in order: explicit cell widths (`w:tcW w:type="dxa"`), percent-preferred cell widths (`w:tcW w:type="pct"`, in fiftieths of a percent, resolved against the table's available width via `TableCellProperties.WidthFraction`), grid column widths (`w:tblGrid`), content-based autofit when all are absent and `w:tblLayout` is autofit, or equal distribution as the last-resort fallback. Width scaling applied when content exceeds available page width, so percent proportions survive the normalisation.
 
 
 #### Horizontal Merge (GridSpan) `DONE`

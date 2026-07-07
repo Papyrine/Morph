@@ -1,26 +1,39 @@
 ﻿{
-  "PageCount": 3,
-  "Properties": {
-    "CreationDate": "DateTimeOffset_1",
-    "Creator": "Morph",
-    "ModDate": "DateTimeOffset_1",
-    "Producer": "PDFsharp 6.2.4"
+  "target": {
+    "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "KAYLA + JACOB\nWEDDING PARTY\nKAYLA + JACOB\nTIE THE KNOT\nPARENTS OF THE BRIDE\nMirjam Lewis & Victoria Lewis\nPARENTS OF THE GROOM\nAugust Hancock & Alexander Hancock\nMATRON OF HONOR\nAngelica Astrom\nBEST MAN\nAllan Mattsson\nBRIDESMAIDS\nFlora Berggren, Ian Hansson,\nMirjam Nilsson, Victoria Lindqvist,\nAugust Bergqvist\nGROOMSMEN\nFlora Berggren, Ian Hansson,\nMirjam Nilsson, Victoria Lindqvist,\nAugust Bergqvist\nSATURDAY\n10.25.20XX\nPrelude\nProcessional\nWedding message\nExchange of rings\nRecessional"
+      },
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "KAYLA\n+ JACOB\nMENU\nKAYLA\n+ JACOB\nTABLE 1\nJuan Morgan\nRowan Murphy\nMirjam Nilsson\nVictoria Lindqvist\nAugust Bergqvist\nSanjay Trivedi\nENTRÉE\nBacon wrapped dates\nPolenta fritters with mango salsa\nCarb puffs with sweet pepper sauce\nMAIN COURSE\nGrilled New York steak\nHazelnut encrusted halibut\nVegetable pesto lasagna\nDESSERT\nLemon poppy seed cake\nMini chocolate Bundt cakes\nCoffee, tea\n, and soft drinks"
+      }
+    ]
   },
-  "Pages": [
+  "PageDiffs": [
     {
-      "Width": 792.0,
-      "Height": 612.0,
-      "Text": "KAYLA + JACOB\nWEDDING PARTY\nKAYLA + JACOB\nTIE THE KNOT\nPARENTS OF THE BRIDE\nMirjam Lewis & Victoria Lewis\nPARENTS OF THE GROOM\nAugust Hancock & Alexander Hancock\nMATRON OF HONOR\nAngelica Astrom\nBEST MAN\nAllan Mattsson\nBRIDESMAIDS\nFlora Berggren, Ian Hansson,\nMirjam Nilsson, Victoria Lindqvist,\nAugust Bergqvist\nGROOMSMEN\nFlora Berggren, Ian Hansson,\nMirjam Nilsson, Victoria Lindqvist,\nAugust Bergqvist\nSATURDAY\n10.25.20XX"
+      "Page": 1,
+      "ErrorMetric": 0.2057,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
-      "Width": 792.0,
-      "Height": 612.0,
-      "Text": "Prelude\nProcessional\nWedding message\nExchange of rings\nRecessional"
-    },
-    {
-      "Width": 792.0,
-      "Height": 612.0,
-      "Text": "KAYLA + JACOB\nMENU\nKAYLA + JACOB\nTABLE\n1\nJuan Morgan\nRowan Murphy\nMirjam Nilsson\nVictoria Lindqvist\nAugust Bergqvist\nSanjay Trivedi\nENTRÉE\nBacon wrapped dates\nPolenta fritters with mango salsa\nCarb puffs with sweet pepper sauce\nMAIN COURSE\nGrilled New York steak\nHazelnut encrusted halibut\nVegetable pesto lasagna\nDESSERT\nLemon poppy seed cake\nMini chocolate Bundt cakes\nCoffee, tea, and soft drinks"
+      "Page": 2,
+      "ErrorMetric": 0.2189,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
     }
   ]
 }
