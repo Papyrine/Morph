@@ -74,8 +74,15 @@ sealed class ContentControlElement : DocumentElement
     /// <summary>For drop-down/combo controls, the list items.</summary>
     public IReadOnlyList<string>? ListItems { get; init; }
 
-    /// <summary>For date controls, the selected date.</summary>
+    /// <summary>For date controls, the selected date (from <c>w:date/@w:fullDate</c>).</summary>
     public DateTime? DateValue { get; init; }
+
+    /// <summary>
+    /// For date controls, the declared display format (<c>w:date/w:dateFormat/@w:val</c>). Used
+    /// only when the control has no run text to render verbatim; formatting always uses the
+    /// invariant culture so page output is deterministic across machines.
+    /// </summary>
+    public string? DateFormat { get; init; }
 
     /// <summary>Width hint in points (for rendering).</summary>
     public double WidthPoints { get; init; } = 100;
