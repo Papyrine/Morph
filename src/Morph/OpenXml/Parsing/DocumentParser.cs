@@ -7145,6 +7145,7 @@ sealed class DocumentParser(string defaultFont)
         bool? isChecked = null;
         List<string>? listItems = null;
         DateTime? dateValue = null;
+        string? dateFormat = null;
 
         // Get tag and title
         var tagElement = props.GetFirstChild<Tag>();
@@ -7195,6 +7196,10 @@ sealed class DocumentParser(string defaultFont)
             {
                 dateValue = fullDateVal.Value;
             }
+
+            // Capture w:dateFormat for the empty-run-text fallback. Word displays the run text
+            // verbatim, so this is only used when the control carries a fullDate but no content.
+            dateFormat = dateControl?.GetFirstChild<DateFormat>()?.Val?.Value;
         }
         else if (props.GetFirstChild<SdtContentText>() != null)
         {
@@ -7258,6 +7263,7 @@ sealed class DocumentParser(string defaultFont)
             Checked = isChecked,
             ListItems = listItems,
             DateValue = dateValue,
+            DateFormat = dateFormat,
             WidthPoints = 100 // Default width
         };
     }
