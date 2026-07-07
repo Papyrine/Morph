@@ -9,6 +9,33 @@ directories in `src/Tests/Inputs/`.
 `pdf_result.verified.json`, inspected `document.xml`/`styles.xml` of each mismatched `input.docx`,
 compared the page images of all four renderers side by side, and traced the responsible code paths.
 
+## Pass 4, experiment 16: empty-mark height in cells — safe now, but not resumes/13's lever; reverted (2026-07-07)
+
+After experiment 15, resumes/13 sits at a knife-edge: raster 4, PDF 6, **straddling Word's 5**,
+with raster page 1 now matching Word exactly. The raster shortfall accumulates on the back pages
+(it packs Professional service → References onto page 4 where Word uses two pages), pointing at
+the inter-section spacer paragraphs. Experiment 1's empty-paragraph mark-height rule is gated off
+inside table cells (it was un-gated once and broke wedding/05's empty Heading1 marks). Since
+experiment 15 changed the corpus — and *fixed* wedding/05 — the gate was worth retrying.
+
+Un-gated it (`inScopedPart` no longer includes `TableCell`; headers/footers stay gated) and
+measured. **Two findings, then reverted:**
+
+- **It is now safe** — wedding/05 and the cards cluster did not regress. The experiment-1
+  blocker is gone; the in-cell empty-mark rule can be revisited if a future scenario needs it.
+- **It is not resumes/13's lever.** The only count that moved was resumes/13 PDF 6 → 4: the
+  mark-based empty-line height is *shorter* than PDF's old fallback, so PDF converged down to
+  raster's 4 — both now undershoot Word by one. Scoreboard unchanged (313/313/316), 204
+  scenarios churned pixels for no count gain, so reverted per the wash protocol.
+
+The residual is therefore not empty-paragraph height. resumes/13 needs ~1 page more height than
+both backends produce, accumulating past page 1 — a row-minimum (`w:trHeight` atLeast) or
+line-metric gap. And because raster undershoots while PDF overshoots, closing it needs *opposite*
+per-backend adjustments, which no single rule delivers: it is a backend-metric knife-edge, the
+same class as complex_spacing, cover-letters/06, newsletters/06 and resumes/16. The
+experiment-15 fix already made resumes/13's rendering Word-correct (page 1 exact); the last page
+is a diminishing-return residual.
+
 ## Pass 4, experiment 15: default paragraph after-spacing when docDefaults omits it (2026-07-07)
 
 The resumes/13 hunt (Morph 8 pages vs Word 5). A host-side parse dump showed every cell
