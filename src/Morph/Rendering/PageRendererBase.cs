@@ -339,11 +339,8 @@ abstract class PageRendererBase(RenderContextBase context)
 
     void RenderContentControlDate(ContentControlElement control)
     {
-        var displayText = control.DateValue.HasValue
-            ? control.DateValue.Value.ToShortDateString()
-            : !string.IsNullOrEmpty(control.Content) ? control.Content : control.PlaceholderText ?? "";
-
-        var hasValue = control.DateValue.HasValue || !string.IsNullOrEmpty(control.Content);
+        var displayText = DateControlText.Resolve(control);
+        var hasValue = !string.IsNullOrEmpty(control.Content) || control.DateValue.HasValue;
         RenderContentControlBox(control.WidthPoints, displayText, hasValue ? textBlack : textGray, drawDropdownArrow: false);
     }
 
