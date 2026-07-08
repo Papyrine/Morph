@@ -49,10 +49,13 @@ sealed class FloatingShapeElement : DocumentElement
     public PresetShape Preset { get; init; } = PresetShape.Rect;
 
     /// <summary>
-    /// Custom geometry from <c>a:custGeom</c>, as one or more closed sub-path contours — each a
+    /// Custom geometry from <c>a:custGeom</c>, as one or more sub-path contours — each a
     /// flattened polyline of points in the unit square (0..1) of the shape's pre-rotation
-    /// bounding box. When non-null, takes precedence over <see cref="Preset"/> and the shape is
-    /// rendered as a filled path (each contour implicitly closed, nonzero winding). Keeping the
+    /// bounding box. When non-null, takes precedence over <see cref="Preset"/>. A shape with a
+    /// fill (<see cref="FillColorHex"/>/<see cref="Gradient"/>) renders these as a filled path
+    /// (each contour implicitly closed, nonzero winding); a stroke-only shape
+    /// (<see cref="LineColorHex"/> with no fill) strokes them instead — e.g. the thin accent
+    /// rules in the Agenda template, which are single two-point line segments. Keeping the
     /// contours separate preserves holes and disjoint pieces — e.g. the outlines in a leaf
     /// cluster — that collapsing every <c>moveTo</c> into one polyline would fuse together with
     /// spurious connector lines. Null for shapes without a custom geometry.
