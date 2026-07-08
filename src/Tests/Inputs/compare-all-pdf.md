@@ -1,4 +1,4 @@
-# All PDF export scenarios (321)
+# All PDF export scenarios (322)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -124,6 +124,7 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [gutter_margins/01](#gutter_margins01)
 - [hanging_indent](#hanging_indent)
 - [header](#header)
+- [header_banner_table](#header_banner_table)
 - [header_footer](#header_footer)
 - [header_row_repeat/01](#header_row_repeat01)
 - [headings](#headings)
@@ -1765,6 +1766,16 @@ PDF: [Morph PDF](hanging_indent/pdf_result.verified.pdf)
 | <img src="header/expected_0001.png" width="500"> | <img src="header/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](header/pdf_result.verified.pdf)
+
+
+## header_banner_table
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0438** |
+| <img src="header_banner_table/expected_0001.png" width="500"> | <img src="header_banner_table/pdf_result%23page_0001.verified.png" width="500"> |
+
+PDF: [Morph PDF](header_banner_table/pdf_result.verified.pdf)
 
 
 ## header_footer

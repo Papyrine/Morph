@@ -1,4 +1,4 @@
-# All scenarios (321)
+# All scenarios (322)
 
 <details>
 <summary>Contents</summary>
@@ -122,6 +122,7 @@
 - [gutter_margins/01](#gutter_margins01)
 - [hanging_indent](#hanging_indent)
 - [header](#header)
+- [header_banner_table](#header_banner_table)
 - [header_footer](#header_footer)
 - [header_row_repeat/01](#header_row_repeat01)
 - [headings](#headings)
@@ -1451,6 +1452,27 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0060** | **Page 1. ErrorMetric: 0.0066** |
 | <img src="header/expected_0001.png" width="500"> | <img src="header/skia_result%23page_0001.verified.png" width="500"> | <img src="header/imagesharp_result%23page_0001.verified.png" width="500"> |
+
+## header_banner_table
+
+Regression scenario for shaded banner tables in a page header — the pattern many Word templates
+use to paint a coloured marking/title bar above the body.
+
+Covers two former bugs:
+
+1. Tables inside a header/footer were parsed but never rendered — `RenderHeaderFooterElements`
+   had no `TableElement` branch, so the banner silently disappeared.
+2. Rows without an explicit `w:trHeight` were forced to a 20pt floor, so the thin spacer rows
+   (whose height comes only from an empty paragraph mark, `sz=6`/`sz=10`) ballooned and doubled
+   the banner's height.
+
+The header holds only the banner, sized to sit within the header band, so the body clears it
+without header-space reservation (a separate concern).
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0406** | **Page 1. ErrorMetric: 0.0427** |
+| <img src="header_banner_table/expected_0001.png" width="500"> | <img src="header_banner_table/skia_result%23page_0001.verified.png" width="500"> | <img src="header_banner_table/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## header_footer
 

@@ -469,6 +469,13 @@ abstract class PageRendererBase(RenderContextBase context)
             {
                 RenderHeaderFooterParagraph(para);
             }
+            else if (element is TableElement table)
+            {
+                // Tables in headers/footers (e.g. the coloured banner tables Word templates put
+                // above the body) render inline at the current header/footer cursor. The banner is
+                // small, so RenderTable's page-overflow handling never triggers here.
+                RenderTable(table);
+            }
         }
     }
 
