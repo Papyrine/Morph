@@ -329,10 +329,13 @@ static class ShapeParser
     /// holes stay separate rather than being joined by connector lines. Cubic and quadratic
     /// beziers are flattened into <see cref="bezierFlattenSegments"/> line segments. Returns
     /// null when the geometry is missing, uses ArcTo (whose parameters the de Casteljau
-    /// flattening can't consume), or yields no contour with at least three points — those cases
-    /// fall back to the bounding rect.
+    /// flattening can't consume), or yields no contour with at least
+    /// <paramref name="minContourPoints"/> points — those cases fall back to the bounding rect.
+    /// <paramref name="minContourPoints"/> defaults to 3 (a fillable polygon); pass 2 to keep an
+    /// open two-point line segment (<c>moveTo</c> + <c>lnTo</c>) that will be stroked rather than
+    /// filled — e.g. the thin accent rules in the Agenda template.
     /// </summary>
-    public static IReadOnlyList<IReadOnlyList<(double X, double Y)>>? ExtractSubpaths(WPS.ShapeProperties shapeProps)
+    public static IReadOnlyList<IReadOnlyList<(double X, double Y)>>? ExtractSubpaths(WPS.ShapeProperties shapeProps, int minContourPoints = 3)
     {
         var custGeom = shapeProps.GetFirstChild<A.CustomGeometry>();
         var pathList = custGeom?.GetFirstChild<A.PathList>();
@@ -349,17 +352,18 @@ static class ShapeParser
         var subpaths = new List<IReadOnlyList<(double X, double Y)>>();
         foreach (var path in pathList.Elements<A.Path>())
         {
-            AppendPathContours(path, subpaths);
+            AppendPathContours(path, subpaths, minContourPoints);
         }
 
         return subpaths.Count > 0 ? subpaths : null;
     }
 
     /// <summary>
-    /// Walks a single <c>a:path</c>, banking each <c>moveTo</c>…<c>close</c> run as its own
-    /// contour. Points are normalized into the unit square of the path's <c>w</c>/<c>h</c>.
+    /// Walks a single <c>a:path</c>, banking each <c>moveTo</c>…<c>close</c> run whose point
+    /// count reaches <paramref name="minContourPoints"/> as its own contour. Points are
+    /// normalized into the unit square of the path's <c>w</c>/<c>h</c>.
     /// </summary>
-    static void AppendPathContours(A.Path path, List<IReadOnlyList<(double X, double Y)>> subpaths)
+    static void AppendPathContours(A.Path path, List<IReadOnlyList<(double X, double Y)>> subpaths, int minContourPoints)
     {
         var pathW = path.Width?.Value ?? 0;
         var pathH = path.Height?.Value ?? 0;
@@ -392,10 +396,11 @@ static class ShapeParser
             return true;
         }
 
-        // Bank the in-progress contour (if it has enough points to fill) and reset.
+        // Bank the in-progress contour (if it has enough points) and reset.
         void Flush()
         {
-            if (contour is { Count: >= 3 })
+            if (contour != null &&
+                contour.Count >= minContourPoints)
             {
                 subpaths.Add(contour);
             }

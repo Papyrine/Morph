@@ -6332,8 +6332,20 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
-        // If no fill, skip this shape
-        if (fillColorHex == null)
+        // Resolve the outline once. A shape can be stroke-only (no fill) — e.g. the thin accent
+        // rules down the left and across the top of the Agenda template, which are stroked
+        // custom-geometry line segments (moveTo + lnTo) with no fill. Those must still render, so
+        // don't bail purely because there's no fill; only bail when there's neither fill nor stroke.
+        var (lineColorHex, lineWidthPoints) = ShapeParser.ExtractLineStyle(wsp, shapeProps, currentThemeColors);
+        // A dashed outline would render as a solid line here (this path draws no dash pattern),
+        // which looks worse than not drawing it — so a stroke-only shape only counts as strokeable
+        // when its dash is solid. Matches the prstGeom-line policy in ParseLineShape; the Agenda
+        // accent rules are prstDash="solid" and still render, while dashed decorations (e.g. the
+        // letterhead rules in letters/05) stay unrendered rather than becoming solid bars.
+        var strokeDash = shapeProps.GetFirstChild<A.Outline>()?.GetFirstChild<A.PresetDash>()?.Val;
+        var isSolidStroke = strokeDash is null || strokeDash.Value == A.PresetLineDashValues.Solid;
+        var hasStroke = lineColorHex != null && lineWidthPoints is > 0 && isSolidStroke;
+        if (fillColorHex == null && !hasStroke)
         {
             return null;
         }
@@ -6373,6 +6385,22 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
+        // Without this, custGeom shapes (e.g. half-circle decorations with cubic-bezier arcs)
+        // render as their bounding rect instead of the actual curved silhouette. Stroke-only
+        // shapes allow an open two-point line segment through (minContourPoints: 2) so the
+        // renderer strokes the actual rule rather than the bounding box; filled shapes keep the
+        // 3-point minimum, so their geometry is unchanged.
+        var subpaths = ShapeParser.ExtractSubpaths(
+            shapeProps,
+            minContourPoints: fillColorHex == null ? 2 : 3);
+
+        // A stroke-only shape with no custom-geometry path to stroke would fall back to a
+        // bounding-box outline — a border Word doesn't draw. Skip it.
+        if (fillColorHex == null && subpaths == null)
+        {
+            return null;
+        }
+
         return new()
         {
             WidthPoints = widthPt,
@@ -6386,10 +6414,12 @@ sealed class DocumentParser(string defaultFont)
             BehindText = behindText,
             FillColorHex = fillColorHex,
             FillAlpha = fillAlpha,
+            // Only stroke-only shapes render their outline here — a filled decorative shape's
+            // <a:ln> was never drawn by this path, so leave that behavior untouched.
+            LineColorHex = fillColorHex == null ? lineColorHex : null,
+            LineWidthPoints = fillColorHex == null ? lineWidthPoints : null,
             Preset = ShapeParser.ExtractPresetShape(shapeProps),
-            // Without this, custGeom shapes (e.g. half-circle decorations with cubic-bezier
-            // arcs) render as their bounding rect instead of the actual curved silhouette.
-            Subpaths = ShapeParser.ExtractSubpaths(shapeProps)
+            Subpaths = subpaths
         };
     }
 
