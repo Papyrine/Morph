@@ -4,7 +4,7 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="AngleSharp" Version="1.5.1" />
+    <PackageVersion Include="AngleSharp" Version="1.5.2" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <!-- Blazor WASM web app (Morph.Web) + its bUnit/Playwright test project. Versions pinned to
          match the .NET 10 runtime the web SDK ships. The web projects are in Morph.slnx but excluded
@@ -21,12 +21,12 @@
     <PackageVersion Include="Microsoft.Office.Interop.Word" Version="15.0.4797.1004" />
     <PackageVersion Include="NUnit" Version="4.6.1" />
     <PackageVersion Include="Markdig" Version="1.3.2" />
-    <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.3.1" />
+    <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.4.0" />
     <PackageVersion Include="Microsoft.Playwright" Version="1.61.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="6.2.0" />
     <PackageVersion Include="PdfSharp" Version="6.2.4" />
     <PackageVersion Include="ProjectDefaults" Version="1.0.174" />
-    <PackageVersion Include="SponsorCheck" Version="0.13.0" GitHubSponsorsAccount="Papyrine" SponsorOwner="Papyrine" CheckTransitiveReferences="true" SponsorLandingUrl="https://github.com/sponsors/Papyrine" />
+    <PackageVersion Include="SponsorCheck" Version="0.14.0" GitHubSponsorsAccount="Papyrine" SponsorOwner="Papyrine" CheckTransitiveReferences="true" SponsorLandingUrl="https://github.com/sponsors/Papyrine" />
     <SponsorExemption Include="MaintainerConsulting" Message="Organizations that have engaged any of the core maintainers of Papyrine in consulting work could be exempt from the Maintenance Fee for 6 months from the final date of that work." />
     <SponsorExemption Include="SmallRevenue" Message="Consumers under US$10,000 annual gross revenue are exempt." />
     <PackageVersion Include="ProjectFiles" Version="1.4.0" />
@@ -42,6 +42,6 @@
     <PackageVersion Include="TUnit" Version="1.58.0" />
     <PackageVersion Include="Verify.DiffPlex" Version="3.3.0" />
     <PackageVersion Include="Verify.ImageMagick" Version="3.8.8" />
-    <PackageVersion Include="Verify.TUnit" Version="31.20.0" />
+    <PackageVersion Include="Verify.TUnit" Version="31.21.0" />
   </ItemGroup>
 </Project>
