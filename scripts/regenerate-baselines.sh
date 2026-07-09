@@ -6,10 +6,11 @@
 # WHAT IT DOES
 #   1. Confirms the user is on a clean git working tree (refuses otherwise —
 #      a baseline reset must be its own commit).
-#   2. Deletes every *.verified.* baseline under src/Tests/Inputs/ — the Skia
-#      and ImageSharp page PNGs/JSON plus the HTML/Markdown/PDF export snapshots
-#      (NOT the expected_*.png Word references, which do not carry the
-#      .verified. infix).
+#   2. Deletes every *.verified.* Verify snapshot under src/Tests/ — the Skia and
+#      ImageSharp scenario page PNGs/JSON and export snapshots under Inputs/, plus the
+#      spec-test and sample snapshots that live alongside the test sources. Build output
+#      (bin/, obj/) is skipped, as are the expected_*.png Word references (no .verified.
+#      infix).
 #   3. Runs the test suite via scripts/test.sh — every scenario fails because
 #      .verified.* is missing, producing .received.* files.
 #   4. Promotes every *.received.* to *.verified.* in place.
@@ -31,19 +32,26 @@ if [[ -n "$(git status --porcelain)" ]]; then
     exit 1
 fi
 
-INPUTS_DIR="src/Tests/Inputs"
+TESTS_DIR="src/Tests"
 
-echo ">>> Removing existing Verify baselines under ${INPUTS_DIR}"
-# Every Verify baseline carries the ".verified." infix: the Skia/ImageSharp
-# page PNGs and result JSON, plus the HTML/Markdown/PDF export snapshots. The
-# Word references (expected_*.png) have no such infix, so they are left
-# untouched.
-find "$INPUTS_DIR" -name "*.verified.*" -delete
+# Verify snapshots carry the ".verified." infix and live both under src/Tests/Inputs/ (the
+# Skia/ImageSharp scenario page PNGs + result JSON and the HTML/Markdown/PDF export snapshots)
+# AND alongside the test sources elsewhere under src/Tests/ (spec-test and sample snapshots).
+# Match both; skip build output. The Word references (expected_*.png) have no ".verified."
+# infix, so they are never matched.
+snapshots() {  # $1 = infix glob, e.g. '*.verified.*'
+    find "$TESTS_DIR" -type f -not -path "*/bin/*" -not -path "*/obj/*" -name "$1"
+}
+
+echo ">>> Removing existing Verify baselines under ${TESTS_DIR}"
+snapshots '*.verified.*' | while IFS= read -r verified; do
+    rm -f "$verified"
+done
 
 echo ">>> Running test suite to produce .received.* files (failures are expected)"
 ./scripts/test.sh || true
 
-RECEIVED_COUNT=$(find "$INPUTS_DIR" -name "*.received.*" | wc -l | tr -d ' ')
+RECEIVED_COUNT=$(snapshots '*.received.*' | wc -l | tr -d ' ')
 echo ">>> Found ${RECEIVED_COUNT} received file(s) to promote"
 
 if [[ "$RECEIVED_COUNT" == "0" ]]; then
@@ -53,7 +61,7 @@ if [[ "$RECEIVED_COUNT" == "0" ]]; then
 fi
 
 echo ">>> Promoting *.received.* -> *.verified.*"
-find "$INPUTS_DIR" -name "*.received.*" | while IFS= read -r received; do
+snapshots '*.received.*' | while IFS= read -r received; do
     verified="${received/.received./.verified.}"
     mv "$received" "$verified"
 done

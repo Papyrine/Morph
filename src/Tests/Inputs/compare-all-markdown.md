@@ -1,4 +1,4 @@
-# All Markdown export scenarios (321)
+# All Markdown export scenarios (322)
 
 The Markdown exporter rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -124,6 +124,7 @@ The Markdown exporter rendered to PNG via the headless-browser screenshot pipeli
 - [gutter_margins/01](#gutter_margins01)
 - [hanging_indent](#hanging_indent)
 - [header](#header)
+- [header_banner_table](#header_banner_table)
 - [header_footer](#header_footer)
 - [header_row_repeat/01](#header_row_repeat01)
 - [headings](#headings)
@@ -1042,6 +1043,12 @@ The Markdown exporter rendered to PNG via the headless-browser screenshot pipeli
 | Morph Markdown |
 | --- |
 | <img src="header/md_result.verified.png" width="500"> |
+
+## header_banner_table
+
+| Morph Markdown |
+| --- |
+| <img src="header_banner_table/md_result.verified.png" width="500"> |
 
 ## header_footer
 
