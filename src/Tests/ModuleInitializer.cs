@@ -19,8 +19,12 @@ public static class ModuleInitializer
         // Force A4 size for consistent test results across regions
         DefaultPageSize.UseLetterSize = false;
 
-        // Use 1.08 font width scale to better match Microsoft Word's text rendering
-        DefaultFontSettings.FontWidthScale = 1.08;
+        // FontWidthScale left at its 1.0 default. A full-corpus measurement (ImageSharp, ErrorMetric
+        // vs the Word reference PNGs) found 1.08 gave no ErrorMetric gain over 1.0 and slightly worse
+        // page-count matching, while inflating each word's advance without widening the glyphs — the
+        // visible inter-word gaps vs Word — and tipping header/footer tables into a pagination path
+        // that could recurse. So the harness renders at the natural 1.0 width.
+        DefaultFontSettings.FontWidthScale = 1.0;
 
         // Disable font hinting + subpixel positioning in tests: greyscale AA at
         // integer x positions gives pixel-identical output across machines so
