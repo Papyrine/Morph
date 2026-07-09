@@ -455,27 +455,36 @@ abstract class PageRendererBase(RenderContextBase context)
 
     void RenderHeaderFooterElements(HeaderFooterContent content)
     {
-        foreach (var element in content.Elements)
+        var previousInHeaderFooter = inHeaderFooter;
+        inHeaderFooter = true;
+        try
         {
-            if (element is FloatingShapeElement {BehindText: true} shape)
+            foreach (var element in content.Elements)
             {
-                RenderBackgroundShape(shape);
+                if (element is FloatingShapeElement {BehindText: true} shape)
+                {
+                    RenderBackgroundShape(shape);
+                }
+                else if (element is FloatingImageElement floatingImage)
+                {
+                    RenderFloatingImage(floatingImage);
+                }
+                else if (element is ParagraphElement para)
+                {
+                    RenderHeaderFooterParagraph(para);
+                }
+                else if (element is TableElement table)
+                {
+                    // Banner tables Word templates put in headers/footers render inline at the
+                    // header/footer cursor; pagination is suppressed (see inHeaderFooter) so an
+                    // overflowing footer table renders in place instead of recursing into RenderFooter.
+                    RenderTable(table);
+                }
             }
-            else if (element is FloatingImageElement floatingImage)
-            {
-                RenderFloatingImage(floatingImage);
-            }
-            else if (element is ParagraphElement para)
-            {
-                RenderHeaderFooterParagraph(para);
-            }
-            else if (element is TableElement table)
-            {
-                // Tables in headers/footers (e.g. the coloured banner tables Word templates put
-                // above the body) render inline at the current header/footer cursor. The banner is
-                // small, so RenderTable's page-overflow handling never triggers here.
-                RenderTable(table);
-            }
+        }
+        finally
+        {
+            inHeaderFooter = previousInHeaderFooter;
         }
     }
 
@@ -688,8 +697,19 @@ abstract class PageRendererBase(RenderContextBase context)
     /// directly, so a forced break lands in the next column rather than skipping the remaining
     /// columns of the page.
     /// </summary>
+    // Set while a header/footer is rendering. That content is anchored to a fixed band and must
+    // never paginate: a footer table that "doesn't fit" must render inline, because advancing the
+    // page re-enters RenderFooter (FinishCurrentPage draws the footer) and recurses until the stack
+    // overflows. Guards every pagination point reachable from header/footer table rendering.
+    bool inHeaderFooter;
+
     protected void AdvanceToNextColumnOrPage()
     {
+        if (inHeaderFooter)
+        {
+            return;
+        }
+
         if (!context.MoveToNextColumn())
         {
             FinishCurrentPage();
@@ -875,7 +895,7 @@ abstract class PageRendererBase(RenderContextBase context)
                 // a fresh page the table already has the whole page to itself; a table taller than
                 // one page gains nothing from another break and would strand an empty page in front
                 // of it (e.g. a full-sheet label grid whose exact rows measure a hair over a page).
-                if (hasExactRow && context.CurrentY > context.ContentTop)
+                if (hasExactRow && context.CurrentY > context.ContentTop && !inHeaderFooter)
                 {
                     FinishCurrentPage();
                     StartNewPage();
