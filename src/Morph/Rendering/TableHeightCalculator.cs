@@ -4,19 +4,6 @@
 /// </summary>
 static class TableHeightCalculator
 {
-    static bool AllRowsHaveExplicitHeight(TableElement table)
-    {
-        foreach (var row in table.Rows)
-        {
-            if (!row.HeightPoints.HasValue)
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     /// <summary>
     /// Computes the final height of every row in <paramref name="table"/>, accounting for
     /// non-merged cells, explicit row heights (atLeast vs exact, vMerge-strict tables),
@@ -74,27 +61,27 @@ static class TableHeightCalculator
             heights[rowIndex] = maxHeight + 2 * (float) table.Properties.CellSpacingPoints;
         }
 
-        // Second pass: Apply explicit row heights (w:trHeight).
-        // Tables with vMerge AND every row carrying an explicit height use those heights
-        // verbatim — common in letterhead-style layouts. Otherwise atLeast lets content expand.
-        var allRowsHaveExplicitHeight = AllRowsHaveExplicitHeight(table);
-        var useStrictHeights = hasVerticalMerge && allRowsHaveExplicitHeight;
-
+        // Second pass: Apply explicit row heights (w:trHeight). "exact" (w:hRule="exact") pins the row
+        // to that height verbatim; every other rule ("atLeast", or the omitted default) treats it as a
+        // FLOOR — the row still grows to fit its content, per Word. An earlier rule forced heights
+        // verbatim on any vMerge table whose rows all carried an explicit height, on the theory that
+        // such letterhead grids are authored to fixed heights; but that clamped genuinely overflowing
+        // rows — e.g. a cell whose 1-inch w:tcMar top margin dwarfs a 342-twip trHeight — so the next
+        // row rendered on top of the overflow (business-plans/08's "Prepared for:" heading collided
+        // with the contact block). Honouring atLeast everywhere matches Word and, across the corpus,
+        // improves far more pages than it shifts.
         for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
         {
             var row = table.Rows[rowIndex];
-            if (row.HeightPoints.HasValue)
+            if (!row.HeightPoints.HasValue)
             {
-                var explicitHeight = (float) row.HeightPoints.Value;
-                if (row.IsExactHeight || useStrictHeights)
-                {
-                    heights[rowIndex] = explicitHeight;
-                }
-                else
-                {
-                    heights[rowIndex] = Math.Max(heights[rowIndex], explicitHeight);
-                }
+                continue;
             }
+
+            var explicitHeight = (float) row.HeightPoints.Value;
+            heights[rowIndex] = row.IsExactHeight
+                ? explicitHeight
+                : Math.Max(heights[rowIndex], explicitHeight);
         }
 
         // Third pass: distribute vMerge-Restart cell content across spanned rows.
