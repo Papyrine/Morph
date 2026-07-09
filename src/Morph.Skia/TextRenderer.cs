@@ -30,9 +30,11 @@ sealed class TextRenderer(SkiaRenderContext context) :
         // Mirror the render path's margin collapse (Word uses max(after, before) between
         // adjacent paragraphs — verified against Word XPS output): only the excess of this
         // paragraph's spacing-before over the previous paragraph's spacing-after consumes
-        // page space, so pagination decisions see the height that will actually render.
+        // page space, so pagination decisions see the height that will actually render. On a
+        // same-style contextual collapse the render steps back over the previous after-spacing,
+        // so this paragraph's net contribution is reduced by it.
         var totalHeight = collapseSpacingBefore
-            ? 0
+            ? -context.LastParagraphSpacingAfterPoints
             : Math.Max(0, (float)props.SpacingBeforePoints - context.LastParagraphSpacingAfterPoints);
 
         foreach (var line in lines)
@@ -40,11 +42,10 @@ sealed class TextRenderer(SkiaRenderContext context) :
             totalHeight += CalculateLineHeight(line, props);
         }
 
-        // Add spacing after (collapsed if this paragraph has contextual spacing)
-        if (!props.ContextualSpacing)
-        {
-            totalHeight += (float)props.SpacingAfterPoints;
-        }
+        // Spacing-after always contributes: contextual spacing only removes the gap before a
+        // following same-style paragraph (handled by that paragraph's collapsed before), not the
+        // trailing space itself.
+        totalHeight += (float)props.SpacingAfterPoints;
 
         // Border space: Word draws borders inside the spacing regions when possible,
         // only expanding the paragraph height when w:space exceeds available spacing.
@@ -213,7 +214,13 @@ sealed class TextRenderer(SkiaRenderContext context) :
         // set by the page renderer).
         var suppressPageTopSpacing = context.SuppressPageTopSpacingBefore;
         context.SuppressPageTopSpacingBefore = false;
-        if (!collapseSpacingBefore && !inBetweenChain && !suppressPageTopSpacing)
+        if (collapseSpacingBefore)
+        {
+            // Same-style contextual paragraphs sit tight: step back over the after-spacing the
+            // previous paragraph already advanced past so the inter-paragraph gap collapses to zero.
+            context.CurrentY -= context.LastParagraphSpacingAfterPoints;
+        }
+        else if (!inBetweenChain && !suppressPageTopSpacing)
         {
             var spacingBefore = (float)props.SpacingBeforePoints;
             var lastSpacingAfter = context.LastParagraphSpacingAfterPoints;
@@ -409,14 +416,14 @@ sealed class TextRenderer(SkiaRenderContext context) :
             }
         }
 
-        // Add spacing after and track for margin collapsing with next paragraph
-        // Contextual spacing removes space between paragraphs to create tighter visual grouping.
-        // When this paragraph collapsed its bottom border into a w:between line, suppress
-        // spacing-after too so the shared edges visually fuse with the next paragraph.
+        // Add spacing after and track for margin collapsing with next paragraph.
+        // Contextual spacing does NOT drop the after-spacing here — the gap is only removed before a
+        // following same-style paragraph, which that paragraph's collapsed spacing-before handles by
+        // stepping back over the tracked value. When this paragraph collapsed its bottom border into
+        // a w:between line, suppress spacing-after so the shared edges visually fuse with the next.
         var spacingAfter = (float)props.SpacingAfterPoints;
         var collapsedBottom = context.SuppressNextParagraphTopBorder;
-        if (props.ContextualSpacing ||
-            collapsedBottom)
+        if (collapsedBottom)
         {
             context.LastParagraphSpacingAfterPoints = 0;
         }
@@ -453,10 +460,17 @@ sealed class TextRenderer(SkiaRenderContext context) :
         var sameStyle = props.StyleId != null && props.StyleId == context.LastParagraphStyleId;
         var collapseSpacingBefore = props.ContextualSpacing &&
                                     context.LastParagraphHadContextualSpacing && sameStyle;
-        if (!collapseSpacingBefore)
+        if (collapseSpacingBefore)
+        {
+            // Same-style contextual paragraphs sit tight: undo the after-spacing the previous
+            // paragraph already advanced past so the inter-paragraph gap collapses to zero.
+            context.CurrentY -= context.LastParagraphSpacingAfterPoints;
+        }
+        else
         {
             context.CurrentY += (float)props.SpacingBeforePoints;
         }
+        context.LastParagraphSpacingAfterPoints = 0;
 
         var isFirstLine = true;
         foreach (var line in lines)
@@ -520,11 +534,15 @@ sealed class TextRenderer(SkiaRenderContext context) :
         }
 
         // Add spacing after (but not for empty paragraphs which are typically just visual spacers).
-        // Contextual spacing suppresses spacing-after; the next same-style paragraph picks up the cue.
+        // Contextual spacing does NOT drop the after-spacing here: it only removes the gap when the
+        // NEXT paragraph shares this style, which that paragraph's spacing-before handles by
+        // subtracting the value tracked below. Dropping it unconditionally would also swallow the
+        // gap before a following different-styled paragraph, which Word keeps.
         var isEmpty = IsParagraphEmpty(paragraph);
-        if (!isEmpty && !props.ContextualSpacing)
+        if (!isEmpty)
         {
             context.CurrentY += (float)props.SpacingAfterPoints;
+            context.LastParagraphSpacingAfterPoints = (float)props.SpacingAfterPoints;
         }
 
         context.LastParagraphHadContextualSpacing = props.ContextualSpacing;
@@ -1776,8 +1794,11 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 });
         }
 
-        // Handle empty paragraph - Word derives the line from the paragraph mark's formatting
-        if (lines.Count == 0 && !paragraph.IsAnchorOnlyMark && !paragraph.IsCollapsedCellMark)
+        // Handle empty paragraph - Word derives the line from the paragraph mark's formatting.
+        // This applies to anchor-only marks too: Word still lays out the paragraph mark on its own
+        // line (at the mark's font size), so the following block sits one line lower. Suppressing it
+        // snapped the next table/heading too high (e.g. brochures/01's title block by a full line).
+        if (lines.Count == 0 && !paragraph.IsCollapsedCellMark)
         {
             // Fallback default
             float emptyHeight = 12;

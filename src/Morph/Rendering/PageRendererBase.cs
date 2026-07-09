@@ -1293,23 +1293,42 @@ abstract class PageRendererBase(RenderContextBase context)
         if (cell.Properties.VerticalAlignment != CellVerticalAlignment.Top)
         {
             ParagraphElement? lastMeasuredParagraph = null;
+            string? previousStyleId = null;
+            var previousContextual = false;
+            var previousAfter = 0f;
             foreach (var element in cell.Content)
             {
-                if (element is ParagraphElement para)
+                var para = element switch
+                {
+                    ParagraphElement paragraph => paragraph,
+                    ContentControlElement {CellParagraph: { } cellParagraph} => cellParagraph,
+                    _ => null
+                };
+
+                if (para != null)
                 {
                     // Measured at exactly the width RenderParagraphInBounds lays out at (it
                     // subtracts the paragraph's own indents internally and draws list markers
                     // into the hanging area — no extra marker inset applies).
                     contentHeight += Measurer.MeasureParagraphHeightWithWidth(para, contentWidth);
-                    lastMeasuredParagraph = para;
-                }
-                else if (element is ContentControlElement contentControl)
-                {
-                    if (contentControl.CellParagraph is { } measurePara)
+
+                    // Mirror RenderParagraphInBounds' contextual collapse: a contextual paragraph
+                    // that follows a same-style contextual one removes the gap between them (its
+                    // own spacing-before and the previous paragraph's spacing-after). The measured
+                    // per-paragraph heights include both, so subtract them here — otherwise the
+                    // centred/bottom offset treats the content as taller than it renders and sits
+                    // too high.
+                    var props = para.Properties;
+                    if (props.ContextualSpacing && previousContextual &&
+                        props.StyleId != null && props.StyleId == previousStyleId)
                     {
-                        contentHeight += Measurer.MeasureParagraphHeightWithWidth(measurePara, contentWidth);
-                        lastMeasuredParagraph = measurePara;
+                        contentHeight -= (float) props.SpacingBeforePoints + previousAfter;
                     }
+
+                    previousStyleId = props.StyleId;
+                    previousContextual = props.ContextualSpacing;
+                    previousAfter = ParagraphHasVisibleContent(para) ? (float) props.SpacingAfterPoints : 0f;
+                    lastMeasuredParagraph = para;
                 }
                 else if (element is ImageElement image)
                 {
@@ -1322,6 +1341,9 @@ abstract class PageRendererBase(RenderContextBase context)
                     }
 
                     contentHeight += imageHeight;
+                    previousStyleId = null;
+                    previousContextual = false;
+                    previousAfter = 0f;
                 }
             }
 
@@ -1351,6 +1373,13 @@ abstract class PageRendererBase(RenderContextBase context)
         }
 
         context.CurrentY = cellY + (float) padding.Top + verticalOffset;
+
+        // Each cell lays out independently: Word applies the first paragraph's spacing-before and
+        // never collapses spacing across a cell boundary. Reset the cross-paragraph spacing state so
+        // a previous cell's trailing paragraph can't collapse against this cell's first one.
+        context.LastParagraphSpacingAfterPoints = 0;
+        context.LastParagraphHadContextualSpacing = false;
+        context.LastParagraphStyleId = null;
 
         foreach (var element in cell.Content)
         {
@@ -1388,5 +1417,26 @@ abstract class PageRendererBase(RenderContextBase context)
         }
 
         context.CurrentY = savedY;
+    }
+
+    // A paragraph contributes its spacing-after only when it lays out at least one real line —
+    // mirrors the text engines' empty-paragraph handling, which skips spacing-after for marks
+    // that carry no visible content.
+    static bool ParagraphHasVisibleContent(ParagraphElement paragraph)
+    {
+        foreach (var run in paragraph.Runs)
+        {
+            if (run is {IsTab: false, InlineImageData: null} && !string.IsNullOrEmpty(run.Text))
+            {
+                return true;
+            }
+
+            if (run.InlineImageData != null)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
