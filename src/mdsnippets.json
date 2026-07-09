@@ -5,5 +5,5 @@
   "ValidateContent": true,
   "Convention": "InPlaceOverwrite",
   "ExcludeMarkdownFiles": [ "page_counts.md", "*.verified.md", "*.received.md" ],
-  "ExcludeDirectories": ["Inputs", "superpowers", "Tests"]
+  "ExcludeDirectories": ["Inputs", "superpowers"]
 }
