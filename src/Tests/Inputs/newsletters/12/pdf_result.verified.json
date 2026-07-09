@@ -11,19 +11,19 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "NEWSLETTER\nTITLE ISSUE NO | MONTH - MONTH HERE YEAR | VOLUME\nTOPIC 01\nGive us a blurb about a\nstory on page 2. Tell us\nwhat to expect and what\nthe headline is.\nTOPIC 02\nGive us a blurb about a\nstory on page 3. Put a\nquote from the story here to\nget the audience\ninterested.\nOUR SERVICES\nTo change any of the text in this\ndocument, just click on the text\nyou want to update and start\ntyping.\nTo change the images in this\nnewsletter, delete the existing\nimage and insert a new one in it’s\nplace. You can use the Picture\nediting tools within Word to crop\nthe image to suit.\nTOPIC 03\nGive us a blurb about a\nstory on page 4. Make this\nyour own!\nGive us a blurb about a\nstory on page 4."
+        "Text": "NEWSLETTER\nTITLE ISSUE NO | MONTH - MONTH HERE YEAR | VOLUME\nTOPIC 01\nGive us a blurb about a\nstory on page 2. Tell us\nwhat to expect and\nwhat the headline is.\nTOPIC 02\nGive us a blurb about a\nstory on page 3. Put a\nquote from the story\nhere to get the\naudience interested.\nOUR SERVICES\nTo change any of the text in this\ndocument, just click on the text\nyou want to update and start\ntyping.\nTo change the images in this\nnewsletter, delete the existing\nimage and insert a new one in it’s\nplace. You can use the Picture\nediting tools within Word to crop\nthe image to suit.\nTOPIC 03\nGive us a blurb about a\nstory on page 4. Make\nthis your own!\nGive us a blurb about a\nstory on page 4."
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "ISSUE NO | MONTH - MONTH YEAR | VOLUME\nTo change the images in this\nnewsletter, delete the existing image\nand insert a new one in it’s place. You\ncan use the Picture editing tools within\nWord to crop the image to suit.\n“We don’t merely book your travel; we\ncan help you realize your travel dreams if\nyou give us an idea of what kind of\nexperience you seek.”\n- Henriette Andersen\nTo change the images in this newsletter,\ndelete the existing image and insert a new\none in it’s place. You can use the Picture\nediting tools within Word to crop the image\nto suit.\nMARGIE’S TRAVEL OFFERS\nYOU THE FOLLOWING:\n01\nBooking for any type\nof travel\n02\nQuick, thorough,\nknowledgeable\nresponses to calls and\nquestions\n03\nInternational services\n04\nResourceful and\nwell-traveled agents"
+        "Text": "ISSUE NO | MONTH - MONTH YEAR | VOLUME\nTo change the images in this\nnewsletter, delete the existing image\nand insert a new one in it’s place. You\ncan use the Picture editing tools within\nWord to crop the image to suit.\n“We don’t merely book your travel;\nwe can help you realize your travel\ndreams if you give us an idea of\nwhat kind of experience you seek.”\n- Henriette Andersen\nTo change the images in this newsletter,\ndelete the existing image and insert a new\none in it’s place. You can use the Picture\nediting tools within Word to crop the image\nto suit.\nMARGIE’S TRAVEL OFFERS\nYOU THE FOLLOWING:\n01\nBooking for any type\nof travel\n02\nQuick, thorough,\nknowledgeable\nresponses to calls and\nquestions\n03\nInternational services\n04\nResourceful and\nwell-traveled agents"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.3466,
+      "ErrorMetric": 0.3464,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
