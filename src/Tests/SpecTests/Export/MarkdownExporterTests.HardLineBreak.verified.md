@@ -1,4 +1,4 @@
-First line\
+﻿First line\
 Second line
 
 trailing break dropped

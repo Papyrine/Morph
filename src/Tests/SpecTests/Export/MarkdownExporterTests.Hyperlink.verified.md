@@ -1,1 +1,1 @@
-see [the docs](https://example.com/docs) now
+﻿see [the docs](https://example.com/docs) now

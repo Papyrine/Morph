@@ -1,2 +1,2 @@
-| outer text<br>inner a<br>inner b | plain |
+﻿| outer text<br>inner a<br>inner b | plain |
 | --- | --- |

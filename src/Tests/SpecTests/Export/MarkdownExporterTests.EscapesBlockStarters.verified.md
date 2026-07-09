@@ -1,4 +1,4 @@
-\# not a heading
+﻿\# not a heading
 
 \> not a quote
 

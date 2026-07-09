@@ -1,1 +1,1 @@
-[wiki](https://en.wikipedia.org/wiki/Foo_%28bar%29)
+﻿[wiki](https://en.wikipedia.org/wiki/Foo_%28bar%29)

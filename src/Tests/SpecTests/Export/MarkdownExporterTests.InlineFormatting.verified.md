@@ -1,1 +1,1 @@
-normal **bold** *italic* <u>under</u> ~~struck~~
+﻿normal **bold** *italic* <u>under</u> ~~struck~~

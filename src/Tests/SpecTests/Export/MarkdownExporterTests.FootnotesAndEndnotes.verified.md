@@ -1,4 +1,4 @@
-See note [^1] and [^2].
+﻿See note [^1] and [^2].
 
 Reuse [^1] here.
 
