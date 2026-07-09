@@ -6,9 +6,10 @@
 ///   page renders. One table row per page, so multi-page scenarios (including ones where
 ///   backends produced different page counts) can be scrolled through.
 /// - Export: a per-format aggregate each — <c>compare-all-html.md</c>,
-///   <c>compare-all-markdown.md</c>, <c>compare-all-pdf.md</c>. The HTML and Markdown aggregates
-///   are a visual index of each exporter's render; the PDF aggregate sets each Morph PDF page
-///   beside the Word page render (see <see cref="RegenerateAllExport"/>).
+///   <c>compare-all-markdown.md</c>, <c>compare-all-pdf.md</c>. All three set the Word reference
+///   render on the left beside the exporter's output: the HTML and Markdown aggregates stack the
+///   Word pages beside the single continuous render, the PDF aggregate pairs each Morph PDF page
+///   with the matching Word page (see <see cref="RegenerateAllExport"/>).
 ///
 /// All render cleanly on GitHub.
 /// </summary>
@@ -85,8 +86,8 @@ static class ScenarioMarkdownGenerator
     /// Generates the per-format export aggregates at the Inputs root, the export-pipeline
     /// counterparts to <see cref="RegenerateAll"/>:
     /// <list type="bullet">
-    /// <item><c>compare-all-html.md</c> — a visual index of the HTML exporter's renders</item>
-    /// <item><c>compare-all-markdown.md</c> — a visual index of the Markdown exporter's renders</item>
+    /// <item><c>compare-all-html.md</c> — the Word pages beside the HTML exporter's render</item>
+    /// <item><c>compare-all-markdown.md</c> — the Word pages beside the Markdown exporter's render</item>
     /// <item><c>compare-all-pdf.md</c> — each Morph PDF page beside the Word page render</item>
     /// </list>
     /// HTML and Markdown render to PNG via the headless-browser screenshot pipeline; PDF pages
@@ -98,7 +99,7 @@ static class ScenarioMarkdownGenerator
             inputsDirectory,
             "compare-all-html.md",
             "All HTML export scenarios",
-            "The HTML exporter rendered to PNG via the headless-browser screenshot pipeline.",
+            "The Word reference render (left) beside the HTML exporter's output, rendered to PNG via the headless-browser screenshot pipeline.",
             _ => File.Exists(Path.Combine(_, "html_result.verified.png")),
             (sb, dir, name) => AppendRender(sb, dir, name, "Morph HTML", "html_result.verified.png"));
 
@@ -106,7 +107,7 @@ static class ScenarioMarkdownGenerator
             inputsDirectory,
             "compare-all-markdown.md",
             "All Markdown export scenarios",
-            "The Markdown exporter rendered to PNG via the headless-browser screenshot pipeline.",
+            "The Word reference render (left) beside the Markdown exporter's output, rendered to PNG via the headless-browser screenshot pipeline.",
             _ => File.Exists(Path.Combine(_, "md_result.verified.png")),
             (sb, dir, name) => AppendRender(sb, dir, name, "Morph Markdown", "md_result.verified.png"));
 
@@ -156,14 +157,24 @@ static class ScenarioMarkdownGenerator
         File.WriteAllText(Path.Combine(inputsDirectory, fileName), sb.ToString());
     }
 
-    // A single-column visual index: this format's rendered output, one row per scenario.
+    // A side-by-side visual index mirroring compare-all-images.md: the Word reference pages on
+    // the left beside this format's rendered output on the right. HTML/Markdown export to a single
+    // continuous screenshot (never paginated), so all Word pages are stacked in one left-hand cell
+    // next to the one render cell — rather than the one-row-per-page layout the image/PDF
+    // aggregates use, which only fits when both sides are paged.
     static void AppendRender(StringBuilder sb, string directory, string name, string resultLabel, string resultFile)
     {
         var srcPrefix = $"{name}/";
 
-        sb.Append($"| {resultLabel} |\n");
-        sb.Append("| --- |\n");
+        var expectedImages = Directory.GetFiles(directory, "expected_*.png")
+            .Order()
+            .Select(_ => RenderImage(Path.GetFileName(_), srcPrefix));
+
+        sb.Append($"| Expected (Word) | {resultLabel} |\n");
+        sb.Append("| --- | --- |\n");
         sb.Append("| ");
+        sb.Append(string.Join("<br>", expectedImages));
+        sb.Append(" | ");
         sb.Append(RenderImage(FileNameIfExists(directory, resultFile), srcPrefix));
         sb.Append(" |\n");
     }
