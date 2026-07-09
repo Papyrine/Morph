@@ -54,7 +54,7 @@
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.4017,
+      "ErrorMetric": 0.4016,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"

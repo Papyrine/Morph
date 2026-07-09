@@ -16,7 +16,7 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "To get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card.\nTo get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card."
+        "Text": "To get started right away, just tap any placeholder\ntext (such as this) and start typing to replace it with\nyour own or delete for a blank card.\nTo get started right away, just tap any placeholder\ntext (such as this) and start typing to replace it with\nyour own or delete for a blank card."
       },
       {
         "Width": 792.0,
@@ -26,7 +26,7 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "To get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card.\nTo get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card."
+        "Text": "To get started right away, just tap any placeholder\ntext (such as this) and start typing to replace it with\nyour own or delete for a blank card.\nTo get started right away, just tap any placeholder\ntext (such as this) and start typing to replace it with\nyour own or delete for a blank card."
       },
       {
         "Width": 792.0,
@@ -36,7 +36,7 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "To get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card.\nTo get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card."
+        "Text": "To get started right away, just tap any placeholder\ntext (such as this) and start typing to replace it with\nyour own or delete for a blank card.\nTo get started right away, just tap any placeholder\ntext (such as this) and start typing to replace it with\nyour own or delete for a blank card."
       },
       {
         "Width": 792.0,
@@ -46,7 +46,7 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "To get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card.\nTo get started right away, just tap any placeholder text (such\nas this) and start typing to replace it with your own or delete\nfor a blank card."
+        "Text": "To get started right away, just tap any placeholder\ntext (such as this) and start typing to replace it with\nyour own or delete for a blank card.\nTo get started right away, just tap any placeholder\ntext (such as this) and start typing to replace it with\nyour own or delete for a blank card."
       }
     ]
   },
@@ -60,7 +60,7 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0201,
+      "ErrorMetric": 0.02,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
@@ -74,7 +74,7 @@
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.0201,
+      "ErrorMetric": 0.02,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"
@@ -88,7 +88,7 @@
     },
     {
       "Page": 6,
-      "ErrorMetric": 0.0201,
+      "ErrorMetric": 0.02,
       "ExpectedFile": "expected_0006.png",
       "VerifiedFile": "pdf_result#page_0006.verified.png",
       "ReceivedFile": "pdf_result#page_0006.received.png"
@@ -102,7 +102,7 @@
     },
     {
       "Page": 8,
-      "ErrorMetric": 0.0201,
+      "ErrorMetric": 0.02,
       "ExpectedFile": "expected_0008.png",
       "VerifiedFile": "pdf_result#page_0008.verified.png",
       "ReceivedFile": "pdf_result#page_0008.received.png"
