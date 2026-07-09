@@ -20,6 +20,15 @@ on:
 permissions:
   contents: write
 
+# Cutting a release fires several events at once (tag push + milestone closed +
+# an issues/pull_request event per item in the milestone), each starting its own
+# run. Serialize runs that target the same milestone/tag so they can't race each
+# other into a duplicate createRelease. cancel-in-progress stays false so the
+# winning run finishes and the queued run updates rather than being dropped.
+concurrency:
+  group: milestone-release-${{ github.event.milestone.title || github.event.issue.milestone.title || github.event.pull_request.milestone.title || github.ref_name }}
+  cancel-in-progress: false
+
 jobs:
   sync-release:
     runs-on: ubuntu-latest
@@ -86,14 +95,43 @@ jobs:
                 }
 
                 if (tagExists) {
-                  await github.rest.repos.createRelease({
-                    owner, repo,
-                    tag_name: milestoneTitle,
-                    name: milestoneTitle,
-                    body: body || 'No issues in this milestone yet.',
-                    draft: isDraft
-                  });
-                  console.log(`Created release: ${milestoneTitle}`);
+                  try {
+                    await github.rest.repos.createRelease({
+                      owner, repo,
+                      tag_name: milestoneTitle,
+                      name: milestoneTitle,
+                      body: body || 'No issues in this milestone yet.',
+                      draft: isDraft
+                    });
+                    console.log(`Created release: ${milestoneTitle}`);
+                  } catch (error) {
+                    // A concurrent run may have created the release between the
+                    // listReleases scan above and this call, so GitHub returns
+                    // 422 already_exists. Recover by finding the now-existing
+                    // release and updating it, matching the update path above.
+                    const alreadyExists = error.status === 422 &&
+                      error.response?.data?.errors?.some(entry => entry.code === 'already_exists');
+                    if (!alreadyExists) throw error;
+
+                    let existing = null;
+                    for await (const response of github.paginate.iterator(
+                      github.rest.repos.listReleases,
+                      { owner, repo, per_page: 100 }
+                    )) {
+                      existing = response.data.find(r => r.tag_name === milestoneTitle);
+                      if (existing) break;
+                    }
+                    if (!existing) throw error;
+
+                    await github.rest.repos.updateRelease({
+                      owner, repo,
+                      release_id: existing.id,
+                      name: milestoneTitle,
+                      body: body || 'No issues in this milestone yet.',
+                      draft: isDraft
+                    });
+                    console.log(`Release already existed (concurrent run won); updated: ${milestoneTitle}`);
+                  }
                 } else {
                   console.log(`Skipping release creation: tag '${milestoneTitle}' does not exist`);
                 }
