@@ -35,9 +35,13 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
     // ---- IParagraphMeasurer (used by shared table-layout / pagination math) ----
 
+    // The table-cell measurers take the cell's inner width and remove BOTH indents to get the wrap
+    // width, exactly as RenderInBounds draws it and as the Skia/ImageSharp measurers do. Previously
+    // they passed the raw width to Layout, so a left- or right-indented cell paragraph was measured
+    // wider than it renders — the row was under-sized.
     public List<float> LayoutParagraphForMeasurement(ParagraphElement paragraph, float maxWidth)
     {
-        var lines = Layout(paragraph, maxWidth);
+        var lines = Layout(paragraph, maxWidth - Indent(paragraph) - RightIndent(paragraph));
         var heights = new List<float>(lines.Count);
         foreach (var line in lines)
         {
@@ -52,6 +56,11 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         return heights;
     }
 
+    // Autofit column widths use this for a cell paragraph's natural (unwrapped) and minimum (widest
+    // word) content width, probed with sentinel widths. Returns the bare widest line width — the
+    // shared TableLayout adds cell padding/margin itself. Adding the left indent here made the PDF's
+    // autofit columns a left-indent wider than the Skia/ImageSharp measurers (which return bare
+    // widest); the raster is the reference, so match it.
     public float MeasureParagraphNaturalWidth(ParagraphElement paragraph, float maxWidth)
     {
         var widest = 0d;
@@ -60,19 +69,22 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             widest = Math.Max(widest, line.Width);
         }
 
-        return (float) (widest + Indent(paragraph));
+        return (float) widest;
     }
 
     public float MeasureParagraphHeightWithWidth(ParagraphElement paragraph, float maxWidth) =>
-        (float) MeasureHeight(paragraph, maxWidth);
+        (float) MeasureHeight(paragraph, maxWidth - Indent(paragraph) - RightIndent(paragraph));
 
     /// <summary>Height the paragraph will consume in the page flow: <see cref="MeasureHeight"/>
     /// with the cross-paragraph spacing collapse that <see cref="Render"/> applies
     /// (max(after, before) between neighbours) folded in, so keep decisions test the height
     /// that drawing will actually use. <paramref name="previousSpacingAfter"/> is the
-    /// spacing-after of whatever renders before this paragraph.</summary>
+    /// spacing-after of whatever renders before this paragraph.
+    /// <paramref name="maxWidth"/> is the full section content width; the paragraph's left and
+    /// right indents are subtracted here so the measured wrap matches what <see cref="Render"/>
+    /// draws (both now honour the right indent — issue #151 follow-up).</summary>
     public float MeasureFlowHeight(ParagraphElement paragraph, double maxWidth, double previousSpacingAfter) =>
-        (float) (MeasureHeight(paragraph, maxWidth) - Math.Min(SpacingBefore(paragraph), previousSpacingAfter));
+        (float) (MeasureHeight(paragraph, maxWidth - Indent(paragraph) - RightIndent(paragraph)) - Math.Min(SpacingBefore(paragraph), previousSpacingAfter));
 
     public double MeasureHeight(ParagraphElement paragraph, double maxWidth)
     {
@@ -149,15 +161,18 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     /// <summary>Draws the paragraph at the current flow position, advancing <see cref="RenderContextBase.CurrentY"/>.</summary>
     public void Render(ParagraphElement paragraph)
     {
-        var maxWidth = context.ContentWidth - Indent(paragraph);
+        var maxWidth = context.ContentWidth - Indent(paragraph) - RightIndent(paragraph);
         Draw(paragraph, context.ContentLeft + Indent(paragraph), maxWidth, allowPageBreak: true);
     }
 
-    /// <summary>Draws the paragraph constrained to a bounded region (table cell), no page breaks.</summary>
+    /// <summary>Draws the paragraph constrained to a bounded region (table cell), no page breaks.
+    /// <paramref name="maxWidth"/> is the region's inner width; both indents come off the wrap width
+    /// (a bulleted / right-indented cell paragraph wraps within the indented region) while only the
+    /// left indent shifts the start position.</summary>
     public void RenderInBounds(ParagraphElement paragraph, double x, double maxWidth)
     {
         var indent = Indent(paragraph);
-        Draw(paragraph, x + indent, maxWidth - indent, allowPageBreak: false);
+        Draw(paragraph, x + indent, maxWidth - indent - RightIndent(paragraph), allowPageBreak: false);
     }
 
     void Draw(ParagraphElement paragraph, double left, double availableWidth, bool allowPageBreak)
@@ -250,19 +265,25 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             var lineTop = (double) context.CurrentY;
             var baseline = lineTop + line.Ascent;
 
-            var penX = left;
+            // The first line's start shifts by its signed offset (see FirstLineOffset): right for a
+            // first-line indent, LEFT (outdent) for a markerless hanging indent; its alignment box
+            // resizes to match (Layout adjusted the wrap width the same way). Continuation lines sit
+            // at the left indent unchanged.
+            var firstLineOffset = lineIndex == 0 ? FirstLineOffset(paragraph) : 0;
+            var lineWidth = availableWidth - firstLineOffset;
+            var penX = left + firstLineOffset;
             var extraSpace = 0d;
             if (alignment == TextAlignment.Center)
             {
-                penX += Math.Max(0, (availableWidth - line.Width) / 2);
+                penX += Math.Max(0, (lineWidth - line.Width) / 2);
             }
             else if (alignment == TextAlignment.Right)
             {
-                penX += Math.Max(0, availableWidth - line.Width);
+                penX += Math.Max(0, lineWidth - line.Width);
             }
             else if (alignment == TextAlignment.Justify && line is {IsLast: false, SpaceCount: > 0})
             {
-                extraSpace = Math.Max(0, availableWidth - line.Width) / line.SpaceCount;
+                extraSpace = Math.Max(0, lineWidth - line.Width) / line.SpaceCount;
             }
 
             // List marker hangs to the left of the first line's text by the paragraph's cascaded
@@ -491,6 +512,24 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     static double Indent(ParagraphElement paragraph) =>
         paragraph.Properties.LeftIndentPoints;
 
+    // Right indent narrows the wrap width the same way the left indent does — and a NEGATIVE right
+    // indent (common in resume / multi-column templates, e.g. resumes/11's "Skills" style) WIDENS
+    // it past the normal content edge. The Skia/ImageSharp backends subtract it from the wrap width;
+    // the PDF backend used to drop it, so right-indented paragraphs wrapped at a Word-divergent width.
+    static double RightIndent(ParagraphElement paragraph) =>
+        paragraph.Properties.RightIndentPoints;
+
+    // The first line's signed offset from the left indent. A positive first-line indent (w:firstLine)
+    // pushes it right; a hanging indent (w:hanging, mutually exclusive with w:firstLine) OUTDENTS it
+    // left to L - hanging — but only for a markerless paragraph. A numbered/bulleted list keeps its
+    // first-line TEXT at the left indent and hangs the marker into the gap instead (drawn separately),
+    // so the outdent must not apply there. Word draws a "bibliography" hanging paragraph's first line
+    // at the margin (L - hanging) with continuation lines at L; the raster leaves the first line at L
+    // (and over-indents continuation), so this deliberately diverges from the raster to match Word.
+    static double FirstLineOffset(ParagraphElement paragraph) =>
+        paragraph.Properties.FirstLineIndentPoints -
+        (paragraph.Properties.Numbering == null ? paragraph.Properties.HangingIndentPoints : 0);
+
     // Width of the text that follows a tab, up to the next tab or a line break — what Right/Centre/
     // Decimal stops need to know to place the following text so it ends at (Right) or straddles
     // (Centre) the stop. Mirrors the Skia backend's MeasureFollowingWidthNoScale.
@@ -609,19 +648,26 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
         var leftIndent = Indent(paragraph);
 
-        // A line carrying tab-positioned content may overflow the content width into the right margin
-        // (up to the page edge) without wrapping: Word/Skia place text at a tab stop and let it spill
-        // into the margin rather than breaking the word onto a new line. Plain (non-tab) lines still
-        // wrap at the content width.
-        var rightMarginPoints = (float) context.PageSettings.MarginRight;
+        // Each line wraps at EffectiveWidth() — the wrap width the caller derived by removing the
+        // paragraph's left/right indents, adjusted on the FIRST line by its signed offset (see
+        // FirstLineOffset): a first-line indent narrows it; a markerless hanging indent outdents the
+        // line so it wraps that much WIDER. Draw shifts the first line's start to match. The PDF
+        // backend used to ignore both, so an indented/outdented first line ran the full width.
+        //
+        // Continuation lines are NOT shifted for a hanging indent: the PDF draws them at the left
+        // indent (where Word puts them), whereas the raster shifts them a further hanging-indent right
+        // — a raster bug, so matching it would regress the PDF.
+        //
+        // (An earlier hack widened the limit by a whole right margin whenever a line held a tab; it
+        // over-extended hanging-indent list first lines — issue #151 — and only appeared to help tab
+        // columns by masking a dropped right indent, now honoured. Removed; no line spills the margin.)
+        var firstLineIndent = FirstLineOffset(paragraph);
+        double EffectiveWidth() => lines.Count == 0 ? availableWidth - firstLineIndent : availableWidth;
 
         var current = new Line();
         var pendingSpaceWidth = 0d;
         XFont? pendingSpaceFont = null;
         RunProperties? pendingSpaceProps = null;
-        var lineHasTab = false;
-
-        double WrapLimit() => lineHasTab ? availableWidth + rightMarginPoints : availableWidth;
 
         void Flush()
         {
@@ -635,7 +681,6 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             pendingSpaceWidth = 0;
             pendingSpaceFont = null;
             pendingSpaceProps = null;
-            lineHasTab = false;
         }
 
         void Account(LineItem item)
@@ -666,7 +711,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
                 var width = run.InlineImageWidthPoints > 0 ? run.InlineImageWidthPoints : 12;
                 var height = run.InlineImageHeightPoints > 0 ? run.InlineImageHeightPoints : 12;
-                if (current.Items.Count > 0 && current.Width + pendingSpaceWidth + width > WrapLimit())
+                if (current.Items.Count > 0 && current.Width + pendingSpaceWidth + width > EffectiveWidth())
                 {
                     Flush();
                 }
@@ -729,9 +774,9 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                         paragraph.Properties.DefaultTabStopPoints,
                         leftIndent,
                         decimalPrefix,
-                        availableEndX: leftIndent + availableWidth);
+                        availableEndX: leftIndent + EffectiveWidth());
                     var gap = destination - cursorFromLeft;
-                    if (gap > 0 && current.Width + gap <= WrapLimit())
+                    if (gap > 0 && current.Width + gap <= EffectiveWidth())
                     {
                         Account(
                             new()
@@ -745,7 +790,6 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                                 Ascent = ascent,
                                 Height = lineHeight
                             });
-                        lineHasTab = true;
                     }
 
                     if (suppressFollowing)
@@ -795,7 +839,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 }
 
                 var wordWidth = measure.MeasureString(token.Text, font).Width;
-                if (current.Items.Count > 0 && current.Width + pendingSpaceWidth + wordWidth > WrapLimit())
+                if (current.Items.Count > 0 && current.Width + pendingSpaceWidth + wordWidth > EffectiveWidth())
                 {
                     Flush();
                 }
