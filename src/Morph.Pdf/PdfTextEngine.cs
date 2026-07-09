@@ -83,8 +83,17 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     /// <paramref name="maxWidth"/> is the full section content width; the paragraph's left and
     /// right indents are subtracted here so the measured wrap matches what <see cref="Render"/>
     /// draws (both now honour the right indent — issue #151 follow-up).</summary>
-    public float MeasureFlowHeight(ParagraphElement paragraph, double maxWidth, double previousSpacingAfter) =>
-        (float) (MeasureHeight(paragraph, maxWidth - Indent(paragraph) - RightIndent(paragraph)) - Math.Min(SpacingBefore(paragraph), previousSpacingAfter));
+    public float MeasureFlowHeight(ParagraphElement paragraph, double maxWidth, double previousSpacingAfter)
+    {
+        var height = MeasureHeight(paragraph, maxWidth - Indent(paragraph) - RightIndent(paragraph));
+        // On a same-style contextual collapse the render steps back over the whole previous
+        // after-spacing (plus this paragraph's before, which it never adds); otherwise it's the
+        // usual max(after, before) margin collapse folded in as the overlap.
+        var reduction = Collapses(paragraph)
+            ? SpacingBefore(paragraph) + previousSpacingAfter
+            : Math.Min(SpacingBefore(paragraph), previousSpacingAfter);
+        return (float) (height - reduction);
+    }
 
     public double MeasureHeight(ParagraphElement paragraph, double maxWidth)
     {
@@ -105,8 +114,10 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
     double EmptyLineHeight(ParagraphElement paragraph)
     {
-        // Word collapses the end-of-cell mark after a nested table to zero height.
-        if (paragraph.IsCollapsedCellMark || paragraph.IsAnchorOnlyMark)
+        // Word collapses the end-of-cell mark after a nested table to zero height. An anchor-only
+        // mark (a paragraph left holding only out-of-flow drawings) still gets its own line at the
+        // mark's font size, so the following block sits one line lower — matches the raster engines.
+        if (paragraph.IsCollapsedCellMark)
         {
             return 0;
         }
@@ -128,28 +139,36 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
     // ---- Paragraph spacing (mirrors the Skia/ImageSharp contextual-spacing collapse) ----
 
-    // Space above a paragraph, collapsed to zero when this paragraph and the previous one share a
-    // style and both opt into w:contextualSpacing — so a run of same-style lines (e.g. a Details
-    // block of Date/Time/Facilitator) sits tight instead of re-adding the style's before-spacing
-    // on every line.
-    double SpacingBefore(ParagraphElement paragraph)
+    // True when this paragraph and the previous one share a style and both opt into
+    // w:contextualSpacing — Word then removes the gap between them (e.g. a Details block of
+    // Date/Time/Facilitator sits tight). The gap is closed by stepping back over the previous
+    // paragraph's spacing-after, not by dropping either paragraph's own spacing, so both the
+    // before and after values below stay raw.
+    bool Collapses(ParagraphElement paragraph)
     {
         var properties = paragraph.Properties;
         var sameStyle = properties.StyleId != null && properties.StyleId == context.LastParagraphStyleId;
-        var collapse = properties.ContextualSpacing && context.LastParagraphHadContextualSpacing && sameStyle;
-        return collapse ? 0 : properties.SpacingBeforePoints;
+        return properties.ContextualSpacing && context.LastParagraphHadContextualSpacing && sameStyle;
     }
 
-    // w:contextualSpacing also suppresses the paragraph's own after-spacing; the next same-style
-    // paragraph's collapsed before-spacing keeps the block tight. Exposed so the page renderer's
-    // keep gates can collapse a kept-next paragraph against this paragraph's after-spacing.
+    // Raw spacing-before; a same-style contextual collapse is applied by the caller stepping back
+    // over the previous paragraph's spacing-after, not folded in here.
+    static double SpacingBefore(ParagraphElement paragraph) => paragraph.Properties.SpacingBeforePoints;
+
+    // Raw spacing-after — contextual spacing does NOT drop it; the next same-style paragraph's
+    // collapse removes the gap instead. Exposed so the page renderer's keep gates can collapse a
+    // kept-next paragraph against this paragraph's after-spacing.
     internal static double SpacingAfter(ParagraphElement paragraph) =>
-        paragraph.Properties.ContextualSpacing ? 0 : paragraph.Properties.SpacingAfterPoints;
+        paragraph.Properties.SpacingAfterPoints;
 
     void TrackContextualSpacing(ParagraphElement paragraph)
     {
         context.LastParagraphStyleId = paragraph.Properties.StyleId;
         context.LastParagraphHadContextualSpacing = paragraph.Properties.ContextualSpacing;
+        // Tracked in both flow and bounded (cell) rendering: a following same-style contextual
+        // paragraph steps back over this value to close the gap. Cells reset it per cell (see
+        // PageRendererBase.RenderTableCell) so it can't leak across a cell boundary.
+        context.LastParagraphSpacingAfterPoints = (float) SpacingAfter(paragraph);
     }
 
     // ---- Drawing ----
@@ -182,19 +201,28 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         // Word collapses adjacent paragraph spacing to max(after, before) — verified against
         // Word-generated XPS baselines — so in the page flow only the excess of this
         // paragraph's spacing-before over the previous paragraph's spacing-after consumes
-        // height. Bounded (table-cell) rendering keeps the raw value: cell measurement runs
-        // repeatedly and must stay independent of flow state.
-        var spacingBefore = SpacingBefore(paragraph);
-        if (allowPageBreak)
+        // height. Bounded (table-cell) rendering keeps the raw before (no flow margin collapse).
+        double spacingBefore;
+        if (Collapses(paragraph))
         {
-            spacingBefore = Math.Max(0, spacingBefore - context.LastParagraphSpacingAfterPoints);
-
-            // Word drops spacing-before at the top of an automatically broken page (one-shot,
-            // set by the page renderer).
-            if (context.SuppressPageTopSpacingBefore)
+            // Same-style contextual paragraphs sit tight: step back over the after-spacing the
+            // previous paragraph already advanced past so the gap collapses to zero.
+            spacingBefore = -context.LastParagraphSpacingAfterPoints;
+        }
+        else
+        {
+            spacingBefore = SpacingBefore(paragraph);
+            if (allowPageBreak)
             {
-                spacingBefore = 0;
+                spacingBefore = Math.Max(0, spacingBefore - context.LastParagraphSpacingAfterPoints);
             }
+        }
+
+        // Word drops spacing-before at the top of an automatically broken page (one-shot, set by
+        // the page renderer) — including any contextual step-back.
+        if (allowPageBreak && context.SuppressPageTopSpacingBefore)
+        {
+            spacingBefore = 0;
         }
 
         context.SuppressPageTopSpacingBefore = false;
@@ -205,11 +233,6 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             context.CurrentY += (float) EmptyLineHeight(paragraph);
             context.CurrentY += (float) SpacingAfter(paragraph);
             TrackContextualSpacing(paragraph);
-            if (allowPageBreak)
-            {
-                context.LastParagraphSpacingAfterPoints = (float) SpacingAfter(paragraph);
-            }
-
             return;
         }
 
@@ -344,10 +367,6 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
         context.CurrentY += (float) SpacingAfter(paragraph);
         TrackContextualSpacing(paragraph);
-        if (allowPageBreak)
-        {
-            context.LastParagraphSpacingAfterPoints = (float) SpacingAfter(paragraph);
-        }
     }
 
     // Consecutive lines from startIndex that fit above the page bottom, measured from the
