@@ -35,11 +35,12 @@ static class TableHeightCalculator
         for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
         {
             var row = table.Rows[rowIndex];
-            // Rows without a declared height keep a legacy 20pt minimum. Rows WITH a declared
-            // w:trHeight take it verbatim via the second pass — Word renders a 14.4pt atLeast
-            // row at 14.4pt when its content is shorter, and a blanket 20pt floor inflates
-            // sidebar/spacer grids (several such rows push a page-exact template overfull).
-            float maxHeight = row.HeightPoints.HasValue ? 0 : 20;
+            // Row height comes from the measured content; MeasureCellHeight already floors each
+            // cell at its (possibly empty) paragraph's line height, so no artificial row minimum is
+            // needed. A blanket 20pt floor inflated short rows — e.g. the thin coloured spacer rows
+            // in header banner tables (content ~3-6pt) ballooned to 20pt each. Rows WITH an explicit
+            // w:trHeight are applied verbatim in the second pass.
+            float maxHeight = 0;
 
             var gridColIndex = 0;
             for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
