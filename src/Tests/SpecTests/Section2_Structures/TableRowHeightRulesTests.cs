@@ -168,9 +168,10 @@ public class TableRowHeightRulesTests
 
         var heights = TableHeightCalculator.CalculateRowHeights(table, [100f], new StubMeasurer(), hasVerticalMerge: false);
 
-        // The single row is both first and last, so it accrues BOTH outer edges. Content (line 12)
-        // is below the 20pt minimum row height, so the box is 20 + top(1) + bottom(1) = 22.
-        await Assert.That(heights[0]).IsEqualTo(22f).Within(0.01f);
+        // The single row is both first and last, so it accrues BOTH outer edges. There is no
+        // artificial row-height floor (a blanket 20pt minimum was removed — it ballooned short
+        // rows), so the box is content(line 12) + top(1) + bottom(1) = 14.
+        await Assert.That(heights[0]).IsEqualTo(14f).Within(0.01f);
     }
 
     [Test]
@@ -208,8 +209,9 @@ public class TableRowHeightRulesTests
 
         var heights = TableHeightCalculator.CalculateRowHeights(table, [100f], new StubMeasurer(), hasVerticalMerge: false);
 
-        // No borders → no growth; stays at the 20pt minimum row height.
-        await Assert.That(heights[0]).IsEqualTo(20f).Within(0.01f);
+        // No borders → no growth; the row is just the measured content (one 12pt stub line), with
+        // no artificial minimum-height floor.
+        await Assert.That(heights[0]).IsEqualTo(12f).Within(0.01f);
     }
 
     sealed class StubMeasurer : IParagraphMeasurer

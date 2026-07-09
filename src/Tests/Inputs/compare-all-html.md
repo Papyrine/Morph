@@ -1,4 +1,4 @@
-# All HTML export scenarios (321)
+# All HTML export scenarios (322)
 
 The HTML exporter rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -124,6 +124,7 @@ The HTML exporter rendered to PNG via the headless-browser screenshot pipeline.
 - [gutter_margins/01](#gutter_margins01)
 - [hanging_indent](#hanging_indent)
 - [header](#header)
+- [header_banner_table](#header_banner_table)
 - [header_footer](#header_footer)
 - [header_row_repeat/01](#header_row_repeat01)
 - [headings](#headings)
@@ -1042,6 +1043,12 @@ The HTML exporter rendered to PNG via the headless-browser screenshot pipeline.
 | Morph HTML |
 | --- |
 | <img src="header/html_result.verified.png" width="500"> |
+
+## header_banner_table
+
+| Morph HTML |
+| --- |
+| <img src="header_banner_table/html_result.verified.png" width="500"> |
 
 ## header_footer
 

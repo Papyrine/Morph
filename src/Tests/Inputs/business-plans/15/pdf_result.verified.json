@@ -61,7 +61,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Appendix\nStart-up expenses\nStart-up expenses\nBusiness licenses\nIncorporation expenses\nDeposits\nBank account\nRent\nInterior modifications\nEquipment/machinery\nrequired:\nItem 1\nItem 2\nItem 3\nTotal equipment/machinery\nInsurance\nStationery/business cards\nBrochures\nPre-opening advertising\nOpening inventory\nOther (list):\nItem 1\nItem 2\nTotal startup expenses\nDetermining start-up capital\n• Begin by filling in the figures for the several types of expenses in the cash flow table on the\nfollowing page.\n• Start your first month in the table that follows with starting cash of $0 and consolidate your\n“cash out” expenses from your cash flow table under the three main headings of rent,\npayroll and other (including the amount of unpaid start-up costs in “other” in month 1).\n• Continue the monthly projections in the table that follows until the ending balances are\nconsistently positive.\n• Find the largest negative balance, this is the amount needed for start-up capital for the\nbusiness to survive until the break-even point when all expenses will be covered by\nincome.\n• Continue by inserting the amount of needed start-up capital into the cash flow table as the\nBUSINESS starting cash for Month 1 PLAN | APRIL 25, 20XX 17"
+        "Text": "Appendix\nStart-up expenses\nStart-up expenses\nBusiness licenses\nIncorporation expenses\nDeposits\nBank account\nRent\nInterior modifications\nEquipment/machinery\nrequired:\nItem 1\nItem 2\nItem 3\nTotal equipment/machinery\nInsurance\nStationery/business cards\nBrochures\nPre-opening advertising\nOpening inventory\nOther (list):\nItem 1\nItem 2\nTotal startup expenses\nDetermining start-up capital\n• Begin by filling in the figures for the several types of expenses in the cash flow table on the\nfollowing page.\n• Start your first month in the table that follows with starting cash of $0 and consolidate your\n“cash out” expenses from your cash flow table under the three main headings of rent,\npayroll and other (including the amount of unpaid start-up costs in “other” in month 1).\n• Continue the monthly projections in the table that follows until the ending balances are\nconsistently positive.\n• Find the largest negative balance, this is the amount needed for start-up capital for the\nbusiness to survive until the break-even point when all expenses will be covered by\nincome.\n• Continue by inserting the amount of needed start-up capital into the cash flow table as the\nstarting cash for Month 1\nBUSINESS PLAN | APRIL 25, 20XX 17"
       },
       {
         "Width": 612.0,
@@ -178,21 +178,21 @@
     },
     {
       "Page": 11,
-      "ErrorMetric": 0.3039,
+      "ErrorMetric": 0.309,
       "ExpectedFile": "expected_0011.png",
       "VerifiedFile": "pdf_result#page_0011.verified.png",
       "ReceivedFile": "pdf_result#page_0011.received.png"
     },
     {
       "Page": 12,
-      "ErrorMetric": 0.3113,
+      "ErrorMetric": 0.3402,
       "ExpectedFile": "expected_0012.png",
       "VerifiedFile": "pdf_result#page_0012.verified.png",
       "ReceivedFile": "pdf_result#page_0012.received.png"
     },
     {
       "Page": 13,
-      "ErrorMetric": 0.4249,
+      "ErrorMetric": 0.4185,
       "ExpectedFile": "expected_0013.png",
       "VerifiedFile": "pdf_result#page_0013.verified.png",
       "ReceivedFile": "pdf_result#page_0013.received.png"
@@ -206,14 +206,14 @@
     },
     {
       "Page": 15,
-      "ErrorMetric": 0.3784,
+      "ErrorMetric": 0.3905,
       "ExpectedFile": "expected_0015.png",
       "VerifiedFile": "pdf_result#page_0015.verified.png",
       "ReceivedFile": "pdf_result#page_0015.received.png"
     },
     {
       "Page": 16,
-      "ErrorMetric": 0.3021,
+      "ErrorMetric": 0.2926,
       "ExpectedFile": "expected_0016.png",
       "VerifiedFile": "pdf_result#page_0016.verified.png",
       "ReceivedFile": "pdf_result#page_0016.received.png"
@@ -227,7 +227,7 @@
     },
     {
       "Page": 18,
-      "ErrorMetric": 0.2547,
+      "ErrorMetric": 0.2531,
       "ExpectedFile": "expected_0018.png",
       "VerifiedFile": "pdf_result#page_0018.verified.png",
       "ReceivedFile": "pdf_result#page_0018.received.png"
