@@ -11,7 +11,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "NEWSLETTER\nTITLE ISSUE NO | MONTH - MONTH HERE YEAR | VOLUME\nTOPIC 01\nGive us a blurb about a\nstory on page 2. Tell us\nwhat to expect and\nwhat the headline is.\nTOPIC 02\nGive us a blurb about a\nstory on page 3. Put a\nquote from the story\nhere to get the\naudience interested.\nOUR SERVICES\nTo change any of the text in this\ndocument, just click on the text\nyou want to update and start\ntyping.\nTo change the images in this\nnewsletter, delete the existing\nimage and insert a new one in it’s\nplace. You can use the Picture\nediting tools within Word to crop\nthe image to suit.\nTOPIC 03\nGive us a blurb about a\nstory on page 4. Make\nthis your own!\nGive us a blurb about a\nstory on page 4."
+        "Text": "NEWSLETTER\nTITLE HERE\nISSUE NO | MONTH - MONTH YEAR | VOLUME\nTOPIC 01\nGive us a blurb about a\nstory on page 2. Tell us\nwhat to expect and\nwhat the headline is.\nTOPIC 02\nGive us a blurb about a\nstory on page 3. Put a\nquote from the story\nhere to get the\naudience interested.\nOUR SERVICES\nTo change any of the text in this\ndocument, just click on the text\nyou want to update and start\ntyping.\nTo change the images in this\nnewsletter, delete the existing\nimage and insert a new one in it’s\nplace. You can use the Picture\nediting tools within Word to crop\nthe image to suit.\nTOPIC 03\nGive us a blurb about a\nstory on page 4. Make\nthis your own!\nGive us a blurb about a\nstory on page 4."
       },
       {
         "Width": 612.0,
@@ -23,14 +23,14 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.3464,
+      "ErrorMetric": 0.342,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.3591,
+      "ErrorMetric": 0.359,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
