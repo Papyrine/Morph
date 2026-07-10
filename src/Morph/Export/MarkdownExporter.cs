@@ -143,7 +143,7 @@ static class MarkdownExporter
 
         void WriteParagraph(ParagraphElement paragraph)
         {
-            if (DocumentExportHelpers.IsBlank(paragraph))
+            if (DocumentExportHelpers.IsBlank(paragraph, vectorShapesRender: false))
             {
                 return;
             }
@@ -172,7 +172,7 @@ static class MarkdownExporter
             var lines = new List<string>();
             foreach (var paragraph in paragraphs)
             {
-                if (DocumentExportHelpers.IsBlank(paragraph))
+                if (DocumentExportHelpers.IsBlank(paragraph, vectorShapesRender: false))
                 {
                     continue;
                 }
@@ -321,7 +321,7 @@ static class MarkdownExporter
             {
                 switch (element)
                 {
-                    case ParagraphElement paragraph when !DocumentExportHelpers.IsBlank(paragraph):
+                    case ParagraphElement paragraph when !DocumentExportHelpers.IsBlank(paragraph, vectorShapesRender: false):
                     {
                         var paragraphText = HtmlBreaks(Inline(paragraph.Runs, inTable: true));
 
@@ -379,7 +379,7 @@ static class MarkdownExporter
                     {
                         switch (element)
                         {
-                            case ParagraphElement paragraph when !DocumentExportHelpers.IsBlank(paragraph):
+                            case ParagraphElement paragraph when !DocumentExportHelpers.IsBlank(paragraph, vectorShapesRender: false):
                                 return false;
                             case ImageElement:
                             case FloatingImageElement:
@@ -453,6 +453,12 @@ static class MarkdownExporter
 
         void AppendRun(StringBuilder target, Run run, bool inTable, bool inHeading)
         {
+            if (run.InlineShapeGroup is {} shapeGroup)
+            {
+                AppendShapeGroup(target, shapeGroup, run.InlineImageWidthPoints, run.InlineImageHeightPoints);
+                return;
+            }
+
             if (run.InlineImageData is {} imageData)
             {
                 AppendImage(target, imageData, run.InlineImageContentType, run.InlineImageWidthPoints, run.InlineImageHeightPoints, run.InlineImageDescription);
@@ -668,6 +674,28 @@ static class MarkdownExporter
             var image = new StringBuilder();
             AppendImage(image, data, contentType, widthPoints, heightPoints, description);
             return image.ToString();
+        }
+
+        /// <summary>
+        /// Markdown has no vector primitives, so an inline <c>wpg:wgp</c> group contributes only its
+        /// pictures — Word's icon graphics and circle-cropped photos, the parts that carry meaning.
+        /// The surrounding decoration (the coloured bubble behind an icon, connector-line divider
+        /// rules, arrow glyphs) is dropped rather than approximated.
+        /// </summary>
+        void AppendShapeGroup(StringBuilder target, InlineShapeGroup group, double widthPoints, double heightPoints)
+        {
+            foreach (var shape in group.Shapes)
+            {
+                if (shape.ImageData is not {} imageData)
+                {
+                    continue;
+                }
+
+                // The handler sees the picture's own rendered size, not the group's.
+                var pictureWidth = group.ChildExtentX > 0 ? shape.Width / group.ChildExtentX * widthPoints : widthPoints;
+                var pictureHeight = group.ChildExtentY > 0 ? shape.Height / group.ChildExtentY * heightPoints : heightPoints;
+                AppendImage(target, imageData, shape.ImageContentType, pictureWidth, pictureHeight, shape.ImageDescription);
+            }
         }
 
         void AppendImage(StringBuilder target, byte[] data, string? contentType, double widthPoints, double heightPoints, string? description)
