@@ -1458,6 +1458,21 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 var isEllipse = shape.Geometry == GroupShapeGeometry.Ellipse;
                 var rect = new SKRect(x1, y1, x1 + w, y1 + h);
 
+                // The shadow is an offset copy of the shape's geometry, painted before the shape
+                // itself so it lands behind it.
+                if (shape.Shadow is { } shadow)
+                {
+                    using var shadowPaint = new SKPaint
+                    {
+                        Color = ParseColor(shadow.ColorHex, shadow.Alpha),
+                        Style = SKPaintStyle.Fill,
+                        IsAntialias = true
+                    };
+                    var offset = rect;
+                    offset.Offset((float) shadow.OffsetX * sx, (float) shadow.OffsetY * sy);
+                    DrawGeometry(canvas, offset, isEllipse, shadowPaint);
+                }
+
                 if (shape.ImageData != null)
                 {
                     RenderGroupPicture(canvas, shape, rect, isEllipse);

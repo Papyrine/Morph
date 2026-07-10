@@ -1415,6 +1415,18 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                     ? new EllipsePolygon(x1 + w / 2, y1 + h / 2, w, h)
                     : new RectanglePolygon(x1, y1, w, h);
 
+                // The shadow is an offset copy of the shape's geometry, painted before the shape
+                // itself so it lands behind it.
+                if (shape.Shadow is { } shadow)
+                {
+                    var shadowX = x1 + (float) shadow.OffsetX * sx;
+                    var shadowY = y1 + (float) shadow.OffsetY * sy;
+                    IPath shadowPath = isEllipse
+                        ? new EllipsePolygon(shadowX + w / 2, shadowY + h / 2, w, h)
+                        : new RectanglePolygon(shadowX, shadowY, w, h);
+                    pageCanvas.Fill(context.GetBrush(ParseColor(shadow.ColorHex, shadow.Alpha)), shadowPath);
+                }
+
                 if (shape.ImageData != null)
                 {
                     RenderGroupPicture(pageCanvas, shape, x1, y1, w, h, isEllipse ? path : null);

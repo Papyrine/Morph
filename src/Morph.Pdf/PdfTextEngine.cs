@@ -578,6 +578,24 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
             var isEllipse = shape.Geometry == GroupShapeGeometry.Ellipse;
 
+            // The shadow is an offset copy of the shape's geometry, painted before the shape itself
+            // so it lands behind it.
+            if (shape.Shadow is { } shadow)
+            {
+                var shadowRgb = PdfRenderContext.ParseColor(shadow.ColorHex);
+                var shadowBrush = new XSolidBrush(XColor.FromArgb(AlphaByte(shadow.Alpha), shadowRgb.R, shadowRgb.G, shadowRgb.B));
+                var shadowX = x + shadow.OffsetX * scaleX;
+                var shadowY = y + shadow.OffsetY * scaleY;
+                if (isEllipse)
+                {
+                    graphics.DrawEllipse(shadowBrush, shadowX, shadowY, width, height);
+                }
+                else
+                {
+                    graphics.DrawRectangle(shadowBrush, shadowX, shadowY, width, height);
+                }
+            }
+
             if (shape.ImageData != null)
             {
                 DrawGroupPicture(graphics, shape, x, y, width, height, isEllipse);

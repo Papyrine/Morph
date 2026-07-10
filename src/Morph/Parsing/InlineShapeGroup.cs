@@ -78,6 +78,28 @@ sealed class GroupShape
 
     /// <summary>Alt text for <see cref="ImageData"/> (the picture's <c>descr</c>/<c>title</c>). Used by the exporters.</summary>
     public string? ImageDescription { get; init; }
+
+    /// <summary>Drop shadow cast behind the shape (<c>a:effectLst/a:outerShdw</c>). Null when there is none.</summary>
+    public GroupShadow? Shadow { get; init; }
+}
+
+/// <summary>
+/// An <c>a:outerShdw</c> drop shadow on a group member — the offset copy of its geometry that
+/// Word paints behind it, e.g. under the circle-cropped photos on menu templates.
+/// </summary>
+sealed class GroupShadow
+{
+    /// <summary>Horizontal offset in the group's child coordinate space (EMU); positive is right.</summary>
+    public required double OffsetX { get; init; }
+
+    /// <summary>Vertical offset in the group's child coordinate space (EMU); positive is down.</summary>
+    public required double OffsetY { get; init; }
+
+    /// <summary>Shadow colour as 6-digit hex (e.g. "000000").</summary>
+    public string ColorHex { get; init; } = "000000";
+
+    /// <summary>Shadow opacity, 0.0 (invisible) to 1.0 (opaque).</summary>
+    public double Alpha { get; init; } = 1.0;
 }
 
 enum GroupShapeGeometry
