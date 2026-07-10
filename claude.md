@@ -30,6 +30,8 @@ Tests must produce bit-identical output across machines because the suite compar
 
 The wrapper builds `morph-test:latest` on first run, reuses it afterward, mounts the working tree at `/src`, and caches NuGet packages in `./.nuget-cache/` (gitignored). Set `MORPH_REBUILD=1` to force a rebuild after editing `Dockerfile.test`.
 
+**If the Docker daemon is not running, stop and ask the user to start it.** Do not start Docker Desktop yourself, and do not work around it by running the scenario suite on the host — the baselines will not match.
+
 ### Apple Silicon: enable Rosetta
 
 On Apple Silicon (`arm64`), Docker Desktop must be configured to use Rosetta for `linux/amd64` emulation, **not** QEMU. QEMU's user-mode emulation crashes .NET 10's MSBuild with an `AccessViolationException` in its string-intern cache (SIGABRT mid-build). Rosetta is stable and ~native speed.

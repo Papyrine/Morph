@@ -1523,6 +1523,22 @@ Positioned text containers with optional background and rotation.
 - **Model**: `FloatingTextBoxElement` with content, rotation, background color
 
 
+#### Inline Shape Groups `PARTIAL`
+
+A `wpg:wgp` group inside a `wp:inline`, flowing with the text instead of floating: the connector-line arrow glyphs on heading rows, and Word's icon/photo bubbles — a coloured circle with an icon graphic or a circle-cropped photo on top.
+
+- **OOXML**: `wpg:wgp` (nested groups via `wpg:grpSp`) holding `wps:wsp` shapes and `pic:pic` pictures, inside `wp:inline`
+- **Model**: `InlineShapeGroup` on `Run.InlineShapeGroup`. Each `GroupShape` carries child-space coordinates, a `GroupShapeGeometry` (`Line` / `Rectangle` / `Ellipse`), either a solid fill or an `ImageData` fill, and a stroke. Fill and stroke each carry their own `a:alpha` opacity (`FillAlpha`, `LineAlpha`).
+- **Parse**: `DocumentParser.ParseInlineShapeGroupRun` walks the group's drawables in document (back-to-front) order via `GroupDrawables`. A picture's `pic:spPr` carries its own `a:prstGeom` (the shape Word crops it to) and `a:ln` (the ring around it), so a picture is modelled as an image *fill* of a geometry rather than a geometry of its own. SVG icons keep their `a:blip` raster as a fallback for backends that can't rasterize SVG.
+- **Stroke resolution**: `ReadGroupStroke` layers the shape's own `a:ln` over the theme line style that `wps:style/a:lnRef/@idx` selects from `ThemeColors.LineStyleWidthsEmu`. So an `a:ln` that sets only a colour still strokes, at the theme's width; an `a:noFill` outline never strokes, even when it also carries an `a:ln/@w`.
+- **Render**: Skia clips pictures with `ClipPath`, ImageSharp masks them with `DrawingCanvas.Apply`; both then stroke the outline. The PDF backend and the HTML/Markdown exporters drop inline shape groups entirely.
+- **Test**: `brochures/01`, `menus/07`, `menus/09`, `newsletters/03`, `letters/05`, `resumes/03`, `inline_shape_arrows`
+
+> **Contributors**: `ParseWordArt` and `ParseTextBox` both read the drawing-level `wp:extent` and claim the first `wps:wsp` they find, so they must decline a shape that shares a group with siblings (`HasGroupSiblings`). Word hangs a hidden descriptive text box off the icon circle, and without that guard the text box swallowed the entire icon.
+
+> **AI**: Gaps: `a:effectLst` drop shadows are dropped, `a:srcRect` crops on group pictures are ignored, and a group rotation is not applied to its pictures. Floating shapes resolve their outline through `ShapeParser.ExtractLineStyle`, which honours `a:noFill` and `a:lnRef` but still treats a width-less `a:ln` as no stroke rather than falling back to the theme width — the group path fixes that, the floating path does not.
+
+
 #### Behind / In-front of Text `DONE`
 
 Controls whether floating elements render behind or in front of document text.
@@ -2239,14 +2255,14 @@ Read-only mode, form protection, and editing restrictions.
 | 3. Lists & Numbering | 6 | 0 | 0 | 0 | 6 |
 | 4. Tables | 27 | 0 | 0 | 0 | 27 |
 | 5. Page Layout & Sections | 19 | 0 | 0 | 0 | 19 |
-| 6. Graphics & Media | 23 | 0 | 1 | 1 | 25 |
+| 6. Graphics & Media | 23 | 1 | 1 | 1 | 26 |
 | 7. Form Controls | 10 | 0 | 1 | 0 | 11 |
 | 8. Themes & Styles | 4 | 0 | 0 | 0 | 4 |
 | 9. Typography | 8 | 0 | 0 | 0 | 8 |
 | 10. Document Infrastructure | 6 | 0 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 0 | 2 |
-| **Total** | **162** | **1** | **5** | **1** | **169** |
+| **Total** | **162** | **2** | **5** | **1** | **170** |
 
 
 ### Coverage
@@ -2254,7 +2270,7 @@ Read-only mode, form protection, and editing restrictions.
 ```mermaid
 pie title Feature Implementation Status
     "Done" : 162
-    "Partial" : 1
+    "Partial" : 2
     "Todo" : 5
     "Wontfix" : 1
 ```

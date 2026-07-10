@@ -234,42 +234,44 @@ static class ShapeParser
     }
 
     /// <summary>
-    /// Extracts the shape outline (color + width in points) from a wsp's <c>spPr/a:ln</c> or
-    /// <c>wps:style/a:lnRef</c>. Direct <c>a:ln</c> wins; <c>a:lnRef</c> resolves the width
-    /// against the theme's <c>lnStyleLst</c> and the colour from its child colour element.
-    /// Returns (null, null) when the shape has no stroke (e.g. <c>a:noFill</c> on the line).
+    /// Extracts the shape outline (color + width in points) from a wsp's <c>spPr/a:ln</c> and
+    /// <c>wps:style/a:lnRef</c>. DrawingML layers the direct <c>a:ln</c> over the theme line style
+    /// that <c>a:lnRef/@idx</c> names, so colour and width fall back independently: an <c>a:ln</c>
+    /// naming only a colour still strokes, at the theme's width, and one naming only a width
+    /// strokes in the lnRef's colour. Returns (null, null) when the shape has no stroke — an
+    /// <c>a:noFill</c> line, or nothing left to fall back on.
     /// </summary>
     public static (string? color, double? widthPoints) ExtractLineStyle(WPS.WordprocessingShape wsp, WPS.ShapeProperties shapeProps, ThemeColors? themeColors)
     {
-        // Direct <a:ln> on spPr overrides everything else.
         var directLn = shapeProps.GetFirstChild<A.Outline>();
-        if (directLn != null)
+
+        // Explicit no-fill on the line means no stroke, whatever the style reference says.
+        if (directLn?.GetFirstChild<A.NoFill>() != null)
         {
-            // Explicit no-fill on the line means no stroke.
-            if (directLn.GetFirstChild<A.NoFill>() != null)
-            {
-                return (null, null);
-            }
-
-            string? color = null;
-            var directSolid = directLn.GetFirstChild<A.SolidFill>();
-            if (directSolid != null)
-            {
-                color = ExtractSolidFillColor(directSolid, themeColors);
-            }
-
-            double? widthPt = null;
-            if (directLn.Width?.Value is { } emu)
-            {
-                widthPt = ((long) emu).EmuToPoints();
-            }
-
-            return (color, widthPt);
+            return (null, null);
         }
 
-        // Fall back to the style's <a:lnRef idx="N">. The width comes from the theme's
-        // lnStyleLst (1-based by idx); the colour is taken from the lnRef element itself
-        // (which typically holds a schemeClr override of the theme's phClr placeholder).
+        var (refColor, refWidthPoints) = ExtractLineReferenceStyle(wsp, themeColors);
+
+        var directSolid = directLn?.GetFirstChild<A.SolidFill>();
+        var color = directSolid != null
+            ? ExtractSolidFillColor(directSolid, themeColors)
+            : refColor;
+
+        var widthPoints = directLn?.Width?.Value is { } emu
+            ? ((long) emu).EmuToPoints()
+            : refWidthPoints;
+
+        return (color, widthPoints);
+    }
+
+    /// <summary>
+    /// The theme line style a <c>wps:style/a:lnRef</c> selects: the width comes from the theme's
+    /// <c>lnStyleLst</c> (1-based by <c>@idx</c>), the colour from the lnRef's own colour child,
+    /// which overrides the theme line's <c>phClr</c> placeholder.
+    /// </summary>
+    static (string? color, double? widthPoints) ExtractLineReferenceStyle(WPS.WordprocessingShape wsp, ThemeColors? themeColors)
+    {
         var lnRef = wsp.GetFirstChild<WPS.ShapeStyle>()?.LineReference;
         if (lnRef?.Index?.Value is not { } refIdx || refIdx == 0)
         {

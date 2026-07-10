@@ -1,8 +1,9 @@
 /// <summary>
-/// An inline drawing that contains a group of primitive shapes (lines + rectangles) instead
-/// of a single picture. Word emits these for icon-style decorations — e.g. the down-arrow
-/// glyph on heading rows, or the colour-arrow accents on cover pages — built up from
-/// connector lines (<c>wps:wsp</c> with <c>prstGeom prst="line"</c>) inside a <c>wpg:wgp</c>.
+/// An inline drawing that contains a group of primitive shapes and pictures instead of a
+/// single picture. Word emits these for icon-style decorations — e.g. the down-arrow glyph on
+/// heading rows, the colour-arrow accents on cover pages, or an icon graphic sitting on a
+/// coloured circle — built up from connector lines, preset geometry (<c>wps:wsp</c>) and
+/// pictures (<c>pic:pic</c>) inside a <c>wpg:wgp</c>.
 /// </summary>
 sealed class InlineShapeGroup
 {
@@ -15,14 +16,14 @@ sealed class InlineShapeGroup
     /// <summary>Rotation applied to the whole group (degrees, clockwise).</summary>
     public double RotationDegrees { get; init; }
 
-    /// <summary>Component shapes in document order.</summary>
+    /// <summary>Component shapes in document order — the renderer paints them back to front.</summary>
     public required IReadOnlyList<GroupShape> Shapes { get; init; }
 }
 
 /// <summary>
-/// A primitive shape inside an <see cref="InlineShapeGroup"/>. Coordinates and dimensions are
-/// in the group's child coordinate space (EMU); the renderer scales them into the inline
-/// fragment's pixel rectangle.
+/// A primitive shape or picture inside an <see cref="InlineShapeGroup"/>. Coordinates and
+/// dimensions are in the group's child coordinate space (EMU); the renderer scales them into
+/// the inline fragment's pixel rectangle.
 /// </summary>
 sealed class GroupShape
 {
@@ -44,21 +45,41 @@ sealed class GroupShape
     /// <summary>Line/stroke width in EMU. Converted to points by the renderer.</summary>
     public double LineWidthEmu { get; init; }
 
+    /// <summary>Stroke opacity, 0.0 (fully transparent) to 1.0 (fully opaque). Defaults to 1.0.</summary>
+    public double LineAlpha { get; init; } = 1.0;
+
     /// <summary>True when the shape is flipped vertically (a:xfrm/@flipV="1").</summary>
     public bool FlipVertical { get; init; }
 
     /// <summary>True when the shape is flipped horizontally (a:xfrm/@flipH="1").</summary>
     public bool FlipHorizontal { get; init; }
 
-    /// <summary>Geometry preset — currently <c>line</c> or <c>rect</c>.</summary>
+    /// <summary>Geometry preset — currently <c>line</c>, <c>rect</c> or <c>ellipse</c>.</summary>
     public GroupShapeGeometry Geometry { get; init; } = GroupShapeGeometry.Line;
 
-    /// <summary>Solid fill colour (rectangles only). Null = no fill / stroke-only line.</summary>
+    /// <summary>Solid fill colour (rectangles and ellipses only). Null = no fill / stroke-only line.</summary>
     public string? FillColorHex { get; init; }
+
+    /// <summary>Fill opacity, 0.0 (fully transparent) to 1.0 (fully opaque). Defaults to 1.0.</summary>
+    public double FillAlpha { get; init; } = 1.0;
+
+    /// <summary>
+    /// Image filling the shape, clipped to <see cref="Geometry"/> and taking precedence over
+    /// <see cref="FillColorHex"/>. Set for the group's <c>pic:pic</c> members: an icon graphic on
+    /// a <c>rect</c>, or a photo circle-cropped by an <c>ellipse</c>. Null for plain shapes.
+    /// </summary>
+    public byte[]? ImageData { get; init; }
+
+    /// <summary>MIME type of <see cref="ImageData"/>, e.g. <c>image/svg+xml</c> or <c>image/png</c>.</summary>
+    public string? ImageContentType { get; init; }
+
+    /// <summary>Raster blob to draw when the backend cannot rasterize an SVG <see cref="ImageData"/>.</summary>
+    public byte[]? ImageRasterFallbackData { get; init; }
 }
 
 enum GroupShapeGeometry
 {
     Line,
-    Rectangle
+    Rectangle,
+    Ellipse
 }
