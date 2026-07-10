@@ -1,4 +1,4 @@
-# All scenarios (322)
+# All scenarios (323)
 
 <details>
 <summary>Contents</summary>
@@ -156,6 +156,7 @@
 - [image_cropping/01](#image_cropping01)
 - [image_rotation/01](#image_rotation01)
 - [image_wrap_square](#image_wrap_square)
+- [inline_group_crop](#inline_group_crop)
 - [inline_image](#inline_image)
 - [inline_shape_arrows](#inline_shape_arrows)
 - [italic_text](#italic_text)
@@ -1712,6 +1713,33 @@ without header-space reservation (a separate concern).
 | <img src="image_wrap_square/expected_0002.png" width="500"> | <img src="image_wrap_square/skia_result%23page_0002.verified.png" width="500"> | <img src="image_wrap_square/imagesharp_result%23page_0002.verified.png" width="500"> |
 | **Page 3** _(no page)_ | **Page 3. ErrorMetric: 0.0000** | **Page 3. ErrorMetric: 0.0000** |
 |  | <img src="image_wrap_square/skia_result%23page_0003.verified.png" width="500"> | <img src="image_wrap_square/imagesharp_result%23page_0003.verified.png" width="500"> |
+
+## inline_group_crop
+
+# inline_group_crop
+
+Covers `a:srcRect` crops on the `pic:pic` members of an inline `wpg:wgp` group.
+
+Derived from `menus/07` — the same three circle-cropped photos, each given a different
+crop so a swapped axis or a flipped sign shows up:
+
+| picture          | `a:srcRect`                          | effect                    |
+|------------------|--------------------------------------|---------------------------|
+| Bowl of soup     | `l="30000"`                          | trims 30% off the left    |
+| Warm potato dish | `t="30000"`                          | trims 30% off the top     |
+| Cupcakes         | `l/t="10000"`, `r/b="25000"`         | asymmetric on all four    |
+
+The crop composes with everything else the group carries: each picture is still cropped to an
+ellipse by its `pic:spPr/a:prstGeom`, ringed by its `a:ln`, and casts the `a:outerShdw` drop
+shadow. `expected_0001.png` is Word's own rendering (via `RenderHelper`).
+
+The corpus otherwise has no usable `a:srcRect` inside a group: `menus/07`'s only value is a
+negative `t="-168"`, which `ReadCrop` clamps away.
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2883** | **Page 1. ErrorMetric: 0.2893** |
+| <img src="inline_group_crop/expected_0001.png" width="500"> | <img src="inline_group_crop/skia_result%23page_0001.verified.png" width="500"> | <img src="inline_group_crop/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## inline_image
 
