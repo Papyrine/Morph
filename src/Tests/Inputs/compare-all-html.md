@@ -1,4 +1,4 @@
-# All HTML export scenarios (322)
+# All HTML export scenarios (323)
 
 The Word reference render (left) beside the HTML exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -158,6 +158,7 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [image_cropping/01](#image_cropping01)
 - [image_rotation/01](#image_rotation01)
 - [image_wrap_square](#image_wrap_square)
+- [inline_group_crop](#inline_group_crop)
 - [inline_image](#inline_image)
 - [inline_shape_arrows](#inline_shape_arrows)
 - [italic_text](#italic_text)
@@ -1247,6 +1248,12 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | Expected (Word) | Morph HTML |
 | --- | --- |
 | <img src="image_wrap_square/expected_0001.png" width="500"><br><img src="image_wrap_square/expected_0002.png" width="500"> | <img src="image_wrap_square/html_result.verified.png" width="500"> |
+
+## inline_group_crop
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="inline_group_crop/expected_0001.png" width="500"> | <img src="inline_group_crop/html_result.verified.png" width="500"> |
 
 ## inline_image
 
