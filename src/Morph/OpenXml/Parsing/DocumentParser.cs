@@ -4748,8 +4748,17 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        // Behind-text decorative shapes are lifted out of the flow, so a paragraph that produced
+        // only those is still an empty paragraph as far as line height goes — its mark takes a
+        // line exactly as it would have if the drawing had produced nothing at all. Testing
+        // `result.Count == 0` alone made that line appear or vanish depending on whether the
+        // shape parser happened to understand the drawing.
+        var onlyBehindTextShapes = result.Count > 0 &&
+                                   result.All(_ => _ is FloatingShapeElement {BehindText: true});
+
         // Add remaining content
-        if (runs.Count == 0 && result.Count == 0)
+        if (runs.Count == 0 &&
+            (result.Count == 0 || (onlyBehindTextShapes && props.SpacingAfterPoints <= 0)))
         {
             // Empty paragraph - still counts for spacing
             // Keep runs empty so the renderer can avoid creating spurious extra pages at document end.
