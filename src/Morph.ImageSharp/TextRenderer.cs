@@ -1483,7 +1483,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             return;
         }
 
-        var img = context.GetProcessedImage(imageBytes, (int) width, (int) height, crop: null, BlipColorEffect.None, rotationDegrees: 0);
+        var img = context.GetProcessedImage(imageBytes, (int) width, (int) height, shape.ImageCrop, BlipColorEffect.None, rotationDegrees: 0);
         if (img == null)
         {
             return;

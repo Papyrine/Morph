@@ -76,6 +76,9 @@ sealed class GroupShape
     /// <summary>Raster blob to draw when the backend cannot rasterize an SVG <see cref="ImageData"/>.</summary>
     public byte[]? ImageRasterFallbackData { get; init; }
 
+    /// <summary>Source-rectangle crop (<c>a:srcRect</c>) applied to <see cref="ImageData"/>. Null when uncropped.</summary>
+    public ImageCrop? ImageCrop { get; init; }
+
     /// <summary>Alt text for <see cref="ImageData"/> (the picture's <c>descr</c>/<c>title</c>). Used by the exporters.</summary>
     public string? ImageDescription { get; init; }
 

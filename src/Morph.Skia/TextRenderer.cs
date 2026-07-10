@@ -1535,9 +1535,14 @@ sealed class TextRenderer(SkiaRenderContext context) :
             canvas.ClipPath(clip, SKClipOperation.Intersect, antialias: true);
         }
 
+        var crop = shape.ImageCrop is {IsCropped: true} cropped ? cropped : null;
+
         if (shape.ImageContentType == "image/svg+xml")
         {
-            var bitmap = context.GetSvgRaster(imageData, destRect.Width, destRect.Height, crop: null, originAdjusted: false);
+            // A crop moves the source origin off the picture's CullRect corner, so the rasterizer
+            // has to translate that corner to the bitmap origin — which is what originAdjusted does.
+            // Uncropped, the icons' CullRect already starts at 0 and the two agree.
+            var bitmap = context.GetSvgRaster(imageData, destRect.Width, destRect.Height, crop, originAdjusted: crop != null);
             if (bitmap != null)
             {
                 canvas.DrawBitmap(bitmap, destRect.Left, destRect.Top);
@@ -1545,7 +1550,19 @@ sealed class TextRenderer(SkiaRenderContext context) :
         }
         else if (context.GetBitmap(imageData) is { } skImage)
         {
-            canvas.DrawBitmap(skImage, destRect);
+            if (crop != null)
+            {
+                var source = new SKRect(
+                    (float) (crop.Left * skImage.Width),
+                    (float) (crop.Top * skImage.Height),
+                    (float) ((1 - crop.Right) * skImage.Width),
+                    (float) ((1 - crop.Bottom) * skImage.Height));
+                canvas.DrawBitmap(skImage, source, destRect);
+            }
+            else
+            {
+                canvas.DrawBitmap(skImage, destRect);
+            }
         }
 
         canvas.Restore();

@@ -5232,7 +5232,8 @@ sealed class DocumentParser(string defaultFont)
                     Shadow = ReadOuterShadow(picProps),
                     ImageData = image.Data,
                     ImageContentType = image.ContentType,
-                    ImageRasterFallbackData = image.RasterFallbackData
+                    ImageRasterFallbackData = image.RasterFallbackData,
+                    ImageCrop = ReadCrop(picture.BlipFill)
                 });
             }
         }
