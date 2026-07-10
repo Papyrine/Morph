@@ -5226,6 +5226,7 @@ sealed class DocumentParser(string defaultFont)
                     ColorHex = picStroke.ColorHex,
                     LineWidthEmu = picStroke.WidthEmu,
                     LineAlpha = picStroke.Alpha,
+                    ImageDescription = ReadImageDescription(picture, drawing),
                     Geometry = MapGroupGeometry(picProps),
                     ImageData = image.Data,
                     ImageContentType = image.ContentType,

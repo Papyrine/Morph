@@ -173,6 +173,10 @@ static class HtmlExporter
 
     static string Length(double points) => $"{Number(points)}pt";
 
+    // EMU = English Metric Units. 1 point = 12700 EMU. Inline shape groups keep their geometry in
+    // the group's EMU child coordinate space, which becomes the emitted <svg>'s viewBox.
+    const double emusPerPoint = 12700;
+
     // Shortest CSS box shorthand for top/right/bottom/left: one value when all four match,
     // "vertical horizontal" when opposite edges match, "top horizontal bottom" when only the
     // sides match, else all four.
@@ -1053,6 +1057,12 @@ static class HtmlExporter
 
         void AppendRun(Run run, bool inHeading, double inheritedFontSizePoints)
         {
+            if (run.InlineShapeGroup is {} shapeGroup)
+            {
+                AppendShapeGroup(shapeGroup, run.InlineImageWidthPoints, run.InlineImageHeightPoints);
+                return;
+            }
+
             if (run.InlineImageData is {} imageData)
             {
                 AppendImage(imageData, run.InlineImageContentType, run.InlineImageWidthPoints, run.InlineImageHeightPoints, run.InlineImageDescription);
@@ -1482,6 +1492,166 @@ static class HtmlExporter
                 : baseY + shape.VerticalPositionPoints;
 
             return (pageX, pageY, width, height);
+        }
+
+        // An inline wpg:wgp group becomes an inline <svg> whose viewBox IS the group's child
+        // coordinate space, so every shape keeps its EMU geometry — including stroke widths — and
+        // the browser scales the whole thing into the run's box. preserveAspectRatio="none" matches
+        // the raster backends, which scale x and y independently.
+        void AppendShapeGroup(InlineShapeGroup group, double widthPoints, double heightPoints)
+        {
+            if (widthPoints <= 0 || heightPoints <= 0 || group.ChildExtentX <= 0 || group.ChildExtentY <= 0)
+            {
+                return;
+            }
+
+            // overflow: visible because a stroke sits centred on its geometry — a zero-height
+            // connector's rule would otherwise be half-clipped by the viewport. The raster
+            // backends don't clip the group either.
+            builder.Append("<svg width=\"").Append(ToPixels(widthPoints))
+                .Append("\" height=\"").Append(ToPixels(heightPoints))
+                .Append("\" viewBox=\"0 0 ").Append(Number(group.ChildExtentX)).Append(' ').Append(Number(group.ChildExtentY))
+                .Append("\" preserveAspectRatio=\"none\" style=\"overflow: visible\" xmlns=\"http://www.w3.org/2000/svg\">");
+
+            var rotated = group.RotationDegrees != 0;
+            if (rotated)
+            {
+                builder.Append("<g transform=\"rotate(").Append(Number(group.RotationDegrees))
+                    .Append(' ').Append(Number(group.ChildExtentX / 2))
+                    .Append(' ').Append(Number(group.ChildExtentY / 2))
+                    .Append(")\">");
+            }
+
+            foreach (var shape in group.Shapes)
+            {
+                AppendGroupShape(shape, group, widthPoints, heightPoints);
+            }
+
+            if (rotated)
+            {
+                builder.Append("</g>");
+            }
+
+            builder.Append("</svg>");
+        }
+
+        void AppendGroupShape(GroupShape shape, InlineShapeGroup group, double widthPoints, double heightPoints)
+        {
+            if (shape.Geometry == GroupShapeGeometry.Line)
+            {
+                var (startX, endX) = shape.FlipHorizontal ? (shape.X + shape.Width, shape.X) : (shape.X, shape.X + shape.Width);
+                var (startY, endY) = shape.FlipVertical ? (shape.Y + shape.Height, shape.Y) : (shape.Y, shape.Y + shape.Height);
+                builder.Append("<line x1=\"").Append(Number(startX)).Append("\" y1=\"").Append(Number(startY))
+                    .Append("\" x2=\"").Append(Number(endX)).Append("\" y2=\"").Append(Number(endY))
+                    .Append("\" stroke-linecap=\"square\"");
+                // Default to 0.75pt when the shape carries no explicit a:ln/@w, as the raster
+                // backends do. Widths stay in EMU — the same space as the viewBox.
+                AppendStroke(shape, shape.LineWidthEmu > 0 ? shape.LineWidthEmu : 0.75 * emusPerPoint);
+                builder.Append(" />");
+                return;
+            }
+
+            var isEllipse = shape.Geometry == GroupShapeGeometry.Ellipse;
+
+            if (shape.ImageData is {} imageData)
+            {
+                // The handler sees the picture's own rendered size, not the group's.
+                var pictureWidth = shape.Width / group.ChildExtentX * widthPoints;
+                var pictureHeight = shape.Height / group.ChildExtentY * heightPoints;
+                if (ResolveImageSource(imageData, shape.ImageContentType, pictureWidth, pictureHeight) is {} source)
+                {
+                    // Word crops the picture to its pic:spPr geometry; only an ellipse needs a clip.
+                    string? clipId = null;
+                    if (isEllipse)
+                    {
+                        clipId = $"group-clip-{shapeIndex++}";
+                        builder.Append("<defs><clipPath id=\"").Append(clipId).Append("\">");
+                        AppendEllipseGeometry(shape);
+                        builder.Append(" /></clipPath></defs>");
+                    }
+
+                    builder.Append("<image href=\"").Append(EncodeAttribute(source)).Append('"');
+                    AppendBox(shape);
+                    builder.Append(" preserveAspectRatio=\"none\"");
+                    if (clipId != null)
+                    {
+                        builder.Append(" clip-path=\"url(#").Append(clipId).Append(")\"");
+                    }
+
+                    if (shape.ImageDescription is {Length: > 0} description)
+                    {
+                        builder.Append("><title>").Append(EncodeText(description)).Append("</title></image>");
+                    }
+                    else
+                    {
+                        builder.Append(" />");
+                    }
+                }
+
+                // The picture already filled its box, so its a:ln — the ring Word draws around a
+                // circular photo — strokes as a separate unfilled shape on top.
+                if (shape.LineWidthEmu > 0)
+                {
+                    AppendGroupGeometry(shape, isEllipse);
+                    builder.Append(" fill=\"none\"");
+                    AppendStroke(shape, shape.LineWidthEmu);
+                    builder.Append(" />");
+                }
+
+                return;
+            }
+
+            AppendGroupGeometry(shape, isEllipse);
+            builder.Append(" fill=\"").Append(DocumentExportHelpers.NormalizeColor(shape.FillColorHex) ?? "none").Append('"');
+            if (shape.FillColorHex != null && shape.FillAlpha < 0.999)
+            {
+                builder.Append(" fill-opacity=\"").Append(Number(shape.FillAlpha)).Append('"');
+            }
+
+            AppendStroke(shape, shape.LineWidthEmu);
+            builder.Append(" />");
+        }
+
+        void AppendGroupGeometry(GroupShape shape, bool isEllipse)
+        {
+            if (isEllipse)
+            {
+                AppendEllipseGeometry(shape);
+                return;
+            }
+
+            builder.Append("<rect");
+            AppendBox(shape);
+        }
+
+        void AppendBox(GroupShape shape) =>
+            builder.Append(" x=\"").Append(Number(shape.X)).Append("\" y=\"").Append(Number(shape.Y))
+                .Append("\" width=\"").Append(Number(shape.Width)).Append("\" height=\"").Append(Number(shape.Height)).Append('"');
+
+        void AppendEllipseGeometry(GroupShape shape) =>
+            builder.Append("<ellipse cx=\"").Append(Number(shape.X + shape.Width / 2))
+                .Append("\" cy=\"").Append(Number(shape.Y + shape.Height / 2))
+                .Append("\" rx=\"").Append(Number(shape.Width / 2))
+                .Append("\" ry=\"").Append(Number(shape.Height / 2)).Append('"');
+
+        // Stroke widths are given in CSS pixels and pinned with vector-effect, NOT in the viewBox's
+        // EMU: SVG scales a stroke by sqrt(|det(CTM)|), which under this viewBox's non-uniform (and,
+        // for a zero-height connector, near-degenerate) scale bears no relation to the width Word
+        // asked for. A 0.5pt divider rule would come out ~65px thick.
+        void AppendStroke(GroupShape shape, double lineWidthEmu)
+        {
+            if (lineWidthEmu <= 0)
+            {
+                return;
+            }
+
+            builder.Append(" stroke=\"").Append(DocumentExportHelpers.NormalizeColor(shape.ColorHex) ?? "#000000").Append('"')
+                .Append(" stroke-width=\"").Append(Number(lineWidthEmu / emusPerPoint * 96.0 / 72.0)).Append('"')
+                .Append(" vector-effect=\"non-scaling-stroke\"");
+            if (shape.LineAlpha < 0.999)
+            {
+                builder.Append(" stroke-opacity=\"").Append(Number(shape.LineAlpha)).Append('"');
+            }
         }
 
         void AppendImage(byte[] data, string? contentType, double widthPoints, double heightPoints, string? alt)
