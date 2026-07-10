@@ -378,7 +378,7 @@ sealed class PdfPageRenderer : PageRendererBase
         var isEmpty = paragraph.Runs.Count == 0;
         foreach (var run in paragraph.Runs)
         {
-            if (run.InlineImageData != null || !string.IsNullOrWhiteSpace(run.Text))
+            if (run.InlineImageData != null || run.InlineShapeGroup != null || !string.IsNullOrWhiteSpace(run.Text))
             {
                 hasContent = true;
                 break;
