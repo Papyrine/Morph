@@ -5422,7 +5422,12 @@ sealed class DocumentParser(string defaultFont)
         };
     }
 
-    // Walks an Outline / SolidFill for the first solid colour we can resolve.
+    /// <summary>
+    /// Walks an <c>a:ln</c> / <c>a:solidFill</c> for the first solid colour we can resolve, in
+    /// document order — an outline carries exactly one. Each colour flavour applies its own
+    /// <c>lumMod</c>/<c>lumOff</c>/<c>tint</c>/<c>shade</c> children: ignoring them turns Word's
+    /// "Lighter 80%" tints back into the saturated base colour.
+    /// </summary>
     string? ExtractFirstFillColor(OpenXmlElement? element)
     {
         if (element == null)
@@ -5430,37 +5435,26 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
-        foreach (var rgb in element.Descendants<A.RgbColorModelHex>())
+        foreach (var color in element.Descendants())
         {
-            if (rgb.Val?.HasValue == true)
+            switch (color)
             {
-                return rgb.Val.Value;
-            }
-        }
+                case A.RgbColorModelHex {Val.HasValue: true} rgb:
+                    return ShapeParser.ApplyLiteralColorTransforms(rgb.Val.Value!, rgb);
 
-        foreach (var scheme in element.Descendants<A.SchemeColor>())
-        {
-            if (scheme.Val?.HasValue == true && currentThemeColors != null)
-            {
-                var schemeValue = ((IEnumValue) scheme.Val.Value).Value;
-                return currentThemeColors.ResolveColor(schemeValue, ReadColorTransforms(scheme));
+                // Word caches the resolved value of a system colour in @lastClr; @val ("window",
+                // "windowText") names a host UI colour a document renderer must not look up.
+                case A.SystemColor {LastColor.HasValue: true} system:
+                    return ShapeParser.ApplyLiteralColorTransforms(system.LastColor.Value!, system);
+
+                case A.SchemeColor {Val.HasValue: true} scheme when currentThemeColors != null:
+                    var schemeValue = ((IEnumValue) scheme.Val.Value).Value;
+                    return currentThemeColors.ResolveColor(schemeValue, ShapeParser.ExtractColorTransforms(scheme));
             }
         }
 
         return null;
     }
-
-    // Word writes its theme tints ("Accent 1, Lighter 80%") as lumMod/lumOff children of the
-    // scheme colour. Resolving the bare accent instead of the tint turns a pale ring saturated.
-    // Percentages arrive in thousandths; tint/shade in 100000ths that ThemeColors wants as 0-255.
-    static ColorTransforms ReadColorTransforms(A.SchemeColor scheme) =>
-        new()
-        {
-            LumMod = scheme.GetFirstChild<A.LuminanceModulation>()?.Val?.Value / 1000.0,
-            LumOff = scheme.GetFirstChild<A.LuminanceOffset>()?.Val?.Value / 1000.0,
-            Tint = scheme.GetFirstChild<A.Tint>()?.Val?.Value is { } tint ? (byte) (tint / 392.157) : null,
-            Shade = scheme.GetFirstChild<A.Shade>()?.Val?.Value is { } shade ? (byte) (shade / 392.157) : null
-        };
 
     static double ReadRotationDegrees(OpenXmlElement xfrm)
     {

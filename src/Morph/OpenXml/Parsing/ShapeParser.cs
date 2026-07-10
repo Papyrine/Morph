@@ -842,9 +842,20 @@ static class ShapeParser
     }
 
     /// <summary>
+    /// Applies any <c>lumMod</c>/<c>lumOff</c>/<c>satMod</c>/<c>satOff</c>/<c>tint</c>/<c>shade</c>
+    /// child of a literal colour element (<c>a:srgbClr</c>, <c>a:sysClr</c>) to its RGB value. A
+    /// theme colour resolves its transforms through <see cref="ThemeColors"/> instead.
+    /// </summary>
+    public static string ApplyLiteralColorTransforms(string hexColor, OpenXmlElement colorElement)
+    {
+        var transforms = ExtractColorTransforms(colorElement);
+        return transforms.HasTransforms ? ApplyTransformsToRgb(hexColor, transforms) : hexColor;
+    }
+
+    /// <summary>
     /// Extracts color transform parameters from a color element.
     /// </summary>
-    static ColorTransforms ExtractColorTransforms(OpenXmlElement colorElement)
+    public static ColorTransforms ExtractColorTransforms(OpenXmlElement colorElement)
     {
         byte? shade = null;
         byte? tint = null;
