@@ -643,6 +643,12 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             return;
         }
 
+        // An a:srcRect crop is drawn by enlarging the picture so its visible sub-rectangle covers
+        // the shape's box, then clipping back to that box. PDFsharp's source-rectangle overload
+        // leaves the unit of the rectangle undocumented; this needs no such API.
+        var image = shape.ImageCrop?.Expand(x, y, width, height) ?? (x, y, width, height);
+        var cropped = image != (x, y, width, height);
+
         var state = graphics.Save();
         try
         {
@@ -654,8 +660,12 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 clip.AddEllipse(x, y, width, height);
                 graphics.IntersectClip(clip);
             }
+            else if (cropped)
+            {
+                graphics.IntersectClip(new XRect(x, y, width, height));
+            }
 
-            graphics.DrawImage(context.GetImage(data), x, y, width, height);
+            graphics.DrawImage(context.GetImage(data), image.X, image.Y, image.Width, image.Height);
         }
         catch
         {

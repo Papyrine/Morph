@@ -1574,19 +1574,27 @@ static class HtmlExporter
                 var pictureHeight = shape.Height / group.ChildExtentY * heightPoints;
                 if (ResolveImageSource(imageData, shape.ImageContentType, pictureWidth, pictureHeight) is {} source)
                 {
-                    // Word crops the picture to its pic:spPr geometry; only an ellipse needs a clip.
+                    // An a:srcRect crop is drawn by enlarging the picture so its visible
+                    // sub-rectangle covers the shape's box; SVG's <image> has no source rectangle.
+                    var box = shape.ImageCrop?.Expand(shape.X, shape.Y, shape.Width, shape.Height)
+                              ?? (shape.X, shape.Y, shape.Width, shape.Height);
+                    var cropped = box != (shape.X, shape.Y, shape.Width, shape.Height);
+
+                    // Word crops the picture to its pic:spPr geometry. A rect only needs a clip once
+                    // the picture overflows it.
                     string? clipId = null;
-                    if (isEllipse)
+                    if (isEllipse || cropped)
                     {
                         clipId = $"group-clip-{shapeIndex++}";
                         builder.Append("<defs><clipPath id=\"").Append(clipId).Append("\">");
-                        AppendEllipseGeometry(shape);
+                        AppendGroupGeometry(shape, isEllipse);
                         builder.Append(" /></clipPath></defs>");
                     }
 
-                    builder.Append("<image href=\"").Append(EncodeAttribute(source)).Append('"');
-                    AppendBox(shape);
-                    builder.Append(" preserveAspectRatio=\"none\"");
+                    builder.Append("<image href=\"").Append(EncodeAttribute(source)).Append('"')
+                        .Append(" x=\"").Append(Number(box.X)).Append("\" y=\"").Append(Number(box.Y))
+                        .Append("\" width=\"").Append(Number(box.Width)).Append("\" height=\"").Append(Number(box.Height)).Append('"')
+                        .Append(" preserveAspectRatio=\"none\"");
                     if (clipId != null)
                     {
                         builder.Append(" clip-path=\"url(#").Append(clipId).Append(")\"");
