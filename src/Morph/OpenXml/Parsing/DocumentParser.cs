@@ -5196,7 +5196,8 @@ sealed class DocumentParser(string defaultFont)
                     FlipHorizontal = shapeXfrm.HorizontalFlip?.Value == true,
                     Geometry = MapGroupGeometry(shapeProps),
                     FillColorHex = fill != null ? ExtractFirstFillColor(fill) : null,
-                    FillAlpha = fill != null ? ShapeParser.ExtractSolidFillAlpha(fill) : 1
+                    FillAlpha = fill != null ? ShapeParser.ExtractSolidFillAlpha(fill) : 1,
+                    Shadow = ReadOuterShadow(shapeProps)
                 });
             }
             else if (child is PIC.Picture picture)
@@ -5228,6 +5229,7 @@ sealed class DocumentParser(string defaultFont)
                     LineAlpha = picStroke.Alpha,
                     ImageDescription = ReadImageDescription(picture, drawing),
                     Geometry = MapGroupGeometry(picProps),
+                    Shadow = ReadOuterShadow(picProps),
                     ImageData = image.Data,
                     ImageContentType = image.ContentType,
                     ImageRasterFallbackData = image.RasterFallbackData
@@ -5286,6 +5288,43 @@ sealed class DocumentParser(string defaultFont)
             ExtractFirstFillColor(colorSource) ?? "000000",
             outline?.Width?.Value ?? ResolveLineReferenceWidthEmu(lineReference),
             solidFill != null ? ShapeParser.ExtractSolidFillAlpha(solidFill) : 1);
+    }
+
+    /// <summary>
+    /// Reads a group member's <c>a:effectLst/a:outerShdw</c>. <c>@dist</c> is the offset length in
+    /// EMU and <c>@dir</c> its angle in 60,000ths of a degree, measured clockwise from the +x axis
+    /// in screen space (y grows downward), so the two resolve straight into an x/y offset. A shadow
+    /// with no distance is a blur halo rather than a drop shadow, and we have nothing to offset.
+    /// </summary>
+    GroupShadow? ReadOuterShadow(OpenXmlElement shapeProperties)
+    {
+        var shadow = shapeProperties.GetFirstChild<A.EffectList>()?.GetFirstChild<A.OuterShadow>();
+        if (shadow?.Distance?.Value is not { } distance || distance <= 0)
+        {
+            return null;
+        }
+
+        var radians = (shadow.Direction?.Value ?? 0) / 60000.0 * Math.PI / 180.0;
+
+        // Word writes shadow colours as <a:prstClr val="black">. Only the monochrome presets show
+        // up in practice, so the rest fall back to black rather than carrying a 140-name table.
+        var colorHex = ExtractFirstFillColor(shadow);
+        if (colorHex == null && shadow.GetFirstChild<A.PresetColor>()?.Val?.Value is { } preset)
+        {
+            colorHex = preset == A.PresetColorValues.White ? "FFFFFF" : "000000";
+        }
+
+        var alpha = shadow.Descendants<A.Alpha>().FirstOrDefault()?.Val?.Value is { } opacity
+            ? opacity / 100000.0
+            : 1.0;
+
+        return new()
+        {
+            OffsetX = distance * Math.Cos(radians),
+            OffsetY = distance * Math.Sin(radians),
+            ColorHex = colorHex ?? "000000",
+            Alpha = alpha
+        };
     }
 
     /// <summary>Stroke width an <c>a:lnRef/@idx</c> selects from the theme's 1-based <c>lnStyleLst</c>.</summary>

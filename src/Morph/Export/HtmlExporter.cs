@@ -1553,6 +1553,20 @@ static class HtmlExporter
 
             var isEllipse = shape.Geometry == GroupShapeGeometry.Ellipse;
 
+            // The shadow is an offset copy of the shape's geometry, emitted before the shape itself
+            // so it paints behind it.
+            if (shape.Shadow is {} shadow)
+            {
+                AppendGroupGeometry(shape, isEllipse, shadow.OffsetX, shadow.OffsetY);
+                builder.Append(" fill=\"").Append(DocumentExportHelpers.NormalizeColor(shadow.ColorHex) ?? "#000000").Append('"');
+                if (shadow.Alpha < 0.999)
+                {
+                    builder.Append(" fill-opacity=\"").Append(Number(shadow.Alpha)).Append('"');
+                }
+
+                builder.Append(" />");
+            }
+
             if (shape.ImageData is {} imageData)
             {
                 // The handler sees the picture's own rendered size, not the group's.
@@ -1612,25 +1626,25 @@ static class HtmlExporter
             builder.Append(" />");
         }
 
-        void AppendGroupGeometry(GroupShape shape, bool isEllipse)
+        void AppendGroupGeometry(GroupShape shape, bool isEllipse, double offsetX = 0, double offsetY = 0)
         {
             if (isEllipse)
             {
-                AppendEllipseGeometry(shape);
+                AppendEllipseGeometry(shape, offsetX, offsetY);
                 return;
             }
 
             builder.Append("<rect");
-            AppendBox(shape);
+            AppendBox(shape, offsetX, offsetY);
         }
 
-        void AppendBox(GroupShape shape) =>
-            builder.Append(" x=\"").Append(Number(shape.X)).Append("\" y=\"").Append(Number(shape.Y))
+        void AppendBox(GroupShape shape, double offsetX = 0, double offsetY = 0) =>
+            builder.Append(" x=\"").Append(Number(shape.X + offsetX)).Append("\" y=\"").Append(Number(shape.Y + offsetY))
                 .Append("\" width=\"").Append(Number(shape.Width)).Append("\" height=\"").Append(Number(shape.Height)).Append('"');
 
-        void AppendEllipseGeometry(GroupShape shape) =>
-            builder.Append("<ellipse cx=\"").Append(Number(shape.X + shape.Width / 2))
-                .Append("\" cy=\"").Append(Number(shape.Y + shape.Height / 2))
+        void AppendEllipseGeometry(GroupShape shape, double offsetX = 0, double offsetY = 0) =>
+            builder.Append("<ellipse cx=\"").Append(Number(shape.X + offsetX + shape.Width / 2))
+                .Append("\" cy=\"").Append(Number(shape.Y + offsetY + shape.Height / 2))
                 .Append("\" rx=\"").Append(Number(shape.Width / 2))
                 .Append("\" ry=\"").Append(Number(shape.Height / 2)).Append('"');
 
