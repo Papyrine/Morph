@@ -1,4 +1,4 @@
-# All PDF export scenarios (323)
+# All PDF export scenarios (324)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -159,6 +159,7 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [image_rotation/01](#image_rotation01)
 - [image_wrap_square](#image_wrap_square)
 - [inline_group_crop](#inline_group_crop)
+- [inline_group_rotation](#inline_group_rotation)
 - [inline_image](#inline_image)
 - [inline_shape_arrows](#inline_shape_arrows)
 - [italic_text](#italic_text)
@@ -2129,6 +2130,16 @@ PDF: [Morph PDF](image_wrap_square/pdf_result.verified.pdf)
 | <img src="inline_group_crop/expected_0001.png" width="500"> | <img src="inline_group_crop/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](inline_group_crop/pdf_result.verified.pdf)
+
+
+## inline_group_rotation
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2961** |
+| <img src="inline_group_rotation/expected_0001.png" width="500"> | <img src="inline_group_rotation/pdf_result%23page_0001.verified.png" width="500"> |
+
+PDF: [Morph PDF](inline_group_rotation/pdf_result.verified.pdf)
 
 
 ## inline_image
