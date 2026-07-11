@@ -524,6 +524,8 @@ Vertical space above and below a paragraph, in points.
 
 > **Contributors**: Adjacent paragraph spacing uses margin collapsing: `max(after, before)`, not sum. A body paragraph at the top of an automatically broken page gets no spacing-before (compatibilityMode 15 also after explicit page breaks; section breaks and the first page keep it) — one-shot `SuppressPageTopSpacingBefore` computed by the page renderers, consumed in `TextRenderer` / `PdfTextEngine`. The document default after-spacing (`DocumentParser.ExtractDefaultParagraphProperties`) is Word's 8pt built-in only when the document has no `docDefaults` element (or no `styles.xml`); when `docDefaults` is present but omits paragraph defaults, the default is 0 — Word reads the omission as an explicit zero.
 
+> **Contributors**: A paragraph whose only content is a behind-text anchored drawing (the "background placeholder" pattern) still has a paragraph mark, and Word allocates a line for it. `ParseParagraph` therefore treats behind-text `FloatingShapeElement`s as producing no flow content and emits the empty paragraph anyway — testing `result.Count == 0` alone made that line appear or vanish depending on whether the shape parser happened to understand the drawing. The one exception is a placeholder carrying explicit spacing-after, where Word emits the trailing spacing but no line: that becomes an `IsAnchorOnlyMark` paragraph (see `agendas-minutes/11`).
+
 
 #### Line Spacing `DONE`
 
@@ -1523,6 +1525,31 @@ Positioned text containers with optional background and rotation.
 - **Model**: `FloatingTextBoxElement` with content, rotation, background color
 
 
+#### Inline Shape Groups `DONE`
+
+A `wpg:wgp` group inside a `wp:inline`, flowing with the text instead of floating: the connector-line arrow glyphs on heading rows, and Word's icon/photo bubbles — a coloured circle with an icon graphic or a circle-cropped photo on top.
+
+- **OOXML**: `wpg:wgp` (nested groups via `wpg:grpSp`) holding `wps:wsp` shapes and `pic:pic` pictures, inside `wp:inline`
+- **Model**: `InlineShapeGroup` on `Run.InlineShapeGroup`. Each `GroupShape` carries child-space coordinates, a `GroupShapeGeometry` (`Line` / `Rectangle` / `Ellipse`), either a solid fill or an `ImageData` fill, a stroke, and an optional `GroupShadow`. Fill and stroke each carry their own `a:alpha` opacity (`FillAlpha`, `LineAlpha`).
+- **Parse**: `DocumentParser.ParseInlineShapeGroupRun` walks the group's drawables in document (back-to-front) order via `GroupDrawables`. A picture's `pic:spPr` carries its own `a:prstGeom` (the shape Word crops it to) and `a:ln` (the ring around it), so a picture is modelled as an image *fill* of a geometry rather than a geometry of its own. SVG icons keep their `a:blip` raster as a fallback for backends that can't rasterize SVG.
+- **Stroke resolution**: `ReadGroupStroke` layers the shape's own `a:ln` over the theme line style that `wps:style/a:lnRef/@idx` selects from `ThemeColors.LineStyleWidthsEmu`. So an `a:ln` that sets only a colour still strokes, at the theme's width; an `a:noFill` outline never strokes, even when it also carries an `a:ln/@w`.
+- **Colour resolution**: `ExtractFirstFillColor` resolves `a:srgbClr`, `a:sysClr` (via its cached `@lastClr` — `@val` names a host UI colour) and `a:schemeClr`, applying each one's `lumMod`/`lumOff`/`tint`/`shade` children. Dropping those turned Word's "Lighter 80%" tints back into the saturated base colour, and an unrecognised `a:sysClr` fell through to black.
+- **Drop shadows**: `ReadOuterShadow` reads `a:effectLst/a:outerShdw`, turning `@dist` (EMU) and `@dir` (60,000ths of a degree, clockwise from +x in screen space) into an x/y offset. Every backend paints the shadow as an offset copy of the shape's geometry, before the shape itself so it lands behind — the circle-cropped photos on `menus/07` sit on one.
+- **Crops**: a picture's `a:srcRect` is read by `ReadCrop` onto `GroupShape.ImageCrop`, and composes with the `pic:spPr` crop shape (the ellipse) rather than replacing it. Skia and ImageSharp have a source-rectangle API and use it; the PDF backend and the HTML exporter have none, so `ImageCrop.Expand` gives them the enlarged rectangle the whole image must occupy for its visible sub-rectangle to land on the shape's box, which they then clip back. A rect picture only needs that clip once it is cropped.
+- **Group rotation**: `wpg:grpSpPr/a:xfrm/@rot` rotates the whole group — shapes and pictures — around its centre. Each backend applies it as one canvas transform over the group: Skia `RotateDegrees`, PDF `RotateAtTransform`, HTML an SVG `<g transform="rotate(...)">`. ImageSharp pushes the transform too, but its `DrawingCanvas.Apply` (the ellipse-clip path) ignores it while `DrawImage` honours it — so a rotated ellipse-clipped photo is drawn from a pre-clipped standalone bitmap (`GetEllipseClippedImage`) via `DrawImage` instead of `Apply`, and the transform then turns the circle into place.
+- **Render**: all three backends draw the group inline, on the text baseline. Skia clips pictures with `ClipPath`, ImageSharp masks them with `DrawingCanvas.Apply`, and the PDF backend clips with `XGraphics.IntersectClip`; each then strokes the outline. `PdfTextEngine` floors the line box at `EmptyLineHeight` so a hairline connector rule keeps its paragraph's line — before the group had a line item at all, that height came from the zero-line fallback.
+- **Export**: `HtmlExporter` emits an inline `<svg>` whose `viewBox` is the group's EMU child coordinate space, so shape geometry needs no conversion; an ellipse-cropped picture gets a `<clipPath>`. Stroke widths are given in CSS pixels with `vector-effect="non-scaling-stroke"` — SVG scales a stroke by `sqrt(|det(CTM)|)`, which for a zero-height connector's near-degenerate viewBox would render a 0.5pt rule ~65px thick. `MarkdownExporter` emits only the group's pictures, since Markdown has no vector primitives; `DocumentExportHelpers.IsBlank` takes `vectorShapesRender` so a picture-less group leaves its paragraph blank there but not in HTML.
+- **Test**: `brochures/01`, `menus/07`, `menus/09`, `newsletters/03`, `letters/05`, `resumes/03`, `resumes/18`, `inline_shape_arrows`, `inline_group_crop`, `inline_group_rotation`
+
+> **Contributors**: `ParseWordArt` and `ParseTextBox` both read the drawing-level `wp:extent` and claim the first `wps:wsp` they find, so they must decline a shape that shares a group with siblings (`HasGroupSiblings`). Word hangs a hidden descriptive text box off the icon circle, and without that guard the text box swallowed the entire icon.
+
+> **AI**: Shadow gaps: `@blurRad` is ignored, so the edge is hard. Word softens it anyway — measured against `menus/07`'s reference PNG, Word ramps the shadow over ~8px even though the file omits `blurRad` (whose spec default is 0), so a blur radius that matched would have to be invented rather than read. The visible crescent of that shadow is almost entirely Word's ramp, which is why drawing it moves more pixels toward the reference than away (skia 5249 vs 4744) while barely moving RMSE. Only `a:outerShdw` is read — no `innerShdw`, `glow`, `reflection` or `softEdge` — the shadow is cast by a picture's crop geometry rather than its alpha silhouette, and `@rotWithShape="0"` is ignored (the shadow rotates with a rotated group).
+
+> **AI**: Markdown emits the whole picture — it can express neither an `a:srcRect` crop, a group rotation, nor a size, so a cropped/rotated group picture exports unmodified, and any `width`/`height`-less SVG renders at the browser's default box (why the icon graphics look oversized in `md_result` snapshots). All shared with the plain inline-image path. A general (non-90°) group rotation grows a picture's bounding box, so it can overrun its group's layout extent, which the raster backends clip to the page but not to the group.
+
+> **Contributors**: The corpus has no usable `a:srcRect` inside a group — `menus/07`'s only value is a negative `t="-168"` that `ReadCrop` clamps away — so `inline_group_crop` exists to cover it. It is `menus/07` with a different crop on each of the three photos (30% left, 30% top, and asymmetric), chosen so a swapped axis or a flipped sign fails visibly; `expected_0001.png` is Word's own rendering via `RenderHelper`.
+
+
 #### Behind / In-front of Text `DONE`
 
 Controls whether floating elements render behind or in front of document text.
@@ -2239,27 +2266,27 @@ Read-only mode, form protection, and editing restrictions.
 | 3. Lists & Numbering | 6 | 0 | 0 | 0 | 6 |
 | 4. Tables | 27 | 0 | 0 | 0 | 27 |
 | 5. Page Layout & Sections | 19 | 0 | 0 | 0 | 19 |
-| 6. Graphics & Media | 23 | 0 | 1 | 1 | 25 |
+| 6. Graphics & Media | 22 | 2 | 1 | 1 | 26 |
 | 7. Form Controls | 10 | 0 | 1 | 0 | 11 |
 | 8. Themes & Styles | 4 | 0 | 0 | 0 | 4 |
 | 9. Typography | 8 | 0 | 0 | 0 | 8 |
 | 10. Document Infrastructure | 6 | 0 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 0 | 2 |
-| **Total** | **162** | **1** | **5** | **1** | **169** |
+| **Total** | **161** | **3** | **5** | **1** | **170** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 162
-    "Partial" : 1
+    "Done" : 161
+    "Partial" : 3
     "Todo" : 5
     "Wontfix" : 1
 ```
 
-**Overall coverage: ~96% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
+**Overall coverage: ~95% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
 
 
 Priority areas for future implementation:

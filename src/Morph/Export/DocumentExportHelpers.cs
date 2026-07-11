@@ -153,7 +153,14 @@ static class DocumentExportHelpers
     /// Whether a paragraph carries no rendered content (no runs, or only whitespace and no inline
     /// image). Empty paragraphs are dropped by the exporters to avoid empty blocks.
     /// </summary>
-    public static bool IsBlank(ParagraphElement paragraph)
+    /// <param name="paragraph">The paragraph to test.</param>
+    /// <param name="vectorShapesRender">
+    /// Whether an inline shape group counts as content on its own. HTML draws one as an inline
+    /// <c>&lt;svg&gt;</c>, so any group is content. Markdown has no vector primitives and emits only
+    /// a group's pictures, so a group built purely of shapes — a divider rule, an arrow glyph —
+    /// leaves its paragraph blank.
+    /// </param>
+    public static bool IsBlank(ParagraphElement paragraph, bool vectorShapesRender = true)
     {
         foreach (var run in paragraph.Runs)
         {
@@ -163,6 +170,12 @@ static class DocumentExportHelpers
             }
 
             if (run.InlineImageData != null)
+            {
+                return false;
+            }
+
+            if (run.InlineShapeGroup is {} shapeGroup &&
+                (vectorShapesRender || shapeGroup.Shapes.Any(_ => _.ImageData != null)))
             {
                 return false;
             }
