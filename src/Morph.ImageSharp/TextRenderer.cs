@@ -1391,7 +1391,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                     (startX, endX) = (endX, startX);
                 }
 
-                var color = ImageSharpRenderContext.ParseColor(shape.ColorHex);
+                var color = ParseColor(shape.ColorHex, shape.LineAlpha);
                 var width = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75) * context.Scale;
                 // Square end caps make the perpendicular connector lines extend half-stroke-width
                 // past their endpoints — that's how Word's icon-style arrows form a clean L corner
@@ -1408,17 +1408,40 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             }
             else
             {
-                if (shape.FillColorHex is { } fillHex)
+                var isEllipse = shape.Geometry == GroupShapeGeometry.Ellipse;
+                // EllipsePolygon's 4-arg ctor takes (centerX, centerY, fullWidth, fullHeight) —
+                // the trailing two are bounding-box dimensions, not radii.
+                IPath path = isEllipse
+                    ? new EllipsePolygon(x1 + w / 2, y1 + h / 2, w, h)
+                    : new RectanglePolygon(x1, y1, w, h);
+
+                // The shadow is an offset copy of the shape's geometry, painted before the shape
+                // itself so it lands behind it.
+                if (shape.Shadow is { } shadow)
                 {
-                    var fill = ImageSharpRenderContext.ParseColor(fillHex);
-                    pageCanvas.Fill(context.GetBrush(fill), new RectangleF(x1, y1, w, h));
+                    var shadowX = x1 + (float) shadow.OffsetX * sx;
+                    var shadowY = y1 + (float) shadow.OffsetY * sy;
+                    IPath shadowPath = isEllipse
+                        ? new EllipsePolygon(shadowX + w / 2, shadowY + h / 2, w, h)
+                        : new RectanglePolygon(shadowX, shadowY, w, h);
+                    pageCanvas.Fill(context.GetBrush(ParseColor(shadow.ColorHex, shadow.Alpha)), shadowPath);
                 }
+
+                if (shape.ImageData != null)
+                {
+                    RenderGroupPicture(pageCanvas, shape, x1, y1, w, h, isEllipse ? path : null, hasRotation);
+                }
+                else if (shape.FillColorHex is { } fillHex)
+                {
+                    pageCanvas.Fill(context.GetBrush(ParseColor(fillHex, shape.FillAlpha)), path);
+                }
+
                 if (shape.LineWidthEmu > 0)
                 {
-                    var color = ImageSharpRenderContext.ParseColor(shape.ColorHex);
+                    var color = ParseColor(shape.ColorHex, shape.LineAlpha);
                     var width = (float) (shape.LineWidthEmu / emusPerPoint) * context.Scale;
                     var pen = context.GetPen(color, width);
-                    pageCanvas.Draw(pen, new RectangleF(x1, y1, w, h));
+                    pageCanvas.Draw(pen, path);
                 }
             }
         }
@@ -1427,6 +1450,71 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         {
             pageCanvas.Restore();
         }
+    }
+
+    static Color ParseColor(string hex, double alpha)
+    {
+        var color = ImageSharpRenderContext.ParseColor(hex);
+        var clamped = Math.Clamp(alpha, 0, 1);
+        if (clamped >= 1)
+        {
+            return color;
+        }
+
+        var pixel = color.ToPixel<Rgba32>();
+        pixel.A = (byte) Math.Round(clamped * 255);
+        return Color.FromPixel(pixel);
+    }
+
+    /// <summary>
+    /// Draws a group's <c>pic:pic</c> into its child rectangle. <paramref name="clip"/> is the
+    /// shape's path when Word crops the picture to something other than its bounding box (the
+    /// circular photos on menu templates), null for a plain <c>rect</c> picture.
+    /// </summary>
+    void RenderGroupPicture(DrawingCanvas pageCanvas, GroupShape shape, float x, float y, float width, float height, IPath? clip, bool groupRotated)
+    {
+        // SVG isn't supported here; use the raster fallback the parser kept from the primary
+        // <a:blip>, or skip if we don't have one.
+        var imageBytes = shape.ImageContentType == "image/svg+xml"
+            ? shape.ImageRasterFallbackData
+            : shape.ImageData;
+        if (imageBytes == null)
+        {
+            return;
+        }
+
+        // DrawingCanvas.Apply doesn't honour a pushed canvas rotation, so under a rotated group an
+        // ellipse-clipped photo would sit unrotated. DrawImage does honour it, so draw a standalone
+        // pre-clipped bitmap instead: the pushed transform then rotates the circle into place. (A
+        // rect picture already goes through DrawImage below and rotates for free.)
+        if (groupRotated && clip != null)
+        {
+            var clipped = context.GetEllipseClippedImage(imageBytes, (int) width, (int) height, shape.ImageCrop);
+            if (clipped != null)
+            {
+                pageCanvas.DrawImage(clipped, new((int) x, (int) y));
+            }
+
+            return;
+        }
+
+        var img = context.GetProcessedImage(imageBytes, (int) width, (int) height, shape.ImageCrop, BlipColorEffect.None, rotationDegrees: 0);
+        if (img == null)
+        {
+            return;
+        }
+
+        if (clip == null)
+        {
+            pageCanvas.DrawImage(img, new((int) x, (int) y));
+            return;
+        }
+
+        // Apply() masks its inner context to the path and rebases coordinates on the path's
+        // bounding box — which is exactly this picture's rectangle, hence the (0, 0) origin. It
+        // defers the draw to canvas-replay time, so the source has to outlive this call: the
+        // context's image cache holds it until the whole document is rendered.
+        pageCanvas.Apply(clip, _ => _.DrawImage(img, new Point(0, 0), 1f));
     }
 
     static DrawingOptions BuildRotation(float radians, float pivotX, float pivotY) =>

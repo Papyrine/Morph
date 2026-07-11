@@ -332,6 +332,13 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
             foreach (var item in line.Items)
             {
+                if (item.ShapeGroup != null)
+                {
+                    DrawShapeGroup(graphics, item, penX, baseline);
+                    penX += item.Width;
+                    continue;
+                }
+
                 if (item.IsImage)
                 {
                     DrawImage(graphics, item, penX, baseline);
@@ -516,6 +523,170 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         }
     }
 
+    // EMU = English Metric Units. 1 point = 12700 EMU.
+    const double emusPerPoint = 12700;
+
+    /// <summary>
+    /// Draws a <c>wpg:wgp</c> group that flows with the text — Word's icon and photo bubbles, and
+    /// the connector-line arrow glyphs. Shape coordinates are in the group's child coordinate
+    /// space; they scale into the fragment's rectangle, which sits on the baseline like an image.
+    /// </summary>
+    void DrawShapeGroup(XGraphics? graphics, LineItem item, double penX, double baseline)
+    {
+        if (graphics == null || item.ShapeGroup is not { } group)
+        {
+            return;
+        }
+
+        var top = baseline - item.ImageHeight;
+        var scaleX = item.ImageWidth / group.ChildExtentX;
+        var scaleY = item.ImageHeight / group.ChildExtentY;
+
+        var state = graphics.Save();
+        if (group.RotationDegrees != 0)
+        {
+            graphics.RotateAtTransform(group.RotationDegrees, new(penX + item.ImageWidth / 2, top + item.ImageHeight / 2));
+        }
+
+        foreach (var shape in group.Shapes)
+        {
+            var x = penX + shape.X * scaleX;
+            var y = top + shape.Y * scaleY;
+            var width = shape.Width * scaleX;
+            var height = shape.Height * scaleY;
+
+            if (shape.Geometry == GroupShapeGeometry.Line)
+            {
+                var startX = x;
+                var startY = y;
+                var endX = x + width;
+                var endY = y + height;
+                if (shape.FlipVertical)
+                {
+                    (startY, endY) = (endY, startY);
+                }
+                if (shape.FlipHorizontal)
+                {
+                    (startX, endX) = (endX, startX);
+                }
+
+                // Default to 0.75pt when the shape doesn't carry a width, as the raster backends do.
+                var strokeWidth = shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75;
+                graphics.DrawLine(StrokePen(shape, strokeWidth), startX, startY, endX, endY);
+                continue;
+            }
+
+            var isEllipse = shape.Geometry == GroupShapeGeometry.Ellipse;
+
+            // The shadow is an offset copy of the shape's geometry, painted before the shape itself
+            // so it lands behind it.
+            if (shape.Shadow is { } shadow)
+            {
+                var shadowRgb = PdfRenderContext.ParseColor(shadow.ColorHex);
+                var shadowBrush = new XSolidBrush(XColor.FromArgb(AlphaByte(shadow.Alpha), shadowRgb.R, shadowRgb.G, shadowRgb.B));
+                var shadowX = x + shadow.OffsetX * scaleX;
+                var shadowY = y + shadow.OffsetY * scaleY;
+                if (isEllipse)
+                {
+                    graphics.DrawEllipse(shadowBrush, shadowX, shadowY, width, height);
+                }
+                else
+                {
+                    graphics.DrawRectangle(shadowBrush, shadowX, shadowY, width, height);
+                }
+            }
+
+            if (shape.ImageData != null)
+            {
+                DrawGroupPicture(graphics, shape, x, y, width, height, isEllipse);
+            }
+            else if (shape.FillColorHex is { } fillHex)
+            {
+                var rgb = PdfRenderContext.ParseColor(fillHex);
+                var brush = new XSolidBrush(XColor.FromArgb(AlphaByte(shape.FillAlpha), rgb.R, rgb.G, rgb.B));
+                if (isEllipse)
+                {
+                    graphics.DrawEllipse(brush, x, y, width, height);
+                }
+                else
+                {
+                    graphics.DrawRectangle(brush, x, y, width, height);
+                }
+            }
+
+            if (shape.LineWidthEmu > 0)
+            {
+                var pen = StrokePen(shape, shape.LineWidthEmu / emusPerPoint);
+                if (isEllipse)
+                {
+                    graphics.DrawEllipse(pen, x, y, width, height);
+                }
+                else
+                {
+                    graphics.DrawRectangle(pen, x, y, width, height);
+                }
+            }
+        }
+
+        graphics.Restore(state);
+    }
+
+    void DrawGroupPicture(XGraphics graphics, GroupShape shape, double x, double y, double width, double height, bool clipToEllipse)
+    {
+        // PDFsharp can't decode SVG, so an icon graphic falls back to the raster blip the parser
+        // kept behind it — see PdfPageRenderer.CanRenderContentType.
+        var data = shape.ImageContentType == "image/svg+xml"
+            ? shape.ImageRasterFallbackData
+            : shape.ImageData;
+        if (data == null)
+        {
+            return;
+        }
+
+        // An a:srcRect crop is drawn by enlarging the picture so its visible sub-rectangle covers
+        // the shape's box, then clipping back to that box. PDFsharp's source-rectangle overload
+        // leaves the unit of the rectangle undocumented; this needs no such API.
+        var image = shape.ImageCrop?.Expand(x, y, width, height) ?? (x, y, width, height);
+        var cropped = image != (x, y, width, height);
+
+        var state = graphics.Save();
+        try
+        {
+            if (clipToEllipse)
+            {
+                // Word crops the picture to its pic:spPr geometry — the circular photos on menu
+                // templates.
+                var clip = new XGraphicsPath();
+                clip.AddEllipse(x, y, width, height);
+                graphics.IntersectClip(clip);
+            }
+            else if (cropped)
+            {
+                graphics.IntersectClip(new XRect(x, y, width, height));
+            }
+
+            graphics.DrawImage(context.GetImage(data), image.X, image.Y, image.Width, image.Height);
+        }
+        catch
+        {
+            // Undecodable raster (PDFsharp's cross-platform build only does BMP/PNG/JPEG):
+            // drop the picture and keep the rest of the group.
+        }
+        finally
+        {
+            graphics.Restore(state);
+        }
+    }
+
+    static XPen StrokePen(GroupShape shape, double widthPoints)
+    {
+        var rgb = PdfRenderContext.ParseColor(shape.ColorHex);
+        return new(XColor.FromArgb(AlphaByte(shape.LineAlpha), rgb.R, rgb.G, rgb.B), Math.Max(0.4, widthPoints));
+    }
+
+    static int AlphaByte(double alpha) =>
+        (int) Math.Round(Math.Clamp(alpha, 0, 1) * 255);
+
     static readonly XStringFormat baselineFormat = new()
     {
         Alignment = XStringAlignment.Near,
@@ -563,7 +734,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 break;
             }
 
-            if (run.InlineImageData is {Length: > 0})
+            if (run.InlineImageData is {Length: > 0} || run.InlineShapeGroup != null)
             {
                 total += run.InlineImageWidthPoints > 0 ? run.InlineImageWidthPoints : 12;
                 continue;
@@ -592,6 +763,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             var run = runs[index];
             if (run.IsTab ||
                 run.InlineImageData is {Length: > 0} ||
+                run.InlineShapeGroup != null ||
                 run.Text.Contains('\n') ||
                 run.Text.Contains('\r'))
             {
@@ -715,6 +887,40 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             var run = paragraph.Runs[runIndex];
             if (run.Properties.Hidden)
             {
+                continue;
+            }
+
+            if (run.InlineShapeGroup is { } shapeGroup)
+            {
+                var groupWidth = run.InlineImageWidthPoints > 0 ? run.InlineImageWidthPoints : 12;
+                var groupHeight = run.InlineImageHeightPoints > 0 ? run.InlineImageHeightPoints : 12;
+                if (current.Items.Count > 0 && current.Width + pendingSpaceWidth + groupWidth > EffectiveWidth())
+                {
+                    Flush();
+                }
+
+                // A group is as tall as its extent, but Word still allocates the paragraph mark its
+                // own line, so the line box never shrinks below EmptyLineHeight. That floor is what
+                // keeps a hairline connector rule (a 0.5pt-tall group used as a section divider)
+                // from collapsing its paragraph — before this branch existed the rule drew nothing
+                // and the paragraph fell back to exactly that height. An icon bubble is taller than
+                // the mark and keeps its own size.
+                var lineFloor = EmptyLineHeight(paragraph);
+                var itemHeight = Math.Max(groupHeight, lineFloor);
+                var (_, groupAscent, _) = Metrics(context.GetFont(run.Properties));
+
+                Account(
+                    new()
+                    {
+                        ShapeGroup = shapeGroup,
+                        ImageWidth = groupWidth,
+                        ImageHeight = groupHeight,
+                        Width = groupWidth,
+                        // The group's bottom sits on the baseline, as an inline image does; a group
+                        // shorter than the line rides the mark's baseline instead of the line top.
+                        Ascent = Math.Max(groupHeight, Math.Min(groupAscent, itemHeight)),
+                        Height = itemHeight
+                    });
                 continue;
             }
 
@@ -954,6 +1160,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         public byte[]? ImageData;
         public double ImageWidth;
         public double ImageHeight;
+        public InlineShapeGroup? ShapeGroup;
         public bool IsTabFiller;
         public TabLeader TabLeader;
     }

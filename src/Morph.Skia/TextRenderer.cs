@@ -1444,7 +1444,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
 
                 using var paint = new SKPaint
                 {
-                    Color = SkiaRenderContext.ParseColor(shape.ColorHex),
+                    Color = ParseColor(shape.ColorHex, shape.LineAlpha),
                     Style = SKPaintStyle.Stroke,
                     // EMU → points → pixels. Default to 0.75pt when the shape doesn't carry a width.
                     StrokeWidth = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75) * context.Scale,
@@ -1455,27 +1455,113 @@ sealed class TextRenderer(SkiaRenderContext context) :
             }
             else
             {
-                if (shape.FillColorHex is { } fillHex)
+                var isEllipse = shape.Geometry == GroupShapeGeometry.Ellipse;
+                var rect = new SKRect(x1, y1, x1 + w, y1 + h);
+
+                // The shadow is an offset copy of the shape's geometry, painted before the shape
+                // itself so it lands behind it.
+                if (shape.Shadow is { } shadow)
                 {
-                    using var fillPaint = new SKPaint
+                    using var shadowPaint = new SKPaint
                     {
-                        Color = SkiaRenderContext.ParseColor(fillHex),
+                        Color = ParseColor(shadow.ColorHex, shadow.Alpha),
                         Style = SKPaintStyle.Fill,
                         IsAntialias = true
                     };
-                    canvas.DrawRect(x1, y1, w, h, fillPaint);
+                    var offset = rect;
+                    offset.Offset((float) shadow.OffsetX * sx, (float) shadow.OffsetY * sy);
+                    DrawGeometry(canvas, offset, isEllipse, shadowPaint);
                 }
+
+                if (shape.ImageData != null)
+                {
+                    RenderGroupPicture(canvas, shape, rect, isEllipse);
+                }
+                else if (shape.FillColorHex is { } fillHex)
+                {
+                    using var fillPaint = new SKPaint
+                    {
+                        Color = ParseColor(fillHex, shape.FillAlpha),
+                        Style = SKPaintStyle.Fill,
+                        IsAntialias = true
+                    };
+                    DrawGeometry(canvas, rect, isEllipse, fillPaint);
+                }
+
                 if (shape.LineWidthEmu > 0)
                 {
                     using var strokePaint = new SKPaint
                     {
-                        Color = SkiaRenderContext.ParseColor(shape.ColorHex),
+                        Color = ParseColor(shape.ColorHex, shape.LineAlpha),
                         Style = SKPaintStyle.Stroke,
                         StrokeWidth = (float) (shape.LineWidthEmu / emusPerPoint) * context.Scale,
                         IsAntialias = true
                     };
-                    canvas.DrawRect(x1, y1, w, h, strokePaint);
+                    DrawGeometry(canvas, rect, isEllipse, strokePaint);
                 }
+            }
+        }
+
+        canvas.Restore();
+    }
+
+    static SKColor ParseColor(string hex, double alpha) =>
+        SkiaRenderContext.ParseColor(hex)
+            .WithAlpha((byte) Math.Round(Math.Clamp(alpha, 0, 1) * 255));
+
+    static void DrawGeometry(SKCanvas canvas, SKRect rect, bool isEllipse, SKPaint paint)
+    {
+        if (isEllipse)
+        {
+            canvas.DrawOval(rect.MidX, rect.MidY, rect.Width / 2, rect.Height / 2, paint);
+        }
+        else
+        {
+            canvas.DrawRect(rect, paint);
+        }
+    }
+
+    void RenderGroupPicture(SKCanvas canvas, GroupShape shape, SKRect destRect, bool clipToEllipse)
+    {
+        var imageData = shape.ImageData!;
+
+        canvas.Save();
+        if (clipToEllipse)
+        {
+            // Word crops the picture to its pic:spPr geometry — the circular photos on menu
+            // templates.
+            using var clip = new SKPath();
+            clip.AddOval(destRect);
+            canvas.ClipPath(clip, SKClipOperation.Intersect, antialias: true);
+        }
+
+        var crop = shape.ImageCrop is {IsCropped: true} cropped ? cropped : null;
+
+        if (shape.ImageContentType == "image/svg+xml")
+        {
+            // A crop moves the source origin off the picture's CullRect corner, so the rasterizer
+            // has to translate that corner to the bitmap origin — which is what originAdjusted does.
+            // Uncropped, the icons' CullRect already starts at 0 and the two agree.
+            var bitmap = context.GetSvgRaster(imageData, destRect.Width, destRect.Height, crop, originAdjusted: crop != null);
+            if (bitmap != null)
+            {
+                canvas.DrawBitmap(bitmap, destRect.Left, destRect.Top);
+            }
+        }
+        else if (context.GetBitmap(imageData) is { } skImage)
+        {
+            if (crop != null)
+            {
+                var source = new SKRect(
+                    (float) (crop.Left * skImage.Width),
+                    (float) (crop.Top * skImage.Height),
+                    (float) ((1 - crop.Right) * skImage.Width),
+                    (float) ((1 - crop.Bottom) * skImage.Height));
+                canvas.DrawBitmap(skImage, source, destRect);
+            }
+            else
+            {
+                canvas.DrawBitmap(skImage, destRect);
             }
         }
 

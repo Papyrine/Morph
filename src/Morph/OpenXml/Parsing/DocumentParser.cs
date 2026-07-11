@@ -10,6 +10,7 @@ using OoxmlFieldCode = DocumentFormat.OpenXml.Wordprocessing.FieldCode;
 using OoxmlPageBorders = DocumentFormat.OpenXml.Wordprocessing.PageBorders;
 using OoxmlTabStop = DocumentFormat.OpenXml.Wordprocessing.TabStop;
 using OoxmlTabs = DocumentFormat.OpenXml.Wordprocessing.Tabs;
+using PIC = DocumentFormat.OpenXml.Drawing.Pictures;
 using WPG = DocumentFormat.OpenXml.Office2010.Word.DrawingGroup;
 using WPS = DocumentFormat.OpenXml.Office2010.Word.DrawingShape;
 
@@ -4747,8 +4748,17 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        // Behind-text decorative shapes are lifted out of the flow, so a paragraph that produced
+        // only those is still an empty paragraph as far as line height goes — its mark takes a
+        // line exactly as it would have if the drawing had produced nothing at all. Testing
+        // `result.Count == 0` alone made that line appear or vanish depending on whether the
+        // shape parser happened to understand the drawing.
+        var onlyBehindTextShapes = result.Count > 0 &&
+                                   result.All(_ => _ is FloatingShapeElement {BehindText: true});
+
         // Add remaining content
-        if (runs.Count == 0 && result.Count == 0)
+        if (runs.Count == 0 &&
+            (result.Count == 0 || (onlyBehindTextShapes && props.SpacingAfterPoints <= 0)))
         {
             // Empty paragraph - still counts for spacing
             // Keep runs empty so the renderer can avoid creating spurious extra pages at document end.
@@ -4956,7 +4966,7 @@ sealed class DocumentParser(string defaultFont)
         var wpgGroup = drawing.Descendants<WPG.WordprocessingGroup>().FirstOrDefault();
         if (wpgGroup != null)
         {
-            return ParseInlineShapeGroupRun(drawing, wpgGroup, runProps);
+            return ParseInlineShapeGroupRun(drawing, wpgGroup, hostPart, runProps);
         }
 
         // Standalone inline connector — a single <wps:wsp> with prstGeom prst="line" sitting
@@ -5016,55 +5026,72 @@ sealed class DocumentParser(string defaultFont)
 
         var crop = ReadCrop(blipFill);
 
+        if (ReadBlipImage(blipFill, hostPart) is not { } image)
+        {
+            return null;
+        }
+
+        // Create a Run with inline image data
+        return new()
+        {
+            Text = "",
+            Properties = runProps,
+            InlineImageData = image.Data,
+            InlineImageWidthPoints = widthPoints,
+            InlineImageHeightPoints = heightPoints,
+            InlineImageContentType = image.ContentType,
+            InlineImageDescription = ReadImageDescription(pic, drawing),
+            InlineImageRasterFallbackData = image.RasterFallbackData,
+            InlineImageRasterFallbackContentType = image.RasterFallbackContentType,
+            InlineImageRotationDegrees = rotationDegrees,
+            InlineImageCrop = crop
+        };
+    }
+
+    // The a:blip extension that carries the vector original of an Office icon. When present the
+    // SVG is the primary image and the a:blip raster becomes a fallback for backends that can't
+    // rasterize SVG; without it the raster is the primary image.
+    const string svgBlipExtensionUri = "{96DAC541-7B7A-43D3-8B79-37D633B846F1}";
+
+    /// <summary>
+    /// Resolves the image bytes a <c>blipFill</c> points at. Null when the blip is missing or
+    /// resolves to an empty part.
+    /// </summary>
+    (byte[] Data, string? ContentType, byte[]? RasterFallbackData, string? RasterFallbackContentType)?
+        ReadBlipImage(OpenXmlElement blipFill, OpenXmlPart hostPart)
+    {
         var blip = blipFill.Descendants().FirstOrDefault(_ => _.LocalName == "blip");
-        if (blip == null)
+        if (blip?.AttributeValue("embed") is not { } embed)
         {
             return null;
         }
 
-        var embed = blip.AttributeValue("embed");
-        if (embed == null)
-        {
-            return null;
-        }
-
-        // Try to get SVG first, then fall back to regular image
         byte[]? imageData = null;
         string? contentType = null;
         byte[]? rasterFallbackData = null;
         string? rasterFallbackContentType = null;
 
-        // Check for SVG extension
         var extLst = blip.Elements().FirstOrDefault(_ => _.LocalName == "extLst");
         if (extLst != null)
         {
             foreach (var extEl in extLst.Elements().Where(_ => _.LocalName == "ext"))
             {
-                if (extEl.AttributeValue("uri") != "{96DAC541-7B7A-43D3-8B79-37D633B846F1}")
+                if (extEl.AttributeValue("uri") != svgBlipExtensionUri)
                 {
                     continue;
                 }
 
                 var svgBlip = extEl.Descendants().FirstOrDefault(_ => _.LocalName == "svgBlip");
-                if (svgBlip == null)
+                if (svgBlip?.AttributeValue("embed") is not { } svgEmbed)
                 {
                     continue;
                 }
 
-                if (svgBlip.AttributeValue("embed") is not { } svgEmbed)
-                {
-                    continue;
-                }
-
-                var svgPart = hostPart.GetPartById(svgEmbed);
-                imageData = GetPartBytes(svgPart);
+                imageData = GetPartBytes(hostPart.GetPartById(svgEmbed));
                 contentType = "image/svg+xml";
             }
         }
 
-        // Read the raster blob the blip points to. When SVG is set, this becomes the
-        // raster fallback for backends that can't render SVG; otherwise it's the
-        // primary imageData.
         if (hostPart.GetPartById(embed) is ImagePart imagePart)
         {
             var rasterBytes = GetPartBytes(imagePart);
@@ -5083,29 +5110,15 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
-        if (imageData == null || imageData.Length == 0)
+        if (imageData is not {Length: > 0})
         {
             return null;
         }
 
-        // Create a Run with inline image data
-        return new()
-        {
-            Text = "",
-            Properties = runProps,
-            InlineImageData = imageData,
-            InlineImageWidthPoints = widthPoints,
-            InlineImageHeightPoints = heightPoints,
-            InlineImageContentType = contentType,
-            InlineImageDescription = ReadImageDescription(pic, drawing),
-            InlineImageRasterFallbackData = rasterFallbackData,
-            InlineImageRasterFallbackContentType = rasterFallbackContentType,
-            InlineImageRotationDegrees = rotationDegrees,
-            InlineImageCrop = crop
-        };
+        return (imageData, contentType, rasterFallbackData, rasterFallbackContentType);
     }
 
-    Run? ParseInlineShapeGroupRun(Drawing drawing, WPG.WordprocessingGroup wpgGroup, RunProperties runProps)
+    Run? ParseInlineShapeGroupRun(Drawing drawing, WPG.WordprocessingGroup wpgGroup, OpenXmlPart hostPart, RunProperties runProps)
     {
         // Inline drawings carry their displayed size on <wp:extent>; the wpg's own xfrm gives
         // the child coordinate space we treat as 0..ChildExtX × 0..ChildExtY.
@@ -5148,50 +5161,81 @@ sealed class DocumentParser(string defaultFont)
 
         var rotationDegrees = grpXfrm?.Rotation?.Value is { } rot ? rot / 60000.0 : 0;
 
+        // Shift each child's position by the effect-padding offset so it lines up with the inner
+        // (extent) box inside the outer (extent + effectExtent) frame. The renderer scales the
+        // entire outer rectangle into the inline fragment, so without the offset every shape
+        // would land in the top-left padding region.
+        var paddingX = effectL * (childExtentX / extent.Cx.Value);
+        var paddingY = effectT * (childExtentY / extent.Cy.Value);
+
         var shapes = new List<GroupShape>();
-        foreach (var wsp in wpgGroup.Descendants<WPS.WordprocessingShape>())
+        foreach (var child in GroupDrawables(wpgGroup))
         {
-            var shapeProps = wsp.GetFirstChild<WPS.ShapeProperties>();
-            var shapeXfrm = shapeProps?.GetFirstChild<A.Transform2D>();
-            if (shapeProps == null || shapeXfrm?.Offset == null || shapeXfrm.Extents == null)
+            if (child is WPS.WordprocessingShape wsp)
             {
-                continue;
+                var shapeProps = wsp.GetFirstChild<WPS.ShapeProperties>();
+                var shapeXfrm = shapeProps?.GetFirstChild<A.Transform2D>();
+                if (shapeProps == null || shapeXfrm?.Offset == null || shapeXfrm.Extents == null)
+                {
+                    continue;
+                }
+
+                var fill = shapeProps.GetFirstChild<A.SolidFill>();
+                var stroke = ReadGroupStroke(shapeProps, wsp.GetFirstChild<WPS.ShapeStyle>()?.LineReference);
+
+                shapes.Add(new()
+                {
+                    X = (shapeXfrm.Offset.X ?? 0) - chOffX + paddingX,
+                    Y = (shapeXfrm.Offset.Y ?? 0) - chOffY + paddingY,
+                    Width = shapeXfrm.Extents.Cx ?? 0,
+                    Height = shapeXfrm.Extents.Cy ?? 0,
+                    ColorHex = stroke.ColorHex,
+                    LineWidthEmu = stroke.WidthEmu,
+                    LineAlpha = stroke.Alpha,
+                    FlipVertical = shapeXfrm.VerticalFlip?.Value == true,
+                    FlipHorizontal = shapeXfrm.HorizontalFlip?.Value == true,
+                    Geometry = MapGroupGeometry(shapeProps),
+                    FillColorHex = fill != null ? ExtractFirstFillColor(fill) : null,
+                    FillAlpha = fill != null ? ShapeParser.ExtractSolidFillAlpha(fill) : 1,
+                    Shadow = ReadOuterShadow(shapeProps)
+                });
             }
-
-            var prstGeom = shapeProps.GetFirstChild<A.PresetGeometry>();
-            var preset = prstGeom?.Preset?.Value;
-            // Only line and rect are common in icon-style groups; anything fancier (curves,
-            // arcs, custGeom) collapses to a rectangle so we render at least the bounding box.
-            var geometry = preset == A.ShapeTypeValues.Line
-                ? GroupShapeGeometry.Line
-                : GroupShapeGeometry.Rectangle;
-
-            var ln = shapeProps.GetFirstChild<A.Outline>();
-            var lineWidth = ln?.Width?.Value ?? 0;
-            var stroke = ExtractFirstFillColor(ln) ?? "000000";
-
-            var fill = shapeProps.GetFirstChild<A.SolidFill>();
-            var fillColor = fill != null ? ExtractFirstFillColor(fill) : null;
-
-            // Shift the shape's child-coord position by the effect-padding offset so it
-            // lines up with the inner (extent) box inside the outer (extent + effectExtent) frame.
-            // The renderer scales the entire outer rectangle into the inline fragment, so without
-            // the offset every shape would land in the top-left padding region.
-            var paddingX = effectL * (childExtentX / extent.Cx.Value);
-            var paddingY = effectT * (childExtentY / extent.Cy.Value);
-            shapes.Add(new()
+            else if (child is PIC.Picture picture)
             {
-                X = (shapeXfrm.Offset.X ?? 0) - chOffX + paddingX,
-                Y = (shapeXfrm.Offset.Y ?? 0) - chOffY + paddingY,
-                Width = shapeXfrm.Extents.Cx ?? 0,
-                Height = shapeXfrm.Extents.Cy ?? 0,
-                ColorHex = stroke,
-                LineWidthEmu = lineWidth,
-                FlipVertical = shapeXfrm.VerticalFlip?.Value == true,
-                FlipHorizontal = shapeXfrm.HorizontalFlip?.Value == true,
-                Geometry = geometry,
-                FillColorHex = fillColor
-            });
+                var picProps = picture.ShapeProperties;
+                var picXfrm = picProps?.Transform2D;
+                if (picProps == null ||
+                    picXfrm?.Offset == null ||
+                    picXfrm.Extents == null ||
+                    picture.BlipFill == null ||
+                    ReadBlipImage(picture.BlipFill, hostPart) is not { } image)
+                {
+                    continue;
+                }
+
+                // pic:spPr carries the shape the picture is cropped to (Word's circular "picture
+                // style") and the ring drawn around it, the same way a wps:wsp carries its own.
+                // A picture has no wps:style, so its outline width has to be explicit.
+                var picStroke = ReadGroupStroke(picProps, lineReference: null);
+
+                shapes.Add(new()
+                {
+                    X = (picXfrm.Offset.X ?? 0) - chOffX + paddingX,
+                    Y = (picXfrm.Offset.Y ?? 0) - chOffY + paddingY,
+                    Width = picXfrm.Extents.Cx ?? 0,
+                    Height = picXfrm.Extents.Cy ?? 0,
+                    ColorHex = picStroke.ColorHex,
+                    LineWidthEmu = picStroke.WidthEmu,
+                    LineAlpha = picStroke.Alpha,
+                    ImageDescription = ReadImageDescription(picture, drawing),
+                    Geometry = MapGroupGeometry(picProps),
+                    Shadow = ReadOuterShadow(picProps),
+                    ImageData = image.Data,
+                    ImageContentType = image.ContentType,
+                    ImageRasterFallbackData = image.RasterFallbackData,
+                    ImageCrop = ReadCrop(picture.BlipFill)
+                });
+            }
         }
 
         if (shapes.Count == 0)
@@ -5218,6 +5262,138 @@ sealed class DocumentParser(string defaultFont)
                 Shapes = shapes
             }
         };
+    }
+
+    /// <summary>
+    /// Resolves a group member's stroke — colour, width (EMU) and opacity. DrawingML layers the
+    /// shape's own <c>a:ln</c> over the theme line style that <c>wps:style/a:lnRef/@idx</c> names,
+    /// so an <c>a:ln</c> carrying only a colour still strokes, at the theme's width. An explicit
+    /// <c>a:noFill</c> on the outline means no stroke; so does a shape with neither a width nor a
+    /// resolvable <c>a:lnRef</c>.
+    /// </summary>
+    (string ColorHex, double WidthEmu, double Alpha) ReadGroupStroke(OpenXmlElement shapeProperties, A.LineReference? lineReference)
+    {
+        var outline = shapeProperties.GetFirstChild<A.Outline>();
+        if (outline?.GetFirstChild<A.NoFill>() != null)
+        {
+            return ("000000", 0, 1);
+        }
+
+        var solidFill = outline?.GetFirstChild<A.SolidFill>();
+
+        // The lnRef's own colour child overrides the theme line style's phClr placeholder, so it
+        // is the colour to fall back on when the shape doesn't name one itself.
+        var colorSource = (OpenXmlElement?) solidFill ?? lineReference;
+
+        return (
+            ExtractFirstFillColor(colorSource) ?? "000000",
+            outline?.Width?.Value ?? ResolveLineReferenceWidthEmu(lineReference),
+            solidFill != null ? ShapeParser.ExtractSolidFillAlpha(solidFill) : 1);
+    }
+
+    /// <summary>
+    /// Reads a group member's <c>a:effectLst/a:outerShdw</c>. <c>@dist</c> is the offset length in
+    /// EMU and <c>@dir</c> its angle in 60,000ths of a degree, measured clockwise from the +x axis
+    /// in screen space (y grows downward), so the two resolve straight into an x/y offset. A shadow
+    /// with no distance is a blur halo rather than a drop shadow, and we have nothing to offset.
+    /// </summary>
+    GroupShadow? ReadOuterShadow(OpenXmlElement shapeProperties)
+    {
+        var shadow = shapeProperties.GetFirstChild<A.EffectList>()?.GetFirstChild<A.OuterShadow>();
+        if (shadow?.Distance?.Value is not { } distance || distance <= 0)
+        {
+            return null;
+        }
+
+        var radians = (shadow.Direction?.Value ?? 0) / 60000.0 * Math.PI / 180.0;
+
+        // Word writes shadow colours as <a:prstClr val="black">. Only the monochrome presets show
+        // up in practice, so the rest fall back to black rather than carrying a 140-name table.
+        var colorHex = ExtractFirstFillColor(shadow);
+        if (colorHex == null && shadow.GetFirstChild<A.PresetColor>()?.Val?.Value is { } preset)
+        {
+            colorHex = preset == A.PresetColorValues.White ? "FFFFFF" : "000000";
+        }
+
+        var alpha = shadow.Descendants<A.Alpha>().FirstOrDefault()?.Val?.Value is { } opacity
+            ? opacity / 100000.0
+            : 1.0;
+
+        return new()
+        {
+            OffsetX = distance * Math.Cos(radians),
+            OffsetY = distance * Math.Sin(radians),
+            ColorHex = colorHex ?? "000000",
+            Alpha = alpha
+        };
+    }
+
+    /// <summary>Stroke width an <c>a:lnRef/@idx</c> selects from the theme's 1-based <c>lnStyleLst</c>.</summary>
+    long ResolveLineReferenceWidthEmu(A.LineReference? lineReference)
+    {
+        if (lineReference?.Index?.Value is not { } index || index == 0)
+        {
+            return 0;
+        }
+
+        var widths = (currentThemeColors ?? new()).LineStyleWidthsEmu;
+        return index < widths.Count ? widths[(int) index] : 0;
+    }
+
+    /// <summary>
+    /// Reads the <c>a:prstGeom</c> of a group member's shape properties. Line, rect and ellipse
+    /// cover icon-style groups; anything fancier (curves, arcs, custGeom) collapses to a rectangle
+    /// so we render at least the bounding box.
+    /// </summary>
+    static GroupShapeGeometry MapGroupGeometry(OpenXmlElement shapeProperties)
+    {
+        var preset = shapeProperties.GetFirstChild<A.PresetGeometry>()?.Preset?.Value;
+        if (preset == A.ShapeTypeValues.Line)
+        {
+            return GroupShapeGeometry.Line;
+        }
+
+        return preset == A.ShapeTypeValues.Ellipse
+            ? GroupShapeGeometry.Ellipse
+            : GroupShapeGeometry.Rectangle;
+    }
+
+    /// <summary>
+    /// True when <paramref name="shape"/> shares a <c>wpg:wgp</c> with other shapes or pictures.
+    /// Parsers that read the drawing-level <c>wp:extent</c> and treat the first <c>wps:wsp</c> as
+    /// the whole drawing (WordArt, text boxes) must decline those: the extent describes the group,
+    /// and claiming the drawing would drop the shape's siblings. Word's icon groups are exactly
+    /// this — an oval carrying a hidden descriptive text box, with the icon picture on top.
+    /// </summary>
+    static bool HasGroupSiblings(OpenXmlElement shape) =>
+        shape.Ancestors<WPG.WordprocessingGroup>().FirstOrDefault() is { } group &&
+        GroupDrawables(group).Skip(1).Any();
+
+    /// <summary>
+    /// The shapes and pictures a <c>wpg:wgp</c> paints, in document (back-to-front) order,
+    /// flattening nested <c>wpg:grpSp</c> groups. Deliberately does not use <c>Descendants</c>:
+    /// a shape's <c>wps:txbx</c> can hold its own drawings, which belong to the text box rather
+    /// than to this group's coordinate space.
+    /// </summary>
+    static IEnumerable<OpenXmlElement> GroupDrawables(OpenXmlElement group)
+    {
+        foreach (var child in group.ChildElements)
+        {
+            switch (child)
+            {
+                case WPS.WordprocessingShape:
+                case PIC.Picture:
+                    yield return child;
+                    break;
+                case WPG.GroupShape nested:
+                    foreach (var descendant in GroupDrawables(nested))
+                    {
+                        yield return descendant;
+                    }
+
+                    break;
+            }
+        }
     }
 
     /// <summary>
@@ -5287,7 +5463,12 @@ sealed class DocumentParser(string defaultFont)
         };
     }
 
-    // Walks an Outline / SolidFill for the first solid colour we can resolve.
+    /// <summary>
+    /// Walks an <c>a:ln</c> / <c>a:solidFill</c> for the first solid colour we can resolve, in
+    /// document order — an outline carries exactly one. Each colour flavour applies its own
+    /// <c>lumMod</c>/<c>lumOff</c>/<c>tint</c>/<c>shade</c> children: ignoring them turns Word's
+    /// "Lighter 80%" tints back into the saturated base colour.
+    /// </summary>
     string? ExtractFirstFillColor(OpenXmlElement? element)
     {
         if (element == null)
@@ -5295,20 +5476,21 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
-        foreach (var rgb in element.Descendants<A.RgbColorModelHex>())
+        foreach (var color in element.Descendants())
         {
-            if (rgb.Val?.HasValue == true)
+            switch (color)
             {
-                return rgb.Val.Value;
-            }
-        }
+                case A.RgbColorModelHex {Val.HasValue: true} rgb:
+                    return ShapeParser.ApplyLiteralColorTransforms(rgb.Val.Value!, rgb);
 
-        foreach (var scheme in element.Descendants<A.SchemeColor>())
-        {
-            if (scheme.Val?.HasValue == true && currentThemeColors != null)
-            {
-                var schemeValue = ((IEnumValue) scheme.Val.Value).Value;
-                return currentThemeColors.ResolveColor(schemeValue);
+                // Word caches the resolved value of a system colour in @lastClr; @val ("window",
+                // "windowText") names a host UI colour a document renderer must not look up.
+                case A.SystemColor {LastColor.HasValue: true} system:
+                    return ShapeParser.ApplyLiteralColorTransforms(system.LastColor.Value!, system);
+
+                case A.SchemeColor {Val.HasValue: true} scheme when currentThemeColors != null:
+                    var schemeValue = ((IEnumValue) scheme.Val.Value).Value;
+                    return currentThemeColors.ResolveColor(schemeValue, ShapeParser.ExtractColorTransforms(scheme));
             }
         }
 
@@ -5850,6 +6032,11 @@ sealed class DocumentParser(string defaultFont)
 
         var txbxContent = txbx.GetFirstChild<TextBoxContent>();
         if (txbxContent == null)
+        {
+            return null;
+        }
+
+        if (HasGroupSiblings(wsp))
         {
             return null;
         }
@@ -6768,6 +6955,11 @@ sealed class DocumentParser(string defaultFont)
 
         var txbxContent = txbx.GetFirstChild<TextBoxContent>();
         if (txbxContent == null)
+        {
+            return null;
+        }
+
+        if (HasGroupSiblings(wsp))
         {
             return null;
         }

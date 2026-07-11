@@ -384,6 +384,36 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         return image;
     }
 
+    readonly Dictionary<(byte[] Data, int Width, int Height, ImageCrop? Crop), Image<Rgba32>?> ellipseClippedCache = [];
+
+    /// <summary>
+    /// A copy of <see cref="GetProcessedImage"/>'s result masked to its inscribed ellipse — the
+    /// circular photo, as a standalone bitmap with everything outside the ellipse transparent.
+    /// The group renderer draws this via <c>DrawImage</c> (which honours a pushed canvas rotation)
+    /// instead of the <c>DrawingCanvas.Apply</c> clip (which doesn't), so a rotated group turns its
+    /// photo. Cached and disposed with the context; callers must not mutate or dispose the result.
+    /// </summary>
+    public Image<Rgba32>? GetEllipseClippedImage(byte[] data, int width, int height, ImageCrop? crop)
+    {
+        var key = (data, width, height, crop);
+        if (ellipseClippedCache.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+
+        var source = GetProcessedImage(data, width, height, crop, BlipColorEffect.None, rotationDegrees: 0);
+        Image<Rgba32>? clipped = null;
+        if (source != null)
+        {
+            clipped = new(width, height, Color.Transparent.ToPixel<Rgba32>());
+            var ellipse = new EllipsePolygon(width / 2f, height / 2f, width, height);
+            clipped.Mutate(ctx => ctx.Paint(canvas => canvas.Apply(ellipse, inner => inner.DrawImage(source, new Point(0, 0), 1f))));
+        }
+
+        ellipseClippedCache[key] = clipped;
+        return clipped;
+    }
+
     public static Color ParseColor(string? hexColor)
     {
         if (string.IsNullOrEmpty(hexColor) || hexColor == "auto")
@@ -420,6 +450,11 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
             image?.Dispose();
         }
         processedImageCache.Clear();
+        foreach (var image in ellipseClippedCache.Values)
+        {
+            image?.Dispose();
+        }
+        ellipseClippedCache.Clear();
         resolver.Dispose();
     }
 }
