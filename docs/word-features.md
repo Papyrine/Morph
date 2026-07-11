@@ -1525,7 +1525,7 @@ Positioned text containers with optional background and rotation.
 - **Model**: `FloatingTextBoxElement` with content, rotation, background color
 
 
-#### Inline Shape Groups `PARTIAL`
+#### Inline Shape Groups `DONE`
 
 A `wpg:wgp` group inside a `wp:inline`, flowing with the text instead of floating: the connector-line arrow glyphs on heading rows, and Word's icon/photo bubbles — a coloured circle with an icon graphic or a circle-cropped photo on top.
 
@@ -2266,27 +2266,27 @@ Read-only mode, form protection, and editing restrictions.
 | 3. Lists & Numbering | 6 | 0 | 0 | 0 | 6 |
 | 4. Tables | 27 | 0 | 0 | 0 | 27 |
 | 5. Page Layout & Sections | 19 | 0 | 0 | 0 | 19 |
-| 6. Graphics & Media | 23 | 1 | 1 | 1 | 26 |
+| 6. Graphics & Media | 22 | 2 | 1 | 1 | 26 |
 | 7. Form Controls | 10 | 0 | 1 | 0 | 11 |
 | 8. Themes & Styles | 4 | 0 | 0 | 0 | 4 |
 | 9. Typography | 8 | 0 | 0 | 0 | 8 |
 | 10. Document Infrastructure | 6 | 0 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 0 | 2 |
-| **Total** | **162** | **2** | **5** | **1** | **170** |
+| **Total** | **161** | **3** | **5** | **1** | **170** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 162
-    "Partial" : 2
+    "Done" : 161
+    "Partial" : 3
     "Todo" : 5
     "Wontfix" : 1
 ```
 
-**Overall coverage: ~96% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
+**Overall coverage: ~95% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
 
 
 Priority areas for future implementation:
