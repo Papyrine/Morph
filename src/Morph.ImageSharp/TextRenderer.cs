@@ -1429,7 +1429,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
 
                 if (shape.ImageData != null)
                 {
-                    RenderGroupPicture(pageCanvas, shape, x1, y1, w, h, isEllipse ? path : null);
+                    RenderGroupPicture(pageCanvas, shape, x1, y1, w, h, isEllipse ? path : null, hasRotation);
                 }
                 else if (shape.FillColorHex is { } fillHex)
                 {
@@ -1471,7 +1471,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     /// shape's path when Word crops the picture to something other than its bounding box (the
     /// circular photos on menu templates), null for a plain <c>rect</c> picture.
     /// </summary>
-    void RenderGroupPicture(DrawingCanvas pageCanvas, GroupShape shape, float x, float y, float width, float height, IPath? clip)
+    void RenderGroupPicture(DrawingCanvas pageCanvas, GroupShape shape, float x, float y, float width, float height, IPath? clip, bool groupRotated)
     {
         // SVG isn't supported here; use the raster fallback the parser kept from the primary
         // <a:blip>, or skip if we don't have one.
@@ -1480,6 +1480,21 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             : shape.ImageData;
         if (imageBytes == null)
         {
+            return;
+        }
+
+        // DrawingCanvas.Apply doesn't honour a pushed canvas rotation, so under a rotated group an
+        // ellipse-clipped photo would sit unrotated. DrawImage does honour it, so draw a standalone
+        // pre-clipped bitmap instead: the pushed transform then rotates the circle into place. (A
+        // rect picture already goes through DrawImage below and rotates for free.)
+        if (groupRotated && clip != null)
+        {
+            var clipped = context.GetEllipseClippedImage(imageBytes, (int) width, (int) height, shape.ImageCrop);
+            if (clipped != null)
+            {
+                pageCanvas.DrawImage(clipped, new((int) x, (int) y));
+            }
+
             return;
         }
 
