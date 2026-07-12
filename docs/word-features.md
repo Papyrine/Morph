@@ -724,7 +724,7 @@ Override the page numbering format (decimal, lowerRoman, etc.) and starting valu
 
 - **OOXML**: `w:pgNumType` within `w:sectPr` — `@w:fmt`, `@w:start`, `@w:chapStyle`, `@w:chapSep`
 - **Spec**: [PageNumberType](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.pagenumbertype)
-- **Render**: no-op — Morph doesn't evaluate `PAGE`/`SECTIONPAGES` field codes, so format/start overrides have no current consumer. If field evaluation is added, this element becomes the source of truth for the section's number format.
+- **Render**: `PAGE`/`NUMPAGES`/`SECTIONPAGES` fields are now evaluated per page (see Field Codes), but `w:pgNumType` itself is still not read — the section's `@w:fmt` override and `@w:start` restart value have no consumer, so numbers render as decimal counted from physical page 1. A field's own `\*` format switch is honoured. Wiring `w:pgNumType` in as the section's number format / restart origin is the remaining gap.
 
 ---
 
@@ -2208,12 +2208,12 @@ Dynamic content fields (date, time, author, page count, expressions, etc.).
 
 - **OOXML**: `w:fldSimple` (simple fields), `w:fldChar` (complex fields) with instruction text
 - **Spec**: [Fields](http://officeopenxml.com/WPfields.php)
-- **Model**: `FieldCode` record (`Instruction`, `Result`, derived `Keyword`); `ParsedDocument.FieldCodes`
-- **Parse**: `DocumentParser.ExtractFieldCodes()` walks both complex-field begin/separate/end runs (concatenates `w:instrText` and result text, nested fields tracked via stacks) and `w:fldSimple` legacy single-element fields.
-- **Render**: not directly — Word's cached result is already in the run text and renders inline. The `FieldCodes` list lets consumers ask "are there any TOC / PAGEREF / HYPERLINK fields?" without re-walking the OOXML.
-- **Test**: `field_codes_simple/`, spec test `FieldCodesTests`
+- **Model**: `FieldCode` record (`Instruction`, `Result`, derived `Keyword`); `ParsedDocument.FieldCodes`. Page-numbering fields additionally tag their result run via `Run.PageField` (`PageFieldKind`), with `ParsedDocument.RequiresTotalPageCount` flagged when a NUMPAGES/SECTIONPAGES field is present.
+- **Parse**: `DocumentParser.ExtractFieldCodes()` walks both complex-field begin/separate/end runs (concatenates `w:instrText` and result text, nested fields tracked via stacks) and `w:fldSimple` legacy single-element fields. Independently, `ParseParagraph` classifies `PAGE`/`NUMPAGES`/`SECTIONPAGES` fields (both forms, including SDT-wrapped page-number content controls) and collapses each into one `PageField`-tagged run carrying the cached text and the `\*` numeric-format switch.
+- **Render**: most fields render Word's cached result inline. `PAGE`/`NUMPAGES`/`SECTIONPAGES` are evaluated per page instead: `PageRendererBase.ResolveParagraphPageFields` (and its header/footer/table walk) substitutes the live value using `RenderContextBase.CurrentPageNumber` / `TotalPageCount` before measurement. The total comes from a gated counting pass the raster/PDF converters run first when `RequiresTotalPageCount` is set. Section-restarted numbering (`w:pgNumType`) is not yet applied, so `PAGE` reflects the physical page number.
+- **Test**: `field_codes_simple/`, `page_numbers/`, spec test `FieldCodesTests`
 
-> **Contributors**: Both forms (legacy single-element `w:fldSimple` and modern `w:fldChar`-bracketed) round-trip through the same `FieldCode` record.
+> **Contributors**: Both forms (legacy single-element `w:fldSimple` and modern `w:fldChar`-bracketed) round-trip through the same `FieldCode` record. The HTML/Markdown exporters keep the cached page-field text (no pagination), so only the paginated backends substitute; the counting pass is skipped for documents without a NUMPAGES/SECTIONPAGES field.
 
 ---
 

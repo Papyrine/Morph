@@ -374,6 +374,9 @@ sealed class PdfPageRenderer : PageRendererBase
 
     protected override void RenderParagraph(ParagraphElement paragraph, DocumentElement? nextElement = null)
     {
+        // Substitute live page numbers for any PAGE/NUMPAGES/SECTIONPAGES field before measuring.
+        paragraph = ResolveParagraphPageFields(paragraph);
+
         var hasContent = false;
         var isEmpty = paragraph.Runs.Count == 0;
         foreach (var run in paragraph.Runs)
