@@ -644,7 +644,7 @@ sealed class DocumentParser(string defaultFont)
                 continue;
             }
 
-            var text = string.Concat(fn.Descendants<Text>().Select(_ => _.Text));
+            var text = fn.ConcatText();
             result.Add(
                 new()
                 {
@@ -678,7 +678,7 @@ sealed class DocumentParser(string defaultFont)
                 continue;
             }
 
-            var text = string.Concat(en.Descendants<Text>().Select(_ => _.Text));
+            var text = en.ConcatText();
             result.Add(
                 new()
                 {
@@ -755,7 +755,7 @@ sealed class DocumentParser(string defaultFont)
                 continue;
             }
 
-            var resultText = string.Concat(simple.Descendants<Text>().Select(_ => _.Text));
+            var resultText = simple.ConcatText();
             result.Add(new()
             {
                 Instruction = instruction,
@@ -880,7 +880,7 @@ sealed class DocumentParser(string defaultFont)
                 continue;
             }
 
-            var text = string.Concat(ooxmlComment.Descendants<Text>().Select(_ => _.Text));
+            var text = ooxmlComment.ConcatText();
             DateTimeOffset? date = null;
             if (ooxmlComment.Date?.Value is { } dateValue)
             {

@@ -27,6 +27,14 @@ static class OpenXmlExtensions
     }
 
     /// <summary>
+    /// Concatenates the text of every descendant <c>w:t</c> (<see cref="Text"/>) run.
+    /// Unlike <see cref="OpenXmlElement.InnerText"/> this ignores <c>w:delText</c> and
+    /// <c>w:instrText</c>, so deleted content and field instructions do not leak into the result.
+    /// </summary>
+    public static string ConcatText(this OpenXmlElement element) =>
+        string.Concat(element.Descendants<Text>().Select(_ => _.Text));
+
+    /// <summary>
     /// Conversion constant: EMUs per point.
     /// </summary>
     public const double EmusPerPoint = 914400.0 / 72.0;
