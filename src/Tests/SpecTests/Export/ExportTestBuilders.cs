@@ -159,10 +159,10 @@ static class ExportTestBuilders
 
     /// <summary>An empty marker run citing a footnote, the shape the parser emits for
     /// <c>w:footnoteReference</c>.</summary>
-    public static Run FootnoteRef(string id) => new() {Text = "", FootnoteReferenceId = id};
+    public static Run FootnoteRef(long id) => new() {Text = "", FootnoteReferenceId = id};
 
     /// <summary>An empty marker run citing an endnote (<c>w:endnoteReference</c>).</summary>
-    public static Run EndnoteRef(string id) => new() {Text = "", EndnoteReferenceId = id};
+    public static Run EndnoteRef(long id) => new() {Text = "", EndnoteReferenceId = id};
 
     public static TableElement Table(params TableRow[] rows) =>
         new()

@@ -10,16 +10,16 @@ public class DocumentLevelCaptureTests
     [Test]
     public async Task Footnote_RequiresIdAndText()
     {
-        var fn = new Footnote { Id = "1", Text = "x" };
-        await Assert.That(fn.Id).IsEqualTo("1");
+        var fn = new Footnote { Id = 1, Text = "x" };
+        await Assert.That(fn.Id).IsEqualTo(1);
         await Assert.That(fn.Text).IsEqualTo("x");
     }
 
     [Test]
     public async Task Endnote_RequiresIdAndText()
     {
-        var en = new Endnote { Id = "1", Text = "y" };
-        await Assert.That(en.Id).IsEqualTo("1");
+        var en = new Endnote { Id = 1, Text = "y" };
+        await Assert.That(en.Id).IsEqualTo(1);
         await Assert.That(en.Text).IsEqualTo("y");
     }
 
@@ -52,7 +52,7 @@ public class DocumentLevelCaptureTests
         var doc = new DocumentParser().Parse(DocumentCaptureFile);
 
         await Assert.That(doc.Footnotes.Count).IsEqualTo(1);
-        await Assert.That(doc.Footnotes[0].Id).IsEqualTo("1");
+        await Assert.That(doc.Footnotes[0].Id).IsEqualTo(1);
         await Assert.That(doc.Footnotes[0].Text).IsEqualTo("This is a footnote.");
     }
 
@@ -62,7 +62,7 @@ public class DocumentLevelCaptureTests
         var doc = new DocumentParser().Parse(DocumentCaptureFile);
 
         await Assert.That(doc.Endnotes.Count).IsEqualTo(1);
-        await Assert.That(doc.Endnotes[0].Id).IsEqualTo("1");
+        await Assert.That(doc.Endnotes[0].Id).IsEqualTo(1);
         await Assert.That(doc.Endnotes[0].Text).IsEqualTo("This is an endnote.");
     }
 

@@ -45,11 +45,11 @@ sealed class Run
     /// <summary>When set, this run is a footnote-reference marker (empty <see cref="Text"/>); the
     /// id keys into <see cref="ParsedDocument.Footnotes"/>. The raster renderers ignore it; the
     /// text exporters emit an inline marker and collect the note into a trailing notes section.</summary>
-    public string? FootnoteReferenceId { get; init; }
+    public long? FootnoteReferenceId { get; init; }
 
     /// <summary>When set, this run is an endnote-reference marker (empty <see cref="Text"/>); the
     /// id keys into <see cref="ParsedDocument.Endnotes"/>.</summary>
-    public string? EndnoteReferenceId { get; init; }
+    public long? EndnoteReferenceId { get; init; }
 
     /// <summary>
     /// Target of the <c>w:hyperlink</c> that wraps this run (external URI or <c>#anchor</c> for

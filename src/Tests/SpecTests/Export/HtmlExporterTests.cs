@@ -191,19 +191,21 @@ public class HtmlExporterTests
     public Task ParagraphSpacingAndIndent() =>
         // Spacing-after 18 deviates from the 8pt default (emitted); a hanging indent becomes an
         // enlarged left margin plus a negative text-indent; 1.5 line spacing → unitless line-height.
-        VerifyHtml(Doc(new ParagraphElement
-        {
-            Runs = [TextRun("indented")],
-            Properties = new()
-            {
-                SpacingBeforePoints = 12,
-                SpacingAfterPoints = 18,
-                LeftIndentPoints = 36,
-                HangingIndentPoints = 18,
-                LineSpacingRule = LineSpacingRule.Auto,
-                LineSpacingMultiplier = 1.5
-            }
-        }));
+        VerifyHtml(
+            Doc(
+                new ParagraphElement
+                {
+                    Runs = [TextRun("indented")],
+                    Properties = new()
+                    {
+                        SpacingBeforePoints = 12,
+                        SpacingAfterPoints = 18,
+                        LeftIndentPoints = 36,
+                        HangingIndentPoints = 18,
+                        LineSpacingRule = LineSpacingRule.Auto,
+                        LineSpacingMultiplier = 1.5
+                    }
+                }));
 
     [Test]
     public Task HiddenRunsDropped()
@@ -365,14 +367,14 @@ public class HtmlExporterTests
             PageSettings = new(),
             Elements =
             [
-                Para(TextRun("See note "), FootnoteRef("1"), TextRun(" and "), EndnoteRef("1"), TextRun(".")),
-                Para(TextRun("Reuse "), FootnoteRef("1"), TextRun(" here."))
+                Para(TextRun("See note "), FootnoteRef(1), TextRun(" and "), EndnoteRef(1), TextRun(".")),
+                Para(TextRun("Reuse "), FootnoteRef(1), TextRun(" here."))
             ],
             Footnotes =
             [
                 new()
                 {
-                    Id = "1",
+                    Id = 1,
                     Text = "The footnote body."
                 }
             ],
@@ -380,7 +382,7 @@ public class HtmlExporterTests
             [
                 new()
                 {
-                    Id = "1",
+                    Id = 1,
                     Text = "The endnote body."
                 }
             ]
@@ -464,16 +466,18 @@ public class HtmlExporterTests
         // A gradient-filled floating shape emits a <defs><linearGradient> whose axis is derived from
         // the direction (90° → horizontal: x1=0 → x2=1), then fills the geometry via
         // url(#shape-grad-N). Guards the gradient SVG emission, which nothing under Inputs exercises.
-        VerifyHtml(Doc(new FloatingShapeElement
-        {
-            WidthPoints = 120,
-            HeightPoints = 60,
-            BehindText = true,
-            Gradient = new()
-            {
-                StartColorHex = "FF0000",
-                EndColorHex = "0000FF",
-                DirectionDegrees = 90
-            }
-        }));
+        VerifyHtml(
+            Doc(
+                new FloatingShapeElement
+                {
+                    WidthPoints = 120,
+                    HeightPoints = 60,
+                    BehindText = true,
+                    Gradient = new()
+                    {
+                        StartColorHex = "FF0000",
+                        EndColorHex = "0000FF",
+                        DirectionDegrees = 90
+                    }
+                }));
 }

@@ -227,8 +227,8 @@ static class HtmlExporter
         int imageIndex;
         int shapeIndex;
 
-        readonly Dictionary<string, string> footnoteTexts = footnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
-        readonly Dictionary<string, string> endnoteTexts = endnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
+        readonly Dictionary<long, string> footnoteTexts = footnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
+        readonly Dictionary<long, string> endnoteTexts = endnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
         readonly List<(int Number, string Text)> notes = [];
         readonly Dictionary<string, int> noteNumbers = [];
 
@@ -458,7 +458,7 @@ static class HtmlExporter
         // section. n counts up in first-reference order across footnotes and endnotes together;
         // repeat references to one note reuse its number, and a reference whose note body is
         // missing emits nothing.
-        string NoteMarker(string id, bool endnote)
+        string NoteMarker(long id, bool endnote)
         {
             var key = (endnote ? "e" : "f") + id;
 

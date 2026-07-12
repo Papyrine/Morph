@@ -4,7 +4,7 @@
 sealed record Footnote
 {
     /// <summary>The footnote id (w:id).</summary>
-    public required string Id { get; init; }
+    public required long Id { get; init; }
 
     /// <summary>Plain text of the footnote, runs flattened.</summary>
     public required string Text { get; init; }
@@ -16,7 +16,7 @@ sealed record Footnote
 sealed record Endnote
 {
     /// <summary>The endnote id (w:id).</summary>
-    public required string Id { get; init; }
+    public required long Id { get; init; }
 
     /// <summary>Plain text of the endnote, runs flattened.</summary>
     public required string Text { get; init; }

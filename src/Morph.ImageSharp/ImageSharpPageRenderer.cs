@@ -121,13 +121,13 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     void RenderNotesAppendix(ParsedDocument document)
     {
         var footnotes = document.Footnotes
-            .Where(_ => _.Id != "0" &&
-                        _.Id != "-1" &&
+            .Where(_ => _.Id != 0 &&
+                        _.Id != -1 &&
                         !string.IsNullOrWhiteSpace(_.Text))
             .ToList();
         var endnotes = document.Endnotes
-            .Where(_ => _.Id != "0" &&
-                        _.Id != "-1" &&
+            .Where(_ => _.Id != 0 &&
+                        _.Id != -1 &&
                         !string.IsNullOrWhiteSpace(_.Text))
             .ToList();
 
@@ -141,7 +141,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         AppendNotesSection("Endnotes", endnotes.Select(_ => (_.Id, _.Text)).ToList());
     }
 
-    void AppendNotesSection(string heading, List<(string Id, string Text)> entries)
+    void AppendNotesSection(string heading, List<(long Id, string Text)> entries)
     {
         if (entries.Count == 0)
         {

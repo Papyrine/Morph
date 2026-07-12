@@ -19,8 +19,8 @@ static class MarkdownExporter
         readonly StringBuilder builder = new();
         int imageIndex;
 
-        readonly Dictionary<string, string> footnoteTexts = footnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
-        readonly Dictionary<string, string> endnoteTexts = endnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
+        readonly Dictionary<long, string> footnoteTexts = footnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
+        readonly Dictionary<long, string> endnoteTexts = endnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
         readonly List<(int Number, string Text)> notes = [];
         readonly Dictionary<string, int> noteNumbers = [];
 
@@ -590,7 +590,7 @@ static class MarkdownExporter
         // in first-reference order across footnotes and endnotes together (GFM has no separate
         // endnote concept). Repeat references to one note reuse its number; a reference whose note
         // body is missing emits nothing. WriteNoteDefinitions() emits the matching definitions.
-        string NoteMarker(string id, bool endnote)
+        string NoteMarker(long id, bool endnote)
         {
             var key = (endnote ? "e" : "f") + id;
             if (!noteNumbers.TryGetValue(key, out var number))

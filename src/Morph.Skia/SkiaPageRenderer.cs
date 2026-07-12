@@ -136,10 +136,14 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         // Footnote/endnote ids 0 and -1 are Word's "separator" / "continuation separator" stubs —
         // skip them so the appendix only contains user-authored notes.
         var footnotes = document.Footnotes
-            .Where(_ => _.Id != "0" && _.Id != "-1" && !string.IsNullOrWhiteSpace(_.Text))
+            .Where(_ => _.Id != 0 &&
+                        _.Id != -1 &&
+                        !string.IsNullOrWhiteSpace(_.Text))
             .ToList();
         var endnotes = document.Endnotes
-            .Where(_ => _.Id != "0" && _.Id != "-1" && !string.IsNullOrWhiteSpace(_.Text))
+            .Where(_ => _.Id != 0 &&
+                        _.Id != -1 &&
+                        !string.IsNullOrWhiteSpace(_.Text))
             .ToList();
 
         if (footnotes.Count == 0 && endnotes.Count == 0)
@@ -151,7 +155,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         AppendNotesSection("Endnotes", endnotes.Select(_ => (_.Id, _.Text)).ToList());
     }
 
-    void AppendNotesSection(string heading, List<(string Id, string Text)> entries)
+    void AppendNotesSection(string heading, List<(long Id, string Text)> entries)
     {
         if (entries.Count == 0)
         {

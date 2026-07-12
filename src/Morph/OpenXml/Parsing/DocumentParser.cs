@@ -648,7 +648,7 @@ sealed class DocumentParser(string defaultFont)
             result.Add(
                 new()
                 {
-                    Id = idLong.ToString(),
+                    Id = idLong,
                     Text = text
                 });
         }
@@ -679,11 +679,12 @@ sealed class DocumentParser(string defaultFont)
             }
 
             var text = string.Concat(en.Descendants<Text>().Select(_ => _.Text));
-            result.Add(new()
-            {
-                Id = idLong.ToString(),
-                Text = text
-            });
+            result.Add(
+                new()
+                {
+                    Id = idLong,
+                    Text = text
+                });
         }
 
         return result;
@@ -8366,7 +8367,7 @@ sealed class DocumentParser(string defaultFont)
                             Text = "",
                             Properties = GetProperties(),
                             HyperlinkUrl = hyperlinkUrl,
-                            FootnoteReferenceId = footnoteId.ToString()
+                            FootnoteReferenceId = footnoteId
                         });
                     break;
                 case EndnoteReference endnoteReference when endnoteReference.Id?.Value is { } endnoteId:
@@ -8377,7 +8378,7 @@ sealed class DocumentParser(string defaultFont)
                             Text = "",
                             Properties = GetProperties(),
                             HyperlinkUrl = hyperlinkUrl,
-                            EndnoteReferenceId = endnoteId.ToString()
+                            EndnoteReferenceId = endnoteId
                         });
                     break;
                 // A <w:br/> inside a run becomes a newline at its document position, so text on

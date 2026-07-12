@@ -228,14 +228,14 @@ public class MarkdownExporterTests
             PageSettings = new(),
             Elements =
             [
-                Para(TextRun("See note "), FootnoteRef("1"), TextRun(" and "), EndnoteRef("1"), TextRun(".")),
-                Para(TextRun("Reuse "), FootnoteRef("1"), TextRun(" here."))
+                Para(TextRun("See note "), FootnoteRef(1), TextRun(" and "), EndnoteRef(1), TextRun(".")),
+                Para(TextRun("Reuse "), FootnoteRef(1), TextRun(" here."))
             ],
             Footnotes =
             [
                 new()
                 {
-                    Id = "1",
+                    Id = 1,
                     Text = "The footnote body."
                 }
             ],
@@ -243,7 +243,7 @@ public class MarkdownExporterTests
             [
                 new()
                 {
-                    Id = "1",
+                    Id = 1,
                     Text = "The endnote body."
                 }
             ]
