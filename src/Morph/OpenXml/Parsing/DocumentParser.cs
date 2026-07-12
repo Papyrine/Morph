@@ -645,11 +645,12 @@ sealed class DocumentParser(string defaultFont)
             }
 
             var text = string.Concat(fn.Descendants<Text>().Select(_ => _.Text));
-            result.Add(new()
-            {
-                Id = idLong.ToString(),
-                Text = text
-            });
+            result.Add(
+                new()
+                {
+                    Id = idLong.ToString(),
+                    Text = text
+                });
         }
 
         return result;
