@@ -65,17 +65,18 @@ sealed class HtmlParser
             case IText textNode:
                 if (textNode.TextContent.TryTrim(out var text))
                 {
-                    elements.Add(new ParagraphElement
-                    {
-                        Runs =
-                        [
-                            new()
-                            {
-                                Text = text,
-                                Properties = DefaultRunProps()
-                            }
-                        ]
-                    });
+                    elements.Add(
+                        new ParagraphElement
+                        {
+                            Runs =
+                            [
+                                new()
+                                {
+                                    Text = text,
+                                    Properties = DefaultRunProps()
+                                }
+                            ]
+                        });
                 }
 
                 break;
@@ -125,21 +126,22 @@ sealed class HtmlParser
                 break;
 
             case "br":
-                elements.Add(new ParagraphElement
-                {
-                    Runs =
-                    [
-                        new()
-                        {
-                            Text = "",
-                            Properties = DefaultRunProps()
-                        }
-                    ],
-                    Properties = new()
+                elements.Add(
+                    new ParagraphElement
                     {
-                        SpacingAfterPoints = 0
-                    }
-                });
+                        Runs =
+                        [
+                            new()
+                            {
+                                Text = "",
+                                Properties = DefaultRunProps()
+                            }
+                        ],
+                        Properties = new()
+                        {
+                            SpacingAfterPoints = 0
+                        }
+                    });
                 break;
 
             case "blockquote":
@@ -149,14 +151,15 @@ sealed class HtmlParser
                 {
                     if (el is ParagraphElement p)
                     {
-                        elements.Add(new ParagraphElement
-                        {
-                            Runs = p.Runs,
-                            Properties = p.Properties with
+                        elements.Add(
+                            new ParagraphElement
                             {
-                                LeftIndentPoints = p.Properties.LeftIndentPoints + 36
-                            }
-                        });
+                                Runs = p.Runs,
+                                Properties = p.Properties with
+                                {
+                                    LeftIndentPoints = p.Properties.LeftIndentPoints + 36
+                                }
+                            });
                     }
                     else
                     {
@@ -167,24 +170,25 @@ sealed class HtmlParser
                 break;
 
             case "pre":
-                elements.Add(new ParagraphElement
-                {
-                    Runs =
-                    [
-                        new()
-                        {
-                            Text = element.TextContent,
-                            Properties = new()
-                            {
-                                FontFamily = "Courier New"
-                            }
-                        }
-                    ],
-                    Properties = new()
+                elements.Add(
+                    new ParagraphElement
                     {
-                        SpacingAfterPoints = 8
-                    }
-                });
+                        Runs =
+                        [
+                            new()
+                            {
+                                Text = element.TextContent,
+                                Properties = new()
+                                {
+                                    FontFamily = "Courier New"
+                                }
+                            }
+                        ],
+                        Properties = new()
+                        {
+                            SpacingAfterPoints = 8
+                        }
+                    });
                 break;
 
             case "hr":
@@ -208,27 +212,28 @@ sealed class HtmlParser
                                 FontSizePoints = 11,
                                 Italic = true
                             });
-                        elements.Add(new ParagraphElement
-                        {
-                            Runs = captionRuns.Count > 0
-                                ? captionRuns
-                                :
-                                [
-                                    new()
-                                    {
-                                        Text = "",
-                                        Properties = DefaultRunProps() with
-                                        {
-                                            FontSizePoints = 11,
-                                            Italic = true
-                                        }
-                                    }
-                                ],
-                            Properties = new()
+                        elements.Add(
+                            new ParagraphElement
                             {
-                                SpacingAfterPoints = 8
-                            }
-                        });
+                                Runs = captionRuns.Count > 0
+                                    ? captionRuns
+                                    :
+                                    [
+                                        new()
+                                        {
+                                            Text = "",
+                                            Properties = DefaultRunProps() with
+                                            {
+                                                FontSizePoints = 11,
+                                                Italic = true
+                                            }
+                                        }
+                                    ],
+                                Properties = new()
+                                {
+                                    SpacingAfterPoints = 8
+                                }
+                            });
                     }
                     else
                     {
@@ -246,27 +251,28 @@ sealed class HtmlParser
                         FontSizePoints = 11,
                         Italic = true
                     });
-                elements.Add(new ParagraphElement
-                {
-                    Runs = figRuns.Count > 0
-                        ? figRuns
-                        :
-                        [
-                            new()
-                            {
-                                Text = "",
-                                Properties = DefaultRunProps() with
-                                {
-                                    FontSizePoints = 11,
-                                    Italic = true
-                                }
-                            }
-                        ],
-                    Properties = new()
+                elements.Add(
+                    new ParagraphElement
                     {
-                        SpacingAfterPoints = 8
-                    }
-                });
+                        Runs = figRuns.Count > 0
+                            ? figRuns
+                            :
+                            [
+                                new()
+                                {
+                                    Text = "",
+                                    Properties = DefaultRunProps() with
+                                    {
+                                        FontSizePoints = 11,
+                                        Italic = true
+                                    }
+                                }
+                            ],
+                        Properties = new()
+                        {
+                            SpacingAfterPoints = 8
+                        }
+                    });
                 break;
 
             case "img":
@@ -375,11 +381,12 @@ sealed class HtmlParser
 
     static void ParseInlineElement(IElement element, List<Run> runs, RunProperties props)
     {
+        var childNodes = element.ChildNodes;
         switch (element.LocalName)
         {
             case "b":
             case "strong":
-                ParseInlineNodes(element.ChildNodes, runs, props with
+                ParseInlineNodes(childNodes, runs, props with
                 {
                     Bold = true
                 });
@@ -387,14 +394,14 @@ sealed class HtmlParser
 
             case "i":
             case "em":
-                ParseInlineNodes(element.ChildNodes, runs, props with
+                ParseInlineNodes(childNodes, runs, props with
                 {
                     Italic = true
                 });
                 break;
 
             case "u":
-                ParseInlineNodes(element.ChildNodes, runs, props with
+                ParseInlineNodes(childNodes, runs, props with
                 {
                     Underline = true
                 });
@@ -403,7 +410,7 @@ sealed class HtmlParser
             case "s":
             case "strike":
             case "del":
-                ParseInlineNodes(element.ChildNodes, runs, props with
+                ParseInlineNodes(childNodes, runs, props with
                 {
                     Strikethrough = true
                 });
@@ -411,17 +418,17 @@ sealed class HtmlParser
 
             case "font":
                 var fontProps = ParseFontElement(element, props);
-                ParseInlineNodes(element.ChildNodes, runs, fontProps);
+                ParseInlineNodes(childNodes, runs, fontProps);
                 break;
 
             case "span":
                 var spanProps = ParseSpanStyle(element, props);
-                ParseInlineNodes(element.ChildNodes, runs, spanProps);
+                ParseInlineNodes(childNodes, runs, spanProps);
                 break;
 
             case "a":
                 // Render links as blue underlined text
-                ParseInlineNodes(element.ChildNodes, runs, props with
+                ParseInlineNodes(childNodes, runs, props with
                 {
                     ColorHex = "0000FF",
                     Underline = true
@@ -441,7 +448,7 @@ sealed class HtmlParser
             case "sup":
                 // Render sub/sup as smaller text
                 ParseInlineNodes(
-                    element.ChildNodes,
+                    childNodes,
                     runs,
                     props with
                     {
@@ -451,7 +458,7 @@ sealed class HtmlParser
 
             case "mark":
                 ParseInlineNodes(
-                    element.ChildNodes,
+                    childNodes,
                     runs,
                     props with
                     {
@@ -461,7 +468,7 @@ sealed class HtmlParser
 
             case "small":
                 ParseInlineNodes(
-                    element.ChildNodes,
+                    childNodes,
                     runs,
                     props with
                     {
@@ -471,7 +478,7 @@ sealed class HtmlParser
 
             case "code":
                 ParseInlineNodes(
-                    element.ChildNodes,
+                    childNodes,
                     runs,
                     props with
                     {
@@ -501,7 +508,7 @@ sealed class HtmlParser
 
             default:
                 // Process children for unknown inline elements
-                ParseInlineNodes(element.ChildNodes, runs, props);
+                ParseInlineNodes(childNodes, runs, props);
                 break;
         }
     }

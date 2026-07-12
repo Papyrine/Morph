@@ -43,12 +43,15 @@ public abstract class HtmlConverter
         var document = await ParseHtml(html, cancel);
         var imageData = new List<byte[]>();
 
-        RenderPages(document, options, writePng =>
-        {
-            using var ms = new MemoryStream();
-            writePng(ms);
-            imageData.Add(ms.ToArray());
-        });
+        RenderPages(
+            document,
+            options,
+            writePng =>
+            {
+                using var ms = new MemoryStream();
+                writePng(ms);
+                imageData.Add(ms.ToArray());
+            });
 
         return imageData;
     }

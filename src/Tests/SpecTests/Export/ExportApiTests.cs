@@ -65,6 +65,8 @@ public class ExportApiTests
         await Assert.That(received.Count).IsEqualTo(1);
         await Assert.That(received[0].ContentType).IsEqualTo("image/png");
         await Assert.That(received[0].Data.Length).IsEqualTo(4);
+        await Assert.That(received[0].WidthPoints).IsEqualTo(100);
+        await Assert.That(received[0].HeightPoints).IsEqualTo(50);
         await Assert.That(output).Contains("src=\"images/image-0.png\"");
         await Assert.That(output).DoesNotContain("base64,");
     }
@@ -72,16 +74,24 @@ public class ExportApiTests
     [Test]
     public async Task MarkdownImageHandler_ProvidesSrc()
     {
-        var image = new ImageElement {ImageData = [1, 2], WidthPoints = 10, HeightPoints = 10};
+        var image = new ImageElement {ImageData = [1, 2], WidthPoints = 20, HeightPoints = 10};
         var document = Doc(image);
 
+        var received = new List<EmbeddedImage>();
         var output = MarkdownExporter.Export(document, new()
         {
-            ImageHandler = info => $"img/{info.Index}.png"
+            ImageHandler = info =>
+            {
+                received.Add(info);
+                return $"img/{info.Index}.png";
+            }
         });
 
         await Assert.That(output).Contains("![](img/0.png)");
         await Assert.That(output).DoesNotContain("base64,");
+        await Assert.That(received.Count).IsEqualTo(1);
+        await Assert.That(received[0].WidthPoints).IsEqualTo(20);
+        await Assert.That(received[0].HeightPoints).IsEqualTo(10);
     }
 
     [Test]

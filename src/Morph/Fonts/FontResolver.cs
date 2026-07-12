@@ -180,13 +180,15 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
         //    face but its weight is far from what was asked (e.g. only Bold available
         //    when Light was requested) and a fallback to a closer-weight family exists.
         var fallbackName = FontHelpers.FindFallback(candidates) ?? fontFallback?.Invoke(fontFamily);
-        if (fallbackName != null && (font == null || weightDelta >= weightFallbackThreshold))
+        if (fallbackName != null &&
+            (font == null || weightDelta >= weightFallbackThreshold))
         {
             var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, bold);
             var fallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
             var fallback = TryResolveFromCache(allFontsCache, fallbackCandidates, fallbackWeight, targetItalic, out var fbDelta)
                            ?? systemFallback?.Invoke(fallbackCandidates, fallbackWeight, targetItalic);
-            if (fallback != null && (font == null || fbDelta < weightDelta))
+            if (fallback != null &&
+                (font == null || fbDelta < weightDelta))
             {
                 font = fallback;
             }
@@ -204,12 +206,14 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
 
         // If the direct match is a poor weight match (e.g. only Bold available for Light
         // request), prefer the configured fallback when it offers a closer weight.
-        if (fallbackName != null && (font == null || weightDelta >= weightFallbackThreshold))
+        if (fallbackName != null &&
+            (font == null || weightDelta >= weightFallbackThreshold))
         {
             var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, bold);
             var fallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
             var fallback = TryResolveFromCache(directoryCache, fallbackCandidates, fallbackWeight, targetItalic, out var fbDelta);
-            if (fallback != null && (font == null || fbDelta < weightDelta))
+            if (fallback != null &&
+                (font == null || fbDelta < weightDelta))
             {
                 return fallback;
             }
