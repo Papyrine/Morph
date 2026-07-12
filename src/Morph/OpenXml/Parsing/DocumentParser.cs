@@ -708,19 +708,18 @@ sealed class DocumentParser(string defaultFont)
                         inResult.Push(false);
                         break;
 
-                    case OoxmlFieldCode instr when instructionStack.Count > 0:
+                    case OoxmlFieldCode instr when instructionStack.TryPeek(out var instructionBuilder):
                         if (!inResult.Peek())
                         {
-                            instructionStack.Peek().Append(instr.Text);
+                            instructionBuilder.Append(instr.Text);
                         }
 
                         break;
 
                     case FieldChar fc when fc.FieldCharType?.Value == FieldCharValues.Separate &&
                                            inResult.Count > 0:
-                        var flag = inResult.Pop();
+                        inResult.Pop();
                         inResult.Push(true);
-                        _ = flag;
                         break;
 
                     case Text t when instructionStack.Count > 0 && inResult.Peek():

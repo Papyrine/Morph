@@ -1731,10 +1731,16 @@ static class HtmlExporter
             return candidate;
         }
 
-        static string SelectedItem(DropDownFormFieldElement dropDown) =>
-            dropDown.SelectedIndex >= 0 && dropDown.SelectedIndex < dropDown.Items.Count
-                ? dropDown.Items[dropDown.SelectedIndex]
-                : "";
+        static string SelectedItem(DropDownFormFieldElement dropDown)
+        {
+            if (dropDown.SelectedIndex >= 0 &&
+                dropDown.SelectedIndex < dropDown.Items.Count)
+            {
+                return dropDown.Items[dropDown.SelectedIndex];
+            }
+
+            return "";
+        }
 
         StringBuilder Indent(int depth) => options.PrettyFormat ? builder.Append(' ', depth * 2) : builder;
 
@@ -1749,7 +1755,8 @@ static class HtmlExporter
             var text = new StringBuilder();
             foreach (var run in runs)
             {
-                if (run.Properties.Hidden || run.InlineImageData != null)
+                if (run.Properties.Hidden ||
+                    run.InlineImageData != null)
                 {
                     continue;
                 }
