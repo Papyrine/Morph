@@ -550,8 +550,10 @@ static class HtmlExporter
                 _ => image.HorizontalPositionPoints + image.WidthPoints / 2 <= pageSettings.ContentWidth / 2 ? "left" : "right"
             };
             var style = $"float: {side}; clear: {side}";
-            if (image.WrapDistanceTopPoints > 0.01 || image.WrapDistanceRightPoints > 0.01 ||
-                image.WrapDistanceBottomPoints > 0.01 || image.WrapDistanceLeftPoints > 0.01)
+            if (image.WrapDistanceTopPoints > 0.01 ||
+                image.WrapDistanceRightPoints > 0.01 ||
+                image.WrapDistanceBottomPoints > 0.01 ||
+                image.WrapDistanceLeftPoints > 0.01)
             {
                 style += $"; margin: {BoxShorthand(image.WrapDistanceTopPoints, image.WrapDistanceRightPoints, image.WrapDistanceBottomPoints, image.WrapDistanceLeftPoints)}";
             }

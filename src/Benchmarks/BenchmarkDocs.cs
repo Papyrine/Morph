@@ -1,6 +1,3 @@
-using System.IO.Compression;
-using SkiaSharp;
-
 /// <summary>
 /// Builds the synthetic DOCX inputs for the render/parse benchmarks. The scenario corpus under
 /// src/Tests/Inputs is nearly all single-page, so per-page costs (header/watermark image decode,

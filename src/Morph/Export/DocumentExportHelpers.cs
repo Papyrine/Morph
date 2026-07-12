@@ -22,7 +22,7 @@ static class DocumentExportHelpers
 
         var compact = styleId.Replace(" ", "");
         if (compact.StartsWith("Heading", StringComparison.OrdinalIgnoreCase) &&
-            int.TryParse(compact.AsSpan("Heading".Length), out var level) &&
+            int.TryParse(compact, out var level) &&
             level >= 1)
         {
             return Math.Min(level, 6);
@@ -114,15 +114,15 @@ static class DocumentExportHelpers
                 Ordered = IsOrderedList(numbering)
             };
 
-            while (ancestors.Count > 0 &&
-                   !IsShallower(ancestors.Peek(), node))
+            while (ancestors.TryPeek(out var top) &&
+                   !IsShallower(top, node))
             {
                 ancestors.Pop();
             }
 
-            if (ancestors.Count > 0)
+            if (ancestors.TryPeek(out var parent))
             {
-                ancestors.Peek().Children.Add(node);
+                parent.Children.Add(node);
             }
             else
             {
@@ -140,7 +140,8 @@ static class DocumentExportHelpers
     static bool IsShallower(ListNode ancestor, ListNode node)
     {
         if (ancestor.Level is {} ancestorLevel &&
-            node.Level is {} nodeLevel && ancestorLevel != nodeLevel)
+            node.Level is {} nodeLevel &&
+            ancestorLevel != nodeLevel)
         {
             return ancestorLevel < nodeLevel;
         }
@@ -175,7 +176,8 @@ static class DocumentExportHelpers
             }
 
             if (run.InlineShapeGroup is {} shapeGroup &&
-                (vectorShapesRender || shapeGroup.Shapes.Any(_ => _.ImageData != null)))
+                (vectorShapesRender ||
+                 shapeGroup.Shapes.Any(_ => _.ImageData != null)))
             {
                 return false;
             }
