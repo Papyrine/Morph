@@ -861,7 +861,8 @@ sealed class HtmlParser
         // Parse table-level cellpadding
         CellSpacing? defaultCellPadding = null;
         var cellpadding = tableElement.GetAttribute("cellpadding");
-        if (!string.IsNullOrEmpty(cellpadding) && double.TryParse(cellpadding, out var padding))
+        if (!string.IsNullOrEmpty(cellpadding) &&
+            double.TryParse(cellpadding, out var padding))
         {
             defaultCellPadding = new(padding);
         }
@@ -869,7 +870,8 @@ sealed class HtmlParser
         // Parse borders from border attribute
         var defaultBorders = CellBorders.All;
         var borderAttribute = tableElement.GetAttribute("border");
-        if (!string.IsNullOrEmpty(borderAttribute) && double.TryParse(borderAttribute, out var borderWidth))
+        if (!string.IsNullOrEmpty(borderAttribute) &&
+            double.TryParse(borderAttribute, out var borderWidth))
         {
             if (borderWidth > 0)
             {
@@ -926,8 +928,9 @@ sealed class HtmlParser
 
             foreach (var cell in tr.Children)
             {
-                if (!cell.TagName.Equals("td", StringComparison.OrdinalIgnoreCase) &&
-                    !cell.TagName.Equals("th", StringComparison.OrdinalIgnoreCase))
+                var tag = cell.TagName;
+                if (!tag.Equals("td", StringComparison.OrdinalIgnoreCase) &&
+                    !tag.Equals("th", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
@@ -937,17 +940,17 @@ sealed class HtmlParser
                 {
                     cells.Add(
                         new()
-                    {
-                        Content = [],
-                        Properties = new()
                         {
-                            VerticalMerge = VerticalMergeType.Continue
-                        }
-                    });
+                            Content = [],
+                            Properties = new()
+                            {
+                                VerticalMerge = VerticalMergeType.Continue
+                            }
+                        });
                     colIndex++;
                 }
 
-                var isHeader = cell.TagName.Equals("th", StringComparison.OrdinalIgnoreCase);
+                var isHeader = tag.Equals("th", StringComparison.OrdinalIgnoreCase);
 
                 CellSpacing? cellPadding = null;
                 CellSpacing? cellMargin = null;
@@ -967,7 +970,9 @@ sealed class HtmlParser
                 // Handle colspan
                 var gridSpan = 1;
                 var colspanAttribute = cell.GetAttribute("colspan");
-                if (!string.IsNullOrEmpty(colspanAttribute) && int.TryParse(colspanAttribute, out var cs) && cs > 1)
+                if (!string.IsNullOrEmpty(colspanAttribute) &&
+                    int.TryParse(colspanAttribute, out var cs) &&
+                    cs > 1)
                 {
                     gridSpan = cs;
                 }
@@ -975,7 +980,9 @@ sealed class HtmlParser
                 // Handle rowspan
                 var verticalMerge = VerticalMergeType.None;
                 var rowspanAttribute = cell.GetAttribute("rowspan");
-                if (!string.IsNullOrEmpty(rowspanAttribute) && int.TryParse(rowspanAttribute, out var rs) && rs > 1)
+                if (!string.IsNullOrEmpty(rowspanAttribute) &&
+                    int.TryParse(rowspanAttribute, out var rs) &&
+                    rs > 1)
                 {
                     verticalMerge = VerticalMergeType.Restart;
                     newRowspans[colIndex] = rs - 1;
@@ -984,35 +991,36 @@ sealed class HtmlParser
                 var cellElements = new List<DocumentElement>();
                 if (cell.TextContent.TryTrim(out var text))
                 {
-                    cellElements.Add(new ParagraphElement
-                    {
-                        Runs =
-                        [
-                            new()
-                            {
-                                Text = text,
-                                Properties = DefaultRunProps() with
+                    cellElements.Add(
+                        new ParagraphElement
+                        {
+                            Runs =
+                            [
+                                new()
                                 {
-                                    Bold = isHeader
+                                    Text = text,
+                                    Properties = DefaultRunProps() with
+                                    {
+                                        Bold = isHeader
+                                    }
                                 }
-                            }
-                        ]
-                    });
+                            ]
+                        });
                 }
 
                 cells.Add(
                     new()
-                {
-                    Content = cellElements,
-                    Properties = new()
                     {
-                        Padding = cellPadding,
-                        Margin = cellMargin,
-                        BackgroundColorHex = cellBgColor,
-                        GridSpan = gridSpan,
-                        VerticalMerge = verticalMerge
-                    }
-                });
+                        Content = cellElements,
+                        Properties = new()
+                        {
+                            Padding = cellPadding,
+                            Margin = cellMargin,
+                            BackgroundColorHex = cellBgColor,
+                            GridSpan = gridSpan,
+                            VerticalMerge = verticalMerge
+                        }
+                    });
 
                 colIndex += gridSpan;
             }
@@ -1022,13 +1030,13 @@ sealed class HtmlParser
             {
                 cells.Add(
                     new()
-                {
-                    Content = [],
-                    Properties = new()
                     {
-                        VerticalMerge = VerticalMergeType.Continue
-                    }
-                });
+                        Content = [],
+                        Properties = new()
+                        {
+                            VerticalMerge = VerticalMergeType.Continue
+                        }
+                    });
                 colIndex++;
             }
 
@@ -1054,9 +1062,9 @@ sealed class HtmlParser
             {
                 rows.Add(
                     new()
-                {
-                    Cells = cells
-                });
+                    {
+                        Cells = cells
+                    });
             }
         }
 
@@ -1248,7 +1256,8 @@ sealed class HtmlParser
     static ImageElement? ParseImgElement(IElement element)
     {
         var src = element.GetAttribute("src");
-        if (string.IsNullOrEmpty(src) || !src.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrEmpty(src) ||
+            !src.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
         {
             return null;
         }
@@ -1273,7 +1282,8 @@ sealed class HtmlParser
 
     static (byte[]? Data, string? ContentType) ParseDataUri(string src)
     {
-        if (string.IsNullOrEmpty(src) || !src.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrEmpty(src) ||
+            !src.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
         {
             return (null, null);
         }
@@ -1327,6 +1337,7 @@ sealed class HtmlParser
         {
             span = span[..^2].TrimEnd();
         }
+
         return double.TryParse(span, out result);
     }
 

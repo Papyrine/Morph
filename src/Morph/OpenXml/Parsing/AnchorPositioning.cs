@@ -1,7 +1,7 @@
 ﻿/// <summary>
 /// Positioning information extracted from an anchor element.
 /// </summary>
-internal readonly struct AnchorPositioning
+readonly struct AnchorPositioning
 {
     public double HorizontalPositionPoints { get; init; }
     public double VerticalPositionPoints { get; init; }

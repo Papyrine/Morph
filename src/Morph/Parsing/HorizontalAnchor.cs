@@ -1,7 +1,7 @@
 ﻿/// <summary>
 /// Horizontal anchor reference for floating elements.
 /// </summary>
-internal enum HorizontalAnchor
+enum HorizontalAnchor
 {
     /// <summary>Position relative to page edge.</summary>
     Page,
