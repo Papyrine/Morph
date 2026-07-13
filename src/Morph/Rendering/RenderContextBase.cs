@@ -39,6 +39,13 @@ abstract class RenderContextBase
     public int CurrentPageNumber { get; private set; } = 1;
     public int CurrentColumn { get; private set; }
 
+    /// <summary>
+    /// Total number of pages the document produces, or 0 when not yet known. Set from a counting
+    /// pass before the real render when the document contains a NUMPAGES/SECTIONPAGES field
+    /// (<see cref="ParsedDocument.RequiresTotalPageCount"/>); consumed when resolving those fields.
+    /// </summary>
+    public int TotalPageCount { get; set; }
+
     // Line numbering state
     int currentLineNumber = 1;
 

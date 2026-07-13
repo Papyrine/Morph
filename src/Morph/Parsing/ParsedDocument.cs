@@ -73,6 +73,15 @@ sealed class ParsedDocument
     public IReadOnlyList<FieldCode> FieldCodes { get; init; } = [];
 
     /// <summary>
+    /// True when a <c>NUMPAGES</c> or <c>SECTIONPAGES</c> field appears anywhere (body, header or
+    /// footer). Those fields need the final page total, which a single-pass renderer only knows
+    /// after laying the document out — the raster/PDF converters run a gated counting pass first
+    /// when this is set. <c>PAGE</c> alone does not set it (the current page number is known during
+    /// the normal pass).
+    /// </summary>
+    public bool RequiresTotalPageCount { get; init; }
+
+    /// <summary>
     /// Footnotes from word/footnotes.xml. Renderer does not yet emit them at the page bottom.
     /// </summary>
     public IReadOnlyList<Footnote> Footnotes { get; init; } = [];
