@@ -12,6 +12,13 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     Action<Action<Stream>>? pageCallback;
     int pageCount;
+
+    /// <summary>
+    /// When true, pages are laid out and counted but not encoded to PNG or handed to the callback.
+    /// Used by the gated counting pass that resolves NUMPAGES before the real render.
+    /// </summary>
+    public bool CountOnly { get; init; }
+
     Image<Rgba32>? pendingPage;
     Image<Rgba32>? currentPage;
     DrawingCanvas? currentCanvas;
@@ -356,6 +363,9 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     protected override void RenderParagraph(ParagraphElement paragraph, DocumentElement? nextElement = null)
     {
+        // Substitute live page numbers for any PAGE/NUMPAGES/SECTIONPAGES field before measuring.
+        paragraph = ResolveParagraphPageFields(paragraph);
+
         var hasSignificantContent = paragraph.Runs.Any(_ => !string.IsNullOrWhiteSpace(_.Text));
         var isCompletelyEmpty = paragraph.Runs.Count == 0;
 
@@ -1562,6 +1572,13 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             using var page = pendingPage;
             pendingPage = null;
             pageCount++;
+
+            // Counting pass: the page was laid out only to advance the count; skip the encode.
+            if (CountOnly)
+            {
+                return;
+            }
+
             pageCallback!(page.SaveAsPng);
         }
     }

@@ -64,4 +64,42 @@ sealed class Run
     /// with <see cref="InlineImageData"/>.
     /// </summary>
     public InlineShapeGroup? InlineShapeGroup { get; init; }
+
+    /// <summary>
+    /// When not <see cref="PageFieldKind.None"/>, this run is the result of a page-numbering
+    /// field (PAGE / NUMPAGES / SECTIONPAGES). <see cref="Text"/> holds Word's cached value; the
+    /// paginated renderers replace it with the live value per page (see PageRendererBase), and
+    /// the text exporters emit the cached text as-is.
+    /// </summary>
+    public PageFieldKind PageField { get; init; } = PageFieldKind.None;
+
+    /// <summary>The field's <c>\*</c> numeric-format switch (e.g. <c>roman</c>, <c>ALPHABETIC</c>)
+    /// when present; null renders the page number as decimal.</summary>
+    public string? PageFieldNumberFormat { get; init; }
+
+    /// <summary>
+    /// Returns a copy of this run with <see cref="Text"/> replaced and the page-field marker
+    /// cleared (the text is now the resolved literal value). Used by the renderers to substitute
+    /// a live page number in place of a <see cref="PageField"/> run's cached text.
+    /// </summary>
+    public Run WithText(string text) =>
+        new()
+        {
+            Text = text,
+            Properties = Properties,
+            InlineImageData = InlineImageData,
+            InlineImageWidthPoints = InlineImageWidthPoints,
+            InlineImageHeightPoints = InlineImageHeightPoints,
+            InlineImageContentType = InlineImageContentType,
+            InlineImageDescription = InlineImageDescription,
+            InlineImageRasterFallbackData = InlineImageRasterFallbackData,
+            InlineImageRasterFallbackContentType = InlineImageRasterFallbackContentType,
+            InlineImageRotationDegrees = InlineImageRotationDegrees,
+            InlineImageCrop = InlineImageCrop,
+            IsTab = IsTab,
+            FootnoteReferenceId = FootnoteReferenceId,
+            EndnoteReferenceId = EndnoteReferenceId,
+            HyperlinkUrl = HyperlinkUrl,
+            InlineShapeGroup = InlineShapeGroup
+        };
 }

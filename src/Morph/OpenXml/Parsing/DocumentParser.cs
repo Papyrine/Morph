@@ -123,6 +123,11 @@ sealed class DocumentParser(string defaultFont)
     // Document-level w:gutterAtTop flag; when true, w:pgMar/@w:gutter is added to the top margin instead of left.
     bool gutterAtTopSetting;
 
+    // Set true while parsing when a NUMPAGES/SECTIONPAGES field is seen anywhere (body, header,
+    // footer). Surfaced on ParsedDocument.RequiresTotalPageCount so the converters run a counting
+    // pass before rendering. A fresh DocumentParser is created per document, so this never leaks.
+    bool requiresTotalPageCount;
+
     // Document-default font family resolved from docDefaults; falls back to the constructor's
     // defaultFont when the document doesn't specify one. Used by every run that doesn't carry an explicit font.
     string effectiveDefaultFont = "";
@@ -306,6 +311,7 @@ sealed class DocumentParser(string defaultFont)
             TrackedChanges = trackedChanges,
             Protection = protection,
             FieldCodes = fieldCodes,
+            RequiresTotalPageCount = requiresTotalPageCount,
             Footnotes = footnotes,
             Endnotes = endnotes,
             EmbeddedObjects = embeddedObjects,
@@ -4091,6 +4097,72 @@ sealed class DocumentParser(string defaultFont)
         return BorderLineStyle.Single;
     }
 
+    // Per-field parse state for the PAGE/NUMPAGES/SECTIONPAGES tracker (see HandleFieldControlRun
+    // in ParseParagraph). A stack of these follows the fldChar begin…separate…end nesting so a
+    // page field wrapped in another field still resolves.
+    sealed class FieldParseState
+    {
+        public readonly StringBuilder Instruction = new();
+        public bool CollectingResult;
+        public PageFieldKind Kind;
+        public string? NumberFormat;
+        public readonly StringBuilder ResultText = new();
+        public RunProperties? ResultProperties;
+        public RunProperties? SeparateProperties;
+    }
+
+    /// <summary>
+    /// Classifies a field instruction as a page-numbering field and extracts its <c>\*</c> numeric
+    /// format switch. Returns <see cref="PageFieldKind.None"/> for everything else.
+    /// </summary>
+    static (PageFieldKind Kind, string? NumberFormat) ClassifyPageField(string? instruction)
+    {
+        if (instruction == null)
+        {
+            return (PageFieldKind.None, null);
+        }
+
+        var span = instruction.AsSpan().Trim();
+        if (span.IsEmpty)
+        {
+            return (PageFieldKind.None, null);
+        }
+
+        var space = span.IndexOfAny(' ', '\t');
+        var keyword = (space < 0 ? span : span[..space]).ToString().ToUpperInvariant();
+        var kind = keyword switch
+        {
+            "PAGE" => PageFieldKind.Page,
+            "NUMPAGES" => PageFieldKind.NumberOfPages,
+            "SECTIONPAGES" => PageFieldKind.SectionPages,
+            _ => PageFieldKind.None
+        };
+
+        if (kind == PageFieldKind.None)
+        {
+            return (PageFieldKind.None, null);
+        }
+
+        // A "\* <format>" switch overrides the default decimal rendering. MERGEFORMAT / CHARFORMAT
+        // are formatting-preservation switches, not numeric formats, so they leave the default.
+        string? numberFormat = null;
+        var star = instruction.IndexOf("\\*", StringComparison.Ordinal);
+        if (star >= 0)
+        {
+            var rest = instruction.AsSpan(star + 2).TrimStart();
+            var end = rest.IndexOfAny(' ', '\t');
+            var token = (end < 0 ? rest : rest[..end]).ToString();
+            if (token is "roman" or "Roman" or "ROMAN"
+                or "alphabetic" or "Alphabetic" or "ALPHABETIC"
+                or "arabic" or "Arabic" or "ARABIC")
+            {
+                numberFormat = token;
+            }
+        }
+
+        return (kind, numberFormat);
+    }
+
     List<DocumentElement> ParseParagraph(Paragraph para, MainDocumentPart mainPart)
     {
         var result = new List<DocumentElement>();
@@ -4115,6 +4187,93 @@ sealed class DocumentParser(string defaultFont)
             || para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.Header>().Any()
             || para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.Footer>().Any();
         var props = ParseParagraphProperties(paraProps, mainPart, paragraphStyleId, omitParagraphMark: inScopedPart);
+
+        // --- PAGE / NUMPAGES / SECTIONPAGES field tracking ---
+        // Word emits these as complex fields: fldChar begin → instrText → fldChar separate →
+        // cached-result run(s) → fldChar end. The cached result is a fixed string (wrong on every
+        // page but the one Word computed it for), so we collapse each page field's result into a
+        // single Run tagged with its PageFieldKind; the renderers substitute the live value. The
+        // tracker is shared by the run loops below (plain runs and inline SDT content).
+        var fieldStack = new Stack<FieldParseState>();
+
+        // Handles a field-control run (fldChar begin/separate/end or instrText). Returns true when
+        // the run was consumed as field plumbing (it carries no visible text). On a page field's
+        // fldChar end it appends the single tagged result run to <paramref name="runs"/>.
+        bool HandleFieldControlRun(OoxmlRun controlRun)
+        {
+            var fieldChar = controlRun.GetFirstChild<FieldChar>();
+            if (fieldChar != null)
+            {
+                var type = fieldChar.FieldCharType?.Value;
+                if (type == FieldCharValues.Begin)
+                {
+                    fieldStack.Push(new());
+                }
+                else if (type == FieldCharValues.Separate && fieldStack.Count > 0)
+                {
+                    var state = fieldStack.Peek();
+                    (state.Kind, state.NumberFormat) = ClassifyPageField(state.Instruction.ToString());
+                    if (state.Kind != PageFieldKind.None)
+                    {
+                        state.CollectingResult = true;
+                        state.SeparateProperties = ParseRunProperties(controlRun.RunProperties, mainPart, paragraphStyleId);
+                    }
+                }
+                else if (type == FieldCharValues.End && fieldStack.Count > 0)
+                {
+                    var state = fieldStack.Pop();
+                    if (state.Kind != PageFieldKind.None)
+                    {
+                        runs.Add(
+                            new()
+                            {
+                                Text = state.ResultText.ToString(),
+                                Properties = state.ResultProperties
+                                    ?? state.SeparateProperties
+                                    ?? ParseRunProperties(null, mainPart, paragraphStyleId),
+                                PageField = state.Kind,
+                                PageFieldNumberFormat = state.NumberFormat
+                            });
+
+                        if (state.Kind is PageFieldKind.NumberOfPages or PageFieldKind.SectionPages)
+                        {
+                            requiresTotalPageCount = true;
+                        }
+                    }
+                }
+
+                return true;
+            }
+
+            var instruction = controlRun.GetFirstChild<OoxmlFieldCode>();
+            if (instruction != null && fieldStack.Count > 0)
+            {
+                fieldStack.Peek().Instruction.Append(instruction.Text);
+                return true;
+            }
+
+            return false;
+        }
+
+        // While a page field is between its separate and end, capture the cached result text (kept
+        // for the exporters) and its formatting, and report that the run must not be emitted here —
+        // HandleFieldControlRun emits one tagged run at the field's end instead.
+        bool CaptureSuppressedFieldResult(OoxmlRun resultRun)
+        {
+            if (fieldStack.Count == 0 || !fieldStack.Peek().CollectingResult)
+            {
+                return false;
+            }
+
+            var state = fieldStack.Peek();
+            foreach (var text in resultRun.Descendants<Text>())
+            {
+                state.ResultText.Append(text.Text);
+            }
+
+            state.ResultProperties ??= ParseRunProperties(resultRun.RunProperties, mainPart, paragraphStyleId);
+            return true;
+        }
 
         // Check for numbering (direct on paragraph or from style)
         var numberingInfo = GetNumberingInfo(paraProps, paragraphStyleId);
@@ -4219,6 +4378,13 @@ sealed class DocumentParser(string defaultFont)
                         // Parse each run inside the content control and add inline
                         foreach (var sdtChildRun in sdtRunContent.Descendants<OoxmlRun>())
                         {
+                            // Page-number fields (Word wraps them in a "Page Numbers" content
+                            // control) resolve the same way as in the plain run loop.
+                            if (HandleFieldControlRun(sdtChildRun) || CaptureSuppressedFieldResult(sdtChildRun))
+                            {
+                                continue;
+                            }
+
                             // Check for breaks within the run
                             var breakElement = sdtChildRun.GetFirstChild<Break>();
                             if (breakElement != null)
@@ -4422,11 +4588,35 @@ sealed class DocumentParser(string defaultFont)
                     break;
 
                 case SimpleField simpleField:
-                    // w:fldSimple wraps the cached result runs of a legacy field. Render them inline;
-                    // the field instruction itself is captured separately on ParsedDocument.FieldCodes.
-                    foreach (var fieldRun in simpleField.Descendants<OoxmlRun>())
+                    // w:fldSimple wraps the cached result runs of a legacy field. A PAGE/NUMPAGES/
+                    // SECTIONPAGES field collapses to one tagged run (cached text kept for the
+                    // exporters; the renderers substitute the live value); anything else renders
+                    // its cached result inline. The instruction is also captured on FieldCodes.
+                    var (simpleKind, simpleFormat) = ClassifyPageField(simpleField.Instruction?.Value);
+                    if (simpleKind != PageFieldKind.None)
                     {
-                        runs.AddRange(ParseRun(fieldRun, mainPart, paragraphStyleId));
+                        var firstResultRun = simpleField.Descendants<OoxmlRun>().FirstOrDefault();
+                        var cachedText = string.Concat(simpleField.Descendants<Text>().Select(_ => _.Text));
+                        runs.Add(
+                            new()
+                            {
+                                Text = cachedText,
+                                Properties = ParseRunProperties(firstResultRun?.RunProperties, mainPart, paragraphStyleId),
+                                PageField = simpleKind,
+                                PageFieldNumberFormat = simpleFormat
+                            });
+
+                        if (simpleKind is PageFieldKind.NumberOfPages or PageFieldKind.SectionPages)
+                        {
+                            requiresTotalPageCount = true;
+                        }
+                    }
+                    else
+                    {
+                        foreach (var fieldRun in simpleField.Descendants<OoxmlRun>())
+                        {
+                            runs.AddRange(ParseRun(fieldRun, mainPart, paragraphStyleId));
+                        }
                     }
 
                     break;
@@ -4486,6 +4676,14 @@ sealed class DocumentParser(string defaultFont)
                         }
 
                         result.Add(formField);
+                        break;
+                    }
+
+                    // PAGE/NUMPAGES/SECTIONPAGES field plumbing (fldChar/instrText) carries no text
+                    // and is consumed here; the field's cached result is captured and re-emitted as
+                    // a single tagged run at the field's end (see the tracker above).
+                    if (HandleFieldControlRun(run) || CaptureSuppressedFieldResult(run))
+                    {
                         break;
                     }
 

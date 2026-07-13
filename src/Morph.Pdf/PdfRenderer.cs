@@ -8,12 +8,18 @@ static class PdfRenderer
     public static byte[] Render(ParsedDocument document, PdfExportOptions? options)
     {
         options ??= new();
+
+        var totalPageCount = CountPagesIfRequired(document, options);
+
         var context = new PdfRenderContext(
             document.PageSettings,
             document.Compatibility,
             options.FontWidthScale,
             options.FontFallback,
-            options.FontDirectory);
+            options.FontDirectory)
+        {
+            TotalPageCount = totalPageCount
+        };
 
         var renderer = new PdfPageRenderer(context)
         {
@@ -33,6 +39,31 @@ static class PdfRenderer
         context.Document.Save(stream, closeStream: false);
         context.DisposeImages();
         return Normalize(stream.ToArray());
+    }
+
+    // A NUMPAGES/SECTIONPAGES field needs the final page total, which is only known after the
+    // document is laid out. Build a throwaway document first to count pages so the real render can
+    // substitute the total. Documents without such a field render once. Any page range is applied
+    // only to the real render, so the count reflects the whole document (matching Word's NUMPAGES).
+    static int CountPagesIfRequired(ParsedDocument document, PdfExportOptions options)
+    {
+        if (!document.RequiresTotalPageCount)
+        {
+            return 0;
+        }
+
+        var context = new PdfRenderContext(
+            document.PageSettings,
+            document.Compatibility,
+            options.FontWidthScale,
+            options.FontFallback,
+            options.FontDirectory);
+        // No OnWarning here — the real render reports warnings; forwarding them from the counting
+        // pass too would emit every warning twice.
+        var renderer = new PdfPageRenderer(context);
+        var total = renderer.RenderDocument(document);
+        context.DisposeImages();
+        return total;
     }
 
     /// <summary>

@@ -455,6 +455,10 @@ abstract class PageRendererBase(RenderContextBase context)
 
     void RenderHeaderFooterElements(HeaderFooterContent content)
     {
+        // Substitute live page numbers for any PAGE/NUMPAGES/SECTIONPAGES field on this page
+        // (headers/footers are re-rendered per page, so CurrentPageNumber is current here).
+        content = ResolveHeaderFooterPageFields(content);
+
         var previousInHeaderFooter = inHeaderFooter;
         inHeaderFooter = true;
         try
@@ -486,6 +490,204 @@ abstract class PageRendererBase(RenderContextBase context)
         {
             inHeaderFooter = previousInHeaderFooter;
         }
+    }
+
+    // ---- page-number field substitution (PAGE / NUMPAGES / SECTIONPAGES) ----
+
+    /// <summary>
+    /// Returns a copy of <paramref name="paragraph"/> with every page-field run's cached text
+    /// replaced by the live value for the current page, or the same instance when the paragraph
+    /// has no page fields (or their value isn't known yet — the counting pass leaves NUMPAGES as
+    /// its cached text). Backends call this at the top of their body-paragraph render so both
+    /// measurement and drawing see the resolved text.
+    /// </summary>
+    protected ParagraphElement ResolveParagraphPageFields(ParagraphElement paragraph)
+    {
+        List<Run>? resolved = null;
+        for (var i = 0; i < paragraph.Runs.Count; i++)
+        {
+            var run = paragraph.Runs[i];
+            var value = run.PageField == PageFieldKind.None ? null : FormatPageField(run.PageField, run.PageFieldNumberFormat);
+            if (value == null)
+            {
+                resolved?.Add(run);
+                continue;
+            }
+
+            resolved ??= new(paragraph.Runs.Take(i));
+            resolved.Add(run.WithText(value));
+        }
+
+        if (resolved == null)
+        {
+            return paragraph;
+        }
+
+        return new()
+        {
+            Runs = resolved,
+            Properties = paragraph.Properties,
+            IsAnchorOnlyMark = paragraph.IsAnchorOnlyMark,
+            IsCollapsedCellMark = paragraph.IsCollapsedCellMark
+        };
+    }
+
+    HeaderFooterContent ResolveHeaderFooterPageFields(HeaderFooterContent content)
+    {
+        List<DocumentElement>? resolved = null;
+        for (var i = 0; i < content.Elements.Count; i++)
+        {
+            var element = content.Elements[i];
+            var replacement = ResolveElementPageFields(element);
+            if (!ReferenceEquals(replacement, element))
+            {
+                resolved ??= new(content.Elements.Take(i));
+            }
+
+            resolved?.Add(replacement);
+        }
+
+        return resolved == null ? content : new() {Elements = resolved};
+    }
+
+    DocumentElement ResolveElementPageFields(DocumentElement element) => element switch
+    {
+        ParagraphElement paragraph => ResolveParagraphPageFields(paragraph),
+        TableElement table => ResolveTablePageFields(table),
+        _ => element
+    };
+
+    TableElement ResolveTablePageFields(TableElement table)
+    {
+        List<TableRow>? rows = null;
+        for (var r = 0; r < table.Rows.Count; r++)
+        {
+            var row = table.Rows[r];
+            List<TableCell>? cells = null;
+            for (var c = 0; c < row.Cells.Count; c++)
+            {
+                var cell = row.Cells[c];
+                List<DocumentElement>? cellContent = null;
+                for (var k = 0; k < cell.Content.Count; k++)
+                {
+                    var replacement = ResolveElementPageFields(cell.Content[k]);
+                    if (!ReferenceEquals(replacement, cell.Content[k]))
+                    {
+                        cellContent ??= new(cell.Content.Take(k));
+                    }
+
+                    cellContent?.Add(replacement);
+                }
+
+                var newCell = cellContent == null ? cell : new TableCell {Content = cellContent, Properties = cell.Properties};
+                if (!ReferenceEquals(newCell, cell))
+                {
+                    cells ??= new(row.Cells.Take(c));
+                }
+
+                cells?.Add(newCell);
+            }
+
+            var newRow = cells == null
+                ? row
+                : new TableRow
+                {
+                    Cells = cells,
+                    HeightPoints = row.HeightPoints,
+                    IsExactHeight = row.IsExactHeight,
+                    IsHeader = row.IsHeader,
+                    OverrideBorders = row.OverrideBorders,
+                    OverrideInsideHBorder = row.OverrideInsideHBorder,
+                    OverrideInsideVBorder = row.OverrideInsideVBorder,
+                    OverrideCellPadding = row.OverrideCellPadding
+                };
+            if (!ReferenceEquals(newRow, row))
+            {
+                rows ??= new(table.Rows.Take(r));
+            }
+
+            rows?.Add(newRow);
+        }
+
+        return rows == null ? table : new() {Rows = rows, Properties = table.Properties};
+    }
+
+    /// <summary>
+    /// The live text for a page field on the current page, or null when it should keep its cached
+    /// text — i.e. a NUMPAGES/SECTIONPAGES field during the counting pass, before the total is known.
+    /// </summary>
+    string? FormatPageField(PageFieldKind kind, string? numberFormat)
+    {
+        int value;
+        switch (kind)
+        {
+            case PageFieldKind.Page:
+                value = context.CurrentPageNumber;
+                break;
+            case PageFieldKind.NumberOfPages:
+            case PageFieldKind.SectionPages:
+                if (context.TotalPageCount <= 0)
+                {
+                    return null;
+                }
+
+                value = context.TotalPageCount;
+                break;
+            default:
+                return null;
+        }
+
+        return FormatPageNumber(value, numberFormat);
+    }
+
+    static string FormatPageNumber(int value, string? numberFormat) => numberFormat switch
+    {
+        "roman" => ToRoman(value).ToLowerInvariant(),
+        "Roman" or "ROMAN" => ToRoman(value),
+        "alphabetic" => ToAlphabetic(value).ToLowerInvariant(),
+        "Alphabetic" or "ALPHABETIC" => ToAlphabetic(value),
+        _ => value.ToString(CultureInfo.InvariantCulture)
+    };
+
+    static string ToRoman(int value)
+    {
+        if (value is <= 0 or > 3999)
+        {
+            return value.ToString(CultureInfo.InvariantCulture);
+        }
+
+        int[] numbers = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
+        string[] symbols = ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"];
+        var builder = new StringBuilder();
+        for (var i = 0; i < numbers.Length && value > 0; i++)
+        {
+            while (value >= numbers[i])
+            {
+                builder.Append(symbols[i]);
+                value -= numbers[i];
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    // Word's "\* ALPHABETIC" — A..Z, then AA..ZZ, ... (bijective base-26 on uppercase letters).
+    static string ToAlphabetic(int value)
+    {
+        if (value <= 0)
+        {
+            return value.ToString(CultureInfo.InvariantCulture);
+        }
+
+        var builder = new StringBuilder();
+        while (value > 0)
+        {
+            value--;
+            builder.Insert(0, (char) ('A' + value % 26));
+            value /= 26;
+        }
+
+        return builder.ToString();
     }
 
     /// <summary>

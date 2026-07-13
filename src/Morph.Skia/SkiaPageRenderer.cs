@@ -12,6 +12,13 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
     Action<Action<Stream>>? pageCallback;
     int pageCount;
+
+    /// <summary>
+    /// When true, pages are laid out and counted but not encoded to PNG or handed to the callback.
+    /// Used by the gated counting pass that resolves NUMPAGES before the real render.
+    /// </summary>
+    public bool CountOnly { get; init; }
+
     SKBitmap? pendingPage;
     SKBitmap? currentPage;
     SKCanvas? currentCanvas;
@@ -399,6 +406,10 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
     protected override void RenderParagraph(ParagraphElement paragraph, DocumentElement? nextElement = null)
     {
+        // Substitute live page numbers for any PAGE/NUMPAGES/SECTIONPAGES field before measuring,
+        // so wrapping and drawing both use the resolved text.
+        paragraph = ResolveParagraphPageFields(paragraph);
+
         // Check if this paragraph has significant content (actual text)
         var hasSignificantContent = paragraph.Runs.Any(_ => !string.IsNullOrWhiteSpace(_.Text));
 
@@ -1986,6 +1997,13 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             using var page = pendingPage;
             pendingPage = null;
             pageCount++;
+
+            // Counting pass: the page was laid out only to advance the count; skip the encode.
+            if (CountOnly)
+            {
+                return;
+            }
+
             // Encode straight from the bitmap's pixels — SKImage.FromBitmap would snapshot a
             // full copy of the page (~33 MB at Letter/300 DPI) only to feed the same encoder.
             using var pixmap = page.PeekPixels();
