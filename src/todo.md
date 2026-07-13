@@ -4,7 +4,7 @@ Deep comparison of every scenario in `src/Tests/Inputs/` (324 scenarios, 547 Wor
 
 Each finding: `severity | backends | pages | description`. `all` = skia+imagesharp+pdf. HTML findings ignore pagination/viewport-width reflow by design and only flag content/styling errors. Not reported: anti-aliasing texture, 1-2px subpixel shifts, ImageSharp's softer glyph rasterization. `[known]` = already documented as accepted in that scenario's notes.md.
 
-Findings: **402 major**, 533 medium, 381 minor across 303 scenarios; 21 scenarios fully faithful on all four outputs.
+Findings: **394 major**, 535 medium, 383 minor across 303 scenarios; 21 scenarios fully faithful on all four outputs. (Systemic issue #1, per-page page-number fields, is now fixed — see the ✅ entry below; the counts reflect the resolved/downgraded findings.)
 
 ## Systemic issues (cross-scenario root causes)
 
@@ -12,7 +12,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### All raster + PDF backends
 
-1. **Page-number fields (PAGE/NUMPAGES/SECTIONPAGES) are not evaluated per page** — value renders stuck at a constant or wrong number, or the footer number is missing outright. `page_numbers` ("Page 1 of 1" on both pages), `field_codes_simple/01` ("Page 1 of 3" vs Word "1 of 1"), `business/03` (p2 says "Page 1"), `business-plans/09` ("3" on every page), `business-plans/10` (stuck at "1"), `business-plans/12` (footer numbers missing entirely), `business-plans/13` (frozen at "4"), `business-plans/15` (constant "17", ignores section restart), `resumes/13` ("3" everywhere), `business-plans/02` (footer numbers missing).
+1. **Page-number fields (PAGE/NUMPAGES/SECTIONPAGES) evaluated per page** — ✅ FIXED (merged, commit 78055694a). PAGE/NUMPAGES/SECTIONPAGES now resolve to the live value per page (`Run.PageField` + a gated counting pass establishes the total). Fully cleared: `page_numbers`, `field_codes_simple/01` (raster/PDF), `business/03`, `business-plans/10`. **Residuals still open:** (a) section-restarted numbering (`w:pgNumType` @fmt/@start) is unwired, so `PAGE` is the *physical* page number — `business-plans/09`/`15` increment now but don't restart per section to match Word; (b) `business-plans/13`/`resumes/13` increment correctly, but their sequence still differs from Word because of the page-count divergence (issue #2); (c) `business-plans/02`/`12` footer numbers stay missing — a separate cause (multi-section footer selection: Morph wires only one section's footer), not field evaluation; (d) HTML/Markdown keep the cached value by design (no pagination).
 2. **Vertical metrics run ~10% tight and glyph advances ~9-10% narrow vs Word** — the universal "content drifts up, wraps one word earlier/later" findings. Consequences range from cosmetic drift on nearly every text scenario to pagination divergence: `business-plans/02` (+1 page), `business-plans/13` (+2), `business-plans/15` (TOC overflows onto an extra page), `complex_spacing` (−1), `image_wrap_square` (+1), `newsletters/06` (+2), `newsletters/09` (+1/+2), `resumes/13` (−1 raster, +1 PDF), `business-plans/10` (−1 raster), `multiple_pages`/`header_footer`/`page_numbers`/`section_break_odd_page` (paragraphs redistribute across pages). Line pitch measured ~47px vs Word 52px at 150 DPI (`line_numbers_*`, `long_paragraph` 30.2 vs 35.3px).
 3. **Expanded character spacing (`w:spacing`) mishandled** — Skia/ImageSharp put the extra tracking into word gaps only (doubled word gaps: "PTA  MEETING", "MARKETING  PLAN"; or per-run boundaries: "G ENERAL P RACTITIONER" in `resumes/01`, `compatibility_mode_14`); PDF drops the tracking entirely (headings render narrower than Word). Affects agendas-minutes/*, business-plans/*, cover-letters/*, menus/06, newsletters/06/07/13, resumes/01/11/15/17, letters/04, cards, labels — dozens of scenarios.
 4. **Word spaces collapse to zero in some display/heading text (Skia/ImageSharp)** — "SheetalParmar" (cover-letters/03), "SUNKENVALLEYFARM" (business-plans/02), "ADMITONE"/"Keepticketstub" (cards/02), "HIRINGMANAGER" (cover-letters/16), "Eventitinerary" (brochures/03), "Tableof contents" (business-plans/15), "VanArsdelLtd." (letters/12), "ESG FinancialServices" (letters/07), "SYCAMORENOTES" (newsletters/06 html), "gymnasiumwill" (newsletters/14), "RobinZupanc" (resumes/19).
@@ -393,7 +393,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 - MAJOR | skia,imagesharp | p2,p3,p4 | table row numbering continues across all tables (1,6-9 / 1,10-13 / 1,14-17 / 1,18-21 / 1,22-25 / 1,26-29) instead of restarting 1-5 in each table
 - MAJOR | pdf | p2,p3,p4 | table row numbers missing entirely — every "No."/"Step" cell is blank
-- MAJOR | all | p2,p3 | footer page number renders "3" on every page instead of Word's 1 (p2) and 2 (p3); p4 matches only coincidentally
+- MEDIUM | all | p2,p3 | footer page number now increments per page (was stuck at "3") but shows the physical page number, not Word's section-restarted 1 (p2) / 2 (p3) — section restart still unwired [systemic #1 residual (a)]
 - MAJOR | all | p4 | "PUT THE PLAN INTO ACTION" table broken: header row ("Step/Action/Due date/% complete") plus the Action and Due-date columns missing; only a collapsed two-column Step+"%" fragment renders at top-left
 - MEDIUM | all | p3 | "PUT THE PLAN INTO ACTION" heading pulled onto the bottom of p3 (Word starts the section on p4)
 - MEDIUM | all | p1 | cover title "TARGET AUDIENCE PROFILING PLAN" and "INTERNAL DOCUMENT" render bold vs Word's light weight (ink +18% ImageSharp, +38-39% Skia/PDF)
@@ -409,7 +409,6 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 - MAJOR | skia,imagesharp | p3,p4,p5 | Page count 4 vs expected 5: "List/Define all pertinent items" pulled from p4 up onto p3, and Word's entire p5 (CAMPAIGN SIGN-OFF heading, intro line, 9-row signature table, trailing note) is merged onto p4 (Word leaves the lower half of p4 empty), so p5 is missing
 - MAJOR | pdf | p3,p4,p5 | Pagination distribution wrong despite matching page count: bullet "List all pertinent items." pulled onto p3, CAMPAIGN SIGN-OFF heading plus all 9 signature rows render on p4 (Word puts the whole sign-off section on p5 and leaves p4's lower half empty), leaving p5 with only the trailing "Note: Additional signatures..." paragraph
-- MAJOR | all | p2,p3,p4 | Footer page number is stuck at "1" on every content page instead of incrementing (Word shows 2/3/4; PDF's p5 also shows "1" instead of "5")
 - MAJOR | pdf | p3,p4 | List bullets render as a tiny middle-dot instead of Word's solid round bullet ("· List all pertinent items." / "· List all metrics and expectations.")
 - MEDIUM | all | p2,p3 | Italic paragraphs render upright: "Use the Tactical Marketing Plan...", "In this section, you need to define...", "Use this section to brainstorm...", and the BUDGET paragraph "Compile a list of pertinent items..." all lose their italic (HTML export keeps it)
 - MEDIUM | all | p2,p3,p4 | Table grid incomplete: header row and first body row of each table (PLAN OVERVIEW, NECESSARY EVENT RESOURCES, APPROVAL) render with no outer box or vertical cell borders — only the horizontal rule under the header — while Word draws a full grid on every row
@@ -456,7 +455,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 - MAJOR | all | p2,p3 | TOC entries lose their right-aligned page numbers (3-21) and render as underlined hyperlink-styled lines with much larger line spacing than Word's plain two-column TOC
 - MAJOR | all | p1 | Cover's full-width light-grey band behind "Small Business Plan" / "SAND + POLISH CONTRACTORS" is missing — title block sits on plain white
 - MEDIUM | all | p1 | Cover renders a footer ("SAND + POLISH CONTRACTORS" + page number "2") that Word suppresses on the first page
-- MEDIUM | all | p1-p21 | Footer PAGE number frozen: every page from p2 onward shows "4" (cover shows "2") instead of incrementing 2-21 like Word
+- MINOR | all | p1-p21 | Footer PAGE number now increments per page (was frozen at "4"); the remaining gap vs Word's 2-21 is the +2 page-count divergence [systemic #2], not the field
 - MEDIUM | pdf | p1,p2 | Cover and TOC-page photos rendered at noticeably larger zoom/different crop than Word (building and arm enlarged, cover title pushed ~0.5 in lower)
 - MINOR | skia,imagesharp | p1 | Cover title and subtitle sit ~0.3-0.5 in lower than Word although the photo bottom edge matches
 - MEDIUM | skia | p5-p23 | Skia drops run-level bold throughout the body: lead-ins "Opportunity:", "Company summary:", "Order fulfillment:", "Pricing:", "SWOT analysis:", "Step 1-4", "The Executive Summary should be written last", "Projected start-up costs" all render regular weight (imagesharp and pdf render them bold)
@@ -469,7 +468,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### business-plans/15
 
-- MAJOR | all | p2-p19 | Footer page-number field renders as constant "17" on every page instead of Word's section-restarted numbering (Word shows 1-17 starting at the Executive summary page; e.g. Word p4 shows "2", all backends show "17").
+- MEDIUM | all | p2-p19 | Footer page-number field now increments per page (was constant "17") but shows the physical page number, not Word's section-restarted 1-17 starting at the Executive summary page — section restart still unwired [systemic #1 residual (a)]
 - MAJOR | all | p2-p18 | TOC line spacing far looser than Word: the TOC that fits on Word's single p2 overflows onto an extra page (p3), so every body page lands one page later than Word until the backends re-sync on p19 by packing Break-even analysis and Miscellaneous documents onto one page.
 - MAJOR | all | p4-p10,p19 | Bold side-headings are drawn on the same baseline as adjacent body text, overlapping glyphs — e.g. "Highlights" over "Note: to delete any tip…" (p4), "Location" over "franchise, or an expansion…" (p5), "Interior", "Hours of operation", "Suppliers", "Management", "Fiscal management", "Start-up/acquisition summary", "Market segmentation", "Competition", "Pricing", "Advertising and promotion", "Strategy and implementation" (p5-p10), and on p19 the "Miscellaneous documents" heading plus its lead paragraph print through the break-even "Note: If the sales dollars…" line.
 - MAJOR | all | p17 | Body text overruns the bottom margin: the "Taxes Payable…sheet." line prints through the footer text and the final "Payroll Accrual—Salaries and wages…" bullet is clipped at the page bottom edge.
@@ -502,7 +501,6 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### business/03
 
-- MAJOR | all | p2 | footer renders "Page 1" instead of "Page 2" — PAGE field not incremented on the second page
 - MEDIUM | skia,pdf | p1 | cover photo and Report Title box shifted ~25px right, photo bleeding to the right page edge (Word keeps a white margin)
 - MEDIUM | all | p1 | cover overlay box geometry off: white Company Name box ~40px narrower and navy Report Title box ~35px wider than Word, both shifted up ~15-25px
 - MEDIUM | all | p2 | middle text column and top-right sample block start ~57px further left and are wider than Word, changing wrap points (sample block wraps 4 lines vs Word's 5)
@@ -926,8 +924,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### field_codes_simple/01
 
-- MAJOR | all | p1 | NUMPAGES field evaluates wrong: renders "Page 1 of 3" where Word shows "Page 1 of 1"
-- MAJOR | html | - | same wrong field value — HTML (and Markdown) export emits "Page 1 of 3" instead of "Page 1 of 1"
+- MEDIUM | html | - | HTML (and Markdown) export still emits the cached "Page 1 of 3" instead of "Page 1 of 1" — the exporters keep the cached value by design (no pagination) [systemic #1 residual (d)]; raster/PDF now render "of 1" correctly
 
 ### first_line_indent
 
@@ -1865,7 +1862,6 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### page_numbers
 
-- MAJOR | all | p1,p2 | footer field text wrong on every page: renders "Page 1 of 1" instead of Word's "Page 1 of 2"/"Page 2 of 2" (PAGE/NUMPAGES fields stuck at 1)
 - MEDIUM | all | p1,p2 | paragraph spacing tighter than Word: page 1 holds paragraphs 1-28 vs Word's 1-25, so page 2 starts at paragraph 29 instead of 26
 - MEDIUM | all | p1,p2 | footer line positioned ~0.3in lower than Word, close to the page bottom edge
 - CLEAN: html
@@ -2010,7 +2006,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 - MAJOR | skia,imagesharp | - | Page count 4 vs Word's 5 — compressed vertical layout pulls content up one page from p2 onward (p3 shows Word's p4 content, p4 shows Word's p5 content)
 - MAJOR | pdf | - | Page count 6 vs Word's 5 — looser layout pushes Teaching experience off p2, content lags ~1 page behind and overflows onto an extra page 6
-- MAJOR | all | p1,p2,p3,p4,p5,p6 | Footer page-number field renders "3" on every page in every backend (Word shows 1-5) — field value appears cached, not recomputed per page
+- MINOR | all | - | Footer page-number field now recomputes per page (was cached "3" everywhere); the remaining gap vs Word's 1-5 is the page-count divergence [systemic #2], not the field
 - MAJOR | skia,imagesharp | p2 | Overflowing content ("Publications" heading and intro paragraph, plus a section rule) is drawn through/below the footer row and clipped at the bottom page edge
 - MEDIUM | all | p3,p5 | Sidebar headings wrap mid-word — "Presentations and invited l/ectures", "Professional t/raining", "Professional a/ffiliations" (Word breaks between whole words; skia/imagesharp on their p3, pdf on its p5)
 - MEDIUM | all | p1 | "ELECTRICAL ENGINEER" subtitle loses its expanded letter-spacing and renders slightly larger (raster backends add an extra-wide word gap)
