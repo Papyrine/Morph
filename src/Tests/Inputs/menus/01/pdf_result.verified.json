@@ -11,38 +11,38 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Dinner\nMenu\n$30 per person\nSelect one dish from each course\nFirst Course\nPotato cakes\nFried potato cakes, apple jelly, sour cream\nArugula salad\nLemon, olive oil, garlic, Parmesan\nSecond course\nWagyu burger\nBeef patty, triple cream brie, alfalfa sprouts, caramelized\nonions, aioli\nTruffle mushroom pasta\nHand-made pasta, black truffle, Parmesan\nThird course\nCaramel cheesecake\nCaramelized banana, cream\nApple cobbler\nApples, cinnamon crumble, vanilla ice cream\nDrinks\nSoda\nLemonade\nMineral water\nCoffee\nTea"
+        "Text": "Dinner\nMenu\n$30 per person\nSelect one dish from each course\nFirst Course\nPotato cakes\nFried potato cakes, apple jelly, sour cream\nArugula salad\nLemon, olive oil, garlic, Parmesan\nSecond course\nWagyu burger\nBeef patty, triple cream brie, alfalfa sprouts,\ncaramelized onions, aioli\nTruffle mushroom pasta\nHand-made pasta, black truffle, Parmesan\nThird course\nCaramel cheesecake\nCaramelized banana, cream\nApple cobbler\nApples, cinnamon crumble, vanilla ice cream\nDrinks\nSoda\nLemonade\nMineral water\nCoffee\nTea"
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "DINNER\nMENU\n$30 per person\nSelect one dish from each course\nFIRST COURSE\nPotato cakes\nFried potato cakes, apple jelly, sour cream\nArugula salad\nLemon, olive oil, garlic, Parmesan\nSECOND COURSE\nWagyu burger\nBeef patty, triple cream brie, alfalfa sprouts, caramelized onions,\naioli\nTruffle mushroom pasta\nHand-made pasta, black truffle, Parmesan\nTHIRD COURSE\nCaramel cheesecake\nCaramelized banana, cream\nApple cobbler\nApples, cinnamon crumble, vanilla ice cream\nDRINKS\nSoda\nLemonade\nMineral water\nCoffee\nTea"
+        "Text": "DINNER\nMENU\n$30 per person\nSelect one dish from each course\nFIRST COURSE\nPotato cakes\nFried potato cakes, apple jelly, sour cream\nArugula salad\nLemon, olive oil, garlic, Parmesan\nSECOND COURSE\nWagyu burger\nBeef patty, triple cream brie, alfalfa sprouts, caramelized\nonions, aioli\nTruffle mushroom pasta\nHand-made pasta, black truffle, Parmesan\nTHIRD COURSE\nCaramel cheesecake\nCaramelized banana, cream\nApple cobbler\nApples, cinnamon crumble, vanilla ice cream\nDRINKS\nSoda\nLemonade\nMineral water\nCoffee\nTea"
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "DINNER\nMENU\n$30 per person\nSelect one dish from each course\nFIRST COURSE\nPotato cakes\nFried potato cakes, apple jelly, sour cream\nArugula salad\nLemon, olive oil, garlic, Parmesan\nSECOND COURSE\nWagyu burger\nBeef patty, triple cream brie, alfalfa sprouts, caramelized onions,\naioli\nTruffle mushroom pasta\nHand-made pasta, black truffle, Parmesan\nTHIRD COURSE\nCaramel cheesecake\nCaramelized banana, cream\nApple cobbler\nApples, cinnamon crumble, vanilla ice cream\nDRINKS\nSoda\nLemonade\nMineral water\nCoffee\nTea"
+        "Text": "DINNER\nMENU\n$30 per person\nSelect one dish from each course\nFIRST COURSE\nPotato cakes\nFried potato cakes, apple jelly, sour cream\nArugula salad\nLemon, olive oil, garlic, Parmesan\nSECOND COURSE\nWagyu burger\nBeef patty, triple cream brie, alfalfa sprouts, caramelized\nonions, aioli\nTruffle mushroom pasta\nHand-made pasta, black truffle, Parmesan\nTHIRD COURSE\nCaramel cheesecake\nCaramelized banana, cream\nApple cobbler\nApples, cinnamon crumble, vanilla ice cream\nDRINKS\nSoda\nLemonade\nMineral water\nCoffee\nTea"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.2394,
+      "ErrorMetric": 2268780066.0,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.2685,
+      "ErrorMetric": 2022523629.75,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.3206,
+      "ErrorMetric": 3220108099.5,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"

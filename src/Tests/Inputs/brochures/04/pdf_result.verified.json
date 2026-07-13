@@ -16,21 +16,21 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "Headline 1\nAt any time, you can easily change the text of\nany section in this document by simply\nclicking and typing. The template is prepared\nso that formatting stays in tact with the new\ninformation you include.\nTo update formatting, from the Home tab, you\ncan use the Quick Styles gallery for the built\nin styles. You can also format text directly by\nusing the other controls on the Home tab.\nAdd some bullets to your text too!\n• Bullet Point Line N1\n• Bullet Point Line N2\n• Bullet Point Line N3\n• Bullet Point Line N4\n• Bullet Point Line N5\nHeadline 1\nHave other images you wish to use? It is\nsimple to replace any of the pictures in\nthis pamphlet. Simply double click in the\nHeader of any page. Click on the image\nyou wish to change. Images in the\nbackground might need an extra click as\nthey are part of the background’s grouped\nimages. Keep clicking until your selection\nhandles are around the one image you\nwish to replace.\nOnce the image you wish to replace is\nselected, you can either select “Change\nPicture” from the short cut menu, or click\non “Fill” and choose the option for\n“Picture.”\nHeadline 2\nYou can easily change the overall colors of\nthe template with just a few clicks. Go to the\nDesign tab and click on Colors. From the list\nof colors, you can choose a different color\nscheme. As you hover over the different\nchoices, you can see what the overall feel of\nthe document will change with each different\noption.\nHeadline 2\nChanged the color and want to go back to the\noriginal design? Easy! Just go back to the\nDesign tab and choose the Themes option.\nFrom the list, click the option to reset the\ntheme of this template. And just like that,\nyour document color scheme will be restored\nto its original!\nHeadline 2\nPlenty of text will fit in any of these panels.\nSimply click on the placeholders and add\nyour own text.\nAdd another quote here about\nyour business, about your\nclients, or about specials that\nyou wish to highlight for all to\nread quickly!"
+        "Text": "Headline 1\nAt any time, you can easily change the text of\nany section in this document by simply\nclicking and typing. The template is prepared\nso that formatting stays in tact with the new\ninformation you include.\nTo update formatting, from the Home tab, you\ncan use the Quick Styles gallery for the built\nin styles. You can also format text directly by\nusing the other controls on the Home tab.\nAdd some bullets to your text too!\n• Bullet Point Line N1\n• Bullet Point Line N2\n• Bullet Point Line N3\n• Bullet Point Line N4\n• Bullet Point Line N5\nHeadline 1\nHave other images you wish to use? It is\nsimple to replace any of the pictures in\nthis pamphlet. Simply double click in the\nHeader of any page. Click on the image\nyou wish to change. Images in the\nbackground might need an extra click as\nthey are part of the background’s grouped\nimages. Keep clicking until your selection\nhandles are around the one image you\nwish to replace.\nOnce the image you wish to replace is\nselected, you can either select “Change\nPicture” from the short cut menu, or click\non “Fill” and choose the option for\n“Picture.”\nHeadline 2\nYou can easily change the overall colors of\nthe template with just a few clicks. Go to the\nDesign tab and click on Colors. From the list\nof colors, you can choose a different color\nscheme. As you hover over the different\nchoices, you can see what the overall feel of\nthe document will change with each different\noption.\nHeadline 2\nChanged the color and want to go back to the\noriginal design? Easy! Just go back to the\nDesign tab and choose the Themes option.\nFrom the list, click the option to reset the\ntheme of this template. And just like that,\nyour document color scheme will be restored\nto its original!\nHeadline 2\nPlenty of text will fit in any of these panels.\nSimply click on the placeholders and add\nyour own text.\nAdd another quote here about\nyour business, about your clients,\nor about specials that you wish to\nhighlight for all to read quickly!"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.4312,
+      "ErrorMetric": 18370585389.0,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.5472,
+      "ErrorMetric": 18385654712.5,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

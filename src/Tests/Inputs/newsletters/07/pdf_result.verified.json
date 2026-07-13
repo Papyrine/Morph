@@ -11,7 +11,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "MODERN LIVING\nYour guide to buy or rent\nOCTOBER / 20XX / ISSUE #10\nReady to settle?\nBy Peyton Davis\nNewsletters are periodicals used to advertise or update your\nsubscribers with information about your product or blog. They\ncan be printed or emailed and are an excellent way to maintain\nregular contact with your subscribers and drive traffic to your\nsite. Type the content of your newsletter here.\nNewsletters are periodicals used to advertise or update your\nsubscribers with information about your product or blog. They\nare an excellent way to maintain regular contact with your\nsubscribers. Type the content of your newsletter here.\nNewsletters are periodicals used to advertise or update your\nsubscribers with information about your product or blog. Type\nthe content of your newsletter here.\nWHAT’S NEW\nTAKE A LOOK INSIDE\nAdd description text here to get\nyour subscribers interested in\nyour topic\nPROPERTY TRENDS\nAdd description text here to get\nyour subscribers interested in\nyour topic\nARE YOU READY TO LIST?\nAdd description text here to get\nyour subscribers interested in\nyour topic"
+        "Text": "M O D E R N L I V I N G\nYour guide to buy or rent\nOCTOBER / 20XX / ISSUE #10\nReady to settle?\nBy Peyton Davis\nNewsletters are periodicals used to advertise or update your\nsubscribers with information about your product or blog. They\ncan be printed or emailed and are an excellent way to maintain\nregular contact with your subscribers and drive traffic to your\nsite. Type the content of your newsletter here.\nNewsletters are periodicals used to advertise or update your\nsubscribers with information about your product or blog. They\nare an excellent way to maintain regular contact with your\nsubscribers. Type the content of your newsletter here.\nNewsletters are periodicals used to advertise or update your\nsubscribers with information about your product or blog. Type\nthe content of your newsletter here.\nWHAT’S NEW\nTAKE A LOOK INSIDE\nAdd description text here to get\nyour subscribers interested in\nyour topic\nPROPERTY TRENDS\nAdd description text here to get\nyour subscribers interested in\nyour topic\nARE YOU READY TO LIST?\nAdd description text here to get\nyour subscribers interested in\nyour topic"
       },
       {
         "Width": 612.0,
@@ -23,14 +23,14 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.4458,
+      "ErrorMetric": 6742903089.0,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.5534,
+      "ErrorMetric": 10456290563.5,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

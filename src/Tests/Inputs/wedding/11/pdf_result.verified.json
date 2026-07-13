@@ -11,26 +11,26 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "KAYLA\n+ JACOB\nTIE THE KNOT\nThe pleasure of your company is\nrequested at\nthe marriage of Kayla Lewis\n& Jacob\nHancock\nSATURDAY\n10.25.20XX\nKAYLA\n+ JACOB\nSAVE THE\nDATE\nSATURDAY\n10.25.20XX\nAustin, Texas"
+        "Text": "K\nA\nY\nL\nA\n+\nJ\nA\nC\nO\nB\nTIE THE KNOT\nThe pleasure of your company is\nrequested at\nthe marriage of Kayla Lewis\n& Jacob\nHancock\nSATURDAY\n10.25.20XX\nK\nA\nY\nL\nA\n+\nJ\nA\nC\nO\nB\nSAVE THE\nDATE\nSATURDAY\n10.25.20XX\nAustin, Texas"
       },
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "KAYLA + JACOB\nKINDLY RSVP\nBY 8.20.XX\nKAYLA + JACOB\nTHANK YOU\nACCEPT | DECLINE\nNumber of guests attending _______\nPlease indicate number of meals needed\nChicken ___ Beef ___ Fish ___ Vegetarian ____\nThank you for joining us for the celebration of our marriage!\nWe wanted to thank you for choosing to celebrate the day with us."
+        "Text": "KAYLA + JACOB\nKINDLY RSVP\nBY 8.20.XX\nKAYLA + JACOB\nTHANK YOU\nAC C E P T | DE C L INE\nNumber of guests attending _______\nPlease indicate number of meals needed\nChicken ___ Beef ___ Fish ___ Vegetarian ____\nThank you for joining us for the celebration of our marriage!\nWe wanted to thank you for choosing to celebrate the day with us."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.2915,
+      "ErrorMetric": 2466101196.5,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.3137,
+      "ErrorMetric": 2954626649.75,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

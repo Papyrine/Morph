@@ -22,14 +22,14 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.761,
+      "ErrorMetric": 4037348696.0,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.03,
+      "ErrorMetric": 786201807.0,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
