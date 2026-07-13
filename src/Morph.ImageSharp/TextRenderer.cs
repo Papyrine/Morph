@@ -1030,6 +1030,47 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         return true;
     }
 
+    // Draws text applying w:spacing character tracking. SixLabors.Fonts has no letter-spacing
+    // option, so when spacing is set we place each glyph ourselves, advancing the origin by the
+    // glyph advance plus the tracking amount — the same per-character sum that measurement folds
+    // into fragment.Width, so the drawn text fills the fragment. Two overloads (brush / pen) keep
+    // the untracked hot path a single DrawText with no delegate allocation.
+    static void DrawTrackedText(DrawingCanvas canvas, RichTextOptions options, string text, Brush brush, float trackingPixels)
+    {
+        if (trackingPixels == 0 || text.Length <= 1)
+        {
+            canvas.DrawText(options, text, brush);
+            return;
+        }
+
+        var origin = options.Origin;
+        foreach (var ch in text)
+        {
+            var single = ch.ToString();
+            var glyphOptions = new RichTextOptions(options.Font) {Dpi = options.Dpi, Origin = origin, KerningMode = options.KerningMode};
+            canvas.DrawText(glyphOptions, single, brush);
+            origin = new(origin.X + TextMeasurer.MeasureAdvance(single, glyphOptions).Width + trackingPixels, origin.Y);
+        }
+    }
+
+    static void DrawTrackedText(DrawingCanvas canvas, RichTextOptions options, string text, Pen pen, float trackingPixels)
+    {
+        if (trackingPixels == 0 || text.Length <= 1)
+        {
+            canvas.DrawText(options, text, pen);
+            return;
+        }
+
+        var origin = options.Origin;
+        foreach (var ch in text)
+        {
+            var single = ch.ToString();
+            var glyphOptions = new RichTextOptions(options.Font) {Dpi = options.Dpi, Origin = origin, KerningMode = options.KerningMode};
+            canvas.DrawText(glyphOptions, single, pen);
+            origin = new(origin.X + TextMeasurer.MeasureAdvance(single, glyphOptions).Width + trackingPixels, origin.Y);
+        }
+    }
+
     void RenderFragment(DrawingCanvas canvas, TextFragment fragment, float x, float y)
     {
         // Handle inline images
@@ -1103,6 +1144,9 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             KerningMode = ResolveKerningMode(fragment.Properties)
         };
 
+        // w:spacing character tracking (points → pixels); 0 for the common untracked case.
+        var trackingPixels = context.PointsToPixels((float) fragment.Properties.CharacterSpacingPoints);
+
         DrawTextEffectsBehind(canvas, fragment, textOptions, font, pixelX, pixelY, baseline);
 
         // w:emboss / w:imprint — paint a tonal companion glyph offset from the main glyph
@@ -1119,7 +1163,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 Origin = new PointF(pixelX + offset, pixelY - baseline * context.Scale + offset),
                 KerningMode = textOptions.KerningMode
             };
-            canvas.DrawText(lightOptions, fragment.Text, context.GetBrush(Color.White));
+            DrawTrackedText(canvas, lightOptions, fragment.Text, context.GetBrush(Color.White), trackingPixels);
         }
         else if (fragment.Properties.Imprint)
         {
@@ -1130,18 +1174,18 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 Origin = new PointF(pixelX - offset, pixelY - baseline * context.Scale - offset),
                 KerningMode = textOptions.KerningMode
             };
-            canvas.DrawText(darkOptions, fragment.Text, context.GetBrush(Color.Gray));
+            DrawTrackedText(canvas, darkOptions, fragment.Text, context.GetBrush(Color.Gray), trackingPixels);
         }
 
         // w:outline — render the glyph as a stroke instead of a fill.
         if (fragment.Properties.OutlineOnly)
         {
             var strokePen = context.GetPen(color, Math.Max(0.5f, context.Scale * 0.5f));
-            canvas.DrawText(textOptions, fragment.Text, strokePen);
+            DrawTrackedText(canvas, textOptions, fragment.Text, strokePen, trackingPixels);
         }
         else
         {
-            canvas.DrawText(textOptions, fragment.Text, context.GetBrush(color));
+            DrawTrackedText(canvas, textOptions, fragment.Text, context.GetBrush(color), trackingPixels);
         }
 
         // w:bdr — per-run border drawn around the text box. Doesn't reserve space, so
@@ -1161,7 +1205,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         {
             var outlineColor = ImageSharpRenderContext.ParseColor(outline.ColorHex);
             var pen = context.GetPen(outlineColor, Math.Max(0.5f, (float) outline.WidthPoints * context.Scale));
-            canvas.DrawText(textOptions, fragment.Text, pen);
+            DrawTrackedText(canvas, textOptions, fragment.Text, pen, trackingPixels);
         }
 
         // Draw underline if needed
@@ -1219,6 +1263,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         Font font, float pixelX, float pixelY, float baseline)
     {
         var props = fragment.Properties;
+        var trackingPixels = context.PointsToPixels((float) props.CharacterSpacingPoints);
 
         if (props.Shadow is { } shadow)
         {
@@ -1235,7 +1280,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 Dpi = context.Dpi,
                 Origin = new PointF(pixelX + offsetX, pixelY - baseline * context.Scale + offsetY)
             };
-            canvas.DrawText(shadowOptions, fragment.Text, new SolidBrush(shadowColor));
+            DrawTrackedText(canvas, shadowOptions, fragment.Text, new SolidBrush(shadowColor), trackingPixels);
         }
 
         if (props.Glow is { } glow)
@@ -1250,7 +1295,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 var ringAlpha = (byte) Math.Clamp(glow.AlphaPercent * 255 / 100 / rings, 0, 255);
                 var ringColor = Color.FromPixel(new Rgba32(rgba.R, rgba.G, rgba.B, ringAlpha));
                 var pen = new SolidPen(ringColor, r);
-                canvas.DrawText(baseOptions, fragment.Text, pen);
+                DrawTrackedText(canvas, baseOptions, fragment.Text, pen, trackingPixels);
             }
         }
 
@@ -1283,7 +1328,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 Origin = new PointF(pixelX, pixelY - baseline * context.Scale + ascent + descent)
             };
             _ = reflectOptions;
-            canvas.DrawText(ghostOptions, fragment.Text, new SolidBrush(reflectionColor));
+            DrawTrackedText(canvas, ghostOptions, fragment.Text, new SolidBrush(reflectionColor), trackingPixels);
         }
     }
 

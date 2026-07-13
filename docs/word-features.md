@@ -255,9 +255,10 @@ Additional spacing between characters (positive or negative), measured in points
 - **OOXML**: `w:spacing` within `w:rPr` (in twentieths of a point)
 - **Spec**: [Spacing](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.spacingmark)
 - **Model**: `RunProperties.CharacterSpacingPoints`
-- **Test**: Spec test: `CharacterSpacingTests`
+- **Render**: added to every character's advance in both measurement *and* drawing. Because none of the backend text APIs (SkiaSharp `DrawText`, SixLabors `DrawText`, PdfSharp `DrawString`) expose letter spacing, each backend's `DrawTrackedText`/`DrawTrackedString` helper places the glyphs one at a time when spacing is set, advancing by the glyph advance plus the tracking amount — the same per-character sum measurement folds into the fragment width, so the drawn text fills it. Untracked runs keep the single whole-string draw (no per-glyph cost).
+- **Test**: Spec test: `CharacterSpacingTests`; visual coverage in tracked-heading scenarios (agendas-minutes/*, resumes/01, cover-letters/*, etc.)
 
-> **Contributors**: Applied per-character during text measurement and rendering. Added to each character advance width.
+> **Contributors**: Previously the tracking was folded into the measured width but the raster backends drew each word at its natural (tight) advances, so the extra width dumped into the trailing word gap (letters clumped, word gaps ballooned — "PTA  MEETING"); the PDF backend ignored `w:spacing` entirely. The per-glyph draw fixes both, matching Word's even tracking. Section-restart etc. unaffected. Kerning is not re-applied pairwise during per-glyph draw, a negligible sub-pixel difference for the all-caps display text that carries tracking.
 
 
 #### Superscript `DONE`

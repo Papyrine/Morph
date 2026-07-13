@@ -430,7 +430,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         }
 
         var color = PdfRenderContext.ParseColor(properties.ColorHex);
-        graphics.DrawString(item.Text!, item.Font, context.GetBrush(color), new XPoint(penX, drawBaseline), baselineFormat);
+        DrawTrackedString(graphics, item.Text!, item.Font, context.GetBrush(color), penX, drawBaseline, properties.CharacterSpacingPoints);
 
         if (properties.Underline)
         {
@@ -444,6 +444,26 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             var pen = context.GetPen(color, Math.Max(0.5, item.Font.Size / 16));
             var y = drawBaseline - item.Ascent * 0.3;
             graphics.DrawLine(pen, penX, y, penX + item.Width, y);
+        }
+    }
+
+    // Draws text applying w:spacing character tracking. PdfSharp's DrawString has no letter-spacing
+    // option, so when spacing is set we place each glyph, advancing by the glyph width plus the
+    // tracking amount — the same per-character sum folded into the item width during measurement.
+    static void DrawTrackedString(XGraphics graphics, string text, XFont font, XBrush brush, double penX, double baseline, double trackingPoints)
+    {
+        if (trackingPoints == 0 || text.Length <= 1)
+        {
+            graphics.DrawString(text, font, brush, new XPoint(penX, baseline), baselineFormat);
+            return;
+        }
+
+        var glyphX = penX;
+        foreach (var ch in text)
+        {
+            var single = ch.ToString();
+            graphics.DrawString(single, font, brush, new XPoint(glyphX, baseline), baselineFormat);
+            glyphX += graphics.MeasureString(single, font).Width + trackingPoints;
         }
     }
 
@@ -1057,13 +1077,16 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                         continue;
                     }
 
-                    pendingSpaceWidth += spaceWidth * token.Text.Length;
+                    pendingSpaceWidth += (spaceWidth + run.Properties.CharacterSpacingPoints) * token.Text.Length;
                     pendingSpaceFont = font;
                     pendingSpaceProps = run.Properties;
                     continue;
                 }
 
-                var wordWidth = measure.MeasureString(token.Text, font).Width;
+                // w:spacing character tracking is added after every glyph (points); fold it into
+                // the word width so measurement matches the per-glyph draw in DrawItem.
+                var wordWidth = measure.MeasureString(token.Text, font).Width
+                                + run.Properties.CharacterSpacingPoints * token.Text.Length;
                 if (current.Items.Count > 0 && current.Width + pendingSpaceWidth + wordWidth > EffectiveWidth())
                 {
                     Flush();

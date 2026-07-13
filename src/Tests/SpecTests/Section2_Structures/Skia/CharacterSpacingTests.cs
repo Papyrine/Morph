@@ -68,6 +68,56 @@ public class CharacterSpacingTests
     }
 
     [Test]
+    public async Task CharacterSpacing_SpreadsGlyphsAtDrawTime()
+    {
+        // Regression for the "PTA  MEETING" bug: tracking must spread the glyphs when they are
+        // DRAWN, not just widen the measured box (which dumped the extra space into the trailing
+        // gap, leaving the letters clumped). A single tracked word's ink should reach markedly
+        // further right than the same word drawn tight.
+        static int RightmostInkX(SKBitmap bitmap)
+        {
+            for (var x = bitmap.Width - 1; x >= 0; x--)
+            {
+                for (var y = 0; y < bitmap.Height; y++)
+                {
+                    if (bitmap.GetPixel(x, y).Alpha > 10)
+                    {
+                        return x;
+                    }
+                }
+            }
+
+            return 0;
+        }
+
+        static ParagraphElement Word(double spacing) =>
+            new()
+            {
+                Runs = [new() {Text = "ABCDE", Properties = new() {FontSizePoints = 24, CharacterSpacingPoints = spacing}}],
+                Properties = new()
+            };
+
+        var (ctx1, tr1, bmp1, cvs1) = CreateRenderer();
+        using var _b1 = bmp1;
+        using var _c1 = cvs1;
+        using var _x1 = ctx1;
+
+        var (ctx2, tr2, bmp2, cvs2) = CreateRenderer();
+        using var _b2 = bmp2;
+        using var _c2 = cvs2;
+        using var _x2 = ctx2;
+
+        tr1.RenderParagraph(cvs1, Word(0));
+        tr2.RenderParagraph(cvs2, Word(8));
+
+        var tight = RightmostInkX(bmp1);
+        var spread = RightmostInkX(bmp2);
+
+        // 5 glyphs × 8pt tracking at 96 DPI adds ~4 internal gaps × ~10.7px ≈ 42px of spread.
+        await Assert.That(spread).IsGreaterThan(tight + 25);
+    }
+
+    [Test]
     public async Task CharacterSpacing_Zero_SameAsDefault()
     {
         var (ctx1, tr1, bmp1, cvs1) = CreateRenderer();
