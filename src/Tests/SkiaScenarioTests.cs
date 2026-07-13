@@ -66,7 +66,9 @@ public class SkiaScenarioTests
             using var expected = new MagickImage(expectedFile);
             using var actual = new MagickImage(actualFile);
 
-            expected.Compare(actual, ErrorMetric.Absolute, out var errorMetric);
+            // RootMeanSquared is normalized to 0-1 across Magick.NET versions; Absolute became a
+            // raw pixel-difference count in Magick.NET 14.15.
+            expected.Compare(actual, ErrorMetric.RootMeanSquared, out var errorMetric);
 
             errorMetric = Math.Round(errorMetric, 4);
             diffs.Add(new(i + 1, errorMetric, Path.GetFileName(expectedFile), $"skia_result#page_{i+1:0000}.verified.png", $"skia_result#page_{i+1:0000}.received.png"));

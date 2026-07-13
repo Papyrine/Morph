@@ -66,7 +66,10 @@ public class ImageSharpScenarioTests
             using var expected = new MagickImage(expectedFile);
             using var actual = new MagickImage(actualFile);
 
-            expected.Compare(actual, ErrorMetric.Absolute, out var errorMetric);
+            // RootMeanSquared is normalized to 0-1 (0 = identical, 1 = maximally different) across
+            // Magick.NET versions. ErrorMetric.Absolute used to be normalized too, but Magick.NET
+            // 14.15 changed it to a raw pixel-difference count (values in the millions/billions).
+            expected.Compare(actual, ErrorMetric.RootMeanSquared, out var errorMetric);
 
             errorMetric = Math.Round(errorMetric, 4);
             diffs.Add(new(i + 1, errorMetric, Path.GetFileName(expectedFile), $"imagesharp_result#page_{i + 1:0000}.verified.png", $"imagesharp_result#page_{i + 1:0000}.received.png"));
