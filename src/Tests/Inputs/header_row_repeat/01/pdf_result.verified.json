@@ -28,21 +28,21 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 6811342831.5,
+      "ErrorMetric": 0.1956,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 6960181875.75,
+      "ErrorMetric": 0.1978,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 3287192424.0,
+      "ErrorMetric": 0.1364,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"

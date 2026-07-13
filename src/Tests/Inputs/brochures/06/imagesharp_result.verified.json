@@ -4,14 +4,14 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 4699626066.75,
+      "ErrorMetric": 0.1333,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "imagesharp_result#page_0001.verified.png",
       "ReceivedFile": "imagesharp_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 17287195207.0,
+      "ErrorMetric": 0.2944,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "imagesharp_result#page_0002.verified.png",
       "ReceivedFile": "imagesharp_result#page_0002.received.png"
