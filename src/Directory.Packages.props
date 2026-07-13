@@ -16,7 +16,7 @@
     <PackageVersion Include="Verify.Bunit" Version="13.0.4" />
     <PackageVersion Include="Verify.Playwright" Version="3.1.1" />
     <PackageVersion Include="DocumentFormat.OpenXml" Version="3.5.1" />
-    <PackageVersion Include="Magick.NET-Q16-AnyCPU" Version="14.14.0" />
+    <PackageVersion Include="Magick.NET-Q16-AnyCPU" Version="14.15.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
     <PackageVersion Include="Microsoft.Office.Interop.Word" Version="15.0.4797.1004" />
     <PackageVersion Include="NUnit" Version="4.6.1" />
@@ -39,9 +39,9 @@
     <PackageVersion Include="SixLabors.ImageSharp.Drawing" Version="3.0.0" />
     <PackageVersion Include="Svg.Skia" Version="5.1.1" />
     <PackageVersion Include="Verify.PDFium" Version="1.2.0" />
-    <PackageVersion Include="TUnit" Version="1.58.0" />
+    <PackageVersion Include="TUnit" Version="1.59.0" />
     <PackageVersion Include="Verify.DiffPlex" Version="3.3.0" />
     <PackageVersion Include="Verify.ImageMagick" Version="3.8.8" />
-    <PackageVersion Include="Verify.TUnit" Version="31.24.0" />
+    <PackageVersion Include="Verify.TUnit" Version="31.24.1" />
   </ItemGroup>
 </Project>
