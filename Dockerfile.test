@@ -12,9 +12,9 @@
 # under the tag is a source of cross-environment rendering drift. To bump:
 #   docker buildx imagetools inspect mcr.microsoft.com/dotnet/sdk:10.0
 # then update the digest below (and regenerate baselines in the container).
-# The pinned image's SDK must satisfy global.json (currently 10.0.301) — pinning
+# The pinned image's SDK must satisfy global.json (currently 10.0.302) — pinning
 # an older patch than global.json requires makes `dotnet` fail to find an SDK.
-FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:10.0@sha256:548d93f8a18a1acbe6cc127bc4f47281430d34a9e35c18afa80a8d6741c2adc3
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:10.0@sha256:ed034a8bf0b24ded0cbbac07e17825d8e9ebfe21e308191d0f7421eaf5ad4664
 
 # SkiaSharp.NativeAssets.Linux.NoDependencies bundles freetype/expat itself.
 # The .NET SDK image already ships with ICU, so we only need to add fontconfig

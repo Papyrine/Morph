@@ -1594,18 +1594,14 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         // on Dispose in FinishCurrentPage.
         currentCanvas = currentPage.Frames.RootFrame.CreateCanvas(Configuration.Default, new());
 
-        var bgColor = context.PageSettings.BackgroundColorHex;
-        Color fillColor;
-        if (string.IsNullOrEmpty(bgColor))
+        // A fresh Image<Rgba32> is already transparent, so the WordArt rasterizer skips the fill;
+        // otherwise clear to the background color if specified, else white.
+        if (!context.TransparentBackground)
         {
-            fillColor = Color.White;
+            var bgColor = context.PageSettings.BackgroundColorHex;
+            var fillColor = string.IsNullOrEmpty(bgColor) ? Color.White : ParseColor(bgColor);
+            currentCanvas.Fill(context.GetBrush(fillColor), new RectanglePolygon(0, 0, context.PageWidthPixels, context.PageHeightPixels));
         }
-        else
-        {
-            fillColor = ParseColor(bgColor);
-        }
-
-        currentCanvas.Fill(context.GetBrush(fillColor), new RectanglePolygon(0, 0, context.PageWidthPixels, context.PageHeightPixels));
 
         DrawWatermarks();
 

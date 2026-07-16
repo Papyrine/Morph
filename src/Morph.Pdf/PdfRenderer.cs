@@ -24,7 +24,8 @@ static class PdfRenderer
         var renderer = new PdfPageRenderer(context)
         {
             OnWarning = options.OnWarning,
-            Pages = options.Pages
+            Pages = options.Pages,
+            RasterizeWordArt = options.RasterizeWordArt
         };
         renderer.RenderDocument(document);
 
@@ -59,8 +60,12 @@ static class PdfRenderer
             options.FontFallback,
             options.FontDirectory);
         // No OnWarning here — the real render reports warnings; forwarding them from the counting
-        // pass too would emit every warning twice.
-        var renderer = new PdfPageRenderer(context);
+        // pass too would emit every warning twice. RasterizeWordArt must match the real render so
+        // WordArt reserves the same height in both passes and pagination stays consistent.
+        var renderer = new PdfPageRenderer(context)
+        {
+            RasterizeWordArt = options.RasterizeWordArt
+        };
         var total = renderer.RenderDocument(document);
         context.DisposeImages();
         return total;

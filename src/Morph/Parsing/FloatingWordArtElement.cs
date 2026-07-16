@@ -2,7 +2,7 @@
 /// Represents a floating/positioned WordArt text element with special formatting.
 /// Unlike WordArtElement (inline), this is positioned at absolute coordinates and doesn't consume flow space.
 /// </summary>
-sealed class FloatingWordArtElement : DocumentElement
+sealed class FloatingWordArtElement : DocumentElement, IWordArtVisual
 {
     /// <summary>The text content of the WordArt.</summary>
     public required string Text { get; init; }

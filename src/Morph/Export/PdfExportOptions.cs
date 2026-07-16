@@ -22,4 +22,14 @@ public sealed record PdfExportOptions : ExportOptions
     /// renders every page.
     /// </summary>
     public PageRange? Pages { get; init; }
+
+    /// <summary>
+    /// When true (the default), inline and floating WordArt is rendered with full fidelity
+    /// (glyph warps, outline, shadow, glow, reflection) by rasterizing it through a raster backend
+    /// — <c>Morph.Skia</c> if it can be loaded, otherwise <c>Morph.ImageSharp</c> — and embedding
+    /// the resulting image. This takes effect only when one of those assemblies is deployed
+    /// alongside <c>Morph.Pdf</c>; otherwise, and when set to false, WordArt falls back to plain
+    /// text occupying the shape's box.
+    /// </summary>
+    public bool RasterizeWordArt { get; init; } = true;
 }

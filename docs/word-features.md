@@ -1622,12 +1622,12 @@ The watermark feature already extracts the small VML subset Morph cares about (`
 Decorative text with fill, outline, shadow, reflection, and glow effects.
 
 - **OOXML**: `wps:wsp` with WordArt-style text and `a:effectLst`
-- **Model**: `WordArtElement`, `FloatingWordArtElement`
+- **Model**: `WordArtElement`, `FloatingWordArtElement` (both implement `IWordArtVisual`)
 - **Parse**: `DocumentParser` — WordArt extraction
-- **Render**: `TextRenderer` — WordArt rendering methods
-- **Test**: `wordart/`
+- **Render**: `SkiaPageRenderer` / `ImageSharpPageRenderer` — `RenderWordArt` (warps + effect layers). The PDF backend has no vector WordArt path: it embeds the shape as a transparent PNG produced by an optional raster backend, so a PDF gets the same warps/effects as the PNG output.
+- **Test**: `wordart/`, `wordart-envelope/`
 
-> **Contributors**: Effects parsed: shadow, reflection, glow, outline (color + width), fill color. Rendered as styled text with effect layers.
+> **Contributors**: Effects parsed: shadow, reflection, glow, outline (color + width), fill color. The raster backends draw styled text with effect layers directly. The PDF backend rasterizes each WordArt shape (`SkiaWordArtRasterizer` / `ImageSharpWordArtRasterizer`, discovered reflectively by `WordArtRasterizerFactory` — Skia preferred, then ImageSharp) into a transparent PNG at 300 DPI via the core `IWordArtRasterizer` contract (`WordArtRasterization.cs`) and embeds it at the shape's box. When neither `Morph.Skia` nor `Morph.ImageSharp` can be loaded, or `PdfExportOptions.RasterizeWordArt` is false, it falls back to the shape's plain text. The rasterizer reuses the full page renderer on a single-element transparent page (`RenderContextBase.TransparentBackground`), so the embedded image is pixel-identical to the raster backends' inline WordArt.
 
 
 #### WordArt Transforms `DONE`
