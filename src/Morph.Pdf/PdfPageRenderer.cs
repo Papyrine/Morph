@@ -29,6 +29,13 @@ sealed class PdfPageRenderer : PageRendererBase
     /// <see cref="ExportOptions.OnWarning"/>.</summary>
     public Action<ExportWarning>? OnWarning { get; init; }
 
+    /// <summary>
+    /// When true, WordArt is embedded as an image rendered by an optional raster backend; when
+    /// false (or no backend is loadable) it falls back to plain text. Mirrors
+    /// <see cref="PdfExportOptions.RasterizeWordArt"/>.
+    /// </summary>
+    public bool RasterizeWordArt { get; init; }
+
     public PdfPageRenderer(PdfRenderContext context) : base(context)
     {
         this.context = context;
@@ -198,9 +205,11 @@ sealed class PdfPageRenderer : PageRendererBase
                 RenderContentControl(contentControl);
                 hasSignificantContentOnCurrentPage = true;
                 break;
+            case FloatingWordArtElement floatingWordArt:
+                RenderFloatingWordArt(floatingWordArt);
+                break;
             case InkElement:
             case FloatingShapeElement:
-            case FloatingWordArtElement:
                 OnWarning?.Invoke(new(WarningKind.UnsupportedElement,
                     $"{element.GetType().Name} is not rendered by the PDF backend and was dropped."));
                 break;
@@ -221,10 +230,11 @@ sealed class PdfPageRenderer : PageRendererBase
         });
     }
 
-    // The PDF backend draws WordArt as its plain text (no glyph warps), but it must still occupy the
-    // shape's declared block height so pagination lines up with Word and the raster backends. Without
-    // this a tall section of WordArt shapes collapses to a few text lines and the pages that Word
-    // spreads them across are lost. Mirrors SkiaPageRenderer.RenderWordArt's space handling.
+    // Inline WordArt is embedded as an image rendered by an optional raster backend (full glyph
+    // warps/effects); when none is available it falls back to plain text (no warps). Either way the
+    // block must still occupy the shape's declared height so pagination lines up with Word and the
+    // raster backends — without this a tall section of WordArt collapses to a few text lines and the
+    // pages Word spreads them across are lost.
     void RenderWordArtBlock(WordArtElement wordArt)
     {
         var height = (float) wordArt.HeightPoints;
@@ -234,8 +244,127 @@ sealed class PdfPageRenderer : PageRendererBase
         }
 
         var startY = context.CurrentY;
-        RenderTextAsParagraph(wordArt.Text);
+        if (!TryEmbedWordArt(wordArt, context.ContentLeft, startY, wordArt.WidthPoints, wordArt.HeightPoints))
+        {
+            RenderTextAsParagraph(wordArt.Text);
+        }
+
         context.CurrentY = Math.Max(context.CurrentY, startY + height);
+    }
+
+    // Floating WordArt is positioned out of flow (no CurrentY advance). It renders only when a
+    // raster backend produced the image; otherwise it's dropped with a warning — the previous
+    // behaviour for every floating WordArt in the PDF backend.
+    void RenderFloatingWordArt(FloatingWordArtElement wordArt)
+    {
+        if (HasOutput)
+        {
+            var bounds = FloatingPosition.ResolveBounds(
+                context,
+                wordArt.HorizontalAnchor,
+                wordArt.VerticalAnchor,
+                wordArt.HorizontalPositionPoints,
+                wordArt.VerticalPositionPoints,
+                wordArt.WidthPoints,
+                wordArt.HeightPoints,
+                wordArt.HorizontalPositionPercent,
+                wordArt.VerticalPositionPercent);
+
+            if (TryEmbedWordArt(wordArt, bounds.X, bounds.Y, wordArt.WidthPoints, wordArt.HeightPoints))
+            {
+                hasSignificantContentOnCurrentPage = true;
+                return;
+            }
+        }
+
+        OnWarning?.Invoke(new(WarningKind.UnsupportedElement,
+            $"{nameof(FloatingWordArtElement)} is not rendered by the PDF backend and was dropped."));
+    }
+
+    // The raster user space is 72 DPI (points == pixels); render WordArt higher so the embedded
+    // image stays crisp when the PDF is zoomed. WordArt boxes are small, so the PNG stays tiny.
+    const int wordArtRasterDpi = 300;
+
+    IWordArtRasterizer? wordArtRasterizer;
+    bool wordArtRasterizerResolved;
+    WordArtRasterOptions? wordArtRasterOptions;
+
+    // Resolves the optional raster backend once, honouring the RasterizeWordArt switch.
+    IWordArtRasterizer? GetWordArtRasterizer()
+    {
+        if (!RasterizeWordArt)
+        {
+            return null;
+        }
+
+        if (!wordArtRasterizerResolved)
+        {
+            wordArtRasterizer = WordArtRasterizerFactory.TryGet();
+            wordArtRasterizerResolved = true;
+        }
+
+        return wordArtRasterizer;
+    }
+
+    // Rasterizes the WordArt visual to a transparent PNG and draws it into the given box (points).
+    // Returns false — so the caller can fall back to text — when no backend is available, the
+    // backend produced nothing, or a draw failed.
+    bool TryEmbedWordArt(IWordArtVisual visual, double xPoints, double yPoints, double widthPoints, double heightPoints)
+    {
+        if (!HasOutput)
+        {
+            return false;
+        }
+
+        var rasterizer = GetWordArtRasterizer();
+        if (rasterizer == null)
+        {
+            return false;
+        }
+
+        wordArtRasterOptions ??= new()
+        {
+            Dpi = wordArtRasterDpi,
+            FontWidthScale = context.FontWidthScale,
+            FontFallback = context.FontFallback,
+            FontDirectory = context.FontDirectory,
+            Deterministic = true
+        };
+
+        byte[]? png;
+        try
+        {
+            png = rasterizer.Render(visual, wordArtRasterOptions);
+        }
+        catch (Exception exception)
+        {
+            OnWarning?.Invoke(new(WarningKind.UnsupportedElement,
+                $"WordArt could not be rasterized for the PDF and fell back to text: {exception.Message}"));
+            return false;
+        }
+
+        if (png == null)
+        {
+            return false;
+        }
+
+        try
+        {
+            // The PNG is the box surrounded by WordArtRasterPage.Padding on every side (so warp
+            // overflow isn't clipped). Shift the draw origin back by that padding and grow the
+            // rectangle to match, so the box region still lands at (xPoints, yPoints) and the
+            // overflow spills onto the surrounding page — mirroring the raster backends.
+            var pad = WordArtRasterPage.Padding(visual);
+            var image = context.GetImage(png);
+            Graphics.DrawImage(image, xPoints - pad, yPoints - pad, widthPoints + 2 * pad, heightPoints + 2 * pad);
+            return true;
+        }
+        catch (Exception exception)
+        {
+            OnWarning?.Invoke(new(WarningKind.ImageRenderingFailed,
+                $"Rasterized WordArt could not be embedded in the PDF and was dropped: {exception.Message}"));
+            return false;
+        }
     }
 
     void RenderFloatingTextBox(FloatingTextBoxElement textBox)

@@ -16,17 +16,15 @@
       {
         "Width": 595.2999877929688,
         "Height": 841.9000244140625,
-        "Text": "ACTUAL WORDART SHAPES\nThese use DrawingML WordArt transforms\nArc Text Up\nArc Text Down\nCircle Text\nWavy WordArt"
+        "Text": "ACTUAL WORDART SHAPES\nThese use DrawingML WordArt transforms"
       },
       {
         "Width": 595.2999877929688,
-        "Height": 841.9000244140625,
-        "Text": "Chevron Up\nChevron Down\nFade Effect\nSlanted Up\nSlanted Down"
+        "Height": 841.9000244140625
       },
       {
         "Width": 595.2999877929688,
-        "Height": 841.9000244140625,
-        "Text": "Can Shape\nInflated\nDeflated"
+        "Height": 841.9000244140625
       },
       {
         "Width": 595.2999877929688,
@@ -95,21 +93,21 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0311,
+      "ErrorMetric": 0.0498,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.2074,
+      "ErrorMetric": 0.2347,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.207,
+      "ErrorMetric": 0.3085,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"

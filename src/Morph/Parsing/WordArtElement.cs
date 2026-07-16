@@ -1,7 +1,7 @@
 ﻿/// <summary>
 /// Represents a WordArt text element with special formatting.
 /// </summary>
-sealed class WordArtElement : DocumentElement
+sealed class WordArtElement : DocumentElement, IWordArtVisual
 {
     /// <summary>The text content of the WordArt.</summary>
     public required string Text { get; init; }

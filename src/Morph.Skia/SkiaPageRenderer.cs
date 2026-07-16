@@ -2025,9 +2025,13 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         currentCanvas = new(currentPage);
 
-        // Clear with background color if specified, otherwise white
+        // Clear to transparency (WordArt rasterizer), the background color if specified, else white.
         var bgColor = context.PageSettings.BackgroundColorHex;
-        if (string.IsNullOrEmpty(bgColor))
+        if (context.TransparentBackground)
+        {
+            currentCanvas.Clear(SKColors.Transparent);
+        }
+        else if (string.IsNullOrEmpty(bgColor))
         {
             currentCanvas.Clear(SKColors.White);
         }

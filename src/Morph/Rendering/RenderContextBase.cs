@@ -30,6 +30,13 @@ abstract class RenderContextBase
     /// </summary>
     public bool DeterministicRendering { get; }
 
+    /// <summary>
+    /// When <c>true</c> the backend clears each new page to full transparency instead of the
+    /// page background colour (or white). Used by the standalone WordArt rasterizers so the
+    /// produced PNG composites cleanly when embedded elsewhere (e.g. into a PDF).
+    /// </summary>
+    public bool TransparentBackground { get; init; }
+
     // Header/footer space adjustments
     float headerSpace;
     float footerSpace;
