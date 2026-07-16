@@ -126,8 +126,8 @@ abstract class RenderContextBase
         FontDirectory = fontDirectory;
         DeterministicRendering = deterministicRendering ?? DefaultFontSettings.DeterministicRendering;
 
-        PageWidthPixels = (int) (pageSettings.WidthPoints * Scale);
-        PageHeightPixels = (int) (pageSettings.HeightPoints * Scale);
+        PageWidthPixels = ToPagePixels(pageSettings.WidthPoints, dpi);
+        PageHeightPixels = ToPagePixels(pageSettings.HeightPoints, dpi);
 
         CurrentY = ContentTop;
     }
@@ -322,9 +322,15 @@ abstract class RenderContextBase
     public void UpdatePageSettings(PageSettings newSettings)
     {
         PageSettings = newSettings;
-        PageWidthPixels = (int) (newSettings.WidthPoints * Scale);
-        PageHeightPixels = (int) (newSettings.HeightPoints * Scale);
+        PageWidthPixels = ToPagePixels(newSettings.WidthPoints, Dpi);
+        PageHeightPixels = ToPagePixels(newSettings.HeightPoints, Dpi);
     }
+
+    // Must be computed in double precision rather than via the float Scale. For common page sizes
+    // the exact pixel count is a whole number (US Letter at 150 DPI is 612x792pt -> 1275x1650px),
+    // and float Scale is a hair below the true dpi/72 ratio, which drags the product just under the
+    // boundary (1274.99995) so the truncation loses a whole pixel off each axis.
+    static int ToPagePixels(double points, int dpi) => (int) (points * dpi / 72.0);
 
     public bool HasSpaceFor(float heightPoints)
     {
