@@ -2813,10 +2813,16 @@ sealed class DocumentParser(string defaultFont)
         // Parse line numbering settings
         var lineNumbers = ParseLineNumberSettings(sectionProps);
 
-        // Parse document grid settings (used by Word to align text to a baseline grid)
+        // Parse document grid settings (used by Word to align text to a baseline grid).
+        // w:docGrid applies a grid only when @type asks for one — Word writes a bare
+        // <w:docGrid w:linePitch="360"/> with no @type into most documents as a stored
+        // default and applies no grid to layout. Treating that pitch as a per-line floor
+        // inflated business-plans/13's 11pt body lines to 18pt, overflowing pages Word fits.
         double documentGridLinePitchPoints = 0;
         var docGrid = sectionProps.GetFirstChild<DocGrid>();
-        if (docGrid?.LinePitch?.HasValue == true)
+        if (docGrid?.LinePitch?.HasValue == true &&
+            docGrid.Type?.Value is { } gridType &&
+            gridType != DocGridValues.Default)
         {
             documentGridLinePitchPoints = docGrid.LinePitch.Value / twipsPerPoint;
         }
@@ -3121,6 +3127,43 @@ sealed class DocumentParser(string defaultFont)
             : null;
     }
 
+    /// <summary>
+    /// Drops page breaks synthesized from <c>w:lastRenderedPageBreak</c> hints when they land on
+    /// a boundary the flow already breaks at — right after an explicit page break or a section
+    /// break that starts a new page. Word writes the hint into the first run of each rendered
+    /// page, so the marker that follows such a boundary records the SAME page start; honouring
+    /// it manufactured a blank page Word never produced (business-plans/13: the cover's nextPage
+    /// sectPr is immediately followed by the TOC page's hint). Floating/behind-text elements
+    /// between them don't advance the flow, so they are looked past.
+    /// </summary>
+    static void RemoveRedundantPaginationHintBreaks(List<DocumentElement> elements)
+    {
+        for (var i = elements.Count - 1; i >= 0; i--)
+        {
+            if (elements[i] is not PageBreakElement {FromPaginationHint: true})
+            {
+                continue;
+            }
+
+            for (var j = i - 1; j >= 0; j--)
+            {
+                var previous = elements[j];
+                if (previous is FloatingImageElement or FloatingShapeElement or FloatingTextBoxElement or FloatingWordArtElement)
+                {
+                    continue;
+                }
+
+                if (previous is PageBreakElement
+                    or SectionBreakElement {BreakType: SectionBreakType.NextPage or SectionBreakType.EvenPage or SectionBreakType.OddPage})
+                {
+                    elements.RemoveAt(i);
+                }
+
+                break;
+            }
+        }
+    }
+
     List<DocumentElement> ParseElements(Body body, MainDocumentPart mainPart)
     {
         var elements = new List<DocumentElement>();
@@ -3169,6 +3212,8 @@ sealed class DocumentParser(string defaultFont)
                     break;
             }
         }
+
+        RemoveRedundantPaginationHintBreaks(elements);
 
         return elements;
     }
@@ -4920,7 +4965,7 @@ sealed class DocumentParser(string defaultFont)
                                     runs.Clear();
                                 }
 
-                                result.Add(new PageBreakElement());
+                                result.Add(new PageBreakElement {FromPaginationHint = true});
                             }
                         }
                         else if (runChild is Text)
