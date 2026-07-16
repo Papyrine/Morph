@@ -468,7 +468,11 @@ sealed class TextRenderer(SkiaRenderContext context) :
         }
         else
         {
-            context.CurrentY += (float)props.SpacingBeforePoints;
+            // Margin collapsing, as in the body path: Word charges max(after, before) between
+            // consecutive paragraphs, not the sum. Adding the full spacing-before here made the
+            // cell render taller than TableHeightCalculator.MeasureCellHeight measured the row, so
+            // the content overflowed and whatever followed the table drew on top of it.
+            context.CurrentY += Math.Max(0, (float)props.SpacingBeforePoints - context.LastParagraphSpacingAfterPoints);
         }
         context.LastParagraphSpacingAfterPoints = 0;
 
