@@ -215,13 +215,20 @@ public class TabStopResolverTests
         await Assert.That(dest).IsEqualTo(94.0);
     }
 
-    // === Clamping past availableEndX ===
+    // === Stops past availableEndX ===
+    //
+    // Word places the post-tab text at the stop's TRUE position; the content area cuts off what
+    // falls outside, so visibility hinges on where the text STARTS. Verified against Word renders
+    // of both regimes: a stop just past a narrow cell's edge still shows its page number
+    // (business-plans/13), a stop far past it shows leader dots and no number
+    // (table_of_contents/03).
 
     [Test]
-    public async Task Right_ClampsToAvailableEndX_WhenStopIsPastIt()
+    public async Task Right_SuppressesFollowing_WhenTextWouldStartPastAvailableEndX()
     {
-        // TOC1 case: style declares a right tab at 540pt for full-page width, but the paragraph
-        // lives in a 250pt-wide cell. The page number must still right-align at the cell edge.
+        // table_of_contents/03: a right-dot stop at full-page width (540pt) inside a 250pt cell.
+        // The 8pt page number would start at 532 — wholly outside — so the leader fills to the
+        // edge and the number is dropped.
         var stops = new List<TabStop>
         {
             new()
@@ -237,11 +244,34 @@ public class TabStopResolverTests
             defaultTabStopPoints: 36, leftIndentPoints: 0,
             availableEndX: 250);
 
-        // Destination clamps to the cell edge; the leader fills the gap and the post-tab page
-        // number is dropped via suppressFollowing (Word's TOC-in-narrow-cell behaviour).
         await Assert.That(dest).IsEqualTo(250.0);
         await Assert.That(suppressFollowing).IsTrue();
         await Assert.That(stop!.Leader).IsEqualTo(TabLeader.Dot);
+    }
+
+    [Test]
+    public async Task Right_HonoursTrueStop_WhenTextStartsInsideAvailableEndX()
+    {
+        // business-plans/13: TOC1's 245pt right stop in a cell whose content width computes a
+        // hair narrower (244pt). The 7pt page number starts at 238 — inside — so it renders at
+        // the stop's true position, spilling the last point into the cell padding as Word does.
+        var stops = new List<TabStop>
+        {
+            new()
+            {
+                PositionPoints = 245,
+                Alignment = TabAlignment.Right
+            }
+        };
+
+        var (dest, stop, suppressFollowing) = TabStopResolver.Resolve(
+            cursorX: 55, measureFollowingWidth: () => 7, stops,
+            defaultTabStopPoints: 36, leftIndentPoints: 0,
+            availableEndX: 244);
+
+        await Assert.That(dest).IsEqualTo(238.0);
+        await Assert.That(suppressFollowing).IsFalse();
+        await Assert.That(stop!.PositionPoints).IsEqualTo(245.0);
     }
 
     [Test]
@@ -257,16 +287,17 @@ public class TabStopResolverTests
             }
         };
 
-        var (dest, _, _) = TabStopResolver.Resolve(
+        var (dest, _, suppressFollowing) = TabStopResolver.Resolve(
             cursorX: 30, measureFollowingWidth: () => 8, stops,
             defaultTabStopPoints: 36, leftIndentPoints: 0,
             availableEndX: 250);
 
         await Assert.That(dest).IsEqualTo(192.0);
+        await Assert.That(suppressFollowing).IsFalse();
     }
 
     [Test]
-    public async Task Center_ClampsToAvailableEndX_WhenStopIsPastIt()
+    public async Task Center_SuppressesFollowing_WhenTextWouldStartPastAvailableEndX()
     {
         var stops = new List<TabStop>
         {
@@ -277,6 +308,7 @@ public class TabStopResolverTests
             }
         };
 
+        // Centred text (60pt) would start at 540 − 30 = 510, past the 250pt edge.
         var (dest, _, suppressFollowing) = TabStopResolver.Resolve(
             cursorX: 30, measureFollowingWidth: () => 60, stops,
             defaultTabStopPoints: 36, leftIndentPoints: 0,

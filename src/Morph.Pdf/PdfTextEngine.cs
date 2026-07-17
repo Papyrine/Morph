@@ -784,9 +784,10 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         return null;
     }
 
-    // When a Right/Centre/Decimal stop is clamped to the content edge (its real position lies past
-    // it), Word fills the leader to the edge and hides the post-tab text (a TOC page number that
-    // would overflow). Returns the last run index to consume so the caller skips that text.
+    // When a Right/Centre/Decimal stop's following text would start at or past the visible
+    // content edge, nothing of it can show (Word fills the leader to the edge and the text is
+    // cut off — a TOC page number whose stop lies far past a narrow cell). Returns the last run
+    // index to consume so the caller skips that text.
     static int SkipFollowingTabContent(IReadOnlyList<Run> runs, int tabRunIndex)
     {
         var lastConsumed = tabRunIndex;
@@ -853,7 +854,13 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         // over-extended hanging-indent list first lines — issue #151 — and only appeared to help tab
         // columns by masking a dropped right indent, now honoured. Removed; no line spills the margin.)
         var firstLineIndent = FirstLineOffset(paragraph);
-        double EffectiveWidth() => lines.Count == 0 ? availableWidth - firstLineIndent : availableWidth;
+        // Raised for the remainder of a line when a tab matches an explicit Right/Center/Decimal
+        // stop, so the wrap width covers the stop's true extent — Word honours such stops inside
+        // the right-indent zone (TOC page numbers), so the post-tab text must not wrap away.
+        // Scoped to explicit R/C/D stops only: the earlier blanket "widen on any tab" hack
+        // over-extended hanging-indent list first lines (issue #151).
+        var lineWidthExtension = 0d;
+        double EffectiveWidth() => (lines.Count == 0 ? availableWidth - firstLineIndent : availableWidth) + lineWidthExtension;
 
         var current = new Line();
         var pendingSpaceWidth = 0d;
@@ -872,6 +879,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             pendingSpaceWidth = 0;
             pendingSpaceFont = null;
             pendingSpaceProps = null;
+            lineWidthExtension = 0;
         }
 
         void Account(LineItem item)
@@ -999,7 +1007,18 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                         paragraph.Properties.DefaultTabStopPoints,
                         leftIndent,
                         decimalPrefix,
-                        availableEndX: leftIndent + EffectiveWidth());
+                        availableEndX: leftIndent + availableWidth + RightIndent(paragraph));
+                    if (matchedStop is {Alignment: TabAlignment.Right or TabAlignment.Center or TabAlignment.Decimal})
+                    {
+                        var extentEnd = suppressFollowing
+                            ? destination
+                            : matchedStop.Alignment == TabAlignment.Center
+                                ? 2 * matchedStop.PositionPoints - destination
+                                : matchedStop.PositionPoints;
+                        var baseWrapWidth = EffectiveWidth() - lineWidthExtension;
+                        lineWidthExtension = Math.Max(lineWidthExtension, extentEnd - leftIndent - baseWrapWidth);
+                    }
+
                     var gap = destination - cursorFromLeft;
                     if (gap > 0 && current.Width + gap <= EffectiveWidth())
                     {
@@ -1064,7 +1083,11 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 }
 
                 var wordWidth = measure.MeasureString(token.Text, font).Width;
-                if (current.Items.Count > 0 && current.Width + pendingSpaceWidth + wordWidth > EffectiveWidth())
+                // A word straight after a tab filler stays put: the tab just resolved its
+                // position, and rounding drift between the tab's following-width probe and this
+                // word-by-word measure must not wrap it away (Word never does).
+                if (current.Items.Count > 0 && current.Width + pendingSpaceWidth + wordWidth > EffectiveWidth() &&
+                    !current.Items[^1].IsTabFiller)
                 {
                     Flush();
                 }

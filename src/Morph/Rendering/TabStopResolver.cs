@@ -23,21 +23,21 @@ static class TabStopResolver
     /// decimal stops fall back to right-alignment.
     /// </param>
     /// <param name="availableEndX">
-    /// Optional right-edge X (absolute, in points) past which the following text must not extend
-    /// — typically the right edge of the paragraph's content area or table cell. When supplied,
-    /// Right/Center/Decimal stops whose natural position lies past this edge are clamped so the
-    /// following text terminates exactly at it. This matches Word's behavior for TOC entries
-    /// whose style-defined right-tab (e.g. 10790 twips) lands inside a narrower table cell:
-    /// the page number still right-aligns at the cell edge, with the leader filling the gap.
+    /// Optional right-edge X (absolute, in points) of the visible content area — the paragraph's
+    /// cell or column content width, NOT reduced by the paragraph's right indent (Word honours
+    /// explicit stops inside the indent zone; TOC styles park the page number there, past the
+    /// entry text's wrap edge). Word places the post-tab text at the stop's TRUE position and the
+    /// content area cuts off whatever falls outside, so visibility hinges on where the text
+    /// STARTS: a stop just past a narrow cell's edge still shows its page number (the text starts
+    /// inside — business-plans/13), while a stop far past it shows leader dots and no number (the
+    /// text starts wholly outside — table_of_contents/03, verified against Word renders of both).
     /// </param>
     /// <returns>
-    /// <c>destinationX</c> in points, the matched <see cref="TabStop"/> (null for default-tab snap),
-    /// and <c>suppressFollowing</c>: true when a Right/Center/Decimal stop was clamped to
-    /// <paramref name="availableEndX"/> because its real position lay past the cell — in that case
-    /// the tab fills with leader to the cell edge and the post-tab content (typically a TOC page
-    /// number) is hidden, matching Word's behaviour.
-    /// If no valid destination is found past the cursor, returns <c>(cursorX, null, false)</c> —
-    /// the tab collapses.
+    /// <c>destinationX</c> in points, the matched <see cref="TabStop"/> (null for default-tab
+    /// snap), and <c>suppressFollowing</c>: true when the following text would start at or past
+    /// <paramref name="availableEndX"/> — the leader fills to the edge and the caller must drop
+    /// the post-tab content, as Word does. If no valid destination is found past the cursor,
+    /// returns <c>(cursorX, null, false)</c> — the tab collapses.
     /// </returns>
     public static (double destinationX, TabStop? stop, bool suppressFollowing) Resolve(
         double cursorX,
@@ -57,30 +57,6 @@ static class TabStopResolver
         foreach (var stop in tabStops)
         {
             var stopPosition = stop.PositionPoints;
-            var suppressFollowing = false;
-            // Clamp out-of-bounds Right/Center/Decimal stops to the available right edge.
-            // Word's behaviour for a TOC entry inside a narrow table cell: leader fills the
-            // cell width and the page number after the tab is hidden (it would have lived past
-            // the cell's right edge). We mirror that by clamping the destination to the cell
-            // edge (no following-width subtraction) and signalling the caller to drop the
-            // post-tab content.
-            if (availableEndX is { } endX &&
-                stopPosition > endX &&
-                stop.Alignment is TabAlignment.Right or TabAlignment.Center or TabAlignment.Decimal)
-            {
-                if (endX > cursorX)
-                {
-                    return (endX, stop, true);
-                }
-
-                stopPosition = endX;
-                suppressFollowing = true;
-            }
-
-            if (stopPosition <= cursorX)
-            {
-                continue;
-            }
 
             var destination = stop.Alignment switch
             {
@@ -93,9 +69,32 @@ static class TabStopResolver
                 _ => stopPosition
             };
 
+            // A Right/Center/Decimal stop past the visible edge whose following text would start
+            // at or past that edge can show nothing of the text: fill the leader to the edge and
+            // tell the caller to drop the content. When the text starts INSIDE the edge, it is
+            // honoured at its true position (it renders, spilling into the right-indent zone or
+            // cell padding as Word does).
+            if (availableEndX is { } endX &&
+                stopPosition > endX &&
+                stop.Alignment is TabAlignment.Right or TabAlignment.Center or TabAlignment.Decimal &&
+                destination >= endX)
+            {
+                if (endX > cursorX)
+                {
+                    return (endX, stop, true);
+                }
+
+                continue;
+            }
+
+            if (stopPosition <= cursorX)
+            {
+                continue;
+            }
+
             if (destination > cursorX)
             {
-                return (destination, stop, suppressFollowing);
+                return (destination, stop, false);
             }
         }
 
