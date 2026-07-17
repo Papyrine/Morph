@@ -253,23 +253,15 @@ static class TableHeightCalculator
                 height += lineHeight;
             }
 
-            // The LAST paragraph's after-spacing OVERLAPS the cell's bottom margin rather than
-            // stacking on top of it: Word sizes the cell so its bottom = max(bottomMargin, after),
-            // not bottomMargin + after. (The base height already added the bottom margin, so add
-            // only the part of the after that sticks out past it.) Stacking inflated rows by up to
-            // the full after-spacing — agendas-minutes/01 rendered ~5pt/row taller than Word, with
-            // top-aligned content pushed up. Inter-paragraph after-spacing is unaffected: it forms
-            // the visible gap between consecutive paragraphs and is added in full.
-            if (i < paragraphs.Count - 1)
-            {
-                height += (float) props.SpacingAfterPoints;
-                previousAfter = (float) props.SpacingAfterPoints;
-            }
-            else
-            {
-                var bottomInset = (float) (padding.Bottom + margin.Bottom);
-                height += Math.Max(0, (float) props.SpacingAfterPoints - bottomInset);
-            }
+            // The LAST paragraph's after-spacing stacks on the cell's bottom margin, same as
+            // inter-paragraph spacing: Word sizes the row as margins + lines + full after
+            // (measured on table_default_style: tblCellMar 3pt/3pt, Normal 8pt-after, one
+            // 12pt line -> Word row 31pt = 3 + 16.97 + 8 + 3; the earlier max-overlap rule
+            // predicted 28pt and rendered visibly short). That overlap rule dated from when
+            // cell line heights ran too small and a 2pt default-padding fudge inflated rows
+            // — each was calibrated against the other.
+            height += (float) props.SpacingAfterPoints;
+            previousAfter = (float) props.SpacingAfterPoints;
         }
 
         return height;

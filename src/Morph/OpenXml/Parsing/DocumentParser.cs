@@ -27,9 +27,17 @@ sealed class DocumentParser(string defaultFont)
     // EMUs per point
     const double emusPerPoint = 914400.0 / 72.0;
 
-    // Built-in default font size (11pt matches Word's Normal style).
+    // Word's built-in Normal style (normal.dotm), supplied when a document declares no
+    // styles.xml or no docDefaults at all. Modern Word (Aptos era, 2023+) uses
+    // w:sz w:val="24" (12pt) with w:spacing w:line="278" w:lineRule="auto" w:after="160";
+    // the Calibri-era values these replaced were 11pt / w:line="259" (1.08) / w:after="160".
+    // Verified against long_paragraph (document.xml only, no styles.xml): Word's glyph
+    // advances solve to 12pt Aptos, and its line pitch is 35.35px at 150 DPI, matching
+    // 12pt * 1.2207em (the Aptos hhea line box) * 278/240.
     // The default font family is configurable — see constructor.
-    const double builtInDefaultFontSizePoints = 11.0;
+    const double builtInDefaultFontSizePoints = 12.0;
+    const double builtInLineSpacingMultiplier = 278 / 240.0;
+    const double builtInSpacingAfterPoints = 8;
 
     // Fallback font family to use when the document does not specify one in docDefaults.
     // Passed in from the export options' DefaultFont or DefaultFontSettings.DefaultFont.
@@ -117,6 +125,20 @@ sealed class DocumentParser(string defaultFont)
     double defaultLeftIndentPoints;
     double defaultRightIndentPoints;
 
+    // Document default line spacing, used when no style supplies one. Word's built-in Normal
+    // applies only when the document declares no styles.xml or no docDefaults (see
+    // ExtractDefaultParagraphProperties); otherwise this keeps its long-standing 1.08.
+    // This deliberately does NOT read docDefaults/pPrDefault's own w:line: Word's cascade for
+    // that value is conditional in undecoded ways around table cells. Two measured
+    // counterexamples: postcards/04 declares w:line="360" yet Word renders its (atLeast-height)
+    // card cells at single spacing (applying 1.5 grows them 3->6 pages); agendas-minutes/07
+    // declares w:line="264" and applying it to the Normal-derived cell paragraphs shifts the
+    // whole content block ~45px below Word's render even though the inter-heading gaps then
+    // match Word exactly. Body-only evidence (letters/09: docDefaults without w:line renders
+    // single, not 1.08) says the docDefault should cascade for BODY paragraphs — decode the
+    // table-cell rule before wiring this up.
+    double defaultLineSpacingMultiplier = 1.08;
+
     // Document-level w:defaultTabStop in points (720 twips = 36 pt = 0.5 inch, OOXML default).
     double defaultTabStopPoints = 36;
 
@@ -131,6 +153,12 @@ sealed class DocumentParser(string defaultFont)
     // Document-default font family resolved from docDefaults; falls back to the constructor's
     // defaultFont when the document doesn't specify one. Used by every run that doesn't carry an explicit font.
     string effectiveDefaultFont = "";
+
+    // Document-default run font size resolved from docDefaults (w:rPrDefault/w:sz); falls back to
+    // Word's built-in Normal size when the document doesn't specify one. Used by every run that
+    // doesn't carry an explicit size — including runs with no w:rPr at all, which must not fall
+    // through to the RunProperties record's own static default.
+    double effectiveDefaultFontSizePoints = builtInDefaultFontSizePoints;
 
     public ParsedDocument Parse(string filePath)
     {
@@ -179,6 +207,7 @@ sealed class DocumentParser(string defaultFont)
         // that doesn't carry an explicit font inherits this. Falls back to the constructor's
         // defaultFont when the document doesn't specify one.
         effectiveDefaultFont = ResolveDocDefaultFont(mainPart) ?? defaultFont;
+        effectiveDefaultFontSizePoints = ResolveDocDefaultFontSizePoints(mainPart) ?? builtInDefaultFontSizePoints;
 
         // Extract document-level background color (w:background element)
         documentBackgroundColor = ExtractDocumentBackgroundColor(mainPart.Document);
@@ -628,6 +657,18 @@ sealed class DocumentParser(string defaultFont)
         return fonts.Ascii?.HasValue == true ? fonts.Ascii.Value : null;
     }
 
+    static double? ResolveDocDefaultFontSizePoints(MainDocumentPart mainPart)
+    {
+        var rPrDefault = mainPart.StyleDefinitionsPart?.Styles?.DocDefaults?.RunPropertiesDefault?.RunPropertiesBaseStyle;
+        var size = rPrDefault?.GetFirstChild<FontSize>();
+        if (size?.Val?.HasValue != true)
+        {
+            return null;
+        }
+
+        return double.Parse(size.Val.Value!).HalfPointsToPoints();
+    }
+
     static IReadOnlyList<Footnote> ExtractFootnotes(MainDocumentPart mainPart)
     {
         var part = mainPart.FootnotesPart;
@@ -995,9 +1036,10 @@ sealed class DocumentParser(string defaultFont)
             return styleProps;
         }
 
-        // Extract docDefaults run properties as the base defaults
+        // Extract docDefaults run properties as the base defaults. The size is already resolved
+        // from docDefaults (see effectiveDefaultFontSizePoints), so it needs no re-parse below.
         var defaultFontFamily = defaultFont;
-        var defaultFontSize = builtInDefaultFontSizePoints;
+        var defaultFontSize = effectiveDefaultFontSizePoints;
 
         var docDefaults = stylesPart.Styles.DocDefaults;
         if (docDefaults?.RunPropertiesDefault?.RunPropertiesBaseStyle != null)
@@ -1023,13 +1065,6 @@ sealed class DocumentParser(string defaultFont)
                 {
                     defaultFontFamily = defaultFonts.Ascii.Value!;
                 }
-            }
-
-            // Font size from docDefaults
-            var defaultSz = rPrDefault.GetFirstChild<FontSize>();
-            if (defaultSz?.Val?.HasValue == true)
-            {
-                defaultFontSize = double.Parse(defaultSz.Val.Value!).HalfPointsToPoints();
             }
 
             // Text colour from docDefaults — the base of the run-colour cascade. Many templates set
@@ -3000,14 +3035,16 @@ sealed class DocumentParser(string defaultFont)
         // styles.xml and rely on this.
         if (stylesPart?.Styles == null)
         {
-            defaultSpacingAfterPoints = 8;
+            defaultSpacingAfterPoints = builtInSpacingAfterPoints;
+            defaultLineSpacingMultiplier = builtInLineSpacingMultiplier;
             return;
         }
 
         var docDefaults = stylesPart.Styles.DocDefaults;
         if (docDefaults == null)
         {
-            defaultSpacingAfterPoints = 8;
+            defaultSpacingAfterPoints = builtInSpacingAfterPoints;
+            defaultLineSpacingMultiplier = builtInLineSpacingMultiplier;
             return;
         }
 
@@ -3037,6 +3074,8 @@ sealed class DocumentParser(string defaultFont)
             {
                 defaultSpacingBeforePoints = double.Parse(spacing.Before.Value!) / twipsPerPoint;
             }
+
+            // pPrDefault's w:line is deliberately not read — see defaultLineSpacingMultiplier.
         }
 
         // Indentation defaults
@@ -3852,13 +3891,14 @@ sealed class DocumentParser(string defaultFont)
                 InsideHorizontalBorder = insideHBorder,
                 InsideVerticalBorder = insideVBorder,
                 // For tables without an explicit w:tblCellMar and no inherited style padding,
-                // apply a 2pt top/bottom default. The OOXML spec calls for 0 vertical padding,
-                // but real Word adds ~2pt of breathing room — an unstyled table renders at
-                // roughly font-line + 2 * 2pt + spacing-after rather than the spec's bare
-                // line + spacing-after. Without this padding the table fits fewer rows on a
-                // page than Word does, breaking row-by-row pagination heuristics.
+                // vertical padding is 0, per the OOXML spec AND per Word's real render: an
+                // unstyled row measures exactly font-line + spacing-after (simple_table row
+                // pitch 52.02px at 150 DPI = 12pt Aptos line 16.97pt + 8pt after — no
+                // breathing room). An earlier 2pt top/bottom fudge here compensated for the
+                // built-in Normal line height being too small (11pt x 1.08 instead of Word's
+                // 12pt x 278/240); with that fixed, the fudge overshot every unstyled row.
                 DefaultCellPadding = defaultCellPadding ?? styleInfo?.DefaultCellPadding ??
-                    new CellSpacing(top: 2, right: 0, bottom: 2, left: 0),
+                    new CellSpacing(0),
                 DefaultCellMargin = defaultCellMargin ?? new CellSpacing(0),
                 IndentPoints = indentPoints,
                 GridColumnWidths = gridColumnWidths,
@@ -8002,10 +8042,10 @@ sealed class DocumentParser(string defaultFont)
         var alignment = styleDefaults?.Alignment ?? TextAlignment.Left;
         var spacingBefore = styleDefaults?.SpacingBeforePoints ?? defaultSpacingBeforePoints;
         var spacingAfter = styleDefaults?.SpacingAfterPoints ?? defaultSpacingAfterPoints;
-        // When no style applies (bare docx without styles.xml), Word falls back to its
-        // built-in Normal style which has w:line w:val="259" w:lineRule="auto" (≈1.08).
-        // When a styles.xml IS present and provides defaults, those override this.
-        var lineSpacingMultiplier = styleDefaults?.LineSpacingMultiplier ?? 1.08;
+        // When no style applies (bare docx without styles.xml), Word falls back to its built-in
+        // Normal style — see defaultLineSpacingMultiplier, which carries that value only when the
+        // document declares no styles.xml or no docDefaults, and 1.08 otherwise.
+        var lineSpacingMultiplier = styleDefaults?.LineSpacingMultiplier ?? defaultLineSpacingMultiplier;
         var lineSpacingPoints = styleDefaults?.LineSpacingPoints ?? 0;
         var lineSpacingRule = styleDefaults?.LineSpacingRule ?? LineSpacingRule.Auto;
         var firstLineIndent = styleDefaults?.FirstLineIndentPoints ?? 0;
@@ -8668,13 +8708,14 @@ sealed class DocumentParser(string defaultFont)
             return styleDefaults ?? new RunProperties
             {
                 FontFamily = effectiveDefaultFont,
+                FontSizePoints = effectiveDefaultFontSizePoints,
                 ColorHex = defaultRunColorHex
             };
         }
 
         // Start with style defaults or built-in defaults
         var fontFamily = styleDefaults?.FontFamily ?? effectiveDefaultFont;
-        var fontSize = styleDefaults?.FontSizePoints ?? builtInDefaultFontSizePoints;
+        var fontSize = styleDefaults?.FontSizePoints ?? effectiveDefaultFontSizePoints;
         var bold = styleDefaults?.Bold ?? false;
         var italic = styleDefaults?.Italic ?? false;
         var underline = styleDefaults?.Underline ?? false;

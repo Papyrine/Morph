@@ -1486,15 +1486,13 @@ abstract class PageRendererBase(RenderContextBase context)
         var availableHeight = cellHeight - (float) padding.Vertical;
 
         // Measure content height for vertical alignment. This must match the cell height that
-        // TableHeightCalculator allocates, including its rule that the LAST paragraph's
-        // after-spacing overlaps the bottom cell margin (max, not sum). Otherwise centred/bottom
-        // content would be offset too high by the part of that gap the margin already covers.
+        // TableHeightCalculator allocates: paragraph heights (which include their full
+        // spacing-after) plus the contextual-spacing collapse below.
         // Top alignment — the default for the vast majority of cells — never reads the measured
         // height (its offset is always 0), so the whole measurement pass is skipped for it.
         float contentHeight = 0;
         if (cell.Properties.VerticalAlignment != CellVerticalAlignment.Top)
         {
-            ParagraphElement? lastMeasuredParagraph = null;
             string? previousStyleId = null;
             var previousContextual = false;
             var previousAfter = 0f;
@@ -1522,7 +1520,7 @@ abstract class PageRendererBase(RenderContextBase context)
                     // too high.
                     var props = para.Properties;
                     if (props.ContextualSpacing && previousContextual &&
-                        props.StyleId != null && props.StyleId == previousStyleId)
+                        props.StyleId == previousStyleId)
                     {
                         contentHeight -= (float) props.SpacingBeforePoints + previousAfter;
                     }
@@ -1530,7 +1528,6 @@ abstract class PageRendererBase(RenderContextBase context)
                     previousStyleId = props.StyleId;
                     previousContextual = props.ContextualSpacing;
                     previousAfter = ParagraphHasVisibleContent(para) ? (float) props.SpacingAfterPoints : 0f;
-                    lastMeasuredParagraph = para;
                 }
                 else if (element is ImageElement image)
                 {
@@ -1549,13 +1546,9 @@ abstract class PageRendererBase(RenderContextBase context)
                 }
             }
 
-            if (lastMeasuredParagraph != null)
-            {
-                // Only the portion of the trailing after-spacing the bottom margin already covers is
-                // removed (mirrors TableHeightCalculator's max-overlap); the rest is real content space.
-                var bottomInset = (float) padding.Bottom;
-                contentHeight -= Math.Min((float) lastMeasuredParagraph.Properties.SpacingAfterPoints, bottomInset);
-            }
+            // The trailing after-spacing counts as content space in full — it stacks on the
+            // cell's bottom margin (mirrors TableHeightCalculator, measured on
+            // table_default_style), so nothing is subtracted here.
         }
 
         var verticalOffset = cell.Properties.VerticalAlignment switch

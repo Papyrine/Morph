@@ -18,8 +18,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
 
         // Add spacing before (collapsed if contextual spacing from previous paragraph)
         // Contextual spacing only collapses spacing between paragraphs of the SAME STYLE
-        var sameStyle = props.StyleId != null &&
-                        props.StyleId == context.LastParagraphStyleId;
+        var sameStyle = props.StyleId == context.LastParagraphStyleId;
         var collapseSpacingBefore = props.ContextualSpacing &&
                                     context.LastParagraphHadContextualSpacing && sameStyle;
         // Mirror the render path's margin collapse (Word uses max(after, before) between
@@ -203,8 +202,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         // Add spacing before with margin collapsing (similar to CSS)
         // When two paragraphs are adjacent, use max(SpacingAfter, SpacingBefore) instead of sum
         // Contextual spacing only collapses spacing between paragraphs of the SAME STYLE
-        var sameStyle = props.StyleId != null &&
-                        props.StyleId == context.LastParagraphStyleId;
+        var sameStyle = props.StyleId == context.LastParagraphStyleId;
         var collapseSpacingBefore = props.ContextualSpacing &&
                                     context.LastParagraphHadContextualSpacing && sameStyle;
         // Also collapse when we're continuing a w:between border chain — the borders fuse,
@@ -437,7 +435,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
 
         // Contextual spacing: collapse before-spacing when this paragraph and the previous
         // one share a style and both opt in. Same logic as the body path.
-        var sameStyle = props.StyleId != null && props.StyleId == context.LastParagraphStyleId;
+        var sameStyle = props.StyleId == context.LastParagraphStyleId;
         var collapseSpacingBefore = props.ContextualSpacing &&
                                     context.LastParagraphHadContextualSpacing && sameStyle;
         if (collapseSpacingBefore)

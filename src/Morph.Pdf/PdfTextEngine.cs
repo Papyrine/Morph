@@ -147,7 +147,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     bool Collapses(ParagraphElement paragraph)
     {
         var properties = paragraph.Properties;
-        var sameStyle = properties.StyleId != null && properties.StyleId == context.LastParagraphStyleId;
+        var sameStyle = properties.StyleId == context.LastParagraphStyleId;
         return properties.ContextualSpacing && context.LastParagraphHadContextualSpacing && sameStyle;
     }
 

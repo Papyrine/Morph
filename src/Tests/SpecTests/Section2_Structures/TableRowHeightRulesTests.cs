@@ -1,12 +1,15 @@
 /// <summary>
 /// Guards the two Word-matching table row-height rules in <see cref="TableHeightCalculator"/>:
-/// (1) the last paragraph's space-after OVERLAPS the bottom cell margin (max, not sum); and
+/// (1) every paragraph's space-after — including the last one's — STACKS on the bottom cell
+/// margin (sum, not max); and
 /// (2) the border-collapse pass grows the first/last row by the table's OUTER horizontal borders.
 ///
 /// Both are asserted in spacing units against a stub measurer so they stay meaningful regardless
-/// of font rasterisation. Regression guard for the bug where the trailing after-spacing stacked on
-/// the bottom margin (agendas-minutes/01 schedule rows rendered ~5pt/row taller than Word, with
-/// top-aligned content pushed up) and bordered tables ignored their border widths.
+/// of font rasterisation. The stacking rule is measured from Word's own render of
+/// table_default_style (tblCellMar 3pt/3pt, Normal 8pt-after, one 12pt line -> Word row
+/// 31pt = 3 + line + 8 + 3): an earlier max-overlap rule predicted 28pt and rendered rows
+/// visibly shorter than Word. That overlap dated from when cell line heights ran too small and
+/// a 2pt default-padding fudge inflated rows — the rules were calibrated against each other.
 /// </summary>
 public class TableRowHeightRulesTests
 {
@@ -35,10 +38,10 @@ public class TableRowHeightRulesTests
         };
 
     [Test]
-    public async Task TrailingAfterSpacing_OverlapsBottomMargin_WhenAfterExceedsMargin()
+    public async Task TrailingAfterSpacing_StacksOnBottomMargin()
     {
-        // bottom margin 5.75 < after 8 → bottom region is max(8, 5.75) = 8, i.e. the after sticks out
-        // 8 - 5.75 = 2.25 past the margin. Stacking would instead add the full 8 on top of the margin.
+        // bottom margin 5.75, after 8 → both count in full: the after does not collapse into
+        // the margin (Word truth measured on table_default_style — see class doc).
         var tableProps = new TableProperties
         {
             DefaultCellPadding = new(top: 5.75, right: 0, bottom: 5.75, left: 0)
@@ -46,14 +49,14 @@ public class TableRowHeightRulesTests
 
         var height = TableHeightCalculator.MeasureCellHeight(CellWithAfter(8), cellWidth: 100, tableProps, new StubMeasurer());
 
-        // padding.Vertical (11.5) + one stub line (12) + max(0, 8 - 5.75) = 25.75 (NOT 31.5 = stacked).
-        await Assert.That(height).IsEqualTo(25.75f).Within(0.01f);
+        // padding.Vertical (11.5) + one stub line (12) + after (8) = 31.5.
+        await Assert.That(height).IsEqualTo(31.5f).Within(0.01f);
     }
 
     [Test]
-    public async Task TrailingAfterSpacing_FullyAbsorbed_WhenMarginExceedsAfter()
+    public async Task TrailingAfterSpacing_StacksEvenWhenMarginExceedsAfter()
     {
-        // bottom margin 10 >= after 8 → the after is entirely absorbed by the margin (contributes 0).
+        // bottom margin 10 > after 8 → still summed, not absorbed.
         var tableProps = new TableProperties
         {
             DefaultCellPadding = new(top: 4, right: 0, bottom: 10, left: 0)
@@ -61,15 +64,15 @@ public class TableRowHeightRulesTests
 
         var height = TableHeightCalculator.MeasureCellHeight(CellWithAfter(8), cellWidth: 100, tableProps, new StubMeasurer());
 
-        // padding.Vertical (14) + line (12) + max(0, 8 - 10) = 26 (NOT 34 = stacked).
-        await Assert.That(height).IsEqualTo(26f).Within(0.01f);
+        // padding.Vertical (14) + line (12) + after (8) = 34.
+        await Assert.That(height).IsEqualTo(34f).Within(0.01f);
     }
 
     [Test]
     public async Task InterParagraphAfterSpacing_IsNotOverlapped()
     {
-        // Two paragraphs: the FIRST paragraph's after-spacing forms the inter-paragraph gap and is
-        // added in full; only the LAST paragraph's after overlaps the bottom margin.
+        // Two paragraphs: each paragraph's after-spacing is added in full — the first forms the
+        // inter-paragraph gap, the last stacks on the (here zero) bottom margin.
         var cell = new TableCell
         {
             Content =

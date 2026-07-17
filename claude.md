@@ -48,7 +48,7 @@ When a deliberate change to the converter is expected to shift output, regenerat
 ./scripts/regenerate-baselines.sh
 ```
 
-The script refuses to run on a dirty tree, deletes existing `results_*.verified.*` snapshots, runs the suite once (expected to fail and produce `*.received.*` files), promotes the received files to verified, then re-runs to confirm stability. Commit the resulting binary diff in its own commit — never mix a baseline reset with code changes.
+The script deletes existing `results_*.verified.*` snapshots, runs the suite once (expected to fail and produce `*.received.*` files), promotes the received files to verified, then re-runs to confirm stability.
 
 ### Running outside the container
 

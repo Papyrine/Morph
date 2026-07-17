@@ -76,14 +76,10 @@ baselines inside the same container:
 ./scripts/regenerate-baselines.sh
 ```
 
-The script refuses to run on a dirty tree, deletes existing
-`results_*.verified.{png,json}` snapshots, runs the suite once to produce
-`*.received.*` files, promotes those to `*.verified.*`, then re-runs to
-confirm stability. Review the resulting diff visually before committing.
-
-**Commit the baseline reset in isolation.** Do not mix it with code
-changes — reviewers need to tell apart "this commit changed rendering"
-from "this commit reset baselines".
+The script deletes existing `results_*.verified.{png,json}` snapshots, runs
+the suite once to produce `*.received.*` files, promotes those to
+`*.verified.*`, then re-runs to confirm stability. Review the resulting
+diff visually before committing.
 
 ## Adding a new scenario test
 

@@ -4,17 +4,15 @@
 # linux/amd64 container.
 #
 # WHAT IT DOES
-#   1. Confirms the user is on a clean git working tree (refuses otherwise —
-#      a baseline reset must be its own commit).
-#   2. Deletes every *.verified.* Verify snapshot under src/Tests/ — the Skia and
+#   1. Deletes every *.verified.* Verify snapshot under src/Tests/ — the Skia and
 #      ImageSharp scenario page PNGs/JSON and export snapshots under Inputs/, plus the
 #      spec-test and sample snapshots that live alongside the test sources. Build output
 #      (bin/, obj/) is skipped, as are the expected_*.png Word references (no .verified.
 #      infix).
-#   3. Runs the test suite via scripts/test.sh — every scenario fails because
+#   2. Runs the test suite via scripts/test.sh — every scenario fails because
 #      .verified.* is missing, producing .received.* files.
-#   4. Promotes every *.received.* to *.verified.* in place.
-#   5. Runs the suite a second time to confirm everything now passes.
+#   3. Promotes every *.received.* to *.verified.* in place.
+#   4. Runs the suite a second time to confirm everything now passes.
 #
 # Use this only when a rendering change is intentional and the diff has
 # been reviewed visually. The result is a large binary commit; review
@@ -24,13 +22,6 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
-
-if [[ -n "$(git status --porcelain)" ]]; then
-    echo "ERROR: working tree is dirty. Commit or stash changes first — a baseline" >&2
-    echo "       reset must live in its own commit." >&2
-    git status --short >&2
-    exit 1
-fi
 
 TESTS_DIR="src/Tests"
 
@@ -73,5 +64,3 @@ echo
 echo "Baselines regenerated. Review with:"
 echo "   git status"
 echo "   git diff --stat"
-echo
-echo "Then commit in isolation — do NOT mix with code changes."

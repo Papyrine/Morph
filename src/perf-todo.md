@@ -149,7 +149,7 @@ it to ImageSharp bulk ops is optional after that.)
 **Fix:** cache `XImage` per `byte[]` reference on `PdfRenderContext`; dispose all at end of render.
 Expect output PDFs with repeated images to shrink — PDF snapshot baselines (`pdf_result.verified.pdf`
 etc.) **will** legitimately change for this one item; regenerate via
-`./scripts/regenerate-baselines.sh` in its own commit.
+`./scripts/regenerate-baselines.sh`.
 
 ---
 
@@ -467,8 +467,8 @@ src/Morph/Html/HtmlParser.cs — low impact (HTML inputs are typically small Alt
 
 ## Suggested order
 
-1. **P1** image caches (per backend, independently landable; P1e changes PDF snapshots — own
-   commit + baseline regen)
+1. **P1** image caches (per backend, independently landable; P1e changes PDF snapshots —
+   needs a baseline regen)
 2. **P2** PDF layout cache (+ satellites)
 3. **P3** font-resolver memo
 4. **P4a/P4b** parser dictionary fixes (small, high value), then P4c/P4d/P4e/P4f
