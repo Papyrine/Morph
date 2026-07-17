@@ -611,7 +611,21 @@ sealed class TextRenderer(SkiaRenderContext context) :
                     cursorAbs, () => MeasureFollowingWidthNoScale(runs, tabRunIndex + 1),
                     props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
                     decimalPrefix,
-                    leftIndentPts + effectiveWidth);
+                    maxWidth);
+                // Word honours Right/Center/Decimal stops inside the right-indent zone — TOC
+                // styles park the page number there, past the entry text's wrap edge. Let this
+                // line extend to the stop's true extent so the post-tab text lands there instead
+                // of wrapping away; the per-line reset restores the indent for following lines.
+                if (matchedStop is {Alignment: TabAlignment.Right or TabAlignment.Center or TabAlignment.Decimal})
+                {
+                    var extentEnd = suppressFollowing
+                        ? destinationAbs
+                        : matchedStop.Alignment == TabAlignment.Center
+                            ? 2 * matchedStop.PositionPoints - destinationAbs
+                            : matchedStop.PositionPoints;
+                    effectiveWidth = Math.Max(effectiveWidth, (float) (extentEnd - leftIndentPts));
+                }
+
                 var gap = (float) (destinationAbs - cursorAbs);
                 if (gap <= 0 || currentLineWidth + gap > effectiveWidth)
                 {
@@ -619,6 +633,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
                     {
                         runIndex = SkipFollowingTabContent(runs, runIndex);
                     }
+
                     continue;
                 }
 
@@ -643,6 +658,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 {
                     runIndex = SkipFollowingTabContent(runs, runIndex);
                 }
+
                 continue;
             }
 
@@ -749,8 +765,11 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 var wordWidth = font.MeasureText(word) / context.Scale
                                 + (float) (run.Properties.CharacterSpacingPoints * word.Length);
 
-                // Check if we need to wrap
-                if (currentLineWidth + wordWidth > effectiveWidth && currentFragments.Count > 0)
+                // Check if we need to wrap. A word straight after a tab filler stays put: the tab
+                // just resolved its position, and rounding drift between the tab's following-width
+                // probe and this word-by-word measure must not wrap it away (Word never does).
+                if (currentLineWidth + wordWidth > effectiveWidth && currentFragments.Count > 0 &&
+                    !currentFragments[^1].IsTabFiller)
                 {
                     // Finish current line
                     lines.Add(
@@ -1683,7 +1702,21 @@ sealed class TextRenderer(SkiaRenderContext context) :
                     cursorAbs, () => MeasureFollowingWidthScaled(runs, tabRunIndex + 1),
                     props.TabStops, props.DefaultTabStopPoints, leftIndentPts,
                     decimalPrefix,
-                    leftIndentPts + effectiveWidth);
+                    context.ContentWidth);
+                // Word honours Right/Center/Decimal stops inside the right-indent zone — TOC
+                // styles park the page number there, past the entry text's wrap edge. Let this
+                // line extend to the stop's true extent so the post-tab text lands there instead
+                // of wrapping away; the per-line reset restores the indent for following lines.
+                if (matchedStop is {Alignment: TabAlignment.Right or TabAlignment.Center or TabAlignment.Decimal})
+                {
+                    var extentEnd = suppressFollowing
+                        ? destinationAbs
+                        : matchedStop.Alignment == TabAlignment.Center
+                            ? 2 * matchedStop.PositionPoints - destinationAbs
+                            : matchedStop.PositionPoints;
+                    effectiveWidth = Math.Max(effectiveWidth, (float) (extentEnd - leftIndentPts));
+                }
+
                 var gap = (float) (destinationAbs - cursorAbs);
                 if (gap <= 0 || currentLineWidth + gap > effectiveWidth)
                 {
@@ -1691,6 +1724,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
                     {
                         runIndex = SkipFollowingTabContent(runs, runIndex);
                     }
+
                     continue;
                 }
 
@@ -1715,6 +1749,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 {
                     runIndex = SkipFollowingTabContent(runs, runIndex);
                 }
+
                 continue;
             }
 
@@ -1829,7 +1864,11 @@ sealed class TextRenderer(SkiaRenderContext context) :
                                 + (float) (run.Properties.CharacterSpacingPoints * displayWord.Length);
 
                 // Check if we need to wrap to a new line
-                if (currentLineWidth + wordWidth > effectiveWidth && currentFragments.Count > 0)
+                // Check if we need to wrap. A word straight after a tab filler stays put: the tab
+                // just resolved its position, and rounding drift between the tab's following-width
+                // probe and this word-by-word measure must not wrap it away (Word never does).
+                if (currentLineWidth + wordWidth > effectiveWidth && currentFragments.Count > 0 &&
+                    !currentFragments[^1].IsTabFiller)
                 {
                     // Finish current line - convert any trailing soft hyphens to visible hyphens
                     var finalizedFragments = FinalizeLine(currentFragments);
@@ -2073,9 +2112,11 @@ sealed class TextRenderer(SkiaRenderContext context) :
     }
 
     /// <summary>
-    /// Returns the index of the last run consumed when suppressing post-tab content. The caller
-    /// is in a <c>for</c> loop that increments runIndex, so we return the index of the final
-    /// run to drop — the loop's own increment then lands on the next-tab boundary.
+    /// Returns the index of the last run consumed when suppressing post-tab content (a
+    /// Right/Center/Decimal stop whose following text would start past the visible edge — the
+    /// leader fills to the edge and the text shows nothing, per Word). The caller is in a
+    /// <c>for</c> loop that increments runIndex, so we return the index of the final run to
+    /// drop — the loop's own increment then lands on the next-tab boundary.
     /// </summary>
     static int SkipFollowingTabContent(IReadOnlyList<Run> runs, int tabRunIndex)
     {
