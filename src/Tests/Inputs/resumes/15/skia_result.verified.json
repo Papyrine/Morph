@@ -5,6 +5,7 @@
     {
       "Page": 1,
       "ErrorMetric": 0.1019,
+      "Ssim": 0.7932,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "skia_result#page_0001.verified.png",
       "ReceivedFile": "skia_result#page_0001.received.png"

@@ -5,6 +5,7 @@
     {
       "Page": 1,
       "ErrorMetric": 0.074,
+      "Ssim": 0.8148,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "skia_result#page_0001.verified.png",
       "ReceivedFile": "skia_result#page_0001.received.png"
@@ -12,6 +13,7 @@
     {
       "Page": 2,
       "ErrorMetric": 0.0591,
+      "Ssim": 0.8488,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "skia_result#page_0002.verified.png",
       "ReceivedFile": "skia_result#page_0002.received.png"
@@ -19,6 +21,7 @@
     {
       "Page": 3,
       "ErrorMetric": 0.102,
+      "Ssim": 0.7849,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "skia_result#page_0003.verified.png",
       "ReceivedFile": "skia_result#page_0003.received.png"

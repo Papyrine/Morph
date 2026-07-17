@@ -19,6 +19,7 @@
     {
       "Page": 1,
       "ErrorMetric": 0.086,
+      "Ssim": 0.7987,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
