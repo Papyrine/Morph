@@ -116,7 +116,8 @@ public class ExportScenarioTests
             using var actual = new MagickImage(rendered);
 
             var errorMetric = Math.Round(expected.Compare(actual, ErrorMetric.Absolute), 4);
-            diffs.Add(new(page + 1, errorMetric, Path.GetFileName(expectedFile), $"pdf_result#page_{page + 1:0000}.verified.png", $"pdf_result#page_{page + 1:0000}.received.png"));
+            var ssim = PageSsim.Compare(expectedFile, rendered);
+            diffs.Add(new(page + 1, errorMetric, ssim, Path.GetFileName(expectedFile), $"pdf_result#page_{page + 1:0000}.verified.png", $"pdf_result#page_{page + 1:0000}.received.png"));
         }
 
         return diffs;

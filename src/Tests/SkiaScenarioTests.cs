@@ -67,7 +67,8 @@ public class SkiaScenarioTests
             using var actual = new MagickImage(actualFile);
 
             var errorMetric = Math.Round(expected.Compare(actual, ErrorMetric.Absolute), 4);
-            diffs.Add(new(i + 1, errorMetric, Path.GetFileName(expectedFile), $"skia_result#page_{i+1:0000}.verified.png", $"skia_result#page_{i+1:0000}.received.png"));
+            var ssim = PageSsim.Compare(expectedFile, actualFile);
+            diffs.Add(new(i + 1, errorMetric, ssim, Path.GetFileName(expectedFile), $"skia_result#page_{i+1:0000}.verified.png", $"skia_result#page_{i+1:0000}.received.png"));
         }
 
         return diffs;

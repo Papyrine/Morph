@@ -67,7 +67,8 @@ public class ImageSharpScenarioTests
             using var actual = new MagickImage(actualFile);
 
             var errorMetric = Math.Round(expected.Compare(actual, ErrorMetric.Absolute), 4);
-            diffs.Add(new(i + 1, errorMetric, Path.GetFileName(expectedFile), $"imagesharp_result#page_{i + 1:0000}.verified.png", $"imagesharp_result#page_{i + 1:0000}.received.png"));
+            var ssim = PageSsim.Compare(expectedFile, actualFile);
+            diffs.Add(new(i + 1, errorMetric, ssim, Path.GetFileName(expectedFile), $"imagesharp_result#page_{i + 1:0000}.verified.png", $"imagesharp_result#page_{i + 1:0000}.received.png"));
         }
 
         return diffs;
