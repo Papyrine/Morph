@@ -11,14 +11,14 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Table with varied cell padding per cell:\nSmall padding (2.5pt)\nMedium padding (10pt)\nLarge padding (20pt)\nMore top/bottom\nMore left/right No padding"
+        "Text": "Table with varied cell padding per cell:\nSmall padding (2.5pt) Medium padding (10pt)\nLarge padding (20pt)\nMore top/bottom\nMore left/right No padding"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0168,
+      "ErrorMetric": 0.0153,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

@@ -16,7 +16,7 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "The Ceremony\nPrelude\nProcessional\nOpening Words\nReadings\nDeclaration of Intent\nExchange of Vows\nExchange of Rings\nDeclaration of Marriage\nBlessings\nRecessional\nWedding Participants\nOfficiant(s)\nParents of the Bride\nParents of the Groom\nMaid/Matron of Honor\nBest Man\nBridesmaids\nGroomsmen\nReader(s)\nMusicians\nAdditional Text\nType\na quote\nOr\na poem\nabout marriage\nhere\nAdditional Text\nReadings\nHymns\nPoems"
+        "Text": "The Ceremony\nPrelude\nProcessional\nOpening Words\nReadings\nDeclaration of Intent\nExchange of Vows\nExchange of Rings\nDeclaration of Marriage\nBlessings\nRecessional\nWedding Participants\nOfficiant(s)\nParents of the Bride\nParents of the Groom\nMaid/Matron of Honor\nBest Man\nBridesmaids\nGroomsmen\nReader(s)\nMusicians\nAdditional Text\nType a quote\nOr a poem\nabout marriage\nhere\nAdditional Text\nReadings\nHymns\nPoems"
       }
     ]
   },
@@ -30,7 +30,7 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0554,
+      "ErrorMetric": 0.0576,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
