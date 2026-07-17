@@ -203,7 +203,7 @@ static class ScenarioMarkdownGenerator
                 var pdfFile = i < pdfPages.Length ? Path.GetFileName(pdfPages[i]) : null;
                 var pageLabel = $"Page {i + 1}";
                 // No PageDiffs when PDF and Word page counts differ; show the page label alone then.
-                var pdfMetric = pdfMetrics.TryGetValue(i + 1, out var metric) ? metric : (double?) null;
+                var pdfMetric = pdfMetrics.TryGetValue(i + 1, out var metric) ? metric : (PageMetrics?) null;
 
                 sb.Append("| ");
                 sb.Append(RenderExpectedLabel(pageLabel, expectedFile, pdfMetric.HasValue));
@@ -286,28 +286,34 @@ static class ScenarioMarkdownGenerator
         sb.Append("\n</details>\n\n");
     }
 
-    static string RenderLabel(string pageLabel, double? metric, string? fileName)
+    static string RenderLabel(string pageLabel, PageMetrics? metrics, string? fileName)
     {
         if (fileName == null)
         {
             return $"**{pageLabel}** _(no page)_";
         }
 
-        var label = metric.HasValue
-            ? $"{pageLabel}. ErrorMetric: {metric.Value:F4}"
-            : pageLabel;
+        if (metrics is not { } m)
+        {
+            return $"**{pageLabel}**";
+        }
+
+        var label = m.Ssim is { } ssim
+            ? $"{pageLabel}. ErrorMetric: {m.ErrorMetric:F4} · SSIM: {ssim:F4}"
+            : $"{pageLabel}. ErrorMetric: {m.ErrorMetric:F4}";
         return $"**{label}**";
     }
 
     // GitHub sizes each table column to its widest non-breaking token, and images carry
     // max-width:100% so they can never widen a column. In the comparison tables the sibling
-    // columns (Skia/ImageSharp, or Morph PDF) are sized by their "ErrorMetric: 0.xxxx" label,
-    // but the Expected column's bare "Page N" is far narrower — so GitHub shrank the Expected
-    // image relative to the others. Pad the Expected label with non-breaking spaces so its
-    // token matches the ErrorMetric label width, equalizing the columns (and their images).
-    // The count was calibrated against GitHub's table CSS in a browser; because the columns
-    // are sized by min-content it is independent of the reader's viewport width.
-    static readonly string expectedLabelPadding = string.Concat(Enumerable.Repeat("&nbsp;", 19));
+    // columns (Skia/ImageSharp, or Morph PDF) are sized by their metric label, but the Expected
+    // column's bare "Page N" is far narrower — so GitHub shrank the Expected image relative to
+    // the others. Pad the Expected label with non-breaking spaces so its token matches the
+    // metric label width, equalizing the columns (and their images). The original count of 19
+    // was calibrated against GitHub's table CSS in a browser for the "ErrorMetric: 0.xxxx"
+    // label; "· SSIM: 0.xxxx" adds 15 characters, tracked arithmetically here. Because the
+    // columns are sized by min-content it is independent of the reader's viewport width.
+    static readonly string expectedLabelPadding = string.Concat(Enumerable.Repeat("&nbsp;", 34));
 
     // siblingHasMetric: whether a non-Expected column in this row renders an "ErrorMetric: …"
     // label (and is therefore wider than a bare "Page N"); only then does padding equalize
@@ -355,9 +361,9 @@ static class ScenarioMarkdownGenerator
                 i + 1,
                 i < expectedFiles.Length ? Path.GetFileName(expectedFiles[i]) : null,
                 i < skiaFiles.Length ? Path.GetFileName(skiaFiles[i]) : null,
-                skiaMetrics.GetValueOrDefault(i + 1),
+                skiaMetrics.TryGetValue(i + 1, out var skiaMetric) ? skiaMetric : null,
                 i < imagesharpFiles.Length ? Path.GetFileName(imagesharpFiles[i]) : null,
-                imagesharpMetrics.GetValueOrDefault(i + 1)));
+                imagesharpMetrics.TryGetValue(i + 1, out var imagesharpMetric) ? imagesharpMetric : null));
         }
         return rows;
     }
@@ -366,13 +372,15 @@ static class ScenarioMarkdownGenerator
         int PageNumber,
         string? ExpectedFile,
         string? SkiaFile,
-        double? SkiaMetric,
+        PageMetrics? SkiaMetric,
         string? ImageSharpFile,
-        double? ImageSharpMetric);
+        PageMetrics? ImageSharpMetric);
 
-    static Dictionary<int, double> ReadMetrics(string jsonPath)
+    record struct PageMetrics(double ErrorMetric, double? Ssim);
+
+    static Dictionary<int, PageMetrics> ReadMetrics(string jsonPath)
     {
-        var result = new Dictionary<int, double>();
+        var result = new Dictionary<int, PageMetrics>();
         if (!File.Exists(jsonPath))
         {
             return result;
@@ -390,7 +398,12 @@ static class ScenarioMarkdownGenerator
             if (diff.TryGetProperty("Page", out var pageEl) &&
                 diff.TryGetProperty("ErrorMetric", out var metricEl))
             {
-                result[pageEl.GetInt32()] = metricEl.GetDouble();
+                // Ssim tolerated as absent (jsons written before the column existed) and as
+                // null (page sizes differed, so no SSIM was computed).
+                double? ssim = diff.TryGetProperty("Ssim", out var ssimEl) && ssimEl.ValueKind == JsonValueKind.Number
+                    ? ssimEl.GetDouble()
+                    : null;
+                result[pageEl.GetInt32()] = new(metricEl.GetDouble(), ssim);
             }
         }
 
