@@ -11,14 +11,14 @@
       {
         "Width": 432.0,
         "Height": 792.0,
-        "Text": "This document has automatic hyphenation enabled. Long\nwords like internationalization, telecommunication, and\nconceptualization may be hyphenated at the end of lines.\nThe hyphenation zone is set to 0.25 inches, limiting hyphens\nto 2 consecutive lines, and CAPITALIZED words are not\nhyphenated.\nAntidisestablishmentarianism is a very long word that\ndemonstrates hyphenation. Electroencephalograph is\nanother example."
+        "Text": "This document has automatic hyphenation enabled.\nLong words like internationalization,\ntelecommunication, and conceptualization may be\nhyphenated at the end of lines.\nThe hyphenation zone is set to 0.25 inches, limiting\nhyphens to 2 consecutive lines, and CAPITALIZED\nwords are not hyphenated.\nAntidisestablishmentarianism is a very long word that\ndemonstrates hyphenation. Electroencephalograph is\nanother example."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0417,
+      "ErrorMetric": 0.0354,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

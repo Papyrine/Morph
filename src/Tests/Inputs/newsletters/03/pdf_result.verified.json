@@ -11,50 +11,50 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "ARCHITECTURE\nNEWSLETTER\nINSIDE\nTHIS\nISSUE\nPG. 2\nGive us a blurb about a story on\npage 2. Tell us what to expect\nand what the headline is.\nINDUSTRY NEWS\nWHAT YOU NEED TO KNOW\nThis is a place to put either a headline story, introduction to your newsletter, or\nanything else you would like to highlight. This is a spot for a newsletter top story\nworthy of the first page.\nThroughout this template example, you will find various tips about how to make\nthis document your own, from changing images, to updating text and colors.\nCreate!\nPG. 3\nGive us a blurb about a story on\npage 3. Give a quote from the\nstory to get interest.\nPG. 4\nGive us a blurb about a story on\npage 4. Make this your own!"
+        "Text": "ARCHITECTURE\nNEWSLETTER\nINSIDE\nTHIS\nISSUE\nPG. 2\nGive us a blurb about a story\non page 2. Tell us what to\nexpect and what the headline\nis.\nINDUSTRY NEWS\nWHAT YOU NEED TO KNOW\nThis is a place to put either a headline story, introduction to your newsletter,\nor anything else you would like to highlight. This is a spot for a newsletter\ntop story worthy of the first page.\nThroughout this template example, you will find various tips about how to\nmake this document your own, from changing images, to updating text and\ncolors. Create!\nPG. 3\nGive us a blurb about a story\non page 3. Give a quote from\nthe story to get interest.\nPG. 4\nGive us a blurb about a story\non page 4. Make this your\nown!"
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "REAL ESTATE\nTOP US MARKETS\nWe think the design of this newsletter is great as is! But, if you\ndo not agree, you are able to make it yours by making a few\nminor design tweaks! Tips on updating specific features are\navailable throughout this example text.\nTo change any of the text in this document, just click on the\nblock of text you want to update! The formatting has already\nbeen programmed for ease of formatting.\nDESIGN TRENDS\nLEARN THE LATEST IN NEW DESIGN\nHave other images you wish to use? It is simple to replace any\nof the pictures in this newsletter. Click on the image you wish to\nchange, then go to Insert > Picture."
+        "Text": "REAL ESTATE\nTOP US MARKETS\nWe think the design of this newsletter is great as is! But, if\nyou do not agree, you are able to make it yours by making\na few minor design tweaks! Tips on updating specific\nfeatures are available throughout this example text.\nTo change any of the text in this document, just click on\nthe block of text you want to update! The formatting has\nalready been programmed for ease of formatting.\nDESIGN TRENDS\nLEARN THE LATEST IN NEW DESIGN\nHave other images you wish to use? It is simple to replace\nany of the pictures in this newsletter. Click on the image\nyou wish to change, then go to Insert > Picture."
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "PRACTICAL\nAND STYLISH\nEXAMPLES OF LIVING SIMPLY\nTo change any of the text in this document, just\nclick on the block of text you want to update!\nThe formatting has already been programmed\nfor ease of formatting.\nIn this panel, you can highlight even more\ninformation about your organization! Tell the\naudience why you are the best! Don’t be shy!\nShare, explain, and tell us what makes your\ncompany so great!\nPlenty of text will fit in any of these panels.\nSimply click on the placeholders and add your\nown text.\nHARNESSING NATURAL LIGHT\nCHOOSING THE RIGHT LOCATION FOR YOUR SKYLIGHTS\nTo change any of the text in this document, just click on the block of text you want to update! The formatting has already\nbeen programmed for ease of formatting.\nHave other images you wish to use? It is simple to replace any of the pictures in this newsletter. Click on the image you wish\nto change.\nOnce the image you wish to replace is selected, select Insert > Picture."
+        "Text": "PRACTICAL\nAND STYLISH\nEXAMPLES OF LIVING SIMPLY\nTo change any of the text in this document,\njust click on the block of text you want to\nupdate! The formatting has already been\nprogrammed for ease of formatting.\nIn this panel, you can highlight even more\ninformation about your organization! Tell\nthe audience why you are the best! Don’t\nbe shy! Share, explain, and tell us what\nmakes your company so great!\nPlenty of text will fit in any of these panels.\nSimply click on the placeholders and add\nyour own text.\nHARNESSING NATURAL LIGHT\nCHOOSING THE RIGHT LOCATION FOR YOUR SKYLIGHTS\nTo change any of the text in this document, just click on the block of text you want to update! The formatting has\nalready been programmed for ease of formatting.\nHave other images you wish to use? It is simple to replace any of the pictures in this newsletter. Click on the image\nyou wish to change.\nOnce the image you wish to replace is selected, select Insert > Picture."
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "RISING STARS IN ARCHITECTURE\nMEET THE TOP 20 ENGINEERS IN THEIR FIELD\nSome of the sample text in this document indicates the name of the style applied, so that you can easily apply the same\nformatting again. For example, this is the Normal style."
+        "Text": "RISING STARS IN ARCHITECTURE\nMEET THE TOP 20 ENGINEERS IN THEIR FIELD\nSome of the sample text in this document indicates the name of the style applied, so that you can easily apply the\nsame formatting again. For example, this is the Normal style."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.4621,
+      "ErrorMetric": 0.4642,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.42,
+      "ErrorMetric": 0.4239,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.3671,
+      "ErrorMetric": 0.3731,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.5939,
+      "ErrorMetric": 0.5944,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"

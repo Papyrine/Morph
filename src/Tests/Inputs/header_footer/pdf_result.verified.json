@@ -11,26 +11,26 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Company Name\nInternal Document\nThis document has both a header and footer.\nContent paragraph 1 to fill multiple pages.\nContent paragraph 2 to fill multiple pages.\nContent paragraph 3 to fill multiple pages.\nContent paragraph 4 to fill multiple pages.\nContent paragraph 5 to fill multiple pages.\nContent paragraph 6 to fill multiple pages.\nContent paragraph 7 to fill multiple pages.\nContent paragraph 8 to fill multiple pages.\nContent paragraph 9 to fill multiple pages.\nContent paragraph 10 to fill multiple pages.\nContent paragraph 11 to fill multiple pages.\nContent paragraph 12 to fill multiple pages.\nContent paragraph 13 to fill multiple pages.\nContent paragraph 14 to fill multiple pages.\nContent paragraph 15 to fill multiple pages.\nContent paragraph 16 to fill multiple pages.\nContent paragraph 17 to fill multiple pages.\nContent paragraph 18 to fill multiple pages.\nContent paragraph 19 to fill multiple pages.\nContent paragraph 20 to fill multiple pages.\nContent paragraph 21 to fill multiple pages.\nContent paragraph 22 to fill multiple pages.\nContent paragraph 23 to fill multiple pages.\nContent paragraph 24 to fill multiple pages.\nContent paragraph 25 to fill multiple pages.\nContent paragraph 26 to fill multiple pages.\nContent paragraph 27 to fill multiple pages.\nContent paragraph 28 to fill multiple pages.\n© 2024 Company Name. All rights reserved."
+        "Text": "Company Name\nInternal Document\nThis document has both a header and footer.\nContent paragraph 1 to fill multiple pages.\nContent paragraph 2 to fill multiple pages.\nContent paragraph 3 to fill multiple pages.\nContent paragraph 4 to fill multiple pages.\nContent paragraph 5 to fill multiple pages.\nContent paragraph 6 to fill multiple pages.\nContent paragraph 7 to fill multiple pages.\nContent paragraph 8 to fill multiple pages.\nContent paragraph 9 to fill multiple pages.\nContent paragraph 10 to fill multiple pages.\nContent paragraph 11 to fill multiple pages.\nContent paragraph 12 to fill multiple pages.\nContent paragraph 13 to fill multiple pages.\nContent paragraph 14 to fill multiple pages.\nContent paragraph 15 to fill multiple pages.\nContent paragraph 16 to fill multiple pages.\nContent paragraph 17 to fill multiple pages.\nContent paragraph 18 to fill multiple pages.\nContent paragraph 19 to fill multiple pages.\nContent paragraph 20 to fill multiple pages.\nContent paragraph 21 to fill multiple pages.\nContent paragraph 22 to fill multiple pages.\nContent paragraph 23 to fill multiple pages.\nContent paragraph 24 to fill multiple pages.\nContent paragraph 25 to fill multiple pages.\n© 2024 Company Name. All rights reserved."
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Company Name\nInternal Document\nContent paragraph 29 to fill multiple pages.\nContent paragraph 30 to fill multiple pages.\n© 2024 Company Name. All rights reserved."
+        "Text": "Company Name\nInternal Document\nContent paragraph 26 to fill multiple pages.\nContent paragraph 27 to fill multiple pages.\nContent paragraph 28 to fill multiple pages.\nContent paragraph 29 to fill multiple pages.\nContent paragraph 30 to fill multiple pages.\n© 2024 Company Name. All rights reserved."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0871,
+      "ErrorMetric": 0.0937,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0183,
+      "ErrorMetric": 0.0246,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
