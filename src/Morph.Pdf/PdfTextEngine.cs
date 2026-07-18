@@ -1090,9 +1090,13 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             current.Height = Math.Max(current.Height, item.Height);
         }
 
-        for (var runIndex = 0; runIndex < paragraph.Runs.Count; runIndex++)
+        // Small caps (w:smallCaps): expand runs into full-size uppercase + 0.8x-size uppercased
+        // lowercase segments before layout, matching the Skia/ImageSharp backends. No-op when no run
+        // sets small caps. All following run lookups use the expanded list so indices stay aligned.
+        var runs = SmallCapsExpander.Expand(paragraph.Runs);
+        for (var runIndex = 0; runIndex < runs.Count; runIndex++)
         {
-            var run = paragraph.Runs[runIndex];
+            var run = runs[runIndex];
             if (run.Properties.Hidden)
             {
                 continue;
@@ -1198,11 +1202,11 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                     var cursorFromLeft = leftIndent + current.Width;
                     var tabRunIndex = runIndex;
                     var decimalPrefix = paragraph.Properties.HasDecimalTabStop()
-                        ? MeasureFollowingDecimalPrefix(paragraph.Runs, runIndex + 1)
+                        ? MeasureFollowingDecimalPrefix(runs, runIndex + 1)
                         : null;
                     var (destination, matchedStop, suppressFollowing) = TabStopResolver.Resolve(
                         cursorFromLeft,
-                        () => MeasureFollowingWidth(paragraph.Runs, tabRunIndex + 1),
+                        () => MeasureFollowingWidth(runs, tabRunIndex + 1),
                         paragraph.Properties.TabStops,
                         paragraph.Properties.DefaultTabStopPoints,
                         leftIndent,
@@ -1238,7 +1242,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
                     if (suppressFollowing)
                     {
-                        runIndex = SkipFollowingTabContent(paragraph.Runs, runIndex);
+                        runIndex = SkipFollowingTabContent(runs, runIndex);
                     }
                 }
 
