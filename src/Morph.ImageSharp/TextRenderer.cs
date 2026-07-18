@@ -1378,6 +1378,14 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var sx = pixelWidth / (float) group.ChildExtentX;
         var sy = pixelHeight / (float) group.ChildExtentY;
 
+        // The group transform scales stroke widths along with the geometry (Word's model): a group
+        // displayed at half its child size draws its 20pt connector lines at 10pt. The geometric
+        // mean handles the slightly-anisotropic boxes Word writes; on an unscaled icon this is
+        // exactly the identity (EMU→px), keeping stroke = w/12700 · Scale. Without this, the
+        // assembled arrow glyphs (business-plans/02 and /12 section markers) draw full-width
+        // strokes over shrunken geometry and the pieces overshoot into a mangled chevron.
+        var strokeScale = MathF.Sqrt(sx * sy);
+
         // Most icon-style header arrows are 90° group rotations. Push a geometry-space
         // rotation around the group centre and draw shapes at their original positions; the
         // canvas transform handles the rotation. Replaces the previous temp-image route.
@@ -1412,7 +1420,15 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 }
 
                 var color = ParseColor(shape.ColorHex, shape.LineAlpha);
-                var width = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75) * context.Scale;
+                // A line's stroke scales by its along-axis factor: the cross-axis "scale" of a
+                // single-line wrapper group is degenerate (the child box is the line itself), so
+                // the geometric mean would blow a divider rule into a page-wide band.
+                var lineScale = shape.Height <= 0 ? sx
+                    : shape.Width <= 0 ? sy
+                    : strokeScale;
+                // Group-scaled EMU → pixels (Word scales stroke widths with the group transform);
+                // 0.75pt default when the shape doesn't carry a width.
+                var width = shape.LineWidthEmu > 0 ? (float) shape.LineWidthEmu * lineScale : 0.75f * context.Scale;
                 // Square end caps make the perpendicular connector lines extend half-stroke-width
                 // past their endpoints — that's how Word's icon-style arrows form a clean L corner
                 // (each line's square cap fills the gap where a butt/round cap would leave a notch).
@@ -1463,7 +1479,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 if (shape.LineWidthEmu > 0)
                 {
                     var color = ParseColor(shape.ColorHex, shape.LineAlpha);
-                    var width = (float) (shape.LineWidthEmu / emusPerPoint) * context.Scale;
+                    var width = (float) shape.LineWidthEmu * strokeScale;
                     var pen = context.GetPen(color, width);
                     pageCanvas.Draw(pen, path);
                 }
@@ -1586,9 +1602,6 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         {
             Transform = new(Matrix3x2.CreateRotation(radians, new(pivotX, pivotY)))
         };
-
-    // EMU = English Metric Units. 1 point = 12700 EMU.
-    const float emusPerPoint = 12700f;
 
     void RenderInlineImage(DrawingCanvas canvas, TextFragment fragment, float x, float y)
     {

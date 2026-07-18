@@ -749,9 +749,6 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         }
     }
 
-    // EMU = English Metric Units. 1 point = 12700 EMU.
-    const double emusPerPoint = 12700;
-
     /// <summary>
     /// Draws a <c>wpg:wgp</c> group that flows with the text — Word's icon and photo bubbles, and
     /// the connector-line arrow glyphs. Shape coordinates are in the group's child coordinate
@@ -767,6 +764,14 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         var top = baseline - item.ImageHeight;
         var scaleX = item.ImageWidth / group.ChildExtentX;
         var scaleY = item.ImageHeight / group.ChildExtentY;
+
+        // The group transform scales stroke widths along with the geometry (Word's model): a group
+        // displayed at half its child size draws its 20pt connector lines at 10pt. The geometric
+        // mean handles the slightly-anisotropic boxes Word writes; on an unscaled icon this is
+        // exactly the identity, keeping stroke = w/12700 points. Without this, the assembled
+        // arrow glyphs (business-plans/02 and /12 section markers) draw full-width strokes over
+        // shrunken geometry and the pieces overshoot into a mangled chevron.
+        var strokeScale = Math.Sqrt(scaleX * scaleY);
 
         var state = graphics.Save();
         if (group.RotationDegrees != 0)
@@ -796,8 +801,16 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                     (startX, endX) = (endX, startX);
                 }
 
+                // A line's stroke scales by its along-axis factor: the cross-axis "scale" of a
+                // single-line wrapper group is degenerate (the child box is the line itself, e.g.
+                // 2103120x1 EMU for a divider rule), so the geometric mean would blow a 2.5pt rule
+                // into a page-wide band. Along the line both conventions agree for real groups.
+                var lineScale = shape.Height <= 0 ? scaleX
+                    : shape.Width <= 0 ? scaleY
+                    : strokeScale;
+
                 // Default to 0.75pt when the shape doesn't carry a width, as the raster backends do.
-                var strokeWidth = shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75;
+                var strokeWidth = shape.LineWidthEmu > 0 ? shape.LineWidthEmu * lineScale : 0.75;
                 graphics.DrawLine(StrokePen(shape, strokeWidth), startX, startY, endX, endY);
                 continue;
             }
@@ -854,7 +867,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
             if (shape.LineWidthEmu > 0)
             {
-                var pen = StrokePen(shape, shape.LineWidthEmu / emusPerPoint);
+                var pen = StrokePen(shape, shape.LineWidthEmu * strokeScale);
                 if (geometryPath != null)
                 {
                     graphics.DrawPath(pen, geometryPath);
@@ -960,7 +973,14 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     static XPen StrokePen(GroupShape shape, double widthPoints)
     {
         var rgb = PdfRenderContext.ParseColor(shape.ColorHex);
-        return new(XColor.FromArgb(AlphaByte(shape.LineAlpha), rgb.R, rgb.G, rgb.B), Math.Max(0.4, widthPoints));
+        return new(XColor.FromArgb(AlphaByte(shape.LineAlpha), rgb.R, rgb.G, rgb.B), Math.Max(0.4, widthPoints))
+        {
+            // Square end caps extend each line half a stroke-width past its endpoints — that's how
+            // Word's icon-style arrow glyphs (perpendicular connector lines) fuse into a clean L
+            // corner. The raster backends already stroke with square caps; without this the PDF
+            // leaves notches and slivers where the assembled arrow pieces meet.
+            LineCap = XLineCap.Square
+        };
     }
 
     static int AlphaByte(double alpha) =>
