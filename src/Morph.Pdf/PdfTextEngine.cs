@@ -716,19 +716,27 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         {
             var image = context.GetImage(item.ImageData);
             var top = baseline - item.ImageHeight;
+            var state = graphics.Save();
             if (item.ImageRotationDegrees != 0)
             {
-                // a:xfrm/@rot: rotate around the image centre, matching DrawBlockImage / the raster
-                // backends (clockwise, degrees).
-                var state = graphics.Save();
+                // a:xfrm/@rot: rotate around the image centre, matching DrawBlockImage / the raster.
                 graphics.RotateAtTransform(item.ImageRotationDegrees, new(penX + item.ImageWidth / 2, top + item.ImageHeight / 2));
-                graphics.DrawImage(image, penX, top, item.ImageWidth, item.ImageHeight);
-                graphics.Restore(state);
+            }
+
+            if (item.Crop is {IsCropped: true} crop)
+            {
+                // a:srcRect crop: enlarge the image so its visible sub-rectangle covers the box, then
+                // clip back to the box (same technique as DrawRaster / the shape-group path).
+                var (dx, dy, dw, dh) = crop.Expand(penX, top, item.ImageWidth, item.ImageHeight);
+                graphics.IntersectClip(new XRect(penX, top, item.ImageWidth, item.ImageHeight));
+                graphics.DrawImage(image, dx, dy, dw, dh);
             }
             else
             {
                 graphics.DrawImage(image, penX, top, item.ImageWidth, item.ImageHeight);
             }
+
+            graphics.Restore(state);
         }
         catch
         {
@@ -1174,6 +1182,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                         ImageWidth = width,
                         ImageHeight = height,
                         ImageRotationDegrees = run.InlineImageRotationDegrees,
+                        Crop = run.InlineImageCrop,
                         Width = width,
                         Ascent = height,
                         Height = height
@@ -1402,6 +1411,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         public double ImageWidth;
         public double ImageHeight;
         public double ImageRotationDegrees;
+        public ImageCrop? Crop;
         public InlineShapeGroup? ShapeGroup;
         public bool IsTabFiller;
         public TabLeader TabLeader;
