@@ -804,6 +804,10 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
             var isEllipse = shape.Geometry == GroupShapeGeometry.Ellipse;
 
+            // Contours (custGeom or a built preset like hexagon/roundRect) take precedence over
+            // the Geometry primitive; a plain shape draws the rect/ellipse as before.
+            var geometryPath = BuildGroupShapePath(shape, x, y, width, height);
+
             // The shadow is an offset copy of the shape's geometry, painted before the shape itself
             // so it lands behind it.
             if (shape.Shadow is { } shadow)
@@ -812,7 +816,11 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 var shadowBrush = new XSolidBrush(XColor.FromArgb(AlphaByte(shadow.Alpha), shadowRgb.R, shadowRgb.G, shadowRgb.B));
                 var shadowX = x + shadow.OffsetX * scaleX;
                 var shadowY = y + shadow.OffsetY * scaleY;
-                if (isEllipse)
+                if (geometryPath != null)
+                {
+                    graphics.DrawPath(shadowBrush, BuildGroupShapePath(shape, shadowX, shadowY, width, height)!);
+                }
+                else if (isEllipse)
                 {
                     graphics.DrawEllipse(shadowBrush, shadowX, shadowY, width, height);
                 }
@@ -830,7 +838,11 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             {
                 var rgb = PdfRenderContext.ParseColor(fillHex);
                 var brush = new XSolidBrush(XColor.FromArgb(AlphaByte(shape.FillAlpha), rgb.R, rgb.G, rgb.B));
-                if (isEllipse)
+                if (geometryPath != null)
+                {
+                    graphics.DrawPath(brush, geometryPath);
+                }
+                else if (isEllipse)
                 {
                     graphics.DrawEllipse(brush, x, y, width, height);
                 }
@@ -843,7 +855,11 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             if (shape.LineWidthEmu > 0)
             {
                 var pen = StrokePen(shape, shape.LineWidthEmu / emusPerPoint);
-                if (isEllipse)
+                if (geometryPath != null)
+                {
+                    graphics.DrawPath(pen, geometryPath);
+                }
+                else if (isEllipse)
                 {
                     graphics.DrawEllipse(pen, x, y, width, height);
                 }
@@ -855,6 +871,43 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         }
 
         graphics.Restore(state);
+    }
+
+    /// <summary>
+    /// The shape's <see cref="GroupShape.Subpaths"/> contours scaled into the given box with the
+    /// flip flags applied, or null for primitive-geometry shapes. Alternate (even-odd) fill keeps
+    /// ring shapes (frame) hollow.
+    /// </summary>
+    static XGraphicsPath? BuildGroupShapePath(GroupShape shape, double x, double y, double width, double height)
+    {
+        if (shape.Subpaths == null)
+        {
+            return null;
+        }
+
+        var path = new XGraphicsPath {FillMode = XFillMode.Alternate};
+        foreach (var contour in shape.Subpaths)
+        {
+            if (contour.Count < 3)
+            {
+                continue;
+            }
+
+            var points = new XPoint[contour.Count];
+            for (var index = 0; index < contour.Count; index++)
+            {
+                var (pointX, pointY) = contour[index];
+                var unitX = shape.FlipHorizontal ? 1 - pointX : pointX;
+                var unitY = shape.FlipVertical ? 1 - pointY : pointY;
+                points[index] = new(x + unitX * width, y + unitY * height);
+            }
+
+            path.StartFigure();
+            path.AddPolygon(points);
+            path.CloseFigure();
+        }
+
+        return path;
     }
 
     void DrawGroupPicture(XGraphics graphics, GroupShape shape, double x, double y, double width, double height, bool clipToEllipse)

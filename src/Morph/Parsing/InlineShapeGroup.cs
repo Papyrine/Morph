@@ -57,6 +57,15 @@ sealed class GroupShape
     /// <summary>Geometry preset — currently <c>line</c>, <c>rect</c> or <c>ellipse</c>.</summary>
     public GroupShapeGeometry Geometry { get; init; } = GroupShapeGeometry.Line;
 
+    /// <summary>
+    /// Outline contours for geometry richer than <see cref="Geometry"/> can express — an
+    /// <c>a:custGeom</c> or a built preset (hexagon, roundRect, plaque, …) — as closed polylines
+    /// normalized to the unit square of this shape's box, exactly like
+    /// <see cref="FloatingShapeElement.Subpaths"/>. When set, renderers draw these (scaled into
+    /// the box, honouring the flip flags) instead of the <see cref="Geometry"/> primitive.
+    /// </summary>
+    public IReadOnlyList<IReadOnlyList<(double X, double Y)>>? Subpaths { get; init; }
+
     /// <summary>Solid fill colour (rectangles and ellipses only). Null = no fill / stroke-only line.</summary>
     public string? FillColorHex { get; init; }
 

@@ -1581,6 +1581,18 @@ Shapes defined by custom geometry paths with curves and arcs.
 > **AI**: Curves and disjoint contours are handled. Remaining gaps: `a:arcTo` segments (their parameter set differs from the bezier walk, so those custGeoms fall back to the bounding rect) and `a:gd` formula guides (path coordinates are read as literals, not evaluated expressions). The flattener uses a fixed 12 segments per curve rather than adapting to curve length.
 
 
+#### Preset Shape Geometry `PARTIAL`
+
+Built-in shape outlines beyond rect/ellipse/line (`a:prstGeom` presets).
+
+- **OOXML**: `a:prstGeom/@prst` with `a:avLst/a:gd` adjust values
+- **Model**: `PresetShapeGeometry.TryBuild` evaluates the ECMA-376 preset formulas for **hexagon, roundRect, plaque, octagon, star5, frame, round2SameRect** — every non-primitive preset the corpus uses — into the same normalized unit-square contours as `a:custGeom` (arcs flattened to 8 segments, radii from `min(width, height)` so corners stay circular on non-square shapes). Ellipse/rect/line keep their dedicated primitive paths.
+- **Render**: rides the existing subpath pipeline — `FloatingShapeElement.Subpaths` for standalone shapes and floating-group children, and `GroupShape.Subpaths` (with even-odd fill so `frame` renders as a ring) via the polygon branch in each inline-group renderer (Skia/ImageSharp `TextRenderer`, `PdfTextEngine.DrawShapeGroup`, `HtmlExporter.AppendGroupGeometry`).
+- **Test**: `newsletters/03` / `labels/04` (hexagons), `labels/10` (stadium roundRects), `cards/02` (plaque + star5), `letters/10` (frame), `menus/07`/`menus/09` (octagon, plaque)
+
+> **AI**: A preset outside the seven still falls back to its bounding rect. Shapes that carry text (`wps` with `wps:txbx`) parse as text boxes, whose border path does not yet consume preset geometry — their outlines stay rectangular (cards/02's orange ticket outline). Adding a preset means one builder in `PresetShapeGeometry` — the parsers and renderers pick it up automatically.
+
+
 #### 3D Effects `DONE`
 
 Three-dimensional effects on shapes (bevel, depth, rotation).

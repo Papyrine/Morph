@@ -1429,11 +1429,14 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             else
             {
                 var isEllipse = shape.Geometry == GroupShapeGeometry.Ellipse;
-                // EllipsePolygon's 4-arg ctor takes (centerX, centerY, fullWidth, fullHeight) —
-                // the trailing two are bounding-box dimensions, not radii.
-                IPath path = isEllipse
-                    ? new EllipsePolygon(x1 + w / 2, y1 + h / 2, w, h)
-                    : new RectanglePolygon(x1, y1, w, h);
+                // Contours (custGeom or a built preset like hexagon/roundRect) take precedence
+                // over the Geometry primitive. EllipsePolygon's 4-arg ctor takes
+                // (centerX, centerY, fullWidth, fullHeight) — the trailing two are bounding-box
+                // dimensions, not radii.
+                var path = BuildGroupShapePath(shape, x1, y1, w, h)
+                           ?? (isEllipse
+                               ? new EllipsePolygon(x1 + w / 2, y1 + h / 2, w, h)
+                               : (IPath) new RectanglePolygon(x1, y1, w, h));
 
                 // The shadow is an offset copy of the shape's geometry, painted before the shape
                 // itself so it lands behind it.
@@ -1441,9 +1444,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 {
                     var shadowX = x1 + (float) shadow.OffsetX * sx;
                     var shadowY = y1 + (float) shadow.OffsetY * sy;
-                    IPath shadowPath = isEllipse
-                        ? new EllipsePolygon(shadowX + w / 2, shadowY + h / 2, w, h)
-                        : new RectanglePolygon(shadowX, shadowY, w, h);
+                    var shadowPath = BuildGroupShapePath(shape, shadowX, shadowY, w, h)
+                                     ?? (isEllipse
+                                         ? new EllipsePolygon(shadowX + w / 2, shadowY + h / 2, w, h)
+                                         : (IPath) new RectanglePolygon(shadowX, shadowY, w, h));
                     pageCanvas.Fill(context.GetBrush(ParseColor(shadow.ColorHex, shadow.Alpha)), shadowPath);
                 }
 
@@ -1484,6 +1488,46 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var pixel = color.ToPixel<Rgba32>();
         pixel.A = (byte) Math.Round(clamped * 255);
         return Color.FromPixel(pixel);
+    }
+
+    /// <summary>
+    /// The shape's <see cref="GroupShape.Subpaths"/> contours scaled into the given box with the
+    /// flip flags applied, or null for primitive-geometry shapes. Multiple contours combine into a
+    /// <see cref="ComplexPolygon"/>, whose even-odd intersection keeps ring shapes (frame) hollow.
+    /// </summary>
+    static IPath? BuildGroupShapePath(GroupShape shape, float x, float y, float width, float height)
+    {
+        if (shape.Subpaths == null)
+        {
+            return null;
+        }
+
+        var polygons = new List<IPath>();
+        foreach (var contour in shape.Subpaths)
+        {
+            if (contour.Count < 3)
+            {
+                continue;
+            }
+
+            var points = new PointF[contour.Count];
+            for (var index = 0; index < contour.Count; index++)
+            {
+                var (pointX, pointY) = contour[index];
+                var unitX = shape.FlipHorizontal ? 1 - pointX : pointX;
+                var unitY = shape.FlipVertical ? 1 - pointY : pointY;
+                points[index] = new(x + (float) unitX * width, y + (float) unitY * height);
+            }
+
+            polygons.Add(new Polygon(new LinearLineSegment(points)));
+        }
+
+        return polygons.Count switch
+        {
+            0 => null,
+            1 => polygons[0],
+            _ => new ComplexPolygon(polygons.ToArray())
+        };
     }
 
     /// <summary>
