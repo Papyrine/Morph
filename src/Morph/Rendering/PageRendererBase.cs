@@ -73,7 +73,7 @@ abstract class PageRendererBase(RenderContextBase context)
 
     /// <summary>Draws a block image at the given pixel rectangle, applying optional rotation, crop, and color effect.
     /// Backends decide how to handle <paramref name="contentType"/> (e.g. SVG vs raster).</summary>
-    protected abstract void DrawBlockImage(byte[] imageData, string? contentType, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, ImageCrop? crop, BlipColorEffect colorEffect);
+    protected abstract void DrawBlockImage(byte[] imageData, string? contentType, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, bool flipHorizontal, bool flipVertical, ImageCrop? crop, BlipColorEffect colorEffect);
 
     // Header / footer state shared by both backends. Set from the leaf's RenderDocument
     // before page emission begins; consumed by the lifted RenderHeader / RenderFooter.
@@ -861,7 +861,7 @@ abstract class PageRendererBase(RenderContextBase context)
             contentType = image.RasterFallbackContentType;
         }
 
-        DrawBlockImage(data, contentType, x, y, width, pixelHeight, (float) image.RotationDegrees, image.Crop, image.ColorEffect);
+        DrawBlockImage(data, contentType, x, y, width, pixelHeight, (float) image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.Crop, image.ColorEffect);
 
         context.CurrentY += height;
     }

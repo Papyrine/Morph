@@ -325,15 +325,15 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
     // with the context (this replaced the old per-page RetainForPage sink). Failed decodes
     // cache null — the call sites deliberately swallow undecodable images.
 
-    readonly Dictionary<(byte[] Data, int Width, int Height, ImageCrop? Crop, BlipColorEffect Effect, float Rotation), Image<Rgba32>?> processedImageCache = [];
+    readonly Dictionary<(byte[] Data, int Width, int Height, ImageCrop? Crop, BlipColorEffect Effect, float Rotation, bool FlipHorizontal, bool FlipVertical), Image<Rgba32>?> processedImageCache = [];
 
     /// <summary>
     /// Decoded image with crop → resize → recolor → rotate applied, cached for the context's
     /// lifetime. Callers must not mutate or dispose the result.
     /// </summary>
-    public Image<Rgba32>? GetProcessedImage(byte[] data, int width, int height, ImageCrop? crop, BlipColorEffect effect, float rotationDegrees)
+    public Image<Rgba32>? GetProcessedImage(byte[] data, int width, int height, ImageCrop? crop, BlipColorEffect effect, float rotationDegrees, bool flipHorizontal = false, bool flipVertical = false)
     {
-        var key = (data, width, height, crop, effect, rotationDegrees);
+        var key = (data, width, height, crop, effect, rotationDegrees, flipHorizontal, flipVertical);
         if (processedImageCache.TryGetValue(key, out var cached))
         {
             return cached;
@@ -367,6 +367,20 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
                     // visually with Skia's color-matrix branch.
                     image.Mutate(_ => _.Brightness(1.7f).Contrast(0.5f));
                     break;
+            }
+
+            // a:xfrm/@flipH/@flipV mirror before the rotation so the rotation spins the mirrored
+            // picture, matching Word's transform order (and the canvas-transform backends).
+            // ImageSharp's FlipMode names the axis of REFLECTION RESULT: Horizontal = left-right
+            // mirror, Vertical = top-bottom mirror.
+            if (flipHorizontal)
+            {
+                image.Mutate(_ => _.Flip(FlipMode.Horizontal));
+            }
+
+            if (flipVertical)
+            {
+                image.Mutate(_ => _.Flip(FlipMode.Vertical));
             }
 
             if (rotationDegrees != 0)

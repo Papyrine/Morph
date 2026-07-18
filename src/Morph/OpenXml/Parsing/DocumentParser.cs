@@ -4106,6 +4106,8 @@ sealed class DocumentParser(string defaultFont)
                 InlineImageContentType = run.InlineImageContentType,
                 InlineImageDescription = run.InlineImageDescription,
                 InlineImageRotationDegrees = run.InlineImageRotationDegrees,
+                InlineImageFlipHorizontal = run.InlineImageFlipHorizontal,
+                InlineImageFlipVertical = run.InlineImageFlipVertical,
                 InlineImageCrop = run.InlineImageCrop,
                 IsTab = run.IsTab,
                 InlineShapeGroup = run.InlineShapeGroup
@@ -5299,6 +5301,7 @@ sealed class DocumentParser(string defaultFont)
 
         // Rotation (a:xfrm/@rot, in 60,000ths of a degree, clockwise)
         var rotationDegrees = ReadRotationDegrees(xfrm);
+        var (flipHorizontal, flipVertical) = ReadFlips(xfrm);
 
         // Find the blip (image reference)
         var blipFill = pic.Elements().FirstOrDefault(_ => _.LocalName == "blipFill");
@@ -5327,6 +5330,8 @@ sealed class DocumentParser(string defaultFont)
             InlineImageRasterFallbackData = image.RasterFallbackData,
             InlineImageRasterFallbackContentType = image.RasterFallbackContentType,
             InlineImageRotationDegrees = rotationDegrees,
+            InlineImageFlipHorizontal = flipHorizontal,
+            InlineImageFlipVertical = flipVertical,
             InlineImageCrop = crop
         };
     }
@@ -5795,6 +5800,11 @@ sealed class DocumentParser(string defaultFont)
         return 0;
     }
 
+    /// <summary>Reads the mirror flags from an <c>a:xfrm</c> (<c>@flipH</c>/<c>@flipV</c>).</summary>
+    static (bool FlipHorizontal, bool FlipVertical) ReadFlips(OpenXmlElement xfrm) =>
+        (xfrm.AttributeValue("flipH") is "1" or "true",
+            xfrm.AttributeValue("flipV") is "1" or "true");
+
     static LigatureMode ParseLigatureMode(DocumentFormat.OpenXml.Office2010.Word.Ligatures? element)
     {
         if (element?.Val?.Value is not { } val)
@@ -6044,6 +6054,7 @@ sealed class DocumentParser(string defaultFont)
 
             // Rotation (a:xfrm/@rot, in 60,000ths of a degree, clockwise)
             var rotationDegrees = ReadRotationDegrees(xfrm);
+            var (flipHorizontal, flipVertical) = ReadFlips(xfrm);
 
             // Find the blip (image reference)
             var blipFill = pic.Elements().FirstOrDefault(_ => _.LocalName == "blipFill");
@@ -6133,6 +6144,8 @@ sealed class DocumentParser(string defaultFont)
                     ContentType = contentType,
                     Description = description,
                     RotationDegrees = rotationDegrees,
+                    FlipHorizontal = flipHorizontal,
+                    FlipVertical = flipVertical,
                     Crop = crop,
                     ColorEffect = colorEffect,
                     RasterFallbackData = rasterFallbackData,
@@ -6141,7 +6154,7 @@ sealed class DocumentParser(string defaultFont)
             }
             else
             {
-                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees, crop, rasterFallbackData, rasterFallbackContentType, description);
+                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees, flipHorizontal, flipVertical, crop, rasterFallbackData, rasterFallbackContentType, description);
                 result.Add(floatingImage);
             }
         }
@@ -6152,7 +6165,7 @@ sealed class DocumentParser(string defaultFont)
     /// <summary>
     /// Parses an anchored image with additional X/Y offset within a group.
     /// </summary>
-    static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null, string? description = null)
+    static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, bool flipHorizontal = false, bool flipVertical = false, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null, string? description = null)
     {
         var positioning = anchor.ParsePositioning(offsetXPoints, offsetYPoints);
         var wrap = ParseWrap(anchor);
@@ -6176,6 +6189,8 @@ sealed class DocumentParser(string defaultFont)
             WrapDistanceBottomPoints = wrap.DistBottom,
             BehindText = positioning.BehindText,
             RotationDegrees = rotationDegrees,
+            FlipHorizontal = flipHorizontal,
+            FlipVertical = flipVertical,
             Crop = crop,
             WidthPercent = positioning.WidthPercent,
             WidthRelativeFrom = positioning.WidthRelativeFrom,

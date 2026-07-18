@@ -728,6 +728,15 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 graphics.RotateAtTransform(item.ImageRotationDegrees, new(penX + item.ImageWidth / 2, top + item.ImageHeight / 2));
             }
 
+            if (item.ImageFlipHorizontal || item.ImageFlipVertical)
+            {
+                // a:xfrm/@flipH/@flipV: mirror around the image centre (applied inside the rotated
+                // frame, matching Word's transform order).
+                graphics.TranslateTransform(penX + item.ImageWidth / 2, top + item.ImageHeight / 2);
+                graphics.ScaleTransform(item.ImageFlipHorizontal ? -1 : 1, item.ImageFlipVertical ? -1 : 1);
+                graphics.TranslateTransform(-(penX + item.ImageWidth / 2), -(top + item.ImageHeight / 2));
+            }
+
             if (item.Crop is {IsCropped: true} crop)
             {
                 // a:srcRect crop: enlarge the image so its visible sub-rectangle covers the box, then
@@ -1260,6 +1269,8 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                         ImageWidth = width,
                         ImageHeight = height,
                         ImageRotationDegrees = run.InlineImageRotationDegrees,
+                        ImageFlipHorizontal = run.InlineImageFlipHorizontal,
+                        ImageFlipVertical = run.InlineImageFlipVertical,
                         Crop = run.InlineImageCrop,
                         Width = width,
                         Ascent = height,
@@ -1513,6 +1524,8 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         public double ImageWidth;
         public double ImageHeight;
         public double ImageRotationDegrees;
+        public bool ImageFlipHorizontal;
+        public bool ImageFlipVertical;
         public ImageCrop? Crop;
         public InlineShapeGroup? ShapeGroup;
         public bool IsTabFiller;
