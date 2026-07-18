@@ -715,7 +715,20 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         try
         {
             var image = context.GetImage(item.ImageData);
-            graphics.DrawImage(image, penX, baseline - item.ImageHeight, item.ImageWidth, item.ImageHeight);
+            var top = baseline - item.ImageHeight;
+            if (item.ImageRotationDegrees != 0)
+            {
+                // a:xfrm/@rot: rotate around the image centre, matching DrawBlockImage / the raster
+                // backends (clockwise, degrees).
+                var state = graphics.Save();
+                graphics.RotateAtTransform(item.ImageRotationDegrees, new(penX + item.ImageWidth / 2, top + item.ImageHeight / 2));
+                graphics.DrawImage(image, penX, top, item.ImageWidth, item.ImageHeight);
+                graphics.Restore(state);
+            }
+            else
+            {
+                graphics.DrawImage(image, penX, top, item.ImageWidth, item.ImageHeight);
+            }
         }
         catch
         {
@@ -1160,6 +1173,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                         ImageData = data,
                         ImageWidth = width,
                         ImageHeight = height,
+                        ImageRotationDegrees = run.InlineImageRotationDegrees,
                         Width = width,
                         Ascent = height,
                         Height = height
@@ -1387,6 +1401,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         public byte[]? ImageData;
         public double ImageWidth;
         public double ImageHeight;
+        public double ImageRotationDegrees;
         public InlineShapeGroup? ShapeGroup;
         public bool IsTabFiller;
         public TabLeader TabLeader;
