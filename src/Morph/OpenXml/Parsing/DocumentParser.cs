@@ -6664,6 +6664,16 @@ sealed class DocumentParser(string defaultFont)
             bgColor = ShapeParser.ExtractSolidFillColor(solidFill, currentThemeColors);
         }
 
+        // The shape's own chrome: a:ln outline plus any non-rect geometry (roundRect ticket
+        // outlines, plaque frames, custGeom) — drawn behind the text content.
+        var (lineColor, lineWidth) = shapeProps == null
+            ? (null, null)
+            : ShapeParser.ExtractLineStyle(wsp, shapeProps, currentThemeColors);
+        var subpaths = shapeProps == null
+            ? null
+            : ShapeParser.ExtractSubpaths(shapeProps)
+              ?? PresetShapeGeometry.TryBuild(shapeProps.GetFirstChild<A.PresetGeometry>(), widthPt, heightPt);
+
         return new()
         {
             Content = content,
@@ -6678,6 +6688,9 @@ sealed class DocumentParser(string defaultFont)
             WrapType = WrapType.None,
             BehindText = behindText,
             BackgroundColorHex = bgColor,
+            LineColorHex = lineColor,
+            LineWidthPoints = lineWidth ?? 0,
+            Subpaths = subpaths,
             RotationDegrees = rotationDegrees
         };
     }
@@ -7181,6 +7194,16 @@ sealed class DocumentParser(string defaultFont)
             bgColor = ShapeParser.ExtractSolidFillColor(solidFill, currentThemeColors);
         }
 
+        // The shape's own chrome: a:ln outline plus any non-rect geometry (roundRect ticket
+        // outlines, plaque frames, custGeom) — drawn behind the text content.
+        var (lineColor, lineWidth) = shapeProps == null
+            ? (null, null)
+            : ShapeParser.ExtractLineStyle(wsp, shapeProps, currentThemeColors);
+        var subpaths = shapeProps == null
+            ? null
+            : ShapeParser.ExtractSubpaths(shapeProps)
+              ?? PresetShapeGeometry.TryBuild(shapeProps.GetFirstChild<A.PresetGeometry>(), widthPt, heightPt);
+
         return new()
         {
             Content = content,
@@ -7195,6 +7218,9 @@ sealed class DocumentParser(string defaultFont)
             WrapType = WrapType.None,
             BehindText = behindText,
             BackgroundColorHex = bgColor,
+            LineColorHex = lineColor,
+            LineWidthPoints = lineWidth ?? 0,
+            Subpaths = subpaths,
             RotationDegrees = rotationDegrees
         };
     }

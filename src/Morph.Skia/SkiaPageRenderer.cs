@@ -2455,15 +2455,44 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             currentCanvas.RotateDegrees((float) textBox.RotationDegrees, centerX, centerY);
         }
 
-        // Draw background if specified
+        // The shape's chrome behind the text: fill and a:ln outline, following the shape's
+        // geometry when it is richer than a rectangle (roundRect ticket outlines, plaque frames).
+        using var geometryPath = BuildTextBoxPath(textBox, pixelX, pixelY, pixelWidth, pixelHeight);
         if (textBox.BackgroundColorHex != null)
         {
             using var bgPaint = new SKPaint
             {
                 Color = ParseColor(textBox.BackgroundColorHex),
-                Style = SKPaintStyle.Fill
+                Style = SKPaintStyle.Fill,
+                IsAntialias = true
             };
-            currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, bgPaint);
+            if (geometryPath != null)
+            {
+                currentCanvas.DrawPath(geometryPath, bgPaint);
+            }
+            else
+            {
+                currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, bgPaint);
+            }
+        }
+
+        if (textBox.LineColorHex != null && textBox.LineWidthPoints > 0)
+        {
+            using var strokePaint = new SKPaint
+            {
+                Color = ParseColor(textBox.LineColorHex),
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = (float) textBox.LineWidthPoints * context.Scale,
+                IsAntialias = true
+            };
+            if (geometryPath != null)
+            {
+                currentCanvas.DrawPath(geometryPath, strokePaint);
+            }
+            else
+            {
+                currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, strokePaint);
+            }
         }
 
         // Render content at the absolute position
@@ -2487,6 +2516,46 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         // Restore canvas state (removes rotation)
         currentCanvas.Restore();
+    }
+
+    /// <summary>
+    /// The text box's <see cref="FloatingTextBoxElement.Subpaths"/> contours scaled into its box,
+    /// or null for plain rectangles. Even-odd fill keeps ring geometry hollow.
+    /// </summary>
+    static SKPath? BuildTextBoxPath(FloatingTextBoxElement textBox, float x, float y, float width, float height)
+    {
+        if (textBox.Subpaths == null)
+        {
+            return null;
+        }
+
+        var path = new SKPath {FillType = SKPathFillType.EvenOdd};
+        foreach (var contour in textBox.Subpaths)
+        {
+            if (contour.Count < 3)
+            {
+                continue;
+            }
+
+            for (var index = 0; index < contour.Count; index++)
+            {
+                var (pointX, pointY) = contour[index];
+                var localX = x + (float) pointX * width;
+                var localY = y + (float) pointY * height;
+                if (index == 0)
+                {
+                    path.MoveTo(localX, localY);
+                }
+                else
+                {
+                    path.LineTo(localX, localY);
+                }
+            }
+
+            path.Close();
+        }
+
+        return path;
     }
 
     public void Dispose()
