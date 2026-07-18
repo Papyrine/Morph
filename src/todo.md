@@ -37,7 +37,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### PDF-only
 
-18. **Line numbers not rendered at all** (`line_numbers_*` — gutter completely absent).
+18. **Line numbers** — ✅ FIXED (rendering). `w:lnNumType` line numbers now render in the PDF gutter via `PdfTextEngine.RenderLineNumber` — right-aligned at `ContentLeft − w:distance`, 9pt, one per line, only every `w:countBy` line, skipping (and not counting) `w:suppressLineNumbers` paragraphs; per-page restart wired through `StartNewPage`. A faithful port of the raster backends, so it inherits their **#17** residuals vs Word (off-by-one count, interval anchored to `w:start` rather than to multiples of `w:countBy`, and 9pt digits smaller than Word's) — fixing #17 in the shared logic would clear all three backends at once. Cleared the six `line_numbers_*` PDF scenarios (all render now).
 19. **Paragraph borders** — ✅ FIXED. `w:pBdr` box / left-only / right-only / top-bottom / `w:between`-collapse edges and per-edge `w:space` now render in the PDF backend via `PdfTextEngine.DrawParagraphBorders` — a faithful port of the Skia/ImageSharp logic, with height reserved through `MeasureHeight`/`BorderSpaceExcess`. Cleared `paragraph_borders`; the heading/salutation underline rules Word draws (bottom `w:pBdr`) now also render on `cover-letters/02`, `business-plans/12`/`15`, `labels/06` (5 PDF scenarios regenerated). **Bar tabs also ✅ FIXED:** `w:tab w:val="bar"` vertical separators now render in the PDF backend via `PdfTextEngine.DrawBarTabs` — each Bar stop drawn as a full-cell-height rule (spanning spacing-before through spacing-after) so consecutive bar-tab paragraphs connect into one continuous separator; cleared `bar_tabs`. Issue #19 fully resolved.
 20. **`a:srcRect` picture crop ignored** — full image scaled into frame instead of the crop window (`image_cropping/01`, business-plans/12 cover/sidebar, business-plans/13, brochures/02/05, cards/16 aspect, postcards/04, newsletters/14 squash).
 21. **Picture/shape rotation ignored** (`image_rotation/01` unrotated, `labels/06` "ADMIT ONE" captions horizontal, `letters/13` p3 vertical banner drawn horizontal mid-page).
@@ -1470,7 +1470,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### line_numbers_continuous
 
-- MAJOR | pdf | p1 | Line-number gutter entirely missing — Word shows numbers 2–21 in the left margin, PDF renders none
+- ✅ FIXED | pdf | p1 | line-number gutter now renders (was: entirely missing) — values 1–20 off by one vs Word's 2–21 (#17, same as the raster backends). See systemic #18.
 - MAJOR | skia,imagesharp | p1 | Line-number values off by one: rendered 1–20 vs Word's 2–21 (Word applies the lnNumType start offset, Morph does not)
 - MEDIUM | all | p1 | Line pitch ~10% tighter than Word (≈47px vs 52px at 150dpi), so the 20-line block drifts upward progressively and ends ~2 line heights higher
 - MINOR | all | p1 | Body text runs ~9% narrower than Word (e.g. "Line 1 - continuous line numbering." 346px vs 382px), every line ending falls short
@@ -1479,7 +1479,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### line_numbers_count_by_5
 
-- MAJOR | pdf | p1 | Line numbers missing entirely — Word shows 5, 10, 15, 20 in the margin, PDF renders none
+- ✅ FIXED | pdf | p1 | line numbers now render (was: missing entirely) — shown at 1, 6, 11, 16 vs Word's 5, 10, 15, 20 (#17: off-by-one + interval anchored to w:start, same as the raster backends). See systemic #18.
 - MAJOR | skia,imagesharp | p1 | Count-by-5 numbering shows wrong values on wrong lines: 1, 6, 11, 16 beside Paragraphs 1/6/11/16 vs Word's 5, 10, 15, 20 beside Paragraphs 4/9/14/19
 - MEDIUM | all | p1 | Line pitch ~10% tighter, 20-line block ends ~2 line heights higher than Word
 - MINOR | all | p1 | Body text ~9% narrower than Word, line endings fall short
@@ -1488,7 +1488,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### line_numbers_custom_distance
 
-- MAJOR | pdf | p1 | Line numbers missing entirely — Word shows 2–21, PDF renders none (custom 0.5in distance never visible)
+- ✅ FIXED | pdf | p1 | line numbers now render at the custom 0.5in distance (was: missing entirely) — values 1–20 off by one vs Word's 2–21 (#17, same as the raster backends). See systemic #18.
 - MAJOR | skia,imagesharp | p1 | Line-number values off by one: 1–20 vs Word's 2–21 (the 0.5in number-to-text distance itself is honoured)
 - MEDIUM | all | p1 | Line pitch ~10% tighter, 20-line block ends ~2 line heights higher than Word
 - MINOR | all | p1 | Body text ~9% narrower than Word, line endings fall short
@@ -1497,7 +1497,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### line_numbers_restart_page
 
-- MAJOR | pdf | p1 | Line numbers missing entirely — Word shows 2–19, PDF renders none
+- ✅ FIXED | pdf | p1 | line numbers now render (was: missing entirely) — values 1–18 off by one vs Word's 2–19 (#17, same as the raster backends). See systemic #18.
 - MAJOR | skia,imagesharp | p1 | Line-number values off by one: 1–18 vs Word's 2–19
 - MEDIUM | all | p1 | Line pitch ~10% tighter, 18-line block ends ~1.7 line heights higher than Word
 - MINOR | all | p1 | Body text ~9% narrower than Word, line endings fall short
@@ -1506,7 +1506,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### line_numbers_restart_section
 
-- MAJOR | pdf | p1,p2 | Line numbers missing entirely on both pages — Word shows 2–16 per section, PDF renders none
+- ✅ FIXED | pdf | p1,p2 | line numbers now render on both pages (was: missing entirely) — values off by one vs Word (#17, same as the raster backends). See systemic #18.
 - MAJOR | skia,imagesharp | p1,p2 | Line-number values off by one on both sections: 1–15 vs Word's 2–16 (restart-per-section itself works)
 - MAJOR | skia,imagesharp | p1 | Stray orphan line number "16" rendered beside an empty line below "Section 1, Paragraph 15." where Word shows nothing (section-break paragraph gets numbered)
 - MEDIUM | all | p1,p2 | Line pitch ~10% tighter, 15-line block ends ~1.4 line heights higher than Word on each page
@@ -1516,7 +1516,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### line_numbers_suppressed
 
-- MAJOR | pdf | p1 | Line numbers missing entirely — Word shows 2–6 on the five numbered lines, PDF renders none
+- ✅ FIXED | pdf | p1 | line numbers now render on the five numbered lines with the two suppressed paragraphs correctly skipped (was: missing entirely) — values 1–5 off by one vs Word's 2–6 (#17, same as the raster backends). See systemic #18.
 - MAJOR | skia,imagesharp | p1 | Line-number values off by one: 1–5 vs Word's 2–6 (suppression of the two suppressLineNumbers paragraphs is correctly honoured)
 - MINOR | all | p1 | Line pitch slightly tighter — last line "Line 5 - Final normal paragraph." sits ~0.6 line height higher than Word
 - MINOR | all | p1 | Body text ~9% narrower than Word

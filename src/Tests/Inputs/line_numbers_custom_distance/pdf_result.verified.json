@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Paragraph 1 - Line numbers with custom distance (0.5 inch from text).\nParagraph 2 - Line numbers with custom distance (0.5 inch from text).\nParagraph 3 - Line numbers with custom distance (0.5 inch from text).\nParagraph 4 - Line numbers with custom distance (0.5 inch from text).\nParagraph 5 - Line numbers with custom distance (0.5 inch from text).\nParagraph 6 - Line numbers with custom distance (0.5 inch from text).\nParagraph 7 - Line numbers with custom distance (0.5 inch from text).\nParagraph 8 - Line numbers with custom distance (0.5 inch from text).\nParagraph 9 - Line numbers with custom distance (0.5 inch from text).\nParagraph 10 - Line numbers with custom distance (0.5 inch from text).\nParagraph 11 - Line numbers with custom distance (0.5 inch from text).\nParagraph 12 - Line numbers with custom distance (0.5 inch from text).\nParagraph 13 - Line numbers with custom distance (0.5 inch from text).\nParagraph 14 - Line numbers with custom distance (0.5 inch from text).\nParagraph 15 - Line numbers with custom distance (0.5 inch from text).\nParagraph 16 - Line numbers with custom distance (0.5 inch from text).\nParagraph 17 - Line numbers with custom distance (0.5 inch from text).\nParagraph 18 - Line numbers with custom distance (0.5 inch from text).\nParagraph 19 - Line numbers with custom distance (0.5 inch from text).\nParagraph 20 - Line numbers with custom distance (0.5 inch from text)."
+        "Text": "1 Paragraph 1 - Line numbers with custom distance (0.5 inch from text).\n2 Paragraph 2 - Line numbers with custom distance (0.5 inch from text).\n3 Paragraph 3 - Line numbers with custom distance (0.5 inch from text).\n4 Paragraph 4 - Line numbers with custom distance (0.5 inch from text).\n5 Paragraph 5 - Line numbers with custom distance (0.5 inch from text).\n6 Paragraph 6 - Line numbers with custom distance (0.5 inch from text).\n7 Paragraph 7 - Line numbers with custom distance (0.5 inch from text).\n8 Paragraph 8 - Line numbers with custom distance (0.5 inch from text).\n9 Paragraph 9 - Line numbers with custom distance (0.5 inch from text).\n10 Paragraph 10 - Line numbers with custom distance (0.5 inch from text).\n11 Paragraph 11 - Line numbers with custom distance (0.5 inch from text).\n12 Paragraph 12 - Line numbers with custom distance (0.5 inch from text).\n13 Paragraph 13 - Line numbers with custom distance (0.5 inch from text).\n14 Paragraph 14 - Line numbers with custom distance (0.5 inch from text).\n15 Paragraph 15 - Line numbers with custom distance (0.5 inch from text).\n16 Paragraph 16 - Line numbers with custom distance (0.5 inch from text).\n17 Paragraph 17 - Line numbers with custom distance (0.5 inch from text).\n18 Paragraph 18 - Line numbers with custom distance (0.5 inch from text).\n19 Paragraph 19 - Line numbers with custom distance (0.5 inch from text).\n20 Paragraph 20 - Line numbers with custom distance (0.5 inch from text)."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0746,
-      "Ssim": 0.8917,
+      "ErrorMetric": 0.0753,
+      "Ssim": 0.8916,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Paragraph 1 - Line numbers shown every 5 lines.\nParagraph 2 - Line numbers shown every 5 lines.\nParagraph 3 - Line numbers shown every 5 lines.\nParagraph 4 - Line numbers shown every 5 lines.\nParagraph 5 - Line numbers shown every 5 lines.\nParagraph 6 - Line numbers shown every 5 lines.\nParagraph 7 - Line numbers shown every 5 lines.\nParagraph 8 - Line numbers shown every 5 lines.\nParagraph 9 - Line numbers shown every 5 lines.\nParagraph 10 - Line numbers shown every 5 lines.\nParagraph 11 - Line numbers shown every 5 lines.\nParagraph 12 - Line numbers shown every 5 lines.\nParagraph 13 - Line numbers shown every 5 lines.\nParagraph 14 - Line numbers shown every 5 lines.\nParagraph 15 - Line numbers shown every 5 lines.\nParagraph 16 - Line numbers shown every 5 lines.\nParagraph 17 - Line numbers shown every 5 lines.\nParagraph 18 - Line numbers shown every 5 lines.\nParagraph 19 - Line numbers shown every 5 lines.\nParagraph 20 - Line numbers shown every 5 lines."
+        "Text": "1 Paragraph 1 - Line numbers shown every 5 lines.\nParagraph 2 - Line numbers shown every 5 lines.\nParagraph 3 - Line numbers shown every 5 lines.\nParagraph 4 - Line numbers shown every 5 lines.\nParagraph 5 - Line numbers shown every 5 lines.\n6 Paragraph 6 - Line numbers shown every 5 lines.\nParagraph 7 - Line numbers shown every 5 lines.\nParagraph 8 - Line numbers shown every 5 lines.\nParagraph 9 - Line numbers shown every 5 lines.\nParagraph 10 - Line numbers shown every 5 lines.\n11 Paragraph 11 - Line numbers shown every 5 lines.\nParagraph 12 - Line numbers shown every 5 lines.\nParagraph 13 - Line numbers shown every 5 lines.\nParagraph 14 - Line numbers shown every 5 lines.\nParagraph 15 - Line numbers shown every 5 lines.\n16 Paragraph 16 - Line numbers shown every 5 lines.\nParagraph 17 - Line numbers shown every 5 lines.\nParagraph 18 - Line numbers shown every 5 lines.\nParagraph 19 - Line numbers shown every 5 lines.\nParagraph 20 - Line numbers shown every 5 lines."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0481,
-      "Ssim": 0.9399,
+      "ErrorMetric": 0.0483,
+      "Ssim": 0.9392,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

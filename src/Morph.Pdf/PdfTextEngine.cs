@@ -323,6 +323,13 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
         var paragraphStartY = (double) context.CurrentY;
 
+        // Line numbers (w:lnNumType) render in the left-margin gutter on the flow path only, one per
+        // line, skipping w:suppressLineNumbers paragraphs (which then also don't advance the shared
+        // counter) — matching the Skia/ImageSharp backends. The counter is initialized and reset per
+        // page/section by the page renderer.
+        var lineNumberSettings = allowPageBreak ? context.PageSettings.LineNumbers : null;
+        var showLineNumbers = lineNumberSettings != null && !paragraph.Properties.SuppressLineNumbers;
+
         for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
         {
             var line = lines[lineIndex];
@@ -345,6 +352,13 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             var graphics = context.Graphics;
             var lineTop = (double) context.CurrentY;
             var baseline = lineTop + line.Ascent;
+
+            // Advance the shared counter for every line (numbering counts wrapped lines too) and draw
+            // the number in the gutter — RenderLineNumber only paints the every-CountBy line.
+            if (showLineNumbers)
+            {
+                RenderLineNumber(context.GetNextLineNumber(), baseline, lineNumberSettings!);
+            }
 
             // The first line's start shifts by its signed offset (see FirstLineOffset): right for a
             // first-line indent, LEFT (outdent) for a markerless hanging indent; its alignment box
@@ -536,6 +550,30 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             var x = context.ContentLeft + stop.PositionPoints;
             graphics.DrawLine(pen, x, top, x, top + height);
         }
+    }
+
+    // Renders a section's line number (w:lnNumType) in the left-margin gutter, right-aligned so its
+    // right edge sits DistancePoints left of the content, at the line's baseline. Only every-CountBy
+    // line shows a number (the counter still advances every line). Port of Skia RenderLineNumber; the
+    // gutter is drawn in the page margin so it never shifts the text. 9pt default face, black.
+    void RenderLineNumber(int lineNumber, double baseline, LineNumberSettings settings)
+    {
+        if ((lineNumber - settings.Start) % settings.CountBy != 0)
+        {
+            return;
+        }
+
+        var graphics = context.Graphics;
+        if (graphics == null)
+        {
+            return;
+        }
+
+        var font = context.GetFont(DefaultFontSettings.DefaultFont, false, false, 9);
+        var text = lineNumber.ToString();
+        var rightEdge = context.ContentLeft - settings.DistancePoints;
+        var x = rightEdge - measure.MeasureString(text, font).Width;
+        graphics.DrawString(text, font, context.GetBrush(PdfRenderContext.ParseColor("000000")), new XPoint(x, baseline), baselineFormat);
     }
 
     // Consecutive lines from startIndex that fit above the page bottom, measured from the
