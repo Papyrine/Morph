@@ -1137,7 +1137,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 Origin = new PointF(pixelX + offset, pixelY - baseline * context.Scale + offset),
                 KerningMode = textOptions.KerningMode
             };
-            canvas.DrawText(lightOptions, fragment.Text, context.GetBrush(Color.White));
+            DrawFragmentText(canvas, lightOptions, fragment.Text, context.GetBrush(Color.White), null, fragment.Properties);
         }
         else if (fragment.Properties.Imprint)
         {
@@ -1148,18 +1148,18 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 Origin = new PointF(pixelX - offset, pixelY - baseline * context.Scale - offset),
                 KerningMode = textOptions.KerningMode
             };
-            canvas.DrawText(darkOptions, fragment.Text, context.GetBrush(Color.Gray));
+            DrawFragmentText(canvas, darkOptions, fragment.Text, context.GetBrush(Color.Gray), null, fragment.Properties);
         }
 
         // w:outline — render the glyph as a stroke instead of a fill.
         if (fragment.Properties.OutlineOnly)
         {
             var strokePen = context.GetPen(color, Math.Max(0.5f, context.Scale * 0.5f));
-            canvas.DrawText(textOptions, fragment.Text, strokePen);
+            DrawFragmentText(canvas, textOptions, fragment.Text, null, strokePen, fragment.Properties);
         }
         else
         {
-            canvas.DrawText(textOptions, fragment.Text, context.GetBrush(color));
+            DrawFragmentText(canvas, textOptions, fragment.Text, context.GetBrush(color), null, fragment.Properties);
         }
 
         // w:bdr — per-run border drawn around the text box. Doesn't reserve space, so
@@ -1179,7 +1179,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         {
             var outlineColor = ImageSharpRenderContext.ParseColor(outline.ColorHex);
             var pen = context.GetPen(outlineColor, Math.Max(0.5f, (float) outline.WidthPoints * context.Scale));
-            canvas.DrawText(textOptions, fragment.Text, pen);
+            DrawFragmentText(canvas, textOptions, fragment.Text, null, pen, fragment.Properties);
         }
 
         // Draw underline if needed
@@ -1233,6 +1233,50 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     /// in <see cref="RenderFragment"/>. ImageSharp's drawing pipeline doesn't expose a per-draw
     /// blur filter, so blur radii are approximated by drawing the effect at multiple offsets.
     /// </summary>
+    // Draws fragment text honouring w:spacing tracking: each character advances by its own
+    // width plus the tracking, so the drawn extent equals the fragment's allocated width
+    // (natural + spacing × length). Without this, tracked words pile their surplus into the
+    // trailing gap (doubled word gaps) and negative tracking pulls the following fragment
+    // back over the space ("SheetalParmar"). The untracked path is unchanged.
+    void DrawFragmentText(DrawingCanvas canvas, RichTextOptions options, string text, Brush? brush, Pen? pen, RunProperties properties)
+    {
+        if (properties.CharacterSpacingPoints == 0 || text.Length <= 1)
+        {
+            DrawPiece(options, text);
+            return;
+        }
+
+        var trackingPixels = context.PointsToPixels((float) properties.CharacterSpacingPoints);
+        var origin = options.Origin;
+        var penX = origin.X;
+        for (var i = 0; i < text.Length; i++)
+        {
+            var length = char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
+            var piece = text.Substring(i, length);
+            var pieceOptions = new RichTextOptions(options.Font)
+            {
+                Dpi = options.Dpi,
+                KerningMode = options.KerningMode,
+                Origin = new PointF(penX, origin.Y)
+            };
+            DrawPiece(pieceOptions, piece);
+            penX += context.PointsToPixels(context.MeasureText(options.Font, piece, options.KerningMode)) + trackingPixels;
+            i += length - 1;
+        }
+
+        void DrawPiece(RichTextOptions pieceOptions, string piece)
+        {
+            if (brush != null)
+            {
+                canvas.DrawText(pieceOptions, piece, brush);
+            }
+            else if (pen != null)
+            {
+                canvas.DrawText(pieceOptions, piece, pen);
+            }
+        }
+    }
+
     void DrawTextEffectsBehind(DrawingCanvas canvas, TextFragment fragment, RichTextOptions baseOptions,
         Font font, float pixelX, float pixelY, float baseline)
     {
@@ -1253,7 +1297,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 Dpi = context.Dpi,
                 Origin = new PointF(pixelX + offsetX, pixelY - baseline * context.Scale + offsetY)
             };
-            canvas.DrawText(shadowOptions, fragment.Text, new SolidBrush(shadowColor));
+            DrawFragmentText(canvas, shadowOptions, fragment.Text, new SolidBrush(shadowColor), null, fragment.Properties);
         }
 
         if (props.Glow is { } glow)
@@ -1268,7 +1312,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 var ringAlpha = (byte) Math.Clamp(glow.AlphaPercent * 255 / 100 / rings, 0, 255);
                 var ringColor = Color.FromPixel(new Rgba32(rgba.R, rgba.G, rgba.B, ringAlpha));
                 var pen = new SolidPen(ringColor, r);
-                canvas.DrawText(baseOptions, fragment.Text, pen);
+                DrawFragmentText(canvas, baseOptions, fragment.Text, null, pen, fragment.Properties);
             }
         }
 
@@ -1301,7 +1345,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 Origin = new PointF(pixelX, pixelY - baseline * context.Scale + ascent + descent)
             };
             _ = reflectOptions;
-            canvas.DrawText(ghostOptions, fragment.Text, new SolidBrush(reflectionColor));
+            DrawFragmentText(canvas, ghostOptions, fragment.Text, new SolidBrush(reflectionColor), null, fragment.Properties);
         }
     }
 

@@ -626,6 +626,28 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         return -1;
     }
 
+    // Draws text honouring w:spacing tracking: each character advances by its own width plus
+    // the tracking, matching the layout's allocated width (natural + spacing × length). The
+    // untracked path stays a single DrawString call.
+    void DrawTrackedString(XGraphics graphics, string text, XFont font, XBrush brush, double penX, double baseline, double trackingPoints)
+    {
+        if (trackingPoints == 0 || text.Length <= 1)
+        {
+            graphics.DrawString(text, font, brush, new XPoint(penX, baseline), baselineFormat);
+            return;
+        }
+
+        var x = penX;
+        for (var i = 0; i < text.Length; i++)
+        {
+            var length = char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
+            var piece = text.Substring(i, length);
+            graphics.DrawString(piece, font, brush, new XPoint(x, baseline), baselineFormat);
+            x += measure.MeasureString(piece, font).Width + trackingPoints;
+            i += length - 1;
+        }
+    }
+
     void DrawItem(XGraphics graphics, LineItem item, double penX, double baseline)
     {
         var properties = item.Props;
@@ -640,7 +662,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         }
 
         var color = PdfRenderContext.ParseColor(properties.ColorHex);
-        graphics.DrawString(item.Text!, item.Font, context.GetBrush(color), new XPoint(penX, drawBaseline), baselineFormat);
+        DrawTrackedString(graphics, item.Text!, item.Font, context.GetBrush(color), penX, drawBaseline, properties.CharacterSpacingPoints);
 
         if (properties.Underline)
         {
@@ -1397,13 +1419,15 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                         continue;
                     }
 
-                    pendingSpaceWidth += spaceWidth * token.Text.Length;
+                    pendingSpaceWidth += (spaceWidth + run.Properties.CharacterSpacingPoints) * token.Text.Length;
                     pendingSpaceFont = font;
                     pendingSpaceProps = run.Properties;
                     continue;
                 }
 
-                var wordWidth = measure.MeasureString(token.Text, font).Width;
+                // w:spacing tracking widens (or narrows) every character's advance, spaces included.
+                var wordWidth = measure.MeasureString(token.Text, font).Width
+                                + run.Properties.CharacterSpacingPoints * token.Text.Length;
                 // A word straight after a tab filler stays put: the tab just resolved its
                 // position, and rounding drift between the tab's following-width probe and this
                 // word-by-word measure must not wrap it away (Word never does).
