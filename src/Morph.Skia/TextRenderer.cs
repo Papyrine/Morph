@@ -1435,6 +1435,14 @@ sealed class TextRenderer(SkiaRenderContext context) :
         var sx = pixelWidth / (float) group.ChildExtentX;
         var sy = pixelHeight / (float) group.ChildExtentY;
 
+        // The group transform scales stroke widths along with the geometry (Word's model): a group
+        // displayed at half its child size draws its 20pt connector lines at 10pt. The geometric
+        // mean handles the slightly-anisotropic boxes Word writes; on an unscaled icon this is
+        // exactly the identity (EMU→px), keeping stroke = w/12700 · Scale. Without this, the
+        // assembled arrow glyphs (business-plans/02 and /12 section markers) draw full-width
+        // strokes over shrunken geometry and the pieces overshoot into a mangled chevron.
+        var strokeScale = MathF.Sqrt(sx * sy);
+
         canvas.Save();
         if (group.RotationDegrees != 0)
         {
@@ -1463,12 +1471,19 @@ sealed class TextRenderer(SkiaRenderContext context) :
                     (startX, endX) = (endX, startX);
                 }
 
+                // A line's stroke scales by its along-axis factor: the cross-axis "scale" of a
+                // single-line wrapper group is degenerate (the child box is the line itself), so
+                // the geometric mean would blow a divider rule into a page-wide band.
+                var lineScale = shape.Height <= 0 ? sx
+                    : shape.Width <= 0 ? sy
+                    : strokeScale;
+
                 using var paint = new SKPaint
                 {
                     Color = ParseColor(shape.ColorHex, shape.LineAlpha),
                     Style = SKPaintStyle.Stroke,
-                    // EMU → points → pixels. Default to 0.75pt when the shape doesn't carry a width.
-                    StrokeWidth = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75) * context.Scale,
+                    // Group-scaled EMU → pixels. Default to 0.75pt when the shape doesn't carry a width.
+                    StrokeWidth = shape.LineWidthEmu > 0 ? (float) shape.LineWidthEmu * lineScale : 0.75f * context.Scale,
                     StrokeCap = SKStrokeCap.Square,
                     IsAntialias = true
                 };
@@ -1534,7 +1549,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
                     {
                         Color = ParseColor(shape.ColorHex, shape.LineAlpha),
                         Style = SKPaintStyle.Stroke,
-                        StrokeWidth = (float) (shape.LineWidthEmu / emusPerPoint) * context.Scale,
+                        StrokeWidth = (float) shape.LineWidthEmu * strokeScale,
                         IsAntialias = true
                     };
                     if (geometryPath != null)
@@ -1657,9 +1672,6 @@ sealed class TextRenderer(SkiaRenderContext context) :
 
         canvas.Restore();
     }
-
-    // EMU = English Metric Units. 1 point = 12700 EMU.
-    const float emusPerPoint = 12700f;
 
     void RenderInlineImage(SKCanvas canvas, TextFragment fragment, float x, float y)
     {
