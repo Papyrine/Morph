@@ -6666,8 +6666,8 @@ sealed class DocumentParser(string defaultFont)
 
         // The shape's own chrome: a:ln outline plus any non-rect geometry (roundRect ticket
         // outlines, plaque frames, custGeom) — drawn behind the text content.
-        var (lineColor, lineWidth) = shapeProps == null
-            ? (null, null)
+        var (lineColor, lineWidth, lineAlpha) = shapeProps == null
+            ? (null, null, 1)
             : ShapeParser.ExtractLineStyle(wsp, shapeProps, currentThemeColors);
         var subpaths = shapeProps == null
             ? null
@@ -6690,6 +6690,7 @@ sealed class DocumentParser(string defaultFont)
             BackgroundColorHex = bgColor,
             LineColorHex = lineColor,
             LineWidthPoints = lineWidth ?? 0,
+            LineAlpha = lineAlpha,
             Subpaths = subpaths,
             RotationDegrees = rotationDegrees
         };
@@ -6839,7 +6840,7 @@ sealed class DocumentParser(string defaultFont)
         // rules down the left and across the top of the Agenda template, which are stroked
         // custom-geometry line segments (moveTo + lnTo) with no fill. Those must still render, so
         // don't bail purely because there's no fill; only bail when there's neither fill nor stroke.
-        var (lineColorHex, lineWidthPoints) = ShapeParser.ExtractLineStyle(wsp, shapeProps, currentThemeColors);
+        var (lineColorHex, lineWidthPoints, _) = ShapeParser.ExtractLineStyle(wsp, shapeProps, currentThemeColors);
         // A dashed outline would render as a solid line here (this path draws no dash pattern),
         // which looks worse than not drawing it — so a stroke-only shape only counts as strokeable
         // when its dash is solid. Matches the prstGeom-line policy in ParseLineShape; the Agenda
@@ -6933,7 +6934,7 @@ sealed class DocumentParser(string defaultFont)
         AccumulatedTransform accumTransform,
         bool behindText)
     {
-        var (lineColor, lineWidth) = ShapeParser.ExtractLineStyle(wsp, shapeProps, currentThemeColors);
+        var (lineColor, lineWidth, _) = ShapeParser.ExtractLineStyle(wsp, shapeProps, currentThemeColors);
         if (lineColor == null || lineWidth is not > 0)
         {
             return null;
@@ -7196,8 +7197,8 @@ sealed class DocumentParser(string defaultFont)
 
         // The shape's own chrome: a:ln outline plus any non-rect geometry (roundRect ticket
         // outlines, plaque frames, custGeom) — drawn behind the text content.
-        var (lineColor, lineWidth) = shapeProps == null
-            ? (null, null)
+        var (lineColor, lineWidth, lineAlpha) = shapeProps == null
+            ? (null, null, 1)
             : ShapeParser.ExtractLineStyle(wsp, shapeProps, currentThemeColors);
         var subpaths = shapeProps == null
             ? null
@@ -7220,6 +7221,7 @@ sealed class DocumentParser(string defaultFont)
             BackgroundColorHex = bgColor,
             LineColorHex = lineColor,
             LineWidthPoints = lineWidth ?? 0,
+            LineAlpha = lineAlpha,
             Subpaths = subpaths,
             RotationDegrees = rotationDegrees
         };

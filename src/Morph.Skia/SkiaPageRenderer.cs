@@ -2283,7 +2283,8 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         {
             using var strokePaint = new SKPaint
             {
-                Color = SKColor.Parse(lineColor),
+                Color = SKColor.Parse(lineColor)
+                    .WithAlpha((byte) Math.Round(Math.Clamp(shape.LineAlpha, 0, 1) * 255)),
                 Style = SKPaintStyle.Stroke,
                 StrokeWidth = context.PointsToPixels((float) lineWidthPt),
                 IsAntialias = true
@@ -2480,7 +2481,8 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         {
             using var strokePaint = new SKPaint
             {
-                Color = ParseColor(textBox.LineColorHex),
+                Color = ParseColor(textBox.LineColorHex)
+                    .WithAlpha((byte) Math.Round(Math.Clamp(textBox.LineAlpha, 0, 1) * 255)),
                 Style = SKPaintStyle.Stroke,
                 StrokeWidth = (float) textBox.LineWidthPoints * context.Scale,
                 IsAntialias = true

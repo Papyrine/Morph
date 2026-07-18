@@ -119,7 +119,7 @@ static class ShapeParser
             return null;
         }
 
-        var (lineColor, lineWidth) = ExtractLineStyle(wsp, shapeProps, themeColors);
+        var (lineColor, lineWidth, lineAlpha) = ExtractLineStyle(wsp, shapeProps, themeColors);
         var preset = ExtractPresetShape(shapeProps);
         var subpaths = ExtractSubpaths(shapeProps)
                        ?? PresetShapeGeometry.TryBuild(shapeProps.GetFirstChild<A.PresetGeometry>(), widthPoints, heightPoints);
@@ -151,6 +151,7 @@ static class ShapeParser
                     FillAlpha = ExtractSolidFillAlpha(solidFill),
                     LineColorHex = lineColor,
                     LineWidthPoints = lineWidth,
+                LineAlpha = lineAlpha,
                     Preset = preset,
                     Subpaths = subpaths,
                     RotationDegrees = rotation,
@@ -186,6 +187,7 @@ static class ShapeParser
                     FillColorHex = gradient.StartColorHex,
                     LineColorHex = lineColor,
                     LineWidthPoints = lineWidth,
+                LineAlpha = lineAlpha,
                     Preset = preset,
                     Subpaths = subpaths,
                     RotationDegrees = rotation,
@@ -222,6 +224,7 @@ static class ShapeParser
                     ImageContentType = contentType,
                     LineColorHex = lineColor,
                     LineWidthPoints = lineWidth,
+                LineAlpha = lineAlpha,
                     Preset = preset,
                     Subpaths = subpaths,
                     RotationDegrees = rotation,
@@ -242,14 +245,14 @@ static class ShapeParser
     /// strokes in the lnRef's colour. Returns (null, null) when the shape has no stroke — an
     /// <c>a:noFill</c> line, or nothing left to fall back on.
     /// </summary>
-    public static (string? color, double? widthPoints) ExtractLineStyle(WPS.WordprocessingShape wsp, WPS.ShapeProperties shapeProps, ThemeColors? themeColors)
+    public static (string? color, double? widthPoints, double alpha) ExtractLineStyle(WPS.WordprocessingShape wsp, WPS.ShapeProperties shapeProps, ThemeColors? themeColors)
     {
         var directLn = shapeProps.GetFirstChild<A.Outline>();
 
         // Explicit no-fill on the line means no stroke, whatever the style reference says.
         if (directLn?.GetFirstChild<A.NoFill>() != null)
         {
-            return (null, null);
+            return (null, null, 1);
         }
 
         var (refColor, refWidthPoints) = ExtractLineReferenceStyle(wsp, themeColors);
@@ -263,7 +266,11 @@ static class ShapeParser
             ? ((long) emu).EmuToPoints()
             : refWidthPoints;
 
-        return (color, widthPoints);
+        // Word's decorative frames rely on line opacity: menus/09's 6.75pt octagon border is a
+        // light grey at 16% alpha over a dark card — opaque it reads as a fat silver band.
+        var alpha = directSolid != null ? ExtractSolidFillAlpha(directSolid) : 1;
+
+        return (color, widthPoints, alpha);
     }
 
     /// <summary>
@@ -568,7 +575,7 @@ static class ShapeParser
         var widthPt = (shapeCx * scaleX).EmuToPoints();
         var heightPt = (shapeCy * scaleY).EmuToPoints();
 
-        var (lineColor, lineWidth) = ExtractLineStyle(wsp, shapeProps, themeColors);
+        var (lineColor, lineWidth, lineAlpha) = ExtractLineStyle(wsp, shapeProps, themeColors);
         var preset = ExtractPresetShape(shapeProps);
         var subpaths = ExtractSubpaths(shapeProps)
                        ?? PresetShapeGeometry.TryBuild(shapeProps.GetFirstChild<A.PresetGeometry>(), widthPt, heightPt);
@@ -597,6 +604,7 @@ static class ShapeParser
                     FillAlpha = ExtractSolidFillAlpha(solidFill),
                     LineColorHex = lineColor,
                     LineWidthPoints = lineWidth,
+                LineAlpha = lineAlpha,
                     Preset = preset,
                     Subpaths = subpaths,
                     RotationDegrees = rotation,
@@ -628,6 +636,7 @@ static class ShapeParser
                     ImageContentType = contentType,
                     LineColorHex = lineColor,
                     LineWidthPoints = lineWidth,
+                LineAlpha = lineAlpha,
                     Preset = preset,
                     Subpaths = subpaths,
                     RotationDegrees = rotation,

@@ -1376,6 +1376,10 @@ static class HtmlExporter
             {
                 attributes.Append(" stroke=\"").Append(stroke)
                     .Append("\" stroke-width=\"").Append(Number(lineWidth)).Append('"');
+                if (shape.LineAlpha < 0.999)
+                {
+                    attributes.Append(" stroke-opacity=\"").Append(Number(shape.LineAlpha)).Append('"');
+                }
             }
 
             attributes.Append(ShapeTransformAttribute(shape, width, height));
