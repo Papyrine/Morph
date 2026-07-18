@@ -5119,10 +5119,14 @@ sealed class DocumentParser(string defaultFont)
         {
             // Empty paragraph - still counts for spacing
             // Keep runs empty so the renderer can avoid creating spurious extra pages at document end.
+            // A paragraph whose only purpose is carrying the sectPr is not a numbered line in Word —
+            // it keeps its height but must neither draw nor consume a line number.
             result.Add(new ParagraphElement
             {
                 Runs = [],
-                Properties = props
+                Properties = sectionBreak != null
+                    ? props with {SuppressLineNumbers = true}
+                    : props
             });
         }
         else if (runs.Count > 0)
