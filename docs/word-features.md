@@ -1331,7 +1331,7 @@ Sequential line numbers displayed in the left margin. Configurable start value, 
 - **OOXML**: `w:lnNumType` — `w:start`, `w:countBy`, `w:distance`, `w:restart`
 - **Spec**: [Line Numbering](http://officeopenxml.com/WPsectionLineNum.php)
 - **Model**: `PageSettings.LineNumbers` → `LineNumberSettings`
-- **Render**: `TextRenderer.RenderLineNumber()`, `RenderContextBase.GetNextLineNumber()`
+- **Render**: `RenderLineNumber()` in each raster `TextRenderer` and `Morph.Pdf/PdfTextEngine.cs`; shared counter `RenderContextBase.GetNextLineNumber()`
 - **Test**: `line_numbers_continuous/`, `line_numbers_count_by_5/`, `line_numbers_custom_distance/`, `line_numbers_restart_page/`, `line_numbers_restart_section/`
 
 > **Contributors**: Three restart modes: Continuous (never reset), NewPage (reset each page), NewSection (reset each section). Counter managed in `RenderContextBase`. Suppressed per-paragraph via `SuppressLineNumbers`.
