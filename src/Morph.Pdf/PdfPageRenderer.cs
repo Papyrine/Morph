@@ -998,12 +998,12 @@ sealed class PdfPageRenderer : PageRendererBase
             // backends (e.g. letters/13's vertical banner at 90 degrees).
             var state = Graphics.Save();
             Graphics.RotateAtTransform(image.RotationDegrees, new(bounds.X + bounds.PixelWidth / 2, bounds.Y + bounds.PixelHeight / 2));
-            DrawRaster(image.ImageData, image.ContentType, image.RasterFallbackData, image.RasterFallbackContentType, bounds.X, bounds.Y, bounds.PixelWidth, bounds.PixelHeight);
+            DrawRaster(image.ImageData, image.ContentType, image.RasterFallbackData, image.RasterFallbackContentType, bounds.X, bounds.Y, bounds.PixelWidth, bounds.PixelHeight, image.Crop);
             Graphics.Restore(state);
         }
         else
         {
-            DrawRaster(image.ImageData, image.ContentType, image.RasterFallbackData, image.RasterFallbackContentType, bounds.X, bounds.Y, bounds.PixelWidth, bounds.PixelHeight);
+            DrawRaster(image.ImageData, image.ContentType, image.RasterFallbackData, image.RasterFallbackContentType, bounds.X, bounds.Y, bounds.PixelWidth, bounds.PixelHeight, image.Crop);
         }
     }
 
@@ -1018,18 +1018,18 @@ sealed class PdfPageRenderer : PageRendererBase
         {
             var state = Graphics.Save();
             Graphics.RotateAtTransform(rotation, new(pixelX + pixelWidth / 2, pixelY + pixelHeight / 2));
-            DrawRaster(imageData, contentType, null, null, pixelX, pixelY, pixelWidth, pixelHeight);
+            DrawRaster(imageData, contentType, null, null, pixelX, pixelY, pixelWidth, pixelHeight, crop);
             Graphics.Restore(state);
         }
         else
         {
-            DrawRaster(imageData, contentType, null, null, pixelX, pixelY, pixelWidth, pixelHeight);
+            DrawRaster(imageData, contentType, null, null, pixelX, pixelY, pixelWidth, pixelHeight, crop);
         }
     }
 
     protected override bool CanRenderContentType(string? contentType) => contentType != "image/svg+xml";
 
-    void DrawRaster(byte[] data, string? contentType, byte[]? fallbackData, string? fallbackContentType, double x, double y, double width, double height)
+    void DrawRaster(byte[] data, string? contentType, byte[]? fallbackData, string? fallbackContentType, double x, double y, double width, double height, ImageCrop? crop = null)
     {
         // PDFsharp can't decode SVG (see CanRenderContentType); fall back to the raster blip behind
         // it, but only if that fallback is itself something we can decode.
@@ -1046,7 +1046,21 @@ sealed class PdfPageRenderer : PageRendererBase
         try
         {
             var image = context.GetImage(data);
-            Graphics.DrawImage(image, x, y, width, height);
+            if (crop is {IsCropped: true})
+            {
+                // a:srcRect crop: enlarge the whole image so its visible sub-rectangle covers the box,
+                // then clip back to the box (PDFsharp has no source-rectangle API) — the same technique
+                // as the shape-group path in PdfTextEngine.
+                var (dx, dy, dw, dh) = crop.Expand(x, y, width, height);
+                var state = Graphics.Save();
+                Graphics.IntersectClip(new XRect(x, y, width, height));
+                Graphics.DrawImage(image, dx, dy, dw, dh);
+                Graphics.Restore(state);
+            }
+            else
+            {
+                Graphics.DrawImage(image, x, y, width, height);
+            }
         }
         catch (Exception exception)
         {

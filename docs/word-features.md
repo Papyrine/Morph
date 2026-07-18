@@ -1440,7 +1440,7 @@ Displaying only a portion of an image.
 - **Spec**: [Source Rectangle](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.sourcerectangle)
 - **Model**: `ImageCrop` record (`Left/Top/Right/Bottom` as 0..1 fractions); `Run.InlineImageCrop`, `ImageElement.Crop`, `FloatingImageElement.Crop`
 - **Parse**: `DocumentParser.ReadCrop()` reads `a:srcRect` (1000ths-of-percent → fraction) for both inline and drawing-element image paths
-- **Render**: inline images via `SKCanvas.DrawBitmap(src, dest)` (Skia) / `image.Mutate(_ => _.Crop(...))` (ImageSharp). Block-level `ImageElement` and `FloatingImageElement` go through `PageRenderer.DrawBlockImage` which applies the same crop+rotate pipeline.
+- **Render**: inline images via `SKCanvas.DrawBitmap(src, dest)` (Skia) / `image.Mutate(_ => _.Crop(...))` (ImageSharp) / `ImageCrop.Expand` + `IntersectClip` in `PdfTextEngine.DrawImage` (PDF — PDFsharp has no source-rectangle API, so the whole image is drawn enlarged and clipped back to the box). Block-level `ImageElement` and `FloatingImageElement` go through `PageRenderer.DrawBlockImage`, with the PDF backend applying the same expand-and-clip inside `DrawRaster` (so block, floating and inline images all crop).
 - **Test**: `image_cropping/`
 
 > **Contributors**: Several existing scenarios that ship `a:srcRect` (cards/16, newsletters/14, business-plans/02, business-plans/03, brochures/06, wedding/02-10, labels/11, letters/13, brochures/02, cover-letters/12, newsletters/01) re-snapshot to the cropped output — most move closer to Word's reference, with `wedding/10` improving from 0.151 → 0.118 pixel-diff.
