@@ -700,6 +700,8 @@ sealed class TextRenderer(SkiaRenderContext context) :
                         InlineImageHeightPoints = imageHeight,
                         InlineImageContentType = run.InlineImageContentType,
                         InlineImageRotationDegrees = run.InlineImageRotationDegrees,
+                        InlineImageFlipHorizontal = run.InlineImageFlipHorizontal,
+                        InlineImageFlipVertical = run.InlineImageFlipVertical,
                         InlineImageCrop = run.InlineImageCrop,
                         InlineShapeGroup = run.InlineShapeGroup
                     });
@@ -1685,10 +1687,24 @@ sealed class TextRenderer(SkiaRenderContext context) :
         var destRect = new SKRect(pixelX, pixelY, pixelX + pixelWidth, pixelY + pixelHeight);
 
         var rotation = (float) fragment.InlineImageRotationDegrees;
-        if (rotation != 0)
+        var transformed = rotation != 0 || fragment.InlineImageFlipHorizontal || fragment.InlineImageFlipVertical;
+        if (transformed)
         {
             canvas.Save();
-            canvas.RotateDegrees(rotation, pixelX + pixelWidth / 2, pixelY + pixelHeight / 2);
+            if (rotation != 0)
+            {
+                canvas.RotateDegrees(rotation, pixelX + pixelWidth / 2, pixelY + pixelHeight / 2);
+            }
+
+            if (fragment.InlineImageFlipHorizontal || fragment.InlineImageFlipVertical)
+            {
+                // a:xfrm/@flipH/@flipV: mirror around the image centre inside the rotated frame.
+                canvas.Scale(
+                    fragment.InlineImageFlipHorizontal ? -1 : 1,
+                    fragment.InlineImageFlipVertical ? -1 : 1,
+                    pixelX + pixelWidth / 2,
+                    pixelY + pixelHeight / 2);
+            }
         }
 
         if (fragment.InlineImageContentType == "image/svg+xml")
@@ -1723,7 +1739,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
             }
         }
 
-        if (rotation != 0)
+        if (transformed)
         {
             canvas.Restore();
         }
@@ -1872,6 +1888,8 @@ sealed class TextRenderer(SkiaRenderContext context) :
                         InlineImageHeightPoints = imageHeight,
                         InlineImageContentType = run.InlineImageContentType,
                         InlineImageRotationDegrees = run.InlineImageRotationDegrees,
+                        InlineImageFlipHorizontal = run.InlineImageFlipHorizontal,
+                        InlineImageFlipVertical = run.InlineImageFlipVertical,
                         InlineImageCrop = run.InlineImageCrop,
                         InlineShapeGroup = run.InlineShapeGroup
                     });
@@ -2387,6 +2405,12 @@ sealed class TextFragment
 
     /// <summary>Inline image rotation in degrees (clockwise).</summary>
     public double InlineImageRotationDegrees { get; init; }
+
+    /// <summary>Inline image horizontal mirror (a:xfrm/@flipH).</summary>
+    public bool InlineImageFlipHorizontal { get; init; }
+
+    /// <summary>Inline image vertical mirror (a:xfrm/@flipV).</summary>
+    public bool InlineImageFlipVertical { get; init; }
 
     /// <summary>Inline image source-rectangle crop. Null = no crop.</summary>
     public ImageCrop? InlineImageCrop { get; init; }

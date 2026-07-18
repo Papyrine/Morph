@@ -33,6 +33,12 @@ sealed class Run
     /// <summary>Inline image rotation in degrees (clockwise). 0 means no rotation.</summary>
     public double InlineImageRotationDegrees { get; init; }
 
+    /// <summary>Horizontal mirror for the inline image (a:xfrm/@flipH).</summary>
+    public bool InlineImageFlipHorizontal { get; init; }
+
+    /// <summary>Vertical mirror for the inline image (a:xfrm/@flipV).</summary>
+    public bool InlineImageFlipVertical { get; init; }
+
     /// <summary>Inline image source-rectangle crop (a:srcRect). Null = no crop.</summary>
     public ImageCrop? InlineImageCrop { get; init; }
 
@@ -95,6 +101,8 @@ sealed class Run
             InlineImageRasterFallbackData = InlineImageRasterFallbackData,
             InlineImageRasterFallbackContentType = InlineImageRasterFallbackContentType,
             InlineImageRotationDegrees = InlineImageRotationDegrees,
+            InlineImageFlipHorizontal = InlineImageFlipHorizontal,
+            InlineImageFlipVertical = InlineImageFlipVertical,
             InlineImageCrop = InlineImageCrop,
             IsTab = IsTab,
             FootnoteReferenceId = FootnoteReferenceId,

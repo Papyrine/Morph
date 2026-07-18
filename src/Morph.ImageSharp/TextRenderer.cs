@@ -674,6 +674,8 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                     InlineImageRasterFallbackData = run.InlineImageRasterFallbackData,
                     InlineImageRasterFallbackContentType = run.InlineImageRasterFallbackContentType,
                     InlineImageRotationDegrees = run.InlineImageRotationDegrees,
+                    InlineImageFlipHorizontal = run.InlineImageFlipHorizontal,
+                    InlineImageFlipVertical = run.InlineImageFlipVertical,
                     InlineImageCrop = run.InlineImageCrop,
                     InlineShapeGroup = run.InlineShapeGroup
                 });
@@ -1625,10 +1627,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             imageBytes = fragment.InlineImageRasterFallbackData;
         }
 
-        // Decode + crop + resize + rotate are cached on the context — a repeated inline icon
-        // processes once per document.
+        // Decode + crop + resize + flip + rotate are cached on the context — a repeated inline
+        // icon processes once per document.
         var rotation = (float) fragment.InlineImageRotationDegrees;
-        var img = context.GetProcessedImage(imageBytes!, (int) pixelWidth, (int) pixelHeight, fragment.InlineImageCrop, BlipColorEffect.None, rotation);
+        var img = context.GetProcessedImage(imageBytes!, (int) pixelWidth, (int) pixelHeight, fragment.InlineImageCrop, BlipColorEffect.None, rotation, fragment.InlineImageFlipHorizontal, fragment.InlineImageFlipVertical);
         if (img == null)
         {
             return;
@@ -1794,6 +1796,8 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                         InlineImageRasterFallbackData = run.InlineImageRasterFallbackData,
                         InlineImageRasterFallbackContentType = run.InlineImageRasterFallbackContentType,
                         InlineImageRotationDegrees = run.InlineImageRotationDegrees,
+                        InlineImageFlipHorizontal = run.InlineImageFlipHorizontal,
+                        InlineImageFlipVertical = run.InlineImageFlipVertical,
                         InlineImageCrop = run.InlineImageCrop,
                         InlineShapeGroup = run.InlineShapeGroup
                     });
@@ -2238,6 +2242,12 @@ sealed class TextFragment
 
     /// <summary>Inline image rotation in degrees (clockwise).</summary>
     public double InlineImageRotationDegrees { get; init; }
+
+    /// <summary>Inline image horizontal mirror (a:xfrm/@flipH).</summary>
+    public bool InlineImageFlipHorizontal { get; init; }
+
+    /// <summary>Inline image vertical mirror (a:xfrm/@flipV).</summary>
+    public bool InlineImageFlipVertical { get; init; }
 
     /// <summary>Inline image source-rectangle crop. Null = no crop.</summary>
     public ImageCrop? InlineImageCrop { get; init; }

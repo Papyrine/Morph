@@ -24,6 +24,12 @@ sealed class ImageElement : DocumentElement
     /// <summary>Rotation in degrees (clockwise). 0 means no rotation.</summary>
     public double RotationDegrees { get; init; }
 
+    /// <summary>Horizontal mirror (a:xfrm/@flipH).</summary>
+    public bool FlipHorizontal { get; init; }
+
+    /// <summary>Vertical mirror (a:xfrm/@flipV).</summary>
+    public bool FlipVertical { get; init; }
+
     /// <summary>Source-rectangle crop (a:srcRect). Null = no crop.</summary>
     public ImageCrop? Crop { get; init; }
 

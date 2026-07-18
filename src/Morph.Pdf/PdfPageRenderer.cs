@@ -992,12 +992,26 @@ sealed class PdfPageRenderer : PageRendererBase
         // them instead of over them.
         context.RegisterFloatExclusion(image, bounds.X, bounds.Y, (float) width, (float) height);
 
-        if (Math.Abs(image.RotationDegrees) > 0.01)
+        if (Math.Abs(image.RotationDegrees) > 0.01 || image.FlipHorizontal || image.FlipVertical)
         {
-            // a:xfrm/@rot: rotate around the image centre, matching DrawBlockImage and the raster
-            // backends (e.g. letters/13's vertical banner at 90 degrees).
+            // a:xfrm transforms around the image centre, matching DrawBlockImage and the raster
+            // backends: @rot (e.g. letters/13's vertical banner at 90 degrees), then @flipH/@flipV
+            // (e.g. agendas-minutes/02's mirrored wave artwork).
+            var centerX = bounds.X + bounds.PixelWidth / 2;
+            var centerY = bounds.Y + bounds.PixelHeight / 2;
             var state = Graphics.Save();
-            Graphics.RotateAtTransform(image.RotationDegrees, new(bounds.X + bounds.PixelWidth / 2, bounds.Y + bounds.PixelHeight / 2));
+            if (Math.Abs(image.RotationDegrees) > 0.01)
+            {
+                Graphics.RotateAtTransform(image.RotationDegrees, new(centerX, centerY));
+            }
+
+            if (image.FlipHorizontal || image.FlipVertical)
+            {
+                Graphics.TranslateTransform(centerX, centerY);
+                Graphics.ScaleTransform(image.FlipHorizontal ? -1 : 1, image.FlipVertical ? -1 : 1);
+                Graphics.TranslateTransform(-centerX, -centerY);
+            }
+
             DrawRaster(image.ImageData, image.ContentType, image.RasterFallbackData, image.RasterFallbackContentType, bounds.X, bounds.Y, bounds.PixelWidth, bounds.PixelHeight, image.Crop);
             Graphics.Restore(state);
         }
@@ -1007,17 +1021,31 @@ sealed class PdfPageRenderer : PageRendererBase
         }
     }
 
-    protected override void DrawBlockImage(byte[] imageData, string? contentType, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, ImageCrop? crop, BlipColorEffect colorEffect)
+    protected override void DrawBlockImage(byte[] imageData, string? contentType, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, bool flipHorizontal, bool flipVertical, ImageCrop? crop, BlipColorEffect colorEffect)
     {
         if (!HasOutput)
         {
             return;
         }
 
-        if (Math.Abs(rotation) > 0.01)
+        if (Math.Abs(rotation) > 0.01 || flipHorizontal || flipVertical)
         {
+            var centerX = pixelX + pixelWidth / 2;
+            var centerY = pixelY + pixelHeight / 2;
             var state = Graphics.Save();
-            Graphics.RotateAtTransform(rotation, new(pixelX + pixelWidth / 2, pixelY + pixelHeight / 2));
+            if (Math.Abs(rotation) > 0.01)
+            {
+                Graphics.RotateAtTransform(rotation, new(centerX, centerY));
+            }
+
+            if (flipHorizontal || flipVertical)
+            {
+                // a:xfrm/@flipH/@flipV: mirror around the image centre inside the rotated frame.
+                Graphics.TranslateTransform(centerX, centerY);
+                Graphics.ScaleTransform(flipHorizontal ? -1 : 1, flipVertical ? -1 : 1);
+                Graphics.TranslateTransform(-centerX, -centerY);
+            }
+
             DrawRaster(imageData, contentType, null, null, pixelX, pixelY, pixelWidth, pixelHeight, crop);
             Graphics.Restore(state);
         }

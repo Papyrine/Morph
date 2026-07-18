@@ -549,23 +549,33 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         currentCanvas.DrawLine(pixelX1, pixelY, pixelX2, pixelY, paint);
     }
 
-    protected override void DrawBlockImage(byte[] imageData, string? contentType, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, ImageCrop? crop, BlipColorEffect colorEffect)
+    protected override void DrawBlockImage(byte[] imageData, string? contentType, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, bool flipHorizontal, bool flipVertical, ImageCrop? crop, BlipColorEffect colorEffect)
     {
         var destRect = new SKRect(pixelX, pixelY, pixelX + pixelWidth, pixelY + pixelHeight);
-        DrawBlockImage(imageData, contentType, destRect, rotation, crop, colorEffect);
+        DrawBlockImage(imageData, contentType, destRect, rotation, crop, colorEffect, flipHorizontal, flipVertical);
     }
 
-    void DrawBlockImage(byte[] imageData, string? contentType, SKRect destRect, float rotation, ImageCrop? crop, BlipColorEffect colorEffect = BlipColorEffect.None)
+    void DrawBlockImage(byte[] imageData, string? contentType, SKRect destRect, float rotation, ImageCrop? crop, BlipColorEffect colorEffect = BlipColorEffect.None, bool flipHorizontal = false, bool flipVertical = false)
     {
         if (currentCanvas == null)
         {
             return;
         }
 
-        if (rotation != 0)
+        var transformed = rotation != 0 || flipHorizontal || flipVertical;
+        if (transformed)
         {
             currentCanvas.Save();
-            currentCanvas.RotateDegrees(rotation, destRect.MidX, destRect.MidY);
+            if (rotation != 0)
+            {
+                currentCanvas.RotateDegrees(rotation, destRect.MidX, destRect.MidY);
+            }
+
+            if (flipHorizontal || flipVertical)
+            {
+                // a:xfrm/@flipH/@flipV: mirror around the image centre inside the rotated frame.
+                currentCanvas.Scale(flipHorizontal ? -1 : 1, flipVertical ? -1 : 1, destRect.MidX, destRect.MidY);
+            }
         }
 
         if (contentType == "image/svg+xml")
@@ -593,7 +603,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             }
         }
 
-        if (rotation != 0)
+        if (transformed)
         {
             currentCanvas.Restore();
         }
@@ -2403,7 +2413,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         var destRect = new SKRect(bounds.PixelX, bounds.PixelY, bounds.PixelX + bounds.PixelWidth, bounds.PixelY + bounds.PixelHeight);
 
-        DrawBlockImage(image.ImageData, image.ContentType, destRect, (float) image.RotationDegrees, image.Crop);
+        DrawBlockImage(image.ImageData, image.ContentType, destRect, (float) image.RotationDegrees, image.Crop, flipHorizontal: image.FlipHorizontal, flipVertical: image.FlipVertical);
     }
 
     void RenderFloatingTextBox(FloatingTextBoxElement textBox)

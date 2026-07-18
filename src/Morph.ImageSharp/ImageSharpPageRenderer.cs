@@ -479,7 +479,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     protected override bool CanRenderContentType(string? contentType) =>
         contentType != "image/svg+xml";
 
-    protected override void DrawBlockImage(byte[] imageData, string? contentType, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, ImageCrop? crop, BlipColorEffect colorEffect)
+    protected override void DrawBlockImage(byte[] imageData, string? contentType, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, bool flipHorizontal, bool flipVertical, ImageCrop? crop, BlipColorEffect colorEffect)
     {
         // SVG images are not supported in the ImageSharp backend
         if (contentType == "image/svg+xml")
@@ -487,19 +487,19 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             return;
         }
 
-        DrawBlockImage(imageData, pixelX, pixelY, pixelWidth, pixelHeight, rotation, crop, colorEffect);
+        DrawBlockImage(imageData, pixelX, pixelY, pixelWidth, pixelHeight, rotation, crop, colorEffect, flipHorizontal, flipVertical);
     }
 
-    void DrawBlockImage(byte[] imageData, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, ImageCrop? crop, BlipColorEffect colorEffect = BlipColorEffect.None)
+    void DrawBlockImage(byte[] imageData, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, ImageCrop? crop, BlipColorEffect colorEffect = BlipColorEffect.None, bool flipHorizontal = false, bool flipVertical = false)
     {
         if (currentCanvas == null)
         {
             return;
         }
 
-        // Decode + crop + resize + recolor + rotate are cached on the context, so a repeated
+        // Decode + crop + resize + recolor + flip + rotate are cached on the context, so a repeated
         // image (header logo, duplicated body icon) processes once per document.
-        var img = context.GetProcessedImage(imageData, (int) pixelWidth, (int) pixelHeight, crop, colorEffect, rotation);
+        var img = context.GetProcessedImage(imageData, (int) pixelWidth, (int) pixelHeight, crop, colorEffect, rotation, flipHorizontal, flipVertical);
         if (img == null)
         {
             return;
@@ -1954,7 +1954,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         // them instead of over them.
         context.RegisterFloatExclusion(image, bounds.X, bounds.Y, (float) width, (float) height);
 
-        DrawBlockImage(data, bounds.PixelX, bounds.PixelY, bounds.PixelWidth, bounds.PixelHeight, (float) image.RotationDegrees, image.Crop);
+        DrawBlockImage(data, bounds.PixelX, bounds.PixelY, bounds.PixelWidth, bounds.PixelHeight, (float) image.RotationDegrees, image.Crop, flipHorizontal: image.FlipHorizontal, flipVertical: image.FlipVertical);
     }
 
     void RenderFloatingTextBox(FloatingTextBoxElement textBox)

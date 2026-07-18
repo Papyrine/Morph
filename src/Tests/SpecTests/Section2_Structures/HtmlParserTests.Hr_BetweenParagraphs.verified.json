@@ -20,6 +20,8 @@
           "Imprint": false,
           "OutlineOnly": false
         },
+        "InlineImageFlipHorizontal": false,
+        "InlineImageFlipVertical": false,
         "IsTab": false
       }
     ],
@@ -67,6 +69,8 @@
           "Imprint": false,
           "OutlineOnly": false
         },
+        "InlineImageFlipHorizontal": false,
+        "InlineImageFlipVertical": false,
         "IsTab": false
       }
     ],
