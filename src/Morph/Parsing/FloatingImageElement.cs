@@ -64,6 +64,12 @@ sealed class FloatingImageElement : DocumentElement
     /// <summary>Source-rectangle crop (a:srcRect). Null = no crop.</summary>
     public ImageCrop? Crop { get; init; }
 
+    /// <summary>Colour-transform effect to apply before drawing (a:duotone / a:grayscl / a:lum).</summary>
+    public BlipColorEffect ColorEffect { get; init; } = BlipColorEffect.None;
+
+    /// <summary>The duotone ramp's dark end (theme-resolved hex); see <see cref="ImageElement.DuotoneColorHex"/>.</summary>
+    public string? DuotoneColorHex { get; init; }
+
     /// <summary>
     /// Width as a fraction (0..1) of <see cref="WidthRelativeFrom"/>, parsed from
     /// <c>wp14:sizeRelH/wp14:pctWidth</c>. Null when no percentage sizing is present.
