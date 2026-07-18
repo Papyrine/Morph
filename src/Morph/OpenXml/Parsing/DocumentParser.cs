@@ -4165,22 +4165,9 @@ sealed class DocumentParser(string defaultFont)
             }
 
             rebuilt ??= [.. paragraph.Runs];
-            rebuilt[i] = new()
-            {
-                Text = run.Text,
-                Properties = run.Properties with { ColorHex = color },
-                InlineImageData = run.InlineImageData,
-                InlineImageWidthPoints = run.InlineImageWidthPoints,
-                InlineImageHeightPoints = run.InlineImageHeightPoints,
-                InlineImageContentType = run.InlineImageContentType,
-                InlineImageDescription = run.InlineImageDescription,
-                InlineImageRotationDegrees = run.InlineImageRotationDegrees,
-                InlineImageFlipHorizontal = run.InlineImageFlipHorizontal,
-                InlineImageFlipVertical = run.InlineImageFlipVertical,
-                InlineImageCrop = run.InlineImageCrop,
-                IsTab = run.IsTab,
-                InlineShapeGroup = run.InlineShapeGroup
-            };
+            // WithProperties preserves every member — the previous manual copy silently dropped
+            // hyperlink targets, footnote/endnote ids and page-field markers from recoloured runs.
+            rebuilt[i] = run.WithProperties(run.Properties with {ColorHex = color});
         }
 
         if (rebuilt == null)
