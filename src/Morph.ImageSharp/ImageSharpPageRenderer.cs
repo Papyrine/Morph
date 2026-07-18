@@ -1989,11 +1989,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             var centerY = pixelY + pixelHeight / 2;
             currentCanvas.Save(BuildRotation((float) (textBox.RotationDegrees * Math.PI / 180.0), centerX, centerY));
 
-            if (textBox.BackgroundColorHex != null)
-            {
-                var bgColor = ParseColor(textBox.BackgroundColorHex);
-                currentCanvas.Fill(context.GetBrush(bgColor), new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight));
-            }
+            DrawTextBoxChrome(textBox, pixelX, pixelY, pixelWidth, pixelHeight);
 
             var savedY = context.CurrentY;
             context.CurrentY = y;
@@ -2011,11 +2007,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
         else
         {
-            if (textBox.BackgroundColorHex != null)
-            {
-                var bgFillColor = ParseColor(textBox.BackgroundColorHex);
-                currentCanvas.Fill(context.GetBrush(bgFillColor), new RectangleF(pixelX, pixelY, pixelWidth, pixelHeight));
-            }
+            DrawTextBoxChrome(textBox, pixelX, pixelY, pixelWidth, pixelHeight);
 
             var savedY = context.CurrentY;
             context.CurrentY = y;
@@ -2030,6 +2022,65 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
             context.CurrentY = savedY;
         }
+    }
+
+    /// <summary>
+    /// The shape's chrome behind a text box's content: fill and a:ln outline, following the
+    /// shape's geometry when it is richer than a rectangle (roundRect ticket outlines, plaque
+    /// frames). Even-odd contours keep ring geometry hollow.
+    /// </summary>
+    void DrawTextBoxChrome(FloatingTextBoxElement textBox, float pixelX, float pixelY, float pixelWidth, float pixelHeight)
+    {
+        if (currentCanvas == null)
+        {
+            return;
+        }
+
+        var path = BuildTextBoxPath(textBox, pixelX, pixelY, pixelWidth, pixelHeight)
+                   ?? (IPath) new RectanglePolygon(pixelX, pixelY, pixelWidth, pixelHeight);
+
+        if (textBox.BackgroundColorHex != null)
+        {
+            currentCanvas.Fill(context.GetBrush(ParseColor(textBox.BackgroundColorHex)), path);
+        }
+
+        if (textBox.LineColorHex != null && textBox.LineWidthPoints > 0)
+        {
+            currentCanvas.Draw(context.GetPen(ParseColor(textBox.LineColorHex), (float) textBox.LineWidthPoints * context.Scale), path);
+        }
+    }
+
+    static IPath? BuildTextBoxPath(FloatingTextBoxElement textBox, float x, float y, float width, float height)
+    {
+        if (textBox.Subpaths == null)
+        {
+            return null;
+        }
+
+        var polygons = new List<IPath>();
+        foreach (var contour in textBox.Subpaths)
+        {
+            if (contour.Count < 3)
+            {
+                continue;
+            }
+
+            var points = new PointF[contour.Count];
+            for (var index = 0; index < contour.Count; index++)
+            {
+                var (pointX, pointY) = contour[index];
+                points[index] = new(x + (float) pointX * width, y + (float) pointY * height);
+            }
+
+            polygons.Add(new Polygon(new LinearLineSegment(points)));
+        }
+
+        return polygons.Count switch
+        {
+            0 => null,
+            1 => polygons[0],
+            _ => new ComplexPolygon(polygons.ToArray())
+        };
     }
 
     public void Dispose()

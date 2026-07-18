@@ -390,9 +390,33 @@ sealed class PdfPageRenderer : PageRendererBase
             textBox.HorizontalPositionPercent,
             textBox.VerticalPositionPercent);
 
+        // The shape's chrome behind the text: fill and a:ln outline, following the shape's
+        // geometry when it is richer than a rectangle (roundRect ticket outlines, plaque frames).
+        var geometryPath = BuildTextBoxPath(textBox, bounds.X, bounds.Y, bounds.PixelWidth, bounds.PixelHeight);
         if (textBox.BackgroundColorHex != null)
         {
-            Graphics.DrawRectangle(new XSolidBrush(PdfRenderContext.ParseColor(textBox.BackgroundColorHex)), bounds.X, bounds.Y, bounds.PixelWidth, bounds.PixelHeight);
+            var brush = new XSolidBrush(PdfRenderContext.ParseColor(textBox.BackgroundColorHex));
+            if (geometryPath != null)
+            {
+                Graphics.DrawPath(brush, geometryPath);
+            }
+            else
+            {
+                Graphics.DrawRectangle(brush, bounds.X, bounds.Y, bounds.PixelWidth, bounds.PixelHeight);
+            }
+        }
+
+        if (textBox.LineColorHex != null && textBox.LineWidthPoints > 0)
+        {
+            var pen = context.GetPen(PdfRenderContext.ParseColor(textBox.LineColorHex), textBox.LineWidthPoints);
+            if (geometryPath != null)
+            {
+                Graphics.DrawPath(pen, geometryPath);
+            }
+            else
+            {
+                Graphics.DrawRectangle(pen, bounds.X, bounds.Y, bounds.PixelWidth, bounds.PixelHeight);
+            }
         }
 
         var savedY = context.CurrentY;
@@ -406,6 +430,40 @@ sealed class PdfPageRenderer : PageRendererBase
         }
 
         context.CurrentY = savedY;
+    }
+
+    /// <summary>
+    /// The text box's <see cref="FloatingTextBoxElement.Subpaths"/> contours scaled into its box,
+    /// or null for plain rectangles. Alternate (even-odd) fill keeps ring geometry hollow.
+    /// </summary>
+    static XGraphicsPath? BuildTextBoxPath(FloatingTextBoxElement textBox, double x, double y, double width, double height)
+    {
+        if (textBox.Subpaths == null)
+        {
+            return null;
+        }
+
+        var path = new XGraphicsPath {FillMode = XFillMode.Alternate};
+        foreach (var contour in textBox.Subpaths)
+        {
+            if (contour.Count < 3)
+            {
+                continue;
+            }
+
+            var points = new XPoint[contour.Count];
+            for (var index = 0; index < contour.Count; index++)
+            {
+                var (pointX, pointY) = contour[index];
+                points[index] = new(x + pointX * width, y + pointY * height);
+            }
+
+            path.StartFigure();
+            path.AddPolygon(points);
+            path.CloseFigure();
+        }
+
+        return path;
     }
 
     // ---- Page lifecycle ----

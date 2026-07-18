@@ -1519,10 +1519,11 @@ Positioned shapes with an image texture fill.
 
 #### Floating Text Boxes `DONE`
 
-Positioned text containers with optional background and rotation.
+Positioned text containers with optional background, outline, shape geometry and rotation.
 
 - **OOXML**: `wps:wsp` with `wps:txbx` content
-- **Model**: `FloatingTextBoxElement` with content, rotation, background color
+- **Model**: `FloatingTextBoxElement` with content, rotation, background color, `a:ln` outline (`LineColorHex`/`LineWidthPoints`) and `Subpaths` (the shape's `a:custGeom` or built preset — roundRect/stadium label chrome, plaque frames)
+- **Render**: Skia/ImageSharp/PDF draw the fill and outline through the shape's contours (even-odd) before the text content; the text itself still lays out in the rectangular box. The HTML exporter emits neither outline nor geometry for text boxes.
 
 
 #### Inline Shape Groups `DONE`

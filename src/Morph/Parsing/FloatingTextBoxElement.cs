@@ -33,6 +33,20 @@ sealed class FloatingTextBoxElement : DocumentElement
     /// <summary>Background color (hex). Null for transparent.</summary>
     public string? BackgroundColorHex { get; init; }
 
+    /// <summary>Outline color as 6-digit hex (a:ln solid fill). Null = no outline.</summary>
+    public string? LineColorHex { get; init; }
+
+    /// <summary>Outline width in points. 0 = no outline.</summary>
+    public double LineWidthPoints { get; init; }
+
+    /// <summary>
+    /// Outline contours when the shape is richer than a rectangle — an <c>a:custGeom</c> or a
+    /// built preset (roundRect ticket outlines, plaque frames, …) — normalized to the unit
+    /// square exactly like <see cref="FloatingShapeElement.Subpaths"/>. The fill and outline
+    /// draw these; the text content still lays out in the rectangular box.
+    /// </summary>
+    public IReadOnlyList<IReadOnlyList<(double X, double Y)>>? Subpaths { get; init; }
+
     /// <summary>Rotation in degrees (clockwise). 0 = no rotation.</summary>
     public double RotationDegrees { get; init; }
 
