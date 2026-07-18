@@ -8,6 +8,13 @@ internal readonly struct AnchorPositioning
     public HorizontalAnchor HorizontalAnchor { get; init; }
     public VerticalAnchor VerticalAnchor { get; init; }
     public bool BehindText { get; init; }
+
+    /// <summary>
+    /// <c>wp:anchor@relativeHeight</c> — the drawing's position in Word's single z-space. Every
+    /// floating drawing draws in ascending order of this value (a shape can sit entirely beneath
+    /// a sibling anchored later in the document); behind-text vs in-front is a separate flag.
+    /// </summary>
+    public uint RelativeHeight { get; init; }
     public double? WidthPercent { get; init; }
     public SizeRelativeFrom WidthRelativeFrom { get; init; }
     public double? HeightPercent { get; init; }

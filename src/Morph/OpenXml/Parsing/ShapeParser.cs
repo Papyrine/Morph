@@ -136,6 +136,7 @@ static class ShapeParser
                 {
                     WidthPoints = widthPoints,
                     HeightPoints = heightPoints,
+                    RelativeHeight = positioning.RelativeHeight,
                     HorizontalPositionPoints = positioning.HorizontalPositionPoints,
                     VerticalPositionPoints = positioning.VerticalPositionPoints,
                     HorizontalAnchor = positioning.HorizontalAnchor,
@@ -172,6 +173,7 @@ static class ShapeParser
                 {
                     WidthPoints = widthPoints,
                     HeightPoints = heightPoints,
+                    RelativeHeight = positioning.RelativeHeight,
                     HorizontalPositionPoints = positioning.HorizontalPositionPoints,
                     VerticalPositionPoints = positioning.VerticalPositionPoints,
                     HorizontalAnchor = positioning.HorizontalAnchor,
@@ -209,6 +211,7 @@ static class ShapeParser
                 {
                     WidthPoints = widthPoints,
                     HeightPoints = heightPoints,
+                    RelativeHeight = positioning.RelativeHeight,
                     HorizontalPositionPoints = positioning.HorizontalPositionPoints,
                     VerticalPositionPoints = positioning.VerticalPositionPoints,
                     HorizontalAnchor = positioning.HorizontalAnchor,
@@ -592,6 +595,7 @@ static class ShapeParser
                 {
                     WidthPoints = widthPt,
                     HeightPoints = heightPt,
+                    RelativeHeight = positioning.RelativeHeight,
                     HorizontalPositionPoints = positioning.HorizontalPositionPoints + xPt,
                     VerticalPositionPoints = positioning.VerticalPositionPoints + yPt,
                     HorizontalAnchor = positioning.HorizontalAnchor,
@@ -626,6 +630,7 @@ static class ShapeParser
                 {
                     WidthPoints = widthPt,
                     HeightPoints = heightPt,
+                    RelativeHeight = positioning.RelativeHeight,
                     HorizontalPositionPoints = positioning.HorizontalPositionPoints + xPt,
                     VerticalPositionPoints = positioning.VerticalPositionPoints + yPt,
                     HorizontalAnchor = positioning.HorizontalAnchor,
