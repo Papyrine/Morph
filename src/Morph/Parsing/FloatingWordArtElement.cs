@@ -28,6 +28,10 @@ sealed class FloatingWordArtElement : DocumentElement, IWordArtVisual
     /// <summary>Whether this WordArt is behind text (vs in front).</summary>
     public bool BehindText { get; init; }
 
+    /// <summary>Word z-order (<c>wp:anchor@relativeHeight</c>): floating drawings draw in
+    /// ascending order of this value within a batch.</summary>
+    public uint RelativeHeight { get; init; }
+
     /// <summary>Font family for the text.</summary>
     public string FontFamily { get; init; } = DefaultFontSettings.DefaultFont;
 

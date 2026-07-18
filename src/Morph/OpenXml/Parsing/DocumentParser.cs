@@ -311,6 +311,14 @@ sealed class DocumentParser(string defaultFont)
         // text-frame elements (Word's text-frame feature).
         elements = FrameGrouper.Group(elements);
 
+        // Word draws every floating drawing in one z-space ordered by wp:anchor@relativeHeight —
+        // a shape can sit entirely beneath a sibling anchored later in the document (brochures/04
+        // hides its construction photo under the teal quote panel). The renderers draw in list
+        // order, so stable-sort each maximal run of consecutive floating elements by that value;
+        // behind-text vs in-front routing is untouched, and children of one group share their
+        // anchor's value so the stable sort preserves their intra-group order.
+        SortFloatingBatchesByZ(elements);
+
         var header = ExtractHeaderFooter(sectionPropsList, mainPart, HeaderFooterValues.Default, isHeader: true);
         var footer = ExtractHeaderFooter(sectionPropsList, mainPart, HeaderFooterValues.Default, isHeader: false);
         var firstPageHeader = pageSettings.DifferentFirstPage
@@ -3359,6 +3367,47 @@ sealed class DocumentParser(string defaultFont)
     }
 
 
+    static void SortFloatingBatchesByZ(List<DocumentElement> elements)
+    {
+        var start = -1;
+        for (var i = 0; i <= elements.Count; i++)
+        {
+            var isFloating = i < elements.Count &&
+                             elements[i] is FloatingShapeElement or FloatingImageElement or FloatingTextBoxElement or FloatingWordArtElement;
+            if (isFloating)
+            {
+                if (start < 0)
+                {
+                    start = i;
+                }
+
+                continue;
+            }
+
+            if (start >= 0 && i - start > 1)
+            {
+                var sorted = elements.GetRange(start, i - start)
+                    .OrderBy(FloatingZOrder)
+                    .ToList();
+                for (var j = 0; j < sorted.Count; j++)
+                {
+                    elements[start + j] = sorted[j];
+                }
+            }
+
+            start = -1;
+        }
+    }
+
+    static uint FloatingZOrder(DocumentElement element) => element switch
+    {
+        FloatingShapeElement shape => shape.RelativeHeight,
+        FloatingImageElement image => image.RelativeHeight,
+        FloatingTextBoxElement textBox => textBox.RelativeHeight,
+        FloatingWordArtElement wordArt => wordArt.RelativeHeight,
+        _ => 0
+    };
+
     List<DocumentElement> DrainPendingCellFloats()
     {
         if (pendingCellFloats.Count == 0)
@@ -6351,6 +6400,7 @@ sealed class DocumentParser(string defaultFont)
             Description = description,
             ColorEffect = colorEffect,
             DuotoneColorHex = duotoneColorHex,
+            RelativeHeight = positioning.RelativeHeight,
             HorizontalPositionPoints = positioning.HorizontalPositionPoints,
             VerticalPositionPoints = positioning.VerticalPositionPoints,
             HorizontalAnchor = positioning.HorizontalAnchor,
@@ -6601,6 +6651,7 @@ sealed class DocumentParser(string defaultFont)
             Content = content,
             WidthPoints = widthPoints,
             HeightPoints = heightPoints,
+            RelativeHeight = positioning.RelativeHeight,
             HorizontalPositionPoints = positioning.HorizontalPositionPoints,
             VerticalPositionPoints = positioning.VerticalPositionPoints,
             HorizontalAnchor = positioning.HorizontalAnchor,
@@ -7169,6 +7220,7 @@ sealed class DocumentParser(string defaultFont)
         {
             WidthPoints = widthPt,
             HeightPoints = heightPt,
+            RelativeHeight = positioning.RelativeHeight,
             HorizontalPositionPoints = positioning.HorizontalPositionPoints + finalX.EmuToPoints(),
             VerticalPositionPoints = positioning.VerticalPositionPoints + finalY.EmuToPoints(),
             HorizontalAnchor = positioning.HorizontalAnchor,
@@ -7644,6 +7696,7 @@ sealed class DocumentParser(string defaultFont)
                 Text = wordArtText,
                 WidthPoints = widthPoints,
                 HeightPoints = heightPoints,
+                RelativeHeight = positioning.RelativeHeight,
                 HorizontalPositionPoints = positioning.HorizontalPositionPoints,
                 VerticalPositionPoints = positioning.VerticalPositionPoints,
                 HorizontalAnchor = positioning.HorizontalAnchor,

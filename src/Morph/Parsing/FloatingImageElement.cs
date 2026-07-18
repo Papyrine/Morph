@@ -52,6 +52,10 @@ sealed class FloatingImageElement : DocumentElement
     /// <summary>Whether this image is behind text (vs in front).</summary>
     public bool BehindText { get; init; }
 
+    /// <summary>Word z-order (<c>wp:anchor@relativeHeight</c>): floating drawings draw in
+    /// ascending order of this value within a batch.</summary>
+    public uint RelativeHeight { get; init; }
+
     /// <summary>Rotation in degrees (clockwise). 0 means no rotation.</summary>
     public double RotationDegrees { get; init; }
 

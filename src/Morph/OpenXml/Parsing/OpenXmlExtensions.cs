@@ -172,6 +172,7 @@ static class OpenXmlExtensions
 
         return new()
         {
+            RelativeHeight = anchor.RelativeHeight?.Value ?? 0,
             HorizontalPositionPoints = hPosPoints,
             VerticalPositionPoints = vPosPoints,
             HorizontalAnchor = hAnchor,

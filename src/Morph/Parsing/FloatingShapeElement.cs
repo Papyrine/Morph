@@ -24,6 +24,10 @@ sealed class FloatingShapeElement : DocumentElement
     /// <summary>Whether this shape is behind text (vs in front).</summary>
     public bool BehindText { get; init; }
 
+    /// <summary>Word z-order (<c>wp:anchor@relativeHeight</c>): floating drawings draw in
+    /// ascending order of this value within a batch.</summary>
+    public uint RelativeHeight { get; init; }
+
     /// <summary>Fill color (hex RGB without #, e.g. "FF0000" for red). Null if using image fill.</summary>
     public string? FillColorHex { get; init; }
 
