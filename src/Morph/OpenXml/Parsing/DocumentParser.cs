@@ -3173,21 +3173,7 @@ sealed class DocumentParser(string defaultFont)
         }
 
         var elements = new List<DocumentElement>();
-        foreach (var element in rootElement.ChildElements)
-        {
-            if (element is Paragraph para)
-            {
-                elements.AddRange(ParseParagraph(para, mainPart));
-            }
-            else if (element is Table table)
-            {
-                var parsedTable = ParseTable(table, mainPart);
-                if (parsedTable != null)
-                {
-                    elements.Add(parsedTable);
-                }
-            }
-        }
+        AppendHeaderFooterElements(rootElement, mainPart, elements);
 
         return elements.Count > 0
             ? new HeaderFooterContent
@@ -3195,6 +3181,37 @@ sealed class DocumentParser(string defaultFont)
                 Elements = elements
             }
             : null;
+    }
+
+    void AppendHeaderFooterElements(OpenXmlElement container, MainDocumentPart mainPart, List<DocumentElement> elements)
+    {
+        foreach (var element in container.ChildElements)
+        {
+            switch (element)
+            {
+                case Paragraph para:
+                    elements.AddRange(ParseParagraph(para, mainPart));
+                    break;
+                case Table table:
+                    var parsedTable = ParseTable(table, mainPart);
+                    if (parsedTable != null)
+                    {
+                        elements.Add(parsedTable);
+                    }
+
+                    break;
+                case SdtBlock sdt:
+                    // Word's built-in galleries (e.g. "Page Numbers (Bottom of Page)") wrap the
+                    // whole footer in a content control — unwrap it, or the footer parses empty.
+                    var content = sdt.SdtContentBlock;
+                    if (content != null)
+                    {
+                        AppendHeaderFooterElements(content, mainPart, elements);
+                    }
+
+                    break;
+            }
+        }
     }
 
     /// <summary>
