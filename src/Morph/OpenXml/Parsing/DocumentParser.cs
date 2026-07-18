@@ -139,6 +139,11 @@ sealed class DocumentParser(string defaultFont)
     double defaultLeftIndentPoints;
     double defaultRightIndentPoints;
 
+    // Document default paragraph alignment from docDefaults/pPrDefault/w:jc. Card/label/menu
+    // templates centre every paragraph this way rather than styling each one — a style or
+    // paragraph that declares its own w:jc (including an explicit "left") still overrides.
+    TextAlignment defaultAlignment = TextAlignment.Left;
+
     // Document default line spacing, used when no style supplies one. Word's built-in Normal
     // applies only when the document declares no styles.xml or no docDefaults (see
     // ExtractDefaultParagraphProperties); otherwise this keeps its long-standing 1.08.
@@ -1379,7 +1384,7 @@ sealed class DocumentParser(string defaultFont)
                 var paraProps = style.StyleParagraphProperties;
 
                 // Start with base style properties or document defaults (pPrDefault)
-                var alignment = baseProps?.Alignment ?? TextAlignment.Left;
+                var alignment = baseProps?.Alignment ?? defaultAlignment;
                 var spacingBefore = baseProps?.SpacingBeforePoints ?? defaultSpacingBeforePoints;
                 var spacingAfter = baseProps?.SpacingAfterPoints ?? defaultSpacingAfterPoints;
                 var lineSpacingMultiplier = baseProps?.LineSpacingMultiplier ?? 1.04;
@@ -3101,6 +3106,24 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        // Alignment default (w:jc) — the base of the alignment cascade.
+        var justification = pPr.Justification;
+        if (justification?.Val?.HasValue == true)
+        {
+            var justVal = justification.Val.Value;
+            if (justVal == JustificationValues.Center)
+            {
+                defaultAlignment = TextAlignment.Center;
+            }
+            else if (justVal == JustificationValues.Right)
+            {
+                defaultAlignment = TextAlignment.Right;
+            }
+            else if (justVal == JustificationValues.Both || justVal == JustificationValues.Distribute)
+            {
+                defaultAlignment = TextAlignment.Justify;
+            }
+        }
     }
 
     HeaderFooterContent? ExtractHeaderFooter(IReadOnlyList<SectionProperties> sectionPropsList, MainDocumentPart mainPart, HeaderFooterValues type, bool isHeader)
@@ -8098,7 +8121,7 @@ sealed class DocumentParser(string defaultFont)
             : ParseRunProperties(props?.ParagraphMarkRunProperties, mainPart, styleId);
 
         // Start with style defaults or document defaults (pPrDefault)
-        var alignment = styleDefaults?.Alignment ?? TextAlignment.Left;
+        var alignment = styleDefaults?.Alignment ?? defaultAlignment;
         var spacingBefore = styleDefaults?.SpacingBeforePoints ?? defaultSpacingBeforePoints;
         var spacingAfter = styleDefaults?.SpacingAfterPoints ?? defaultSpacingAfterPoints;
         // When no style applies (bare docx without styles.xml), Word falls back to its built-in
