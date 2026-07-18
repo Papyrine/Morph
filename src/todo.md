@@ -27,7 +27,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 8. **Picture effects ignored** — duotone/recolor (brochures/02 red, brochures/08 navy), soft-focus/blur (business-plans/02 PDF+html), warm-tone filter (newsletters/07), grayscale+circle crop (brochures/03).
 9. **Centered paragraphs inside text boxes/shapes render left-aligned** — cards/01/05/07/11/12/15/16, labels/03/05/07/10, menus/02/08, document_capture (centered "x"). Often combined with a narrower wrap box (6 lines vs Word's 5 centered).
 10. **Table-style conformance gaps** — table-style bold/caps lost: business-plans/10 (header + first-column bold), business-plans/12 p17 (bolding inverted), business-plans/15 (ALL-CAPS headers lost), complex_tables (heading style colors wrong); borders: business-plans/10 (grid incomplete on header/first rows), newsletters/04 (spurious cell borders on borderless tables), cards/13 (card outlines missing); widths: business-plans/12 p14 (phantom extra column), business-plans/13 (JUL column clips "$22,5("), menus/04 (colored cells end short), business/01 (memo columns too narrow), table_autofit_no_widths / table_default_style / complex_tables (autofit distribution differs from Word — since the issue-#2 fix moved text to 12pt this is those scenarios' dominant residual: mis-distributed columns wrap header text Word fits on one line).
-11. **Numbering defects** — cross-table restart broken (`business-plans/09` rows number 1,6-9/1,10-13/... instead of restarting), level-3/5 bullet glyphs render as tofu boxes (`deep_nested_list`, `nested_list`), bullet size/color wrong (PDF tiny middle-dots: business-plans/10, resumes/14, newsletters/01; SWOT bullets lose colors business-plans/12).
+11. **Numbering defects** — ⚠ PARTIALLY FIXED. **Bullet marker glyph coverage ✅ FIXED (all backends):** level-3/5 bullets rendered tofu because the plain-Unicode geometric glyphs (■ U+25A0, ▸ U+25B8) aren't in the bundled text faces and markers only routed to the embedded `Bullets.ttf` when the level *declared* Symbol/Wingdings. The ▸/► triangles were drawn into `Bullets.ttf` (fontTools, sized against its ▪/■), and the marker-font decision is now the shared `FontHelpers.UseBulletFont`: Symbol/Wingdings-declared OR one of ■ ◆ ▸ ► (Word glyph-falls-back to Segoe UI Symbol for those; other markers keep the paragraph font as Word does). The PDF backend previously ignored the marker font entirely — it now routes like the raster backends, with the embedded subset registered in `PdfFontResolver` (`::MorphBullets` face key; PDFs with proprietary-declared bullets grow ~3.8KB, visuals within ±0.0003). Cleared `deep_nested_list`/`nested_list` tofu and **the PDF tiny-middle-dot bullets** (business-plans/10, resumes/14, newsletters/01 — Word-size round bullets now, verified in 3-up crops). **Still open:** cross-table restart (`business-plans/09` rows number 1,6-9/1,10-13/... instead of restarting), SWOT bullets lose colors (business-plans/12). Also verified stale (already render correctly): the "roman/letter formats render as decimal" claims in #27 — agendas-minutes/04/05/06/14 all draw I./II./III. + a./b. matching Word.
 12. **TOC rendering broken** — page numbers absent with dot leaders running to the margin, entries underlined in hyperlink style with inflated spacing (`business-plans/12`, `business-plans/13`; `business-plans/15` overflows the TOC onto an extra page).
 13. **Footnotes/endnotes** — PDF drops them entirely; Skia/ImageSharp invent "Footnotes"/"Endnotes" heading sections, don't pin to page bottom, and the superscript reference marks are missing in all backends (`document_capture/01`).
 14. **Comment markup not rendered** — no balloon, no highlight, no markup-area page shrink (`comments/01`).
@@ -49,7 +49,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 24. **Header/footer content omitted entirely** (`header`, `footer`, `header_footer`, `even_odd_headers/*`, `header_banner_table`) — silent content loss.
 25. **Anchored/floating objects linearized in flow order** — art detaches from its text and stacks at the document top or mid-flow, causing overlaps and empty frames (cards/02/18/19, labels/05/06/08/11, agendas-minutes/16, newsletters/01/02/07/11/12, brochures/01, letters/13, business/03/06, menus/05).
 26. **White/light text emitted without its backing shape → invisible white-on-white** (agendas-minutes/02, brochures/03/07/08, cards/19, labels/11/14, menus/03, newsletters/01/08/10, resumes/02, business-plans/08 green-on-green).
-27. **Numbering formats lost** — roman/letter list formats render as decimal, multi-item restarts at "1." (agendas-minutes/04/05/06/14, business-plans/15 TOC).
+27. **Numbering formats lost** — ⚠ STALE (roman/letter part): re-verified 2026-07-18 — agendas-minutes/04/05/06/14 all render I./II./III./IV. + a./b. correctly in the current baselines (`FormatNumber` handles upperRoman/lowerRoman/upperLetter/lowerLetter, style-attached numbering resolves); the "renders as decimal" findings predate a fix. Still open: multi-item restarts at "1." where Word continues, and `business-plans/15`'s TOC formats (see #12).
 28. **Inter-paragraph spacing collapsed** — letters/cover-letters render as one continuous block (nearly all cover-letters/*, letters/*, `empty_paragraphs` blank lines dropped).
 29. **Tab stops collapse to a single space** — decimal/bar/right tabs, TOC dot leaders, signature underline fills all lost (`tab_stops`, `decimal_tabs/01`, `bar_tabs`, `resumes/14` dates inline).
 30. **Section page color scoping wrong** — background stops mid-document or paints the wrong section's color (business-plans/06/08/09, menus/01/06, newsletters/05/06, labels/15, cover-letters/02/10/12 background missing).
@@ -874,7 +874,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### deep_nested_list
 
-- MAJOR | all | p1 | level-3 (filled square ■) and level-5 (triangle ‣) bullet glyphs render as placeholder/tofu boxes on all three backends (level-4 square renders correctly)
+- ✅ FIXED | all | p1 | level-3 (■) and level-5 (▸) bullets now render real glyphs on all three backends via the embedded Bullets.ttf (▸/► triangles added to it; markers route there when the text faces lack the glyph). See systemic #11.
 - MEDIUM | all | p1 | list line spacing tighter than Word; drift accumulates to ~60px (>1 line) by the last item "Level 3 - Item B.1.a"
 - MINOR | html | - | level-4 and level-5 bullets both render as browser-default squares instead of Word's smaller square and triangle
 
@@ -1650,7 +1650,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### nested_list
 
-- MAJOR | all | p1 | Level-3 list marker for "Sub-sub-item 2.1.1" renders as a notdef/tofu box glyph instead of Word's filled small square (level-1 bullet and level-2 circle are correct)
+- ✅ FIXED | all | p1 | Level-3 list marker for "Sub-sub-item 2.1.1" now renders the filled square (Bullets.ttf routing). See systemic #11.
 - MINOR | all | p1 | List lines drift progressively upward (~15px by the last item) from slightly tighter line/paragraph spacing
 - CLEAN: html
 

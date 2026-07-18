@@ -893,9 +893,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var pixelY = context.PointsToPixels(baselineY);
 
         // Bullets declared in Symbol/Wingdings need the embedded "Morph Bullets"
-        // subset (Linux/macOS don't ship those proprietary faces). Bullets that
-        // are already plain Unicode (e.g. <w:lvlText w:val="•"/> with no rFonts)
-        // render in the paragraph's own font - that's what Word does, and the
+        // subset (Linux/macOS don't ship those proprietary faces), as do the geometric
+        // marker glyphs the bundled text faces lack (■ ◆ ▸ ►) — Word glyph-falls-back to
+        // Segoe UI Symbol for those. Other plain-Unicode bullets (e.g. <w:lvlText w:val="•"/>
+        // with no rFonts) render in the paragraph's own font - that's what Word does, and the
         // paragraph font's bullet glyph is what the user actually sees in Word.
         var bulletProps = ResolveBulletRunProperties(numbering, paragraph);
         var font = context.GetFont(bulletProps);
@@ -915,7 +916,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     static RunProperties ResolveBulletRunProperties(NumberingInfo numbering, ParagraphElement paragraph)
     {
         var paragraphProps = paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new();
-        if (IsProprietaryBulletFont(numbering.FontFamily))
+        if (FontHelpers.UseBulletFont(numbering.Text, numbering.FontFamily))
         {
             return new()
             {
@@ -933,11 +934,6 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
             ColorHex = paragraphProps.ColorHex
         };
     }
-
-    static bool IsProprietaryBulletFont(string? fontFamily) =>
-        fontFamily != null &&
-        (fontFamily.StartsWith("Symbol", StringComparison.OrdinalIgnoreCase) ||
-         fontFamily.StartsWith("Wingdings", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
     /// Renders a bullet or number for a list item within specific bounds (for table cells).

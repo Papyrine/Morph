@@ -396,7 +396,12 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 if (graphics != null)
                 {
                     var firstProperties = paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new();
-                    var markerFont = context.GetFont(firstProperties.FontFamily, firstProperties.Bold, false, firstProperties.FontSizePoints);
+                    // Symbol/Wingdings-declared bullets and the geometric marker glyphs the text
+                    // faces lack (■ ◆ ▸ ►) render in the embedded "Morph Bullets" subset, matching
+                    // the raster backends' marker-font selection.
+                    var markerFont = FontHelpers.UseBulletFont(numbering.Text, numbering.FontFamily)
+                        ? context.GetFont("Morph Bullets", bold: false, italic: false, firstProperties.FontSizePoints)
+                        : context.GetFont(firstProperties.FontFamily, firstProperties.Bold, false, firstProperties.FontSizePoints);
                     var markerText = numbering.Text;
                     var markerBrush = context.GetBrush(PdfRenderContext.ParseColor(firstProperties.ColorHex));
                     var hangingIndent = paragraph.Properties.HangingIndentPoints;

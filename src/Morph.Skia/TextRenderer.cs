@@ -933,11 +933,12 @@ sealed class TextRenderer(SkiaRenderContext context) :
         }
 
         // Bullets declared in Symbol/Wingdings need the embedded "Morph Bullets"
-        // subset (Linux/macOS don't ship those proprietary faces). Bullets that
-        // are already plain Unicode (e.g. <w:lvlText w:val="•"/> with no rFonts)
-        // render in the paragraph's own font - that's what Word does, and the
+        // subset (Linux/macOS don't ship those proprietary faces), as do the geometric
+        // marker glyphs the bundled text faces lack (■ ◆ ▸ ►) — Word glyph-falls-back to
+        // Segoe UI Symbol for those. Other plain-Unicode bullets (e.g. <w:lvlText w:val="•"/>
+        // with no rFonts) render in the paragraph's own font - that's what Word does, and the
         // paragraph font's bullet glyph is what the user actually sees in Word.
-        var typeface = ResolveBulletTypeface(numbering.FontFamily, fontFamily, bold, italic);
+        var typeface = ResolveBulletTypeface(numbering, fontFamily, bold, italic);
         var font = context.CreateFontFromTypeface(typeface, fontSize);
         using var paint = new SKPaint
         {
@@ -948,19 +949,14 @@ sealed class TextRenderer(SkiaRenderContext context) :
         canvas.DrawText(numbering.Text, pixelX, pixelY, SKTextAlign.Left, font, paint);
     }
 
-    SKTypeface ResolveBulletTypeface(string? bulletFontFamily, string paragraphFontFamily, bool bold, bool italic)
+    SKTypeface ResolveBulletTypeface(NumberingInfo numbering, string paragraphFontFamily, bool bold, bool italic)
     {
-        if (IsProprietaryBulletFont(bulletFontFamily))
+        if (FontHelpers.UseBulletFont(numbering.Text, numbering.FontFamily))
         {
             return context.GetTypeface("Morph Bullets", bold: false, italic: false);
         }
         return context.GetTypeface(paragraphFontFamily, bold, italic);
     }
-
-    static bool IsProprietaryBulletFont(string? fontFamily) =>
-        fontFamily != null &&
-        (fontFamily.StartsWith("Symbol", StringComparison.OrdinalIgnoreCase) ||
-         fontFamily.StartsWith("Wingdings", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
     /// Renders a bullet or number for a list item within specific bounds (for table cells).
@@ -983,7 +979,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
         }
 
         // See RenderBullet for why this picks Morph Bullets vs the paragraph font.
-        var typeface = ResolveBulletTypeface(numbering.FontFamily, fontFamily, bold, italic);
+        var typeface = ResolveBulletTypeface(numbering, fontFamily, bold, italic);
         var font = context.CreateFontFromTypeface(typeface, fontSize);
         using var paint = new SKPaint
         {
