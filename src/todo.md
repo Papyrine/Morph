@@ -41,7 +41,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 19. **Paragraph borders** — ✅ FIXED. `w:pBdr` box / left-only / right-only / top-bottom / `w:between`-collapse edges and per-edge `w:space` now render in the PDF backend via `PdfTextEngine.DrawParagraphBorders` — a faithful port of the Skia/ImageSharp logic, with height reserved through `MeasureHeight`/`BorderSpaceExcess`. Cleared `paragraph_borders`; the heading/salutation underline rules Word draws (bottom `w:pBdr`) now also render on `cover-letters/02`, `business-plans/12`/`15`, `labels/06` (5 PDF scenarios regenerated). **Bar tabs also ✅ FIXED:** `w:tab w:val="bar"` vertical separators now render in the PDF backend via `PdfTextEngine.DrawBarTabs` — each Bar stop drawn as a full-cell-height rule (spanning spacing-before through spacing-after) so consecutive bar-tab paragraphs connect into one continuous separator; cleared `bar_tabs`. Issue #19 fully resolved.
 20. **`a:srcRect` picture crop** — ✅ FIXED. The PDF backend now applies the crop to inline images (`PdfTextEngine.DrawImage`) and to block/floating images (`PdfPageRenderer.DrawRaster`), using the same `ImageCrop.Expand` + `IntersectClip` technique the shape-group path already used (PDFsharp has no source-rectangle API). 65 scenarios carry an `a:srcRect`; of the 17 whose render changed, 15 moved closer to Word — `business-plans/13` −0.2455, `wedding/05` −0.0445, `business-plans/12` −0.0354, `business-plans/02` −0.0265, `cards/16` −0.0222, `agendas-minutes/16` −0.0193. `newsletters/01`/`14` tick up slightly because the raster's crop framing also differs from Word there (the PDF now matches the raster exactly) — a shared limitation, not a PDF regression.
 21. **Picture rotation** — ✅ MOSTLY FIXED. The PDF backend now rotates inline images (`PdfTextEngine.DrawImage`) and anchored/floating images (`PdfPageRenderer.RenderFloatingImage`) around their centre, matching the raster backends: `image_rotation/01` and `letters/13`'s vertical banner now rotate, and the wedding scenarios' rotated florals now match the raster. (Rotation still reserves the un-rotated footprint, so a rotated image can overlap neighbouring text — a documented, all-backend limitation.) **Still open (PDF):** rotated **text boxes** are not rotated — `labels/06`'s "ADMIT ONE" captions (60 text boxes at 90°/270°) render horizontal; that's a separate text-box-transform path.
-22. **Font substitution too heavy/wrong style** — bold rendered with a heavier, wider face causing rewraps (agendas-minutes/19, business-plans/12, brochures/04, letters/08 whole letter bold, newsletters/08/14, cards/19 italic serif substitution); digits smaller than letters in the same run (`letters/08`).
+22. **Font substitution** — ✅ FIXED. Two `PdfFontResolver` defects, both diverging from the shared resolver: (a) the index bucketed styles as `bold = weight ≥ 600` with last-file-wins, so `Arial_900` ordinally overrode `Arial_700` and **every Arial-bold request rendered Arial Black** (agendas-minutes/19's wrapped "MEETING DATE:", brochures/04, newsletters/14); (b) unresolved families skipped the curated `FontHelpers.FontFallbacks` map and fell to the ordinally-first bundled file — **`Aharoni_700`, a bold face** — so "Grandview Display" (letters/08 whole-letter-bold + odd digit proportions), "Microsoft YaHei" (business-plans/12), and newsletters/08's script fonts all rendered heavy. The resolver now mirrors the shared `FontResolver` directory mode: faces are indexed with their OS/2 weight/width/italic and scored via `FontHelpers.ScoreFace` (bold picks 700 over 900), the `FontFallbacks` aliases fire with the shared `weightFallbackThreshold` rule, and the last resort is `DefaultFontSettings.DefaultFont` at the requested style. 28 scenarios re-baselined: 23 closer to Word (`wordart` −0.126, `business-plans/12` −0.045, `newsletters/14` −0.042, `complex_tables` −0.032), 5 within noise of the raster's own framing, none changed page counts. Remaining divergence: `ConversionOptions.FontFallback` (the user hook) is still not consulted by the PDF's process-global resolver.
 23. **Small caps** — ✅ FIXED. `w:smallCaps` now renders in the PDF backend: `PdfTextEngine.Layout` runs paragraph runs through the shared `SmallCapsExpander` (lowercase → uppercased at 0.8× size) before layout, matching the raster backends. Cleared `small_caps`; applied on `feature_capture/01` (whose remaining diffs are unrelated). The PDF text layer stores the uppercased glyphs, so a small-caps run copy-pastes as all-caps (inherent to drawing small caps without an OpenType `smcp` feature). **Also ✅ FIXED:** `w:bidi` paragraphs now right-align when their alignment is the leading edge (`PdfTextEngine` mirrors the raster's RTL flip — glyphs are still not BiDi-reordered, there is no shaper); the non-breaking hyphen U+2011 maps to `-` so it renders instead of tofu (and stays unbreakable, since the tokenizer only breaks on whitespace); and soft hyphens U+00AD are dropped from the drawn text. Cleared `rtl_paragraph`, `hyphenation_soft`, `hyphenation_nonbreaking` and brochures/01's phone number — issue #23 fully resolved.
 
 ### HTML export
@@ -192,7 +192,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 ### agendas-minutes/19
 
 - [known] MEDIUM | all | p1 | Contact-table rows (especially the empty ones) render shorter than Word (~25pt vs ~30pt), so rows drift progressively upward and the table ends well above Word's (documented in notes.md)
-- MEDIUM | pdf | p1 | Bold text (title "EVENT PLANNING MEETING" and header labels) rendered in a visibly heavier/wider font than Word, causing "MEETING DATE:" to wrap onto two lines in the header row
+- ✅ FIXED | pdf | p1 | bold now renders Arial Bold, not Arial Black — "MEETING DATE:" fits on one line again (see systemic #22)
 - CLEAN: html
 
 ### align_justified
@@ -226,7 +226,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 ### brochures/01
 
 - MAJOR | pdf | p1 | contact line renders a notdef/tofu box in place of the hyphen in "(206) 555-0100" (non-breaking hyphen not mapped by the PDF font)
-- MEDIUM | pdf | p1,p2 | large display text uses a visibly wider/heavier substitute font with larger line gaps — "EVENT SERIES NAME" (p1) is fatter and ~40px taller, and ""Insert a quote here"" (p2) wraps to 3 lines vs Word's 2, pushing "- Quote source -" down
+- ✅ FIXED | pdf | p1,p2 | display text no longer falls to the heavy default face — the display family now resolves through the curated fallback/weight scoring (see systemic #22)
 - MEDIUM | all | p2 | bullet before "GET THE EXACT RESULTS YOU WANT" is drawn as a small teal dot instead of Word's larger pink/magenta dot
 - MINOR | all | p1,p2 | diagonal hatch fills (orange top-left shape, pink bottom shapes) are drawn at a noticeably finer stripe pitch than Word (~11-12 stripes vs Word's ~9 over the same span)
 - MINOR | all | p1,p2 | body/contact text blocks sit ~5-10px lower than Word, drift growing down each panel
@@ -265,7 +265,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 - MAJOR | all | p1,p2 | roof-chevron accent shapes missing everywhere (above the quote, above the brochure title, above each "Headline 1")
 - MAJOR | all | p2 | brick-wall photo drawn full-width and ~1.5in too tall — the quote box's last lines and the third column's closing paragraph render on top of the bricks, and the white/tan diagonal cutout over the bricks is missing
 - MEDIUM | all | p1 | house photo not clipped by the diagonal navy edge — extends ~40% lower with a straight bottom edge
-- MEDIUM | pdf | p1,p2 | headings ("Headline 1", "Headline 2", "Brochure") in a visibly heavier bold weight; quote box consequently wraps to 5 lines instead of 4
+- ✅ FIXED | pdf | p1,p2 | headings render Arial Bold, not Arial Black, and the quote box wraps at 4 lines again (see systemic #22)
 - MINOR | all | p1 | "Company Email"/"Company Website" rendered hyperlink-blue instead of black
 - MAJOR | html | - | construction photo missing, and the brick-wall image overlaps the address block and the "Brochure Title"/subtitle area
 - MEDIUM | html | - | roof-chevron accents missing
@@ -371,7 +371,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### business-plans/07
 
-- MEDIUM | pdf | p1 | title "BUSINESS PROPOSAL" rendered in heavy bold (ink 2.3x, wider and taller) and ~40px lower instead of Word's light elegant weight
+- ✅ FIXED | pdf | p1 | title "BUSINESS PROPOSAL" resolves to its light weight via weight scoring instead of a heavy bold substitute (see systemic #22); the ~40px vertical offset remains
 - MINOR | skia,imagesharp | p1 | title rendered ~15% narrower than Word (condensed glyph widths, x-extent 766 vs 871)
 - MINOR | all | p1 | intro paragraph, four section blocks and footer contacts sit 30-50px lower than Word (footer band itself correctly placed)
 - MINOR | all | p1 | "PREPARED FOR:/BY:" labels render bold vs Word's regular caps (ink +27-42%)
@@ -440,7 +440,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 - MINOR | all | p9 | SWOT list bullet markers lose their category colors (red/orange/green/blue in Word; gray in all backends; PDF also draws them noticeably smaller)
 - MEDIUM | skia,imagesharp | p4,p5,p6,p8,p10,p11,p12 | numbered section headings lose the tab gap after the number — rendered run-together as "1.EXECUTIVE SUMMARY" (Word: "1.   EXECUTIVE SUMMARY")
 - MEDIUM | pdf | p4,p5,p6,p8,p10,p11,p12 | heading number rendered at roughly half the heading's size (tiny "1." before "EXECUTIVE SUMMARY")
-- MEDIUM | pdf | p2,p4,p5,p6,p8,p9,p10,p11,p12,p14,p15,p16,p17,p18 | bold runs and bold headings use a visibly different, heavier/rounder bold typeface than Word's
+- ✅ FIXED | pdf | p2,p4,p5,p6,p8,p9,p10,p11,p12,p14,p15,p16,p17,p18 | bold runs and headings now resolve to the correct 700-weight faces (see systemic #22)
 - MINOR | pdf | p3,p4,p5,p6,p8,p9,p10,p11,p12,p14,p16,p18 | body text measures slightly wider, so many paragraphs break lines one word earlier than Word (line counts mostly unchanged)
 - MEDIUM | skia,imagesharp | p3,p4,p5,p6,p8,p9,p10,p11,p12,p16,p18 | wrapped continuation lines of bulleted paragraphs indented ~3 characters deeper than Word, shifting wrap points and adding an extra line to several bullets
 - MEDIUM | skia,imagesharp | p6,p7 | tighter list spacing pulls the last two lines of the "Note the difference…" sub-bullet ("law practice … various billing rates.") from page 7 back onto page 6, so page 7 starts at a different point than Word
@@ -678,7 +678,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 ### cards/19
 
 - MAJOR | pdf | p2,p4 | corner diagonal-stripe triangle motif missing from all 10 cards on each page (present in Word and both raster backends)
-- MEDIUM | pdf | p1,p2,p3,p4 | display serif text ("VanArsdel, Ltd." card titles, "Jordan Mitchell" names) rendered in a smaller italic serif instead of Word's larger upright serif
+- ✅ FIXED | pdf | p1,p2,p3,p4 | display serif text renders in the upright Bodoni face matching the raster backends, not a smaller italic substitute (see systemic #22)
 - MINOR | pdf | p1,p3 | chevron background pattern drawn with noticeably heavier/thicker lines than Word
 - MINOR | skia,imagesharp | p1,p2,p3,p4 | card content sits ~15-20px higher than Word (title text top-aligned instead of vertically centered in its box on p1/p3; contact block and background pattern correspondingly offset on p2/p4)
 - MAJOR | html | - | card art decoupled from card text: hatch-pattern blocks render as separate stacked images with EMPTY title boxes, and all card text renders afterward as a separate block (text never appears inside its card)
@@ -1418,8 +1418,8 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 - MEDIUM | all | p1 | first body paragraph wraps to 3 lines vs Word's 2 ("...recent visit to New / York.") and second paragraph breaks at different words, shifting the letter body
 - MEDIUM | all | p1 | large signature "Joseph Price" rendered in bold/heavy weight instead of Word's light strokes
-- MEDIUM | pdf | p1 | entire letter (header, date, body) rendered in bold vs Word's light/regular weight
-- MEDIUM | pdf | p1 | digits render smaller than adjacent letters in the same runs ("603 555 0163", "5678", "12345", "23"/"20" in the date)
+- ✅ FIXED | pdf | p1 | letter no longer renders whole-bold: "Grandview Display" resolves through the FontFallbacks alias to Grandview instead of falling to the bold default face (see systemic #22)
+- ✅ FIXED | pdf | p1 | digits now render at the same proportions as adjacent letters (same root cause — the bold-default fallback's digit metrics; see systemic #22)
 - MINOR | html | - | signature "Joseph Price" bold vs Word's light weight
 - MINOR | html | - | inter-paragraph spacing collapsed — body paragraphs run together
 
@@ -1744,7 +1744,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 - MAJOR | all | p1 | cover photo (drill/blueprints/screws image filling the left half of the page) entirely missing — area left white
 - MEDIUM | all | p1 | right-column masthead block ("HOUSE & HOME NEWS / WINTER ISSUE / EDITION 09, VOL. 10") and intro paragraphs sit ~40px (≈2 line heights) higher than Word
-- MEDIUM | pdf | p1,p2 | bold text rendered visibly heavier and ~10% wider than Word (masthead block on p1, contact-strip line on p2)
+- ✅ FIXED | pdf | p1,p2 | bold text resolves to proper 700-weight faces instead of a heavier/wider substitute (see systemic #22)
 - MINOR | all | p1,p2 | decorative swoosh/band boundaries off by several px and the light-blue contact strip plus its text sit ~15px lower than Word
 - MAJOR | html | - | cover photo missing from the export (only the logo placeholder image is emitted)
 - MAJOR | html | - | page title "HOUSE & HOME NEWS" invisible — dark-navy h1 lands on the dark-navy background shape, only a letter fragment shows through the light swoosh

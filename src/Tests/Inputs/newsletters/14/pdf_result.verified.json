@@ -11,7 +11,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "North\nJenkins\nNewsletter DECEMBER\nCampus News\nNew Gym Budget Proposal\nAt any time, you can easily change the text of any section in this\ndocument by simply clicking and typing. The template is prepared so\nthat formatting stays in tact with the new information you include.\nTo update formatting, from the Home tab, you can use the Styles\ngallery for the built in styles. You can also format text directly by using\nthe other controls on the Home tab.\nTo change any of the images, simply click on them and choose Insert\n> Picture.\nHoliday\nRecitals\nDon’t miss out\nFor this side panel, include a\nfew highlights for another story\nor some type of event you want\nto highlight. Highlight a teacher\nof the week/month, or a\nstudent/athlete of the\nweek/month.\nShare with the audience what\nelse is further in the document.\nAre there school events coming\nup? Is there a band concert or\nsporting event that the audience\nshould know about?\nYou can start a story here and\ncontinue it on another page in\nthe newsletter if it pushes longer\nthan this space allows.\nMake the newsletter your own!\n\"A new gymnasium will offer more quality\nexperiences for our young athletes” -\nAvery Howard, Principal"
+        "Text": "North Jenkins\nNewsletter\nDECEMBER\nCampus News\nNew Gym Budget Proposal\nAt any time, you can easily change the text of any section in this\ndocument by simply clicking and typing. The template is prepared so\nthat formatting stays in tact with the new information you include.\nTo update formatting, from the Home tab, you can use the Styles\ngallery for the built in styles. You can also format text directly by using\nthe other controls on the Home tab.\nTo change any of the images, simply click on them and choose Insert\n> Picture.\nHoliday\nRecitals\nDon’t miss out\nFor this side panel, include a\nfew highlights for another story\nor some type of event you want\nto highlight. Highlight a teacher\nof the week/month, or a\nstudent/athlete of the\nweek/month.\nShare with the audience what\nelse is further in the document.\nAre there school events coming\nup? Is there a band concert or\nsporting event that the audience\nshould know about?\nYou can start a story here and\ncontinue it on another page in\nthe newsletter if it pushes longer\nthan this space allows.\nMake the newsletter your own!\n\"A new gymnasium will offer more quality\nexperiences for our young athletes” - Avery\nHoward, Principal"
       },
       {
         "Width": 612.0,
@@ -23,16 +23,16 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.2653,
-      "Ssim": 0.7098,
+      "ErrorMetric": 0.2418,
+      "Ssim": 0.7573,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.3395,
-      "Ssim": 0.7501,
+      "ErrorMetric": 0.3209,
+      "Ssim": 0.8467,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

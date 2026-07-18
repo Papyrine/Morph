@@ -16,21 +16,21 @@
       {
         "Width": 595.2999877929688,
         "Height": 841.9000244140625,
-        "Text": "5. Calendar-Style Layout\nA practical example showing how merging can create calendar-like structures.\nJanuary 2025\nSun Mon Tue Wed Thu Fri Sat\nPrevious Month 1 2 3 4\n5 6 7 8 9 10 11\n12 13 14 15-16\nEvent\n17 18"
+        "Text": "5. Calendar-Style Layout\nA practical example showing how merging can create calendar-like structures.\nJanuary 2025\nSun Mon Tue Wed Thu Fri Sat\nPrevious Month 1 2 3 4\n5 6 7 8 9 10 11\n12 13 14 15-16\nEvent 17 18"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.4181,
+      "ErrorMetric": 0.3887,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.1644,
+      "ErrorMetric": 0.1614,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
