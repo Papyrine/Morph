@@ -154,6 +154,11 @@ sealed class PdfPageRenderer : PageRendererBase
                     currentPageFromSectionBreak = true;
                 }
 
+                // Restart line numbering for the new section (w:restart="newSection"); the shared
+                // SectionBreakHandler does this for the raster backends, but the PDF backend drives
+                // sections itself. No-op unless the section's lnNumType restarts per section/page.
+                context.ResetLineNumbersForSection();
+
                 break;
             case ParagraphElement paragraph:
                 RenderParagraph(paragraph, nextElement);
