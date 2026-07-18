@@ -111,8 +111,19 @@ sealed class DocumentParser(string defaultFont)
     // Style numbering: styleId -> (numId, ilvl) for styles that define numbering
     Dictionary<string, (int numId, int ilvl)>? styleNumbering;
 
-    // Numbering counters: (numId, ilvl) -> current counter value
-    Dictionary<(int numId, int ilvl), int> numberingCounters = [];
+    // Numbering counters keyed by (abstractNumId, ilvl): OOXML's counter belongs to the
+    // ABSTRACT definition, shared by every numId that references it — that's how a template's
+    // per-table restart works (each table's first row carries its own numId + startOverride,
+    // while the style-attached rows share the base numId; both must walk one sequence).
+    Dictionary<(int abstractId, int ilvl), int> numberingCounters = [];
+
+    // numId -> abstractNumId (counter key resolution).
+    Dictionary<int, int> numberingAbstractIds = [];
+
+    // (numId, ilvl) pairs carrying a w:startOverride, and the ones already applied — the
+    // override resets the shared abstract counter at the numId's FIRST use only.
+    HashSet<(int numId, int ilvl)> numberingStartOverrides = [];
+    HashSet<(int numId, int ilvl)> appliedStartOverrides = [];
 
     // Table style borders cached during parsing (styleId -> borders + conditional formatting)
     Dictionary<string, TableStyleBorderInfo>? tableStyleBorders;
@@ -268,7 +279,7 @@ sealed class DocumentParser(string defaultFont)
         // Extract style paragraph properties (line spacing, spacing before/after, etc.)
         styleParagraphProperties = ExtractStyleParagraphProperties(mainPart);
         // Extract numbering definitions from numbering.xml
-        numberingDefinitions = ExtractNumberingDefinitions(mainPart);
+        numberingDefinitions = ExtractNumberingDefinitions(mainPart, numberingAbstractIds, numberingStartOverrides);
 
         // Extract style numbering (styles that have numPr)
         styleNumbering = ExtractStyleNumbering(mainPart);
@@ -1675,7 +1686,7 @@ sealed class DocumentParser(string defaultFont)
         public int? LevelRestart { get; init; }
     }
 
-    static Dictionary<int, Dictionary<int, NumberingLevelDefinition>> ExtractNumberingDefinitions(MainDocumentPart mainPart)
+    static Dictionary<int, Dictionary<int, NumberingLevelDefinition>> ExtractNumberingDefinitions(MainDocumentPart mainPart, Dictionary<int, int> numIdToAbstract, HashSet<(int numId, int ilvl)> startOverrides)
     {
         var result = new Dictionary<int, Dictionary<int, NumberingLevelDefinition>>();
         var numberingPart = mainPart.NumberingDefinitionsPart;
@@ -1767,6 +1778,8 @@ sealed class DocumentParser(string defaultFont)
                 continue;
             }
 
+            numIdToAbstract[numId] = abstractNumIdRef;
+
             // Check for level overrides (w:lvlOverride with w:startOverride)
             var overrides = numInstance.Elements<LevelOverride>().ToList();
             if (overrides.Count == 0)
@@ -1784,6 +1797,7 @@ sealed class DocumentParser(string defaultFont)
 
                 if (startOverride != null && levels.TryGetValue(overrideIlvl, out var baseDef))
                 {
+                    startOverrides.Add((numId, overrideIlvl));
                     levels[overrideIlvl] = new()
                     {
                         LevelText = baseDef.LevelText,
@@ -2396,9 +2410,16 @@ sealed class DocumentParser(string defaultFont)
         }
         else
         {
-            // Track counters per (numId, ilvl) pair
-            var counterKey = (numId, ilvl);
-            if (!numberingCounters.TryGetValue(counterKey, out var counter))
+            // The counter is shared across every numId referencing the same abstract; a numId's
+            // w:startOverride resets it once, at that numId's first use (Word's per-table restart).
+            var abstractId = numberingAbstractIds.GetValueOrDefault(numId, numId);
+            var counterKey = (abstractId, ilvl);
+            int counter;
+            if (numberingStartOverrides.Contains((numId, ilvl)) && appliedStartOverrides.Add((numId, ilvl)))
+            {
+                counter = levelDef.StartNumber;
+            }
+            else if (!numberingCounters.TryGetValue(counterKey, out counter))
             {
                 counter = levelDef.StartNumber;
             }
@@ -2414,7 +2435,7 @@ sealed class DocumentParser(string defaultFont)
             // <w:lvlRestart w:val="0"/> on a deeper level opts out; <w:lvlRestart w:val="K"/>
             // means that level only restarts when a level <= K-1 increments, so any
             // deeper level whose lvlRestart-1 is less than ilvl stays put.
-            ResetDeeperCounters(numId, ilvl, levels);
+            ResetDeeperCounters(abstractId, ilvl, levels);
 
             // Replace %N placeholders with formatted counter values
             text = levelDef.LevelText;
@@ -2434,7 +2455,7 @@ sealed class DocumentParser(string defaultFont)
                 else
                 {
                     // For parent levels, use the current counter (or start if not yet seen)
-                    var parentKey = (numId, lvl);
+                    var parentKey = (abstractId, lvl);
                     lvlCounter = numberingCounters.GetValueOrDefault(parentKey, levelDef.StartNumber);
                 }
 
@@ -2459,7 +2480,7 @@ sealed class DocumentParser(string defaultFont)
         };
     }
 
-    void ResetDeeperCounters(int numId, int incrementedIlvl, Dictionary<int, NumberingLevelDefinition> levels)
+    void ResetDeeperCounters(int abstractId, int incrementedIlvl, Dictionary<int, NumberingLevelDefinition> levels)
     {
         foreach (var (deeperIlvl, deeperLevel) in levels)
         {
@@ -2481,7 +2502,7 @@ sealed class DocumentParser(string defaultFont)
                 continue;
             }
 
-            numberingCounters.Remove((numId, deeperIlvl));
+            numberingCounters.Remove((abstractId, deeperIlvl));
         }
     }
 
