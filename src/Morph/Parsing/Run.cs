@@ -88,6 +88,36 @@ sealed class Run
     /// cleared (the text is now the resolved literal value). Used by the renderers to substitute
     /// a live page number in place of a <see cref="PageField"/> run's cached text.
     /// </summary>
+    /// <summary>
+    /// Returns a copy of this run with <see cref="Properties"/> replaced and every other member —
+    /// including the page-field marker and note/hyperlink linkage — preserved. Used by the
+    /// table-style conditional-formatting cascade, which must not strip a run's identity.
+    /// </summary>
+    public Run WithProperties(RunProperties properties) =>
+        new()
+        {
+            Text = Text,
+            Properties = properties,
+            InlineImageData = InlineImageData,
+            InlineImageWidthPoints = InlineImageWidthPoints,
+            InlineImageHeightPoints = InlineImageHeightPoints,
+            InlineImageContentType = InlineImageContentType,
+            InlineImageDescription = InlineImageDescription,
+            InlineImageRasterFallbackData = InlineImageRasterFallbackData,
+            InlineImageRasterFallbackContentType = InlineImageRasterFallbackContentType,
+            InlineImageRotationDegrees = InlineImageRotationDegrees,
+            InlineImageFlipHorizontal = InlineImageFlipHorizontal,
+            InlineImageFlipVertical = InlineImageFlipVertical,
+            InlineImageCrop = InlineImageCrop,
+            IsTab = IsTab,
+            FootnoteReferenceId = FootnoteReferenceId,
+            EndnoteReferenceId = EndnoteReferenceId,
+            HyperlinkUrl = HyperlinkUrl,
+            InlineShapeGroup = InlineShapeGroup,
+            PageField = PageField,
+            PageFieldNumberFormat = PageFieldNumberFormat
+        };
+
     public Run WithText(string text) =>
         new()
         {
