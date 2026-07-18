@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "This paragraph contains a nonbreakinghyphen. The phrase 'nonbreaking'will not break\nat the hyphen.\nCall us at 18005551234 where the phone number stays on one line.\nRegular text with normal hyphens: co-worker, self-aware, twenty-one."
+        "Text": "This paragraph contains a non-breaking hyphen. The phrase 'non-breaking' will not break at\nthe hyphen.\nCall us at 1-800-555-1234 where the phone number stays on one line.\nRegular text with normal hyphens: co-worker, self-aware, twenty-one."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0138,
-      "Ssim": 0.9777,
+      "ErrorMetric": 0.013,
+      "Ssim": 0.9811,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
