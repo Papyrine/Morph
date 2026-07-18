@@ -752,7 +752,7 @@ Unordered lists with bullet characters. Supports Symbol and Wingdings font mappi
 - **Render**: `TextRenderer.RenderBullet()`
 - **Test**: `bullet_list/`
 
-> **Contributors**: Unicode mapping for Symbol/Wingdings bullet characters handled during parsing. Bullet font defaults to Arial for standard Unicode bullet chars.
+> **Contributors**: Unicode mapping for Symbol/Wingdings bullet characters handled during parsing (`MapBulletPuaToUnicode`). Marker font selection is the shared `FontHelpers.UseBulletFont`, identical across the three render backends: Symbol/Wingdings-declared bullets AND the geometric glyphs the bundled text faces lack (■ U+25A0, ◆ U+25C6, ▸ U+25B8, ► U+25BA) render in the embedded `Bullets.ttf` subset (the two triangles were drawn into it; Word glyph-falls-back to Segoe UI Symbol for these), while every other marker keeps the paragraph font — Word's own behaviour when the glyph exists there. The PDF backend registers the embedded subset in `PdfFontResolver` under the reserved `::MorphBullets` face key, since it ships as an assembly resource rather than a `FontDirectory` file.
 
 
 #### Custom Bullet Fonts `DONE`

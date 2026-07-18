@@ -239,4 +239,24 @@ static class FontHelpers
 
         return null;
     }
+
+    // Marker glyphs the shipped text faces don't cover — these render in the embedded
+    // "Morph Bullets" subset (◆/■ always shipped in it; the ▸/► triangles were drawn into it).
+    // Every other marker keeps the paragraph font: that's what Word uses when the glyph exists
+    // there, and Word glyph-falls-back to Segoe UI Symbol when it doesn't (which these four
+    // mirror via the subset).
+    internal static bool RequiresBulletFont(string? markerText) =>
+        markerText is {Length: 1} &&
+        markerText[0] is '■' or '◆' or '▸' or '►';
+
+    // Bullets declared in Symbol/Wingdings always need the embedded subset — Linux/macOS don't
+    // ship those proprietary faces.
+    internal static bool IsProprietaryBulletFont(string? fontFamily) =>
+        fontFamily != null &&
+        (fontFamily.StartsWith("Symbol", StringComparison.OrdinalIgnoreCase) ||
+         fontFamily.StartsWith("Wingdings", StringComparison.OrdinalIgnoreCase));
+
+    // Single marker-font decision shared by the three render backends.
+    internal static bool UseBulletFont(string? markerText, string? declaredFontFamily) =>
+        IsProprietaryBulletFont(declaredFontFamily) || RequiresBulletFont(markerText);
 }

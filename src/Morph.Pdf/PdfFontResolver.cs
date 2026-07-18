@@ -25,8 +25,23 @@ sealed class PdfFontResolver : IFontResolver
     HashSet<string> scannedDirectories = [with(StringComparer.OrdinalIgnoreCase)];
     string? defaultFace;
 
+    // Reserved face key for the embedded "Morph Bullets" subset — it ships as an assembly
+    // resource, not a file in any FontDirectory, so GetFont serves its bytes directly.
+    const string bulletsFaceKey = "::MorphBullets";
+
     PdfFontResolver()
     {
+        index["morph bullets"] =
+        [
+            new()
+            {
+                Path = bulletsFaceKey,
+                Weight = 400,
+                Width = 5,
+                Italic = false
+            }
+        ];
+        faceToPath[bulletsFaceKey] = bulletsFaceKey;
     }
 
     /// <summary>Registers the resolver globally (idempotent) and indexes <paramref name="directory"/>.</summary>
@@ -277,6 +292,11 @@ sealed class PdfFontResolver : IFontResolver
 
     public byte[]? GetFont(string faceName)
     {
+        if (faceName == bulletsFaceKey)
+        {
+            return EmbeddedFonts.Bullets;
+        }
+
         lock (gate)
         {
             return faceToPath.TryGetValue(faceName, out var path) ? File.ReadAllBytes(path) : null;
