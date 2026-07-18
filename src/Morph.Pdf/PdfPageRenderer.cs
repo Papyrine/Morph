@@ -564,7 +564,7 @@ sealed class PdfPageRenderer : PageRendererBase
             }
 
             context.SuppressPageTopSpacingBefore = ShouldSuppressPageTopSpacingBefore();
-            textEngine.Render(paragraph);
+            textEngine.Render(paragraph, nextElement);
         }
 
         if (hasContent)

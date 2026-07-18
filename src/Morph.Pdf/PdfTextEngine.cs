@@ -98,7 +98,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     public double MeasureHeight(ParagraphElement paragraph, double maxWidth)
     {
         var lines = Layout(paragraph, maxWidth);
-        var total = SpacingBefore(paragraph) + SpacingAfter(paragraph);
+        var total = SpacingBefore(paragraph) + SpacingAfter(paragraph) + BorderSpaceExcess(paragraph.Properties);
         if (lines.Count == 0)
         {
             return total + EmptyLineHeight(paragraph);
@@ -110,6 +110,30 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         }
 
         return total;
+    }
+
+    // Paragraph borders (w:pBdr) draw inside the spacing-before/after regions where they fit; only
+    // the part of w:space that exceeds the adjacent spacing pushes neighbours apart and adds height.
+    // Mirrors Morph.Skia's BorderSpaceExcess so pagination matches what Draw advances.
+    static double BorderSpaceExcess(ParagraphProperties properties)
+    {
+        if (properties.Borders is not {HasAnyBorder: true} borders)
+        {
+            return 0;
+        }
+
+        var extra = 0d;
+        if (borders.Top.IsVisible)
+        {
+            extra += Math.Max(0, properties.BorderTopSpacePoints - properties.SpacingBeforePoints);
+        }
+
+        if (borders.Bottom.IsVisible)
+        {
+            extra += Math.Max(0, properties.BorderBottomSpacePoints - properties.SpacingAfterPoints);
+        }
+
+        return extra;
     }
 
     double EmptyLineHeight(ParagraphElement paragraph)
@@ -178,10 +202,10 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     public Action? RequestNewPage { get; set; }
 
     /// <summary>Draws the paragraph at the current flow position, advancing <see cref="RenderContextBase.CurrentY"/>.</summary>
-    public void Render(ParagraphElement paragraph)
+    public void Render(ParagraphElement paragraph, DocumentElement? nextElement = null)
     {
         var maxWidth = context.ContentWidth - Indent(paragraph) - RightIndent(paragraph);
-        Draw(paragraph, context.ContentLeft + Indent(paragraph), maxWidth, allowPageBreak: true);
+        Draw(paragraph, context.ContentLeft + Indent(paragraph), maxWidth, allowPageBreak: true, nextElement);
     }
 
     /// <summary>Draws the paragraph constrained to a bounded region (table cell), no page breaks.
@@ -194,9 +218,14 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         Draw(paragraph, x + indent, maxWidth - indent - RightIndent(paragraph), allowPageBreak: false);
     }
 
-    void Draw(ParagraphElement paragraph, double left, double availableWidth, bool allowPageBreak)
+    void Draw(ParagraphElement paragraph, double left, double availableWidth, bool allowPageBreak, DocumentElement? nextElement = null)
     {
         var lines = Layout(paragraph, availableWidth);
+
+        // Bar tabs (w:tab w:val="bar") draw a vertical rule over the paragraph's whole cell —
+        // captured before spacing-before so consecutive bar-tab paragraphs' rules join into one
+        // continuous separator, matching the Skia/ImageSharp backends. Flow path only (like borders).
+        var barTabStartY = (double) context.CurrentY;
 
         // Word collapses adjacent paragraph spacing to max(after, before) — verified against
         // Word-generated XPS baselines — so in the page flow only the excess of this
@@ -232,6 +261,10 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         {
             context.CurrentY += (float) EmptyLineHeight(paragraph);
             context.CurrentY += (float) SpacingAfter(paragraph);
+            if (allowPageBreak)
+            {
+                DrawBarTabs(paragraph.Properties, barTabStartY, context.CurrentY - barTabStartY);
+            }
             TrackContextualSpacing(paragraph);
             return;
         }
@@ -264,6 +297,31 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 forcedBreakIndex = PlanWidowBreak(lines, 0);
             }
         }
+
+        // Paragraph borders (w:pBdr) are a flow-path feature (allowPageBreak): Word does not border a
+        // paragraph inside a table cell, matching the Skia/ImageSharp backends. Reserve the top
+        // w:space that exceeds spacing-before so the top edge clears the previous paragraph; inside a
+        // w:between chain reserve the full top space so the text clears the shared line above. Done
+        // after any whole-paragraph widow move so the edges anchor to where the text actually starts.
+        var borders = paragraph.Properties.Borders;
+        var drawBorders = allowPageBreak && borders is {HasAnyBorder: true};
+        var bottomSpaceExtra = 0d;
+        if (drawBorders)
+        {
+            var properties = paragraph.Properties;
+            var inBetweenChain = context.SuppressNextParagraphTopBorder;
+            var topSpaceExtra = borders!.Top.IsVisible || inBetweenChain
+                ? inBetweenChain
+                    ? properties.BorderTopSpacePoints
+                    : Math.Max(0, properties.BorderTopSpacePoints - properties.SpacingBeforePoints)
+                : 0;
+            bottomSpaceExtra = borders.Bottom.IsVisible
+                ? Math.Max(0, properties.BorderBottomSpacePoints - properties.SpacingAfterPoints)
+                : 0;
+            context.CurrentY += (float) topSpaceExtra;
+        }
+
+        var paragraphStartY = (double) context.CurrentY;
 
         for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
         {
@@ -372,8 +430,112 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             context.CurrentY += (float) line.Height;
         }
 
+        // Draw the border edges before spacing-after: the bottom edge sits at the text end plus the
+        // full bottom w:space (any excess over spacing-after was reserved as bottomSpaceExtra).
+        if (drawBorders && DrawParagraphBorders(paragraph, borders!, paragraphStartY, nextElement))
+        {
+            // Bottom edge collapsed into a shared w:between line with the next (identically bordered)
+            // paragraph: that line already advanced CurrentY to the shared edge, so charge no
+            // spacing-after and let the next paragraph's top space begin here.
+            context.LastParagraphStyleId = paragraph.Properties.StyleId;
+            context.LastParagraphHadContextualSpacing = paragraph.Properties.ContextualSpacing;
+            context.LastParagraphSpacingAfterPoints = 0;
+            return;
+        }
+
+        context.CurrentY += (float) bottomSpaceExtra;
         context.CurrentY += (float) SpacingAfter(paragraph);
+        if (allowPageBreak)
+        {
+            DrawBarTabs(paragraph.Properties, barTabStartY, context.CurrentY - barTabStartY);
+        }
         TrackContextualSpacing(paragraph);
+    }
+
+    // Draws the four w:pBdr edges and, when this paragraph's bottom collapses with an identically
+    // bordered next paragraph, the shared w:between line. Returns true on that collapse, in which
+    // case CurrentY has advanced past the between line and the caller charges no spacing-after.
+    // Mirrors the Skia/ImageSharp border drawing; PDF coordinates are already points (== the PDF
+    // user unit). The bottom edge is measured from CurrentY as it stands right after the last line.
+    bool DrawParagraphBorders(ParagraphElement paragraph, CellBorders borders, double paragraphStartY, DocumentElement? nextElement)
+    {
+        var properties = paragraph.Properties;
+        var graphics = context.Graphics;
+
+        var borderLeft = context.ContentLeft + Indent(paragraph) - properties.BorderLeftSpacePoints;
+        var borderRight = context.ContentLeft + context.ContentWidth - RightIndent(paragraph) + properties.BorderRightSpacePoints;
+        var borderTop = paragraphStartY - properties.BorderTopSpacePoints;
+        var borderBottom = context.CurrentY + properties.BorderBottomSpacePoints;
+
+        var collapseBottom = nextElement is ParagraphElement next && properties.BordersCollapseWith(next.Properties);
+        var suppressTop = context.SuppressNextParagraphTopBorder;
+        context.SuppressNextParagraphTopBorder = false;
+
+        if (graphics != null)
+        {
+            if (borders.Bottom.IsVisible && !collapseBottom)
+            {
+                graphics.DrawLine(EdgePen(borders.Bottom), borderLeft, borderBottom, borderRight, borderBottom);
+            }
+
+            if (borders.Top.IsVisible && !suppressTop)
+            {
+                graphics.DrawLine(EdgePen(borders.Top), borderLeft, borderTop, borderRight, borderTop);
+            }
+
+            if (borders.Left.IsVisible)
+            {
+                graphics.DrawLine(EdgePen(borders.Left), borderLeft, borderTop, borderLeft, borderBottom);
+            }
+
+            if (borders.Right.IsVisible)
+            {
+                graphics.DrawLine(EdgePen(borders.Right), borderRight, borderTop, borderRight, borderBottom);
+            }
+
+            if (collapseBottom)
+            {
+                graphics.DrawLine(EdgePen(properties.BorderBetween), borderLeft, borderBottom, borderRight, borderBottom);
+            }
+        }
+
+        if (collapseBottom)
+        {
+            context.SuppressNextParagraphTopBorder = true;
+            // Advance past the between line so the next paragraph's top space starts here.
+            context.CurrentY += (float) properties.BorderBottomSpacePoints;
+        }
+
+        return collapseBottom;
+    }
+
+    XPen EdgePen(BorderEdge edge) =>
+        context.GetPen(PdfRenderContext.ParseColor(edge.ColorHex ?? "000000"), Math.Max(0.5, edge.WidthPoints));
+
+    // Bar-tab stops (w:tab w:val="bar") draw a vertical rule at each stop position spanning the
+    // paragraph's full cell height (top..top+height), so consecutive bar-tab paragraphs' rules join
+    // into one continuous separator — a faithful port of the Skia/ImageSharp DrawBarTabs. Tab-stop
+    // positions are measured from the section content-left, not the paragraph indent (Word's model).
+    void DrawBarTabs(ParagraphProperties properties, double top, double height)
+    {
+        var graphics = context.Graphics;
+        if (graphics == null || properties.TabStops.Count == 0)
+        {
+            return;
+        }
+
+        XPen? pen = null;
+        foreach (var stop in properties.TabStops)
+        {
+            if (stop.Alignment != TabAlignment.Bar)
+            {
+                continue;
+            }
+
+            pen ??= context.GetPen(PdfRenderContext.ParseColor("000000"), 0.5);
+            var x = context.ContentLeft + stop.PositionPoints;
+            graphics.DrawLine(pen, x, top, x, top + height);
+        }
     }
 
     // Consecutive lines from startIndex that fit above the page bottom, measured from the

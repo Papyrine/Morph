@@ -38,7 +38,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 ### PDF-only
 
 18. **Line numbers not rendered at all** (`line_numbers_*` — gutter completely absent).
-19. **Paragraph borders not rendered** (`paragraph_borders` — box/left-bar/top-bottom/between all missing) and bar tabs not drawn (`bar_tabs`).
+19. **Paragraph borders** — ✅ FIXED. `w:pBdr` box / left-only / right-only / top-bottom / `w:between`-collapse edges and per-edge `w:space` now render in the PDF backend via `PdfTextEngine.DrawParagraphBorders` — a faithful port of the Skia/ImageSharp logic, with height reserved through `MeasureHeight`/`BorderSpaceExcess`. Cleared `paragraph_borders`; the heading/salutation underline rules Word draws (bottom `w:pBdr`) now also render on `cover-letters/02`, `business-plans/12`/`15`, `labels/06` (5 PDF scenarios regenerated). **Bar tabs also ✅ FIXED:** `w:tab w:val="bar"` vertical separators now render in the PDF backend via `PdfTextEngine.DrawBarTabs` — each Bar stop drawn as a full-cell-height rule (spanning spacing-before through spacing-after) so consecutive bar-tab paragraphs connect into one continuous separator; cleared `bar_tabs`. Issue #19 fully resolved.
 20. **`a:srcRect` picture crop ignored** — full image scaled into frame instead of the crop window (`image_cropping/01`, business-plans/12 cover/sidebar, business-plans/13, brochures/02/05, cards/16 aspect, postcards/04, newsletters/14 squash).
 21. **Picture/shape rotation ignored** (`image_rotation/01` unrotated, `labels/06` "ADMIT ONE" captions horizontal, `letters/13` p3 vertical banner drawn horizontal mid-page).
 22. **Font substitution too heavy/wrong style** — bold rendered with a heavier, wider face causing rewraps (agendas-minutes/19, business-plans/12, brochures/04, letters/08 whole letter bold, newsletters/08/14, cards/19 italic serif substitution); digits smaller than letters in the same run (`letters/08`).
@@ -213,7 +213,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### bar_tabs
 
-- MAJOR | pdf | p1 | both bar-tab vertical separator lines (flanking the tabbed columns) are completely missing — text renders but no bars are drawn
+- ✅ FIXED | pdf | p1 | both bar-tab vertical separator lines now render (flanking the tabbed columns, spanning the three bar-tab paragraphs and stopping at the plain paragraph) — was: completely missing. See systemic #19.
 - MINOR | skia,imagesharp,pdf | p1 | text lines drift upward progressively (~5-10px by the last paragraph) versus Word
 - MAJOR | html | - | bar-tab vertical separator lines are not rendered at all and the tabbed columns collapse to single spaces ("Column one Column two Column three")
 
@@ -432,6 +432,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 - MAJOR | all | p2 | TOC page numbers absent from every entry (Word right-aligns 3,4,5,6,8,10,11,12,15,16,18) and the dot leaders run all the way to the right margin instead of stopping at a number
 - MEDIUM | all | p2 | TOC entries rendered underlined (hyperlink style; Word shows no underline) with wider entry spacing so the list ends ~0.3in lower
 - MEDIUM | all | p2 | "TABLE OF CONTENTS" heading rendered gray instead of black and the thick black rule below the heading is missing
+- MAJOR | all | p2,p3 + section headings | decorative down-right section-marker arrow (↘ atop the TOC and each section heading) renders with mangled geometry — the arrowhead and shaft don't assemble into a clean arrow, reading as a broken glyph; Word draws a solid, well-formed ↘. Shared shape-rasterizer geometry defect (systemic #6, same family as `business-plans/02`'s section-marker arrow); confirmed pre-existing, unrelated to the PDF paragraph-border fix
 - MAJOR | pdf | p1,p2 | photos drawn with wrong crop/zoom inside their frames — cover taxi photo is zoomed-in/panned versus Word and the p2 full-height airplane sidebar photo shows a completely different framing (source-crop rectangle ignored)
 - MAJOR | skia,imagesharp | p1 | cover text block pushed ~1in down: colored-arrows logo sits clipped at the bottom page edge and "First Up Consultants" is pushed off-page entirely (missing)
 - MEDIUM | pdf | p1 | cover title block sits ~0.6in lower than Word and "First Up Consultants" wraps onto two lines ("First Up" / "Consultants")
@@ -1873,7 +1874,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### paragraph_borders
 
-- MAJOR | pdf | p1 | all paragraph borders missing — no full box, no thick blue left bar, no red right bar, no top/bottom rules, no w:between group boxes, and the "16pt space on every edge" paragraph loses its padded box entirely
+- ✅ FIXED | pdf | p1 | paragraph borders now render — full box, thick blue left bar, red right bar, top/bottom rules, w:between group boxes, and the padded "16pt space on every edge" box all draw (was: all missing). See systemic #19.
 - MEDIUM | all | p1 | vertical spacing around bordered paragraphs compressed (the 16pt-padded box is visibly shorter than Word's); cumulative drift leaves the last paragraph ending ~1in higher than Word
 - MEDIUM | html | - | the three w:between paragraphs render as three separate fully-boxed paragraphs with white gaps instead of one merged box with single shared rules between adjacent paragraphs
 

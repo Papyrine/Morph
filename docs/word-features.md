@@ -670,7 +670,7 @@ Borders around a paragraph (top, bottom, left, right, between).
 - **OOXML**: `w:pBdr` — `w:top`, `w:bottom`, `w:left`, `w:right`, `w:between`
 - **Parse**: `DocumentParser.ParseParagraphProperties()` and `ParseStyleParagraphProperties()` in `Morph/OpenXml/Parsing/DocumentParser.cs`; per-edge `w:space` via `ParseBorderSpace()`
 - **Model**: `ParagraphProperties.Borders` (reuses `CellBorders` for Top/Right/Bottom/Left), plus per-edge `BorderTopSpacePoints` / `BorderBottomSpacePoints` / `BorderLeftSpacePoints` / `BorderRightSpacePoints`, and `BorderBetween` / `BorderBetweenSpacePoints`
-- **Render**: paragraph-border block in `Morph.Skia/Rendering/TextRenderer.cs` and `Morph.ImageSharp/Rendering/TextRenderer.cs`. Between-border collapse uses `RenderContextBase.SuppressNextParagraphTopBorder` to coordinate neighbors.
+- **Render**: paragraph-border block in `Morph.Skia/Rendering/TextRenderer.cs`, `Morph.ImageSharp/Rendering/TextRenderer.cs`, and `Morph.Pdf/PdfTextEngine.cs` (`DrawParagraphBorders`, ported from the raster backends; height reserved via `BorderSpaceExcess` in `MeasureHeight`). Between-border collapse uses `RenderContextBase.SuppressNextParagraphTopBorder` to coordinate neighbors across all three backends.
 - **Test**: `paragraph_borders/`
 - **Spec**: [Paragraph Borders](http://officeopenxml.com/WPborders.php)
 
@@ -1979,7 +1979,7 @@ Positioned alignment points within a paragraph. Types: left, center, right, deci
 - **OOXML**: `w:tabs` > `w:tab` with `w:val` (type), `w:pos` (position), `w:leader`; `w:defaultTabStop` in settings.xml; `<w:tab/>` character in runs
 - **Parse**: `DocumentParser.ParseTabs()`, `ExtractDefaultTabStop()` in `Morph/OpenXml/Parsing/DocumentParser.cs`
 - **Model**: `ParagraphProperties.TabStops`, `ParagraphProperties.DefaultTabStopPoints`, `Run.IsTab` in `Morph/Parsing/DocumentElements.cs`
-- **Render**: `TabStopResolver` in `Morph/Rendering/TabStopResolver.cs`; `HandleTab` + `RenderTabFiller` in each `TextRenderer`
+- **Render**: `TabStopResolver` in `Morph/Rendering/TabStopResolver.cs`; `HandleTab` + `RenderTabFiller` in each `TextRenderer`; bar-tab rules via `DrawBarTabs` in each raster `TextRenderer` and `Morph.Pdf/PdfTextEngine.cs`
 - **Test**: `tab_stops`, `decimal_tabs`, plus `TabStopResolverTests` in `src/Tests/SpecTests/Section2_Structures/`
 - **Spec**: [Tab Stops](http://officeopenxml.com/WPtab.php)
 
