@@ -2056,7 +2056,7 @@ Known mappings include:
 - Avenir Next LT Pro -> Century Gothic
 - Sagona -> Georgia
 
-> **Consumers**: Set `ConversionOptions.FontFallback` to provide custom mappings for fonts not covered by built-in fallbacks.
+> **Consumers**: Set `ConversionOptions.FontFallback` to provide custom mappings for fonts not covered by built-in fallbacks. (The PDF backend's process-global `PdfFontResolver` consults the built-in `FontFallbacks` map and scores bundled faces by OS/2 weight/italic exactly like the shared resolver, but does not yet see the per-conversion `FontFallback` delegate.)
 
 
 ### 10.3 Conversion Options

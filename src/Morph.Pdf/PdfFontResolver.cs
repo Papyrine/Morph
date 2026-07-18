@@ -6,6 +6,14 @@
 ///
 /// Font files follow the bundled naming convention <c>{Family}_{weight}[_Italic].ttf</c> (spaces in
 /// the family become underscores), e.g. <c>Arial_Nova_700.ttf</c>, <c>Aptos_400_Italic.ttf</c>.
+///
+/// Resolution mirrors the shared <see cref="FontResolver{TFont}"/> directory mode: candidate names
+/// (<see cref="FontHelpers.GetCandidateNames"/>) score every indexed face by weight distance and
+/// italic mismatch (<see cref="FontHelpers.ScoreFace"/>), so a bold request picks a 700 face over a
+/// 900 one; the curated <see cref="FontHelpers.FontFallbacks"/> aliases fire when the direct match
+/// is missing or a poor weight fit; and a family that still misses falls back to
+/// <see cref="DefaultFontSettings.DefaultFont"/> at the requested style rather than an arbitrary
+/// bundled file.
 /// </summary>
 sealed class PdfFontResolver : IFontResolver
 {
@@ -13,7 +21,7 @@ sealed class PdfFontResolver : IFontResolver
 
     Lock gate = new();
     Dictionary<string, string> faceToPath = new(StringComparer.OrdinalIgnoreCase);
-    Dictionary<(string Family, bool Bold, bool Italic), string> index = [];
+    Dictionary<string, List<FontFace>> index = [];
     HashSet<string> scannedDirectories = [with(StringComparer.OrdinalIgnoreCase)];
     string? defaultFace;
 
@@ -49,7 +57,7 @@ sealed class PdfFontResolver : IFontResolver
 
             // Sort ordinally so indexing is filesystem-order independent: Directory.EnumerateFiles
             // has no defined order, yet that order decides the default fallback face (defaultFace is
-            // the first file seen) and which file wins when two map to the same family/style key.
+            // the first file seen) and which file wins a score tie between identical-metric faces.
             // Without this the same FontDirectory embeds different fallback fonts on different
             // filesystems (e.g. a Windows bind mount vs CI's ext4), so the generated PDF bytes differ
             // across machines despite an identical container image.
@@ -86,42 +94,81 @@ sealed class PdfFontResolver : IFontResolver
         }
 
         var family = string.Join(' ', parts[..end]);
-        var bold = weight >= 600;
 
         faceToPath[path] = path;
 
-        // The bundled file name is the authoritative key and overrides any earlier entry.
-        index[(family.ToLowerInvariant(), bold, italic)] = path;
-
-        // Also index the font's own declared names (Family, Full, PostScript, Typographic
-        // from the name table) so a request using an abbreviated or alternate spelling — e.g.
-        // "Trade Gothic Next Cond" for Trade_Gothic_Next_Condensed — finds this exact file
-        // instead of being suffix-stripped onto a different family ("Trade Gothic Next").
-        // Mirrors the shared FontFileCache, which indexes every declared name. TryAdd keeps
-        // the file-name key (and the first file in ordinal order) authoritative on collisions.
-        foreach (var declaredName in ReadDeclaredNames(path))
+        // Index faces with the OS/2 weight/width/italic OpenTypeReader captured, so resolution can
+        // score candidates exactly like the shared FontResolver. A file it can't parse still
+        // resolves through a synthetic face built from the file-name convention.
+        var indexed = false;
+        foreach (var (face, declaredNames) in ReadFaces(path))
         {
-            index.TryAdd((declaredName.ToLowerInvariant(), bold, italic), path);
+            indexed = true;
+
+            // The bundled file name is the curated key (Arial_700 -> "Arial" bold) ...
+            AddFace(family, face);
+
+            // ... and the font's own declared names (Family, Full, PostScript, Typographic) cover
+            // abbreviated or alternate spellings - e.g. "Trade Gothic Next Cond" for
+            // Trade_Gothic_Next_Condensed - mirroring the shared FontFileCache, which indexes every
+            // declared name.
+            foreach (var declaredName in declaredNames)
+            {
+                if (!string.IsNullOrEmpty(declaredName))
+                {
+                    AddFace(declaredName, face);
+                }
+            }
+        }
+
+        if (!indexed)
+        {
+            AddFace(family, new()
+            {
+                Path = path,
+                Weight = weight,
+                Width = 5,
+                Italic = italic
+            });
         }
 
         defaultFace ??= path;
     }
 
-    static IEnumerable<string> ReadDeclaredNames(string path)
+    static IEnumerable<(FontFace Face, IReadOnlyList<string> Names)> ReadFaces(string path)
     {
         try
         {
-            return OpenTypeReader.ReadFaces(path)
-                .SelectMany(_ => _.Names)
-                .Where(_ => !string.IsNullOrEmpty(_))
-                .ToList();
+            return OpenTypeReader.ReadFaces(path).ToList();
         }
         catch
         {
-            // A font we can't parse contributes no alternate names; the file-name index
-            // entry still serves it.
+            // A font we can't parse contributes no OS/2 metadata; the synthetic file-name entry
+            // still serves it.
             return [];
         }
+    }
+
+    void AddFace(string name, FontFace face)
+    {
+        var key = name.ToLowerInvariant();
+        if (!index.TryGetValue(key, out var faces))
+        {
+            faces = [];
+            index[key] = faces;
+        }
+
+        // The same file often declares the same name several times (Family + Full + Typographic);
+        // one entry per (name, file) keeps the score tie-break on distinct files only.
+        foreach (var existing in faces)
+        {
+            if (existing.Path == face.Path)
+            {
+                return;
+            }
+        }
+
+        faces.Add(face);
     }
 
     public FontResolverInfo? ResolveTypeface(string familyName, bool isBold, bool isItalic)
@@ -144,47 +191,89 @@ sealed class PdfFontResolver : IFontResolver
 
         lock (gate)
         {
+            // Last resort: the render default font at the requested style - the same family the
+            // raster backends fall back to - rather than an arbitrary bundled file (the ordinally
+            // first used to be Aharoni_700, a bold face, which made every unresolved family render
+            // heavy and wide).
+            if (TryResolve(DefaultFontSettings.DefaultFont, isBold, isItalic, out var fallbackFace))
+            {
+                return new(fallbackFace);
+            }
+
             return defaultFace == null ? null : new FontResolverInfo(defaultFace);
         }
     }
 
     bool TryResolve(string familyName, bool bold, bool italic, out string face)
     {
-        // Order matters: keep the upright/italic axis correct before relaxing weight. When an
-        // upright face is requested but only the italic of that exact weight is bundled (e.g.
-        // Century Schoolbook ships 400-Italic, 700, 700-Italic but no 400 upright), falling back
-        // to a different-weight upright reads far closer than swapping in a slanted same-weight
-        // face. This mirrors the shared resolver's ScoreFace, where an italic mismatch (10_000)
-        // outweighs any weight mismatch.
-        Span<(bool Bold, bool Italic)> attempts =
-        [
-            (bold, italic),
-            (!bold, italic),
-            (bold, !italic),
-            (!bold, !italic)
-        ];
-
-        // Try the requested family, then its suffix-stripped base (e.g. "Bodoni MT Condensed"
-        // -> "Bodoni MT"), mirroring the shared resolver's candidate-name fallback so a width-
-        // or weight-suffixed request still finds the bundled base face instead of dropping to
-        // the default sans fallback.
         var candidates = FontHelpers.GetCandidateNames(familyName, bold);
-        foreach (var candidateName in FontFileCache.EnumerateCandidateNames(candidates))
+        var targetWeight = FontHelpers.ResolveTargetWeight(familyName, bold);
+        var direct = BestFace(candidates, targetWeight, italic, out var directDelta);
+
+        // Curated alias (e.g. "Grandview Display" -> "Grandview") - taken when the direct match is
+        // missing, or is a poor weight fit and the alias lands closer (the shared resolver's
+        // weightFallbackThreshold rule).
+        var fallbackName = FontHelpers.FindFallback(candidates);
+        if (fallbackName != null && (direct == null || directDelta >= weightFallbackThreshold))
         {
-            var family = candidateName.ToLowerInvariant();
-            foreach (var (attemptBold, attemptItalic) in attempts)
+            var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, bold);
+            var fallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
+            var fallback = BestFace(fallbackCandidates, fallbackWeight, italic, out var fallbackDelta);
+            if (fallback != null && (direct == null || fallbackDelta < directDelta))
             {
-                if (index.TryGetValue((family, attemptBold, attemptItalic), out var found))
-                {
-                    face = found;
-                    return true;
-                }
+                face = fallback.Path;
+                return true;
             }
+        }
+
+        if (direct != null)
+        {
+            face = direct.Path;
+            return true;
         }
 
         face = "";
         return false;
     }
+
+    // Mirrors FontResolver.TryResolveFromCache: the first candidate name with any indexed faces
+    // supplies them, and the face with the lowest ScoreFace wins (italic mismatch dominates any
+    // weight distance, so a bold request never trades the upright axis for a closer weight).
+    FontFace? BestFace(FontNameCandidates candidates, int targetWeight, bool targetItalic, out int weightDelta)
+    {
+        weightDelta = int.MaxValue;
+        foreach (var candidateName in FontFileCache.EnumerateCandidateNames(candidates))
+        {
+            if (!index.TryGetValue(candidateName.ToLowerInvariant(), out var faces))
+            {
+                continue;
+            }
+
+            FontFace? best = null;
+            var bestScore = int.MaxValue;
+            foreach (var candidate in faces)
+            {
+                var score = FontHelpers.ScoreFace(candidate, targetWeight, targetItalic);
+                if (score < bestScore)
+                {
+                    best = candidate;
+                    bestScore = score;
+                }
+            }
+
+            if (best != null)
+            {
+                weightDelta = Math.Abs(best.Weight - targetWeight);
+                return best;
+            }
+        }
+
+        return null;
+    }
+
+    // Threshold above which a direct match is a bad enough weight fit to prefer the curated
+    // fallback name - identical to the shared FontResolver's rule.
+    const int weightFallbackThreshold = 300;
 
     public byte[]? GetFont(string faceName)
     {
