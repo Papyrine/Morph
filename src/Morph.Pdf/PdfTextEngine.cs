@@ -259,6 +259,23 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
         if (lines.Count == 0)
         {
+            // An empty numbered paragraph still shows its marker — the number IS the content in
+            // number-column table cells (business-plans/09's "No." column).
+            if (context.Graphics is { } emptyGraphics && paragraph.Properties.Numbering is {Text.Length: > 0} emptyNumbering)
+            {
+                var markerProperties = paragraph.Properties.ParagraphMarkRunProperties ?? new();
+                var emptyMarkerFont = FontHelpers.UseBulletFont(emptyNumbering.Text, emptyNumbering.FontFamily)
+                    ? context.GetFont("Morph Bullets", bold: false, italic: false, markerProperties.FontSizePoints)
+                    : context.GetFont(markerProperties.FontFamily, markerProperties.Bold, false, markerProperties.FontSizePoints);
+                var emptyBaseline = context.CurrentY + Ascent(emptyMarkerFont);
+                var emptyPenX = left + FirstLineOffset(paragraph);
+                var hanging = paragraph.Properties.HangingIndentPoints;
+                var emptyMarkerX = hanging > 0.01
+                    ? emptyPenX - hanging
+                    : emptyPenX - measure.MeasureString(emptyNumbering.Text, emptyMarkerFont).Width - 3;
+                emptyGraphics.DrawString(emptyNumbering.Text, emptyMarkerFont, context.GetBrush(PdfRenderContext.ParseColor(markerProperties.ColorHex)), new XPoint(emptyMarkerX, emptyBaseline), baselineFormat);
+            }
+
             context.CurrentY += (float) EmptyLineHeight(paragraph);
             context.CurrentY += (float) SpacingAfter(paragraph);
             if (allowPageBreak)
