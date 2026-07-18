@@ -235,6 +235,8 @@ Foreground color of text, either direct RGB or resolved from theme color with tr
 - **Test**: `colored_text/`
 
 > **Contributors**: Theme colors resolved in `DocumentParser` using `ShapeParser.ResolveColorHex()` with shade/tint/luminance/saturation transforms. See `ThemeColors` and `ColorTransforms` records.
+>
+> **The colour cascade** (base → top): docDefaults `w:rPrDefault/w:color` (including a white default — dark-board templates like `menus/07` set `FFFFFF background1` and Word paints fall-through runs white) → style chain (`basedOn` inheritance) → direct `w:rPr`. `w:color w:val="auto"` at any level RESETS the cascade to the automatic colour rather than inheriting (card templates pair a white docDefaults with an auto `Normal`, keeping body text black); inside the style chain that reset travels as `DocumentParser.automaticColorSentinel`, converted at run resolution so it never escapes into the model. The automatic colour is contrast-aware: `ComputeAutomaticRunColor` yields white when the page `w:background` is dark (BT.601 brightness < 128, `brochures/03`'s navy), otherwise null (renderers default to black).
 
 
 #### Text Background / Highlight `DONE`
@@ -1921,6 +1923,8 @@ Default paragraph and run properties applied when no style or direct formatting 
 
 - **OOXML**: `w:docDefaults` > `w:rPrDefault`, `w:pPrDefault`
 - **Model**: `DefaultFontSettings` — font "Aptos" (configurable), size 11pt
+
+> **Contributors**: The docDefaults text colour (`w:rPrDefault/w:color`, theme-resolved) is the base of the colour cascade — white defaults included; styles absorb it as they are built, and an explicit `w:color w:val="auto"` in a style or run resets it (see Text Color).
 
 ---
 
