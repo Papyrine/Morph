@@ -590,11 +590,24 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 using var paint = BuildBlipColorEffectPaint(colorEffect);
                 if (crop is {IsCropped: true})
                 {
-                    var srcLeft = (float) (crop.Left * skImage.Width);
-                    var srcTop = (float) (crop.Top * skImage.Height);
-                    var srcRight = (float) ((1 - crop.Right) * skImage.Width);
-                    var srcBottom = (float) ((1 - crop.Bottom) * skImage.Height);
-                    currentCanvas.DrawBitmap(skImage, new(srcLeft, srcTop, srcRight, srcBottom), destRect, paint);
+                    if (crop.HasPadding)
+                    {
+                        // Padding (negative srcRect): the image occupies Expand's sub-rectangle
+                        // inside the frame — a source rect can't extend beyond the bitmap.
+                        var (paddedX, paddedY, paddedWidth, paddedHeight) = crop.Expand(destRect.Left, destRect.Top, destRect.Width, destRect.Height);
+                        currentCanvas.Save();
+                        currentCanvas.ClipRect(destRect);
+                        currentCanvas.DrawBitmap(skImage, new SKRect((float) paddedX, (float) paddedY, (float) (paddedX + paddedWidth), (float) (paddedY + paddedHeight)), paint);
+                        currentCanvas.Restore();
+                    }
+                    else
+                    {
+                        var srcLeft = (float) (crop.Left * skImage.Width);
+                        var srcTop = (float) (crop.Top * skImage.Height);
+                        var srcRight = (float) ((1 - crop.Right) * skImage.Width);
+                        var srcBottom = (float) ((1 - crop.Bottom) * skImage.Height);
+                        currentCanvas.DrawBitmap(skImage, new(srcLeft, srcTop, srcRight, srcBottom), destRect, paint);
+                    }
                 }
                 else
                 {

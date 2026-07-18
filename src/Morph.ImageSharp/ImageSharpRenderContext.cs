@@ -343,16 +343,32 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         try
         {
             image = Image.Load<Rgba32>(data);
-            if (crop is {IsCropped: true})
+            if (crop is {HasPadding: true})
             {
-                var srcLeft = (int) (crop.Left * image.Width);
-                var srcTop = (int) (crop.Top * image.Height);
-                var srcWidth = Math.Max(1, image.Width - srcLeft - (int) (crop.Right * image.Width));
-                var srcHeight = Math.Max(1, image.Height - srcTop - (int) (crop.Bottom * image.Height));
-                image.Mutate(_ => _.Crop(new(srcLeft, srcTop, srcWidth, srcHeight)));
+                // Padding (negative srcRect): the picture occupies Expand's sub-rectangle inside
+                // the frame; compose it onto a transparent canvas of the frame size — Mutate.Crop
+                // can't reach outside the bitmap.
+                var (paddedX, paddedY, paddedWidth, paddedHeight) = crop.Expand(0, 0, width, height);
+                image.Mutate(_ => _.Resize(Math.Max(1, (int) Math.Round(paddedWidth)), Math.Max(1, (int) Math.Round(paddedHeight))));
+                var composed = new Image<Rgba32>(width, height);
+                var placed = image;
+                composed.Mutate(_ => _.DrawImage(placed, new Point((int) Math.Round(paddedX), (int) Math.Round(paddedY)), 1f));
+                image.Dispose();
+                image = composed;
             }
+            else
+            {
+                if (crop is {IsCropped: true})
+                {
+                    var srcLeft = (int) (crop.Left * image.Width);
+                    var srcTop = (int) (crop.Top * image.Height);
+                    var srcWidth = Math.Max(1, image.Width - srcLeft - (int) (crop.Right * image.Width));
+                    var srcHeight = Math.Max(1, image.Height - srcTop - (int) (crop.Bottom * image.Height));
+                    image.Mutate(_ => _.Crop(new(srcLeft, srcTop, srcWidth, srcHeight)));
+                }
 
-            image.Mutate(_ => _.Resize(width, height));
+                image.Mutate(_ => _.Resize(width, height));
+            }
 
             // Word's "Recolor" gallery presets.
             switch (effect)

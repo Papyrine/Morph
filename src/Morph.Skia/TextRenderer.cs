@@ -1646,18 +1646,33 @@ sealed class TextRenderer(SkiaRenderContext context) :
 
         if (shape.ImageContentType == "image/svg+xml")
         {
+            // Padding (negative srcRect) shrinks the picture into Expand's sub-rectangle; the SVG
+            // rasterizer's own crop math only handles positive source cropping.
+            var svgCrop = crop is {HasPadding: true} ? null : crop;
+            var svgBox = crop is {HasPadding: true} paddingCrop
+                ? paddingCrop.Expand(destRect.Left, destRect.Top, destRect.Width, destRect.Height)
+                : (destRect.Left, destRect.Top, destRect.Width, destRect.Height);
+
             // A crop moves the source origin off the picture's CullRect corner, so the rasterizer
             // has to translate that corner to the bitmap origin — which is what originAdjusted does.
             // Uncropped, the icons' CullRect already starts at 0 and the two agree.
-            var bitmap = context.GetSvgRaster(imageData, destRect.Width, destRect.Height, crop, originAdjusted: crop != null);
+            var bitmap = context.GetSvgRaster(imageData, (float) svgBox.Width, (float) svgBox.Height, svgCrop, originAdjusted: svgCrop != null);
             if (bitmap != null)
             {
-                canvas.DrawBitmap(bitmap, destRect.Left, destRect.Top);
+                canvas.DrawBitmap(bitmap, (float) svgBox.X, (float) svgBox.Y);
             }
         }
         else if (context.GetBitmap(imageData) is { } skImage)
         {
-            if (crop != null)
+            if (crop is {HasPadding: true})
+            {
+                var (paddedX, paddedY, paddedWidth, paddedHeight) = crop.Expand(destRect.Left, destRect.Top, destRect.Width, destRect.Height);
+                canvas.Save();
+                canvas.ClipRect(destRect);
+                canvas.DrawBitmap(skImage, new SKRect((float) paddedX, (float) paddedY, (float) (paddedX + paddedWidth), (float) (paddedY + paddedHeight)));
+                canvas.Restore();
+            }
+            else if (crop != null)
             {
                 var source = new SKRect(
                     (float) (crop.Left * skImage.Width),
@@ -1725,12 +1740,25 @@ sealed class TextRenderer(SkiaRenderContext context) :
             {
                 if (fragment.InlineImageCrop is { IsCropped: true } crop)
                 {
-                    var srcLeft = (float) (crop.Left * skImage.Width);
-                    var srcTop = (float) (crop.Top * skImage.Height);
-                    var srcRight = (float) ((1 - crop.Right) * skImage.Width);
-                    var srcBottom = (float) ((1 - crop.Bottom) * skImage.Height);
-                    var srcRect = new SKRect(srcLeft, srcTop, srcRight, srcBottom);
-                    canvas.DrawBitmap(skImage, srcRect, destRect);
+                    if (crop.HasPadding)
+                    {
+                        // Padding (negative srcRect): the image occupies Expand's sub-rectangle
+                        // inside the frame — a source rect can't extend beyond the bitmap.
+                        var (paddedX, paddedY, paddedWidth, paddedHeight) = crop.Expand(destRect.Left, destRect.Top, destRect.Width, destRect.Height);
+                        canvas.Save();
+                        canvas.ClipRect(destRect);
+                        canvas.DrawBitmap(skImage, new SKRect((float) paddedX, (float) paddedY, (float) (paddedX + paddedWidth), (float) (paddedY + paddedHeight)));
+                        canvas.Restore();
+                    }
+                    else
+                    {
+                        var srcLeft = (float) (crop.Left * skImage.Width);
+                        var srcTop = (float) (crop.Top * skImage.Height);
+                        var srcRight = (float) ((1 - crop.Right) * skImage.Width);
+                        var srcBottom = (float) ((1 - crop.Bottom) * skImage.Height);
+                        var srcRect = new SKRect(srcLeft, srcTop, srcRight, srcBottom);
+                        canvas.DrawBitmap(skImage, srcRect, destRect);
+                    }
                 }
                 else
                 {

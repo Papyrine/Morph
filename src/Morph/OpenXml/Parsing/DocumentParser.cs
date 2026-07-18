@@ -5886,7 +5886,10 @@ sealed class DocumentParser(string defaultFont)
         {
             if (element.AttributeValue(attributeName) is { } value && long.TryParse(value, out var thousandthsOfPercent))
             {
-                return Math.Clamp(thousandthsOfPercent / 100000.0, 0, 1);
+                // Negative values are padding (the image shrinks inside its frame) and are as
+                // common as positive crops in Word's icon templates; the -10 floor only guards
+                // against degenerate markup.
+                return Math.Clamp(thousandthsOfPercent / 100000.0, -10, 1);
             }
 
             return 0;
