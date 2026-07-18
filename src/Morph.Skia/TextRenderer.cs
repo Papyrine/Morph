@@ -1165,7 +1165,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 Color = new(0xFF, 0xFF, 0xFF),
                 IsAntialias = true
             };
-            canvas.DrawText(fragment.Text, pixelX + offset, pixelY + offset, SKTextAlign.Left, font, lightPaint);
+            DrawFragmentText(canvas, fragment.Text, pixelX + offset, pixelY + offset, font, lightPaint, fragment.Properties);
         }
         else if (fragment.Properties.Imprint)
         {
@@ -1175,7 +1175,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 Color = new(0x80, 0x80, 0x80),
                 IsAntialias = true
             };
-            canvas.DrawText(fragment.Text, pixelX - offset, pixelY - offset, SKTextAlign.Left, font, darkPaint);
+            DrawFragmentText(canvas, fragment.Text, pixelX - offset, pixelY - offset, font, darkPaint, fragment.Properties);
         }
 
         // w:outline — render glyphs as stroke-only (no fill). Falls back to the main paint
@@ -1189,11 +1189,11 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 StrokeWidth = Math.Max(0.5f, context.Scale * 0.5f),
                 IsAntialias = true
             };
-            canvas.DrawText(fragment.Text, pixelX, pixelY, SKTextAlign.Left, font, strokePaint);
+            DrawFragmentText(canvas, fragment.Text, pixelX, pixelY, font, strokePaint, fragment.Properties);
         }
         else
         {
-            canvas.DrawText(fragment.Text, pixelX, pixelY, SKTextAlign.Left, font, paint);
+            DrawFragmentText(canvas, fragment.Text, pixelX, pixelY, font, paint, fragment.Properties);
         }
 
         // w:bdr — per-run border drawn around the text box (ascent..descent vertically,
@@ -1225,7 +1225,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 StrokeWidth = Math.Max(0.5f, (float) outline.WidthPoints * context.Scale),
                 IsAntialias = true
             };
-            canvas.DrawText(fragment.Text, pixelX, pixelY, SKTextAlign.Left, font, outlinePaint);
+            DrawFragmentText(canvas, fragment.Text, pixelX, pixelY, font, outlinePaint, fragment.Properties);
         }
 
         // Draw underline if needed
@@ -1305,7 +1305,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
                     (float) shadow.BlurPoints * context.Scale,
                     (float) shadow.BlurPoints * context.Scale);
             }
-            canvas.DrawText(fragment.Text, pixelX + offsetX, pixelY + offsetY, SKTextAlign.Left, font, shadowPaint);
+            DrawFragmentText(canvas, fragment.Text, pixelX + offsetX, pixelY + offsetY, font, shadowPaint, fragment.Properties);
         }
 
         if (props.Glow is { } glow)
@@ -1321,8 +1321,8 @@ sealed class TextRenderer(SkiaRenderContext context) :
                     (float) glow.RadiusPoints * context.Scale)
             };
             // Drawing the same glyph twice deepens the halo so it shows through the fill.
-            canvas.DrawText(fragment.Text, pixelX, pixelY, SKTextAlign.Left, font, glowPaint);
-            canvas.DrawText(fragment.Text, pixelX, pixelY, SKTextAlign.Left, font, glowPaint);
+            DrawFragmentText(canvas, fragment.Text, pixelX, pixelY, font, glowPaint, fragment.Properties);
+            DrawFragmentText(canvas, fragment.Text, pixelX, pixelY, font, glowPaint, fragment.Properties);
         }
 
         if (props.HasReflection)
@@ -1356,7 +1356,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 Color = SkiaRenderContext.ParseColor(props.ColorHex),
                 IsAntialias = true
             };
-            canvas.DrawText(fragment.Text, pixelX, pixelY, SKTextAlign.Left, font, mirrorFill);
+            DrawFragmentText(canvas, fragment.Text, pixelX, pixelY, font, mirrorFill, fragment.Properties);
 
             // Apply the alpha gradient on top of the mirrored glyph.
             using (reflectPaint)
@@ -1364,6 +1364,32 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 canvas.DrawRect(pixelX, pixelY - ascent, width, height, reflectPaint);
             }
             canvas.Restore();
+        }
+    }
+
+    // Draws fragment text honouring w:spacing tracking: each character advances by its own
+    // width plus the tracking, so the drawn extent equals the fragment's allocated width
+    // (natural + spacing × length). Without this, tracked words pile their surplus into the
+    // trailing gap (doubled word gaps, "PTA  MEETING") and negative tracking pulls the next
+    // fragment back over the space ("Sheetal Parmar" rendered "SheetalParmar"). The untracked
+    // path stays byte-identical to the original single DrawText call.
+    void DrawFragmentText(SKCanvas canvas, string text, float pixelX, float pixelY, SKFont font, SKPaint paint, RunProperties properties)
+    {
+        if (properties.CharacterSpacingPoints == 0 || text.Length <= 1)
+        {
+            canvas.DrawText(text, pixelX, pixelY, SKTextAlign.Left, font, paint);
+            return;
+        }
+
+        var trackingPixels = context.PointsToPixels((float) properties.CharacterSpacingPoints);
+        var penX = pixelX;
+        for (var i = 0; i < text.Length; i++)
+        {
+            var length = char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
+            var piece = text.Substring(i, length);
+            canvas.DrawText(piece, penX, pixelY, SKTextAlign.Left, font, paint);
+            penX += font.MeasureText(piece) + trackingPixels;
+            i += length - 1;
         }
     }
 

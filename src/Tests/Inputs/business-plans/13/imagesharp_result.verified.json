@@ -4,40 +4,40 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.9219,
-      "Ssim": 0.9226,
+      "ErrorMetric": 0.9218,
+      "Ssim": 0.922,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "imagesharp_result#page_0001.verified.png",
       "ReceivedFile": "imagesharp_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.3739,
-      "Ssim": 0.8815,
+      "ErrorMetric": 0.3733,
+      "Ssim": 0.8824,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "imagesharp_result#page_0002.verified.png",
       "ReceivedFile": "imagesharp_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.0944,
-      "Ssim": 0.7404,
+      "ErrorMetric": 0.0942,
+      "Ssim": 0.7401,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "imagesharp_result#page_0003.verified.png",
       "ReceivedFile": "imagesharp_result#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.078,
-      "Ssim": 0.8142,
+      "ErrorMetric": 0.0777,
+      "Ssim": 0.8144,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "imagesharp_result#page_0004.verified.png",
       "ReceivedFile": "imagesharp_result#page_0004.received.png"
     },
     {
       "Page": 5,
-      "ErrorMetric": 0.1203,
-      "Ssim": 0.6796,
+      "ErrorMetric": 0.1204,
+      "Ssim": 0.6793,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "imagesharp_result#page_0005.verified.png",
       "ReceivedFile": "imagesharp_result#page_0005.received.png"
@@ -45,31 +45,31 @@
     {
       "Page": 6,
       "ErrorMetric": 0.134,
-      "Ssim": 0.6769,
+      "Ssim": 0.6761,
       "ExpectedFile": "expected_0006.png",
       "VerifiedFile": "imagesharp_result#page_0006.verified.png",
       "ReceivedFile": "imagesharp_result#page_0006.received.png"
     },
     {
       "Page": 7,
-      "ErrorMetric": 0.0262,
-      "Ssim": 0.94,
+      "ErrorMetric": 0.0261,
+      "Ssim": 0.9398,
       "ExpectedFile": "expected_0007.png",
       "VerifiedFile": "imagesharp_result#page_0007.verified.png",
       "ReceivedFile": "imagesharp_result#page_0007.received.png"
     },
     {
       "Page": 8,
-      "ErrorMetric": 0.1533,
-      "Ssim": 0.596,
+      "ErrorMetric": 0.1535,
+      "Ssim": 0.5952,
       "ExpectedFile": "expected_0008.png",
       "VerifiedFile": "imagesharp_result#page_0008.verified.png",
       "ReceivedFile": "imagesharp_result#page_0008.received.png"
     },
     {
       "Page": 9,
-      "ErrorMetric": 0.028,
-      "Ssim": 0.9316,
+      "ErrorMetric": 0.027,
+      "Ssim": 0.9335,
       "ExpectedFile": "expected_0009.png",
       "VerifiedFile": "imagesharp_result#page_0009.verified.png",
       "ReceivedFile": "imagesharp_result#page_0009.received.png"
@@ -77,23 +77,23 @@
     {
       "Page": 10,
       "ErrorMetric": 0.1374,
-      "Ssim": 0.6408,
+      "Ssim": 0.6406,
       "ExpectedFile": "expected_0010.png",
       "VerifiedFile": "imagesharp_result#page_0010.verified.png",
       "ReceivedFile": "imagesharp_result#page_0010.received.png"
     },
     {
       "Page": 11,
-      "ErrorMetric": 0.081,
-      "Ssim": 0.8036,
+      "ErrorMetric": 0.0814,
+      "Ssim": 0.802,
       "ExpectedFile": "expected_0011.png",
       "VerifiedFile": "imagesharp_result#page_0011.verified.png",
       "ReceivedFile": "imagesharp_result#page_0011.received.png"
     },
     {
       "Page": 12,
-      "ErrorMetric": 0.0796,
-      "Ssim": 0.8094,
+      "ErrorMetric": 0.0795,
+      "Ssim": 0.8091,
       "ExpectedFile": "expected_0012.png",
       "VerifiedFile": "imagesharp_result#page_0012.verified.png",
       "ReceivedFile": "imagesharp_result#page_0012.received.png"
@@ -101,71 +101,71 @@
     {
       "Page": 13,
       "ErrorMetric": 0.0691,
-      "Ssim": 0.902,
+      "Ssim": 0.9018,
       "ExpectedFile": "expected_0013.png",
       "VerifiedFile": "imagesharp_result#page_0013.verified.png",
       "ReceivedFile": "imagesharp_result#page_0013.received.png"
     },
     {
       "Page": 14,
-      "ErrorMetric": 0.2442,
-      "Ssim": 0.9206,
+      "ErrorMetric": 0.2443,
+      "Ssim": 0.9204,
       "ExpectedFile": "expected_0014.png",
       "VerifiedFile": "imagesharp_result#page_0014.verified.png",
       "ReceivedFile": "imagesharp_result#page_0014.received.png"
     },
     {
       "Page": 15,
-      "ErrorMetric": 0.1225,
-      "Ssim": 0.7605,
+      "ErrorMetric": 0.1227,
+      "Ssim": 0.7603,
       "ExpectedFile": "expected_0015.png",
       "VerifiedFile": "imagesharp_result#page_0015.verified.png",
       "ReceivedFile": "imagesharp_result#page_0015.received.png"
     },
     {
       "Page": 16,
-      "ErrorMetric": 0.076,
-      "Ssim": 0.8509,
+      "ErrorMetric": 0.0763,
+      "Ssim": 0.8504,
       "ExpectedFile": "expected_0016.png",
       "VerifiedFile": "imagesharp_result#page_0016.verified.png",
       "ReceivedFile": "imagesharp_result#page_0016.received.png"
     },
     {
       "Page": 17,
-      "ErrorMetric": 0.0708,
-      "Ssim": 0.9194,
+      "ErrorMetric": 0.071,
+      "Ssim": 0.9191,
       "ExpectedFile": "expected_0017.png",
       "VerifiedFile": "imagesharp_result#page_0017.verified.png",
       "ReceivedFile": "imagesharp_result#page_0017.received.png"
     },
     {
       "Page": 18,
-      "ErrorMetric": 0.0678,
-      "Ssim": 0.8421,
+      "ErrorMetric": 0.0687,
+      "Ssim": 0.8396,
       "ExpectedFile": "expected_0018.png",
       "VerifiedFile": "imagesharp_result#page_0018.verified.png",
       "ReceivedFile": "imagesharp_result#page_0018.received.png"
     },
     {
       "Page": 19,
-      "ErrorMetric": 0.0602,
-      "Ssim": 0.933,
+      "ErrorMetric": 0.0605,
+      "Ssim": 0.9325,
       "ExpectedFile": "expected_0019.png",
       "VerifiedFile": "imagesharp_result#page_0019.verified.png",
       "ReceivedFile": "imagesharp_result#page_0019.received.png"
     },
     {
       "Page": 20,
-      "ErrorMetric": 0.2435,
-      "Ssim": 0.9339,
+      "ErrorMetric": 0.2437,
+      "Ssim": 0.9334,
       "ExpectedFile": "expected_0020.png",
       "VerifiedFile": "imagesharp_result#page_0020.verified.png",
       "ReceivedFile": "imagesharp_result#page_0020.received.png"
     },
     {
       "Page": 21,
-      "ErrorMetric": 0.0945,
-      "Ssim": 0.7608,
+      "ErrorMetric": 0.0955,
+      "Ssim": 0.7579,
       "ExpectedFile": "expected_0021.png",
       "VerifiedFile": "imagesharp_result#page_0021.verified.png",
       "ReceivedFile": "imagesharp_result#page_0021.received.png"

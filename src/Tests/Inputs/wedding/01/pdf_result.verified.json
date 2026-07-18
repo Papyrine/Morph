@@ -11,7 +11,7 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "To replace placeholder text with your own, just click it and begin typing. From any placeholder, press the Tab key to move to the next.\nTo change colors in these invitations, on the Design tab, in the Themes group, click Colors. Point to built-in color schemes to see a preview\nand then just click to apply one you like. Or to use your wedding colors, at the bottom of the Colors gallery, click Create New Theme Colors\n. Select your own colors for Accent 1, Accent 2, and Accent 3 and then, when you click Save, the colors will update.\nTHE PLEASURE OF YOUR PRESENCE IS REQUESTED AT THE\nMARRIAGE OF\nTHE PLEASURE OF YOUR PRESENCE IS REQUESTED AT THE\nMARRIAGE OF\nSARATO\nEVAN\nSARATO\nEVAN\nSATURDAY, THE 20TH OF MAY SATURDAY, THE 20TH OF MAY\nTWO THOUSAND AND TWENTY-THREE TWO THOUSAND AND TWENTY-THREE\nAT FIVE O’CLOCK | CREEKSIDE PARK\nSACRAMENTO, CA\nAT FIVE O’CLOCK | CREEKSIDE PARK\nSACRAMENTO, CA\nRECEPTION TO FOLLOW RECEPTION TO FOLLOW"
+        "Text": "To replace placeholder text with your own, just click it and begin typing. From any placeholder, press the Tab key to move to the next.\nTo change colors in these invitations, on the Design tab, in the Themes group, click Colors. Point to built-in color schemes to see a preview\nand then just click to apply one you like. Or to use your wedding colors, at the bottom of the Colors gallery, click Create New Theme Colors\n. Select your own colors for Accent 1, Accent 2, and Accent 3 and then, when you click Save, the colors will update.\nTHE PLEASURE OF YOUR PRESENCE IS\nREQUESTED AT THE MARRIAGE OF\nTHE PLEASURE OF YOUR PRESENCE IS\nREQUESTED AT THE MARRIAGE OF\nSARTOA\nEVAN\nSARTOA\nEVAN\nSATURDAY, THE 20TH OF MAY SATURDAY, THE 20TH OF MAY\nTWO THOUSAND AND TWENTY-THREE TWO THOUSAND AND TWENTY-THREE\nAT FIVE O’CLOCK | CREEKSIDE PARK\nSACRAMENTO, CA\nAT FIVE O’CLOCK | CREEKSIDE PARK\nSACRAMENTO, CA\nR E C E P T I O N T O F O L L O W R E C E P T I O N T O F O L L O W"
       }
     ]
   },
@@ -19,7 +19,7 @@
     {
       "Page": 1,
       "ErrorMetric": 0.5567,
-      "Ssim": 0.5534,
+      "Ssim": 0.553,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

@@ -259,7 +259,7 @@ Additional spacing between characters (positive or negative), measured in points
 - **Model**: `RunProperties.CharacterSpacingPoints`
 - **Test**: Spec test: `CharacterSpacingTests`
 
-> **Contributors**: Applied per-character during text measurement and rendering. Added to each character advance width.
+> **Contributors**: Applied per-character in both measurement AND drawing: fragments are allocated natural + spacing×length, and tracked fragments draw per-glyph (`TextRenderer.DrawFragmentText` in Skia/ImageSharp, `PdfTextEngine.DrawTrackedString`) so each character advances by its own width plus the tracking — drawn extent equals allocated width. Drawing tracked text untracked is how spacing surplus used to pile into word gaps (doubled gaps) and negative tracking swallowed spaces entirely ("Sheetal Parmar" → "SheetalParmar"). The untracked path is a single DrawText/DrawString call, byte-identical to before. Spaces are tracked too — Word widens/narrows every character's advance, spaces included (the PDF layout adds spacing to its pending-space accumulator for that reason).
 
 
 #### Superscript `DONE`

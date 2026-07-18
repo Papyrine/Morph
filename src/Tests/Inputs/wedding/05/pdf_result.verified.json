@@ -16,23 +16,23 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "KAYLA\n+ JACOB\nMENU\nKAYLA\n+ JACOB\nTABLE 1\nJuan Morgan\nRowan Murphy\nMirjam Nilsson\nVictoria Lindqvist\nAugust Bergqvist\nSanjay Trivedi\nENTRÉE\nBacon wrapped dates\nPolenta fritters with mango salsa\nCarb puffs with sweet pepper sauce\nMAIN COURSE\nGrilled New York steak\nHazelnut encrusted halibut\nVegetable pesto lasagna\nDESSERT\nLemon poppy seed cake\nMini chocolate Bundt cakes\nCoffee, tea\n, and soft drinks"
+        "Text": "KAYLA + JACOB\nMENU\nKAYLA + JACOB\nTABLE\n1\nJuan Morgan\nRowan Murphy\nMirjam Nilsson\nVictoria Lindqvist\nAugust Bergqvist\nSanjay Trivedi\nENTRÉE\nBacon wrapped dates\nPolenta fritters with mango salsa\nCarb puffs with sweet pepper sauce\nMAIN COURSE\nGrilled New York steak\nHazelnut encrusted halibut\nVegetable pesto lasagna\nDESSERT\nLemon poppy seed cake\nMini chocolate Bundt cakes\nCoffee, tea, and soft drinks"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.1831,
-      "Ssim": 0.8498,
+      "ErrorMetric": 0.1823,
+      "Ssim": 0.8509,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.1724,
-      "Ssim": 0.898,
+      "ErrorMetric": 0.1718,
+      "Ssim": 0.8994,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
