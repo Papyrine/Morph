@@ -4775,6 +4775,30 @@ sealed class DocumentParser(string defaultFont)
 
                 case DocumentFormat.OpenXml.Math.Paragraph mathPara:
                     AppendMathText(runs, mathPara);
+
+                    // m:oMathPara is display math: Word centres the equation block — OMML's
+                    // m:oMathParaPr/m:jc defaults to centerGroup. A w:jc on the paragraph itself
+                    // still wins; an explicit m:jc left/right is honoured.
+                    if (paraProps?.GetFirstChild<Justification>() == null)
+                    {
+                        var mathJustification = mathPara.ParagraphProperties?
+                            .GetFirstChild<DocumentFormat.OpenXml.Math.Justification>()?.Val?.Value;
+                        var mathAlignment = TextAlignment.Center;
+                        if (mathJustification != null)
+                        {
+                            if (mathJustification == DocumentFormat.OpenXml.Math.JustificationValues.Left)
+                            {
+                                mathAlignment = TextAlignment.Left;
+                            }
+                            else if (mathJustification == DocumentFormat.OpenXml.Math.JustificationValues.Right)
+                            {
+                                mathAlignment = TextAlignment.Right;
+                            }
+                        }
+
+                        props = props with {Alignment = mathAlignment};
+                    }
+
                     break;
 
                 case OoxmlRun run:

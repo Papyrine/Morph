@@ -817,6 +817,16 @@ static class HtmlExporter
                     cell.Properties, table.Properties, rowIndex, gridColumn, rows.Count, totalColumns, rows[rowIndex]);
 
                 var cellStyle = CellStyle(cell.Properties, borders);
+
+                // Cell paragraphs render inline (see AppendCellContent), so their alignment must
+                // ride on the cell: when every non-heading paragraph shares one non-left alignment
+                // (card/label templates centre their panel text), emit it as the td's text-align.
+                var cellAlign = CommonCellAlignment(cell.Content);
+                if (cellAlign != null)
+                {
+                    cellStyle = cellStyle == null ? cellAlign : $"{cellStyle}; {cellAlign}";
+                }
+
                 if (cellStyle != null)
                 {
                     builder.Append(" style=\"").Append(cellStyle).Append('"');
@@ -946,6 +956,40 @@ static class HtmlExporter
             }
 
             return false;
+        }
+
+        // The single alignment shared by every non-blank, non-heading paragraph in the cell, as a
+        // "text-align: ..." declaration — null when the cell has no such paragraphs, they disagree,
+        // or they are left-aligned (the td default). Headings carry their own alignment already.
+        static string? CommonCellAlignment(IReadOnlyList<DocumentElement> content)
+        {
+            TextAlignment? common = null;
+            foreach (var element in content)
+            {
+                if (element is not ParagraphElement paragraph ||
+                    DocumentExportHelpers.IsBlank(paragraph) ||
+                    DocumentExportHelpers.TryGetHeadingLevel(paragraph.Properties) != null)
+                {
+                    continue;
+                }
+
+                if (common == null)
+                {
+                    common = paragraph.Properties.Alignment;
+                }
+                else if (common != paragraph.Properties.Alignment)
+                {
+                    return null;
+                }
+            }
+
+            return common switch
+            {
+                TextAlignment.Center => "text-align: center",
+                TextAlignment.Right => "text-align: right",
+                TextAlignment.Justify => "text-align: justify",
+                _ => null
+            };
         }
 
         void AppendCellContent(IReadOnlyList<DocumentElement> content, int depth)
