@@ -35,6 +35,11 @@ sealed class ImageElement : DocumentElement
 
     /// <summary>Colour-transform effect to apply before drawing (a:duotone / a:grayscl / a:lum).</summary>
     public BlipColorEffect ColorEffect { get; init; } = BlipColorEffect.None;
+
+    /// <summary>The duotone ramp's dark end (theme-resolved hex). Word's Recolor gallery emits
+    /// <c>a:duotone</c> as (darkColor, white): image luminance maps onto a dark→white ramp.
+    /// Null when the effect isn't duotone or the colour couldn't be resolved (renders greyscale).</summary>
+    public string? DuotoneColorHex { get; init; }
 }
 
 /// <summary>
@@ -48,7 +53,8 @@ enum BlipColorEffect
     /// <summary>a:grayscl — straight luminance preservation, all colour stripped.</summary>
     Grayscale,
 
-    /// <summary>a:duotone — image mapped to two-tone gradient. We render as Grayscale fallback.</summary>
+    /// <summary>a:duotone — luminance mapped onto a dark→white ramp whose dark end is
+    /// <c>DuotoneColorHex</c>; greyscale fallback when the colour is unresolved.</summary>
     Duotone,
 
     /// <summary>a:lum bright="N" with N &gt; 0 — washout / lighten effect.</summary>

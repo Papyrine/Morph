@@ -549,13 +549,13 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         currentCanvas.DrawLine(pixelX1, pixelY, pixelX2, pixelY, paint);
     }
 
-    protected override void DrawBlockImage(byte[] imageData, string? contentType, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, bool flipHorizontal, bool flipVertical, ImageCrop? crop, BlipColorEffect colorEffect)
+    protected override void DrawBlockImage(byte[] imageData, string? contentType, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, bool flipHorizontal, bool flipVertical, ImageCrop? crop, BlipColorEffect colorEffect, string? duotoneColorHex)
     {
         var destRect = new SKRect(pixelX, pixelY, pixelX + pixelWidth, pixelY + pixelHeight);
         DrawBlockImage(imageData, contentType, destRect, rotation, crop, colorEffect, flipHorizontal, flipVertical);
     }
 
-    void DrawBlockImage(byte[] imageData, string? contentType, SKRect destRect, float rotation, ImageCrop? crop, BlipColorEffect colorEffect = BlipColorEffect.None, bool flipHorizontal = false, bool flipVertical = false)
+    void DrawBlockImage(byte[] imageData, string? contentType, SKRect destRect, float rotation, ImageCrop? crop, BlipColorEffect colorEffect = BlipColorEffect.None, bool flipHorizontal = false, bool flipVertical = false, string? duotoneColorHex = null)
     {
         if (currentCanvas == null)
         {
@@ -587,7 +587,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             var skImage = context.GetBitmap(imageData);
             if (skImage != null)
             {
-                using var paint = BuildBlipColorEffectPaint(colorEffect);
+                using var paint = BuildBlipColorEffectPaint(colorEffect, duotoneColorHex);
                 if (crop is {IsCropped: true})
                 {
                     if (crop.HasPadding)
@@ -622,12 +622,33 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
     }
 
-    static SKPaint? BuildBlipColorEffectPaint(BlipColorEffect effect)
+    static SKPaint? BuildBlipColorEffectPaint(BlipColorEffect effect, string? duotoneColorHex = null)
     {
         // Standard ITU-R BT.601 luminance weights for grayscale conversion.
         const float lumR = 0.299f;
         const float lumG = 0.587f;
         const float lumB = 0.114f;
+
+        // a:duotone maps luminance onto a dark→white ramp: out_c = dark_c + L·(1 − dark_c).
+        // As a colour matrix that is the luminance row scaled by (1 − dark_c) plus a dark_c bias
+        // (SkiaSharp's translate column is 0..1-normalized).
+        if (effect == BlipColorEffect.Duotone && duotoneColorHex != null)
+        {
+            var dark = SkiaRenderContext.ParseColor(duotoneColorHex);
+            var darkRed = dark.Red / 255f;
+            var darkGreen = dark.Green / 255f;
+            var darkBlue = dark.Blue / 255f;
+            return new()
+            {
+                ColorFilter = SKColorFilter.CreateColorMatrix(
+                [
+                    lumR * (1 - darkRed), lumG * (1 - darkRed), lumB * (1 - darkRed), 0, darkRed,
+                    lumR * (1 - darkGreen), lumG * (1 - darkGreen), lumB * (1 - darkGreen), 0, darkGreen,
+                    lumR * (1 - darkBlue), lumG * (1 - darkBlue), lumB * (1 - darkBlue), 0, darkBlue,
+                    0, 0, 0, 1, 0
+                ])
+            };
+        }
 
         return effect switch
         {
@@ -2427,7 +2448,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         var destRect = new SKRect(bounds.PixelX, bounds.PixelY, bounds.PixelX + bounds.PixelWidth, bounds.PixelY + bounds.PixelHeight);
 
-        DrawBlockImage(image.ImageData, image.ContentType, destRect, (float) image.RotationDegrees, image.Crop, flipHorizontal: image.FlipHorizontal, flipVertical: image.FlipVertical);
+        DrawBlockImage(image.ImageData, image.ContentType, destRect, (float) image.RotationDegrees, image.Crop, image.ColorEffect, image.FlipHorizontal, image.FlipVertical, image.DuotoneColorHex);
     }
 
     void RenderFloatingTextBox(FloatingTextBoxElement textBox)
