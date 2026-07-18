@@ -33,7 +33,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 14. **Comment markup not rendered** — no balloon, no highlight, no markup-area page shrink (`comments/01`).
 15. **Legacy form-field glyphs missing** — checkbox boxes not drawn (`form_checkboxes`); inline content controls render as block-level widgets with chrome (`content_control_inline`).
 16. **Automatic hyphenation not implemented** — Word's hyphenated breaks don't happen (`hyphenation_auto`, `hyphenation_suppressed` para 3); a word broken mid-word without hyphen in `letters/03` ("Customer S/ervice").
-17. **Line-number gutters off-by-one (Skia/ImageSharp)** — rendered 1..N instead of Word's 2..N+1; digits too small; stray number on section-break line (`line_numbers_*`).
+17. **Line-number values** — ✅ MOSTLY FIXED (all backends). The shared counter now pre-increments so line numbers match Word's `Start+1..Start+N` (2..N+1 for `w:start=1`); the count-by interval anchors to multiples of `w:countBy` (5,10,15,20, not 1,6,11,16); the gutter font is 10pt (was 9pt — measured against Word's reference output); and the PDF backend restarts numbering per section via `ResetLineNumbersForSection` (matching the raster's `SectionBreakHandler` + Word's per-section 2..16). Raster + PDF `line_numbers_*` baselines regenerated. **Still open:** the raster (Skia/ImageSharp) still draws a stray line number on the empty section-break paragraph in `line_numbers_restart_section` where Word shows none.
 
 ### PDF-only
 

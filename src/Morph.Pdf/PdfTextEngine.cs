@@ -555,10 +555,10 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     // Renders a section's line number (w:lnNumType) in the left-margin gutter, right-aligned so its
     // right edge sits DistancePoints left of the content, at the line's baseline. Only every-CountBy
     // line shows a number (the counter still advances every line). Port of Skia RenderLineNumber; the
-    // gutter is drawn in the page margin so it never shifts the text. 9pt default face, black.
+    // gutter is drawn in the page margin so it never shifts the text. 10pt default face, black.
     void RenderLineNumber(int lineNumber, double baseline, LineNumberSettings settings)
     {
-        if ((lineNumber - settings.Start) % settings.CountBy != 0)
+        if (lineNumber % settings.CountBy != 0)
         {
             return;
         }
@@ -569,7 +569,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             return;
         }
 
-        var font = context.GetFont(DefaultFontSettings.DefaultFont, false, false, 9);
+        var font = context.GetFont(DefaultFontSettings.DefaultFont, false, false, 10);
         var text = lineNumber.ToString();
         var rightEdge = context.ContentLeft - settings.DistancePoints;
         var x = rightEdge - measure.MeasureString(text, font).Width;

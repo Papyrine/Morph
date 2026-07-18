@@ -340,8 +340,11 @@ abstract class RenderContextBase
 
     public float PointsToPixels(float points) => points * Scale;
 
+    // Word numbers the first line of a numbering scope as Start+1 (w:start=1 shows "2" on line 1),
+    // so pre-increment: Initialize/Reset seed currentLineNumber to Start, and each line's ++ yields
+    // Start + ordinal (2, 3, ... for Start=1).
     public int GetNextLineNumber() =>
-        currentLineNumber++;
+        ++currentLineNumber;
 
     public void ResetLineNumbersForPage()
     {

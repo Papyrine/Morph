@@ -11,12 +11,12 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "1 Section 1 - Line numbers restart on each section.\n2 Section 1, Paragraph 2.\n3 Section 1, Paragraph 3.\n4 Section 1, Paragraph 4.\n5 Section 1, Paragraph 5.\n6 Section 1, Paragraph 6.\n7 Section 1, Paragraph 7.\n8 Section 1, Paragraph 8.\n9 Section 1, Paragraph 9.\n10 Section 1, Paragraph 10.\n11 Section 1, Paragraph 11.\n12 Section 1, Paragraph 12.\n13 Section 1, Paragraph 13.\n14 Section 1, Paragraph 14.\n15 Section 1, Paragraph 15."
+        "Text": "2 Section 1 - Line numbers restart on each section.\n3 Section 1, Paragraph 2.\n4 Section 1, Paragraph 3.\n5 Section 1, Paragraph 4.\n6 Section 1, Paragraph 5.\n7 Section 1, Paragraph 6.\n8 Section 1, Paragraph 7.\n9 Section 1, Paragraph 8.\n10 Section 1, Paragraph 9.\n11 Section 1, Paragraph 10.\n12 Section 1, Paragraph 11.\n13 Section 1, Paragraph 12.\n14 Section 1, Paragraph 13.\n15 Section 1, Paragraph 14.\n16 Section 1, Paragraph 15."
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "16 Section 2 - Line numbers restarted.\n17 Section 2, Paragraph 2.\n18 Section 2, Paragraph 3.\n19 Section 2, Paragraph 4.\n20 Section 2, Paragraph 5.\n21 Section 2, Paragraph 6.\n22 Section 2, Paragraph 7.\n23 Section 2, Paragraph 8.\n24 Section 2, Paragraph 9.\n25 Section 2, Paragraph 10.\n26 Section 2, Paragraph 11.\n27 Section 2, Paragraph 12.\n28 Section 2, Paragraph 13.\n29 Section 2, Paragraph 14.\n30 Section 2, Paragraph 15."
+        "Text": "2 Section 2 - Line numbers restarted.\n3 Section 2, Paragraph 2.\n4 Section 2, Paragraph 3.\n5 Section 2, Paragraph 4.\n6 Section 2, Paragraph 5.\n7 Section 2, Paragraph 6.\n8 Section 2, Paragraph 7.\n9 Section 2, Paragraph 8.\n10 Section 2, Paragraph 9.\n11 Section 2, Paragraph 10.\n12 Section 2, Paragraph 11.\n13 Section 2, Paragraph 12.\n14 Section 2, Paragraph 13.\n15 Section 2, Paragraph 14.\n16 Section 2, Paragraph 15."
       }
     ]
   },
@@ -24,15 +24,15 @@
     {
       "Page": 1,
       "ErrorMetric": 0.0213,
-      "Ssim": 0.965,
+      "Ssim": 0.9654,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0212,
-      "Ssim": 0.9652,
+      "ErrorMetric": 0.0209,
+      "Ssim": 0.9662,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

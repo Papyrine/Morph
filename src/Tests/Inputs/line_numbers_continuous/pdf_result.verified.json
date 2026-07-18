@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "1 Line 1 - continuous line numbering.\n2 Line 2 - continuous line numbering.\n3 Line 3 - continuous line numbering.\n4 Line 4 - continuous line numbering.\n5 Line 5 - continuous line numbering.\n6 Line 6 - continuous line numbering.\n7 Line 7 - continuous line numbering.\n8 Line 8 - continuous line numbering.\n9 Line 9 - continuous line numbering.\n10 Line 10 - continuous line numbering.\n11 Line 11 - continuous line numbering.\n12 Line 12 - continuous line numbering.\n13 Line 13 - continuous line numbering.\n14 Line 14 - continuous line numbering.\n15 Line 15 - continuous line numbering.\n16 Line 16 - continuous line numbering.\n17 Line 17 - continuous line numbering.\n18 Line 18 - continuous line numbering.\n19 Line 19 - continuous line numbering.\n20 Line 20 - continuous line numbering."
+        "Text": "2 Line 1 - continuous line numbering.\n3 Line 2 - continuous line numbering.\n4 Line 3 - continuous line numbering.\n5 Line 4 - continuous line numbering.\n6 Line 5 - continuous line numbering.\n7 Line 6 - continuous line numbering.\n8 Line 7 - continuous line numbering.\n9 Line 8 - continuous line numbering.\n10 Line 9 - continuous line numbering.\n11 Line 10 - continuous line numbering.\n12 Line 11 - continuous line numbering.\n13 Line 12 - continuous line numbering.\n14 Line 13 - continuous line numbering.\n15 Line 14 - continuous line numbering.\n16 Line 15 - continuous line numbering.\n17 Line 16 - continuous line numbering.\n18 Line 17 - continuous line numbering.\n19 Line 18 - continuous line numbering.\n20 Line 19 - continuous line numbering.\n21 Line 20 - continuous line numbering."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0419,
-      "Ssim": 0.9238,
+      "ErrorMetric": 0.0418,
+      "Ssim": 0.9245,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

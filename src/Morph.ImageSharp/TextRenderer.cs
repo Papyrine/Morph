@@ -850,9 +850,8 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     /// </summary>
     void RenderLineNumber(DrawingCanvas canvas, int lineNumber, float baselineY, LineNumberSettings settings)
     {
-        // Only show line numbers at the countBy interval
-        var adjustedNumber = lineNumber - settings.Start;
-        if (adjustedNumber % settings.CountBy != 0)
+        // Only show a number at multiples of countBy (Word anchors to the count, not to w:start).
+        if (lineNumber % settings.CountBy != 0)
         {
             return;
         }
@@ -862,8 +861,8 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var pixelX = context.PointsToPixels(x);
         var pixelY = context.PointsToPixels(baselineY);
 
-        // Use the configured default font for line numbers (9pt, same as typical Word default)
-        var props = new RunProperties { FontFamily = DefaultFontSettings.DefaultFont, FontSizePoints = 9 };
+        // Word renders line numbers at ~10pt (measured against its reference output), not 9pt.
+        var props = new RunProperties { FontFamily = DefaultFontSettings.DefaultFont, FontSizePoints = 10 };
         var font = context.GetFont(props);
         var (_, baseline) = ImageSharpRenderContext.GetFontMetrics(font);
 

@@ -1334,7 +1334,7 @@ Sequential line numbers displayed in the left margin. Configurable start value, 
 - **Render**: `RenderLineNumber()` in each raster `TextRenderer` and `Morph.Pdf/PdfTextEngine.cs`; shared counter `RenderContextBase.GetNextLineNumber()`
 - **Test**: `line_numbers_continuous/`, `line_numbers_count_by_5/`, `line_numbers_custom_distance/`, `line_numbers_restart_page/`, `line_numbers_restart_section/`
 
-> **Contributors**: Three restart modes: Continuous (never reset), NewPage (reset each page), NewSection (reset each section). Counter managed in `RenderContextBase`. Suppressed per-paragraph via `SuppressLineNumbers`.
+> **Contributors**: Three restart modes: Continuous (never reset), NewPage (reset each page), NewSection (reset each section — via `SectionBreakHandler` for the raster backends and `ResetLineNumbersForSection` in the PDF backend). Counter managed in `RenderContextBase` (pre-incremented, so displayed values match Word's `Start+1..Start+N`); numbers appear at multiples of `w:countBy` and render at 10pt. Suppressed per-paragraph via `SuppressLineNumbers` (a suppressed paragraph is skipped and does not advance the counter).
 
 
 ### 5.7 Page Decoration

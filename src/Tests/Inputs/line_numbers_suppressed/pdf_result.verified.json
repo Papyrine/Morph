@@ -11,7 +11,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "1 Line 1 - Normal paragraph with line number.\n2 Line 2 - Normal paragraph with line number.\nThis paragraph has line numbers suppressed.\n3 Line continues from 3 - Normal paragraph.\n4 Line 4 - Normal paragraph.\nAnother suppressed paragraph - no line number shown.\n5 Line 5 - Final normal paragraph."
+        "Text": "2 Line 1 - Normal paragraph with line number.\n3 Line 2 - Normal paragraph with line number.\nThis paragraph has line numbers suppressed.\n4 Line continues from 3 - Normal paragraph.\n5 Line 4 - Normal paragraph.\nAnother suppressed paragraph - no line number shown.\n6 Line 5 - Final normal paragraph."
       }
     ]
   },
@@ -19,7 +19,7 @@
     {
       "Page": 1,
       "ErrorMetric": 0.0162,
-      "Ssim": 0.9733,
+      "Ssim": 0.9735,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
