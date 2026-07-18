@@ -111,6 +111,15 @@ sealed class DocumentParser(string defaultFont)
     // Style numbering: styleId -> (numId, ilvl) for styles that define numbering
     Dictionary<string, (int numId, int ilvl)>? styleNumbering;
 
+    // Floating elements parsed inside table cells, collected for the enclosing container.
+    // Word anchors a floating drawing to the page even when its anchor paragraph sits inside
+    // a table cell — the cell is only where the anchor lives. The renderers' table path lays
+    // out flow content only, so a float left in cell content never draws (labels/11/14: the
+    // entire label sheet is one behind-text group anchored in a layout table's first cell).
+    // ParseTable fills this; each call site drains it in front of the emitted table so the
+    // floating pre-pass and dispatch see the elements.
+    List<DocumentElement> pendingCellFloats = [];
+
     // Numbering counters keyed by (abstractNumId, ilvl): OOXML's counter belongs to the
     // ABSTRACT definition, shared by every numId that references it — that's how a template's
     // per-table restart works (each table's first row carries its own numId + startOverride,
@@ -3215,6 +3224,7 @@ sealed class DocumentParser(string defaultFont)
                     break;
                 case Table table:
                     var parsedTable = ParseTable(table, mainPart);
+                    elements.AddRange(DrainPendingCellFloats());
                     if (parsedTable != null)
                     {
                         elements.Add(parsedTable);
@@ -3287,6 +3297,7 @@ sealed class DocumentParser(string defaultFont)
 
                 case Table table:
                     var parsedTable = ParseTable(table, mainPart);
+                    elements.AddRange(DrainPendingCellFloats());
                     if (parsedTable != null)
                     {
                         elements.Add(parsedTable);
@@ -3310,6 +3321,7 @@ sealed class DocumentParser(string defaultFont)
                         else if (sdtChild is Table sdtTable)
                         {
                             var parsedSdtTable = ParseTable(sdtTable, mainPart);
+                            elements.AddRange(DrainPendingCellFloats());
                             if (parsedSdtTable != null)
                             {
                                 elements.Add(parsedSdtTable);
@@ -3344,6 +3356,19 @@ sealed class DocumentParser(string defaultFont)
         }
 
         return [];
+    }
+
+
+    List<DocumentElement> DrainPendingCellFloats()
+    {
+        if (pendingCellFloats.Count == 0)
+        {
+            return [];
+        }
+
+        var drained = pendingCellFloats;
+        pendingCellFloats = [];
+        return drained;
     }
 
     TableElement? ParseTable(Table table, MainDocumentPart mainPart)
@@ -3727,6 +3752,13 @@ sealed class DocumentParser(string defaultFont)
                     {
                         ApplyDefaultRunColor(cellContent, conditionalRunColor);
                     }
+                }
+
+                // Hoist floating elements out of the cell — see pendingCellFloats.
+                if (cellContent.Any(static _ => _ is FloatingImageElement or FloatingShapeElement or FloatingTextBoxElement or FloatingWordArtElement))
+                {
+                    pendingCellFloats.AddRange(cellContent.Where(static _ => _ is FloatingImageElement or FloatingShapeElement or FloatingTextBoxElement or FloatingWordArtElement));
+                    cellContent.RemoveAll(static _ => _ is FloatingImageElement or FloatingShapeElement or FloatingTextBoxElement or FloatingWordArtElement);
                 }
 
                 // Word collapses the unavoidable empty end-of-cell paragraph mark that directly
@@ -4901,7 +4933,23 @@ sealed class DocumentParser(string defaultFont)
                                 runs.Clear();
                             }
 
-                            result.AddRange(shapeElements);
+                            // For grouped drawings anchored inside table cells the DocumentParser
+                            // walk below owns the children: its nested-group transform math resolves
+                            // each child's page position and size correctly, while ShapeParser's flat
+                            // anchor-extent scaling emits the same shapes oversized at group-local
+                            // positions (business/05's corner tiles rendered 2.4x too big over the
+                            // body text) — and the position+size dedup can't catch those pairs, the
+                            // sizes differ. Body-level grouped drawings keep the long-standing
+                            // dual-parser + dedup behaviour: for several templates ShapeParser's flat
+                            // scaling is the correct one there (agendas-minutes/02, newsletters/01/12,
+                            // wedding/11 regressed badly under blanket doc-parser authority), and
+                            // cell-anchored groups never rendered at all before the hoist, so only
+                            // they can safely switch owner.
+                            var cellGroup = hasGroup && para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any();
+                            if (!cellGroup)
+                            {
+                                result.AddRange(shapeElements);
+                            }
 
                             // Also check for images in the same drawing/group (e.g., decorative overlays, SVG backgrounds)
                             var overlayImages = ParseDrawingElements(drawing, mainPart);
@@ -4914,7 +4962,12 @@ sealed class DocumentParser(string defaultFont)
                             var shapesFromDrawing = ParseAllShapesFromDrawing(drawing, mainPart);
                             foreach (var shape in shapesFromDrawing)
                             {
-                                if (shape is FloatingShapeElement fse &&
+                                // The position/size dedup only applies when ShapeParser's output was
+                                // actually emitted — for cell-anchored groups it is skipped above,
+                                // and deduping against it here would silently eat the only copy
+                                // (labels/14's navy card bodies matched ShapeParser's twins).
+                                if (!cellGroup &&
+                                    shape is FloatingShapeElement fse &&
                                     shapeElements.Any(existing =>
                                         existing is FloatingShapeElement e &&
                                         Math.Abs(e.HorizontalPositionPoints - fse.HorizontalPositionPoints) < 0.5 &&
@@ -4923,6 +4976,11 @@ sealed class DocumentParser(string defaultFont)
                                         Math.Abs(e.HeightPoints - fse.HeightPoints) < 0.5))
                                 {
                                     continue;
+                                }
+
+                                if (shape is FloatingShapeElement dbg2)
+                                {
+                                    Console.Error.WriteLine($"DBGS docparser  pos=({dbg2.HorizontalPositionPoints:0.#},{dbg2.VerticalPositionPoints:0.#}) size=({dbg2.WidthPoints:0.#}x{dbg2.HeightPoints:0.#}) fill={dbg2.FillColorHex}");
                                 }
 
                                 result.Add(shape);
@@ -6484,6 +6542,7 @@ sealed class DocumentParser(string defaultFont)
             else if (element is Table table)
             {
                 var parsedTable = ParseTable(table, mainPart);
+                content.AddRange(DrainPendingCellFloats());
                 if (parsedTable != null)
                 {
                     content.Add(parsedTable);
@@ -6558,6 +6617,20 @@ sealed class DocumentParser(string defaultFont)
     /// Parses ALL shapes from a drawing (handles groups with multiple shapes).
     /// Returns both text boxes and solid fill shapes.
     /// </summary>
+
+    // True when the shape carries no renderable text: no txbx at all, or only Word's empty
+    // placeholder paragraph (whitespace).
+    static bool TextBoxHasNoText(WPS.WordprocessingShape wsp)
+    {
+        var textBox = wsp.GetFirstChild<WPS.TextBoxInfo2>();
+        if (textBox == null)
+        {
+            return true;
+        }
+
+        return !textBox.Descendants<Text>().Any(static _ => !string.IsNullOrWhiteSpace(_.Text));
+    }
+
     List<DocumentElement> ParseAllShapesFromDrawing(Drawing drawing, MainDocumentPart mainPart)
     {
         var result = new List<DocumentElement>();
@@ -6613,14 +6686,14 @@ sealed class DocumentParser(string defaultFont)
                 {
                     result.Add(textBox);
                 }
-                else if (wsp.GetFirstChild<WPS.TextBoxInfo2>() == null)
+                else if (TextBoxHasNoText(wsp))
                 {
-                    // Only fall back to solid-fill parsing for shapes without a txbx. A wsp with an
-                    // empty txbx is a decorative-shape carrier (Word stores a placeholder text box
-                    // in templated artwork like full-page coloured rectangles or line-art geometry);
-                    // turning it into a FloatingShapeElement here would overdraw same-anchor image
-                    // overlays or render the bounding box of a custom-geometry outline as a filled
-                    // rect.
+                    // Fall back to solid-fill parsing for shapes without TEXT: no txbx at all, or a
+                    // txbx that is only Word's empty placeholder (templated artwork stores one in
+                    // every decorative shape — labels/14's navy card bodies are roundRects with an
+                    // empty txbx, and skipping them left the whole label sheet cardless). Shapes
+                    // whose geometry is a custom-path outline render their real Subpaths now, so the
+                    // old filled-bounding-box overdraw this filter guarded against no longer occurs.
                     var solidShape = ParseSolidFillShape(wsp, positioning, accumTransform, behindText, mainPart);
                     if (solidShape != null)
                     {
@@ -6644,9 +6717,9 @@ sealed class DocumentParser(string defaultFont)
                 {
                     result.Add(textBox);
                 }
-                else if (wsp.GetFirstChild<WPS.TextBoxInfo2>() == null)
+                else if (TextBoxHasNoText(wsp))
                 {
-                    // See note above — only shapes with no txbx feed the solid-fill fallback.
+                    // See note above — only text-free shapes feed the solid-fill fallback.
                     var accumTransform = new AccumulatedTransform
                     {
                         OffsetX = 0,
@@ -6755,6 +6828,7 @@ sealed class DocumentParser(string defaultFont)
             else if (element is Table table)
             {
                 var tableElement = ParseTable(table, mainPart);
+                content.AddRange(DrainPendingCellFloats());
                 if (tableElement != null)
                 {
                     content.Add(tableElement);
@@ -7289,6 +7363,7 @@ sealed class DocumentParser(string defaultFont)
             else if (element is Table table)
             {
                 var tableElement = ParseTable(table, mainPart);
+                content.AddRange(DrainPendingCellFloats());
                 if (tableElement != null)
                 {
                     content.Add(tableElement);
