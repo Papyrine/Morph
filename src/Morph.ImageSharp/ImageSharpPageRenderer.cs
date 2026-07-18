@@ -1814,7 +1814,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         if (shape is { LineColorHex: { } lineColor, LineWidthPoints: { } lineWidthPt and > 0 })
         {
-            var strokeColor = ParseColor(lineColor);
+            var strokeColor = WithAlpha(ParseColor(lineColor), shape.LineAlpha);
             var strokePixels = context.PointsToPixels((float) lineWidthPt);
             var pen = context.GetPen(strokeColor, strokePixels);
             if (shape.Subpaths != null)
@@ -2046,7 +2046,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         if (textBox.LineColorHex != null && textBox.LineWidthPoints > 0)
         {
-            currentCanvas.Draw(context.GetPen(ParseColor(textBox.LineColorHex), (float) textBox.LineWidthPoints * context.Scale), path);
+            currentCanvas.Draw(context.GetPen(WithAlpha(ParseColor(textBox.LineColorHex), textBox.LineAlpha), (float) textBox.LineWidthPoints * context.Scale), path);
         }
     }
 
@@ -2081,6 +2081,20 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             1 => polygons[0],
             _ => new ComplexPolygon(polygons.ToArray())
         };
+    }
+
+    /// <summary>Applies a 0..1 opacity to a colour (used for a:ln stroke alpha).</summary>
+    static Color WithAlpha(Color color, double alpha)
+    {
+        var clamped = Math.Clamp(alpha, 0, 1);
+        if (clamped >= 0.999)
+        {
+            return color;
+        }
+
+        var pixel = color.ToPixel<Rgba32>();
+        pixel.A = (byte) Math.Round(clamped * 255);
+        return Color.FromPixel(pixel);
     }
 
     public void Dispose()

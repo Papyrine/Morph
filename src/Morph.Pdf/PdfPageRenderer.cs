@@ -408,7 +408,10 @@ sealed class PdfPageRenderer : PageRendererBase
 
         if (textBox.LineColorHex != null && textBox.LineWidthPoints > 0)
         {
-            var pen = context.GetPen(PdfRenderContext.ParseColor(textBox.LineColorHex), textBox.LineWidthPoints);
+            var textBoxStrokeRgb = PdfRenderContext.ParseColor(textBox.LineColorHex);
+            var pen = context.GetPen(
+                XColor.FromArgb((int) Math.Round(Math.Clamp(textBox.LineAlpha, 0, 1) * 255), textBoxStrokeRgb.R, textBoxStrokeRgb.G, textBoxStrokeRgb.B),
+                textBox.LineWidthPoints);
             if (geometryPath != null)
             {
                 Graphics.DrawPath(pen, geometryPath);
@@ -923,7 +926,10 @@ sealed class PdfPageRenderer : PageRendererBase
 
         if (shape is {LineColorHex: { } lineColor, LineWidthPoints: { } lineWidth and > 0})
         {
-            StrokeShape(shape, x, y, shapeWidth, shapeHeight, new(PdfRenderContext.ParseColor(lineColor), Math.Max(0.4, lineWidth)));
+            var strokeRgb = PdfRenderContext.ParseColor(lineColor);
+            var strokeColor = XColor.FromArgb(
+                (int) Math.Round(Math.Clamp(shape.LineAlpha, 0, 1) * 255), strokeRgb.R, strokeRgb.G, strokeRgb.B);
+            StrokeShape(shape, x, y, shapeWidth, shapeHeight, new(strokeColor, Math.Max(0.4, lineWidth)));
         }
     }
 

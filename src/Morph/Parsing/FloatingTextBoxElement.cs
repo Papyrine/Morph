@@ -39,6 +39,9 @@ sealed class FloatingTextBoxElement : DocumentElement
     /// <summary>Outline width in points. 0 = no outline.</summary>
     public double LineWidthPoints { get; init; }
 
+    /// <summary>Outline opacity from the line's solid fill (a:alpha), 0..1. Defaults to opaque.</summary>
+    public double LineAlpha { get; init; } = 1;
+
     /// <summary>
     /// Outline contours when the shape is richer than a rectangle — an <c>a:custGeom</c> or a
     /// built preset (roundRect ticket outlines, plaque frames, …) — normalized to the unit

@@ -45,6 +45,9 @@ sealed class FloatingShapeElement : DocumentElement
     /// <summary>Stroke width in points. Null when no outline is drawn.</summary>
     public double? LineWidthPoints { get; init; }
 
+    /// <summary>Outline opacity from the line's solid fill (a:alpha), 0..1. Defaults to opaque.</summary>
+    public double LineAlpha { get; init; } = 1;
+
     /// <summary>Preset geometry kind. Currently only differentiates rect vs ellipse for rendering.</summary>
     public PresetShape Preset { get; init; } = PresetShape.Rect;
 
