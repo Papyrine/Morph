@@ -1934,6 +1934,7 @@ Automatically breaks long words at syllable boundaries using hyphenation diction
 Optional break points inserted manually — hyphen shown only if word breaks there.
 
 - **OOXML**: Unicode soft hyphen character (U+00AD) in text
+- **Render**: dropped from the drawn text in every backend (`RemoveSoftHyphens` in the raster `TextRenderer`s, `PdfTextEngine.RunText` in the PDF) so the hint never paints as a literal hyphen
 - **Test**: `hyphenation_soft/`
 
 
@@ -1942,6 +1943,7 @@ Optional break points inserted manually — hyphen shown only if word breaks the
 Hyphens that prevent line breaks at that position.
 
 - **OOXML**: `w:noBreakHyphen` element
+- **Render**: parsed to U+2011 and mapped to a plain `-` before layout (`SplitIntoWords` in the raster `TextRenderer`s, `PdfTextEngine.RunText` in the PDF) — the bundled faces carry no U+2011 glyph, and word splitting only breaks on whitespace, so it renders and stays unbreakable
 - **Test**: `hyphenation_nonbreaking/`
 
 
@@ -1997,7 +1999,7 @@ Support for RTL languages (Arabic, Hebrew) and mixed-direction paragraphs.
 - **Spec**: [BiDi](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.bidirectional)
 - **Model**: `ParagraphProperties.IsRightToLeft`, `RunProperties.IsRightToLeft`
 - **Parse**: `BiDi` on paragraph properties and `RightToLeftText` on run properties — both are OnOff toggles
-- **Render**: RTL paragraphs flip leading-edge alignment to the page's right edge — `CalculateLineX` in both backends maps `Alignment.Left` to `Alignment.Right` when `IsRightToLeft=true`. Glyph order within RTL runs is not reversed (no BiDi shaper), so Arabic/Hebrew text still flows left-to-right within each run, but the line itself lands on the correct edge of the page.
+- **Render**: RTL paragraphs flip leading-edge alignment to the page's right edge — `CalculateLineX` in the raster backends, and the alignment resolution in `Morph.Pdf/PdfTextEngine.Draw`, map `Alignment.Left` to `Alignment.Right` when `IsRightToLeft=true`. Glyph order within RTL runs is not reversed (no BiDi shaper), so Arabic/Hebrew text still flows left-to-right within each run, but the line itself lands on the correct edge of the page.
 
 > **AI**: Full BiDi rendering needs the Unicode BiDi algorithm + an RTL-aware shaper (HarfBuzz available in SkiaSharp via `SKShaper`, but the line-layout pipeline assumes LTR run order). The right-edge-flip is the largest layout win without that infrastructure — for RTL templates whose runs are already authored in visual order (a common pattern for entirely-RTL documents) the result matches Word.
 

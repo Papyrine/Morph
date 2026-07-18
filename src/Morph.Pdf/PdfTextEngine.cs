@@ -269,7 +269,12 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             return;
         }
 
-        var alignment = paragraph.Properties.Alignment;
+        // An RTL paragraph flips the visual meaning of "leading-edge" alignment to the page's right
+        // edge. Glyphs aren't reordered (no BiDi shaper), but the line at least lands on the right —
+        // matching the Skia/ImageSharp engines.
+        var alignment = paragraph.Properties is {IsRightToLeft: true, Alignment: TextAlignment.Left}
+            ? TextAlignment.Right
+            : paragraph.Properties.Alignment;
         var markerDrawn = false;
 
         // Word's widow/orphan control (w:widowControl, on by default — mapped to two lines on
@@ -966,7 +971,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 break;
             }
 
-            var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
+            var text = RunText(run);
             total += measure.MeasureString(text, context.GetFont(run.Properties)).Width;
         }
 
@@ -991,7 +996,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 break;
             }
 
-            var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
+            var text = RunText(run);
             var font = context.GetFont(run.Properties);
             var dotIndex = text.IndexOf('.');
             if (dotIndex >= 0)
@@ -1272,7 +1277,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 continue;
             }
 
-            var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
+            var text = RunText(run);
             foreach (var token in Tokenize(text))
             {
                 if (token.IsSpace)
@@ -1396,6 +1401,30 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     }
 
     readonly record struct Token(bool IsSpace, string Text);
+
+    // Run text as it is measured and drawn. w:caps uppercases. The non-breaking hyphen U+2011 becomes
+    // a plain '-': the bundled faces have no U+2011 glyph (it rendered as tofu), and Tokenize only
+    // breaks on whitespace so the hyphen stays unbreakable either way. Soft hyphens U+00AD are
+    // optional break hints Word never paints inline, so they are dropped. Matches the raster engines.
+    const char nonBreakingHyphen = '\u2011'; // non-breaking hyphen
+    const char softHyphen = '\u00AD'; // soft hyphen (optional break hint)
+    const string softHyphenString = "\u00AD";
+
+    static string RunText(Run run)
+    {
+        var text = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
+        if (text.Contains(nonBreakingHyphen))
+        {
+            text = text.Replace(nonBreakingHyphen, '-');
+        }
+
+        if (text.Contains(softHyphen))
+        {
+            text = text.Replace(softHyphenString, "");
+        }
+
+        return text;
+    }
 
     sealed class LineItem
     {
