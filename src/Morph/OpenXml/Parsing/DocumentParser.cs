@@ -5478,6 +5478,11 @@ sealed class DocumentParser(string defaultFont)
                     FlipVertical = shapeXfrm.VerticalFlip?.Value == true,
                     FlipHorizontal = shapeXfrm.HorizontalFlip?.Value == true,
                     Geometry = MapGroupGeometry(shapeProps),
+                    Subpaths = ShapeParser.ExtractSubpaths(shapeProps)
+                               ?? PresetShapeGeometry.TryBuild(
+                                   shapeProps.GetFirstChild<A.PresetGeometry>(),
+                                   shapeXfrm.Extents.Cx ?? 0,
+                                   shapeXfrm.Extents.Cy ?? 0),
                     FillColorHex = fill != null ? ExtractFirstFillColor(fill) : null,
                     FillAlpha = fill != null ? ShapeParser.ExtractSolidFillAlpha(fill) : 1,
                     Shadow = ReadOuterShadow(shapeProps)

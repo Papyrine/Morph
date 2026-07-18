@@ -121,7 +121,8 @@ static class ShapeParser
 
         var (lineColor, lineWidth) = ExtractLineStyle(wsp, shapeProps, themeColors);
         var preset = ExtractPresetShape(shapeProps);
-        var subpaths = ExtractSubpaths(shapeProps);
+        var subpaths = ExtractSubpaths(shapeProps)
+                       ?? PresetShapeGeometry.TryBuild(shapeProps.GetFirstChild<A.PresetGeometry>(), widthPoints, heightPoints);
         var (rotation, flipH, flipV) = ExtractTransform(shapeProps.GetFirstChild<A.Transform2D>());
 
         // Try solid fill first
@@ -569,7 +570,8 @@ static class ShapeParser
 
         var (lineColor, lineWidth) = ExtractLineStyle(wsp, shapeProps, themeColors);
         var preset = ExtractPresetShape(shapeProps);
-        var subpaths = ExtractSubpaths(shapeProps);
+        var subpaths = ExtractSubpaths(shapeProps)
+                       ?? PresetShapeGeometry.TryBuild(shapeProps.GetFirstChild<A.PresetGeometry>(), widthPt, heightPt);
         var (rotation, flipH, flipV) = ExtractTransform(xfrm);
 
         // Try solid fill first

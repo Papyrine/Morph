@@ -1636,6 +1636,36 @@ static class HtmlExporter
 
         void AppendGroupGeometry(GroupShape shape, bool isEllipse, double offsetX = 0, double offsetY = 0)
         {
+            // Contours (custGeom or a built preset like hexagon/roundRect) take precedence over the
+            // Geometry primitive; even-odd fill keeps ring shapes (frame) hollow. The element is
+            // left open like <rect>/<ellipse> so callers can append fill/stroke attributes.
+            if (shape.Subpaths != null)
+            {
+                builder.Append("<path fill-rule=\"evenodd\" d=\"");
+                foreach (var contour in shape.Subpaths)
+                {
+                    if (contour.Count < 3)
+                    {
+                        continue;
+                    }
+
+                    for (var index = 0; index < contour.Count; index++)
+                    {
+                        var (pointX, pointY) = contour[index];
+                        var unitX = shape.FlipHorizontal ? 1 - pointX : pointX;
+                        var unitY = shape.FlipVertical ? 1 - pointY : pointY;
+                        builder.Append(index == 0 ? 'M' : 'L')
+                            .Append(Number(shape.X + offsetX + unitX * shape.Width)).Append(' ')
+                            .Append(Number(shape.Y + offsetY + unitY * shape.Height));
+                    }
+
+                    builder.Append('Z');
+                }
+
+                builder.Append('"');
+                return;
+            }
+
             if (isEllipse)
             {
                 AppendEllipseGeometry(shape, offsetX, offsetY);

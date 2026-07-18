@@ -1479,6 +1479,10 @@ sealed class TextRenderer(SkiaRenderContext context) :
                 var isEllipse = shape.Geometry == GroupShapeGeometry.Ellipse;
                 var rect = new SKRect(x1, y1, x1 + w, y1 + h);
 
+                // Contours (custGeom or a built preset like hexagon/roundRect) take precedence
+                // over the Geometry primitive; a plain shape draws the rect/ellipse as before.
+                using var geometryPath = BuildGroupShapePath(shape, rect);
+
                 // The shadow is an offset copy of the shape's geometry, painted before the shape
                 // itself so it lands behind it.
                 if (shape.Shadow is { } shadow)
@@ -1491,7 +1495,15 @@ sealed class TextRenderer(SkiaRenderContext context) :
                     };
                     var offset = rect;
                     offset.Offset((float) shadow.OffsetX * sx, (float) shadow.OffsetY * sy);
-                    DrawGeometry(canvas, offset, isEllipse, shadowPaint);
+                    using var shadowPath = BuildGroupShapePath(shape, offset);
+                    if (shadowPath != null)
+                    {
+                        canvas.DrawPath(shadowPath, shadowPaint);
+                    }
+                    else
+                    {
+                        DrawGeometry(canvas, offset, isEllipse, shadowPaint);
+                    }
                 }
 
                 if (shape.ImageData != null)
@@ -1506,7 +1518,14 @@ sealed class TextRenderer(SkiaRenderContext context) :
                         Style = SKPaintStyle.Fill,
                         IsAntialias = true
                     };
-                    DrawGeometry(canvas, rect, isEllipse, fillPaint);
+                    if (geometryPath != null)
+                    {
+                        canvas.DrawPath(geometryPath, fillPaint);
+                    }
+                    else
+                    {
+                        DrawGeometry(canvas, rect, isEllipse, fillPaint);
+                    }
                 }
 
                 if (shape.LineWidthEmu > 0)
@@ -1518,7 +1537,14 @@ sealed class TextRenderer(SkiaRenderContext context) :
                         StrokeWidth = (float) (shape.LineWidthEmu / emusPerPoint) * context.Scale,
                         IsAntialias = true
                     };
-                    DrawGeometry(canvas, rect, isEllipse, strokePaint);
+                    if (geometryPath != null)
+                    {
+                        canvas.DrawPath(geometryPath, strokePaint);
+                    }
+                    else
+                    {
+                        DrawGeometry(canvas, rect, isEllipse, strokePaint);
+                    }
                 }
             }
         }
@@ -1529,6 +1555,49 @@ sealed class TextRenderer(SkiaRenderContext context) :
     static SKColor ParseColor(string hex, double alpha) =>
         SkiaRenderContext.ParseColor(hex)
             .WithAlpha((byte) Math.Round(Math.Clamp(alpha, 0, 1) * 255));
+
+    /// <summary>
+    /// The shape's <see cref="GroupShape.Subpaths"/> contours scaled into <paramref name="rect"/>
+    /// with the flip flags applied, or null for primitive-geometry shapes. Even-odd fill keeps
+    /// ring shapes (frame) hollow.
+    /// </summary>
+    static SKPath? BuildGroupShapePath(GroupShape shape, SKRect rect)
+    {
+        if (shape.Subpaths == null)
+        {
+            return null;
+        }
+
+        var path = new SKPath {FillType = SKPathFillType.EvenOdd};
+        foreach (var contour in shape.Subpaths)
+        {
+            if (contour.Count < 3)
+            {
+                continue;
+            }
+
+            for (var index = 0; index < contour.Count; index++)
+            {
+                var (pointX, pointY) = contour[index];
+                var unitX = shape.FlipHorizontal ? 1 - pointX : pointX;
+                var unitY = shape.FlipVertical ? 1 - pointY : pointY;
+                var localX = rect.Left + (float) unitX * rect.Width;
+                var localY = rect.Top + (float) unitY * rect.Height;
+                if (index == 0)
+                {
+                    path.MoveTo(localX, localY);
+                }
+                else
+                {
+                    path.LineTo(localX, localY);
+                }
+            }
+
+            path.Close();
+        }
+
+        return path;
+    }
 
     static void DrawGeometry(SKCanvas canvas, SKRect rect, bool isEllipse, SKPaint paint)
     {
