@@ -992,7 +992,19 @@ sealed class PdfPageRenderer : PageRendererBase
         // them instead of over them.
         context.RegisterFloatExclusion(image, bounds.X, bounds.Y, (float) width, (float) height);
 
-        DrawRaster(image.ImageData, image.ContentType, image.RasterFallbackData, image.RasterFallbackContentType, bounds.X, bounds.Y, bounds.PixelWidth, bounds.PixelHeight);
+        if (Math.Abs(image.RotationDegrees) > 0.01)
+        {
+            // a:xfrm/@rot: rotate around the image centre, matching DrawBlockImage and the raster
+            // backends (e.g. letters/13's vertical banner at 90 degrees).
+            var state = Graphics.Save();
+            Graphics.RotateAtTransform(image.RotationDegrees, new(bounds.X + bounds.PixelWidth / 2, bounds.Y + bounds.PixelHeight / 2));
+            DrawRaster(image.ImageData, image.ContentType, image.RasterFallbackData, image.RasterFallbackContentType, bounds.X, bounds.Y, bounds.PixelWidth, bounds.PixelHeight);
+            Graphics.Restore(state);
+        }
+        else
+        {
+            DrawRaster(image.ImageData, image.ContentType, image.RasterFallbackData, image.RasterFallbackContentType, bounds.X, bounds.Y, bounds.PixelWidth, bounds.PixelHeight);
+        }
     }
 
     protected override void DrawBlockImage(byte[] imageData, string? contentType, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, ImageCrop? crop, BlipColorEffect colorEffect)
