@@ -4920,22 +4920,40 @@ sealed class DocumentParser(string defaultFont)
                 case OoxmlRun run:
                     // Check for legacy form fields (FieldChar with FormFieldData)
                     var formField = ParseFormField(run);
-                    if (formField != null)
+                    if (formField is CheckBoxFormFieldElement checkBoxField)
                     {
-                        // Emit current paragraph content before the form field
-                        if (runs.Count > 0)
+                        // A FORMCHECKBOX is an INLINE glyph in Word — "☐ Option 1" flows on one
+                        // line — so it becomes a run (☐/☒ live in the embedded Morph Bullets
+                        // face), not a block widget. ffData's size is half-points; auto-sized
+                        // boxes track the surrounding run size.
+                        var checkBoxProperties = ParseRunProperties(run.RunProperties, mainPart, paragraphStyleId) with
                         {
-                            result.Add(new ParagraphElement
+                            FontFamily = "Morph Bullets"
+                        };
+                        if (checkBoxField.SizePoints > 0)
+                        {
+                            checkBoxProperties = checkBoxProperties with
                             {
-                                Runs = new List<Run>(runs),
-                                Properties = props
-                            });
-                            runs.Clear();
+                                FontSizePoints = checkBoxField.SizePoints
+                            };
                         }
 
-                        result.Add(formField);
+                        runs.Add(
+                            new()
+                            {
+                                Text = checkBoxField.Checked ? "☒" : "☐",
+                                Properties = checkBoxProperties
+                            });
                         break;
                     }
+
+                    // Text-input and dropdown legacy fields deliberately DON'T emit their block
+                    // widgets: Word's print layout renders just the field's cached result text
+                    // inline ("Name: Enter your name" on one line, form_text_fields/form_dropdowns
+                    // expected renders), and that cached text lives in the ordinary runs between
+                    // the field's separate/end — falling through to the field plumbing below lets
+                    // it flow exactly like Word. Emitting the widget drew a chrome box AND the
+                    // cached text, double-rendering the value.
 
                     // PAGE/NUMPAGES/SECTIONPAGES field plumbing (fldChar/instrText) carries no text
                     // and is consumed here; the field's cached result is captured and re-emitted as
@@ -8166,14 +8184,16 @@ sealed class DocumentParser(string defaultFont)
     /// </summary>
     static FormFieldElement? ParseFormField(OoxmlRun run)
     {
-        // Look for FieldChar with fldCharType="begin" followed by FormFieldData
+        // Look for FieldChar with fldCharType="begin" carrying FormFieldData
         var fieldChar = run.GetFirstChild<FieldChar>();
         if (fieldChar?.FieldCharType?.Value != FieldCharValues.Begin)
         {
             return null;
         }
 
-        var ffData = run.GetFirstChild<FormFieldData>();
+        // Word nests w:ffData INSIDE the w:fldChar element (it is the field character's
+        // payload, not a run sibling); tolerate both placements.
+        var ffData = fieldChar.GetFirstChild<FormFieldData>() ?? run.GetFirstChild<FormFieldData>();
         if (ffData == null)
         {
             return null;
