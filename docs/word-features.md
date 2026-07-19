@@ -2167,9 +2167,9 @@ Insertions, deletions, and formatting changes tracked with author/date metadata.
 Numbered references with content at the bottom of the page.
 
 - **OOXML**: `footnotes.xml` part, `w:footnoteReference` in document
-- **Model**: `Footnote` record (id, flat text); `ParsedDocument.Footnotes`
-- **Parse**: `DocumentParser.ExtractFootnotes()` reads `FootnotesPart`, skipping the built-in separator entries (`type` ≠ Normal)
-- **Render**: `RenderNotesAppendix` in each `PageRenderer` appends a "Footnotes" section after the body content with each footnote rendered as `id. text` paragraphs. Page-bottom placement isn't implemented — footnotes render at document end alongside endnotes.
+- **Model**: `Footnote` record (id, flat text); `ParsedDocument.Footnotes`; the reference run carries the citation-order number as superscripted `Text` plus `FootnoteReferenceId`
+- **Parse**: `DocumentParser.ExtractFootnotes()` reads `FootnotesPart`, skipping the built-in separator entries (`type` ≠ Normal). Reference marks number by citation order (`footnoteCitationNumbers` — footnotes.xml ids start at 2, so ids are never the display number; repeat citations reuse their number) and render through the ordinary superscript path in every backend. The exporters branch on `FootnoteReferenceId` before `Text` and keep their own marker emission.
+- **Render**: `RenderNotesAppendix` in each `PageRenderer` — Skia, ImageSharp AND PDF — appends a "Footnotes" section after the body content, numbering entries sequentially to match the citation marks. Page-bottom placement isn't implemented — footnotes render at document end alongside endnotes.
 
 > **AI**: True page-bottom placement requires reserving footnote space during pagination measurement (currently we only know paragraph heights at draw time). The appendix rendering preserves all the footnote text so consumers can still find it; consumers who require Word-style page-bottom placement should pre-process the docx.
 

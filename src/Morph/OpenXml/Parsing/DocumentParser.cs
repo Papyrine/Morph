@@ -90,6 +90,12 @@ sealed class DocumentParser(string defaultFont)
     // (the common case — runs stay automatic).
     string? defaultRunColorHex;
 
+    // Citation-order numbering for note reference marks: Word displays the ordinal of the
+    // citation (1, 2, 3...), not the footnotes.xml id (which starts at 2 - ids 0/-1 are the
+    // separator stubs). First citation of an id assigns the next number; repeats reuse it.
+    readonly Dictionary<string, int> footnoteCitationNumbers = [];
+    readonly Dictionary<string, int> endnoteCitationNumbers = [];
+
     // Sentinel stored in a style's ColorHex when the style declares w:color w:val="auto":
     // "automatic" must RESET an inherited colour (a card template's white docDefaults must not
     // leak through Normal's explicit auto), so it can't be modelled as null — null means
@@ -9026,24 +9032,47 @@ sealed class DocumentParser(string defaultFont)
                 // exporters can emit a reference and a trailing notes section.
                 case FootnoteReference footnoteReference when footnoteReference.Id?.Value is { } footnoteId:
                     FlushText();
+                    var footnoteKey = footnoteId.ToString();
+                    if (!footnoteCitationNumbers.TryGetValue(footnoteKey, out var footnoteNumber))
+                    {
+                        footnoteNumber = footnoteCitationNumbers.Count + 1;
+                        footnoteCitationNumbers[footnoteKey] = footnoteNumber;
+                    }
+
                     result.Add(
                         new()
                         {
-                            Text = "",
-                            Properties = GetProperties(),
+                            // The visible reference mark: the citation ordinal, superscripted -
+                            // the raster/PDF backends draw the run as-is. The exporters branch on
+                            // FootnoteReferenceId before Text, so they keep their own markers.
+                            Text = footnoteNumber.ToString(),
+                            Properties = GetProperties() with
+                            {
+                                VerticalAlignment = VerticalRunAlignment.Superscript
+                            },
                             HyperlinkUrl = hyperlinkUrl,
-                            FootnoteReferenceId = footnoteId.ToString()
+                            FootnoteReferenceId = footnoteKey
                         });
                     break;
                 case EndnoteReference endnoteReference when endnoteReference.Id?.Value is { } endnoteId:
                     FlushText();
+                    var endnoteKey = endnoteId.ToString();
+                    if (!endnoteCitationNumbers.TryGetValue(endnoteKey, out var endnoteNumber))
+                    {
+                        endnoteNumber = endnoteCitationNumbers.Count + 1;
+                        endnoteCitationNumbers[endnoteKey] = endnoteNumber;
+                    }
+
                     result.Add(
                         new()
                         {
-                            Text = "",
-                            Properties = GetProperties(),
+                            Text = endnoteNumber.ToString(),
+                            Properties = GetProperties() with
+                            {
+                                VerticalAlignment = VerticalRunAlignment.Superscript
+                            },
                             HyperlinkUrl = hyperlinkUrl,
-                            EndnoteReferenceId = endnoteId.ToString()
+                            EndnoteReferenceId = endnoteKey
                         });
                     break;
                 // A <w:br/> inside a run becomes a newline at its document position, so text on

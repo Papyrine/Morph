@@ -187,15 +187,18 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         };
         RenderParagraph(headingParagraph);
 
-        foreach (var (id, text) in entries)
+        for (var noteIndex = 0; noteIndex < entries.Count; noteIndex++)
         {
+            var (_, text) = entries[noteIndex];
             var noteParagraph = new ParagraphElement
             {
                 Runs =
                 [
                     new()
                     {
-                        Text = $"{id}. ",
+                        // Sequential display number, matching the citation marks (footnotes.xml
+                        // ids start at 2; Word shows 1, 2, 3...).
+                        Text = $"{noteIndex + 1}. ",
                         Properties = new()
                         {
                             Bold = true,
