@@ -251,7 +251,69 @@ static class ShapeParser
             }
         }
 
-        return null;
+        return TryBuildOutlineOnlyShape(wsp, shapeProps, positioning, widthPoints, heightPoints,
+            0, 0, lineColor, lineWidth, lineAlpha, preset, subpaths, rotation, flipH, flipV);
+    }
+
+    /// <summary>
+    /// Outline-only shape (<c>a:noFill</c> + a visible <c>a:ln</c>): Word draws the frame
+    /// (business/06's LOGO box, labels/02's label borders, letters/05's teal triangle).
+    /// Guarded: a wsp that carries a text box strokes its chrome on the text-box path
+    /// (labels/04's outline shapes double-drew), and a CUSTOM geometry that produced no
+    /// contours (arc-path doodles) would stroke a bounding box Word doesn't draw.
+    /// </summary>
+    static FloatingShapeElement? TryBuildOutlineOnlyShape(
+        WPS.WordprocessingShape wsp,
+        WPS.ShapeProperties shapeProps,
+        AnchorPositioning positioning,
+        double widthPoints,
+        double heightPoints,
+        double offsetX,
+        double offsetY,
+        string? lineColor,
+        double? lineWidth,
+        double lineAlpha,
+        PresetShape preset,
+        IReadOnlyList<IReadOnlyList<(double X, double Y)>>? subpaths,
+        double rotation,
+        bool flipH,
+        bool flipV)
+    {
+        if (lineColor == null || lineWidth is not > 0)
+        {
+            return null;
+        }
+
+        if (wsp.GetFirstChild<WPS.TextBoxInfo2>() != null)
+        {
+            return null;
+        }
+
+        if (subpaths == null && !HasStrokeablePresetOutline(shapeProps))
+        {
+            return null;
+        }
+
+        return new()
+        {
+            WidthPoints = widthPoints,
+            HeightPoints = heightPoints,
+            RelativeHeight = positioning.RelativeHeight,
+            LayoutInCell = positioning.LayoutInCell,
+            HorizontalPositionPoints = positioning.HorizontalPositionPoints + offsetX,
+            VerticalPositionPoints = positioning.VerticalPositionPoints + offsetY,
+            HorizontalAnchor = positioning.HorizontalAnchor,
+            VerticalAnchor = positioning.VerticalAnchor,
+            BehindText = true,
+            LineColorHex = lineColor,
+            LineWidthPoints = lineWidth,
+            LineAlpha = lineAlpha,
+            Preset = preset,
+            Subpaths = subpaths,
+            RotationDegrees = rotation,
+            FlipHorizontal = flipH,
+            FlipVertical = flipV
+        };
     }
 
     /// <summary>
@@ -347,6 +409,23 @@ static class ShapeParser
     {
         var prstGeom = shapeProps?.GetFirstChild<A.PresetGeometry>();
         return prstGeom?.Preset?.Value == A.ShapeTypeValues.Line;
+    }
+
+    /// <summary>
+    /// Whether an outline-only shape WITHOUT parsed contours can stroke its geometry
+    /// faithfully: a plain rect/ellipse preset strokes as itself, but a custGeom or a
+    /// preset outside <see cref="PresetShapeGeometry"/>'s coverage (triangle etc.) would
+    /// stroke its bounding box — a frame Word doesn't draw.
+    /// </summary>
+    public static bool HasStrokeablePresetOutline(OpenXmlElement shapeProps)
+    {
+        if (shapeProps.GetFirstChild<A.CustomGeometry>() != null)
+        {
+            return false;
+        }
+
+        var prst = shapeProps.GetFirstChild<A.PresetGeometry>()?.Preset?.Value;
+        return prst == null || prst == A.ShapeTypeValues.Rectangle || prst == A.ShapeTypeValues.Ellipse;
     }
 
     /// <summary>
@@ -695,7 +774,8 @@ static class ShapeParser
             }
         }
 
-        return null;
+        return TryBuildOutlineOnlyShape(wsp, shapeProps, positioning, widthPt, heightPt,
+            xPt, yPt, lineColor, lineWidth, lineAlpha, preset, subpaths, rotation, flipH, flipV);
     }
 
     /// <summary>

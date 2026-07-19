@@ -7629,16 +7629,21 @@ sealed class DocumentParser(string defaultFont)
 
         // An image fill clips to the shape's real silhouette, so a preset beyond the enum's
         // Rect/Ellipse needs its built contours (newsletters/13's arch-top photo is a
-        // round2SameRect). Solid fills keep the Preset fast path — no contour churn there.
-        if (subpaths == null && imageData != null)
+        // round2SameRect). Stroke-only shapes need them too — the outline IS the preset's
+        // silhouette (letters/05's triangle). Solid fills keep the Preset fast path — no
+        // contour churn there.
+        if (subpaths == null && (imageData != null || fillColorHex == null))
         {
             subpaths = PresetShapeGeometry.TryBuild(
                 shapeProps.GetFirstChild<A.PresetGeometry>(), widthPt, heightPt);
         }
 
-        // A stroke-only shape with no custom-geometry path to stroke would fall back to a
-        // bounding-box outline — a border Word doesn't draw. Skip it.
-        if (fillColorHex == null && imageData == null && subpaths == null)
+        // A stroke-only shape whose geometry produced no contours can only stroke faithfully
+        // when it is a plain rect/ellipse preset (business/06's LOGO frame, labels/02's label
+        // borders); a custGeom (menus/04's arc-path doodles) or an unbuilt preset would stroke
+        // a bounding box Word doesn't draw.
+        if (fillColorHex == null && imageData == null && subpaths == null &&
+            !ShapeParser.HasStrokeablePresetOutline(shapeProps))
         {
             return null;
         }
