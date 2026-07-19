@@ -12,5 +12,12 @@ sealed class TableCell
     /// Sorted by <c>relativeHeight</c> (Word's z-space) at parse.
     /// </summary>
     public IReadOnlyList<DocumentElement> Floats { get; init; } = [];
+
+    /// <summary>
+    /// For each entry in <see cref="Floats"/>: the ordinal (paragraph count) of its anchor
+    /// paragraph within <see cref="Content"/>. Paragraph-relative vertical anchors resolve
+    /// against that paragraph's laid-out position; −1 falls back to the cell top.
+    /// </summary>
+    public IReadOnlyList<int> FloatAnchorParagraphOrdinals { get; init; } = [];
     public TableCellProperties Properties { get; init; } = new();
 }

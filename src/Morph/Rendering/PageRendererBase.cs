@@ -1481,12 +1481,12 @@ abstract class PageRendererBase(RenderContextBase context)
         // under the cell's content here, the rest after it (Word's layoutInCell semantics).
         // The reference frame is the cell's outer box (x/y), not the padded interior — Word
         // measures layoutInCell offsets from the cell edge.
-        RenderCellFloats(cell, x, y, behindText: true);
+        RenderCellFloats(cell, x, y, width, height, cellX + (float) padding.Left, cellWidth - (float) padding.Horizontal, cellY + (float) padding.Top, behindText: true);
 
         if (cell.Properties.TextDirection != CellTextDirection.LeftToRight)
         {
             RenderVerticalCellContent(cell, cellX, cellY, cellWidth, cellHeight, padding);
-            RenderCellFloats(cell, x, y, behindText: false);
+            RenderCellFloats(cell, x, y, width, height, cellX + (float) padding.Left, cellWidth - (float) padding.Horizontal, cellY + (float) padding.Top, behindText: false);
             return;
         }
 
@@ -1623,7 +1623,7 @@ abstract class PageRendererBase(RenderContextBase context)
         }
 
         context.CurrentY = savedY;
-        RenderCellFloats(cell, x, y, behindText: false);
+        RenderCellFloats(cell, x, y, width, height, contentX, contentWidth, cellY + (float) padding.Top, behindText: false);
     }
 
     /// <summary>
@@ -1633,7 +1633,7 @@ abstract class PageRendererBase(RenderContextBase context)
     /// escape the cell and keep their own page/margin resolution. The cursor is saved around the
     /// draw because the float renderers resolve Paragraph-relative anchors against CurrentY.
     /// </summary>
-    void RenderCellFloats(TableCell cell, float cellX, float cellY, bool behindText)
+    void RenderCellFloats(TableCell cell, float cellX, float cellY, float cellBoxWidth, float cellBoxHeight, float contentX, float contentWidth, float contentTop, bool behindText)
     {
         if (cell.Floats.Count == 0)
         {
@@ -1642,34 +1642,133 @@ abstract class PageRendererBase(RenderContextBase context)
 
         var savedY = context.CurrentY;
         context.CurrentY = cellY;
-        foreach (var element in cell.Floats)
+        float[]? paragraphTops = null;
+        for (var index = 0; index < cell.Floats.Count; index++)
         {
+            var element = cell.Floats[index];
+            var ordinal = index < cell.FloatAnchorParagraphOrdinals.Count ? cell.FloatAnchorParagraphOrdinals[index] : -1;
+            (float X, float Y) Place(VerticalAnchor verticalAnchor, double posH, double posV, double elementWidth, double elementHeight, double rotationDegrees = 0)
+            {
+                var targetX = cellX + (float) posH;
+
+                // Rotated elements resolve from the cell top: their stored box is the unrotated
+                // frame and Word positions the rotated result around its centre, so the upright
+                // paragraph-anchor walk misplaces them (letters/13's 90-degree vertical banner).
+                var verticalBase = rotationDegrees != 0
+                    ? cellY
+                    : CellFloatY(cell, verticalAnchor, ordinal, cellY, contentTop, contentWidth, ref paragraphTops);
+                var targetY = verticalBase + (float) posV;
+
+                // layoutInCell keeps the drawing INSIDE its cell (ECMA: "the object shall be
+                // positioned within the existing table cell") - Word pulls a PARAGRAPH-relative
+                // offset that would escape ABOVE the cell back to its top edge (brochures/07
+                // hangs its balloons 260pt above a bottom-of-cell paragraph; the clamp lands
+                // them at the cell's top). Margin/page-relative targets are left alone — a
+                // letterhead band at margin −735pt renders (clipped) where it says, matching
+                // Word (letters/13). Horizontal targets and the far edges are also unclamped:
+                // templates bleed drawings off a cell's left edge deliberately (brochures/04's
+                // panel photo at −16pt), drawings overflow cell bottoms routinely, and a
+                // sheet-spanning group anchored in the first cell keeps its children where they
+                // lie. Rotated elements skip the clamp: their box is the unrotated frame.
+                if (rotationDegrees == 0 && verticalAnchor == VerticalAnchor.Paragraph)
+                {
+                    targetY = Math.Max(cellY, targetY);
+                }
+
+                return (targetX, targetY);
+            }
+
             switch (element)
             {
                 case FloatingShapeElement {BehindText: var behind} shape when behind == behindText:
-                    RenderBackgroundShape(shape.LayoutInCell
-                        ? shape.WithAbsolutePosition(cellX + shape.HorizontalPositionPoints, cellY + shape.VerticalPositionPoints)
-                        : shape);
+                    if (shape.LayoutInCell)
+                    {
+                        var (shapeX, shapeY) = Place(shape.VerticalAnchor, shape.HorizontalPositionPoints, shape.VerticalPositionPoints, shape.WidthPoints, shape.HeightPoints, shape.RotationDegrees);
+                        RenderBackgroundShape(shape.WithAbsolutePosition(shapeX, shapeY));
+                    }
+                    else
+                    {
+                        RenderBackgroundShape(shape);
+                    }
+
                     break;
                 case FloatingImageElement {BehindText: var behind} image when behind == behindText:
-                    RenderFloatingImage(image.LayoutInCell
-                        ? image.WithAbsolutePosition(cellX + image.HorizontalPositionPoints, cellY + image.VerticalPositionPoints)
-                        : image);
+                    if (image.LayoutInCell)
+                    {
+                        var (imageX, imageY) = Place(image.VerticalAnchor, image.HorizontalPositionPoints, image.VerticalPositionPoints, image.WidthPoints, image.HeightPoints, image.RotationDegrees);
+                        RenderFloatingImage(image.WithAbsolutePosition(imageX, imageY));
+                    }
+                    else
+                    {
+                        RenderFloatingImage(image);
+                    }
+
                     break;
                 case FloatingTextBoxElement {BehindText: var behind} textBox when behind == behindText:
-                    RenderFloatingTextBox(textBox.LayoutInCell
-                        ? textBox.WithAbsolutePosition(cellX + textBox.HorizontalPositionPoints, cellY + textBox.VerticalPositionPoints)
-                        : textBox);
+                    if (textBox.LayoutInCell)
+                    {
+                        var (boxX, boxY) = Place(textBox.VerticalAnchor, textBox.HorizontalPositionPoints, textBox.VerticalPositionPoints, textBox.WidthPoints, textBox.HeightPoints, textBox.RotationDegrees);
+                        RenderFloatingTextBox(textBox.WithAbsolutePosition(boxX, boxY));
+                    }
+                    else
+                    {
+                        RenderFloatingTextBox(textBox);
+                    }
+
                     break;
                 case FloatingWordArtElement {BehindText: var behind} wordArt when behind == behindText:
-                    RenderFloatingWordArt(wordArt.LayoutInCell
-                        ? wordArt.WithAbsolutePosition(cellX + wordArt.HorizontalPositionPoints, cellY + wordArt.VerticalPositionPoints)
-                        : wordArt);
+                    if (wordArt.LayoutInCell)
+                    {
+                        var (wordArtX, wordArtY) = Place(wordArt.VerticalAnchor, wordArt.HorizontalPositionPoints, wordArt.VerticalPositionPoints, wordArt.WidthPoints, wordArt.HeightPoints);
+                        RenderFloatingWordArt(wordArt.WithAbsolutePosition(wordArtX, wordArtY));
+                    }
+                    else
+                    {
+                        RenderFloatingWordArt(wordArt);
+                    }
+
                     break;
             }
         }
 
         context.CurrentY = savedY;
+    }
+
+    /// <summary>
+    /// The vertical base a cell float's offset adds to: paragraph-relative anchors resolve
+    /// against their anchor paragraph's laid-out top inside the cell (brochures/07 hangs its
+    /// balloons photo 260pt above the cell's bottom paragraph); everything else uses the cell
+    /// top. Paragraph tops are measured lazily once per cell and cached across the batch.
+    /// </summary>
+
+
+    float CellFloatY(TableCell cell, VerticalAnchor anchor, int ordinal, float cellY, float contentTop, float contentWidth, ref float[]? paragraphTops)
+    {
+        if (anchor != VerticalAnchor.Paragraph || ordinal < 0)
+        {
+            return cellY;
+        }
+
+        if (paragraphTops == null)
+        {
+            var tops = new List<float>();
+            var runningY = contentTop;
+            foreach (var element in cell.Content)
+            {
+                if (element is ParagraphElement paragraph)
+                {
+                    tops.Add(runningY);
+                    runningY += Measurer.MeasureParagraphHeightWithWidth(paragraph, contentWidth);
+                }
+            }
+
+            // One trailing entry so an ordinal one past the last paragraph (a float emitted
+            // after every paragraph) anchors at the cell content's end.
+            tops.Add(runningY);
+            paragraphTops = [.. tops];
+        }
+
+        return paragraphTops[Math.Min(ordinal, paragraphTops.Length - 1)];
     }
 
     // A paragraph contributes its spacing-after only when it lays out at least one real line —
