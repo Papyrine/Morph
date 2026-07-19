@@ -2451,7 +2451,50 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         var destRect = new SKRect(bounds.PixelX, bounds.PixelY, bounds.PixelX + bounds.PixelWidth, bounds.PixelY + bounds.PixelHeight);
 
+        // pic:spPr geometry crop (round photos, custGeom cuts). The clip sits in page space,
+        // so rotated pictures (whose bitmap turns inside DrawBlockImage) are left unclipped.
+        var clipGeometry = (image.ClipToEllipse || image.ClipSubpaths != null) &&
+                           Math.Abs(image.RotationDegrees) < 0.01;
+        if (clipGeometry)
+        {
+            currentCanvas.Save();
+            using var clipPath = new SKPath();
+            if (image.ClipToEllipse)
+            {
+                clipPath.AddOval(destRect);
+            }
+            else
+            {
+                foreach (var contour in image.ClipSubpaths!)
+                {
+                    for (var pointIndex = 0; pointIndex < contour.Count; pointIndex++)
+                    {
+                        var (unitX, unitY) = contour[pointIndex];
+                        var pointX = destRect.Left + (float) unitX * destRect.Width;
+                        var pointY = destRect.Top + (float) unitY * destRect.Height;
+                        if (pointIndex == 0)
+                        {
+                            clipPath.MoveTo(pointX, pointY);
+                        }
+                        else
+                        {
+                            clipPath.LineTo(pointX, pointY);
+                        }
+                    }
+
+                    clipPath.Close();
+                }
+            }
+
+            currentCanvas.ClipPath(clipPath, antialias: true);
+        }
+
         DrawBlockImage(image.ImageData, image.ContentType, destRect, (float) image.RotationDegrees, image.Crop, image.ColorEffect, image.FlipHorizontal, image.FlipVertical, image.DuotoneColorHex);
+
+        if (clipGeometry)
+        {
+            currentCanvas.Restore();
+        }
     }
 
     protected override void RenderFloatingTextBox(FloatingTextBoxElement textBox)

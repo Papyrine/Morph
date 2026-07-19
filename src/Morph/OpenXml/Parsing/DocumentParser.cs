@@ -6395,6 +6395,12 @@ sealed class DocumentParser(string defaultFont)
             var rotationDegrees = ReadRotationDegrees(xfrm) + groupRotationDegrees;
             var (flipHorizontal, flipVertical) = ReadFlips(xfrm);
 
+            // pic:spPr geometry = Word's picture-style crop shape: an ellipse makes the round
+            // photo (brochures/03), a custGeom an arbitrary crop. Rect (the default) is no crop.
+            var clipToEllipse = spPr.Elements().FirstOrDefault(_ => _.LocalName == "prstGeom")
+                ?.GetAttributes().AttributeValue("prst") == "ellipse";
+            var clipSubpaths = ShapeParser.ExtractSubpaths(spPr);
+
             // Find the blip (image reference)
             var blipFill = pic.Elements().FirstOrDefault(_ => _.LocalName == "blipFill");
             if (blipFill == null)
@@ -6496,7 +6502,7 @@ sealed class DocumentParser(string defaultFont)
             }
             else
             {
-                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees, flipHorizontal, flipVertical, crop, rasterFallbackData, rasterFallbackContentType, description, colorEffect, duotoneColorHex);
+                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees, flipHorizontal, flipVertical, crop, rasterFallbackData, rasterFallbackContentType, description, colorEffect, duotoneColorHex, clipToEllipse, clipSubpaths);
                 result.Add(floatingImage);
                 childSources?[floatingImage] = pic;
             }
@@ -6508,7 +6514,7 @@ sealed class DocumentParser(string defaultFont)
     /// <summary>
     /// Parses an anchored image with additional X/Y offset within a group.
     /// </summary>
-    static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, bool flipHorizontal = false, bool flipVertical = false, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null, string? description = null, BlipColorEffect colorEffect = BlipColorEffect.None, string? duotoneColorHex = null)
+    static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, bool flipHorizontal = false, bool flipVertical = false, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null, string? description = null, BlipColorEffect colorEffect = BlipColorEffect.None, string? duotoneColorHex = null, bool clipToEllipse = false, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? clipSubpaths = null)
     {
         var positioning = anchor.ParsePositioning(offsetXPoints, offsetYPoints);
         var wrap = ParseWrap(anchor);
@@ -6539,6 +6545,8 @@ sealed class DocumentParser(string defaultFont)
             FlipHorizontal = flipHorizontal,
             FlipVertical = flipVertical,
             Crop = crop,
+            ClipToEllipse = clipToEllipse,
+            ClipSubpaths = clipSubpaths,
             WidthPercent = positioning.WidthPercent,
             WidthRelativeFrom = positioning.WidthRelativeFrom,
             HeightPercent = positioning.HeightPercent,

@@ -1404,7 +1404,7 @@ Images embedded in the text flow, advancing with surrounding content.
 Images with absolute positioning and text wrapping behavior.
 
 - **OOXML**: `w:drawing` > `wp:anchor` with positioning and wrapping elements
-- **Model**: `FloatingImageElement` with anchor enums, wrap type, position offsets
+- **Model**: `FloatingImageElement` with anchor enums, wrap type, position offsets The picture's `pic:spPr` geometry crop rides along as `ClipToEllipse`/`ClipSubpaths` — Word's circular picture style (brochures/03) clips the draw in Skia (`ClipPath`), PDF (`IntersectClip`) and ImageSharp (pre-clipped ellipse composite; custGeom unclipped there); rotated pictures exempt.
 - **Test**: `multiple_images/`
 
 > **Contributors**: Horizontal anchors: Page, Margin, Column, Character. Vertical anchors: Page, Margin, Paragraph, Line. Behind-text flag controls rendering layer. Floating images don't advance `CurrentY`.

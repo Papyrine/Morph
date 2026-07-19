@@ -1185,6 +1185,36 @@ sealed class PdfPageRenderer : PageRendererBase
             DrawRaster(image.ImageData, image.ContentType, image.RasterFallbackData, image.RasterFallbackContentType, bounds.X, bounds.Y, bounds.PixelWidth, bounds.PixelHeight, image.Crop);
             Graphics.Restore(state);
         }
+        else if (image.ClipToEllipse || image.ClipSubpaths != null)
+        {
+            // pic:spPr geometry crop (round photos, custGeom cuts), page-space clip.
+            var state = Graphics.Save();
+            var clipPath = new XGraphicsPath();
+            if (image.ClipToEllipse)
+            {
+                clipPath.AddEllipse(bounds.X, bounds.Y, bounds.PixelWidth, bounds.PixelHeight);
+            }
+            else
+            {
+                foreach (var contour in image.ClipSubpaths!)
+                {
+                    var points = new XPoint[contour.Count];
+                    for (var pointIndex = 0; pointIndex < contour.Count; pointIndex++)
+                    {
+                        var (unitX, unitY) = contour[pointIndex];
+                        points[pointIndex] = new(
+                            bounds.X + unitX * bounds.PixelWidth,
+                            bounds.Y + unitY * bounds.PixelHeight);
+                    }
+
+                    clipPath.AddPolygon(points);
+                }
+            }
+
+            Graphics.IntersectClip(clipPath);
+            DrawRaster(image.ImageData, image.ContentType, image.RasterFallbackData, image.RasterFallbackContentType, bounds.X, bounds.Y, bounds.PixelWidth, bounds.PixelHeight, image.Crop);
+            Graphics.Restore(state);
+        }
         else
         {
             DrawRaster(image.ImageData, image.ContentType, image.RasterFallbackData, image.RasterFallbackContentType, bounds.X, bounds.Y, bounds.PixelWidth, bounds.PixelHeight, image.Crop);
