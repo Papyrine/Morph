@@ -34,6 +34,10 @@ looks up `U+2022` etc. and gets a glyph whose visual weight matches Word.
 | U+25CB | `○` | Hollow circle (Symbol) | Symbol | 0xF0A8 |
 | U+25CF | `●` | Filled circle (Symbol) | Symbol | 0xF06C |
 | U+2713 | `✓` | Checkmark (Wingdings) | Wingdings | 0xF0FC |
+| U+25B8 | `▸` | Small right triangle (drawn) | synthesized | — |
+| U+25BA | `►` | Right pointer (drawn) | synthesized | — |
+| U+2610 | `☐` | Legacy FORMCHECKBOX unchecked (drawn; box ≈1.15em dipping below baseline, matching Word's field rendering) | synthesized | — |
+| U+2612 | `☒` | Legacy FORMCHECKBOX checked (drawn) | synthesized | — |
 
 ## Licensing
 

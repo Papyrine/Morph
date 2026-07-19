@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Form with Checkboxes\nOption 1 (unchecked)\nOption 2 (checked)"
+        "Text": "Form with Checkboxes\n☐ Option 1 (unchecked)\n☒ Option 2 (checked)"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0041,
-      "Ssim": 0.9928,
+      "ErrorMetric": 0.0038,
+      "Ssim": 0.995,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

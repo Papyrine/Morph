@@ -1825,7 +1825,10 @@ XPath binding that wires an SDT to a custom-XML data island. The bound value is 
 
 ### 7.2 Legacy Form Fields
 
-Legacy form fields from Word 97-2003, using `w:fldChar` / `w:ffData` markup.
+Legacy form fields from Word 97-2003, using `w:fldChar` / `w:ffData` markup. `w:ffData` nests
+INSIDE the begin `w:fldChar`; `ParseFormField` reads it there (with a run-level fallback).
+Rendering follows Word's PRINT layout: only the checkbox draws a widget glyph — text and
+dropdown fields print their cached result text inline through the ordinary field plumbing.
 
 Model: `TextFormFieldElement`, `CheckBoxFormFieldElement`, `DropDownFormFieldElement` in `DocumentElements.cs`.
 
@@ -1836,6 +1839,7 @@ Text input form fields with type variants (regular, number, date, current date/t
 
 - **OOXML**: `w:ffData` > `w:textInput` with `w:type`
 - **Model**: `TextFormFieldElement` with `TextFormFieldType` enum, `MaxLength`, `DefaultText`, `Value`
+- **Render**: the cached result runs between the field's separate/end flow inline — "Name: Enter your name" on one line, exactly Word's print output. No block widget is emitted (drawing one double-rendered the value).
 - **Test**: `form_text_fields/`
 
 
@@ -1845,6 +1849,7 @@ Checkbox form fields with checked/unchecked state.
 
 - **OOXML**: `w:ffData` > `w:checkBox` with `w:checked` / `w:default`
 - **Model**: `CheckBoxFormFieldElement` with `Checked` state
+- **Render**: an INLINE run — ☐ U+2610 / ☒ U+2612 from the embedded `Morph Bullets` face (box ≈1.15em dipping below the baseline, matching Word's field rendering), sized by the ffData half-point size when present. Flows with the label text like Word ("☐ Option 1").
 - **Test**: `form_checkboxes/`
 
 
@@ -1854,6 +1859,7 @@ Dropdown form fields with a list of options and selected index.
 
 - **OOXML**: `w:ffData` > `w:ddList` with `w:listEntry` items and `w:result`
 - **Model**: `DropDownFormFieldElement` with `Items` list and `SelectedIndex`
+- **Render**: like text fields, the selected entry's cached text flows inline; no dropdown chrome in print output.
 - **Test**: `form_dropdowns/`
 
 ---
