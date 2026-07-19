@@ -7077,6 +7077,44 @@ sealed class DocumentParser(string defaultFont)
     }
 
     /// <summary>
+    /// Resolves <c>a:grpFill</c>: a group child deferring its fill to the group takes the fill of
+    /// the nearest ancestor group that carries one. Wrapper groups without any fill element are
+    /// looked through (labels/07 nests its collage clusters two wrappers deep); an ancestor with a
+    /// concrete non-solid fill (gradient/blip/noFill) stops the walk — the kind is unsupported by
+    /// this path and inheriting from higher up would paint the wrong colour.
+    /// </summary>
+    static A.SolidFill? ResolveGroupFill(WPS.WordprocessingShape wsp)
+    {
+        foreach (var ancestor in wsp.Ancestors())
+        {
+            if (ancestor is not WPG.GroupShape && ancestor is not WPG.WordprocessingGroup)
+            {
+                continue;
+            }
+
+            var groupProperties = ancestor.GetFirstChild<WPG.GroupShapeProperties>();
+            if (groupProperties == null)
+            {
+                continue;
+            }
+
+            if (groupProperties.GetFirstChild<A.SolidFill>() is { } groupFill)
+            {
+                return groupFill;
+            }
+
+            if (groupProperties.GetFirstChild<A.GradientFill>() != null ||
+                groupProperties.GetFirstChild<A.BlipFill>() != null ||
+                groupProperties.GetFirstChild<A.NoFill>() != null)
+            {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Parses a solid fill shape (no text box) as a FloatingShapeElement.
     /// </summary>
     FloatingShapeElement? ParseSolidFillShape(
@@ -7125,8 +7163,14 @@ sealed class DocumentParser(string defaultFont)
         // existed because we would otherwise have drawn the bounding rect as a solid colour
         // overlay.
 
-        // Check for solid fill in shape properties
+        // Check for solid fill in shape properties. a:grpFill defers to the ancestor group's
+        // fill (labels/07's 27 collage pieces inherit their cluster group's accent colour).
         var solidFill = shapeProps.GetFirstChild<A.SolidFill>();
+        if (solidFill == null && shapeProps.GetFirstChild<A.GroupFill>() != null)
+        {
+            solidFill = ResolveGroupFill(wsp);
+        }
+
         string? fillColorHex = null;
         var fillAlpha = 1.0;
 
