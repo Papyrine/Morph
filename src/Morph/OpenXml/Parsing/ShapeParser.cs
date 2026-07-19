@@ -72,11 +72,21 @@ static class ShapeParser
             var scaleX = (extent.Cx ?? 1) / (double) chExtCx;
             var scaleY = (extent.Cy ?? 1) / (double) chExtCy;
 
+            // The group's frame in anchor-relative points — children clip to it (Word cuts a
+            // group's children at the group's extent box).
+            (double Left, double Top, double Width, double Height)? groupFrame =
+                extent.Cx != null && extent.Cy != null
+                    ? (positioning.HorizontalPositionPoints,
+                        positioning.VerticalPositionPoints,
+                        ((long) extent.Cx.Value).EmuToPoints(),
+                        ((long) extent.Cy.Value).EmuToPoints())
+                    : null;
+
             // Process ALL non-decorative shapes in the group
             foreach (var wsp in wgp.Descendants<WPS.WordprocessingShape>())
             {
                 var shapeElement = ParseGroupedShape(wsp, themeColors, positioning,
-                    chOffX, chOffY, scaleX, scaleY, mainPart, partBytes);
+                    chOffX, chOffY, scaleX, scaleY, mainPart, partBytes, groupFrame);
                 if (shapeElement != null)
                 {
                     result.Add(shapeElement);
@@ -536,7 +546,8 @@ static class ShapeParser
         long chOffX, long chOffY,
         double scaleX, double scaleY,
         MainDocumentPart? mainPart,
-        Func<OpenXmlPart, byte[]>? partBytes)
+        Func<OpenXmlPart, byte[]>? partBytes,
+        (double Left, double Top, double Width, double Height)? groupFrame = null)
     {
         var shapeProps = wsp.GetFirstChild<WPS.ShapeProperties>();
         if (shapeProps == null)
@@ -587,6 +598,33 @@ static class ShapeParser
         var subpaths = ExtractSubpaths(shapeProps)
                        ?? PresetShapeGeometry.TryBuild(shapeProps.GetFirstChild<A.PresetGeometry>(), widthPt, heightPt);
         var (rotation, flipH, flipV) = ExtractTransform(xfrm);
+
+        // Word cuts group children at the group's frame; both boxes share the anchor's
+        // coordinate space, so the clip is plain geometry on the unit-square contours.
+        // Rotated shapes' contours turn about their centre at render and are left unclipped.
+        if (groupFrame is { } frame && rotation == 0)
+        {
+            var contours = subpaths ?? [[(0d, 0d), (1d, 0d), (1d, 1d), (0d, 1d)]];
+            var clipped = GroupFrameClipper.Clip(
+                contours,
+                positioning.HorizontalPositionPoints + xPt,
+                positioning.VerticalPositionPoints + yPt,
+                widthPt,
+                heightPt,
+                frame.Left,
+                frame.Top,
+                frame.Width,
+                frame.Height);
+            if (clipped.Count == 0)
+            {
+                return null;
+            }
+
+            if (!ReferenceEquals(clipped, contours))
+            {
+                subpaths = clipped;
+            }
+        }
 
         // Try solid fill first
         var solidFill = shapeProps.GetFirstChild<A.SolidFill>();
