@@ -15,6 +15,13 @@ internal readonly struct AnchorPositioning
     /// a sibling anchored later in the document); behind-text vs in-front is a separate flag.
     /// </summary>
     public uint RelativeHeight { get; init; }
+
+    /// <summary>
+    /// <c>wp:anchor@layoutInCell</c> (default true): when the anchor sits inside a table cell,
+    /// the drawing positions relative to that CELL — page/margin-relative anchors resolve
+    /// against the cell's frame, not the real page. False escapes the cell.
+    /// </summary>
+    public bool LayoutInCell { get; init; }
     public double? WidthPercent { get; init; }
     public SizeRelativeFrom WidthRelativeFrom { get; init; }
     public double? HeightPercent { get; init; }
