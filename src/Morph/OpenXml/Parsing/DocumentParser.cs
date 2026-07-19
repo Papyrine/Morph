@@ -5059,6 +5059,18 @@ sealed class DocumentParser(string defaultFont)
                             // they can safely switch owner.
                             var cellGroup = hasGroup && para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any();
 
+                            // ShapeParser's flat anchor-extent scaling is only meaningful when the
+                            // group's nesting is identity (chOff==off, chExt==ext, no rotation) —
+                            // Word's usual pattern, where a child's raw EMU coordinates already
+                            // live in the root space. A NON-identity nested grpSp rescales or
+                            // rotates its children (labels/16's bear sub-groups scale 1.55×), and
+                            // SP's per-child flat math puts them at garbage positions that the
+                            // size-sensitive dedup can't match — the walk's composed nested
+                            // transform is the only correct owner there, exactly as for cell
+                            // groups.
+                            var nonIdentityNesting = hasGroup && HasNonIdentityNestedGroup(drawing);
+                            var walkOwnsChildren = cellGroup || nonIdentityNesting;
+
                             // Also check for images in the same drawing/group (e.g., decorative overlays, SVG backgrounds)
                             var childSources = drawingChildSources;
                             var overlayImages = ParseDrawingElements(drawing, mainPart, childSources);
@@ -5075,7 +5087,7 @@ sealed class DocumentParser(string defaultFont)
                                 // actually emitted — for cell-anchored groups it is skipped above,
                                 // and deduping against it here would silently eat the only copy
                                 // (labels/14's navy card bodies matched ShapeParser's twins).
-                                if (!cellGroup &&
+                                if (!walkOwnsChildren &&
                                     shape is FloatingShapeElement fse &&
                                     shapeElements.Any(existing =>
                                         existing is FloatingShapeElement e &&
@@ -5099,7 +5111,16 @@ sealed class DocumentParser(string defaultFont)
                             // OrderBy is stable, and elements without a mapped source (txbx-nested
                             // pictures) keep their relative order at the end.
                             var groupForOrder = drawing.Descendants<WPG.WordprocessingGroup>().FirstOrDefault();
-                            var groupChildren = (cellGroup ? [] : shapeElements.Cast<DocumentElement>())
+                            // The walk never parses blip-filled (image-textured) shapes — for
+                            // non-identity groups keep ShapeParser's image shapes (their sub-group
+                            // may itself be identity-nested, as newsletters/12's photo is) while
+                            // its mis-scaled solid fills stay suppressed. Cell groups keep the
+                            // established full suppression.
+                            var groupChildren = (cellGroup
+                                    ? []
+                                    : nonIdentityNesting
+                                        ? shapeElements.Where(_ => _.ImageData != null).Cast<DocumentElement>()
+                                        : shapeElements.Cast<DocumentElement>())
                                 .Concat(overlayImages)
                                 .Concat(walkSurvivors);
                             if (groupForOrder != null)
@@ -5980,6 +6001,57 @@ sealed class DocumentParser(string defaultFont)
     /// a shape's <c>wps:txbx</c> can hold its own drawings, which belong to the text box rather
     /// than to this group's coordinate space.
     /// </summary>
+    /// <summary>
+    /// True when any nested <c>wpg:grpSp</c> in the drawing remaps its child space — offset,
+    /// scale (chOff/chExt differing from off/ext) or rotation. ShapeParser's flat scaling is
+    /// only valid without such remapping.
+    /// </summary>
+    static bool HasNonIdentityNestedGroup(Drawing drawing)
+    {
+        foreach (var nested in drawing.Descendants())
+        {
+            if (nested.LocalName != "grpSp")
+            {
+                continue;
+            }
+
+            var xfrm = nested.Elements().FirstOrDefault(_ => _.LocalName == "grpSpPr")
+                ?.Elements().FirstOrDefault(_ => _.LocalName == "xfrm");
+            if (xfrm == null)
+            {
+                continue;
+            }
+
+            if (xfrm.GetAttributes().AttributeValue("rot") is {Length: > 0})
+            {
+                return true;
+            }
+
+            var off = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "off");
+            var ext = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "ext");
+            var chOff = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "chOff");
+            var chExt = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "chExt");
+            if (off == null || ext == null || chOff == null || chExt == null)
+            {
+                continue;
+            }
+
+            var offAttributes = off.GetAttributes();
+            var chOffAttributes = chOff.GetAttributes();
+            var extAttributes = ext.GetAttributes();
+            var chExtAttributes = chExt.GetAttributes();
+            if (offAttributes.AttributeValue("x") != chOffAttributes.AttributeValue("x") ||
+                offAttributes.AttributeValue("y") != chOffAttributes.AttributeValue("y") ||
+                extAttributes.AttributeValue("cx") != chExtAttributes.AttributeValue("cx") ||
+                extAttributes.AttributeValue("cy") != chExtAttributes.AttributeValue("cy"))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     static IEnumerable<OpenXmlElement> GroupDrawables(OpenXmlElement group)
     {
         foreach (var child in group.ChildElements)
