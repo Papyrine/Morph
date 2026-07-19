@@ -990,8 +990,8 @@ PDF: [Morph PDF](business-plans/13/pdf_result.verified.pdf)
 | <img src="business-plans/15/expected_0017.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0017.verified.png" width="500"> |
 | **Page 18** | **Page 18** |
 | <img src="business-plans/15/expected_0018.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0018.verified.png" width="500"> |
-| **Page 19** | **Page 19** |
-| <img src="business-plans/15/expected_0019.png" width="500"> | <img src="business-plans/15/pdf_result%23page_0019.verified.png" width="500"> |
+| **Page 19** | **Page 19** _(no page)_ |
+| <img src="business-plans/15/expected_0019.png" width="500"> |  |
 
 PDF: [Morph PDF](business-plans/15/pdf_result.verified.pdf)
 
