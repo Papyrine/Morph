@@ -87,10 +87,6 @@ sealed class PdfPageRenderer : PageRendererBase
             }
 
             var element = elements[index];
-            if (element is FloatingShapeElement dbgShape)
-            {
-                Console.Error.WriteLine($"DBGQ shape pos=({dbgShape.HorizontalPositionPoints:0.#},{dbgShape.VerticalPositionPoints:0.#}) size=({dbgShape.WidthPoints:0.#}x{dbgShape.HeightPoints:0.#}) fill={dbgShape.FillColorHex} rh={dbgShape.RelativeHeight}");
-            }
 
             if (element is FloatingShapeElement {BehindText: true} backgroundShape)
             {
