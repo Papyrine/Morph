@@ -43,7 +43,7 @@ olive quote box, newsletters/12's purple dash overlay, menus/02's dark burst, re
 circles), with two co-requisites: front shapes take the same `AdvanceToBackgroundsTargetPage`
 page-advance as behind ones (a front shape anchored to a continuous-section paragraph that
 overflows must follow its content to the next page), and the empty-anchor-paragraph rule counts
-ANY `FloatingShapeElement`, not just behind-text ones — otherwise routing a front shape through
+ANY `FloatingShapeElement`, not only behind-text ones — otherwise routing a front shape through
 the group branch swallowed its anchor paragraph's line and shifted the whole flow.
 
 Cell-anchored floats additionally detach into `TableCell.Floats` and render from the shared
