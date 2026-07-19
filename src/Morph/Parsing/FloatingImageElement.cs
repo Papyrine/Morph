@@ -96,6 +96,9 @@ sealed class FloatingImageElement : DocumentElement
     /// <summary>The duotone ramp's dark end (theme-resolved hex); see <see cref="ImageElement.DuotoneColorHex"/>.</summary>
     public string? DuotoneColorHex { get; init; }
 
+    /// <summary>The duotone ramp's light end; see <see cref="ImageElement.DuotoneLightColorHex"/>.</summary>
+    public string? DuotoneLightColorHex { get; init; }
+
     /// <summary>
     /// Width as a fraction (0..1) of <see cref="WidthRelativeFrom"/>, parsed from
     /// <c>wp14:sizeRelH/wp14:pctWidth</c>. Null when no percentage sizing is present.
@@ -169,6 +172,7 @@ sealed class FloatingImageElement : DocumentElement
             ClipSubpaths = ClipSubpaths,
             ColorEffect = ColorEffect,
             DuotoneColorHex = DuotoneColorHex,
+            DuotoneLightColorHex = DuotoneLightColorHex,
             WidthPercent = WidthPercent,
             WidthRelativeFrom = WidthRelativeFrom,
             HeightPercent = HeightPercent,

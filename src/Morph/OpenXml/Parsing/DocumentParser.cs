@@ -6353,11 +6353,11 @@ sealed class DocumentParser(string defaultFont)
         return LigatureMode.Standard;
     }
 
-    internal static (BlipColorEffect Effect, string? DuotoneColorHex) ReadBlipColorEffect(OpenXmlElement? blip, ThemeColors? themeColors)
+    internal static (BlipColorEffect Effect, string? DuotoneColorHex, string? DuotoneLightColorHex) ReadBlipColorEffect(OpenXmlElement? blip, ThemeColors? themeColors)
     {
         if (blip == null)
         {
-            return (BlipColorEffect.None, null);
+            return (BlipColorEffect.None, null, null);
         }
 
         // a:blip can carry one or more colour-transform children. Pick the most visible one.
@@ -6366,48 +6366,76 @@ sealed class DocumentParser(string defaultFont)
             switch (child.LocalName)
             {
                 case "grayscl":
-                    return (BlipColorEffect.Grayscale, null);
+                    return (BlipColorEffect.Grayscale, null, null);
                 case "duotone":
-                    return (BlipColorEffect.Duotone, ResolveDuotoneDarkColor(child, themeColors));
+                    var (darkHex, lightHex) = ResolveDuotoneColors(child, themeColors);
+                    return (BlipColorEffect.Duotone, darkHex, lightHex);
                 case "lum":
                     // a:lum bright="N" — N>0 means washout (lighten), N<0 means darken.
                     var brightAttribute = child.AttributeValue("bright");
                     if (int.TryParse(brightAttribute, out var bright) && bright > 0)
                     {
-                        return (BlipColorEffect.Washout, null);
+                        return (BlipColorEffect.Washout, null, null);
                     }
 
                     break;
             }
         }
 
-        return (BlipColorEffect.None, null);
+        return (BlipColorEffect.None, null, null);
     }
 
-    // Word's Recolor gallery emits a:duotone as (darkColor, white): the image's luminance maps
-    // onto a dark→white ramp. The dark end is the first resolvable colour child (the trailing
-    // prstClr white is the ramp's light end). Null → renderers fall back to greyscale.
-    static string? ResolveDuotoneDarkColor(OpenXmlElement duotone, ThemeColors? themeColors)
+    // a:duotone carries exactly two colour children: luminance maps onto a ramp from the FIRST
+    // (shadow end) to the SECOND (highlight end). Word's Recolor gallery emits (darkColor,
+    // white); letters/02's frame instead pairs prstClr black with a tinted accent — treating
+    // the first RESOLVABLE colour as the dark end painted that frame with the highlight
+    // colour. Each child therefore consumes its position even when its colour can't be
+    // resolved; renderers default an unresolved dark end to black and light end to white.
+    static (string? Dark, string? Light) ResolveDuotoneColors(OpenXmlElement duotone, ThemeColors? themeColors)
     {
+        string? dark = null, light = null;
+        var position = 0;
         foreach (var colorChild in duotone.Elements())
         {
+            string? resolved = null;
             switch (colorChild)
             {
                 case A.RgbColorModelHex rgb when rgb.Val?.HasValue == true:
-                    return ShapeParser.ApplyLiteralColorTransforms(rgb.Val.Value!, rgb);
+                    resolved = ShapeParser.ApplyLiteralColorTransforms(rgb.Val.Value!, rgb);
+                    break;
                 case A.SchemeColor scheme when scheme.Val?.HasValue == true && themeColors != null:
                     var schemeValue = ((IEnumValue) scheme.Val.Value).Value;
-                    var resolved = themeColors.ResolveColor(schemeValue, ShapeParser.ExtractColorTransforms(scheme));
-                    if (resolved != null)
+                    resolved = themeColors.ResolveColor(schemeValue, ShapeParser.ExtractColorTransforms(scheme));
+                    break;
+                case A.PresetColor preset when preset.Val?.HasValue == true:
+                    // The two presets the corpus uses; anything else keeps the slot's default.
+                    if (preset.Val.Value == A.PresetColorValues.Black)
                     {
-                        return resolved;
+                        resolved = "000000";
+                    }
+                    else if (preset.Val.Value == A.PresetColorValues.White)
+                    {
+                        resolved = "FFFFFF";
                     }
 
                     break;
+                default:
+                    continue;
             }
+
+            if (position == 0)
+            {
+                dark = resolved;
+            }
+            else if (position == 1)
+            {
+                light = resolved;
+            }
+
+            position++;
         }
 
-        return null;
+        return (dark, light);
     }
 
     static ImageCrop? ReadCrop(OpenXmlElement blipFill)
@@ -6684,7 +6712,7 @@ sealed class DocumentParser(string defaultFont)
                 continue;
             }
 
-            var (colorEffect, duotoneColorHex) = ReadBlipColorEffect(blip, currentThemeColors);
+            var (colorEffect, duotoneColorHex, duotoneLightColorHex) = ReadBlipColorEffect(blip, currentThemeColors);
             var description = ReadImageDescription(pic, drawing);
 
             // Create the image element
@@ -6703,6 +6731,7 @@ sealed class DocumentParser(string defaultFont)
                     Crop = crop,
                     ColorEffect = colorEffect,
                     DuotoneColorHex = duotoneColorHex,
+                    DuotoneLightColorHex = duotoneLightColorHex,
                     RasterFallbackData = rasterFallbackData,
                     RasterFallbackContentType = rasterFallbackContentType
                 };
@@ -6711,7 +6740,7 @@ sealed class DocumentParser(string defaultFont)
             }
             else
             {
-                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees, flipHorizontal, flipVertical, crop, rasterFallbackData, rasterFallbackContentType, description, colorEffect, duotoneColorHex, clipToEllipse, clipSubpaths);
+                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees, flipHorizontal, flipVertical, crop, rasterFallbackData, rasterFallbackContentType, description, colorEffect, duotoneColorHex, duotoneLightColorHex, clipToEllipse, clipSubpaths);
                 result.Add(floatingImage);
                 childSources?[floatingImage] = pic;
             }
@@ -6723,7 +6752,7 @@ sealed class DocumentParser(string defaultFont)
     /// <summary>
     /// Parses an anchored image with additional X/Y offset within a group.
     /// </summary>
-    static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, bool flipHorizontal = false, bool flipVertical = false, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null, string? description = null, BlipColorEffect colorEffect = BlipColorEffect.None, string? duotoneColorHex = null, bool clipToEllipse = false, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? clipSubpaths = null)
+    static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, bool flipHorizontal = false, bool flipVertical = false, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null, string? description = null, BlipColorEffect colorEffect = BlipColorEffect.None, string? duotoneColorHex = null, string? duotoneLightColorHex = null, bool clipToEllipse = false, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? clipSubpaths = null)
     {
         var positioning = anchor.ParsePositioning(offsetXPoints, offsetYPoints);
         var wrap = ParseWrap(anchor);
@@ -6737,6 +6766,7 @@ sealed class DocumentParser(string defaultFont)
             Description = description,
             ColorEffect = colorEffect,
             DuotoneColorHex = duotoneColorHex,
+            DuotoneLightColorHex = duotoneLightColorHex,
             RelativeHeight = positioning.RelativeHeight,
             LayoutInCell = positioning.LayoutInCell,
             HorizontalPositionPoints = positioning.HorizontalPositionPoints,

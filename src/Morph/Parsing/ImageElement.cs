@@ -38,8 +38,13 @@ sealed class ImageElement : DocumentElement
 
     /// <summary>The duotone ramp's dark end (theme-resolved hex). Word's Recolor gallery emits
     /// <c>a:duotone</c> as (darkColor, white): image luminance maps onto a dark→white ramp.
-    /// Null when the effect isn't duotone or the colour couldn't be resolved (renders greyscale).</summary>
+    /// Null when the effect isn't duotone or the colour couldn't be resolved (black assumed
+    /// when the light end resolved — letters/02 pairs prstClr black with a tinted accent).</summary>
     public string? DuotoneColorHex { get; init; }
+
+    /// <summary>The duotone ramp's light end (theme-resolved hex). Null = white, which keeps
+    /// the Recolor-gallery (darkColor, white) form on the historical single-colour path.</summary>
+    public string? DuotoneLightColorHex { get; init; }
 }
 
 /// <summary>
@@ -53,8 +58,9 @@ enum BlipColorEffect
     /// <summary>a:grayscl — straight luminance preservation, all colour stripped.</summary>
     Grayscale,
 
-    /// <summary>a:duotone — luminance mapped onto a dark→white ramp whose dark end is
-    /// <c>DuotoneColorHex</c>; greyscale fallback when the colour is unresolved.</summary>
+    /// <summary>a:duotone — luminance mapped onto a two-colour ramp from
+    /// <c>DuotoneColorHex</c> (dark, default black) to <c>DuotoneLightColorHex</c> (light,
+    /// default white); greyscale fallback when neither colour resolved.</summary>
     Duotone,
 
     /// <summary>a:lum bright="N" with N &gt; 0 — washout / lighten effect.</summary>
