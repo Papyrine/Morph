@@ -6849,6 +6849,16 @@ sealed class DocumentParser(string defaultFont)
             var rootScaleX = (extent?.Cx ?? 1) / (double) chExtCx;
             var rootScaleY = (extent?.Cy ?? 1) / (double) chExtCy;
 
+            // The group's frame in anchor-relative points — children clip to it (Word cuts a
+            // group's children at the group's extent box).
+            (double Left, double Top, double Width, double Height)? groupFrame =
+                extent?.Cx != null && extent.Cy != null
+                    ? (positioning.HorizontalPositionPoints,
+                        positioning.VerticalPositionPoints,
+                        extent.Cx.Value / emusPerPoint,
+                        extent.Cy.Value / emusPerPoint)
+                    : null;
+
             // Process all shapes in the group (including nested grpSp groups)
             foreach (var wsp in wgp.Descendants<WPS.WordprocessingShape>())
             {
@@ -6869,7 +6879,7 @@ sealed class DocumentParser(string defaultFont)
                     // empty txbx, and skipping them left the whole label sheet cardless). Shapes
                     // whose geometry is a custom-path outline render their real Subpaths now, so the
                     // old filled-bounding-box overdraw this filter guarded against no longer occurs.
-                    var solidShape = ParseSolidFillShape(wsp, positioning, accumTransform, behindText, mainPart);
+                    var solidShape = ParseSolidFillShape(wsp, positioning, accumTransform, behindText, mainPart, groupFrame: groupFrame);
                     if (solidShape != null)
                     {
                         result.Add(solidShape);
@@ -7124,7 +7134,8 @@ sealed class DocumentParser(string defaultFont)
         bool behindText,
         MainDocumentPart mainPart,
         double? overrideWidth = null,
-        double? overrideHeight = null)
+        double? overrideHeight = null,
+        (double Left, double Top, double Width, double Height)? groupFrame = null)
     {
         // Get shape properties
         var shapeProps = wsp.GetFirstChild<WPS.ShapeProperties>();
@@ -7317,6 +7328,30 @@ sealed class DocumentParser(string defaultFont)
         if (fillColorHex == null && subpaths == null)
         {
             return null;
+        }
+
+        // Word cuts group children at the group's frame. Both boxes share the anchor's
+        // coordinate space, so the clip is plain geometry on the unit-square contours.
+        // Rotated and percent-positioned/sized shapes resolve differently at render and are
+        // left unclipped (none of the affected templates rotate their out-of-frame pieces).
+        if (groupFrame is { } frame &&
+            rotationDegrees == 0 &&
+            positioning.HorizontalPositionPercent == null &&
+            positioning.VerticalPositionPercent == null)
+        {
+            var contours = subpaths ?? [[(0d, 0d), (1d, 0d), (1d, 1d), (0d, 1d)]];
+            var clipped = GroupFrameClipper.Clip(
+                contours, xPt, yPt, widthPt, heightPt,
+                frame.Left, frame.Top, frame.Width, frame.Height);
+            if (clipped.Count == 0)
+            {
+                return null;
+            }
+
+            if (!ReferenceEquals(clipped, contours))
+            {
+                subpaths = clipped;
+            }
         }
 
         return new()
