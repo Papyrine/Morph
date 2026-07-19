@@ -1349,6 +1349,8 @@ Solid background color for the entire page.
 - **OOXML**: `w:background` with `w:color`
 - **Model**: `PageSettings.BackgroundColorHex`
 
+> **AI**: The HTML export does not paint the page background (nor dark floating-shape fills) behind text, so automatic-white runs that render correctly in the raster/PDF backends can appear white-on-white in `html_result` — a documented export gap, not a colour-cascade defect.
+
 
 #### Page Borders `DONE`
 
@@ -1501,7 +1503,10 @@ Image / shape sizes *and* offsets specified as a percentage of the page or margi
 
 #### Floating Shapes (Solid Fill) `DONE`
 
-Positioned shapes with solid color fill, typically used as background decorations.
+Positioned shapes with solid color fill, typically used as background decorations. The
+cross-cutting pipeline — parse-path authority, nested-transform composition, z-order,
+group-frame clipping and the attempted-and-reverted decision log — is documented in
+[floating-art-pipeline.md](floating-art-pipeline.md).
 
 - **OOXML**: `wps:wsp` within `wp:anchor` with `a:solidFill` — or `a:grpFill`, which defers to the nearest ancestor group's fill (`ResolveGroupFill` walks the grpSp/wgp chain, looking through fill-less wrapper groups; labels/07's collage clusters inherit their group's accent colour this way). Group children clip to the group's extent frame at parse (`GroupFrameClipper`, Sutherland–Hodgman on the unit-square contours — Word cuts children at the frame; rotated/percent children exempt; images/text boxes deliberately NOT clipped — the corpus's group pictures legitimately overflow their frames, and cutting them regressed 16 scenarios)
 - **Model**: `FloatingShapeElement` with `FillColorHex` (and `RotationDegrees`, applied about the shape's centre)
