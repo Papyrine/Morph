@@ -7521,14 +7521,13 @@ sealed class DocumentParser(string defaultFont)
         // custom-geometry line segments (moveTo + lnTo) with no fill. Those must still render, so
         // don't bail purely because there's no fill; only bail when there's neither fill nor stroke.
         var (lineColorHex, lineWidthPoints, _) = ShapeParser.ExtractLineStyle(wsp, shapeProps, currentThemeColors);
-        // A dashed outline would render as a solid line here (this path draws no dash pattern),
-        // which looks worse than not drawing it — so a stroke-only shape only counts as strokeable
-        // when its dash is solid. Matches the prstGeom-line policy in ParseLineShape; the Agenda
-        // accent rules are prstDash="solid" and still render, while dashed decorations (e.g. the
-        // letterhead rules in letters/05) stay unrendered rather than becoming solid bars.
-        var strokeDash = shapeProps.GetFirstChild<A.Outline>()?.GetFirstChild<A.PresetDash>()?.Val;
-        var isSolidStroke = strokeDash is null || strokeDash.Value == A.PresetLineDashValues.Solid;
-        var hasStroke = lineColorHex != null && lineWidthPoints is > 0 && isSolidStroke;
+        // Dashed outlines render through the same LineDashPattern the line connectors use, so
+        // stroke-only shapes no longer need a solid dash to count as strokeable (letters/05's
+        // dashed letterhead rules render dashed instead of staying invisible). A preset the
+        // dash table doesn't map still draws solid.
+        var strokeDashPattern = MapPresetDashPattern(
+            shapeProps.GetFirstChild<A.Outline>()?.GetFirstChild<A.PresetDash>()?.Val);
+        var hasStroke = lineColorHex != null && lineWidthPoints is > 0;
         if (fillColorHex == null && imageData == null && !hasStroke)
         {
             return null;
@@ -7654,6 +7653,7 @@ sealed class DocumentParser(string defaultFont)
             // (a photo shape's border ring).
             LineColorHex = fillColorHex == null ? lineColorHex : null,
             LineWidthPoints = fillColorHex == null ? lineWidthPoints : null,
+            LineDashPattern = fillColorHex == null ? strokeDashPattern : null,
             Preset = ShapeParser.ExtractPresetShape(shapeProps),
             Subpaths = subpaths,
             RotationDegrees = rotationDegrees
