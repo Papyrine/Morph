@@ -102,6 +102,10 @@ cards/09's ±45° cancelling pairs exposed it.
   (txbx-nested pictures) keep their relative order at the end.
 - All walk emissions carry the anchor's `RelativeHeight` so the batch sort keeps same-anchor
   children together. `LayoutInCell` rides along the same way.
+- HEADER/FOOTER content gets the same `SortFloatingBatchesByZ` pass after
+  `AppendHeaderFooterElements` — letters/02's header stacks an opaque white JPEG
+  (z 251658240) UNDER its frame PNG (251658241), and painting in document order whited out
+  the whole letterhead.
 
 ## Fills
 
