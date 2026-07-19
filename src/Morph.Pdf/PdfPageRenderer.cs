@@ -1087,14 +1087,30 @@ sealed class PdfPageRenderer : PageRendererBase
         if (shape.Subpaths != null)
         {
             Graphics.DrawPath(brush, BuildShapePath(shape, x, y, width, height));
+            return;
         }
-        else if (shape.Preset == PresetShape.Ellipse)
+
+        // Preset rects/ellipses rotate about their box centre like any other xfrm
+        // (business-plans/08's accent rule is a 90°-rotated thin rect).
+        var rotated = shape.RotationDegrees != 0;
+        var state = rotated ? Graphics.Save() : null;
+        if (rotated)
+        {
+            Graphics.RotateAtTransform(shape.RotationDegrees, new(x + width / 2, y + height / 2));
+        }
+
+        if (shape.Preset == PresetShape.Ellipse)
         {
             Graphics.DrawEllipse(brush, x, y, width, height);
         }
         else
         {
             Graphics.DrawRectangle(brush, x, y, width, height);
+        }
+
+        if (rotated)
+        {
+            Graphics.Restore(state!);
         }
     }
 
@@ -1103,14 +1119,29 @@ sealed class PdfPageRenderer : PageRendererBase
         if (shape.Subpaths != null)
         {
             Graphics.DrawPath(pen, BuildShapePath(shape, x, y, width, height));
+            return;
         }
-        else if (shape.Preset == PresetShape.Ellipse)
+
+        // Rotated preset outline: turn about the box centre (matches FillShape).
+        var rotated = shape.RotationDegrees != 0;
+        var state = rotated ? Graphics.Save() : null;
+        if (rotated)
+        {
+            Graphics.RotateAtTransform(shape.RotationDegrees, new(x + width / 2, y + height / 2));
+        }
+
+        if (shape.Preset == PresetShape.Ellipse)
         {
             Graphics.DrawEllipse(pen, x, y, width, height);
         }
         else
         {
             Graphics.DrawRectangle(pen, x, y, width, height);
+        }
+
+        if (rotated)
+        {
+            Graphics.Restore(state!);
         }
     }
 

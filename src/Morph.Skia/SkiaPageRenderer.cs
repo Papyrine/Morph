@@ -2378,6 +2378,22 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 using var path = BuildPolygonPath(shape, pixelX, pixelY, pixelWidth, pixelHeight);
                 currentCanvas.DrawPath(path, strokePaint);
             }
+            else if (shape.RotationDegrees != 0)
+            {
+                // Rotated preset outline: turn about the box centre (matches FillShape).
+                currentCanvas.Save();
+                currentCanvas.RotateDegrees((float) shape.RotationDegrees, pixelX + pixelWidth / 2, pixelY + pixelHeight / 2);
+                if (shape.Preset == PresetShape.Ellipse)
+                {
+                    currentCanvas.DrawOval(pixelX + pixelWidth / 2, pixelY + pixelHeight / 2, pixelWidth / 2, pixelHeight / 2, strokePaint);
+                }
+                else
+                {
+                    currentCanvas.DrawRect(pixelX, pixelY, pixelWidth, pixelHeight, strokePaint);
+                }
+
+                currentCanvas.Restore();
+            }
             else if (shape.Preset == PresetShape.Ellipse)
             {
                 currentCanvas.DrawOval(
@@ -2414,6 +2430,15 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             return;
         }
 
+        // Preset rects/ellipses rotate about their box centre like any other xfrm
+        // (business-plans/08's accent rule is a 90°-rotated thin rect).
+        var rotated = shape.RotationDegrees != 0;
+        if (rotated)
+        {
+            currentCanvas!.Save();
+            currentCanvas.RotateDegrees((float) shape.RotationDegrees, x + width / 2, y + height / 2);
+        }
+
         if (shape.Preset == PresetShape.Ellipse)
         {
             currentCanvas!.DrawOval(x + width / 2, y + height / 2, width / 2, height / 2, paint);
@@ -2421,6 +2446,11 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         else
         {
             currentCanvas!.DrawRect(x, y, width, height, paint);
+        }
+
+        if (rotated)
+        {
+            currentCanvas!.Restore();
         }
     }
 

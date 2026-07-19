@@ -46,7 +46,7 @@ static class FloatingPosition
         double? verticalPositionPercent = null)
     {
         var x = ResolveShapeX(context, hAnchor, horizontalPositionPoints, horizontalPositionPercent);
-        var y = ResolveShapeY(context, vAnchor, verticalPositionPoints, verticalPositionPercent);
+        var y = ResolveShapeY(context, vAnchor, verticalPositionPoints, verticalPositionPercent, heightPoints);
         return new(
             x,
             y,
@@ -131,19 +131,26 @@ static class FloatingPosition
     }
 
     /// <summary>
-    /// Resolves the absolute Y coordinate of a floating shape. Background shapes are
-    /// rendered at page start before any content is placed, so paragraph- and
-    /// line-anchored shapes use the top margin rather than <c>CurrentY</c> — except
-    /// inside header/footer rendering, where the cursor IS the anchor paragraph's
-    /// position (HeaderDistance; cover-letters/10's band must bleed from the page top).
+    /// Resolves the absolute Y coordinate of a floating shape. Background shapes typically
+    /// anchor to a page-top paragraph, so paragraph/line anchors approximate with the top
+    /// margin — deliberately immune to flow drift (agendas-minutes/05's corner triangles
+    /// piled up when they followed the cursor). Two exceptions resolve against the cursor:
+    /// header/footer rendering (the cursor IS the anchor paragraph's position at
+    /// HeaderDistance — cover-letters/10's band) and a shape the margin approximation
+    /// would land ENTIRELY above the page (menus/06's red bar hangs 736pt above a
+    /// page-bottom paragraph; under the approximation it was invisible, so the cursor
+    /// can only improve it).
     /// </summary>
-    public static float ResolveShapeY(RenderContextBase context, VerticalAnchor anchor, double positionPoints, double? positionPercent = null)
+    public static float ResolveShapeY(RenderContextBase context, VerticalAnchor anchor, double positionPoints, double? positionPercent = null, double heightPoints = 0)
     {
+        var marginTop = (float) context.PageSettings.MarginTop;
         var baseY = anchor switch
         {
             VerticalAnchor.Page => 0f,
-            VerticalAnchor.Margin => (float) context.PageSettings.MarginTop,
-            _ => context.InHeaderFooter ? context.CurrentY : (float) context.PageSettings.MarginTop
+            VerticalAnchor.Margin => marginTop,
+            _ => context.InHeaderFooter || marginTop + positionPoints + heightPoints < 0
+                ? context.CurrentY
+                : marginTop
         };
 
         if (positionPercent.HasValue)

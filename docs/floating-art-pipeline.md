@@ -101,6 +101,23 @@ for non-identity chains (outermost-first with an innermost-first update rule) �
 identity nesting, which is why it survived until labels/14's 270°-rotated wave sub-groups and
 cards/09's ±45° cancelling pairs exposed it.
 
+## Anchor resolution (vertical, shapes)
+
+`FloatingPosition.ResolveShapeY`: page → 0, margin → top margin, paragraph/line → the top
+margin as an approximation (background shapes typically anchor to a page-top paragraph, and
+the approximation is deliberately immune to flow drift — agendas-minutes/05's corner
+triangles piled up when they followed the cursor). Two exceptions resolve against the
+cursor: header/footer rendering (`RenderContextBase.InHeaderFooter` — the cursor is the
+header paragraph's position at HeaderDistance; cover-letters/10's full-page band bleeds off
+the page top, letters/10's white card, labels/16's sheet) and a shape the margin
+approximation would land entirely above the page (menus/06-class deep-negative offsets —
+under the approximation those were invisible, so the cursor can only improve them).
+`AdvanceToBackgroundsTargetPage`'s look-through for the next break-driving element stops at
+section breaks: a background's anchor paragraph is in its own section, so it never lifts to
+the page the next section's table opens. Preset rect/ellipse fills and strokes rotate about
+their box centre like any other xfrm (resumes/06's corner strips are 90°-rotated rects;
+business-plans/08's accent rule).
+
 ## Z-order and paint order
 
 - `wp:anchor@relativeHeight` is Word's z-value across ALL floating drawings.
@@ -200,11 +217,19 @@ Do not re-attempt these as-is; each needs the recorded blocker resolved first.
    adjacency): the "drop the following text" rule was calibrated against a fixture whose
    entries have no text after the tab at all. Word CLAMPS a Right/Center/Decimal stop past the
    wrap width to the wrap width; the clamp is what renders TOC page numbers at the cell edge.
-6. **Outline-only shape emission** (issue #6, two attempts): `a:noFill` + `a:ln` shapes are
-   dropped by SP for lacking a fill; emitting them regressed 10 scenarios against 4 improved.
-   Real co-fix kept from the second attempt: `a:ln` solid-fill ALPHA. Re-landing needs
-   per-shape forensics on menus/04 (452 shapes) and a skip-when-txbx guard (labels/04
-   double-draws — its outline shapes carry a txbx whose chrome already strokes them).
+6. **Outline-only shape emission** (issue #6) — LANDED on the third attempt (2026-07-19,
+   net −0.02; letters/05's orange square, menus/07/09 + inline_group_* board frames,
+   labels/09's ticket rules). The first two attempts regressed 10 scenarios against 4; what
+   made the third land: (a) skip when the wsp carries a `wps:txbx` — the text-box path
+   strokes its own chrome (labels/04's double-draw); (b) stroke only faithfully-strokeable
+   geometry — parsed contours or a plain rect/ellipse preset; a custGeom whose contours
+   failed to parse (menus/04's arc-path doodles) or a preset outside `PresetShapeGeometry`'s
+   coverage (letters/05's triangle) would stroke its bounding box, a frame Word doesn't
+   draw; and (c) the document-order interleave, `a:ln` alpha and walk-authority passes had
+   already fixed the z-order and rendering defects that sank the earlier attempts
+   (cards/02's outline drew under its ticket body; menus/09's frame was pixel-right but the
+   scenario net-regressed from OTHER emitted shapes). Emission lives at both `ShapeParser`
+   tails (`TryBuildOutlineOnlyShape`) and in the walk's `ParseSolidFillShape` skip rule.
 
 ## See also
 

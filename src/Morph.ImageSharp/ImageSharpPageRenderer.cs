@@ -1849,6 +1849,14 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
                 var path = BuildPath(shape, pixelX, pixelY, pixelWidth, pixelHeight);
                 currentCanvas.Draw(pen, path);
             }
+            else if (shape.RotationDegrees != 0)
+            {
+                // Rotated preset outline: turn about the box centre (matches FillShape).
+                currentCanvas.Save(BuildRotation(
+                    (float) (shape.RotationDegrees * Math.PI / 180.0), pixelX + pixelWidth / 2, pixelY + pixelHeight / 2));
+                currentCanvas.Draw(pen, BuildPresetPath(shape, pixelX, pixelY, pixelWidth, pixelHeight));
+                currentCanvas.Restore();
+            }
             else if (shape.Preset == PresetShape.Ellipse)
             {
                 // EllipsePolygon's 4-arg ctor takes (centerX, centerY, fullWidth, fullHeight) —
@@ -1887,16 +1895,28 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             return;
         }
 
-        if (shape.Preset == PresetShape.Ellipse)
+        // Preset rects/ellipses rotate about their box centre like any other xfrm
+        // (business-plans/08's accent rule is a 90°-rotated thin rect).
+        var rotated = shape.RotationDegrees != 0;
+        if (rotated)
         {
-            var ellipse = new EllipsePolygon(x + width / 2, y + height / 2, width, height);
-            currentCanvas!.Fill(brush, ellipse);
+            currentCanvas!.Save(BuildRotation(
+                (float) (shape.RotationDegrees * Math.PI / 180.0), x + width / 2, y + height / 2));
         }
-        else
+
+        currentCanvas!.Fill(brush, BuildPresetPath(shape, x, y, width, height));
+        if (rotated)
         {
-            currentCanvas!.Fill(brush, new RectangleF(x, y, width, height));
+            currentCanvas.Restore();
         }
     }
+
+    /// <summary>The preset rect/ellipse as an unrotated path (rotation applies via
+    /// <see cref="BuildRotation"/> around the box centre at the call sites).</summary>
+    static IPath BuildPresetPath(FloatingShapeElement shape, float x, float y, float width, float height) =>
+        shape.Preset == PresetShape.Ellipse
+            ? new EllipsePolygon(x + width / 2, y + height / 2, width, height)
+            : new RectanglePolygon(x, y, width, height);
 
     // custGeom fills use nonzero winding to match SkiaSharp's default and DrawingML — without
     // this ImageSharp's default even-odd rule would punch holes wherever contours overlap.

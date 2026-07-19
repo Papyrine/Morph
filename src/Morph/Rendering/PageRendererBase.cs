@@ -962,6 +962,17 @@ abstract class PageRendererBase(RenderContextBase context)
             nextRequiredHeights = new float[elements.Count + 1];
             for (var j = elements.Count - 1; j >= 0; j--)
             {
+                // A background never belongs to the NEXT section's page: its anchor
+                // paragraph is in the current section, so the look-through for the first
+                // break-driving element stops at a section break (menus/06's red bar is
+                // anchored to its section's last paragraph and must stay on that page,
+                // not lift to the page the next section's table opens).
+                if (elements[j] is SectionBreakElement)
+                {
+                    nextRequiredHeights[j] = 0;
+                    continue;
+                }
+
                 var own = EstimatedNextElementHeight(elements[j]);
                 nextRequiredHeights[j] = own > 0 ? own : nextRequiredHeights[j + 1];
             }
