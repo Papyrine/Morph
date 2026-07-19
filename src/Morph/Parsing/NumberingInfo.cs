@@ -21,6 +21,13 @@ sealed record NumberingInfo
     public string? FontFamily { get; init; }
 
     /// <summary>
+    /// Marker colour from the numbering level's own <c>w:lvl/w:rPr/w:color</c> (hex, no #).
+    /// Null = no level colour; the marker takes the paragraph's first-run colour instead
+    /// (business-plans/12's SWOT bullets declare lavender/grey at the level).
+    /// </summary>
+    public string? ColorHex { get; init; }
+
+    /// <summary>
     /// The indent position for the number/bullet in points (from left margin).
     /// </summary>
     public double IndentPoints { get; init; }

@@ -940,10 +940,12 @@ sealed class TextRenderer(SkiaRenderContext context) :
         // paragraph font's bullet glyph is what the user actually sees in Word.
         var typeface = ResolveBulletTypeface(numbering, fontFamily, bold, italic);
         var font = context.CreateFontFromTypeface(typeface, fontSize);
+        // The numbering level's own w:rPr colour wins over the paragraph run colour.
+        var markerColorHex = numbering.ColorHex ?? colorHex;
         using var paint = new SKPaint
         {
             IsAntialias = true,
-            Color = colorHex != null ? SKColor.Parse("#" + colorHex) : SKColors.Black
+            Color = markerColorHex != null ? SKColor.Parse("#" + markerColorHex) : SKColors.Black
         };
 
         canvas.DrawText(numbering.Text, pixelX, pixelY, SKTextAlign.Left, font, paint);
@@ -981,10 +983,12 @@ sealed class TextRenderer(SkiaRenderContext context) :
         // See RenderBullet for why this picks Morph Bullets vs the paragraph font.
         var typeface = ResolveBulletTypeface(numbering, fontFamily, bold, italic);
         var font = context.CreateFontFromTypeface(typeface, fontSize);
+        // The numbering level's own w:rPr colour wins over the paragraph run colour.
+        var markerColorHex = numbering.ColorHex ?? colorHex;
         using var paint = new SKPaint
         {
             IsAntialias = true,
-            Color = colorHex != null ? SKColor.Parse("#" + colorHex) : SKColors.Black
+            Color = markerColorHex != null ? SKColor.Parse("#" + markerColorHex) : SKColors.Black
         };
 
         // Bullet sits at the cascaded paragraph indent (= LeftIndent - HangingIndent),

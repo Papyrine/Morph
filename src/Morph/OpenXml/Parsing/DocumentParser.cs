@@ -1686,6 +1686,7 @@ sealed class DocumentParser(string defaultFont)
     {
         public string LevelText { get; init; } = "";
         public string? FontFamily { get; init; }
+        public string? ColorHex { get; init; }
         public double LeftIndentPoints { get; init; }
         public double HangingIndentPoints { get; init; }
         public bool IsBullet { get; init; }
@@ -1729,6 +1730,7 @@ sealed class DocumentParser(string defaultFont)
 
                 // Get font for bullet character
                 string? fontFamily = null;
+                string? markerColorHex = null;
                 var runProps = level.NumberingSymbolRunProperties;
                 if (runProps != null)
                 {
@@ -1740,6 +1742,14 @@ sealed class DocumentParser(string defaultFont)
                     else if (fonts?.HighAnsi?.HasValue == true)
                     {
                         fontFamily = fonts.HighAnsi.Value;
+                    }
+
+                    // The level's own marker colour (w:lvl/w:rPr/w:color). Direct hex only:
+                    // "auto" keeps the paragraph fallback.
+                    var levelColor = runProps.GetFirstChild<Color>()?.Val?.Value;
+                    if (levelColor != null && !levelColor.Equals("auto", StringComparison.OrdinalIgnoreCase))
+                    {
+                        markerColorHex = levelColor;
                     }
                 }
 
@@ -1769,6 +1779,7 @@ sealed class DocumentParser(string defaultFont)
                 {
                     LevelText = levelText,
                     FontFamily = fontFamily,
+                    ColorHex = markerColorHex,
                     LeftIndentPoints = leftIndent,
                     HangingIndentPoints = hangingIndent,
                     IsBullet = isBullet,
@@ -1815,6 +1826,7 @@ sealed class DocumentParser(string defaultFont)
                     levels[overrideIlvl] = new()
                     {
                         LevelText = baseDef.LevelText,
+                        ColorHex = baseDef.ColorHex,
                         FontFamily = baseDef.FontFamily,
                         LeftIndentPoints = baseDef.LeftIndentPoints,
                         HangingIndentPoints = baseDef.HangingIndentPoints,
@@ -2489,6 +2501,7 @@ sealed class DocumentParser(string defaultFont)
             Text = text,
             Level = ilvl,
             FontFamily = levelDef.FontFamily,
+            ColorHex = levelDef.ColorHex,
             IndentPoints = levelDef.LeftIndentPoints,
             HangingIndentPoints = levelDef.HangingIndentPoints
         };
