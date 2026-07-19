@@ -75,12 +75,15 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         {
             var element = elements[i];
 
-            // Render background shapes on the current page only (not on every page).
-            // Word anchors a behind-text drawing to the same page as its anchor paragraph.
+            // Render anchored shapes on the current page only (not on every page).
+            // Word anchors a drawing to the same page as its anchor paragraph.
             // If the next significant content won't fit on the current page (a page break is
-            // imminent), the background should render on the next page — otherwise the page
+            // imminent), the shape should render on the next page — otherwise the page
             // ends up with two stacked backgrounds and the actual target page has none.
-            if (element is FloatingShapeElement {BehindText: true} shape)
+            // Front-of-text shapes take the same advance: when their anchor paragraph's
+            // content breaks to the next page the shape must follow it (resumes/10's accent
+            // circle is anchored to a continuous-section paragraph that overflows).
+            if (element is FloatingShapeElement shape)
             {
                 AdvanceToBackgroundsTargetPage(elements, i);
                 RenderBackgroundShape(shape);
@@ -339,16 +342,11 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
             case FloatingShapeElement floatingShape:
                 // Behind-text shapes are handled in the RenderDocument pre-scan and rendered
-                // at page start in StartNewPage. FRONT-of-text shapes have no other painter:
-                // image-filled ones draw here over the content painted so far (newsletters/08's
-                // cover photo is a front-anchored blip-filled freeform); solid front shapes
-                // keep the long-standing drop — enabling them is a separate corpus-wide
-                // experiment.
-                if (floatingShape.ImageData != null)
-                {
-                    RenderBackgroundShape(floatingShape);
-                }
-
+                // at page start in StartNewPage. FRONT-of-text shapes have no other painter
+                // and draw here over the content painted so far (newsletters/08's cover photo
+                // is a front-anchored blip-filled freeform; resumes/10's accent circle a
+                // front-anchored solid custGeom).
+                RenderBackgroundShape(floatingShape);
                 break;
         }
     }

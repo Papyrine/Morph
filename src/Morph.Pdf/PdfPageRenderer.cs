@@ -88,10 +88,14 @@ sealed class PdfPageRenderer : PageRendererBase
 
             var element = elements[index];
 
-            if (element is FloatingShapeElement {BehindText: true} backgroundShape)
+            // Front-of-text shapes take the same page-advance as behind-text ones: their
+            // anchor paragraph's content dictates the page, and when that content is about
+            // to break to the next page the shape must follow it (resumes/10's accent
+            // circle is anchored to a continuous-section paragraph that overflows).
+            if (element is FloatingShapeElement anchoredShape)
             {
                 AdvanceToBackgroundsTargetPage(elements, index);
-                RenderBackgroundShape(backgroundShape);
+                RenderBackgroundShape(anchoredShape);
                 continue;
             }
 
@@ -303,16 +307,14 @@ sealed class PdfPageRenderer : PageRendererBase
             case FloatingWordArtElement floatingWordArt:
                 RenderFloatingWordArt(floatingWordArt);
                 break;
-            case FloatingShapeElement {ImageData: not null} floatingShape:
-                // FRONT-of-text image-filled shapes draw here over the content painted so far
-                // (newsletters/08's cover photo is a front-anchored blip-filled freeform);
-                // behind-text ones render from the pre-scan at page start. Solid front shapes
-                // keep the long-standing drop below — enabling them is a separate corpus-wide
-                // experiment.
+            case FloatingShapeElement floatingShape:
+                // FRONT-of-text shapes draw here over the content painted so far
+                // (newsletters/08's cover photo is a front-anchored blip-filled freeform;
+                // resumes/10's accent circle a front-anchored solid custGeom); behind-text
+                // ones render from the pre-scan at page start.
                 RenderBackgroundShape(floatingShape);
                 break;
             case InkElement:
-            case FloatingShapeElement:
                 OnWarning?.Invoke(new(WarningKind.UnsupportedElement,
                     $"{element.GetType().Name} is not rendered by the PDF backend and was dropped."));
                 break;

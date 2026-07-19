@@ -81,7 +81,9 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         {
             var element = elements[i];
 
-            if (element is FloatingShapeElement {BehindText: true} shape)
+            // Front-of-text shapes take the same page-advance as behind-text ones: their
+            // anchor paragraph's content dictates the page (resumes/10's accent circle).
+            if (element is FloatingShapeElement shape)
             {
                 AdvanceToBackgroundsTargetPage(elements, i);
                 RenderBackgroundShape(shape);
@@ -301,15 +303,10 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
             case FloatingShapeElement floatingShape:
                 // Behind-text shapes render from the pre-scan at page start. FRONT-of-text
-                // shapes have no other painter: image-filled ones draw here over the content
-                // painted so far (newsletters/08's cover photo is a front-anchored blip-filled
-                // freeform); solid front shapes keep the long-standing drop — enabling them is
-                // a separate corpus-wide experiment.
-                if (floatingShape.ImageData != null)
-                {
-                    RenderBackgroundShape(floatingShape);
-                }
-
+                // shapes have no other painter and draw here over the content painted so far
+                // (newsletters/08's cover photo is a front-anchored blip-filled freeform;
+                // resumes/10's accent circle a front-anchored solid custGeom).
+                RenderBackgroundShape(floatingShape);
                 break;
         }
     }

@@ -320,6 +320,25 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             }
         }
 
+        // Paragraph shading (w:shd fill): a solid rect behind the paragraph's lines, matching the
+        // raster backends (resumes/15's lavender name band; newsletters/14's DECEMBER banner in a
+        // layout table). Drawn after any whole-paragraph widow move so the rect anchors where the
+        // text actually starts; a paragraph split across pages keeps its shading on the first page
+        // (raster parity).
+        if (context.Graphics is { } shadingGraphics &&
+            !string.IsNullOrEmpty(paragraph.Properties.BackgroundColorHex))
+        {
+            double shadedHeight = 0;
+            foreach (var line in lines)
+            {
+                shadedHeight += line.Height;
+            }
+
+            shadingGraphics.DrawRectangle(
+                context.GetBrush(PdfRenderContext.ParseColor(paragraph.Properties.BackgroundColorHex)),
+                left, (double) context.CurrentY, availableWidth, shadedHeight);
+        }
+
         // Paragraph borders (w:pBdr) are a flow-path feature (allowPageBreak): Word does not border a
         // paragraph inside a table cell, matching the Skia/ImageSharp backends. Reserve the top
         // w:space that exceeds spacing-before so the top edge clears the previous paragraph; inside a

@@ -5049,18 +5049,22 @@ sealed class DocumentParser(string defaultFont)
                         // Skip the group-as-block branch for inline drawings so the inline-image path catches them.
                         var isInlineGroup = hasGroup && drawing.Descendants().Any(_ => _.LocalName == "inline");
 
-                        // A FRONT-of-text anchored drawing whose art is a blip-filled wsp reaches
-                        // neither ShapeParser (behindDoc-only) nor the pic-based image path —
-                        // newsletters/08's cover photo is a front-anchored standalone blip-filled
-                        // freeform. Route it through the walk, which parses blip fills; for
+                        // A FRONT-of-text anchored drawing whose art is a blip-filled or solid
+                        // text-free wsp reaches neither ShapeParser (behindDoc-only) nor the
+                        // pic-based image path — newsletters/08's cover photo is a front-anchored
+                        // standalone blip-filled freeform, resumes/10's accent circle a
+                        // front-anchored solid custGeom. Route them through the walk; for
                         // behindDoc standalones ShapeParser already emitted a copy and the
-                        // position/size dedup below eats the walk's twin.
-                        var hasAnchoredBlipShape =
+                        // position/size dedup below eats the walk's twin. Text-CARRYING solid
+                        // shapes stay on the ParseTextBox path further down.
+                        var hasAnchoredFillShape =
                             drawing.GetFirstChild<DW.Anchor>() != null &&
                             drawing.Descendants<WPS.WordprocessingShape>().Any(shape =>
-                                shape.GetFirstChild<WPS.ShapeProperties>()?.GetFirstChild<A.BlipFill>() != null);
+                                shape.GetFirstChild<WPS.ShapeProperties>() is { } shapeProperties &&
+                                (shapeProperties.GetFirstChild<A.BlipFill>() != null ||
+                                 (shapeProperties.GetFirstChild<A.SolidFill>() != null && TextBoxHasNoText(shape))));
 
-                        if ((shapeElements.Count > 0 || hasGroup || hasAnchoredBlipShape) && !isInlineGroup)
+                        if ((shapeElements.Count > 0 || hasGroup || hasAnchoredFillShape) && !isInlineGroup)
                         {
                             // Emit current paragraph content before the shapes/group content
                             if (runs.Count > 0)
@@ -5349,17 +5353,18 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
-        // Behind-text decorative shapes are lifted out of the flow, so a paragraph that produced
-        // only those is still an empty paragraph as far as line height goes — its mark takes a
-        // line exactly as it would have if the drawing had produced nothing at all. Testing
-        // `result.Count == 0` alone made that line appear or vanish depending on whether the
-        // shape parser happened to understand the drawing.
-        var onlyBehindTextShapes = result.Count > 0 &&
-                                   result.All(_ => _ is FloatingShapeElement {BehindText: true});
+        // Floating decorative shapes — behind-text or in-front — are lifted out of the flow, so
+        // a paragraph that produced only those is still an empty paragraph as far as line height
+        // goes — its mark takes a line exactly as it would have if the drawing had produced
+        // nothing at all. Testing `result.Count == 0` alone made that line appear or vanish
+        // depending on whether the shape parser happened to understand the drawing (resumes/10's
+        // front-anchored accent circles collapsed their anchor paragraphs' lines that way).
+        var onlyFloatingShapes = result.Count > 0 &&
+                                 result.All(_ => _ is FloatingShapeElement);
 
         // Add remaining content
         if (runs.Count == 0 &&
-            (result.Count == 0 || (onlyBehindTextShapes && props.SpacingAfterPoints <= 0)))
+            (result.Count == 0 || (onlyFloatingShapes && props.SpacingAfterPoints <= 0)))
         {
             // Empty paragraph - still counts for spacing
             // Keep runs empty so the renderer can avoid creating spurious extra pages at document end.
@@ -5382,7 +5387,7 @@ sealed class DocumentParser(string defaultFont)
             });
         }
         else if (props.SpacingAfterPoints > 0 &&
-                 result.All(_ => _ is FloatingShapeElement {BehindText: true}))
+                 result.All(_ => _ is FloatingShapeElement))
         {
             // Paragraph contained only behind-text decorative shapes (a "background
             // placeholder" pattern) but carries explicit spacing-after — Word honours
@@ -5438,8 +5443,11 @@ sealed class DocumentParser(string defaultFont)
         /// rotations turn the child by — renderers re-apply it about the returned box's centre,
         /// which reproduces DrawingML's rotate-about-group-centre placement. An anisotropic outer
         /// scale over a rotated inner group would be a skew; that residual is dropped.
+        /// A negative determinant (an odd number of ancestor flips, composed when the transform
+        /// was built with flips) decomposes canonically as rotation + vertical flip: any mirrored
+        /// 2×2 similarity is R(θ)·diag(s, −s), with θ read off the first basis column as usual.
         /// </summary>
-        public (double X, double Y, double Width, double Height, double RotationDegrees) MapRectangle(double x, double y, double width, double height)
+        public (double X, double Y, double Width, double Height, double RotationDegrees, bool FlipVertical) MapRectangle(double x, double y, double width, double height)
         {
             var centerX = x + width / 2;
             var centerY = y + height / 2;
@@ -5450,7 +5458,8 @@ sealed class DocumentParser(string defaultFont)
             var mappedWidth = width * scaleX;
             var mappedHeight = height * scaleY;
             var rotationDegrees = Math.Atan2(M21, M11) * (180 / Math.PI);
-            return (mappedCenterX - mappedWidth / 2, mappedCenterY - mappedHeight / 2, mappedWidth, mappedHeight, rotationDegrees);
+            var flipVertical = M11 * M22 - M12 * M21 < 0;
+            return (mappedCenterX - mappedWidth / 2, mappedCenterY - mappedHeight / 2, mappedWidth, mappedHeight, rotationDegrees, flipVertical);
         }
     }
 
@@ -5461,7 +5470,7 @@ sealed class DocumentParser(string defaultFont)
     /// group's <c>a:xfrm/@rot</c>. Groups compose innermost-out; the root wgp's child space is
     /// applied last via the rootChOff/rootScale parameters.
     /// </summary>
-    static AccumulatedTransform GetAccumulatedTransform(OpenXmlElement element, long rootChOffX, long rootChOffY, double rootScaleX, double rootScaleY)
+    static AccumulatedTransform GetAccumulatedTransform(OpenXmlElement element, long rootChOffX, long rootChOffY, double rootScaleX, double rootScaleY, bool composeFlips = false)
     {
         var transform = AccumulatedTransform.Identity;
 
@@ -5542,18 +5551,31 @@ sealed class DocumentParser(string defaultFont)
                         rotation = rot60000ths / 60000.0 * Math.PI / 180;
                     }
 
+                    // a:xfrm/@flipH/@flipV mirror the group's content about its own centre
+                    // BEFORE the group's rotation turns it: local = R · F · diag(scale).
+                    // Composed only when the caller consumes flips (shape/picture geometry);
+                    // text boxes keep the flip-free transform — Word mirrors box geometry,
+                    // never the text itself.
+                    var xfrmAttributes = xfrm.GetAttributes();
+                    var mirrorX = composeFlips && xfrmAttributes.AttributeValue("flipH") is "1" or "true" ? -1d : 1d;
+                    var mirrorY = composeFlips && xfrmAttributes.AttributeValue("flipV") is "1" or "true" ? -1d : 1d;
+
                     var cos = Math.Cos(rotation);
                     var sin = Math.Sin(rotation);
-                    var localM11 = cos * scaleX;
-                    var localM12 = -sin * scaleY;
-                    var localM21 = sin * scaleX;
-                    var localM22 = cos * scaleY;
+                    var rf11 = cos * mirrorX;
+                    var rf12 = -sin * mirrorY;
+                    var rf21 = sin * mirrorX;
+                    var rf22 = cos * mirrorY;
+                    var localM11 = rf11 * scaleX;
+                    var localM12 = rf12 * scaleY;
+                    var localM21 = rf21 * scaleX;
+                    var localM22 = rf22 * scaleY;
                     var centerX = offX + extCx / 2.0;
                     var centerY = offY + extCy / 2.0;
                     var baseX = offX - chOffX * scaleX - centerX;
                     var baseY = offY - chOffY * scaleY - centerY;
-                    var localOffsetX = centerX + cos * baseX - sin * baseY;
-                    var localOffsetY = centerY + sin * baseX + cos * baseY;
+                    var localOffsetX = centerX + rf11 * baseX + rf12 * baseY;
+                    var localOffsetY = centerY + rf21 * baseX + rf22 * baseY;
 
                     // This ancestor wraps everything accumulated so far: new = local ∘ accumulated.
                     transform = new()
@@ -6625,10 +6647,10 @@ sealed class DocumentParser(string defaultFont)
             }
 
             // Get accumulated transform from all ancestor grpSp groups
-            var accumTransform = GetAccumulatedTransform(pic, groupOffsetX, groupOffsetY, groupScaleX, groupScaleY);
+            var accumTransform = GetAccumulatedTransform(pic, groupOffsetX, groupOffsetY, groupScaleX, groupScaleY, composeFlips: true);
 
             // Apply accumulated transform to the pic's position and size
-            var (finalX, finalY, finalWidth, finalHeight, groupRotationDegrees) = accumTransform.MapRectangle(picOffsetX, picOffsetY, picWidth, picHeight);
+            var (finalX, finalY, finalWidth, finalHeight, groupRotationDegrees, groupFlipVertical) = accumTransform.MapRectangle(picOffsetX, picOffsetY, picWidth, picHeight);
 
             // Convert to points
             var widthPoints = finalWidth / emusPerPoint;
@@ -6637,9 +6659,13 @@ sealed class DocumentParser(string defaultFont)
             var offsetYPoints = finalY / emusPerPoint;
 
             // Rotation (a:xfrm/@rot, in 60,000ths of a degree, clockwise) composed with any
-            // rotation the ancestor groups apply
-            var rotationDegrees = ReadRotationDegrees(xfrm) + groupRotationDegrees;
+            // rotation the ancestor groups apply. A mirroring ancestor reverses the sense of
+            // the pic's own rotation (F·R(θ) = R(−θ)·F) and XORs into its vertical flip —
+            // MapRectangle's canonical det<0 decomposition is rotation + flipV.
+            var ownRotationDegrees = ReadRotationDegrees(xfrm);
+            var rotationDegrees = groupRotationDegrees + (groupFlipVertical ? -ownRotationDegrees : ownRotationDegrees);
             var (flipHorizontal, flipVertical) = ReadFlips(xfrm);
+            flipVertical ^= groupFlipVertical;
 
             // pic:spPr geometry = Word's picture-style crop shape: an ellipse makes the round
             // photo (brochures/03), a custGeom an arbitrary crop. Rect (the default) is no crop.
@@ -7135,7 +7161,11 @@ sealed class DocumentParser(string defaultFont)
                     // empty txbx, and skipping them left the whole label sheet cardless). Shapes
                     // whose geometry is a custom-path outline render their real Subpaths now, so the
                     // old filled-bounding-box overdraw this filter guarded against no longer occurs.
-                    var solidShape = ParseSolidFillShape(wsp, positioning, accumTransform, behindText, mainPart, groupFrame: groupFrame);
+                    // Shape geometry mirrors with its ancestors' flips (cards/03's streamer sits in
+                    // a flipH'd nested group); the text-box path above keeps the flip-free
+                    // transform.
+                    var shapeTransform = GetAccumulatedTransform(wsp, chOffX, chOffY, rootScaleX, rootScaleY, composeFlips: true);
+                    var solidShape = ParseSolidFillShape(wsp, positioning, shapeTransform, behindText, mainPart, groupFrame: groupFrame);
                     if (solidShape != null)
                     {
                         result.Add(solidShape);
@@ -7541,6 +7571,8 @@ sealed class DocumentParser(string defaultFont)
         var widthPt = overrideWidth ?? 0;
         var heightPt = overrideHeight ?? 0;
         double rotationDegrees = 0;
+        var flipHorizontal = false;
+        var flipVertical = false;
 
         if (xfrm != null)
         {
@@ -7565,12 +7597,20 @@ sealed class DocumentParser(string defaultFont)
             }
 
             // The shape's own rotation composed with the rotation its ancestor groups apply
-            // (e.g. the label sheets rotate each card's wave sub-group 270°).
+            // (e.g. the label sheets rotate each card's wave sub-group 270°). A mirroring
+            // ancestor reverses the sense of the shape's own rotation (F·R(θ) = R(−θ)·F) and
+            // XORs into its vertical flip — MapRectangle's canonical det<0 decomposition is
+            // rotation + flipV.
             rotationDegrees = mapped.RotationDegrees;
+            double ownRotation = 0;
             if (xfrm.Rotation?.HasValue == true)
             {
-                rotationDegrees += xfrm.Rotation.Value / 60000.0;
+                ownRotation = xfrm.Rotation.Value / 60000.0;
             }
+
+            rotationDegrees += mapped.FlipVertical ? -ownRotation : ownRotation;
+            (_, flipHorizontal, flipVertical) = ShapeParser.ExtractTransform(xfrm);
+            flipVertical ^= mapped.FlipVertical;
         }
 
         if (widthPt <= 0 || heightPt <= 0)
@@ -7656,7 +7696,9 @@ sealed class DocumentParser(string defaultFont)
             LineDashPattern = fillColorHex == null ? strokeDashPattern : null,
             Preset = ShapeParser.ExtractPresetShape(shapeProps),
             Subpaths = subpaths,
-            RotationDegrees = rotationDegrees
+            RotationDegrees = rotationDegrees,
+            FlipHorizontal = flipHorizontal,
+            FlipVertical = flipVertical
         };
     }
 

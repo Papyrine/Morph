@@ -32,12 +32,19 @@ A floating drawing reaches the model through up to three sweeps, all launched fr
    image fills the same way it exempts pictures.
 
 The group branch is entered when SP emitted something, the drawing holds a `wpg:wgp`, or the
-anchored drawing contains a blip-filled wsp (`hasAnchoredBlipShape`) — the last route exists
-because a FRONT-of-text anchored standalone picture-shape reaches neither SP (behindDoc-only)
-nor the pic-based image path (newsletters/08's cover photo, a front-anchored blip-filled
-freeform). At render, front-of-text `FloatingShapeElement`s are drawn only when image-filled
-(over the content painted so far, at flow order); SOLID front shapes keep the long-standing
-drop in all backends — enabling them is a corpus-wide experiment nobody has run.
+anchored drawing contains a blip-filled or solid text-free wsp (`hasAnchoredFillShape`) — the
+last route exists because a FRONT-of-text anchored standalone fill-shape reaches neither SP
+(behindDoc-only) nor the pic-based image path (newsletters/08's cover photo is a front-anchored
+blip-filled freeform; resumes/10's accent circle a front-anchored solid custGeom). Text-carrying
+solid shapes stay on the ParseTextBox path. At render, front-of-text `FloatingShapeElement`s
+draw over the content painted so far, at flow order, whatever their fill — the front-SOLID
+corpus experiment ran 2026-07-19 at net −0.46 (letters/11's logo + tile strip, brochures/06's
+olive quote box, newsletters/12's purple dash overlay, menus/02's dark burst, resumes/10's
+circles), with two co-requisites: front shapes take the same `AdvanceToBackgroundsTargetPage`
+page-advance as behind ones (a front shape anchored to a continuous-section paragraph that
+overflows must follow its content to the next page), and the empty-anchor-paragraph rule counts
+ANY `FloatingShapeElement`, not just behind-text ones — otherwise routing a front shape through
+the group branch swallowed its anchor paragraph's line and shifted the whole flow.
 
 Cell-anchored floats additionally detach into `TableCell.Floats` and render from the shared
 table renderer (see "Cell-attached floats").
@@ -75,11 +82,18 @@ one-element group via `ParseInlineShapeImageRun` so the ellipse clip applies.
 ## Nested-transform composition
 
 `GetAccumulatedTransform` builds a full 2×2 affine + translation from the child's ancestor
-`grpSp` chain, composed innermost-out. Each group contributes `R·diag(scale)` about its own
-centre: a child point maps as `c + R·(off + (p − chOff)·scale − c)`. `MapRectangle` maps a child
-rect's centre exactly, sizes by the basis-vector lengths (a 90°-family rotation therefore swaps
-which outer scale applies to which child axis), and returns the composed rotation for the
-renderers, which rotate about the placed box's centre; the child's own `@rot` adds on top. An
+`grpSp` chain, composed innermost-out. Each group contributes `R·F·diag(scale)` about its own
+centre — `F` its `@flipH`/`@flipV` mirror: a child point maps as
+`c + R·F·(off + (p − chOff)·scale − c)`. `MapRectangle` maps a child rect's centre exactly,
+sizes by the basis-vector lengths (a 90°-family rotation therefore swaps which outer scale
+applies to which child axis), and returns the composed rotation plus a canonical flip: a
+negative determinant (odd flip count) decomposes as rotation + flipV, since any mirrored
+similarity is `R(θ)·diag(s, −s)` with θ read off the first basis column. Consumers combine
+with the child's own transform via `F·R(θ) = R(−θ)·F`: total rotation = group θ ± child θ
+(sign flips under a mirroring ancestor), child flipV XORs with the group's. Flips compose
+only for SHAPE and PICTURE geometry (`composeFlips: true`); text boxes keep the flip-free
+transform — Word mirrors box geometry, never text (cards/03's streamer sits in a flipH'd
+nested group and rendered mirrored until this). The child's own `@rot` adds on top. An
 anisotropic outer scale over a rotated inner group would be a skew; that residual is dropped.
 
 History note: the pre-affine implementation composed offset+scale only, and in the wrong order
