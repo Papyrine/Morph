@@ -9405,6 +9405,19 @@ sealed class DocumentParser(string defaultFont)
         // not inherited defaults. This ensures character styles like "Shade" (which only defines
         // background color) don't override font size from paragraph styles like Heading1.
         var runStyleId = runStyleElement?.Val?.Value;
+
+        // Word's print layout suppresses the Hyperlink character style inside TOC entries: a TOC
+        // built with \h stamps rStyle=Hyperlink on every entry run, but Word renders them in the
+        // TOC N paragraph style's formatting — no underline, no hyperlink colour
+        // (business-plans/12/13/15, verified against Word's own renders). The links stay
+        // functional; only the character style's visuals are dropped.
+        if (runStyleId == "Hyperlink" &&
+            paragraphStyleId != null &&
+            paragraphStyleId.StartsWith("TOC", StringComparison.OrdinalIgnoreCase))
+        {
+            runStyleId = null;
+        }
+
         if (runStyleId != null && styleRunProperties != null && styleRunProperties.TryGetValue(runStyleId, out var runStyleProps))
         {
             // Look up the original style definition to check which properties are explicitly defined
