@@ -902,7 +902,8 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var font = context.GetFont(bulletProps);
         var (_, baseline) = ImageSharpRenderContext.GetFontMetrics(font);
 
-        var colorHex = bulletProps.ColorHex;
+        // The numbering level's own w:rPr colour wins over the paragraph run colour.
+        var colorHex = numbering.ColorHex ?? bulletProps.ColorHex;
         var color = colorHex != null ? ImageSharpRenderContext.ParseColor(colorHex) : Color.Black;
 
         var textOptions = new RichTextOptions(font)
@@ -945,7 +946,8 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var font = context.GetFont(bulletProps);
         var (_, baseline) = ImageSharpRenderContext.GetFontMetrics(font);
 
-        var colorHex = bulletProps.ColorHex;
+        // The numbering level's own w:rPr colour wins over the paragraph run colour.
+        var colorHex = numbering.ColorHex ?? bulletProps.ColorHex;
         var color = colorHex != null ? ImageSharpRenderContext.ParseColor(colorHex) : Color.Black;
 
         // Bullet sits at the cascaded paragraph indent (= LeftIndent - HangingIndent),

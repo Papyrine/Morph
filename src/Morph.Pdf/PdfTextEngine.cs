@@ -273,7 +273,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                 var emptyMarkerX = hanging > 0.01
                     ? emptyPenX - hanging
                     : emptyPenX - measure.MeasureString(emptyNumbering.Text, emptyMarkerFont).Width - 3;
-                emptyGraphics.DrawString(emptyNumbering.Text, emptyMarkerFont, context.GetBrush(PdfRenderContext.ParseColor(markerProperties.ColorHex)), new XPoint(emptyMarkerX, emptyBaseline), baselineFormat);
+                emptyGraphics.DrawString(emptyNumbering.Text, emptyMarkerFont, context.GetBrush(PdfRenderContext.ParseColor(emptyNumbering.ColorHex ?? markerProperties.ColorHex)), new XPoint(emptyMarkerX, emptyBaseline), baselineFormat);
             }
 
             context.CurrentY += (float) EmptyLineHeight(paragraph);
@@ -420,7 +420,8 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                         ? context.GetFont("Morph Bullets", bold: false, italic: false, firstProperties.FontSizePoints)
                         : context.GetFont(firstProperties.FontFamily, firstProperties.Bold, false, firstProperties.FontSizePoints);
                     var markerText = numbering.Text;
-                    var markerBrush = context.GetBrush(PdfRenderContext.ParseColor(firstProperties.ColorHex));
+                    // The numbering level's own w:rPr colour wins over the first-run colour.
+                    var markerBrush = context.GetBrush(PdfRenderContext.ParseColor(numbering.ColorHex ?? firstProperties.ColorHex));
                     var hangingIndent = paragraph.Properties.HangingIndentPoints;
                     var markerX = hangingIndent > 0.01
                         ? penX - hangingIndent
