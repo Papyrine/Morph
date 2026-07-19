@@ -80,6 +80,16 @@ sealed class FloatingImageElement : DocumentElement
     /// <summary>Source-rectangle crop (a:srcRect). Null = no crop.</summary>
     public ImageCrop? Crop { get; init; }
 
+    /// <summary>The picture's <c>pic:spPr</c> declares an ellipse geometry — Word's circular
+    /// "picture style" crop (brochures/03's round photos). The backends clip the draw to the
+    /// bounding box's inscribed ellipse.</summary>
+    public bool ClipToEllipse { get; init; }
+
+    /// <summary>The picture's <c>pic:spPr</c> custom-geometry crop, as unit-square contours
+    /// (same representation as <see cref="FloatingShapeElement.Subpaths"/>). Skia/PDF clip the
+    /// draw to this path; ImageSharp draws unclipped (no canvas clip stack).</summary>
+    public IReadOnlyList<IReadOnlyList<(double X, double Y)>>? ClipSubpaths { get; init; }
+
     /// <summary>Colour-transform effect to apply before drawing (a:duotone / a:grayscl / a:lum).</summary>
     public BlipColorEffect ColorEffect { get; init; } = BlipColorEffect.None;
 
@@ -155,6 +165,8 @@ sealed class FloatingImageElement : DocumentElement
             FlipHorizontal = FlipHorizontal,
             FlipVertical = FlipVertical,
             Crop = Crop,
+            ClipToEllipse = ClipToEllipse,
+            ClipSubpaths = ClipSubpaths,
             ColorEffect = ColorEffect,
             DuotoneColorHex = DuotoneColorHex,
             WidthPercent = WidthPercent,

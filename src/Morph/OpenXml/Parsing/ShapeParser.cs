@@ -362,7 +362,7 @@ static class ShapeParser
     /// open two-point line segment (<c>moveTo</c> + <c>lnTo</c>) that will be stroked rather than
     /// filled — e.g. the thin accent rules in the Agenda template.
     /// </summary>
-    public static IReadOnlyList<IReadOnlyList<(double X, double Y)>>? ExtractSubpaths(WPS.ShapeProperties shapeProps, int minContourPoints = 3)
+    public static IReadOnlyList<IReadOnlyList<(double X, double Y)>>? ExtractSubpaths(OpenXmlElement shapeProps, int minContourPoints = 3)
     {
         var custGeom = shapeProps.GetFirstChild<A.CustomGeometry>();
         var pathList = custGeom?.GetFirstChild<A.PathList>();

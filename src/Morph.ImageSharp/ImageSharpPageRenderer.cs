@@ -1957,6 +1957,15 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         // them instead of over them.
         context.RegisterFloatExclusion(image, bounds.X, bounds.Y, (float) width, (float) height);
 
+        // pic:spPr ellipse crop (round photos): composite a pre-clipped bitmap — ImageSharp
+        // has no canvas clip stack. custGeom crops draw unclipped here (Skia/PDF clip them).
+        if (image.ClipToEllipse && Math.Abs(image.RotationDegrees) < 0.01 &&
+            context.GetEllipseClippedImage(data, (int) bounds.PixelWidth, (int) bounds.PixelHeight, image.Crop) is { } ellipseClipped)
+        {
+            currentCanvas.DrawImage(ellipseClipped, new((int) bounds.PixelX, (int) bounds.PixelY));
+            return;
+        }
+
         DrawBlockImage(data, bounds.PixelX, bounds.PixelY, bounds.PixelWidth, bounds.PixelHeight, (float) image.RotationDegrees, image.Crop, image.ColorEffect, image.FlipHorizontal, image.FlipVertical, image.DuotoneColorHex);
     }
 
