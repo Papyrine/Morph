@@ -28,6 +28,10 @@ sealed class FloatingShapeElement : DocumentElement
     /// ascending order of this value within a batch.</summary>
     public uint RelativeHeight { get; init; }
 
+    /// <summary>Whether cell-anchored positioning resolves against the anchor cell's frame
+    /// (<c>wp:anchor@layoutInCell</c>, default true).</summary>
+    public bool LayoutInCell { get; init; } = true;
+
     /// <summary>Fill color (hex RGB without #, e.g. "FF0000" for red). Null if using image fill.</summary>
     public string? FillColorHex { get; init; }
 
@@ -107,6 +111,7 @@ sealed class FloatingShapeElement : DocumentElement
     /// <c>wp14:pctPosVOffset</c>. When set, overrides <see cref="VerticalPositionPoints"/>.
     /// </summary>
     public double? VerticalPositionPercent { get; init; }
+
 }
 
 /// <summary>Preset geometry kinds we render. Anything outside this enum falls back to Rect.</summary>
@@ -114,4 +119,5 @@ enum PresetShape
 {
     Rect,
     Ellipse
+
 }

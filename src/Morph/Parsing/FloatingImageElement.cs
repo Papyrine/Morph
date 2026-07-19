@@ -56,6 +56,10 @@ sealed class FloatingImageElement : DocumentElement
     /// ascending order of this value within a batch.</summary>
     public uint RelativeHeight { get; init; }
 
+    /// <summary>Whether cell-anchored positioning resolves against the anchor cell's frame
+    /// (<c>wp:anchor@layoutInCell</c>, default true).</summary>
+    public bool LayoutInCell { get; init; } = true;
+
     /// <summary>Rotation in degrees (clockwise). 0 means no rotation.</summary>
     public double RotationDegrees { get; init; }
 
@@ -107,4 +111,6 @@ sealed class FloatingImageElement : DocumentElement
     /// <c>wp14:pctPosVOffset</c>. When set, overrides <see cref="VerticalPositionPoints"/>.
     /// </summary>
     public double? VerticalPositionPercent { get; init; }
+
+
 }

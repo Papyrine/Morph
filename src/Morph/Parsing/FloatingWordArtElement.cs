@@ -32,6 +32,10 @@ sealed class FloatingWordArtElement : DocumentElement, IWordArtVisual
     /// ascending order of this value within a batch.</summary>
     public uint RelativeHeight { get; init; }
 
+    /// <summary>Whether cell-anchored positioning resolves against the anchor cell's frame
+    /// (<c>wp:anchor@layoutInCell</c>, default true).</summary>
+    public bool LayoutInCell { get; init; } = true;
+
     /// <summary>Font family for the text.</summary>
     public string FontFamily { get; init; } = DefaultFontSettings.DefaultFont;
 
@@ -76,4 +80,6 @@ sealed class FloatingWordArtElement : DocumentElement, IWordArtVisual
     /// <c>wp14:pctPosVOffset</c>. When set, overrides <see cref="VerticalPositionPoints"/>.
     /// </summary>
     public double? VerticalPositionPercent { get; init; }
+
+
 }
