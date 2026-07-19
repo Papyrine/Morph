@@ -887,7 +887,9 @@ sealed class HtmlParser
             }
         }
 
-        // Parse table-level style for padding and border CSS
+        // Parse table-level style for padding, border and width CSS
+        double? preferredWidthPoints = null;
+        var fillContainer = false;
         var tableStyle = tableElement.GetAttribute("style");
         if (!string.IsNullOrEmpty(tableStyle))
         {
@@ -906,6 +908,25 @@ sealed class HtmlParser
                     defaultBorders = parsed;
                 }
             }
+
+            // width: 100% fills the container (drives the autofit scale-up); a px/pt width
+            // becomes the preferred width. Fractional percentages have no table-level model
+            // slot, so any near-full percentage maps to fill-the-container.
+            if (tableStyles.TryGetValue("width", out var cssWidth))
+            {
+                var widthValue = cssWidth.Trim();
+                if (widthValue.EndsWith('%'))
+                {
+                    if (double.TryParse(widthValue[..^1], out var percent) && percent >= 99)
+                    {
+                        fillContainer = true;
+                    }
+                }
+                else if (TryParseCssDimension(widthValue, out var widthPoints))
+                {
+                    preferredWidthPoints = widthPoints;
+                }
+            }
         }
 
         // Track active rowspans: column index -> remaining rows
@@ -916,6 +937,25 @@ sealed class HtmlParser
             var cells = new List<TableCell>();
             var newRowspans = new Dictionary<int, int>();
             var colIndex = 0;
+
+            // Row-level style cascades onto the row's cells: <tr style="background-color: ...;
+            // color: ..."> is how HTML tables paint header fills and zebra striping.
+            string? rowBackgroundColor = null;
+            string? rowTextColor = null;
+            var rowStyleAttribute = tr.GetAttribute("style");
+            if (!string.IsNullOrEmpty(rowStyleAttribute))
+            {
+                var rowStyles = ParseStyleAttribute(rowStyleAttribute);
+                if (rowStyles.TryGetValue("background-color", out var rowBg))
+                {
+                    rowBackgroundColor = NormalizeColor(rowBg);
+                }
+
+                if (rowStyles.TryGetValue("color", out var rowFg))
+                {
+                    rowTextColor = NormalizeColor(rowFg);
+                }
+            }
 
             foreach (var cell in tr.Children)
             {
@@ -944,7 +984,11 @@ sealed class HtmlParser
 
                 CellSpacing? cellPadding = null;
                 CellSpacing? cellMargin = null;
-                string? cellBgColor = null;
+                var cellBgColor = rowBackgroundColor;
+                var cellTextColor = rowTextColor;
+                TextAlignment? cellAlignment = null;
+                double? cellWidthPoints = null;
+                double? cellWidthFraction = null;
                 var cellStyle = cell.GetAttribute("style");
                 if (!string.IsNullOrEmpty(cellStyle))
                 {
@@ -954,6 +998,56 @@ sealed class HtmlParser
                     if (cellStyles.TryGetValue("background-color", out var bg))
                     {
                         cellBgColor = NormalizeColor(bg);
+                    }
+
+                    if (cellStyles.TryGetValue("color", out var fg))
+                    {
+                        cellTextColor = NormalizeColor(fg);
+                    }
+
+                    if (cellStyles.TryGetValue("text-align", out var textAlign))
+                    {
+                        cellAlignment = textAlign.ToLowerInvariant() switch
+                        {
+                            "center" => TextAlignment.Center,
+                            "right" => TextAlignment.Right,
+                            "justify" => TextAlignment.Justify,
+                            _ => TextAlignment.Left
+                        };
+                    }
+
+                    if (cellStyles.TryGetValue("width", out var cssWidth))
+                    {
+                        var widthValue = cssWidth.Trim();
+                        if (widthValue.EndsWith('%'))
+                        {
+                            if (double.TryParse(widthValue[..^1], out var percent) && percent > 0)
+                            {
+                                cellWidthFraction = percent / 100;
+                            }
+                        }
+                        else if (TryParseCssDimension(widthValue, out var widthPoints))
+                        {
+                            cellWidthPoints = widthPoints;
+                        }
+                    }
+                }
+
+                // Legacy <td width="..."> attribute: a bare number is pixels.
+                if (cellWidthPoints == null && cellWidthFraction == null &&
+                    cell.GetAttribute("width") is {Length: > 0} widthAttribute)
+                {
+                    var attributeValue = widthAttribute.Trim();
+                    if (attributeValue.EndsWith('%'))
+                    {
+                        if (double.TryParse(attributeValue[..^1], out var percent) && percent > 0)
+                        {
+                            cellWidthFraction = percent / 100;
+                        }
+                    }
+                    else if (double.TryParse(attributeValue, out var widthPx) && widthPx > 0)
+                    {
+                        cellWidthPoints = widthPx * 0.75;
                     }
                 }
 
@@ -977,17 +1071,32 @@ sealed class HtmlParser
                 var cellElements = new List<DocumentElement>();
                 if (cell.TextContent.TryTrim(out var text))
                 {
+                    var cellRunProperties = DefaultRunProps() with
+                    {
+                        Bold = isHeader
+                    };
+                    if (cellTextColor != null)
+                    {
+                        cellRunProperties = cellRunProperties with
+                        {
+                            ColorHex = cellTextColor
+                        };
+                    }
+
                     cellElements.Add(new ParagraphElement
                     {
+                        Properties = cellAlignment is { } alignment
+                            ? new()
+                            {
+                                Alignment = alignment
+                            }
+                            : new(),
                         Runs =
                         [
                             new()
                             {
                                 Text = text,
-                                Properties = DefaultRunProps() with
-                                {
-                                    Bold = isHeader
-                                }
+                                Properties = cellRunProperties
                             }
                         ]
                     });
@@ -1003,7 +1112,9 @@ sealed class HtmlParser
                         Margin = cellMargin,
                         BackgroundColorHex = cellBgColor,
                         GridSpan = gridSpan,
-                        VerticalMerge = verticalMerge
+                        VerticalMerge = verticalMerge,
+                        WidthPoints = cellWidthPoints,
+                        WidthFraction = cellWidthFraction
                     }
                 });
 
@@ -1064,7 +1175,9 @@ sealed class HtmlParser
             Properties = new()
             {
                 DefaultBorders = defaultBorders,
-                DefaultCellPadding = defaultCellPadding ?? new CellSpacing()
+                DefaultCellPadding = defaultCellPadding ?? new CellSpacing(),
+                PreferredWidthPoints = preferredWidthPoints,
+                FillContainer = fillContainer
             }
         };
     }
