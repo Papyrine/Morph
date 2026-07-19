@@ -634,7 +634,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
     }
 
-    static SKPaint? BuildBlipColorEffectPaint(BlipColorEffect effect, string? duotoneColorHex = null, string? duotoneLightColorHex = null)
+    public static SKPaint? BuildBlipColorEffectPaint(BlipColorEffect effect, string? duotoneColorHex = null, string? duotoneLightColorHex = null)
     {
         // Standard ITU-R BT.601 luminance weights for grayscale conversion.
         const float lumR = 0.299f;

@@ -677,6 +677,9 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                     InlineImageFlipHorizontal = run.InlineImageFlipHorizontal,
                     InlineImageFlipVertical = run.InlineImageFlipVertical,
                     InlineImageCrop = run.InlineImageCrop,
+                    InlineImageColorEffect = run.InlineImageColorEffect,
+                    InlineImageDuotoneColorHex = run.InlineImageDuotoneColorHex,
+                    InlineImageDuotoneLightColorHex = run.InlineImageDuotoneLightColorHex,
                     InlineShapeGroup = run.InlineShapeGroup
                 });
                 currentLineWidth += imageWidth;
@@ -1672,7 +1675,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         // Decode + crop + resize + flip + rotate are cached on the context — a repeated inline
         // icon processes once per document.
         var rotation = (float) fragment.InlineImageRotationDegrees;
-        var img = context.GetProcessedImage(imageBytes!, (int) pixelWidth, (int) pixelHeight, fragment.InlineImageCrop, BlipColorEffect.None, rotation, fragment.InlineImageFlipHorizontal, fragment.InlineImageFlipVertical);
+        var img = context.GetProcessedImage(imageBytes!, (int) pixelWidth, (int) pixelHeight, fragment.InlineImageCrop, fragment.InlineImageColorEffect, rotation, fragment.InlineImageFlipHorizontal, fragment.InlineImageFlipVertical, fragment.InlineImageDuotoneColorHex, fragment.InlineImageDuotoneLightColorHex);
         if (img == null)
         {
             return;
@@ -1841,6 +1844,9 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                         InlineImageFlipHorizontal = run.InlineImageFlipHorizontal,
                         InlineImageFlipVertical = run.InlineImageFlipVertical,
                         InlineImageCrop = run.InlineImageCrop,
+                        InlineImageColorEffect = run.InlineImageColorEffect,
+                        InlineImageDuotoneColorHex = run.InlineImageDuotoneColorHex,
+                        InlineImageDuotoneLightColorHex = run.InlineImageDuotoneLightColorHex,
                         InlineShapeGroup = run.InlineShapeGroup
                     });
                 currentLineWidth += imageWidth;
@@ -2293,6 +2299,15 @@ sealed class TextFragment
 
     /// <summary>Inline image source-rectangle crop. Null = no crop.</summary>
     public ImageCrop? InlineImageCrop { get; init; }
+
+    /// <summary>Colour-transform effect for the inline image (a:duotone / a:grayscl / a:lum).</summary>
+    public BlipColorEffect InlineImageColorEffect { get; init; } = BlipColorEffect.None;
+
+    /// <summary>Duotone dark end for the inline image.</summary>
+    public string? InlineImageDuotoneColorHex { get; init; }
+
+    /// <summary>Duotone light end for the inline image.</summary>
+    public string? InlineImageDuotoneLightColorHex { get; init; }
 
     /// <summary>Inline shape-group payload (wpg:wgp) — mutually exclusive with <see cref="InlineImageData"/>.</summary>
     public InlineShapeGroup? InlineShapeGroup { get; init; }
