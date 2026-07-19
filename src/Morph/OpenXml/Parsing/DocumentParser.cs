@@ -5684,6 +5684,12 @@ sealed class DocumentParser(string defaultFont)
 
         var crop = ReadCrop(blipFill);
 
+        // a:grayscl / a:duotone on the pic's blip — brochures/03's grey circle photo is an
+        // inline pic whose greyscale was silently dropped on this path.
+        var (inlineColorEffect, inlineDuotoneColorHex, inlineDuotoneLightColorHex) = ReadBlipColorEffect(
+            blipFill.Descendants().FirstOrDefault(_ => _.LocalName == "blip"),
+            currentThemeColors);
+
         if (ReadBlipImage(blipFill, hostPart) is not { } image)
         {
             return null;
@@ -5704,7 +5710,10 @@ sealed class DocumentParser(string defaultFont)
             InlineImageRotationDegrees = rotationDegrees,
             InlineImageFlipHorizontal = flipHorizontal,
             InlineImageFlipVertical = flipVertical,
-            InlineImageCrop = crop
+            InlineImageCrop = crop,
+            InlineImageColorEffect = inlineColorEffect,
+            InlineImageDuotoneColorHex = inlineDuotoneColorHex,
+            InlineImageDuotoneLightColorHex = inlineDuotoneLightColorHex
         };
     }
 

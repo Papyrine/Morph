@@ -42,6 +42,15 @@ sealed class Run
     /// <summary>Inline image source-rectangle crop (a:srcRect). Null = no crop.</summary>
     public ImageCrop? InlineImageCrop { get; init; }
 
+    /// <summary>Colour-transform effect for the inline image (a:duotone / a:grayscl / a:lum).</summary>
+    public BlipColorEffect InlineImageColorEffect { get; init; } = BlipColorEffect.None;
+
+    /// <summary>Duotone dark end for the inline image; see <see cref="ImageElement.DuotoneColorHex"/>.</summary>
+    public string? InlineImageDuotoneColorHex { get; init; }
+
+    /// <summary>Duotone light end for the inline image; see <see cref="ImageElement.DuotoneLightColorHex"/>.</summary>
+    public string? InlineImageDuotoneLightColorHex { get; init; }
+
     /// <summary>
     /// True when this run represents a single w:tab character.
     /// When true, <see cref="Text"/> is "\t" and the renderer snaps the cursor to the next tab stop.
@@ -109,6 +118,9 @@ sealed class Run
             InlineImageFlipHorizontal = InlineImageFlipHorizontal,
             InlineImageFlipVertical = InlineImageFlipVertical,
             InlineImageCrop = InlineImageCrop,
+            InlineImageColorEffect = InlineImageColorEffect,
+            InlineImageDuotoneColorHex = InlineImageDuotoneColorHex,
+            InlineImageDuotoneLightColorHex = InlineImageDuotoneLightColorHex,
             IsTab = IsTab,
             FootnoteReferenceId = FootnoteReferenceId,
             EndnoteReferenceId = EndnoteReferenceId,
@@ -134,6 +146,9 @@ sealed class Run
             InlineImageFlipHorizontal = InlineImageFlipHorizontal,
             InlineImageFlipVertical = InlineImageFlipVertical,
             InlineImageCrop = InlineImageCrop,
+            InlineImageColorEffect = InlineImageColorEffect,
+            InlineImageDuotoneColorHex = InlineImageDuotoneColorHex,
+            InlineImageDuotoneLightColorHex = InlineImageDuotoneLightColorHex,
             IsTab = IsTab,
             FootnoteReferenceId = FootnoteReferenceId,
             EndnoteReferenceId = EndnoteReferenceId,

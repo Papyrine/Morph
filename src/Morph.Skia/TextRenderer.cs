@@ -703,6 +703,9 @@ sealed class TextRenderer(SkiaRenderContext context) :
                         InlineImageFlipHorizontal = run.InlineImageFlipHorizontal,
                         InlineImageFlipVertical = run.InlineImageFlipVertical,
                         InlineImageCrop = run.InlineImageCrop,
+                        InlineImageColorEffect = run.InlineImageColorEffect,
+                        InlineImageDuotoneColorHex = run.InlineImageDuotoneColorHex,
+                        InlineImageDuotoneLightColorHex = run.InlineImageDuotoneLightColorHex,
                         InlineShapeGroup = run.InlineShapeGroup
                     });
                 currentLineWidth += imageWidth;
@@ -1764,6 +1767,11 @@ sealed class TextRenderer(SkiaRenderContext context) :
             var skImage = context.GetBitmap(fragment.InlineImageData!);
             if (skImage != null)
             {
+                // a:grayscl / a:duotone on the pic's blip (brochures/03's grey circle photo).
+                using var effectPaint = SkiaPageRenderer.BuildBlipColorEffectPaint(
+                    fragment.InlineImageColorEffect,
+                    fragment.InlineImageDuotoneColorHex,
+                    fragment.InlineImageDuotoneLightColorHex);
                 if (fragment.InlineImageCrop is { IsCropped: true } crop)
                 {
                     if (crop.HasPadding)
@@ -1773,7 +1781,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
                         var (paddedX, paddedY, paddedWidth, paddedHeight) = crop.Expand(destRect.Left, destRect.Top, destRect.Width, destRect.Height);
                         canvas.Save();
                         canvas.ClipRect(destRect);
-                        canvas.DrawBitmap(skImage, new SKRect((float) paddedX, (float) paddedY, (float) (paddedX + paddedWidth), (float) (paddedY + paddedHeight)));
+                        canvas.DrawBitmap(skImage, new SKRect((float) paddedX, (float) paddedY, (float) (paddedX + paddedWidth), (float) (paddedY + paddedHeight)), effectPaint);
                         canvas.Restore();
                     }
                     else
@@ -1783,12 +1791,12 @@ sealed class TextRenderer(SkiaRenderContext context) :
                         var srcRight = (float) ((1 - crop.Right) * skImage.Width);
                         var srcBottom = (float) ((1 - crop.Bottom) * skImage.Height);
                         var srcRect = new SKRect(srcLeft, srcTop, srcRight, srcBottom);
-                        canvas.DrawBitmap(skImage, srcRect, destRect);
+                        canvas.DrawBitmap(skImage, srcRect, destRect, effectPaint);
                     }
                 }
                 else
                 {
-                    canvas.DrawBitmap(skImage, destRect);
+                    canvas.DrawBitmap(skImage, destRect, effectPaint);
                 }
             }
         }
@@ -1945,6 +1953,9 @@ sealed class TextRenderer(SkiaRenderContext context) :
                         InlineImageFlipHorizontal = run.InlineImageFlipHorizontal,
                         InlineImageFlipVertical = run.InlineImageFlipVertical,
                         InlineImageCrop = run.InlineImageCrop,
+                        InlineImageColorEffect = run.InlineImageColorEffect,
+                        InlineImageDuotoneColorHex = run.InlineImageDuotoneColorHex,
+                        InlineImageDuotoneLightColorHex = run.InlineImageDuotoneLightColorHex,
                         InlineShapeGroup = run.InlineShapeGroup
                     });
                 currentLineWidth += imageWidth;
@@ -2468,6 +2479,15 @@ sealed class TextFragment
 
     /// <summary>Inline image source-rectangle crop. Null = no crop.</summary>
     public ImageCrop? InlineImageCrop { get; init; }
+
+    /// <summary>Colour-transform effect for the inline image (a:duotone / a:grayscl / a:lum).</summary>
+    public BlipColorEffect InlineImageColorEffect { get; init; } = BlipColorEffect.None;
+
+    /// <summary>Duotone dark end for the inline image.</summary>
+    public string? InlineImageDuotoneColorHex { get; init; }
+
+    /// <summary>Duotone light end for the inline image.</summary>
+    public string? InlineImageDuotoneLightColorHex { get; init; }
 
     /// <summary>Inline shape-group payload (wpg:wgp) — mutually exclusive with <see cref="InlineImageData"/>.</summary>
     public InlineShapeGroup? InlineShapeGroup { get; init; }
