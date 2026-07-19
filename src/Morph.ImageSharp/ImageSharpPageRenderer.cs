@@ -176,13 +176,16 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         };
         RenderParagraph(headingParagraph);
 
-        foreach (var (id, text) in entries)
+        for (var noteIndex = 0; noteIndex < entries.Count; noteIndex++)
         {
+            var (_, text) = entries[noteIndex];
             var noteParagraph = new ParagraphElement
             {
                 Runs =
                 [
-                    new() {Text = $"{id}. ", Properties = new() {Bold = true, FontSizePoints = 10}},
+                    // Sequential display number, matching the citation marks (footnotes.xml
+                    // ids start at 2; Word shows 1, 2, 3...).
+                    new() {Text = $"{noteIndex + 1}. ", Properties = new() {Bold = true, FontSizePoints = 10}},
                     new() {Text = text, Properties = new() {FontSizePoints = 10}}
                 ],
                 Properties = new() {SpacingAfterPoints = 4}
