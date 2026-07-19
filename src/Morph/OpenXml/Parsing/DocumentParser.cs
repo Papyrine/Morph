@@ -3257,6 +3257,11 @@ sealed class DocumentParser(string defaultFont)
         var elements = new List<DocumentElement>();
         AppendHeaderFooterElements(rootElement, mainPart, elements);
 
+        // Header/footer floats need the same relativeHeight z-sort the body gets — letters/02's
+        // header stacks an opaque white JPEG (z 251658240) UNDER its frame PNG (251658241), and
+        // painting them in document order whited out the whole letterhead.
+        SortFloatingBatchesByZ(elements);
+
         return elements.Count > 0
             ? new HeaderFooterContent
             {
@@ -5620,13 +5625,16 @@ sealed class DocumentParser(string defaultFont)
             return ParseInlineSingleLineRun(drawing, standaloneWsp, runProps);
         }
 
-        // Standalone inline picture-shape — a single <wps:wsp> whose spPr carries an
-        // <a:blipFill> (Word's "fill a shape with a picture"). cover-letters/09 stores its
-        // circular profile photo this way; without this branch the photo is silently dropped
-        // because the drawing has no <pic> child either.
-        if (standaloneWsp?.GetFirstChild<WPS.ShapeProperties>()?.GetFirstChild<A.BlipFill>() != null)
+        // Standalone inline picture- or fill-shape — a single <wps:wsp> sitting directly
+        // under <a:graphicData> with no wpg:wgp wrapper, carrying either an <a:blipFill>
+        // (Word's "fill a shape with a picture" — cover-letters/09's circular profile photo)
+        // or an ordinary solid fill (cover-letters/10's custGeom logo). Without this branch
+        // both are silently dropped because the drawing has no <pic> child either.
+        if (standaloneWsp?.GetFirstChild<WPS.ShapeProperties>() is { } standaloneProps &&
+            (standaloneProps.GetFirstChild<A.BlipFill>() != null ||
+             standaloneProps.GetFirstChild<A.SolidFill>() != null))
         {
-            return ParseInlineShapeImageRun(drawing, standaloneWsp, hostPart, runProps);
+            return ParseInlineSingleShapeRun(drawing, standaloneWsp, hostPart, runProps);
         }
 
         // Find the pic element
@@ -6182,12 +6190,14 @@ sealed class DocumentParser(string defaultFont)
     }
 
     /// <summary>
-    /// Wraps a single blip-filled <c>wps:wsp</c> sitting directly under <c>a:graphicData</c>
-    /// (no <c>wpg:wgp</c>) into a one-element <see cref="InlineShapeGroup"/> — Word's "fill a
-    /// shape with a picture" (cover-letters/09's circular profile photo). The group route keeps
-    /// the preset geometry, so an ellipse photo renders clipped to its circle.
+    /// Wraps a single filled <c>wps:wsp</c> sitting directly under <c>a:graphicData</c>
+    /// (no <c>wpg:wgp</c>) into a one-element <see cref="InlineShapeGroup"/>. A blip fill is
+    /// Word's "fill a shape with a picture" (cover-letters/09's circular profile photo — the
+    /// group route keeps the preset geometry, so an ellipse photo renders clipped to its
+    /// circle); a solid fill is an inline logo/accent graphic (cover-letters/10's custGeom
+    /// letterhead moons).
     /// </summary>
-    Run? ParseInlineShapeImageRun(Drawing drawing, WPS.WordprocessingShape wsp, OpenXmlPart hostPart, RunProperties runProps)
+    Run? ParseInlineSingleShapeRun(Drawing drawing, WPS.WordprocessingShape wsp, OpenXmlPart hostPart, RunProperties runProps)
     {
         var extent = drawing.Descendants<DW.Extent>().FirstOrDefault();
         if (extent?.Cx == null || extent.Cy == null)
@@ -6202,8 +6212,11 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
-        if (shapeProps.GetFirstChild<A.BlipFill>() is not { } blipFill ||
-            ReadBlipImage(blipFill, hostPart) is not { } image)
+        var blipFill = shapeProps.GetFirstChild<A.BlipFill>();
+        var image = blipFill != null ? ReadBlipImage(blipFill, hostPart) : null;
+        var solidFill = shapeProps.GetFirstChild<A.SolidFill>();
+        var fillColorHex = solidFill != null ? ExtractFirstFillColor(solidFill) : null;
+        if (image == null && fillColorHex == null)
         {
             return null;
         }
@@ -6230,11 +6243,22 @@ sealed class DocumentParser(string defaultFont)
                 LineWidthEmu = stroke.WidthEmu,
                 LineAlpha = stroke.Alpha,
                 Geometry = MapGroupGeometry(shapeProps),
+                // Contours drive the SOLID fill's silhouette (custGeom logo art). Picture
+                // fills keep them null so the ellipse clip stays the smooth geometric path.
+                Subpaths = image == null
+                    ? ShapeParser.ExtractSubpaths(shapeProps)
+                      ?? PresetShapeGeometry.TryBuild(
+                          shapeProps.GetFirstChild<A.PresetGeometry>(),
+                          shapeXfrm.Extents.Cx ?? 0,
+                          shapeXfrm.Extents.Cy ?? 0)
+                    : null,
+                FillColorHex = image == null ? fillColorHex : null,
+                FillAlpha = solidFill != null ? ShapeParser.ExtractSolidFillAlpha(solidFill) : 1,
                 Shadow = ReadOuterShadow(shapeProps),
-                ImageData = image.Data,
-                ImageContentType = image.ContentType,
-                ImageRasterFallbackData = image.RasterFallbackData,
-                ImageCrop = ReadCrop(blipFill)
+                ImageData = image?.Data,
+                ImageContentType = image?.ContentType,
+                ImageRasterFallbackData = image?.RasterFallbackData,
+                ImageCrop = blipFill != null && image != null ? ReadCrop(blipFill) : null
             }
         };
 
