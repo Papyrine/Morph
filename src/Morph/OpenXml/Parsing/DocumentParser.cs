@@ -3784,12 +3784,31 @@ sealed class DocumentParser(string defaultFont)
                 // the cell's frame, and the table renderer draws them when the cell rectangle is
                 // known (TableCell.Floats). Sorted by relativeHeight — Word's z-space.
                 List<DocumentElement>? cellFloats = null;
+                List<int>? cellFloatOrdinals = null;
                 if (cellContent.Any(static _ => _ is FloatingImageElement or FloatingShapeElement or FloatingTextBoxElement or FloatingWordArtElement))
                 {
-                    cellFloats = cellContent
-                        .Where(static _ => _ is FloatingImageElement or FloatingShapeElement or FloatingTextBoxElement or FloatingWordArtElement)
-                        .OrderBy(FloatingZOrder)
-                        .ToList();
+                    // Each float's anchor paragraph is the next paragraph after it in the cell's
+                    // flow (ParseParagraph emits a drawing's floats before the paragraph's runs);
+                    // record its ordinal so paragraph-relative anchors can resolve against the
+                    // paragraph's laid-out position (brochures/07 hangs its balloons photo 260pt
+                    // ABOVE the cell's bottom paragraph). The z-sort keeps float+ordinal aligned.
+                    var floatsInOrder = new List<(DocumentElement Element, int Ordinal)>();
+                    var paragraphOrdinal = 0;
+                    foreach (var cellElement in cellContent)
+                    {
+                        if (cellElement is FloatingImageElement or FloatingShapeElement or FloatingTextBoxElement or FloatingWordArtElement)
+                        {
+                            floatsInOrder.Add((cellElement, paragraphOrdinal));
+                        }
+                        else if (cellElement is ParagraphElement)
+                        {
+                            paragraphOrdinal++;
+                        }
+                    }
+
+                    var sorted = floatsInOrder.OrderBy(static _ => FloatingZOrder(_.Element)).ToList();
+                    cellFloats = sorted.Select(static _ => _.Element).ToList();
+                    cellFloatOrdinals = sorted.Select(static _ => _.Ordinal).ToList();
                     cellContent.RemoveAll(static _ => _ is FloatingImageElement or FloatingShapeElement or FloatingTextBoxElement or FloatingWordArtElement);
                 }
 
@@ -3812,6 +3831,7 @@ sealed class DocumentParser(string defaultFont)
                     {
                         Content = cellContent,
                         Floats = cellFloats ?? [],
+                        FloatAnchorParagraphOrdinals = cellFloatOrdinals ?? [],
                         Properties = new()
                         {
                             WidthPoints = width,

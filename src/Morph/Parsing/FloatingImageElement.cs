@@ -60,6 +60,14 @@ sealed class FloatingImageElement : DocumentElement
     /// (<c>wp:anchor@layoutInCell</c>, default true).</summary>
     public bool LayoutInCell { get; init; } = true;
 
+    /// <summary>
+    /// Ordinal of the anchor paragraph within the owning cell's flow content (index into
+    /// <c>TableCell.Content</c> counting paragraphs), recorded when the float is detached into
+    /// <c>TableCell.Floats</c>. Paragraph-relative vertical anchors resolve against that
+    /// paragraph's laid-out position; −1 when unknown (falls back to the cell top).
+    /// </summary>
+    public int CellAnchorParagraphIndex { get; init; } = -1;
+
     /// <summary>Rotation in degrees (clockwise). 0 means no rotation.</summary>
     public double RotationDegrees { get; init; }
 
@@ -126,6 +134,7 @@ sealed class FloatingImageElement : DocumentElement
             HorizontalPositionPoints = x,
             VerticalAnchor = VerticalAnchor.Page,
             VerticalPositionPoints = y,
+            CellAnchorParagraphIndex = CellAnchorParagraphIndex,
             ImageData = ImageData,
             WidthPoints = WidthPoints,
             HeightPoints = HeightPoints,
