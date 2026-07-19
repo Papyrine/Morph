@@ -1503,7 +1503,7 @@ Image / shape sizes *and* offsets specified as a percentage of the page or margi
 
 Positioned shapes with solid color fill, typically used as background decorations.
 
-- **OOXML**: `wps:wsp` within `wp:anchor` with `a:solidFill`
+- **OOXML**: `wps:wsp` within `wp:anchor` with `a:solidFill` — or `a:grpFill`, which defers to the nearest ancestor group's fill (`ResolveGroupFill` walks the grpSp/wgp chain, looking through fill-less wrapper groups; labels/07's collage clusters inherit their group's accent colour this way)
 - **Model**: `FloatingShapeElement` with `FillColorHex` (and `RotationDegrees`, applied about the shape's centre)
 - **Parse**: `ShapeParser.cs`; group children also via `DocumentParser.ParseAllShapesFromDrawing` → `ParseSolidFillShape` (authoritative for cell-anchored groups). Nested `wpg:grpSp` transforms compose through `GetAccumulatedTransform` as a full affine — each group's `a:xfrm/@rot` rotates about its own centre and composes with the child's `@rot` (labels/14's 270° wave sub-groups, cards/09's ±45° cancelling pairs), with `MapRectangle` swapping which outer scale hits which child axis under 90°-family rotations. A group's children — across all three parse sweeps (ShapeParser shapes, pictures, walk text boxes/fills) — re-interleave into the group's DOCUMENT order via per-element source tracking (`childSources` → `GroupDrawables` ordinal), reproducing Word's back-to-front child painting; every walk emission carries the anchor's `relativeHeight` so the batch z-sort keeps same-anchor children together.
 
