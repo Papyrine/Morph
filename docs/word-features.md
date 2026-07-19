@@ -1504,8 +1504,8 @@ Image / shape sizes *and* offsets specified as a percentage of the page or margi
 Positioned shapes with solid color fill, typically used as background decorations.
 
 - **OOXML**: `wps:wsp` within `wp:anchor` with `a:solidFill`
-- **Model**: `FloatingShapeElement` with `FillColorHex`
-- **Parse**: `ShapeParser.cs`
+- **Model**: `FloatingShapeElement` with `FillColorHex` (and `RotationDegrees`, applied about the shape's centre)
+- **Parse**: `ShapeParser.cs`; group children also via `DocumentParser.ParseAllShapesFromDrawing` → `ParseSolidFillShape` (authoritative for cell-anchored groups). Nested `wpg:grpSp` transforms compose through `GetAccumulatedTransform` as a full affine — each group's `a:xfrm/@rot` rotates about its own centre and composes with the child's `@rot` (labels/14's 270° wave sub-groups, cards/09's ±45° cancelling pairs), with `MapRectangle` swapping which outer scale hits which child axis under 90°-family rotations.
 
 > **Contributors**: All three backends paint the fill (rectangle, ellipse, or custom path); behind-text shapes are pre-scanned and rendered at page start before content. Skia/ImageSharp via `RenderBackgroundShape`; the PDF backend via `PdfPageRenderer.RenderBackgroundShape` using `XGraphics` fills.
 
