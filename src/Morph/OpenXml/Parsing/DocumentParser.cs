@@ -4962,7 +4962,8 @@ sealed class DocumentParser(string defaultFont)
                     {
                         // Try background shapes first (solid fill behind text)
                         // May return multiple shapes when a WordprocessingGroup contains multiple non-decorative shapes
-                        var shapeElements = ShapeParser.ParseBackgroundShapes(drawing, currentThemeColors, mainPart, props.SpacingBeforePoints, GetPartBytes);
+                        var drawingChildSources = new Dictionary<DocumentElement, OpenXmlElement>();
+                        var shapeElements = ShapeParser.ParseBackgroundShapes(drawing, currentThemeColors, mainPart, props.SpacingBeforePoints, GetPartBytes, drawingChildSources);
 
                         // Check if there's a group - groups may contain text boxes and images even without shapes
                         var hasGroup = drawing.Descendants<WPG.WordprocessingGroup>().Any();
@@ -4999,20 +5000,17 @@ sealed class DocumentParser(string defaultFont)
                             // cell-anchored groups never rendered at all before the hoist, so only
                             // they can safely switch owner.
                             var cellGroup = hasGroup && para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any();
-                            if (!cellGroup)
-                            {
-                                result.AddRange(shapeElements);
-                            }
 
                             // Also check for images in the same drawing/group (e.g., decorative overlays, SVG backgrounds)
-                            var overlayImages = ParseDrawingElements(drawing, mainPart);
-                            result.AddRange(overlayImages);
+                            var childSources = drawingChildSources;
+                            var overlayImages = ParseDrawingElements(drawing, mainPart, childSources);
 
                             // Parse text boxes and solid fill shapes inside the shapes/group (they contain the actual content).
                             // Skip any solid-fill FloatingShapeElement whose position/size matches one
                             // already emitted by ShapeParser above — both parsers traverse the same wgp
                             // group and would otherwise produce duplicates.
-                            var shapesFromDrawing = ParseAllShapesFromDrawing(drawing, mainPart);
+                            var shapesFromDrawing = ParseAllShapesFromDrawing(drawing, mainPart, childSources);
+                            var walkSurvivors = new List<DocumentElement>();
                             foreach (var shape in shapesFromDrawing)
                             {
                                 // The position/size dedup only applies when ShapeParser's output was
@@ -5031,8 +5029,34 @@ sealed class DocumentParser(string defaultFont)
                                     continue;
                                 }
 
-                                result.Add(shape);
+                                walkSurvivors.Add(shape);
                             }
+
+                            // Word paints a group's children back-to-front in DOCUMENT order, but the
+                            // two sweeps above emit all pictures then all shapes/text boxes — labels/06's
+                            // "ADMIT ONE" captions sank under their ticket-body pictures while
+                            // labels/11's white base boxes floated over its purple brush art (each
+                            // needs the opposite phase order, so no concatenation is ever right).
+                            // Re-interleave by each element's source child position within the wgp.
+                            // OrderBy is stable, and elements without a mapped source (txbx-nested
+                            // pictures) keep their relative order at the end.
+                            var groupForOrder = drawing.Descendants<WPG.WordprocessingGroup>().FirstOrDefault();
+                            var groupChildren = (cellGroup ? [] : shapeElements.Cast<DocumentElement>())
+                                .Concat(overlayImages)
+                                .Concat(walkSurvivors);
+                            if (groupForOrder != null)
+                            {
+                                var documentOrder = GroupDrawables(groupForOrder)
+                                    .Select((node, index) => (Node: node, Index: index))
+                                    .ToDictionary(_ => _.Node, _ => _.Index);
+                                groupChildren = groupChildren.OrderBy(_ =>
+                                    childSources.TryGetValue(_, out var source) &&
+                                    documentOrder.TryGetValue(source, out var ordinal)
+                                        ? ordinal
+                                        : int.MaxValue);
+                            }
+
+                            result.AddRange(groupChildren);
 
                             continue;
                         }
@@ -6198,7 +6222,7 @@ sealed class DocumentParser(string defaultFont)
         }
     }
 
-    List<DocumentElement> ParseDrawingElements(Drawing drawing, MainDocumentPart mainPart)
+    List<DocumentElement> ParseDrawingElements(Drawing drawing, MainDocumentPart mainPart, Dictionary<DocumentElement, OpenXmlElement>? childSources = null)
     {
         var hostPart = ResolveHostPart(drawing, mainPart);
         var result = new List<DocumentElement>();
@@ -6393,7 +6417,7 @@ sealed class DocumentParser(string defaultFont)
             // Create the image element
             if (anchor == null)
             {
-                result.Add(new ImageElement
+                var imageElement = new ImageElement
                 {
                     ImageData = imageData,
                     WidthPoints = widthPoints,
@@ -6408,12 +6432,15 @@ sealed class DocumentParser(string defaultFont)
                     DuotoneColorHex = duotoneColorHex,
                     RasterFallbackData = rasterFallbackData,
                     RasterFallbackContentType = rasterFallbackContentType
-                });
+                };
+                result.Add(imageElement);
+                childSources?[imageElement] = pic;
             }
             else
             {
                 var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees, flipHorizontal, flipVertical, crop, rasterFallbackData, rasterFallbackContentType, description, colorEffect, duotoneColorHex);
                 result.Add(floatingImage);
+                childSources?[floatingImage] = pic;
             }
         }
 
@@ -6720,7 +6747,7 @@ sealed class DocumentParser(string defaultFont)
         return !textBox.Descendants<Text>().Any(static _ => !string.IsNullOrWhiteSpace(_.Text));
     }
 
-    List<DocumentElement> ParseAllShapesFromDrawing(Drawing drawing, MainDocumentPart mainPart)
+    List<DocumentElement> ParseAllShapesFromDrawing(Drawing drawing, MainDocumentPart mainPart, Dictionary<DocumentElement, OpenXmlElement>? childSources = null)
     {
         var result = new List<DocumentElement>();
 
@@ -6774,6 +6801,7 @@ sealed class DocumentParser(string defaultFont)
                 if (textBox != null)
                 {
                     result.Add(textBox);
+                    childSources?[textBox] = wsp;
                 }
                 else if (TextBoxHasNoText(wsp))
                 {
@@ -6787,6 +6815,7 @@ sealed class DocumentParser(string defaultFont)
                     if (solidShape != null)
                     {
                         result.Add(solidShape);
+                        childSources?[solidShape] = wsp;
                     }
                 }
             }
@@ -6950,6 +6979,8 @@ sealed class DocumentParser(string defaultFont)
             Content = content,
             WidthPoints = widthPt,
             HeightPoints = heightPt,
+            RelativeHeight = positioning.RelativeHeight,
+            LayoutInCell = positioning.LayoutInCell,
             HorizontalPositionPoints = xPt,
             VerticalPositionPoints = yPt,
             HorizontalAnchor = positioning.HorizontalAnchor,
@@ -7190,6 +7221,8 @@ sealed class DocumentParser(string defaultFont)
         {
             WidthPoints = widthPt,
             HeightPoints = heightPt,
+            RelativeHeight = positioning.RelativeHeight,
+            LayoutInCell = positioning.LayoutInCell,
             HorizontalPositionPoints = xPt,
             VerticalPositionPoints = yPt,
             HorizontalAnchor = positioning.HorizontalAnchor,
@@ -7507,6 +7540,8 @@ sealed class DocumentParser(string defaultFont)
             Content = content,
             WidthPoints = widthPt,
             HeightPoints = heightPt,
+            RelativeHeight = positioning.RelativeHeight,
+            LayoutInCell = positioning.LayoutInCell,
             HorizontalPositionPoints = xPt,
             VerticalPositionPoints = yPt,
             HorizontalAnchor = positioning.HorizontalAnchor,

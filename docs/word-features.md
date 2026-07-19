@@ -1505,7 +1505,7 @@ Positioned shapes with solid color fill, typically used as background decoration
 
 - **OOXML**: `wps:wsp` within `wp:anchor` with `a:solidFill`
 - **Model**: `FloatingShapeElement` with `FillColorHex` (and `RotationDegrees`, applied about the shape's centre)
-- **Parse**: `ShapeParser.cs`; group children also via `DocumentParser.ParseAllShapesFromDrawing` → `ParseSolidFillShape` (authoritative for cell-anchored groups). Nested `wpg:grpSp` transforms compose through `GetAccumulatedTransform` as a full affine — each group's `a:xfrm/@rot` rotates about its own centre and composes with the child's `@rot` (labels/14's 270° wave sub-groups, cards/09's ±45° cancelling pairs), with `MapRectangle` swapping which outer scale hits which child axis under 90°-family rotations.
+- **Parse**: `ShapeParser.cs`; group children also via `DocumentParser.ParseAllShapesFromDrawing` → `ParseSolidFillShape` (authoritative for cell-anchored groups). Nested `wpg:grpSp` transforms compose through `GetAccumulatedTransform` as a full affine — each group's `a:xfrm/@rot` rotates about its own centre and composes with the child's `@rot` (labels/14's 270° wave sub-groups, cards/09's ±45° cancelling pairs), with `MapRectangle` swapping which outer scale hits which child axis under 90°-family rotations. A group's children — across all three parse sweeps (ShapeParser shapes, pictures, walk text boxes/fills) — re-interleave into the group's DOCUMENT order via per-element source tracking (`childSources` → `GroupDrawables` ordinal), reproducing Word's back-to-front child painting; every walk emission carries the anchor's `relativeHeight` so the batch z-sort keeps same-anchor children together.
 
 > **Contributors**: All three backends paint the fill (rectangle, ellipse, or custom path); behind-text shapes are pre-scanned and rendered at page start before content. Skia/ImageSharp via `RenderBackgroundShape`; the PDF backend via `PdfPageRenderer.RenderBackgroundShape` using `XGraphics` fills.
 
@@ -1525,7 +1525,7 @@ Positioned text containers with optional background, outline, shape geometry and
 
 - **OOXML**: `wps:wsp` with `wps:txbx` content
 - **Model**: `FloatingTextBoxElement` with content, rotation, background color, `a:ln` outline (`LineColorHex`/`LineWidthPoints`) and `Subpaths` (the shape's `a:custGeom` or built preset — roundRect/stadium label chrome, plaque frames)
-- **Render**: Skia/ImageSharp/PDF draw the fill and outline through the shape's contours (even-odd) before the text content; the text itself still lays out in the rectangular box. The HTML exporter emits neither outline nor geometry for text boxes.
+- **Render**: Skia/ImageSharp/PDF draw the fill and outline through the shape's contours (even-odd) before the text content; the text itself still lays out in the rectangular box. All three rotate the whole box (chrome + text) about its centre when `a:xfrm/@rot` (or a composed nested-group rotation) is present — the PDF via `RotateAtTransform`. The HTML exporter emits neither outline, geometry nor rotation for text boxes.
 
 
 #### Inline Shape Groups `DONE`
