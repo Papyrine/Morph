@@ -5124,16 +5124,14 @@ sealed class DocumentParser(string defaultFont)
                             // OrderBy is stable, and elements without a mapped source (txbx-nested
                             // pictures) keep their relative order at the end.
                             var groupForOrder = drawing.Descendants<WPG.WordprocessingGroup>().FirstOrDefault();
-                            // The walk never parses blip-filled (image-textured) shapes — for
-                            // non-identity groups keep ShapeParser's image shapes (their sub-group
-                            // may itself be identity-nested, as newsletters/12's photo is) while
-                            // its mis-scaled solid fills stay suppressed. Cell groups keep the
-                            // established full suppression.
-                            var groupChildren = (cellGroup
+                            // The walk parses blip-filled (image-textured) shapes with the same
+                            // composed transforms as everything else, so walk-owned groups
+                            // suppress ShapeParser's output entirely — keeping its image shapes
+                            // alongside the walk's would double-draw them, because the
+                            // position/size dedup above is skipped for walk-owned groups.
+                            var groupChildren = (walkOwnsChildren
                                     ? []
-                                    : nonIdentityNesting
-                                        ? shapeElements.Where(_ => _.ImageData != null).Cast<DocumentElement>()
-                                        : shapeElements.Cast<DocumentElement>())
+                                    : shapeElements.Cast<DocumentElement>())
                                 .Concat(overlayImages)
                                 .Concat(walkSurvivors);
                             if (groupForOrder != null)
@@ -5611,6 +5609,15 @@ sealed class DocumentParser(string defaultFont)
             return ParseInlineSingleLineRun(drawing, standaloneWsp, runProps);
         }
 
+        // Standalone inline picture-shape — a single <wps:wsp> whose spPr carries an
+        // <a:blipFill> (Word's "fill a shape with a picture"). cover-letters/09 stores its
+        // circular profile photo this way; without this branch the photo is silently dropped
+        // because the drawing has no <pic> child either.
+        if (standaloneWsp?.GetFirstChild<WPS.ShapeProperties>()?.GetFirstChild<A.BlipFill>() != null)
+        {
+            return ParseInlineShapeImageRun(drawing, standaloneWsp, hostPart, runProps);
+        }
+
         // Find the pic element
         var pic = drawing.Descendants().FirstOrDefault(_ => _.LocalName == "pic");
         if (pic == null)
@@ -5817,6 +5824,12 @@ sealed class DocumentParser(string defaultFont)
                 var fill = shapeProps.GetFirstChild<A.SolidFill>();
                 var stroke = ReadGroupStroke(shapeProps, wsp.GetFirstChild<WPS.ShapeStyle>()?.LineReference);
 
+                // A wps:wsp can be picture-filled the same way a pic:pic is (Word's "fill a
+                // shape with a picture" — newsletters/03 stores its inset photos as blip-filled
+                // rects inside inline groups). Reading only a:solidFill left them invisible.
+                var wspBlipFill = shapeProps.GetFirstChild<A.BlipFill>();
+                var blipImage = wspBlipFill != null ? ReadBlipImage(wspBlipFill, hostPart) : null;
+
                 shapes.Add(new()
                 {
                     X = (shapeXfrm.Offset.X ?? 0) - chOffX + paddingX,
@@ -5836,7 +5849,11 @@ sealed class DocumentParser(string defaultFont)
                                    shapeXfrm.Extents.Cy ?? 0),
                     FillColorHex = fill != null ? ExtractFirstFillColor(fill) : null,
                     FillAlpha = fill != null ? ShapeParser.ExtractSolidFillAlpha(fill) : 1,
-                    Shadow = ReadOuterShadow(shapeProps)
+                    Shadow = ReadOuterShadow(shapeProps),
+                    ImageData = blipImage?.Data,
+                    ImageContentType = blipImage?.ContentType,
+                    ImageRasterFallbackData = blipImage?.RasterFallbackData,
+                    ImageCrop = wspBlipFill != null ? ReadCrop(wspBlipFill) : null
                 });
             }
             else if (child is PIC.Picture picture)
@@ -6135,6 +6152,78 @@ sealed class DocumentParser(string defaultFont)
                 ColorHex = stroke,
                 LineWidthEmu = lineWidth,
                 Geometry = GroupShapeGeometry.Line
+            }
+        };
+
+        return new()
+        {
+            Text = "",
+            Properties = runProps,
+            InlineImageWidthPoints = widthPoints,
+            InlineImageHeightPoints = heightPoints,
+            InlineShapeGroup = new()
+            {
+                ChildExtentX = childExtentX,
+                ChildExtentY = childExtentY,
+                Shapes = shapes
+            }
+        };
+    }
+
+    /// <summary>
+    /// Wraps a single blip-filled <c>wps:wsp</c> sitting directly under <c>a:graphicData</c>
+    /// (no <c>wpg:wgp</c>) into a one-element <see cref="InlineShapeGroup"/> — Word's "fill a
+    /// shape with a picture" (cover-letters/09's circular profile photo). The group route keeps
+    /// the preset geometry, so an ellipse photo renders clipped to its circle.
+    /// </summary>
+    Run? ParseInlineShapeImageRun(Drawing drawing, WPS.WordprocessingShape wsp, OpenXmlPart hostPart, RunProperties runProps)
+    {
+        var extent = drawing.Descendants<DW.Extent>().FirstOrDefault();
+        if (extent?.Cx == null || extent.Cy == null)
+        {
+            return null;
+        }
+
+        var shapeProps = wsp.GetFirstChild<WPS.ShapeProperties>();
+        var shapeXfrm = shapeProps?.GetFirstChild<A.Transform2D>();
+        if (shapeProps == null || shapeXfrm?.Extents == null)
+        {
+            return null;
+        }
+
+        if (shapeProps.GetFirstChild<A.BlipFill>() is not { } blipFill ||
+            ReadBlipImage(blipFill, hostPart) is not { } image)
+        {
+            return null;
+        }
+
+        var widthPoints = extent.Cx.Value / emusPerPoint;
+        var heightPoints = extent.Cy.Value / emusPerPoint;
+        var childExtentX = (double) (shapeXfrm.Extents.Cx ?? extent.Cx.Value);
+        var childExtentY = (double) (shapeXfrm.Extents.Cy ?? extent.Cy.Value);
+        if (widthPoints <= 0 || heightPoints <= 0 || childExtentX <= 0 || childExtentY <= 0)
+        {
+            return null;
+        }
+
+        var stroke = ReadGroupStroke(shapeProps, wsp.GetFirstChild<WPS.ShapeStyle>()?.LineReference);
+        var shapes = new List<GroupShape>
+        {
+            new()
+            {
+                X = 0,
+                Y = 0,
+                Width = shapeXfrm.Extents.Cx ?? 0,
+                Height = shapeXfrm.Extents.Cy ?? 0,
+                ColorHex = stroke.ColorHex,
+                LineWidthEmu = stroke.WidthEmu,
+                LineAlpha = stroke.Alpha,
+                Geometry = MapGroupGeometry(shapeProps),
+                Shadow = ReadOuterShadow(shapeProps),
+                ImageData = image.Data,
+                ImageContentType = image.ContentType,
+                ImageRasterFallbackData = image.RasterFallbackData,
+                ImageCrop = ReadCrop(blipFill)
             }
         };
 
@@ -7237,11 +7326,20 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
-        // Skip shapes with blip fill (image fill) - these are already handled by ShapeParser.ParseBackgroundShapes
-        var blipFill = shapeProps.GetFirstChild<A.BlipFill>();
-        if (blipFill != null)
+        // A blip fill is an image texture. ShapeParser's behindDoc sweep parses these too, but
+        // for walk-owned groups (cell-anchored, non-identity nesting) this walk is the only
+        // parser whose output survives the merge — bailing here dropped those photos entirely
+        // (cover-letters/09's circular profile photo lives in a cell-anchored group). Identity
+        // body groups still dual-parse; the position/size dedup collapses the twins.
+        byte[]? imageData = null;
+        string? imageContentType = null;
+        if (shapeProps.GetFirstChild<A.BlipFill>() is { } blipFill)
         {
-            return null;
+            (imageData, imageContentType) = ShapeParser.ExtractBlipFillImage(blipFill, mainPart, GetPartBytes);
+            if (imageData == null)
+            {
+                return null;
+            }
         }
 
         // prstGeom prst="line" — stroke-only connector. Has no fill (and typically cy=0
@@ -7357,7 +7455,7 @@ sealed class DocumentParser(string defaultFont)
         var strokeDash = shapeProps.GetFirstChild<A.Outline>()?.GetFirstChild<A.PresetDash>()?.Val;
         var isSolidStroke = strokeDash is null || strokeDash.Value == A.PresetLineDashValues.Solid;
         var hasStroke = lineColorHex != null && lineWidthPoints is > 0 && isSolidStroke;
-        if (fillColorHex == null && !hasStroke)
+        if (fillColorHex == null && imageData == null && !hasStroke)
         {
             return null;
         }
@@ -7414,11 +7512,11 @@ sealed class DocumentParser(string defaultFont)
         // 3-point minimum, so their geometry is unchanged.
         var subpaths = ShapeParser.ExtractSubpaths(
             shapeProps,
-            minContourPoints: fillColorHex == null ? 2 : 3);
+            minContourPoints: fillColorHex == null && imageData == null ? 2 : 3);
 
         // A stroke-only shape with no custom-geometry path to stroke would fall back to a
         // bounding-box outline — a border Word doesn't draw. Skip it.
-        if (fillColorHex == null && subpaths == null)
+        if (fillColorHex == null && imageData == null && subpaths == null)
         {
             return null;
         }
@@ -7427,7 +7525,10 @@ sealed class DocumentParser(string defaultFont)
         // coordinate space, so the clip is plain geometry on the unit-square contours.
         // Rotated and percent-positioned/sized shapes resolve differently at render and are
         // left unclipped (none of the affected templates rotate their out-of-frame pieces).
+        // Image-textured shapes are exempt like pictures are: group photos legitimately
+        // overflow their frame (the reverted image frame-clip regressed +0.99).
         if (groupFrame is { } frame &&
+            imageData == null &&
             rotationDegrees == 0 &&
             positioning.HorizontalPositionPercent == null &&
             positioning.VerticalPositionPercent == null)
@@ -7462,8 +7563,12 @@ sealed class DocumentParser(string defaultFont)
             BehindText = behindText,
             FillColorHex = fillColorHex,
             FillAlpha = fillAlpha,
-            // Only stroke-only shapes render their outline here — a filled decorative shape's
-            // <a:ln> was never drawn by this path, so leave that behavior untouched.
+            ImageData = imageData,
+            ImageContentType = imageContentType,
+            // Only stroke-only and image-filled shapes render their outline here — a
+            // solid-filled decorative shape's <a:ln> was never drawn by this path, so leave
+            // that behavior untouched. Image fills stroke like ShapeParser's blip branch does
+            // (a photo shape's border ring).
             LineColorHex = fillColorHex == null ? lineColorHex : null,
             LineWidthPoints = fillColorHex == null ? lineWidthPoints : null,
             Preset = ShapeParser.ExtractPresetShape(shapeProps),

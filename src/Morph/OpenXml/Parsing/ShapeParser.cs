@@ -860,7 +860,7 @@ static class ShapeParser
     /// Extracts image data from a blip fill element. <paramref name="partBytes"/> is the
     /// caller's per-parse part-buffer cache, so repeated references share one array.
     /// </summary>
-    static (byte[]? ImageData, string? ContentType) ExtractBlipFillImage(A.BlipFill blipFill, MainDocumentPart mainPart, Func<OpenXmlPart, byte[]>? partBytes)
+    public static (byte[]? ImageData, string? ContentType) ExtractBlipFillImage(A.BlipFill blipFill, MainDocumentPart mainPart, Func<OpenXmlPart, byte[]>? partBytes)
     {
         var blip = blipFill.GetFirstChild<A.Blip>();
         if (blip == null)
