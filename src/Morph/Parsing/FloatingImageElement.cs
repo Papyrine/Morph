@@ -113,4 +113,45 @@ sealed class FloatingImageElement : DocumentElement
     public double? VerticalPositionPercent { get; init; }
 
 
+    /// <summary>
+    /// Copy re-anchored at an absolute page position — used by the table renderer to place
+    /// a cell-attached float against its cell's resolved rectangle (layoutInCell semantics).
+    /// Percent positioning is cleared (the absolute coordinates already resolved it); every
+    /// other member is preserved.
+    /// </summary>
+    public FloatingImageElement WithAbsolutePosition(double x, double y) =>
+        new()
+        {
+            HorizontalAnchor = HorizontalAnchor.Page,
+            HorizontalPositionPoints = x,
+            VerticalAnchor = VerticalAnchor.Page,
+            VerticalPositionPoints = y,
+            ImageData = ImageData,
+            WidthPoints = WidthPoints,
+            HeightPoints = HeightPoints,
+            ContentType = ContentType,
+            Description = Description,
+            RasterFallbackData = RasterFallbackData,
+            RasterFallbackContentType = RasterFallbackContentType,
+            WrapType = WrapType,
+            WrapTextSide = WrapTextSide,
+            WrapDistanceLeftPoints = WrapDistanceLeftPoints,
+            WrapDistanceTopPoints = WrapDistanceTopPoints,
+            WrapDistanceRightPoints = WrapDistanceRightPoints,
+            WrapDistanceBottomPoints = WrapDistanceBottomPoints,
+            BehindText = BehindText,
+            RelativeHeight = RelativeHeight,
+            LayoutInCell = LayoutInCell,
+            RotationDegrees = RotationDegrees,
+            FlipHorizontal = FlipHorizontal,
+            FlipVertical = FlipVertical,
+            Crop = Crop,
+            ColorEffect = ColorEffect,
+            DuotoneColorHex = DuotoneColorHex,
+            WidthPercent = WidthPercent,
+            WidthRelativeFrom = WidthRelativeFrom,
+            HeightPercent = HeightPercent,
+            HeightRelativeFrom = HeightRelativeFrom,
+        };
+
 }

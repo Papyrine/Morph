@@ -1116,7 +1116,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         return builder.Build();
     }
 
-    void RenderFloatingWordArt(FloatingWordArtElement wordArt)
+    protected override void RenderFloatingWordArt(FloatingWordArtElement wordArt)
     {
         if (currentCanvas == null)
         {
@@ -1957,7 +1957,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         DrawBlockImage(data, bounds.PixelX, bounds.PixelY, bounds.PixelWidth, bounds.PixelHeight, (float) image.RotationDegrees, image.Crop, image.ColorEffect, image.FlipHorizontal, image.FlipVertical, image.DuotoneColorHex);
     }
 
-    void RenderFloatingTextBox(FloatingTextBoxElement textBox)
+    protected override void RenderFloatingTextBox(FloatingTextBoxElement textBox)
     {
         if (currentCanvas == null)
         {

@@ -837,7 +837,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         context.CurrentY += height;
     }
 
-    void RenderFloatingWordArt(FloatingWordArtElement wordArt)
+    protected override void RenderFloatingWordArt(FloatingWordArtElement wordArt)
     {
         if (currentCanvas == null)
         {
@@ -2451,7 +2451,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         DrawBlockImage(image.ImageData, image.ContentType, destRect, (float) image.RotationDegrees, image.Crop, image.ColorEffect, image.FlipHorizontal, image.FlipVertical, image.DuotoneColorHex);
     }
 
-    void RenderFloatingTextBox(FloatingTextBoxElement textBox)
+    protected override void RenderFloatingTextBox(FloatingTextBoxElement textBox)
     {
         if (currentCanvas == null)
         {
