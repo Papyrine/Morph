@@ -1522,7 +1522,7 @@ Positioned shapes with an image texture fill — including Word's "fill a shape 
 - **OOXML**: `wps:wsp` with `a:blipFill` in `wps:spPr`
 - **Model**: `FloatingShapeElement` with `ImageData`, `ImageContentType`
 - **Parse**: `ShapeParser.ExtractBlipFillImage` (the behindDoc sweep), and `DocumentParser.ParseSolidFillShape` (the composed-transform walk) — the walk path is what reaches blip fills inside walk-owned groups (cell-anchored, non-identity nesting) and FRONT-of-text anchored standalones, which enter the group branch via `hasAnchoredBlipShape` (see `docs/floating-art-pipeline.md`)
-- **Render**: all three backends clip the picture to the shape's geometry when one is declared — ellipse preset (page-space, unrotated only) or custom-geometry contours (Skia/PDF; ImageSharp draws contours unclipped). Front-of-text floating shapes render only when image-filled; solid front shapes are still dropped by all backends
+- **Render**: all three backends clip the picture to the shape's geometry when one is declared — ellipse preset (page-space, unrotated only) or contours (Skia/PDF; ImageSharp draws contours unclipped). Contours come from `a:custGeom` or, for image fills only, from `PresetShapeGeometry.TryBuild` (`newsletters/13`'s arch-top photo is a `round2SameRect`). Front-of-text floating shapes render only when image-filled; solid front shapes are still dropped by all backends
 - **Test**: `cover-letters/09` (inline standalone ellipse — see Inline Shape Groups), `newsletters/08` (front-anchored blip-filled freeform cover photo), `newsletters/12`
 
 

@@ -7588,6 +7588,15 @@ sealed class DocumentParser(string defaultFont)
             shapeProps,
             minContourPoints: fillColorHex == null && imageData == null ? 2 : 3);
 
+        // An image fill clips to the shape's real silhouette, so a preset beyond the enum's
+        // Rect/Ellipse needs its built contours (newsletters/13's arch-top photo is a
+        // round2SameRect). Solid fills keep the Preset fast path — no contour churn there.
+        if (subpaths == null && imageData != null)
+        {
+            subpaths = PresetShapeGeometry.TryBuild(
+                shapeProps.GetFirstChild<A.PresetGeometry>(), widthPt, heightPt);
+        }
+
         // A stroke-only shape with no custom-geometry path to stroke would fall back to a
         // bounding-box outline — a border Word doesn't draw. Skip it.
         if (fillColorHex == null && imageData == null && subpaths == null)
