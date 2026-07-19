@@ -2360,14 +2360,21 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         if (shape is { LineColorHex: { } lineColor, LineWidthPoints: { } lineWidthPt and > 0 })
         {
+            var strokeWidthPixels = context.PointsToPixels((float) lineWidthPt);
             using var strokePaint = new SKPaint
             {
                 Color = SKColor.Parse(lineColor)
                     .WithAlpha((byte) Math.Round(Math.Clamp(shape.LineAlpha, 0, 1) * 255)),
                 Style = SKPaintStyle.Stroke,
-                StrokeWidth = context.PointsToPixels((float) lineWidthPt),
+                StrokeWidth = strokeWidthPixels,
                 IsAntialias = true
             };
+            if (shape.LineDashPattern is { } dashPattern)
+            {
+                // Pattern lengths are multiples of the line width; Skia wants pixels.
+                strokePaint.PathEffect = SKPathEffect.CreateDash(
+                    dashPattern.Select(_ => (float) _ * strokeWidthPixels).ToArray(), 0);
+            }
             if (shape.Subpaths != null)
             {
                 using var path = BuildPolygonPath(shape, pixelX, pixelY, pixelWidth, pixelHeight);

@@ -1842,7 +1842,11 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         {
             var strokeColor = WithAlpha(ParseColor(lineColor), shape.LineAlpha);
             var strokePixels = context.PointsToPixels((float) lineWidthPt);
-            var pen = context.GetPen(strokeColor, strokePixels);
+            // PatternPen's pattern is in multiples of the stroke width — the same convention
+            // the model stores. Dashed pens bypass the solid-pen cache.
+            var pen = shape.LineDashPattern is { } dashPattern
+                ? (Pen) new PatternPen(strokeColor, strokePixels, dashPattern.Select(_ => (float) _).ToArray())
+                : context.GetPen(strokeColor, strokePixels);
             if (shape.Subpaths != null)
             {
                 var path = BuildPath(shape, pixelX, pixelY, pixelWidth, pixelHeight);

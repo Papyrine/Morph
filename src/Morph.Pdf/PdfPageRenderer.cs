@@ -1069,7 +1069,14 @@ sealed class PdfPageRenderer : PageRendererBase
             var strokeRgb = PdfRenderContext.ParseColor(lineColor);
             var strokeColor = XColor.FromArgb(
                 (int) Math.Round(Math.Clamp(shape.LineAlpha, 0, 1) * 255), strokeRgb.R, strokeRgb.G, strokeRgb.B);
-            StrokeShape(shape, x, y, shapeWidth, shapeHeight, new(strokeColor, Math.Max(0.4, lineWidth)));
+            var pen = new XPen(strokeColor, Math.Max(0.4, lineWidth));
+            if (shape.LineDashPattern is { } dashPattern)
+            {
+                // XPen.DashPattern is in multiples of the pen width — the model's convention.
+                pen.DashPattern = dashPattern.Select(_ => (double) _).ToArray();
+            }
+
+            StrokeShape(shape, x, y, shapeWidth, shapeHeight, pen);
         }
     }
 
