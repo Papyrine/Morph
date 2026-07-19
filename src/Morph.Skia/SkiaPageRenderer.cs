@@ -561,13 +561,13 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         currentCanvas.DrawLine(pixelX1, pixelY, pixelX2, pixelY, paint);
     }
 
-    protected override void DrawBlockImage(byte[] imageData, string? contentType, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, bool flipHorizontal, bool flipVertical, ImageCrop? crop, BlipColorEffect colorEffect, string? duotoneColorHex)
+    protected override void DrawBlockImage(byte[] imageData, string? contentType, float pixelX, float pixelY, float pixelWidth, float pixelHeight, float rotation, bool flipHorizontal, bool flipVertical, ImageCrop? crop, BlipColorEffect colorEffect, string? duotoneColorHex, string? duotoneLightColorHex)
     {
         var destRect = new SKRect(pixelX, pixelY, pixelX + pixelWidth, pixelY + pixelHeight);
-        DrawBlockImage(imageData, contentType, destRect, rotation, crop, colorEffect, flipHorizontal, flipVertical);
+        DrawBlockImage(imageData, contentType, destRect, rotation, crop, colorEffect, flipHorizontal, flipVertical, duotoneColorHex, duotoneLightColorHex);
     }
 
-    void DrawBlockImage(byte[] imageData, string? contentType, SKRect destRect, float rotation, ImageCrop? crop, BlipColorEffect colorEffect = BlipColorEffect.None, bool flipHorizontal = false, bool flipVertical = false, string? duotoneColorHex = null)
+    void DrawBlockImage(byte[] imageData, string? contentType, SKRect destRect, float rotation, ImageCrop? crop, BlipColorEffect colorEffect = BlipColorEffect.None, bool flipHorizontal = false, bool flipVertical = false, string? duotoneColorHex = null, string? duotoneLightColorHex = null)
     {
         if (currentCanvas == null)
         {
@@ -599,7 +599,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             var skImage = context.GetBitmap(imageData);
             if (skImage != null)
             {
-                using var paint = BuildBlipColorEffectPaint(colorEffect, duotoneColorHex);
+                using var paint = BuildBlipColorEffectPaint(colorEffect, duotoneColorHex, duotoneLightColorHex);
                 if (crop is {IsCropped: true})
                 {
                     if (crop.HasPadding)
@@ -634,29 +634,34 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
     }
 
-    static SKPaint? BuildBlipColorEffectPaint(BlipColorEffect effect, string? duotoneColorHex = null)
+    static SKPaint? BuildBlipColorEffectPaint(BlipColorEffect effect, string? duotoneColorHex = null, string? duotoneLightColorHex = null)
     {
         // Standard ITU-R BT.601 luminance weights for grayscale conversion.
         const float lumR = 0.299f;
         const float lumG = 0.587f;
         const float lumB = 0.114f;
 
-        // a:duotone maps luminance onto a dark→white ramp: out_c = dark_c + L·(1 − dark_c).
-        // As a colour matrix that is the luminance row scaled by (1 − dark_c) plus a dark_c bias
-        // (SkiaSharp's translate column is 0..1-normalized).
-        if (effect == BlipColorEffect.Duotone && duotoneColorHex != null)
+        // a:duotone maps luminance onto a dark→light ramp: out_c = dark_c + L·(light_c − dark_c).
+        // As a colour matrix that is the luminance row scaled by (light_c − dark_c) plus a
+        // dark_c bias (SkiaSharp's translate column is 0..1-normalized). Word's Recolor gallery
+        // pairs a dark colour with white; letters/02 pairs black with a tinted accent instead.
+        if (effect == BlipColorEffect.Duotone && (duotoneColorHex != null || duotoneLightColorHex != null))
         {
-            var dark = SkiaRenderContext.ParseColor(duotoneColorHex);
+            var dark = SkiaRenderContext.ParseColor(duotoneColorHex ?? "000000");
+            var light = SkiaRenderContext.ParseColor(duotoneLightColorHex ?? "FFFFFF");
             var darkRed = dark.Red / 255f;
             var darkGreen = dark.Green / 255f;
             var darkBlue = dark.Blue / 255f;
+            var spanRed = light.Red / 255f - darkRed;
+            var spanGreen = light.Green / 255f - darkGreen;
+            var spanBlue = light.Blue / 255f - darkBlue;
             return new()
             {
                 ColorFilter = SKColorFilter.CreateColorMatrix(
                 [
-                    lumR * (1 - darkRed), lumG * (1 - darkRed), lumB * (1 - darkRed), 0, darkRed,
-                    lumR * (1 - darkGreen), lumG * (1 - darkGreen), lumB * (1 - darkGreen), 0, darkGreen,
-                    lumR * (1 - darkBlue), lumG * (1 - darkBlue), lumB * (1 - darkBlue), 0, darkBlue,
+                    lumR * spanRed, lumG * spanRed, lumB * spanRed, 0, darkRed,
+                    lumR * spanGreen, lumG * spanGreen, lumB * spanGreen, 0, darkGreen,
+                    lumR * spanBlue, lumG * spanBlue, lumB * spanBlue, 0, darkBlue,
                     0, 0, 0, 1, 0
                 ])
             };
@@ -2526,7 +2531,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             currentCanvas.ClipPath(clipPath, antialias: true);
         }
 
-        DrawBlockImage(image.ImageData, image.ContentType, destRect, (float) image.RotationDegrees, image.Crop, image.ColorEffect, image.FlipHorizontal, image.FlipVertical, image.DuotoneColorHex);
+        DrawBlockImage(image.ImageData, image.ContentType, destRect, (float) image.RotationDegrees, image.Crop, image.ColorEffect, image.FlipHorizontal, image.FlipVertical, image.DuotoneColorHex, image.DuotoneLightColorHex);
 
         if (clipGeometry)
         {

@@ -325,15 +325,15 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
     // with the context (this replaced the old per-page RetainForPage sink). Failed decodes
     // cache null — the call sites deliberately swallow undecodable images.
 
-    readonly Dictionary<(byte[] Data, int Width, int Height, ImageCrop? Crop, BlipColorEffect Effect, float Rotation, bool FlipHorizontal, bool FlipVertical, string? DuotoneColorHex), Image<Rgba32>?> processedImageCache = [];
+    readonly Dictionary<(byte[] Data, int Width, int Height, ImageCrop? Crop, BlipColorEffect Effect, float Rotation, bool FlipHorizontal, bool FlipVertical, string? DuotoneColorHex, string? DuotoneLightColorHex), Image<Rgba32>?> processedImageCache = [];
 
     /// <summary>
     /// Decoded image with crop → resize → recolor → rotate applied, cached for the context's
     /// lifetime. Callers must not mutate or dispose the result.
     /// </summary>
-    public Image<Rgba32>? GetProcessedImage(byte[] data, int width, int height, ImageCrop? crop, BlipColorEffect effect, float rotationDegrees, bool flipHorizontal = false, bool flipVertical = false, string? duotoneColorHex = null)
+    public Image<Rgba32>? GetProcessedImage(byte[] data, int width, int height, ImageCrop? crop, BlipColorEffect effect, float rotationDegrees, bool flipHorizontal = false, bool flipVertical = false, string? duotoneColorHex = null, string? duotoneLightColorHex = null)
     {
-        var key = (data, width, height, crop, effect, rotationDegrees, flipHorizontal, flipVertical, duotoneColorHex);
+        var key = (data, width, height, crop, effect, rotationDegrees, flipHorizontal, flipVertical, duotoneColorHex, duotoneLightColorHex);
         if (processedImageCache.TryGetValue(key, out var cached))
         {
             return cached;
@@ -373,18 +373,21 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
             // Word's "Recolor" gallery presets.
             switch (effect)
             {
-                case BlipColorEffect.Duotone when duotoneColorHex != null:
-                    // a:duotone maps luminance onto a dark->white ramp: out_c = dark_c + L*(1 - dark_c).
+                case BlipColorEffect.Duotone when duotoneColorHex != null || duotoneLightColorHex != null:
+                    // a:duotone maps luminance onto a dark->light ramp: out_c = dark_c + L*(light_c - dark_c).
                     // Greyscale first collapses every channel to L; the matrix then scales each
-                    // channel by (1 - dark_c) and adds the dark_c bias.
-                    var dark = ParseColor(duotoneColorHex).ToPixel<Rgba32>();
+                    // channel by (light_c - dark_c) and adds the dark_c bias. Word's Recolor
+                    // gallery pairs a dark colour with white; letters/02 pairs black with a
+                    // tinted accent instead.
+                    var dark = ParseColor(duotoneColorHex ?? "000000").ToPixel<Rgba32>();
+                    var light = ParseColor(duotoneLightColorHex ?? "FFFFFF").ToPixel<Rgba32>();
                     var darkRed = dark.R / 255f;
                     var darkGreen = dark.G / 255f;
                     var darkBlue = dark.B / 255f;
                     var duotoneMatrix = new ColorMatrix(
-                        1 - darkRed, 0, 0, 0,
-                        0, 1 - darkGreen, 0, 0,
-                        0, 0, 1 - darkBlue, 0,
+                        light.R / 255f - darkRed, 0, 0, 0,
+                        0, light.G / 255f - darkGreen, 0, 0,
+                        0, 0, light.B / 255f - darkBlue, 0,
                         0, 0, 0, 1,
                         darkRed, darkGreen, darkBlue, 0);
                     image.Mutate(_ => _.Grayscale().Filter(duotoneMatrix));
