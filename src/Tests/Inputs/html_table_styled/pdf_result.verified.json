@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Styled HTML table with borders and colors:\nName Age Salary\nJohn Doe 30 $50,000\nJane Smith 25 $45,000\nBob Johnson 35 $60,000\nTable with fixed column widths:\nFixed 100pxFixed 200pxFlexible"
+        "Text": "Styled HTML table with borders and colors:\nName Age Salary\nJohn Doe 30 $50,000\nJane Smith 25 $45,000\nBob Johnson 35 $60,000\nTable with fixed column widths:\nFixed 100px Fixed 200px Flexible"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.1248,
-      "Ssim": 0.9221,
+      "ErrorMetric": 0.1237,
+      "Ssim": 0.9178,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
