@@ -1726,7 +1726,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### newsletters/13
 
-- ✅→MEDIUM 2026-07-19: the still-life photo now renders (front-anchored blip-filled shape) but as a plain rectangle, slightly larger/higher than Word — Word crops it to an ARCH preset, which PresetShape does not model (only Rect/Ellipse); adding arch to PresetShapeGeometry would let the Skia/PDF contour clip apply
+- ✅ 2026-07-19: the still-life photo renders arch-clipped in Skia/PDF (−0.0105 each) — the preset is round2SameRect, whose contours PresetShapeGeometry already builds; ParseSolidFillShape now falls back to built preset contours for IMAGE fills (solid fills keep the Preset fast path). ImageSharp draws it unclipped (documented contour-mask gap); residual: photo still slightly larger/higher than Word
 - MEDIUM | all | p1 | Expanded letter-spacing lost: "I N T E R I O R / D E S I G N / E X P O" and "D A Y  O N E".."F O U R" headings render with tight tracking instead of Word's wide tracking (HTML export preserves it, raster/PDF do not)
 - MEDIUM | html | - | Still-life photo present since 2026-07-19, unclipped (no arch crop in the HTML export)
 
