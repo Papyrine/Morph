@@ -1341,11 +1341,10 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### letters/05
 
-- MAJOR | all | p1 | logo cluster malformed: blue circle and orange dot drawn as squares, and purple circle + teal square outline that Word hides are exposed
-- MAJOR | all | p1,p2,p3 | orange square outline at top-right page edge missing
-- MAJOR | all | p1,p2,p3 | all dashed decorative shapes missing (teal dashed arc top-left, teal dashed segment mid-right, purple dashed segment bottom-left)
-- MAJOR | skia,pdf | p2,p3 | teal triangle outline at left margin missing (rendered on p1 only)
-- MAJOR | imagesharp | p3 | teal triangle outline at left margin missing (present on p1,p2)
+- ✅ STALE 2026-07-19: logo cluster renders correctly (blue circle + orange dot round, no hidden shapes exposed) — resolved by earlier preset/authority passes
+- ✅ 2026-07-19: dashed decorative SEGMENTS render (teal dashed rules; stroke-only shapes with preset dashes now draw through LineDashPattern). Residual: the teal arc top-left renders as a filled crescent instead of a dashed open arc (open custGeom contours close before stroking)
+- MAJOR | all | p1,p2,p3 | orange square outline at top-right page edge missing (#6a outline-only class)
+- MAJOR | all | p1,p2,p3 | teal triangle outline at left margin missing (#6a outline-only class; the old per-page split predates the regenerated baselines)
 - MAJOR | html | - | logo cluster malformed into a blue blob (overlapping circle + rectangle), orange dot as square, hidden teal/purple shapes exposed
 - MAJOR | html | - | purple decorative circles overlap the "Taylor Phillips" address text in the second letter section
 - MEDIUM | html | - | decorative shapes inconsistent across sections: dashed elements absent everywhere and the third letter section has no shapes at all
