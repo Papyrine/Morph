@@ -16,7 +16,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 2. **Vertical metrics run ~10% tight and glyph advances ~9-10% narrow vs Word** — resolved via the XPS-decoded height model (see `src/page_counts.md` for the page-count root-cause taxonomy C1-C11 and the metrics history). **Still open:** page-count divergences on long documents remain the dominant residual (business-plans/13/15-class); many per-scenario "drifts up/compresses" findings below predate the regenerated baselines and are unverified — treat as stale until re-checked.
 3. **Expanded character spacing (`w:spacing`) mishandled** — ✅ resolved — per-glyph `w:spacing` tracking in all backends (`docs/word-features.md`). The untracked fast path must stay byte-identical; see the tracking commit for the invariant.
 4. **Word spaces collapse to zero in some display/heading text (Skia/ImageSharp)** — ✅ resolved; details in `docs/word-features.md` (git history holds the full fix narrative).
-5. **Floating/anchored decorative art missing or misplaced** — the largest source of MAJOR findings; ten fix passes landed 2026-07-19 (cell-float hoisting/cell-attached rendering, relativeHeight z-sort, nested-transform affine composition, document-order interleave, a:grpFill resolution, group-frame clipping, pic:spPr geometry crops, walk authority over non-identity nesting). Architecture, authority rules and the attempted-and-reverted decision log now live in `docs/floating-art-pipeline.md` — the history was moved there. **Still open:** (a) STALE, re-rendered 2026-07-19: brochures/07's pictures render at full size in Word's positions on both pages (the interleave/authority passes fixed the size class); (b) RESOLVED 2026-07-19: brochures/03's right circle photo now renders greyscale (−0.015 skia/imagesharp p2) — the a:grayscl WAS declared on the blip (the "not declared" forensics were wrong); the photo is an INLINE pic in a table and `TryParseInlineImageRun` dropped blip effects entirely. Residual: the photo still sits ~20pt high; (c) STALE, measured 2026-07-19: labels/16's sheet top sits within 2.4pt of Word — the walk-authority pass fixed it, the 30px finding predates it; (d) remaining missing freeform/vector shapes: brochures/04/06 (chevrons, balloon art, quote box — both improved 2026-07-19 via the inline-shape passes, residuals remain), business/04/05 (banners, watercolor blobs), cover-letters/06 (top banner's LEFT pink segment missing — the right confetti image renders; bottom band thinner/higher than Word; re-measured 2026-07-19 — cover-letters/07 measured STALE, it matches Word), letters/03/11 (gradient banners, logo strip), cards/18/05/06 (fold guides — partially surfaced 2026-07-19 by the dashed-line pass, sub-0.005 deltas; cards/06 p2's vertical teal divider still missing), labels/02 (cell borders — the #6a outline-only class; labels/03's tear lines RESOLVED 2026-07-19: dashed + quarter-turn line connectors landed, the sysDot lines render — residual: denser than Word's fine dots, Word likely draws round dot caps at wider spacing), menus/04/06 (doodle pattern, red bars — menus/01's floral art measured STALE 2026-07-19, it renders), resumes/10. Resolved 2026-07-19 via `ParseInlineSingleShapeRun` (standalone inline wsp with solid fill): business-plans/01's accent bar, cover-letters/10's logo, labels/12's 30 flourishes; letters/02's frame resolved via the header z-sort (duotone colour residual → #8); (e) missing/mangled pictures: NONE remaining — brochures/07 (the last of the original list) measured STALE 2026-07-19, its photos render at Word's sizes and positions on both pages. Resolved/reclassified 2026-07-19: newsletters/08/13/14's photos and newsletters/11's hero were front-anchored blip-filled shapes (anchored-blip route + front-of-text image-shape rendering; /11 measured stale); cards/02's blossom measured STALE; business-plans/12's SWOT graphic is a c:chart (documented chart-placeholder limitation). Front-of-text SOLID shapes stay unrendered by design — newsletters/14's coral DECEMBER banner is that class; enabling them is an unrun corpus-wide experiment (`docs/floating-art-pipeline.md`). FIXED 2026-07-19 from this list: newsletters/03/04 inset photos and cover-letters/09's profile photo were blip-FILLED `wps:wsp` shapes (Word's "fill a shape with a picture") in the INLINE subsystem — both inline paths and the anchored walk now parse `a:blipFill` (see `docs/floating-art-pipeline.md`); brochures/04 p2 improved −0.20 from the same change. menus/01's floral art measured STALE (renders correctly).
+5. **Floating/anchored decorative art missing or misplaced** — the largest source of MAJOR findings; ten fix passes landed 2026-07-19 (cell-float hoisting/cell-attached rendering, relativeHeight z-sort, nested-transform affine composition, document-order interleave, a:grpFill resolution, group-frame clipping, pic:spPr geometry crops, walk authority over non-identity nesting). Architecture, authority rules and the attempted-and-reverted decision log now live in `docs/floating-art-pipeline.md` — the history was moved there. **Still open:** (a) STALE, re-rendered 2026-07-19: brochures/07's pictures render at full size in Word's positions on both pages (the interleave/authority passes fixed the size class); (b) RESOLVED 2026-07-19: brochures/03's right circle photo now renders greyscale (−0.015 skia/imagesharp p2) — the a:grayscl WAS declared on the blip (the "not declared" forensics were wrong); the photo is an INLINE pic in a table and `TryParseInlineImageRun` dropped blip effects entirely. Residual: the photo still sits ~20pt high; (c) STALE, measured 2026-07-19: labels/16's sheet top sits within 2.4pt of Word — the walk-authority pass fixed it, the 30px finding predates it; (d) remaining missing freeform/vector shapes: brochures/04/06 (chevrons, balloon art, quote box — both improved 2026-07-19 via the inline-shape passes, residuals remain), business/04/05 (banners, watercolor blobs), cover-letters/06 (top banner's LEFT pink segment missing — the right confetti image renders; bottom band thinner/higher than Word; re-measured 2026-07-19 — cover-letters/07 measured STALE, it matches Word), letters/03/11 (gradient banners, logo strip), cards/18/05/06 (fold guides — partially surfaced 2026-07-19 by the dashed-line pass, sub-0.005 deltas; cards/06 p2's vertical teal divider still missing), labels/02 (cell borders — the #6a outline-only class; labels/03's tear lines RESOLVED 2026-07-19: dashed + quarter-turn line connectors landed, the sysDot lines render — residual: denser than Word's fine dots, Word likely draws round dot caps at wider spacing), menus/04/06 (doodle pattern, red bars — menus/01's floral art measured STALE 2026-07-19, it renders), resumes/10. Resolved 2026-07-19 via `ParseInlineSingleShapeRun` (standalone inline wsp with solid fill): business-plans/01's accent bar, cover-letters/10's logo, labels/12's 30 flourishes; letters/02's frame resolved via the header z-sort (duotone colour residual → #8); (e) missing/mangled pictures: NONE remaining — brochures/07 (the last of the original list) measured STALE 2026-07-19, its photos render at Word's sizes and positions on both pages. Resolved/reclassified 2026-07-19: newsletters/08/13/14's photos and newsletters/11's hero were front-anchored blip-filled shapes (anchored-blip route + front-of-text image-shape rendering; /11 measured stale); cards/02's blossom measured STALE; business-plans/12's SWOT graphic is a c:chart (documented chart-placeholder limitation). Front-of-text SOLID shapes RENDER as of 2026-07-19 — the corpus-wide experiment ran net −0.46: letters/11's logo + tile strip, brochures/06's olive quote box, newsletters/12's purple dash overlay, menus/02's dark line-burst and resumes/10's accent circles (the last needed the front-shape page-advance + the any-floating-shape empty-paragraph rule) all render now. (newsletters/14's coral DECEMBER banner turned out to be Subtitle-STYLE paragraph shading in a layout table, not a shape — fixed by drawing w:shd in the cell paragraph path, all backends.) FIXED 2026-07-19 from this list: newsletters/03/04 inset photos and cover-letters/09's profile photo were blip-FILLED `wps:wsp` shapes (Word's "fill a shape with a picture") in the INLINE subsystem — both inline paths and the anchored walk now parse `a:blipFill` (see `docs/floating-art-pipeline.md`); brochures/04 p2 improved −0.20 from the same change. menus/01's floral art measured STALE (renders correctly).
 6. **Shape geometry defects** — preset polygons, text-box chrome, picture flips, line alpha and connector assembly are resolved (`docs/word-features.md`). **Still open:** (a) outline-only shapes (`a:noFill` + `a:ln`) are not emitted — two attempts reverted; blockers and re-landing prerequisites recorded in `docs/floating-art-pipeline.md` (decision log #6); (b) business-plans/02 arrow construction; (c) STALE, re-rendered 2026-07-19: cards/06 draws a single candle group ending at the card edge and business/06's ribbon sits on the right half with one wedge — the duplication class was the dual-parser stray problem, resolved by the authority + clipping passes; (d) group-child offset (menus/07 / inline_group_crop); (e) stray art Word hides in cards/04-class scenarios is resolved by group-frame clipping, but labels/16-class strays from other subsystems may remain.
 7. **Text inside dark shapes renders black instead of its white/light run color** — ✅ resolved — colour cascade with contrast-aware automatic colour (`docs/word-features.md`, the colour-cascade note). **Still open:** the HTML export renders the white text but paints neither dark page backgrounds nor dark shape fills behind it (matrix-documented export gap).
 8. **Picture effects ignored** — duotone resolved for raster block+floating images (`docs/word-features.md`). **Still open:** the PDF backend applies NO picture effects (no pixel pipeline — PdfSharp only) and the HTML export ships original bytes; group-shape pictures carry no effects; soft-focus/blur (business-plans/02) and warm-tone (newsletters/07) unmodelled; brochures/03's right circle photo renders in colour where Word greyscales it (the greyscale is not declared in the pic XML — mechanism unidentified); letters/02-class duotone pairs resolved 2026-07-19: a:duotone is modelled as a TWO-colour ramp (DuotoneColorHex dark end + DuotoneLightColorHex light end, prstClr black/white handled) and the Skia/ImageSharp block-image overloads no longer drop the duotone colours (newsletters/01's tinted block images were rendering greyscale, −0.026..−0.035/page).
@@ -270,8 +270,8 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### brochures/06
 
-- MAJOR | all | p1,p2 | decorative freeform art missing everywhere: striped bar above the purple panel, dash-pattern blocks (beside panel p1, over couple photo p2), hot-air balloon line art (p1 panel, p2 watermark), stripe rules beside/below the quote area, and the small accent bars (white bar under "VACATION", olive bars under "THE FOLLOWING:" and "OUR SERVICES INCLUDE")
-- MAJOR | all | p2 | olive-green quote box with white text "We don't merely book your travel..." and "- Henriette Andersen" attribution entirely missing
+- ✅ 2026-07-19 (p2 −0.043..−0.046 per backend, front-solid pass): the olive quote box renders with its white quote + attribution, and the dash-pattern blocks + balloon watermark render on p2. Residual: quote-box geometry slightly different (thin rule under the quote missing, dash column sits at the box's right edge where Word hatches inside), and p1's art set unimproved
+- MAJOR | all | p1 | decorative freeform art still missing on p1: striped bar above the purple panel, dash-pattern blocks beside the panel, balloon line art in the panel, stripe rules beside/below the quote area, and the small accent bars (white bar under "VACATION", olive bars under "THE FOLLOWING:" and "OUR SERVICES INCLUDE")
 - MAJOR | pdf | p2 | top-right couple photo rendered ~30% narrower and shifted ~110px right, bleeding to/clipped at the right page edge (left portion of Word's crop lost)
 - MEDIUM | all | p2 | right-column reflow: "To replace any of the pictures" paragraph wraps 4 to 5 lines in a narrower block, and the services list ("Passport Expediting"..."Trip Insurance") sits 20-80px lower than Word
 - MINOR | all | p1 | "MARGIE'S TRAVEL" title, panel address block, and right-side photo uniformly shifted down ~8-10px
@@ -536,9 +536,9 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### cards/03
 
-- MEDIUM | all | p1 | yellow corkscrew streamer at top-right rendered horizontally mirrored (curl at top-left, tail sweeping to bottom-right; Word has curl top-right, tail bottom-left)
+- ✅ 2026-07-19 (−0.0016 per backend): yellow corkscrew streamer renders in Word's orientation — its nested grpSp carries flipH="1", now composed through `GetAccumulatedTransform` (flips fold into the affine as R·F·diag(scale); MapRectangle decomposes det<0 canonically as rotation+flipV)
 - MINOR | all | p1 | whole composition slightly offset (title ~5-8px lower, gift illustration shifted a few px), visible as ghost outlines across every shape in the diff
-- MEDIUM | html | - | same horizontally mirrored yellow streamer in the HTML export
+- MEDIUM | html | - | streamer orientation in the HTML export changed with the same parse fix but is unverified against a browser render — re-check whether the export's SVG applies the composed flip
 
 ### cards/04
 
@@ -559,7 +559,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 - MINOR | all | p1 | candle artwork renders slightly taller than Word (flames nearly touch the card's top edge; single group, correctly clipped — the old duplicate/spill findings are resolved)
 - MEDIUM | all | p2 | thin teal vertical divider rule (x≈688, spanning both cards) between invitation text and recipient-address block missing on both cards
-- MEDIUM | all | p2 | invitation text blocks drawn too high with slightly tighter line spacing — offset grows from ~0.35in (top card first line) to ~0.75in (bottom card last line) above Word's positions
+- MEDIUM | all | p2 | invitation text blocks drawn too high with slightly tighter line spacing — improved 2026-07-19 (any-floating-shape empty-paragraph rule, −0.001..−0.0014/page): the residual offset is now ~0.13in on the top card
 - MEDIUM | all | p1,p2 | dashed light-gray crop/fold guide lines at the card boundaries missing on both pages
 - MAJOR | html | - | "It's a Birthday Party!" heading drawn across/overlapping the candle artwork on both cards (Word places it in its own column to the right of the candles)
 - MAJOR | html | - | first card shows the duplicated 10-candle set (5 in Word)
@@ -745,8 +745,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### cover-letters/07
 
-- MAJOR | all | p1 | Black decorative bars bleeding off the top and bottom page edges are missing entirely (page renders as plain cream top to bottom)
-- MEDIUM | all | p1 | Short black underline rule below "Manager" is missing
+- ✅ STALE 2026-07-19: the black top/bottom bars and the short underline rule below "Manager" all render in the current baselines (bars via the behind-doc group, the rule via `ParseInlineSingleShapeRun`) — re-verified against expected side by side
 - MINOR | imagesharp | p1 | First paragraph wraps at different words than Word (line 1 ends "…Manager position", next line starts with a stray leading space)
 - MINOR | all | p1 | Letter body drifts upward slightly with tighter paragraph spacing, ending ~0.7 line higher at "Victoria Burke"
 - MAJOR | html | - | Black top/bottom bars and the rule below "Manager" are missing in the HTML export
@@ -1385,8 +1384,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### letters/11
 
-- MAJOR | all | p1 | orange flower/asterisk logo at top-left missing
-- MAJOR | all | p1 | multicolor decorative tile strip (flowers/waves/palms) across the page bottom missing
+- ✅ 2026-07-19 (−0.037..−0.039 per backend): orange flower logo AND the full multicolor bottom tile strip render — both were front-anchored solid shapes (front-solid rendering pass)
 - MINOR | all | p1 | body lines break at slightly different words (para 1 breaks after "Importers" vs "Importers to"), same line counts
 - MINOR | html | - | recipient address block lines separated by paragraph gaps vs Word's tight lines
 
@@ -1493,7 +1491,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### menus/02
 
-- MAJOR | all | p1 | bottom fireworks band badly mis-rendered: large light-blue fine-line burst missing, dotted bursts drawn as oversized solid brown polka dots covering the left half, and one of the two large dark line-bursts on the right missing
+- MEDIUM | all | p1 | fireworks band improved 2026-07-19 (front-solid pass, −0.004 per backend): the central dark line-burst and the dot fields render at Word's scale (the oversized-brown-polka-dots symptom is gone). Residual: the light-blue fine-line burst and the right-edge dark burst render dots only — their fine SPIKE strokes are still missing
 - MEDIUM | all | p1 | header ("New Year's Eve / CELEBRATION / MENU") and all menu items rendered left-aligned at a fixed indent instead of centered, putting the text column ~0.5-1.5" left of Word's position
 - MAJOR | html | - | same fireworks mis-render in HTML export (brown dot spray, missing blue line burst and dark burst)
 - MEDIUM | html | - | menu header and items left-aligned instead of centered
@@ -1713,7 +1711,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 - MAJOR | all | p1 | Extra element: olive stripe graphic drawn full-height (y 37-706) down the left margin beside the title — Word does not display it at all
 - MAJOR | skia | p1 | "ISSUE NO | MONTH - MONTH YEAR | VOLUME" line drawn overlapping the bottom of "TITLE HERE" (glyphs collide)
 - MEDIUM | imagesharp,pdf | p1 | Title lines shifted ~40-50px down so "ISSUE NO..." line touches "TITLE HERE" (Word has ~45px clear gap)
-- MAJOR | all | p1 | Purple dash/squiggle overlay at the hiker photo's top-right corner missing
+- ✅ 2026-07-19 (−0.0012 per backend): the purple dash overlay at the hiker photo's top-right corner renders matching Word (front-anchored solid dashes, front-solid pass)
 - MAJOR | all | p1 | Light-grey hot-air-balloon line-art watermark behind the "OUR SERVICES" columns missing
 - MAJOR | all | p2 | White dash/squiggle overlay on the couple photo's left edge missing
 - MAJOR | all | p2 | Vertical purple dashed column right of the 4-photo grid missing (9k purple px in Word, 0 in all backends)
@@ -1732,7 +1730,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 ### newsletters/14
 
 - ✅ 2026-07-19 (−0.07..−0.09 per backend): child graduation photo now renders top right (front-anchored blip-filled shape; anchored-blip route + front image-shape rendering)
-- MAJOR | all | p1 | Coral fill of the "DECEMBER" banner missing — white label is left sitting on the green band/white boundary, barely legible
+- ✅ 2026-07-19 (−0.020..−0.025 per backend): the coral DECEMBER banner renders — it is Subtitle-STYLE paragraph shading (w:shd fill=E94E40) on a paragraph inside the first-page layout table; the cell paragraph path (`RenderParagraphInBounds`) now draws w:shd in all backends (PDF draws it in the flow path too)
 - MEDIUM | skia,imagesharp | p1 | Inter-word spaces collapsed in the green quote box: "gymnasiumwill", "experiencesfor", 'athletes"-'
 - MEDIUM | pdf | p1 | Title rendered in a visibly wider/heavier font: "North Jenkins Newsletter" wraps 2 lines → 3 and the last line "Newsletter" overflows below the green banner onto white; "SPORTS & ACTIVITES"/"Holiday Recitals" headings similarly oversized (p2 too)
 - MEDIUM | pdf | p2 | Kids photo vertically squashed to ~70% of Word's height (red-sweater area y887-1194 vs 803-1243; width unchanged) with content shifted ~85px down
@@ -1911,12 +1909,12 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### resumes/10
 
-- MAJOR | all | p1,p2,p3 | Accent circle shape bleeding off the top-left page edge (red p1, blue p2, green p3) is missing entirely in all three backends
+- ✅ 2026-07-19 (−0.073 net): accent circles render red/navy/green on their correct pages — front-anchored solid custGeom wsp (front-solid rendering + `hasAnchoredFillShape` route), page placement via the front-shape page-advance (their anchors are continuous-section paragraphs that overflow), flow preserved by counting front shapes in the empty-anchor-paragraph rule
 - MEDIUM | skia,imagesharp | p2 | Whole page-2 content block renders ~28px (~1.5 line heights) higher than Word (p1/p3 are aligned)
 - MEDIUM | pdf | p1,p2,p3 | Progressive downward drift through the page — SKILLS/ACTIVITIES sections end ~20-26px (~1 line) lower than Word
 - MINOR | skia,imagesharp | p1,p2,p3 | SKILLS bullet markers are black instead of the page accent color (red/blue/green)
 - MINOR | pdf | p1,p2,p3 | SKILLS bullet markers are black and noticeably smaller dots than Word's accent-colored round bullets
-- MAJOR | html | - | Accent circle shape missing from HTML export (all three color variants)
+- ✅ 2026-07-19: accent circles present in the HTML export (the parse route feeds the exporter)
 - MINOR | html | - | SKILLS bullets black instead of accent color
 
 ### resumes/11
@@ -1953,7 +1951,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### resumes/15
 
-- MAJOR | pdf | p1 | lavender paragraph shading missing entirely: name-banner band and the shading behind "Experience", "Skills", "Education", "Activities" headings all absent
+- ✅ 2026-07-19 (−0.002): PDF now draws paragraph shading (name band + section-heading shading render; `PdfTextEngine.Draw` fills w:shd like the raster backends)
 - MEDIUM | all | p1 | expanded letter-spacing not applied to the name and section headings (text renders narrower; skia/imagesharp draw the heading shading boxes at the letter-spaced width so they extend past the text)
 - MEDIUM | html | - | full-width lavender band behind "Janna Gardner" missing (section-heading shading is present)
 
@@ -2179,7 +2177,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### wedding/02
 
-- MAJOR | skia,imagesharp | p1 | pink petal image mirrored horizontally (gathered/stamen end at bottom-right vs Word's bottom-left) and shifted ~0.7" left, both cards
+- ✅ STALE 2026-07-19: the pink petal renders in Word's orientation (gathered end bottom-left) in the current Skia baseline — the pic-level rot+flip composition was fixed by the earlier affine passes; position offsets remain below
 - MEDIUM | skia,imagesharp | p1 | floral leaves displaced: big leaf under the petal moved from right of column to column-left (~1.8"), and the two leaves below the pink banner moved from center-left to the right column edge
 - MAJOR | pdf | p1 | floral clusters swapped vertically: petal+big-leaf cluster renders BELOW the pink banner (petal straddles the card divider and is flipped vertically) while the below-banner leaves render at the card top, both cards
 - MEDIUM | all | p1 | PLEASE JOIN + pink banner block shifted up (~0.4" card 1, ~0.7" card 2), banner slightly shorter, rosebud now touching/overlapping the banner top edge
@@ -2223,7 +2221,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### wedding/06
 
-- MAJOR | skia,imagesharp | p1 | corner poppy image rotated ~180° on both cards (yellow-striped calyx ends up bottom-left instead of top-right) and drawn ~0.4in further left so it is no longer clipped by the page edge
+- ✅ STALE 2026-07-19: the corner poppy renders in Word's orientation (red bloom bottom-left, striped calyx top-right, page-edge clipped) in the current baselines — resolved by the earlier affine passes
 - MEDIUM | pdf | p1 | falling-floral group items rendered with wrong rotations/sizes/positions (peach petal enlarged and rotated ~90°, rosebud enlarged/rotated, leaves enlarged, incl. right-panel middle leaf)
 - MEDIUM | all | p1,p2 | card rows too short: fold/borders sit ~1in higher than Word and second-card content ~0.9in high; p2 bottom flower clusters straddle the card borders, p1 card2's poppy dips into the pink banner corner
 - MEDIUM | all | p2 | invitation text block left-aligned instead of centered on both cards
@@ -2247,7 +2245,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 - MEDIUM | all | p1 | invitation banners pinned to top of card rows instead of vertically centered (card1 ~1.5in high, card2 ~2.9in high); card frames end at ~70% page height leaving the bottom unframed
 - MAJOR | all | p1 | card2's relocated "on our wedding day"/banner corner collides with the poppy image (text drawn over the flower; pdf card1 poppy also overlaps the yellow "&" box)
-- MAJOR | skia,imagesharp | p1 | poppy image rotated ~180° on both cards (calyx bottom-left instead of top-right)
+- ✅ STALE 2026-07-19: the poppy renders in Word's orientation (calyx top-right) in the current baselines — resolved by the earlier affine passes; the banner/text placement findings above remain live
 - MEDIUM | pdf | p1 | left floral strips scrambled: items enlarged, rotated differently, and repositioned versus Word (rosebud/petal/leaves)
 - MEDIUM | all | p2 | interior invitation text left-aligned instead of centered on both cards
 - MEDIUM | all | p2 | invitation text line spacing compressed ~30%, block ends ~0.5in higher

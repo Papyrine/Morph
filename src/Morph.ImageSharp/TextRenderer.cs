@@ -454,6 +454,24 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         }
         context.LastParagraphSpacingAfterPoints = 0;
 
+        // Paragraph shading, as in the body path — cell paragraphs carry w:shd too
+        // (newsletters/14's DECEMBER banner is Subtitle-style shading inside a layout table).
+        if (!string.IsNullOrEmpty(props.BackgroundColorHex))
+        {
+            float paragraphHeight = 0;
+            foreach (var line in lines)
+            {
+                paragraphHeight += CalculateLineHeight(line, props);
+            }
+
+            var bgColor = ImageSharpRenderContext.ParseColor(props.BackgroundColorHex);
+            canvas.Fill(context.GetBrush(bgColor), new RectangleF(
+                context.PointsToPixels(startX + (float) props.LeftIndentPoints),
+                context.PointsToPixels(context.CurrentY),
+                context.PointsToPixels(width - (float) props.LeftIndentPoints - (float) props.RightIndentPoints),
+                context.PointsToPixels(paragraphHeight)));
+        }
+
         var isFirstLine = true;
         foreach (var line in lines)
         {

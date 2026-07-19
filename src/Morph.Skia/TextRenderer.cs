@@ -475,6 +475,33 @@ sealed class TextRenderer(SkiaRenderContext context) :
         }
         context.LastParagraphSpacingAfterPoints = 0;
 
+        // Paragraph shading, as in the body path — cell paragraphs carry w:shd too
+        // (newsletters/14's DECEMBER banner is Subtitle-style shading inside a layout table).
+        if (!string.IsNullOrEmpty(props.BackgroundColorHex))
+        {
+            float paragraphHeight = 0;
+            foreach (var line in lines)
+            {
+                paragraphHeight += CalculateLineHeight(line, props);
+            }
+
+            var bgColor = SKColor.TryParse(props.BackgroundColorHex, out var parsedBgColor)
+                ? parsedBgColor
+                : SKColor.Parse("#" + props.BackgroundColorHex);
+            using var bgPaint = new SKPaint
+            {
+                Color = bgColor,
+                Style = SKPaintStyle.Fill,
+                IsAntialias = true
+            };
+            canvas.DrawRect(
+                context.PointsToPixels(startX + (float) props.LeftIndentPoints),
+                context.PointsToPixels(context.CurrentY),
+                context.PointsToPixels(width - (float) props.LeftIndentPoints - (float) props.RightIndentPoints),
+                context.PointsToPixels(paragraphHeight),
+                bgPaint);
+        }
+
         var isFirstLine = true;
         foreach (var line in lines)
         {
