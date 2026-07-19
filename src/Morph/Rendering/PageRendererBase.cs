@@ -465,11 +465,14 @@ abstract class PageRendererBase(RenderContextBase context)
 
         var previousInHeaderFooter = inHeaderFooter;
         inHeaderFooter = true;
+        context.InHeaderFooter = true;
         try
         {
             foreach (var element in content.Elements)
             {
-                if (element is FloatingShapeElement {BehindText: true} shape)
+                // Front-of-text shapes render like behind ones here — header/footer content is
+                // painted in its z-sorted stream order, and front shapes have no other painter.
+                if (element is FloatingShapeElement shape)
                 {
                     RenderBackgroundShape(shape);
                 }
@@ -493,6 +496,7 @@ abstract class PageRendererBase(RenderContextBase context)
         finally
         {
             inHeaderFooter = previousInHeaderFooter;
+            context.InHeaderFooter = previousInHeaderFooter;
         }
     }
 

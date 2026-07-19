@@ -133,14 +133,17 @@ static class FloatingPosition
     /// <summary>
     /// Resolves the absolute Y coordinate of a floating shape. Background shapes are
     /// rendered at page start before any content is placed, so paragraph- and
-    /// line-anchored shapes use the top margin rather than <c>CurrentY</c>.
+    /// line-anchored shapes use the top margin rather than <c>CurrentY</c> — except
+    /// inside header/footer rendering, where the cursor IS the anchor paragraph's
+    /// position (HeaderDistance; cover-letters/10's band must bleed from the page top).
     /// </summary>
     public static float ResolveShapeY(RenderContextBase context, VerticalAnchor anchor, double positionPoints, double? positionPercent = null)
     {
         var baseY = anchor switch
         {
             VerticalAnchor.Page => 0f,
-            _ => (float) context.PageSettings.MarginTop
+            VerticalAnchor.Margin => (float) context.PageSettings.MarginTop,
+            _ => context.InHeaderFooter ? context.CurrentY : (float) context.PageSettings.MarginTop
         };
 
         if (positionPercent.HasValue)

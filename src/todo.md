@@ -711,7 +711,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 ### cover-letters/03
 
 - MAJOR | skia,imagesharp | p1 | title drops the word space and renders "SheetalParmar" instead of "Sheetal Parmar"
-- MEDIUM | all | p1 | right-side lighter sidebar stripe starts ~0.4" below the top edge (dark notch in top-right corner) instead of bleeding off the top of the page as in Word
+- ✅ 2026-07-19: the lighter sidebar stripe bleeds off the page top (the dark top-right notch is gone) — header-float anchor resolution (`InHeaderFooter`)
 - MEDIUM | skia,pdf | p1 | body wraps one word earlier per line — paragraph 1 becomes 7 lines vs Word's 6 (orphan "care."), paragraph 2 becomes 6 vs 5, landing the signature ~2 lines lower
 - MINOR | pdf | p1 | title "Sheetal Parmar" letter advances slightly wider than Word (~5% wider overall)
 - MINOR | imagesharp | p1 | letter body drifts about half a line lower by the signature
@@ -773,7 +773,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 ### cover-letters/10
 
 - ✅ 2026-07-19 (−0.014..−0.015): yellow triple-crescent logo renders — a solid-filled custGeom standalone inline wsp (`ParseInlineSingleShapeRun`)
-- MEDIUM | all | p1 | Black header band starts ~0.7in below the page top (white strip above it) instead of bleeding off the top edge as in Word
+- ✅ 2026-07-19 (−0.107 per backend): the black header band bleeds off the page top — header/footer-rendered paragraph-anchored SHAPES now resolve against the header cursor (HeaderDistance) instead of the body top margin (`InHeaderFooter` + `ResolveShapeY`)
 - MEDIUM | all | p1 | Horizontal rule between "10 April 20XX" and the Adatum address is missing
 - MEDIUM | skia,imagesharp | p1 | First body paragraph wraps to 6 lines vs Word's 5 (breaks at different words; wrapped lines gain stray leading spaces)
 - MEDIUM | skia | p1 | Date, Adatum address block, and header contact info render in a visibly heavier weight than Word (imagesharp/pdf match)
@@ -1376,7 +1376,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### letters/10
 
-- MAJOR | all | p1 | white content card missing — page renders almost entirely grey (only a white strip at top), while Word shows a large white card inset on the grey background
+- ✅ 2026-07-19 (−0.008 per backend): the white content card renders inset on the grey background — it is a header-anchored paragraph-relative shape, fixed by the header-float anchor resolution (`InHeaderFooter`)
 - MEDIUM | all | p1 | body wraps differ (first paragraph 5 lines vs Word's 4, breaks at "regional / manager"), shifting text and footer rule/contact block lower
 - MAJOR | html | - | signature image broken — placeholder "Image of signature" shown instead of the script signature
 - MINOR | html | - | grey page background / white card styling not exported (plain white page)
@@ -1392,7 +1392,7 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 - MAJOR | skia,imagesharp | p1 | logo renders "VanArsdelLtd." — space after the comma dropped and comma collides with the "L" (PDF renders it correctly)
 - MEDIUM | all | p1 | body text drifts progressively lower — "Jordan Mitchell / CEO" signature ends ~2 lines below Word (bottom contact block stays in place)
-- MEDIUM | all | p1 | bottom-right diagonal-stripe corner decoration shifted ~0.5 inch toward the corner and partially cut off — noticeably less visible than Word
+- MEDIUM | all | p1 | bottom-right diagonal-stripe corner decoration shifted toward the corner and partially cut off — improved 2026-07-19 by the header/footer-float anchor resolution (−0.002 per backend), residual offset remains
 - MAJOR | html | - | bottom-right diagonal-stripe corner decoration missing entirely
 - MINOR | html | - | paragraph spacing collapsed — paragraphs run together
 
