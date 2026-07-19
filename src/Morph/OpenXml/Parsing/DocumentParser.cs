@@ -5044,7 +5044,18 @@ sealed class DocumentParser(string defaultFont)
                         // Skip the group-as-block branch for inline drawings so the inline-image path catches them.
                         var isInlineGroup = hasGroup && drawing.Descendants().Any(_ => _.LocalName == "inline");
 
-                        if ((shapeElements.Count > 0 || hasGroup) && !isInlineGroup)
+                        // A FRONT-of-text anchored drawing whose art is a blip-filled wsp reaches
+                        // neither ShapeParser (behindDoc-only) nor the pic-based image path —
+                        // newsletters/08's cover photo is a front-anchored standalone blip-filled
+                        // freeform. Route it through the walk, which parses blip fills; for
+                        // behindDoc standalones ShapeParser already emitted a copy and the
+                        // position/size dedup below eats the walk's twin.
+                        var hasAnchoredBlipShape =
+                            drawing.GetFirstChild<DW.Anchor>() != null &&
+                            drawing.Descendants<WPS.WordprocessingShape>().Any(shape =>
+                                shape.GetFirstChild<WPS.ShapeProperties>()?.GetFirstChild<A.BlipFill>() != null);
+
+                        if ((shapeElements.Count > 0 || hasGroup || hasAnchoredBlipShape) && !isInlineGroup)
                         {
                             // Emit current paragraph content before the shapes/group content
                             if (runs.Count > 0)
