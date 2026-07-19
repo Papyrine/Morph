@@ -7680,29 +7680,38 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
-        // Rotation and dash patterns aren't applied by the rect-stroke render path used for
-        // line shapes — drawing them anyway produces worse output than leaving them out
-        // (e.g. a 90° dashed connector becomes a solid vertical line bisecting the page).
+        // A line segment is symmetric under 180-degree rotation, and a 90/270-degree rotation
+        // about the box centre is a transpose of the box — both render on the rect-stroke
+        // path (labels/03's tear lines are 90-degree sysDot connectors). Anything oblique
+        // still bails: the rect-stroke path can't draw a diagonal.
+        var offX = (long) (off.X ?? 0);
+        var offY = (long) (off.Y ?? 0);
+        var extCx = (long) (ext.Cx ?? 0);
+        var extCy = (long) (ext.Cy ?? 0);
         if (xfrm.Rotation?.Value is { } rot && rot != 0)
         {
-            return null;
+            var ownDegrees = NormalizeDegrees(rot / 60000.0);
+            if (IsQuarterTurn(ownDegrees))
+            {
+                (offX, offY, extCx, extCy) = TransposeAboutCentre(offX, offY, extCx, extCy);
+            }
+            else if (!IsHalfTurn(ownDegrees))
+            {
+                return null;
+            }
         }
 
-        var directLn = shapeProps.GetFirstChild<A.Outline>();
-        if (directLn?.GetFirstChild<A.PresetDash>() != null)
-        {
-            return null;
-        }
+        // Dash presets render through the stroke dash pattern; anything unmapped stays solid.
+        var dashPattern = MapPresetDashPattern(
+            shapeProps.GetFirstChild<A.Outline>()?.GetFirstChild<A.PresetDash>()?.Val);
 
-        var mapped = accumTransform.MapRectangle(
-            off.X ?? 0,
-            off.Y ?? 0,
-            ext.Cx ?? 0,
-            ext.Cy ?? 0);
+        var mapped = accumTransform.MapRectangle(offX, offY, extCx, extCy);
 
-        // Same policy as the child-rotation bail above: the rect-stroke render path can't
-        // draw a rotated connector, and here the rotation arrives from an ancestor group.
-        if (Math.Abs(mapped.RotationDegrees) > 0.01)
+        // Group-sourced rotation: same quarter/half-turn policy as the shape's own rotation.
+        // MapRectangle already sizes by the rotated basis vectors, so a quarter-turn arrives
+        // with the box axes ALREADY swapped — only oblique angles bail.
+        var groupDegrees = NormalizeDegrees(mapped.RotationDegrees);
+        if (Math.Abs(groupDegrees) > 0.01 && !IsQuarterTurn(groupDegrees) && !IsHalfTurn(groupDegrees))
         {
             return null;
         }
@@ -7733,8 +7742,98 @@ sealed class DocumentParser(string defaultFont)
             VerticalPositionPercent = positioning.VerticalPositionPercent,
             BehindText = behindText,
             LineColorHex = lineColor,
-            LineWidthPoints = lineWidth
+            LineWidthPoints = lineWidth,
+            LineDashPattern = dashPattern
         };
+    }
+
+    static double NormalizeDegrees(double degrees)
+    {
+        var normalized = degrees % 360;
+        if (normalized < 0)
+        {
+            normalized += 360;
+        }
+
+        return normalized;
+    }
+
+    static bool IsQuarterTurn(double degrees) =>
+        Math.Abs(degrees - 90) < 0.01 || Math.Abs(degrees - 270) < 0.01;
+
+    static bool IsHalfTurn(double degrees) =>
+        Math.Abs(degrees - 180) < 0.01;
+
+    static (long OffX, long OffY, long ExtCx, long ExtCy) TransposeAboutCentre(long offX, long offY, long extCx, long extCy)
+    {
+        var centreX = offX + extCx / 2;
+        var centreY = offY + extCy / 2;
+        return (centreX - extCy / 2, centreY - extCx / 2, extCy, extCx);
+    }
+
+    /// <summary>
+    /// A preset dash as alternating on/off lengths in multiples of the line width — the
+    /// DrawingML convention (ECMA-376 ST_PresetLineDashVal). Null = solid (or an unmapped
+    /// preset, which draws solid rather than inventing a pattern).
+    /// </summary>
+    static IReadOnlyList<double>? MapPresetDashPattern(EnumValue<A.PresetLineDashValues>? dash)
+    {
+        if (dash?.Value is not { } value || value == A.PresetLineDashValues.Solid)
+        {
+            return null;
+        }
+
+        if (value == A.PresetLineDashValues.Dot)
+        {
+            return [1, 3];
+        }
+
+        if (value == A.PresetLineDashValues.SystemDot)
+        {
+            return [1, 1];
+        }
+
+        if (value == A.PresetLineDashValues.Dash)
+        {
+            return [4, 3];
+        }
+
+        if (value == A.PresetLineDashValues.SystemDash)
+        {
+            return [3, 1];
+        }
+
+        if (value == A.PresetLineDashValues.LargeDash)
+        {
+            return [8, 3];
+        }
+
+        if (value == A.PresetLineDashValues.DashDot)
+        {
+            return [4, 3, 1, 3];
+        }
+
+        if (value == A.PresetLineDashValues.LargeDashDot)
+        {
+            return [8, 3, 1, 3];
+        }
+
+        if (value == A.PresetLineDashValues.LargeDashDotDot)
+        {
+            return [8, 3, 1, 3, 1, 3];
+        }
+
+        if (value == A.PresetLineDashValues.SystemDashDot)
+        {
+            return [3, 1, 1, 1];
+        }
+
+        if (value == A.PresetLineDashValues.SystemDashDotDot)
+        {
+            return [3, 1, 1, 1, 1, 1];
+        }
+
+        return null;
     }
 
     /// <summary>

@@ -126,6 +126,13 @@ sealed class FloatingShapeElement : DocumentElement
     /// Percent positioning is cleared (the absolute coordinates already resolved it); every
     /// other member is preserved.
     /// </summary>
+    /// <summary>
+    /// Stroke dash pattern as alternating on/off lengths in MULTIPLES of the line width
+    /// (DrawingML's preset-dash convention), or null for a solid stroke. Only line connectors
+    /// carry it today (labels/03's sysDot tear lines).
+    /// </summary>
+    public IReadOnlyList<double>? LineDashPattern { get; init; }
+
     public FloatingShapeElement WithAbsolutePosition(double x, double y) =>
         new()
         {
@@ -147,6 +154,7 @@ sealed class FloatingShapeElement : DocumentElement
             LineColorHex = LineColorHex,
             LineWidthPoints = LineWidthPoints,
             LineAlpha = LineAlpha,
+            LineDashPattern = LineDashPattern,
             Preset = Preset,
             Subpaths = Subpaths,
             RotationDegrees = RotationDegrees,
