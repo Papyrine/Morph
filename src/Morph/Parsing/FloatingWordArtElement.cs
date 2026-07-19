@@ -82,4 +82,36 @@ sealed class FloatingWordArtElement : DocumentElement, IWordArtVisual
     public double? VerticalPositionPercent { get; init; }
 
 
+    /// <summary>
+    /// Copy re-anchored at an absolute page position — used by the table renderer to place
+    /// a cell-attached float against its cell's resolved rectangle (layoutInCell semantics).
+    /// Percent positioning is cleared (the absolute coordinates already resolved it); every
+    /// other member is preserved.
+    /// </summary>
+    public FloatingWordArtElement WithAbsolutePosition(double x, double y) =>
+        new()
+        {
+            HorizontalAnchor = HorizontalAnchor.Page,
+            HorizontalPositionPoints = x,
+            VerticalAnchor = VerticalAnchor.Page,
+            VerticalPositionPoints = y,
+            Text = Text,
+            WidthPoints = WidthPoints,
+            HeightPoints = HeightPoints,
+            BehindText = BehindText,
+            RelativeHeight = RelativeHeight,
+            LayoutInCell = LayoutInCell,
+            FontFamily = FontFamily,
+            FontSizePoints = FontSizePoints,
+            Bold = Bold,
+            Italic = Italic,
+            FillColorHex = FillColorHex,
+            OutlineColorHex = OutlineColorHex,
+            OutlineWidthPoints = OutlineWidthPoints,
+            HasShadow = HasShadow,
+            HasReflection = HasReflection,
+            HasGlow = HasGlow,
+            Transform = Transform,
+        };
+
 }

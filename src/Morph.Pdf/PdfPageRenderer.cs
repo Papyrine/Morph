@@ -260,7 +260,7 @@ sealed class PdfPageRenderer : PageRendererBase
     // Floating WordArt is positioned out of flow (no CurrentY advance). It renders only when a
     // raster backend produced the image; otherwise it's dropped with a warning — the previous
     // behaviour for every floating WordArt in the PDF backend.
-    void RenderFloatingWordArt(FloatingWordArtElement wordArt)
+    protected override void RenderFloatingWordArt(FloatingWordArtElement wordArt)
     {
         if (HasOutput)
         {
@@ -372,7 +372,7 @@ sealed class PdfPageRenderer : PageRendererBase
         }
     }
 
-    void RenderFloatingTextBox(FloatingTextBoxElement textBox)
+    protected override void RenderFloatingTextBox(FloatingTextBoxElement textBox)
     {
         if (!HasOutput)
         {

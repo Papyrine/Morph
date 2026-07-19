@@ -111,15 +111,6 @@ sealed class DocumentParser(string defaultFont)
     // Style numbering: styleId -> (numId, ilvl) for styles that define numbering
     Dictionary<string, (int numId, int ilvl)>? styleNumbering;
 
-    // Floating elements parsed inside table cells, collected for the enclosing container.
-    // Word anchors a floating drawing to the page even when its anchor paragraph sits inside
-    // a table cell — the cell is only where the anchor lives. The renderers' table path lays
-    // out flow content only, so a float left in cell content never draws (labels/11/14: the
-    // entire label sheet is one behind-text group anchored in a layout table's first cell).
-    // ParseTable fills this; each call site drains it in front of the emitted table so the
-    // floating pre-pass and dispatch see the elements.
-    List<DocumentElement> pendingCellFloats = [];
-
     // Numbering counters keyed by (abstractNumId, ilvl): OOXML's counter belongs to the
     // ABSTRACT definition, shared by every numId that references it — that's how a template's
     // per-table restart works (each table's first row carries its own numId + startOverride,
@@ -3232,7 +3223,6 @@ sealed class DocumentParser(string defaultFont)
                     break;
                 case Table table:
                     var parsedTable = ParseTable(table, mainPart);
-                    elements.AddRange(DrainPendingCellFloats());
                     if (parsedTable != null)
                     {
                         elements.Add(parsedTable);
@@ -3305,7 +3295,6 @@ sealed class DocumentParser(string defaultFont)
 
                 case Table table:
                     var parsedTable = ParseTable(table, mainPart);
-                    elements.AddRange(DrainPendingCellFloats());
                     if (parsedTable != null)
                     {
                         elements.Add(parsedTable);
@@ -3329,8 +3318,7 @@ sealed class DocumentParser(string defaultFont)
                         else if (sdtChild is Table sdtTable)
                         {
                             var parsedSdtTable = ParseTable(sdtTable, mainPart);
-                            elements.AddRange(DrainPendingCellFloats());
-                            if (parsedSdtTable != null)
+                                    if (parsedSdtTable != null)
                             {
                                 elements.Add(parsedSdtTable);
                             }
@@ -3408,17 +3396,6 @@ sealed class DocumentParser(string defaultFont)
         _ => 0
     };
 
-    List<DocumentElement> DrainPendingCellFloats()
-    {
-        if (pendingCellFloats.Count == 0)
-        {
-            return [];
-        }
-
-        var drained = pendingCellFloats;
-        pendingCellFloats = [];
-        return drained;
-    }
 
     TableElement? ParseTable(Table table, MainDocumentPart mainPart)
     {
@@ -3803,10 +3780,16 @@ sealed class DocumentParser(string defaultFont)
                     }
                 }
 
-                // Hoist floating elements out of the cell — see pendingCellFloats.
+                // Detach floating drawings from the cell's flow content: Word anchors them to
+                // the cell's frame, and the table renderer draws them when the cell rectangle is
+                // known (TableCell.Floats). Sorted by relativeHeight — Word's z-space.
+                List<DocumentElement>? cellFloats = null;
                 if (cellContent.Any(static _ => _ is FloatingImageElement or FloatingShapeElement or FloatingTextBoxElement or FloatingWordArtElement))
                 {
-                    pendingCellFloats.AddRange(cellContent.Where(static _ => _ is FloatingImageElement or FloatingShapeElement or FloatingTextBoxElement or FloatingWordArtElement));
+                    cellFloats = cellContent
+                        .Where(static _ => _ is FloatingImageElement or FloatingShapeElement or FloatingTextBoxElement or FloatingWordArtElement)
+                        .OrderBy(FloatingZOrder)
+                        .ToList();
                     cellContent.RemoveAll(static _ => _ is FloatingImageElement or FloatingShapeElement or FloatingTextBoxElement or FloatingWordArtElement);
                 }
 
@@ -3828,6 +3811,7 @@ sealed class DocumentParser(string defaultFont)
                     new()
                     {
                         Content = cellContent,
+                        Floats = cellFloats ?? [],
                         Properties = new()
                         {
                             WidthPoints = width,
@@ -6593,7 +6577,6 @@ sealed class DocumentParser(string defaultFont)
             else if (element is Table table)
             {
                 var parsedTable = ParseTable(table, mainPart);
-                content.AddRange(DrainPendingCellFloats());
                 if (parsedTable != null)
                 {
                     content.Add(parsedTable);
@@ -6881,7 +6864,6 @@ sealed class DocumentParser(string defaultFont)
             else if (element is Table table)
             {
                 var tableElement = ParseTable(table, mainPart);
-                content.AddRange(DrainPendingCellFloats());
                 if (tableElement != null)
                 {
                     content.Add(tableElement);
@@ -7418,7 +7400,6 @@ sealed class DocumentParser(string defaultFont)
             else if (element is Table table)
             {
                 var tableElement = ParseTable(table, mainPart);
-                content.AddRange(DrainPendingCellFloats());
                 if (tableElement != null)
                 {
                     content.Add(tableElement);

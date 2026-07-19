@@ -74,4 +74,32 @@ sealed class FloatingTextBoxElement : DocumentElement
     public double? VerticalPositionPercent { get; init; }
 
 
+    /// <summary>
+    /// Copy re-anchored at an absolute page position — used by the table renderer to place
+    /// a cell-attached float against its cell's resolved rectangle (layoutInCell semantics).
+    /// Percent positioning is cleared (the absolute coordinates already resolved it); every
+    /// other member is preserved.
+    /// </summary>
+    public FloatingTextBoxElement WithAbsolutePosition(double x, double y) =>
+        new()
+        {
+            HorizontalAnchor = HorizontalAnchor.Page,
+            HorizontalPositionPoints = x,
+            VerticalAnchor = VerticalAnchor.Page,
+            VerticalPositionPoints = y,
+            Content = Content,
+            WidthPoints = WidthPoints,
+            HeightPoints = HeightPoints,
+            WrapType = WrapType,
+            BehindText = BehindText,
+            RelativeHeight = RelativeHeight,
+            LayoutInCell = LayoutInCell,
+            BackgroundColorHex = BackgroundColorHex,
+            LineColorHex = LineColorHex,
+            LineWidthPoints = LineWidthPoints,
+            LineAlpha = LineAlpha,
+            Subpaths = Subpaths,
+            RotationDegrees = RotationDegrees,
+        };
+
 }

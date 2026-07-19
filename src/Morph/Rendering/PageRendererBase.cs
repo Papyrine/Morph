@@ -65,6 +65,10 @@ abstract class PageRendererBase(RenderContextBase context)
     /// <summary>Renders an absolutely-positioned floating image (anchored, not part of text flow).</summary>
     protected abstract void RenderFloatingImage(FloatingImageElement image);
 
+    protected abstract void RenderFloatingTextBox(FloatingTextBoxElement textBox);
+
+    protected abstract void RenderFloatingWordArt(FloatingWordArtElement wordArt);
+
     /// <summary>Renders a paragraph in the header / footer region (does not advance flow Y).</summary>
     protected abstract void RenderHeaderFooterParagraph(ParagraphElement paragraph);
 
@@ -1473,9 +1477,16 @@ abstract class PageRendererBase(RenderContextBase context)
             DrawCellDiagonals(pixelX, pixelY, pixelWidth, pixelHeight, diagonals);
         }
 
+        // Cell-anchored floats draw against the cell's now-known rectangle: behind-text ones
+        // under the cell's content here, the rest after it (Word's layoutInCell semantics).
+        // The reference frame is the cell's outer box (x/y), not the padded interior — Word
+        // measures layoutInCell offsets from the cell edge.
+        RenderCellFloats(cell, x, y, behindText: true);
+
         if (cell.Properties.TextDirection != CellTextDirection.LeftToRight)
         {
             RenderVerticalCellContent(cell, cellX, cellY, cellWidth, cellHeight, padding);
+            RenderCellFloats(cell, x, y, behindText: false);
             return;
         }
 
@@ -1608,6 +1619,53 @@ abstract class PageRendererBase(RenderContextBase context)
                         RenderTable(nested);
                     }
                 }
+            }
+        }
+
+        context.CurrentY = savedY;
+        RenderCellFloats(cell, x, y, behindText: false);
+    }
+
+    /// <summary>
+    /// Draws the cell's anchored floating drawings against its resolved rectangle. layoutInCell
+    /// anchors (the default) position relative to the cell's frame, so their stored offsets are
+    /// re-based to absolute page coordinates at the cell's origin; layoutInCell="0" anchors
+    /// escape the cell and keep their own page/margin resolution. The cursor is saved around the
+    /// draw because the float renderers resolve Paragraph-relative anchors against CurrentY.
+    /// </summary>
+    void RenderCellFloats(TableCell cell, float cellX, float cellY, bool behindText)
+    {
+        if (cell.Floats.Count == 0)
+        {
+            return;
+        }
+
+        var savedY = context.CurrentY;
+        context.CurrentY = cellY;
+        foreach (var element in cell.Floats)
+        {
+            switch (element)
+            {
+                case FloatingShapeElement {BehindText: var behind} shape when behind == behindText:
+                    RenderBackgroundShape(shape.LayoutInCell
+                        ? shape.WithAbsolutePosition(cellX + shape.HorizontalPositionPoints, cellY + shape.VerticalPositionPoints)
+                        : shape);
+                    break;
+                case FloatingImageElement {BehindText: var behind} image when behind == behindText:
+                    RenderFloatingImage(image.LayoutInCell
+                        ? image.WithAbsolutePosition(cellX + image.HorizontalPositionPoints, cellY + image.VerticalPositionPoints)
+                        : image);
+                    break;
+                case FloatingTextBoxElement {BehindText: var behind} textBox when behind == behindText:
+                    RenderFloatingTextBox(textBox.LayoutInCell
+                        ? textBox.WithAbsolutePosition(cellX + textBox.HorizontalPositionPoints, cellY + textBox.VerticalPositionPoints)
+                        : textBox);
+                    break;
+                case FloatingWordArtElement {BehindText: var behind} wordArt when behind == behindText:
+                    RenderFloatingWordArt(wordArt.LayoutInCell
+                        ? wordArt.WithAbsolutePosition(cellX + wordArt.HorizontalPositionPoints, cellY + wordArt.VerticalPositionPoints)
+                        : wordArt);
+                    break;
             }
         }
 
