@@ -5031,11 +5031,6 @@ sealed class DocumentParser(string defaultFont)
                                     continue;
                                 }
 
-                                if (shape is FloatingShapeElement dbg2)
-                                {
-                                    Console.Error.WriteLine($"DBGS docparser  pos=({dbg2.HorizontalPositionPoints:0.#},{dbg2.VerticalPositionPoints:0.#}) size=({dbg2.WidthPoints:0.#}x{dbg2.HeightPoints:0.#}) fill={dbg2.FillColorHex}");
-                                }
-
                                 result.Add(shape);
                             }
 
@@ -5285,23 +5280,60 @@ sealed class DocumentParser(string defaultFont)
     }
 
     /// <summary>
-    /// Represents an accumulated transform from nested groups.
+    /// Accumulated transform from nested groups: an affine map from a child's local EMU
+    /// coordinates into the anchor's coordinate space. The linear part carries the composed
+    /// scales AND nested-group rotations (each applied about its own group's centre, per
+    /// DrawingML); <see cref="MapRectangle"/> folds a child's axis-aligned box through it.
     /// </summary>
     struct AccumulatedTransform
     {
-        public double OffsetX; // Accumulated offset in EMUs
+        public double M11;
+        public double M12;
+        public double M21;
+        public double M22;
+        public double OffsetX; // Accumulated translation in EMUs
         public double OffsetY;
-        public double ScaleX; // Accumulated scale
-        public double ScaleY;
+
+        public static AccumulatedTransform Identity =>
+            new()
+            {
+                M11 = 1,
+                M22 = 1
+            };
+
+        /// <summary>
+        /// Maps a child-space axis-aligned rectangle through the accumulated transform. The centre
+        /// maps exactly; the size scales by the basis-vector lengths; the returned rotation
+        /// (clockwise degrees, the model's convention) is the angle the composed nested-group
+        /// rotations turn the child by — renderers re-apply it about the returned box's centre,
+        /// which reproduces DrawingML's rotate-about-group-centre placement. An anisotropic outer
+        /// scale over a rotated inner group would be a skew; that residual is dropped.
+        /// </summary>
+        public (double X, double Y, double Width, double Height, double RotationDegrees) MapRectangle(double x, double y, double width, double height)
+        {
+            var centerX = x + width / 2;
+            var centerY = y + height / 2;
+            var mappedCenterX = OffsetX + M11 * centerX + M12 * centerY;
+            var mappedCenterY = OffsetY + M21 * centerX + M22 * centerY;
+            var scaleX = Math.Sqrt(M11 * M11 + M21 * M21);
+            var scaleY = Math.Sqrt(M12 * M12 + M22 * M22);
+            var mappedWidth = width * scaleX;
+            var mappedHeight = height * scaleY;
+            var rotationDegrees = Math.Atan2(M21, M11) * (180 / Math.PI);
+            return (mappedCenterX - mappedWidth / 2, mappedCenterY - mappedHeight / 2, mappedWidth, mappedHeight, rotationDegrees);
+        }
     }
 
     /// <summary>
-    /// Calculates the accumulated transform for an element by walking up through ancestor grpSp groups.
+    /// Calculates the accumulated transform for an element by walking up through ancestor grpSp
+    /// groups. Each group maps a child point p to c + R·(off + (p − chOff)·scale − c): the child
+    /// space is scaled into the group's box, then the box rotates about its own centre c by the
+    /// group's <c>a:xfrm/@rot</c>. Groups compose innermost-out; the root wgp's child space is
+    /// applied last via the rootChOff/rootScale parameters.
     /// </summary>
     static AccumulatedTransform GetAccumulatedTransform(OpenXmlElement element, long rootChOffX, long rootChOffY, double rootScaleX, double rootScaleY)
     {
-        // Collect ancestor group transforms (from innermost to outermost, excluding root wgp)
-        var groupTransforms = new List<(long offX, long offY, long extCx, long extCy, long chOffX, long chOffY, long chExtCx, long chExtCy)>();
+        var transform = AccumulatedTransform.Identity;
 
         var current = element.Parent;
         while (current != null)
@@ -5369,7 +5401,40 @@ sealed class DocumentParser(string defaultFont)
                         chExtCy = 1;
                     }
 
-                    groupTransforms.Add((offX, offY, extCx, extCy, chOffX, chOffY, chExtCx, chExtCy));
+                    var scaleX = (double) extCx / chExtCx;
+                    var scaleY = (double) extCy / chExtCy;
+
+                    // a:xfrm/@rot is clockwise 60,000ths of a degree; in Y-down page coordinates
+                    // the clockwise rotation matrix is [[cos, −sin], [sin, cos]].
+                    double rotation = 0;
+                    if (xfrm.GetAttributes().AttributeValue("rot") is { } rotValue && long.TryParse(rotValue, out var rot60000ths))
+                    {
+                        rotation = rot60000ths / 60000.0 * Math.PI / 180;
+                    }
+
+                    var cos = Math.Cos(rotation);
+                    var sin = Math.Sin(rotation);
+                    var localM11 = cos * scaleX;
+                    var localM12 = -sin * scaleY;
+                    var localM21 = sin * scaleX;
+                    var localM22 = cos * scaleY;
+                    var centerX = offX + extCx / 2.0;
+                    var centerY = offY + extCy / 2.0;
+                    var baseX = offX - chOffX * scaleX - centerX;
+                    var baseY = offY - chOffY * scaleY - centerY;
+                    var localOffsetX = centerX + cos * baseX - sin * baseY;
+                    var localOffsetY = centerY + sin * baseX + cos * baseY;
+
+                    // This ancestor wraps everything accumulated so far: new = local ∘ accumulated.
+                    transform = new()
+                    {
+                        M11 = localM11 * transform.M11 + localM12 * transform.M21,
+                        M12 = localM11 * transform.M12 + localM12 * transform.M22,
+                        M21 = localM21 * transform.M11 + localM22 * transform.M21,
+                        M22 = localM21 * transform.M12 + localM22 * transform.M22,
+                        OffsetX = localM11 * transform.OffsetX + localM12 * transform.OffsetY + localOffsetX,
+                        OffsetY = localM21 * transform.OffsetX + localM22 * transform.OffsetY + localOffsetY
+                    };
                 }
             }
             else if (current.LocalName == "wgp")
@@ -5381,45 +5446,15 @@ sealed class DocumentParser(string defaultFont)
             current = current.Parent;
         }
 
-        // Apply transforms from outermost to innermost (reverse the list since we collected from innermost)
-        // Start with no offset, unit scale - the element's own position will be added later
-        double accumX = 0;
-        double accumY = 0;
-        var accumScaleX = 1.0;
-        var accumScaleY = 1.0;
-
-        // Process from outermost to innermost
-        for (var i = groupTransforms.Count - 1; i >= 0; i--)
-        {
-            var (offX, offY, extCx, extCy, chOffX, chOffY, chExtCx, chExtCy) = groupTransforms[i];
-
-            // Scale factors for this group
-            var scaleX = (double) extCx / chExtCx;
-            var scaleY = (double) extCy / chExtCy;
-
-            // Transform accumulated position into this group's coordinate system
-            // First apply the child offset (origin of child coordinates)
-            // Then apply the group's own offset
-            accumX = offX + (accumX - chOffX) * scaleX;
-            accumY = offY + (accumY - chOffY) * scaleY;
-
-            // Accumulate scales
-            accumScaleX *= scaleX;
-            accumScaleY *= scaleY;
-        }
-
         // Apply root wgp transform
-        accumX = (accumX - rootChOffX) * rootScaleX;
-        accumY = (accumY - rootChOffY) * rootScaleY;
-        accumScaleX *= rootScaleX;
-        accumScaleY *= rootScaleY;
-
         return new()
         {
-            OffsetX = accumX,
-            OffsetY = accumY,
-            ScaleX = accumScaleX,
-            ScaleY = accumScaleY
+            M11 = rootScaleX * transform.M11,
+            M12 = rootScaleX * transform.M12,
+            M21 = rootScaleY * transform.M21,
+            M22 = rootScaleY * transform.M22,
+            OffsetX = (transform.OffsetX - rootChOffX) * rootScaleX,
+            OffsetY = (transform.OffsetY - rootChOffY) * rootScaleY
         };
     }
 
@@ -6265,10 +6300,7 @@ sealed class DocumentParser(string defaultFont)
             var accumTransform = GetAccumulatedTransform(pic, groupOffsetX, groupOffsetY, groupScaleX, groupScaleY);
 
             // Apply accumulated transform to the pic's position and size
-            var finalX = accumTransform.OffsetX + picOffsetX * accumTransform.ScaleX;
-            var finalY = accumTransform.OffsetY + picOffsetY * accumTransform.ScaleY;
-            var finalWidth = picWidth * accumTransform.ScaleX;
-            var finalHeight = picHeight * accumTransform.ScaleY;
+            var (finalX, finalY, finalWidth, finalHeight, groupRotationDegrees) = accumTransform.MapRectangle(picOffsetX, picOffsetY, picWidth, picHeight);
 
             // Convert to points
             var widthPoints = finalWidth / emusPerPoint;
@@ -6276,8 +6308,9 @@ sealed class DocumentParser(string defaultFont)
             var offsetXPoints = finalX / emusPerPoint;
             var offsetYPoints = finalY / emusPerPoint;
 
-            // Rotation (a:xfrm/@rot, in 60,000ths of a degree, clockwise)
-            var rotationDegrees = ReadRotationDegrees(xfrm);
+            // Rotation (a:xfrm/@rot, in 60,000ths of a degree, clockwise) composed with any
+            // rotation the ancestor groups apply
+            var rotationDegrees = ReadRotationDegrees(xfrm) + groupRotationDegrees;
             var (flipHorizontal, flipVertical) = ReadFlips(xfrm);
 
             // Find the blip (image reference)
@@ -6776,14 +6809,7 @@ sealed class DocumentParser(string defaultFont)
                 else if (TextBoxHasNoText(wsp))
                 {
                     // See note above — only text-free shapes feed the solid-fill fallback.
-                    var accumTransform = new AccumulatedTransform
-                    {
-                        OffsetX = 0,
-                        OffsetY = 0,
-                        ScaleX = 1,
-                        ScaleY = 1
-                    };
-                    var solidShape = ParseSolidFillShape(wsp, positioning, accumTransform, behindText, mainPart, widthPoints, heightPoints);
+                    var solidShape = ParseSolidFillShape(wsp, positioning, AccumulatedTransform.Identity, behindText, mainPart, widthPoints, heightPoints);
                     if (solidShape != null)
                     {
                         result.Add(solidShape);
@@ -7106,26 +7132,36 @@ sealed class DocumentParser(string defaultFont)
         var yPt = positioning.VerticalPositionPoints;
         var widthPt = overrideWidth ?? 0;
         var heightPt = overrideHeight ?? 0;
+        double rotationDegrees = 0;
 
         if (xfrm != null)
         {
             var off = xfrm.Offset;
             var ext = xfrm.Extents;
+            var mapped = accumTransform.MapRectangle(
+                off?.X ?? 0,
+                off?.Y ?? 0,
+                ext?.Cx ?? 0,
+                ext?.Cy ?? 0);
 
             if (off != null)
             {
-                long shapeX = off.X ?? 0;
-                long shapeY = off.Y ?? 0;
-                var finalX = accumTransform.OffsetX + shapeX * accumTransform.ScaleX;
-                var finalY = accumTransform.OffsetY + shapeY * accumTransform.ScaleY;
-                xPt = positioning.HorizontalPositionPoints + finalX.EmuToPoints();
-                yPt = positioning.VerticalPositionPoints + finalY.EmuToPoints();
+                xPt = positioning.HorizontalPositionPoints + mapped.X.EmuToPoints();
+                yPt = positioning.VerticalPositionPoints + mapped.Y.EmuToPoints();
             }
 
             if (ext != null)
             {
-                widthPt = ((ext.Cx ?? 0) * accumTransform.ScaleX).EmuToPoints();
-                heightPt = ((ext.Cy ?? 0) * accumTransform.ScaleY).EmuToPoints();
+                widthPt = mapped.Width.EmuToPoints();
+                heightPt = mapped.Height.EmuToPoints();
+            }
+
+            // The shape's own rotation composed with the rotation its ancestor groups apply
+            // (e.g. the label sheets rotate each card's wave sub-group 270°).
+            rotationDegrees = mapped.RotationDegrees;
+            if (xfrm.Rotation?.HasValue == true)
+            {
+                rotationDegrees += xfrm.Rotation.Value / 60000.0;
             }
         }
 
@@ -7168,7 +7204,8 @@ sealed class DocumentParser(string defaultFont)
             LineColorHex = fillColorHex == null ? lineColorHex : null,
             LineWidthPoints = fillColorHex == null ? lineWidthPoints : null,
             Preset = ShapeParser.ExtractPresetShape(shapeProps),
-            Subpaths = subpaths
+            Subpaths = subpaths,
+            RotationDegrees = rotationDegrees
         };
     }
 
@@ -7206,12 +7243,23 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
-        long shapeX = off.X ?? 0;
-        long shapeY = off.Y ?? 0;
-        var finalX = accumTransform.OffsetX + shapeX * accumTransform.ScaleX;
-        var finalY = accumTransform.OffsetY + shapeY * accumTransform.ScaleY;
-        var widthPt = ((ext.Cx ?? 0) * accumTransform.ScaleX).EmuToPoints();
-        var heightPt = ((ext.Cy ?? 0) * accumTransform.ScaleY).EmuToPoints();
+        var mapped = accumTransform.MapRectangle(
+            off.X ?? 0,
+            off.Y ?? 0,
+            ext.Cx ?? 0,
+            ext.Cy ?? 0);
+
+        // Same policy as the child-rotation bail above: the rect-stroke render path can't
+        // draw a rotated connector, and here the rotation arrives from an ancestor group.
+        if (Math.Abs(mapped.RotationDegrees) > 0.01)
+        {
+            return null;
+        }
+
+        var finalX = mapped.X;
+        var finalY = mapped.Y;
+        var widthPt = mapped.Width.EmuToPoints();
+        var heightPt = mapped.Height.EmuToPoints();
 
         // Lines have a zero extent on the perpendicular axis. Bail if both are zero
         // (degenerate point) — there's nothing to draw.
@@ -7378,28 +7426,30 @@ sealed class DocumentParser(string defaultFont)
         {
             var off = xfrm.Offset;
             var ext = xfrm.Extents;
+            var mapped = accumTransform.MapRectangle(
+                off?.X ?? 0,
+                off?.Y ?? 0,
+                ext?.Cx ?? 0,
+                ext?.Cy ?? 0);
 
             if (off != null)
             {
-                long shapeX = off.X ?? 0;
-                long shapeY = off.Y ?? 0;
-                // Apply accumulated transform: offset + shape position * scale
-                var finalX = accumTransform.OffsetX + shapeX * accumTransform.ScaleX;
-                var finalY = accumTransform.OffsetY + shapeY * accumTransform.ScaleY;
-                xPt = positioning.HorizontalPositionPoints + finalX.EmuToPoints();
-                yPt = positioning.VerticalPositionPoints + finalY.EmuToPoints();
+                xPt = positioning.HorizontalPositionPoints + mapped.X.EmuToPoints();
+                yPt = positioning.VerticalPositionPoints + mapped.Y.EmuToPoints();
             }
 
             if (ext != null)
             {
-                widthPt = ((ext.Cx ?? 0) * accumTransform.ScaleX).EmuToPoints();
-                heightPt = ((ext.Cy ?? 0) * accumTransform.ScaleY).EmuToPoints();
+                widthPt = mapped.Width.EmuToPoints();
+                heightPt = mapped.Height.EmuToPoints();
             }
 
-            // Extract rotation (in 60,000ths of a degree)
+            // The shape's own rotation (in 60,000ths of a degree) composed with the rotation
+            // its ancestor groups apply
+            rotationDegrees = mapped.RotationDegrees;
             if (xfrm.Rotation?.HasValue == true)
             {
-                rotationDegrees = xfrm.Rotation.Value / 60000.0;
+                rotationDegrees += xfrm.Rotation.Value / 60000.0;
             }
         }
 

@@ -5,7 +5,7 @@
     {
       "Page": 1,
       "ErrorMetric": 0.0452,
-      "Ssim": 0.9485,
+      "Ssim": 0.9486,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "imagesharp_result#page_0001.verified.png",
       "ReceivedFile": "imagesharp_result#page_0001.received.png"
