@@ -87,6 +87,10 @@ sealed class PdfPageRenderer : PageRendererBase
             }
 
             var element = elements[index];
+            if (element is FloatingShapeElement dbgShape)
+            {
+                Console.Error.WriteLine($"DBGQ shape pos=({dbgShape.HorizontalPositionPoints:0.#},{dbgShape.VerticalPositionPoints:0.#}) size=({dbgShape.WidthPoints:0.#}x{dbgShape.HeightPoints:0.#}) fill={dbgShape.FillColorHex} rh={dbgShape.RelativeHeight}");
+            }
 
             if (element is FloatingShapeElement {BehindText: true} backgroundShape)
             {
@@ -390,6 +394,17 @@ sealed class PdfPageRenderer : PageRendererBase
             textBox.HorizontalPositionPercent,
             textBox.VerticalPositionPercent);
 
+        // Rotate the whole box — chrome and text content — around its centre, matching the
+        // raster backends' canvas rotation (labels/06's "ADMIT ONE" edge captions at 90°/270°).
+        var rotationState = default(XGraphicsState);
+        if (Math.Abs(textBox.RotationDegrees) > 0.01)
+        {
+            rotationState = Graphics.Save();
+            Graphics.RotateAtTransform(
+                textBox.RotationDegrees,
+                new(bounds.X + bounds.PixelWidth / 2, bounds.Y + bounds.PixelHeight / 2));
+        }
+
         // The shape's chrome behind the text: fill and a:ln outline, following the shape's
         // geometry when it is richer than a rectangle (roundRect ticket outlines, plaque frames).
         var geometryPath = BuildTextBoxPath(textBox, bounds.X, bounds.Y, bounds.PixelWidth, bounds.PixelHeight);
@@ -433,6 +448,11 @@ sealed class PdfPageRenderer : PageRendererBase
         }
 
         context.CurrentY = savedY;
+
+        if (rotationState != null)
+        {
+            Graphics.Restore(rotationState);
+        }
     }
 
     /// <summary>
