@@ -72,6 +72,16 @@ sealed record PageSettings
     /// </summary>
     public double GutterPoints { get; init; }
 
+    /// <summary>Restart value for this section's page numbering (<c>w:pgNumType/@w:start</c>).
+    /// Null = continue from the previous section. Word's cover-page pattern is start=0: the
+    /// cover displays 0 (usually unnumbered) and the next page displays 1.</summary>
+    public int? PageNumberStart { get; init; }
+
+    /// <summary>This section's page-number display format (<c>w:pgNumType/@w:fmt</c>), stored in
+    /// the PAGE-field switch vocabulary ("roman"/"Roman"/"alphabetic"/"Alphabetic") so the field
+    /// formatter consumes it directly. Null = decimal.</summary>
+    public string? PageNumberFormat { get; init; }
+
     /// <summary>
     /// Whether the gutter is added to the top margin instead of the left margin
     /// (w:settings/w:gutterAtTop).

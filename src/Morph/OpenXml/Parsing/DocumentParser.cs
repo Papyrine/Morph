@@ -2774,6 +2774,38 @@ sealed class DocumentParser(string defaultFont)
         var pageSize = sectionProps.GetFirstChild<PageSize>();
         var pageMargin = sectionProps.GetFirstChild<PageMargin>();
 
+        // w:pgNumType - the section's page-number restart and display format.
+        int? pageNumberStart = null;
+        string? pageNumberFormat = null;
+        var pageNumberType = sectionProps.GetFirstChild<PageNumberType>();
+        if (pageNumberType != null)
+        {
+            if (pageNumberType.Start?.Value is { } startValue)
+            {
+                pageNumberStart = startValue;
+            }
+
+            if (pageNumberType.Format?.Value is { } formatValue)
+            {
+                if (formatValue == NumberFormatValues.LowerRoman)
+                {
+                    pageNumberFormat = "roman";
+                }
+                else if (formatValue == NumberFormatValues.UpperRoman)
+                {
+                    pageNumberFormat = "Roman";
+                }
+                else if (formatValue == NumberFormatValues.LowerLetter)
+                {
+                    pageNumberFormat = "alphabetic";
+                }
+                else if (formatValue == NumberFormatValues.UpperLetter)
+                {
+                    pageNumberFormat = "Alphabetic";
+                }
+            }
+        }
+
         var width = DefaultPageSize.WidthPoints;
         var height = DefaultPageSize.HeightPoints;
         double marginTop = 72;
@@ -2911,6 +2943,8 @@ sealed class DocumentParser(string defaultFont)
             DifferentFirstPage = differentFirstPage,
             PageBorders = pageBorders,
             GutterPoints = gutterPoints,
+            PageNumberStart = pageNumberStart,
+            PageNumberFormat = pageNumberFormat,
             GutterAtTop = gutterAtTop
         };
     }

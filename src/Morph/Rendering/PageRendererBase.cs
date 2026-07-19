@@ -626,7 +626,7 @@ abstract class PageRendererBase(RenderContextBase context)
         switch (kind)
         {
             case PageFieldKind.Page:
-                value = context.CurrentPageNumber;
+                value = context.CurrentPageNumber + context.PageNumberDisplayOffset;
                 break;
             case PageFieldKind.NumberOfPages:
             case PageFieldKind.SectionPages:
@@ -641,7 +641,7 @@ abstract class PageRendererBase(RenderContextBase context)
                 return null;
         }
 
-        return FormatPageNumber(value, numberFormat);
+        return FormatPageNumber(value, numberFormat ?? context.SectionPageNumberFormat);
     }
 
     static string FormatPageNumber(int value, string? numberFormat) => numberFormat switch

@@ -726,7 +726,7 @@ Override the page numbering format (decimal, lowerRoman, etc.) and starting valu
 
 - **OOXML**: `w:pgNumType` within `w:sectPr` — `@w:fmt`, `@w:start`, `@w:chapStyle`, `@w:chapSep`
 - **Spec**: [PageNumberType](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.pagenumbertype)
-- **Render**: `PAGE`/`NUMPAGES`/`SECTIONPAGES` fields are now evaluated per page (see Field Codes), but `w:pgNumType` itself is still not read — the section's `@w:fmt` override and `@w:start` restart value have no consumer, so numbers render as decimal counted from physical page 1. A field's own `\*` format switch is honoured. Wiring `w:pgNumType` in as the section's number format / restart origin is the remaining gap.
+- **Render**: `PAGE` fields evaluate per page with the section's `w:pgNumType` applied: `@w:start` restarts the displayed number at the section's first page (`PageSettings.PageNumberStart` → a display offset the render context consumes at the section's page turn; the first section applies from page 1, covering the cover-page start=0 pattern), and `@w:fmt` supplies the number format when the field carries no `\*` switch of its own (lowerRoman/upperRoman/lowerLetter/upperLetter map onto the field-switch vocabulary). `@w:chapStyle`/`@w:chapSep` chapter numbering remains unread.
 
 ---
 
@@ -1839,7 +1839,7 @@ Text input form fields with type variants (regular, number, date, current date/t
 
 - **OOXML**: `w:ffData` > `w:textInput` with `w:type`
 - **Model**: `TextFormFieldElement` with `TextFormFieldType` enum, `MaxLength`, `DefaultText`, `Value`
-- **Render**: the cached result runs between the field's separate/end flow inline — "Name: Enter your name" on one line, exactly Word's print output. No block widget is emitted (drawing one double-rendered the value).
+- **Render**: the cached result runs between the field's separate/end flow inline — "Date: 01/01/2024" on one line, exactly Word's print output. No block widget is emitted (drawing one double-rendered the value).
 - **Test**: `form_text_fields/`
 
 
@@ -2235,7 +2235,7 @@ Dynamic content fields (date, time, author, page count, expressions, etc.).
 - **Spec**: [Fields](http://officeopenxml.com/WPfields.php)
 - **Model**: `FieldCode` record (`Instruction`, `Result`, derived `Keyword`); `ParsedDocument.FieldCodes`. Page-numbering fields additionally tag their result run via `Run.PageField` (`PageFieldKind`), with `ParsedDocument.RequiresTotalPageCount` flagged when a NUMPAGES/SECTIONPAGES field is present.
 - **Parse**: `DocumentParser.ExtractFieldCodes()` walks both complex-field begin/separate/end runs (concatenates `w:instrText` and result text, nested fields tracked via stacks) and `w:fldSimple` legacy single-element fields. Independently, `ParseParagraph` classifies `PAGE`/`NUMPAGES`/`SECTIONPAGES` fields (both forms, including SDT-wrapped page-number content controls) and collapses each into one `PageField`-tagged run carrying the cached text and the `\*` numeric-format switch.
-- **Render**: most fields render Word's cached result inline. `PAGE`/`NUMPAGES`/`SECTIONPAGES` are evaluated per page instead: `PageRendererBase.ResolveParagraphPageFields` (and its header/footer/table walk) substitutes the live value using `RenderContextBase.CurrentPageNumber` / `TotalPageCount` before measurement. The total comes from a gated counting pass the raster/PDF converters run first when `RequiresTotalPageCount` is set. Section-restarted numbering (`w:pgNumType`) is not yet applied, so `PAGE` reflects the physical page number.
+- **Render**: most fields render Word's cached result inline. `PAGE`/`NUMPAGES`/`SECTIONPAGES` are evaluated per page instead: `PageRendererBase.ResolveParagraphPageFields` (and its header/footer/table walk) substitutes the live value using `RenderContextBase.CurrentPageNumber` / `TotalPageCount` before measurement. The total comes from a gated counting pass the raster/PDF converters run first when `RequiresTotalPageCount` is set. Section-restarted numbering (`w:pgNumType` `@start`/`@fmt`) applies through the render context's display offset and section format (see Page Numbering).
 - **Test**: `field_codes_simple/`, `page_numbers/`, spec test `FieldCodesTests`
 
 > **Contributors**: Both forms (legacy single-element `w:fldSimple` and modern `w:fldChar`-bracketed) round-trip through the same `FieldCode` record. The HTML/Markdown exporters keep the cached page-field text (no pagination), so only the paginated backends substitute; the counting pass is skipped for documents without a NUMPAGES/SECTIONPAGES field.

@@ -44,6 +44,19 @@ abstract class RenderContextBase
     // Current position on the page (in points)
     public float CurrentY { get; set; }
     public int CurrentPageNumber { get; private set; } = 1;
+
+    /// <summary>Display offset for PAGE fields from the active section's <c>w:pgNumType/@start</c>
+    /// restart: displayed number = <see cref="CurrentPageNumber"/> + this. 0 = physical numbering.</summary>
+    public int PageNumberDisplayOffset { get; private set; }
+
+    /// <summary>The active section's page-number format ("roman" etc., PAGE-switch vocabulary),
+    /// applied when the field carries no format switch of its own.</summary>
+    public string? SectionPageNumberFormat { get; private set; }
+
+    // A pgNumType restart applies to the SECTION's first page. UpdatePageSettings runs before
+    // the section's page turn, so the restart is held here and consumed by the next
+    // StartNewPage, where CurrentPageNumber is the section's actual first page.
+    int? pendingPageNumberStart;
     public int CurrentColumn { get; private set; }
 
     /// <summary>
@@ -129,6 +142,14 @@ abstract class RenderContextBase
         PageWidthPixels = ToPagePixels(pageSettings.WidthPoints, dpi);
         PageHeightPixels = ToPagePixels(pageSettings.HeightPoints, dpi);
 
+        // The document's first section applies from page 1 with no page turn to consume a
+        // pending restart, so its pgNumType lands directly (cover-page start=0 patterns).
+        SectionPageNumberFormat = pageSettings.PageNumberFormat;
+        if (pageSettings.PageNumberStart is { } initialStart)
+        {
+            PageNumberDisplayOffset = initialStart - 1;
+        }
+
         CurrentY = ContentTop;
     }
 
@@ -165,6 +186,12 @@ abstract class RenderContextBase
         CurrentColumn = 0;
         CurrentY = ContentTop;
         floatExclusions.Clear();
+
+        if (pendingPageNumberStart is { } start)
+        {
+            PageNumberDisplayOffset = start - CurrentPageNumber;
+            pendingPageNumberStart = null;
+        }
     }
 
     // ---- float text-wrap exclusions ----
@@ -324,6 +351,12 @@ abstract class RenderContextBase
         PageSettings = newSettings;
         PageWidthPixels = ToPagePixels(newSettings.WidthPoints, Dpi);
         PageHeightPixels = ToPagePixels(newSettings.HeightPoints, Dpi);
+
+        SectionPageNumberFormat = newSettings.PageNumberFormat;
+        if (newSettings.PageNumberStart is { } start)
+        {
+            pendingPageNumberStart = start;
+        }
     }
 
     // Must be computed in double precision rather than via the float Scale. For common page sizes
