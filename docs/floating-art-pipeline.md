@@ -31,6 +31,14 @@ A floating drawing reaches the model through up to three sweeps, all launched fr
    to the shape's geometry (ellipse preset / custom contours), and the group-frame clip exempts
    image fills the same way it exempts pictures.
 
+The group branch is entered when SP emitted something, the drawing holds a `wpg:wgp`, or the
+anchored drawing contains a blip-filled wsp (`hasAnchoredBlipShape`) — the last route exists
+because a FRONT-of-text anchored standalone picture-shape reaches neither SP (behindDoc-only)
+nor the pic-based image path (newsletters/08's cover photo, a front-anchored blip-filled
+freeform). At render, front-of-text `FloatingShapeElement`s are drawn only when image-filled
+(over the content painted so far, at flow order); SOLID front shapes keep the long-standing
+drop in all backends — enabling them is a corpus-wide experiment nobody has run.
+
 Cell-anchored floats additionally detach into `TableCell.Floats` and render from the shared
 table renderer (see "Cell-attached floats").
 

@@ -303,6 +303,14 @@ sealed class PdfPageRenderer : PageRendererBase
             case FloatingWordArtElement floatingWordArt:
                 RenderFloatingWordArt(floatingWordArt);
                 break;
+            case FloatingShapeElement {ImageData: not null} floatingShape:
+                // FRONT-of-text image-filled shapes draw here over the content painted so far
+                // (newsletters/08's cover photo is a front-anchored blip-filled freeform);
+                // behind-text ones render from the pre-scan at page start. Solid front shapes
+                // keep the long-standing drop below — enabling them is a separate corpus-wide
+                // experiment.
+                RenderBackgroundShape(floatingShape);
+                break;
             case InkElement:
             case FloatingShapeElement:
                 OnWarning?.Invoke(new(WarningKind.UnsupportedElement,

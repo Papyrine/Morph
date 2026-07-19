@@ -337,9 +337,18 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 hasSignificantContentOnCurrentPage = true;
                 break;
 
-            case FloatingShapeElement:
-                // Background shapes are handled in RenderDocument pre-scan
-                // and rendered at page start in StartNewPage
+            case FloatingShapeElement floatingShape:
+                // Behind-text shapes are handled in the RenderDocument pre-scan and rendered
+                // at page start in StartNewPage. FRONT-of-text shapes have no other painter:
+                // image-filled ones draw here over the content painted so far (newsletters/08's
+                // cover photo is a front-anchored blip-filled freeform); solid front shapes
+                // keep the long-standing drop — enabling them is a separate corpus-wide
+                // experiment.
+                if (floatingShape.ImageData != null)
+                {
+                    RenderBackgroundShape(floatingShape);
+                }
+
                 break;
         }
     }
