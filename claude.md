@@ -128,7 +128,7 @@ For a complete feature-by-feature mapping to code locations, see `docs/word-feat
 
 ## Feature Documentation
 
-`docs/word-features.md` is the comprehensive feature matrix listing every DOCX feature with implementation status, code locations, and specification links.
+`docs/word-features.md` is the comprehensive feature matrix listing every DOCX feature with implementation status, code locations, and specification links. `docs/floating-art-pipeline.md` documents the cross-cutting floating/anchored-art architecture (parse-path authority rules, nested transforms, z-order, clipping) plus a decision log of attempted-and-reverted approaches — update it when changing that pipeline. `docs/fidelity-audit.md` records how renders are compared against Word and how a rendering change is judged.
 
 **When adding, modifying, or removing a DOCX feature, update the feature matrix:**
 1. Update the feature status (`DONE` / `PARTIAL` / `TODO`)
