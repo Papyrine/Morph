@@ -81,6 +81,15 @@ abstract class RenderContextBase
     public bool SuppressNextParagraphTopBorder { get; set; }
 
     /// <summary>
+    /// True while header/footer content is being rendered. Paragraph-anchored floating
+    /// SHAPES then resolve against the cursor (the header paragraph's position at
+    /// HeaderDistance) instead of the body content top — cover-letters/10's full-page
+    /// band is anchored `paragraph +0` in a header with w:header="0" and must bleed
+    /// from the page top, not start at the top margin.
+    /// </summary>
+    public bool InHeaderFooter { get; set; }
+
+    /// <summary>
     /// One-shot: the next flow paragraph starts at the top of a page produced by an automatic
     /// break, where Word does not apply the paragraph's spacing-before. Set by the page
     /// renderers immediately before rendering a body paragraph; consumed and cleared by the
