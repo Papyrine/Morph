@@ -2269,11 +2269,39 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
             if (image != null)
             {
                 var destRect = new SKRect(pixelX, pixelY, pixelX + pixelWidth, pixelY + pixelHeight);
+
+                // Word shows the picture through the shape's geometry (a circular profile
+                // photo is an ellipse with a blip fill), not as a bare rectangle. Rotated
+                // geometry is handled inside BuildPolygonPath; the ellipse clip is page-space
+                // like the pic:spPr crop, so rotated ellipses stay unclipped.
+                var clipGeometry = shape.Subpaths != null ||
+                                   (shape.Preset == PresetShape.Ellipse && shape.RotationDegrees == 0);
+                if (clipGeometry)
+                {
+                    currentCanvas.Save();
+                    if (shape.Subpaths != null)
+                    {
+                        using var clipPath = BuildPolygonPath(shape, pixelX, pixelY, pixelWidth, pixelHeight);
+                        currentCanvas.ClipPath(clipPath, antialias: true);
+                    }
+                    else
+                    {
+                        using var clipPath = new SKPath();
+                        clipPath.AddOval(destRect);
+                        currentCanvas.ClipPath(clipPath, antialias: true);
+                    }
+                }
+
                 using var paint = new SKPaint
                 {
                     IsAntialias = true
                 };
                 currentCanvas.DrawImage(image, destRect, new SKSamplingOptions(SKCubicResampler.Mitchell), paint);
+
+                if (clipGeometry)
+                {
+                    currentCanvas.Restore();
+                }
             }
         }
         else if (shape.Gradient is { } gradient)

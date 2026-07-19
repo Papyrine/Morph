@@ -1017,7 +1017,33 @@ sealed class PdfPageRenderer : PageRendererBase
 
         if (shape.ImageData != null)
         {
-            DrawRaster(shape.ImageData, shape.ImageContentType, null, null, x, y, shapeWidth, shapeHeight);
+            // Word shows the picture through the shape's geometry (a circular profile photo is
+            // an ellipse with a blip fill), not as a bare rectangle. Page-space clip, so rotated
+            // ellipses stay unclipped; BuildShapePath already bakes rotation into contours.
+            var clipGeometry = shape.Subpaths != null ||
+                               (shape.Preset == PresetShape.Ellipse && shape.RotationDegrees == 0);
+            if (clipGeometry)
+            {
+                var state = Graphics.Save();
+                XGraphicsPath clipPath;
+                if (shape.Subpaths != null)
+                {
+                    clipPath = BuildShapePath(shape, x, y, shapeWidth, shapeHeight);
+                }
+                else
+                {
+                    clipPath = new();
+                    clipPath.AddEllipse(x, y, shapeWidth, shapeHeight);
+                }
+
+                Graphics.IntersectClip(clipPath);
+                DrawRaster(shape.ImageData, shape.ImageContentType, null, null, x, y, shapeWidth, shapeHeight);
+                Graphics.Restore(state);
+            }
+            else
+            {
+                DrawRaster(shape.ImageData, shape.ImageContentType, null, null, x, y, shapeWidth, shapeHeight);
+            }
         }
         else if (shape.Gradient is { } gradient)
         {

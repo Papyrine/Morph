@@ -1777,10 +1777,23 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         if (shape.ImageData != null)
         {
-            var img = context.GetProcessedImage(shape.ImageData, (int) pixelWidth, (int) pixelHeight, crop: null, BlipColorEffect.None, rotationDegrees: 0);
-            if (img != null)
+            // Word shows the picture through the shape's geometry (a circular profile photo is
+            // an ellipse with a blip fill), not as a bare rectangle. Like the floating-image
+            // pic:spPr crop, only the ellipse case masks here — custom-geometry contours draw
+            // unmasked (rect-equivalent), and rotation keeps the plain path.
+            if (shape.Preset == PresetShape.Ellipse &&
+                shape.RotationDegrees == 0 &&
+                context.GetEllipseClippedImage(shape.ImageData, (int) pixelWidth, (int) pixelHeight, crop: null) is { } ellipseClipped)
             {
-                currentCanvas.DrawImage(img, new((int) pixelX, (int) pixelY));
+                currentCanvas.DrawImage(ellipseClipped, new((int) pixelX, (int) pixelY));
+            }
+            else
+            {
+                var img = context.GetProcessedImage(shape.ImageData, (int) pixelWidth, (int) pixelHeight, crop: null, BlipColorEffect.None, rotationDegrees: 0);
+                if (img != null)
+                {
+                    currentCanvas.DrawImage(img, new((int) pixelX, (int) pixelY));
+                }
             }
         }
         else if (shape.Gradient is { } gradient)

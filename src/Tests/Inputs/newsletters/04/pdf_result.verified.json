@@ -33,24 +33,24 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.28,
-      "Ssim": 0.6304,
+      "ErrorMetric": 0.289,
+      "Ssim": 0.6221,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.3013,
-      "Ssim": 0.6493,
+      "ErrorMetric": 0.3106,
+      "Ssim": 0.6421,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.3912,
-      "Ssim": 0.6545,
+      "ErrorMetric": 0.3973,
+      "Ssim": 0.6494,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"

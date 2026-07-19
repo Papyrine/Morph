@@ -25,9 +25,11 @@ A floating drawing reaches the model through up to three sweeps, all launched fr
    `GetAccumulatedTransform` (below).
 3. **The walk (`ParseAllShapesFromDrawing`)** — per `wps:wsp`: a text box
    (`ParseTextBoxFromShapeWithTransform`), else — when the txbx is absent or text-free — a
-   solid-fill shape (`ParseSolidFillShape`) or a line connector (`ParseLineShape`). Uses the same
-   composed nested transform as the picture path. Deliberately does NOT parse blip-filled
-   (image-textured) shapes — those belong to SP.
+   fill shape (`ParseSolidFillShape`) or a line connector (`ParseLineShape`). Uses the same
+   composed nested transform as the picture path. `ParseSolidFillShape` also parses blip-filled
+   (image-textured) shapes into `FloatingShapeElement.ImageData`; the renderers clip the picture
+   to the shape's geometry (ellipse preset / custom contours), and the group-frame clip exempts
+   image fills the same way it exempts pictures.
 
 Cell-anchored floats additionally detach into `TableCell.Floats` and render from the shared
 table renderer (see "Cell-attached floats").
@@ -51,9 +53,16 @@ each corpus-calibrated:
   remaps offset, scale or rotation) — the walk owns the SHAPES; SP's flat math cannot represent
   the remapping, so its copies land at garbage positions and the size mismatch defeats the
   dedup, leaving both copies visible (labels/16's stray bear fragments; labels/08's oversized
-  overlapping tickets). Carve-out: SP's IMAGE-filled shape emissions stay in the merge, because
-  the walk never parses blip fills and a picture's own sub-group is often identity-nested even
-  when a sibling's is not (newsletters/12's photo disappeared under full suppression, +1.00).
+  overlapping tickets). History: while the walk could not parse blip fills, SP's IMAGE-filled
+  emissions were carved back into the merge (newsletters/12's photo disappeared under full
+  suppression, +1.00); once `ParseSolidFillShape` gained blip-fill support the carve-out became
+  a double-draw and walk-owned groups now suppress SP output entirely.
+
+Inline (`wp:inline`) drawings are a separate subsystem (`InlineShapeGroup`/`GroupShape`, flowed
+with text), but share the blip-fill rule: a `wps:wsp` child with `a:blipFill` carries
+`GroupShape.ImageData`, and a STANDALONE inline blip-filled wsp (no `wpg:wgp` wrapper — Word's
+"fill a shape with a picture", cover-letters/09's circular profile photo) wraps into a
+one-element group via `ParseInlineShapeImageRun` so the ellipse clip applies.
 
 ## Nested-transform composition
 
