@@ -181,18 +181,26 @@ static class TableLayout
                     widths[i] *= scale;
                 }
             }
-            else if (isAutoFit && totalExplicitWidth > 0 && totalExplicitWidth < availableWidth &&
-                     table.Properties.FillContainer)
+            else if (totalExplicitWidth > 0 && table.Properties.FillContainer)
             {
-                // Autofit: only grow columns to fill the container when the table explicitly
-                // asked to (w:tblW w:type="pct"). When w:tblW is dxa, the table is a fixed
-                // size; when it's missing or auto, Word fits to content and leaves whitespace
-                // on the right — growing here would make narrow tables (e.g. a vertical-text
-                // sidebar) span the page.
-                var scale = availableWidth / totalExplicitWidth;
-                for (var i = 0; i < colCount; i++)
+                // Only grow columns when the table explicitly asked to (w:tblW w:type="pct"),
+                // to the PCT TARGET — fraction × container — and then regardless of
+                // tblLayout: Word scales a FIXED-layout pct table's columns to the target too
+                // (cards/15's card table declares tcW 10800 under tblW 5000pct on an 11520
+                // grid — Word lays the column out at 11520, and the 36pt shortfall squeezed
+                // the card-back placeholder into 6 lines vs Word's 5). The fraction matters:
+                // labels/15 is 4880 pct (97.6%) and its widths already sum to exactly that —
+                // scaling it to 100% shifted all eight label columns. When w:tblW is dxa, the
+                // table is a fixed size; when it's missing or auto, Word fits to content and
+                // leaves whitespace on the right.
+                var target = (float) (availableWidth * (table.Properties.PreferredWidthFraction ?? 1.0));
+                if (totalExplicitWidth < target)
                 {
-                    widths[i] *= scale;
+                    var scale = target / totalExplicitWidth;
+                    for (var i = 0; i < colCount; i++)
+                    {
+                        widths[i] *= scale;
+                    }
                 }
             }
         }
@@ -232,16 +240,24 @@ static class TableLayout
                     widths[i] *= scale;
                 }
             }
-            else if (isAutoFit && totalWidth > 0 && totalWidth < availableWidth &&
+            else if ((isAutoFit || table.Properties.FillContainer) && totalWidth > 0 &&
                      table.Properties.PreferredWidthPoints == null)
             {
-                // Same autofit-grow rule for grid-only widths. Skip when the table set an
+                // Same grow rule for grid-only widths — autofit tables grow to the container
+                // (the long-standing behaviour), pct tables of ANY layout grow to their pct
+                // target (see the explicit-widths branch). Skip when the table set an
                 // explicit w:tblW dxa width — that's a fixed size, not a "fill to container"
                 // hint, so growing the columns would override the user's intent.
-                var scale = availableWidth / totalWidth;
-                for (var i = 0; i < colCount; i++)
+                var target = table.Properties.FillContainer
+                    ? (float) (availableWidth * (table.Properties.PreferredWidthFraction ?? 1.0))
+                    : availableWidth;
+                if (totalWidth < target)
                 {
-                    widths[i] *= scale;
+                    var scale = target / totalWidth;
+                    for (var i = 0; i < colCount; i++)
+                    {
+                        widths[i] *= scale;
+                    }
                 }
             }
         }
@@ -360,7 +376,9 @@ static class TableLayout
             //    "Col 1 / R1C1" grid doesn't span the whole page.
             if (tableProps.FillContainer)
             {
-                var scale = availableWidth / sumPref;
+                // Scale to the pct target, not blanket 100% (see the explicit-widths branch).
+                var target = (float) (availableWidth * (tableProps.PreferredWidthFraction ?? 1.0));
+                var scale = target / sumPref;
                 for (var i = 0; i < colCount; i++)
                 {
                     widths[i] = prefs[i] * scale;

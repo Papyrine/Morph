@@ -16,7 +16,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "To get started right away,\njust tap any placeholder\ntext (such as this) and start\ntyping to replace it with\nyour own or delete for a\nblank card.\nTo get started right away,\njust tap any placeholder\ntext (such as this) and start\ntyping to replace it with\nyour own or delete for a\nblank card."
+        "Text": "To get started right away, just tap\nany placeholder text (such as this)\nand start typing to replace it with\nyour own or delete for a blank\ncard.\nTo get started right away, just tap\nany placeholder text (such as this)\nand start typing to replace it with\nyour own or delete for a blank\ncard."
       }
     ]
   },
@@ -31,8 +31,8 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0205,
-      "Ssim": 0.9582,
+      "ErrorMetric": 0.0206,
+      "Ssim": 0.9593,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

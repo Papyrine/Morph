@@ -29,23 +29,23 @@
     {
       "Page": 4,
       "ErrorMetric": 0.0954,
-      "Ssim": 0.7522,
+      "Ssim": 0.7521,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "skia_result#page_0004.verified.png",
       "ReceivedFile": "skia_result#page_0004.received.png"
     },
     {
       "Page": 5,
-      "ErrorMetric": 0.0931,
-      "Ssim": 0.7749,
+      "ErrorMetric": 0.0932,
+      "Ssim": 0.7743,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "skia_result#page_0005.verified.png",
       "ReceivedFile": "skia_result#page_0005.received.png"
     },
     {
       "Page": 6,
-      "ErrorMetric": 0.0931,
-      "Ssim": 0.7765,
+      "ErrorMetric": 0.093,
+      "Ssim": 0.7766,
       "ExpectedFile": "expected_0006.png",
       "VerifiedFile": "skia_result#page_0006.verified.png",
       "ReceivedFile": "skia_result#page_0006.received.png"
@@ -53,7 +53,7 @@
     {
       "Page": 7,
       "ErrorMetric": 0.1069,
-      "Ssim": 0.7231,
+      "Ssim": 0.7229,
       "ExpectedFile": "expected_0007.png",
       "VerifiedFile": "skia_result#page_0007.verified.png",
       "ReceivedFile": "skia_result#page_0007.received.png"
@@ -68,8 +68,8 @@
     },
     {
       "Page": 9,
-      "ErrorMetric": 0.0987,
-      "Ssim": 0.755,
+      "ErrorMetric": 0.0986,
+      "Ssim": 0.7553,
       "ExpectedFile": "expected_0009.png",
       "VerifiedFile": "skia_result#page_0009.verified.png",
       "ReceivedFile": "skia_result#page_0009.received.png"
@@ -77,7 +77,7 @@
     {
       "Page": 10,
       "ErrorMetric": 0.2691,
-      "Ssim": 0.6898,
+      "Ssim": 0.6897,
       "ExpectedFile": "expected_0010.png",
       "VerifiedFile": "skia_result#page_0010.verified.png",
       "ReceivedFile": "skia_result#page_0010.received.png"
@@ -85,7 +85,7 @@
     {
       "Page": 11,
       "ErrorMetric": 0.312,
-      "Ssim": 0.7171,
+      "Ssim": 0.717,
       "ExpectedFile": "expected_0011.png",
       "VerifiedFile": "skia_result#page_0011.verified.png",
       "ReceivedFile": "skia_result#page_0011.received.png"
@@ -99,8 +99,8 @@
     },
     {
       "Page": 13,
-      "ErrorMetric": 0.3953,
-      "Ssim": 0.6196,
+      "ErrorMetric": 0.3985,
+      "Ssim": 0.6192,
       "ExpectedFile": "expected_0013.png",
       "VerifiedFile": "skia_result#page_0013.verified.png",
       "ReceivedFile": "skia_result#page_0013.received.png"
@@ -115,7 +115,7 @@
     },
     {
       "Page": 15,
-      "ErrorMetric": 0.3295,
+      "ErrorMetric": 0.3344,
       "ExpectedFile": "expected_0015.png",
       "VerifiedFile": "skia_result#page_0015.verified.png",
       "ReceivedFile": "skia_result#page_0015.received.png"
@@ -131,7 +131,7 @@
     {
       "Page": 17,
       "ErrorMetric": 0.2508,
-      "Ssim": 0.6276,
+      "Ssim": 0.6271,
       "ExpectedFile": "expected_0017.png",
       "VerifiedFile": "skia_result#page_0017.verified.png",
       "ReceivedFile": "skia_result#page_0017.received.png"
@@ -139,15 +139,15 @@
     {
       "Page": 18,
       "ErrorMetric": 0.2282,
-      "Ssim": 0.7056,
+      "Ssim": 0.7059,
       "ExpectedFile": "expected_0018.png",
       "VerifiedFile": "skia_result#page_0018.verified.png",
       "ReceivedFile": "skia_result#page_0018.received.png"
     },
     {
       "Page": 19,
-      "ErrorMetric": 0.0713,
-      "Ssim": 0.8016,
+      "ErrorMetric": 0.0714,
+      "Ssim": 0.8014,
       "ExpectedFile": "expected_0019.png",
       "VerifiedFile": "skia_result#page_0019.verified.png",
       "ReceivedFile": "skia_result#page_0019.received.png"
