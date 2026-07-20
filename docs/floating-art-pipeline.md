@@ -32,10 +32,12 @@ A floating drawing reaches the model through up to three sweeps, all launched fr
    image fills the same way it exempts pictures.
 
 The group branch is entered when SP emitted something, the drawing holds a `wpg:wgp`, or the
-anchored drawing contains a blip-filled or solid text-free wsp (`hasAnchoredFillShape`) — the
-last route exists because a FRONT-of-text anchored standalone fill-shape reaches neither SP
-(behindDoc-only) nor the pic-based image path (newsletters/08's cover photo is a front-anchored
-blip-filled freeform; resumes/10's accent circle a front-anchored solid custGeom). Text-carrying
+anchored drawing contains a blip-filled, solid text-free, or LINE-CONNECTOR text-free wsp
+(`hasAnchoredFillShape`) — the last route exists because a FRONT-of-text anchored standalone
+shape reaches neither SP (behindDoc-only) nor the pic-based image path (newsletters/08's cover
+photo is a front-anchored blip-filled freeform; resumes/10's accent circle a front-anchored
+solid custGeom; cards/15's fold/cut guides are front-anchored zero-extent line connectors in
+the HEADERS, invisible until `IsLineShape` wsps qualified for the route). Text-carrying
 solid shapes stay on the ParseTextBox path. At render, front-of-text `FloatingShapeElement`s
 draw over the content painted so far, at flow order, whatever their fill — the front-SOLID
 corpus experiment ran 2026-07-19 at net −0.46 (letters/11's logo + tile strip, brochures/06's
@@ -103,6 +105,12 @@ History note: the pre-affine implementation composed offset+scale only, and in t
 for non-identity chains (outermost-first with an innermost-first update rule) — harmless for
 identity nesting, which is why it survived until labels/14's 270°-rotated wave sub-groups and
 cards/09's ±45° cancelling pairs exposed it.
+
+Degenerate extents: a group of zero-width vertical connectors legitimately has `cx=0` in the
+anchor extent AND its child space (cards/06's page-2 fold lines) — the root scale went 0/0 and
+NaN'd every child position. Both root-scale computations (SP and the walk) clamp each
+degenerate length to 1, matching `GetAccumulatedTransform`'s long-standing nested-group
+clamps, and a zero-area group frame skips the child clip entirely.
 
 ## Anchor alignment (`wp:align`)
 

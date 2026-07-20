@@ -5060,16 +5060,19 @@ sealed class DocumentParser(string defaultFont)
                         // text-free wsp reaches neither ShapeParser (behindDoc-only) nor the
                         // pic-based image path — newsletters/08's cover photo is a front-anchored
                         // standalone blip-filled freeform, resumes/10's accent circle a
-                        // front-anchored solid custGeom. Route them through the walk; for
-                        // behindDoc standalones ShapeParser already emitted a copy and the
-                        // position/size dedup below eats the walk's twin. Text-CARRYING solid
-                        // shapes stay on the ParseTextBox path further down.
+                        // front-anchored solid custGeom. The same hole swallowed standalone LINE
+                        // connectors, which carry a stroke but no fill at all (cards/15's header
+                        // fold/cut guides are front-anchored full-page dashed lines). Route them
+                        // through the walk; for behindDoc standalones ShapeParser already emitted
+                        // a copy and the position/size dedup below eats the walk's twin.
+                        // Text-CARRYING solid shapes stay on the ParseTextBox path further down.
                         var hasAnchoredFillShape =
                             drawing.GetFirstChild<DW.Anchor>() != null &&
                             drawing.Descendants<WPS.WordprocessingShape>().Any(shape =>
                                 shape.GetFirstChild<WPS.ShapeProperties>() is { } shapeProperties &&
                                 (shapeProperties.GetFirstChild<A.BlipFill>() != null ||
-                                 (shapeProperties.GetFirstChild<A.SolidFill>() != null && TextBoxHasNoText(shape))));
+                                 ((shapeProperties.GetFirstChild<A.SolidFill>() != null ||
+                                   ShapeParser.IsLineShape(shapeProperties)) && TextBoxHasNoText(shape))));
 
                         if ((shapeElements.Count > 0 || hasGroup || hasAnchoredFillShape) && !isInlineGroup)
                         {
@@ -7135,13 +7138,21 @@ sealed class DocumentParser(string defaultFont)
             }
 
             var extent = anchor.Extent;
-            var rootScaleX = (extent?.Cx ?? 1) / (double) chExtCx;
-            var rootScaleY = (extent?.Cy ?? 1) / (double) chExtCy;
+            // A group of zero-width vertical connectors legitimately has cx=0 in BOTH the
+            // anchor extent and its child space (cards/06's page-2 fold lines) — 0/0 scaling
+            // turned every child position NaN and the lines vanished. Clamp each degenerate
+            // length to 1 like GetAccumulatedTransform does for nested groups, so the
+            // degenerate axis maps through unscaled.
+            double rootExtCx = extent?.Cx ?? 1;
+            double rootExtCy = extent?.Cy ?? 1;
+            var rootScaleX = Math.Max(rootExtCx, 1) / Math.Max(chExtCx, 1);
+            var rootScaleY = Math.Max(rootExtCy, 1) / Math.Max(chExtCy, 1);
 
             // The group's frame in anchor-relative points — children clip to it (Word cuts a
-            // group's children at the group's extent box).
+            // group's children at the group's extent box). A zero-area frame must not clip
+            // (it would eat every child of a degenerate connector-only group).
             (double Left, double Top, double Width, double Height)? groupFrame =
-                extent?.Cx != null && extent.Cy != null
+                extent?.Cx != null && extent.Cy != null && extent.Cx.Value > 0 && extent.Cy.Value > 0
                     ? (positioning.HorizontalPositionPoints,
                         positioning.VerticalPositionPoints,
                         extent.Cx.Value / emusPerPoint,
