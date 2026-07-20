@@ -69,14 +69,18 @@ static class ShapeParser
                 chExtCy = chExt.Cy ?? 1;
             }
 
-            // Calculate scale factors (anchor extent / child extent)
-            var scaleX = (extent.Cx ?? 1) / (double) chExtCx;
-            var scaleY = (extent.Cy ?? 1) / (double) chExtCy;
+            // Calculate scale factors (anchor extent / child extent). Degenerate lengths
+            // clamp to 1 — a zero-width connector-only group is 0/0 and NaN'd every child
+            // position (cards/06's page-2 fold lines; see the walk's identical guard).
+            double rootExtCx = extent.Cx ?? 1;
+            double rootExtCy = extent.Cy ?? 1;
+            var scaleX = Math.Max(rootExtCx, 1) / Math.Max(chExtCx, 1);
+            var scaleY = Math.Max(rootExtCy, 1) / Math.Max(chExtCy, 1);
 
             // The group's frame in anchor-relative points — children clip to it (Word cuts a
-            // group's children at the group's extent box).
+            // group's children at the group's extent box). A zero-area frame must not clip.
             (double Left, double Top, double Width, double Height)? groupFrame =
-                extent.Cx != null && extent.Cy != null
+                extent.Cx != null && extent.Cy != null && extent.Cx.Value > 0 && extent.Cy.Value > 0
                     ? (positioning.HorizontalPositionPoints,
                         positioning.VerticalPositionPoints,
                         ((long) extent.Cx.Value).EmuToPoints(),
