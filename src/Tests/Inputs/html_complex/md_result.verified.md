@@ -1,6 +1,6 @@
 ﻿# Complex HTML Document
 
-Demonstrating multiple HTML features together
+*Demonstrating multiple HTML features together*
 
 ## 1. Formatted Text Section
 

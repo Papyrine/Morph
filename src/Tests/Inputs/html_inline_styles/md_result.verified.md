@@ -18,10 +18,10 @@ Times New Roman font
 
 Courier New monospace font
 
-Bold via font-weight
+**Bold via font-weight**
 
-Italic via font-style
+*Italic via font-style*
 
-Underline via text-decoration
+<u>Underline via text-decoration</u>
 
-Strikethrough via text-decoration
+~~Strikethrough via text-decoration~~
