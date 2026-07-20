@@ -543,6 +543,16 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         var width = context.PointsToPixels((float) wordArt.WidthPoints);
         var pixelHeight = context.PointsToPixels(height);
 
+        // An unwarped pseudo-WordArt is Word's inline text box: stroke its a:ln frame
+        // under the text (business/06's LOGO box).
+        if (wordArt is { BoxLineColorHex: { } boxLine, BoxLineWidthPoints: > 0 })
+        {
+            var boxPen = context.GetPen(
+                WithAlpha(ParseColor(boxLine), wordArt.BoxLineAlpha),
+                context.PointsToPixels((float) wordArt.BoxLineWidthPoints));
+            currentCanvas.Draw(boxPen, new RectangleF(x, y, width, pixelHeight));
+        }
+
         var font = context.GetFontForFamily(
             wordArt.FontFamily,
             (float) wordArt.FontSizePoints,

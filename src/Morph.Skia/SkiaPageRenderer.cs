@@ -736,6 +736,21 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         var pixelFontSize = context.PointsToPixels((float) wordArt.FontSizePoints);
 
+        // An unwarped pseudo-WordArt is Word's inline text box: stroke its a:ln frame
+        // under the text (business/06's LOGO box).
+        if (wordArt is { BoxLineColorHex: { } boxLine, BoxLineWidthPoints: > 0 })
+        {
+            using var boxPaint = new SKPaint
+            {
+                Color = SKColor.Parse(boxLine)
+                    .WithAlpha((byte) Math.Round(Math.Clamp(wordArt.BoxLineAlpha, 0, 1) * 255)),
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = context.PointsToPixels((float) wordArt.BoxLineWidthPoints),
+                IsAntialias = true
+            };
+            currentCanvas.DrawRect(x, y, width, pixelHeight, boxPaint);
+        }
+
         // Measure text to calculate scale
         using var measureFont = new SKFont(typeface, pixelFontSize);
         measureFont.MeasureText(wordArt.Text, out var textBounds);
