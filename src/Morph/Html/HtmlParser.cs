@@ -331,7 +331,10 @@ sealed class HtmlParser
             Properties = new()
             {
                 Alignment = style?.Alignment ?? TextAlignment.Left,
-                SpacingAfterPoints = fontSize > 14 ? 12 : 8,
+                // Word's AltChunk HTML import spaces block paragraphs ~14pt apart (measured
+                // <p> pitch ≈ 57px at 150 DPI vs a ~29px line box); 8pt packed them ~6pt too
+                // tight, so every band/line drifted up the page. Headings keep their own value.
+                SpacingAfterPoints = fontSize > 14 ? 12 : 14,
                 FirstLineIndentPoints = style?.TextIndent ?? 0,
                 LineSpacingMultiplier = style?.LineHeight ?? 1.08,
                 StyleId = styleId
@@ -1419,7 +1422,10 @@ sealed class HtmlParser
         if (!string.IsNullOrEmpty(value) &&
             TryParseCssDimension(value, out var result))
         {
-            return result;
+            // HTML <img> width/height are CSS pixels; convert to points (1px = 0.75pt) so the
+            // image renders at Word's size. Treating px as pt drew every image ~33% oversized,
+            // which also pushed later content down and across page breaks.
+            return result * 0.75;
         }
 
         return null;
