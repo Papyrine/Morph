@@ -26,7 +26,7 @@
       }
     ],
     "Properties": {
-      "SpacingAfterPoints": 8.0,
+      "SpacingAfterPoints": 14.0,
       "LineSpacingMultiplier": 2.0,
       "ContextualSpacing": false,
       "SuppressLineNumbers": false,

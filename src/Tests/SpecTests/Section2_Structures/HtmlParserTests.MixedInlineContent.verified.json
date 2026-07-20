@@ -95,7 +95,7 @@
       }
     ],
     "Properties": {
-      "SpacingAfterPoints": 8.0,
+      "SpacingAfterPoints": 14.0,
       "LineSpacingMultiplier": 1.08,
       "ContextualSpacing": false,
       "SuppressLineNumbers": false,
