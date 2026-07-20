@@ -85,6 +85,14 @@ sealed record TableProperties
     /// to the available width instead of hugging content.</summary>
     public bool FillContainer { get; init; }
 
+    /// <summary>The <c>w:tblW w:type="pct"</c> value as a fraction of the container
+    /// (pct units are 50ths of a percent: 5000 = 1.0). The width target is
+    /// fraction × available width — labels/15's sheet is 4880 pct (97.6%), whose grid
+    /// already sums to exactly that; scaling it to 100% shifted all eight columns.
+    /// Null when the width is dxa/auto/missing; consumers fall back to 1.0 when
+    /// <see cref="FillContainer"/> is set without a stored fraction (HTML-sourced tables).</summary>
+    public double? PreferredWidthFraction { get; init; }
+
     /// <summary>
     /// Table-level horizontal alignment within the page content area (from w:tblPr/w:jc).
     /// Justify is not valid for tables and is treated as Left.

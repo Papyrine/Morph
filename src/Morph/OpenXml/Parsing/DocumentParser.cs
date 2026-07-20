@@ -3506,8 +3506,10 @@ sealed class DocumentParser(string defaultFont)
         }
 
         // w:tblW — explicit table preferred width. dxa is a fixed point value; pct says
-        // "fill <pct>% of container"; auto/missing means "fit to content".
+        // "fill <pct>% of container" (pct units are 50ths of a percent, 5000 = 100%);
+        // auto/missing means "fit to content".
         double? preferredWidthPoints = null;
+        double? preferredWidthFraction = null;
         var fillContainer = false;
         var tblWidthEl = tableProps?.GetFirstChild<TableWidth>();
         if (tblWidthEl?.Type?.Value == TableWidthUnitValues.Dxa &&
@@ -3523,6 +3525,7 @@ sealed class DocumentParser(string defaultFont)
                  tblWPct > 0)
         {
             fillContainer = true;
+            preferredWidthFraction = tblWPct / 5000.0;
         }
 
         // Parse table-level default cell margins and floating table positioning
@@ -4123,6 +4126,7 @@ sealed class DocumentParser(string defaultFont)
                 GridColumnWidths = gridColumnWidths,
                 PreferredWidthPoints = preferredWidthPoints,
                 FillContainer = fillContainer,
+                PreferredWidthFraction = preferredWidthFraction,
                 Alignment = alignment,
                 IsAutoFit = isAutoFit,
                 CellSpacingPoints = cellSpacingPoints
