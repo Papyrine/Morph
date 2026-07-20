@@ -77,7 +77,10 @@ Inline (`wp:inline`) drawings are a separate subsystem (`InlineShapeGroup`/`Grou
 with text), but share the blip-fill rule: a `wps:wsp` child with `a:blipFill` carries
 `GroupShape.ImageData`, and a STANDALONE inline blip-filled wsp (no `wpg:wgp` wrapper — Word's
 "fill a shape with a picture", cover-letters/09's circular profile photo) wraps into a
-one-element group via `ParseInlineShapeImageRun` so the ellipse clip applies.
+one-element group via `ParseInlineShapeImageRun` so the ellipse clip applies. A standalone
+inline SOLID-filled wsp (rect or custGeom) routes the same way via `ParseInlineSingleShapeRun`
+— business-plans/01's accent bar, cover-letters/10's triple-crescent logo, labels/12's 30
+flourish ornaments, cover-letters/07's underline rule.
 
 ## Nested-transform composition
 
@@ -146,7 +149,10 @@ business-plans/08's accent rule).
   with a concrete non-solid fill (gradient/blip/noFill) stops the walk rather than inheriting a
   wrong colour.
 - A shape with an explicit `<a:noFill/>` and no stroke is dropped; stroke-only shapes with real
-  path geometry render their contours (solid dash only).
+  path geometry render their contours, honouring `a:prstDash` through `LineDashPattern`
+  (letters/05's teal dashed rules; labels/03's tear lines are 90°-rotated sysDot connectors).
+  Open custGeom contours still close before stroking — letters/05's teal arc draws as a filled
+  crescent instead of a dashed open arc.
 - Text-free `wps:txbx` placeholders do not become text boxes — Word's templated artwork stores
   an empty txbx in every decorative shape, and emitting a box would mask same-anchor overlays.
 
@@ -230,6 +236,19 @@ Do not re-attempt these as-is; each needs the recorded blocker resolved first.
    (cards/02's outline drew under its ticket body; menus/09's frame was pixel-right but the
    scenario net-regressed from OTHER emitted shapes). Emission lives at both `ShapeParser`
    tails (`TryBuildOutlineOnlyShape`) and in the walk's `ParseSolidFillShape` skip rule.
+   FOURTH PASS (2026-07-20): `ParseSolidFillShape` returned null on an explicit `<a:noFill/>`
+   before its stroke logic ran, so outline-only children of WALK-OWNED groups never rendered
+   anywhere — SP's copies are suppressed for those groups and the walk was the only surviving
+   parser. It now falls through to stroke-only emission under the same guards (skip txbx
+   carriers; explicit noFill also suppresses the `fillRef` fallback — the direct property
+   wins), and plumbs `ExtractLineStyle`'s alpha into `LineAlpha` (labels/04's hexagon frames
+   are 10%-alpha tx1 — opaque they read as a dark mesh). Landed cards/13's white card
+   outlines + labels/02's grey label borders (both noFill rects w/ theme-`lnRef` widths in
+   translation-remapped nested groups), menus/04's doodle pattern (its custGeom contours
+   flatten fine — the noFill bail, not contour parsing, was the blocker), cards/02's notched
+   ticket/frame outlines, letters/05's p1 orange square, cover-letters/06's segment bars.
+   Note the per-shape metric often ticks POSITIVE (new-ink offset penalty) — every scenario
+   was crop-vetted against Word before promotion.
 
 ## See also
 

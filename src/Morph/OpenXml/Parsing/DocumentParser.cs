@@ -7457,8 +7457,14 @@ sealed class DocumentParser(string defaultFont)
         }
 
         // An explicit <a:noFill/> in spPr means the shape has no fill, even if the
-        // wps:style contains a fillRef — the direct property always wins.
-        if (shapeProps.GetFirstChild<A.NoFill>() != null)
+        // wps:style contains a fillRef — the direct property always wins. It does not mean
+        // invisible: a visible stroke still draws the frame. In walk-owned groups this parser
+        // is the only one whose output survives the merge, so bailing here dropped outline-only
+        // children entirely (cards/13's white card outlines sit in translation-remapped nested
+        // groups). Text-box carriers keep ShapeParser's rule and stay skipped — their chrome
+        // belongs to the text-box path.
+        var explicitNoFill = shapeProps.GetFirstChild<A.NoFill>() != null;
+        if (explicitNoFill && wsp.GetFirstChild<WPS.TextBoxInfo2>() != null)
         {
             return null;
         }
@@ -7471,8 +7477,8 @@ sealed class DocumentParser(string defaultFont)
 
         // Check for solid fill in shape properties. a:grpFill defers to the ancestor group's
         // fill (labels/07's 27 collage pieces inherit their cluster group's accent colour).
-        var solidFill = shapeProps.GetFirstChild<A.SolidFill>();
-        if (solidFill == null && shapeProps.GetFirstChild<A.GroupFill>() != null)
+        var solidFill = explicitNoFill ? null : shapeProps.GetFirstChild<A.SolidFill>();
+        if (solidFill == null && !explicitNoFill && shapeProps.GetFirstChild<A.GroupFill>() != null)
         {
             solidFill = ResolveGroupFill(wsp);
         }
@@ -7531,7 +7537,7 @@ sealed class DocumentParser(string defaultFont)
         }
 
         // If no direct fill, check for style reference (fillRef in wps:style)
-        if (fillColorHex == null)
+        if (fillColorHex == null && !explicitNoFill)
         {
             var shapeStyle = wsp.GetFirstChild<WPS.ShapeStyle>();
             var fillRef = shapeStyle?.FillReference;
@@ -7550,7 +7556,7 @@ sealed class DocumentParser(string defaultFont)
         // rules down the left and across the top of the Agenda template, which are stroked
         // custom-geometry line segments (moveTo + lnTo) with no fill. Those must still render, so
         // don't bail purely because there's no fill; only bail when there's neither fill nor stroke.
-        var (lineColorHex, lineWidthPoints, _) = ShapeParser.ExtractLineStyle(wsp, shapeProps, currentThemeColors);
+        var (lineColorHex, lineWidthPoints, lineAlpha) = ShapeParser.ExtractLineStyle(wsp, shapeProps, currentThemeColors);
         // Dashed outlines render through the same LineDashPattern the line connectors use, so
         // stroke-only shapes no longer need a solid dash to count as strokeable (letters/05's
         // dashed letterhead rules render dashed instead of staying invisible). A preset the
@@ -7698,6 +7704,7 @@ sealed class DocumentParser(string defaultFont)
             // (a photo shape's border ring).
             LineColorHex = fillColorHex == null ? lineColorHex : null,
             LineWidthPoints = fillColorHex == null ? lineWidthPoints : null,
+            LineAlpha = lineAlpha,
             LineDashPattern = fillColorHex == null ? strokeDashPattern : null,
             Preset = ShapeParser.ExtractPresetShape(shapeProps),
             Subpaths = subpaths,
