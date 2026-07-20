@@ -12,7 +12,7 @@ static class ShapeParser
     /// Parses a Drawing element to extract background shapes (solid fill or image fill shapes behind text).
     /// Filters out decorative shapes (those with complex bezier paths) and returns remaining shapes.
     /// </summary>
-    public static List<FloatingShapeElement> ParseBackgroundShapes(Drawing drawing, ThemeColors? themeColors, MainDocumentPart? mainPart = null, double paragraphSpacingBeforePoints = 0, Func<OpenXmlPart, byte[]>? partBytes = null, Dictionary<DocumentElement, OpenXmlElement>? childSources = null)
+    public static List<FloatingShapeElement> ParseBackgroundShapes(Drawing drawing, ThemeColors? themeColors, MainDocumentPart? mainPart = null, double paragraphSpacingBeforePoints = 0, Func<OpenXmlPart, byte[]>? partBytes = null, Dictionary<DocumentElement, OpenXmlElement>? childSources = null, PageSettings? alignmentPage = null)
     {
         var result = new List<FloatingShapeElement>();
 
@@ -38,8 +38,9 @@ static class ShapeParser
 
         var (anchorWidthPt, anchorHeightPt) = anchorDimensions.Value;
 
-        // Parse base positioning from anchor
-        var positioning = anchor.ParsePositioning();
+        // Parse base positioning from anchor. The alignment page metrics MUST match what the
+        // walk passes for the same drawing — the dual-parse dedup compares folded positions.
+        var positioning = anchor.ParsePositioning(page: alignmentPage);
 
         // Check for WordprocessingGroup
         var wgp = drawing.Descendants<WPG.WordprocessingGroup>().FirstOrDefault();

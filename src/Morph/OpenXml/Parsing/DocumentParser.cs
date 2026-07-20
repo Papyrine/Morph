@@ -61,6 +61,7 @@ sealed class DocumentParser(string defaultFont)
 
     // Section transitions: for a given sectPr (end of a section), what settings apply to the next section?
     Dictionary<SectionProperties, PageSettings?>? nextSectionSettings;
+    PageSettings? anchorAlignmentPage;
 
     int lastRenderedPageBreakCount;
 
@@ -278,6 +279,12 @@ sealed class DocumentParser(string defaultFont)
         var pageSettings = sectionPropsList.Count > 0
             ? ExtractPageSettings(sectionPropsList[0])
             : new();
+
+        // First section's metrics, used to fold wp:align anchor alignment into positions at
+        // parse (see ParsePositioning). Later sections with different page boxes would fold
+        // slightly off — acceptable: align-positioned art overwhelmingly sits in section 1
+        // covers/headers, and multi-section documents rarely change the page box.
+        anchorAlignmentPage = pageSettings;
 
         // Extract style run properties (with theme color resolution)
         styleRunProperties = ExtractStyleRunProperties(mainPart);
@@ -5039,7 +5046,7 @@ sealed class DocumentParser(string defaultFont)
                         // Try background shapes first (solid fill behind text)
                         // May return multiple shapes when a WordprocessingGroup contains multiple non-decorative shapes
                         var drawingChildSources = new Dictionary<DocumentElement, OpenXmlElement>();
-                        var shapeElements = ShapeParser.ParseBackgroundShapes(drawing, currentThemeColors, mainPart, props.SpacingBeforePoints, GetPartBytes, drawingChildSources);
+                        var shapeElements = ShapeParser.ParseBackgroundShapes(drawing, currentThemeColors, mainPart, props.SpacingBeforePoints, GetPartBytes, drawingChildSources, anchorAlignmentPage);
 
                         // Check if there's a group - groups may contain text boxes and images even without shapes
                         var hasGroup = drawing.Descendants<WPG.WordprocessingGroup>().Any();
@@ -6787,9 +6794,9 @@ sealed class DocumentParser(string defaultFont)
     /// <summary>
     /// Parses an anchored image with additional X/Y offset within a group.
     /// </summary>
-    static FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, bool flipHorizontal = false, bool flipVertical = false, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null, string? description = null, BlipColorEffect colorEffect = BlipColorEffect.None, string? duotoneColorHex = null, string? duotoneLightColorHex = null, bool clipToEllipse = false, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? clipSubpaths = null)
+    FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, bool flipHorizontal = false, bool flipVertical = false, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null, string? description = null, BlipColorEffect colorEffect = BlipColorEffect.None, string? duotoneColorHex = null, string? duotoneLightColorHex = null, bool clipToEllipse = false, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? clipSubpaths = null)
     {
-        var positioning = anchor.ParsePositioning(offsetXPoints, offsetYPoints);
+        var positioning = anchor.ParsePositioning(offsetXPoints, offsetYPoints, anchorAlignmentPage);
         var wrap = ParseWrap(anchor);
 
         return new()
@@ -7010,7 +7017,7 @@ sealed class DocumentParser(string defaultFont)
         }
 
         // Get position and wrap info from anchor
-        var positioning = anchor?.ParsePositioning() ?? default;
+        var positioning = anchor?.ParsePositioning(page: anchorAlignmentPage) ?? default;
         var wrapType = WrapType.None;
         string? bgColor = null;
 
@@ -7098,7 +7105,7 @@ sealed class DocumentParser(string defaultFont)
         }
 
         // Get base positioning from anchor
-        var positioning = anchor.ParsePositioning();
+        var positioning = anchor.ParsePositioning(page: anchorAlignmentPage);
         var behindText = anchor.BehindDoc?.Value ?? false;
 
         // Check for a WordprocessingGroup
@@ -8365,7 +8372,7 @@ sealed class DocumentParser(string defaultFont)
         // For anchored WordArt, return a floating element with position info
         if (isAnchored && anchor != null)
         {
-            var positioning = anchor.ParsePositioning();
+            var positioning = anchor.ParsePositioning(page: anchorAlignmentPage);
 
             return new FloatingWordArtElement
             {

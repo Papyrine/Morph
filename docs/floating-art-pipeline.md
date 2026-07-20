@@ -104,6 +104,26 @@ for non-identity chains (outermost-first with an innermost-first update rule) �
 identity nesting, which is why it survived until labels/14's 270°-rotated wave sub-groups and
 cards/09's ±45° cancelling pairs exposed it.
 
+## Anchor alignment (`wp:align`)
+
+`wp:positionH`/`wp:positionV` carry EITHER a `wp:posOffset` or a `wp:align`
+(center/right/bottom/…) that aligns the object within its `relativeFrom` box.
+`ParsePositioning` folds the alignment into the position points AT PARSE, using the anchor's
+`wp:extent` and the first section's page metrics (passed by `DocumentParser`, threaded into
+`ShapeParser.ParseBackgroundShapes` as `alignmentPage` — BOTH dual-parse sweeps must fold
+identically or the position/size dedup breaks). Parse-time folding is what lets group
+children inherit the group's centring delta through the ordinary transform math — an
+over-wide centred group overhangs both margins symmetrically (inline_group_crop's 568pt
+board on a 468pt margin area starts 50pt LEFT of the margin; unfolded it sat AT the margin,
+~100px right of Word, and menus/07 shared the defect). Deliberate limits: cell- and
+txbx-nested anchors skip the fold (cell floats re-base against the CELL box at render);
+margin-strip references (`leftMargin` etc.) and paragraph/line-relative vertical alignment
+have no parse-time box and don't fold; `inside`/`outside` approximate as odd-page
+left/right; later sections reuse section 1's page box. A fold of zero is common — full-page
+centred backgrounds have extent == reference box, which is why only 4 of the corpus's 9
+align-carrying scenarios moved when this landed (−0.10..−0.11/backend on the three
+board-menu scenarios, zero regressions).
+
 ## Anchor resolution (vertical, shapes)
 
 `FloatingPosition.ResolveShapeY`: page → 0, margin → top margin, paragraph/line → the top
