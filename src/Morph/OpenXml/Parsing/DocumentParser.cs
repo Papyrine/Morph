@@ -7554,6 +7554,23 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        // Linear gradient fill — every corpus gradient sits on a GROUP child (labels/04's
+        // 90° accent bars, cover-letters/06's banner segments), reaching this walk or
+        // ShapeParser's grouped path; without this the fillRef fallback below flattened
+        // them to a solid in the theme colour. A linear gradient that extracts suppresses
+        // the fillRef fallback (the direct property wins); unmodelled radial/path gradients
+        // keep falling through to it, as they always have.
+        GradientFill? gradient = null;
+        if (fillColorHex == null && !explicitNoFill &&
+            shapeProps.GetFirstChild<A.GradientFill>() is { } gradFillElement)
+        {
+            gradient = ShapeParser.ExtractGradientFill(gradFillElement, currentThemeColors);
+            if (gradient != null)
+            {
+                fillColorHex = gradient.StartColorHex;
+            }
+        }
+
         // If no direct fill, check for style reference (fillRef in wps:style)
         if (fillColorHex == null && !explicitNoFill)
         {
@@ -7672,6 +7689,17 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
+        // Gradients render through FillShape's geometry the same way: parsed contours or a
+        // plain rect/ellipse preset. An unbuilt preset would paint its BOUNDING BOX —
+        // labels/04's hexagon accents drew as saturated gradient boxes over Word's soft
+        // hexagons, visibly worse than their previous absence — and the stroke would box
+        // the same way, so the shape drops entirely.
+        if (gradient != null && subpaths == null &&
+            !ShapeParser.HasStrokeablePresetOutline(shapeProps))
+        {
+            return null;
+        }
+
         // Word cuts group children at the group's frame. Both boxes share the anchor's
         // coordinate space, so the clip is plain geometry on the unit-square contours.
         // Rotated and percent-positioned/sized shapes resolve differently at render and are
@@ -7714,6 +7742,7 @@ sealed class DocumentParser(string defaultFont)
             BehindText = behindText,
             FillColorHex = fillColorHex,
             FillAlpha = fillAlpha,
+            Gradient = gradient,
             ImageData = imageData,
             ImageContentType = imageContentType,
             // Solid-filled shapes stroke their <a:ln> exactly like ShapeParser's solid branch

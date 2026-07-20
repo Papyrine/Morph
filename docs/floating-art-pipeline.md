@@ -176,6 +176,16 @@ business-plans/08's accent rule).
   wrapper groups are looked through (labels/07 nests clusters two wrappers deep); an ancestor
   with a concrete non-solid fill (gradient/blip/noFill) stops the walk rather than inheriting a
   wrong colour.
+- Linear `a:gradFill` parses in BOTH group paths (SP's grouped branch and the walk) — every
+  corpus gradient sits on a group child (labels/04's 90° accent bars, cover-letters/06's
+  banner wash + page-bottom band), and until 2026-07-20 only SP's unused STANDALONE branch
+  read it; the walk flattened gradients to the `wps:style` fillRef colour. A direct gradFill
+  suppresses the fillRef fallback (the direct property wins; unmodelled radial/path gradients
+  still fall through). GUARDED to faithful geometry — parsed contours or a plain rect/ellipse
+  preset — because `FillShape` paints an unbuilt preset's BOUNDING BOX: the unguarded first
+  attempt drew labels/04's soft hexagon accents as saturated gradient boxes (+0.004, visibly
+  worse than absent). Word-side softness on such accents also involves gradient-stop alpha,
+  which `GradientFill` doesn't model.
 - A shape with an explicit `<a:noFill/>` and no stroke is dropped; stroke-only shapes with real
   path geometry render their contours, honouring `a:prstDash` through `LineDashPattern`
   (letters/05's teal dashed rules; labels/03's tear lines are 90°-rotated sysDot connectors).
