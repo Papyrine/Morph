@@ -48,6 +48,43 @@ margins, single digits) are metric-invisible. The judging loop that proved relia
    highest-numbered per-page verified file orphaned; Verify then fails that scenario with a
    `Delete:` instruction and NO received files. Remove the orphan by hand.
 
+## Promotion-time guard against degenerate baselines
+
+The judging loop above is a manual discipline; the suite itself has one blind spot it cannot
+close on its own. Because each scenario page is compared against its OWN committed
+`*.verified.png`, once a broken page is promoted, AE and SSIM compare the baseline against itself
+and stay green forever. That let two real regressions through: a metric-invisible thin-strip
+class, and — the extreme case — four `newsletters/06` Skia pages that collapsed to a solid navy
+fill with no content yet passed the suite because the baseline WAS the broken image.
+
+`BaselineHealthTests` (`src/Tests/BaselineHealthTests.cs`) is the automated backstop for the
+extreme end of that class: a whole page collapsing to a near-solid fill. A rendered document page
+essentially always carries anti-aliased text, so it has hundreds of unique colours; a collapsed
+page has a handful. Across the corpus the two populations are cleanly separated — degenerate
+pages sit at 1–3 unique colours, the lowest healthy raster page at 159, nothing in between — so
+the test flags any paginated raster baseline (`{skia,imagesharp,pdf}_result#page_*.verified.png`)
+whose unique-colour count is at or below **16**.
+
+- **How it gates promotion.** It is an ordinary suite `[Test]`, so it runs on every
+  `./scripts/test.sh` and, critically, in the confirming re-run at the end of
+  `regenerate-baselines.sh`. A degenerate page produced by a baseline regen fails there before the
+  commit. It reads only committed PNGs (platform-independent), so unlike the scenario tests it
+  also runs on a host `dotnet test` without the container.
+- **Scope is deliberately narrow.** Only paginated page renders are checked — the single-image
+  HTML/Markdown export snapshots are excluded, because a text export can be legitimately empty (a
+  labels sheet whose content is all in shapes the text exporter doesn't traverse). And the check
+  is only for the *collapse-to-solid* failure mode; a page that dropped most of its content but
+  kept a chart still has hundreds of colours and is caught, if at all, by the AE/SSIM comparison
+  against the Word reference, not here.
+- **Why unique-colour count and not file size.** File size was considered and rejected: PNG size
+  is content- and encoder-dependent (the solid-navy Skia pages were still ~18 KB), so it is far
+  noisier than the colour count, which separates the two populations exactly.
+- **Allow-list.** `KnownDegenerate` holds the exceptions in two labelled categories: pages that
+  are *intentionally blank* (Word renders them empty too, e.g. `explicit_break_blank_page` page 2)
+  and *known regressions* not yet fixed (currently the four `newsletters/06` Skia pages). The test
+  also asserts every allow-listed page is STILL degenerate, so fixing and regenerating one forces
+  its own removal from the list instead of letting the entry rot.
+
 ## Practical notes
 
 - Bit-identical output requires the pinned container; host renders are for layout inspection
