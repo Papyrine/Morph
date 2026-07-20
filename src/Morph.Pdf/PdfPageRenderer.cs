@@ -349,6 +349,19 @@ sealed class PdfPageRenderer : PageRendererBase
         }
 
         var startY = context.CurrentY;
+
+        // An unwarped pseudo-WordArt is Word's inline text box: stroke its a:ln frame
+        // under the text (business/06's LOGO box).
+        if (wordArt is { BoxLineColorHex: { } boxLine, BoxLineWidthPoints: > 0 })
+        {
+            var boxRgb = PdfRenderContext.ParseColor(boxLine);
+            var boxColor = XColor.FromArgb(
+                (int) Math.Round(Math.Clamp(wordArt.BoxLineAlpha, 0, 1) * 255), boxRgb.R, boxRgb.G, boxRgb.B);
+            Graphics.DrawRectangle(
+                new XPen(boxColor, Math.Max(0.4, wordArt.BoxLineWidthPoints)),
+                context.ContentLeft, startY, wordArt.WidthPoints, wordArt.HeightPoints);
+        }
+
         if (!TryEmbedWordArt(wordArt, context.ContentLeft, startY, wordArt.WidthPoints, wordArt.HeightPoints))
         {
             RenderTextAsParagraph(wordArt.Text);

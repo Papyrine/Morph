@@ -33,6 +33,20 @@ sealed class WordArtElement : DocumentElement, IWordArtVisual
     /// <summary>Text outline width in points.</summary>
     public double OutlineWidthPoints { get; init; }
 
+    /// <summary>
+    /// Box border colour (hex) from the shape's <c>a:ln</c>, for UNWARPED shapes only — a
+    /// text-carrying wsp without a real text warp is Word's inline text box, and its
+    /// <c>a:ln</c> is the box frame, not a glyph stroke (business/06's LOGO box). Warped
+    /// WordArt keeps the legacy glyph-outline interpretation.
+    /// </summary>
+    public string? BoxLineColorHex { get; init; }
+
+    /// <summary>Box border width in points.</summary>
+    public double BoxLineWidthPoints { get; init; }
+
+    /// <summary>Box border opacity (0..1).</summary>
+    public double BoxLineAlpha { get; init; } = 1;
+
     /// <summary>Whether the text has a shadow effect.</summary>
     public bool HasShadow { get; init; }
 

@@ -8295,33 +8295,48 @@ sealed class DocumentParser(string defaultFont)
         }
 
         // Check for effects in the shape style
+        string? boxLineColor = null;
+        double boxLineWidth = 0;
+        double boxLineAlpha = 1;
         var spPr = wsp.GetFirstChild<WPS.ShapeProperties>();
         if (spPr != null)
         {
-            // Parse outline
-            var outline = spPr.GetFirstChild<A.Outline>();
-            if (outline != null)
+            if (transform == WordArtTransform.None)
             {
-                var solidFill = outline.GetFirstChild<A.SolidFill>();
-                if (solidFill != null)
+                // No real text warp means this is Word's inline text BOX wearing the WordArt
+                // dispatch (business/06's LOGO frame): its a:ln is the box border, not a glyph
+                // stroke — rendering it as a glyph stroke faked a bold weight Word doesn't show.
+                // ExtractLineStyle resolves theme colours and the wps:style lnRef fallback.
+                (boxLineColor, var boxWidthPts, boxLineAlpha) = ShapeParser.ExtractLineStyle(wsp, spPr, currentThemeColors);
+                boxLineWidth = boxWidthPts ?? 0;
+            }
+            else
+            {
+                // Warped WordArt keeps the legacy interpretation: spPr a:ln strokes the glyphs.
+                var outline = spPr.GetFirstChild<A.Outline>();
+                if (outline != null)
                 {
-                    var rgbColor = solidFill.GetFirstChild<A.RgbColorModelHex>();
-                    if (rgbColor?.Val?.HasValue == true)
+                    var solidFill = outline.GetFirstChild<A.SolidFill>();
+                    if (solidFill != null)
                     {
-                        outlineColor = rgbColor.Val.Value;
+                        var rgbColor = solidFill.GetFirstChild<A.RgbColorModelHex>();
+                        if (rgbColor?.Val?.HasValue == true)
+                        {
+                            outlineColor = rgbColor.Val.Value;
+                        }
+
+                        var schemeColor = solidFill.GetFirstChild<A.SchemeColor>();
+                        if (schemeColor != null)
+                        {
+                            // Map common scheme colors
+                            outlineColor = MapSchemeColor(schemeColor.Val?.Value);
+                        }
                     }
 
-                    var schemeColor = solidFill.GetFirstChild<A.SchemeColor>();
-                    if (schemeColor != null)
+                    if (outline.Width?.HasValue == true)
                     {
-                        // Map common scheme colors
-                        outlineColor = MapSchemeColor(schemeColor.Val?.Value);
+                        outlineWidth = outline.Width.Value / emusPerPoint;
                     }
-                }
-
-                if (outline.Width?.HasValue == true)
-                {
-                    outlineWidth = outline.Width.Value / emusPerPoint;
                 }
             }
 
@@ -8393,6 +8408,9 @@ sealed class DocumentParser(string defaultFont)
             FillColorHex = fillColor,
             OutlineColorHex = outlineColor,
             OutlineWidthPoints = outlineWidth,
+            BoxLineColorHex = boxLineColor,
+            BoxLineWidthPoints = boxLineWidth,
+            BoxLineAlpha = boxLineAlpha,
             HasShadow = hasShadow,
             HasReflection = hasReflection,
             HasGlow = hasGlow,
