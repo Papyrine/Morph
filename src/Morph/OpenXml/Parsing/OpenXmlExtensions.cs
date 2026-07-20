@@ -116,8 +116,10 @@ static class OpenXmlExtensions
     /// <param name="anchor">The anchor element to parse.</param>
     /// <param name="offsetX">Optional X offset to add to the position (in points).</param>
     /// <param name="offsetY">Optional Y offset to add to the position (in points).</param>
+    /// <param name="page">Section page metrics enabling the <c>wp:align</c> fold; when null,
+    /// alignment-positioned anchors keep the reference-origin position (legacy behaviour).</param>
     /// <returns>Positioning information including positions and anchor types.</returns>
-    public static AnchorPositioning ParsePositioning(this DW.Anchor anchor, double offsetX = 0, double offsetY = 0)
+    public static AnchorPositioning ParsePositioning(this DW.Anchor anchor, double offsetX = 0, double offsetY = 0, PageSettings? page = null)
     {
         var hPosPoints = offsetX;
         var hAnchor = HorizontalAnchor.Column;
@@ -133,6 +135,40 @@ static class OpenXmlExtensions
                 hPosPoints += emuOffset.Value.EmuToPoints();
             }
             hPctOffset = pctOffset;
+
+            // <wp:align> is the schema's alternative to posOffset: the object aligns within
+            // its relativeFrom reference box. The offset needs the object's extent and the
+            // section's page metrics, so it folds into the position here at parse — group
+            // children then inherit the group's delta through the ordinary transform math
+            // (inline_group_crop's 568pt board centres on a 468pt margin area, left edge
+            // 50pt LEFT of the margin; unfolded it sat AT the margin, ~100px right of Word).
+            if (emuOffset == null && pctOffset == null && page != null &&
+                ReadAlignValue(posH) is { } alignH &&
+                anchor.Extent.GetDimensions() is { } sizeH &&
+                !IsCellOrTextBoxAnchored(anchor))
+            {
+                var refWidth = posH.AttributeValue("relativeFrom") switch
+                {
+                    "page" => page.WidthPoints,
+                    // Column approximates to the margin box: parse time doesn't know the
+                    // rendered column, and column 1's left edge IS the left margin.
+                    "margin" or "column" or null => page.WidthPoints - page.MarginLeft - page.MarginRight,
+                    // leftMargin/rightMargin/inside/outside reference the margin STRIPS,
+                    // and character the anchor run — no parse-time box for those.
+                    _ => (double?) null
+                };
+                if (refWidth is { } rw)
+                {
+                    hPosPoints += alignH switch
+                    {
+                        "center" => (rw - sizeH.widthPoints) / 2,
+                        // inside/outside are page-parity dependent; odd pages (the common
+                        // single-sided render) put inside at left, outside at right.
+                        "right" or "outside" => rw - sizeH.widthPoints,
+                        _ => 0
+                    };
+                }
+            }
         }
 
         var vPosPoints = offsetY;
@@ -149,6 +185,31 @@ static class OpenXmlExtensions
                 vPosPoints += emuOffset.Value.EmuToPoints();
             }
             vPctOffset = pctOffset;
+
+            // Vertical wp:align folds only against page/margin boxes — paragraph- and
+            // line-relative alignment needs the flow position, which parse time doesn't
+            // have (and render-side ResolveShapeY already approximates those anchors).
+            if (emuOffset == null && pctOffset == null && page != null &&
+                ReadAlignValue(posV) is { } alignV &&
+                anchor.Extent.GetDimensions() is { } sizeV &&
+                !IsCellOrTextBoxAnchored(anchor))
+            {
+                var refHeight = posV.AttributeValue("relativeFrom") switch
+                {
+                    "page" => page.HeightPoints,
+                    "margin" => page.HeightPoints - page.MarginTop - page.MarginBottom,
+                    _ => (double?) null
+                };
+                if (refHeight is { } rh)
+                {
+                    vPosPoints += alignV switch
+                    {
+                        "center" => (rh - sizeV.heightPoints) / 2,
+                        "bottom" or "outside" => rh - sizeV.heightPoints,
+                        _ => 0
+                    };
+                }
+            }
         }
 
         // wp14:sizeRelH / wp14:sizeRelV percentage sizing (Word 2010+).
@@ -261,6 +322,39 @@ static class OpenXmlExtensions
             }
         }
         return true;
+    }
+
+    /// <summary>Reads a <c>wp:align</c> child's value (center/right/bottom/…), or null.</summary>
+    static string? ReadAlignValue(OpenXmlElement positionElement)
+    {
+        foreach (var child in positionElement.ChildElements)
+        {
+            if (child.LocalName == "align")
+            {
+                var value = child.InnerText;
+                return value.Length > 0 ? value : null;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// True when the anchor lives inside a table cell or a text box. Cell floats re-base
+    /// against the CELL box at render (their position points are cell-relative there), and a
+    /// txbx-nested anchor positions against its box — the page-box alignment fold applies to
+    /// neither.
+    /// </summary>
+    static bool IsCellOrTextBoxAnchored(DW.Anchor anchor)
+    {
+        foreach (var ancestor in anchor.Ancestors())
+        {
+            if (ancestor is DocumentFormat.OpenXml.Wordprocessing.TableCell
+                or DocumentFormat.OpenXml.Wordprocessing.TextBoxContent)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     static HorizontalAnchor ReadHorizontalAnchor(OpenXmlElement positionH) =>
