@@ -97,7 +97,8 @@ sealed class HtmlParser
             case "h5":
             case "h6":
                 var level = int.Parse(element.TagName[1..]);
-                var headingPara = CreateParagraph(element, GetHeadingFontSize(level), true, styleId: $"Heading{level}");
+                var headingStyle = ParseInlineStyle(element);
+                var headingPara = CreateParagraph(element, GetHeadingFontSize(level), true, headingStyle, styleId: $"Heading{level}");
                 elements.Add(headingPara);
                 break;
 
@@ -287,7 +288,7 @@ sealed class HtmlParser
             case "nav":
             case "aside":
                 // Container elements - process children
-                ParseNodes(element.ChildNodes, elements);
+                ParseContainer(element, elements);
                 break;
 
             default:
@@ -302,41 +303,89 @@ sealed class HtmlParser
         }
     }
 
+    void ParseContainer(IElement element, List<DocumentElement> elements)
+    {
+        var background = ContainerBackgroundColor(element);
+        if (background == null)
+        {
+            ParseNodes(element.ChildNodes, elements);
+            return;
+        }
+
+        // A container carrying its own background-color (e.g. <div style="background-color:#E0E0E0">)
+        // is paragraph shading in Word — a full-width band behind everything it wraps. Morph has no
+        // block-box model, so approximate by pushing the fill onto each child paragraph that doesn't
+        // already declare one of its own.
+        var children = new List<DocumentElement>();
+        ParseNodes(element.ChildNodes, children);
+        foreach (var child in children)
+        {
+            if (child is ParagraphElement { Properties.BackgroundColorHex: null } para)
+            {
+                elements.Add(new ParagraphElement
+                {
+                    Runs = para.Runs,
+                    Properties = para.Properties with { BackgroundColorHex = background },
+                    IsAnchorOnlyMark = para.IsAnchorOnlyMark,
+                    IsCollapsedCellMark = para.IsCollapsedCellMark
+                });
+            }
+            else
+            {
+                elements.Add(child);
+            }
+        }
+    }
+
+    static string? ContainerBackgroundColor(IElement element)
+    {
+        var style = element.GetAttribute("style");
+        if (string.IsNullOrEmpty(style))
+        {
+            return null;
+        }
+
+        return ParseStyleAttribute(style).TryGetValue("background-color", out var background)
+            ? NormalizeColor(background)
+            : null;
+    }
+
     ParagraphElement CreateParagraph(IElement element, double fontSize, bool bold, InlineStyle? style = null, string? styleId = null)
     {
-        var runs = ParseInlineElements(
+        // Base run props: the heading size/bold, then the block element's OWN inline character
+        // styles (font-size, font-family, font-weight/style, text-decoration, color) applied on
+        // top — <p style="font-size:18pt"> is a block element, so those declarations never reach
+        // the character path that only fires for <span>/<font>. Its background-color becomes
+        // full-width paragraph shading below, so it is cleared here to avoid a redundant
+        // glyph-tight highlight painted on top of the band.
+        var baseProps = ParseSpanStyle(
             element,
             DefaultRunProps() with
             {
                 FontSizePoints = fontSize,
-                Bold = bold,
-                ColorHex = style?.Color
-            });
+                Bold = bold
+            }) with
+        {
+            BackgroundColorHex = null
+        };
+
+        var runs = ParseInlineElements(element, baseProps);
 
         return new()
         {
             Runs = runs.Count > 0
                 ? runs
-                :
-                [
-                    new()
-                    {
-                        Text = "",
-                        Properties = DefaultRunProps() with
-                        {
-                            FontSizePoints = fontSize
-                        }
-                    }
-                ],
+                : [new() { Text = "", Properties = baseProps }],
             Properties = new()
             {
                 Alignment = style?.Alignment ?? TextAlignment.Left,
                 // Word's AltChunk HTML import spaces block paragraphs ~14pt apart (measured
                 // <p> pitch ≈ 57px at 150 DPI vs a ~29px line box); 8pt packed them ~6pt too
                 // tight, so every band/line drifted up the page. Headings keep their own value.
-                SpacingAfterPoints = fontSize > 14 ? 12 : 14,
+                SpacingAfterPoints = baseProps.FontSizePoints > 14 ? 12 : 14,
                 FirstLineIndentPoints = style?.TextIndent ?? 0,
                 LineSpacingMultiplier = style?.LineHeight ?? 1.08,
+                BackgroundColorHex = style?.BackgroundColor,
                 StyleId = styleId
             }
         };
@@ -557,6 +606,12 @@ sealed class HtmlParser
         return ApplyStyleToRunProps(style, baseProps);
     }
 
+    // CSS font-family is a comma-separated fallback list whose names may be quoted, e.g.
+    // 'Times New Roman', serif. Take the first family and strip the quotes — handing the whole
+    // list to the font loader throws (it treats "Times New Roman', serif" as one missing name).
+    static string FirstFontFamily(string value) =>
+        value.Split(',')[0].Trim().Trim('\'', '"').Trim();
+
     static RunProperties ApplyStyleToRunProps(string style, RunProperties props)
     {
         var styles = ParseStyleAttribute(style);
@@ -573,7 +628,7 @@ sealed class HtmlParser
         {
             props = props with
             {
-                FontFamily = fontFamily.Trim('\'', '"')
+                FontFamily = FirstFontFamily(fontFamily)
             };
         }
 
@@ -665,6 +720,14 @@ sealed class HtmlParser
         if (styles.TryGetValue("color", out var color))
         {
             result.Color = NormalizeColor(color);
+        }
+
+        // A block element's background-color (e.g. <p style="background-color:#FFFFCC">) is
+        // Word's paragraph shading (w:shd) — a full-width band behind the whole paragraph, not
+        // the glyph-tight run highlight a <span> background produces.
+        if (styles.TryGetValue("background-color", out var backgroundColor))
+        {
+            result.BackgroundColor = NormalizeColor(backgroundColor);
         }
 
         if (styles.TryGetValue("text-indent", out var textIndent))
@@ -1271,18 +1334,160 @@ sealed class HtmlParser
         _ => 11
     };
 
+    // The full CSS named-colour set (CSS Color Level 4). Only ten were present before, so any
+    // other name (darkblue, lightgray, teal, …) fell through NormalizeColor to null and was
+    // dropped — text rendered black, background bands vanished. "transparent" is deliberately
+    // absent: returning null there yields no fill, which is the correct outcome for a background.
     static readonly Dictionary<string, string> namedColors = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["red"] = "FF0000",
-        ["green"] = "008000",
-        ["blue"] = "0000FF",
+        ["aliceblue"] = "F0F8FF",
+        ["antiquewhite"] = "FAEBD7",
+        ["aqua"] = "00FFFF",
+        ["aquamarine"] = "7FFFD4",
+        ["azure"] = "F0FFFF",
+        ["beige"] = "F5F5DC",
+        ["bisque"] = "FFE4C4",
         ["black"] = "000000",
-        ["white"] = "FFFFFF",
-        ["yellow"] = "FFFF00",
-        ["orange"] = "FFA500",
-        ["purple"] = "800080",
+        ["blanchedalmond"] = "FFEBCD",
+        ["blue"] = "0000FF",
+        ["blueviolet"] = "8A2BE2",
+        ["brown"] = "A52A2A",
+        ["burlywood"] = "DEB887",
+        ["cadetblue"] = "5F9EA0",
+        ["chartreuse"] = "7FFF00",
+        ["chocolate"] = "D2691E",
+        ["coral"] = "FF7F50",
+        ["cornflowerblue"] = "6495ED",
+        ["cornsilk"] = "FFF8DC",
+        ["crimson"] = "DC143C",
+        ["cyan"] = "00FFFF",
+        ["darkblue"] = "00008B",
+        ["darkcyan"] = "008B8B",
+        ["darkgoldenrod"] = "B8860B",
+        ["darkgray"] = "A9A9A9",
+        ["darkgreen"] = "006400",
+        ["darkgrey"] = "A9A9A9",
+        ["darkkhaki"] = "BDB76B",
+        ["darkmagenta"] = "8B008B",
+        ["darkolivegreen"] = "556B2F",
+        ["darkorange"] = "FF8C00",
+        ["darkorchid"] = "9932CC",
+        ["darkred"] = "8B0000",
+        ["darksalmon"] = "E9967A",
+        ["darkseagreen"] = "8FBC8F",
+        ["darkslateblue"] = "483D8B",
+        ["darkslategray"] = "2F4F4F",
+        ["darkslategrey"] = "2F4F4F",
+        ["darkturquoise"] = "00CED1",
+        ["darkviolet"] = "9400D3",
+        ["deeppink"] = "FF1493",
+        ["deepskyblue"] = "00BFFF",
+        ["dimgray"] = "696969",
+        ["dimgrey"] = "696969",
+        ["dodgerblue"] = "1E90FF",
+        ["firebrick"] = "B22222",
+        ["floralwhite"] = "FFFAF0",
+        ["forestgreen"] = "228B22",
+        ["fuchsia"] = "FF00FF",
+        ["gainsboro"] = "DCDCDC",
+        ["ghostwhite"] = "F8F8FF",
+        ["gold"] = "FFD700",
+        ["goldenrod"] = "DAA520",
         ["gray"] = "808080",
-        ["grey"] = "808080"
+        ["green"] = "008000",
+        ["greenyellow"] = "ADFF2F",
+        ["grey"] = "808080",
+        ["honeydew"] = "F0FFF0",
+        ["hotpink"] = "FF69B4",
+        ["indianred"] = "CD5C5C",
+        ["indigo"] = "4B0082",
+        ["ivory"] = "FFFFF0",
+        ["khaki"] = "F0E68C",
+        ["lavender"] = "E6E6FA",
+        ["lavenderblush"] = "FFF0F5",
+        ["lawngreen"] = "7CFC00",
+        ["lemonchiffon"] = "FFFACD",
+        ["lightblue"] = "ADD8E6",
+        ["lightcoral"] = "F08080",
+        ["lightcyan"] = "E0FFFF",
+        ["lightgoldenrodyellow"] = "FAFAD2",
+        ["lightgray"] = "D3D3D3",
+        ["lightgreen"] = "90EE90",
+        ["lightgrey"] = "D3D3D3",
+        ["lightpink"] = "FFB6C1",
+        ["lightsalmon"] = "FFA07A",
+        ["lightseagreen"] = "20B2AA",
+        ["lightskyblue"] = "87CEFA",
+        ["lightslategray"] = "778899",
+        ["lightslategrey"] = "778899",
+        ["lightsteelblue"] = "B0C4DE",
+        ["lightyellow"] = "FFFFE0",
+        ["lime"] = "00FF00",
+        ["limegreen"] = "32CD32",
+        ["linen"] = "FAF0E6",
+        ["magenta"] = "FF00FF",
+        ["maroon"] = "800000",
+        ["mediumaquamarine"] = "66CDAA",
+        ["mediumblue"] = "0000CD",
+        ["mediumorchid"] = "BA55D3",
+        ["mediumpurple"] = "9370DB",
+        ["mediumseagreen"] = "3CB371",
+        ["mediumslateblue"] = "7B68EE",
+        ["mediumspringgreen"] = "00FA9A",
+        ["mediumturquoise"] = "48D1CC",
+        ["mediumvioletred"] = "C71585",
+        ["midnightblue"] = "191970",
+        ["mintcream"] = "F5FFFA",
+        ["mistyrose"] = "FFE4E1",
+        ["moccasin"] = "FFE4B5",
+        ["navajowhite"] = "FFDEAD",
+        ["navy"] = "000080",
+        ["oldlace"] = "FDF5E6",
+        ["olive"] = "808000",
+        ["olivedrab"] = "6B8E23",
+        ["orange"] = "FFA500",
+        ["orangered"] = "FF4500",
+        ["orchid"] = "DA70D6",
+        ["palegoldenrod"] = "EEE8AA",
+        ["palegreen"] = "98FB98",
+        ["paleturquoise"] = "AFEEEE",
+        ["palevioletred"] = "DB7093",
+        ["papayawhip"] = "FFEFD5",
+        ["peachpuff"] = "FFDAB9",
+        ["peru"] = "CD853F",
+        ["pink"] = "FFC0CB",
+        ["plum"] = "DDA0DD",
+        ["powderblue"] = "B0E0E6",
+        ["purple"] = "800080",
+        ["rebeccapurple"] = "663399",
+        ["red"] = "FF0000",
+        ["rosybrown"] = "BC8F8F",
+        ["royalblue"] = "4169E1",
+        ["saddlebrown"] = "8B4513",
+        ["salmon"] = "FA8072",
+        ["sandybrown"] = "F4A460",
+        ["seagreen"] = "2E8B57",
+        ["seashell"] = "FFF5EE",
+        ["sienna"] = "A0522D",
+        ["silver"] = "C0C0C0",
+        ["skyblue"] = "87CEEB",
+        ["slateblue"] = "6A5ACD",
+        ["slategray"] = "708090",
+        ["slategrey"] = "708090",
+        ["snow"] = "FFFAFA",
+        ["springgreen"] = "00FF7F",
+        ["steelblue"] = "4682B4",
+        ["tan"] = "D2B48C",
+        ["teal"] = "008080",
+        ["thistle"] = "D8BFD8",
+        ["tomato"] = "FF6347",
+        ["turquoise"] = "40E0D0",
+        ["violet"] = "EE82EE",
+        ["wheat"] = "F5DEB3",
+        ["white"] = "FFFFFF",
+        ["whitesmoke"] = "F5F5F5",
+        ["yellow"] = "FFFF00",
+        ["yellowgreen"] = "9ACD32"
     };
 
     static string? NormalizeColor(string color)
@@ -1515,6 +1720,7 @@ sealed class HtmlParser
     {
         public TextAlignment Alignment { get; set; } = TextAlignment.Left;
         public string? Color { get; set; }
+        public string? BackgroundColor { get; set; }
         public double? TextIndent { get; set; }
         public double? LineHeight { get; set; }
     }

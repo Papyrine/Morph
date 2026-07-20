@@ -822,10 +822,10 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 ### html_complex
 
 - MEDIUM | all | p1 | Table interior cell gridlines missing (only the outer frame is drawn despite border=1 with border-collapse)
-- MAJOR | all | p1,p2 | All h2 section headings ("1. Formatted Text Section" … "5. Styled Boxes") lose their CSS color #4472C4 and render black
+- ✅ FIXED 2026-07-21 (block CSS) | all | p1,p2 | All h2 section headings lose CSS color #4472C4 — headings now pass their inline style through `ParseSpanStyle`; render #4472C4. Contributes to html_complex p1 −0.005 AE / +0.010 SSIM.
 - ✅ FIXED 2026-07-21 (image px→pt) | all | p1 | Gradient image drawn 312x234px instead of Word's 234x175 — HTML `<img>` width/height are CSS px, now ×0.75 to points (`ParseDimensionAttribute`). Image sizes now match Word; html_images net −0.0281 skia AE / +0.0268 SSIM.
 - MEDIUM | all | p1,p2 | "Visit our website for more information." paragraph still spills to p2 top (residual): the smaller image + 14pt spacing leaves p1 just over the boundary; needs the intro-paragraph wrap fix (3 lines vs Word's 2) to fully seat p1
-- MAJOR | all | p2 | Info/Warning/Error styled boxes lose their background fills (#E7F3FF/#FFF3CD/#F8D7DA) and colored borders — only the colored text lines remain
+- PARTIAL 2026-07-21 (block CSS) | all | p2 | Info/Warning/Error styled boxes: background fills (#E7F3FF/#FFF3CD/#F8D7DA) NOW render (div background → paragraph shading). STILL OPEN: colored borders, and the box padding — the fills are thin full-width bands, not padded bordered boxes, and land offset on p2 from the "Visit our website" reflow (p2 AE +0.019).
 - MEDIUM | all | p1 | Intro paragraph wraps to 3 lines vs Word's 2 (superscript/subscript phrase pushed to an extra line)
 - MAJOR | html | - | h2 headings rendered black instead of #4472C4
 - MAJOR | html | - | Table styling lost in export: no interior gridlines, auto width instead of 100%
@@ -848,59 +848,41 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### html_css_colors
 
-- MAJOR | all | p1 | Background fills missing: #FFFFCC band behind "Light yellow background" and #E0E0E0 band behind "Div with background and padding" (Word draws both full-width)
-- MAJOR | all | p1 | "Light gray bg, dark blue text" rendered black instead of darkblue — extended named color dropped while red/blue/green/orange/purple, hex and rgb() colors all work
+- ✅ FIXED 2026-07-21 (block CSS) | all | p1 | Background fills missing: #FFFFCC and #E0E0E0 (div) bands now render full content-width (block/div background-color → paragraph shading).
+- ✅ FIXED 2026-07-21 (named colors) | all | p1 | "Light gray bg, dark blue text" rendered black — `namedColors` expanded 10→147 (full CSS L4), so darkblue/lightgray resolve. html_css_colors net −0.003 AE.
 - ✅ FIXED 2026-07-21 (spacing) | all | p1 | Paragraph spacing compressed — `<p>` spacing-after 8pt→14pt; text lines now align with Word. Net −0.0032 skia AE / +0.0104 SSIM.
 - MAJOR | html | - | Yellow and div gray backgrounds missing in HTML export
 - MAJOR | html | - | darkblue text color rendered black in HTML export
 
-> **ATTEMPT 2026-07-21 (reverted — blocked, not wrong). Applies to all four HTML AltChunk scenarios below (html_css_colors, html_css_margin_padding, html_inline_styles, html_complex).**
-> Root cause of the whole HTML CSS-property finding cluster: `HtmlParser` block elements
-> (`<p>`, `<div>`, `<h1..6>`) only honour a *subset* of their inline CSS. `ParseInlineStyle`
-> reads alignment/color/text-indent/line-height; the character path (`ParseSpanStyle` →
-> `ApplyStyleToRunProps`) handles the rest but only fires for `<span>`/`<font>`. So a block
-> `<p style="background-color/font-size/font-family/font-weight/font-style/text-decoration">`
-> drops all of those. `<div>` drops its own background entirely (it just recurses into children).
+> **✅ LANDED 2026-07-21 (two commits). The whole HTML-AltChunk block-CSS cluster.**
+> Root cause was that `HtmlParser` block elements (`<p>`, `<div>`, `<h1..6>`) only honoured a
+> *subset* of their inline CSS — `ParseInlineStyle` read alignment/color/indent/line-height while
+> the full character path (`ParseSpanStyle`→`ApplyStyleToRunProps`) only fired for `<span>`/`<font>`.
+> Fixed in order:
+> 1. **Vertical fidelity** (commit "Match Word's HTML paragraph spacing and image sizing"): `<p>`
+>    spacing-after 8pt→14pt (Word's AltChunk pitch ~57px at 150 DPI); HTML `<img>` px→pt ×0.75.
+> 2. **Block CSS** (this commit): `CreateParagraph` now runs `ParseSpanStyle(element, …)` so a block
+>    element's font-size / font-family / weight / style / decoration / color all apply; headings
+>    pass their `ParseInlineStyle`; `background-color` → full-width `ParagraphProperties.BackgroundColorHex`
+>    (renderers already paint it — Skia TextRenderer.cs:235, ImageSharp:234, PDF PdfTextEngine.cs:329);
+>    `ParseContainer` pushes a `<div>`'s own background onto its child paragraphs; `namedColors`
+>    expanded 10→147 (full CSS L4 set; darkblue/lightgray/teal/… — `transparent` omitted = no fill);
+>    `FirstFontFamily` splits the comma-separated CSS font-family list and strips quotes (the raw
+>    `'Times New Roman', serif` had crashed `FontResolver` with a not-found throw).
 >
-> **Background → paragraph shading is correct and verified.** Word draws these HTML block
-> backgrounds full CONTENT-width (measured on html_css_colors expected_0001: bands span x=148–1128,
-> exactly the content ink extent). The model + all three renderers already paint
-> `ParagraphProperties.BackgroundColorHex` as a full-width band (Skia TextRenderer.cs:235,
-> ImageSharp TextRenderer.cs:234, PDF PdfTextEngine.cs:329) — the parser just never populated it.
-> Fix that landed visually correct bands (crops confirmed): in `ParseInlineStyle` read
-> `background-color` → a new `InlineStyle.BackgroundColor`; in `CreateParagraph` set
-> `ParagraphProperties.BackgroundColorHex`; add a `ParseContainer` that pushes a `<div>`'s own
-> background onto each child paragraph. Also expanded `namedColors` from 10 entries to the full
-> CSS Level-4 set (147) — fixes darkblue/lightgray/teal/etc. corpus-wide (leave `transparent` out
-> so it returns null = no fill).
->
-> **Why it was reverted: it REGRESSES the AE/SSIM metric, blocked by two PRE-EXISTING layout bugs.**
-> The bands are correct in width/colour but land at the wrong Y because Morph's HTML paragraphs
-> pack ~116px tighter than Word's (the "paragraph spacing compressed" MEDIUM finding) and, in
-> html_inline_styles, because block font-size is dropped (the 18pt/8pt lines render at 11pt, so
-> Word's column is taller). A full-width band that's ~116px off Word's counts double, so:
-> html_css_colors +0.0347 AE / −0.0103 SSIM; html_css_margin_padding +0.025 / −0.0077;
-> html_inline_styles +0.0148 / −0.0063; html_complex p2 +0.0101 (p1 IMPROVED −0.0049/+0.0102 once
-> heading colours were also applied). html_css_colors and margin_padding have NO font-size
-> overrides, so only fixing the paragraph-spacing compression can align their bands.
->
-> **To land next: fix HTML paragraph vertical fidelity FIRST** (paragraph-spacing compression +
-> apply block font-size), THEN re-apply the background/named-colour fix — the bands will align and
-> the metric should flip positive, closing this whole cluster (backgrounds + colours + several
-> "CSS X ignored" MEDIUMs) at once. Word's single-line `<p>` pitch measures ~57–59px at 150 DPI
-> (~28pt) vs Morph's tighter spacing-after 8pt + 1.08 line-height.
->
-> **Landmine — applying block `font-family` crashes.** CSS `font-family: 'Times New Roman', serif`
-> is a quoted, comma-separated fallback list; `ApplyStyleToRunProps` only trims outer quotes, so it
-> hands the loader `Times New Roman', serif` and `FontCacheLoader` THROWS `InvalidOperationException:
-> Font '…' not found` (it does not fall back). Before applying block font-family: split on comma,
-> take the first family, strip quotes, AND make the font lookup fall back gracefully to the default
-> font instead of throwing when the family isn't in the bundled `src/Fonts`.
+> Net across the four scenarios: html_css_margin_padding −0.027 AE, html_inline_styles −0.021,
+> html_css_colors −0.003, html_complex p1 −0.005/+0.010.
+> **Residuals (not closed):** (a) full-width shading bands have no padding/border, so they're
+> structurally thinner than Word's padded/bordered boxes — drops SSIM slightly and leaves the
+> "colored borders" / margin-padding findings open; (b) html_complex p2 AE regressed +0.019 — the
+> box backgrounds are correct but land offset because "Visit our website" still spills to p2 (the
+> intro-paragraph 3-vs-2-line wrap keeps p1 just over the boundary). Fixing that wrap seats p1 and
+> resolves the offset.
 
 ### html_css_margin_padding
 
 - MEDIUM | all | p1 | margin-left:50px and 100px indents ignored — both paragraphs sit flush at the left margin (Word shows the staircase)
-- MAJOR | all | p1 | Backgrounds/borders missing: #EEE band on the 20px-margin paragraph, #DDD padded-div band, and the #CCE5FF fill + #0066CC border box on the 15px-padding paragraph
+- PARTIAL 2026-07-21 (block CSS) | all | p1 | Backgrounds now render: #EEE band, #DDD padded-div band, and #CCE5FF fill all present (net −0.027 AE). STILL OPEN: the #0066CC border box, and the box padding (fills are full-width bands, no padding/border) — plus the margin-left staircase is still unindented.
 - MEDIUM | all | p1 | 20px div padding and 30px vertical margins collapsed — "Content inside padded div" not inset and "Paragraph with extra vertical margins" sits tight against its neighbors
 - MAJOR | html | - | Same three backgrounds and the blue border missing in HTML export
 - MEDIUM | html | - | 50px/100px left-margin indents lost in HTML export
@@ -922,15 +904,15 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### html_inline_styles
 
-- MAJOR | all | p1 | Yellow background band on "Text with yellow background" and light-red background band on "Red text on light red background" both missing (Word draws full-width shading)
+- ✅ FIXED 2026-07-21 (block CSS) | all | p1 | Yellow and light-red background bands now render full-width (block background-color → paragraph shading). Part of html_inline_styles net −0.021 AE.
 - MAJOR | html | - | Same yellow and light-red backgrounds missing in HTML export
-- MEDIUM | all | p1 | CSS font sizes ignored: "Larger text at 18pt" and "Smaller text at 8pt" both render at default body size
+- ✅ FIXED 2026-07-21 (block CSS) | all | p1 | CSS font sizes ignored — block `<p>` now runs through `ParseSpanStyle`; 18pt and 8pt render at their sizes.
 - MEDIUM | html | - | Same 18pt/8pt font sizes ignored in HTML export
-- MEDIUM | all | p1 | CSS font families ignored: "Times New Roman font" and "Courier New monospace font" lines render in the default document font (monospace lost)
+- ✅ FIXED 2026-07-21 (block CSS) | all | p1 | CSS font families ignored — block `<p>` font-family now applies via `ParseSpanStyle`; `FirstFontFamily` splits the CSS fallback list ('Times New Roman', serif) so Times/Courier resolve (and no longer crash the font loader).
 - MEDIUM | html | - | Same Times New Roman/Courier New font families dropped in HTML export
-- MEDIUM | all | p1 | CSS bold (font-weight) and italic (font-style) ignored — both lines render regular upright
+- ✅ FIXED 2026-07-21 (block CSS) | all | p1 | CSS bold (font-weight) and italic (font-style) ignored — both now apply on block `<p>` via `ParseSpanStyle`.
 - MEDIUM | html | - | Same bold/italic dropped in HTML export
-- MEDIUM | all | p1 | text-decoration ignored: "Underline via text-decoration" has no underline and "Strikethrough via text-decoration" has no strike line
+- ✅ FIXED 2026-07-21 (block CSS) | all | p1 | text-decoration ignored — underline and line-through now apply on block `<p>` via `ParseSpanStyle`.
 - MEDIUM | html | - | Same underline/strikethrough dropped in HTML export
 - ✅ FIXED 2026-07-21 (spacing) | all | p1 | Paragraph spacing ~20% tighter than Word — `<p>` spacing-after 8pt→14pt. Net −0.0008 skia AE / +0.0069 SSIM (residual from the still-dropped block font-size on the 18pt/8pt lines).
 
