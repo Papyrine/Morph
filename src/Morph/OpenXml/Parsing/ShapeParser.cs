@@ -745,6 +745,45 @@ static class ShapeParser
             }
         }
 
+        // Linear gradient fill. The standalone branch has read a:gradFill from the start,
+        // but every corpus gradient sits on a GROUP child (labels/04's 90° accent bars,
+        // cover-letters/06's banner segments) — this path dropped them and the walk
+        // flattened them to the fillRef colour. Faithful geometry only: the renderers fill
+        // gradients through parsed contours or a plain rect/ellipse preset, and an unbuilt
+        // preset would paint its BOUNDING BOX (labels/04's hexagon accents drew as saturated
+        // gradient boxes over Word's soft hexagons — worse than absent).
+        var gradFill = shapeProps.GetFirstChild<A.GradientFill>();
+        if (gradFill != null && (subpaths != null || HasStrokeablePresetOutline(shapeProps)))
+        {
+            var gradient = ExtractGradientFill(gradFill, themeColors);
+            if (gradient != null)
+            {
+                return new()
+                {
+                    WidthPoints = widthPt,
+                    HeightPoints = heightPt,
+                    RelativeHeight = positioning.RelativeHeight,
+                    LayoutInCell = positioning.LayoutInCell,
+                    HorizontalPositionPoints = positioning.HorizontalPositionPoints + xPt,
+                    VerticalPositionPoints = positioning.VerticalPositionPoints + yPt,
+                    HorizontalAnchor = positioning.HorizontalAnchor,
+                    VerticalAnchor = positioning.VerticalAnchor,
+                    BehindText = true,
+                    // Percent sizing intentionally not propagated — see solid-fill branch.
+                    Gradient = gradient,
+                    FillColorHex = gradient.StartColorHex,
+                    LineColorHex = lineColor,
+                    LineWidthPoints = lineWidth,
+                    LineAlpha = lineAlpha,
+                    Preset = preset,
+                    Subpaths = subpaths,
+                    RotationDegrees = rotation,
+                    FlipHorizontal = flipH,
+                    FlipVertical = flipV
+                };
+            }
+        }
+
         // Try blip fill (image fill)
         var blipFill = shapeProps.GetFirstChild<A.BlipFill>();
         if (blipFill != null &&
