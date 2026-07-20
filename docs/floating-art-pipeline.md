@@ -249,6 +249,17 @@ Do not re-attempt these as-is; each needs the recorded blocker resolved first.
    ticket/frame outlines, letters/05's p1 orange square, cover-letters/06's segment bars.
    Note the per-shape metric often ticks POSITIVE (new-ink offset penalty) — every scenario
    was crop-vetted against Word before promotion.
+   FIFTH PASS (2026-07-20): FILLED walk shapes now stroke their `a:ln` exactly like
+   ShapeParser's solid branch always has. The walk had deliberately nulled
+   `LineColorHex` on solid fills, which left walk-owned filled shapes borderless —
+   letters/05's teal "triangle" is a WHITE-filled custGeom whose 4.9pt teal stroke is the
+   only visible ink (its p1 anchor carries a non-identity nested sibling group, so the whole
+   drawing is walk-owned; p2/p3's identity anchors rendered via SP all along — a useful
+   diagnostic pattern: the same art correct on some pages and missing on others usually
+   means the pages' anchors differ in nesting identity, not in the art). Also landed:
+   resumes/10's page-edge circle now cuts flat at the page edge like Word. Cost accepted:
+   a thin filled rect with a same-colour `a:ln` draws one line-width fatter (wedding/04's
+   centre divider, +0.001/backend).
 
 ## See also
 
