@@ -7698,14 +7698,15 @@ sealed class DocumentParser(string defaultFont)
             FillAlpha = fillAlpha,
             ImageData = imageData,
             ImageContentType = imageContentType,
-            // Only stroke-only and image-filled shapes render their outline here — a
-            // solid-filled decorative shape's <a:ln> was never drawn by this path, so leave
-            // that behavior untouched. Image fills stroke like ShapeParser's blip branch does
+            // Solid-filled shapes stroke their <a:ln> exactly like ShapeParser's solid branch
+            // always has — the asymmetry left walk-owned filled shapes borderless
+            // (letters/05's p1 triangle is a WHITE-filled custGeom whose thick teal stroke is
+            // the only visible ink). Image fills stroke like ShapeParser's blip branch does
             // (a photo shape's border ring).
-            LineColorHex = fillColorHex == null ? lineColorHex : null,
-            LineWidthPoints = fillColorHex == null ? lineWidthPoints : null,
+            LineColorHex = lineColorHex,
+            LineWidthPoints = lineWidthPoints,
             LineAlpha = lineAlpha,
-            LineDashPattern = fillColorHex == null ? strokeDashPattern : null,
+            LineDashPattern = strokeDashPattern,
             Preset = ShapeParser.ExtractPresetShape(shapeProps),
             Subpaths = subpaths,
             RotationDegrees = rotationDegrees,
