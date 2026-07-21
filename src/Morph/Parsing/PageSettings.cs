@@ -13,6 +13,15 @@ sealed record PageSettings
     // 1 inch
     public double MarginTop { get; init; } = 72;
 
+    /// <summary>
+    /// True when <c>w:pgMar/@w:top</c> was NEGATIVE. Per ECMA-376 §17.6.11 that means
+    /// <see cref="MarginTop"/> is the absolute distance from the top of the page to the top of the
+    /// body, so a header taller than the margin overlaps the body instead of pushing it down (see
+    /// <c>RenderContextBase.SetPageHeaderBottom</c>). A positive margin is a MINIMUM and the body
+    /// yields to the header.
+    /// </summary>
+    public bool TopMarginIsAbsolute { get; init; }
+
     /// <summary>Bottom margin in points.</summary>
     public double MarginBottom { get; init; } = 72;
 
