@@ -99,7 +99,7 @@ public class BaselineHealthTests
         foreach (var file in baselines)
         {
             var relative = Path.GetRelativePath(inputsDir, file).Replace('\\', '/');
-            var colors = UniqueColorCount(file);
+            var colors = CountColorsUpTo(file, DegenerateColorThreshold);
             var suppressed = KnownDegenerate.Contains(relative);
 
             if (suppressed)
@@ -107,9 +107,9 @@ public class BaselineHealthTests
                 if (colors > DegenerateColorThreshold)
                 {
                     problems.Add(
-                        $"{relative}: on the known-degenerate allow-list but now has {colors} unique " +
-                        "colours — it is no longer degenerate. If it was fixed, remove it from " +
-                        $"{nameof(KnownDegenerate)}.");
+                        $"{relative}: on the known-degenerate allow-list but now has more than " +
+                        $"{DegenerateColorThreshold} unique colours — it is no longer degenerate. If it " +
+                        $"was fixed, remove it from {nameof(KnownDegenerate)}.");
                 }
 
                 continue;
@@ -130,9 +130,31 @@ public class BaselineHealthTests
             .Because(Environment.NewLine + string.Join(Environment.NewLine, problems));
     }
 
-    static int UniqueColorCount(string file)
+    /// <summary>
+    /// Distinct pixel colours in the page, counted from the decoded pixels (the same vendored
+    /// decoder <see cref="PageComparison"/> uses, so the whole suite stays off Magick — see
+    /// docs/fidelity-audit.md).
+    ///
+    /// Counting stops once more than <paramref name="cap"/> distinct colours have been seen: the
+    /// guard only needs to tell "collapsed to a solid fill" from "has content", and a healthy page
+    /// hits the cap within its first few hundred pixels, which keeps a full-corpus scan quick. The
+    /// result is therefore exact up to <paramref name="cap"/>, and <c>cap + 1</c> means "more".
+    /// </summary>
+    static int CountColorsUpTo(string file, int cap)
     {
-        using var image = new MagickImage(file);
-        return image.Histogram().Count;
+        using var stream = File.OpenRead(file);
+        var image = PngDecoder.Decode(stream);
+        var rgba = image.Rgba;
+        var seen = new HashSet<uint>();
+        for (var i = 0; i < rgba.Length; i += 4)
+        {
+            var color = (uint) (rgba[i] << 24 | rgba[i + 1] << 16 | rgba[i + 2] << 8 | rgba[i + 3]);
+            if (seen.Add(color) && seen.Count > cap)
+            {
+                return cap + 1;
+            }
+        }
+
+        return seen.Count;
     }
 }

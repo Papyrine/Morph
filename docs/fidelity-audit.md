@@ -24,20 +24,22 @@ reported: anti-aliasing texture, 1-2px subpixel shifts, ImageSharp's softer glyp
 ## The two recorded metrics
 
 Each scenario's `*_result.verified.json` records, per page, an **AE** (`ErrorMetric`) and an
-**SSIM**, both against the Word reference page. Both are computed in-repo from the decoded pixels
-(`src/Tests/Compare/`), not by ImageMagick:
+**SSIM**, both against the Word reference page. `PageComparison` (`src/Tests/Compare/`) computes
+the pair from a single decode of each image — not via ImageMagick:
 
-- **AE** — `PageAbsoluteError`: the fraction of pixels that differ at all (0 = identical). Pixels
-  outside the overlap of two differently-sized pages count as differing and the result is
-  normalised by the EXPECTED page's pixel count, so an orientation mismatch scores near 1 instead
-  of silently comparing a sub-window (business-plans/15 p12/p15 are the corpus's only such pages).
-- **SSIM** — `PageSsim`: the vendored Verify SSIM (1 = identical), null when page sizes differ.
+- **AE** — the fraction of pixels that differ at all (0 = identical). Pixels outside the overlap of
+  two differently-sized pages count as differing and the result is normalised by the EXPECTED
+  page's pixel count, so an orientation mismatch scores near 1 instead of silently comparing a
+  sub-window (business-plans/15 p12/p15 are the corpus's only such pages).
+- **SSIM** — the vendored Verify SSIM (1 = identical), null when page sizes differ.
 
 Both were originally Magick.NET calls. SSIM moved in-repo for speed (~30× faster). AE followed
 after **Magick.NET 14.15 changed `Compare(…, ErrorMetric.Absolute)` to return the raw unnormalised
 error** (a ~1e9 sum in Q16 units) instead of the fraction — silently rewriting every recorded
 metric and breaking comparability with all historical audit numbers. Keeping both in-repo makes
-the recorded metrics stable across future upgrades; do not route them back through Magick.
+the recorded metrics stable across future upgrades; do not route them back through Magick. With
+Magick gone the suite no longer takes a native image-decode dependency at all, which cut a full
+run from ~7m to ~4m20s.
 
 ## Judging a change
 

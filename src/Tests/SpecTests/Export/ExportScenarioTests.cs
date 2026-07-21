@@ -112,8 +112,7 @@ public class ExportScenarioTests
             var expectedFile = expectedFiles[page];
             var rendered = document.RenderPage(page, pdfRenderDpi);
 
-            var errorMetric = PageAbsoluteError.Compare(expectedFile, rendered);
-            var ssim = PageSsim.Compare(expectedFile, rendered);
+            var (errorMetric, ssim) = PageComparison.Compare(expectedFile, rendered);
             diffs.Add(new(page + 1, errorMetric, ssim, Path.GetFileName(expectedFile), $"pdf_result#page_{page + 1:0000}.verified.png", $"pdf_result#page_{page + 1:0000}.received.png"));
         }
 
