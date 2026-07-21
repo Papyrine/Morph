@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Paragraph layout and drawing for the PDF backend. This is the part that cannot come from the
 /// shared engine (it depends on the backend's text metrics): it greedily wraps runs into lines
 /// using PdfSharp font measurement, then draws them with alignment, indents, list markers, inline
@@ -1225,6 +1225,11 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         double EffectiveWidth() => (lines.Count == 0 ? availableWidth - firstLineIndent : availableWidth) + lineWidthExtension;
 
         var current = new Line();
+
+        // Metrics of the most recent <w:br/>, so a paragraph ENDING in one still gets the line box
+        // that follows it — Word lays 7 trailing breaks out as 8 lines. Only consulted when the
+        // paragraph runs out with nothing pending, i.e. when the break really was its last content.
+        (double Ascent, double Height)? trailingBreak = null;
         var pendingSpaceWidth = 0d;
         XFont? pendingSpaceFont = null;
         RunProperties? pendingSpaceProps = null;
@@ -1441,6 +1446,8 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                                 pendingSpaceFont = null;
                                 pendingSpaceProps = null;
                             }
+
+                            trailingBreak = (ascent, ApplyLineSpacingRule(lineHeight));
                         }
 
                         continue;
@@ -1496,7 +1503,14 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             }
         }
 
+        var hadPendingContent = current.Items.Count > 0;
         Flush();
+
+        if (!hadPendingContent && trailingBreak is {} lastBreak)
+        {
+            // Paragraph ended on a <w:br/>: Word still opens the line after it.
+            lines.Add(new() {Ascent = lastBreak.Ascent, Height = lastBreak.Height});
+        }
 
         if (lines.Count > 0)
         {

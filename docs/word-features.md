@@ -1251,8 +1251,10 @@ Explicit break forcing content to the next page.
 Soft return within a paragraph (shift+enter).
 
 - **OOXML**: `w:br` (no type or `w:type="textWrapping"`)
-- **Model**: `LineBreakElement`
-- **Test**: `line_breaks/`, `text_wrapping_break/`
+- **Model**: a run carrying `Text = "\n"` at the break's document position, so text on either side of it survives in order
+- **Test**: `line_breaks/`, `text_wrapping_break/`, `nonstandard_main_part_name/`
+
+> **Contributors**: A paragraph that ENDS on a break still gets the line box that follows it — N trailing breaks lay out as N+1 lines. Every layout engine flushed its final line only when fragments were pending, so that last box was dropped and a break-only cell came out one line short. Each now keeps the last break's font metrics and emits the empty line when the paragraph runs out with nothing on the current line, which is exactly the case where the break was its last content (anything after a break lands in the fragment list, and a wrap can only fire while that list is non-empty). Measured against Word by rendering probe copies of `nonstandard_main_part_name` with 1/3/7 breaks: Word's box grows 26.17px per break at 150 DPI and its intercept only fits the N+1 model.
 
 
 #### Section Break: Next Page `DONE`
