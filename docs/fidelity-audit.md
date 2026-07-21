@@ -80,7 +80,7 @@ fill with no content yet passed the suite because the baseline WAS the broken im
 A second, compounding gap sits under the same scenario: **a page-count mismatch suppresses the
 per-page diffs entirely.** `PageDiffs` returns null unless the rendered page count equals the
 reference count, so a scenario like `newsletters/06` (6 pages against Word's 4) records nothing
-but the two counts — no AE, no SSIM, on any page. As of 2026-07-21 that is 5 of 324 scenarios:
+but the two counts — no AE, no SSIM, on any page. As of 2026-07-21 that is 5 of 325 scenarios:
 `business-plans/02`, `image_wrap_square`, `newsletters/06`, `newsletters/09`, `resumes/13`. For
 those the guard below and manual crop-vetting are the only signals, and step 2 of the judging
 loop cannot run at all — a metric-delta report has nothing to compare and will not list them

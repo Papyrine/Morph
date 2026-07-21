@@ -1159,14 +1159,15 @@ Render: `PageRenderer.RenderDocument()` manages page creation, `RenderContextBas
 
 A4 (595.28 x 841.89pt), Letter (612 x 792pt), Legal (612 x 1008pt), and custom dimensions.
 
-- **OOXML**: `w:pgSz` — `w:w`, `w:h` (in twentieths of a point)
+- **OOXML**: `w:pgSz` — `w:w`, `w:h` (in twentieths of a point), `w:code` (printer paper code)
 - **Spec**: [Page Size](http://officeopenxml.com/WPsection.php)
 - **Model**: `PageSettings.WidthPoints`, `HeightPoints`
-- **Test**: `page_a4/`, `page_letter/`, `page_legal/`, `nonstandard_main_part_name/` (`w:code`)
+- **Paper code**: `w:code` carries the Windows `DMPAPER_*` constant naming the paper, and Word gives it priority over the `w:w`/`w:h` beside it — those are a rounded copy of a size the code names exactly. `DocumentParser.SnapToPaperCode` resolves the code against `paperSizePoints` and substitutes the exact dimensions. Only metric papers can actually move: an inch-defined size is a whole number of points and exactly representable in twips, while a millimetre-defined one never is (A4's 841.8898pt is 16838 twips at best, and Word writes 16840 in some files).
+- **Test**: `page_a4/`, `page_letter/`, `page_legal/`, `nonstandard_main_part_name/` + `PaperCodePageSizeTests`
 
 > **Contributors**: Default page size is region-based — Letter for North America (US, CA, MX, etc.), A4 elsewhere. Controlled by `DefaultPageSize` class. Can be overridden via `DefaultPageSize.UseLetterSize`.
 
-> **AI**: `w:pgSz/@code` — the printer paper code — is not read, and Word gives it priority over the declared twips. `nonstandard_main_part_name` declares `w:h=16840` (842.0pt) with `w:code="9"` (A4): Word renders the true A4 841.89pt, Morph the literal 842.0pt, so the page is 1754px tall against Word's 1753 at 150 DPI. It is the corpus's only page-size mismatch, and because `PageComparison` returns a null SSIM whenever the dimensions differ, that one pixel costs the scenario its SSIM coverage. The six other A4 scenarios declare `w:h=16838` and match exactly.
+> **Contributors**: The paper-code substitution only fires when the declared size ALREADY matches that paper to within half a point, in either orientation (Word writes `w:w`/`w:h` already swapped for landscape). A stale code is otherwise free to destroy the page — `cards/03` is a 7×5in card still carrying code 23, a 5×11.5in envelope, from whatever it was branched off. An unknown code falls through untouched, so the lookup can only refine a declared size, never invent one.
 
 
 #### Landscape Orientation `DONE`
