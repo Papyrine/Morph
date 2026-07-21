@@ -1419,6 +1419,14 @@ sealed class DocumentParser(string defaultFont)
                 var alignment = baseProps?.Alignment ?? defaultAlignment;
                 var spacingBefore = baseProps?.SpacingBeforePoints ?? defaultSpacingBeforePoints;
                 var spacingAfter = baseProps?.SpacingAfterPoints ?? defaultSpacingAfterPoints;
+                // 1.04 is invented: OOXML says an absent w:spacing/@w:line is SINGLE, i.e. the
+                // font's own line box, which line.Height already carries. Measured in isolation,
+                // 1.0 IS right — nonstandard_main_part_name's break-only box lands 2px off Word's
+                // 238 instead of 11, and its inter-paragraph gaps match exactly. But the corpus is
+                // tuned around this value compensating for a different error: 1.0 moves 123
+                // scenarios, 40 better and 67 WORSE (resumes/10 loses 0.06-0.08 SSIM on every
+                // page). Attempted and reverted 2026-07-21; the prerequisite is the docDefaults
+                // w:line cascade — see todo.md "Systemic issues" #4 and defaultLineSpacingMultiplier.
                 var lineSpacingMultiplier = baseProps?.LineSpacingMultiplier ?? 1.04;
                 var lineSpacingPoints = baseProps?.LineSpacingPoints ?? 0;
                 var lineSpacingRule = baseProps?.LineSpacingRule ?? LineSpacingRule.Auto;
