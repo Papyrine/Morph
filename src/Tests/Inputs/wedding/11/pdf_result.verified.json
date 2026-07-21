@@ -11,7 +11,7 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "K\nA\nY\nL\nA\n+\nJ\nA\nC\nO\nB\nTIE THE KNOT\nThe pleasure of your company is\nrequested at\nthe marriage of Kayla Lewis\n& Jacob\nHancock\nSATURDAY\n10.25.20XX\nK\nA\nY\nL\nA\n+\nJ\nA\nC\nO\nB\nSAVE THE\nDATE\nSATURDAY\n10.25.20XX\nAustin, Texas"
+        "Text": "KAYLA + JACOB\nTIE THE KNOT\nThe pleasure of your company is requested at\nthe marriage of Kayla Lewis & Jacob Hancock\nSATURDAY\n10.25.20XX\nKAYLA + JACOB\nSAVE THE DATE\nSATURDAY\n10.25.20XX\nAustin, Texas"
       },
       {
         "Width": 792.0,
@@ -23,8 +23,8 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.2917,
-      "Ssim": 0.882,
+      "ErrorMetric": 0.2828,
+      "Ssim": 0.8995,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

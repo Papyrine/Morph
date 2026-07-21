@@ -16,23 +16,23 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "You are able to make this brochure yours\nby making a few minor design tweaks!\nOn the Home tab, check out the Styles\ngallery for styles already built into the\ntemplate. Clicking on any style will update\nthe format of your text easily.\n“We don’t merely book your travel; we can help you realize\nyour travel dreams if you give us an idea of what kind of\nexperience you seek.”\n- Henriette Andersen\nOUR SERVICES\nINCLUDE\nPassport\nExpediting\nExcursion\nPlanning\nTo replace any of the\npictures in this pamphlet, just\nclick on the image you wish\nto change and delete it,\nthen insert your own.\nHotel, Air,\nTransportation\nArrangements\nTrip\nInsurance\nIf you replace a photo with your own and\nit’s not a flawless fit for the space, you\ncan crop it to fit in almost no time. To do\nthis, select Picture > Crop from the ribbon."
+        "Text": "You are able to make this brochure yours\nby making a few minor design tweaks!\nOn the Home tab, check out the Styles\ngallery for styles already built into the\ntemplate. Clicking on any style will update\nthe format of your text easily.\n“We don’t merely book your travel; we can help you realize\nyour travel dreams if you give us an idea of what kind of\nexperience you seek.”\n- Henriette Andersen\nOUR SERVICES\nINCLUDE\nPassport\nExpediting\nExcursion\nPlanning\nTo replace any of the pictures in this\npamphlet, just click on the image you\nwish to change and delete it, then insert\nyour own.\nHotel, Air,\nTransportation\nArrangements\nTrip\nInsurance\nIf you replace a photo with your own and\nit’s not a flawless fit for the space, you\ncan crop it to fit in almost no time. To do\nthis, select Picture > Crop from the ribbon."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.3169,
-      "Ssim": 0.776,
+      "ErrorMetric": 0.3177,
+      "Ssim": 0.7799,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.4764,
-      "Ssim": 0.5178,
+      "ErrorMetric": 0.478,
+      "Ssim": 0.5438,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

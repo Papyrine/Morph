@@ -16,23 +16,23 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Report Title\nSubtitle\nSome of the sample text in this document indicates the name of the\nstyle applied, so that you can easily apply the same formatting again.\nTo get started right away, just tap any placeholder text (such as this)\nand start typing.\n01\nLorem ipsum dolor sit\namet, harum patrioque\ncu vim.\n02\nLorem ipsum dolor sit\namet, harum patrioque\ncu vim.\n03\nLorem ipsum dolor sit\namet, harum patrioque\ncu vim.\nHeading 1\nYou can easily change the formatting of selected text in the document text by choosing a\nlook for the selected text from the Styles gallery on the Home tab. You can also format text\ndirectly by using the other controls on the Home tab.\nHeading 2\nView and edit this document in Word on your computer, tablet, or phone. You can edit\ntext; easily insert content such as pictures, shapes, or tables; and seamlessly save the\ndocument to the cloud from Word on your Windows, Mac, Android, or iOS device.\nHeading 3\nWant to insert a picture from your files or add a shape, text box, or table? You got it! On\nthe Insert tab of the ribbon, just tap the option you need.\nFind even more easy-to-use tools on the Insert tab, such as to add a hyperlink or insert a\ncomment.\nLorem ipsum dolor sit amet, harum patrioque cu vim. Debitis fastidii democritum ne vel, et ignota voluptua mel.\nNe euripidis appellantur pro, oratio utamur scripserit id nam. Indoctum scripserit no nam, eum rebum reque\nexerci ne.\nPage 2"
+        "Text": "Report Title\nSubtitle\nSome of the sample text in this document indicates the\nname of the style applied, so that you can easily apply\nthe same formatting again. To get started right away,\njust tap any placeholder text (such as this) and start\ntyping.\n01\nLorem ipsum dolor sit\namet, harum patrioque\ncu vim.\n02\nLorem ipsum dolor sit\namet, harum patrioque\ncu vim.\n03\nLorem ipsum dolor sit\namet, harum patrioque\ncu vim.\nHeading 1\nYou can easily change the formatting of selected text in the document text by\nchoosing a look for the selected text from the Styles gallery on the Home tab.\nYou can also format text directly by using the other controls on the Home tab.\nHeading 2\nView and edit this document in Word on your computer, tablet, or phone. You\ncan edit text; easily insert content such as pictures, shapes, or tables; and\nseamlessly save the document to the cloud from Word on your Windows, Mac,\nAndroid, or iOS device.\nHeading 3\nWant to insert a picture from your files or add a shape, text box, or table? You\ngot it! On the Insert tab of the ribbon, just tap the option you need.\nFind even more easy-to-use tools on the Insert tab, such as to add a hyperlink\nor insert a comment.\nLorem ipsum dolor sit amet, harum patrioque cu vim. Debitis fastidii democritum ne vel, et ignota voluptua mel.\nNe euripidis appellantur pro, oratio utamur scripserit id nam. Indoctum scripserit no nam, eum rebum reque\nexerci ne.\nPage 2"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.3092,
-      "Ssim": 0.7398,
+      "ErrorMetric": 0.3006,
+      "Ssim": 0.7452,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0886,
-      "Ssim": 0.7885,
+      "ErrorMetric": 0.0866,
+      "Ssim": 0.7988,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

@@ -110,11 +110,31 @@ static class TableLayout
         };
     }
 
+    /// <summary>
+    /// Resolves the table's column widths against the width available to it.
+    ///
+    /// <para><b>OverflowsTextColumn.</b> An AUTOFIT table is squeezed to fit
+    /// <paramref name="availableWidth"/>; a FIXED-layout one (<c>w:tblLayout w:type="fixed"</c>)
+    /// keeps its declared grid verbatim even when that is wider, because Word lets it bleed past
+    /// the margins. That is how a template's banner table spans the full page:
+    /// <c>nonstandard_main_part_name</c>'s header declares a 625.4pt grid at a -79.65pt indent
+    /// inside a 487.35pt column, and Word draws it edge to edge — squeezing it to the column left
+    /// the bar stopping 78% across the page. It matches the contract
+    /// <see cref="TableProperties.IsAutoFit"/> already documented.</para>
+    /// </summary>
     internal static float[] CalculateColumnWidths(TableElement table, int colCount, float availableWidth, IParagraphMeasurer? measurer = null)
     {
         var widths = new float[colCount];
         var gridWidths = table.Properties.GridColumnWidths;
         var isAutoFit = table.Properties.IsAutoFit;
+
+        // In a fixed-layout table w:tblGrid defines the columns and the per-cell w:tcW is
+        // advisory, so the grid wins when they disagree. labels/13 is the proof: its grid is
+        // 11376 twips, exactly the text column, while its cells declare 11724 (+17.4pt). Word
+        // lays the sheet out at the grid. Reading the tcW sum instead only looked right while
+        // over-wide tables were squeezed back to the column — the squeeze was cancelling the
+        // wrong width, and removing it exposed the label columns running off the page.
+        var gridIsAuthoritative = !isAutoFit && gridWidths is {Count: > 0};
 
         var hasExplicitWidths = false;
 
@@ -144,7 +164,7 @@ static class TableLayout
             }
         }
 
-        if (hasExplicitWidths)
+        if (hasExplicitWidths && !gridIsAuthoritative)
         {
             var totalExplicitWidth = 0f;
             var columnsWithoutWidth = 0;
@@ -173,8 +193,10 @@ static class TableLayout
                 totalExplicitWidth = availableWidth;
             }
 
-            if (totalExplicitWidth > availableWidth)
+            if (totalExplicitWidth > availableWidth && isAutoFit)
             {
+                // Autofit only: a FIXED-layout table keeps its declared widths even when they
+                // overflow the text column — see OverflowsTextColumn below.
                 var scale = availableWidth / totalExplicitWidth;
                 for (var i = 0; i < colCount; i++)
                 {
@@ -232,8 +254,9 @@ static class TableLayout
                 totalWidth += width;
             }
 
-            if (totalWidth > availableWidth && totalWidth > 0)
+            if (totalWidth > availableWidth && totalWidth > 0 && isAutoFit)
             {
+                // Autofit only, as in the explicit-widths branch above.
                 var scale = availableWidth / totalWidth;
                 for (var i = 0; i < colCount; i++)
                 {
