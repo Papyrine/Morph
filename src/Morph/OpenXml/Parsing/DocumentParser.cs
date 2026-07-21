@@ -165,15 +165,25 @@ sealed class DocumentParser(string defaultFont)
     // Document default line spacing, used when no style supplies one. Word's built-in Normal
     // applies only when the document declares no styles.xml or no docDefaults (see
     // ExtractDefaultParagraphProperties); otherwise this keeps its long-standing 1.08.
-    // This deliberately does NOT read docDefaults/pPrDefault's own w:line: Word's cascade for
-    // that value is conditional in undecoded ways around table cells. Two measured
-    // counterexamples: postcards/04 declares w:line="360" yet Word renders its (atLeast-height)
-    // card cells at single spacing (applying 1.5 grows them 3->6 pages); agendas-minutes/07
-    // declares w:line="264" and applying it to the Normal-derived cell paragraphs shifts the
-    // whole content block ~45px below Word's render even though the inter-heading gaps then
-    // match Word exactly. Body-only evidence (letters/09: docDefaults without w:line renders
-    // single, not 1.08) says the docDefault should cascade for BODY paragraphs — decode the
-    // table-cell rule before wiring this up.
+    // This deliberately does NOT read docDefaults/pPrDefault's own w:line, though the cascade
+    // itself is no longer in doubt — it was implemented, measured and reverted 2026-07-22.
+    //
+    // What the probes settled (each rendering a doctored copy through Word itself):
+    //   * The cascade is REAL. Doubling agendas-minutes/07's declared w:line="264" to 480 takes
+    //     Word's own render from 2 pages to 3; removing it leaves Word single-spaced.
+    //   * It DOES reach table-cell paragraphs, so the long-suspected "cells are exempt" rule is
+    //     wrong. brochures/05 is almost entirely cell text and doubling its docDefault takes
+    //     Word from 4 pages to 7.
+    //   * A style's explicit w:line="240" correctly means single and wins over the docDefault
+    //     (agendas-minutes/07's Title and ListBullet), which is why only its Normal- and
+    //     Heading1-derived paragraphs move.
+    //
+    // Why it is still not wired up: honouring it moves 75 scenarios, 37 better and 25 worse for
+    // net -0.45 AE with SSIM agreeing on the winners — but it newly breaks page-count agreement
+    // on brochures/06, postcards/04 and resumes/07, which nulls their per-page metrics entirely,
+    // and brochures/06 grows a BLANK page 2 that BaselineHealthTests rejects. The correct spacing
+    // amplifies a pre-existing wrap defect (brochures/05 sets that paragraph in 5 lines where Word
+    // needs 4). Fix the wrap/pagination residual first; see todo.md "Systemic issues" #4.
     double defaultLineSpacingMultiplier = 1.08;
 
     // Document-level w:defaultTabStop in points (720 twips = 36 pt = 0.5 inch, OOXML default).
