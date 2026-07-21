@@ -18,6 +18,21 @@ public class HtmlExporterTests
             Heading(3, "Subsection")));
 
     /// <summary>
+    /// A <c>w:br</c> reaches the exporter as a newline run, which becomes a <c>&lt;br /&gt;</c>. A
+    /// paragraph of nothing but breaks is all whitespace, so it used to read as blank and be
+    /// dropped whole — collapsing nonstandard_main_part_name's Notes box, a cell whose only
+    /// content is seven breaks, to a 4px strip where Word gives it eight lines.
+    /// </summary>
+    [Test]
+    public Task BreakOnlyParagraph() =>
+        VerifyHtml(Doc(Para(TextRun("\n"), TextRun("\n"), TextRun("\n"))));
+
+    /// <summary>Text either side of a break still survives, with the break between them.</summary>
+    [Test]
+    public Task BreakBetweenText() =>
+        VerifyHtml(Doc(Para(TextRun("before"), TextRun("\n"), TextRun("after"))));
+
+    /// <summary>
     /// Word's BUILT-IN Heading 4/6 are italic, but the exported stylesheet must not assert that —
     /// the document's own style decides, and of the 12 corpus scenarios using Heading 4 not one
     /// declares italic. A heading whose style really IS italic reaches the exporter as italic runs,

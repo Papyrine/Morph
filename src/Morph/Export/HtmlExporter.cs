@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Serializes a <see cref="ParsedDocument"/> to HTML. By default emits a full self-contained
 /// <c>&lt;!doctype html&gt;</c> document with an embedded stylesheet of Word-like defaults
 /// (Calibri 11pt body, sized headings, paragraph margins, table padding) so the output renders
@@ -161,12 +161,19 @@ static class HtmlExporter
         HasContent(firstPage) ? firstPage :
         null;
 
+    /// <summary>
+    /// Blankness as HTML sees it: an explicit line break renders as a &lt;br /&gt; and occupies a
+    /// line, so a paragraph of nothing but breaks is content here even though it is all whitespace.
+    /// </summary>
+    static bool IsBlankForHtml(ParagraphElement paragraph) =>
+        DocumentExportHelpers.IsBlank(paragraph, lineBreaksRender: true);
+
     static bool HasFloatingShape(HeaderFooterContent? content) =>
         content != null && content.Elements.OfType<FloatingShapeElement>().Any();
 
     static bool HasContent(HeaderFooterContent? content) =>
         content != null &&
-        content.Elements.Any(_ => _ is not ParagraphElement paragraph || !DocumentExportHelpers.IsBlank(paragraph));
+        content.Elements.Any(_ => _ is not ParagraphElement paragraph || !IsBlankForHtml(paragraph));
 
     /// <summary>
     /// The most-used run font in the document, weighted by text length so a long body in one font
@@ -397,7 +404,7 @@ static class HtmlExporter
 
         void WriteParagraph(ParagraphElement paragraph, int depth)
         {
-            if (DocumentExportHelpers.IsBlank(paragraph))
+            if (IsBlankForHtml(paragraph))
             {
                 return;
             }
@@ -496,7 +503,7 @@ static class HtmlExporter
         // italic in particular — still flows through AppendInline.
         void WriteBlockQuote(IReadOnlyList<ParagraphElement> paragraphs, int depth)
         {
-            var visible = paragraphs.Where(_ => !DocumentExportHelpers.IsBlank(_)).ToList();
+            var visible = paragraphs.Where(_ => !IsBlankForHtml(_)).ToList();
             if (visible.Count == 0)
             {
                 return;
@@ -1026,7 +1033,7 @@ static class HtmlExporter
             foreach (var element in content)
             {
                 if (element is not ParagraphElement paragraph ||
-                    DocumentExportHelpers.IsBlank(paragraph) ||
+                    IsBlankForHtml(paragraph) ||
                     DocumentExportHelpers.TryGetHeadingLevel(paragraph.Properties) != null)
                 {
                     continue;
@@ -1086,7 +1093,7 @@ static class HtmlExporter
 
                 switch (element)
                 {
-                    case ParagraphElement paragraph when !DocumentExportHelpers.IsBlank(paragraph):
+                    case ParagraphElement paragraph when !IsBlankForHtml(paragraph):
                         var level = DocumentExportHelpers.TryGetHeadingLevel(paragraph.Properties);
                         if (level != null)
                         {
