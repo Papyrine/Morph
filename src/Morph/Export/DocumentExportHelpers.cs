@@ -160,13 +160,31 @@ static class DocumentExportHelpers
     /// a group's pictures, so a group built purely of shapes — a divider rule, an arrow glyph —
     /// leaves its paragraph blank.
     /// </param>
-    public static bool IsBlank(ParagraphElement paragraph, bool vectorShapesRender = true)
+    /// <param name="lineBreaksRender">
+    /// Whether an explicit line break (a <c>"\n"</c> run, from <c>w:br</c>) counts as content.
+    /// HTML turns each into a <c>&lt;br /&gt;</c> that occupies a line, so a break-only paragraph
+    /// is content there. Markdown renders a lone newline as a soft break — a space — so it is not.
+    /// </param>
+    public static bool IsBlank(ParagraphElement paragraph, bool vectorShapesRender = true, bool lineBreaksRender = false)
     {
         foreach (var run in paragraph.Runs)
         {
             if (run.Properties.Hidden)
             {
                 continue;
+            }
+
+            // A <w:br/> reaches the exporters as a "\n" run. That IS whitespace, so without this
+            // a paragraph of nothing but breaks reads as blank and is dropped whole — which is how
+            // nonstandard_main_part_name's Notes box, a cell whose only content is seven breaks,
+            // collapsed to a 4px strip in HTML while Word gives it eight lines. HTML renders each
+            // break as a <br />, so they are content there. Markdown has no equivalent (a lone
+            // newline is a soft break that renders as a space), so it keeps treating them as blank.
+            if (lineBreaksRender &&
+                run.Text != null &&
+                run.Text.Contains('\n'))
+            {
+                return false;
             }
 
             if (run.InlineImageData != null)
