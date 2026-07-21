@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Magick.NET-Q16-AnyCPU" />
     <PackageReference Include="Markdig" />
     <PackageReference Include="Microsoft.Playwright" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />

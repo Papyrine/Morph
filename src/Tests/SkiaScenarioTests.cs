@@ -63,8 +63,7 @@ public class SkiaScenarioTests
             var expectedFile = expectedFiles[i];
             var actualFile = actualFiles[i];
 
-            var errorMetric = PageAbsoluteError.Compare(expectedFile, actualFile);
-            var ssim = PageSsim.Compare(expectedFile, actualFile);
+            var (errorMetric, ssim) = PageComparison.Compare(expectedFile, actualFile);
             diffs.Add(new(i + 1, errorMetric, ssim, Path.GetFileName(expectedFile), $"skia_result#page_{i+1:0000}.verified.png", $"skia_result#page_{i+1:0000}.received.png"));
         }
 
