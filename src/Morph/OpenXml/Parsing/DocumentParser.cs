@@ -2829,6 +2829,7 @@ sealed class DocumentParser(string defaultFont)
         var width = DefaultPageSize.WidthPoints;
         var height = DefaultPageSize.HeightPoints;
         double marginTop = 72;
+        var topMarginIsAbsolute = false;
         double marginBottom = 72;
         double marginLeft = 72;
         double marginRight = 72;
@@ -2858,8 +2859,10 @@ sealed class DocumentParser(string defaultFont)
             if (pageMargin.Top?.HasValue == true)
             {
                 // ECMA-376 §17.6.11: a negative w:top means |val| is the distance from the top of
-                // the page to the top of the body, regardless of header height.
+                // the page to the top of the body, regardless of header height. A positive one is
+                // a minimum the header can push past, which TopMarginIsAbsolute distinguishes.
                 marginTop = Math.Abs(pageMargin.Top.Value) / twipsPerPoint;
+                topMarginIsAbsolute = pageMargin.Top.Value < 0;
             }
 
             if (pageMargin.Bottom?.HasValue == true)
@@ -2951,6 +2954,7 @@ sealed class DocumentParser(string defaultFont)
             WidthPoints = width,
             HeightPoints = height,
             MarginTop = marginTop,
+            TopMarginIsAbsolute = topMarginIsAbsolute,
             MarginBottom = marginBottom,
             MarginLeft = marginLeft,
             MarginRight = marginRight,

@@ -162,6 +162,33 @@ abstract class RenderContextBase
         CurrentY = ContentTop;
     }
 
+    /// <summary>
+    /// Reserves space for the header that was just rendered on THIS page, pushing the body down
+    /// when the header runs past the top margin.
+    ///
+    /// Word treats a positive <c>w:pgMar/@top</c> as a MINIMUM: the body starts at
+    /// <c>max(top, header + headerContentHeight)</c>, so a header taller than the margin moves the
+    /// body rather than being overlapped by it. <c>nonstandard_main_part_name</c>'s first page
+    /// carries a banner table that ends 87.8pt down against a 72pt margin, and without this its
+    /// title drew straight through the banner.
+    ///
+    /// It is applied per page, from the header actually painted, because the active header varies
+    /// (first / even / default) and those differ in height — measuring only the default header is
+    /// what let that scenario's tall <c>titlePg</c> banner reserve nothing. Rendering the header
+    /// first also means the reserved height is the real one, with no separate measurement pass to
+    /// drift out of step with it.
+    ///
+    /// A NEGATIVE <c>w:top</c> is exempt: ECMA-376 §17.6.11 makes it the absolute body offset, and
+    /// Word lets the header overlap the body there (<see cref="PageSettings.TopMarginIsAbsolute"/>).
+    /// </summary>
+    public void SetPageHeaderBottom(float headerBottom)
+    {
+        headerSpace = PageSettings.TopMarginIsAbsolute
+            ? 0
+            : Math.Max(0, headerBottom - (float) PageSettings.MarginTop);
+        CurrentY = ContentTop;
+    }
+
     public void SetHeaderFooterSpace(float headerHeight, float footerHeight)
     {
         var headerEnd = (float) PageSettings.HeaderDistance + headerHeight;

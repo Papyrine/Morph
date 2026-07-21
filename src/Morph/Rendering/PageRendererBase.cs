@@ -411,15 +411,18 @@ abstract class PageRendererBase(RenderContextBase context)
 
         if (activeHeader == null || !HasOutput)
         {
+            // No header on this page: release any space the previous page's header reserved.
+            context.SetPageHeaderBottom(0);
             return;
         }
 
-        var savedY = context.CurrentY;
         context.CurrentY = (float) context.PageSettings.HeaderDistance;
 
         RenderHeaderFooterElements(activeHeader);
 
-        context.CurrentY = savedY;
+        // Reserve what this page's header actually occupied, then park the cursor at the resulting
+        // body top. Deliberately NOT the saved cursor: the body starts below an overflowing header.
+        context.SetPageHeaderBottom(context.CurrentY);
     }
 
     /// <summary>
