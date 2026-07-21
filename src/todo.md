@@ -846,6 +846,40 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 - MAJOR | html | - | Same seven paragraph borders missing in the HTML export
 - MEDIUM | html | - | Table cell border weight/color distinction and inner divider missing in the HTML export
 
+> **ATTEMPT 2026-07-21 — CSS box borders + padding. REVERTED (net regression). Applies to html_css_borders, html_css_margin_padding, html_complex, html_css_colors.**
+> The model already has everything needed: `ParagraphProperties.Borders` (CellBorders), the four
+> `Border{Top,Bottom,Left,Right}SpacePoints` (which position the border box *outside* the text), and
+> `ParseCssBorderShorthand` already parses `1px solid #rrggbb`. Implemented: `ParseInlineStyle` reads
+> `border`/`padding`/`margin` (new `FirstCssLengthPoints` converts CSS px→pt at 0.75); `CreateParagraph`
+> maps border→`Borders`, padding→all four border-spaces AND Left/RightIndent (so the box edge lands at
+> the content margin per the CSS box model rather than pushing outward — border-space alone puts the
+> border *outside* the text, which is the DOCX w:pBdr model, not CSS), margin→spacing-after;
+> `ParseContainer` propagates the whole box to child paragraphs. Renderers (all three): the shading
+> band was drawn tight to the text *before* the top-space reservation, so it had to move after
+> `paragraphStartY` and expand by the border-spaces to fill the padded box; the space reservation was
+> broadened from "has border" to "has border OR border-space > 0" so padding-without-border still
+> reserves vertical room.
+>
+> **Result: borders and padded boxes DO render** (crops confirmed — the Info/Warning/Error boxes and
+> the #CCE5FF padded paragraph match Word's appearance closely), but the metric regressed everywhere:
+> html_complex p2 +0.053 AE, html_css_margin_padding +0.034, html_css_borders +0.021 AE / **−0.048
+> SSIM**, html_css_colors +0.010 (its div carries `padding:10px`). Three causes:
+> 1. **Border styles all draw solid.** `ParseCssBorderShorthand` discards the style token, and — more
+>    importantly — the paragraph-border renderers ignore `BorderEdge.Style` entirely (Skia's
+>    `CreatePaint` sets only colour/width/Stroke, no dash effect). Word draws dashed/dotted/double.
+> 2. **Per-edge borders unparsed** — `border-top`/`-bottom`/`-left` produce nothing, so
+>    "Top red, bottom blue borders" and "Left border only" stay blank.
+> 3. **Cumulative vertical drift** — the padded box heights don't match Word's, so every border below
+>    the first progressively misaligns, which is what dominates the AE.
+>
+> Also note the blast radius: broadening the reservation gate shifted two DOCX scenarios' PDF output
+> (brochures/06, newsletters/14 — paragraphs with border-space but no top border). Any retry must
+> keep that gate keyed off a border, or accept and re-judge those.
+>
+> **To land:** map the CSS style token to `BorderEdge.Style` AND teach the three paragraph-border
+> renderers to stroke dashed/dotted/double; parse the per-edge `border-*` longhands; then tune the
+> padding so box heights match Word before re-judging.
+
 ### html_css_colors
 
 - ✅ FIXED 2026-07-21 (block CSS) | all | p1 | Background fills missing: #FFFFCC and #E0E0E0 (div) bands now render full content-width (block/div background-color → paragraph shading).
