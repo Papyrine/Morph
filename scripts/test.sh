@@ -46,10 +46,21 @@ fi
 # Build the image if it doesn't exist locally. Force a rebuild by passing
 # MORPH_REBUILD=1 (used by CI and after editing Dockerfile.test).
 if [[ "${MORPH_REBUILD:-0}" == "1" ]] || ! docker image inspect "$IMAGE_TAG" >/dev/null 2>&1; then
-    echo ">>> Building ${IMAGE_TAG}" >&2
+    # The image's Playwright browser layer is keyed on this version alone, so bumping an
+    # unrelated package no longer invalidates it and re-downloads ~180MB of Chromium.
+    # src/Directory.Packages.props stays the single source of truth; it is read here rather
+    # than COPYed into the image (see Dockerfile.test).
+    PLAYWRIGHT_VERSION="$(sed -n 's/.*Microsoft\.Playwright" Version="\([^"]*\)".*/\1/p' "${REPO_ROOT}/src/Directory.Packages.props")"
+    if [[ -z "$PLAYWRIGHT_VERSION" ]]; then
+        echo "Could not read the Microsoft.Playwright version from src/Directory.Packages.props" >&2
+        exit 1
+    fi
+
+    echo ">>> Building ${IMAGE_TAG} (Playwright ${PLAYWRIGHT_VERSION})" >&2
     docker build \
         --platform=linux/amd64 \
         -f "${HOST_ROOT}/Dockerfile.test" \
+        --build-arg "PLAYWRIGHT_VERSION=${PLAYWRIGHT_VERSION}" \
         -t "$IMAGE_TAG" \
         "$HOST_ROOT"
 fi

@@ -27,6 +27,19 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # The image's Playwright browser layer is keyed on this version alone, so bumping an
+      # unrelated package doesn't invalidate the GHA cache entry and re-download Chromium.
+      # src/Directory.Packages.props stays the single source of truth (see Dockerfile.test).
+      - name: Read Playwright version
+        id: playwright
+        run: |
+          version="$(sed -n 's/.*Microsoft\.Playwright" Version="\([^"]*\)".*/\1/p' src/Directory.Packages.props)"
+          if [[ -z "$version" ]]; then
+            echo "Could not read the Microsoft.Playwright version from src/Directory.Packages.props" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - name: Build test image (with GHA cache)
         uses: docker/build-push-action@v6
         with:
@@ -35,6 +48,8 @@ jobs:
           platforms: linux/amd64
           tags: morph-test:latest
           load: true
+          build-args: |
+            PLAYWRIGHT_VERSION=${{ steps.playwright.outputs.version }}
           cache-from: type=gha,scope=morph-test
           cache-to: type=gha,scope=morph-test,mode=max
 
