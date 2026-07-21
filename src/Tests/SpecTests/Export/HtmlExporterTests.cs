@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Low-level tests for <see cref="HtmlExporter"/>. Output is snapshotted.
 /// </summary>
 public class HtmlExporterTests
@@ -16,6 +16,18 @@ public class HtmlExporterTests
             Heading(1, "Title"),
             Heading(2, "Section"),
             Heading(3, "Subsection")));
+
+    /// <summary>
+    /// Word's BUILT-IN Heading 4/6 are italic, but the exported stylesheet must not assert that —
+    /// the document's own style decides, and of the 12 corpus scenarios using Heading 4 not one
+    /// declares italic. A heading whose style really IS italic reaches the exporter as italic runs,
+    /// which still emit &lt;em&gt;, so nothing is lost by dropping the CSS assumption.
+    /// </summary>
+    [Test]
+    public Task Heading4NotForcedItalic() =>
+        VerifyHtml(Doc(
+            Styled("Heading4", TextRun("Upright heading", bold: true)),
+            Styled("Heading4", TextRun("Italic heading", bold: true, italic: true))));
 
     [Test]
     public Task DuplicateHeadingIds() =>

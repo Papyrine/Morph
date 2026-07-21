@@ -30,13 +30,19 @@ static class HtmlExporter
     const string defaultStylesheet = """
         body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
         p { margin: 0 0 8pt; }
+        /* Sizes only. Word's BUILT-IN Heading 4/6 are italic, but the document's own style decides:
+           an italic one reaches us as italic runs, which emit <em>. Asserting it here instead
+           forced italic onto every h4/h6 whose style is upright — of the 12 corpus scenarios using
+           Heading 4, not one declares italic. Bold is different: it IS asserted here, and the run
+           writer suppresses <strong> in a heading to match (an explicitly non-bold run still emits
+           font-weight: normal). */
         h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; clear: both; }
         h1 { font-size: 16pt; }
         h2 { font-size: 13pt; }
         h3 { font-size: 12pt; }
-        h4 { font-size: 11pt; font-style: italic; }
+        h4 { font-size: 11pt; }
         h5 { font-size: 11pt; }
-        h6 { font-size: 11pt; font-style: italic; }
+        h6 { font-size: 11pt; }
         ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
         li { margin: 0; }
         table { border-collapse: collapse; margin: 0 0 8pt; }
