@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Renders document pages to PNG images using SixLabors.ImageSharp.
 /// </summary>
 sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
@@ -22,7 +22,6 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     Image<Rgba32>? pendingPage;
     Image<Rgba32>? currentPage;
     DrawingCanvas? currentCanvas;
-    float headerHeight;
     IReadOnlyList<Watermark> watermarks = [];
 
     bool hasSignificantContentOnCurrentPage;
@@ -68,10 +67,9 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         watermarks = document.Watermarks;
         differentFirstPage = document.PageSettings.DifferentFirstPage;
 
-        headerHeight = MeasureHeaderFooterHeight(header);
-        footerHeight = MeasureHeaderFooterHeight(footer);
-
-        context.SetHeaderFooterSpace(headerHeight, footerHeight);
+        // Header and footer space are both resolved per page from the header/footer actually
+        // active there (see RenderHeader / RenderFooter), so nothing is reserved up front.
+        context.SetHeaderFooterSpace(0, 0);
         context.InitializeLineNumbers();
 
         StartNewPage();
@@ -124,8 +122,16 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     }
 
     // ReSharper disable once UnusedParameter.Local
-    static float MeasureHeaderFooterHeight(HeaderFooterContent? content) =>
-        0;
+    protected override float MeasureHeaderFooterHeight(HeaderFooterContent content)
+    {
+        var total = 0f;
+        foreach (var element in content.Elements)
+        {
+            total += MeasureElementHeight(element);
+        }
+
+        return total;
+    }
 
     void RenderNotesAppendix(ParsedDocument document)
     {
