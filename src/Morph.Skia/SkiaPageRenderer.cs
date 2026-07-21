@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Renders document pages to PNG images.
 /// </summary>
 sealed class SkiaPageRenderer(SkiaRenderContext context) :
@@ -22,7 +22,6 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
     SKBitmap? pendingPage;
     SKBitmap? currentPage;
     SKCanvas? currentCanvas;
-    float headerHeight;
     IReadOnlyList<Watermark> watermarks = [];
 
     // Track whether meaningful content (text/images/tables) was rendered on current page
@@ -59,11 +58,9 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         differentFirstPage = document.PageSettings.DifferentFirstPage;
 
         // Measure header and footer heights
-        headerHeight = MeasureHeaderFooterHeight(header);
-        footerHeight = MeasureHeaderFooterHeight(footer);
-
-        // Adjust context for header/footer space
-        context.SetHeaderFooterSpace(headerHeight, footerHeight);
+        // Header and footer space are both resolved per page from the header/footer actually
+        // active there (see RenderHeader / RenderFooter), so nothing is reserved up front.
+        context.SetHeaderFooterSpace(0, 0);
 
         // Initialize line numbering
         context.InitializeLineNumbers();
@@ -132,14 +129,16 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         return pageCount;
     }
 
-    // ReSharper disable once UnusedParameter.Local
-    static float MeasureHeaderFooterHeight(HeaderFooterContent? content) =>
-        // For now, return 0 to not adjust body content area based on header/footer.
-        // Headers and footers render in their own areas (HeaderDistance/FooterDistance)
-        // and shouldn't push body content in typical Word documents.
-        // This matches Word's behavior where body content area is determined solely
-        // by page margins, not by header/footer content size.
-        0;
+    protected override float MeasureHeaderFooterHeight(HeaderFooterContent content)
+    {
+        var total = 0f;
+        foreach (var element in content.Elements)
+        {
+            total += MeasureElementHeight(element);
+        }
+
+        return total;
+    }
 
     void RenderNotesAppendix(ParsedDocument document)
     {

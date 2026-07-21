@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Drives the shared <see cref="PageRendererBase"/> layout engine onto PdfSharp pages. All table,
 /// pagination, form-field, content-control and header/footer logic is inherited; this class supplies
 /// the PdfSharp drawing primitives and the document-level render loop (mirroring the Skia backend).
@@ -772,6 +772,18 @@ sealed class PdfPageRenderer : PageRendererBase
     // flow will charge it (a following paragraph collapses its spacing-before against this
     // paragraph's spacing-after). Tables return 0 (keep-before-table stays inert in the PDF
     // backend until it has a table pre-measure).
+    protected override float MeasureHeaderFooterHeight(HeaderFooterContent content)
+    {
+        var total = 0f;
+        foreach (var element in content.Elements)
+        {
+            // Nothing precedes the first element, so there is no prior spacing-after to collapse.
+            total += MeasureElementHeight(element, 0);
+        }
+
+        return total;
+    }
+
     float MeasureElementHeight(DocumentElement element, double previousSpacingAfter) =>
         element switch
         {

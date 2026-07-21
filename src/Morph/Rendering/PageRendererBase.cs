@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Backend-agnostic orchestration shared by SkiaPageRenderer and ImageSharpPageRenderer.
 /// Owns table rendering, pagination, and cell-content fan-out. Backends supply only the
 /// drawing primitives via the abstract members.
@@ -88,7 +88,6 @@ abstract class PageRendererBase(RenderContextBase context)
     protected HeaderFooterContent? evenPageHeader;
     protected HeaderFooterContent? evenPageFooter;
     protected bool differentFirstPage;
-    protected float footerHeight;
 
     // Form-field palette. Same constants used by every backend; centralising them here makes
     // the abstract draw primitives backend-agnostic without leaking ImageSharp/Skia color types.
@@ -452,13 +451,26 @@ abstract class PageRendererBase(RenderContextBase context)
             return;
         }
 
+        // w:pgMar/@footer is the distance from the bottom of the PAGE to the bottom of the FOOTER,
+        // so the block grows upward: adding paragraphs leaves the last line where it was. Measured
+        // against Word by rendering probe copies of nonstandard_main_part_name with 1 and 3 footer
+        // paragraphs — its final line stayed at y=1684..1705 in both while the block extended up.
+        // The height is the ACTIVE footer's, since first/even/default differ (see RenderHeader).
         var savedY = context.CurrentY;
-        context.CurrentY = (float) (context.PageSettings.HeightPoints - context.PageSettings.FooterDistance - footerHeight);
+        context.CurrentY = (float) (context.PageSettings.HeightPoints - context.PageSettings.FooterDistance)
+                           - MeasureHeaderFooterHeight(activeFooter);
 
         RenderHeaderFooterElements(activeFooter);
 
         context.CurrentY = savedY;
     }
+
+    /// <summary>
+    /// Total flow height of header/footer content — the paragraphs and tables that advance the
+    /// cursor. Floating shapes and images are positioned independently and contribute nothing,
+    /// matching Word, whose header/footer extent is its text flow.
+    /// </summary>
+    protected abstract float MeasureHeaderFooterHeight(HeaderFooterContent content);
 
     void RenderHeaderFooterElements(HeaderFooterContent content)
     {
