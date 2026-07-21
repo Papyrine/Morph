@@ -1162,9 +1162,11 @@ A4 (595.28 x 841.89pt), Letter (612 x 792pt), Legal (612 x 1008pt), and custom d
 - **OOXML**: `w:pgSz` — `w:w`, `w:h` (in twentieths of a point)
 - **Spec**: [Page Size](http://officeopenxml.com/WPsection.php)
 - **Model**: `PageSettings.WidthPoints`, `HeightPoints`
-- **Test**: `page_a4/`, `page_letter/`, `page_legal/`
+- **Test**: `page_a4/`, `page_letter/`, `page_legal/`, `nonstandard_main_part_name/` (`w:code`)
 
 > **Contributors**: Default page size is region-based — Letter for North America (US, CA, MX, etc.), A4 elsewhere. Controlled by `DefaultPageSize` class. Can be overridden via `DefaultPageSize.UseLetterSize`.
+
+> **AI**: `w:pgSz/@code` — the printer paper code — is not read, and Word gives it priority over the declared twips. `nonstandard_main_part_name` declares `w:h=16840` (842.0pt) with `w:code="9"` (A4): Word renders the true A4 841.89pt, Morph the literal 842.0pt, so the page is 1754px tall against Word's 1753 at 150 DPI. It is the corpus's only page-size mismatch, and because `PageComparison` returns a null SSIM whenever the dimensions differ, that one pixel costs the scenario its SSIM coverage. The six other A4 scenarios declare `w:h=16838` and match exactly.
 
 
 #### Landscape Orientation `DONE`

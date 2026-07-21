@@ -1,4 +1,4 @@
-# All PDF export scenarios (324)
+# All PDF export scenarios (325)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -233,6 +233,7 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [newsletters/12](#newsletters12)
 - [newsletters/13](#newsletters13)
 - [newsletters/14](#newsletters14)
+- [nonstandard_main_part_name](#nonstandard_main_part_name)
 - [numbered_list](#numbered_list)
 - [numbered_list_restart](#numbered_list_restart)
 - [numbered_list_tracking](#numbered_list_tracking)
@@ -2960,6 +2961,16 @@ PDF: [Morph PDF](newsletters/13/pdf_result.verified.pdf)
 | <img src="newsletters/14/expected_0002.png" width="500"> | <img src="newsletters/14/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](newsletters/14/pdf_result.verified.pdf)
+
+
+## nonstandard_main_part_name
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0354** |
+| <img src="nonstandard_main_part_name/expected_0001.png" width="500"> | <img src="nonstandard_main_part_name/pdf_result%23page_0001.verified.png" width="500"> |
+
+PDF: [Morph PDF](nonstandard_main_part_name/pdf_result.verified.pdf)
 
 
 ## numbered_list
