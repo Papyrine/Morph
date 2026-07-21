@@ -42,6 +42,8 @@ static class HtmlExporter
         table { border-collapse: collapse; margin: 0 0 8pt; }
         td, th { padding: 4pt 7pt; vertical-align: top; }
         hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+        header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
+        footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
         """;
 
     public static string Export(ParsedDocument document, HtmlExportOptions? options = null)
@@ -54,11 +56,16 @@ static class HtmlExporter
         // tagging every run with the same family.
         var bodyFont = DominantFont(document.Elements);
 
+        var headerContent = PickHeaderFooter(document.Header, document.FirstPageHeader);
+        var footerContent = PickHeaderFooter(document.Footer, document.FirstPageFooter);
+
         if (!options.EmitDocument)
         {
             var fragmentWriter = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes);
+            WriteHeaderFooter(fragmentWriter, headerContent, "header", "doc-header");
             fragmentWriter.WriteElements(document.Elements, 0);
             fragmentWriter.WriteNoteDefinitions();
+            WriteHeaderFooter(fragmentWriter, footerContent, "footer", "doc-footer");
             return fragmentWriter.ToString();
         }
 
@@ -85,8 +92,12 @@ static class HtmlExporter
         bodyStyle.Add($"padding: {BoxShorthand(page.MarginTop, page.MarginRight, page.MarginBottom, page.MarginLeft)}");
 
         // Background shapes are emitted as absolutely-positioned <svg> children; they resolve their
-        // top/left against the body, so the body must be a positioning context.
-        if (document.Elements.OfType<FloatingShapeElement>().Any())
+        // top/left against the body, so the body must be a positioning context. Header and footer
+        // content counts too — a template whose only floating art lives in its header (a full-page
+        // banner band) would otherwise resolve it against the viewport.
+        if (document.Elements.OfType<FloatingShapeElement>().Any() ||
+            HasFloatingShape(headerContent) ||
+            HasFloatingShape(footerContent))
         {
             bodyStyle.Add("position: relative");
         }
@@ -106,11 +117,50 @@ static class HtmlExporter
 
         doc.Append(">\n");
         var writer = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes, doc);
+        WriteHeaderFooter(writer, headerContent, "header", "doc-header");
         writer.WriteElements(document.Elements, 0);
         writer.WriteNoteDefinitions();
+        WriteHeaderFooter(writer, footerContent, "footer", "doc-footer");
         doc.Append("</body>\n</html>");
         return doc.ToString();
     }
+
+    /// <summary>
+    /// Emits a header or footer once, wrapped in its semantic element. HTML has no pagination, so
+    /// per-page repetition is meaningless — but dropping the content entirely loses whatever the
+    /// template put there, which for a marked-up document is the classification banner every
+    /// rendered page carries.
+    /// </summary>
+    static void WriteHeaderFooter(HtmlWriter writer, HeaderFooterContent? content, string tag, string className)
+    {
+        if (content == null)
+        {
+            return;
+        }
+
+        writer.WriteRaw($"<{tag} class=\"{className}\">\n");
+        writer.WriteElements(content.Elements, 0);
+        writer.WriteRaw($"</{tag}>\n");
+    }
+
+    /// <summary>
+    /// Chooses which of a header/footer pair to export. The DEFAULT one wins because it is what
+    /// most of the document carries; the first-page variant is the fallback, for a document whose
+    /// only header is a cover treatment. A first-page variant is often deliberately blank (Word's
+    /// way of suppressing the header on page 1), so an empty one must not mask the default —
+    /// hence the content test rather than a plain null check.
+    /// </summary>
+    static HeaderFooterContent? PickHeaderFooter(HeaderFooterContent? standard, HeaderFooterContent? firstPage) =>
+        HasContent(standard) ? standard :
+        HasContent(firstPage) ? firstPage :
+        null;
+
+    static bool HasFloatingShape(HeaderFooterContent? content) =>
+        content != null && content.Elements.OfType<FloatingShapeElement>().Any();
+
+    static bool HasContent(HeaderFooterContent? content) =>
+        content != null &&
+        content.Elements.Any(_ => _ is not ParagraphElement paragraph || !DocumentExportHelpers.IsBlank(paragraph));
 
     /// <summary>
     /// The most-used run font in the document, weighted by text length so a long body in one font
@@ -233,6 +283,9 @@ static class HtmlExporter
         readonly Dictionary<string, int> noteNumbers = [];
 
         public override string ToString() => builder.ToString();
+
+        /// <summary>Appends already-escaped markup (the header/footer wrapper elements).</summary>
+        public void WriteRaw(string markup) => builder.Append(markup);
 
         public void WriteElements(IReadOnlyList<DocumentElement> elements, int depth)
         {
