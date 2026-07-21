@@ -1,4 +1,4 @@
-# All HTML export scenarios (324)
+# All HTML export scenarios (325)
 
 The Word reference render (left) beside the HTML exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -233,6 +233,7 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [newsletters/12](#newsletters12)
 - [newsletters/13](#newsletters13)
 - [newsletters/14](#newsletters14)
+- [nonstandard_main_part_name](#nonstandard_main_part_name)
 - [numbered_list](#numbered_list)
 - [numbered_list_restart](#numbered_list_restart)
 - [numbered_list_tracking](#numbered_list_tracking)
@@ -1699,6 +1700,12 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | Expected (Word) | Morph HTML |
 | --- | --- |
 | <img src="newsletters/14/expected_0001.png" width="500"><br><img src="newsletters/14/expected_0002.png" width="500"> | <img src="newsletters/14/html_result.verified.png" width="500"> |
+
+## nonstandard_main_part_name
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="nonstandard_main_part_name/expected_0001.png" width="500"> | <img src="nonstandard_main_part_name/html_result.verified.png" width="500"> |
 
 ## numbered_list
 
