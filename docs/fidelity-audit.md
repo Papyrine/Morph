@@ -77,6 +77,15 @@ and stay green forever. That let two real regressions through: a metric-invisibl
 class, and — the extreme case — four `newsletters/06` Skia pages that collapsed to a solid navy
 fill with no content yet passed the suite because the baseline WAS the broken image.
 
+A second, compounding gap sits under the same scenario: **a page-count mismatch suppresses the
+per-page diffs entirely.** `PageDiffs` returns null unless the rendered page count equals the
+reference count, so a scenario like `newsletters/06` (6 pages against Word's 4) records nothing
+but the two counts — no AE, no SSIM, on any page. As of 2026-07-21 that is 5 of 324 scenarios:
+`business-plans/02`, `image_wrap_square`, `newsletters/06`, `newsletters/09`, `resumes/13`. For
+those the guard below and manual crop-vetting are the only signals, and step 2 of the judging
+loop cannot run at all — a metric-delta report has nothing to compare and will not list them
+among the changed scenarios. Check that set by hand whenever a change touches them.
+
 `BaselineHealthTests` (`src/Tests/BaselineHealthTests.cs`) is the automated backstop for the
 extreme end of that class: a whole page collapsing to a near-solid fill. A rendered document page
 essentially always carries anti-aliased text, so it has hundreds of unique colours; a collapsed
@@ -101,9 +110,10 @@ whose unique-colour count is at or below **16**.
   noisier than the colour count, which separates the two populations exactly.
 - **Allow-list.** `KnownDegenerate` holds the exceptions in two labelled categories: pages that
   are *intentionally blank* (Word renders them empty too, e.g. `explicit_break_blank_page` page 2)
-  and *known regressions* not yet fixed (currently the four `newsletters/06` Skia pages). The test
-  also asserts every allow-listed page is STILL degenerate, so fixing and regenerating one forces
-  its own removal from the list instead of letting the entry rot.
+  and *known regressions* not yet fixed (empty since 2026-07-21 — the four `newsletters/06` Skia
+  pages the guard was written for are fixed; see `floating-art-pipeline.md`). The test also
+  asserts every allow-listed page is STILL degenerate, so fixing and regenerating one forces its
+  own removal from the list instead of letting the entry rot.
 
 ## Practical notes
 

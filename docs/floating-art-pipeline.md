@@ -112,6 +112,33 @@ NaN'd every child position. Both root-scale computations (SP and the walk) clamp
 degenerate length to 1, matching `GetAccumulatedTransform`'s long-standing nested-group
 clamps, and a zero-area group frame skips the child clip entirely.
 
+## Stroke widths under a group transform
+
+A group member's `a:ln/@w` is **absolute EMU and does not ride the group transform**. All four
+renderers convert it straight to points (`w / 12700`) and scale only by the page's device
+factor; the child→display scale (`sx`/`sy`, or the HTML export's `viewBox`, which is neutralised
+by `vector-effect="non-scaling-stroke"`) applies to geometry alone.
+
+The trap is that `a:chExt` is NOT reliably EMU. The schema types it as a coordinate, but a group
+converted from legacy VML carries the VML `coordsize` grid instead — newsletters/06's icons are
+`a:ext=908050 EMU` over `a:chExt=1430`, i.e. **1 child unit = 635 EMU = 1 twip**. So
+`pixelWidth / ChildExtentX` is "pixels per child unit", and multiplying `LineWidthEmu` by it
+silently folds a *unit conversion* into the stroke: those icons' 2pt frame drew at 2646px and
+flooded four whole pages with solid navy. Because `a:ext / a:chExt` is 635 in that unit-change
+case and 0.59 in business-plans/12's honest resize case, the ratio alone cannot tell the two
+apart — which is the real reason there is no correct way to scale the stroke by it.
+
+Measured against Word both ways, at opposite extremes of the ratio:
+
+| scenario | `a:ext / a:chExt` | authored `a:ln/@w` | Word renders |
+| --- | --- | --- | --- |
+| newsletters/06 balloons frame | 635 (twip child grid) | 25400 EMU = 2pt | 4–5px @150dpi = **2pt** |
+| business-plans/12 header arrow | 0.592 (genuine resize) | 165100 EMU = 13pt | 28px @150dpi = **13pt** |
+
+Both are the authored width untouched. Note the second row is the same drawing as the
+document-body arrow (`a:ext == a:chExt == wp:extent`) shrunk to fit the header: the geometry
+scales, the stroke does not.
+
 ## Anchor alignment (`wp:align`)
 
 `wp:positionH`/`wp:positionV` carry EITHER a `wp:posOffset` or a `wp:align`
@@ -298,6 +325,26 @@ Do not re-attempt these as-is; each needs the recorded blocker resolved first.
    resumes/10's page-edge circle now cuts flat at the page edge like Word. Cost accepted:
    a thin filled rect with a same-colour `a:ln` draws one line-width fatter (wedding/04's
    centre divider, +0.001/backend).
+7. **Scaling group member stroke widths by the group transform** (landed 2026-07-18 at
+   `8da1f624d`, reverted 2026-07-21): `StrokeWidth = LineWidthEmu · sx` in the raster/PDF
+   backends, with a geometric mean for boxes and an along-axis factor for lines to dodge the
+   degenerate cross-axis of single-line wrapper groups. It is wrong at the premise — see
+   "Stroke widths under a group transform" above: `a:ln/@w` is absolute, and `sx` is pixels per
+   CHILD unit, which is only pixels-per-EMU when `a:chExt` happens to be EMU. Two things hid it
+   for three days. First, its motivating scenario (business-plans/12) is EMU-child-space, so the
+   change merely thinned strokes 13pt→7.7pt and the arrow still *assembled* correctly — the
+   glyph shape was judged, its stroke weight was not, and the accompanying square-cap fix
+   (correct, kept) carried the visible improvement. Second, its worst victim
+   (newsletters/06) renders 6 pages against Word's 4, and a page-count mismatch suppresses the
+   per-page AE/SSIM diffs entirely, so four pages could go solid navy with no metric moving.
+   `BaselineHealthTests` exists because of exactly that gap. The revert is a net improvement on
+   every affected scenario: business-plans/12 −0.0006/page across 16 pages in both raster
+   backends, resumes/03 −0.0005, all six newsletters/06 pages restored in all three backends
+   (which also cleared its "icons render as solid navy squares" finding — the icon art was
+   always parsed correctly, the flooded stroke was painting over it), and newsletters/03's
+   hexagon outlines back to Word's measured 3px from 1–2px. newsletters/03 p2 posts +0.0009 AE
+   for that — a textbook new-ink offset penalty, since the now-correct outline sits ~3px off
+   Word's position.
 
 ## See also
 

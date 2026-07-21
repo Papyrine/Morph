@@ -7,7 +7,9 @@
 /// a metric-invisible thin-strip class, and — the case this guard is named for — four
 /// <c>newsletters/06</c> Skia pages that collapsed to a solid navy fill with no content
 /// (promoted broken at 8da1f624d, 2026-07-18) yet passed the suite because the baseline was
-/// itself the broken image.
+/// itself the broken image. That scenario is doubly instructive: it renders 6 pages against
+/// Word's 4, and a page-count mismatch suppresses the per-page AE/SSIM diffs entirely, so it
+/// had no metric coverage at all — this guard was the only thing watching it.
 ///
 /// A rendered document page essentially always carries anti-aliased text, so it has hundreds
 /// of unique colours. A page that has collapsed to a single solid fill has a handful. Across
@@ -65,16 +67,10 @@ public class BaselineHealthTests
         "explicit_break_blank_page/imagesharp_result#page_0002.verified.png",
         "explicit_break_blank_page/pdf_result#page_0002.verified.png",
 
-        // -- Known regression (temporary — remove when fixed) --
-        // The Skia backend renders these four newsletters/06 pages as a solid navy fill with
-        // no content (3 unique colours). The ImageSharp and PDF backends render them
-        // correctly, so this is a Skia-only defect promoted broken at 8da1f624d (2026-07-18).
-        // Full forensics (bisect + corpus scan) live in src/todo.md. Fixing it requires a
-        // code change plus a baseline regen in the container; delete these four lines then.
-        "newsletters/06/skia_result#page_0001.verified.png",
-        "newsletters/06/skia_result#page_0002.verified.png",
-        "newsletters/06/skia_result#page_0004.verified.png",
-        "newsletters/06/skia_result#page_0005.verified.png",
+        // -- Known regressions (temporary — remove when fixed) --
+        // (none currently: the four newsletters/06 Skia pages this guard was written for were
+        // fixed by treating a:ln/@w as absolute rather than group-scaled, see
+        // docs/floating-art-pipeline.md.)
     };
 
     public static IEnumerable<string> GetScenarioDirectories()

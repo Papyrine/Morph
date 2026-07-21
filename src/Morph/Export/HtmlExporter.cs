@@ -1543,9 +1543,11 @@ static class HtmlExporter
         }
 
         // An inline wpg:wgp group becomes an inline <svg> whose viewBox IS the group's child
-        // coordinate space, so every shape keeps its EMU geometry — including stroke widths — and
-        // the browser scales the whole thing into the run's box. preserveAspectRatio="none" matches
-        // the raster backends, which scale x and y independently.
+        // coordinate space, so every shape keeps its authored geometry and the browser scales the
+        // whole thing into the run's box. preserveAspectRatio="none" matches the raster backends,
+        // which scale x and y independently. Stroke widths ride out of that scale on
+        // vector-effect="non-scaling-stroke": a:ln/@w is absolute EMU and the child coordinate
+        // space is not always EMU (see docs/floating-art-pipeline.md).
         void AppendShapeGroup(InlineShapeGroup group, double widthPoints, double heightPoints)
         {
             if (widthPoints <= 0 || heightPoints <= 0 || group.ChildExtentX <= 0 || group.ChildExtentY <= 0)
@@ -1585,14 +1587,6 @@ static class HtmlExporter
 
         void AppendGroupShape(GroupShape shape, InlineShapeGroup group, double widthPoints, double heightPoints)
         {
-            // The group transform scales stroke widths along with the geometry (Word's model): a
-            // group displayed at half its child size draws its 20pt connector lines at 10pt.
-            // AppendStroke pins widths in CSS pixels (vector-effect), so the scale must be baked
-            // into the width itself; on an unscaled icon this is exactly the identity.
-            var strokeScale = Math.Sqrt(
-                widthPoints * emusPerPoint / group.ChildExtentX *
-                (heightPoints * emusPerPoint / group.ChildExtentY));
-
             if (shape.Geometry == GroupShapeGeometry.Line)
             {
                 var (startX, endX) = shape.FlipHorizontal ? (shape.X + shape.Width, shape.X) : (shape.X, shape.X + shape.Width);
@@ -1600,15 +1594,9 @@ static class HtmlExporter
                 builder.Append("<line x1=\"").Append(Number(startX)).Append("\" y1=\"").Append(Number(startY))
                     .Append("\" x2=\"").Append(Number(endX)).Append("\" y2=\"").Append(Number(endY))
                     .Append("\" stroke-linecap=\"square\"");
-                // A line's stroke scales by its along-axis factor: the cross-axis "scale" of a
-                // single-line wrapper group is degenerate (the child box is the line itself), so
-                // the geometric mean would blow a divider rule into a page-wide band.
-                var lineScale = shape.Height <= 0 ? widthPoints * emusPerPoint / group.ChildExtentX
-                    : shape.Width <= 0 ? heightPoints * emusPerPoint / group.ChildExtentY
-                    : strokeScale;
                 // Default to 0.75pt when the shape carries no explicit a:ln/@w, as the raster
                 // backends do. Widths stay in EMU — the same space as the viewBox.
-                AppendStroke(shape, shape.LineWidthEmu > 0 ? shape.LineWidthEmu * lineScale : 0.75 * emusPerPoint);
+                AppendStroke(shape, shape.LineWidthEmu > 0 ? shape.LineWidthEmu : 0.75 * emusPerPoint);
                 builder.Append(" />");
                 return;
             }
@@ -1678,7 +1666,7 @@ static class HtmlExporter
                 {
                     AppendGroupGeometry(shape, isEllipse);
                     builder.Append(" fill=\"none\"");
-                    AppendStroke(shape, shape.LineWidthEmu * strokeScale);
+                    AppendStroke(shape, shape.LineWidthEmu);
                     builder.Append(" />");
                 }
 
@@ -1692,7 +1680,7 @@ static class HtmlExporter
                 builder.Append(" fill-opacity=\"").Append(Number(shape.FillAlpha)).Append('"');
             }
 
-            AppendStroke(shape, shape.LineWidthEmu * strokeScale);
+            AppendStroke(shape, shape.LineWidthEmu);
             builder.Append(" />");
         }
 
