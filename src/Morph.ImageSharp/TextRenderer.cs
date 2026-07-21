@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Renders text content with formatting using SixLabors.ImageSharp.
 /// </summary>
 sealed class TextRenderer(ImageSharpRenderContext context) :
@@ -582,6 +582,13 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var currentFragments = new List<TextFragment>();
         var isFirstLine = true;
 
+        // Metrics of the most recent <w:br/>, kept so a paragraph ENDING in one still gets the
+        // line box that follows it — Word lays 7 trailing breaks out as 8 lines. Only consulted
+        // when the paragraph runs out with nothing on the current line, which is exactly the case
+        // where the break was its last content: anything after a break lands in currentFragments,
+        // and a wrap can only fire while that list is non-empty.
+        (float Height, float Baseline)? trailingBreak = null;
+
         var firstLineIndent = (float)props.FirstLineIndentPoints;
         var effectiveWidth = adjustedMaxWidth - (isFirstLine ? firstLineIndent : 0);
         var hasDecimalTabStop = props.HasDecimalTabStop();
@@ -746,6 +753,9 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                             });
                     }
 
+                    // Remember the break's own metrics in case it is the paragraph's last content.
+                    trailingBreak = (runHeight, baseline);
+
                     // Start new line
                     currentFragments.Clear();
                     currentLineWidth = 0;
@@ -811,6 +821,20 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                 IsFirstLine = isFirstLine,
                 IsLastLine = true  // This is the last line
             });
+        }
+        else if (trailingBreak is {} lastBreak)
+        {
+            // Paragraph ended on a <w:br/>: Word still opens the line after it.
+            lines.Add(
+                new()
+                {
+                    Fragments = [],
+                    Width = 0,
+                    Height = lastBreak.Height,
+                    Baseline = lastBreak.Baseline,
+                    IsFirstLine = isFirstLine,
+                    IsLastLine = true
+                });
         }
 
         // Handle empty paragraph - Word derives the line from the paragraph mark's formatting.
@@ -1733,6 +1757,10 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var currentFragments = new List<TextFragment>();
         var isFirstLine = true;
 
+        // See the sibling layout above: a paragraph ending on a <w:br/> still gets the line box
+        // that follows it.
+        (float Height, float Baseline)? trailingBreak = null;
+
         // First line: offset by FirstLineIndent (positive = indent right)
         // Subsequent lines: offset by HangingIndent (positive = indent right)
         var firstLineOffset = (float)props.FirstLineIndentPoints;
@@ -1906,6 +1934,9 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                             });
                     }
 
+                    // Remember the break's own metrics in case it is the paragraph's last content.
+                    trailingBreak = (runHeight, runBaseline);
+
                     // Start new line
                     currentFragments.Clear();
                     currentLineWidth = 0;
@@ -1981,6 +2012,20 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
                     Baseline = maxBaseline,
                     IsFirstLine = isFirstLine,
                     IsLastLine = true // This is the last line with content
+                });
+        }
+        else if (trailingBreak is {} lastBreak)
+        {
+            // Paragraph ended on a <w:br/>: Word still opens the line after it.
+            lines.Add(
+                new()
+                {
+                    Fragments = [],
+                    Width = 0,
+                    Height = lastBreak.Height,
+                    Baseline = lastBreak.Baseline,
+                    IsFirstLine = isFirstLine,
+                    IsLastLine = true
                 });
         }
 
