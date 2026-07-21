@@ -52,25 +52,29 @@ ENV DOTNET_NOLOGO=1 \
 # Bake Playwright's Chromium (+ its OS dependencies) into the image so the
 # HTML/Markdown export scenario tests can rasterize via headless Chromium.
 # The browser is pinned to the Microsoft.Playwright package version so
-# rasterization is identical across machines and CI. That version is read
-# straight from src/Directory.Packages.props (the single source of truth the
-# real test build restores) so there is no second place to bump — a mismatch
-# here means the runtime asks for a browser revision the image never baked in.
-# Copying the props file in also keys this layer's cache to it: bump the package
-# and the next rebuild re-downloads the matching browser. The real test build is
-# volume-mounted only at runtime, so a throwaway project at the same version
-# supplies the matching install script here at build time; its restore is
-# isolated to /tmp so nothing leaks into the runtime-mounted /nuget cache.
-COPY src/Directory.Packages.props /tmp/Directory.Packages.props
-RUN mkdir -p /tmp/pw && cd /tmp/pw \
-    && PLAYWRIGHT_VERSION="$(sed -n 's/.*Microsoft\.Playwright" Version="\([^"]*\)".*/\1/p' /tmp/Directory.Packages.props)" \
-    && { test -n "${PLAYWRIGHT_VERSION}" || { echo "Could not read Microsoft.Playwright version from Directory.Packages.props" >&2; exit 1; }; } \
+# rasterization is identical across machines and CI. src/Directory.Packages.props
+# remains the single source of truth for that version — a mismatch means the
+# runtime asks for a browser revision the image never baked in — but the CALLER
+# reads it and passes it in (scripts/test.sh and .github/workflows/test.yml both
+# do). This layer is therefore keyed on the version string ALONE.
+#
+# It used to COPY the props file in and sed the version out of it, which keyed the
+# layer to the whole file: bumping ANY unrelated package invalidated it and
+# re-downloaded ~180MB of Chromium. Keep it an ARG.
+#
+# The real test build is volume-mounted only at runtime, so a throwaway project at
+# the same version supplies the matching install script here at build time; its
+# restore is isolated to /tmp so nothing leaks into the runtime-mounted /nuget cache.
+ARG PLAYWRIGHT_VERSION
+RUN test -n "${PLAYWRIGHT_VERSION}" \
+        || { echo "PLAYWRIGHT_VERSION build-arg is required — pass Microsoft.Playwright's version from src/Directory.Packages.props (scripts/test.sh does this for you)" >&2; exit 1; } \
+    && mkdir -p /tmp/pw && cd /tmp/pw \
     && echo "Installing Playwright browsers for Microsoft.Playwright ${PLAYWRIGHT_VERSION}" \
     && NUGET_PACKAGES=/tmp/pw/nuget dotnet new console >/dev/null \
     && NUGET_PACKAGES=/tmp/pw/nuget dotnet add package Microsoft.Playwright --version "${PLAYWRIGHT_VERSION}" >/dev/null \
     && NUGET_PACKAGES=/tmp/pw/nuget dotnet build -c Release >/dev/null \
     && pwsh bin/Release/net10.0/playwright.ps1 install chromium --with-deps \
-    && cd / && rm -rf /tmp/pw /tmp/Directory.Packages.props
+    && cd / && rm -rf /tmp/pw
 
 WORKDIR /src
 
