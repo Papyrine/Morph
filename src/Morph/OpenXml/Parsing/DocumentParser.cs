@@ -2848,6 +2848,8 @@ sealed class DocumentParser(string defaultFont)
             {
                 height = pageSize.Height.Value / twipsPerPoint;
             }
+
+            (width, height) = SnapToPaperCode(pageSize.Code?.Value, width, height);
         }
 
         double gutterPoints = 0;
@@ -2967,6 +2969,73 @@ sealed class DocumentParser(string defaultFont)
             PageNumberFormat = pageNumberFormat,
             GutterAtTop = gutterAtTop
         };
+    }
+
+    /// <summary>
+    /// Standard <c>w:pgSz/@code</c> papers, keyed by the Windows <c>DMPAPER_*</c> constant the
+    /// attribute carries, sized in points at their nominal portrait orientation.
+    ///
+    /// Only the metric papers can actually move a page: an inch-defined size is a whole number of
+    /// points and so exactly representable in twips, while a millimetre-defined one never is (A4's
+    /// 841.8898pt rounds to 16838 twips at best). The US entries are here so a file that rounds
+    /// one oddly still lands on the exact paper.
+    /// </summary>
+    static readonly Dictionary<int, (double Width, double Height)> paperSizePoints = new()
+    {
+        [1] = (612, 792),               // Letter, 8.5 x 11 in
+        [3] = (792, 1224),              // Tabloid, 11 x 17 in
+        [5] = (612, 1008),              // Legal, 8.5 x 14 in
+        [7] = (522, 756),               // Executive, 7.25 x 10.5 in
+        [8] = (841.8898, 1190.5512),    // A3, 297 x 420 mm
+        [9] = (595.2756, 841.8898),     // A4, 210 x 297 mm
+        [11] = (419.5276, 595.2756),    // A5, 148 x 210 mm
+        [13] = (515.9055, 728.5039),    // B5 (JIS), 182 x 257 mm
+        [23] = (360, 828),              // Envelope #14, 5 x 11.5 in
+        [27] = (311.8110, 623.6220)     // Envelope DL, 110 x 220 mm
+    };
+
+    /// <summary>
+    /// Half a point — comfortably past the ~0.11pt worst case of a millimetre paper rounded to
+    /// twips, and far short of any real difference between two standard papers.
+    /// </summary>
+    const double paperCodeTolerancePoints = 0.5;
+
+    /// <summary>
+    /// Resolves the page size against <c>w:pgSz/@code</c>, the Windows printer paper code. Word
+    /// gives the code priority over the <c>w:w</c>/<c>w:h</c> twips beside it, because those are a
+    /// rounded copy of a paper whose real size the code names exactly — `nonstandard_main_part_name`
+    /// declares 16840 twips (842.0pt) with code 9, and Word renders A4's true 841.89pt, a page a
+    /// pixel shorter at 150 DPI.
+    ///
+    /// The snap only applies when the declared size ALREADY matches that paper to within
+    /// <see cref="paperCodeTolerancePoints"/>, in either orientation (Word writes w/h already
+    /// swapped for landscape). A stale code is otherwise free to destroy the page: `cards/03` is a
+    /// 7 x 5 in card still carrying code 23 — a 5 x 11.5 in envelope — from whatever it was branched
+    /// off, and honouring that unconditionally would resize the card to an envelope. An unknown
+    /// code falls through untouched, so this can only ever refine a declared size, never invent one.
+    /// </summary>
+    static (double Width, double Height) SnapToPaperCode(int? code, double width, double height)
+    {
+        if (code is not { } paperCode ||
+            !paperSizePoints.TryGetValue(paperCode, out var paper))
+        {
+            return (width, height);
+        }
+
+        if (Matches(width, paper.Width) && Matches(height, paper.Height))
+        {
+            return paper;
+        }
+
+        if (Matches(width, paper.Height) && Matches(height, paper.Width))
+        {
+            return (paper.Height, paper.Width);
+        }
+
+        return (width, height);
+
+        static bool Matches(double declared, double nominal) =>
+            Math.Abs(declared - nominal) <= paperCodeTolerancePoints;
     }
 
     PageBorders? ParsePageBorders(OoxmlPageBorders? element)

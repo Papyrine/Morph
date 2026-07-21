@@ -2967,7 +2967,7 @@ PDF: [Morph PDF](newsletters/14/pdf_result.verified.pdf)
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0354** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0355** |
 | <img src="nonstandard_main_part_name/expected_0001.png" width="500"> | <img src="nonstandard_main_part_name/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](nonstandard_main_part_name/pdf_result.verified.pdf)

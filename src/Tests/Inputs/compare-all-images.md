@@ -1221,7 +1221,7 @@ The remaining ~5pt gap (linePitch 18 + cell padding 7.2 = 25.2pt vs Word's 30pt)
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2091 · SSIM: 0.7204** | **Page 1. ErrorMetric: 0.2093 · SSIM: 0.7191** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2091 · SSIM: 0.7205** | **Page 1. ErrorMetric: 0.2094 · SSIM: 0.7191** |
 | <img src="cover-letters/09/expected_0001.png" width="500"> | <img src="cover-letters/09/skia_result%23page_0001.verified.png" width="500"> | <img src="cover-letters/09/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## cover-letters/10
@@ -2405,7 +2405,7 @@ from `customXml/item2.xml` and `item3.xml`. None of it is read by the renderer.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0405** | **Page 1. ErrorMetric: 0.0427** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0405 · SSIM: 0.9257** | **Page 1. ErrorMetric: 0.0426 · SSIM: 0.9226** |
 | <img src="nonstandard_main_part_name/expected_0001.png" width="500"> | <img src="nonstandard_main_part_name/skia_result%23page_0001.verified.png" width="500"> | <img src="nonstandard_main_part_name/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## numbered_list
@@ -2596,7 +2596,7 @@ magnitude.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2060 · SSIM: 0.7502** | **Page 1. ErrorMetric: 0.2070 · SSIM: 0.7477** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2060 · SSIM: 0.7502** | **Page 1. ErrorMetric: 0.2070 · SSIM: 0.7476** |
 | <img src="resumes/04/expected_0001.png" width="500"> | <img src="resumes/04/skia_result%23page_0001.verified.png" width="500"> | <img src="resumes/04/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## resumes/05
