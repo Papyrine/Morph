@@ -51,17 +51,29 @@ outside the test harness, the per-file records above are the thing to check.
 
 ## Known gap: missing bold faces
 
-25 families are used by a **bold** run somewhere in `src/Tests/Inputs/` but have no bundled face at weight
-700 or above. Skia then approximates bold by dilating the regular outline and ImageSharp renders at normal
-weight, so the two backends disagree and neither matches Word.
+27 families are used by a **bold** run somewhere in `src/Tests/Inputs/` but resolve to a face below weight
+700. Skia then approximates bold by dilating the regular outline and ImageSharp renders at normal weight, so
+the two backends disagree and neither matches Word.
+
+Two different causes land in that set. Usually no 700+ face is bundled at all. Sometimes the requested name
+carries its own weight suffix — `ResolveTargetWeight` lets that outrank the bold flag, so a bold run in
+"AvenirNext LT Pro Medium" targets 500 and picks the bundled 400 in preference to the 700 that the family
+does own.
 
 The gap is pinned rather than asserted away — see `BundledBoldCoverageTests`, which lists every affected
 family with a scenario that uses it, and fails equally on a new entry or a stale one. Dropping a real bold
 face into this directory closes an entry with no code change, because both backends gate synthesis on the
 resolved weight; the test then fails until the entry is deleted.
 
-Most of the 25 are proprietary (Microsoft, Monotype/ITC, Linotype) and cannot be redistributed here. Playfair
-Display, Work Sans, Lato and Source Sans are the exceptions, being under open licences.
+Most are proprietary (Microsoft, Monotype/ITC, Linotype) and cannot be redistributed here. Playfair Display,
+Work Sans, Lato and Source Sans are the exceptions, being under open licences.
+
+That test reads weights from OS/2 `usWeightClass` through `OpenTypeReader`, never from a loaded
+`SKTypeface.FontStyle.Weight`, because **Skia's reported weight is platform-dependent** for any family whose
+name embeds a style word. `Arial_Rounded_MT_700.ttf` declares family "Arial Rounded MT Bold" with
+`usWeightClass` 400 and the REGULAR bit set; DirectWrite on Windows splits that name and reports family
+"Arial Rounded MT" at weight 700, while FreeType in the container reports 400. Same bytes, two answers — so
+anything pinned against a rasterizer's opinion passes on one platform and fails on the other.
 
 For why a synthesised bold cannot close the gap on its own, see the Bold section of `docs/word-features.md`:
 a designed bold redraws letterforms rather than fattening them, so no single stroke width reconciles the two.

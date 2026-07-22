@@ -16,14 +16,30 @@
 public class BundledBoldCoverageTests
 {
     /// <summary>
-    /// Families used bold by the corpus for which no face at weight 700+ is bundled, mapped to the
-    /// weight that currently resolves. Entries are a licensing gap, not a code one: most are
-    /// proprietary (Microsoft, Monotype/ITC, Linotype) and cannot be redistributed here, though
-    /// Playfair Display, Work Sans, Lato and Source Sans are under open licences.
+    /// Families used bold by the corpus that resolve to a face lighter than 700, mapped to the
+    /// weight that currently resolves. Two distinct causes share this list:
+    ///
+    /// <list type="bullet">
+    /// <item>No face at 700+ is bundled for the family. A licensing gap rather than a code one:
+    /// most are proprietary (Microsoft, Monotype/ITC, Linotype) and cannot be redistributed here,
+    /// though Playfair Display, Work Sans, Lato and Source Sans are under open licences.</item>
+    /// <item>The requested name carries its own weight suffix, which
+    /// <see cref="FontHelpers.ResolveTargetWeight"/> deliberately lets outrank the bold flag so a
+    /// bold run in "Segoe UI Semilight" keeps the Semilight face. The nearest bundled face to that
+    /// pinned target is then lighter than bold even when the family does own a 700 —
+    /// "AvenirNext LT Pro Medium" pins 500 and lands on the 400.</item>
+    /// </list>
+    ///
+    /// Either way the backends see a sub-bold face and synthesise, so the entry belongs here; the
+    /// comment records which cause applies.
     /// </summary>
     static readonly Dictionary<string, int> knownMissingBold = new(StringComparer.OrdinalIgnoreCase)
     {
+        ["Arial Rounded MT Bold"] = 400,         // 1 scenario, resumes/03 — sole face, and its OS/2
+                                                 // usWeightClass is 400 despite the name saying Bold
         ["Avenir Next LT Pro Light"] = 400,      // 2 scenarios, e.g. business-plans/13
+        ["AvenirNext LT Pro Medium"] = 400,      // 1 scenario, newsletters/07 — suffix pins 500, and
+                                                 // the 400 face is nearer that than the bundled 700
         ["Bahnschrift"] = 400,                   // 4 scenarios, e.g. cover-letters/07
         ["Baskerville Old Face"] = 400,          // 2 scenarios, e.g. business-plans/05
         ["Batang"] = 400,                        // 1 scenario, newsletters/10
@@ -86,13 +102,24 @@ public class BundledBoldCoverageTests
 
     /// <summary>
     /// Every distinct family used by a non-empty bold run anywhere in the corpus, with the weight
-    /// the shared resolver picks for a bold request and one scenario that uses it.
+    /// resolution picks for a bold request and one scenario that uses it.
     /// </summary>
+    /// <remarks>
+    /// The weight is read from the face's OS/2 <c>usWeightClass</c> via the same
+    /// <see cref="FontFileCache"/> the resolver uses, NOT from a loaded
+    /// <c>SKTypeface.FontStyle.Weight</c>. Skia's answer is platform-dependent for any family whose
+    /// name embeds a style word: given the one bundled Arial Rounded file — family
+    /// "Arial Rounded MT Bold", <c>usWeightClass</c> 400, REGULAR bit set — DirectWrite on Windows
+    /// splits the name and reports family "Arial Rounded MT" at weight 700, while FreeType in the
+    /// container reports 400. Same bytes, two answers, so a list pinned against one platform was
+    /// guaranteed to fail on the other.
+    /// </remarks>
     static IEnumerable<(string Family, int Weight, string Scenario)> ResolveBoldFamilies()
     {
         var inputs = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
-        var pageSettings = new PageSettings {WidthPoints = 612, HeightPoints = 792};
-        using var context = new SkiaRenderContext(pageSettings, 150, fontDirectory: ProjectFonts.Directory);
+        var fontCache = new FontFileCache(
+            FontCacheLoader.EnumerateFontFilesInDirectory(ProjectFonts.Directory, recursive: true),
+            OpenTypeReader.ReadFaces);
 
         var seen = new Dictionary<string, (int Weight, string Scenario)>(StringComparer.OrdinalIgnoreCase);
         foreach (var file in Directory.GetFiles(inputs, "input.docx", SearchOption.AllDirectories).Order())
@@ -123,19 +150,78 @@ public class BundledBoldCoverageTests
                     continue;
                 }
 
-                try
+                var face = ResolveBoldFace(fontCache, family, run.Properties.Italic);
+                if (face != null)
                 {
-                    seen[family] = (context.GetTypeface(family, true, run.Properties.Italic).FontStyle.Weight, scenario);
+                    seen[family] = (face.Weight, scenario);
                 }
-                catch
-                {
-                    // Unresolvable families are the font-fallback tests' concern.
-                }
+
+                // A family that resolves to nothing at all is the font-fallback tests' concern.
             }
         }
 
         return seen.Select(_ => (_.Key, _.Value.Weight, _.Value.Scenario)).ToList();
     }
+
+    /// <summary>
+    /// Mirrors <c>FontResolver.TryResolveDirectoryMode</c> for a bold request: best face by score,
+    /// then the configured fallback when the direct match's weight is too far off. The fallback has
+    /// to be included — a family that renders through Century Gothic and lands on a real 700 draws a
+    /// real bold, so it is not a gap.
+    /// </summary>
+    static FontFace? ResolveBoldFace(FontFileCache cache, string family, bool italic)
+    {
+        var candidates = FontHelpers.GetCandidateNames(family, true);
+        var face = BestFace(cache, candidates, FontHelpers.ResolveTargetWeight(family, true), italic, out var delta);
+
+        var fallbackName = FontHelpers.FindFallback(candidates);
+        if (fallbackName == null ||
+            (face != null && delta < weightFallbackThreshold))
+        {
+            return face;
+        }
+
+        var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, true);
+        var fallback = BestFace(
+            cache,
+            fallbackCandidates,
+            FontHelpers.ResolveTargetWeight(fallbackName, true),
+            italic,
+            out var fallbackDelta);
+
+        if (fallback != null &&
+            (face == null || fallbackDelta < delta))
+        {
+            return fallback;
+        }
+
+        return face;
+    }
+
+    static FontFace? BestFace(
+        FontFileCache cache,
+        FontNameCandidates candidates,
+        int targetWeight,
+        bool italic,
+        out int weightDelta)
+    {
+        weightDelta = int.MaxValue;
+        if (!cache.TryGet(candidates, out var faces))
+        {
+            return null;
+        }
+
+        var face = FontHelpers.PickBestFace(faces, targetWeight, italic);
+        if (face != null)
+        {
+            weightDelta = Math.Abs(face.Weight - targetWeight);
+        }
+
+        return face;
+    }
+
+    // Mirrors FontResolver's private const of the same name.
+    const int weightFallbackThreshold = 300;
 
     static IEnumerable<ParagraphElement> Paragraphs(IEnumerable<DocumentElement> elements)
     {

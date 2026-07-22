@@ -182,3 +182,41 @@ silently undercounts. And bound regexes to the intended element — `<w:rPrDefau
 declared for that default.
 
 Delete the `_probe_*` directories when done; they are picked up by the scenario suite.
+
+## When a fixture's font no longer exists
+
+A checked-in `expected_*.png` records the fonts Word had **on the machine and day it was rendered**.
+Office cloud fonts are fetched on demand and can go away again, so a reference can encode a typeface
+that no longer resolves anywhere — and then no renderer change will ever match it.
+
+`business-plans/01`, `/07` and `/08` were built on Daytona. Only Daytona **Bold** survives, both on
+the render machine and in `src/Fonts`, which produced a two-sided error that read as two unrelated
+bugs:
+
+- `Daytona Light` (target weight 300) found only the 700 face, a delta of 400, so the
+  `weightFallbackThreshold` rule diverted it to Calibri Light — visibly narrower than the reference.
+- plain `Daytona` (target 400) found that same 700 face at a delta of 300 and, having no configured
+  fallback, kept it: every regular-weight heading rendered **bold**.
+
+The tell is that both backends agree with each other and both disagree with Word in the same place.
+A resolver bug usually splits the backends; a missing font moves them together.
+
+Confirm before acting, because the remedy is expensive: enumerate the family's faces across all four
+font stores (system, user, Office cloud, and any custom directory) and compare against `src/Fonts`.
+Only when the weight the reference used is absent everywhere is the fixture — rather than the
+renderer — the thing that has to change.
+
+The repair is to re-point the DOCX at a bundled family and regenerate the reference through Word, so
+both sides use a font that genuinely exists. Substitute a family with the **full weight range the
+template uses**; swapping only the unavailable weight leaves the document mixing two typefaces.
+Calibri suited these three for its bundled 300/400/700 coverage, matching the Light title, regular
+headings and bold headings they need.
+
+Replace every reference: `word/styles.xml`, `word/fontTable.xml`, **and** `word/theme/theme1.xml`.
+The theme entry is the one that gets missed, and it silently feeds every style inheriting
+`majorHAnsi`/`minorHAnsi` — in `business-plans/01` it was the *only* reference.
+
+Such a scenario stops testing that typeface's fidelity, which is the honest outcome: it was never
+testing it, only recording a mismatch. Metrics improve partly by construction once both sides share
+a font, so the crops still decide — check that the specific defect is gone and that no *new*
+artefact appeared, comparing against the pre-change render rather than against Word.
