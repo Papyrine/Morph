@@ -162,10 +162,21 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
     // — an SKTypeface is the single picked file — so the two backends are answering questions about
     // different things, and no combination of the flag and the weight reconciled them.
     //
-    // Unexplained, and the reason this stopped rather than continuing: labels/15's delta was
-    // +0.0138 under ALL THREE conditions, bit-identical. A condition change that does not move the
-    // number at all means that scenario's change is not coming from the embolden path, and the real
-    // source was never identified. Start there before trying a fourth variant.
+    // labels/15's delta was +0.0138 under ALL THREE conditions, bit-identical. That was briefly
+    // recorded here as unexplained; it is not. The scenario has exactly one qualifying run — 32pt
+    // "Cochocib Script Latin Pro", bold, resolved face weight 400, no bold face bundled — and it
+    // satisfies every one of the three conditions, so identical output is what should happen.
+    //
+    // Skia has emboldened that same run all along: the family name carries no weight suffix, so
+    // ResolveTargetWeight gives 700 against the 400 face and the pre-existing "gap >= 200" clause
+    // already fired. That is why landing the Franklin Gothic Book fix changed labels/15's Skia
+    // baseline by zero pixels — only " Book"-style names (suffix -> target 400, gap 0) were missed.
+    //
+    // So the ImageSharp over-application there is STROKE WEIGHT, not the predicate. Its script
+    // rendered thin without synthesis (1836 ink against Word's 2044) and too heavy with it; the
+    // width was calibrated at 24pt and that run is 32pt, while Skia's embolden tapers with size
+    // (roughly size/24 at 9pt easing to size/32 at 36pt) and the flat divisor here does not. A
+    // fourth attempt should taper the width and re-measure rather than touch the condition again.
 
     Font GetOrCreateCachedFont(FontFamily family, float fontSize, FontStyle style)
     {
