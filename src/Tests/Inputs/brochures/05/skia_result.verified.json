@@ -28,8 +28,8 @@
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.2079,
-      "Ssim": 0.739,
+      "ErrorMetric": 0.2073,
+      "Ssim": 0.74,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "skia_result#page_0004.verified.png",
       "ReceivedFile": "skia_result#page_0004.received.png"
