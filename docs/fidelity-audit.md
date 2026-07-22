@@ -128,3 +128,34 @@ whose unique-colour count is at or below **16**.
 - Word's expected renders are themselves evidence, not gospel: a handful of reference pages
   contain Word quirks (see the audit's "anomalies worth re-checking" section) — verify against
   the DOCX markup before treating Word as correct.
+
+## Settling a rule with a doctored-fixture probe
+
+The highest-yield technique in this codebase: copy a real fixture, change **one** attribute, drop
+it in `src/Tests/Inputs/_probe_*/input.docx`, and render it through Word via RenderHelper
+(`vstest.console.exe … /TestCaseFilter:"FullyQualifiedName~_probe_"`). Word answers questions the
+specification leaves ambiguous and that reasoning about the shipped fixture cannot.
+
+Design the probe so the two hypotheses predict *different* outputs, and prefer a comparison that a
+diff can decide:
+
+- **State the omitted value explicitly.** If the render is bit-identical, the omission means that
+  value. This settled the `docDefaults` `w:sz` default: injecting `w:sz="20"` into brochures/05
+  changed zero text pixels, `w:sz="24"` repaginated it. Expect a little JPEG noise wherever a
+  photo sits — rebuilding the zip recompresses it — so compare bounding boxes, not raw counts.
+- **Exaggerate to make a weak effect unmistakable.** Doubling a `w:line` turns a sub-pixel
+  question into a page-count question.
+- **Sweep a value to find where behaviour changes.** Growing brochures/06's `w:line` through
+  276/290/300/320/360 showed Word's page-1 content bottom barely moves (1208 → 1227), which is
+  what identified `atLeast` row floors as the thing holding it.
+- **Build a minimal document when no fixture isolates the rule.** A hand-written docx of N
+  consecutive break-only paragraphs answered "does Word absorb a page break at a page top?"
+  — it does not, N breaks give N+1 pages.
+
+Two traps worth knowing. Resolve parts through the relationship, not the conventional name:
+several fixtures use `styles2.xml`/`document2.xml`, so a scan hardcoding `word/styles.xml`
+silently undercounts. And bound regexes to the intended element — `<w:rPrDefault>.*?<w:sz …` with
+`re.S` happily matches a `w:sz` from a later element and reports a size the document never
+declared for that default.
+
+Delete the `_probe_*` directories when done; they are picked up by the scenario suite.

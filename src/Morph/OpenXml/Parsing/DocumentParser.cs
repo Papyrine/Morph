@@ -39,6 +39,17 @@ sealed class DocumentParser(string defaultFont)
     const double builtInLineSpacingMultiplier = 278 / 240.0;
     const double builtInSpacingAfterPoints = 8;
 
+    // ECMA-376 §17.3.2.38: an omitted w:sz is 20 half-points. This spec default — not the
+    // normal.dotm 12pt above — applies whenever a document declares docDefaults at all, because
+    // Word reads the omission as an explicit 10pt, exactly as it reads an omitted pPrDefault as
+    // zero spacing (see ExtractDefaultParagraphProperties). Only a document with no styles part
+    // or no docDefaults element falls through to the built-in.
+    // Word-probe verified against brochures/05, which declares docDefaults and no w:sz anywhere:
+    // injecting an explicit w:sz="20" reproduces Word's render with zero differing text pixels
+    // (the only delta is JPEG noise in the re-zipped photo), while w:sz="24" repaginates it from
+    // 4 pages to 5. See docs/fidelity-audit.md.
+    const double specDefaultFontSizePoints = 10.0;
+
     // Fallback font family to use when the document does not specify one in docDefaults.
     // Passed in from the export options' DefaultFont or DefaultFontSettings.DefaultFont.
 
@@ -165,10 +176,12 @@ sealed class DocumentParser(string defaultFont)
     // Document default line spacing, used when no style supplies one. Word's built-in Normal
     // applies only when the document declares no styles.xml or no docDefaults (see
     // ExtractDefaultParagraphProperties); otherwise this keeps its long-standing 1.08.
-    // This deliberately does NOT read docDefaults/pPrDefault's own w:line, though the cascade
-    // itself is no longer in doubt — it was implemented, measured and reverted 2026-07-22.
+    double defaultLineSpacingMultiplier = 1.08;
+
+    // docDefaults/pPrDefault's own w:line is deliberately NOT read, though the cascade itself is
+    // not in doubt — it has been implemented and measured twice (2026-07-22).
     //
-    // What the probes settled (each rendering a doctored copy through Word itself):
+    // What the Word probes settled (each rendering a doctored copy through Word itself):
     //   * The cascade is REAL. Doubling agendas-minutes/07's declared w:line="264" to 480 takes
     //     Word's own render from 2 pages to 3; removing it leaves Word single-spaced.
     //   * It DOES reach table-cell paragraphs, so the long-suspected "cells are exempt" rule is
@@ -178,13 +191,36 @@ sealed class DocumentParser(string defaultFont)
     //     (agendas-minutes/07's Title and ListBullet), which is why only its Normal- and
     //     Heading1-derived paragraphs move.
     //
-    // Why it is still not wired up: honouring it moves 75 scenarios, 37 better and 25 worse for
-    // net -0.45 AE with SSIM agreeing on the winners — but it newly breaks page-count agreement
-    // on brochures/06, postcards/04 and resumes/07, which nulls their per-page metrics entirely,
-    // and brochures/06 grows a BLANK page 2 that BaselineHealthTests rejects. The correct spacing
-    // amplifies a pre-existing wrap defect (brochures/05 sets that paragraph in 5 lines where Word
-    // needs 4). Fix the wrap/pagination residual first; see todo.md "Systemic issues" #4.
-    double defaultLineSpacingMultiplier = 1.08;
+    // Honouring it was measured and reverted once (2026-07-22) because it inflated pitch on the
+    // very documents it should have fixed. That was half a compensating pair: those documents
+    // declare docDefaults with no w:sz, so they were also rendering at 12pt where Word uses the
+    // spec's 10pt (see specDefaultFontSizePoints). brochures/05 is the archetype — Word's pitch is
+    // 10pt x 1.2, while the old code produced 12pt x 1.04, landing within 3% by cancellation.
+    // Correcting either half alone is worse than correcting neither for THOSE documents; the size
+    // half is landed because it also stands on its own across the 14 scenarios that declare no
+    // pPrDefault w:line at all.
+    //
+    // Second measurement (both halves together, full corpus): 75 scenarios move, 50 better and 24
+    // worse, net -1.19 AE — nearly triple the cascade alone — with SSIM agreeing on 324 of 346
+    // pages. It is still not landed because it repaginates three scenarios away from Word:
+    // brochures/06 2->3, resumes/07 1->2 (both declare w:sz, so the cascade alone moves them) and
+    // postcards/04 3->6. brochures/06's new page 2 is BLANK, with its content pushed to page 3 —
+    // a spurious empty page, not a spacing difference, and precisely what BaselineHealthTests
+    // guards.
+    //
+    // The blank page was then diagnosed, and it is NOT a page-break bug. Word does not absorb an
+    // explicit break that lands at the top of a fresh page: a minimal fixture with N consecutive
+    // break-only paragraphs renders N+1 pages in Word (1->2, 2->3, 3->4), so interior blank pages
+    // are legitimate output and the tempting CurrentY > ContentTop guard on PageBreakElement would
+    // be wrong. See ConsecutivePageBreakTests, which locks that in.
+    //
+    // What actually happens in brochures/06: all 9 rows of its page-1 cover table declare
+    // w:trHeight with no w:hRule, i.e. atLeast floors summing to most of the content area. Word's
+    // page-1 content bottom therefore barely moves with spacing (row 1208 at w:line=276, still
+    // 1227 at 360). Morph sits at 1205 at 1.04 but 1240 at 1.15 — its cell content crosses those
+    // floors about five times more readily, roughly 4px per row. The break paragraph then no
+    // longer fits page 1, flows to page 2, and its break pushes the content to page 3. So the
+    // blocker is the cell-content height residual (systemic issue #2), not pagination logic.
 
     // Document-level w:defaultTabStop in points (720 twips = 36 pt = 0.5 inch, OOXML default).
     double defaultTabStopPoints = 36;
@@ -721,11 +757,19 @@ sealed class DocumentParser(string defaultFont)
 
     static double? ResolveDocDefaultFontSizePoints(MainDocumentPart mainPart)
     {
-        var rPrDefault = mainPart.StyleDefinitionsPart?.Styles?.DocDefaults?.RunPropertiesDefault?.RunPropertiesBaseStyle;
-        var size = rPrDefault?.GetFirstChild<FontSize>();
-        if (size?.Val?.HasValue != true)
+        // No styles part, or styles with no docDefaults at all: the document declares no
+        // document-wide defaults, so Word supplies normal.dotm's built-in size (null -> 12pt).
+        var docDefaults = mainPart.StyleDefinitionsPart?.Styles?.DocDefaults;
+        if (docDefaults == null)
         {
             return null;
+        }
+
+        // docDefaults IS present: an absent w:sz is the spec's 10pt, not the built-in.
+        var size = docDefaults.RunPropertiesDefault?.RunPropertiesBaseStyle?.GetFirstChild<FontSize>();
+        if (size?.Val?.HasValue != true)
+        {
+            return specDefaultFontSizePoints;
         }
 
         return double.Parse(size.Val.Value!).HalfPointsToPoints();
@@ -1430,13 +1474,11 @@ sealed class DocumentParser(string defaultFont)
                 var spacingBefore = baseProps?.SpacingBeforePoints ?? defaultSpacingBeforePoints;
                 var spacingAfter = baseProps?.SpacingAfterPoints ?? defaultSpacingAfterPoints;
                 // 1.04 is invented: OOXML says an absent w:spacing/@w:line is SINGLE, i.e. the
-                // font's own line box, which line.Height already carries. Measured in isolation,
-                // 1.0 IS right — nonstandard_main_part_name's break-only box lands 2px off Word's
-                // 238 instead of 11, and its inter-paragraph gaps match exactly. But the corpus is
-                // tuned around this value compensating for a different error: 1.0 moves 123
-                // scenarios, 40 better and 67 WORSE (resumes/10 loses 0.06-0.08 SSIM on every
-                // page). Attempted and reverted 2026-07-21; the prerequisite is the docDefaults
-                // w:line cascade — see todo.md "Systemic issues" #4 and defaultLineSpacingMultiplier.
+                // font's own line box, which line.Height already carries. 1.0 measures right in
+                // isolation but moving it alone costs more than it gains (123 scenarios, 40 better
+                // / 67 worse). Its replacement is the docDefaults w:line cascade, which is decoded
+                // and measured but blocked — see docDefaultLineSpacingMultiplier's note above and
+                // todo.md "Systemic issues" #4.
                 var lineSpacingMultiplier = baseProps?.LineSpacingMultiplier ?? 1.04;
                 var lineSpacingPoints = baseProps?.LineSpacingPoints ?? 0;
                 var lineSpacingRule = baseProps?.LineSpacingRule ?? LineSpacingRule.Auto;
@@ -3268,7 +3310,7 @@ sealed class DocumentParser(string defaultFont)
                 defaultSpacingBeforePoints = double.Parse(spacing.Before.Value!) / twipsPerPoint;
             }
 
-            // pPrDefault's w:line is deliberately not read — see defaultLineSpacingMultiplier.
+            // pPrDefault's w:line is deliberately not read — see docDefaultLineSpacingMultiplier.
         }
 
         // Indentation defaults
