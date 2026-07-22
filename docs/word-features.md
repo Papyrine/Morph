@@ -168,7 +168,17 @@ Bold weight applied to text runs.
 >
 > Judged by crops rather than by the metric, per `fidelity-audit.md`: the change moves 18 scenarios, all slightly WORSE numerically (+0.0320 AE total, SSIM −0.0151) because synthetic emboldening keeps the regular face's advances while Word uses a real bold face with wider ones, so correctly-bold glyphs drift a little along the line. Three-up crops on `resumes/07`, `labels/06` and `menus/06` each show text Word renders bold that previously rendered regular and now matches Word's weight — the new-ink offset penalty, at ~0.0018 AE per scenario, inside the band the audit treats as noise.
 >
-> **Backend gap:** only Skia synthesises bold. ImageSharp falls back Bold → Regular with no equivalent, so these runs still render at normal weight there. A stroke-the-fill version was built, calibrated against Skia's ink ratio (bold/regular 1.507 vs 1.465 on 24pt Franklin Gothic Book) and **reverted 2026-07-22**: 41 scenarios moved, 2 better and 38 worse, +0.1127 AE and SSIM −0.0535, against Skia's +0.0320 / −0.0151 over 18. Crops showed real over-application rather than the new-ink offset penalty — `labels/15`'s script "from" went from too thin to far heavier than Word, and `resumes/02`'s "KAI CARTER" gained weight Word does not have. The condition cannot be expressed the same way on that backend: Skia asks whether the RESOLVED FACE's OS/2 weight is under 700, while ImageSharp's family/style model offers only Regular/Bold/Italic/BoldItalic, so the nearest question — "did the style fall back off Bold?" — is true far more often, including where Word uses a real medium or semibold face. Reinstating it needs weight-aware face resolution on the ImageSharp side (the OS/2 weights already exist in `FontFileCache`/`FontFace` for the Skia resolver) so the identical test can be applied.
+> **Backend gap:** only Skia synthesises bold. ImageSharp falls back Bold → Regular with no equivalent, so these runs still render at normal weight there. Three stroke-the-fill versions were built and **all reverted 2026-07-22**, differing only in when to fire. Stroke width was calibrated against Skia's ink ratio (bold/regular 1.507 vs 1.465 on 24pt Franklin Gothic Book), so width was never the problem:
+>
+> | condition | scenarios | net AE | over-applies to |
+> |---|---|---|---|
+> | `!font.IsBold` | 41 | +0.1127 | already-heavy faces under a Regular style |
+> | resolved OS/2 weight < 700 | 38 | +0.1127 | runs drawn with a real bold sibling |
+> | both | 33 | +0.0933 | still ~2× Skia |
+>
+> Skia's own version moves 18 scenarios for +0.0320. Crops showed real over-application rather than the new-ink offset penalty that made Skia's worth keeping — `labels/15`'s script went from too thin to far heavier than Word, `resumes/02`'s display type gained weight Word lacks.
+>
+> **Weight-aware resolution was not the blocker**, contrary to what this note previously said: ImageSharp already resolves through the *same* `FontResolver` as Skia, and the picked face's OS/2 weight is available on `FontFace.Weight` inside `LoadFace`. Plumbing it through changed the corpus number by nothing. The structural difference is `LoadFace`'s sibling pre-loading — every candidate face joins the shared collection so `PickAvailableStyle` can find the italic variant, so the family often has a real Bold style even when the score-pick was Regular. Skia cannot hit this; an `SKTypeface` is the single picked file. **Unexplained and the place to start:** `labels/15`'s delta was +0.0138 under all three conditions, bit-identical — so that scenario's change is not coming from the embolden path at all, and the real source was never found.
 
 
 #### Italic `DONE`
