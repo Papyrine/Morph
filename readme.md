@@ -3,8 +3,11 @@
 [![NuGet Status](https://img.shields.io/nuget/v/Morph.svg?label=Morph)](https://www.nuget.org/packages/Morph/)
 [![NuGet Status](https://img.shields.io/nuget/v/Morph.Skia.svg?label=Morph.Skia)](https://www.nuget.org/packages/Morph.Skia/)
 [![NuGet Status](https://img.shields.io/nuget/v/Morph.ImageSharp.svg?label=Morph.ImageSharp)](https://www.nuget.org/packages/Morph.ImageSharp/)
+[![NuGet Status](https://img.shields.io/nuget/v/Morph.Pdf.svg?label=Morph.Pdf)](https://www.nuget.org/packages/Morph.Pdf/)
 
-A .NET library that converts Microsoft Word DOCX documents or HTML content into PNG images.
+A .NET library that converts Microsoft Word DOCX documents or HTML content into **PNG images, PDF, semantic HTML, or Markdown**.
+
+Either input can produce any of the four outputs, and a document is parsed once no matter how many formats it is exported to.
 
 **[Try it live in the browser](https://morph.papyrine.org/)** — a Blazor WebAssembly app that converts a DOCX to PNG, PDF, Markdown or plain text client-side, built on `Morph.ImageSharp` and `Morph.Pdf`.
 
@@ -24,13 +27,16 @@ This project uses [SponsorCheck](https://github.com/SimonCropp/SponsorCheck) to 
 
 ## NuGet packages
 
-### DOCX or HTML to PNG
+Which package is needed depends on the *output* format, not the input — DOCX and HTML are both handled by every package:
 
-A single package per backend converts both Word documents and HTML content to images:
+| Output | Package | Notes |
+|--------|---------|-------|
+| HTML | [`Morph`](https://nuget.org/packages/Morph/) | No rendering backend required |
+| Markdown | [`Morph`](https://nuget.org/packages/Morph/) | No rendering backend required |
+| PDF | [`Morph.Pdf`](https://nuget.org/packages/Morph.Pdf/) | Vector text via PdfSharp |
+| PNG | [`Morph.Skia`](https://nuget.org/packages/Morph.Skia/) or [`Morph.ImageSharp`](https://nuget.org/packages/Morph.ImageSharp/) | Pick a [rendering backend](#rendering-backends) |
 
-https://nuget.org/packages/Morph.Skia/
-
-https://nuget.org/packages/Morph.ImageSharp/
+`Morph.Skia`, `Morph.ImageSharp` and `Morph.Pdf` all depend on `Morph`, so any of them also brings the HTML and Markdown exporters.
 
 
 ## Features
@@ -102,7 +108,7 @@ https://nuget.org/packages/Morph.ImageSharp/
 
 ### Export fidelity (HTML / Markdown / PDF)
 
-The HTML, Markdown and PDF exporters share the DOCX parser above, so the same content carries across — each within the limits of its format:
+The HTML, Markdown and PDF exporters run off the same parsed model as the PNG renderers above — the DOCX parser for a `.docx` source, the HTML parser for an HTML source — so the same content carries across, each within the limits of its format:
 
 - **HTML** — semantic tags (`<strong>`, `<em>`, `<u>`, `<h1>`–`<h6>`, `<table>`, `<ul>`/`<ol>`) over one embedded stylesheet, with inline overrides only where a run or paragraph deviates from the document defaults. Theme colours (including `themeShade` / `themeTint`), per-run fonts (with generic fallbacks) and sizes, the page background, paragraph spacing / indentation / alignment / borders, and table cell widths / shading / borders / vertical alignment are preserved; background shapes, gradients and accent panels are emitted as inline SVG behind the text.
 - **Markdown** — CommonMark with GFM pipe tables; adjacent runs are coalesced so emphasis stays well-formed and headings stay clean.
@@ -132,7 +138,7 @@ Morph supports two rendering backends:
 
 ### DOCX to PNG
 
-The examples below use the SkiaSharp backend. To use ImageSharp instead, replace `WordRender.Skia.DocumentConverter` with `WordRender.ImageSharp.DocumentConverter`.
+The examples below use the SkiaSharp backend. To use ImageSharp instead, replace `SkiaDocumentConverter` with `ImageSharpDocumentConverter`.
 
 
 ### Basic Usage - Save to Files
@@ -357,13 +363,15 @@ File.WriteAllBytes("document-preview.pdf", firstThreePages);
 
 ### HTML to PNG
 
-To use ImageSharp instead, replace `HtmlRender.Skia.HtmlConverter` with `HtmlRender.ImageSharp.HtmlConverter`.
+To use ImageSharp instead, replace `SkiaHtmlConverter` with `ImageSharpHtmlConverter`. HTML parsing is asynchronous (AngleSharp), so these APIs return a `Task`.
 
 
 #### Basic Usage - Save to Files
 
+<!-- snippet: HtmlToImages -->
+<a id='snippet-HtmlToImages'></a>
 ```cs
-var converter = new HtmlRender.Skia.HtmlConverter();
+var converter = new SkiaHtmlConverter();
 
 var result = await converter.ConvertToImages(
     "<h1>Hello</h1><p>World</p>",
@@ -375,12 +383,16 @@ foreach (var path in result.ImagePaths)
     Console.WriteLine($"Created: {path}");
 }
 ```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L204-L218' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToImages' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
 
 
 #### In-Memory Conversion
 
+<!-- snippet: HtmlToImageData -->
+<a id='snippet-HtmlToImageData'></a>
 ```cs
-var converter = new HtmlRender.Skia.HtmlConverter();
+var converter = new SkiaHtmlConverter();
 
 var imageData = await converter.ConvertToImageData("<h1>Hello</h1><p>World</p>");
 
@@ -389,6 +401,56 @@ foreach (var pngBytes in imageData)
     // Use the PNG byte array as needed
 }
 ```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L223-L234' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToImageData' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+### HTML to HTML / Markdown / PDF
+
+The same exporters are available for an HTML source: `HtmlConverter.ConvertToHtml` normalizes the input into the same semantic HTML the DOCX path emits, `HtmlConverter.ConvertToMarkdown` converts it to Markdown, and `PdfHtmlConverter.ConvertToPdf` (from `Morph.Pdf`) paginates it into a vector-text PDF.
+
+
+#### Basic — Markdown
+
+<!-- snippet: HtmlToMarkdown -->
+<a id='snippet-HtmlToMarkdown'></a>
+```cs
+var markdown = await HtmlConverter.ConvertToMarkdown("<h1>Hello</h1><p>World</p>");
+File.WriteAllText("page.md", markdown);
+```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L239-L244' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToMarkdown' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+#### Basic — PDF
+
+<!-- snippet: HtmlToPdf -->
+<a id='snippet-HtmlToPdf'></a>
+```cs
+var pdf = await PdfHtmlConverter.ConvertToPdf("<h1>Hello</h1><p>World</p>");
+File.WriteAllBytes("page.pdf", pdf);
+```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L249-L254' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToPdf' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+#### Parse once, export many
+
+`HtmlDocument` is the HTML-source counterpart to `WordDocument` — construct it with `LoadAsync`, then export as many times as needed off the single parse.
+
+<!-- snippet: HtmlParseOnceExportMany -->
+<a id='snippet-HtmlParseOnceExportMany'></a>
+```cs
+// Parse once with HtmlDocument, then export to as many formats as you like — the
+// source HTML is only parsed a single time.
+var document = await HtmlDocument.LoadAsync("<h1>Hello</h1><p>World</p>");
+
+File.WriteAllText("page.html", document.ExportToHtml());
+File.WriteAllText("page.md",   document.ExportToMarkdown());
+document.ExportToPdf("page.pdf");   // extension method from Morph.Pdf
+```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L259-L269' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlParseOnceExportMany' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
 
 
 ## Configuration Options
