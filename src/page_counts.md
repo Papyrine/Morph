@@ -38,9 +38,20 @@ washes and regressions revert, but the measured knowledge is kept.
   net −1.8694 AE, SSIM +3.8378 agreeing with AE on 342 of 362 pages, and 0 page-count changes in
   either direction.** That cascade had been attempted and reverted twice before; `resumes/07` was
   its last blocker and this is why it now holds Word's single page.
-  Residual: `business-plans/02` regresses +0.17 AE with SSIM down on pages 3-4 even though a Word
-  probe confirms Word applies its `TableGrid` `w:pPr` too (stripping it shifts 0.8-1.7% of pixels
-  on every page) — a compensating error elsewhere in that scenario, not a fault in the rule.
+  A `business-plans/02` regression of +0.17 AE was first recorded here as "a compensating error
+  elsewhere in that scenario". **That was wrong** — it was a precedence bug in this very step, and
+  the correction is experiment 21.
+- **21 — table-style precedence must consult the DEFAULT paragraph style: +0.23 AE.** The check for
+  "did the paragraph style already declare this?" read the explicit `w:pStyle` only. A paragraph
+  with no `w:pStyle` still uses the document's default paragraph style, whose declarations outrank
+  the table style. `business-plans/02`'s `Normal` declares `w:line="336"` (1.4) against its
+  `TableGrid`'s 240, and Word keeps 1.4 inside those tables; reading only the explicit pStyle let
+  the table style win and set that text single-spaced. Symptom was surgical — exactly three gaps on
+  page 3 moved, each by 11px, everything else byte-identical. Fixed by using
+  `styleId ?? defaultParagraphStyleId`, which the neighbouring `styleDefaults` lookup already did.
+  9 scenarios move, 7 better / 2 worse, net **−0.2255 AE**, SSIM +0.7547, no page-count changes;
+  `business-plans/02` recovers exactly the +0.1719 it had lost, and five more business-plans /
+  letters scenarios recover with it. Test: `DefaultParagraphStyleDeclaration_OutranksTableStyle`.
 
 - **19 — the Auto multiplier must not scale an inline image: landed, +2 scenarios.** Word applies
   the Auto line multiplier to the TEXT line box only; an inline image contributes its height

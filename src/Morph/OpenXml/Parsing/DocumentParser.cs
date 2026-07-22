@@ -9406,7 +9406,12 @@ sealed class DocumentParser(string defaultFont)
             tableStyleSpacing.TryGetValue(tableStyleId, out var fromTableStyle) &&
             fromTableStyle.DeclaresAnything)
         {
-            var declared = styleId != null && paragraphStyleDeclaredSpacing.TryGetValue(styleId, out var d)
+            // effectiveStyleId, not styleId: a paragraph with no explicit w:pStyle still uses the
+            // document's default paragraph style, and that style's own declarations outrank the
+            // table style. business-plans/02 is the case — its Normal declares w:line="336" (1.4),
+            // which Word keeps inside TableGrid tables even though the table style says 240.
+            var declared = effectiveStyleId != null &&
+                           paragraphStyleDeclaredSpacing.TryGetValue(effectiveStyleId, out var d)
                 ? d
                 : new StyleParagraphSpacing();
 
