@@ -139,9 +139,18 @@ something" when the fix is precisely what removed the page.
 
 `scripts/regenerate-baselines.sh` avoids this by deleting the verified snapshots first. When
 promoting received files directly instead, check for orphans afterwards: for each
-`*_result.verified.json`, any `#page_N.verified.png` with N greater than its `ResultingPageCount`
-is stale and should be deleted. Improvements that reduce page count are exactly the case that
-triggers it, so the check matters most on a good result.
+`*_result.verified.json`, any `#page_N.verified.png` with N greater than that scenario's page
+count is stale and should be deleted. Improvements that reduce page count are exactly the case
+that triggers it, so the check matters most on a good result.
+
+Read the page count from **both** snapshot shapes. The raster scenario results carry
+`ResultingPageCount`; the PDF export snapshots carry PDFium's `target.PageCount` instead. A check
+that reads only the first passes cleanly and still leaves a stale PDF page behind.
+
+Related blind spot when judging: the page-count agreement comparison only covers scenarios that
+record `ExpectedPageCount`, so a PDF export whose page count moves toward Word never shows up as a
+gain. `menus/03` went from 2 PDF pages to Word's 1 during the table-style cascade and was visible
+only as an orphaned snapshot.
 
 ## Settling a rule with a doctored-fixture probe
 
