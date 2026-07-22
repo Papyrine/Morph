@@ -1065,6 +1065,16 @@ Cell-level flags selecting which `w:tblStylePr` block applies (first row, last r
 
 > **Contributors**: Cell- and row-level explicit `w:shd` / `w:tcBorders` win over conditional formatting. When a row/cell carries no `w:cnfStyle`, the cascade derives flags from grid position (firstRow, lastRow, firstColumn, lastColumn, banding) — but only for the conditions that `w:tblLook` permits (e.g. `w:noHBand="1"` suppresses horizontal banding). Run-property and paragraph-property overrides inside `w:tblStylePr` (bold, font colour, alignment) are not yet cascaded — that requires threading the active conditions into paragraph parsing.
 
+#### Table Style Paragraph Properties `TODO`
+
+A table style's own style-level `w:pPr` applies to every paragraph inside tables that reference it. ECMA-376 resolves a paragraph in a table as **docDefaults → table style `w:pPr` → paragraph style chain → direct `w:pPr`**; Morph omits the table-style step, so cell paragraphs inherit document defaults Word overrides.
+
+- **OOXML**: `w:pPr` as a direct child of `<w:style w:type="table">` (distinct from the conditional `w:tblStylePr/w:pPr` above)
+- **Parse**: not implemented — the only table-style `StyleParagraphProperties` read is for numbering, and `TableStyleBorderInfo` carries no paragraph properties
+- **Test**: none yet
+
+> **Contributors**: The archetype is `resumes/07`, whose tables use `TableGrid` declaring `<w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr>` — zero space-after and single line spacing for every cell paragraph, immune to that document's 8pt after and its 1.158 docDefault line. Morph applies both, making each Company row 41px against Word's 28px (Word sits on the row's 263-twip `w:trHeight` floor because the style zeroed the after), and leaving the page with 1px of headroom where Word has 19px. Word-probe verified: sweeping the docDefault `w:after` 0/160/600 leaves that gap at 28/28/27 while non-table gaps move sharply; the same sweep on `table_default_style` (no table-style `w:pPr`) moves its row pitch 68/100/193, so Word does charge a cell paragraph's after in general — it is simply absent here. **35 scenarios** use a table style with a style-level `w:pPr` (40 declare `w:spacing`), including `business-plans/13`, `business-plans/15` and `image_wrap_square` — three of the eight remaining page-count mismatches in `page_counts.md`.
+
 
 #### Diagonal Cell Borders `DONE`
 
