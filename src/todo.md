@@ -312,8 +312,8 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 - MAJOR | skia | p1 | missing-glyph tofu boxes rendered after "Contoso, Ltd." and "Casey Jensen" (not present in imagesharp/pdf)
 - MEDIUM | all | p1 | vertical spacing collapsed: the contact rail + section columns sit ~1in higher than Word
-- MEDIUM | all | p1 | body and contact text rendered bold where Word uses regular weight, shifting wrap points inside paragraphs
-- MEDIUM | html | - | body text renders bold where Word shows regular weight
+- ✅ FIXED 2026-07-23 (Daytona fixture re-pointed at Calibri) | all | p1 | body and contact text rendered bold where Word uses regular weight, shifting wrap points inside paragraphs — the theme major font was `Daytona` and only Daytona **Bold** exists, on this machine and in `src/Fonts`, so every regular-weight run resolved the 700 face. Word's reference had been rendered while Office still supplied the full family, so no renderer change could ever match it. Here the theme was the ONLY reference — no style names Daytona. AE 0.1447 → 0.1118 skia, 0.1373 → 0.1114 imagesharp; SSIM +0.0576 / +0.0145. Method in `docs/fidelity-audit.md` ("When a fixture's font no longer exists").
+- ✅ FIXED 2026-07-23 (same) | html | - | body text renders bold where Word shows regular weight
 
 ### business-plans/02
 
@@ -356,12 +356,12 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 
 ### business-plans/07
 
-- MINOR | skia,imagesharp | p1 | title rendered ~15% narrower than Word (condensed glyph widths, x-extent 766 vs 871)
+- ✅ FIXED 2026-07-23 (Daytona fixture re-pointed at Calibri) | skia,imagesharp | p1 | title rendered ~15% narrower than Word (condensed glyph widths, x-extent 766 vs 871) — the Title style asked for `Daytona Light`; with only the 700 face present that is a weight delta of 400, so `weightFallbackThreshold` diverted it to Calibri Light, which is narrower than the Daytona Light in Word's reference. The fixture now asks for Calibri Light directly and the reference was regenerated, so both sides use one font. AE 0.1115 → 0.0929 skia, 0.1114 → 0.0999 imagesharp; SSIM +0.0374 / +0.0163.
 - MINOR | all | p1 | intro paragraph, four section blocks and footer contacts sit 30-50px lower than Word (footer band itself correctly placed)
-- MINOR | all | p1 | "PREPARED FOR:/BY:" labels render bold vs Word's regular caps (ink +27-42%)
+- ✅ FIXED 2026-07-23 (Daytona fixture re-pointed at Calibri) | all | p1 | "PREPARED FOR:/BY:" labels render bold vs Word's regular caps (ink +27-42%) — same cause as the `business-plans/01` bold body text: regular-weight `Daytona` runs resolving the only bundled face, which is Bold. Heading3/Heading4 carried it here as well as the theme.
 - MEDIUM | html | - | pale-green footer band starts mid-contact-block (labels and first contact lines sit above/outside it) instead of enclosing the whole PREPARED section, and stops at content width
 - MINOR | html | - | title line spacing collapsed so "PROPOSAL" caps touch the "BUSINESS" baseline
-- MINOR | html | - | "PREPARED FOR:/BY:" labels bold vs Word regular
+- ✅ FIXED 2026-07-23 (same) | html | - | "PREPARED FOR:/BY:" labels bold vs Word regular
 
 ### business-plans/08
 
@@ -369,12 +369,12 @@ These patterns repeat across many scenarios; fixing one of these clears whole fa
 - MAJOR | skia,imagesharp | p1 | "Seattle, WA 89101" / "Santa Fe, NM 11121" clipped mid-glyph at the page bottom edge (contact-block line spacing inflated ~38% pushes them into the margin)
 - MEDIUM | skia,imagesharp | p1 | title "Business proposal" shifted right ~75px and down ~30-55px (Word has it flush at left margin)
 - MEDIUM | pdf | p1 | second title line "proposal" indented ~75px right of "Business" (Word has both lines flush left); title also ~55px low
-- MEDIUM | all | p2 | body paragraphs render bold vs Word's regular green text, changing intra-paragraph line-break positions
+- ✅ FIXED 2026-07-23 (Daytona fixture re-pointed at Calibri) | all | p2 | body paragraphs render bold vs Word's regular green text, changing intra-paragraph line-break positions — regular-weight `Daytona` runs resolving the only bundled face, which is Bold. Heading2/Heading5 declared it non-bold while Heading3/Heading4 declared it bold, so the two were indistinguishable before the swap. AE p2 0.0997 → 0.0749 skia, 0.1126 → 0.0781 imagesharp; SSIM +0.0101 / +0.0476.
 - MINOR | all | p2 | section stack drifts upward, ~80px high by section 5
 - MAJOR | html | - | sections 1 (Summary) and 2 (Problem Statement) unreadable: green heading/body text rendered on the green cover background (only the "1."/"2." markers visible)
 - MAJOR | html | - | title lines overlap — "proposal" glyphs collide with "Business" and the line is indented right
 - MAJOR | html | - | top accent line missing (only a stray dot remains near its start position)
-- MEDIUM | html | - | body paragraphs bold vs Word regular
+- ✅ FIXED 2026-07-23 (same) | html | - | body paragraphs bold vs Word regular
 - MINOR | html | - | list numbers "3./4./5." rendered tiny beside large section headings (Word renders number and heading at the same size)
 
 ### business-plans/09
