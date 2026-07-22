@@ -1950,9 +1950,13 @@ Style definitions with inheritance chains. Properties cascade: document defaults
 Default paragraph and run properties applied when no style or direct formatting overrides.
 
 - **OOXML**: `w:docDefaults` > `w:rPrDefault`, `w:pPrDefault`
-- **Model**: `DefaultFontSettings` — font "Aptos" (configurable), size 11pt
+- **Model**: `DefaultFontSettings` — font "Aptos" (configurable). Size is resolved per document by `DocumentParser`, not held here: `builtInDefaultFontSizePoints` (12pt) or `specDefaultFontSizePoints` (10pt), per the rule below
 
 > **Contributors**: The docDefaults text colour (`w:rPrDefault/w:color`, theme-resolved) is the base of the colour cascade — white defaults included; styles absorb it as they are built, and an explicit `w:color w:val="auto"` in a style or run resets it (see Text Color).
+>
+> **Default run size** (`DocumentParser.ResolveDocDefaultFontSizePoints`) keys on `docDefaults` *presence*, mirroring the after-spacing rule above. No styles part or no `docDefaults` element → Word's normal.dotm built-in **12pt** (`builtInDefaultFontSizePoints`, evidence-backed against `long_paragraph`). `docDefaults` present but no `w:rPrDefault/w:sz` → the ECMA-376 §17.3.2.38 default of 20 half-points = **10pt** (`specDefaultFontSizePoints`), because Word reads the omission as an explicit 10pt rather than falling through to its built-in. A `w:sz` on the `Normal` style still outranks the document default. Verified by rendering doctored copies through Word: injecting `w:sz="20"` into `brochures/05` (which declares `docDefaults` and no `w:sz` anywhere) reproduces Word's render with zero differing text pixels, while `w:sz="24"` repaginates it from 4 pages to 5. 23 corpus scenarios declare `docDefaults` without a `w:sz`. Test: `DocDefaultFontSizeTests`.
+>
+> Not implemented: the `pPrDefault/w:spacing/@w:line` cascade. It is decoded and Word-probe-confirmed (it is real, it reaches table-cell paragraphs, and an explicit style `w:line="240"` outranks it) and measures a large net gain when paired with the size rule above, but it repaginates three scenarios away from Word — see `DocumentParser.docDefaultLineSpacingMultiplier` and `src/todo.md` "Systemic issues" #4.
 
 ---
 
