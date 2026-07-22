@@ -558,11 +558,16 @@ static class TableLayout
     /// <summary>
     /// Calculates the effective line height for table cell measurement (compact, no boost).
     /// </summary>
-    internal static float CalculateCompactLineHeight(float naturalHeight, ParagraphProperties properties) =>
+    // autoHeight is the Auto-rule height for this line, supplied by the caller because it depends
+    // on the line's fragments: an inline image contributes its height unscaled while only the text
+    // line box is multiplied (see each backend's AutoLineHeight). Passing it in keeps this
+    // measurement path identical to the render path — they diverged before, so a table row holding
+    // an image grew with the line multiplier here even though the rendered line did not.
+    internal static float CalculateCompactLineHeight(float naturalHeight, float autoHeight, ParagraphProperties properties) =>
         properties.LineSpacingRule switch
         {
             LineSpacingRule.Exactly => (float) properties.LineSpacingPoints,
             LineSpacingRule.AtLeast => Math.Max(naturalHeight, (float) properties.LineSpacingPoints),
-            _ => naturalHeight * (float) properties.LineSpacingMultiplier
+            _ => autoHeight
         };
 }

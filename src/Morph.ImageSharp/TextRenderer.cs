@@ -105,7 +105,11 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         var lineHeights = new List<float>(lines.Count);
         foreach (var line in lines)
         {
-            lineHeights.Add(TableLayout.CalculateCompactLineHeight(line.Height, props));
+            lineHeights.Add(
+                TableLayout.CalculateCompactLineHeight(
+                    line.Height,
+                    AutoLineHeight(line, line.Height, (float) props.LineSpacingMultiplier),
+                    props));
         }
         return lineHeights;
     }
@@ -151,7 +155,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         {
             LineSpacingRule.Exactly => (float)props.LineSpacingPoints,
             LineSpacingRule.AtLeast => Math.Max(naturalHeight, (float)props.LineSpacingPoints),
-            _ => naturalHeight * (float)props.LineSpacingMultiplier // Auto
+            _ => AutoLineHeight(line, naturalHeight, (float)props.LineSpacingMultiplier)
         };
 
         // Only apply document-grid line pitch when Word pagination hints are prevalent in the document.
@@ -164,6 +168,49 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         }
 
         return lineHeight;
+    }
+
+    /// <summary>
+    /// Auto line pitch. The Auto multiplier scales the TEXT line box only — an inline image
+    /// contributes its own height unscaled, and the line takes the larger of the two.
+    /// </summary>
+    // Measured against Word by sweeping brochures/06's docDefault w:line from 1.15 to 1.50: its
+    // two photo rows grew 1.3% and 3.4%, where multiplying the image would predict 30%. Fitting
+    // the sweep gives row = 211.6pt-equivalent image + a 22.6px (10.9pt) text line box × the
+    // multiplier, residuals under 1px across five sample points. The PDF backend already models
+    // it this way (PdfTextEngine gives an image item its raw height while text runs get
+    // rawHeight × multiplier), which is why PDF held Word's page count on brochures/06 when the
+    // raster backends gained a page.
+    float AutoLineHeight(TextLine line, float naturalHeight, float multiplier)
+    {
+        var imageHeight = 0f;
+        foreach (var fragment in line.Fragments)
+        {
+            imageHeight = Math.Max(imageHeight, fragment.InlineImageHeightPoints);
+        }
+
+        if (imageHeight <= 0)
+        {
+            // No image on the line: the whole natural height is the text line box.
+            return naturalHeight * multiplier;
+        }
+
+        // Re-derive the text line box from the non-image fragments. Recomputing beats threading a
+        // parallel accumulator through every line-construction site, and only runs for the rare
+        // line that carries an image; the fonts come from the shared cache.
+        var textHeight = 0f;
+        foreach (var fragment in line.Fragments)
+        {
+            if (fragment.InlineImageHeightPoints > 0)
+            {
+                continue;
+            }
+
+            var (runHeight, _) = ImageSharpRenderContext.GetFontMetrics(context.GetFont(fragment.Properties));
+            textHeight = Math.Max(textHeight, runHeight);
+        }
+
+        return Math.Max(imageHeight, textHeight * multiplier);
     }
 
     static float LargestFontSizePoints(TextLine line, ParagraphProperties props)

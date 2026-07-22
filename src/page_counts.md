@@ -5,19 +5,42 @@ output (`skia_result#page_*`, `imagesharp_result#page_*`, `pdf_result#page_*`) a
 directories in `src/Tests/Inputs/`. The match is *recorded*, not asserted, by the scenario tests —
 these mismatches never fail the suite; closing them improves Word fidelity.
 
-**Current state (pass 4, experiment 15 committed): Skia 313, ImageSharp 313, PDF 316.** Ten
-scenarios still differ — business-plans/02/12/13/15, complex_spacing, cover-letters/06,
-image_wrap_square, newsletters/06, resumes/13, resumes/16. All ten are now in the
-**backend-metric-divergence** class: Skia/ImageSharp and PdfSharp produce slightly different
-per-line/per-cell heights, so for a given document the raster and PDF counts straddle Word and
-need *opposite* per-backend adjustments — not a content-level rule. Pass 2 ended 307/307/301, so
-pass 4 is net +6/+6/+15.
+**Current state (pass 4, experiment 19 committed): Skia 315, ImageSharp 315, PDF 316.** Eight
+scenarios still differ — business-plans/13/15, complex_spacing, cover-letters/06,
+image_wrap_square, newsletters/06, resumes/13, resumes/16. Pass 2 ended 307/307/301, so pass 4 is
+net +8/+8/+15.
+
+**The "backend-metric divergence" label on these was partly wrong.** business-plans/02 and /12 were
+both filed under it — Skia/ImageSharp and PdfSharp producing different per-line/per-cell heights,
+supposedly needing opposite per-backend adjustments rather than a content-level rule. Both turned
+out to be exactly a content-level rule (experiment 19: the Auto multiplier must not scale an inline
+image), and the reason the raster and PDF counts straddled Word is that PdfSharp already implemented
+that rule while the raster backends did not. Treat the remaining eight as unattributed rather than
+as established knife-edges.
 
 **Protocol per experiment:** implement across all three backends, validate in-container with a
 no-regen scenario run isolating exactly which scenarios move, accept only net Word-match gains —
 washes and regressions revert, but the measured knowledge is kept.
 
 ## Pass 4 experiment ledger (newest first)
+
+- **19 — the Auto multiplier must not scale an inline image: landed, +2 scenarios.** Word applies
+  the Auto line multiplier to the TEXT line box only; an inline image contributes its height
+  unscaled and the line takes the larger of the two. Verified by sweeping brochures/06's docDefault
+  `w:line` from 1.15 to 1.50 in Word: its two photo rows grew 1.3% and 3.4% where multiplying the
+  image predicts 30%. Fitting the sweep gives `row = 211.6px image + 22.6px (10.9pt) text line ×
+  multiplier`, residuals under 1px over five points. `PdfTextEngine` already modelled this (an
+  image item keeps its raw height while text runs get `rawHeight × multiplier`), which is why PDF
+  held Word's page count on brochures/06 where the raster backends gained a page — the two raster
+  backends were the outliers, not Word.
+  **The rule lives in two places and only one was wrong at first.** `TextRenderer.CalculateLineHeight`
+  is the render path; table cell heights go through `LayoutParagraphForMeasurement` →
+  `TableLayout.CalculateCompactLineHeight`, which had the identical bug and took only a float, so
+  it could not see the image. Fixing the render path alone moved 44 scenarios and fixed
+  business-plans/02 (7→6) but left every image-in-a-table row untouched — brochures/06's photo rows
+  came back byte-identical. `CalculateCompactLineHeight` now takes the caller's Auto height so the
+  two paths cannot drift again. Combined: **−0.5693 AE**, SSIM +2.62, and **business-plans/02 and
+  business-plans/12 both leave the ten-mismatch list** (19→18 for /12). Scoreboard **315/315/316**.
 
 - **18 — a page break at the top of a page is NOT absorbed: probed, no change made.** The
   attractive guard is `CurrentY > ContentTop` on `PageBreakElement`, mirroring
