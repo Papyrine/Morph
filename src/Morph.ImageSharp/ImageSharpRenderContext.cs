@@ -194,10 +194,33 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
     // fattened, and sits far closer to its regular than a stroked outline does — so both backends
     // overshoot, ImageSharp further because its rasterization is heavier to begin with.
     //
-    // A fifth attempt therefore should NOT re-tune the width. What is missing is a way to tell a
-    // face whose bold is genuinely absent (Franklin Gothic Book — synthesis is right) from one
-    // where Word has a designed bold we simply do not bundle (this script — synthesis overshoots
-    // whatever width is chosen).
+    // Detecting "does a designed bold exist that we do not bundle" was then investigated and is a
+    // DEAD END from the font file: PANOSE would be the obvious signal, but Cochocib Script reports
+    // bFamilyType 2 (Latin Text), identical to Franklin Gothic Book, with the rest of its PANOSE
+    // left at generic defaults. Nothing in OS/2 says whether a sibling weight exists elsewhere.
+    //
+    // The useful finding is that detection is the wrong frame, because THE CALIBRATION REFERENCE
+    // WAS WRONG. A Word probe of one word in Franklin Gothic Book (no bold face bundled) at
+    // 8/12/16/24/32/48pt, measured against the same document through Skia:
+    //
+    //   pt    Word bold adds    Skia synthesis adds
+    //    8        +48.7%              +54.1%
+    //   12        +30.7%              +41.2%
+    //   16        +24.4%              +56.3%
+    //   24        +19.0%              +46.3%
+    //   32        +34.5%              +46.3%
+    //   48        +27.9%              +48.7%
+    //
+    // Word's bold adds ~26% ink on average; Skia's synthesis adds ~46%, so Skia runs roughly 1.8x
+    // heavy from 16pt up and the two only agree at 8-12pt. Every ImageSharp attempt above was
+    // calibrated against SKIA's ink ratio (1.507 vs 1.465), so all of them inherited that error.
+    //
+    // A fifth attempt should target WORD's ~26%, not Skia's. Note this cannot be fixed on the Skia
+    // side by tuning: SKFont.Embolden takes no width, so changing it means hand-stroking glyphs
+    // there too. Before fitting a curve, gather more data — the per-size implied fractions from
+    // that one probe are non-monotonic (0.046, 0.035, 0.018, 0.014, 0.025, 0.019), a single font
+    // with ink thresholded at a fixed cutoff that behaves differently across sizes. Repeat over
+    // several bold-less families with a threshold-independent coverage measure first.
 
     Font GetOrCreateCachedFont(FontFamily family, float fontSize, FontStyle style)
     {
