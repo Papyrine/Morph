@@ -137,6 +137,21 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         return GetFontForFamily(props.FontFamily, fontSize, props.Bold, props.Italic);
     }
 
+    // No synthetic bold here, unlike Skia (SkiaRenderContext.ShouldSyntheticallyEmbolden). A
+    // stroke-the-fill version was built, calibrated against Skia's ink ratio and REVERTED
+    // 2026-07-22: 41 scenarios moved, 2 better and 38 worse, +0.1127 AE and SSIM -0.0535, against
+    // Skia's +0.0320 / -0.0151 over 18 scenarios. Crops showed genuine over-application, not just
+    // the new-ink offset penalty — labels/15's script "from" went from too thin to far heavier
+    // than Word, and resumes/02's "KAI CARTER" gained weight Word does not have.
+    //
+    // The cause is that the condition cannot be expressed the same way here. Skia asks whether the
+    // RESOLVED FACE's OS/2 weight is under 700; ImageSharp's family/style model offers only
+    // Regular/Bold/Italic/BoldItalic, so the nearest question is "did PickAvailableStyle fall back
+    // off Bold?" — which is true far more often, including where Word uses a real medium or
+    // semibold face. Reinstating this needs weight-aware face resolution on the ImageSharp side
+    // (Morph already carries OS/2 weights in FontFileCache/FontFace for the Skia resolver) so the
+    // identical weight < 700 test can be applied.
+
     Font GetOrCreateCachedFont(FontFamily family, float fontSize, FontStyle style)
     {
         var key = (family, fontSize, style);
