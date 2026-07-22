@@ -160,9 +160,15 @@ Bold weight applied to text runs.
 - **OOXML**: `w:b`, `w:bCs`
 - **Spec**: [Bold](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.bold)
 - **Model**: `RunProperties.Bold`
-- **Test**: `bold_text/`
+- **Test**: `bold_text/`, `SyntheticBoldTests`
 
 > **Contributors**: Bold-or-italic flags from the OOXML run combine with any weight word in the font family name (e.g. `Segoe UI Semibold`) to produce a target weight scored against each face's `OS/2` `usWeightClass`. See [fonts.md](fonts.md) for the resolution model.
+>
+> **Which face to select and whether to draw it bold are separate questions.** `FontHelpers.ResolveTargetWeight` answers the first and lets a weight word in the NAME outrank the bold flag on purpose — a bold run in "Segoe UI Semilight" must still resolve the Semilight face rather than jumping to 700 and landing on a different member of the family. The consequence is that the target weight can equal the resolved face's weight even for a bold run, so the synthetic-embolden check cannot be driven by that gap alone: Skia emboldens whenever a bold run resolved a face lighter than 700. Without it, "Franklin Gothic Book" (a weight word in the name, and no bold face bundled) rendered bold runs at normal weight — `resumes/07`'s "Company, location" and its SKILLS labels, which inherit `Normal`'s `w:b`.
+>
+> Judged by crops rather than by the metric, per `fidelity-audit.md`: the change moves 18 scenarios, all slightly WORSE numerically (+0.0320 AE total, SSIM −0.0151) because synthetic emboldening keeps the regular face's advances while Word uses a real bold face with wider ones, so correctly-bold glyphs drift a little along the line. Three-up crops on `resumes/07`, `labels/06` and `menus/06` each show text Word renders bold that previously rendered regular and now matches Word's weight — the new-ink offset penalty, at ~0.0018 AE per scenario, inside the band the audit treats as noise.
+>
+> **Backend gap:** only Skia synthesises bold. ImageSharp falls back Bold → Regular with no equivalent, so these runs still render at normal weight there.
 
 
 #### Italic `DONE`

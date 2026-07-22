@@ -46,6 +46,9 @@ static class FontHelpers
     /// <c>"Segoe UI Semilight"</c> can be scored against face metadata as weight 350
     /// rather than the generic 400/700 derived from the bold flag alone.
     /// </summary>
+    /// <summary>OS/2 weight class at which a face counts as bold in its own right.</summary>
+    internal const int BoldWeight = 700;
+
     static readonly Dictionary<string, int> weightFromSuffix = new(StringComparer.OrdinalIgnoreCase)
     {
         [" Hairline"] = 100,
@@ -89,6 +92,12 @@ static class FontHelpers
     /// Returns the OS/2 weight class to score against when resolving a font, derived from
     /// the requested name's suffix when present, otherwise from the bold flag.
     /// </summary>
+    /// <remarks>
+    /// The name deliberately outranks the bold flag for FACE SELECTION: a bold run in
+    /// "Segoe UI Semilight" must still resolve the Semilight face rather than jumping to weight
+    /// 700 and landing on a different member of the family. Whether that face is then drawn
+    /// emboldened is a separate question — see each backend's synthetic-embolden check.
+    /// </remarks>
     internal static int ResolveTargetWeight(string fontFamily, bool bold) =>
         InferWeightFromName(fontFamily) ?? (bold ? 700 : 400);
 
