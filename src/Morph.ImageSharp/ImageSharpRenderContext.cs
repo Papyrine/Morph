@@ -215,12 +215,32 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
     // heavy from 16pt up and the two only agree at 8-12pt. Every ImageSharp attempt above was
     // calibrated against SKIA's ink ratio (1.507 vs 1.465), so all of them inherited that error.
     //
-    // A fifth attempt should target WORD's ~26%, not Skia's. Note this cannot be fixed on the Skia
-    // side by tuning: SKFont.Embolden takes no width, so changing it means hand-stroking glyphs
-    // there too. Before fitting a curve, gather more data — the per-size implied fractions from
-    // that one probe are non-monotonic (0.046, 0.035, 0.018, 0.014, 0.025, 0.019), a single font
-    // with ink thresholded at a fixed cutoff that behaves differently across sizes. Repeat over
-    // several bold-less families with a threshold-independent coverage measure first.
+    // That multi-font calibration was then done: 10 bold-less families spanning text sans, text
+    // serif, geometric, display, script and handwriting, at 8/12/16/24/32/48pt, with ink measured
+    // as threshold-free coverage. Two results:
+    //
+    //   * The overshoot is SIZE-INDEPENDENT. Skia/Word ratio runs 1.58-2.05 across the whole range
+    //     with no trend, so no taper is warranted and the earlier non-monotonic per-size fractions
+    //     were noise. Mean ratio ~1.9.
+    //   * The variation is PER-TYPEFACE: Tw Cen MT 1.00, Playfair 1.26, Bahnschrift 1.30, Impact
+    //     1.37, Kristen 1.50, Franklin Gothic Book 1.62, Trade Gothic 1.83, Baskerville Old 1.89,
+    //     Vladimir Script 2.25, Cochocib Script 2.53.
+    //
+    // A fifth attempt used the resulting flat size/59 stroke (Skia is effectively size/32) and
+    // measured +0.0698 over 33 scenarios — the best of the five, and per-scenario (+0.0021)
+    // essentially Skia's accepted +0.0018. Ink matched Word well: labels/15's script went from
+    // -22.5% to +5.3%, resumes/07's text from -33.6% to -17.0%.
+    //
+    // It was still reverted, and the crops are why: at that width resumes/07's "Company, location"
+    // DOES NOT READ AS BOLD. Word's is unmistakably bold, the stroked version only marginally
+    // heavier than regular. Matching Word's ink is not the same as matching Word's bold — a
+    // designed bold redraws the letterforms with wider stems and altered proportions, so at ink
+    // parity the text still looks unbolded. The trade has no winning side: size/32 makes text look
+    // bold but overshoots scripts (+0.0933), size/59 matches script ink but fails the very case
+    // the feature exists for (+0.0698).
+    //
+    // That is the end of outline dilation as an approach here. Anything further needs real weight:
+    // bundle the missing bold faces, or instance a variable font's wght axis where one exists.
 
     Font GetOrCreateCachedFont(FontFamily family, float fontSize, FontStyle style)
     {
