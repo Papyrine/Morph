@@ -129,6 +129,20 @@ whose unique-colour count is at or below **16**.
   contain Word quirks (see the audit's "anomalies worth re-checking" section) — verify against
   the DOCX markup before treating Word as correct.
 
+## Promoting baselines when a page count drops
+
+Promotion renames `*.received.*` onto `*.verified.*` one file at a time, so a scenario that now
+emits FEWER pages keeps a stale snapshot for the page it no longer produces — the old
+`page_0007.verified.png` has no received counterpart to overwrite it. Verify then fails that
+scenario on the extra file even though every real page matches, which reads as "the fix broke
+something" when the fix is precisely what removed the page.
+
+`scripts/regenerate-baselines.sh` avoids this by deleting the verified snapshots first. When
+promoting received files directly instead, check for orphans afterwards: for each
+`*_result.verified.json`, any `#page_N.verified.png` with N greater than its `ResultingPageCount`
+is stale and should be deleted. Improvements that reduce page count are exactly the case that
+triggers it, so the check matters most on a good result.
+
 ## Settling a rule with a doctored-fixture probe
 
 The highest-yield technique in this codebase: copy a real fixture, change **one** attribute, drop
