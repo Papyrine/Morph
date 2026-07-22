@@ -137,20 +137,35 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         return GetFontForFamily(props.FontFamily, fontSize, props.Bold, props.Italic);
     }
 
-    // No synthetic bold here, unlike Skia (SkiaRenderContext.ShouldSyntheticallyEmbolden). A
-    // stroke-the-fill version was built, calibrated against Skia's ink ratio and REVERTED
-    // 2026-07-22: 41 scenarios moved, 2 better and 38 worse, +0.1127 AE and SSIM -0.0535, against
-    // Skia's +0.0320 / -0.0151 over 18 scenarios. Crops showed genuine over-application, not just
-    // the new-ink offset penalty — labels/15's script "from" went from too thin to far heavier
-    // than Word, and resumes/02's "KAI CARTER" gained weight Word does not have.
+    // No synthetic bold here, unlike Skia (SkiaRenderContext.ShouldSyntheticallyEmbolden). Three
+    // stroke-the-fill versions were built and all REVERTED 2026-07-22, each differing only in when
+    // to fire. Stroke width was calibrated against Skia's ink ratio (bold/regular 1.507 vs 1.465 on
+    // 24pt Franklin Gothic Book), so width is not the problem:
     //
-    // The cause is that the condition cannot be expressed the same way here. Skia asks whether the
-    // RESOLVED FACE's OS/2 weight is under 700; ImageSharp's family/style model offers only
-    // Regular/Bold/Italic/BoldItalic, so the nearest question is "did PickAvailableStyle fall back
-    // off Bold?" — which is true far more often, including where Word uses a real medium or
-    // semibold face. Reinstating this needs weight-aware face resolution on the ImageSharp side
-    // (Morph already carries OS/2 weights in FontFileCache/FontFace for the Skia resolver) so the
-    // identical weight < 700 test can be applied.
+    //   condition                                    scenarios   net AE     over-applies to
+    //   !font.IsBold                                    41       +0.1127    already-heavy faces
+    //   resolved OS/2 weight < 700                      38       +0.1127    real bold siblings
+    //   both of the above                               33       +0.0933    (still ~2x Skia)
+    //
+    // Skia's own version moves 18 scenarios for +0.0320. Every attempt stayed roughly double that
+    // and net-negative, and crops showed real over-application rather than the new-ink offset
+    // penalty that made Skia's worth keeping (labels/15's script went from too thin to far heavier
+    // than Word; resumes/02's display type gained weight Word lacks).
+    //
+    // NOT the blocker, contrary to an earlier note here: ImageSharp already resolves faces through
+    // the SAME weight-aware FontResolver as Skia, and the picked face's OS/2 weight is available on
+    // FontFace.Weight inside LoadFace. Plumbing it through changed the number by nothing at all.
+    //
+    // The structural difference is LoadFace's sibling pre-loading: every candidate face is added to
+    // sharedFontCollection so PickAvailableStyle can find the italic variant, which means the
+    // family often has a real Bold style even when the score-pick was Regular. Skia cannot hit this
+    // — an SKTypeface is the single picked file — so the two backends are answering questions about
+    // different things, and no combination of the flag and the weight reconciled them.
+    //
+    // Unexplained, and the reason this stopped rather than continuing: labels/15's delta was
+    // +0.0138 under ALL THREE conditions, bit-identical. A condition change that does not move the
+    // number at all means that scenario's change is not coming from the embolden path, and the real
+    // source was never identified. Start there before trying a fourth variant.
 
     Font GetOrCreateCachedFont(FontFamily family, float fontSize, FontStyle style)
     {
