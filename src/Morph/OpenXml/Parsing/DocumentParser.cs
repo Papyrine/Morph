@@ -146,6 +146,18 @@ sealed class DocumentParser(string defaultFont)
     // Table style borders cached during parsing (styleId -> borders + conditional formatting)
     Dictionary<string, TableStyleBorderInfo>? tableStyleBorders;
 
+    // The table-style step of the paragraph cascade: docDefaults -> table style w:pPr ->
+    // paragraph style chain -> direct w:pPr (ECMA-376). A table style's own w:pPr applies to
+    // every paragraph in tables that reference it, so it overrides the document defaults but
+    // yields to anything the paragraph's style chain declares — which is why the paragraph-style
+    // declarations are tracked separately from their resolved values.
+    Dictionary<string, StyleParagraphSpacing> tableStyleSpacing = new(StringComparer.OrdinalIgnoreCase);
+    Dictionary<string, StyleParagraphSpacing> paragraphStyleDeclaredSpacing = new(StringComparer.OrdinalIgnoreCase);
+
+    // Style id of the table whose cells are being parsed, or null outside a table. Nested tables
+    // save and restore it, so an inner table's style does not leak to the outer table's later rows.
+    string? currentTableStyleId;
+
     // StyleId of the table style flagged as w:default — used as the implicit style for tables
     // that don't carry an explicit w:tblStyle reference (ECMA-376 §17.7.4.4).
     string? defaultTableStyleId;
@@ -221,6 +233,7 @@ sealed class DocumentParser(string defaultFont)
     // floors about five times more readily, roughly 4px per row. The break paragraph then no
     // longer fits page 1, flows to page 2, and its break pushes the content to page 3. So the
     // blocker is the cell-content height residual (systemic issue #2), not pagination logic.
+    double? docDefaultLineSpacingMultiplier;
 
     // Document-level w:defaultTabStop in points (720 twips = 36 pt = 0.5 inch, OOXML default).
     double defaultTabStopPoints = 36;
@@ -337,6 +350,8 @@ sealed class DocumentParser(string defaultFont)
 
         // Extract style paragraph properties (line spacing, spacing before/after, etc.)
         styleParagraphProperties = ExtractStyleParagraphProperties(mainPart);
+        tableStyleSpacing = ExtractDeclaredSpacing(mainPart, StyleValues.Table);
+        paragraphStyleDeclaredSpacing = ExtractDeclaredSpacing(mainPart, StyleValues.Paragraph);
         // Extract numbering definitions from numbering.xml
         numberingDefinitions = ExtractNumberingDefinitions(mainPart, numberingAbstractIds, numberingStartOverrides);
 
@@ -1403,6 +1418,136 @@ sealed class DocumentParser(string defaultFont)
         return styleProps;
     }
 
+    /// <summary>
+    /// Reads what a single style's own <c>w:pPr</c> declares, leaving anything absent null.
+    /// </summary>
+    static StyleParagraphSpacing ReadDeclaredSpacing(StyleParagraphProperties? pPr)
+    {
+        if (pPr == null)
+        {
+            return new();
+        }
+
+        double? before = null, after = null, multiplier = null, points = null;
+        LineSpacingRule? rule = null;
+
+        var spacing = pPr.GetFirstChild<SpacingBetweenLines>();
+        if (spacing != null)
+        {
+            if (spacing.Before?.HasValue == true)
+            {
+                before = double.Parse(spacing.Before.Value!) / twipsPerPoint;
+            }
+
+            if (spacing.After?.HasValue == true)
+            {
+                after = double.Parse(spacing.After.Value!) / twipsPerPoint;
+            }
+
+            if (spacing.Line?.HasValue == true)
+            {
+                var ruleValue = spacing.LineRule?.Value ?? LineSpacingRuleValues.Auto;
+                if (ruleValue == LineSpacingRuleValues.Auto)
+                {
+                    multiplier = double.Parse(spacing.Line.Value!) / 240.0;
+                    rule = LineSpacingRule.Auto;
+                }
+                else if (ruleValue == LineSpacingRuleValues.Exact)
+                {
+                    points = double.Parse(spacing.Line.Value!) / twipsPerPoint;
+                    rule = LineSpacingRule.Exactly;
+                }
+                else if (ruleValue == LineSpacingRuleValues.AtLeast)
+                {
+                    points = double.Parse(spacing.Line.Value!) / twipsPerPoint;
+                    rule = LineSpacingRule.AtLeast;
+                }
+            }
+        }
+
+        double? left = null, right = null;
+        var indentation = pPr.GetFirstChild<Indentation>();
+        if (indentation != null)
+        {
+            if (indentation.Left?.HasValue == true)
+            {
+                left = double.Parse(indentation.Left.Value!) / twipsPerPoint;
+            }
+
+            if (indentation.Right?.HasValue == true)
+            {
+                right = double.Parse(indentation.Right.Value!) / twipsPerPoint;
+            }
+        }
+
+        return new()
+        {
+            SpacingBeforePoints = before,
+            SpacingAfterPoints = after,
+            LineSpacingMultiplier = multiplier,
+            LineSpacingPoints = points,
+            LineSpacingRule = rule,
+            LeftIndentPoints = left,
+            RightIndentPoints = right
+        };
+    }
+
+    /// <summary>
+    /// Declared spacing per style id, resolved through <c>w:basedOn</c>, for the requested style
+    /// type. Table styles feed the table-style cascade step; paragraph styles say where that step
+    /// is allowed to apply (a paragraph style that declares a value outranks the table style).
+    /// </summary>
+    static Dictionary<string, StyleParagraphSpacing> ExtractDeclaredSpacing(
+        MainDocumentPart mainPart,
+        StyleValues styleType)
+    {
+        var result = new Dictionary<string, StyleParagraphSpacing>(StringComparer.OrdinalIgnoreCase);
+        var styles = mainPart.StyleDefinitionsPart?.Styles;
+        if (styles == null)
+        {
+            return result;
+        }
+
+        var byId = new Dictionary<string, Style>(StringComparer.OrdinalIgnoreCase);
+        foreach (var style in styles.Elements<Style>())
+        {
+            if (style.Type?.Value == styleType &&
+                style.StyleId?.Value is { } id)
+            {
+                byId[id] = style;
+            }
+        }
+
+        foreach (var (id, _) in byId)
+        {
+            // Walk to the root of the basedOn chain, then layer back down so a child's own
+            // declarations win. The visited set guards the malformed-cycle case.
+            var chain = new List<Style>();
+            var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var currentId = id;
+            while (visited.Add(currentId) && byId.TryGetValue(currentId, out var style))
+            {
+                chain.Add(style);
+                if (style.BasedOn?.Val?.Value is not { } baseId)
+                {
+                    break;
+                }
+
+                currentId = baseId;
+            }
+
+            var resolved = new StyleParagraphSpacing();
+            for (var i = chain.Count - 1; i >= 0; i--)
+            {
+                resolved = resolved.Layer(ReadDeclaredSpacing(chain[i].StyleParagraphProperties));
+            }
+
+            result[id] = resolved;
+        }
+
+        return result;
+    }
+
     Dictionary<string, ParagraphProperties> ExtractStyleParagraphProperties(MainDocumentPart mainPart)
     {
         var styleProps = new Dictionary<string, ParagraphProperties>(StringComparer.OrdinalIgnoreCase);
@@ -1479,7 +1624,9 @@ sealed class DocumentParser(string defaultFont)
                 // / 67 worse). Its replacement is the docDefaults w:line cascade, which is decoded
                 // and measured but blocked — see docDefaultLineSpacingMultiplier's note above and
                 // todo.md "Systemic issues" #4.
-                var lineSpacingMultiplier = baseProps?.LineSpacingMultiplier ?? 1.04;
+                var lineSpacingMultiplier = baseProps?.LineSpacingMultiplier
+                                            ?? docDefaultLineSpacingMultiplier
+                                            ?? 1.04;
                 var lineSpacingPoints = baseProps?.LineSpacingPoints ?? 0;
                 var lineSpacingRule = baseProps?.LineSpacingRule ?? LineSpacingRule.Auto;
                 var firstLineIndent = baseProps?.FirstLineIndentPoints ?? 0;
@@ -3262,6 +3409,10 @@ sealed class DocumentParser(string defaultFont)
 
     void ExtractDefaultParagraphProperties(MainDocumentPart mainPart)
     {
+        // Cleared per parse so a reused parser instance can't carry one document's default into
+        // the next; every path below either assigns it or leaves the document without one.
+        docDefaultLineSpacingMultiplier = null;
+
         var stylesPart = mainPart.StyleDefinitionsPart;
 
         // No styles.xml, or styles with no docDefaults element at all: the document declares
@@ -3310,7 +3461,13 @@ sealed class DocumentParser(string defaultFont)
                 defaultSpacingBeforePoints = double.Parse(spacing.Before.Value!) / twipsPerPoint;
             }
 
-            // pPrDefault's w:line is deliberately not read — see docDefaultLineSpacingMultiplier.
+            // w:line is a multiplier only under lineRule="auto" (absent defaults to auto); under
+            // "exact"/"atLeast" it is a twip measurement and belongs to the per-paragraph path.
+            if (spacing.Line?.HasValue == true &&
+                (spacing.LineRule?.Value ?? LineSpacingRuleValues.Auto) == LineSpacingRuleValues.Auto)
+            {
+                docDefaultLineSpacingMultiplier = double.Parse(spacing.Line.Value!) / 240.0;
+            }
         }
 
         // Indentation defaults
@@ -3595,7 +3752,30 @@ sealed class DocumentParser(string defaultFont)
     };
 
 
+    /// <summary>
+    /// Parses a table, publishing its style id for the duration so paragraphs in its cells can
+    /// pick up the table-style step of the paragraph cascade.
+    /// </summary>
     TableElement? ParseTable(Table table, MainDocumentPart mainPart)
+    {
+        // Saved and restored rather than cleared: a nested table resolves its OWN style (or the
+        // document default when it declares none — it does not inherit the outer table's), and
+        // the outer table's later rows must still see the outer style.
+        var previousTableStyleId = currentTableStyleId;
+        currentTableStyleId = table.GetFirstChild<OoxmlTableProperties>()?
+                                  .GetFirstChild<TableStyle>()?.Val?.Value
+                              ?? defaultTableStyleId;
+        try
+        {
+            return ParseTableCore(table, mainPart);
+        }
+        finally
+        {
+            currentTableStyleId = previousTableStyleId;
+        }
+    }
+
+    TableElement? ParseTableCore(Table table, MainDocumentPart mainPart)
     {
         var rows = new List<TableRow>();
         var tableProps = table.GetFirstChild<OoxmlTableProperties>();
@@ -9203,7 +9383,9 @@ sealed class DocumentParser(string defaultFont)
         // When no style applies (bare docx without styles.xml), Word falls back to its built-in
         // Normal style — see defaultLineSpacingMultiplier, which carries that value only when the
         // document declares no styles.xml or no docDefaults, and 1.08 otherwise.
-        var lineSpacingMultiplier = styleDefaults?.LineSpacingMultiplier ?? defaultLineSpacingMultiplier;
+        var lineSpacingMultiplier = styleDefaults?.LineSpacingMultiplier
+                                    ?? docDefaultLineSpacingMultiplier
+                                    ?? defaultLineSpacingMultiplier;
         var lineSpacingPoints = styleDefaults?.LineSpacingPoints ?? 0;
         var lineSpacingRule = styleDefaults?.LineSpacingRule ?? LineSpacingRule.Auto;
         var firstLineIndent = styleDefaults?.FirstLineIndentPoints ?? 0;
@@ -9213,6 +9395,48 @@ sealed class DocumentParser(string defaultFont)
         var contextualSpacing = styleDefaults?.ContextualSpacing ?? false;
         var suppressLineNumbers = false;
         var suppressAutoHyphens = false;
+
+        // Table-style step of the cascade. The values above resolved the paragraph style chain
+        // over the DOCUMENT defaults; inside a table, the table style's own w:pPr sits between
+        // those two, so it wins wherever the style chain declared nothing. Word-verified on
+        // resumes/07, whose TableGrid declares w:after="0" w:line="240": sweeping the document's
+        // w:after leaves its cell rows untouched (see docs/word-features.md, Table Style
+        // Paragraph Properties).
+        if (currentTableStyleId is { } tableStyleId &&
+            tableStyleSpacing.TryGetValue(tableStyleId, out var fromTableStyle) &&
+            fromTableStyle.DeclaresAnything)
+        {
+            var declared = styleId != null && paragraphStyleDeclaredSpacing.TryGetValue(styleId, out var d)
+                ? d
+                : new StyleParagraphSpacing();
+
+            if (declared.SpacingBeforePoints == null && fromTableStyle.SpacingBeforePoints is { } tsBefore)
+            {
+                spacingBefore = tsBefore;
+            }
+
+            if (declared.SpacingAfterPoints == null && fromTableStyle.SpacingAfterPoints is { } tsAfter)
+            {
+                spacingAfter = tsAfter;
+            }
+
+            if (declared.LineSpacingRule == null && fromTableStyle.LineSpacingRule is { } tsRule)
+            {
+                lineSpacingRule = tsRule;
+                lineSpacingMultiplier = fromTableStyle.LineSpacingMultiplier ?? lineSpacingMultiplier;
+                lineSpacingPoints = fromTableStyle.LineSpacingPoints ?? lineSpacingPoints;
+            }
+
+            if (declared.LeftIndentPoints == null && fromTableStyle.LeftIndentPoints is { } tsLeft)
+            {
+                leftIndent = tsLeft;
+            }
+
+            if (declared.RightIndentPoints == null && fromTableStyle.RightIndentPoints is { } tsRight)
+            {
+                rightIndent = tsRight;
+            }
+        }
 
         // Pagination properties - get from style defaults
         var keepLines = styleDefaults?.KeepLines ?? false;
