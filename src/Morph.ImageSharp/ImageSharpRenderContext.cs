@@ -146,6 +146,13 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
     //   !font.IsBold                                    41       +0.1127    already-heavy faces
     //   resolved OS/2 weight < 700                      38       +0.1127    real bold siblings
     //   both of the above                               33       +0.0933    (still ~2x Skia)
+    //   both, with Skia's tapered stroke width          33       +0.0952    (marginally worse)
+    //
+    // The fourth row is the taper Skia uses for fake bold: a fraction of the DEVICE-space text
+    // size, 1/24 at 9px easing to 1/32 at 36px, clamped. It is the more faithful formula — a flat
+    // 1/32 runs up to 24% light on small text — but it only differs BELOW about 16pt, because at
+    // 150 DPI anything from 17pt up is already past the 36px clamp. So it adds weight to small text
+    // only, and the corpus went slightly further negative.
     //
     // Skia's own version moves 18 scenarios for +0.0320. Every attempt stayed roughly double that
     // and net-negative, and crops showed real over-application rather than the new-ink offset
@@ -172,11 +179,25 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
     // already fired. That is why landing the Franklin Gothic Book fix changed labels/15's Skia
     // baseline by zero pixels — only " Book"-style names (suffix -> target 400, gap 0) were missed.
     //
-    // So the ImageSharp over-application there is STROKE WEIGHT, not the predicate. Its script
-    // rendered thin without synthesis (1836 ink against Word's 2044) and too heavy with it; the
-    // width was calibrated at 24pt and that run is 32pt, while Skia's embolden tapers with size
-    // (roughly size/24 at 9pt easing to size/32 at 36pt) and the flat divisor here does not. A
-    // fourth attempt should taper the width and re-measure rather than touch the condition again.
+    // That was then blamed on stroke width, and the taper was tried (row four above). Wrong again,
+    // and measuring the script GLYPHS ALONE — an earlier crop box had spanned the address lines
+    // beside them — says why:
+    //
+    //   Word                        509 ink
+    //   Skia, already emboldened    660     +29.7%
+    //   ImageSharp, no synthesis    234     -54.0%
+    //   ImageSharp, stroked         747     +46.8%
+    //
+    // Skia is 30% OVER Word on that script and has been since before any of this work: the family
+    // name carries no weight suffix, so the long-standing "gap >= 200" clause always fired there.
+    // Mechanical dilation is simply not a designed bold. A real bold script is redrawn, not
+    // fattened, and sits far closer to its regular than a stroked outline does — so both backends
+    // overshoot, ImageSharp further because its rasterization is heavier to begin with.
+    //
+    // A fifth attempt therefore should NOT re-tune the width. What is missing is a way to tell a
+    // face whose bold is genuinely absent (Franklin Gothic Book — synthesis is right) from one
+    // where Word has a designed bold we simply do not bundle (this script — synthesis overshoots
+    // whatever width is chosen).
 
     Font GetOrCreateCachedFont(FontFamily family, float fontSize, FontStyle style)
     {
