@@ -24,6 +24,24 @@ washes and regressions revert, but the measured knowledge is kept.
 
 ## Pass 4 experiment ledger (newest first)
 
+- **20 — the table-style `w:pPr` cascade step: landed, and it unblocked the docDefaults `w:line`
+  cascade.** ECMA-376 resolves a paragraph inside a table as `docDefaults → table style w:pPr →
+  paragraph style chain → direct w:pPr`; Morph skipped the middle step entirely. `resumes/07`'s
+  tables use `TableGrid` declaring `w:after="0" w:line="240"`, so in Word its cell paragraphs are
+  single-spaced with no after — immune to that document's 8pt after and 1.158 docDefault line.
+  Word-probe verified by stripping the style-level `w:pPr`: Word goes 1 page → 2. Implemented via
+  `StyleParagraphSpacing` (nullable fields, because the resolved `ParagraphProperties` cannot tell
+  "declared zero" from "inherited zero") plus a save/restore of the active table style id around
+  `ParseTableCore`.
+  Alone it is near-neutral (21 scenarios, −0.05 AE, **−0.25 SSIM**) — its value is as the
+  prerequisite. **With the docDefaults `w:line` cascade on top: 75 scenarios, 55 better / 20 worse,
+  net −1.8694 AE, SSIM +3.8378 agreeing with AE on 342 of 362 pages, and 0 page-count changes in
+  either direction.** That cascade had been attempted and reverted twice before; `resumes/07` was
+  its last blocker and this is why it now holds Word's single page.
+  Residual: `business-plans/02` regresses +0.17 AE with SSIM down on pages 3-4 even though a Word
+  probe confirms Word applies its `TableGrid` `w:pPr` too (stripping it shifts 0.8-1.7% of pixels
+  on every page) — a compensating error elsewhere in that scenario, not a fault in the rule.
+
 - **19 — the Auto multiplier must not scale an inline image: landed, +2 scenarios.** Word applies
   the Auto line multiplier to the TEXT line box only; an inline image contributes its height
   unscaled and the line takes the larger of the two. Verified by sweeping brochures/06's docDefault

@@ -1065,15 +1065,18 @@ Cell-level flags selecting which `w:tblStylePr` block applies (first row, last r
 
 > **Contributors**: Cell- and row-level explicit `w:shd` / `w:tcBorders` win over conditional formatting. When a row/cell carries no `w:cnfStyle`, the cascade derives flags from grid position (firstRow, lastRow, firstColumn, lastColumn, banding) — but only for the conditions that `w:tblLook` permits (e.g. `w:noHBand="1"` suppresses horizontal banding). Run-property and paragraph-property overrides inside `w:tblStylePr` (bold, font colour, alignment) are not yet cascaded — that requires threading the active conditions into paragraph parsing.
 
-#### Table Style Paragraph Properties `TODO`
+#### Table Style Paragraph Properties `DONE`
 
-A table style's own style-level `w:pPr` applies to every paragraph inside tables that reference it. ECMA-376 resolves a paragraph in a table as **docDefaults → table style `w:pPr` → paragraph style chain → direct `w:pPr`**; Morph omits the table-style step, so cell paragraphs inherit document defaults Word overrides.
+A table style's own style-level `w:pPr` applies to every paragraph inside tables that reference it. ECMA-376 resolves a paragraph in a table as **docDefaults → table style `w:pPr` → paragraph style chain → direct `w:pPr`**, so the table style overrides the document defaults and yields to anything the paragraph's style chain declares.
 
 - **OOXML**: `w:pPr` as a direct child of `<w:style w:type="table">` (distinct from the conditional `w:tblStylePr/w:pPr` above)
-- **Parse**: not implemented — the only table-style `StyleParagraphProperties` read is for numbering, and `TableStyleBorderInfo` carries no paragraph properties
-- **Test**: none yet
+- **Model**: `StyleParagraphSpacing` — nullable spacing/indent fields, so "declared as zero" stays distinguishable from "not declared"
+- **Parse**: `DocumentParser.ExtractDeclaredSpacing` builds one map per style type, each resolved through `w:basedOn`; `ParseTable` publishes the table's style id (save/restore, so nesting cannot leak) and the paragraph resolution applies the table value wherever the paragraph style chain is silent
+- **Test**: `TableStyleParagraphSpacingTests`
 
-> **Contributors**: The archetype is `resumes/07`, whose tables use `TableGrid` declaring `<w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr>` — zero space-after and single line spacing for every cell paragraph, immune to that document's 8pt after and its 1.158 docDefault line. Morph applies both, making each Company row 41px against Word's 28px (Word sits on the row's 263-twip `w:trHeight` floor because the style zeroed the after), and leaving the page with 1px of headroom where Word has 19px. Word-probe verified: sweeping the docDefault `w:after` 0/160/600 leaves that gap at 28/28/27 while non-table gaps move sharply; the same sweep on `table_default_style` (no table-style `w:pPr`) moves its row pitch 68/100/193, so Word does charge a cell paragraph's after in general — it is simply absent here. **35 scenarios** use a table style with a style-level `w:pPr` (40 declare `w:spacing`), including `business-plans/13`, `business-plans/15` and `image_wrap_square` — three of the eight remaining page-count mismatches in `page_counts.md`.
+> **Contributors**: The archetype is `resumes/07`, whose tables use `TableGrid` declaring `<w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr>` — zero space-after and single line spacing for every cell paragraph, immune to that document's 8pt after and its 1.158 docDefault line. Word-probe verified three ways: stripping that `w:pPr` takes Word from 1 page to 2 (and shifts 4% of its pixels); sweeping the docDefault `w:after` 0/160/600 leaves its cell rows at 28/28/27px while non-table gaps move sharply; and the same sweep on `table_default_style` (no table-style `w:pPr`) moves its row pitch 68/100/193, so Word does charge a cell paragraph's after in general — it is simply absent here.
+>
+> The three line values (multiplier, points, rule) layer as a unit: a re-declared `w:line` replaces all three, so splitting them would let an Auto multiplier survive under a later `Exactly` rule. **35 scenarios** use a table style with a style-level `w:pPr` (40 declare `w:spacing`, 2 `w:ind`). Landing it alone is close to neutral (21 scenarios, −0.05 AE but −0.25 SSIM); its value is as the missing prerequisite for the docDefaults `w:line` cascade, which lands cleanly on top of it. **Known residual:** `business-plans/02` regresses (+0.17 AE, SSIM down on pages 3-4) even though a Word probe confirms Word applies its `TableGrid` `w:pPr` too — a compensating error elsewhere in that scenario, not a fault in this rule.
 
 
 #### Diagonal Cell Borders `DONE`
