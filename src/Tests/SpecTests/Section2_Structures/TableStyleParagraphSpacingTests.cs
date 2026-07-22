@@ -47,6 +47,22 @@ public class TableStyleParagraphSpacingTests
     }
 
     [Test]
+    public async Task DefaultParagraphStyleDeclaration_OutranksTableStyle()
+    {
+        // A paragraph with no explicit w:pStyle still uses the document's default paragraph
+        // style, and that style's own declarations outrank the table style. business-plans/02's
+        // Normal declares w:line="336" (1.4) and its tables use TableGrid declaring w:line="240";
+        // Word keeps 1.4 inside those tables. Reading only an explicit pStyle here made the
+        // table style win and set the cell text single-spaced, costing 11px on every affected gap.
+        var doc = Parse("business-plans", "02");
+
+        var cellParagraph = CellParagraphs(doc)
+            .First(_ => _.Runs.Any(r => r.Text.StartsWith("Offerings include")));
+
+        await Assert.That(cellParagraph.Properties.LineSpacingMultiplier).IsEqualTo(1.4);
+    }
+
+    [Test]
     public async Task NoTableStylePpr_LeavesCellSpacingAlone()
     {
         // table_default_style's table style declares no w:pPr, so its cell paragraphs keep the
