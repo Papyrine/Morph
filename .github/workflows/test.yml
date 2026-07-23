@@ -20,6 +20,15 @@ jobs:
     # (the csproj references are conditioned on MORPH_TEST_CONTAINER, set in the
     # image), so the in-container build only compiles and tests — it never packs.
 
+    env:
+      # scripts/test.sh defaults to copying the working tree into the container and
+      # syncing changes back, because a Windows host serves the bind mount over 9p and
+      # that halves the suite's speed. A Linux runner's bind mount is already native, so
+      # here the copy is pure overhead — and the copy-back would be too, since the
+      # artifacts the steps below upload (.received.* and nugets/) are written straight
+      # into the workspace in direct mode.
+      MORPH_DIRECT: '1'
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4

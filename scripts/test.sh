@@ -9,8 +9,12 @@
 #   ./scripts/test.sh bash                   # interactive shell inside the container
 #
 # Notes:
-# - The working tree is mounted at /src; any file the container writes
-#   (test output, .received.* files, bin/obj artifacts) appears on the host.
+# - The working tree is mounted at /src. By default the run happens against a
+#   container-local COPY of it and changed files are synced back afterwards, because a
+#   Windows host exposes the mount over 9p/drvfs and that halves the suite's speed
+#   (4m34s -> 2m15s measured; see scripts/container-run.sh for the numbers and for what
+#   gets synced back). Set MORPH_DIRECT=1 to work in the mounted tree instead — the old
+#   behaviour, and the right one on a Linux host where the mount is already native.
 # - NuGet packages are cached between runs to skip restore: in ./.nuget-cache on
 #   macOS/Linux, or a Docker named volume (morph-nuget-cache) on Windows, where a
 #   host bind mount hits MAX_PATH. Reset with `rm -rf ./.nuget-cache` or
@@ -72,12 +76,34 @@ fi
 # csproj references are gated on MORPH_TEST_CONTAINER, set in the image), so no
 # GitHub credential is forwarded — the in-container build only compiles and
 # tests, it never packs.
-docker run \
-    --rm \
-    --init \
-    --platform=linux/amd64 \
-    -v "${HOST_ROOT}:/src" \
-    -v "${NUGET_MOUNT}:/nuget" \
-    -w /src \
-    "$IMAGE_TAG" \
-    "$@"
+#
+# An interactive shell wants the live tree (and its .git), not a copy whose edits only
+# reappear on exit, so `bash`/`sh` opt out of the container-local copy automatically.
+DIRECT="${MORPH_DIRECT:-0}"
+case "${1:-}" in
+    bash|sh) DIRECT=1 ;;
+esac
+
+if [[ "$DIRECT" == "1" ]]; then
+    docker run \
+        --rm \
+        --init \
+        --platform=linux/amd64 \
+        -v "${HOST_ROOT}:/src" \
+        -v "${NUGET_MOUNT}:/nuget" \
+        -w /src \
+        "$IMAGE_TAG" \
+        "$@"
+else
+    # Invoked through `bash` rather than as an executable: the exec bit does not survive a
+    # clone on a Windows filesystem.
+    docker run \
+        --rm \
+        --init \
+        --platform=linux/amd64 \
+        -v "${HOST_ROOT}:/src" \
+        -v "${NUGET_MOUNT}:/nuget" \
+        -w /src \
+        "$IMAGE_TAG" \
+        bash /src/scripts/container-run.sh "$@"
+fi
