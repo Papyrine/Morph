@@ -141,7 +141,7 @@ For a complete feature-by-feature mapping to code locations, see `docs/word-feat
 3. Update the summary statistics at the bottom — the category table, the `**Total**` row and the mermaid pie all have to move together
 4. Add new test directory name to the Test row
 
-Step 3 is enforced: `FeatureMatrixSummaryTests` recounts the tally from the `#### Feature \`STATUS\`` headings and fails with the exact deltas if any of the three disagree. It has caught a hand-edit slip and a clean-but-wrong merge, so do not hand-patch one of the three and assume the rest follow.
+Step 3 is enforced: `FeatureMatrixSummaryTests` recounts the tally from the `` #### Feature `STATUS` `` headings and fails with the exact deltas if any of the three disagree. It has caught a hand-edit slip and a clean-but-wrong merge, so do not hand-patch one of the three and assume the rest follow.
 
 ## Package Management
 
