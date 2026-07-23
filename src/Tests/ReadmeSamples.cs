@@ -198,4 +198,74 @@ public class Samples
 
         #endregion
     }
+
+    public static async Task HtmlToImages()
+    {
+        #region HtmlToImages
+
+        var converter = new SkiaHtmlConverter();
+
+        var result = await converter.ConvertToImages(
+            "<h1>Hello</h1><p>World</p>",
+            "output-folder");
+
+        Console.WriteLine($"Generated {result.PageCount} pages");
+        foreach (var path in result.ImagePaths)
+        {
+            Console.WriteLine($"Created: {path}");
+        }
+
+        #endregion
+    }
+
+    public static async Task HtmlToImageData()
+    {
+        #region HtmlToImageData
+
+        var converter = new SkiaHtmlConverter();
+
+        var imageData = await converter.ConvertToImageData("<h1>Hello</h1><p>World</p>");
+
+        foreach (var pngBytes in imageData)
+        {
+            // Use the PNG byte array as needed
+        }
+
+        #endregion
+    }
+
+    public static async Task HtmlToMarkdown()
+    {
+        #region HtmlToMarkdown
+
+        var markdown = await HtmlConverter.ConvertToMarkdown("<h1>Hello</h1><p>World</p>");
+        File.WriteAllText("page.md", markdown);
+
+        #endregion
+    }
+
+    public static async Task HtmlToPdf()
+    {
+        #region HtmlToPdf
+
+        var pdf = await PdfHtmlConverter.ConvertToPdf("<h1>Hello</h1><p>World</p>");
+        File.WriteAllBytes("page.pdf", pdf);
+
+        #endregion
+    }
+
+    public static async Task HtmlParseOnceExportMany()
+    {
+        #region HtmlParseOnceExportMany
+
+        // Parse once with HtmlDocument, then export to as many formats as you like — the
+        // source HTML is only parsed a single time.
+        var document = await HtmlDocument.LoadAsync("<h1>Hello</h1><p>World</p>");
+
+        File.WriteAllText("page.html", document.ExportToHtml());
+        File.WriteAllText("page.md",   document.ExportToMarkdown());
+        document.ExportToPdf("page.pdf");   // extension method from Morph.Pdf
+
+        #endregion
+    }
 }
