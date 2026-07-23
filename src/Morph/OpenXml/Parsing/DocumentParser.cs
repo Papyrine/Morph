@@ -892,7 +892,7 @@ sealed class DocumentParser(string defaultFont)
                         break;
 
                     case Text t when instructionStack.Count > 0 && inResult.Peek():
-                        resultStack.Peek().Append(t.Text);
+                        resultStack.Peek().Append(t.Text.ReplaceSeparatorsWithSpace());
                         break;
 
                     case FieldChar fc when fc.FieldCharType?.Value == FieldCharValues.End && instructionStack.Count > 0:
@@ -4878,7 +4878,7 @@ sealed class DocumentParser(string defaultFont)
             var state = fieldStack.Peek();
             foreach (var text in resultRun.Descendants<Text>())
             {
-                state.ResultText.Append(text.Text);
+                state.ResultText.Append(text.Text.ReplaceSeparatorsWithSpace());
             }
 
             state.ResultProperties ??= ParseRunProperties(resultRun.RunProperties, mainPart, paragraphStyleId);
@@ -8571,7 +8571,7 @@ sealed class DocumentParser(string defaultFont)
             {
                 foreach (var text in run.Descendants<Text>())
                 {
-                    textBuilder.Append(text.Text);
+                    textBuilder.Append(text.Text.ReplaceSeparatorsWithSpace());
                 }
             }
         }
@@ -10006,7 +10006,7 @@ sealed class DocumentParser(string defaultFont)
             switch (child)
             {
                 case Text textElement:
-                    textBuilder.Append(textElement.Text);
+                    textBuilder.Append(textElement.Text.ReplaceSeparatorsWithSpace());
                     break;
                 case SoftHyphen:
                     textBuilder.Append(softHyphenChar);
