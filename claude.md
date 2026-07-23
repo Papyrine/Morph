@@ -138,8 +138,10 @@ For a complete feature-by-feature mapping to code locations, see `docs/word-feat
 **When adding, modifying, or removing a DOCX feature, update the feature matrix:**
 1. Update the feature status (`DONE` / `PARTIAL` / `TODO`)
 2. Update parse/model/render locations and audience notes
-3. Update the summary statistics at the bottom
+3. Update the summary statistics at the bottom — the category table, the `**Total**` row and the mermaid pie all have to move together
 4. Add new test directory name to the Test row
+
+Step 3 is enforced: `FeatureMatrixSummaryTests` recounts the tally from the `#### Feature \`STATUS\`` headings and fails with the exact deltas if any of the three disagree. It has caught a hand-edit slip and a clean-but-wrong merge, so do not hand-patch one of the three and assume the rest follow.
 
 ## Package Management
 

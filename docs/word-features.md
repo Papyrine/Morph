@@ -2157,7 +2157,7 @@ Known mappings include:
 - Avenir Next LT Pro -> Century Gothic
 - Sagona -> Georgia
 
-> **Consumers**: Set `ConversionOptions.FontFallback` to provide custom mappings for fonts not covered by built-in fallbacks. (The PDF backend's process-global `PdfFontResolver` consults the built-in `FontFallbacks` map and scores bundled faces by OS/2 weight/italic exactly like the shared resolver, but does not yet see the per-conversion `FontFallback` delegate.)
+> **Consumers**: Set `ImageExportOptions.FontFallback` / `PdfExportOptions.FontFallback` to provide custom mappings for fonts not covered by built-in fallbacks. (The PDF backend's process-global `PdfFontResolver` consults the built-in `FontFallbacks` map and scores bundled faces by OS/2 weight/italic exactly like the shared resolver. It cannot see per-conversion state, so the delegate is applied one level up in `PdfRenderContext` — after the indexed faces and `HostFontIndex` have both missed, and before the substituted family reaches PdfSharp.)
 
 
 ### 10.3 Conversion Options
@@ -2167,7 +2167,7 @@ Known mappings include:
 
 Output resolution in dots per inch (default 150).
 
-- **Model**: `ConversionOptions.Dpi`
+- **Model**: `ImageExportOptions.Dpi`
 
 > **Consumers**: Higher DPI = larger images with more detail. 150 DPI is good for screen viewing. Use 300 for print quality.
 
@@ -2176,18 +2176,18 @@ Output resolution in dots per inch (default 150).
 
 Multiplier applied to character width measurements for Word-compatible layout (default 1.0; use 1.08 to better match Word).
 
-- **Model**: `ConversionOptions.FontWidthScale`
+- **Model**: `ImageExportOptions.FontWidthScale`, `PdfExportOptions.FontWidthScale`
 
-> **Consumers**: Adjusts text wrapping to better match Word's layout engine. Values > 1.0 produce earlier line wrapping. The default is 1.0; 1.08 provides good compatibility with Word.
+> **Consumers**: Adjusts text wrapping to better match Word's layout engine. Values > 1.0 produce earlier line wrapping. The default is 1.0; 1.08 provides good compatibility with Word. Honoured by every backend: the PDF engine (`PdfTextEngine`) scales the glyph advances that drive wrapping and right/decimal tab stops, and advances the draw pen by the same widths.
 
 
 #### Custom Font Fallback Callback `DONE`
 
 User-provided function to resolve missing font names.
 
-- **Model**: `ConversionOptions.FontFallback` — `Func<string, string?>`
+- **Model**: `ImageExportOptions.FontFallback`, `PdfExportOptions.FontFallback` — `Func<string, string?>`
 
-> **Consumers**: Return a font name to use as a substitute, or null to continue with built-in fallback chain.
+> **Consumers**: Return a font name to use as a substitute, or null to continue with built-in fallback chain. Honoured by every backend: the PDF path applies it in `PdfRenderContext` before the family reaches PdfSharp, since its resolver is process-global and cannot see per-conversion state.
 
 ---
 
@@ -2367,29 +2367,29 @@ Read-only mode, form protection, and editing restrictions.
 | 1. Text Formatting | 26 | 0 | 3 | 0 | 29 |
 | 2. Paragraph Formatting | 23 | 1 | 0 | 0 | 24 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 0 | 6 |
-| 4. Tables | 27 | 0 | 0 | 0 | 27 |
+| 4. Tables | 28 | 0 | 0 | 0 | 28 |
 | 5. Page Layout & Sections | 19 | 0 | 0 | 0 | 19 |
-| 6. Graphics & Media | 22 | 2 | 1 | 1 | 26 |
+| 6. Graphics & Media | 22 | 3 | 1 | 1 | 27 |
 | 7. Form Controls | 10 | 0 | 1 | 0 | 11 |
 | 8. Themes & Styles | 4 | 0 | 0 | 0 | 4 |
 | 9. Typography | 8 | 0 | 0 | 0 | 8 |
 | 10. Document Infrastructure | 6 | 0 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 0 | 2 |
-| **Total** | **161** | **3** | **5** | **1** | **170** |
+| **Total** | **162** | **4** | **5** | **1** | **172** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 161
-    "Partial" : 3
+    "Done" : 162
+    "Partial" : 4
     "Todo" : 5
     "Wontfix" : 1
 ```
 
-**Overall coverage: ~95% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
+**Overall coverage: ~94% fully implemented.** TODOs were identified by scanning every `document.xml` (and related parts) under `src/Tests/Inputs/` against the parser's handled tag set; see `src/missingTags.md` for the raw inventory and impact ranking.
 
 
 Priority areas for future implementation:

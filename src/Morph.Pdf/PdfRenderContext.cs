@@ -44,6 +44,8 @@ sealed class PdfRenderContext : RenderContextBase
             sizePoints = 11;
         }
 
+        family = ResolveFamily(family, bold, italic);
+
         var key = (family, bold, italic, sizePoints);
         if (fontCache.TryGetValue(key, out var cached))
         {
@@ -64,6 +66,39 @@ sealed class PdfRenderContext : RenderContextBase
         var font = new XFont(family, sizePoints, style, fontOptions);
         fontCache[key] = font;
         return font;
+    }
+
+    // PdfSharp resolves faces through a process-global IFontResolver that cannot see per-conversion
+    // state, so the FontFallback delegate is applied here rather than inside PdfFontResolver: the
+    // substituted family is what reaches XFont, and the global resolver only ever sees a name it can
+    // already serve. Cached per requested triple so the delegate runs once per distinct family.
+    readonly Dictionary<(string Family, bool Bold, bool Italic), string> fallbackCache = [];
+
+    string ResolveFamily(string family, bool bold, bool italic)
+    {
+        if (FontFallback == null)
+        {
+            return family;
+        }
+
+        var key = (family, bold, italic);
+        if (fallbackCache.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+
+        // Mirrors the shared resolver's ordering: the delegate is consulted only once the indexed
+        // faces and the curated alias map have missed, and a null/empty return falls through to
+        // PdfFontResolver's own platform and default-font fallbacks.
+        var resolved = family;
+        if (!PdfFontResolver.Instance.CanResolve(family, bold, italic) &&
+            FontFallback(family) is { Length: > 0 } substitute)
+        {
+            resolved = substitute;
+        }
+
+        fallbackCache[key] = resolved;
+        return resolved;
     }
 
     // Brushes and pens were allocated per drawn word / underline / border edge. Documents use a

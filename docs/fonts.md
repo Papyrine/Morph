@@ -26,10 +26,10 @@ When a Word document declares a font like `<w:rFonts w:ascii="Segoe UI Semilight
 4. **Derives the target weight from the requested name when possible.** A request for `"Segoe UI Semilight"` targets weight 350; `"Segoe UI Bold"` targets 700; `"Arial"` with `bold=false` targets 400. The bold flag from the run still applies as a fallback when the name carries no weight word.
 
 The implementation is in:
-- `src/Morph/Rendering/OpenTypeReader.cs` — minimal `name` + `OS/2` parser.
-- `src/Morph/Rendering/FontFace.cs` — per-face metadata record.
-- `src/Morph/Rendering/FontFileCache.cs` — name-indexed view of a font directory.
-- `src/Morph/Rendering/FontHelpers.cs` — weight inference, scoring, fallback dictionary.
+- `src/Morph/Fonts/OpenTypeReader.cs` — minimal `name` + `OS/2` parser.
+- `src/Morph/Fonts/FontFace.cs` — per-face metadata record.
+- `src/Morph/Fonts/FontFileCache.cs` — name-indexed view of a font directory.
+- `src/Morph/Fonts/FontHelpers.cs` — weight inference, scoring, fallback dictionary.
 
 ## Search path
 
@@ -42,7 +42,7 @@ By default, Morph indexes fonts from these locations in order. The first cache t
 | Cloud | `%LOCALAPPDATA%\Microsoft\FontCache\4\CloudFonts` | n/a | n/a |
 | System | `%WINDIR%\Fonts` | `/Library/Fonts`, `/System/Library/Fonts` | `/usr/share/fonts`, `/usr/local/share/fonts` |
 
-If `ConversionOptions.FontDirectory` is set, **only** that directory is searched (recursively). System/user/Office/cloud caches and the OS font manager are ignored, and unresolved fonts throw immediately. Use this for hermetic, machine-independent rendering.
+If `ExportOptions.FontDirectory` is set, **only** that directory is searched (recursively). System/user/Office/cloud caches and the OS font manager are ignored, and unresolved fonts throw immediately. Use this for hermetic, machine-independent rendering.
 
 ## Fallback behaviour
 
@@ -60,22 +60,28 @@ When a name doesn't match any indexed face, Morph falls back in this order:
    | `Grandview Display` | `Grandview` |
    | `Cambria Math` | `Cambria` |
 
-3. **User `FontFallback` delegate**, if `ConversionOptions.FontFallback` is supplied. Called with the original family name; return an alternative or `null`.
+3. **User `FontFallback` delegate**, if `ImageExportOptions.FontFallback` / `PdfExportOptions.FontFallback` is supplied. Called with the original family name; return an alternative or `null`.
 4. **Platform font manager.** Skia's `SKTypeface.FromFamilyName` / ImageSharp's `SystemFonts` get a final chance, useful for fonts the user installed after Morph's caches loaded.
 
 If all four fall through, an `InvalidOperationException` is thrown listing every directory that was searched.
 
+This chain is the shared `FontResolver`, used by the Skia and ImageSharp backends. The PDF backend has its own: PdfSharp resolves faces through the process-global `PdfFontResolver`, which mirrors steps 1, 2 and 4. Step 3 still applies, from outside — because a process-global resolver cannot see per-conversion state, `PdfRenderContext` substitutes the delegate's answer before the family name ever reaches PdfSharp, consulting it only once the indexed faces and the host's installed fonts (`HostFontIndex`) have both missed.
+
 ## Configuration
 
-All font-related configuration lives on [`ConversionOptions`](../src/Morph/ConversionOptions.cs):
+Font configuration is split between the shared [`ExportOptions`](../src/Morph/Export/ExportOptions.cs) base record and the per-format records that derive from it — the layout-affecting knobs only exist where they can take effect, so **which options are available depends on the output format**:
 
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `FontDirectory` | `string?` | `null` | Path to a directory of fonts to use exclusively. When set, system/user/Office/cloud caches and OS font fallbacks are bypassed. |
-| `FontFallback` | `Func<string, string?>?` | `null` | Called when a requested font isn't resolved any other way. Return an alternative family name or `null` to throw. |
-| `DefaultFont` | `string?` | `null` (uses `Aptos`) | Family used when the document doesn't declare a default in `docDefaults`. Per-conversion override; doesn't affect other callers. |
-| `FontWidthScale` | `double` | `1.0` | Scale factor for measured glyph advances. `1.08` better matches Microsoft Word's text rendering and causes earlier line wrapping to compensate for Skia/ImageSharp running glyphs slightly tighter than GDI. |
-| `DeterministicRendering` | `bool?` | `null` (uses static default `false`) | When `true`, the Skia backend disables sub-pixel positioning and font hinting, falling back to integer-positioned greyscale anti-aliasing. Output is pixel-identical across machines and rasterizer versions; text is slightly softer. Intended for snapshot tests; leave off in production. |
+| Option | Type | Default | Available on | Description |
+|---|---|---|---|---|
+| `FontDirectory` | `string?` | `null` | `ExportOptions` — every format | Path to a directory of fonts to use exclusively. When set, system/user/Office/cloud caches and OS font fallbacks are bypassed. |
+| `DefaultFont` | `string?` | `null` (uses `Aptos`) | `ExportOptions` — every format | Family used when the document doesn't declare a default in `docDefaults`. Per-conversion override; doesn't affect other callers. |
+| `FontFallback` | `Func<string, string?>?` | `null` | `ImageExportOptions`, `PdfExportOptions` | Called when a requested font isn't resolved any other way. Return an alternative family name or `null` to throw. |
+| `FontWidthScale` | `double` | `1.0` | `ImageExportOptions`, `PdfExportOptions` | Scale factor for measured glyph advances. `1.08` better matches Microsoft Word's text rendering and causes earlier line wrapping to compensate for Skia/ImageSharp running glyphs slightly tighter than GDI. |
+| `DeterministicRendering` | `bool?` | `null` (uses static default `false`) | `ImageExportOptions` only | When `true`, the Skia backend disables sub-pixel positioning and font hinting, falling back to integer-positioned greyscale anti-aliasing. Output is pixel-identical across machines and rasterizer versions; text is slightly softer. Intended for snapshot tests; leave off in production. |
+
+The HTML and Markdown exporters emit font *names* rather than measuring glyphs, so they take only the two `ExportOptions` entries. The process-wide equivalents of `DefaultFont`, `FontWidthScale` and `DeterministicRendering` live on the internal `DefaultFontSettings` and must be set before the first render.
+
+`FontWidthScale` reaches PDF text through `PdfTextEngine`: it widens the measured glyph advances that drive line wrapping and right/decimal tab-stop resolution, and the draw pen advances by those same widths — the same measure-equals-draw model the raster backends use. At the default 1.0 it is an exact no-op, so it never moves PDF output unless set.
 
 ## Recipes
 
@@ -84,7 +90,7 @@ All font-related configuration lives on [`ConversionOptions`](../src/Morph/Conve
 Bundle the required fonts with the app, point Morph at them, and disable subpixel rendering:
 
 ```csharp
-var options = new ConversionOptions
+var options = new ImageExportOptions
 {
     FontDirectory = Path.Combine(AppContext.BaseDirectory, "Fonts"),
     DeterministicRendering = true,
@@ -96,7 +102,7 @@ With `FontDirectory` set, an unresolved font throws immediately rather than sile
 ### Substitute a missing font
 
 ```csharp
-var options = new ConversionOptions
+var options = new ImageExportOptions
 {
     FontFallback = name => name switch
     {
@@ -114,7 +120,7 @@ Returning `null` propagates to the next fallback tier (the OS font manager); thr
 Word's GDI rendering tends to be slightly looser than Skia/ImageSharp. If long lines are wrapping later than Word does, scale glyph advances up by ~7%:
 
 ```csharp
-var options = new ConversionOptions { FontWidthScale = 1.08 };
+var options = new ImageExportOptions { FontWidthScale = 1.08 };
 ```
 
 ## Why this differs from `SKTypeface.FromFamilyName`

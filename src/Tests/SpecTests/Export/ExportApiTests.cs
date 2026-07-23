@@ -160,4 +160,136 @@ public class ExportApiTests
         await Assert.That(trimmed.PageCount).IsEqualTo(1);
         await Assert.That(full.PageCount).IsGreaterThanOrEqualTo(2);
     }
+
+    // A family that is neither bundled in src/Fonts nor plausibly installed on any host, so
+    // PdfFontResolver.CanResolve must miss on both the indexed faces and the platform resolver.
+    const string unresolvableFamily = "Morph Test Nonexistent Family";
+
+    static PdfRenderContext FallbackContext(Func<string, string?> fontFallback) =>
+        new(
+            new()
+            {
+                WidthPoints = 612,
+                HeightPoints = 792,
+                MarginTop = 72,
+                MarginBottom = 72,
+                MarginLeft = 72,
+                MarginRight = 72
+            },
+            compatibility: null,
+            fontWidthScale: 1.0,
+            fontFallback: fontFallback,
+            fontDirectory: fontsDirectory);
+
+    /// <summary>
+    /// PdfSharp resolves faces through a process-global <c>IFontResolver</c> that cannot see
+    /// per-conversion state, so <see cref="PdfExportOptions.FontFallback"/> is applied in
+    /// <c>PdfRenderContext</c> before the family reaches <c>XFont</c>. Guards that wiring.
+    /// </summary>
+    [Test]
+    public async Task PdfFontFallback_SubstitutesUnresolvableFamily()
+    {
+        var requested = new List<string>();
+        var context = FallbackContext(name =>
+        {
+            requested.Add(name);
+            return "Arial";
+        });
+
+        var font = context.GetFont(unresolvableFamily, bold: false, italic: false, sizePoints: 12);
+
+        await Assert.That(requested).Contains(unresolvableFamily);
+        await Assert.That(font.FontFamily.Name).IsEqualTo("Arial");
+    }
+
+    /// <summary>
+    /// The delegate is a fallback, not an interceptor: a family the resolver can already serve must
+    /// never reach it. Without this the delegate would fire for every common family whenever no
+    /// FontDirectory narrowed the index.
+    /// </summary>
+    [Test]
+    public async Task PdfFontFallback_NotInvokedForResolvableFamily()
+    {
+        var requested = new List<string>();
+        var context = FallbackContext(name =>
+        {
+            requested.Add(name);
+            return "Aptos";
+        });
+
+        var font = context.GetFont("Arial", bold: false, italic: false, sizePoints: 12);
+
+        await Assert.That(requested).IsEmpty();
+        await Assert.That(font.FontFamily.Name).IsEqualTo("Arial");
+    }
+
+    /// <summary>A null return falls through to PdfFontResolver's own platform / default chain.</summary>
+    [Test]
+    public async Task PdfFontFallback_NullReturn_LeavesFamilyUnchanged()
+    {
+        var context = FallbackContext(_ => null);
+
+        var font = context.GetFont(unresolvableFamily, bold: false, italic: false, sizePoints: 12);
+
+        await Assert.That(font.FontFamily.Name).IsEqualTo(unresolvableFamily);
+    }
+
+    static PdfTextEngine EngineAtScale(double scale) =>
+        new(new(
+            new()
+            {
+                WidthPoints = 612,
+                HeightPoints = 792,
+                MarginTop = 72,
+                MarginBottom = 72,
+                MarginLeft = 72,
+                MarginRight = 72
+            },
+            compatibility: null,
+            fontWidthScale: scale,
+            fontFallback: null,
+            fontDirectory: fontsDirectory));
+
+    // Plain text, no character spacing — so every measured width term scales linearly and the
+    // scaled/unscaled split inside PdfTextEngine can't hide behind a tracking constant.
+    static ParagraphElement ScaleProbe() =>
+        Para(TextRun("The quick brown fox jumps over the lazy dog"));
+
+    /// <summary>
+    /// <see cref="PdfExportOptions.FontWidthScale"/> widens the measured glyph advances that drive
+    /// PDF line wrapping. At the 1.0 default it is an exact no-op (guarded by the PDF snapshot
+    /// baselines); this exercises the non-unit path the baselines cannot, since 1.0 changes nothing.
+    /// </summary>
+    [Test]
+    public async Task PdfFontWidthScale_ScalesNaturalWidthProportionally()
+    {
+        var paragraph = ScaleProbe();
+
+        // A width large enough that the probe stays on one line, so natural width is the full
+        // sum of scaled word + space advances.
+        var natural10 = EngineAtScale(1.0).MeasureParagraphNaturalWidth(paragraph, 100_000f);
+        var natural15 = EngineAtScale(1.5).MeasureParagraphNaturalWidth(paragraph, 100_000f);
+
+        // No character spacing, so the ratio is the scale factor itself (within float rounding).
+        await Assert.That(natural15).IsGreaterThan(natural10 * 1.45f);
+        await Assert.That(natural15).IsLessThan(natural10 * 1.55f);
+    }
+
+    /// <summary>The corollary users actually care about: a larger scale wraps sooner.</summary>
+    [Test]
+    public async Task PdfFontWidthScale_WrapsEarlier()
+    {
+        var paragraph = ScaleProbe();
+
+        // Derive a width that fits the probe on one line at 1.0 — then a 1.5 scale (~50% wider)
+        // must overflow it. No magic constant: the threshold comes from the actual metrics.
+        var oneLineWidth = EngineAtScale(1.0).MeasureParagraphNaturalWidth(paragraph, 100_000f);
+        var maxWidth = oneLineWidth * 1.1f;
+
+        var lines10 = EngineAtScale(1.0).LayoutParagraphForMeasurement(paragraph, maxWidth).Count;
+        var lines15 = EngineAtScale(1.5).LayoutParagraphForMeasurement(paragraph, maxWidth).Count;
+
+        await Assert.That(lines10).IsEqualTo(1);
+        await Assert.That(lines15).IsGreaterThan(1);
+    }
 }
