@@ -4,7 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Morph is a .NET library that converts Microsoft Word DOCX documents or HTML content into PNG images. The DOCX public API lives in the `WordRender` namespace (entry point: `DocumentConverter`). The HTML public API lives in the `HtmlRender` namespace (entry point: `HtmlConverter`). Both expose `ConvertToImages` and `ConvertToImageData`.
+Morph is a .NET library that converts Microsoft Word DOCX documents or HTML content into PNG images, PDF, semantic HTML, or Markdown. Either input can produce any of the four outputs. **All public types live in the single `Morph` namespace** — including the backend and PDF assemblies.
+
+- **DOCX in** — `DocumentConverter` is the abstract base and carries the static `ConvertToHtml` / `ConvertToMarkdown` exporters. Its concrete subclasses `SkiaDocumentConverter` / `ImageSharpDocumentConverter` add `ConvertToImages` / `ConvertToImageData`. `PdfDocumentConverter.ConvertToPdf` (in `Morph.Pdf`) produces PDF.
+- **HTML in** — `HtmlConverter` mirrors that shape: static `ConvertToHtml` / `ConvertToMarkdown`, with `SkiaHtmlConverter` / `ImageSharpHtmlConverter` for images and `PdfHtmlConverter.ConvertToPdf` for PDF. HTML parsing is async (AngleSharp), so these return `Task`.
+- **Parse once, export many** — `WordDocument` / `HtmlDocument` parse the source a single time and expose `ExportToHtml` / `ExportToMarkdown`, plus `ExportToPdf` as an extension method from `Morph.Pdf`. Prefer these when emitting more than one format.
+- **Options** — one record per format, all deriving from the abstract `ExportOptions` (which holds the shared font knobs): `ImageExportOptions`, `HtmlExportOptions`, `MarkdownExportOptions`, `PdfExportOptions`.
 
 ## Build & Test Commands
 
@@ -86,13 +91,13 @@ Then combine with `--treenode-filter "/*/*/*ScenarioTests/*"` to skip the spec t
 Brackets (`[...]`) in treenode filters are for property-bag filters (e.g. `[Category=Foo]`), not parameter matching — don't confuse them with LINQ-style filtering.
 
 
-**Prerequisites:** Docker Desktop (with Rosetta enabled on Apple Silicon — see above). The container ships its own .NET SDK matching `global.json`; no host install is required for the canonical workflow. For host-side `dotnet test` shortcuts, the host needs .NET SDK 10.0.300+ locally; see `global.json` for the exact pin. Tests load fonts from the bundled `src/Fonts/` directory via `ConversionOptions.FontDirectory`, so no OS-level font install is needed.
+**Prerequisites:** Docker Desktop (with Rosetta enabled on Apple Silicon — see above). The container ships its own .NET SDK matching `global.json`; no host install is required for the canonical workflow. For host-side `dotnet test` shortcuts, the host needs .NET SDK 10.0.300+ locally; see `global.json` for the exact pin. Tests load fonts from the bundled `src/Fonts/` directory via `ExportOptions.FontDirectory`, so no OS-level font install is needed.
 
 ## Architecture
 
 The conversion pipeline is **Parse → Render**, split across multiple assemblies:
 
-**Core** (`src/Morph/`): the model (`ParsedDocument`, `DocumentElement` types in `DocumentElements.cs`), shared rendering base (`RenderContextBase`, `FontCacheLoader`, `FontHelpers`, `TableLayout`), `ConversionOptions`, `ConversionResult`, the text exporters (HTML/Markdown), **and both parsers**:
+**Core** (`src/Morph/`): the model (`ParsedDocument` and the `DocumentElement` hierarchy, one type per file under `src/Morph/Parsing/`), shared rendering base (`RenderContextBase`, `FontCacheLoader`, `FontHelpers`, `TableLayout`), the `ExportOptions` records, `ConversionResult`, the text exporters (HTML/Markdown), **and both parsers**:
 - **DOCX** (`src/Morph/OpenXml/`): `DocumentParser` reads OOXML via DocumentFormat.OpenXml and builds a `ParsedDocument`. Sub-parsers handle shapes, ink, themes, and HTML (AltChunk).
 - **HTML** (`src/Morph/Html/`): `HtmlParser` converts HTML to `DocumentElement` trees via AngleSharp. `HtmlConverter` is the abstract base for HTML→raster converters.
 
