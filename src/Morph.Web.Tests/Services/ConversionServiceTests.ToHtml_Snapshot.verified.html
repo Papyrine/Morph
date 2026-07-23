@@ -5,18 +5,26 @@
 <style>
 body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
 p { margin: 0 0 8pt; }
+/* Sizes only. Word's BUILT-IN Heading 4/6 are italic, but the document's own style decides:
+   an italic one reaches us as italic runs, which emit <em>. Asserting it here instead
+   forced italic onto every h4/h6 whose style is upright — of the 12 corpus scenarios using
+   Heading 4, not one declares italic. Bold is different: it IS asserted here, and the run
+   writer suppresses <strong> in a heading to match (an explicitly non-bold run still emits
+   font-weight: normal). */
 h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; clear: both; }
 h1 { font-size: 16pt; }
 h2 { font-size: 13pt; }
 h3 { font-size: 12pt; }
-h4 { font-size: 11pt; font-style: italic; }
+h4 { font-size: 11pt; }
 h5 { font-size: 11pt; }
-h6 { font-size: 11pt; font-style: italic; }
+h6 { font-size: 11pt; }
 ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
+footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
 </style>
 </head>
 <body style="font-family: 'Century Gothic', sans-serif; max-width: 468pt; padding: 28.8pt 72pt 72pt">
@@ -34,11 +42,11 @@ hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 <table>
   <tbody>
     <tr style="height: 25.2pt">
-      <td style="width: 116.75pt; background-color: #e4f4ef"><h1 id="date" style="font-size: 10pt; margin-top: 6pt; line-height: 1.04"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Date: </span></h1></td>
+      <td style="width: 116.75pt; background-color: #e4f4ef"><h1 id="date" style="font-size: 10pt; margin-top: 6pt; line-height: 1.1"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Date: </span></h1></td>
       <td style="width: 13.5pt"></td>
-      <td style="width: 126pt; background-color: #e4f4ef"><h1 id="time" style="font-size: 10pt; margin-top: 6pt; line-height: 1.04"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Time: </span></h1></td>
+      <td style="width: 126pt; background-color: #e4f4ef"><h1 id="time" style="font-size: 10pt; margin-top: 6pt; line-height: 1.1"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Time: </span></h1></td>
       <td style="width: 13.5pt"></td>
-      <td style="width: 197.75pt; background-color: #e4f4ef"><h1 id="facilitator" style="font-size: 10pt; margin-top: 6pt; line-height: 1.04"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Facilitator: </span></h1></td>
+      <td style="width: 197.75pt; background-color: #e4f4ef"><h1 id="facilitator" style="font-size: 10pt; margin-top: 6pt; line-height: 1.1"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Facilitator: </span></h1></td>
     </tr>
     <tr style="height: 26.5pt">
       <td style="width: 116.75pt"><span style="font-size: 10pt; letter-spacing: 0.3pt;">9/8/23 </span></td>
@@ -52,9 +60,9 @@ hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 <table>
   <tbody>
     <tr style="height: 24.7pt">
-      <td style="width: 224.75pt; background-color: #e4f4ef"><h1 id="in-attendance" style="font-size: 10pt; margin-top: 6pt; line-height: 1.04"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">In attendance </span></h1></td>
+      <td style="width: 224.75pt; background-color: #e4f4ef"><h1 id="in-attendance" style="font-size: 10pt; margin-top: 6pt; line-height: 1.1"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">In attendance </span></h1></td>
       <td style="width: 13.5pt"></td>
-      <td style="width: 229.25pt; background-color: #e4f4ef"><h1 id="approval-of-minutes" style="font-size: 10pt; margin-top: 6pt; line-height: 1.04"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Approval of minutes </span></h1></td>
+      <td style="width: 229.25pt; background-color: #e4f4ef"><h1 id="approval-of-minutes" style="font-size: 10pt; margin-top: 6pt; line-height: 1.1"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Approval of minutes </span></h1></td>
     </tr>
     <tr style="height: 54pt">
       <td style="width: 224.75pt"><span style="font-size: 10pt; letter-spacing: 0.3pt;">Mira Karlsson, Angelica Astrom, August Bergqvist, Allan Mattsson, Ian Hansson </span></td>
@@ -66,7 +74,7 @@ hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 <table>
   <tbody>
     <tr style="height: 26.05pt">
-      <td style="width: 467.5pt; background-color: #e0e8f4"><h1 id="board" style="font-size: 10pt; margin-top: 6pt; line-height: 1.04"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Board</span></h1></td>
+      <td style="width: 467.5pt; background-color: #e0e8f4"><h1 id="board" style="font-size: 10pt; margin-top: 6pt; line-height: 1.1"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Board</span></h1></td>
     </tr>
     <tr style="height: 82.75pt">
       <td style="width: 467.5pt"><span style="font-size: 10pt; letter-spacing: 0.3pt;">The Board, new principal, and guests were introduced. Mira Karlsson was nominated as the new Secretary. A motion to elect Mira was made by Angelica Astrom and seconded by August Bergqvist. All present voted in favor, and Mira Karlsson was confirmed as the new Secretary.</span></td>
@@ -76,7 +84,7 @@ hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 <table>
   <tbody>
     <tr style="height: 26.5pt">
-      <td style="width: 467.5pt; background-color: #e0e8f4"><h1 id="advisory-committee" style="font-size: 10pt; margin-top: 6pt; line-height: 1.04"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Advisory committee </span></h1></td>
+      <td style="width: 467.5pt; background-color: #e0e8f4"><h1 id="advisory-committee" style="font-size: 10pt; margin-top: 6pt; line-height: 1.1"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Advisory committee </span></h1></td>
     </tr>
     <tr style="height: 106.6pt">
       <td style="width: 467.5pt"><span style="font-size: 10pt; letter-spacing: 0.3pt;">There are a number of parent openings on the Advisory Committee. These openings were listed in the most recent newsletter. Three parents indicated an interest in serving on the committee. August Bergqvist will follow up with those parents and do some additional recruiting to fill these openings.</span></td>
@@ -86,7 +94,7 @@ hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 <table>
   <tbody>
     <tr style="height: 26.5pt">
-      <td style="width: 467.5pt; background-color: #e0e8f4"><h1 id="budget" style="font-size: 10pt; margin-top: 6pt; line-height: 1.04"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Budget</span></h1></td>
+      <td style="width: 467.5pt; background-color: #e0e8f4"><h1 id="budget" style="font-size: 10pt; margin-top: 6pt; line-height: 1.1"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Budget</span></h1></td>
     </tr>
     <tr style="height: 100.75pt">
       <td style="width: 467.5pt"><span style="font-size: 10pt; letter-spacing: 0.3pt;">The budget for the current school year was distributed by August Bergqvist, PTA Treasurer, and reviewed by the board and PTA members at the last meeting. In tonight’s meeting, Angelica Astrom made a motion to approve the budget which was seconded by Allan Mattsson. All present voted in favor of approving the budget as presented.</span></td>
@@ -96,7 +104,7 @@ hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 <table>
   <tbody>
     <tr style="height: 26.95pt">
-      <td style="width: 467.5pt; background-color: #e0e8f4"><h1 id="principals-report" style="font-size: 10pt; margin-top: 6pt; line-height: 1.04"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Principal’s report </span></h1></td>
+      <td style="width: 467.5pt; background-color: #e0e8f4"><h1 id="principals-report" style="font-size: 10pt; margin-top: 6pt; line-height: 1.1"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Principal’s report </span></h1></td>
     </tr>
     <tr style="height: 40.9pt">
       <td style="width: 467.5pt"><span style="font-size: 10pt; letter-spacing: 0.3pt;">Principal Ian Hansson presented his report.</span></td>
@@ -106,9 +114,9 @@ hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 <table>
   <tbody>
     <tr style="height: 23.35pt">
-      <td style="width: 233.75pt; background-color: #fce1df"><h1 id="new-business" style="font-size: 10pt; margin-top: 6pt; line-height: 1.04"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">New business </span></h1></td>
+      <td style="width: 233.75pt; background-color: #fce1df"><h1 id="new-business" style="font-size: 10pt; margin-top: 6pt; line-height: 1.1"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">New business </span></h1></td>
       <td style="width: 11.8pt"></td>
-      <td style="width: 221.95pt; background-color: #fce1df"><h1 id="committee-reports" style="font-size: 10pt; margin-top: 6pt; line-height: 1.04"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Committee reports </span></h1></td>
+      <td style="width: 221.95pt; background-color: #fce1df"><h1 id="committee-reports" style="font-size: 10pt; margin-top: 6pt; line-height: 1.1"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Committee reports </span></h1></td>
     </tr>
     <tr style="height: 67.55pt">
       <td style="width: 233.75pt">
@@ -133,7 +141,7 @@ hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 <table>
   <tbody>
     <tr style="height: 24.25pt">
-      <td style="width: 467.5pt; background-color: #e0e8f4"><h1 id="announcements" style="font-size: 10pt; margin-top: 6pt; line-height: 1.04"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Announcements</span></h1></td>
+      <td style="width: 467.5pt; background-color: #e0e8f4"><h1 id="announcements" style="font-size: 10pt; margin-top: 6pt; line-height: 1.1"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Announcements</span></h1></td>
     </tr>
     <tr style="height: 42.7pt">
       <td style="width: 467.5pt"><span style="font-size: 10pt; letter-spacing: 0.3pt;">None </span></td>
@@ -143,7 +151,7 @@ hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 <table>
   <tbody>
     <tr style="height: 22.45pt">
-      <td style="width: 467.5pt; background-color: #e0e8f4"><h1 id="next-meeting" style="font-size: 10pt; margin-top: 6pt; line-height: 1.04"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Next meeting </span></h1></td>
+      <td style="width: 467.5pt; background-color: #e0e8f4"><h1 id="next-meeting" style="font-size: 10pt; margin-top: 6pt; line-height: 1.1"><span style="letter-spacing: 0.7pt; text-transform: uppercase;">Next meeting </span></h1></td>
     </tr>
     <tr style="height: 90.2pt">
       <td style="width: 467.5pt"><span style="font-size: 10pt; letter-spacing: 0.3pt;">13 October 2023| 6:00 p.m. in the cafeteria</span><br /><span style="font-size: 10pt; letter-spacing: 0.3pt;">Motion to adjourn was made at 9:00 p.m. and was passed unanimously. </span></td>
