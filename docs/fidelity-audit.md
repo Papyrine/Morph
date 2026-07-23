@@ -152,6 +152,25 @@ record `ExpectedPageCount`, so a PDF export whose page count moves toward Word n
 gain. `menus/03` went from 2 PDF pages to Word's 1 during the table-style cascade and was visible
 only as an orphaned snapshot.
 
+## The `.verified.pdf` bytes are Morph's own
+
+`ExportScenarioTests.PdfOutput` passes `SkipPdfNormalization`, so Verify.PDFium stores the exporter's
+output verbatim instead of neutralizing it first. `PdfRenderer` already pins every source of per-save
+variance — `MakeDeterministic` for `/CreationDate`, `/ModDate` and the trailer `/ID`, and `Normalize`
+for PdfSharp's random font-subset tags and XMP uuids — so normalizing again only costs a buffer copy,
+a rescan, and an XMP canonicalization rebuild. A committed baseline therefore reads as the converter
+actually emits it: `D:20000101000000`, `uuid:00000000-…`, and PdfSharp's indented XMP packet.
+
+The trade is that **Morph's determinism is now load-bearing with no safety net**. A new source of
+per-save variance used to be absorbed silently by the normalizer; now it surfaces as a scenario that
+fails on a re-run with no code change. That failure mode is the point — treat a PDF snapshot that
+differs between two identical runs as a determinism bug in `PdfRenderer`, not as flakiness.
+
+Two shapes worth telling apart when a Verify.PDFium bump moves these files. If the `.verified.pdf`
+changes while the per-page PNGs and the info JSON stay equal, the rendering did not move and the
+snapshot format did — 1.3.0 did exactly that by adding an XMP-whitespace canonicalization, which
+shifted all 325 without a pixel changing. A genuine rendering change moves the PNGs too.
+
 ## Settling a rule with a doctored-fixture probe
 
 The highest-yield technique in this codebase: copy a real fixture, change **one** attribute, drop

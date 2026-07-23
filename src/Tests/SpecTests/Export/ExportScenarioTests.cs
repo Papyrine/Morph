@@ -83,7 +83,13 @@ public class ExportScenarioTests
             .ToArray();
         var diffs = PdfPageDiffs(pdf, expectedFiles);
 
+        // PdfRenderer already pins every source of per-save variance (MakeDeterministic for the
+        // dates and trailer /ID, Normalize for the font subset tags and XMP uuids), so letting
+        // Verify.PDFium neutralize them again copies the whole buffer, rescans it, and rebuilds it
+        // to canonicalize XMP whitespace — work that changes nothing here. The snapshot therefore
+        // holds Morph's own bytes, which is also what makes the .verified.pdf worth reading.
         var settings = Verify(pdf, extension: "pdf")
+            .SkipPdfNormalization()
             .UseDirectory(directory)
             .UseFileName("pdf_result")
             .IgnoreParameters();
