@@ -167,8 +167,21 @@ sealed class SkiaRenderContext(
     // weight where Word would have rendered the heavier installed Arial Black.
     static bool ShouldSyntheticallyEmbolden(SKTypeface typeface, RunProperties props)
     {
-        var targetWeight = FontHelpers.ResolveTargetWeight(props.FontFamily, props.Bold);
-        return targetWeight - typeface.FontStyle.Weight >= 200;
+        var faceWeight = typeface.FontStyle.Weight;
+
+        // A bold run that resolved to a face which is not itself bold. Two ways in: the family
+        // has no bold member bundled ("Franklin Gothic Book" ships only the 400 face), or the
+        // family NAME carries a lighter weight, which deliberately outranks the bold flag for
+        // face selection (see FontHelpers.ResolveTargetWeight) and so left the target at that
+        // lighter weight. Either way Word draws the run bold, and without this it renders at
+        // normal weight — resumes/07's "Company, location" and SKILLS labels, which inherit
+        // Normal's w:b, came out regular against Word's bold.
+        if (props.Bold && faceWeight < FontHelpers.BoldWeight)
+        {
+            return true;
+        }
+
+        return FontHelpers.ResolveTargetWeight(props.FontFamily, props.Bold) - faceWeight >= 200;
     }
 
     public static SKPaint CreateTextPaint(RunProperties props) =>

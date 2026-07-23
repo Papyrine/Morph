@@ -159,5 +159,23 @@ sealed class FontFileCache
         {
             yield return candidates.Stripped;
         }
+
+        // Last resort: the same names with spaces restored between a lower-case letter and the
+        // upper-case one after it. Yielded after everything else so a family that resolves exactly
+        // is never diverted — this only rescues a name written without its spaces, which would
+        // otherwise fall through to an unrelated face.
+        var spaced = FontHelpers.InsertMissingSpaces(candidates.Original);
+        if (spaced != candidates.Original)
+        {
+            yield return spaced;
+
+            var spacedStripped = FontHelpers.StripWeightSuffixes(spaced);
+            if (!string.IsNullOrEmpty(spacedStripped) &&
+                spacedStripped != spaced &&
+                spacedStripped != candidates.Stripped)
+            {
+                yield return spacedStripped;
+            }
+        }
     }
 }

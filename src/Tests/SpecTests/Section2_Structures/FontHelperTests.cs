@@ -287,6 +287,38 @@ public class FontHelperTests
     public async Task ResolveTargetWeight_FallsBackToBoldFlag(string fontFamily, bool bold, int expected) =>
         await Assert.That(FontHelpers.ResolveTargetWeight(fontFamily, bold)).IsEqualTo(expected);
 
+    // === InsertMissingSpaces ===
+
+    [Test]
+    [Arguments("AvenirNext LT Pro Medium", "Avenir Next LT Pro Medium")] // newsletters/07's typo
+    [Arguments("TwCenMT", "Tw Cen MT")]
+    [Arguments("TimesNewRoman", "Times New Roman")]
+    [Arguments("Segoe2UI", "Segoe2 UI")] // digit then upper also counts as a lost space
+    public async Task InsertMissingSpaces_RepairsLostSpaces(string fontFamily, string expected) =>
+        await Assert.That(FontHelpers.InsertMissingSpaces(fontFamily)).IsEqualTo(expected);
+
+    [Test]
+    [Arguments("Arial")]
+    [Arguments("Times New Roman")]
+    [Arguments("Franklin Gothic Book")]
+    [Arguments("ARIAL")] // consecutive capitals are not a lost space
+    [Arguments("Segoe UI")]
+    [Arguments("")]
+    public async Task InsertMissingSpaces_LeavesWellFormedNamesAlone(string fontFamily) =>
+        await Assert.That(FontHelpers.InsertMissingSpaces(fontFamily)).IsEqualTo(fontFamily);
+
+    [Test]
+    public async Task RepairedNameIsTriedLast()
+    {
+        // The repair must never displace a name that resolves on its own, so it comes after every
+        // other candidate. "ArialMT" is a real bundled family; splitting it would be wrong.
+        var candidates = FontHelpers.GetCandidateNames("ArialMT", false);
+        var order = FontFileCache.EnumerateCandidateNames(candidates).ToList();
+
+        await Assert.That(order.First()).IsEqualTo("ArialMT");
+        await Assert.That(order.IndexOf("Arial MT")).IsEqualTo(order.Count - 1);
+    }
+
     // === ScoreFace / PickBestFace ===
 
     [Test]

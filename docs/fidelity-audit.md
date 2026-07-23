@@ -128,3 +128,95 @@ whose unique-colour count is at or below **16**.
 - Word's expected renders are themselves evidence, not gospel: a handful of reference pages
   contain Word quirks (see the audit's "anomalies worth re-checking" section) — verify against
   the DOCX markup before treating Word as correct.
+
+## Promoting baselines when a page count drops
+
+Promotion renames `*.received.*` onto `*.verified.*` one file at a time, so a scenario that now
+emits FEWER pages keeps a stale snapshot for the page it no longer produces — the old
+`page_0007.verified.png` has no received counterpart to overwrite it. Verify then fails that
+scenario on the extra file even though every real page matches, which reads as "the fix broke
+something" when the fix is precisely what removed the page.
+
+`scripts/regenerate-baselines.sh` avoids this by deleting the verified snapshots first. When
+promoting received files directly instead, check for orphans afterwards: for each
+`*_result.verified.json`, any `#page_N.verified.png` with N greater than that scenario's page
+count is stale and should be deleted. Improvements that reduce page count are exactly the case
+that triggers it, so the check matters most on a good result.
+
+Read the page count from **both** snapshot shapes. The raster scenario results carry
+`ResultingPageCount`; the PDF export snapshots carry PDFium's `target.PageCount` instead. A check
+that reads only the first passes cleanly and still leaves a stale PDF page behind.
+
+Related blind spot when judging: the page-count agreement comparison only covers scenarios that
+record `ExpectedPageCount`, so a PDF export whose page count moves toward Word never shows up as a
+gain. `menus/03` went from 2 PDF pages to Word's 1 during the table-style cascade and was visible
+only as an orphaned snapshot.
+
+## Settling a rule with a doctored-fixture probe
+
+The highest-yield technique in this codebase: copy a real fixture, change **one** attribute, drop
+it in `src/Tests/Inputs/_probe_*/input.docx`, and render it through Word via RenderHelper
+(`vstest.console.exe … /TestCaseFilter:"FullyQualifiedName~_probe_"`). Word answers questions the
+specification leaves ambiguous and that reasoning about the shipped fixture cannot.
+
+Design the probe so the two hypotheses predict *different* outputs, and prefer a comparison that a
+diff can decide:
+
+- **State the omitted value explicitly.** If the render is bit-identical, the omission means that
+  value. This settled the `docDefaults` `w:sz` default: injecting `w:sz="20"` into brochures/05
+  changed zero text pixels, `w:sz="24"` repaginated it. Expect a little JPEG noise wherever a
+  photo sits — rebuilding the zip recompresses it — so compare bounding boxes, not raw counts.
+- **Exaggerate to make a weak effect unmistakable.** Doubling a `w:line` turns a sub-pixel
+  question into a page-count question.
+- **Sweep a value to find where behaviour changes.** Growing brochures/06's `w:line` through
+  276/290/300/320/360 showed Word's page-1 content bottom barely moves (1208 → 1227), which is
+  what identified `atLeast` row floors as the thing holding it.
+- **Build a minimal document when no fixture isolates the rule.** A hand-written docx of N
+  consecutive break-only paragraphs answered "does Word absorb a page break at a page top?"
+  — it does not, N breaks give N+1 pages.
+
+Two traps worth knowing. Resolve parts through the relationship, not the conventional name:
+several fixtures use `styles2.xml`/`document2.xml`, so a scan hardcoding `word/styles.xml`
+silently undercounts. And bound regexes to the intended element — `<w:rPrDefault>.*?<w:sz …` with
+`re.S` happily matches a `w:sz` from a later element and reports a size the document never
+declared for that default.
+
+Delete the `_probe_*` directories when done; they are picked up by the scenario suite.
+
+## When a fixture's font no longer exists
+
+A checked-in `expected_*.png` records the fonts Word had **on the machine and day it was rendered**.
+Office cloud fonts are fetched on demand and can go away again, so a reference can encode a typeface
+that no longer resolves anywhere — and then no renderer change will ever match it.
+
+`business-plans/01`, `/07` and `/08` were built on Daytona. Only Daytona **Bold** survives, both on
+the render machine and in `src/Fonts`, which produced a two-sided error that read as two unrelated
+bugs:
+
+- `Daytona Light` (target weight 300) found only the 700 face, a delta of 400, so the
+  `weightFallbackThreshold` rule diverted it to Calibri Light — visibly narrower than the reference.
+- plain `Daytona` (target 400) found that same 700 face at a delta of 300 and, having no configured
+  fallback, kept it: every regular-weight heading rendered **bold**.
+
+The tell is that both backends agree with each other and both disagree with Word in the same place.
+A resolver bug usually splits the backends; a missing font moves them together.
+
+Confirm before acting, because the remedy is expensive: enumerate the family's faces across all four
+font stores (system, user, Office cloud, and any custom directory) and compare against `src/Fonts`.
+Only when the weight the reference used is absent everywhere is the fixture — rather than the
+renderer — the thing that has to change.
+
+The repair is to re-point the DOCX at a bundled family and regenerate the reference through Word, so
+both sides use a font that genuinely exists. Substitute a family with the **full weight range the
+template uses**; swapping only the unavailable weight leaves the document mixing two typefaces.
+Calibri suited these three for its bundled 300/400/700 coverage, matching the Light title, regular
+headings and bold headings they need.
+
+Replace every reference: `word/styles.xml`, `word/fontTable.xml`, **and** `word/theme/theme1.xml`.
+The theme entry is the one that gets missed, and it silently feeds every style inheriting
+`majorHAnsi`/`minorHAnsi` — in `business-plans/01` it was the *only* reference.
+
+Such a scenario stops testing that typeface's fidelity, which is the honest outcome: it was never
+testing it, only recording a mismatch. Metrics improve partly by construction once both sides share
+a font, so the crops still decide — check that the specific defect is gone and that no *new*
+artefact appeared, comparing against the pre-change render rather than against Word.

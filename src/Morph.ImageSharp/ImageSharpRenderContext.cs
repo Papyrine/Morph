@@ -137,6 +137,111 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         return GetFontForFamily(props.FontFamily, fontSize, props.Bold, props.Italic);
     }
 
+    // No synthetic bold here, unlike Skia (SkiaRenderContext.ShouldSyntheticallyEmbolden). Three
+    // stroke-the-fill versions were built and all REVERTED 2026-07-22, each differing only in when
+    // to fire. Stroke width was calibrated against Skia's ink ratio (bold/regular 1.507 vs 1.465 on
+    // 24pt Franklin Gothic Book), so width is not the problem:
+    //
+    //   condition                                    scenarios   net AE     over-applies to
+    //   !font.IsBold                                    41       +0.1127    already-heavy faces
+    //   resolved OS/2 weight < 700                      38       +0.1127    real bold siblings
+    //   both of the above                               33       +0.0933    (still ~2x Skia)
+    //   both, with Skia's tapered stroke width          33       +0.0952    (marginally worse)
+    //
+    // The fourth row is the taper Skia uses for fake bold: a fraction of the DEVICE-space text
+    // size, 1/24 at 9px easing to 1/32 at 36px, clamped. It is the more faithful formula — a flat
+    // 1/32 runs up to 24% light on small text — but it only differs BELOW about 16pt, because at
+    // 150 DPI anything from 17pt up is already past the 36px clamp. So it adds weight to small text
+    // only, and the corpus went slightly further negative.
+    //
+    // Skia's own version moves 18 scenarios for +0.0320. Every attempt stayed roughly double that
+    // and net-negative, and crops showed real over-application rather than the new-ink offset
+    // penalty that made Skia's worth keeping (labels/15's script went from too thin to far heavier
+    // than Word; resumes/02's display type gained weight Word lacks).
+    //
+    // NOT the blocker, contrary to an earlier note here: ImageSharp already resolves faces through
+    // the SAME weight-aware FontResolver as Skia, and the picked face's OS/2 weight is available on
+    // FontFace.Weight inside LoadFace. Plumbing it through changed the number by nothing at all.
+    //
+    // The structural difference is LoadFace's sibling pre-loading: every candidate face is added to
+    // sharedFontCollection so PickAvailableStyle can find the italic variant, which means the
+    // family often has a real Bold style even when the score-pick was Regular. Skia cannot hit this
+    // — an SKTypeface is the single picked file — so the two backends are answering questions about
+    // different things, and no combination of the flag and the weight reconciled them.
+    //
+    // labels/15's delta was +0.0138 under ALL THREE conditions, bit-identical. That was briefly
+    // recorded here as unexplained; it is not. The scenario has exactly one qualifying run — 32pt
+    // "Cochocib Script Latin Pro", bold, resolved face weight 400, no bold face bundled — and it
+    // satisfies every one of the three conditions, so identical output is what should happen.
+    //
+    // Skia has emboldened that same run all along: the family name carries no weight suffix, so
+    // ResolveTargetWeight gives 700 against the 400 face and the pre-existing "gap >= 200" clause
+    // already fired. That is why landing the Franklin Gothic Book fix changed labels/15's Skia
+    // baseline by zero pixels — only " Book"-style names (suffix -> target 400, gap 0) were missed.
+    //
+    // That was then blamed on stroke width, and the taper was tried (row four above). Wrong again,
+    // and measuring the script GLYPHS ALONE — an earlier crop box had spanned the address lines
+    // beside them — says why:
+    //
+    //   Word                        509 ink
+    //   Skia, already emboldened    660     +29.7%
+    //   ImageSharp, no synthesis    234     -54.0%
+    //   ImageSharp, stroked         747     +46.8%
+    //
+    // Skia is 30% OVER Word on that script and has been since before any of this work: the family
+    // name carries no weight suffix, so the long-standing "gap >= 200" clause always fired there.
+    // Mechanical dilation is simply not a designed bold. A real bold script is redrawn, not
+    // fattened, and sits far closer to its regular than a stroked outline does — so both backends
+    // overshoot, ImageSharp further because its rasterization is heavier to begin with.
+    //
+    // Detecting "does a designed bold exist that we do not bundle" was then investigated and is a
+    // DEAD END from the font file: PANOSE would be the obvious signal, but Cochocib Script reports
+    // bFamilyType 2 (Latin Text), identical to Franklin Gothic Book, with the rest of its PANOSE
+    // left at generic defaults. Nothing in OS/2 says whether a sibling weight exists elsewhere.
+    //
+    // The useful finding is that detection is the wrong frame, because THE CALIBRATION REFERENCE
+    // WAS WRONG. A Word probe of one word in Franklin Gothic Book (no bold face bundled) at
+    // 8/12/16/24/32/48pt, measured against the same document through Skia:
+    //
+    //   pt    Word bold adds    Skia synthesis adds
+    //    8        +48.7%              +54.1%
+    //   12        +30.7%              +41.2%
+    //   16        +24.4%              +56.3%
+    //   24        +19.0%              +46.3%
+    //   32        +34.5%              +46.3%
+    //   48        +27.9%              +48.7%
+    //
+    // Word's bold adds ~26% ink on average; Skia's synthesis adds ~46%, so Skia runs roughly 1.8x
+    // heavy from 16pt up and the two only agree at 8-12pt. Every ImageSharp attempt above was
+    // calibrated against SKIA's ink ratio (1.507 vs 1.465), so all of them inherited that error.
+    //
+    // That multi-font calibration was then done: 10 bold-less families spanning text sans, text
+    // serif, geometric, display, script and handwriting, at 8/12/16/24/32/48pt, with ink measured
+    // as threshold-free coverage. Two results:
+    //
+    //   * The overshoot is SIZE-INDEPENDENT. Skia/Word ratio runs 1.58-2.05 across the whole range
+    //     with no trend, so no taper is warranted and the earlier non-monotonic per-size fractions
+    //     were noise. Mean ratio ~1.9.
+    //   * The variation is PER-TYPEFACE: Tw Cen MT 1.00, Playfair 1.26, Bahnschrift 1.30, Impact
+    //     1.37, Kristen 1.50, Franklin Gothic Book 1.62, Trade Gothic 1.83, Baskerville Old 1.89,
+    //     Vladimir Script 2.25, Cochocib Script 2.53.
+    //
+    // A fifth attempt used the resulting flat size/59 stroke (Skia is effectively size/32) and
+    // measured +0.0698 over 33 scenarios — the best of the five, and per-scenario (+0.0021)
+    // essentially Skia's accepted +0.0018. Ink matched Word well: labels/15's script went from
+    // -22.5% to +5.3%, resumes/07's text from -33.6% to -17.0%.
+    //
+    // It was still reverted, and the crops are why: at that width resumes/07's "Company, location"
+    // DOES NOT READ AS BOLD. Word's is unmistakably bold, the stroked version only marginally
+    // heavier than regular. Matching Word's ink is not the same as matching Word's bold — a
+    // designed bold redraws the letterforms with wider stems and altered proportions, so at ink
+    // parity the text still looks unbolded. The trade has no winning side: size/32 makes text look
+    // bold but overshoots scripts (+0.0933), size/59 matches script ink but fails the very case
+    // the feature exists for (+0.0698).
+    //
+    // That is the end of outline dilation as an approach here. Anything further needs real weight:
+    // bundle the missing bold faces, or instance a variable font's wght axis where one exists.
+
     Font GetOrCreateCachedFont(FontFamily family, float fontSize, FontStyle style)
     {
         var key = (family, fontSize, style);

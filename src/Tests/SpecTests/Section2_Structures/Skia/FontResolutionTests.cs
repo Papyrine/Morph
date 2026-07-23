@@ -27,15 +27,19 @@ public class SkiaFontResolutionTests
     }
 
     [Test]
-    [Arguments("AvenirNext LT Pro Bold", "Century Gothic")]
-    [Arguments("AvenirNext LT Pro Light", "Century Gothic")]
-    public async Task GetTypeface_StrippedNameMatchesFallback_ResolvesFallback(string fontFamily, string expectedFamily)
+    [Arguments("AvenirNext LT Pro Bold")]
+    [Arguments("AvenirNext LT Pro Light")]
+    public async Task GetTypeface_NameMissingASpace_PrefersRepairedFamilyOverFallback(string fontFamily)
     {
-        // "AvenirNext LT Pro" (no space) has a fallback to "Century Gothic" in FontFallbacks.
-        // Stripping " Bold"/" Light" should find the fallback.
+        // "AvenirNext LT Pro" (no space) has a Century Gothic entry in FontFallbacks, for
+        // environments that lack Avenir Next. Here the family IS bundled, and
+        // FontFileCache.EnumerateCandidateNames restores the missing space as a last-resort
+        // candidate — so the real family wins and the approximation never fires.
+        // FindFallback still returns Century Gothic for these names, which
+        // FontNameCandidatesTests pins; the resolver simply reaches the real family first.
         using var context = CreateContext();
         using var typeface = context.GetTypeface(fontFamily, false, false);
-        await Assert.That(typeface.FamilyName).IsEqualTo(expectedFamily);
+        await Assert.That(typeface.FamilyName).IsEqualTo("Avenir Next LT Pro");
     }
 
     [Test]

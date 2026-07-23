@@ -46,6 +46,9 @@ static class FontHelpers
     /// <c>"Segoe UI Semilight"</c> can be scored against face metadata as weight 350
     /// rather than the generic 400/700 derived from the bold flag alone.
     /// </summary>
+    /// <summary>OS/2 weight class at which a face counts as bold in its own right.</summary>
+    internal const int BoldWeight = 700;
+
     static readonly Dictionary<string, int> weightFromSuffix = new(StringComparer.OrdinalIgnoreCase)
     {
         [" Hairline"] = 100,
@@ -89,6 +92,12 @@ static class FontHelpers
     /// Returns the OS/2 weight class to score against when resolving a font, derived from
     /// the requested name's suffix when present, otherwise from the bold flag.
     /// </summary>
+    /// <remarks>
+    /// The name deliberately outranks the bold flag for FACE SELECTION: a bold run in
+    /// "Segoe UI Semilight" must still resolve the Semilight face rather than jumping to weight
+    /// 700 and landing on a different member of the family. Whether that face is then drawn
+    /// emboldened is a separate question — see each backend's synthetic-embolden check.
+    /// </remarks>
     internal static int ResolveTargetWeight(string fontFamily, bool bold) =>
         InferWeightFromName(fontFamily) ?? (bold ? 700 : 400);
 
@@ -212,6 +221,44 @@ static class FontHelpers
         }
 
         return new(effectiveFontFamily, fontFamily, strippedName);
+    }
+
+    /// <summary>
+    /// Re-inserts the spaces a family name lost between a lower-case letter or digit and the
+    /// upper-case letter that follows it, so <c>AvenirNext LT Pro</c> reads as
+    /// <c>Avenir Next LT Pro</c>. Returns the input unchanged when there is nothing to repair.
+    /// </summary>
+    /// <remarks>
+    /// Authoring tools sometimes write a family name with a space missing, and the run then
+    /// resolves to an unrelated face: <c>newsletters/07</c> asks for "AvenirNext LT Pro Medium"
+    /// and landed on Century Gothic, though "Avenir Next LT Pro" is present. This repair is only
+    /// ever tried as the LAST candidate (see <c>FontFileCache.EnumerateCandidateNames</c>), so a
+    /// name that resolves exactly is never affected, and a split that produces nonsense
+    /// ("SimSun" becoming "Sim Sun") simply matches nothing.
+    /// </remarks>
+    internal static string InsertMissingSpaces(string fontFamily)
+    {
+        if (string.IsNullOrEmpty(fontFamily))
+        {
+            return fontFamily;
+        }
+
+        StringBuilder? builder = null;
+        for (var i = 1; i < fontFamily.Length; i++)
+        {
+            var previous = fontFamily[i - 1];
+            if (!char.IsUpper(fontFamily[i]) ||
+                !(char.IsLower(previous) || char.IsDigit(previous)))
+            {
+                builder?.Append(fontFamily[i]);
+                continue;
+            }
+
+            builder ??= new StringBuilder(fontFamily.Length + 4).Append(fontFamily, 0, i);
+            builder.Append(' ').Append(fontFamily[i]);
+        }
+
+        return builder?.ToString() ?? fontFamily;
     }
 
     /// <summary>

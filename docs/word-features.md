@@ -160,9 +160,42 @@ Bold weight applied to text runs.
 - **OOXML**: `w:b`, `w:bCs`
 - **Spec**: [Bold](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.bold)
 - **Model**: `RunProperties.Bold`
-- **Test**: `bold_text/`
+- **Test**: `bold_text/`, `SyntheticBoldTests`
 
 > **Contributors**: Bold-or-italic flags from the OOXML run combine with any weight word in the font family name (e.g. `Segoe UI Semibold`) to produce a target weight scored against each face's `OS/2` `usWeightClass`. See [fonts.md](fonts.md) for the resolution model.
+>
+> **Which face to select and whether to draw it bold are separate questions.** `FontHelpers.ResolveTargetWeight` answers the first and lets a weight word in the NAME outrank the bold flag on purpose — a bold run in "Segoe UI Semilight" must still resolve the Semilight face rather than jumping to 700 and landing on a different member of the family. The consequence is that the target weight can equal the resolved face's weight even for a bold run, so the synthetic-embolden check cannot be driven by that gap alone: Skia emboldens whenever a bold run resolved a face lighter than 700. Without it, "Franklin Gothic Book" (a weight word in the name, and no bold face bundled) rendered bold runs at normal weight — `resumes/07`'s "Company, location" and its SKILLS labels, which inherit `Normal`'s `w:b`.
+>
+> Judged by crops rather than by the metric, per `fidelity-audit.md`: the change moves 18 scenarios, all slightly WORSE numerically (+0.0320 AE total, SSIM −0.0151) because synthetic emboldening keeps the regular face's advances while Word uses a real bold face with wider ones, so correctly-bold glyphs drift a little along the line. Three-up crops on `resumes/07`, `labels/06` and `menus/06` each show text Word renders bold that previously rendered regular and now matches Word's weight — the new-ink offset penalty, at ~0.0018 AE per scenario, inside the band the audit treats as noise.
+>
+> **Known cost, pre-dating this work: synthetic bold overshoots on script and display faces.** Measured on `labels/15`'s 32pt "Cochocib Script Latin Pro", glyphs alone: Word 509 ink, Skia 660 (**+29.7%**). That comes from the long-standing `target − faceWeight ≥ 200` clause, not from the bold-run clause added here — the family name carries no weight suffix, so the target has always been 700 against a 400 face. Mechanical dilation is not a designed bold: a real bold script is redrawn rather than fattened and sits far closer to its regular weight. The crops used to justify the change were all sans-serif text, where the approximation holds; it does not hold for script faces, and no stroke width fixes that.
+>
+> **Backend gap:** only Skia synthesises bold. ImageSharp falls back Bold → Regular with no equivalent, so these runs still render at normal weight there. Three stroke-the-fill versions were built and **all reverted 2026-07-22**, differing only in when to fire. Stroke width was calibrated against Skia's ink ratio (bold/regular 1.507 vs 1.465 on 24pt Franklin Gothic Book), so width was never the problem:
+>
+> | condition | scenarios | net AE | over-applies to |
+> |---|---|---|---|
+> | `!font.IsBold` | 41 | +0.1127 | already-heavy faces under a Regular style |
+> | resolved OS/2 weight < 700 | 38 | +0.1127 | runs drawn with a real bold sibling |
+> | both | 33 | +0.0933 | still ~2× Skia |
+>
+> Skia's own version moves 18 scenarios for +0.0320. Crops showed real over-application rather than the new-ink offset penalty that made Skia's worth keeping — `labels/15`'s script went from too thin to far heavier than Word, `resumes/02`'s display type gained weight Word lacks.
+>
+> **Weight-aware resolution was not the blocker**, contrary to what this note previously said: ImageSharp already resolves through the *same* `FontResolver` as Skia, and the picked face's OS/2 weight is available on `FontFace.Weight` inside `LoadFace`. Plumbing it through changed the corpus number by nothing. The structural difference is `LoadFace`'s sibling pre-loading — every candidate face joins the shared collection so `PickAvailableStyle` can find the italic variant, so the family often has a real Bold style even when the score-pick was Regular. Skia cannot hit this; an `SKTypeface` is the single picked file. `labels/15`'s delta was +0.0138 under all three conditions, bit-identical. That is not mysterious: the scenario has exactly one qualifying run — 32pt "Cochocib Script Latin Pro", bold, resolved face weight 400, no bold face bundled — and it satisfies all three, so identical output is expected. Skia has emboldened that same run all along (the family name carries no weight suffix, so the target is 700 against a 400 face and the pre-existing "gap ≥ 200" clause fires), which is why landing the Franklin Gothic Book fix changed `labels/15`'s Skia baseline by zero pixels; only `" Book"`-style names were ever missed. **So the ImageSharp over-application there is stroke WEIGHT, not the predicate** — its script rendered thin without synthesis (1836 ink against Word's 2044) and too heavy with it, because the width was calibrated at 24pt while that run is 32pt and Skia's embolden tapers with size (roughly size/24 at 9pt easing to size/32 at 36pt) where the flat divisor does not. A fourth attempt applied Skia's exact taper (1/24 at 9px easing to 1/32 at 36px of the device-space size) and came in at **+0.0952** — marginally worse, because the taper only differs below ~16pt and so only adds weight to small text. Measuring the script glyphs alone (an earlier crop box had spanned the address lines beside them) shows why width was never the lever: Word 509 ink, Skia 660 (+29.7%), ImageSharp unsynthesised 234 (−54.0%), ImageSharp stroked 747 (+46.8%). **Skia is already 30% over Word there.** Detecting "a designed bold exists that we do not bundle" was then investigated and is a dead end from the font file — PANOSE is the obvious signal, but Cochocib Script reports `bFamilyType` 2 (Latin Text), identical to Franklin Gothic Book, with the rest left at generic defaults; nothing in OS/2 says whether a sibling weight exists elsewhere.
+>
+> **The real finding is that the calibration reference was wrong.** A Word probe of one word in Franklin Gothic Book (no bold face bundled) across sizes, measured against the same document through Skia:
+>
+> | pt | Word bold adds | Skia synthesis adds |
+> |---|---|---|
+> | 8 | +48.7% | +54.1% |
+> | 12 | +30.7% | +41.2% |
+> | 16 | +24.4% | +56.3% |
+> | 24 | +19.0% | +46.3% |
+> | 32 | +34.5% | +46.3% |
+> | 48 | +27.9% | +48.7% |
+>
+> Word's bold adds **~26%** ink on average; Skia's synthesis adds **~46%** — roughly 1.8× heavy from 16pt up, agreeing only at 8–12pt. Every ImageSharp attempt was calibrated against *Skia's* ratio, so all of them inherited that error. That multi-font calibration was then done — 10 bold-less families spanning text sans, text serif, geometric, display, script and handwriting, at six sizes, ink measured as threshold-free coverage. The overshoot is **size-independent** (Skia/Word ratio 1.58–2.05 with no trend, mean ~1.9), so no taper is warranted and the earlier non-monotonic per-size numbers were noise. The variation is **per-typeface**: Tw Cen MT 1.00, Playfair 1.26, Bahnschrift 1.30, Impact 1.37, Kristen 1.50, Franklin Gothic Book 1.62, Trade Gothic 1.83, Baskerville Old 1.89, Vladimir Script 2.25, Cochocib Script 2.53.
+>
+> A fifth attempt used the resulting flat `size/59` stroke (Skia is effectively `size/32`) and measured **+0.0698** over 33 scenarios — the best of the five, and per-scenario (+0.0021) essentially Skia's accepted +0.0018. Ink matched Word well: `labels/15`'s script went from −22.5% to **+5.3%**, `resumes/07`'s text from −33.6% to −17.0%. **It was still reverted**, because at that width `resumes/07`'s "Company, location" *does not read as bold* — Word's is unmistakable, the stroked version only marginally heavier than regular. **Matching Word's ink is not the same as matching Word's bold:** a designed bold redraws the letterforms with wider stems and altered proportions, so at ink parity the text still looks unbolded. The trade has no winning side — `size/32` makes text look bold but overshoots scripts, `size/59` matches script ink but fails the case the feature exists for. That ends outline dilation as an approach; anything further needs real weight (bundle the missing bold faces, or instance a variable font's `wght` axis).
 
 
 #### Italic `DONE`
@@ -539,6 +572,8 @@ Vertical distance between lines within a paragraph. Three modes: Auto (multiplie
 - **Test**: `line_spacing/`, `line_spacing_at_least/`, `line_spacing_exactly/`
 
 > **Contributors**: Auto mode multiplies the font's full hhea line box (ascent + descent + line gap) with no extra floor or leading correction, verified against Word XPS baselines. Document grid line pitch enforced when >= 20 page break markers detected. An empty paragraph's line takes the paragraph mark's style-resolved formatting (`ParagraphProperties.ParagraphMarkRunProperties`, from `w:pPr/w:rPr`), matching Word. See `TextRenderer` line spacing logic. The PDF backend applies the same three rules in `PdfTextEngine` (per finished line, on blank explicit-break lines, and on empty-paragraph mark lines), mirroring the raster `CalculateLineHeight`.
+>
+> **Inline images are not scaled by the Auto multiplier.** The multiplier applies to the text line box only; an inline image contributes its height unscaled and the line takes `max(imageHeight, textHeight × multiplier)` — see `AutoLineHeight` in each raster `TextRenderer`. Verified against Word by sweeping `brochures/06`'s docDefault `w:line` from 1.15 to 1.50: its two image-bearing table rows grew 1.3% and 3.4%, where scaling the image would predict 30%; fitting the sweep gives `row = 211.6px image + 22.6px text line × multiplier` with residuals under 1px. `PdfTextEngine` has always modelled this (an image item keeps its raw height while text runs get `rawHeight × multiplier`). Note the rule has to hold in BOTH the render path (`CalculateLineHeight`) and the table-cell measurement path (`LayoutParagraphForMeasurement` → `TableLayout.CalculateCompactLineHeight`); the latter takes the caller's already-computed Auto height precisely so the two cannot drift apart again.
 > **Consumers**: Single (1.0), 1.5, and Double (2.0) spacing all supported. Exactly mode fixes line height; AtLeast sets a minimum.
 
 
@@ -1063,6 +1098,21 @@ Cell-level flags selecting which `w:tblStylePr` block applies (first row, last r
 
 > **Contributors**: Cell- and row-level explicit `w:shd` / `w:tcBorders` win over conditional formatting. When a row/cell carries no `w:cnfStyle`, the cascade derives flags from grid position (firstRow, lastRow, firstColumn, lastColumn, banding) — but only for the conditions that `w:tblLook` permits (e.g. `w:noHBand="1"` suppresses horizontal banding). Run-property and paragraph-property overrides inside `w:tblStylePr` (bold, font colour, alignment) are not yet cascaded — that requires threading the active conditions into paragraph parsing.
 
+#### Table Style Paragraph Properties `DONE`
+
+A table style's own style-level `w:pPr` applies to every paragraph inside tables that reference it. ECMA-376 resolves a paragraph in a table as **docDefaults → table style `w:pPr` → paragraph style chain → direct `w:pPr`**, so the table style overrides the document defaults and yields to anything the paragraph's style chain declares.
+
+- **OOXML**: `w:pPr` as a direct child of `<w:style w:type="table">` (distinct from the conditional `w:tblStylePr/w:pPr` above)
+- **Model**: `StyleParagraphSpacing` — nullable spacing/indent fields, so "declared as zero" stays distinguishable from "not declared"
+- **Parse**: `DocumentParser.ExtractDeclaredSpacing` builds one map per style type, each resolved through `w:basedOn`; `ParseTable` publishes the table's style id (save/restore, so nesting cannot leak) and the paragraph resolution applies the table value wherever the paragraph style chain is silent
+- **Test**: `TableStyleParagraphSpacingTests`
+
+> **Contributors**: The archetype is `resumes/07`, whose tables use `TableGrid` declaring `<w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr>` — zero space-after and single line spacing for every cell paragraph, immune to that document's 8pt after and its 1.158 docDefault line. Word-probe verified three ways: stripping that `w:pPr` takes Word from 1 page to 2 (and shifts 4% of its pixels); sweeping the docDefault `w:after` 0/160/600 leaves its cell rows at 28/28/27px while non-table gaps move sharply; and the same sweep on `table_default_style` (no table-style `w:pPr`) moves its row pitch 68/100/193, so Word does charge a cell paragraph's after in general — it is simply absent here.
+>
+> The three line values (multiplier, points, rule) layer as a unit: a re-declared `w:line` replaces all three, so splitting them would let an Auto multiplier survive under a later `Exactly` rule. **35 scenarios** use a table style with a style-level `w:pPr` (40 declare `w:spacing`, 2 `w:ind`). Landing it alone is close to neutral (21 scenarios, −0.05 AE but −0.25 SSIM); its value is as the missing prerequisite for the docDefaults `w:line` cascade, which lands cleanly on top of it.
+>
+> **Precedence trap:** the lookup for "did the paragraph style declare this?" must use the EFFECTIVE style id (`styleId ?? defaultParagraphStyleId`), not the explicit `w:pStyle`. A paragraph with no `w:pStyle` still uses the document's default paragraph style, and that style's declarations outrank the table style. `business-plans/02` is the case — its `Normal` declares `w:line="336"` (1.4) while its tables use `TableGrid` declaring 240, and Word keeps 1.4 inside those tables. Reading only the explicit pStyle let the table style win and set the cell text single-spaced, costing 11px on every affected gap (+0.17 AE on that scenario alone, and regressions across five more). Guarded by `DefaultParagraphStyleDeclaration_OutranksTableStyle`.
+
 
 #### Diagonal Cell Borders `DONE`
 
@@ -1255,6 +1305,8 @@ Soft return within a paragraph (shift+enter).
 - **Test**: `line_breaks/`, `text_wrapping_break/`, `nonstandard_main_part_name/`
 
 > **Contributors — exporters**: `HtmlExporter` turns each newline run into a `<br />`. The catch is `DocumentExportHelpers.IsBlank`, which drops whitespace-only paragraphs: a `w:br` arrives as a `"\n"` run, so a break-only paragraph is all whitespace and was dropped whole before reaching the break code — `nonstandard_main_part_name`'s Notes cell exported as an empty `<td>`. `IsBlank` takes a `lineBreaksRender` flag (alongside `vectorShapesRender`) that HTML passes and Markdown does not, since a lone newline there is a soft break that renders as a space.
+
+> **Contributors — U+2028/U+2029 are NOT line breaks**: despite the names LINE SEPARATOR and PARAGRAPH SEPARATOR, and despite UAX #14 classing both as mandatory breaks, Word does not break on either. A probe rendering `LINESEPAAA` U+2028 `LINESEPBBB` keeps both words on one line with a blank gap, while a `w:br` control in the same document splits; a trailing separator adds no empty line; U+2029 behaves identically. Word's line break is `w:br`, so a literal separator in `w:t` is stray content from a converter or a paste. `StringExtensions.ReplaceSeparatorsWithSpace` substitutes a space at the `w:t` ingestion points in `DocumentParser` (run text, WordArt text, both field-result paths — field *instruction* text is left alone, never being drawn); without it the characters reach a backend and paint a missing-glyph box, as `business-plans/01` did twice. Known residual: Word advances ~2.4 space widths (18px against 8px for one space, Calibri 16pt at 150dpi) where this gives exactly one — the corpus only ever carries the character at paragraph end, where the advance is invisible. Note that C# counts both as source line terminators, so they must be written `\u2028`/`\u2029` in code; a literal one breaks the lexer, and in a string literal it silently normalises to a plain space and makes a test vacuous.
 
 > **Contributors**: A paragraph that ENDS on a break still gets the line box that follows it — N trailing breaks lay out as N+1 lines. Every layout engine flushed its final line only when fragments were pending, so that last box was dropped and a break-only cell came out one line short. Each now keeps the last break's font metrics and emits the empty line when the paragraph runs out with nothing on the current line, which is exactly the case where the break was its last content (anything after a break lands in the fragment list, and a wrap can only fire while that list is non-empty). Measured against Word by rendering probe copies of `nonstandard_main_part_name` with 1/3/7 breaks: Word's box grows 26.17px per break at 150 DPI and its intercept only fits the N+1 model.
 
@@ -1950,9 +2002,13 @@ Style definitions with inheritance chains. Properties cascade: document defaults
 Default paragraph and run properties applied when no style or direct formatting overrides.
 
 - **OOXML**: `w:docDefaults` > `w:rPrDefault`, `w:pPrDefault`
-- **Model**: `DefaultFontSettings` — font "Aptos" (configurable), size 11pt
+- **Model**: `DefaultFontSettings` — font "Aptos" (configurable). Size is resolved per document by `DocumentParser`, not held here: `builtInDefaultFontSizePoints` (12pt) or `specDefaultFontSizePoints` (10pt), per the rule below
 
 > **Contributors**: The docDefaults text colour (`w:rPrDefault/w:color`, theme-resolved) is the base of the colour cascade — white defaults included; styles absorb it as they are built, and an explicit `w:color w:val="auto"` in a style or run resets it (see Text Color).
+>
+> **Default run size** (`DocumentParser.ResolveDocDefaultFontSizePoints`) keys on `docDefaults` *presence*, mirroring the after-spacing rule above. No styles part or no `docDefaults` element → Word's normal.dotm built-in **12pt** (`builtInDefaultFontSizePoints`, evidence-backed against `long_paragraph`). `docDefaults` present but no `w:rPrDefault/w:sz` → the ECMA-376 §17.3.2.38 default of 20 half-points = **10pt** (`specDefaultFontSizePoints`), because Word reads the omission as an explicit 10pt rather than falling through to its built-in. A `w:sz` on the `Normal` style still outranks the document default. Verified by rendering doctored copies through Word: injecting `w:sz="20"` into `brochures/05` (which declares `docDefaults` and no `w:sz` anywhere) reproduces Word's render with zero differing text pixels, while `w:sz="24"` repaginates it from 4 pages to 5. 23 corpus scenarios declare `docDefaults` without a `w:sz`. Test: `DocDefaultFontSizeTests`.
+>
+> Not implemented: the `pPrDefault/w:spacing/@w:line` cascade. It is decoded and Word-probe-confirmed (it is real, it reaches table-cell paragraphs, and an explicit style `w:line="240"` outranks it) and measures a large net gain when paired with the size rule above, but it repaginates three scenarios away from Word — see `DocumentParser.docDefaultLineSpacingMultiplier` and `src/todo.md` "Systemic issues" #4.
 
 ---
 

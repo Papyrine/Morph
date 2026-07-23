@@ -5,19 +5,88 @@ output (`skia_result#page_*`, `imagesharp_result#page_*`, `pdf_result#page_*`) a
 directories in `src/Tests/Inputs/`. The match is *recorded*, not asserted, by the scenario tests —
 these mismatches never fail the suite; closing them improves Word fidelity.
 
-**Current state (pass 4, experiment 15 committed): Skia 313, ImageSharp 313, PDF 316.** Ten
-scenarios still differ — business-plans/02/12/13/15, complex_spacing, cover-letters/06,
-image_wrap_square, newsletters/06, resumes/13, resumes/16. All ten are now in the
-**backend-metric-divergence** class: Skia/ImageSharp and PdfSharp produce slightly different
-per-line/per-cell heights, so for a given document the raster and PDF counts straddle Word and
-need *opposite* per-backend adjustments — not a content-level rule. Pass 2 ended 307/307/301, so
-pass 4 is net +6/+6/+15.
+**Current state (pass 4, experiment 19 committed): Skia 315, ImageSharp 315, PDF 316.** Eight
+scenarios still differ — business-plans/13/15, complex_spacing, cover-letters/06,
+image_wrap_square, newsletters/06, resumes/13, resumes/16. Pass 2 ended 307/307/301, so pass 4 is
+net +8/+8/+15.
+
+**The "backend-metric divergence" label on these was partly wrong.** business-plans/02 and /12 were
+both filed under it — Skia/ImageSharp and PdfSharp producing different per-line/per-cell heights,
+supposedly needing opposite per-backend adjustments rather than a content-level rule. Both turned
+out to be exactly a content-level rule (experiment 19: the Auto multiplier must not scale an inline
+image), and the reason the raster and PDF counts straddled Word is that PdfSharp already implemented
+that rule while the raster backends did not. Treat the remaining eight as unattributed rather than
+as established knife-edges.
 
 **Protocol per experiment:** implement across all three backends, validate in-container with a
 no-regen scenario run isolating exactly which scenarios move, accept only net Word-match gains —
 washes and regressions revert, but the measured knowledge is kept.
 
 ## Pass 4 experiment ledger (newest first)
+
+- **20 — the table-style `w:pPr` cascade step: landed, and it unblocked the docDefaults `w:line`
+  cascade.** ECMA-376 resolves a paragraph inside a table as `docDefaults → table style w:pPr →
+  paragraph style chain → direct w:pPr`; Morph skipped the middle step entirely. `resumes/07`'s
+  tables use `TableGrid` declaring `w:after="0" w:line="240"`, so in Word its cell paragraphs are
+  single-spaced with no after — immune to that document's 8pt after and 1.158 docDefault line.
+  Word-probe verified by stripping the style-level `w:pPr`: Word goes 1 page → 2. Implemented via
+  `StyleParagraphSpacing` (nullable fields, because the resolved `ParagraphProperties` cannot tell
+  "declared zero" from "inherited zero") plus a save/restore of the active table style id around
+  `ParseTableCore`.
+  Alone it is near-neutral (21 scenarios, −0.05 AE, **−0.25 SSIM**) — its value is as the
+  prerequisite. **With the docDefaults `w:line` cascade on top: 75 scenarios, 55 better / 20 worse,
+  net −1.8694 AE, SSIM +3.8378 agreeing with AE on 342 of 362 pages, and 0 page-count changes in
+  either direction.** That cascade had been attempted and reverted twice before; `resumes/07` was
+  its last blocker and this is why it now holds Word's single page.
+  A `business-plans/02` regression of +0.17 AE was first recorded here as "a compensating error
+  elsewhere in that scenario". **That was wrong** — it was a precedence bug in this very step, and
+  the correction is experiment 21.
+- **21 — table-style precedence must consult the DEFAULT paragraph style: +0.23 AE.** The check for
+  "did the paragraph style already declare this?" read the explicit `w:pStyle` only. A paragraph
+  with no `w:pStyle` still uses the document's default paragraph style, whose declarations outrank
+  the table style. `business-plans/02`'s `Normal` declares `w:line="336"` (1.4) against its
+  `TableGrid`'s 240, and Word keeps 1.4 inside those tables; reading only the explicit pStyle let
+  the table style win and set that text single-spaced. Symptom was surgical — exactly three gaps on
+  page 3 moved, each by 11px, everything else byte-identical. Fixed by using
+  `styleId ?? defaultParagraphStyleId`, which the neighbouring `styleDefaults` lookup already did.
+  9 scenarios move, 7 better / 2 worse, net **−0.2255 AE**, SSIM +0.7547, no page-count changes;
+  `business-plans/02` recovers exactly the +0.1719 it had lost, and five more business-plans /
+  letters scenarios recover with it. Test: `DefaultParagraphStyleDeclaration_OutranksTableStyle`.
+
+- **19 — the Auto multiplier must not scale an inline image: landed, +2 scenarios.** Word applies
+  the Auto line multiplier to the TEXT line box only; an inline image contributes its height
+  unscaled and the line takes the larger of the two. Verified by sweeping brochures/06's docDefault
+  `w:line` from 1.15 to 1.50 in Word: its two photo rows grew 1.3% and 3.4% where multiplying the
+  image predicts 30%. Fitting the sweep gives `row = 211.6px image + 22.6px (10.9pt) text line ×
+  multiplier`, residuals under 1px over five points. `PdfTextEngine` already modelled this (an
+  image item keeps its raw height while text runs get `rawHeight × multiplier`), which is why PDF
+  held Word's page count on brochures/06 where the raster backends gained a page — the two raster
+  backends were the outliers, not Word.
+  **The rule lives in two places and only one was wrong at first.** `TextRenderer.CalculateLineHeight`
+  is the render path; table cell heights go through `LayoutParagraphForMeasurement` →
+  `TableLayout.CalculateCompactLineHeight`, which had the identical bug and took only a float, so
+  it could not see the image. Fixing the render path alone moved 44 scenarios and fixed
+  business-plans/02 (7→6) but left every image-in-a-table row untouched — brochures/06's photo rows
+  came back byte-identical. `CalculateCompactLineHeight` now takes the caller's Auto height so the
+  two paths cannot drift again. Combined: **−0.5693 AE**, SSIM +2.62, and **business-plans/02 and
+  business-plans/12 both leave the ten-mismatch list** (19→18 for /12). Scoreboard **315/315/316**.
+
+- **18 — a page break at the top of a page is NOT absorbed: probed, no change made.** The
+  attractive guard is `CurrentY > ContentTop` on `PageBreakElement`, mirroring
+  `AdvanceToBackgroundsTargetPage`. Word says no: minimal fixtures of N consecutive break-only
+  paragraphs render **N+1 pages** (1→2, 2→3, 3→4), so interior blank pages are legitimate output.
+  Morph already matches; `ConsecutivePageBreakTests` pins it so the guard is not added later. The
+  blank page that motivated the question (brochures/06 under the docDefaults `w:line` cascade) is
+  a *symptom* of cell content crossing `atLeast` row floors — see experiment 17.
+- **17 — default run size when docDefaults omits `w:sz`: landed, count-neutral.** Same rule shape
+  as experiment 15, one element over: `docDefaults` present but no `w:sz` → the ECMA-376
+  §17.3.2.38 default of 20 half-points (**10pt**), not normal.dotm's 12pt; only a document with no
+  styles part or no `docDefaults` keeps the built-in. Word-probe verified on brochures/05
+  (declares `docDefaults`, no `w:sz` anywhere): an injected `w:sz="20"` reproduces Word's render
+  with zero differing text pixels, `w:sz="24"` repaginates it 4→5. 23 scenarios carry the bug; 13
+  moved, 12 better / 1 worse, net **−0.0869 AE**, **zero page-count changes**. This was the real
+  content of the long-standing "~9% glyph advances" attribution for those documents — the glyphs
+  were not narrow, they were being drawn 20% too large.
 
 - **16 — empty-mark height in cells: reverted wash.** Un-gated experiment 1's mark height inside
   cells (dropped `TableCell` from `inScopedPart`). Now **safe** — wedding/05 and the cards cluster
@@ -124,6 +193,8 @@ references are evidence for the behaviour, not code to port (LO is MPL-2.0). Ver
 | Exact bottom-of-page fit, no slack | `widorp.cxx:134,157` | exp 12 (load-bearing, restored) |
 | Trailing blanks overhang the wrap boundary | `DomainMapper.cxx:142`, `guess.cxx:99-116`, `portxt.cxx:256` | exp 10 (verified, reverted) |
 | Break type comes from the following section's `sectPr` | ECMA-376 §17.6.22 | exp 11 (built, reverted) |
+| Omitted `docDefaults` `w:sz` is 20 half-points, not the built-in | ECMA-376 §17.3.2.38; Word probe | exp 17 (landed) |
+| A page break at a page top still starts a page | Word probe (N breaks → N+1 pages) | exp 18 (no change needed) |
 
 **Dead ends / parked (recorded so they are not re-chased):**
 
@@ -163,9 +234,11 @@ wrap-width work.
 
 ## Root-cause lessons
 
-**The text-metrics attribution is a measured dead end as a fix lever.** Raster measures words
-~8% wide (test-only `FontWidthScale = 1.08`) and omits the hhea line gap; PDF applies no width
-scale and includes the gap. Three full-suite metric sweeps (raster width 1.08→1.0, PDF width
+**The text-metrics attribution is a measured dead end as a fix lever.** Raster once measured words
+~8% wide via `FontWidthScale = 1.08` — that is stale: `ModuleInitializer` has since pinned the
+harness to 1.0, because a full-corpus measurement found 1.08 gave no ErrorMetric gain and slightly
+worse page-count matching. Raster still omits the hhea line gap; PDF applies no width scale and
+includes the gap. Three full-suite metric sweeps (raster width 1.08→1.0, PDF width
 scaling, PDF gap-free height) moved nothing net — and the bundled fonts' line gaps span 0 (Aptos,
 Segoe UI) to 22% of em (Calibri), so no single constant helps. The two raster errors cancel in
 ordinary body text, which is why ~97% of scenarios match. Treat these as contributing factors, not
