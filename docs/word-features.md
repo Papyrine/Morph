@@ -2367,7 +2367,7 @@ Read-only mode, form protection, and editing restrictions.
 | 1. Text Formatting | 26 | 0 | 3 | 0 | 29 |
 | 2. Paragraph Formatting | 23 | 1 | 0 | 0 | 24 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 0 | 6 |
-| 4. Tables | 27 | 0 | 0 | 0 | 27 |
+| 4. Tables | 28 | 0 | 0 | 0 | 28 |
 | 5. Page Layout & Sections | 19 | 0 | 0 | 0 | 19 |
 | 6. Graphics & Media | 22 | 3 | 1 | 1 | 27 |
 | 7. Form Controls | 10 | 0 | 1 | 0 | 11 |
@@ -2376,14 +2376,14 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 6 | 0 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 0 | 2 |
-| **Total** | **161** | **4** | **5** | **1** | **171** |
+| **Total** | **162** | **4** | **5** | **1** | **172** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 161
+    "Done" : 162
     "Partial" : 4
     "Todo" : 5
     "Wontfix" : 1
