@@ -219,6 +219,32 @@ sealed class PdfFontResolver : IFontResolver
         }
     }
 
+    /// <summary>
+    /// True when <paramref name="familyName"/> can be served without the last-resort fallbacks at
+    /// the end of <see cref="ResolveTypeface"/> — it resolves from the indexed faces (directly or
+    /// through the curated alias map), or the host platform has it. Lets a per-conversion
+    /// <c>FontFallback</c> delegate fire at the same point in the chain as the shared
+    /// <see cref="FontResolver{TFont}"/>'s, without this process-global singleton needing to know
+    /// about per-conversion state.
+    /// </summary>
+    public bool CanResolve(string familyName, bool isBold, bool isItalic)
+    {
+        lock (gate)
+        {
+            if (TryResolve(familyName, isBold, isItalic, out _))
+            {
+                return true;
+            }
+        }
+
+        // Without a FontDirectory the index holds only the bullets subset and every real family is
+        // served by the platform, so host-installed fonts have to count as resolvable — otherwise
+        // the delegate would fire for Arial or Calibri on a machine that has them. PdfSharp's own
+        // PlatformFontResolver throws unless called from inside a font-resolution callback, so ask
+        // Morph's host index instead; it answers the same question from the same font files.
+        return HostFontIndex.Contains(familyName, isBold);
+    }
+
     bool TryResolve(string familyName, bool bold, bool italic, out string face)
     {
         var candidates = FontHelpers.GetCandidateNames(familyName, bold);

@@ -7,13 +7,25 @@ public sealed record PdfExportOptions : ExportOptions
 {
     /// <summary>
     /// Scale factor for font width measurements. Values &gt; 1.0 make text wider (earlier line
-    /// wrapping). The default matches Microsoft Word's text rendering.
+    /// wrapping); 1.08 tracks Microsoft Word's slightly looser GDI metrics. The default is 1.0,
+    /// which leaves layout unchanged.
+    /// <para>
+    /// Applies to PDF text (wrap points and right/decimal tab stops) and to WordArt rasterized
+    /// through a raster backend (see <see cref="RasterizeWordArt"/>). For output consistent with a
+    /// raster export of the same document, use the same value here as on the image options.
+    /// </para>
     /// </summary>
     public double FontWidthScale { get; init; } = DefaultFontSettings.FontWidthScale;
 
     /// <summary>
     /// Optional delegate to resolve missing fonts. Called with the font family name that could not
-    /// be found; return an alternative family or null to fall back through the resolver chain.
+    /// be found; return an alternative family, or null to fall through to the curated alias map,
+    /// the platform resolver, and finally <see cref="ExportOptions.DefaultFont"/>.
+    /// <para>
+    /// Consulted only once the <see cref="ExportOptions.FontDirectory"/> / bundled faces and the
+    /// host's installed fonts have both missed, so a family the machine can already serve never
+    /// reaches it.
+    /// </para>
     /// </summary>
     public Func<string, string?>? FontFallback { get; init; }
 

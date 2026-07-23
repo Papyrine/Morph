@@ -33,6 +33,18 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         return metrics;
     }
 
+    // FontWidthScale widens (or narrows) the measured glyph advance of a piece of text. It is
+    // applied to every horizontal text measurement that feeds line wrapping and tab-stop
+    // resolution, so PDF wrap points and right/decimal tab positions track the raster backends —
+    // and, at the 1.08 Word-compat value, GDI's slightly looser metrics. The draw loop advances
+    // the pen by these same widths (LineItem.Width), exactly as the Skia/ImageSharp engines advance
+    // by fragment.Width, so a non-unit scale both wraps earlier and opens the inter-word gap
+    // consistently between measure and draw. Character spacing (w:spacing) is added by callers
+    // outside this scale, matching TextRenderer's scaled-measurement path. At the default 1.0 this
+    // is an exact no-op (x * 1.0), so PDF baselines are unaffected unless the option is set.
+    double ScaledMeasure(string text, XFont font) =>
+        measure.MeasureString(text, font).Width * context.FontWidthScale;
+
     // ---- IParagraphMeasurer (used by shared table-layout / pagination math) ----
 
     // The table-cell measurers take the cell's inner width and remove BOTH indents to get the wrap
@@ -1108,7 +1120,9 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             }
 
             var text = RunText(run);
-            total += measure.MeasureString(text, context.GetFont(run.Properties)).Width;
+            // Scaled to match the word-by-word layout below: an unscaled probe here would place a
+            // right/decimal tab stop where scaled text does not actually end, drifting the follow.
+            total += ScaledMeasure(text, context.GetFont(run.Properties));
         }
 
         return total;
@@ -1137,10 +1151,10 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             var dotIndex = text.IndexOf('.');
             if (dotIndex >= 0)
             {
-                return total + measure.MeasureString(text[..dotIndex], font).Width;
+                return total + ScaledMeasure(text[..dotIndex], font);
             }
 
-            total += measure.MeasureString(text, font).Width;
+            total += ScaledMeasure(text, font);
         }
 
         return null;
@@ -1453,14 +1467,16 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
                         continue;
                     }
 
-                    pendingSpaceWidth += (spaceWidth + run.Properties.CharacterSpacingPoints) * token.Text.Length;
+                    // FontWidthScale applies to the space glyph advance; character spacing is added
+                    // outside it (same split as the word measure below and TextRenderer's spaces).
+                    pendingSpaceWidth += (spaceWidth * context.FontWidthScale + run.Properties.CharacterSpacingPoints) * token.Text.Length;
                     pendingSpaceFont = font;
                     pendingSpaceProps = run.Properties;
                     continue;
                 }
 
                 // w:spacing tracking widens (or narrows) every character's advance, spaces included.
-                var wordWidth = measure.MeasureString(token.Text, font).Width
+                var wordWidth = ScaledMeasure(token.Text, font)
                                 + run.Properties.CharacterSpacingPoints * token.Text.Length;
                 // A word straight after a tab filler stays put: the tab just resolved its
                 // position, and rounding drift between the tab's following-width probe and this
