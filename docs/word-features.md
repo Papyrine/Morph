@@ -2236,13 +2236,13 @@ Insertions, deletions, and formatting changes tracked with author/date metadata.
 - **OOXML**: `w:ins` (insertions), `w:del` (deletions), `w:rPrChange` (formatting changes)
 - **Spec**: [Revisions](http://officeopenxml.com/WPrevisions.php)
 - **Model**: `TrackedChange` record (id, author, date, type, text); `ParsedDocument.TrackedChanges`
-- **Parse**: `DocumentParser.ExtractTrackedChanges()` walks `w:ins` and `w:del` descendants for the model record. The paragraph child switch additionally handles `InsertedRun` (recurse into inner runs — accepted) and `DeletedRun` (drop — accepted).
-- **Render**: "as accepted" — insertions render inline as normal text; deletions are removed.
+- **Parse**: `DocumentParser.ExtractTrackedChanges()` walks `w:ins` and `w:del` descendants for the model record. The paragraph child switch recurses into both `InsertedRun` and `DeletedRun`, tagging their runs with a `RevisionMark` that `ParseRun` layers onto the resolved run properties.
+- **Render**: **markup view**, which is what Word PRINTS — an insertion underlined, a deletion struck through, both in the revision colour. `w:delText` is read alongside `w:t` (it is a sibling type, not a subclass, so a deleted run yielded no text at all before it was handled).
 - **Test**: `tracked_changes/`, spec test `TrackedChangesTests`
 
-> **Contributors**: Not yet captured: `w:rPrChange` (run-property revision history) and revision marks on the rendered output. Documents render as if every reviewer change was accepted; the original (pre-revision) text is not recoverable through the rendered image.
-
-> **AI**: Two rendering modes to consider: (1) final document (accept all changes — render inserted text, skip deleted text), (2) markup view (show changes with strikethrough/underline/color). Mode 1 is simpler and likely what most consumers want. Currently, revision markup may cause parsing issues for affected paragraphs.
+> **Contributors**: Rendering "as accepted" (dropping deletions) was the original choice and it is **wrong against Word**: Word's own render of `tracked_changes/01` shows "removed." struck through in red on the page, so accepting the change silently deleted ink Word draws. The revision colour is `D13438`, sampled from that render at 150 DPI; Word cycles a palette per author and only the first entry is modelled, which covers the whole corpus (exactly one document carries tracked changes). The model record on `ParsedDocument.TrackedChanges` is unaffected either way, so a consumer that wants the accepted text still has it.
+>
+> Not yet rendered: the left-margin change bar Word draws beside a revised line, and `w:rPrChange` (run-property revision history).
 
 
 ### 11.3 Footnotes & Endnotes
