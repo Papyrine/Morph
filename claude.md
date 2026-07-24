@@ -145,7 +145,9 @@ For a complete feature-by-feature mapping to code locations, see `docs/word-feat
 
 ## Feature Documentation
 
-`docs/word-features.md` is the comprehensive feature matrix listing every DOCX feature with implementation status, code locations, and specification links. `docs/floating-art-pipeline.md` documents the cross-cutting floating/anchored-art architecture (parse-path authority rules, nested transforms, z-order, clipping) plus a decision log of attempted-and-reverted approaches — update it when changing that pipeline. `docs/fidelity-audit.md` records how renders are compared against Word and how a rendering change is judged.
+`docs/word-features.md` is the comprehensive feature matrix listing every DOCX feature with implementation status, code locations, and specification links. `docs/floating-art-pipeline.md` documents the cross-cutting floating/anchored-art architecture (parse-path authority rules, nested transforms, z-order, clipping) plus a decision log of attempted-and-reverted approaches — update it when changing that pipeline. `docs/fidelity-audit.md` records how renders are compared against Word and how a rendering change is judged. `docs/html-import.md` covers the HTML input path shared by AltChunk and the HTML converters — the block-CSS model, the Word-derived constants (paragraph pitch, image px→pt), and the attempted-and-reverted CSS box work.
+
+`src/todo.md` is the live fidelity backlog: **open findings only**. When a finding lands, delete it and move anything durable into the docs above (or `src/page_counts.md` for page-count experiments) — the file must never accumulate records of shipped work.
 
 **When adding, modifying, or removing a DOCX feature, update the feature matrix:**
 1. Update the feature status (`DONE` / `PARTIAL` / `TODO`)
