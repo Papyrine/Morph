@@ -1469,6 +1469,8 @@ Images embedded in the text flow, advancing with surrounding content.
 
 > **Consumers**: Supported formats: PNG, JPG, GIF, WEBP (via SkiaSharp codec), SVG (via Svg.Skia). Images scale to fit within available width.
 
+> **Contributors — PDF and sub-8-bit indexed PNGs.** PDFsharp builds an image's soft mask from the PNG's `tRNS` transparency, and for an indexed PNG at a packed bit depth (1/2/4) it emits an **all-zero** SMask — a fully transparent alpha channel. The picture is written into the PDF, referenced from the page and drawn at the right position, yet renders as nothing, which makes it look like a missing-art bug rather than an image one. `cards/19`'s card-back stripe motif is a 4-bit indexed PNG and all ten draws on pages 2 and 4 came out invisible while the 8-bit backgrounds on pages 1 and 3 masked correctly. `IndexedPngNormalizer` re-encodes those to 8 bits before `XImage.FromStream`, keeping the palette, `tRNS` and pixel indices identical; anything else — other colour types, depth ≥ 8, interlaced, malformed — passes through untouched. Diagnosed by dumping the emitted PDF: the content stream showed 10 correct `Do` calls per page, so the mask was the only thing left. Landed at −0.0802 AE / **+0.1786 SSIM** on `cards/19`.
+
 
 #### Floating Images `DONE`
 

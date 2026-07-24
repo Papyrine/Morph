@@ -41,8 +41,8 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.1449,
-      "Ssim": 0.7281,
+      "ErrorMetric": 0.1066,
+      "Ssim": 0.8123,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
@@ -57,8 +57,8 @@
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.1436,
-      "Ssim": 0.734,
+      "ErrorMetric": 0.1017,
+      "Ssim": 0.8284,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"

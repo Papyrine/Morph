@@ -141,7 +141,11 @@ sealed class PdfRenderContext : RenderContextBase
     {
         if (!imageCache.TryGetValue(data, out var image))
         {
-            using var stream = new MemoryStream(data);
+            // A sub-8-bit indexed PNG is re-encoded to 8 bits first: PDFsharp emits an all-zero
+            // (fully transparent) soft mask for those, so the picture lands in the PDF and draws
+            // as nothing. See IndexedPngNormalizer. Keyed on the ORIGINAL array so the cache stays
+            // reference-stable and the conversion happens at most once per source image.
+            using var stream = new MemoryStream(IndexedPngNormalizer.Normalize(data));
             image = XImage.FromStream(stream);
             imageCache[data] = image;
         }
