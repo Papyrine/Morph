@@ -801,7 +801,41 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### html_table
 
-- MEDIUM | all | p1 | Table far more compact than Word: row heights roughly half, near-zero cell padding (adjacent cells' text almost touching, e.g. "Row 2, Cell 1Row 2, Cell 2"), narrower columns. Word separates adjacent cells by the default 2px cellspacing even on a borderless table — probe `_probe_fill_noborder` shows ~3px of page white between the fills — which Morph does not apply (`cellSpacingPoints` is only read inside the `border`-attribute branch)
+- MEDIUM | all | p1 | Table far more compact than Word: row pitch 30px against Word's 58-59px at 150 DPI on identical ~17px text, and adjacent cells' text almost touches ("Row 2, Cell 1Row 2, Cell 2"). Two contributors, neither yet modelled — see the cell-height block below. Word also separates adjacent cells by the default 2px cellspacing even on a borderless table (probe `_probe_fill_noborder`: ~3px of page white between the fills), which Morph never applies because `cellSpacingPoints` is only read inside the `border`-attribute branch
+
+> **ATTEMPTED TWICE 2026-07-24 — a flat cell-paragraph spacing-after. BOTH REVERTED.** Morph gives a
+> cell paragraph no after-spacing at all, so a bare table's rows come out at just the line box. Adding
+> a flat value fixes the bare table and breaks the padded one, because the two scenarios need
+> different numbers:
+>
+> | | Word | Morph today | short by |
+> |---|---|---|---|
+> | `html_table` (no cellpadding) | 28.3pt/row | 14.4pt | ~14pt |
+> | `html_complex` (`cellpadding=8`) | 35.0pt/row | 31.2pt | ~3.8pt |
+>
+> 14pt lands `html_table` exactly (14.4 + 14 = 28.4 against Word's 28.3) and overshoots
+> `html_complex` by 10pt: **+0.3178 AE, html_complex alone +0.106 per backend.** 8pt measured
+> **+0.0564 AE** and made BOTH worse. So the spacing is not flat — it interacts with cellpadding.
+>
+> **Probe data to model it from** (`_probe_cellpad_sweep`, one single-line cell per table, Word at
+> 150 DPI). Box height, and the gaps from the box edge to the text ink:
+>
+> | cellpadding | box height | top gap | bottom gap | bottom − top |
+> |---|---|---|---|---|
+> | 0 | 30.7pt | 6.7pt | 14.9pt | 8.2pt |
+> | 5 | 36.5pt | 10.1pt | 17.3pt | 7.2pt |
+> | 8 | 39.8pt | 11.5pt | 19.2pt | 7.7pt |
+> | 15 | 49.0pt | 15.4pt | 24.5pt | 9.1pt |
+> | 25 | 60.5pt | 21.6pt | 29.8pt | 8.2pt |
+> | *(no attribute)* | 32.2pt | 7.2pt | 15.8pt | 8.6pt |
+>
+> Two things fall out. The extra space BELOW the text is **~8pt and independent of cellpadding**, and
+> a table with no cellpadding attribute behaves almost exactly like an explicit `cellpadding=0`
+> (32.2pt vs 30.7pt), so Word applies no meaningful default padding. But box height grows at only
+> **1.19pt per px of cellpadding** (0.596pt per side), NOT the 2 × 0.75 the px→pt rule predicts —
+> which is the piece that does not fit, and is why a flat spacing-after cannot reconcile the two
+> scenarios. Resolve that conversion before trying again; the measurements above have roughly ±3pt of
+> extraction noise, so a retry wants tighter instrumentation (measure line-box tops, not ink).
 
 ### html_table_cell_margin_css
 
