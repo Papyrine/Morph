@@ -787,7 +787,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### html_nested_lists
 
-- MAJOR | all | p1 | Third-level bullets (Item 1.2.1 / 1.2.2) drawn as hollow circles instead of Word's filled squares
 - MEDIUM | all | p1 | Blank gaps before "Nested ordered lists:" and "Mixed nested lists:" headings missing (renders run sections together at uniform item spacing)
 
 ### html_paragraphs
@@ -1179,7 +1178,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### menus/03
 
-- MAJOR | all | p1 | the large gold "EVENT TITLE" heading is missing, and the gold rule lines render but misplaced and mis-sized. The "EVENT INTRO" / "EVENT DATE" labels now render (they are WordArt in table cells, which the cell loop learned to draw)
+- MAJOR | all | p1 | the large gold "EVENT TITLE" heading is missing, and the gold rule lines render but misplaced and mis-sized. **Root cause: the heading lives in a cell wrapped in a cell-level content control (`w:sdt` → `SdtCell`), and `ParseTable` enumerates `row.Elements<TableCell>()` — DIRECT children only — so that cell and everything in it never reaches the model** (confirmed by reflecting over the parse: EVENT INTRO and EVENT DATE are there, EVENT TITLE is absent entirely). **Attempted 2026-07-24 and REVERTED:** a `RowCells` helper descending into `SdtCell` measured **+0.1370 AE / −0.3150 SSIM** over 17 pairs, wrecking newsletters/09 (−0.136 SSIM) and brochures/05. Descending changes the row's cell count, so `totalCols` and every column width shift under tables that were previously laying out correctly. A retry has to keep the grid stable — resolve the wrapped cell WITHOUT changing the column tally the rest of the layout is keyed on
 - MAJOR | skia,pdf | p1 | full-height gold divider line between the two columns is missing (only a short gold tick at top-right remains); ImageSharp draws it
 - MEDIUM | all | p1 | both text columns shifted left (instructions column ~25% of page width left of Word) and vertically compressed (menu column ends ~65px high)
 - MINOR | skia,imagesharp | p1 | numbered steps render the number at the left indent with the step text centered separately, leaving a large gap (Word centers "2. Press Ctrl+C" as one unit; PDF matches Word)
