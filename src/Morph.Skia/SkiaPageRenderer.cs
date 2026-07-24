@@ -758,6 +758,39 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
         // An unwarped pseudo-WordArt is Word's inline text box: stroke its a:ln frame
         // under the text (business/06's LOGO box).
+        // The box is not always a rectangle: a prst="frame" is a RING and must fill even-odd, an
+        // ellipse draws as a true oval. Fill the background, then stroke the a:ln frame, both under
+        // the text.
+        using var boxPath = BuildWordArtBoxPath(wordArt, x, y, width, pixelHeight);
+        var boxRect = new SKRect(x, y, x + width, y + pixelHeight);
+
+        void DrawBox(SKPaint paint)
+        {
+            if (boxPath != null)
+            {
+                currentCanvas.DrawPath(boxPath, paint);
+            }
+            else if (wordArt.BoxIsEllipse)
+            {
+                currentCanvas.DrawOval(boxRect, paint);
+            }
+            else
+            {
+                currentCanvas.DrawRect(boxRect, paint);
+            }
+        }
+
+        if (wordArt.BoxFillColorHex is { } boxFill)
+        {
+            using var boxFillPaint = new SKPaint
+            {
+                Color = SKColor.Parse(boxFill),
+                Style = SKPaintStyle.Fill,
+                IsAntialias = true
+            };
+            DrawBox(boxFillPaint);
+        }
+
         if (wordArt is { BoxLineColorHex: { } boxLine, BoxLineWidthPoints: > 0 })
         {
             using var boxPaint = new SKPaint
@@ -768,7 +801,7 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
                 StrokeWidth = context.PointsToPixels((float) wordArt.BoxLineWidthPoints),
                 IsAntialias = true
             };
-            currentCanvas.DrawRect(x, y, width, pixelHeight, boxPaint);
+            DrawBox(boxPaint);
         }
 
         // Measure text to calculate scale
@@ -2716,6 +2749,46 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
     /// The text box's <see cref="FloatingTextBoxElement.Subpaths"/> contours scaled into its box,
     /// or null for plain rectangles. Even-odd fill keeps ring geometry hollow.
     /// </summary>
+    /// <summary>
+    /// The WordArt box's normalized contours scaled into its box, or null for a plain rectangle or
+    /// an ellipse. Even-odd keeps a prst="frame" ring hollow.
+    /// </summary>
+    static SKPath? BuildWordArtBoxPath(WordArtElement wordArt, float x, float y, float width, float height)
+    {
+        if (wordArt.BoxSubpaths == null)
+        {
+            return null;
+        }
+
+        var path = new SKPath {FillType = SKPathFillType.EvenOdd};
+        foreach (var contour in wordArt.BoxSubpaths)
+        {
+            if (contour.Count < 3)
+            {
+                continue;
+            }
+
+            for (var index = 0; index < contour.Count; index++)
+            {
+                var (pointX, pointY) = contour[index];
+                var localX = x + (float) pointX * width;
+                var localY = y + (float) pointY * height;
+                if (index == 0)
+                {
+                    path.MoveTo(localX, localY);
+                }
+                else
+                {
+                    path.LineTo(localX, localY);
+                }
+            }
+
+            path.Close();
+        }
+
+        return path.IsEmpty ? null : path;
+    }
+
     static SKPath? BuildTextBoxPath(FloatingTextBoxElement textBox, float x, float y, float width, float height)
     {
         if (textBox.Subpaths == null)
