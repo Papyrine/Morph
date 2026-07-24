@@ -22,6 +22,12 @@ The reference for "correct" is Word's own AltChunk import, captured as `expected
 
 Named colours resolve through the full CSS Color Level 4 set (147 entries in `namedColors`, up from an initial 10). `transparent` is deliberately absent — it must mean "no fill", not a colour.
 
+## Which font unstyled HTML gets
+
+`HtmlParser.Parse(html)` defaults to **Times New Roman**, and for body text that is right: Word renders an AltChunk's paragraphs and headings in the browser-default serif, not in the destination document's Normal. Verified by rendering `html_basic_formatting` — which declares no CSS at all — through Word, where every line comes back serif. Repointing the AltChunk path at the host document's default font measured **+0.2790 AE / −0.2595 SSIM across 55 scenario/backend pairs**, so the hardcoded serif is load-bearing, not an oversight.
+
+**But it does not hold inside tables and lists.** `html_complex`'s reference settles it in a single image: its headings and paragraphs are Times while its table cells (`Product`, `Widget A`, `$29.99`) and its bullet items (`Easy to use interface`, `PDF export`) are sans — the host document default, Aptos. `html_table_cellpadding`, which is nothing but a bare `border='1'` table with no CSS, confirms it independently by coming back entirely sans. Morph currently renders all of it in Times, which is why table and list text shows up as a serif/sans mismatch in the backlog. The fix is per-container, not global: cell and list-item runs take the host default while body runs keep the serif.
+
 ## Measured constants
 
 These are Word-derived numbers. They are not defaults anyone would guess, and changing one shifts every `html_*` baseline.

@@ -832,10 +832,43 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### html_table_cellpadding
 
 - MAJOR | all | p1 | interior cell borders missing — single black outer rectangle only vs Word's per-cell light-gray borders
-- MEDIUM | all | p1 | text rendered in serif Times instead of Word's sans-serif
+- MEDIUM | all | p1 | text rendered in serif Times instead of Word's sans-serif (Word uses the HOST document default inside tables — see the attempt block below)
 - MEDIUM | skia | p1 | "Cell with 15px padding" wraps to two lines (single line in Word, ImageSharp and PDF), making row 1 taller
+- MEDIUM | all | p1 | table geometry off: Word outdents the table so its CELL TEXT lands on the left margin (rule x=125, text x=151 at 150 DPI) while Morph puts the BORDER on the margin (rule x=149, text x=182); Morph also adds its DOCX default cell margin ON TOP of the HTML cellpadding, so the text inset is 33px against Word's 26px
 - MAJOR | html | - | interior cell borders missing (outer box only)
 - MEDIUM | html | - | cellpadding=15 dropped — rows collapse to tight text height
+
+> **ATTEMPT 2026-07-24 — legacy `border="n"` inside edges. REVERTED (metric regression).** Applies to
+> html_table_cellpadding, html_table_cell_padding_css, html_table_cell_margin_css, html_table_styled,
+> html_css_borders, html_css_alignment, html_complex.
+>
+> The cause of the bare rectangle is settled: HTML4 §11.3.1 makes `border` a border around the table
+> AND all its cells, but `HtmlParser.ParseTable` sets only `DefaultBorders`, so
+> `TableLayout.ResolveCellBorders` resolves every interior edge through `InsideHorizontalBorder` /
+> `InsideVerticalBorder` — both null — to `BorderEdge.None`. Setting both to the same edge produces a
+> correct, complete grid; crops match Word's structure exactly.
+>
+> Word's own rules were measured off the 150 DPI reference: a COLLAPSED grid (shared edges, not the
+> detached `w:tblCellSpacing` model), lines at x=130/418/600 and y=155/251/346, each laying 120 units
+> of ink over two anti-aliased rows — 0.75pt at a solid value of ~`B2B2B2`, i.e. light grey, not the
+> black Morph uses for the outer box today.
+>
+> **It still measured worse: +0.0177 AE and −0.0496 SSIM over 19 scenario/backend pairs, every one of
+> them worse.** The reason is the geometry finding above: Morph's table origin is ~24px right of
+> Word's and its rows are taller, so each new interior rule lands ~17px from where Word draws it and
+> is charged twice — once for ink Word doesn't have there, once for Word's rule left unpainted. AE
+> per scenario (+0.0009) sits inside the audit's new-ink noise band, but the SSIM drop is structural
+> and real. **Land the table geometry first — origin outdent, and cellpadding REPLACING rather than
+> adding to the default cell margin — then re-land the inside edges, which is a two-line change.**
+>
+> **Also reverted: pointing AltChunk at the host document's default font** (`ParseAltChunk` passing
+> `effectiveDefaultFont` instead of the hardcoded Times New Roman). Measured **+0.2790 AE / −0.2595
+> SSIM over 55 pairs** — much worse, because Word genuinely does render AltChunk BODY text in Times.
+> The real rule, confirmed in a single reference (`html_complex` p1, whose body and table sit in one
+> image): body paragraphs and headings are Times New Roman, while **table cells and list items use
+> the host document default** (Aptos here). Both fixtures prove it independently — neither declares
+> any CSS font. So the fix is scoped, not global: cell and list-item runs need the host default while
+> body runs keep Times. See `docs/html-import.md`.
 - MEDIUM | html | - | serif Times instead of Word's sans-serif
 
 ### html_table_styled
