@@ -572,12 +572,61 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
         // An unwarped pseudo-WordArt is Word's inline text box: stroke its a:ln frame
         // under the text (business/06's LOGO box).
+        // A prst="frame" box is a RING, so its contours fill even-odd (ImageSharp's default rule);
+        // an ellipse draws as a true oval.
+        IPath? boxShape = null;
+        if (wordArt.BoxSubpaths is { } contours)
+        {
+            var builder = new PathBuilder();
+            foreach (var contour in contours)
+            {
+                if (contour.Count < 3)
+                {
+                    continue;
+                }
+
+                builder.AddLines(contour
+                    .Select(_ => new PointF(x + (float) _.X * width, y + (float) _.Y * pixelHeight))
+                    .ToArray());
+                builder.CloseFigure();
+            }
+
+            var built = builder.Build();
+            boxShape = built.Bounds.Width > 0 ? built : null;
+        }
+        else if (wordArt.BoxIsEllipse)
+        {
+            boxShape = new EllipsePolygon(x + width / 2, y + pixelHeight / 2, width / 2, pixelHeight / 2);
+        }
+
+        var boxRect = new RectangleF(x, y, width, pixelHeight);
+
+        if (wordArt.BoxFillColorHex is { } boxFill)
+        {
+            var boxBrush = context.GetBrush(ParseColor(boxFill));
+            if (boxShape != null)
+            {
+                currentCanvas.Fill(boxBrush, boxShape);
+            }
+            else
+            {
+                currentCanvas.Fill(boxBrush, boxRect);
+            }
+        }
+
         if (wordArt is { BoxLineColorHex: { } boxLine, BoxLineWidthPoints: > 0 })
         {
             var boxPen = context.GetPen(
                 WithAlpha(ParseColor(boxLine), wordArt.BoxLineAlpha),
                 context.PointsToPixels((float) wordArt.BoxLineWidthPoints));
-            currentCanvas.Draw(boxPen, new RectangleF(x, y, width, pixelHeight));
+            if (boxShape != null)
+            {
+                currentCanvas.Draw(boxPen, boxShape);
+            }
+            else
+            {
+                currentCanvas.Draw(boxPen, boxRect);
+            }
         }
 
         var font = context.GetFontForFamily(

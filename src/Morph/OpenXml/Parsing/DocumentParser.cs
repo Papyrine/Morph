@@ -8663,9 +8663,32 @@ sealed class DocumentParser(string defaultFont)
         string? boxLineColor = null;
         double boxLineWidth = 0;
         double boxLineAlpha = 1;
+        string? boxFillColor = null;
+        IReadOnlyList<IReadOnlyList<(double X, double Y)>>? boxSubpaths = null;
+        var boxIsEllipse = false;
         var spPr = wsp.GetFirstChild<WPS.ShapeProperties>();
         if (spPr != null)
         {
+            if (transform == WordArtTransform.None)
+            {
+                // The shape's own fill paints BEHIND an inline text box; it does not colour the
+                // glyphs. ExtractFirstFillColor resolves scheme colours and their lumMod/tint
+                // transforms, which reading only a:srgbClr missed.
+                if (spPr.GetFirstChild<A.SolidFill>() is { } boxFill)
+                {
+                    boxFillColor = ExtractFirstFillColor(boxFill);
+                }
+
+                // The box is not always a rectangle: brochures/08's logo frame is a prst="frame"
+                // RING and wedding/08's badge an ellipse. Fill the real geometry or the frame
+                // becomes a solid block Word never draws.
+                boxSubpaths = ShapeParser.ExtractSubpaths(spPr)
+                              ?? PresetShapeGeometry.TryBuild(
+                                  spPr.GetFirstChild<A.PresetGeometry>(), widthPoints, heightPoints);
+                boxIsEllipse = spPr.GetFirstChild<A.PresetGeometry>()?.Preset?.Value ==
+                               A.ShapeTypeValues.Ellipse;
+            }
+
             if (transform == WordArtTransform.None)
             {
                 // No real text warp means this is Word's inline text BOX wearing the WordArt
@@ -8705,14 +8728,18 @@ sealed class DocumentParser(string defaultFont)
                 }
             }
 
-            // Parse fill color from shape properties
-            var shapeSolidFill = spPr.GetFirstChild<A.SolidFill>();
-            if (shapeSolidFill != null && fillColor == null)
+            // Warped WordArt keeps the legacy reading where the shape fill colours the GLYPHS; for
+            // an unwarped inline text box that fill is the box background (boxFillColor above).
+            if (transform != WordArtTransform.None)
             {
-                var rgbColor = shapeSolidFill.GetFirstChild<A.RgbColorModelHex>();
-                if (rgbColor?.Val?.HasValue == true)
+                var shapeSolidFill = spPr.GetFirstChild<A.SolidFill>();
+                if (shapeSolidFill != null && fillColor == null)
                 {
-                    fillColor = rgbColor.Val.Value;
+                    var rgbColor = shapeSolidFill.GetFirstChild<A.RgbColorModelHex>();
+                    if (rgbColor?.Val?.HasValue == true)
+                    {
+                        fillColor = rgbColor.Val.Value;
+                    }
                 }
             }
 
@@ -8776,6 +8803,9 @@ sealed class DocumentParser(string defaultFont)
             BoxLineColorHex = boxLineColor,
             BoxLineWidthPoints = boxLineWidth,
             BoxLineAlpha = boxLineAlpha,
+            BoxFillColorHex = boxFillColor,
+            BoxSubpaths = boxSubpaths,
+            BoxIsEllipse = boxIsEllipse,
             Alignment = alignment,
             HasShadow = hasShadow,
             HasReflection = hasReflection,
