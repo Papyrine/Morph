@@ -21,6 +21,10 @@ sealed class HtmlParser
     // constructing one per Parse call re-created its options and factories every time.
     static readonly AngleSharp.Html.Parser.HtmlParser angleSharpParser = new();
 
+    // CSS pixels to points, for the HTML attributes that count pixels (img width/height,
+    // cellpadding, border).
+    const double pixelsToPoints = 0.75;
+
     public static List<DocumentElement> Parse(string html, string defaultFontFamily)
     {
         var instance = new HtmlParser(defaultFontFamily);
@@ -917,22 +921,29 @@ sealed class HtmlParser
     {
         var rows = new List<TableRow>();
 
-        // Parse table-level cellpadding
+        // Parse table-level cellpadding. The attribute counts CSS PIXELS, like the img width and
+        // height attributes, so it converts at 0.75 the same way — read as points it inset cell
+        // text by a third too much (cellpadding=15 measured 33px against Word's 27 at 150 DPI).
+        // Applied below, once it is known whether the table fills its container.
         CellSpacing? defaultCellPadding = null;
+        double? cellPaddingPixels = null;
         var cellpadding = tableElement.GetAttribute("cellpadding");
         if (!string.IsNullOrEmpty(cellpadding) && double.TryParse(cellpadding, out var padding))
         {
+            cellPaddingPixels = padding;
             defaultCellPadding = new(padding);
         }
 
         // Parse borders from border attribute
         var defaultBorders = CellBorders.All;
+        var borderWidthPoints = 0.0;
         var borderAttribute = tableElement.GetAttribute("border");
         if (!string.IsNullOrEmpty(borderAttribute) && double.TryParse(borderAttribute, out var borderWidth))
         {
             if (borderWidth > 0)
             {
-                var borderPt = borderWidth * 0.75;
+                var borderPt = borderWidth * pixelsToPoints;
+                borderWidthPoints = borderPt;
                 var edge = new BorderEdge
                 {
                     IsVisible = true,
@@ -972,6 +983,7 @@ sealed class HtmlParser
                 if (parsed != null)
                 {
                     defaultBorders = parsed;
+                    borderWidthPoints = parsed.Left.WidthPoints;
                 }
             }
 
@@ -1235,6 +1247,29 @@ sealed class HtmlParser
             return null;
         }
 
+        // Word aligns an imported table's CELL TEXT with the text margin, not its frame, so the
+        // table is outdented by everything sitting left of that text: the cell padding and the
+        // border. Probed against Word at 150 DPI (three tables in one document, differing only in
+        // these values): the first glyph lands at x=152 for cellpadding 0, cellpadding 15 and
+        // border=3 alike, while the frame moves to 144, 125 and 137 to suit. Anchoring the frame
+        // at the margin instead — what Morph did — pushed cell text up to 30px right of Word's.
+        // A table that fills its container is deliberately left on the old footing, in BOTH the
+        // pixel conversion and the outdent. Word widens a full-width table by the inset at each end
+        // so its cell text still spans the text column exactly, while Morph's fill-container path
+        // resolves columns against the container width alone — and with a fixed total width the
+        // padding drives the COLUMN distribution, so correcting it alone moves every column away
+        // from Word. html_complex is the whole of that evidence: correct 6pt padding measured
+        // +0.015 AE per backend against the too-large 8pt. The pixel rule is right and the column
+        // distribution is the compensating error; they have to land together.
+        if (cellPaddingPixels is { } pixels && !fillContainer)
+        {
+            defaultCellPadding = new(pixels * pixelsToPoints);
+        }
+
+        var leftInset = fillContainer
+            ? 0
+            : (defaultCellPadding?.Left ?? 0) + borderWidthPoints;
+
         return new()
         {
             Rows = rows,
@@ -1242,6 +1277,7 @@ sealed class HtmlParser
             {
                 DefaultBorders = defaultBorders,
                 DefaultCellPadding = defaultCellPadding ?? new CellSpacing(),
+                IndentPoints = -leftInset,
                 PreferredWidthPoints = preferredWidthPoints,
                 FillContainer = fillContainer
             }

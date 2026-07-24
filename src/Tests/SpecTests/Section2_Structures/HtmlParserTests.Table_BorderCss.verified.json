@@ -91,6 +91,7 @@
       },
       "DefaultCellPadding": {},
       "DefaultCellMargin": {},
+      "IndentPoints": -1.5,
       "FillContainer": false,
       "IsAutoFit": true
     }

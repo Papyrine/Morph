@@ -90,14 +90,15 @@
         "HasAnyBorder": true
       },
       "DefaultCellPadding": {
-        "Top": 5.0,
-        "Right": 5.0,
-        "Bottom": 5.0,
-        "Left": 5.0,
-        "Horizontal": 10.0,
-        "Vertical": 10.0
+        "Top": 3.75,
+        "Right": 3.75,
+        "Bottom": 3.75,
+        "Left": 3.75,
+        "Horizontal": 7.5,
+        "Vertical": 7.5
       },
       "DefaultCellMargin": {},
+      "IndentPoints": -3.75,
       "FillContainer": false,
       "IsAutoFit": true
     }
