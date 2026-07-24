@@ -1722,10 +1722,10 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 >    WRONG PLACE: Morph draws it 213px wide at x=1180 where Word has 273px at x=1223, i.e. sized
 >    and positioned against the CELL's left edge instead of centred as Word has it.
 >
-> **That is the thing to fix first.** `ParseWordArt` emits the WordArt as a SIBLING of its
-> paragraph, so the paragraph's alignment never reaches `WordArtElement` — the element has no
-> alignment field at all. Give it one (and honour the full declared width rather than clipping to
-> the cell) and the box work becomes the small change it looks like.
+> **The placement half has since landed** — `WordArtElement.Alignment` carries the paragraph's
+> `w:jc` and every backend offsets the box within the content width. What remains for the box is the
+> geometry: build the contours (`PresetShapeGeometry.TryBuild` already handles `frame`; an ellipse
+> needs its own flag) and fill them even-odd, then re-measure against the realigned baseline.
 - MEDIUM | all | p1,p2 | card panels shorter than Word (p1 borders end ~2in early, p2 ~0.4in) with content blocks 0.4-0.8in higher (Thanks-and-Dedication and time/venue blocks)
 - MEDIUM | all | p1 | "dinner and dancing to follow" rendered upright instead of italic
 - MAJOR | html | - | green circled "&" badge missing
