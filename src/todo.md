@@ -784,17 +784,13 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### html_lists
 
-- MEDIUM | all | p1 | List items render in the serif default font instead of Word's sans-serif (Aptos-style) list font, and at a visibly smaller size
 - MEDIUM | all | p1 | Spacing around lists missing: no blank gap after "Unordered list:"/before "Ordered list:" (Word has clear gaps), item leading slightly looser, whole block ends higher
 - MINOR | all | p1 | Bullet glyph noticeably smaller/lighter than Word's large Symbol-font solid bullet
-- MEDIUM | html | - | List items in serif default font vs Word's sans-serif list font
 
 ### html_nested_lists
 
 - MAJOR | all | p1 | Third-level bullets (Item 1.2.1 / 1.2.2) drawn as hollow circles instead of Word's filled squares
-- MEDIUM | all | p1 | List text renders in serif default font instead of Word's sans-serif list font
 - MEDIUM | all | p1 | Blank gaps before "Nested ordered lists:" and "Mixed nested lists:" headings missing (renders run sections together at uniform item spacing)
-- MEDIUM | html | - | List items in serif default font vs Word's sans-serif list font
 
 ### html_paragraphs
 
@@ -807,83 +803,68 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - MEDIUM | all | p1 | Thin outer border drawn around the table although Word renders this table completely borderless
 - MEDIUM | all | p1 | Table far more compact than Word: row heights roughly half, near-zero cell padding (adjacent cells' text almost touching, e.g. "Row 2, Cell 1Row 2, Cell 2"), narrower columns
-- MEDIUM | all | p1 | Cell text in serif default font instead of Word's sans-serif cell font
 - MEDIUM | html | - | Outer table border drawn though Word shows the table borderless
-- MEDIUM | html | - | Cell text in serif default font vs Word's sans-serif
 
 ### html_table_cell_margin_css
 
 - MAJOR | all | p1 | 2x2 table grid disintegrates: each cell drawn as a separate box offset by its CSS margin with fragmented partial borders (floating "Left margin 20px" box top-right, bare over/underline on "Top/bottom margin", bracket-shaped border around "Default") instead of Word's coherent complete grid
 - MEDIUM | skia | p1 | "Margin 10px, Padding 5px" cell text wraps to two lines (single line in Word, ImageSharp and PDF)
-- MEDIUM | all | p1 | Cell text in serif default font instead of Word's sans-serif cell font
 - MEDIUM | html | - | Inner cell gridlines missing — only a single outer border drawn where Word shows a full light-gray grid around every cell, and cell padding much smaller
-- MEDIUM | html | - | Cell text in serif default font vs Word's sans-serif
 
 ### html_table_cell_padding_css
 
 - MAJOR | all | p1 | interior cell borders missing — only a single black outer rectangle is drawn, while Word renders a light-gray border around every cell
-- MEDIUM | all | p1 | text rendered in serif Times instead of Word's sans-serif
 - MEDIUM | all | p1 | CSS cell padding under-applied: table ~20% narrower and rows ~25% shorter than Word, right-column text ends flush against the table border
 - MEDIUM | skia | p1 | "20px all sides" wraps to two lines (single line in Word, ImageSharp and PDF)
 - MAJOR | html | - | interior cell borders missing (outer box only)
 - MEDIUM | html | - | cell padding CSS entirely dropped — all rows collapse to tight single-text-line height
-- MEDIUM | html | - | serif Times instead of Word's sans-serif
 
 ### html_table_cellpadding
 
-- MAJOR | all | p1 | cells render as a single outer rectangle where Word draws a box around EVERY cell, separated by the cellspacing gap (the rule colour now matches Word's grey)
-- MEDIUM | all | p1 | text rendered in serif Times instead of Word's sans-serif — Word uses the HOST document default inside tables and lists (`docs/html-import.md`)
+- MAJOR | all | p1 | cells render as a single outer rectangle where Word draws a box around EVERY cell, separated by the cellspacing gap (the rule colour matches Word's grey; the cell font now matches too)
 - MAJOR | html | - | interior cell borders missing (outer box only)
 - MEDIUM | html | - | cellpadding=15 dropped — rows collapse to tight text height
 
-> **ATTEMPT 2026-07-24 (twice) — per-cell borders. BOTH REVERTED; the blocker is now identified as
-> column widths, not borders.** HTML4 §11.3.1 makes `border` a border around the table AND all its
-> cells, but `ParseTable` sets only `DefaultBorders`, so `TableLayout.ResolveCellBorders` takes every
-> interior edge to `BorderEdge.None` and the table renders as a bare rectangle.
+> **NEXT — per-cell borders. The two blockers behind three reverts are now both cleared.** HTML4
+> §11.3.1 makes `border` a border around the table AND all its cells, but `ParseTable` sets only
+> `DefaultBorders`, so `TableLayout.ResolveCellBorders` takes every interior edge to
+> `BorderEdge.None` and the table renders as a bare rectangle. The model is DETACHED, not collapsed:
+> Word imports `cellspacing` (2px when absent) as `w:tblCellSpacing`, drawing an outer frame plus a
+> box per cell with a gap (probe: `cellspacing` 0 / default / 10 → collapsed / small-gap / wide-gap),
+> so the default case wants `CellSpacingPoints` and only `cellspacing=0` wants the inside edges.
 >
-> The first attempt supplied `InsideHorizontalBorder` / `InsideVerticalBorder`, drawing a collapsed
-> grid: **+0.0177 AE / −0.0496 SSIM over 19 pairs.** Two things were wrong with it. The geometry it
-> drew onto was ~24px out (since fixed), and a Word probe then showed the collapsed grid is the wrong
-> MODEL — Word imports `cellspacing` (2px when absent) as `w:tblCellSpacing`, drawing an outer frame
-> plus a detached box per cell. A probe carrying `cellspacing` 0 / default / 10 renders a collapsed
-> grid, a small-gap grid and a wide-gap grid, so only the explicit zero shares edges.
+> Three attempts (2026-07-24) were all reverted. The first drew a collapsed grid — wrong model. The
+> second used the detached model correctly but measured **+0.0472 AE / −0.1001 SSIM**, because the
+> autofit column algorithm does not account for spacing: `PageRendererBase` insets each cell box by
+> `CellSpacingPoints` out of the column width while `CalculateColumnWidths` never adds it back, so
+> the spacing came out of the CONTENT area and re-wrapped text. **That was really the font showing
+> through** — at the default 2px the columns were already too narrow because cell text was rendering
+> in Times, not Word's Aptos, and any extra inset tipped it over. The third attempt added the
+> column-width term (`+2 × CellSpacingPoints` per column in the content-based autofit path) and
+> rendered a pixel-correct detached grid in the probe, but STILL measured **+0.0465 AE** on the
+> corpus — because the cells were still Times, so the borders (sized for Times columns) landed off
+> Word's (sized for Aptos).
 >
-> The second attempt therefore set `CellSpacingPoints` from the attribute and kept the inside edges
-> only for `cellspacing=0`, which is the correct model and renders the right structure — grey boxes
-> per cell, gaps, outer frame. It measured **worse still: +0.0472 AE / −0.1001 SSIM over 21 pairs.**
+> **The font is now fixed (see below), so the columns match Word's and the retry should measure
+> clean.** Carry both corrections from the reverts: (1) the detached model with `CellSpacingPoints`
+> from the attribute, inside edges only for `cellspacing=0`; (2) the `+2 × CellSpacingPoints`
+> per-column term in `CalculateContentBasedColumnWidths` — shared with DOCX `w:tblCellSpacing`, so
+> `TableCellSpacingTests` / `TableCellSpacingCollapseTests` move with it — and add
+> `cellSpacingPoints` to the table's negative `IndentPoints` so the detached boxes don't shift the
+> grid right. The rule colour (grey `B2B2B2` at 0.75pt) already landed.
 >
-> **Cause, and the thing to fix first: the autofit column algorithm does not account for cell
-> spacing.** `PageRendererBase` insets each cell box by `CellSpacingPoints` on every side out of the
-> column width it was given, while `CalculateColumnWidths` never adds that spacing to what the column
-> needs. So the spacing is taken out of the CONTENT area: at the default 2px, `html_table_cellpadding`
-> re-wrapped "Cell with 15px padding" and "Row 2, Cell 2" onto two lines each, which Word fits on
-> one, and re-wrapping is what drove the SSIM collapse. Word instead grows the table to carry the
-> spacing. Fix `CalculateColumnWidths` to add `2 × CellSpacingPoints` per column in the autofit path
-> — noting that it is shared with DOCX `w:tblCellSpacing` tables, so `TableCellSpacingTests` and
-> `TableCellSpacingCollapseTests` move with it — and the border work becomes the small change it
-> looks like.
->
-> What DID land from the second attempt is the rule colour alone, which carries no layout: Word draws
-> these rules light grey (~`B2B2B2` at 0.75pt, measured as 120 units of ink over two anti-aliased
-> rows at 150 DPI), where Morph drew solid black.
->
-> **Full-width tables are the open blocker for the rest.** Word widens a `width:100%` table by the
-> cell inset at each end so its text still spans the text column exactly; Morph resolves columns
-> against the container width alone. Because the total width is fixed there, cellpadding drives the
-> COLUMN distribution, so correcting the padding to Word's true value moved every column away from
-> Word — `html_complex` measured **+0.015 AE per backend** on its own. The px→pt rule and the outdent
-> are therefore applied only to auto-width tables today; the pixel rule is right and the column
-> distribution is the compensating error, and they have to land together.
-- MEDIUM | html | - | serif Times instead of Word's sans-serif
+> **Full-width tables stay on the old footing for now.** Word widens a `width:100%` table by the cell
+> inset at each end so its text still spans the text column; Morph resolves columns against the
+> container width alone, so with a fixed total width the padding drives the COLUMN distribution and
+> the correct padding moved every column (`html_complex` +0.015 AE alone). The px→pt padding rule and
+> the outdent are applied only to auto-width tables until that is modelled.
 
 ### html_table_styled
 
 - MAJOR | all | p1 | cell gridlines/borders missing — only a thin outer rectangle is drawn
 - MEDIUM | all | p1 | fixed-width table ignores the 100px/200px column widths — it stretches to full text width (976px vs Word's 622px) with columns roughly 200/420/355px instead of Word's 160/315/147px
-- MEDIUM | all | p1 | text rendered in serif Times instead of Word's sans-serif
 - MAJOR | html | - | cell borders missing (outer box only)
 - MEDIUM | html | - | table width styling ignored — the width:100% styled table renders content-width (206px of the 624px content box) and the 100px/200px fixed columns are exported as width:100pt/200pt (~33% too wide)
-- MEDIUM | html | - | serif Times instead of Word's sans-serif
 
 ### hyperlinks
 
