@@ -4,14 +4,30 @@
 sealed class HtmlParser
 {
     readonly string defaultFontFamily;
+    readonly string containerFontFamily;
 
-    HtmlParser(string defaultFontFamily) =>
+    HtmlParser(string defaultFontFamily, string containerFontFamily)
+    {
         this.defaultFontFamily = defaultFontFamily;
+        this.containerFontFamily = containerFontFamily;
+    }
 
     RunProperties DefaultRunProps() =>
         new()
         {
             FontFamily = defaultFontFamily
+        };
+
+    // Table cells and list items take the HOST document's default font, not the browser-default
+    // serif that body paragraphs use. Probed against Word (one AltChunk carrying the same word in a
+    // paragraph, a cell, a ul, an ol and a heading): the paragraph and heading render Times New
+    // Roman while the cell and both list items render the destination document's Normal font (Aptos
+    // where the package declares no styles part). For standalone HTML input there is no host
+    // document, so the container font defaults to the body font and nothing changes.
+    RunProperties ContainerRunProps() =>
+        new()
+        {
+            FontFamily = containerFontFamily
         };
 
     public static List<DocumentElement> Parse(string html) =>
@@ -30,9 +46,15 @@ sealed class HtmlParser
     // value of ~B2. Not black — that is a browser's rendering of the attribute, not Word's.
     const string htmlTableBorderColor = "B2B2B2";
 
-    public static List<DocumentElement> Parse(string html, string defaultFontFamily)
+    public static List<DocumentElement> Parse(string html, string defaultFontFamily) =>
+        Parse(html, defaultFontFamily, defaultFontFamily);
+
+    // containerFontFamily is the HOST document's default, applied to table cells and list items;
+    // AltChunk passes it so imported tables and lists match Word's destination-document font while
+    // body text keeps the browser-default serif. Standalone callers omit it and get body = container.
+    public static List<DocumentElement> Parse(string html, string defaultFontFamily, string containerFontFamily)
     {
-        var instance = new HtmlParser(defaultFontFamily);
+        var instance = new HtmlParser(defaultFontFamily, containerFontFamily);
         var elements = new List<DocumentElement>();
         var document = angleSharpParser.ParseDocument(html);
 
@@ -903,7 +925,7 @@ sealed class HtmlParser
                 new()
                 {
                     Text = text,
-                    Properties = DefaultRunProps()
+                    Properties = ContainerRunProps()
                 }
             ],
             Properties = new()
@@ -1154,7 +1176,7 @@ sealed class HtmlParser
                 var cellElements = new List<DocumentElement>();
                 if (cell.TextContent.TryTrim(out var text))
                 {
-                    var cellRunProperties = DefaultRunProps() with
+                    var cellRunProperties = ContainerRunProps() with
                     {
                         Bold = isHeader
                     };

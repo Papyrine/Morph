@@ -3667,7 +3667,7 @@ sealed class DocumentParser(string defaultFont)
         return elements;
     }
 
-    static List<DocumentElement> ParseAltChunk(AltChunk altChunk, MainDocumentPart mainPart)
+    List<DocumentElement> ParseAltChunk(AltChunk altChunk, MainDocumentPart mainPart)
     {
         if (altChunk.Id?.Value == null)
         {
@@ -3681,7 +3681,10 @@ sealed class DocumentParser(string defaultFont)
             using var reader = new StreamReader(stream, Encoding.UTF8);
             var html = reader.ReadToEnd();
 
-            return HtmlParser.Parse(html);
+            // Body text keeps the browser-default serif Word imports AltChunk paragraphs in, while
+            // table cells and list items take the host document's default — Word lays those out in
+            // the destination Normal, not the serif. Verified by Word probe (see HtmlParser).
+            return HtmlParser.Parse(html, "Times New Roman", effectiveDefaultFont);
         }
 
         return [];
