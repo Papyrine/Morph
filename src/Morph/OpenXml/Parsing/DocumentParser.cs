@@ -190,8 +190,9 @@ sealed class DocumentParser(string defaultFont)
     // ExtractDefaultParagraphProperties); otherwise this keeps its long-standing 1.08.
     double defaultLineSpacingMultiplier = 1.08;
 
-    // docDefaults/pPrDefault's own w:line is deliberately NOT read, though the cascade itself is
-    // not in doubt — it has been implemented and measured twice (2026-07-22).
+    // Document-wide line multiplier from docDefaults/pPrDefault/w:spacing/@w:line, read only under
+    // the auto rule (under exact/atLeast it is a twip measurement and belongs to the per-paragraph
+    // path). Null when the document declares none, leaving the invented fallbacks to apply.
     //
     // What the Word probes settled (each rendering a doctored copy through Word itself):
     //   * The cascade is REAL. Doubling agendas-minutes/07's declared w:line="264" to 480 takes
@@ -203,36 +204,14 @@ sealed class DocumentParser(string defaultFont)
     //     (agendas-minutes/07's Title and ListBullet), which is why only its Normal- and
     //     Heading1-derived paragraphs move.
     //
-    // Honouring it was measured and reverted once (2026-07-22) because it inflated pitch on the
-    // very documents it should have fixed. That was half a compensating pair: those documents
-    // declare docDefaults with no w:sz, so they were also rendering at 12pt where Word uses the
-    // spec's 10pt (see specDefaultFontSizePoints). brochures/05 is the archetype — Word's pitch is
-    // 10pt x 1.2, while the old code produced 12pt x 1.04, landing within 3% by cancellation.
-    // Correcting either half alone is worse than correcting neither for THOSE documents; the size
-    // half is landed because it also stands on its own across the 14 scenarios that declare no
-    // pPrDefault w:line at all.
-    //
-    // Second measurement (both halves together, full corpus): 75 scenarios move, 50 better and 24
-    // worse, net -1.19 AE — nearly triple the cascade alone — with SSIM agreeing on 324 of 346
-    // pages. It is still not landed because it repaginates three scenarios away from Word:
-    // brochures/06 2->3, resumes/07 1->2 (both declare w:sz, so the cascade alone moves them) and
-    // postcards/04 3->6. brochures/06's new page 2 is BLANK, with its content pushed to page 3 —
-    // a spurious empty page, not a spacing difference, and precisely what BaselineHealthTests
-    // guards.
-    //
-    // The blank page was then diagnosed, and it is NOT a page-break bug. Word does not absorb an
-    // explicit break that lands at the top of a fresh page: a minimal fixture with N consecutive
-    // break-only paragraphs renders N+1 pages in Word (1->2, 2->3, 3->4), so interior blank pages
-    // are legitimate output and the tempting CurrentY > ContentTop guard on PageBreakElement would
-    // be wrong. See ConsecutivePageBreakTests, which locks that in.
-    //
-    // What actually happens in brochures/06: all 9 rows of its page-1 cover table declare
-    // w:trHeight with no w:hRule, i.e. atLeast floors summing to most of the content area. Word's
-    // page-1 content bottom therefore barely moves with spacing (row 1208 at w:line=276, still
-    // 1227 at 360). Morph sits at 1205 at 1.04 but 1240 at 1.15 — its cell content crosses those
-    // floors about five times more readily, roughly 4px per row. The break paragraph then no
-    // longer fits page 1, flows to page 2, and its break pushes the content to page 3. So the
-    // blocker is the cell-content height residual (systemic issue #2), not pagination logic.
+    // It took three attempts to land, because honouring it alone inflated pitch on the very
+    // documents it should have fixed. It is half of a compensating pair: those documents declare
+    // docDefaults with no w:sz, so they were also rendering at 12pt where Word uses the spec's 10pt
+    // (see specDefaultFontSizePoints). brochures/05 is the archetype — Word's pitch is 10pt x 1.2,
+    // while the old code produced 12pt x 1.04, landing within 3% by cancellation, so correcting
+    // either half alone measured worse than correcting neither. The two remaining prerequisites
+    // were the table-style w:pPr cascade step and the rule that an Auto multiplier must not scale
+    // an inline image. Full ledger, with the measurements: src/page_counts.md experiments 17-21.
     double? docDefaultLineSpacingMultiplier;
 
     // Document-level w:defaultTabStop in points (720 twips = 36 pt = 0.5 inch, OOXML default).
@@ -1618,12 +1597,11 @@ sealed class DocumentParser(string defaultFont)
                 var alignment = baseProps?.Alignment ?? defaultAlignment;
                 var spacingBefore = baseProps?.SpacingBeforePoints ?? defaultSpacingBeforePoints;
                 var spacingAfter = baseProps?.SpacingAfterPoints ?? defaultSpacingAfterPoints;
-                // 1.04 is invented: OOXML says an absent w:spacing/@w:line is SINGLE, i.e. the
-                // font's own line box, which line.Height already carries. 1.0 measures right in
-                // isolation but moving it alone costs more than it gains (123 scenarios, 40 better
-                // / 67 worse). Its replacement is the docDefaults w:line cascade, which is decoded
-                // and measured but blocked — see docDefaultLineSpacingMultiplier's note above and
-                // todo.md "Systemic issues" #4.
+                // 1.04 is invented, and applies only where the document declares no docDefaults
+                // w:line for the cascade to supply. OOXML says an absent w:spacing/@w:line is
+                // SINGLE, i.e. the font's own line box, which line.Height already carries, but 1.0
+                // measures right only in isolation: moving it alone costs more than it gains
+                // (123 scenarios, 40 better / 67 worse).
                 var lineSpacingMultiplier = baseProps?.LineSpacingMultiplier
                                             ?? docDefaultLineSpacingMultiplier
                                             ?? 1.04;
