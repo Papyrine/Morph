@@ -1706,15 +1706,26 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 - MEDIUM | all | p1 | the "&" of the circled badge now renders but its green ellipse does not, so the ampersand sits on bare card stock. The badge is a `wp:inline` text-carrying `wps:wsp` (ellipse, `a:solidFill` accent3 lumMod 75%, `a:ln noFill`, `wps:txbx` holding "&") inside a table cell; the element itself reaches the page since the cell loop learned to render WordArt
 
-> **The remaining half is the BOX, not the element.** wedding/08's badge needs its green
-> ellipse fill and brochures/08 its white frame; both were attempted and reverted with the
-> space fix. The parse side is understood — `ParseWordArt` routes the shape's `a:solidFill`
-> to the GLYPH fill when for an unwarped shape it is the box background, and reads only
-> `a:srgbClr` so a `schemeClr` (wedding/08's accent3 at lumMod 75%) resolves to nothing;
-> `ExtractFirstFillColor` handles both. What blocked it is that a solid fill is the WRONG
-> shape for brochures/08: its box parses as `FFFFFF` but Word draws a white FRAME, only 27%
-> coverage (19879 white pixels in a 273x269 box), so filling it solid measured **+0.0255 AE**
-> per raster backend. Model the frame before re-landing the fill.
+> **The remaining half is the BOX, and it needs horizontal placement first.** Two attempts, both
+> reverted. The parse side is settled: `ParseWordArt` routes the shape's `a:solidFill` to the GLYPH
+> fill when for an unwarped shape it is the box background, and reads only `a:srgbClr` so a
+> `schemeClr` (wedding/08's accent3 at lumMod 75%) resolves to nothing — `ExtractFirstFillColor`
+> handles both. The geometry is settled too:
+>
+> 1. **A solid fill is the wrong shape.** brochures/08's box parses `FFFFFF` but its geometry is
+>    `prstGeom prst="frame"` — a picture-frame RING with `adj1=6745`. Word draws only the ring
+>    (19879 white pixels over a 273x269 box, 27% coverage). Filling it solid measured **+0.0656 AE**.
+> 2. **Filling the real ring is much closer but still regresses (+0.0221 AE).**
+>    `PresetShapeGeometry.TryBuild` already builds `frame` (and returns normalized contours that
+>    fill even-odd, exactly like `FloatingTextBoxElement.Subpaths`), and wedding/08's ellipse needs
+>    a separate flag since there is no ellipse builder. With that the ring renders — but in the
+>    WRONG PLACE: Morph draws it 213px wide at x=1180 where Word has 273px at x=1223, i.e. sized
+>    and positioned against the CELL's left edge instead of centred as Word has it.
+>
+> **That is the thing to fix first.** `ParseWordArt` emits the WordArt as a SIBLING of its
+> paragraph, so the paragraph's alignment never reaches `WordArtElement` — the element has no
+> alignment field at all. Give it one (and honour the full declared width rather than clipping to
+> the cell) and the box work becomes the small change it looks like.
 - MEDIUM | all | p1,p2 | card panels shorter than Word (p1 borders end ~2in early, p2 ~0.4in) with content blocks 0.4-0.8in higher (Thanks-and-Dedication and time/venue blocks)
 - MEDIUM | all | p1 | "dinner and dancing to follow" rendered upright instead of italic
 - MAJOR | html | - | green circled "&" badge missing
