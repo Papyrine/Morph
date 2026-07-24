@@ -25,6 +25,11 @@ sealed class HtmlParser
     // cellpadding, border).
     const double pixelsToPoints = 0.75;
 
+    // The grey Word rules a legacy border="n" table with. Measured off a Word probe at 150 DPI:
+    // each rule lays 120 units of ink over two anti-aliased pixel rows, which at 0.75pt is a solid
+    // value of ~B2. Not black — that is a browser's rendering of the attribute, not Word's.
+    const string htmlTableBorderColor = "B2B2B2";
+
     public static List<DocumentElement> Parse(string html, string defaultFontFamily)
     {
         var instance = new HtmlParser(defaultFontFamily);
@@ -948,7 +953,7 @@ sealed class HtmlParser
                 {
                     IsVisible = true,
                     WidthPoints = borderPt,
-                    ColorHex = "000000"
+                    ColorHex = htmlTableBorderColor
                 };
                 defaultBorders = new()
                 {

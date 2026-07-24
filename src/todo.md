@@ -831,28 +831,41 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### html_table_cellpadding
 
-- MAJOR | all | p1 | cells render as a single black outer rectangle where Word draws a light-grey box around EVERY cell, separated by the cellspacing gap
+- MAJOR | all | p1 | cells render as a single outer rectangle where Word draws a box around EVERY cell, separated by the cellspacing gap (the rule colour now matches Word's grey)
 - MEDIUM | all | p1 | text rendered in serif Times instead of Word's sans-serif — Word uses the HOST document default inside tables and lists (`docs/html-import.md`)
 - MAJOR | html | - | interior cell borders missing (outer box only)
 - MEDIUM | html | - | cellpadding=15 dropped — rows collapse to tight text height
 
-> **NEXT UP — per-cell borders, now unblocked.** HTML4 §11.3.1 makes `border` a border around the
-> table AND all its cells, but `ParseTable` sets only `DefaultBorders`, so
-> `TableLayout.ResolveCellBorders` takes every interior edge to `BorderEdge.None`. An attempt on
-> 2026-07-24 measured **+0.0177 AE / −0.0496 SSIM over 19 pairs** and was reverted, because the table
-> geometry it drew onto was ~24px out — every new rule landed away from Word's and was charged twice.
-> That geometry has since landed, so the retry is worth making. Two corrections to carry into it,
-> both from Word probes (`docs/html-import.md`):
+> **ATTEMPT 2026-07-24 (twice) — per-cell borders. BOTH REVERTED; the blocker is now identified as
+> column widths, not borders.** HTML4 §11.3.1 makes `border` a border around the table AND all its
+> cells, but `ParseTable` sets only `DefaultBorders`, so `TableLayout.ResolveCellBorders` takes every
+> interior edge to `BorderEdge.None` and the table renders as a bare rectangle.
 >
-> 1. **The model is DETACHED, not collapsed.** Word imports `cellspacing` (default 2px) as
->    `w:tblCellSpacing`, drawing an outer frame plus a separate box per cell with a visible gap — a
->    probe with `cellspacing` 0 / default / 10 shows collapsed, small-gap and wide-gap grids
->    respectively. So the default case wants `CellSpacingPoints`, which `ResolveCellBorders` and
->    `PageRendererBase` ALREADY implement, and only `cellspacing=0` wants the inside edges the
->    reverted attempt added. The first attempt drew a collapsed grid for every table, which is the
->    wrong branch for all but the explicit-zero case.
-> 2. **The rules are light grey, ~`B2B2B2` at 0.75pt**, not the black Morph currently uses for the
->    outer box — each rule lays 120 units of ink over two anti-aliased pixel rows at 150 DPI.
+> The first attempt supplied `InsideHorizontalBorder` / `InsideVerticalBorder`, drawing a collapsed
+> grid: **+0.0177 AE / −0.0496 SSIM over 19 pairs.** Two things were wrong with it. The geometry it
+> drew onto was ~24px out (since fixed), and a Word probe then showed the collapsed grid is the wrong
+> MODEL — Word imports `cellspacing` (2px when absent) as `w:tblCellSpacing`, drawing an outer frame
+> plus a detached box per cell. A probe carrying `cellspacing` 0 / default / 10 renders a collapsed
+> grid, a small-gap grid and a wide-gap grid, so only the explicit zero shares edges.
+>
+> The second attempt therefore set `CellSpacingPoints` from the attribute and kept the inside edges
+> only for `cellspacing=0`, which is the correct model and renders the right structure — grey boxes
+> per cell, gaps, outer frame. It measured **worse still: +0.0472 AE / −0.1001 SSIM over 21 pairs.**
+>
+> **Cause, and the thing to fix first: the autofit column algorithm does not account for cell
+> spacing.** `PageRendererBase` insets each cell box by `CellSpacingPoints` on every side out of the
+> column width it was given, while `CalculateColumnWidths` never adds that spacing to what the column
+> needs. So the spacing is taken out of the CONTENT area: at the default 2px, `html_table_cellpadding`
+> re-wrapped "Cell with 15px padding" and "Row 2, Cell 2" onto two lines each, which Word fits on
+> one, and re-wrapping is what drove the SSIM collapse. Word instead grows the table to carry the
+> spacing. Fix `CalculateColumnWidths` to add `2 × CellSpacingPoints` per column in the autofit path
+> — noting that it is shared with DOCX `w:tblCellSpacing` tables, so `TableCellSpacingTests` and
+> `TableCellSpacingCollapseTests` move with it — and the border work becomes the small change it
+> looks like.
+>
+> What DID land from the second attempt is the rule colour alone, which carries no layout: Word draws
+> these rules light grey (~`B2B2B2` at 0.75pt, measured as 120 units of ink over two anti-aliased
+> rows at 150 DPI), where Morph drew solid black.
 >
 > **Full-width tables are the open blocker for the rest.** Word widens a `width:100%` table by the
 > cell inset at each end so its text still spans the text column exactly; Morph resolves columns
