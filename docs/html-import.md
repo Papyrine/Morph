@@ -66,6 +66,18 @@ A declared width also bounds the **flexible** columns. `TableLayout.CalculateCol
 
 **Both the padding and outdent rules are applied only to auto-width tables.** Word widens a `width:100%` table by the inset at each end so its cell text still spans the text column exactly, while Morph's fill-container path resolves columns against the container width alone. With the total width fixed, cellpadding drives the column distribution, so correcting it alone moved every column away from Word — `html_complex` measured +0.015 AE per backend. The pixel rule is right and the column distribution is the compensating error; they have to land together.
 
+### Borders, fills and cell spacing
+
+Probed against Word with one filled table per variant, measured across the header row at 150 DPI:
+
+| table | fills | rules |
+|---|---|---|
+| `border=1 cellspacing=0` | touch, separated by a 1px rule | thin light rule, `(204,210,223)` over the fill |
+| `border=1` (default cellspacing) | **~3px of page white between them** | grey rule per cell |
+| **no `border` attribute** | ~3px of page white between them | **none at all** |
+
+Two rules fall out. **A table with no `border` attribute is borderless** — Word draws not one rule, so `ParseTable` starts from an empty `CellBorders` rather than `CellBorders.All`, which had been drawing an outer box around every borderless table. And **cell spacing is independent of the border attribute**: the ~3px gap is there even with no borders at all, so the fills are per-cell boxes separated by the HTML default `cellspacing` of 2px. Morph does not yet apply that (see `src/todo.md` under `html_table`) — it is what makes borderless HTML tables render more compact than Word's.
+
 ### Borders are detached, not collapsed
 
 `cellspacing` (default 2px) imports as `w:tblCellSpacing`, so Word draws an outer frame plus a separate box around each cell with a visible gap between them. A probe with `cellspacing` of 0, default and 10 renders a collapsed grid, a small-gap grid and a wide-gap grid respectively — so only the explicit `cellspacing=0` case is a true collapsed grid with shared edges. The rules are light grey, about `B2B2B2` at 0.75pt, not black.

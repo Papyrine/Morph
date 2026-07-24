@@ -186,26 +186,26 @@
       "IsFloating": false,
       "DefaultBorders": {
         "Top": {
-          "IsVisible": true,
+          "IsVisible": false,
           "WidthPoints": 0.5,
           "ColorHex": "000000"
         },
         "Right": {
-          "IsVisible": true,
+          "IsVisible": false,
           "WidthPoints": 0.5,
           "ColorHex": "000000"
         },
         "Bottom": {
-          "IsVisible": true,
+          "IsVisible": false,
           "WidthPoints": 0.5,
           "ColorHex": "000000"
         },
         "Left": {
-          "IsVisible": true,
+          "IsVisible": false,
           "WidthPoints": 0.5,
           "ColorHex": "000000"
         },
-        "HasAnyBorder": true
+        "HasAnyBorder": false
       },
       "DefaultCellPadding": {},
       "DefaultCellMargin": {},
