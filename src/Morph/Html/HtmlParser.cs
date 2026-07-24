@@ -1027,7 +1027,7 @@ sealed class HtmlParser
                         fillContainer = true;
                     }
                 }
-                else if (TryParseCssDimension(widthValue, out var widthPoints))
+                else if (TryParseCssLengthToPoints(widthValue, out var widthPoints))
                 {
                     preferredWidthPoints = widthPoints;
                 }
@@ -1131,7 +1131,7 @@ sealed class HtmlParser
                                 cellWidthFraction = percent / 100;
                             }
                         }
-                        else if (TryParseCssDimension(widthValue, out var widthPoints))
+                        else if (TryParseCssLengthToPoints(widthValue, out var widthPoints))
                         {
                             cellWidthPoints = widthPoints;
                         }
@@ -1708,6 +1708,30 @@ sealed class HtmlParser
             span = span[..^2].TrimEnd();
         }
         return double.TryParse(span, out result);
+    }
+
+    // CSS length to POINTS, honouring the unit: a px value is 0.75pt (the same 96→72 DPI ratio the
+    // image and cellpadding attributes use), a pt value passes through, a bare number is treated as
+    // px. Word sizes a `width: 400px` table at 300pt — measured at 623px against 625 predicted at
+    // 150 DPI. Unlike TryParseCssDimension (which reads px as pt), so use this only where the value
+    // is a genuine CSS length whose px→pt scaling has been Word-confirmed.
+    static bool TryParseCssLengthToPoints(ReadOnlySpan<char> value, out double points)
+    {
+        var span = value.Trim();
+        var isPoints = span.EndsWith("pt", StringComparison.OrdinalIgnoreCase);
+        if (isPoints || span.EndsWith("px", StringComparison.OrdinalIgnoreCase))
+        {
+            span = span[..^2].TrimEnd();
+        }
+
+        if (!double.TryParse(span, out var raw))
+        {
+            points = 0;
+            return false;
+        }
+
+        points = isPoints ? raw : raw * pixelsToPoints;
+        return true;
     }
 
     static CellBorders? ParseCssBorderShorthand(string value)

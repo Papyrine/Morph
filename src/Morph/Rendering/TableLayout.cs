@@ -177,9 +177,18 @@ static class TableLayout
                 }
             }
 
-            if (columnsWithoutWidth > 0 && totalExplicitWidth < availableWidth)
+            // Zero-width (flexible) columns share the space the table has left over. When the table
+            // declares its own width (w:tblW dxa / CSS px width → PreferredWidthPoints) that leftover
+            // is measured against the DECLARED width, not the whole text column: Word sizes
+            // html_table_styled's `width:400px` table's Flexible column to 400px − 100px − 200px, not
+            // to the page. Only when the table has no declared width does the flexible column fill
+            // the available column.
+            var fillTarget = table.Properties.PreferredWidthPoints is { } declaredWidth
+                ? Math.Min((float) declaredWidth, availableWidth)
+                : availableWidth;
+            if (columnsWithoutWidth > 0 && totalExplicitWidth < fillTarget)
             {
-                var remainingWidth = availableWidth - totalExplicitWidth;
+                var remainingWidth = fillTarget - totalExplicitWidth;
                 var perColumnWidth = remainingWidth / columnsWithoutWidth;
                 for (var i = 0; i < colCount; i++)
                 {
@@ -190,7 +199,7 @@ static class TableLayout
                 }
 
                 // Recompute after filling in zero-width columns
-                totalExplicitWidth = availableWidth;
+                totalExplicitWidth = fillTarget;
             }
 
             if (totalExplicitWidth > availableWidth && isAutoFit)
