@@ -710,6 +710,21 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
             drawBaseline += properties.FontSizePoints * 0.14;
         }
 
+        // Run-level shading (w:highlight / w:shd on the run) paints behind the glyphs. The
+        // paragraph-level band is drawn separately; without this the PDF backend dropped every
+        // text highlight while both raster backends drew them. Box spans the font's ascent to its
+        // descent, matching TextRenderer's fragment highlight.
+        if (!string.IsNullOrEmpty(properties.BackgroundColorHex))
+        {
+            var top = drawBaseline - item.Ascent;
+            graphics.DrawRectangle(
+                context.GetBrush(PdfRenderContext.ParseColor(properties.BackgroundColorHex)),
+                penX,
+                top,
+                item.Width,
+                item.Height);
+        }
+
         var color = PdfRenderContext.ParseColor(properties.ColorHex);
         DrawTrackedString(graphics, item.Text!, item.Font, context.GetBrush(color), penX, drawBaseline, properties.CharacterSpacingPoints);
 
