@@ -946,7 +946,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### image_wrap_square
 
 - MAJOR | all | - | page count 3 vs expected 2 — the two-column "Columns" section body text does not fit at the bottom of page 2 and spills onto an extra page 3 (Word fits it on page 2)
-- MAJOR | pdf | p1 | square-wrapped globe ("Web Access Symbol") image missing entirely — paragraph text wraps around an empty reserved space
 - MINOR | imagesharp | p1 | Links paragraph wraps differently: "downloadable" pulled up to the first line ("...or even downloadable / documents...") vs Word's break after "even"
 - MINOR | all | p1,p2 | cumulative vertical drift of blocks (~10-20px up on p1, down on p2, pie chart slightly offset) with structure intact
 - MEDIUM | html | - | Simple Tables data rows styled like headers — all body cells bold and centered (Word shows left-aligned regular text; the complex table below is correct)
@@ -1045,7 +1044,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### letters/01
 
-- MAJOR | all | p1 | decorative header and footer shape bands rendered in wrong colors (vivid purple-blue/lime-green/white instead of Word's slate-blue/charcoal/lavender palette)
+- MEDIUM | all | p1 | decorative header/footer bands render close to Word but ~15% too saturated: circle sampled (138,180,254) against Word's paler (182,199,238), band (50,66,93) vs (59,64,77). The theme accents are purple (accent1 AD84C6), so the shapes resolve the right hue — the residual is an under-applied lightening transform (lumMod/lumOff), not the wrong colour the finding first claimed. Fills sit in a group so the transform chain is group-level
 - MEDIUM | all | p1 | Recipient address block starts ~74px lower than Word, pushing the salutation, body and signature down (~1 line by the signature)
 - MAJOR | html | - | decorative header/footer shape graphics missing entirely
 
