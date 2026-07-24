@@ -453,6 +453,60 @@ document.ExportToPdf("page.pdf");   // extension method from Morph.Pdf
 <!-- endSnippet -->
 
 
+## Shrinking a DOCX
+
+A DOCX authored in Word carries parts that hold no rendering information. `DocumentCleaner` removes them. Applied to this repository's own 328-document test corpus it recovered 9.5 MB, 14% of the corpus on disk.
+
+The biggest single contributor is the Explorer preview picture Word writes when "Save Thumbnails" is on: 46 documents carried one, totalling 7.1 MB, and in the worst case a 3.85 MB card template was 91% preview picture, leaving 350 KB once stripped.
+
+| `DocumentParts` | Package location | What it is |
+|--------|------|-------------|
+| `Thumbnail` | `docProps/thumbnail.*` | The preview picture Explorer shows. Usually the largest part in a template. |
+| `Glossary` | `word/glossary/` | Building blocks and Quick Parts, used only by Word's insert UI. |
+| `CustomXml` | `customXml/` | Custom XML data islands and their properties. |
+| `RevisionAuthors` | `word/people.xml` | Display names for tracked-change author IDs. |
+
+None of these are reachable from `word/document.xml` content, so removing them cannot change what any of Morph's exporters produce. Parts that survive are copied across verbatim — only the package relationships and `[Content_Types].xml` are rewritten, and only to drop entries that would otherwise dangle.
+
+<!-- snippet: ShrinkDocx -->
+<a id='snippet-ShrinkDocx'></a>
+```cs
+// Strips every part that carries no rendering information. Returns what was
+// actually removed, or DocumentParts.None if there was nothing to strip — in
+// which case the file is left byte-for-byte untouched.
+var removed = DocumentCleaner.Remove("document.docx");
+
+Console.WriteLine($"Removed: {removed}");
+```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L274-L283' title='Snippet source file'>snippet source</a> | <a href='#snippet-ShrinkDocx' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+`DocumentParts` is a `[Flags]` enum, so a subset can be selected, and `Find` reports what a package holds without touching it:
+
+<!-- snippet: ShrinkDocxSelectively -->
+<a id='snippet-ShrinkDocxSelectively'></a>
+```cs
+// Drop only the Explorer preview picture, keeping building blocks and custom XML.
+DocumentCleaner.Remove("document.docx", DocumentParts.Thumbnail);
+
+// Or report what a package is carrying without modifying it.
+var present = DocumentCleaner.Find("document.docx");
+if (present.HasFlag(DocumentParts.Thumbnail))
+{
+    Console.WriteLine("This document has a preview picture");
+}
+
+// Stream overloads write the cleaned package to a destination of your choosing.
+using var source = File.OpenRead("document.docx");
+using var target = File.Create("document-clean.docx");
+DocumentCleaner.Remove(source, target, DocumentParts.Thumbnail | DocumentParts.Glossary);
+```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L288-L305' title='Snippet source file'>snippet source</a> | <a href='#snippet-ShrinkDocxSelectively' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+One caveat on `CustomXml`: a content control can carry a `w:dataBinding` into a data island. The bound value is also cached inline in `word/document.xml` — which is what Morph, and Word until it refreshes, actually reads — but if the island and the cache have drifted apart, removing the island changes what Word eventually shows.
+
+
 ## Configuration Options
 
 | Option | Type | Default | Description |
