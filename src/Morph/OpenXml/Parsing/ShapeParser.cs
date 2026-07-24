@@ -413,7 +413,13 @@ static class ShapeParser
     public static bool IsLineShape(WPS.ShapeProperties? shapeProps)
     {
         var prstGeom = shapeProps?.GetFirstChild<A.PresetGeometry>();
-        return prstGeom?.Preset?.Value == A.ShapeTypeValues.Line;
+        var preset = prstGeom?.Preset?.Value;
+
+        // straightConnector1 is Word's "Straight Arrow Connector" and draws exactly like a line —
+        // wedding/04's green section rules are zero-height (cy=0) straightConnector1 shapes, and
+        // matching only prst="line" left every one of them undrawn.
+        return preset == A.ShapeTypeValues.Line ||
+               preset == A.ShapeTypeValues.StraightConnector1;
     }
 
     /// <summary>
