@@ -268,4 +268,40 @@ public class Samples
 
         #endregion
     }
+
+    public static void ShrinkDocx()
+    {
+        #region ShrinkDocx
+
+        // Strips every part that carries no rendering information. Returns what was
+        // actually removed, or DocumentParts.None if there was nothing to strip — in
+        // which case the file is left byte-for-byte untouched.
+        var removed = DocumentCleaner.Remove("document.docx");
+
+        Console.WriteLine($"Removed: {removed}");
+
+        #endregion
+    }
+
+    public static void ShrinkDocxSelectively()
+    {
+        #region ShrinkDocxSelectively
+
+        // Drop only the Explorer preview picture, keeping building blocks and custom XML.
+        DocumentCleaner.Remove("document.docx", DocumentParts.Thumbnail);
+
+        // Or report what a package is carrying without modifying it.
+        var present = DocumentCleaner.Find("document.docx");
+        if (present.HasFlag(DocumentParts.Thumbnail))
+        {
+            Console.WriteLine("This document has a preview picture");
+        }
+
+        // Stream overloads write the cleaned package to a destination of your choosing.
+        using var source = File.OpenRead("document.docx");
+        using var target = File.Create("document-clean.docx");
+        DocumentCleaner.Remove(source, target, DocumentParts.Thumbnail | DocumentParts.Glossary);
+
+        #endregion
+    }
 }
