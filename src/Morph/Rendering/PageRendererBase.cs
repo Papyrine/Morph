@@ -69,6 +69,19 @@ abstract class PageRendererBase(RenderContextBase context)
 
     protected abstract void RenderFloatingWordArt(FloatingWordArtElement wordArt);
 
+    /// <summary>
+    /// Renders inline WordArt inside a table cell — wedding/08's circled "&amp;" badge,
+    /// brochures/08's "Contoso Logo" box and menus/03's EVENT INTRO/DATE labels are all WordArt in
+    /// a cell, and the cell loop dropped them for want of a branch.
+    ///
+    /// <para>Unlike the body-level path this must NOT call <c>EnsureSpaceFor</c>: inside a cell the
+    /// available space is the row's, not the page's, and the page-break it triggers pushed
+    /// brochures/08 from 2 pages to 3. The row is sized by
+    /// <see cref="TableHeightCalculator.MeasureCellHeight"/>, which reserves the same height this
+    /// advances the cursor by.</para>
+    /// </summary>
+    protected abstract void RenderWordArtInCell(WordArtElement wordArt);
+
     /// <summary>Renders a paragraph in the header / footer region (does not advance flow Y).</summary>
     protected abstract void RenderHeaderFooterParagraph(ParagraphElement paragraph);
 
@@ -1585,6 +1598,17 @@ abstract class PageRendererBase(RenderContextBase context)
                     previousContextual = false;
                     previousAfter = 0f;
                 }
+                else if (element is WordArtElement wordArt)
+                {
+                    // Counts toward the centred/bottom offset like any other band. Leaving it out
+                    // made a Bottom-aligned cell offset its content by the FULL cell height —
+                    // brochures/08's "Contoso Logo" was drawn below its own cell and clipped away,
+                    // which is why the logo stayed missing even once the cell loop rendered it.
+                    contentHeight += (float) wordArt.HeightPoints;
+                    previousStyleId = null;
+                    previousContextual = false;
+                    previousAfter = 0f;
+                }
             }
 
             // The trailing after-spacing counts as content space in full — it stacks on the
@@ -1630,6 +1654,15 @@ abstract class PageRendererBase(RenderContextBase context)
             else if (element is ImageElement image)
             {
                 RenderImageInCell(image, contentX, contentWidth);
+            }
+            else if (element is WordArtElement cellWordArt)
+            {
+                // Pushed into the cell's content box so the backend's ContentLeft/ContentWidth
+                // resolve against the cell rather than the page column.
+                using (context.PushContentContainer(contentX, contentWidth))
+                {
+                    RenderWordArtInCell(cellWordArt);
+                }
             }
             else if (element is TableElement nested)
             {

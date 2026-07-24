@@ -340,12 +340,17 @@ sealed class PdfPageRenderer : PageRendererBase
     // block must still occupy the shape's declared height so pagination lines up with Word and the
     // raster backends — without this a tall section of WordArt collapses to a few text lines and the
     // pages Word spreads them across are lost.
-    void RenderWordArtBlock(WordArtElement wordArt)
+    protected override void RenderWordArtInCell(WordArtElement wordArt) => RenderWordArtBlock(wordArt, reserveSpace: false);
+
+    void RenderWordArtBlock(WordArtElement wordArt, bool reserveSpace = true)
     {
         var height = (float) wordArt.HeightPoints;
         if (height > 0)
         {
-            EnsureSpaceFor(height);
+            if (reserveSpace)
+            {
+                EnsureSpaceFor(height);
+            }
         }
 
         var startY = context.CurrentY;

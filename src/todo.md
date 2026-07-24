@@ -222,7 +222,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### brochures/08
 
 - MAJOR | all | p1,p2 | navy/blue duotone recolor lost on every photo (skyline, ceiling structure, bottom building band, wavy panel, grid building) — all rendered plain greyscale
-- MAJOR | all | p1 | "Contoso Logo" white-framed box and text missing from the orange block at bottom-right
+- MEDIUM | all | p1 | "Contoso Logo" TEXT now renders in the orange block; its white frame does not. The shape parses a solid `FFFFFF` fill but Word draws a FRAME — 19879 white pixels in a 273x269 box, 27% coverage — so filling it solid measured +0.0255 AE per raster backend and was reverted. Model the frame, not a fill
 - MEDIUM | all | p1,p2 | thin heading rules missing: under "JOIN OUR TEAM" (p1), under "OUR STORY", under the "MAKE IT YOURS..." title, and the orange rule above the CONTACT US paragraph (p2)
 - MINOR | pdf | p2 | numbered client list vertical spacing looser than Word (~50px vs ~38px between items)
 - MAJOR | html | - | photos overlap text: bottom building photo covers the address block and the "OUR STORY" / "MAKE IT YOURS" / "CONTACT US" headings
@@ -1179,7 +1179,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### menus/03
 
-- MAJOR | all | p1 | "EVENT INTRO" / "EVENT DATE" labels and the large gold "EVENT TITLE" heading are missing; their gold rule lines render but misplaced and mis-sized
+- MAJOR | all | p1 | the large gold "EVENT TITLE" heading is missing, and the gold rule lines render but misplaced and mis-sized. The "EVENT INTRO" / "EVENT DATE" labels now render (they are WordArt in table cells, which the cell loop learned to draw)
 - MAJOR | skia,pdf | p1 | full-height gold divider line between the two columns is missing (only a short gold tick at top-right remains); ImageSharp draws it
 - MEDIUM | all | p1 | both text columns shifted left (instructions column ~25% of page width left of Word) and vertically compressed (menu column ends ~65px high)
 - MINOR | skia,imagesharp | p1 | numbered steps render the number at the left indent with the step text centered separately, leaving a large gap (Word centers "2. Press Ctrl+C" as one unit; PDF matches Word)
@@ -1704,18 +1704,17 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 ### wedding/08
 
-- MAJOR | all | p1 | green circled "&" badge between bride's and groom's names missing. **Root cause found: `PageRendererBase`'s cell-content loop has no `WordArtElement` branch.** The badge is a `wp:inline` text-carrying `wps:wsp` (ellipse, `a:solidFill` accent3 lumMod 75%, `a:ln noFill`, `wps:txbx` holding "&") sitting INSIDE a table cell, and it parses to a `WordArtElement` — confirmed by reflecting over the model. The cell loop handles only `ParagraphElement`, `ContentControlElement`, `ImageElement` and `TableElement`, so the element is dropped silently. Two further parse gaps sit behind it, both fixed and then reverted with the render attempt: `ParseWordArt` routes the shape's `a:solidFill` to the GLYPH fill when for an unwarped shape it is the BOX background (it needs a `BoxFillColorHex`/`BoxIsEllipse` pair alongside the existing `BoxLine*`), and both it and `ParseTextBox` read the fill only from `a:srgbClr`, so this scheme colour resolved to nothing — `ExtractFirstFillColor` handles it
+- MEDIUM | all | p1 | the "&" of the circled badge now renders but its green ellipse does not, so the ampersand sits on bare card stock. The badge is a `wp:inline` text-carrying `wps:wsp` (ellipse, `a:solidFill` accent3 lumMod 75%, `a:ln noFill`, `wps:txbx` holding "&") inside a table cell; the element itself reaches the page since the cell loop learned to render WordArt
 
-> **ATTEMPTED 2026-07-24 — render WordArt in table cells. REVERTED.** Parse side worked (the model
-> came back `BoxFillColorHex=4A9B83 BoxIsEllipse=True Text=&`), and adding a `RenderInlineWordArt`
-> hook called inside `PushContentContainer` did draw it — `wedding/08` PDF improved (−0.0005 AE,
-> **+0.0056 SSIM**). But the raster backends got worse (skia +0.0101) and, decisively,
-> **`brochures/08` went 2 pages → 3 against Word's 2** in both raster backends: rendering WordArt in
-> a cell advances `CurrentY` by its height on top of whatever the surrounding paragraph already
-> reserved, so the space is double-counted. The badge also still did not land in Word's position
-> (Word has it at x=1131-1288, y=370-528; Skia drew no green there at all). **Fix the space
-> accounting first** — the element occupies inline space in Word, so it should not advance the cell
-> cursor independently — then the box fill and ellipse geometry are the easy part.
+> **The remaining half is the BOX, not the element.** wedding/08's badge needs its green
+> ellipse fill and brochures/08 its white frame; both were attempted and reverted with the
+> space fix. The parse side is understood — `ParseWordArt` routes the shape's `a:solidFill`
+> to the GLYPH fill when for an unwarped shape it is the box background, and reads only
+> `a:srgbClr` so a `schemeClr` (wedding/08's accent3 at lumMod 75%) resolves to nothing;
+> `ExtractFirstFillColor` handles both. What blocked it is that a solid fill is the WRONG
+> shape for brochures/08: its box parses as `FFFFFF` but Word draws a white FRAME, only 27%
+> coverage (19879 white pixels in a 273x269 box), so filling it solid measured **+0.0255 AE**
+> per raster backend. Model the frame before re-landing the fill.
 - MEDIUM | all | p1,p2 | card panels shorter than Word (p1 borders end ~2in early, p2 ~0.4in) with content blocks 0.4-0.8in higher (Thanks-and-Dedication and time/venue blocks)
 - MEDIUM | all | p1 | "dinner and dancing to follow" rendered upright instead of italic
 - MAJOR | html | - | green circled "&" badge missing
