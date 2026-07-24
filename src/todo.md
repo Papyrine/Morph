@@ -935,7 +935,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### icons_multiple
 
-- MAJOR | imagesharp,pdf | p1 | red and green star icons both rendered blue — all three icons drawn identical to the first (SVG recolor/variant lost); Word and Skia show blue/red/green
+- MAJOR | imagesharp,pdf | p1 | red and green star icons both rendered blue; Word and Skia show blue/red/green. **Not a recolor bug — an SVG-support gap.** Each icon carries an `a:svgBlip` SVG variant (3 in the document) and the colour lives ONLY there: the three PNG fallbacks are byte-identical (one sha, all blue 65,132,243). Skia renders the SVG via `SvgPreprocessor` + Svg.Skia and is right; `Morph.ImageSharp` and `Morph.Pdf` contain no SVG code at all, so they draw the identical fallbacks and cannot do better. Closing it means an SVG rasterizer in both backends — a new dependency each, not a fix in Morph's own code
 - CLEAN: skia, html
 
 ### image_cropping/01
@@ -1660,11 +1660,7 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 ### tracked_changes/01
 
-- MAJOR | all | p1 | tracked deletion "removed." not rendered at all (Word shows it in red strikethrough at end of line)
-- MEDIUM | all | p1 | tracked insertion "inserted" rendered as plain black text — red underlined revision styling missing
-- MINOR | all | p1 | left-margin change bar (vertical revision line) missing
-- MAJOR | html | - | tracked deletion "removed." absent from HTML export
-- MEDIUM | html | - | tracked insertion "inserted" shown without any revision styling in HTML
+- MINOR | all | p1 | left-margin change bar (vertical revision line) missing — Word draws a black rule in the left margin beside any line carrying a revision
 
 ### wedding/01
 

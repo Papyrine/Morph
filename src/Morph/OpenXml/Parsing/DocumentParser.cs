@@ -5224,18 +5224,26 @@ sealed class DocumentParser(string defaultFont)
 
                     break;
 
+                // Tracked changes render as Word PRINTS them, which is the All Markup view: an
+                // insertion underlined and a deletion struck through, both in the revision colour,
+                // not silently accepted. Word's own render of tracked_changes/01 shows "inserted"
+                // red underlined and "removed." red struck through — dropping the deletion lost
+                // text that is on the page. The revision metadata stays on
+                // ParsedDocument.TrackedChanges either way.
                 case InsertedRun insertedRun:
-                    // Tracked-change insertion: render the inserted runs inline ("as accepted").
-                    // The revision metadata is captured separately on ParsedDocument.TrackedChanges.
                     foreach (var insRun in insertedRun.Elements<OoxmlRun>())
                     {
-                        runs.AddRange(ParseRun(insRun, mainPart, paragraphStyleId));
+                        runs.AddRange(ParseRun(insRun, mainPart, paragraphStyleId, revision: RevisionMark.Inserted));
                     }
 
                     break;
 
-                case DeletedRun:
-                    // Tracked-change deletion: drop the runs ("as accepted" = remove deleted text).
+                case DeletedRun deletedRun:
+                    foreach (var delRun in deletedRun.Elements<OoxmlRun>())
+                    {
+                        runs.AddRange(ParseRun(delRun, mainPart, paragraphStyleId, revision: RevisionMark.Deleted));
+                    }
+
                     break;
 
                 case DocumentFormat.OpenXml.Math.OfficeMath inlineMath:
@@ -9947,13 +9955,46 @@ sealed class DocumentParser(string defaultFont)
         return stylesById.TryGetValue(styleId, out var match) ? match : null;
     }
 
-    List<Run> ParseRun(OoxmlRun run, MainDocumentPart mainPart, string? paragraphStyleId = null, string? hyperlinkUrl = null, bool emitLineBreaks = false)
+    // Word's revision colour for a single author, sampled from its own render of
+    // tracked_changes/01 at 150 DPI: (209, 52, 56). Word cycles a palette per author; only the
+    // first is modelled, which covers every corpus document (one carries tracked changes at all).
+    const string revisionColorHex = "D13438";
+
+    // Which tracked-change mark a run carries, if any.
+    enum RevisionMark
+    {
+        None,
+        Inserted,
+        Deleted
+    }
+
+    // An insertion is underlined and a deletion struck through, both recoloured. Layered over the
+    // run's own properties so its font, size and weight survive.
+    static RunProperties ApplyRevisionMark(RunProperties properties, RevisionMark mark) =>
+        mark switch
+        {
+            RevisionMark.Inserted => properties with
+            {
+                ColorHex = revisionColorHex,
+                Underline = true
+            },
+            RevisionMark.Deleted => properties with
+            {
+                ColorHex = revisionColorHex,
+                Strikethrough = true
+            },
+            _ => properties
+        };
+
+    List<Run> ParseRun(OoxmlRun run, MainDocumentPart mainPart, string? paragraphStyleId = null, string? hyperlinkUrl = null, bool emitLineBreaks = false, RevisionMark revision = RevisionMark.None)
     {
         var result = new List<Run>();
         RunProperties? properties = null;
 
         RunProperties GetProperties() =>
-            properties ??= ParseRunProperties(run.RunProperties, mainPart, paragraphStyleId);
+            properties ??= ApplyRevisionMark(
+                ParseRunProperties(run.RunProperties, mainPart, paragraphStyleId),
+                revision);
 
         // w:vanish / w:specVanish — drop hidden runs at parse time so they don't enter
         // measurement or rendering. Cheaper than filtering at every render call site.
@@ -9988,6 +10029,11 @@ sealed class DocumentParser(string defaultFont)
             {
                 case Text textElement:
                     textBuilder.Append(textElement.Text.ReplaceSeparatorsWithSpace());
+                    break;
+                // w:delText carries the text of a tracked deletion. It is a sibling type of w:t
+                // rather than a subclass, so without this a deleted run contributes nothing.
+                case DeletedText deletedText:
+                    textBuilder.Append(deletedText.Text.ReplaceSeparatorsWithSpace());
                     break;
                 case SoftHyphen:
                     textBuilder.Append(softHyphenChar);
