@@ -494,7 +494,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### cards/19
 
-- MAJOR | pdf | p2,p4 | corner diagonal-stripe triangle motif missing from all 10 cards on each page (present in Word and both raster backends)
+- MAJOR | pdf | p2,p4 | **ALL behind-text art is missing on EVEN pages, not just the stripe motif.** Sampled ink per page against Skia: p1 1.10x, p3 1.05x — art present; p2 0.32x, p4 0.35x — art gone. The document carries 8 anchored groups, every one `behindDoc="1"`, and the raster backends draw them on all four pages from the same model, so this is PDF-side page assignment for behind-text floating art. Same family as the `menus/06` PDF finding, where p2's icon is drawn a second time on p3 — both point at how `PdfPageRenderer` assigns pre-scanned behind-text shapes to pages
 - MINOR | skia,imagesharp | p1,p2,p3,p4 | card content sits ~15-20px higher than Word (title text top-aligned instead of vertically centered in its box on p1/p3; contact block and background pattern correspondingly offset on p2/p4)
 - MAJOR | html | - | card art decoupled from card text: hatch-pattern blocks render as separate stacked images with EMPTY title boxes, and all card text renders afterward as a separate block (text never appears inside its card)
 - MAJOR | html | - | p3 card titles invisible: the white "VanArsdel, Ltd." text renders on the white page background instead of inside the dark boxes, leaving a large blank gap where the 10 titles should be
