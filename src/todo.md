@@ -1752,7 +1752,7 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 - MINOR | skia,imagesharp | p2 | Arc/circle warps off position/size: ImageSharp places "Circle Text" ~85px left of Word's position; Skia draws Arc Text Down and Circle Text ~10-30% larger and shifted right
 - [known] MINOR | skia,imagesharp | p2 | residual vertical offset of warped glyphs vs Word (inline-drawing layout-cursor drift documented in notes.md)
 - MEDIUM | all | p9 | Colored underlines lost: Word's thick red underline under "UNDERLINED TEXT" and blue double underline under "DOUBLE UNDERLINE" both render as a single text-colored gray/black underline
-- MAJOR | pdf | p10,p11 | Highlight backgrounds completely missing — yellow/cyan/green/magenta/red bars behind the five "... Highlight" lines (p10) and the yellow highlight behind "Underline + Highlight" (p11) are absent; text renders on plain white
+- MINOR | pdf | p10 | highlight bars render ~10% more ink than Word's (magenta 3049 sampled units against 2622): the box spans the font's full ascent-to-descent where Word's sits slightly tighter. All five colours are correct and present
 - MEDIUM | all | p14 | Emboss/shadow character effects flattened: black "EMBOSSED" and "SHADOWED" lose their offset drop shadows in every backend; "IMPRINTED" engrave two-tone lost in ImageSharp/PDF (Skia approximates it with a light offset)
 - MINOR | skia,imagesharp | p5,p6,p7,p8,p9,p12,p13,p14,p15 | line spacing slightly larger than Word so each section's content drifts progressively lower (~15-20px by the last line of a block)
 - MINOR | pdf | p5,p6,p7,p8,p9,p12,p13,p14,p15 | vertical drift accumulates to ~40px by the lower lines of each section

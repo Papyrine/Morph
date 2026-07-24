@@ -280,7 +280,7 @@ Background shading behind text runs.
 - **Spec**: [Highlight](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.highlight)
 - **Model**: `RunProperties.BackgroundColorHex`
 
-> **Contributors**: Rendered as a filled rectangle spanning ascent + descent height behind the text fragment.
+> **Contributors**: Rendered as a filled rectangle spanning ascent + descent height behind the text fragment, in all three backends — `TextRenderer` draws it per fragment in Skia and ImageSharp, `PdfTextEngine.DrawItem` per line item in PDF. The PDF backend drew only the PARAGRAPH-level band for a long time and dropped every run highlight; the run-level fill is a separate call and has to sit before the glyphs. Word's box is a little tighter than the full ascent-to-descent span (~10% less ink on `wordart` p10), so the colours match exactly while the bars run slightly tall.
 
 
 #### Character Spacing `DONE`
