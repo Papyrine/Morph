@@ -93,6 +93,32 @@ public class RunEffectsTests
         await Assert.That(outlineOnly.Properties.OutlineOnly).IsTrue();
     }
 
+    /// <summary>
+    /// A w14 text effect that declares ANYTHING is honoured, and the parser's Word-matched
+    /// defaults fill whatever it leaves out — here a shadow carrying only a direction still gets
+    /// the 4pt distance/blur and 50% black. The companion rule is that a completely bare effect is
+    /// inert (see <c>RunPropertyCaptureTests.DocumentParser_BareW14TextEffects_AreInert</c>), so
+    /// this test pins the boundary between the two from the non-bare side.
+    /// </summary>
+    [Test]
+    public async Task W14Shadow_WithAnyProperty_KeepsDefaultsForTheRest()
+    {
+        var run = ParseSingleParagraph(
+                rPr => rPr.AppendChild(
+                    new DocumentFormat.OpenXml.Office2010.Word.Shadow
+                    {
+                        DirectionAngle = 5400000
+                    }))
+            .Elements.OfType<ParagraphElement>().First().Runs[0];
+
+        var shadow = run.Properties.Shadow;
+        await Assert.That(shadow).IsNotNull();
+        await Assert.That(shadow!.DirectionDegrees).IsEqualTo(90);
+        await Assert.That(shadow.DistancePoints).IsEqualTo(4);
+        await Assert.That(shadow.BlurPoints).IsEqualTo(4);
+        await Assert.That(shadow.AlphaPercent).IsEqualTo(50);
+    }
+
     [Test]
     public async Task Defaults_AllRunEffectFlags_AreOff()
     {

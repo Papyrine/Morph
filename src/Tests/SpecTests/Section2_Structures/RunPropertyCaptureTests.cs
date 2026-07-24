@@ -46,50 +46,26 @@ public class RunPropertyCaptureTests
         await Assert.That(hasSmallCaps).IsTrue();
     }
 
+    /// <summary>
+    /// The fixture declares <c>w14:shadow</c>, <c>w14:textOutline</c>, <c>w14:glow</c> and
+    /// <c>w14:reflection</c> all BARE — no attributes, no children — and Word renders the run
+    /// plain: its own reference for this scenario draws "All features" as unadorned small caps.
+    /// So a bare effect is inert, NOT an instruction to apply Word's UI defaults. Reading mere
+    /// presence as "on" drew a shadow copy of the heading in ImageSharp and a glow in Skia.
+    /// Defaults still fill the gaps once an effect declares anything at all — see
+    /// <c>RunEffectsTests</c>, which builds non-bare elements.
+    /// </summary>
     [Test]
-    public async Task DocumentParser_ParsesAllW14TextEffects()
+    public async Task DocumentParser_BareW14TextEffects_AreInert()
     {
         var doc = FeatureCaptureDoc();
-        var run = AllRuns(doc).First(_ => _.Properties.Effects != TextEffects.None);
-        var allFour = TextEffects.Shadow | TextEffects.Outline | TextEffects.Glow | TextEffects.Reflection;
-        await Assert.That(run.Properties.Effects).IsEqualTo(allFour);
+        var run = AllRuns(doc).First(_ => _.Properties.SmallCaps);
 
-        // Parameter records populated alongside the legacy bitmask.
-        await Assert.That(run.Properties.Outline).IsNotNull();
-        await Assert.That(run.Properties.Shadow).IsNotNull();
-        await Assert.That(run.Properties.Glow).IsNotNull();
-        await Assert.That(run.Properties.HasReflection).IsTrue();
-    }
-
-    [Test]
-    public async Task DocumentParser_TextOutlineDefaultsApplyWhenAttributesMissing()
-    {
-        var doc = FeatureCaptureDoc();
-        // The fixture's <w14:textOutline/> is bare — no width, no fill — so our defaults kick in.
-        var outline = AllRuns(doc).First(_ => _.Properties.Outline != null).Properties.Outline!;
-        await Assert.That(outline.WidthPoints).IsGreaterThan(0);
-        await Assert.That(outline.ColorHex).IsNotNull();
-    }
-
-    [Test]
-    public async Task DocumentParser_TextShadowParsesDefaultsForBareElement()
-    {
-        var doc = FeatureCaptureDoc();
-        var shadow = AllRuns(doc).First(_ => _.Properties.Shadow != null).Properties.Shadow!;
-        // Bare <w14:shadow/> — defaults: 4pt distance/blur, 45deg, semi-transparent black.
-        await Assert.That(shadow.DistancePoints).IsEqualTo(4);
-        await Assert.That(shadow.BlurPoints).IsEqualTo(4);
-        await Assert.That(shadow.DirectionDegrees).IsEqualTo(45);
-        await Assert.That(shadow.AlphaPercent).IsEqualTo(50);
-    }
-
-    [Test]
-    public async Task DocumentParser_TextGlowParsesDefaultsForBareElement()
-    {
-        var doc = FeatureCaptureDoc();
-        var glow = AllRuns(doc).First(_ => _.Properties.Glow != null).Properties.Glow!;
-        await Assert.That(glow.RadiusPoints).IsEqualTo(4);
-        await Assert.That(glow.AlphaPercent).IsEqualTo(60);
+        await Assert.That(run.Properties.Effects).IsEqualTo(TextEffects.None);
+        await Assert.That(run.Properties.Outline).IsNull();
+        await Assert.That(run.Properties.Shadow).IsNull();
+        await Assert.That(run.Properties.Glow).IsNull();
+        await Assert.That(run.Properties.HasReflection).IsFalse();
     }
 
     [Test]
