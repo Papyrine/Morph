@@ -10387,7 +10387,7 @@ sealed class DocumentParser(string defaultFont)
         var outline = ParseTextOutline(outlineEffectElement, color);
         var shadow = ParseTextShadow(shadowElement);
         var glow = ParseTextGlow(glowElement);
-        var hasReflection = reflectionElement != null;
+        var hasReflection = !IsInertEffect(reflectionElement);
 
         // Vertical alignment (subscript/superscript)
         if (vertAlignElement?.Val?.HasValue == true)
@@ -10752,11 +10752,19 @@ sealed class DocumentParser(string defaultFont)
         }
     }
 
+    // A w14 text effect declared with neither attributes nor children carries no effect, and Word
+    // renders the run plain. feature_capture/01 is the case: its heading declares
+    // <w14:shadow/> <w14:textOutline/> <w14:glow/> <w14:reflection/> all empty, and Word draws
+    // "All features" as plain small caps. Reading mere presence as "on" made the parsers invent
+    // Word's UI defaults, which drew a shadow copy under the text in ImageSharp and a glow in Skia.
+    static bool IsInertEffect([NotNullWhen(false)] OpenXmlElement? element) =>
+        element is null || (!element.HasAttributes && !element.HasChildren);
+
     static TextOutline? ParseTextOutline(
         DocumentFormat.OpenXml.Office2010.Word.TextOutlineEffect? element,
         string? fillColor)
     {
-        if (element == null)
+        if (IsInertEffect(element))
         {
             return null;
         }
@@ -10775,7 +10783,7 @@ sealed class DocumentParser(string defaultFont)
 
     static TextShadow? ParseTextShadow(DocumentFormat.OpenXml.Office2010.Word.Shadow? element)
     {
-        if (element == null)
+        if (IsInertEffect(element))
         {
             return null;
         }
@@ -10799,7 +10807,7 @@ sealed class DocumentParser(string defaultFont)
 
     static TextGlow? ParseTextGlow(DocumentFormat.OpenXml.Office2010.Word.Glow? element)
     {
-        if (element == null)
+        if (IsInertEffect(element))
         {
             return null;
         }

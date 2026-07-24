@@ -39,7 +39,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### Word-reference (`expected_*.png`) anomalies worth re-checking rather than "fixing"
 
 - **#32** `newsletters/12` draws an olive stripe Word hides — verify against the DOCX before treating Word as wrong. (The `cards/04` half of this anomaly is resolved: the stray tree and bird flock were out-of-frame group children, removed by group-frame clipping — Word was right.)
-- **#33** `feature_capture/01`: Skia/ImageSharp render a drop cap where Word's reference shows none (Word appears to ignore the `dropCap` property here); the same scenario's shadow effect renders as a duplicated text copy in ImageSharp.
+- **#33** `feature_capture/01`: Skia/ImageSharp render a drop cap where Word's reference shows none (Word appears to ignore the `dropCap` property here). The shadow/glow half of this anomaly is resolved — the run's four `w14` effects are declared BARE, which is inert in Word, not an instruction to apply its UI defaults.
 
 ---
 
@@ -680,8 +680,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### feature_capture/01
 
 - MAJOR | skia,imagesharp | p1 | giant 3-line drop-cap "D" rendered where Word shows no drop cap ("Drop cap paragraph" reads as one normal line in Word), pushing the paragraph text and table ~0.5in lower
-- MAJOR | imagesharp | p1 | "ALL FEATURES" drawn twice — yellow-highlighted bold copy plus an offset gray duplicate below-right (shadow effect rendered as a second text copy); Word shows a single plain small-caps line
-- MEDIUM | skia | p1 | "ALL FEATURES" drawn with a yellow highlight/glow and heavier bold-looking glyphs; Word renders plain small caps with no highlight
 - MEDIUM | all | p1 | rotated table header cell not wrapped: single vertical "Header" line instead of Word's two stacked vertical lines "Hea/der", making the header row ~65% taller
 - MINOR | html | - | "All features" paragraph left-aligned instead of right-aligned
 - MINOR | html | - | rotated header cell rendered as horizontal bold centered text (rotation lost)

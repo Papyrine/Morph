@@ -432,8 +432,10 @@ Shadow effect behind text (not to be confused with WordArt shadow).
 
 - **OOXML**: `w14:shadow` with color, blur radius, distance, angle
 - **Model**: `RunProperties.Shadow` (`TextShadow` record with colour, blur, distance, direction, alpha). The legacy `Effects` flag is now derived from this field.
-- **Parse**: `DocumentParser.ParseTextShadow` extracts `w14:blurRad` / `w14:dist` / `w14:dir` (EMU/60000ths-degree) and the child `srgbClr` + `alpha`. Bare `<w14:shadow/>` defaults to 4pt distance, 4pt blur, 45°, 50% black.
+- **Parse**: `DocumentParser.ParseTextShadow` extracts `w14:blurRad` / `w14:dist` / `w14:dir` (EMU/60000ths-degree) and the child `srgbClr` + `alpha`. Once the element declares anything at all, the omitted parts default to 4pt distance, 4pt blur, 45°, 50% black.
 - **Render**: Skia draws the glyph at the offset position with `SKImageFilter.CreateBlur` before the main fill. ImageSharp draws an offset duplicate without blur (no per-draw blur in its drawing pipeline).
+
+> **Contributors — a BARE w14 effect is inert.** `<w14:shadow/>`, `<w14:textOutline/>`, `<w14:glow/>` and `<w14:reflection/>` declared with no attributes and no children carry no effect, and Word renders the run plain — `feature_capture/01` declares all four that way and Word's reference draws "All features" as unadorned small caps. Treating presence alone as "on" made each parser invent Word's UI defaults, which drew an offset shadow copy of the heading in ImageSharp and a glow in Skia. `DocumentParser.IsInertEffect` gates all four, and the defaults above apply only past that gate. The boundary is pinned from both sides: `RunPropertyCaptureTests.DocumentParser_BareW14TextEffects_AreInert` and `RunEffectsTests.W14Shadow_WithAnyProperty_KeepsDefaultsForTheRest`.
 
 > **AI**: `sx`/`sy` scale and `kx`/`ky` skew transforms from the OOXML are intentionally not modelled — minor visual contribution and complicates the render path.
 
