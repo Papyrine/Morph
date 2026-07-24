@@ -70,22 +70,22 @@
         "Top": {
           "IsVisible": true,
           "WidthPoints": 1.5,
-          "ColorHex": "000000"
+          "ColorHex": "B2B2B2"
         },
         "Right": {
           "IsVisible": true,
           "WidthPoints": 1.5,
-          "ColorHex": "000000"
+          "ColorHex": "B2B2B2"
         },
         "Bottom": {
           "IsVisible": true,
           "WidthPoints": 1.5,
-          "ColorHex": "000000"
+          "ColorHex": "B2B2B2"
         },
         "Left": {
           "IsVisible": true,
           "WidthPoints": 1.5,
-          "ColorHex": "000000"
+          "ColorHex": "B2B2B2"
         },
         "HasAnyBorder": true
       },
