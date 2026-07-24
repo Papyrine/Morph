@@ -534,6 +534,18 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
     }
 
+
+    // Word centres or right-aligns an inline WordArt box per its paragraph's w:jc. Without this the
+    // box always sat at the content-box left edge (brochures/08's logo frame landed 43px left of
+    // Word's). Clamped at 0 so an over-wide box still starts at the left rather than off-box.
+    static float AlignWordArtOffset(WordArtElement wordArt, float availableWidth, float boxWidth) =>
+        wordArt.Alignment switch
+        {
+            TextAlignment.Center => Math.Max(0, (availableWidth - boxWidth) / 2),
+            TextAlignment.Right => Math.Max(0, availableWidth - boxWidth),
+            _ => 0
+        };
+
     protected override void RenderWordArtInCell(WordArtElement wordArt) => RenderWordArt(wordArt, reserveSpace: false);
 
     void RenderWordArt(WordArtElement wordArt, bool reserveSpace = true)
@@ -549,7 +561,11 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             return;
         }
 
-        var x = context.PointsToPixels(context.ContentLeft);
+        var x = context.PointsToPixels(context.ContentLeft) +
+                AlignWordArtOffset(
+                    wordArt,
+                    context.PointsToPixels(context.ContentWidth),
+                    context.PointsToPixels((float) wordArt.WidthPoints));
         var y = context.PointsToPixels(context.CurrentY);
         var width = context.PointsToPixels((float) wordArt.WidthPoints);
         var pixelHeight = context.PointsToPixels(height);

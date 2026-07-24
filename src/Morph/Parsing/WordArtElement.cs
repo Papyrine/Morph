@@ -47,6 +47,13 @@ sealed class WordArtElement : DocumentElement, IWordArtVisual
     /// <summary>Box border opacity (0..1).</summary>
     public double BoxLineAlpha { get; init; } = 1;
 
+    /// <summary>
+    /// Alignment of the containing paragraph. <c>ParseWordArt</c> emits the WordArt as a SIBLING of
+    /// its paragraph, so without this the paragraph's <c>w:jc</c> is lost and the box always draws
+    /// at the content-box left edge — brochures/08's logo frame landed 43px left of Word's.
+    /// </summary>
+    public TextAlignment Alignment { get; init; } = TextAlignment.Left;
+
     /// <summary>Whether the text has a shadow effect.</summary>
     public bool HasShadow { get; init; }
 

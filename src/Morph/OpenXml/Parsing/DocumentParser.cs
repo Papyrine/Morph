@@ -5507,7 +5507,7 @@ sealed class DocumentParser(string defaultFont)
                         }
                         else
                         {
-                            var wordArtElement = ParseWordArt(drawing);
+                            var wordArtElement = ParseWordArt(drawing, props.Alignment);
                             if (wordArtElement != null)
                             {
                                 // Emit current paragraph content before the WordArt
@@ -8500,7 +8500,7 @@ sealed class DocumentParser(string defaultFont)
     /// Parses a Drawing element to extract a WordArt shape.
     /// Returns WordArtElement for inline WordArt, FloatingWordArtElement for anchored WordArt.
     /// </summary>
-    DocumentElement? ParseWordArt(Drawing drawing)
+    DocumentElement? ParseWordArt(Drawing drawing, TextAlignment alignment = TextAlignment.Left)
     {
         // Get dimensions from Inline or Anchor
         long widthEmu = 0;
@@ -8776,6 +8776,7 @@ sealed class DocumentParser(string defaultFont)
             BoxLineColorHex = boxLineColor,
             BoxLineWidthPoints = boxLineWidth,
             BoxLineAlpha = boxLineAlpha,
+            Alignment = alignment,
             HasShadow = hasShadow,
             HasReflection = hasReflection,
             HasGlow = hasGlow,

@@ -1719,6 +1719,14 @@ Decorative text with fill, outline, shadow, reflection, and glow effects.
 - **Render**: `SkiaPageRenderer` / `ImageSharpPageRenderer` — `RenderWordArt` (warps + effect layers). The PDF backend has no vector WordArt path: it embeds the shape as a transparent PNG produced by an optional raster backend, so a PDF gets the same warps/effects as the PNG output.
 - **Test**: `wordart/`, `wordart-envelope/`
 
+> **Contributors — inline WordArt is placed by its paragraph's alignment.** `ParseWordArt` emits the
+> element as a SIBLING of its paragraph rather than a run inside it, so the paragraph's `w:jc` does
+> not reach it on its own. `WordArtElement.Alignment` carries it, and every backend offsets the box
+> within the content width (clamped at 0 so an over-wide box still starts at the left). Without it a
+> centred WordArt always drew at the content-box left edge: `wordart-envelope`'s stack sat ~27px left
+> of Word's, and brochures/08's logo frame 43px left. Landing it measured **−0.1101 AE / +0.0591
+> SSIM** across `wordart`, `wordart-envelope`, `wedding/08` and `brochures/08`.
+>
 > **Contributors**: `ParseWordArt`'s claim condition has no warp check, so an INLINE standalone text-carrying wsp with `prstTxWarp="textNoShape"` — Word's inline text BOX — also lands here (business/06's LOGO frame). For those, the shape-level `a:ln` is the BOX border, not a glyph stroke: it parses into `WordArtElement.BoxLineColorHex`/`BoxLineWidthPoints`/`BoxLineAlpha` (via `ShapeParser.ExtractLineStyle` — theme + `lnRef` fallback) and each backend strokes the frame under the text; warped shapes keep the legacy spPr-`a:ln`-as-glyph-outline interpretation. Re-dispatching to `ParseTextBox` instead is NOT viable for inline drawings — it resolves positioning from the anchor and would land the box at absolute (0,0) rather than the flow cursor. Effects parsed: shadow, reflection, glow, outline (color + width), fill color. The raster backends draw styled text with effect layers directly. The PDF backend rasterizes each WordArt shape (`SkiaWordArtRasterizer` / `ImageSharpWordArtRasterizer`, discovered reflectively by `WordArtRasterizerFactory` — Skia preferred, then ImageSharp) into a transparent PNG at 300 DPI via the core `IWordArtRasterizer` contract (`WordArtRasterization.cs`) and embeds it at the shape's box. When neither `Morph.Skia` nor `Morph.ImageSharp` can be loaded, or `PdfExportOptions.RasterizeWordArt` is false, it falls back to the shape's plain text. The rasterizer reuses the full page renderer on a single-element transparent page (`RenderContextBase.TransparentBackground`), so the embedded image is pixel-identical to the raster backends' inline WordArt.
 
 

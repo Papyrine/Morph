@@ -367,7 +367,14 @@ sealed class PdfPageRenderer : PageRendererBase
                 context.ContentLeft, startY, wordArt.WidthPoints, wordArt.HeightPoints);
         }
 
-        if (!TryEmbedWordArt(wordArt, context.ContentLeft, startY, wordArt.WidthPoints, wordArt.HeightPoints))
+        var wordArtX = context.ContentLeft + wordArt.Alignment switch
+        {
+            TextAlignment.Center => Math.Max(0, (context.ContentWidth - wordArt.WidthPoints) / 2),
+            TextAlignment.Right => Math.Max(0, context.ContentWidth - wordArt.WidthPoints),
+            _ => 0
+        };
+
+        if (!TryEmbedWordArt(wordArt, wordArtX, startY, wordArt.WidthPoints, wordArt.HeightPoints))
         {
             RenderTextAsParagraph(wordArt.Text);
         }
