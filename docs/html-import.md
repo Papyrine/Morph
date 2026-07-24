@@ -58,7 +58,13 @@ The glyph never moves; the frame moves to suit. `ParseTable` reproduces this wit
 
 `cellpadding` counts CSS pixels, so it converts at 0.75 like the image attributes. Read as points it inset text by a third too much (33px against Word's 27px).
 
-**Both rules are applied only to auto-width tables.** Word widens a `width:100%` table by the inset at each end so its cell text still spans the text column exactly, while Morph's fill-container path resolves columns against the container width alone. With the total width fixed, cellpadding drives the column distribution, so correcting it alone moved every column away from Word — `html_complex` measured +0.015 AE per backend. The pixel rule is right and the column distribution is the compensating error; they have to land together.
+### Declared table widths
+
+A CSS `width` in px on a table or cell is a genuine CSS length, so it converts to points at 0.75 like the image and cellpadding attributes — `TryParseCssLengthToPoints`, which honours the unit, rather than `TryParseCssDimension`, which reads px as pt. Word sizes `html_table_styled`'s `width: 400px` table at 300pt: measured 622px against the 625px that 400 CSS px predicts at 150 DPI.
+
+A declared width also bounds the **flexible** columns. `TableLayout.CalculateColumnWidths` shares the leftover space among zero-width columns, and that leftover is measured against the table's `PreferredWidthPoints` when it has one, not against the whole text column — otherwise a `width:400px` table with two fixed columns stretches its third to the page edge (976px against Word's 622px). Only a table with no declared width fills the available column. The cap is `min(declared, available)`, so an over-wide declaration still falls through to the existing autofit squeeze. This path is shared with DOCX `w:tblW dxa` tables; no DOCX scenario moved when it landed.
+
+**Both the padding and outdent rules are applied only to auto-width tables.** Word widens a `width:100%` table by the inset at each end so its cell text still spans the text column exactly, while Morph's fill-container path resolves columns against the container width alone. With the total width fixed, cellpadding drives the column distribution, so correcting it alone moved every column away from Word — `html_complex` measured +0.015 AE per backend. The pixel rule is right and the column distribution is the compensating error; they have to land together.
 
 ### Borders are detached, not collapsed
 

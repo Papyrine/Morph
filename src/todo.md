@@ -833,28 +833,38 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 > box per cell with a gap (probe: `cellspacing` 0 / default / 10 → collapsed / small-gap / wide-gap),
 > so the default case wants `CellSpacingPoints` and only `cellspacing=0` wants the inside edges.
 >
-> Three attempts (2026-07-24) were all reverted. The first drew a collapsed grid — wrong model. The
-> second used the detached model correctly but measured **+0.0472 AE / −0.1001 SSIM**, because the
-> autofit column algorithm does not account for spacing: `PageRendererBase` insets each cell box by
-> `CellSpacingPoints` out of the column width while `CalculateColumnWidths` never adds it back, so
-> the spacing came out of the CONTENT area and re-wrapped text. **That was really the font showing
-> through** — at the default 2px the columns were already too narrow because cell text was rendering
-> in Times, not Word's Aptos, and any extra inset tipped it over. The third attempt added the
-> column-width term (`+2 × CellSpacingPoints` per column in the content-based autofit path) and
-> rendered a pixel-correct detached grid in the probe, but STILL measured **+0.0465 AE** on the
-> corpus — because the cells were still Times, so the borders (sized for Times columns) landed off
-> Word's (sized for Aptos).
+> **FOUR attempts (2026-07-24) were all reverted — the per-cell borders are NOT font-blocked, that
+> was a wrong diagnosis.** The first drew a collapsed grid (wrong model). The second used the detached
+> model but measured **+0.0472 AE / −0.1001 SSIM** because the autofit column algorithm ignores
+> spacing: `PageRendererBase` insets each cell box by `CellSpacingPoints` out of the column width
+> while `CalculateContentBasedColumnWidths` never adds it back, so the spacing came out of the CONTENT
+> area and re-wrapped text. The third added the `+2 × CellSpacingPoints` per-column term and rendered
+> a pixel-correct detached grid in the probe. The fourth ran that same change AFTER the host-font fix
+> landed (so cells are now Word's Aptos, columns sized right) — and STILL measured **+0.0489 AE /
+> −0.1029 SSIM**. So the font was never the border blocker.
 >
-> **The font is now fixed (see below), so the columns match Word's and the retry should measure
-> clean.** Carry both corrections from the reverts: (1) the detached model with `CellSpacingPoints`
-> from the attribute, inside edges only for `cellspacing=0`; (2) the `+2 × CellSpacingPoints`
-> per-column term in `CalculateContentBasedColumnWidths` — shared with DOCX `w:tblCellSpacing`, so
-> `TableCellSpacingTests` / `TableCellSpacingCollapseTests` move with it — and add
-> `cellSpacingPoints` to the table's negative `IndentPoints` so the detached boxes don't shift the
-> grid right. The rule colour (grey `B2B2B2` at 0.75pt) already landed.
+> **What the fourth attempt's crops actually showed (two real, separate root causes):**
+> 1. **Fixed-width tables stretch to full width.** `html_table_styled`'s second table declares 100px
+>    / 200px columns; Word renders it compact (~622px) with detached cells, Morph stretches it to the
+>    full text column (~976px). This is a column-width bug independent of borders — the detached boxes
+>    just make it obvious. Tracked separately in the html_table_styled findings below.
+> 2. **On coloured tables the interior rules break up Word's continuous colour bar.** Word draws the
+>    styled table's blue header as one solid bar; adding per-cell borders/gaps splits it into three
+>    boxes with visible seams, which is what drove the biggest SSIM drop (html_table_styled −0.0147).
+>    The border/background-fill interaction needs Word-probing before the borders can land on coloured
+>    tables.
 >
-> **Full-width tables stay on the old footing for now.** Word widens a `width:100%` table by the cell
-> inset at each end so its text still spans the text column; Morph resolves columns against the
+> **So the retry order is: fix fixed-width column sizing first (root cause #1), probe the
+> border-vs-fill interaction (root cause #2), THEN add the borders.** The correct model itself is
+> settled — detached `CellSpacingPoints` from the attribute, inside edges only for `cellspacing=0`,
+> `+2 × CellSpacingPoints` per column in `CalculateContentBasedColumnWidths` (shared with DOCX
+> `w:tblCellSpacing`, so `TableCellSpacingTests` / `TableCellSpacingCollapseTests` move with it), and
+> `cellSpacingPoints` folded into the table's negative `IndentPoints`. The rule colour (grey
+> `B2B2B2` at 0.75pt) already landed; the host-font fix landed and helped tables broadly, just not the
+> borders.
+>
+> **Full-width auto tables stay on the old footing for now.** Word widens a `width:100%` table by the
+> cell inset at each end so its text still spans the text column; Morph resolves columns against the
 > container width alone, so with a fixed total width the padding drives the COLUMN distribution and
 > the correct padding moved every column (`html_complex` +0.015 AE alone). The px→pt padding rule and
 > the outdent are applied only to auto-width tables until that is modelled.
@@ -862,7 +872,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### html_table_styled
 
 - MAJOR | all | p1 | cell gridlines/borders missing — only a thin outer rectangle is drawn
-- MEDIUM | all | p1 | fixed-width table ignores the 100px/200px column widths — it stretches to full text width (976px vs Word's 622px) with columns roughly 200/420/355px instead of Word's 160/315/147px
+- MINOR | all | p1 | fixed-width table's flexible third column runs ~10px wide (Morph ~156px vs Word's 146px): Word renders the two DECLARED columns slightly wider than their 100px/200px (161/315 against 156/312), so its flexible remainder is correspondingly smaller. Table width and the first two columns now match — cell text lands within 2-9px of Word
 - MAJOR | html | - | cell borders missing (outer box only)
 - MEDIUM | html | - | table width styling ignored — the width:100% styled table renders content-width (206px of the 624px content box) and the 100px/200px fixed columns are exported as width:100pt/200pt (~33% too wide)
 
