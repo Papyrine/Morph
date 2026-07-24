@@ -1704,7 +1704,18 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 ### wedding/08
 
-- MAJOR | all | p1 | green circled "&" badge between bride's and groom's names missing
+- MAJOR | all | p1 | green circled "&" badge between bride's and groom's names missing. **Root cause found: `PageRendererBase`'s cell-content loop has no `WordArtElement` branch.** The badge is a `wp:inline` text-carrying `wps:wsp` (ellipse, `a:solidFill` accent3 lumMod 75%, `a:ln noFill`, `wps:txbx` holding "&") sitting INSIDE a table cell, and it parses to a `WordArtElement` — confirmed by reflecting over the model. The cell loop handles only `ParagraphElement`, `ContentControlElement`, `ImageElement` and `TableElement`, so the element is dropped silently. Two further parse gaps sit behind it, both fixed and then reverted with the render attempt: `ParseWordArt` routes the shape's `a:solidFill` to the GLYPH fill when for an unwarped shape it is the BOX background (it needs a `BoxFillColorHex`/`BoxIsEllipse` pair alongside the existing `BoxLine*`), and both it and `ParseTextBox` read the fill only from `a:srgbClr`, so this scheme colour resolved to nothing — `ExtractFirstFillColor` handles it
+
+> **ATTEMPTED 2026-07-24 — render WordArt in table cells. REVERTED.** Parse side worked (the model
+> came back `BoxFillColorHex=4A9B83 BoxIsEllipse=True Text=&`), and adding a `RenderInlineWordArt`
+> hook called inside `PushContentContainer` did draw it — `wedding/08` PDF improved (−0.0005 AE,
+> **+0.0056 SSIM**). But the raster backends got worse (skia +0.0101) and, decisively,
+> **`brochures/08` went 2 pages → 3 against Word's 2** in both raster backends: rendering WordArt in
+> a cell advances `CurrentY` by its height on top of whatever the surrounding paragraph already
+> reserved, so the space is double-counted. The badge also still did not land in Word's position
+> (Word has it at x=1131-1288, y=370-528; Skia drew no green there at all). **Fix the space
+> accounting first** — the element occupies inline space in Word, so it should not advance the cell
+> cursor independently — then the box fill and ellipse geometry are the easy part.
 - MEDIUM | all | p1,p2 | card panels shorter than Word (p1 borders end ~2in early, p2 ~0.4in) with content blocks 0.4-0.8in higher (Thanks-and-Dedication and time/venue blocks)
 - MEDIUM | all | p1 | "dinner and dancing to follow" rendered upright instead of italic
 - MAJOR | html | - | green circled "&" badge missing
