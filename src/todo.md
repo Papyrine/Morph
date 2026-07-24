@@ -801,9 +801,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### html_table
 
-- MEDIUM | all | p1 | Thin outer border drawn around the table although Word renders this table completely borderless
-- MEDIUM | all | p1 | Table far more compact than Word: row heights roughly half, near-zero cell padding (adjacent cells' text almost touching, e.g. "Row 2, Cell 1Row 2, Cell 2"), narrower columns
-- MEDIUM | html | - | Outer table border drawn though Word shows the table borderless
+- MEDIUM | all | p1 | Table far more compact than Word: row heights roughly half, near-zero cell padding (adjacent cells' text almost touching, e.g. "Row 2, Cell 1Row 2, Cell 2"), narrower columns. Word separates adjacent cells by the default 2px cellspacing even on a borderless table — probe `_probe_fill_noborder` shows ~3px of page white between the fills — which Morph does not apply (`cellSpacingPoints` is only read inside the `border`-attribute branch)
 
 ### html_table_cell_margin_css
 

@@ -961,8 +961,12 @@ sealed class HtmlParser
             defaultCellPadding = new(padding);
         }
 
-        // Parse borders from border attribute
-        var defaultBorders = CellBorders.All;
+        // No border attribute means NO rules — an HTML table is borderless unless it asks for
+        // borders, and Word honours that. Probed with a filled table carrying no `border`: the cell
+        // fills render with the usual cellspacing gaps between them and not one rule is drawn,
+        // grey or otherwise. Defaulting to CellBorders.All drew an outer box around every
+        // borderless HTML table (`html_table`).
+        var defaultBorders = new CellBorders();
         var borderWidthPoints = 0.0;
         var borderAttribute = tableElement.GetAttribute("border");
         if (!string.IsNullOrEmpty(borderAttribute) && double.TryParse(borderAttribute, out var borderWidth))
