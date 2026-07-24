@@ -824,8 +824,11 @@ sealed class HtmlParser
             var (itemText, nestedList) = SplitListItem(child);
             if (!string.IsNullOrEmpty(itemText))
             {
-                // Word's own HTML import uses \u2022 at the first level and an open bullet deeper.
-                elements.Add(ListItemParagraph(itemText, level == 0 ? "\u2022" : "\u25E6", level));
+                // Word's own HTML import cycles three bullet glyphs by depth \u2014 filled round, open
+                // round, filled square \u2014 and repeats from there. Stopping at the open bullet drew
+                // html_nested_lists' third level (Item 1.2.1 / 1.2.2) as hollow circles where Word
+                // shows small filled squares.
+                elements.Add(ListItemParagraph(itemText, BulletForLevel(level), level));
             }
 
             if (nestedList != null)
@@ -834,6 +837,15 @@ sealed class HtmlParser
             }
         }
     }
+
+    // •  U+2022 filled round, ◦ U+25E6 open round, ▪ U+25AA filled square — Word's HTML-import
+    // bullet cycle, repeating every three levels.
+    static string BulletForLevel(int level) => (level % 3) switch
+    {
+        0 => "•",
+        1 => "◦",
+        _ => "▪"
+    };
 
     void ParseOrderedList(IElement listElement, List<DocumentElement> elements, int level = 0)
     {
