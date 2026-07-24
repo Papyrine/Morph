@@ -494,7 +494,12 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### cards/19
 
-- MAJOR | pdf | p2,p4 | **ALL behind-text art is missing on EVEN pages, not just the stripe motif.** Sampled ink per page against Skia: p1 1.10x, p3 1.05x — art present; p2 0.32x, p4 0.35x — art gone. The document carries 8 anchored groups, every one `behindDoc="1"`, and the raster backends draw them on all four pages from the same model, so this is PDF-side page assignment for behind-text floating art. Same family as the `menus/06` PDF finding, where p2's icon is drawn a second time on p3 — both point at how `PdfPageRenderer` assigns pre-scanned behind-text shapes to pages
+- MAJOR | pdf | p2,p4 | **ALL behind-text art is missing on EVEN pages, not just the stripe motif.** Ink sampled against Skia: p1 1.10x, p3 1.05x — art present; p2 0.32x, p4 0.35x — art gone, leaving text only. Investigated 2026-07-24 and NOT found; these are ruled out, so do not re-tread them:
+  - **Element order is correct** — the 44 behind-text floats sit AFTER their `SectionBreakElement` in the model ([29] break, [30]-[40] floats), grouped per section.
+  - **Not the SVG fallback** — each image is `image/svg+xml` WITH a 9926-byte `image/png` fallback, so `DrawRaster` has something it can decode.
+  - **Not the section break type.** All four `sectPr` are the `nextPage` default and the page was already full at each break, so PDF's `CurrentY > ContentTop` test was equivalent. Routing PDF through the shared `SectionBreakHandler` (which it otherwise ignores — PDF honours no `BreakType` at all) left cards/19 **completely unmoved** and regressed `section_break_continuous` by −0.0127 SSIM, so it was reverted. Worth doing on its own merits some day, but it is not this bug.
+  - **Not the section page settings** — sections 1-3 are byte-identical and 4 differs only in header/footer distance.
+  Next: dump the emitted PDF's page-2 content stream and check whether the image XObjects are absent (a draw-call gate) or present but mispositioned. Same family as the `menus/06` PDF finding.
 - MINOR | skia,imagesharp | p1,p2,p3,p4 | card content sits ~15-20px higher than Word (title text top-aligned instead of vertically centered in its box on p1/p3; contact block and background pattern correspondingly offset on p2/p4)
 - MAJOR | html | - | card art decoupled from card text: hatch-pattern blocks render as separate stacked images with EMPTY title boxes, and all card text renders afterward as a separate block (text never appears inside its card)
 - MAJOR | html | - | p3 card titles invisible: the white "VanArsdel, Ltd." text renders on the white page background instead of inside the dark boxes, leaving a large blank gap where the 10 titles should be
