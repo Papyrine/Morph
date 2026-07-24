@@ -41,6 +41,29 @@ These are Word-derived numbers. They are not defaults anyone would guess, and ch
 
 `HtmlParser.ParseTable` handles row fills, zebra shading, alignment, colours and widths from CSS.
 
+### Geometry: Word aligns cell TEXT to the margin
+
+Word does not put an imported table's frame on the text margin — it puts the cell **text** there, and outdents the table by everything that sits to the left of that text (the cell padding and the border). Probed by rendering one document through Word with four tables differing only in those values, measured at 150 DPI:
+
+| table | frame x | first glyph x |
+|---|---|---|
+| `border=1`, no cellpadding | 143 | **152** |
+| `border=1 cellpadding=0` | 144 | **152** |
+| `border=1 cellpadding=15` | 125 | **152** |
+| `border=3 cellpadding=5` | 137 | **152** |
+
+The glyph never moves; the frame moves to suit. `ParseTable` reproduces this with a negative `IndentPoints` of `cellPadding.Left + borderWidth`. Anchoring the frame at the margin instead — what Morph did until 2026-07-24 — pushed cell text up to 30px right of Word's and made `cellpadding=15` wrap a line that Word fits.
+
+`cellpadding` counts CSS pixels, so it converts at 0.75 like the image attributes. Read as points it inset text by a third too much (33px against Word's 27px).
+
+**Both rules are applied only to auto-width tables.** Word widens a `width:100%` table by the inset at each end so its cell text still spans the text column exactly, while Morph's fill-container path resolves columns against the container width alone. With the total width fixed, cellpadding drives the column distribution, so correcting it alone moved every column away from Word — `html_complex` measured +0.015 AE per backend. The pixel rule is right and the column distribution is the compensating error; they have to land together.
+
+### Borders are detached, not collapsed
+
+`cellspacing` (default 2px) imports as `w:tblCellSpacing`, so Word draws an outer frame plus a separate box around each cell with a visible gap between them. A probe with `cellspacing` of 0, default and 10 renders a collapsed grid, a small-gap grid and a wide-gap grid respectively — so only the explicit `cellspacing=0` case is a true collapsed grid with shared edges. The rules are light grey, about `B2B2B2` at 0.75pt, not black.
+
+Morph does not yet draw them: `ParseTable` sets only `DefaultBorders`, so `TableLayout.ResolveCellBorders` resolves every interior edge to `BorderEdge.None` and the grid renders as a bare rectangle. See `src/todo.md` under `html_table_cellpadding`.
+
 ## Known gaps
 
 Tracked as issue **#31** in `src/todo.md`, listed here because they shape what the parser can express:
