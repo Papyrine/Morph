@@ -5968,9 +5968,12 @@ sealed class DocumentParser(string defaultFont)
         // (Word's "fill a shape with a picture" — cover-letters/09's circular profile photo)
         // or an ordinary solid fill (cover-letters/10's custGeom logo). Without this branch
         // both are silently dropped because the drawing has no <pic> child either.
+        // The gate admits a style-referenced fill too (wps:style/a:fillRef), not just a fill named
+        // directly in spPr — see ParseInlineSingleShapeRun.
         if (standaloneWsp?.GetFirstChild<WPS.ShapeProperties>() is { } standaloneProps &&
             (standaloneProps.GetFirstChild<A.BlipFill>() != null ||
-             standaloneProps.GetFirstChild<A.SolidFill>() != null))
+             standaloneProps.GetFirstChild<A.SolidFill>() != null ||
+             standaloneWsp.GetFirstChild<WPS.ShapeStyle>()?.FillReference != null))
         {
             return ParseInlineSingleShapeRun(drawing, standaloneWsp, hostPart, runProps);
         }
@@ -6563,6 +6566,15 @@ sealed class DocumentParser(string defaultFont)
         var image = blipFill != null ? ReadBlipImage(blipFill, hostPart) : null;
         var solidFill = shapeProps.GetFirstChild<A.SolidFill>();
         var fillColorHex = solidFill != null ? ExtractFirstFillColor(solidFill) : null;
+
+        // A shape can take its fill from the style's a:fillRef instead of naming one in spPr —
+        // Word writes exactly that for a template's accent rules, e.g. resumes/12's coral bar under
+        // "Manager" is a rect with <a:ln><a:noFill/> and its colour only in
+        // <wps:style><a:fillRef><a:schemeClr val="accent1">. The stroke already consults the style's
+        // lnRef (see ReadGroupStroke); the fill did not, so these shapes resolved no fill and were
+        // dropped before they could be drawn.
+        fillColorHex ??= ExtractFirstFillColor(wsp.GetFirstChild<WPS.ShapeStyle>()?.FillReference);
+
         if (image == null && fillColorHex == null)
         {
             return null;
