@@ -534,10 +534,15 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         }
     }
 
-    void RenderWordArt(WordArtElement wordArt)
+    protected override void RenderWordArtInCell(WordArtElement wordArt) => RenderWordArt(wordArt, reserveSpace: false);
+
+    void RenderWordArt(WordArtElement wordArt, bool reserveSpace = true)
     {
         var height = (float) wordArt.HeightPoints;
-        EnsureSpaceFor(height);
+        if (reserveSpace)
+        {
+            EnsureSpaceFor(height);
+        }
 
         if (currentCanvas == null)
         {

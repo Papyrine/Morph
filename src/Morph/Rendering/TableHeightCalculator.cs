@@ -224,6 +224,15 @@ static class TableHeightCalculator
             {
                 height += 50;
             }
+            else if (element is WordArtElement wordArt)
+            {
+                // Inline WordArt occupies its own band in the cell exactly as it does in the body
+                // flow, where RenderWordArt advances CurrentY by the same height. Leaving it out
+                // sized the row without it while the render still consumed the space, so the cell
+                // overflowed and pushed content onto a further page (brochures/08 went 2 pages to
+                // 3). Measure and render have to agree.
+                height += (float) wordArt.HeightPoints;
+            }
         }
 
         float previousAfter = 0;
