@@ -1206,7 +1206,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### menus/06
 
 - MAJOR | all | p2 | pale-blue full-page background missing — page renders white (p1/p3 keep it)
-- MAJOR | pdf | p3 | sheep logo at bottom right rendered white instead of red — nearly invisible on the pale background (Skia/ImageSharp render it red)
+- MAJOR | pdf | p3 | sheep logo at bottom right renders white, nearly invisible on the pale background. **Not a colour or SVG-fallback bug — PDF draws the WRONG PICTURE.** The document holds four inline `pic:pic` images: rooster (`image13.png` / `image22.svg`, both `#E20000`), a genuinely WHITE icon (`image32.png` / `image4.svg`, both `#F7F5EF`), the rooster again, and the sheep (`image5.png` / `image63.svg`, both `#E20000`). Counting exact pixels per page: the white icon belongs on p2 and ALL backends draw it there (~2140px); on p3 Word and Skia draw zero white while PDF draws 5480 — it renders p2's white icon a SECOND time, at the sheep's slot. So the model is right (Skia and ImageSharp are correct from it) and the defect is PDF-side picture identity. Ruled out: the SVG→raster fallback (both branches select identically to ImageSharp's), `PdfRenderContext.imageCache` (keyed by byte[] REFERENCE) and `PdfTextEngine.layoutCache` (keyed by `ParagraphElement`, a class, so reference equality). Look next at how inline image items survive a page split
 - MINOR | all | p1,p2,p3 | menu items drift progressively downward (~half a line by page bottom)
 - MAJOR | html | - | page-3 red bars absent from the page-3 block (no bar at its top or bottom); only two bars render, one at the document top and one cutting through the page-2 "BISTRO MENU" title
 - MEDIUM | html | - | pale-blue background covers only page-1 content; page-2/3 content renders on white
@@ -1494,9 +1494,8 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 ### resumes/12
 
-- MAJOR | all | p1 | Short coral underline rule below "Manager" is missing in all three backends
+- MINOR | all | p1 | the coral rule below "Manager" sits 23px high — Morph draws it at y=477-483, Word at y=500-506. Geometry is otherwise exact (123x7px at x=132-254, 861 coral pixels in both), so this is purely the inline shape's vertical placement in its paragraph
 - MINOR | pdf | p1 | "VICTORIA BURKE" name block sits ~20px lower than Word
-- MAJOR | html | - | Coral underline below "Manager" missing
 
 ### resumes/13
 
