@@ -563,6 +563,8 @@ Vertical space above and below a paragraph, in points.
 
 > **Contributors**: A paragraph whose only content is a behind-text anchored drawing (the "background placeholder" pattern) still has a paragraph mark, and Word allocates a line for it. `ParseParagraph` therefore treats behind-text `FloatingShapeElement`s as producing no flow content and emits the empty paragraph anyway — testing `result.Count == 0` alone made that line appear or vanish depending on whether the shape parser happened to understand the drawing. The one exception is a placeholder carrying explicit spacing-after, where Word emits the trailing spacing but no line: that becomes an `IsAnchorOnlyMark` paragraph (see `agendas-minutes/11`).
 
+> **Exporters**: The raster/PDF backends allocate a line for every empty paragraph (above), so blank-line block spacing renders for free. Word's letter/résumé templates lean on this heavily — they separate date/address/greeting/body/closing with EMPTY paragraphs rather than paragraph after-spacing — so the HTML export must reproduce it explicitly: `HtmlExporter.WriteParagraph` emits an empty body paragraph as a one-line `<p>&nbsp;</p>` spacer (carrying its own before/after margins), and `AppendCellContent` emits a `<br />` for an empty cell paragraph, so `text / <empty> / text` keeps its gap. Dropping them — the naive "skip empty blocks" — ran the letters together (a dozen cover-letters / letters findings). One residual: a NON-blank cell paragraph still loses its `w:spacing`, because the inline `<br />` cell model carries only line breaks, not per-paragraph margins (todo #35); body-level paragraphs keep it on the `<p>` margin as normal.
+
 
 #### Line Spacing `DONE`
 

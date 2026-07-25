@@ -6,7 +6,7 @@ Each finding: `severity | backends | pages | description`. `all` = skia+imagesha
 
 **This file lists only what is still wrong.** A finding is deleted the moment it lands, and its durable knowledge moves to `docs/word-features.md` (feature behaviour and the evidence behind it), `docs/floating-art-pipeline.md` (anchored/floating art), `docs/html-import.md` (HTML and AltChunk input), `src/page_counts.md` (page-count experiment ledger) or `docs/fidelity-audit.md` (comparison method). Nothing that has shipped is described here — for how a fix was reached, read those docs and the git history. This is a temporary working document; it is expected to shrink to nothing.
 
-**Open: 191 major, 373 medium, 270 minor = 834 findings across 257 scenarios.** Established by a full page-by-page re-audit on 2026-07-20 and maintained by deletion since; the 2026-07-21..23 fix batches were pruned as they landed. Findings that predate the current baselines are suspect where they describe vertical drift — the height model changed underneath them and they have not all been re-measured.
+**Open: 191 major, 372 medium, 255 minor = 818 findings across 256 scenarios.** Established by a full page-by-page re-audit on 2026-07-20 and maintained by deletion since; the 2026-07-21..23 fix batches were pruned as they landed. Findings that predate the current baselines are suspect where they describe vertical drift — the height model changed underneath them and they have not all been re-measured.
 
 ## Systemic issues (cross-scenario root causes)
 
@@ -33,6 +33,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - **#25 Anchored/floating objects linearized in flow order** — art detaches from its text and stacks at the document top or mid-flow, causing overlaps and empty frames (cards/02/18/19, labels/05/06/08/11, agendas-minutes/16, newsletters/01/02/07/11/12, brochures/01, letters/13, business/03/06, menus/05).
 - **#26 White/light text emitted without its backing shape → invisible white-on-white** (agendas-minutes/02, brochures/03/07/08, cards/19, labels/11/14, menus/03, newsletters/01/08/10, resumes/02, business-plans/08 green-on-green). The run colour itself is correct — the export paints neither dark page backgrounds nor dark shape fills behind it.
+- **#35 Cell paragraph spacing lost in the HTML export.** Table cells render their paragraphs inline, joined by `<br />`, so a non-blank paragraph's before/after spacing (`w:spacing`) is dropped — only the single line break survives. Letter/résumé templates that keep the body in a cell and separate blocks with paragraph spacing (rather than empty paragraphs) therefore read tighter than Word: cover-letters/05/07/09/10/12, letters/12, newsletters/03, compatibility_mode_14's entry headings. EMPTY separator paragraphs now DO render as a one-line spacer in both the cell and body paths (`HtmlExporter.WriteParagraph` / `AppendCellContent`, `docs/word-features.md`), so blank-separated letters are faithful (cleared a dozen findings); the residual is purely non-zero before/after-spacing on non-blank cell paragraphs, which the inline `<br />` model can't carry. Body-level paragraphs are unaffected — their spacing rides on the `<p>` margin. Reworking cells from inline to block-with-margins would fix it but is the deliberately-avoided cell-model change noted in #31.
 - **#31 HTML/AltChunk input gaps.** Block-level CSS, named colours, image sizing, paragraph pitch and table styling all landed — the import model is documented in `docs/html-import.md`. Still open: cell-level inline formatting is flattened (`cell.TextContent` builds ONE run, so `<b>`/`<span style>` inside a cell lose their formatting); `margin-left` indents are ignored; shaded blocks render as full-width bands with no padding or border; `vertical-align` on cells is unmodelled; cell padding composes slightly tighter than Word.
 
 ### Word-reference (`expected_*.png`) anomalies worth re-checking rather than "fixing"
@@ -531,26 +532,22 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MEDIUM | all | p1 | header contact line wraps to two lines ("someone@example.com" drops to a second line; Word fits "T: … // W: … // E: …" on one line), pushing the whole letter below down one line
 - MINOR | all | p1 | paragraph 2 wraps the whole word "evidence-based" to the next line where Word breaks at the hyphen ("…implementing evidence-" / "based medicine…")
 - MEDIUM | html | - | greeting "DEAR JOZI KOS," rendered italic (Word shows upright bold)
-- MINOR | html | - | inter-paragraph spacing collapsed — body paragraphs run together with no gap
 
 ### cover-letters/02
 
 - MEDIUM | all | p1 | entire content column sits higher than Word — ~0.25" at the "MANASI GOYAL" header, growing to ~0.35" (about 2 line heights) by the signature, from tighter vertical spacing
 - MAJOR | html | - | decorative flower graphic at bottom-right missing entirely
 - MEDIUM | html | - | cream page background lost — page renders white
-- MINOR | html | - | inter-paragraph spacing collapsed — paragraphs run together
 
 ### cover-letters/03
 
 - MEDIUM | skia,pdf | p1 | body wraps one word earlier per line — paragraph 1 becomes 7 lines vs Word's 6 (orphan "care."), landing the signature ~2 lines lower
 - MINOR | imagesharp | p1 | letter body drifts about half a line lower by the signature
 - MAJOR | html | - | right-side lighter sidebar stripe missing entirely (uniform navy background)
-- MINOR | html | - | inter-paragraph spacing collapsed — paragraphs run together
 
 ### cover-letters/04
 
 - MINOR | imagesharp | p1 | paragraph 2 pulls "at" up to line 1 ("…as a Bookkeeper at") where Word breaks before it, leaving continuation lines starting with a stray leading space
-- MINOR | html | - | inter-paragraph spacing collapsed — date, address, greeting and paragraphs run together
 - CLEAN: pdf
 
 ### cover-letters/05
@@ -569,7 +566,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - MINOR | imagesharp | p1 | First paragraph wraps at different words than Word (line 1 ends "…Manager position", next line starts with a stray leading space)
 - MINOR | all | p1 | Letter body drifts upward slightly with tighter paragraph spacing, ending ~0.7 line higher at "Victoria Burke"
-- MINOR | html | - | Inter-paragraph spacing collapsed — body paragraphs run together with no blank space between them
+- MINOR | html | - | greeting "DEAR RECIPIENT:" and the "Contact" heading sit tight above their following text (heading spacing dropped in the cell's <br />-joined layout, #35); the body paragraphs themselves now space correctly
 
 ### cover-letters/08
 
@@ -577,7 +574,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MEDIUM | skia,imagesharp | p1 | Accumulated tighter line/paragraph spacing makes the signature block ("Angelica Astrom / December 13, 20XX / Enclosure") end ~1.5 lines higher than Word
 - MINOR | pdf | p1 | Signature block ends ~0.8 line higher than Word
 - MINOR | skia,imagesharp | p1 | closing paragraph's wrapped line starts with a leading space (" your review,")
-- MINOR | html | - | Blank-line spacing before/inside the signature block collapsed ("Sincerely," sits tight against the paragraph and the name)
 
 ### cover-letters/09
 
@@ -606,7 +602,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MEDIUM | skia,imagesharp | p1 | Accumulated tighter section/line spacing — letter and sidebar content end ~3 lines higher than Word by "Enclosure"
 - MINOR | pdf | p1 | Content ends ~0.5 line higher than Word
 - MEDIUM | html | - | "Astrom" bold instead of light in the HTML title (italic "Enclosure" is correct in HTML)
-- MINOR | html | - | Blank-line spacing around "Sincerely,"/signature collapsed
 
 ### cover-letters/12
 
@@ -621,12 +616,10 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MEDIUM | skia,imagesharp | p1 | Tighter paragraph spacing — letter ends ~1.5 lines higher than Word at "Tonnie Thomsen" (wrapped line " that supports students'…" also starts with a stray space)
 - MINOR | pdf | p1 | Letter ends ~0.8 line higher than Word
 - MINOR | skia,imagesharp | p1 | Right-hand recipient address ("4321 Maplewood Ave / Nashville, TN 65432") sits ~half a line higher than Word relative to the LILLI ALLIK block
-- MINOR | html | - | Paragraph spacing collapsed (greeting, paragraphs and signature run tight)
 
 ### cover-letters/15
 
 - MINOR | skia,imagesharp | p1 | Letter body drifts up ~0.5 line by the "Chanchal Sharma / January 13, 20XX" block
-- MINOR | html | - | Paragraph spacing collapsed (section headings and paragraphs run tight)
 
 ### cover-letters/16
 
@@ -654,10 +647,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - MINOR | all | p1 | line spacing slightly tighter than Word; cumulative upward drift reaches ~30px (≈0.7 line) at item F (per-level bullet fonts/glyphs •/o/▪ all render correctly)
 - MINOR | html | - | bullet glyphs at levels 4-6 all render as squares instead of repeating Word's •/o/▪ cycle
-
-### empty_paragraphs
-
-- MEDIUM | html | - | empty paragraphs dropped entirely — the two sentences render back-to-back with no blank gap (Word shows ~3 blank lines between them)
 
 ### even_odd_headers/01
 
@@ -1073,7 +1062,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### letters/07
 
 - MEDIUM | all | p1 | second body paragraph wraps to 4 lines vs Word's 3 (text breaks earlier, column effectively narrower)
-- MINOR | html | - | paragraph spacing collapsed so the letter reads as one continuous block (no gaps before "Adrian's...", "Sincerely," or the address)
 - MINOR | html | - | the header pattern band stops short of full page width (ends at x=817 of 1024)
 
 ### letters/08
@@ -1081,12 +1069,10 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MEDIUM | all | p1 | first body paragraph wraps to 3 lines vs Word's 2 ("...recent visit to New / York.") and second paragraph breaks at different words, shifting the letter body
 - MEDIUM | all | p1 | large signature "Joseph Price" rendered in bold/heavy weight instead of Word's light strokes
 - MINOR | html | - | signature "Joseph Price" bold vs Word's light weight
-- MINOR | html | - | inter-paragraph spacing collapsed — body paragraphs run together
 
 ### letters/09
 
 - MEDIUM | all | p1 | first body paragraph wraps to 5 lines vs Word's 4 ("...advanced financial / forecasting."), pushing body text and the footer contact block ~1 line lower
-- MINOR | html | - | paragraph spacing collapsed — salutation and paragraphs run together
 
 ### letters/10
 
@@ -1114,7 +1100,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MINOR | imagesharp | p1,p3 | several paragraphs wrap at different words than Word (e.g. "...personal taste. Go /", "built-in font / combination")
 - MAJOR | html | - | the three letter copies get inconsistent body-column widths (~586px, ~471px, ~622px)
 - MINOR | html | - | page-3 left-edge banner rendered as an inline horizontal strip (side placement/rotation lost)
-- MINOR | html | - | paragraph spacing collapsed — recipient block, date and salutation run together
 
 ### line_numbers_continuous
 
@@ -1251,7 +1236,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MINOR | all | p1,p2,p3,p4 | Full-width banner photos slightly oversized vs Word (right edge extends further, solid strip in diffs; captions shift down accordingly)
 - MAJOR | html | - | Pull-quote circular beige background missing — quote renders as plain text in a bordered cell
 - MEDIUM | html | - | Spurious table cell borders visible around the "next hot" and Breaking-news section cells
-- MINOR | html | - | Inter-paragraph spacing lost — paragraphs run together with no gap
 
 ### newsletters/05
 
@@ -1608,7 +1592,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 - MAJOR | all | p1,p2 | tall second table row's company block ("Company Name", "123 Main Street") is absent from page 1 and rendered whole at top-right of page 2 instead of splitting at the page break like Word, which also exposes an extra "City, State 12345" line that Word's exact row height clips (never visible in Word).
 - MEDIUM | all | p2 | letter body (Recipient Name through Title) starts ~170px (~4 line heights) lower than Word because the deferred tall row occupies the top of page 2.
-- MINOR | html | - | blank-line/paragraph spacing of the letter collapsed — Date, Dear Recipient, body and closing paragraphs are tightly stacked with none of Word's inter-paragraph gaps.
 
 ### table_multipage
 
@@ -1639,7 +1622,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 ### table_two_column_layout
 
 - MEDIUM | all | p1 | vertical spacing inside cells tighter than Word — right-column "Line 1..10" list drifts upward reaching a full line by Line 10, and the table bottom border sits ~40px higher than Word
-- MINOR | html | - | empty-paragraph gaps inside cells collapsed (no blank line after "Left Column"/"Right Column" headings or before "Line 1", which Word renders)
 
 ### tracked_changes/01
 
