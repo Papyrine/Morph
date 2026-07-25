@@ -256,8 +256,69 @@ static class ShapeParser
             }
         }
 
+        // A shape can take its fill from the style's a:fillRef rather than spPr — Word writes that
+        // for a template's accent bands, e.g. business-plans/13's full-width cover band is a rect
+        // with <a:ln><a:noFill/> whose colour lives only in <wps:style><a:fillRef><a:schemeClr>.
+        // The line path already consults lnRef (ExtractLineStyle); without the same for the fill
+        // these bands resolved no fill and fell through to the outline-only path, which dropped
+        // them because there is no line either.
+        var refFill = ResolveFillReferenceColor(wsp, themeColors);
+        if (refFill != null)
+        {
+            return new()
+            {
+                WidthPoints = widthPoints,
+                HeightPoints = heightPoints,
+                RelativeHeight = positioning.RelativeHeight,
+                LayoutInCell = positioning.LayoutInCell,
+                HorizontalPositionPoints = positioning.HorizontalPositionPoints,
+                VerticalPositionPoints = positioning.VerticalPositionPoints,
+                HorizontalAnchor = positioning.HorizontalAnchor,
+                VerticalAnchor = positioning.VerticalAnchor,
+                BehindText = true,
+                WidthPercent = positioning.WidthPercent,
+                WidthRelativeFrom = positioning.WidthRelativeFrom,
+                HeightPercent = positioning.HeightPercent,
+                HeightRelativeFrom = positioning.HeightRelativeFrom,
+                HorizontalPositionPercent = positioning.HorizontalPositionPercent,
+                VerticalPositionPercent = positioning.VerticalPositionPercent,
+                FillColorHex = refFill,
+                LineColorHex = lineColor,
+                LineWidthPoints = lineWidth,
+                LineAlpha = lineAlpha,
+                Preset = preset,
+                Subpaths = subpaths,
+                RotationDegrees = rotation,
+                FlipHorizontal = flipH,
+                FlipVertical = flipV
+            };
+        }
+
         return TryBuildOutlineOnlyShape(wsp, shapeProps, positioning, widthPoints, heightPoints,
             0, 0, lineColor, lineWidth, lineAlpha, preset, subpaths, rotation, flipH, flipV);
+    }
+
+    /// <summary>
+    /// Resolves the colour a shape's <c>wps:style/a:fillRef</c> names, or null when it has none.
+    /// Same shape as the <c>lnRef</c> resolution in <see cref="ExtractLineStyle"/>.
+    /// </summary>
+    static string? ResolveFillReferenceColor(WPS.WordprocessingShape wsp, ThemeColors? themeColors)
+    {
+        var fillRef = wsp.GetFirstChild<WPS.ShapeStyle>()?.FillReference;
+        if (fillRef == null)
+        {
+            return null;
+        }
+
+        var scheme = fillRef.GetFirstChild<A.SchemeColor>();
+        if (scheme?.Val?.HasValue == true && themeColors != null)
+        {
+            var value = ((IEnumValue) scheme.Val.Value).Value;
+            return themeColors.ResolveColor(value, ExtractColorTransforms(scheme));
+        }
+
+        var rgb = fillRef.GetFirstChild<A.RgbColorModelHex>();
+        return rgb?.Val?.HasValue == true ? rgb.Val.Value : null;
     }
 
     /// <summary>
