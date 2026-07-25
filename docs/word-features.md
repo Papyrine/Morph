@@ -825,6 +825,8 @@ Different number representations: decimal, roman (upper/lower), letter (upper/lo
 - **Parse**: `DocumentParser.FormatNumber()`, `ToRoman()`, `ToLetter()`
 
 > **Contributors**: `NumberFormatValues` stored on `NumberingLevelDefinition.NumberFormat`. `FormatNumber()` dispatches to `ToRoman()` or `ToLetter()` based on the format. Roman numerals support 1-3999. Letters support A-Z, then AA, AB, etc.
+>
+> The raster and PDF backends draw `NumberingInfo.Text` (the already-formatted marker) verbatim, so the format is correct there for free. The **HTML/Markdown exporters** use semantic `<ol>` and let the renderer generate the marker, which defaults to decimal — so the level's format is carried through independently as `NumberingInfo.Format` (a Morph `ListNumberFormat`, mapped from `NumberFormatValues` in the parser). `HtmlExporter.WriteList` emits it as `list-style-type: upper-roman / lower-roman / upper-alpha / lower-alpha` (decimal is the default and stays clean; the `.`-vs-`)` marker suffix is not expressible via `list-style-type`). Because Word keeps ONE running counter while the exporter re-opens a fresh `<ol>` at every intervening body paragraph (`agendas-minutes/06`'s "I. Call to order / <para> / II. Roll call …", `business-plans/15`'s TOC), `DocumentExportHelpers.ListStartNumber` reads `Format` to recover the ordinal from a **roman or letter** marker (`"IV." → 4`, `"d)" → 4`), not just a decimal one, and emits `<ol start>` so the resumed list continues instead of restarting at I/1. Without this, every roman/letter list rendered `1.` and each interrupted fragment restarted.
 
 
 #### List Restart / Continue `DONE`

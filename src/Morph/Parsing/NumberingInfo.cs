@@ -36,4 +36,11 @@ sealed record NumberingInfo
     /// The hanging indent (space between number and text) in points.
     /// </summary>
     public double HangingIndentPoints { get; init; }
+
+    /// <summary>
+    /// The level's counter style (<c>w:numFmt</c>). Drives the ordered-list marker style in the
+    /// HTML export so roman/letter lists don't collapse to decimal; <see cref="ListNumberFormat.Decimal"/>
+    /// is the browser default and stays clean.
+    /// </summary>
+    public ListNumberFormat Format { get; init; } = ListNumberFormat.Decimal;
 }

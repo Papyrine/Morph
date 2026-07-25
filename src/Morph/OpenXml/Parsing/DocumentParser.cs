@@ -2695,9 +2695,20 @@ sealed class DocumentParser(string defaultFont)
             FontFamily = levelDef.FontFamily,
             ColorHex = levelDef.ColorHex,
             IndentPoints = levelDef.LeftIndentPoints,
-            HangingIndentPoints = levelDef.HangingIndentPoints
+            HangingIndentPoints = levelDef.HangingIndentPoints,
+            Format = levelDef.IsBullet ? ListNumberFormat.Bullet : MapNumberFormat(levelDef.NumberFormat)
         };
     }
+
+    // The five counter styles CSS list-style-type can name directly; everything else (ordinal,
+    // cardinal text, hex, decimal-enclosed variants) has no faithful CSS equivalent and falls
+    // through to Decimal, which is also the browser default.
+    static ListNumberFormat MapNumberFormat(NumberFormatValues format) =>
+        format == NumberFormatValues.UpperRoman ? ListNumberFormat.UpperRoman :
+        format == NumberFormatValues.LowerRoman ? ListNumberFormat.LowerRoman :
+        format == NumberFormatValues.UpperLetter ? ListNumberFormat.UpperLetter :
+        format == NumberFormatValues.LowerLetter ? ListNumberFormat.LowerLetter :
+        ListNumberFormat.Decimal;
 
     void ResetDeeperCounters(int abstractId, int incrementedIlvl, Dictionary<int, NumberingLevelDefinition> levels)
     {

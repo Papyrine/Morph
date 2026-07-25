@@ -6,7 +6,7 @@ Each finding: `severity | backends | pages | description`. `all` = skia+imagesha
 
 **This file lists only what is still wrong.** A finding is deleted the moment it lands, and its durable knowledge moves to `docs/word-features.md` (feature behaviour and the evidence behind it), `docs/floating-art-pipeline.md` (anchored/floating art), `docs/html-import.md` (HTML and AltChunk input), `src/page_counts.md` (page-count experiment ledger) or `docs/fidelity-audit.md` (comparison method). Nothing that has shipped is described here — for how a fix was reached, read those docs and the git history. This is a temporary working document; it is expected to shrink to nothing.
 
-**Open: 193 major, 376 medium, 270 minor = 839 findings across 257 scenarios.** Established by a full page-by-page re-audit on 2026-07-20 and maintained by deletion since; the 2026-07-21..23 fix batches were pruned as they landed. Findings that predate the current baselines are suspect where they describe vertical drift — the height model changed underneath them and they have not all been re-measured.
+**Open: 191 major, 373 medium, 270 minor = 834 findings across 257 scenarios.** Established by a full page-by-page re-audit on 2026-07-20 and maintained by deletion since; the 2026-07-21..23 fix batches were pruned as they landed. Findings that predate the current baselines are suspect where they describe vertical drift — the height model changed underneath them and they have not all been re-measured.
 
 ## Systemic issues (cross-scenario root causes)
 
@@ -33,7 +33,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - **#25 Anchored/floating objects linearized in flow order** — art detaches from its text and stacks at the document top or mid-flow, causing overlaps and empty frames (cards/02/18/19, labels/05/06/08/11, agendas-minutes/16, newsletters/01/02/07/11/12, brochures/01, letters/13, business/03/06, menus/05).
 - **#26 White/light text emitted without its backing shape → invisible white-on-white** (agendas-minutes/02, brochures/03/07/08, cards/19, labels/11/14, menus/03, newsletters/01/08/10, resumes/02, business-plans/08 green-on-green). The run colour itself is correct — the export paints neither dark page backgrounds nor dark shape fills behind it.
-- **#27 Numbering restarts.** Roman/letter formats and style-attached numbering render correctly. Still open: multi-item lists restart at "1." where Word continues, and `business-plans/15`'s TOC formats (see #12).
 - **#31 HTML/AltChunk input gaps.** Block-level CSS, named colours, image sizing, paragraph pitch and table styling all landed — the import model is documented in `docs/html-import.md`. Still open: cell-level inline formatting is flattened (`cell.TextContent` builds ONE run, so `<b>`/`<span style>` inside a cell lose their formatting); `margin-left` indents are ignored; shaded blocks render as full-width bands with no padding or border; `vertical-align` on cells is unmodelled; cell padding composes slightly tighter than Word.
 
 ### Word-reference (`expected_*.png`) anomalies worth re-checking rather than "fixing"
@@ -67,17 +66,14 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### agendas-minutes/04
 
 - MEDIUM | all | p1 | cumulative vertical compression ~2 line heights: agenda list and CONCLUSION section end noticeably higher than Word
-- MEDIUM | html | - | list numbering format lost: roman numerals I.–IV. render as 1.–4. and letter sub-items a./b. render as 1./2.
 
 ### agendas-minutes/05
 
 - MINOR | all | p1 | content drifts up ~1.5 line heights by the action-items table
-- MEDIUM | html | - | roman-numeral agenda list I.–VI. renders as decimal 1.–6.
 
 ### agendas-minutes/06
 
 - MEDIUM | all | p1 | cumulative vertical compression ~3 line heights: ADJOURNMENT section ends ~0.5in higher than Word
-- MAJOR | html | - | list numbering broken: I.–VI. renders as 1., 1., 1., 1., 2., 3. (first four top-level items each restart at 1) and a)/b)/c) sub-items render as 1./2./3.
 
 ### agendas-minutes/07
 
@@ -122,7 +118,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - MEDIUM | all | p1 | "Attendees: Helbe Sokk, ..." renders as two lines ("Attendees:" alone, names on next line) vs Word's single line, pushing all following content ~1 line lower
 - MEDIUM | all | p1 | Wide roman numerals fuse to heading text with no separator: "III.APPROVAL OF MINUTES...", "IV.OPEN ISSUES", "VI.ADJOURNMENT" (PDF also "II.ROLL CALL", "V.NEW BUSINESS"); Word shows a clear gap after every numeral
-- MAJOR | html | - | List numbering wrong: every numbered heading and sub-item renders as "1." (roman I.-VI. and letter a)-c) formats lost, each item restarts at 1)
 - MAJOR | html | - | "Attendees:" label text missing — only the name list renders under the title
 - MINOR | html | - | Decorative teal stripes at top and bottom of the page are missing
 
@@ -351,7 +346,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MEDIUM | all | p2,p3 | Footer bar ("BUSINESS PLAN | APRIL 25, 20XX" + number) is drawn on the TOC pages where Word suppresses the footer entirely.
 - MINOR | all | p1 | Title underline rule spans only margin-to-margin instead of extending to the page's left edge as in Word.
 - MINOR | all | p3-p19 | Footer line sits ~0.2" lower on the page than Word's footer position on every page.
-- MEDIUM | html | - | TOC top-level sections are all numbered "1." ("1. Executive summary", "1. Description of business", "1. Marketing", "1. Appendix") instead of Word's sequential I./II./III./IV.
 - MEDIUM | html | - | Table headers lose all-caps formatting ("Start-up expenses", "Month 1…", "Ind. %/Jan.…", "Starting month, year—…", "Assets/Liabilities" vs Word's "START-UP EXPENSES", "MONTH 1", "IND. %", "ASSETS/LIABILITIES").
 
 ### business/01
