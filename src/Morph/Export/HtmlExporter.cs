@@ -406,6 +406,16 @@ static class HtmlExporter
         {
             if (IsBlankForHtml(paragraph))
             {
+                // Word's letter/résumé templates space their blocks (date, address, greeting, body
+                // paragraphs, closing) with EMPTY paragraphs rather than paragraph spacing, and each
+                // is a real line. Silently dropping them — the obvious "skip empty blocks" move —
+                // collapses those gaps (cover-letters run together). Emit a one-line spacer instead,
+                // carrying the paragraph's own before/after spacing; the &nbsp; forces the line box a
+                // bare <p> would collapse. Matches the raster/PDF backends, which lay the empty line
+                // out at its font height.
+                Indent(depth).Append("<p");
+                AppendParagraphStyle(paragraph.Properties);
+                builder.Append(">&nbsp;</p>\n");
                 return;
             }
 
@@ -1134,6 +1144,19 @@ static class HtmlExporter
                             separatorPending = true;
                         }
 
+                        break;
+                    case ParagraphElement:
+                        // An empty cell paragraph is a blank line — Word's inter-line spacer inside
+                        // the cell (a résumé's contact block, a letter body). Reserve it with a
+                        // <br /> so "text / <empty> / text" keeps its gap instead of collapsing to a
+                        // single break; the body path spaces the same empty paragraph with a
+                        // one-line <p>. Left blank once (leading empty) contributes no break.
+                        if (separatorPending)
+                        {
+                            builder.Append("<br />");
+                        }
+
+                        separatorPending = true;
                         break;
                     case TableElement nestedTable:
                         builder.Append('\n');
