@@ -1723,7 +1723,7 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 ### wedding/11
 
-- MAJOR | all | p1 | left card's venue/time block "4:30 pm in the afternoon / Cherrywood Chapel / 1234 Cherry Road / Austin, Texas" missing entirely (not moved to p2)
+- MAJOR | all | p1 | left card's venue/time block ("4:30 pm ... / Cherrywood Chapel / 1234 Cherry Road / Austin, Texas") missing entirely. **Same root cause as menus/03 and resumes/19:** the cell is wrapped in a row-level content control (`<w:tr><w:sdt><w:sdtContent><w:tc>` = `SdtCell`), and `ParseTable` reads only `row.Elements<TableCell>()` so it never reaches the model (confirmed by reflection: "Cherrywood" is absent). Shared blocker — see the `RowCells` note under menus/03; descending regressed newsletters/09 and brochures/05, which carry 8 and 5 SdtCell rows against a `w:tblGrid`, so the fix has to keep the cell count matching the declared grid
 - MAJOR | html | - | same venue/time block ("4:30 pm in the afternoon / Cherrywood Chapel / 1234 Cherry Road / Austin, Texas") missing from the HTML export
 - MAJOR | all | p1,p2 | watercolor artwork oversized and un-clipped: right card's top blob bleeds left of the card border, left card's bottom blob spills below/right of the card bottom edge
 - MEDIUM | all | p1 | line wraps differ: "The pleasure of your company..." sentence wraps to 4 lines vs Word's 2, and "SAVE THE DATE" wraps to two lines vs Word's one
