@@ -86,10 +86,10 @@ Describe your company's mission and goals.
 | Put the plan into action |
 | --- |
 
-|  |  |
-| --- | --- |
-|  | % |
-|  | % |
-|  | % |
-|  | % |
-|  | % |
+| Step | Action | Due date for completion | % complete |
+| --- | --- | --- | --- |
+|  | Action | Date | % |
+|  | Action | Date | % |
+|  | Action | Date | % |
+|  | Action | Date | % |
+|  | Action | Date | % |

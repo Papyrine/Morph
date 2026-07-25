@@ -3756,6 +3756,35 @@ sealed class DocumentParser(string defaultFont)
         }
     }
 
+    /// <summary>
+    /// A row's cells in document order, unwrapping any cell-level content control. Word wraps a
+    /// templated cell in <c>w:sdt</c> (an <see cref="SdtCell"/> whose <see cref="SdtContentCell"/>
+    /// holds the real <c>w:tc</c>), and reading only the row's DIRECT <c>w:tc</c> children dropped
+    /// those cells and everything in them — menus/03's "EVENT TITLE", resumes/19's Skills list and
+    /// wedding/11's venue block all live in one. The direct count also UNDER-shoots the grid
+    /// (newsletters/09 has a row of 4 direct cells against an 11-column grid), so the survivors
+    /// stretched to the wrong widths; unwrapping restores the exact grid column count. Order is
+    /// preserved so a row that mixes plain and wrapped cells keeps its left-to-right layout.
+    /// </summary>
+    static IEnumerable<DocumentFormat.OpenXml.Wordprocessing.TableCell> RowCells(
+        DocumentFormat.OpenXml.Wordprocessing.TableRow row)
+    {
+        foreach (var child in row.ChildElements)
+        {
+            if (child is DocumentFormat.OpenXml.Wordprocessing.TableCell cell)
+            {
+                yield return cell;
+            }
+            else if (child is SdtCell {SdtContentCell: { } content})
+            {
+                foreach (var wrapped in content.Elements<DocumentFormat.OpenXml.Wordprocessing.TableCell>())
+                {
+                    yield return wrapped;
+                }
+            }
+        }
+    }
+
     TableElement? ParseTableCore(Table table, MainDocumentPart mainPart)
     {
         var rows = new List<TableRow>();
@@ -3876,7 +3905,7 @@ sealed class DocumentParser(string defaultFont)
         var totalCols = gridColumnWidths?.Count ?? 0;
         if (totalCols == 0 && rowList.Count > 0)
         {
-            foreach (var cell in rowList[0].Elements<DocumentFormat.OpenXml.Wordprocessing.TableCell>())
+            foreach (var cell in RowCells(rowList[0]))
             {
                 var span = cell.GetFirstChild<OoxmlTableCellProperties>()?.GetFirstChild<GridSpan>()?.Val?.Value ?? 1;
                 totalCols += span;
@@ -3890,7 +3919,7 @@ sealed class DocumentParser(string defaultFont)
             var gridColIndex = 0;
             var rowFlags = ParseConditionalFormatFlags(row.GetFirstChild<TableRowProperties>()?.GetFirstChild<ConditionalFormatStyle>());
 
-            foreach (var cell in row.Elements<DocumentFormat.OpenXml.Wordprocessing.TableCell>())
+            foreach (var cell in RowCells(row))
             {
                 var cellContent = new List<DocumentElement>();
                 var cellProps = cell.GetFirstChild<OoxmlTableCellProperties>();

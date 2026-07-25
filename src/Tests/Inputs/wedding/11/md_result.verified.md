@@ -5,7 +5,7 @@
 | KAYLA + JACOB<br>TIE THE KNOT  |  |  |
 | The pleasure of your company is requested at<br>the marriage of Kayla Lewis & Jacob Hancock |  |  |
 | **SATURDAY** <br>**10.25.20XX**  |  | KAYLA + JACOB<br>SAVE THE DATE  |
-|  |  |  |
+| 4:30 pm in the afternoon<br>Cherrywood Chapel<br>1234 Cherry Road<br>Austin, Texas |  |  |
 |  |  | **SATURDAY** <br>**10.25.20XX**  |
 |  |  | Austin, Texas  |
 

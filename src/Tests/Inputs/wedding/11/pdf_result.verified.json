@@ -11,7 +11,7 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "KAYLA + JACOB\nTIE THE KNOT\nThe pleasure of your company is requested at\nthe marriage of Kayla Lewis & Jacob Hancock\nSATURDAY\n10.25.20XX\nKAYLA + JACOB\nSAVE THE DATE\nSATURDAY\n10.25.20XX\nAustin, Texas"
+        "Text": "KAYLA + JACOB\nTIE THE KNOT\nThe pleasure of your company is requested at\nthe marriage of Kayla Lewis & Jacob Hancock\nSATURDAY\n10.25.20XX\nKAYLA + JACOB\nSAVE THE DATE\n4:30 pm in the afternoon\nCherrywood Chapel\n1234 Cherry Road\nAustin, Texas\nSATURDAY\n10.25.20XX\nAustin, Texas"
       },
       {
         "Width": 792.0,
@@ -23,8 +23,8 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.2828,
-      "Ssim": 0.8995,
+      "ErrorMetric": 0.2834,
+      "Ssim": 0.9014,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

@@ -876,6 +876,8 @@ Tables with rows and cells containing paragraphs and other content.
 - **Parse**: `DocumentParser.ParseTable()`
 - **Test**: `simple_table/`
 
+> **Contributors — cell-level content controls.** Word wraps a templated cell in `<w:sdt>` (an `SdtCell` whose `SdtContentCell` holds the real `<w:tc>`), so reading only a row's DIRECT `w:tc` children drops those cells and everything in them — menus/03's "EVENT TITLE", resumes/19's Skills list and wedding/11's venue block all live in one and never reached the model. The direct count also UNDER-shoots the grid (newsletters/09 has a row of 4 direct cells against an 11-column `w:tblGrid`), so the surviving cells stretched to the wrong widths. `DocumentParser.RowCells` unwraps `SdtCell` in document order and both the grid-count fallback and the row loop go through it; the unwrapped count then matches the declared grid exactly in every affected scenario. The newly-surfaced content lands a little off Word's exact positions on the two dense newspaper layouts (newsletters/09, brochures/05), which the SSIM metric reads as a regression, but crops confirm the render is more complete — the old baselines were missing whole article columns. Judged on fidelity per `docs/fidelity-audit.md`.
+
 
 #### Nested Tables `DONE`
 

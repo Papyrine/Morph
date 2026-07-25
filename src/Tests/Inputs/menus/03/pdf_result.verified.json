@@ -11,15 +11,15 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "Easily\ncopy\nyour\nmenu.\nHere’s\nhow:\n1. Select\nthe\nmenu\ncontent.\n(Just\ndrag\nto\nselect\nthe\ncontent.\nDon`t\nselect\nthe\nwhole\ncell.)\n2. Press\nCtrl+C\n(Copies\nthe\nmenu.)\n3. Select\nall\nof\nthis\ntip\ntext.\n4. Press\nCtrl+V.\n(Replace\nthis\ntext\nwith\na\ncopy\nof\nyour\nmenu.)\nAPPETIZER\nList or describe appetizers\nAppetizer item\nAppetizer item\nFIRST COURSE\nList or describe first course(s)\nFirst course item\nMAIN COURSE\nList or describe main course(s)\nMain course item\nDESSERT\nList or describe dessert(s)\nDessert item"
+        "Text": "EVENT TITLE Easily copy your menu. Here’s how:\n1. Select the menu content.\n(Just drag to select the content. Don`t select the whole\ncell.)\n2. Press Ctrl+C\n(Copies the menu.)\n3. Select all of this tip text.\n4. Press Ctrl+V.\n(Replace this text with a copy of your menu.)\nAPPETIZER\nList or describe appetizers\nAppetizer item\nAppetizer item\nFIRST COURSE\nList or describe first course(s)\nFirst course item\nMAIN COURSE\nList or describe main course(s)\nMain course item\nDESSERT\nList or describe dessert(s)\nDessert item"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.9977,
-      "Ssim": 0.8681,
+      "ErrorMetric": 0.9951,
+      "Ssim": 0.8467,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

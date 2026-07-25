@@ -1175,13 +1175,12 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### menus/03
 
-- MAJOR | all | p1 | the large gold "EVENT TITLE" heading is missing, and the gold rule lines render but misplaced and mis-sized. **Root cause: the heading lives in a cell wrapped in a cell-level content control (`w:sdt` → `SdtCell`), and `ParseTable` enumerates `row.Elements<TableCell>()` — DIRECT children only — so that cell and everything in it never reaches the model** (confirmed by reflecting over the parse: EVENT INTRO and EVENT DATE are there, EVENT TITLE is absent entirely). **Attempted 2026-07-24 and REVERTED:** a `RowCells` helper descending into `SdtCell` measured **+0.1370 AE / −0.3150 SSIM** over 17 pairs, wrecking newsletters/09 (−0.136 SSIM) and brochures/05. Descending changes the row's cell count, so `totalCols` and every column width shift under tables that were previously laying out correctly. A retry has to keep the grid stable — resolve the wrapped cell WITHOUT changing the column tally the rest of the layout is keyed on
+- MAJOR | all | p1 | the gold "EVENT TITLE" heading now renders (SdtCell cells reach the model); its gold rule lines still render misplaced/mis-sized
 - MAJOR | skia,pdf | p1 | full-height gold divider line between the two columns is missing (only a short gold tick at top-right remains); ImageSharp draws it
 - MEDIUM | all | p1 | both text columns shifted left (instructions column ~25% of page width left of Word) and vertically compressed (menu column ends ~65px high)
 - MINOR | skia,imagesharp | p1 | numbered steps render the number at the left indent with the step text centered separately, leaving a large gap (Word centers "2. Press Ctrl+C" as one unit; PDF matches Word)
 - MINOR | skia,pdf | p1 | full-page navy background tint fractionally off Word's (em≈1.0 but below visible threshold)
 - MAJOR | html | - | all content renders below the navy panel on the white page, leaving the navy block empty and every white-colored text run invisible (only gold headings and step titles visible)
-- MAJOR | html | - | "EVENT TITLE" / "EVENT INTRO" / "EVENT DATE" also missing from the HTML export
 
 ### menus/04
 
@@ -1530,9 +1529,7 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 ### resumes/19
 
-- MAJOR | all | p1,p2,p3 | Skills bulleted list (Creativity, Leadership, Organization, Problem solving, Teamwork) missing on every page — Contact section moves up directly under the "Skills" heading
 - MEDIUM | pdf | p1,p2,p3 | 2nd and 3rd Experience entries drift progressively lower (~0.33in by the third entry) from oversized gaps between entries
-- MAJOR | html | - | Skills bulleted list missing in all three repeated sections (heading renders with no items)
 - MAJOR | html | - | colored content-panel backgrounds wrong: first panel grey instead of light blue, and the yellow (2nd) and grey (3rd) panels missing entirely
 
 ### rtl_paragraph
@@ -1723,8 +1720,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 ### wedding/11
 
-- MAJOR | all | p1 | left card's venue/time block ("4:30 pm ... / Cherrywood Chapel / 1234 Cherry Road / Austin, Texas") missing entirely. **Same root cause as menus/03 and resumes/19:** the cell is wrapped in a row-level content control (`<w:tr><w:sdt><w:sdtContent><w:tc>` = `SdtCell`), and `ParseTable` reads only `row.Elements<TableCell>()` so it never reaches the model (confirmed by reflection: "Cherrywood" is absent). Shared blocker — see the `RowCells` note under menus/03; descending regressed newsletters/09 and brochures/05, which carry 8 and 5 SdtCell rows against a `w:tblGrid`, so the fix has to keep the cell count matching the declared grid
-- MAJOR | html | - | same venue/time block ("4:30 pm in the afternoon / Cherrywood Chapel / 1234 Cherry Road / Austin, Texas") missing from the HTML export
 - MAJOR | all | p1,p2 | watercolor artwork oversized and un-clipped: right card's top blob bleeds left of the card border, left card's bottom blob spills below/right of the card bottom edge
 - MEDIUM | all | p1 | line wraps differ: "The pleasure of your company..." sentence wraps to 4 lines vs Word's 2, and "SAVE THE DATE" wraps to two lines vs Word's one
 - MEDIUM | all | p1,p2 | card border geometry off: border lines extend past card corners (right card's left border runs below the card) and bottom borders sit higher than Word
