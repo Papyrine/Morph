@@ -1,14 +1,36 @@
 # Page-count divergence analysis
 
 Word page counts (Word COM via RenderHelper → `expected_*.png`) versus each backend's verified
-output (`skia_result#page_*`, `imagesharp_result#page_*`, `pdf_result#page_*`) across 321 scenario
+output (`skia_result#page_*`, `imagesharp_result#page_*`, `pdf_result#page_*`) across the scenario
 directories in `src/Tests/Inputs/`. The match is *recorded*, not asserted, by the scenario tests —
 these mismatches never fail the suite; closing them improves Word fidelity.
 
-**Current state (pass 4, experiment 19 committed): Skia 315, ImageSharp 315, PDF 316.** Eight
-scenarios still differ — business-plans/13/15, complex_spacing, cover-letters/06,
-image_wrap_square, newsletters/06, resumes/13, resumes/16. Pass 2 ended 307/307/301, so pass 4 is
-net +8/+8/+15.
+**Current state (full recount, 2026-07-25): Skia 322, ImageSharp 322, PDF 321 of 325 scenarios.**
+Only **four** scenarios still differ, and the previous "eight" list was stale — the recount was run
+after experiments 20/21 landed and four more scenarios were added to the corpus:
+
+| scenario | Word | Skia | ImageSharp | PDF | nature |
+|---|---|---|---|---|---|
+| business-plans/15 | 19 | 19 | 19 | **18** | PDF-only knife-edge (metric; PDF one line short) |
+| image_wrap_square | 2 | **3** | **3** | **3** | continuous two-column section (experiment 11 architecture — needs paragraph-split-across-columns + Skia parity + PDF routing) |
+| newsletters/06 | 4 | **6** | **6** | **6** | all-backend table knife-edge (see below) |
+| resumes/13 | 5 | **4** | **4** | **6** | the archetype: raster short, PDF over, Word between (metric) |
+
+Four of the previous eight now match Word on every backend — **business-plans/13, complex_spacing,
+cover-letters/06, resumes/16** — so they are no longer listed. The "experiment 19 committed:
+315/315/316 of 321" snapshot below is the historical figure the ledger was written against.
+
+**newsletters/06 is a near-full-page `atLeast`-table knife-edge, not a content rule.** Each of the
+four newspaper "pages" is one 10-row layout table whose explicit `w:trHeight` rows already sum to
+almost the full 746pt content height (table A 662pt + three auto rows; table B 713pt), all `atLeast`.
+The big text rows (row 7 `[7p,4empty]`, row 9 `[9p,5empty]`) hold body paragraphs separated by
+empty-paragraph spacers. A ~30–80pt cumulative over-measurement in those rows grows the table past
+the page, tipping the last ~184–216pt row (row 9) entirely onto a fresh page — measured: skia page 2
+fits with **13pt** to spare, then row 9 bumps, and the spilled row renders on a *white* page because
+the light-blue background is a float anchored to the section's first page. The empty spacers are NOT
+the lever (Word lays an empty paragraph out as a full line — verified on the `empty_paragraphs`
+scenario), so the residual is the raster text-line-height difference the root-cause lesson below
+calls a dead-end lever. Two of the four tables (the taller layout) cross the edge; the other two clear it.
 
 **The "backend-metric divergence" label on these was partly wrong.** business-plans/02 and /12 were
 both filed under it — Skia/ImageSharp and PdfSharp producing different per-line/per-cell heights,
