@@ -6,7 +6,7 @@ Each finding: `severity | backends | pages | description`. `all` = skia+imagesha
 
 **This file lists only what is still wrong.** A finding is deleted the moment it lands, and its durable knowledge moves to `docs/word-features.md` (feature behaviour and the evidence behind it), `docs/floating-art-pipeline.md` (anchored/floating art), `docs/html-import.md` (HTML and AltChunk input), `src/page_counts.md` (page-count experiment ledger) or `docs/fidelity-audit.md` (comparison method). Nothing that has shipped is described here — for how a fix was reached, read those docs and the git history. This is a temporary working document; it is expected to shrink to nothing.
 
-**Open: 191 major, 372 medium, 255 minor = 818 findings across 256 scenarios.** Established by a full page-by-page re-audit on 2026-07-20 and maintained by deletion since; the 2026-07-21..23 fix batches were pruned as they landed. Findings that predate the current baselines are suspect where they describe vertical drift — the height model changed underneath them and they have not all been re-measured.
+**Open: 191 major, 362 medium, 254 minor = 807 findings across 255 scenarios.** Established by a full page-by-page re-audit on 2026-07-20 and maintained by deletion since; the 2026-07-21..23 fix batches were pruned as they landed. Findings that predate the current baselines are suspect where they describe vertical drift — the height model changed underneath them and they have not all been re-measured.
 
 ## Systemic issues (cross-scenario root causes)
 
@@ -237,7 +237,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MINOR | skia,imagesharp | p1 | Footer contact block (rule line, JI-MIN AN, phone/site columns) shifted down ~0.2in as a unit.
 - MINOR | pdf | p1,p2,p3,p4,p5,p6 | Uniform small downward drift (~10px) of body content producing ghost doubling of text and table rules.
 - MEDIUM | html | - | Hero wheat photo shows the sharp un-blurred original, missing Word's soft-focus treatment.
-- MEDIUM | html | - | Financial projection values ($750,000 / $1.2 MILLION / $2.0 MILLION) rendered in italic; Word renders them upright.
 
 ### business-plans/03
 
@@ -505,7 +504,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### compatibility_mode_14
 
-- MEDIUM | html | - | education/work entry headings (Jasper University, Bellows College, Lamna Healthcare, Tyler Stein MD, City Hospital) render italic; they are upright in Word
 - MINOR | html | - | blank space above each education/work entry heading is collapsed, entries run together noticeably tighter than Word
 
 ### complex_spacing
@@ -531,7 +529,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - MEDIUM | all | p1 | header contact line wraps to two lines ("someone@example.com" drops to a second line; Word fits "T: … // W: … // E: …" on one line), pushing the whole letter below down one line
 - MINOR | all | p1 | paragraph 2 wraps the whole word "evidence-based" to the next line where Word breaks at the hyphen ("…implementing evidence-" / "based medicine…")
-- MEDIUM | html | - | greeting "DEAR JOZI KOS," rendered italic (Word shows upright bold)
 
 ### cover-letters/02
 
@@ -743,10 +740,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MEDIUM | all | p1 | 20px div padding and 30px vertical margins collapsed — "Content inside padded div" not inset and "Paragraph with extra vertical margins" sits tight against its neighbors
 - MAJOR | html | - | Same three backgrounds and the blue border missing in HTML export
 - MEDIUM | html | - | 50px/100px left-margin indents lost in HTML export
-
-### html_headings
-
-- MEDIUM | html | - | Heading 4 and Heading 6 rendered italic in the HTML export (upright bold in Word and all raster/PDF outputs)
 
 ### html_images
 
@@ -1400,7 +1393,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 ### resumes/01
 
 - MINOR | all | p1 | body content drifts upward slightly (~8-15px by the bottom of the page)
-- MEDIUM | html | - | employer/school heading lines ("Jasper University", "Bellows College", "Lamna Healthcare | General Practitioner", etc.) rendered italic where Word shows them upright bold
 
 ### resumes/02
 
@@ -1414,7 +1406,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 - MEDIUM | skia,imagesharp | p1 | SKILLS entries vertically compressed (bar touches label, no gap between entries) so the block ends ~135px higher than Word; PDF spacing matches Word
 - MEDIUM | all | p1 | Education text "Laude" broken mid-word ("...Biology, Cum Lau / de, outstanding...") where Word wraps before "Laude"
 - MEDIUM | pdf | p1 | Right-column HOBBIES/CONTACT blocks drift progressively lower (~2.5 line heights by the CONTACT block)
-- MEDIUM | html | - | Bold upright runs render italic: job titles (Lamna Healthcare / General Practitioner etc.), university names, skill labels, and Phone/Website/Email sub-headers
 - MINOR | html | - | Email address styled as blue underlined hyperlink; Word shows plain black text
 
 ### resumes/04
@@ -1426,7 +1417,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 ### resumes/05
 
 - MEDIUM | all | p1 | Vertical spacing compressed throughout: right-column sections end ~107px (4+ lines) higher than Word (REFERENCES at y1331 vs 1438) and the sidebar box is ~100px shorter
-- MINOR | html | - | Date-range lines (JAN 20XX – AUG 20XX etc.) render italic; Word shows upright
 
 ### resumes/06
 
@@ -1655,7 +1645,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 - MEDIUM | all | p1,p2 | checklist line spacing compressed — columns end ~0.85-0.95" higher than Word (e.g. "Obtain a marriage license" / "Remember to eat something"); p2 first item fits one line vs Word's two
 - MEDIUM | all | p1 | right-column items lose the gap between checkbox and text (box glued to text: "☐Choose the members of your wedding party.")
 - MAJOR | html | - | column divider rule renders full page height crossing the title and garland, and the header garland stacks as three repeated bands above the title instead of one composed arrangement
-- MEDIUM | html | - | red section headings rendered italic (upright in Word)
 
 ### wedding/05
 
@@ -1667,7 +1656,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 - MEDIUM | all | p1,p2 | card rows too short: fold/borders sit ~1in higher than Word and second-card content ~0.9in high; p2 bottom flower clusters straddle the card borders, p1 card2's poppy dips into the pink banner corner
 - MEDIUM | all | p2 | invitation text line spacing compressed ~30%, block ends ~0.5in higher
-- MEDIUM | html | - | date block ("Saturday the Twenty-First of June" ... "Reception to Follow") rendered italic; upright in Word
 - MINOR | html | - | decorative florals exported as a vertical stack of standalone images outside the card panels
 
 ### wedding/08
@@ -1677,7 +1665,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 - MEDIUM | all | p1,p2 | card panels shorter than Word (p1 borders end ~2in early, p2 ~0.4in) with content blocks 0.4-0.8in higher (Thanks-and-Dedication and time/venue blocks)
 - MEDIUM | all | p1 | "dinner and dancing to follow" rendered upright instead of italic
 - MAJOR | html | - | green circled "&" badge missing
-- MEDIUM | html | - | "00:00 PM" and "VENUE/PLACE" italicized in HTML; upright in Word
 
 ### wedding/09
 
@@ -1685,7 +1672,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 - MAJOR | all | p1 | card2's relocated "on our wedding day"/banner corner collides with the poppy image (text drawn over the flower; pdf card1 poppy also overlaps the yellow "&" box)
 - MEDIUM | all | p2 | invitation text line spacing compressed ~30%, block ends ~0.5in higher
 - MEDIUM | all | p2 | bottom purple/yellow cluster sits on the card boundary/page bottom instead of inside the cards
-- MEDIUM | html | - | date block ("Saturday the Twenty-First of June" ...) rendered italic; upright in Word
 - MINOR | html | - | decorative florals exported as a vertical stack of standalone images outside the card panels
 
 ### wedding/10
