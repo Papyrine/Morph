@@ -318,16 +318,27 @@ static class DocumentExportHelpers
         Math.Abs(left.CharacterSpacingPoints - right.CharacterSpacingPoints) < 0.01;
 
     /// <summary>
-    /// The ordinal an ordered list starts at, recovered from the first item's rendered marker
-    /// text — "10." → 10, "(3)" → 3, "2.4." (multilevel) → 4. The model keeps only the rendered
-    /// marker, so this is how a <c>w:startOverride</c> (or a list continuing an earlier one)
-    /// survives into <c>&lt;ol start&gt;</c> / a Markdown ordinal. The last integer wins because
-    /// multilevel markers put the item's own counter last. Null for non-numeric markers ("a)",
-    /// "iv.") — those fall back to 1, matching the previous behaviour.
+    /// The ordinal an ordered list starts at, recovered from the first item's rendered marker text
+    /// — "10." → 10, "(3)" → 3, "2.4." (multilevel) → 4, and, reading the level's
+    /// <see cref="NumberingInfo.Format"/>, "IV." → 4 and "d)" → 4. The model keeps only the
+    /// rendered marker, so this is how a <c>w:startOverride</c>, a list continuing an earlier one,
+    /// or a list resuming after intervening body text (Word keeps one running counter; the exporter
+    /// re-opens a fresh <c>&lt;ol&gt;</c> each time) survives into <c>&lt;ol start&gt;</c> / a
+    /// Markdown ordinal instead of restarting at 1. Null when the marker carries no parseable
+    /// ordinal — those fall back to 1.
     /// </summary>
-    public static int? ListStartNumber(NumberingInfo numbering)
+    public static int? ListStartNumber(NumberingInfo numbering) =>
+        numbering.Format switch
+        {
+            ListNumberFormat.UpperRoman or ListNumberFormat.LowerRoman => RomanMarkerValue(numbering.Text),
+            ListNumberFormat.UpperLetter or ListNumberFormat.LowerLetter => LetterMarkerValue(numbering.Text),
+            _ => DecimalMarkerValue(numbering.Text)
+        };
+
+    // The last integer in the marker wins because multilevel markers put the item's own counter
+    // last ("2.4." → 4). A digit run over six places is treated as noise, not an ordinal.
+    static int? DecimalMarkerValue(string text)
     {
-        var text = numbering.Text;
         int? result = null;
         for (var index = 0; index < text.Length; index++)
         {
@@ -342,8 +353,6 @@ static class DocumentExportHelpers
                 index++;
             }
 
-            // Cap the digit run so a pathological marker can't overflow; 6 digits is far beyond
-            // any real list ordinal.
             if (index - start <= 6)
             {
                 result = int.Parse(text.AsSpan(start, index - start), CultureInfo.InvariantCulture);
@@ -351,6 +360,68 @@ static class DocumentExportHelpers
         }
 
         return result;
+    }
+
+    // Converts the leading run of roman-numeral letters ("IV." → 4), case-insensitive, using the
+    // standard subtractive rule. Null when the marker opens with no roman letter.
+    static int? RomanMarkerValue(string text)
+    {
+        var value = 0;
+        var previous = 0;
+        var matched = 0;
+        foreach (var character in text)
+        {
+            var digit = char.ToUpperInvariant(character) switch
+            {
+                'I' => 1,
+                'V' => 5,
+                'X' => 10,
+                'L' => 50,
+                'C' => 100,
+                'D' => 500,
+                'M' => 1000,
+                _ => 0
+            };
+            if (digit == 0)
+            {
+                // Stop at the first non-roman character once the numeral has begun (the "." / ")"
+                // separator); tolerate any leading noise before it.
+                if (matched > 0)
+                {
+                    break;
+                }
+
+                continue;
+            }
+
+            value += previous != 0 && previous < digit ? digit - 2 * previous : digit;
+            previous = digit;
+            matched++;
+        }
+
+        return matched > 0 ? value : null;
+    }
+
+    // Converts the leading run of letters as a bijective base-26 ordinal ("a" → 1, "z" → 26,
+    // "aa" → 27), case-insensitive. Null when the marker opens with no letter.
+    static int? LetterMarkerValue(string text)
+    {
+        var value = 0;
+        var matched = 0;
+        foreach (var character in text)
+        {
+            if (char.IsAsciiLetter(character))
+            {
+                value = value * 26 + (char.ToUpperInvariant(character) - 'A' + 1);
+                matched++;
+            }
+            else if (matched > 0)
+            {
+                break;
+            }
+        }
+
+        return matched > 0 ? value : null;
     }
 
     /// <summary>

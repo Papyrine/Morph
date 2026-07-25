@@ -17,7 +17,7 @@ Table of contents
 
 [Key to success 1](#_Toc198312388)
 
-1. [**Description of business** **1**](#_Toc198312389)
+2. [**Description of business** **1**](#_Toc198312389)
 
 [Company ownership/legal entity 2](#_Toc198312390)
 
@@ -41,7 +41,7 @@ Table of contents
 
 [Start-up/acquisition summary 5](#_Toc198312400)
 
-1. [**Marketing** **5**](#_Toc198312401)
+3. [**Marketing** **5**](#_Toc198312401)
 
 [Market analysis 6](#_Toc198312402)
 
@@ -55,7 +55,7 @@ Table of contents
 
 [Strategy and implementation 7](#_Toc198312407)
 
-1. [**Appendix** **8**](#_Toc198312408)
+4. [**Appendix** **8**](#_Toc198312408)
 
 [Start-up expenses 8](#_Toc198312409)
 

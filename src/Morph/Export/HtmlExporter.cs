@@ -757,9 +757,20 @@ static class HtmlExporter
                 Indent(depth).Append('<').Append(tag);
                 if (ordered)
                 {
+                    var numbering = nodes[index].Paragraph.Properties.Numbering!;
+
+                    // Word's roman/letter markers (w:numFmt) become the CSS counter style — an <ol>
+                    // defaults to decimal, so without this every "I."/"a)" list renders "1.". Only
+                    // the four non-decimal styles need an override; decimal inherits and stays clean.
+                    var listStyle = ListStyleType(numbering.Format);
+                    if (listStyle != null)
+                    {
+                        builder.Append(" style=\"list-style-type: ").Append(listStyle).Append('"');
+                    }
+
                     // Carry the real start ordinal ("10." after a w:startOverride) so restarted /
                     // continued lists keep their numbers.
-                    var start = DocumentExportHelpers.ListStartNumber(nodes[index].Paragraph.Properties.Numbering!);
+                    var start = DocumentExportHelpers.ListStartNumber(numbering);
                     if (start is > 1)
                     {
                         builder.Append(" start=\"").Append(start.Value).Append('"');
@@ -790,6 +801,18 @@ static class HtmlExporter
 
             builder.Append("</li>\n");
         }
+
+        // The CSS list-style-type for an ordered level's counter style, or null for Decimal (the
+        // <ol> default, which needs no override). CSS names letter styles "alpha"; the ")" vs "."
+        // marker suffix isn't expressible via list-style-type and is left as the CSS default ".".
+        static string? ListStyleType(ListNumberFormat format) => format switch
+        {
+            ListNumberFormat.UpperRoman => "upper-roman",
+            ListNumberFormat.LowerRoman => "lower-roman",
+            ListNumberFormat.UpperLetter => "upper-alpha",
+            ListNumberFormat.LowerLetter => "lower-alpha",
+            _ => null
+        };
 
         void WriteTable(TableElement table, int depth)
         {
