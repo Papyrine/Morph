@@ -165,7 +165,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 var lineLeft = ColumnLeft + (float) properties.LeftIndentPoints;
-                items.Add(new PlacedLine(lineLeft, y, line.Width, line.Height, y + line.Ascent, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft)));
+                var baseline = y + line.Ascent;
+                items.Add(new PlacedLine(lineLeft, y, line.Width, line.Height, baseline, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft), MapImages(line, lineLeft, baseline)));
                 y += line.Height;
                 atRegionTop = false;
             }
@@ -362,7 +363,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 {
                     var line = paragraphLines[lineIndex];
                     var lineLeft = contentLeft + (float) properties.LeftIndentPoints;
-                    lines.Add(new PlacedLine(lineLeft, cellY, line.Width, line.Height, cellY + line.Ascent, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft)));
+                    var baseline = cellY + line.Ascent;
+                    lines.Add(new PlacedLine(lineLeft, cellY, line.Width, line.Height, baseline, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft), MapImages(line, lineLeft, baseline)));
                     cellY += line.Height;
                 }
 
@@ -464,6 +466,25 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             return runs;
+        }
+
+        // Projects a laid-out line's inline images to placed images: the line's left edge plus each
+        // image's offset, with its bottom sitting on the text baseline.
+        static IReadOnlyList<PlacedImage> MapImages(LaidOutLine line, float lineLeft, float baseline)
+        {
+            if (line.Images.Count == 0)
+            {
+                return [];
+            }
+
+            var images = new PlacedImage[line.Images.Count];
+            for (var imageIndex = 0; imageIndex < line.Images.Count; imageIndex++)
+            {
+                var image = line.Images[imageIndex];
+                images[imageIndex] = new PlacedImage(lineLeft + image.X, baseline - image.Height, image.Width, image.Height, image.Data);
+            }
+
+            return images;
         }
     }
 }
