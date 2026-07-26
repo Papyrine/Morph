@@ -201,12 +201,13 @@ Build alongside the existing renderers; do not delete anything until all three b
       fraction of a percent.
 - [x] **2. Layout-tree types** — landed (`PlacedItem` base carrying the bounding box, with
       `LaidOutDocument`, `LaidOutPage`, `PlacedLine`, `PlacedTableRow`, `PlacedCell`, `MeasuredLine`).
-      `PlacedLine` carries its baseline and the `PlacedRun`s to paint (text + `RunProperties` for
-      font/colour) — one per contiguous source run on the line, so a mixed-format line ("plain **bold**
-      plain") is several runs at their own X and a uniform line is one, and a painter draws without
-      re-measuring. `PlacedTableRow` carries its `PlacedCell`s (box, shading, borders, and the cell's
-      laid-out content). Each run's X is the canonical pen position at its start; per-glyph advances (exact
-      intra-run boundaries) and the image/rule/shape placed-item kinds attach as later slices.
+      `PlacedLine` carries its baseline and the `PlacedRun`s to paint (text, width and `RunProperties` for
+      font/colour/decoration) — one per contiguous source run on the line, so a mixed-format line ("plain
+      **bold** plain") is several runs at their own X and a uniform line is one, and a painter draws
+      without re-measuring. `PlacedTableRow` carries its `PlacedCell`s (box, shading, borders, and the
+      cell's laid-out content). Each run's X is the canonical pen position at its start, its width the pen
+      distance to the next boundary; per-glyph advances (exact intra-run boundaries) and the
+      image/rule/shape placed-item kinds attach as later slices.
 - [x] **3. `Fragmenter` — block-flow + table + column slices landed** (`Fragmenter`,
       `CanonicalFragmenterTests`, `FragmenterPageCountTests`). Multi-column flow with **line-level
       page/column breaks** (a paragraph too tall for the space left splits at a line boundary and
@@ -246,13 +247,16 @@ Build alongside the existing renderers; do not delete anything until all three b
       render. **List markers landed**: a list paragraph's first line carries its marker as a run in the
       hanging-indent gutter (bullet in the embedded "Morph Bullets" font or number in the paragraph font,
       `numbering.Text` and colour mirroring `PdfTextEngine`), positioned a hanging indent left of the text
-      — bullets and numbers with correct hanging-indent continuation confirmed in a render. Still to land
-      before it can replace the production `PdfRenderer`: paragraph/run decorations (underline, strike,
-      highlight, paragraph borders, shading), tabs, images/shapes, in-cell vertical alignment and nested
-      tables, and per-glyph advances (exact intra-run boundaries — the painter currently anchors each run
-      at its canonical start and lets the font library fill the run). Then repoint `Morph.Pdf` at
-      `LaidOutDocument`, delete `PdfTextEngine`'s pagination, and validate the full container suite (PDF
-      page-count scoreboard unchanged or better, AE/SSIM neutral).
+      — bullets and numbers with correct hanging-indent continuation confirmed in a render. **Run decorations
+      landed**: each run paints its highlight (behind the glyphs, over the line box), underline (below the
+      baseline) and strikethrough (through the x-height), coloured and sized from `RunProperties` with the
+      geometry from `PdfTextEngine` — underline, strike, yellow/green highlight, combinations, and a
+      wrapped underlined run underlined on both lines all confirmed in a render. Still to land before it
+      can replace the production `PdfRenderer`: paragraph borders and shading, tabs, images/shapes, in-cell
+      vertical alignment and nested tables, and per-glyph advances (exact intra-run boundaries — the
+      painter currently anchors each run at its canonical start and lets the font library fill the run).
+      Then repoint `Morph.Pdf` at `LaidOutDocument`, delete `PdfTextEngine`'s pagination, and validate the
+      full container suite (PDF page-count scoreboard unchanged or better, AE/SSIM neutral).
 - [ ] **6. `SkiaPainter` + `ImageSharpPainter`** — the payoff step. Both become thin painters of the
       same tree; the whole-paragraph pagination and the duplicated `TextRenderer` layout code delete.
       This is where the raster knife-edges collapse (raster now paginates identically to PDF — one
