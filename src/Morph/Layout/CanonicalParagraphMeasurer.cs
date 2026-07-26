@@ -17,16 +17,34 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 {
     public List<float> LayoutParagraphForMeasurement(ParagraphElement paragraph, float maxWidth)
     {
-        var props = paragraph.Properties;
-        var lines = Wrap(paragraph, maxWidth);
+        var lines = LayoutLines(paragraph, maxWidth);
         var heights = new List<float>(lines.Count);
         foreach (var line in lines)
         {
-            heights.Add((float) CanonicalTextMeasurer.LineHeightPoints(
-                line.Pitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints));
+            heights.Add(line.Height);
         }
 
         return heights;
+    }
+
+    /// <summary>
+    /// The paragraph's wrapped lines with both width and laid-out height — the fragmenter's richer view
+    /// over <see cref="LayoutParagraphForMeasurement"/> (which returns heights only for the shared
+    /// table-height math).
+    /// </summary>
+    public IReadOnlyList<MeasuredLine> LayoutLines(ParagraphElement paragraph, float maxWidth)
+    {
+        var props = paragraph.Properties;
+        var wrapped = Wrap(paragraph, maxWidth);
+        var result = new MeasuredLine[wrapped.Count];
+        for (var i = 0; i < wrapped.Count; i++)
+        {
+            var height = (float) CanonicalTextMeasurer.LineHeightPoints(
+                wrapped[i].Pitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints);
+            result[i] = new(wrapped[i].Width, height);
+        }
+
+        return result;
     }
 
     public float MeasureParagraphNaturalWidth(ParagraphElement paragraph, float maxWidth)
@@ -46,12 +64,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     public float MeasureParagraphHeightWithWidth(ParagraphElement paragraph, float maxWidth)
     {
         var props = paragraph.Properties;
+        var lines = LayoutLines(paragraph, maxWidth);
         var total = (float) props.SpacingBeforePoints;
-        var lines = Wrap(paragraph, maxWidth);
         foreach (var line in lines)
         {
-            total += (float) CanonicalTextMeasurer.LineHeightPoints(
-                line.Pitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints);
+            total += line.Height;
         }
 
         // An empty paragraph is a visual spacer — Word emits its mark's line but not the after-spacing.
