@@ -118,7 +118,7 @@ sealed class Region                          // a constrained box that holds flo
 
 Columns stop being special: a 2-column section is a region whose `Next` is the second column whose
 `Next` is the first column of the following page. `image_wrap_square` then works because the
-continuous section simply builds a 2-column region chain anchored at the break Y and the fragmenter
+continuous section builds a 2-column region chain anchored at the break Y and the fragmenter
 fills it.
 
 ### The fragmenter (the heart — the thing raster lacks)
@@ -204,7 +204,7 @@ Build alongside the existing renderers; do not delete anything until all three b
 ## Testing strategy (a large secondary win)
 
 The current suite infers layout from rasterized PNGs (the entire struggle behind `src/page_counts.md`).
-With a retained tree you can **snapshot the layout tree as text** — page count, region rectangles, line
+With a retained tree the **layout tree can be snapshotted as text** — page count, region rectangles, line
 Y-positions, break points — and diff it *directly* against Word's XPS box geometry, decoupled from
 rasterization. That turns "why is this page 2px off" into a structural diff. Keep the existing
 Verify-PNG scenario tests as the painter-fidelity gate; add layout-tree snapshots as the pagination gate.
