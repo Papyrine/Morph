@@ -165,9 +165,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 var lineLeft = ColumnLeft + (float) properties.LeftIndentPoints;
-                IReadOnlyList<PlacedRun> runs = string.IsNullOrEmpty(line.Text)
-                    ? []
-                    : [new PlacedRun(lineLeft, line.Text, line.FontProperties)];
+                var runs = new PlacedRun[line.Runs.Count];
+                for (var runIndex = 0; runIndex < line.Runs.Count; runIndex++)
+                {
+                    var run = line.Runs[runIndex];
+                    runs[runIndex] = new PlacedRun(lineLeft + run.X, run.Text, run.Properties);
+                }
+
                 items.Add(new PlacedLine(lineLeft, y, line.Width, line.Height, y + line.Ascent, paragraph, lineIndex, runs));
                 y += line.Height;
                 atRegionTop = false;

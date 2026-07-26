@@ -132,4 +132,39 @@ public class CanonicalFragmenterTests
         await Assert.That(page2First.X).IsEqualTo(20f).Within(0.5f);
         await Assert.That(page2First.Y).IsEqualTo(20f).Within(0.01f);
     }
+
+    [Test]
+    public async Task A_uniform_line_is_one_run_carrying_the_whole_text()
+    {
+        var line = (PlacedLine) Fragmenter.Layout([P("hello world")], Page(400)).Pages[0].Items[0];
+
+        await Assert.That(line.Runs.Count).IsEqualTo(1);
+        await Assert.That(line.Runs[0].Text).IsEqualTo("hello world");
+        await Assert.That(line.Runs[0].X).IsEqualTo(line.X).Within(0.01f);
+    }
+
+    [Test]
+    public async Task A_mixed_format_line_splits_into_a_run_per_source_run()
+    {
+        var paragraph = new ParagraphElement
+        {
+            Runs =
+            [
+                new Run { Text = "plain ", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } },
+                new Run { Text = "bold", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11, Bold = true } }
+            ],
+            Properties = new()
+        };
+
+        var line = (PlacedLine) Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items[0];
+
+        // One run per source run, each with its own formatting, placed left to right.
+        await Assert.That(line.Runs.Count).IsEqualTo(2);
+        await Assert.That(line.Runs[0].Text).IsEqualTo("plain ");
+        await Assert.That(line.Runs[0].Properties.Bold).IsFalse();
+        await Assert.That(line.Runs[1].Text).IsEqualTo("bold");
+        await Assert.That(line.Runs[1].Properties.Bold).IsTrue();
+        await Assert.That(line.Runs[0].X).IsEqualTo(line.X).Within(0.01f);
+        await Assert.That(line.Runs[1].X > line.Runs[0].X).IsTrue();
+    }
 }
