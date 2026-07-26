@@ -115,12 +115,12 @@ public class CanonicalWrapAgreementTests
         }
 
         await Assert.That(compared).IsGreaterThan(100);
-        // Measured at ~98.5% on this sample. The residual is two explained classes, not model error:
-        // (1) per-glyph space rounding occasionally over-wraps a long line by one — the inter-word-space
-        // elasticity deferred from step 1b; (2) hanging-indent paragraphs, whose continuation-line width
-        // this diagnostic doesn't model. Agreement above 95% is the signal that the canonical model
-        // reproduces the backend's (hence Word's) line breaking.
-        await Assert.That(rate > 0.95).IsTrue();
+        // Measured at ~99.3% on this sample once the measurer switched to pen-position rounding (the
+        // whole-line total tracks the linear ideal, so per-glyph error can't accumulate and over-wrap).
+        // The lone residual is one Calibri 10pt paragraph that sits a sub-pixel from its wrap boundary.
+        // Agreement above 97% is the signal that the canonical model reproduces the backend's (hence
+        // Word's) line breaking.
+        await Assert.That(rate > 0.97).IsTrue();
     }
 
     // Paragraphs whose every visible run shares one font family, size, weight and slant — so a single
