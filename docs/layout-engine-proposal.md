@@ -203,23 +203,27 @@ Build alongside the existing renderers; do not delete anything until all three b
       `LaidOutDocument`, `LaidOutPage`, `PlacedLine`, `PlacedTableRow`, `MeasuredLine`). Line- and
       row-level placement for now; the glyph-run breakdown (`PlacedGlyphRun`) and the image/rule/shape
       placed-item kinds attach as painter slices land.
-- [x] **3. `Fragmenter` — block-flow + table slices landed** (`Fragmenter`, `CanonicalFragmenterTests`,
-      `FragmenterPageCountTests`). Single-column flow with **line-level page breaks** (a paragraph too
-      tall for the space left splits at a line boundary and continues — the thing the raster backends
-      cannot do) and **row-level table breaks** (a table taller than a page flows row by row, re-emitting
-      `w:tblHeader` rows and absorbing a trailing run of empty rows), reusing the shared
-      `TableLayout`/`TableHeightCalculator` with the canonical measurer so the two paginate a table
-      identically. Plus the measured rules: max-collapse paragraph spacing, space-before dropped at a
-      broken page top, empty-paragraph mark line, explicit-break blank pages (experiment 18), an exact
-      bottom-of-page fit for paragraph flow, and the backend's rounding tolerances mirrored for table fit.
-      **Validated: 96/96 = 100% on the corpus's pure-block documents, 150/153 = 98.0% once plain text
-      tables are added** — one backend-independent pass reproducing Word's pagination. The three misses
-      are sub-line knife-edges (a table tipping onto an extra page, a trailing line spilling — resumes/13
-      is one Word's own backends straddle) plus the document-dependent question of how much
-      paragraph-after-spacing precedes a table (a probe would settle it). Remaining slices: `Region` +
-      multi-column flow and column breaks; widow/orphan and keep-next/keep-lines; float exclusions (reuse
-      `ResolveFlowBand`); images and nested tables inside a cell; floating tables; header/footer band
-      height.
+- [x] **3. `Fragmenter` — block-flow + table + column slices landed** (`Fragmenter`,
+      `CanonicalFragmenterTests`, `FragmenterPageCountTests`). Multi-column flow with **line-level
+      page/column breaks** (a paragraph too tall for the space left splits at a line boundary and
+      continues in the next column or page — the thing the raster backends cannot do) and **row-level
+      table breaks** (a table taller than a column flows row by row, re-emitting `w:tblHeader` rows and
+      absorbing a trailing run of empty rows), reusing the shared `TableLayout`/`TableHeightCalculator`
+      with the canonical measurer so the two paginate a table identically. Content fills column 0 to the
+      bottom, then column 1, and the last column overflowing starts a page; `w:br` column breaks advance
+      the column. Plus the measured rules: max-collapse paragraph spacing, space-before dropped at a broken
+      region (column or page) top, empty-paragraph mark line, explicit-break blank pages (experiment 18),
+      an exact bottom-of-region fit for paragraph flow, and the backend's rounding tolerances mirrored for
+      table fit. **Validated: 96/96 = 100% on the corpus's pure-block documents, 150/153 = 98.0% once plain
+      text tables are added, 154/157 = 98.1% with multi-column flow — all four corpus column documents
+      match** — one backend-independent pass reproducing Word's pagination. The three misses are sub-line
+      knife-edges (a table tipping onto an extra page, a trailing line spilling — resumes/13 is one Word's
+      own backends straddle) plus the document-dependent question of how much paragraph-after-spacing
+      precedes a table (a probe would settle it). Columns are equal-width from one `PageSettings`.
+      Remaining slices: per-section geometry (a section break switching column count or page size,
+      including the continuous mid-page kind — the newsletter masthead → body case); widow/orphan and
+      keep-next/keep-lines; float exclusions (reuse `ResolveFlowBand`); images and nested tables inside a
+      cell; floating tables; header/footer band height.
 - [ ] **4. `DocumentLayoutEngine`** — section walk, per-page region chains, header/footer bands.
       Fix `ParseSectionBreak` (`DocumentParser` ~9318) to read the *following* section's `w:type`
       (ECMA-376 §17.6.22) so continuous multi-column sections are recognised.

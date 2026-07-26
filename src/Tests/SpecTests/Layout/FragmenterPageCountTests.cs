@@ -1,9 +1,9 @@
 /// <summary>
 /// The crown validation for step 3 (<c>docs/layout-engine-proposal.md</c>): does the
 /// <see cref="Fragmenter"/> paginate real corpus documents to the same page count as Word
-/// (<c>expected_*.png</c>)? The block-flow and table slices handle single-column paragraph flow plus
-/// tables whose cells hold plain text paragraphs, so this compares on that subset — excluding floats,
-/// inline art, multi-column sections, mid-document section breaks, floating tables, and tables with
+/// (<c>expected_*.png</c>)? The block-flow, table and column slices handle multi-column paragraph flow
+/// (including column breaks) plus tables whose cells hold plain text paragraphs, so this compares on that
+/// subset — excluding floats, inline art, mid-document section breaks, floating tables, and tables with
 /// images or nested tables in a cell (all later slices). Where it matches, the canonical measurer plus
 /// the height-model rules reproduce Word's pagination from one backend-independent pass.
 /// </summary>
@@ -13,7 +13,7 @@ public class FragmenterPageCountTests
     static readonly Fragmenter Fragmenter = new(LayoutTestFonts.Measurer);
 
     [Test]
-    public async Task Fragmenter_page_count_matches_Word_on_block_and_simple_table_documents()
+    public async Task Fragmenter_page_count_matches_Word_on_block_table_and_column_documents()
     {
         var compared = 0;
         var matched = 0;
@@ -39,7 +39,7 @@ public class FragmenterPageCountTests
                 continue;
             }
 
-            if (!IsBlockFlowOrSimpleTable(document))
+            if (!IsBlockTableOrColumnFlow(document))
             {
                 continue;
             }
@@ -65,25 +65,22 @@ public class FragmenterPageCountTests
         }
 
         await Assert.That(compared).IsGreaterThan(20);
-        // The block-flow slice alone matched every pure-block document (96/96); adding simple text tables
-        // widens the set to 153 and holds 150 (98.0%). The three misses are sub-line knife-edges where a
-        // table tips onto an extra page or a trailing line spills — resumes/13 is one Word's own backends
-        // straddle. The threshold is calibrated just under the measured rate; a regression that drops
-        // another document out of agreement fails here.
+        // The block-flow slice matched every pure-block document (96/96); adding plain text tables and
+        // multi-column flow widens the set to 157 and holds 154 (98.1%). All four corpus column documents
+        // match. The three misses are sub-line knife-edges where a table tips onto an extra page or a
+        // trailing line spills — resumes/13 is one Word's own backends straddle. The threshold is
+        // calibrated just under the measured rate; a regression that drops another document out of
+        // agreement fails here.
         await Assert.That(rate > 0.97).IsTrue();
     }
 
-    // Single-column documents whose top-level content is paragraphs (without inline images or shape
-    // groups), plain page breaks, and non-floating tables whose cells hold only such paragraphs — the
-    // shape the block-flow and table slices cover. Everything else (floats, inline art, columns, section
-    // breaks, floating tables, images or nested tables in a cell) is a later slice.
-    static bool IsBlockFlowOrSimpleTable(ParsedDocument document)
+    // Documents whose top-level content is paragraphs (without inline images or shape groups), plain page
+    // and column breaks, and non-floating tables whose cells hold only such paragraphs — the shape the
+    // block-flow, table and column slices cover, at the document's single (equal-width) column geometry.
+    // Everything else (floats, inline art, mid-document section breaks, floating tables, images or nested
+    // tables in a cell) is a later slice.
+    static bool IsBlockTableOrColumnFlow(ParsedDocument document)
     {
-        if (document.PageSettings.ColumnCount > 1)
-        {
-            return false;
-        }
-
         foreach (var element in document.Elements)
         {
             switch (element)
@@ -96,6 +93,7 @@ public class FragmenterPageCountTests
 
                     break;
                 case PageBreakElement:
+                case ColumnBreakElement:
                     break;
                 case TableElement table when IsSimpleTable(table):
                     break;
