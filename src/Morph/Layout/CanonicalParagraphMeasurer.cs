@@ -48,8 +48,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     }
 
     /// <summary>
-    /// The paragraph's wrapped lines with the text and dominant font to paint, plus the baseline offset —
-    /// the fragmenter's view for building <see cref="PlacedLine"/>s. Same wrap as
+    /// The paragraph's wrapped lines with the run segments to paint (text + font per source run) and the
+    /// baseline offset — the fragmenter's view for building <see cref="PlacedLine"/>s. Same wrap as
     /// <see cref="LayoutLines"/>, so heights and page counts are unchanged; this adds only the content.
     /// </summary>
     public IReadOnlyList<LaidOutLine> LayoutLineContents(ParagraphElement paragraph, float maxWidth)
@@ -61,7 +61,23 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         {
             var height = (float) CanonicalTextMeasurer.LineHeightPoints(
                 wrapped[i].Pitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints);
-            result[i] = new(wrapped[i].Width, height, AscentPoints(wrapped[i].FontProperties), wrapped[i].Text, wrapped[i].FontProperties);
+
+            var segments = wrapped[i].Segments;
+            var runs = new LaidOutRun[segments.Count];
+            var ascent = 0f;
+            for (var segment = 0; segment < segments.Count; segment++)
+            {
+                runs[segment] = new(segments[segment].X, segments[segment].Text, segments[segment].Properties);
+                ascent = Math.Max(ascent, AscentPoints(segments[segment].Properties));
+            }
+
+            // An empty mark line has no runs; its baseline still needs the mark's ascent.
+            if (segments.Count == 0)
+            {
+                ascent = AscentPoints(ParagraphFont(paragraph));
+            }
+
+            result[i] = new(wrapped[i].Width, height, ascent, runs);
         }
 
         return result;
@@ -108,11 +124,13 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
     // Pixels is the piece's unrounded linear device-pixel advance; accumulating it per line and
     // quantizing once (PixelsToPoints) is pen-position rounding, which composes across fonts. Text and
-    // Properties are carried only so the wrap can hand a painter each line's content and dominant font —
-    // they never enter the width/pitch arithmetic.
+    // Properties are carried so the wrap can hand a painter each line's run segments — they never enter
+    // the width/pitch arithmetic.
     readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties);
 
-    readonly record struct WrapLine(float Width, float Pitch, string Text, RunProperties FontProperties);
+    readonly record struct WrapSegment(float X, string Text, RunProperties Properties);
+
+    readonly record struct WrapLine(float Width, float Pitch, IReadOnlyList<WrapSegment> Segments);
 
     IReadOnlyList<WrapLine> Wrap(ParagraphElement paragraph, float maxWidth)
     {
@@ -123,12 +141,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         double linePixels = 0, gapPixels = 0;
         float linePitch = 0, gapPitch = 0;
         var lineHasWord = false;
-        var lineText = new StringBuilder();
-        var gapText = new StringBuilder();
-        RunProperties? lineFont = null;
+        var linePieces = new List<Piece>();
+        var gapPieces = new List<Piece>();
 
         void CommitLine() =>
-            lines.Add(new((float) CanonicalTextMeasurer.PixelsToPoints(linePixels), linePitch, lineText.ToString(), lineFont ?? ParagraphFont(paragraph)));
+            lines.Add(new((float) CanonicalTextMeasurer.PixelsToPoints(linePixels), linePitch, BuildSegments(linePieces)));
 
         var index = 0;
         while (index < pieces.Count)
@@ -137,7 +154,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             {
                 gapPixels += pieces[index].Pixels;
                 gapPitch = Math.Max(gapPitch, pieces[index].Pitch);
-                gapText.Append(pieces[index].Text);
+                gapPieces.Add(pieces[index]);
                 index++;
                 continue;
             }
@@ -145,14 +162,12 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // Gather the whole word — every adjacent non-space piece, even across a run boundary.
             double wordPixels = 0;
             float wordPitch = 0;
-            var wordText = new StringBuilder();
-            RunProperties? wordFont = null;
+            var wordPieces = new List<Piece>();
             while (index < pieces.Count && !pieces[index].IsSpace)
             {
                 wordPixels += pieces[index].Pixels;
                 wordPitch = Math.Max(wordPitch, pieces[index].Pitch);
-                wordText.Append(pieces[index].Text);
-                wordFont ??= pieces[index].Properties;
+                wordPieces.Add(pieces[index]);
                 index++;
             }
 
@@ -160,28 +175,29 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             {
                 linePixels = wordPixels;
                 linePitch = wordPitch;
-                lineText.Clear().Append(wordText);
-                lineFont = wordFont;
+                linePieces.Clear();
+                linePieces.AddRange(wordPieces);
                 lineHasWord = true;
             }
             else if (CanonicalTextMeasurer.PixelsToPoints(linePixels + gapPixels + wordPixels) <= wrapWidth)
             {
                 linePixels += gapPixels + wordPixels;
                 linePitch = Math.Max(linePitch, Math.Max(gapPitch, wordPitch));
-                lineText.Append(gapText).Append(wordText);
+                linePieces.AddRange(gapPieces);
+                linePieces.AddRange(wordPieces);
             }
             else
             {
                 CommitLine();
                 linePixels = wordPixels;
                 linePitch = wordPitch;
-                lineText.Clear().Append(wordText);
-                lineFont = wordFont;
+                linePieces.Clear();
+                linePieces.AddRange(wordPieces);
             }
 
             gapPixels = 0;
             gapPitch = 0;
-            gapText.Clear();
+            gapPieces.Clear();
         }
 
         if (lineHasWord)
@@ -191,11 +207,48 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
         if (lines.Count == 0)
         {
-            // An empty paragraph still occupies one line at its mark's pitch, with no text to paint.
-            lines.Add(new(0, MarkPitch(paragraph), "", ParagraphFont(paragraph)));
+            // An empty paragraph still occupies one line at its mark's pitch, with no runs to paint.
+            lines.Add(new(0, MarkPitch(paragraph), []));
         }
 
         return lines;
+    }
+
+    // Coalesces a line's pieces (in order) into one segment per contiguous source run, each anchored at
+    // its canonical pen position: the segment's X is PixelsToPoints of the pixels before it, the same
+    // rounding as the line width, so a painter draws each font at the right offset.
+    static IReadOnlyList<WrapSegment> BuildSegments(List<Piece> linePieces)
+    {
+        var segments = new List<WrapSegment>();
+        double cursor = 0, segmentStart = 0;
+        var segmentText = new StringBuilder();
+        RunProperties? segmentFont = null;
+
+        foreach (var piece in linePieces)
+        {
+            if (segmentFont == null)
+            {
+                segmentFont = piece.Properties;
+                segmentStart = cursor;
+            }
+            else if (!ReferenceEquals(piece.Properties, segmentFont))
+            {
+                segments.Add(new((float) CanonicalTextMeasurer.PixelsToPoints(segmentStart), segmentText.ToString(), segmentFont));
+                segmentText.Clear();
+                segmentFont = piece.Properties;
+                segmentStart = cursor;
+            }
+
+            segmentText.Append(piece.Text);
+            cursor += piece.Pixels;
+        }
+
+        if (segmentFont != null)
+        {
+            segments.Add(new((float) CanonicalTextMeasurer.PixelsToPoints(segmentStart), segmentText.ToString(), segmentFont));
+        }
+
+        return segments;
     }
 
     static RunProperties ParagraphFont(ParagraphElement paragraph) =>
