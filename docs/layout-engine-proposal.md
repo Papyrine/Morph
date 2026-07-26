@@ -1,6 +1,6 @@
 # Layout engine proposal — separate layout from painting
 
-**Status: proposal, not implemented.** This is the architecture to reach for when Word-fidelity
+**Status: proposal; step 1 (the canonical measurer) landed, steps 2–7 open.** This is the architecture to reach for when Word-fidelity
 pagination matters more than incremental effort. It is the "if time and effort are no object"
 answer to the columns/height-model work tracked in `src/page_counts.md` and `src/todo.md` (#2, #5,
 the columns item under image_wrap_square). Nothing here has landed; the current renderers are
@@ -180,9 +180,14 @@ target, versus three that cancel differently and mask the model).
 
 Build alongside the existing renderers; do not delete anything until all three backends consume the tree.
 
-- [ ] **1. `CanonicalTextMeasurer`** — promote the height + advance models into one measurer
-      implementing today's `IParagraphMeasurer` surface plus line-box production. Unit-test its
-      wrap points and line heights directly against Word XPS geometry (decoupled from any raster).
+- [x] **1. `CanonicalTextMeasurer`** — landed (`src/Morph/Fonts/FontMetrics.cs`,
+      `FontMetricsReader.cs`, `src/Morph/Layout/CanonicalTextMeasurer.cs`, `CanonicalMetricsTests`).
+      A backend-independent reader pulls `head`/`hhea`/`hmtx`/`cmap` from the font file; the measurer
+      computes line heights (Auto/Exactly/AtLeast), the pixel-quantized advance width, and greedy
+      wrap. Line pitch is pinned to the XPS numbers (Aptos 12pt = 14.65pt, Calibri 10.8pt = 13.18pt)
+      and advances to an independent parse. Remaining before step 2: the `IParagraphMeasurer` surface
+      adapter, per-font inter-word-space elasticity, and validating wrap points against Word corpus
+      line breaks (an integration gate, not a unit test).
 - [ ] **2. Layout-tree types** (`LaidOutDocument` … `PlacedGlyphRun`) in `src/Morph/Layout/`.
 - [ ] **3. `Region` + `Fragmenter`** — port the 21 rules from the three render loops into the single
       fragmenter. Start with block flow + page breaks; then columns; then widow/orphan/keep; then
