@@ -56,6 +56,7 @@ static class PdfPainter
 
     static void PaintLine(PdfRenderContext context, XGraphics graphics, PlacedLine line)
     {
+        var ascent = line.Baseline - line.Y;
         foreach (var run in line.Runs)
         {
             if (string.IsNullOrEmpty(run.Text))
@@ -63,9 +64,30 @@ static class PdfPainter
                 continue;
             }
 
-            var font = context.GetFont(run.Properties);
-            var brush = context.GetBrush(PdfRenderContext.ParseColor(run.Properties.ColorHex));
-            graphics.DrawString(run.Text, font, brush, new XPoint(run.X, line.Baseline), baselineFormat);
+            var properties = run.Properties;
+            var color = PdfRenderContext.ParseColor(properties.ColorHex);
+
+            // Highlight (w:highlight / run shading) fills behind the glyphs, over the line box.
+            if (!string.IsNullOrEmpty(properties.BackgroundColorHex))
+            {
+                graphics.DrawRectangle(context.GetBrush(PdfRenderContext.ParseColor(properties.BackgroundColorHex)), run.X, line.Y, run.Width, line.Height);
+            }
+
+            graphics.DrawString(run.Text, context.GetFont(properties), context.GetBrush(color), new XPoint(run.X, line.Baseline), baselineFormat);
+
+            // Underline below the baseline, strike through the x-height — geometry from PdfTextEngine.
+            var strokeWidth = Math.Max(0.5, properties.FontSizePoints / 16);
+            if (properties.Underline)
+            {
+                var underlineY = line.Baseline + properties.FontSizePoints * 0.12;
+                graphics.DrawLine(context.GetPen(color, strokeWidth), run.X, underlineY, run.X + run.Width, underlineY);
+            }
+
+            if (properties.Strikethrough)
+            {
+                var strikeY = line.Baseline - ascent * 0.3;
+                graphics.DrawLine(context.GetPen(color, strokeWidth), run.X, strikeY, run.X + run.Width, strikeY);
+            }
         }
     }
 

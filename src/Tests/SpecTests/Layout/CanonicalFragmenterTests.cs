@@ -166,6 +166,9 @@ public class CanonicalFragmenterTests
         await Assert.That(line.Runs[1].Properties.Bold).IsTrue();
         await Assert.That(line.Runs[0].X).IsEqualTo(line.X).Within(0.01f);
         await Assert.That(line.Runs[1].X > line.Runs[0].X).IsTrue();
+        // Each run has a positive width, and the runs tile — the second starts where the first ends.
+        await Assert.That(line.Runs[0].Width > 0).IsTrue();
+        await Assert.That(line.Runs[1].X).IsEqualTo(line.Runs[0].X + line.Runs[0].Width).Within(0.01f);
     }
 
     [Test]

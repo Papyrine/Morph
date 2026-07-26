@@ -443,12 +443,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 ColorHex = numbering.ColorHex ?? firstProperties.ColorHex
             };
 
+            var markerWidth = measurer.MeasureRunWidth(numbering.Text, markerProperties);
             var hanging = (float) paragraph.Properties.HangingIndentPoints;
             var markerX = hanging > 0.01f
                 ? lineLeft - hanging
-                : lineLeft - measurer.MeasureRunWidth(numbering.Text, markerProperties) - 3f;
+                : lineLeft - markerWidth - 3f;
 
-            return new PlacedRun(markerX, numbering.Text, markerProperties);
+            return new PlacedRun(markerX, markerWidth, numbering.Text, markerProperties);
         }
 
         // Projects a laid-out line's run segments to placed runs at absolute X (the line's left edge plus
@@ -459,7 +460,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             for (var runIndex = 0; runIndex < line.Runs.Count; runIndex++)
             {
                 var run = line.Runs[runIndex];
-                runs[runIndex] = new PlacedRun(lineLeft + run.X, run.Text, run.Properties);
+                runs[runIndex] = new PlacedRun(lineLeft + run.X, run.Width, run.Text, run.Properties);
             }
 
             return runs;
