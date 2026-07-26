@@ -165,7 +165,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 var lineLeft = ColumnLeft + (float) properties.LeftIndentPoints;
-                items.Add(new PlacedLine(lineLeft, y, line.Width, line.Height, y + line.Ascent, paragraph, lineIndex, MapRuns(line, lineLeft)));
+                items.Add(new PlacedLine(lineLeft, y, line.Width, line.Height, y + line.Ascent, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft)));
                 y += line.Height;
                 atRegionTop = false;
             }
@@ -362,7 +362,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 {
                     var line = paragraphLines[lineIndex];
                     var lineLeft = contentLeft + (float) properties.LeftIndentPoints;
-                    lines.Add(new PlacedLine(lineLeft, cellY, line.Width, line.Height, cellY + line.Ascent, paragraph, lineIndex, MapRuns(line, lineLeft)));
+                    lines.Add(new PlacedLine(lineLeft, cellY, line.Width, line.Height, cellY + line.Ascent, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft)));
                     cellY += line.Height;
                 }
 
@@ -412,6 +412,43 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             return false;
+        }
+
+        // The runs to paint for a line: its text run segments, plus — on the first line of a list
+        // paragraph — the list marker positioned in the hanging-indent gutter to the left of the text.
+        IReadOnlyList<PlacedRun> LineRuns(ParagraphElement paragraph, LaidOutLine line, int lineIndex, float lineLeft)
+        {
+            var runs = MapRuns(line, lineLeft);
+            if (lineIndex == 0 && paragraph.Properties.Numbering is { Text.Length: > 0 } numbering)
+            {
+                return [MarkerRun(paragraph, numbering, lineLeft), .. runs];
+            }
+
+            return runs;
+        }
+
+        // The list marker as a placed run: its text in the bullet or number font, a hanging indent to the
+        // left of the text (or right-aligned just before it when there is no hanging indent). Font, colour
+        // and position mirror PdfTextEngine's marker placement; the paragraph's LeftIndent already sets the
+        // text edge, so the marker offsets back from there.
+        PlacedRun MarkerRun(ParagraphElement paragraph, NumberingInfo numbering, float lineLeft)
+        {
+            var firstProperties = paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new RunProperties();
+            var useBulletFont = FontHelpers.UseBulletFont(numbering.Text, numbering.FontFamily);
+            var markerProperties = new RunProperties
+            {
+                FontFamily = useBulletFont ? "Morph Bullets" : firstProperties.FontFamily,
+                FontSizePoints = firstProperties.FontSizePoints,
+                Bold = !useBulletFont && firstProperties.Bold,
+                ColorHex = numbering.ColorHex ?? firstProperties.ColorHex
+            };
+
+            var hanging = (float) paragraph.Properties.HangingIndentPoints;
+            var markerX = hanging > 0.01f
+                ? lineLeft - hanging
+                : lineLeft - measurer.MeasureRunWidth(numbering.Text, markerProperties) - 3f;
+
+            return new PlacedRun(markerX, numbering.Text, markerProperties);
         }
 
         // Projects a laid-out line's run segments to placed runs at absolute X (the line's left edge plus
