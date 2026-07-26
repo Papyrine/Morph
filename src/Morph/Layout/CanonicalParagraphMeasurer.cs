@@ -59,25 +59,34 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         var result = new LaidOutLine[wrapped.Count];
         for (var i = 0; i < wrapped.Count; i++)
         {
-            var height = (float) CanonicalTextMeasurer.LineHeightPoints(
+            var textHeight = (float) CanonicalTextMeasurer.LineHeightPoints(
                 wrapped[i].Pitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints);
 
             var segments = wrapped[i].Segments;
             var runs = new LaidOutRun[segments.Count];
-            var ascent = 0f;
+            var textAscent = 0f;
             for (var segment = 0; segment < segments.Count; segment++)
             {
                 runs[segment] = new(segments[segment].X, segments[segment].Width, segments[segment].Text, segments[segment].Properties);
-                ascent = Math.Max(ascent, AscentPoints(segments[segment].Properties));
+                textAscent = Math.Max(textAscent, AscentPoints(segments[segment].Properties));
             }
 
             // An empty mark line has no runs; its baseline still needs the mark's ascent.
             if (segments.Count == 0)
             {
-                ascent = AscentPoints(ParagraphFont(paragraph));
+                textAscent = AscentPoints(ParagraphFont(paragraph));
             }
 
-            result[i] = new(wrapped[i].Width, height, ascent, runs);
+            // An inline image sits with its bottom on the baseline, so it fills the whole ascent and can
+            // grow the line: ascent and height take the max of the text metrics and the tallest image.
+            var images = wrapped[i].Images;
+            var maxImageHeight = 0f;
+            foreach (var image in images)
+            {
+                maxImageHeight = Math.Max(maxImageHeight, image.Height);
+            }
+
+            result[i] = new(wrapped[i].Width, Math.Max(textHeight, maxImageHeight), Math.Max(textAscent, maxImageHeight), runs, images);
         }
 
         return result;
@@ -136,11 +145,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // quantizing once (PixelsToPoints) is pen-position rounding, which composes across fonts. Text and
     // Properties are carried so the wrap can hand a painter each line's run segments — they never enter
     // the width/pitch arithmetic.
-    readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties);
+    readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties, LaidOutImage? Image);
 
     readonly record struct WrapSegment(float X, float Width, string Text, RunProperties Properties);
 
-    readonly record struct WrapLine(float Width, float Pitch, IReadOnlyList<WrapSegment> Segments);
+    readonly record struct WrapLine(float Width, float Pitch, IReadOnlyList<WrapSegment> Segments, IReadOnlyList<LaidOutImage> Images);
 
     IReadOnlyList<WrapLine> Wrap(ParagraphElement paragraph, float maxWidth)
     {
@@ -154,8 +163,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         var linePieces = new List<Piece>();
         var gapPieces = new List<Piece>();
 
-        void CommitLine() =>
-            lines.Add(new((float) CanonicalTextMeasurer.PixelsToPoints(linePixels), linePitch, BuildSegments(linePieces)));
+        void CommitLine()
+        {
+            var (segments, images) = BuildLineItems(linePieces);
+            lines.Add(new((float) CanonicalTextMeasurer.PixelsToPoints(linePixels), linePitch, segments, images));
+        }
 
         var index = 0;
         while (index < pieces.Count)
@@ -218,32 +230,49 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         if (lines.Count == 0)
         {
             // An empty paragraph still occupies one line at its mark's pitch, with no runs to paint.
-            lines.Add(new(0, MarkPitch(paragraph), []));
+            lines.Add(new(0, MarkPitch(paragraph), [], []));
         }
 
         return lines;
     }
 
-    // Coalesces a line's pieces (in order) into one segment per contiguous source run, each anchored at
-    // its canonical pen position: the segment's X is PixelsToPoints of the pixels before it, its Width the
-    // pen distance to the next boundary — the same rounding as the line width, so a painter draws each
-    // font at the right offset and strokes decorations across the right span.
-    static IReadOnlyList<WrapSegment> BuildSegments(List<Piece> linePieces)
+    // Coalesces a line's pieces (in order) into one segment per contiguous source run, and anchors each
+    // inline image at the pen position it reached. A segment's X is PixelsToPoints of the pixels before
+    // it, its Width the pen distance to the next boundary — the same rounding as the line width, so a
+    // painter draws each font (and each image) at the right offset and strokes decorations across the
+    // right span. An image breaks any running text segment.
+    static (IReadOnlyList<WrapSegment> Segments, IReadOnlyList<LaidOutImage> Images) BuildLineItems(List<Piece> linePieces)
     {
         var segments = new List<WrapSegment>();
+        var images = new List<LaidOutImage>();
         double cursor = 0, segmentStart = 0;
         var segmentText = new StringBuilder();
         RunProperties? segmentFont = null;
 
-        void Flush()
+        void FlushSegment()
         {
+            if (segmentFont == null)
+            {
+                return;
+            }
+
             var x = (float) CanonicalTextMeasurer.PixelsToPoints(segmentStart);
             var width = (float) CanonicalTextMeasurer.PixelsToPoints(cursor) - x;
-            segments.Add(new(x, width, segmentText.ToString(), segmentFont!));
+            segments.Add(new(x, width, segmentText.ToString(), segmentFont));
+            segmentText.Clear();
+            segmentFont = null;
         }
 
         foreach (var piece in linePieces)
         {
+            if (piece.Image is { } image)
+            {
+                FlushSegment();
+                images.Add(image with { X = (float) CanonicalTextMeasurer.PixelsToPoints(cursor) });
+                cursor += piece.Pixels;
+                continue;
+            }
+
             if (segmentFont == null)
             {
                 segmentFont = piece.Properties;
@@ -251,8 +280,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             }
             else if (!ReferenceEquals(piece.Properties, segmentFont))
             {
-                Flush();
-                segmentText.Clear();
+                FlushSegment();
                 segmentFont = piece.Properties;
                 segmentStart = cursor;
             }
@@ -261,12 +289,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             cursor += piece.Pixels;
         }
 
-        if (segmentFont != null)
-        {
-            Flush();
-        }
-
-        return segments;
+        FlushSegment();
+        return (segments, images);
     }
 
     static RunProperties ParagraphFont(ParagraphElement paragraph) =>
@@ -277,7 +301,24 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         var pieces = new List<Piece>();
         foreach (var run in paragraph.Runs)
         {
-            if (run.IsTab || run.InlineImageData != null || run.Properties.Hidden || string.IsNullOrEmpty(run.Text))
+            // An inline image is an unbreakable box: it counts its display width toward the line width
+            // (no text pitch — its height grows the line separately) and carries the drawable bytes.
+            if (run.InlineImageData is { Length: > 0 } || run.InlineImageRasterFallbackData is { Length: > 0 })
+            {
+                var data = run.InlineImageContentType == "image/svg+xml"
+                    ? run.InlineImageRasterFallbackData
+                    : run.InlineImageData ?? run.InlineImageRasterFallbackData;
+                if (data is { Length: > 0 })
+                {
+                    var imageWidth = (float) (run.InlineImageWidthPoints > 0 ? run.InlineImageWidthPoints : 12);
+                    var imageHeight = (float) (run.InlineImageHeightPoints > 0 ? run.InlineImageHeightPoints : 12);
+                    pieces.Add(new(false, CanonicalTextMeasurer.PixelsFromPoints(imageWidth), 0, "", run.Properties, new LaidOutImage(0, imageWidth, imageHeight, data)));
+                }
+
+                continue;
+            }
+
+            if (run.IsTab || run.Properties.Hidden || string.IsNullOrEmpty(run.Text))
             {
                 continue;
             }
@@ -292,7 +333,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             var pitch = (float) metrics.LinePitchPoints(size);
             foreach (var (text, isSpace) in TokenizeText(run.Text))
             {
-                pieces.Add(new(isSpace, CanonicalTextMeasurer.LinearPixels(metrics, text, size), pitch, text, run.Properties));
+                pieces.Add(new(isSpace, CanonicalTextMeasurer.LinearPixels(metrics, text, size), pitch, text, run.Properties, null));
             }
         }
 

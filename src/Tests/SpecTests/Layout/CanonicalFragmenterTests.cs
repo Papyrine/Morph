@@ -227,4 +227,26 @@ public class CanonicalFragmenterTests
         await Assert.That(line.Runs[1].Text).IsEqualTo("list item text");
         await Assert.That(line.Runs[1].X).IsEqualTo(line.X).Within(0.01f);
     }
+
+    [Test]
+    public async Task An_inline_image_places_with_its_bottom_on_the_baseline_and_grows_the_line()
+    {
+        var paragraph = new ParagraphElement
+        {
+            Runs = [new Run { Text = "", InlineImageData = [1, 2, 3], InlineImageWidthPoints = 100, InlineImageHeightPoints = 80, Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }],
+            Properties = new()
+        };
+
+        var line = (PlacedLine) Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items[0];
+
+        // One placed image at the line's left edge, its box the image's display size.
+        await Assert.That(line.Images.Count).IsEqualTo(1);
+        var image = line.Images[0];
+        await Assert.That(image.X).IsEqualTo(line.X).Within(0.5f);
+        await Assert.That(image.Width).IsEqualTo(100f).Within(0.5f);
+        await Assert.That(image.Height).IsEqualTo(80f).Within(0.5f);
+        // Its bottom sits on the baseline, and the 80pt image grows the line past an 11pt text line.
+        await Assert.That(image.Y + image.Height).IsEqualTo(line.Baseline).Within(0.5f);
+        await Assert.That(line.Height >= 80f).IsTrue();
+    }
 }

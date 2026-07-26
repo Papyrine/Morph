@@ -200,14 +200,15 @@ Build alongside the existing renderers; do not delete anything until all three b
       adapter, and an optional per-font upward space factor (Aptos 1.0125×, Times 1.0213×) for the last
       fraction of a percent.
 - [x] **2. Layout-tree types** — landed (`PlacedItem` base carrying the bounding box, with
-      `LaidOutDocument`, `LaidOutPage`, `PlacedLine`, `PlacedTableRow`, `PlacedCell`, `MeasuredLine`).
-      `PlacedLine` carries its baseline and the `PlacedRun`s to paint (text, width and `RunProperties` for
-      font/colour/decoration) — one per contiguous source run on the line, so a mixed-format line ("plain
-      **bold** plain") is several runs at their own X and a uniform line is one, and a painter draws
-      without re-measuring. `PlacedTableRow` carries its `PlacedCell`s (box, shading, borders, and the
-      cell's laid-out content). Each run's X is the canonical pen position at its start, its width the pen
-      distance to the next boundary; per-glyph advances (exact intra-run boundaries) and the
-      image/rule/shape placed-item kinds attach as later slices.
+      `LaidOutDocument`, `LaidOutPage`, `PlacedLine`, `PlacedTableRow`, `PlacedCell`, `PlacedImage`,
+      `MeasuredLine`). `PlacedLine` carries its baseline and the `PlacedRun`s to paint (text, width and
+      `RunProperties` for font/colour/decoration) — one per contiguous source run on the line, so a
+      mixed-format line ("plain **bold** plain") is several runs at their own X and a uniform line is one,
+      and a painter draws without re-measuring — plus its inline `PlacedImage`s (bottom on the baseline).
+      `PlacedTableRow` carries its `PlacedCell`s (box, shading, borders, and the cell's laid-out content).
+      Each run's X is the canonical pen position at its start, its width the pen distance to the next
+      boundary; per-glyph advances (exact intra-run boundaries) and the rule/shape and floating placed-item
+      kinds attach as later slices.
 - [x] **3. `Fragmenter` — block-flow + table + column slices landed** (`Fragmenter`,
       `CanonicalFragmenterTests`, `FragmenterPageCountTests`). Multi-column flow with **line-level
       page/column breaks** (a paragraph too tall for the space left splits at a line boundary and
@@ -251,12 +252,17 @@ Build alongside the existing renderers; do not delete anything until all three b
       landed**: each run paints its highlight (behind the glyphs, over the line box), underline (below the
       baseline) and strikethrough (through the x-height), coloured and sized from `RunProperties` with the
       geometry from `PdfTextEngine` — underline, strike, yellow/green highlight, combinations, and a
-      wrapped underlined run underlined on both lines all confirmed in a render. Still to land before it
-      can replace the production `PdfRenderer`: paragraph borders and shading, tabs, images/shapes, in-cell
-      vertical alignment and nested tables, and per-glyph advances (exact intra-run boundaries — the
-      painter currently anchors each run at its canonical start and lets the font library fill the run).
-      Then repoint `Morph.Pdf` at `LaidOutDocument`, delete `PdfTextEngine`'s pagination, and validate the
-      full container suite (PDF page-count scoreboard unchanged or better, AE/SSIM neutral).
+      wrapped underlined run underlined on both lines all confirmed in a render. **Inline images landed**: the
+      wrap treats an image as an unbreakable box (its width counts toward the line, its height grows the
+      line), the fragmenter places it with its bottom on the baseline, and the painter decodes the bytes
+      (an SVG's raster fallback) and draws them — an inline icon flowing mid-sentence and a figure growing
+      its own line both confirmed in a render. Still to land before it can replace the production
+      `PdfRenderer`: paragraph borders and shading, tabs, shapes/WordArt, floating (anchored) images and
+      their wrap, image rotation/flip/crop, in-cell vertical alignment and nested tables, and per-glyph
+      advances (exact intra-run boundaries — the painter currently anchors each run at its canonical start
+      and lets the font library fill the run). Then repoint `Morph.Pdf` at `LaidOutDocument`, delete
+      `PdfTextEngine`'s pagination, and validate the full container suite (PDF page-count scoreboard
+      unchanged or better, AE/SSIM neutral).
 - [ ] **6. `SkiaPainter` + `ImageSharpPainter`** — the payoff step. Both become thin painters of the
       same tree; the whole-paragraph pagination and the duplicated `TextRenderer` layout code delete.
       This is where the raster knife-edges collapse (raster now paginates identically to PDF — one

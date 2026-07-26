@@ -89,6 +89,28 @@ static class PdfPainter
                 graphics.DrawLine(context.GetPen(color, strokeWidth), run.X, strikeY, run.X + run.Width, strikeY);
             }
         }
+
+        foreach (var image in line.Images)
+        {
+            PaintImage(context, graphics, image);
+        }
+    }
+
+    static void PaintImage(PdfRenderContext context, XGraphics graphics, PlacedImage image)
+    {
+        if (image.Data.Length == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            graphics.DrawImage(context.GetImage(image.Data), image.X, image.Y, image.Width, image.Height);
+        }
+        catch
+        {
+            // Undecodable image bytes: skip this image rather than fail the whole paint.
+        }
     }
 
     // Each cell: shading first, then its content, then its borders on top — Word's cell paint order.

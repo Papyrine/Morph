@@ -79,6 +79,11 @@ sealed class CanonicalTextMeasurer
     public static double PixelsToPoints(double pixels) =>
         Math.Round(pixels, MidpointRounding.AwayFromZero) * 72.0 / referenceDpi;
 
+    /// <summary>The reference device pixels a fixed point width occupies — the inverse of
+    /// <see cref="PixelsToPoints"/>, for placing an unbreakable box (an inline image) on the pixel track.</summary>
+    public static double PixelsFromPoints(double points) =>
+        points * referenceDpi / 72.0;
+
     // Converts a run of design units to points under pen-position rounding.
     static double PointsFromUnits(FontMetrics metrics, long units, int ppem) =>
         PixelsToPoints((double) units / metrics.UnitsPerEm * ppem);
