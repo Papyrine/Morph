@@ -1,0 +1,229 @@
+# Layout engine proposal — separate layout from painting
+
+**Status: proposal, not implemented.** This is the architecture to reach for when Word-fidelity
+pagination matters more than incremental effort. It is the "if time and effort are no object"
+answer to the columns/height-model work tracked in `src/page_counts.md` and `src/todo.md` (#2, #5,
+the columns item under image_wrap_square). Nothing here has landed; the current renderers are
+described in `docs/word-features.md`.
+
+## The problem this solves
+
+Morph paginates **three times**, independently:
+
+| engine | paragraph split | section breaks | metrics |
+|---|---|---|---|
+| `Morph.Skia` (`SkiaPageRenderer` + `TextRenderer`) | **no** — whole-paragraph only (`SkiaPageRenderer` ~line 486: "can't break a paragraph in the middle") | via `SectionBreakHandler` | SkiaSharp font metrics |
+| `Morph.ImageSharp` (`ImageSharpPageRenderer` + `TextRenderer`) | **no** (duplicate of Skia) | via `SectionBreakHandler` | SixLabors.Fonts metrics |
+| `Morph.Pdf` (`PdfPageRenderer` + `PdfTextEngine`) | **yes** — line-level, across pages *and* columns (`PdfTextEngine.Draw` + `RequestNewPage` + `CountLinesThatFit`/`PlanWidowBreak`) | inline, bypasses `SectionBreakHandler` | PdfSharp `GetHeight()` |
+
+Each engine measures content and decides page breaks in its own render loop, with its own font
+metrics. They diverge, and that divergence is the root cause of the remaining fidelity gaps:
+
+- **Backend page counts straddle Word.** `resumes/13` is raster-4 / PDF-6 / Word-5 — one document,
+  three answers, because three engines fragment independently. These "knife-edges" (`src/page_counts.md`)
+  are not bugs to patch; they are the *structural symptom* of triple pagination.
+- **Every rule is written up to three times.** All 21 height-model experiments in `src/page_counts.md`
+  had to land per-backend and be kept in sync. Widow/orphan is *real* in PDF and *approximated* in
+  raster because raster's loop cannot fragment a paragraph.
+- **Columns are stuck.** Raster cannot flow a paragraph from column 1 into column 2 (it moves the
+  whole paragraph); PDF can. That asymmetry is why the columns work (image_wrap_square) was built and
+  reverted (experiment 11).
+
+Patching raster to split like PDF yields three *agreeing* engines instead of three *diverging* ones —
+but they must be kept agreeing forever, and the knife-edges remain the tax of that arrangement.
+
+## The proposal: one layout pass, three painters
+
+Compute the paginated layout **once**, backend-independently, into a retained **layout tree**; make
+every backend a dumb painter that walks the tree and draws placed boxes at their computed positions.
+This is the standard document-engine architecture (Word's `SwFrame` tree, LibreOffice, browsers).
+Morph is already half-way there: `RenderContextBase` carries `CurrentColumn`, a column-shifted
+`ContentLeft`, and `PushContentContainer` (a proto-region for float bands) — but the placement is
+recomputed inline during each paint instead of being computed once and retained.
+
+```
+ParsedDocument ──▶ DocumentLayoutEngine ──▶ LaidOutDocument ──▶ { SkiaPainter, ImageSharpPainter, PdfPainter }
+  (parse, today)      (NEW: the one              (retained tree,        (thin: draw placed boxes,
+                       pagination)                absolute positions)     no measurement, no breaks)
+```
+
+### The layout tree (output — backend-agnostic, absolute positions in points)
+
+```csharp
+sealed record LaidOutDocument(IReadOnlyList<LaidOutPage> Pages);
+
+sealed record LaidOutPage(
+    int Number,
+    PageSettings Settings,                  // geometry in force for this page (section-aware)
+    IReadOnlyList<PlacedItem> Background,    // page fill, behind-text floats — painted first
+    IReadOnlyList<PlacedItem> Body,          // flow content, in paint order
+    IReadOnlyList<PlacedItem> Foreground);   // in-front floats, headers/footers
+
+// Everything below is positioned absolutely from the page top-left. No backend touches metrics.
+abstract record PlacedItem(float X, float Y);
+
+sealed record PlacedLine(                    // one wrapped line of a paragraph
+    float X, float Y, float Baseline,
+    IReadOnlyList<PlacedGlyphRun> Runs) : PlacedItem(X, Y);
+
+sealed record PlacedGlyphRun(                // shaping + advances already resolved
+    float X, float Width, ResolvedFont Font, string Text,
+    IReadOnlyList<float> Advances,           // canonical per-glyph advances (the metric model)
+    RunDecoration Decoration) : PlacedItem(X, 0);  // color, underline, strike, highlight, tracking
+
+sealed record PlacedImage(float X, float Y, float Width, float Height, ImagePayload Source, PictureEffects Effects) : PlacedItem(X, Y);
+sealed record PlacedShape(float X, float Y, ShapeGeometry Geometry, Transform Transform) : PlacedItem(X, Y);  // vector / WordArt, pre-transformed
+sealed record PlacedRule(float X, float Y, float Width, BorderEdge Edge) : PlacedItem(X, Y);      // HR, paragraph/cell border segment
+sealed record PlacedFill(float X, float Y, float Width, float Height, string ColorHex) : PlacedItem(X, Y);  // shading, page bg
+```
+
+Key property: a `PlacedGlyphRun` carries **fixed advances**. The painter positions glyphs at those
+advances; the rasterizer's own metrics affect only anti-aliasing/hinting, never positions or wrap
+points. This is `DefaultFontSettings.DeterministicRendering` extended from glyph rasterization all
+the way up to line breaking.
+
+### The layout pass (the one pagination engine)
+
+```csharp
+sealed class DocumentLayoutEngine
+{
+    public LaidOutDocument Layout(ParsedDocument document, LayoutOptions options)
+    {
+        var measurer  = new CanonicalTextMeasurer(options.Fonts);  // THE single metric source
+        var fragmenter = new Fragmenter(measurer);
+        // For each section: build the page's region chain (columns / continuous band),
+        // fill the flow through it, spilling to the next region/page on overflow, and
+        // emit PlacedItems. Floats register exclusions; tables recurse as sub-layouts.
+        ...
+    }
+}
+```
+
+### Regions unify columns, cells, text boxes and float bands
+
+The single most clarifying move: a page's columns, a continuous section's mid-page column band, a
+**table cell**, a **text box**, a **float-exclusion band**, and a **header/footer band** are all the
+*same thing* — a constrained box that holds flow with a fill order. Today these are four separate
+mechanisms (`CurrentColumn` shifting, `TableHeightCalculator`, text-box rendering, and
+`PushContentContainer`/`ResolveFlowBand`). Unify them:
+
+```csharp
+sealed class Region                          // a constrained box that holds flow
+{
+    public float Left, Top, Width, Bottom;   // points, page-absolute
+    public IReadOnlyList<Exclusion> Exclusions;   // floats carving this region (wrapSquare/Tight)
+    public Region? Next;                     // fill order: spill target when this region is full
+}
+```
+
+Columns stop being special: a 2-column section is a region whose `Next` is the second column whose
+`Next` is the first column of the following page. `image_wrap_square` then works because the
+continuous section simply builds a 2-column region chain anchored at the break Y and the fragmenter
+fills it.
+
+### The fragmenter (the heart — the thing raster lacks)
+
+```csharp
+sealed class Fragmenter
+{
+    // Places a flow of block elements into a region chain, spilling on overflow, applying
+    // widow/orphan/keep-next/keep-lines/table-row-split as PLACEMENT rules — computed once.
+    public void Place(IReadOnlyList<DocumentElement> flow, Region start, PlacementSink sink);
+}
+```
+
+Its rules are exactly the 21 measured experiments from `src/page_counts.md`, moved here and applied
+once instead of 3×: the hhea line-pitch model, `max(after, before)` spacing collapse, space-before
+dropped at page tops, empty-mark heights, end-of-cell collapse, the docDefaults cascades, widow/orphan,
+keep abandonment, the exact-fit rule. **The investment in those experiments is preserved — they become
+the fragmenter's rule set.**
+
+### Painters (thin — no measurement, no pagination)
+
+```csharp
+interface ILayoutPainter
+{
+    void BeginPage(LaidOutPage page);
+    void DrawGlyphRun(PlacedGlyphRun run);   // draw glyphs at run.X + advances, at run baseline
+    void DrawImage(PlacedImage image);
+    void DrawShape(PlacedShape shape);
+    void DrawRule(PlacedRule rule); void DrawFill(PlacedFill fill);
+    void EndPage();
+}
+```
+
+`SkiaPainter` / `ImageSharpPainter` / `PdfPainter` each become a `foreach placed item: draw it`.
+`EnsureSpaceFor`, `AdvanceToNextColumnOrPage`, `MoveToNextColumn`, `RenderParagraph`'s widow logic,
+`SectionBreakHandler`, `TableHeightCalculator` — all delete from the backends and move into the layout
+pass. The HTML/Markdown exporters stay on their own path (they deliberately reflow and are not
+paginated), though they could consume the tree's logical structure later.
+
+## The crux: one canonical metric model
+
+Divergence comes from metrics, so the layout pass must own **both**:
+
+- **Line metrics** — the XPS-validated `pitch = (ascent + descent + line gap) × multiplier`, no
+  1.20×size floor and no ×1.035 leading boost. Already measured (`src/page_counts.md`, "Height model").
+- **Glyph advances / line breaking** — the measured advance model: integer-pixel advances at 120 dpi,
+  `ppem = round(size × 120/72)`, `letter ≈ round(linearEm × ppem)`, per-font space elasticity. Already
+  measured (`src/page_counts.md`, "Advance model") and already implemented once in PdfSharp — here it
+  becomes *the* shared basis, not a per-backend detail.
+
+This is the entire risk surface, even with unlimited effort: the model must reproduce **Word's actual
+wrap points and line heights** (Word lays out with GDI/DirectWrite) across every bundled font. The
+ledger has measured this to ±1px and validated the height model against XPS, so it is achievable — but
+it is *the* work. Get it right and every backend inherits Word-fidelity for free; get it wrong and
+every backend inherits the *same* error (still strictly better — one error to calibrate against one
+target, versus three that cancel differently and mask the model).
+
+## Migration checklist (sequence matters even unbounded)
+
+Build alongside the existing renderers; do not delete anything until all three backends consume the tree.
+
+- [ ] **1. `CanonicalTextMeasurer`** — promote the height + advance models into one measurer
+      implementing today's `IParagraphMeasurer` surface plus line-box production. Unit-test its
+      wrap points and line heights directly against Word XPS geometry (decoupled from any raster).
+- [ ] **2. Layout-tree types** (`LaidOutDocument` … `PlacedGlyphRun`) in `src/Morph/Layout/`.
+- [ ] **3. `Region` + `Fragmenter`** — port the 21 rules from the three render loops into the single
+      fragmenter. Start with block flow + page breaks; then columns; then widow/orphan/keep; then
+      float exclusions (reuse the `ResolveFlowBand` logic); then table sub-layout + row splitting.
+- [ ] **4. `DocumentLayoutEngine`** — section walk, per-page region chains, header/footer bands.
+      Fix `ParseSectionBreak` (`DocumentParser` ~9318) to read the *following* section's `w:type`
+      (ECMA-376 §17.6.22) so continuous multi-column sections are recognised.
+- [ ] **5. `PdfPainter` first** — PDF already fragments, so it is the smallest leap and proves the
+      tree. Repoint `Morph.Pdf` at `LaidOutDocument`; delete `PdfTextEngine`'s pagination. Validate
+      the full container suite: PDF page-count scoreboard unchanged or better, AE/SSIM neutral.
+- [ ] **6. `SkiaPainter` + `ImageSharpPainter`** — the payoff step. Both become thin painters of the
+      same tree; the whole-paragraph pagination and the duplicated `TextRenderer` layout code delete.
+      This is where the raster knife-edges collapse (raster now paginates identically to PDF — one
+      answer, not a straddle). Regenerate all raster + PDF baselines; validate the scoreboard.
+- [ ] **7. Delete** `PageRendererBase` pagination, `SectionBreakHandler` (subsumed), the per-backend
+      `EnsureSpaceFor`/`AdvanceToNextColumnOrPage`, `TableHeightCalculator` (folded into the table
+      sub-layout). Keep the backends' primitive draw ops only.
+
+## Testing strategy (a large secondary win)
+
+The current suite infers layout from rasterized PNGs (the entire struggle behind `src/page_counts.md`).
+With a retained tree you can **snapshot the layout tree as text** — page count, region rectangles, line
+Y-positions, break points — and diff it *directly* against Word's XPS box geometry, decoupled from
+rasterization. That turns "why is this page 2px off" into a structural diff. Keep the existing
+Verify-PNG scenario tests as the painter-fidelity gate; add layout-tree snapshots as the pagination gate.
+
+## What is preserved vs deleted
+
+- **Preserved:** the parser and `ParsedDocument` model (unchanged input); the 21 measured rules (become
+  fragmenter rules); the float pipeline knowledge (`docs/floating-art-pipeline.md`, becomes exclusions);
+  the shape/WordArt geometry (becomes `PlacedShape`); the Verify-PNG suite (becomes the painter gate).
+- **Deleted:** three copies of pagination; `TableHeightCalculator` as a separate measure pass; the
+  whole-paragraph widow approximation; the raster/PDF metric divergence; and the knife-edge category.
+
+## Open questions
+
+- **Column balancing** — Word equalizes a continuous section's last-page column heights
+  (`PropertyMap.cxx:900`). Cosmetic, not page-count; the fragmenter can add it as a second pass, but it
+  is not required for correctness. Defer.
+- **`image_wrap_square` residual** — it also exercises the mode ≤14 `UseFormerTextWrapping` flag
+  (`src/page_counts.md`, LO rule index), which is orthogonal to columns; columns are necessary but may
+  not be sufficient there.
+- **Incremental relayout** — not needed (Morph is batch, not interactive), so the tree can be
+  immutable and recomputed wholesale. This removes the hardest part of real layout engines.
