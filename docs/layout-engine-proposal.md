@@ -256,8 +256,15 @@ Build alongside the existing renderers; do not delete anything until all three b
       wrap treats an image as an unbreakable box (its width counts toward the line, its height grows the
       line), the fragmenter places it with its bottom on the baseline, and the painter decodes the bytes
       (an SVG's raster fallback) and draws them — an inline icon flowing mid-sentence and a figure growing
-      its own line both confirmed in a render. Still to land before it can replace the production
-      `PdfRenderer`: paragraph borders and shading, tabs, shapes/WordArt, floating (anchored) images and
+      its own line both confirmed in a render. **Measured end-to-end** (`PdfPainterFidelityTests`): parse →
+      fragment → paint → rasterise a real corpus DOCX and SSIM the pages against Word's own render
+      (`expected_*.png`). Across 152 block/table/column documents the painter scores **mean 0.934, median
+      0.977 SSIM** — plain text and tables are near pixel-identical (0.997–1.000), and the low scorers
+      (cover-letters/letters ~0.25–0.73, `two_columns` 0.633) isolate the biggest unpainted gap: paragraph
+      alignment is applied only to tables, so centred titles, right-aligned dates and justified bodies
+      still render left-aligned. Still to land before it can replace the production `PdfRenderer`:
+      **paragraph alignment (centre/right/justify)**, paragraph borders and shading, tabs, shapes/WordArt,
+      floating (anchored) images and
       their wrap, image rotation/flip/crop, in-cell vertical alignment and nested tables, and per-glyph
       advances (exact intra-run boundaries — the painter currently anchors each run at its canonical start
       and lets the font library fill the run). Then repoint `Morph.Pdf` at `LaidOutDocument`, delete
