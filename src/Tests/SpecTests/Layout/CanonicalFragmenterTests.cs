@@ -24,7 +24,7 @@ public class CanonicalFragmenterTests
     {
         var document = Fragmenter.Layout([P("One"), P("Two"), P("Three")], Page(200));
         await Assert.That(document.Pages.Count).IsEqualTo(1);
-        await Assert.That(document.Pages[0].Lines.Count).IsEqualTo(3);
+        await Assert.That(document.Pages[0].Items.Count).IsEqualTo(3);
     }
 
     [Test]
@@ -38,12 +38,12 @@ public class CanonicalFragmenterTests
 
         // Every wrapped line is placed exactly once, and the paragraph continues onto a second page —
         // the line-level split the raster backends cannot do.
-        await Assert.That(document.Pages.Sum(_ => _.Lines.Count)).IsEqualTo(totalLines);
+        await Assert.That(document.Pages.Sum(_ => _.Items.Count)).IsEqualTo(totalLines);
         await Assert.That(document.Pages.Count > 1).IsTrue();
-        await Assert.That(ReferenceEquals(document.Pages[1].Lines[0].Paragraph, paragraph)).IsTrue();
+        await Assert.That(ReferenceEquals(((PlacedLine) document.Pages[1].Items[0]).Paragraph, paragraph)).IsTrue();
 
         // No placed line overflows the content bottom (180pt here).
-        foreach (var placed in document.Pages.SelectMany(_ => _.Lines))
+        foreach (var placed in document.Pages.SelectMany(_ => _.Items))
         {
             await Assert.That(placed.Y + placed.Height <= 180.01f).IsTrue();
         }
@@ -60,7 +60,7 @@ public class CanonicalFragmenterTests
 
         await Assert.That(document.Pages.Count).IsEqualTo(2);
         // Its first line sits at the content top — the 50pt before was dropped, not applied.
-        await Assert.That(document.Pages[1].Lines[0].Y).IsEqualTo(20f).Within(0.01f);
+        await Assert.That(document.Pages[1].Items[0].Y).IsEqualTo(20f).Within(0.01f);
     }
 
     [Test]
@@ -68,7 +68,7 @@ public class CanonicalFragmenterTests
     {
         var document = Fragmenter.Layout([P("before"), new PageBreakElement(), P("after")], Page(400));
         await Assert.That(document.Pages.Count).IsEqualTo(2);
-        await Assert.That(document.Pages[1].Lines[0].Y).IsEqualTo(20f).Within(0.01f);
+        await Assert.That(document.Pages[1].Items[0].Y).IsEqualTo(20f).Within(0.01f);
     }
 
     [Test]
@@ -76,6 +76,6 @@ public class CanonicalFragmenterTests
     {
         var document = Fragmenter.Layout([], Page(200));
         await Assert.That(document.Pages.Count).IsEqualTo(1);
-        await Assert.That(document.Pages[0].Lines.Count).IsEqualTo(0);
+        await Assert.That(document.Pages[0].Items.Count).IsEqualTo(0);
     }
 }

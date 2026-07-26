@@ -11,4 +11,4 @@ sealed record PlacedLine(
     float Width,
     float Height,
     ParagraphElement Paragraph,
-    int LineIndex);
+    int LineIndex) : PlacedItem(X, Y, Width, Height);
