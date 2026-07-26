@@ -104,13 +104,19 @@ public class CanonicalMetricsTests
     }
 
     [Test]
-    public async Task Quantized_width_tracks_the_raw_width()
+    public async Task Pen_position_width_bounds_the_whole_line_rounding_error()
     {
         var aptos = Read("Aptos_400.ttf");
-        var raw = CanonicalTextMeasurer.MeasureWidthRawPoints(aptos, "Hello", 11);
-        var quantized = CanonicalTextMeasurer.MeasureWidthPoints(aptos, "Hello", 11);
-        // Per-glyph pixel rounding keeps the 5-glyph total within a pixel or two of linear.
-        await Assert.That(Math.Abs(quantized - raw) < 1.5).IsTrue();
+        const string text = "The quick brown fox jumps over the lazy dog again and again and again";
+
+        // 11pt lays out at ppem 18 = em 10.8pt (the quantized size). Compared at that same em, the
+        // pen-position measurement sits within half a device pixel (0.5px @120dpi = 0.3pt) of the
+        // unrounded ideal, no matter how long the line — because the whole-line total is rounded once.
+        // Per-glyph rounding over this many glyphs would drift several points and over-wrap.
+        var quantizedEmPoints = CanonicalTextMeasurer.Ppem(11) * 72.0 / 120.0;
+        var idealAtQuantizedEm = CanonicalTextMeasurer.MeasureWidthRawPoints(aptos, text, quantizedEmPoints);
+        var measured = CanonicalTextMeasurer.MeasureWidthPoints(aptos, text, 11);
+        await Assert.That(Math.Abs(measured - idealAtQuantizedEm) < 0.31).IsTrue();
     }
 
     [Test]

@@ -47,12 +47,7 @@ sealed class CanonicalTextMeasurer
     public static int Ppem(double sizePoints) =>
         (int) Math.Round(sizePoints * referenceDpi / 72.0, MidpointRounding.AwayFromZero);
 
-    /// <summary>
-    /// The unrounded advance width of <paramref name="text"/> in points: <c>Σ advanceUnits * size /
-    /// unitsPerEm</c>. Used to check the <c>cmap</c>/<c>hmtx</c> pipeline against an independent reader;
-    /// the wrap-driving measurement is the pixel-quantized <see cref="MeasureWidthPoints"/>.
-    /// </summary>
-    public static double MeasureWidthRawPoints(FontMetrics metrics, string text, double sizePoints)
+    static long AdvanceUnits(FontMetrics metrics, string text)
     {
         long units = 0;
         foreach (var rune in text.EnumerateRunes())
@@ -60,26 +55,33 @@ sealed class CanonicalTextMeasurer
             units += metrics.AdvanceUnits(rune.Value);
         }
 
-        return (double) units / metrics.UnitsPerEm * sizePoints;
+        return units;
     }
+
+    // Converts a run of design units to points under the pen-position rounding below.
+    static double PointsFromUnits(FontMetrics metrics, long units, int ppem) =>
+        Math.Round((double) units / metrics.UnitsPerEm * ppem, MidpointRounding.AwayFromZero) * 72.0 / referenceDpi;
 
     /// <summary>
-    /// The pixel-quantized advance width of <paramref name="text"/> in points that drives line
-    /// breaking: each glyph advances by an integer number of device pixels at the reference ppem,
-    /// matching Word's GDI/DirectWrite layout. Per-font inter-word-space elasticity — the last ~1% of
-    /// the advance model — is a refinement layered on top of this base.
+    /// The unrounded advance width of <paramref name="text"/> in points: <c>Σ advanceUnits * size /
+    /// unitsPerEm</c>. Used to check the <c>cmap</c>/<c>hmtx</c> pipeline against an independent reader;
+    /// the wrap-driving measurement is the pixel-quantized <see cref="MeasureWidthPoints"/>.
     /// </summary>
-    public static double MeasureWidthPoints(FontMetrics metrics, string text, double sizePoints)
-    {
-        var ppem = Ppem(sizePoints);
-        long pixels = 0;
-        foreach (var rune in text.EnumerateRunes())
-        {
-            pixels += (long) Math.Round((double) metrics.AdvanceUnits(rune.Value) / metrics.UnitsPerEm * ppem, MidpointRounding.AwayFromZero);
-        }
+    public static double MeasureWidthRawPoints(FontMetrics metrics, string text, double sizePoints) =>
+        (double) AdvanceUnits(metrics, text) / metrics.UnitsPerEm * sizePoints;
 
-        return pixels * 72.0 / referenceDpi;
-    }
+    /// <summary>
+    /// The advance width of <paramref name="text"/> in points that drives line breaking, matching
+    /// Word's GDI/DirectWrite layout. The pen advances along the design-unit total, and the drawn
+    /// position quantizes to an integer device pixel at the reference ppem — so the LINE total tracks
+    /// the nominal-linear ideal to within half a pixel (<c>src/page_counts.md</c>, advance model),
+    /// which is exactly the "inter-word spaces are elastic upward" behaviour: the flex is spread
+    /// across the run rather than snapped per glyph. Rounding each glyph independently instead would
+    /// accumulate upward and over-wrap long lines. A per-font upward factor (Aptos 1.0125×, Times New
+    /// Roman 1.0213×, most others ≈ 1) is the last fraction of a percent and is not yet modelled.
+    /// </summary>
+    public static double MeasureWidthPoints(FontMetrics metrics, string text, double sizePoints) =>
+        PointsFromUnits(metrics, AdvanceUnits(metrics, text), Ppem(sizePoints));
 
     /// <summary>
     /// Greedy word wrap: breaks <paramref name="text"/> into lines that each fit within
@@ -91,29 +93,32 @@ sealed class CanonicalTextMeasurer
     public static List<string> WrapLines(FontMetrics metrics, string text, double sizePoints, double maxWidthPoints)
     {
         var lines = new List<string>();
-        var spaceWidth = MeasureWidthPoints(metrics, " ", sizePoints);
+        var ppem = Ppem(sizePoints);
+        var spaceUnits = metrics.AdvanceUnits(' ');
         foreach (var segment in text.Split('\n'))
         {
             var current = new StringBuilder();
-            var currentWidth = 0.0;
+            long lineUnits = 0;
             foreach (var word in segment.Split(' '))
             {
-                var wordWidth = MeasureWidthPoints(metrics, word, sizePoints);
+                var wordUnits = AdvanceUnits(metrics, word);
                 if (current.Length == 0)
                 {
                     current.Append(word);
-                    currentWidth = wordWidth;
+                    lineUnits = wordUnits;
                 }
-                else if (currentWidth + spaceWidth + wordWidth <= maxWidthPoints)
+                // Measure the whole candidate line (its cumulative units, rounded once) so the pen
+                // position tracks the linear ideal instead of accumulating a per-word rounding error.
+                else if (PointsFromUnits(metrics, lineUnits + spaceUnits + wordUnits, ppem) <= maxWidthPoints)
                 {
                     current.Append(' ').Append(word);
-                    currentWidth += spaceWidth + wordWidth;
+                    lineUnits += spaceUnits + wordUnits;
                 }
                 else
                 {
                     lines.Add(current.ToString());
                     current.Clear().Append(word);
-                    currentWidth = wordWidth;
+                    lineUnits = wordUnits;
                 }
             }
 

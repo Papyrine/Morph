@@ -186,11 +186,13 @@ Build alongside the existing renderers; do not delete anything until all three b
       computes line heights (Auto/Exactly/AtLeast), the pixel-quantized advance width, and greedy
       wrap. Line pitch is pinned to the XPS numbers (Aptos 12pt = 14.65pt, Calibri 10.8pt = 13.18pt)
       and advances to an independent parse. **Wrap validated** (`CanonicalWrapAgreementTests`): the
-      canonical wrap agrees with the raster backend's own font engine on **~98.5%** of a corpus
-      paragraph sample, and both residual disagreements are explained — per-glyph space rounding
-      (the elasticity below) and hanging-indent width, not model error. Remaining before step 2: the
-      `IParagraphMeasurer` surface adapter, and per-font inter-word-space elasticity (the last ~1%,
-      now evidenced by the wrap gate).
+      canonical wrap agrees with the raster backend's own font engine on **~99.3%** of a corpus
+      paragraph sample. The advance model uses **pen-position rounding** — the whole-line total tracks
+      the linear ideal to within half a device pixel, so per-glyph error can't accumulate and
+      over-wrap; this is the "inter-word spaces are elastic upward" behaviour, spread across the run.
+      The lone residual is one Calibri 10pt paragraph a sub-pixel from its boundary. Remaining before
+      step 2: the `IParagraphMeasurer` surface adapter, and an optional per-font upward space factor
+      (Aptos 1.0125×, Times 1.0213×) for the last fraction of a percent.
 - [ ] **2. Layout-tree types** (`LaidOutDocument` … `PlacedGlyphRun`) in `src/Morph/Layout/`.
 - [ ] **3. `Region` + `Fragmenter`** — port the 21 rules from the three render loops into the single
       fragmenter. Start with block flow + page breaks; then columns; then widow/orphan/keep; then
