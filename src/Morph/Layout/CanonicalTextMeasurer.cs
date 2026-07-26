@@ -24,16 +24,24 @@ sealed class CanonicalTextMeasurer
         double sizePoints,
         LineSpacingRule rule = LineSpacingRule.Auto,
         double multiplier = 1.0,
-        double explicitPoints = 0)
-    {
-        var single = metrics.LinePitchPoints(sizePoints);
-        return rule switch
+        double explicitPoints = 0) =>
+        LineHeightPoints(metrics.LinePitchPoints(sizePoints), rule, multiplier, explicitPoints);
+
+    /// <summary>
+    /// Applies Word's line-spacing rule to an already-computed single-spaced pitch — used when a line
+    /// mixes fonts and its pitch is the largest of its runs' hhea boxes rather than one font's pitch.
+    /// </summary>
+    public static double LineHeightPoints(
+        double singleSpacedPitchPoints,
+        LineSpacingRule rule = LineSpacingRule.Auto,
+        double multiplier = 1.0,
+        double explicitPoints = 0) =>
+        rule switch
         {
             LineSpacingRule.Exactly => explicitPoints,
-            LineSpacingRule.AtLeast => Math.Max(single, explicitPoints),
-            _ => single * multiplier
+            LineSpacingRule.AtLeast => Math.Max(singleSpacedPitchPoints, explicitPoints),
+            _ => singleSpacedPitchPoints * multiplier
         };
-    }
 
     // The reference rasterizer runs at 120 dpi — the 125%-scaled display the XPS baselines were
     // measured on — so text lays out at an integer ppem of round(size * 120/72) device pixels.
@@ -58,9 +66,22 @@ sealed class CanonicalTextMeasurer
         return units;
     }
 
-    // Converts a run of design units to points under the pen-position rounding below.
+    /// <summary>
+    /// The device pixels (unrounded) that <paramref name="text"/> advances at the reference ppem. This
+    /// is the accumulator for pen-position rounding: summing it across runs of different fonts/sizes on
+    /// one line and quantizing once with <see cref="PixelsToPoints"/> keeps a mixed-font line on the
+    /// linear track, exactly as a single-font line stays on it.
+    /// </summary>
+    public static double LinearPixels(FontMetrics metrics, string text, double sizePoints) =>
+        (double) AdvanceUnits(metrics, text) / metrics.UnitsPerEm * Ppem(sizePoints);
+
+    /// <summary>Quantizes an accumulated linear-pixel total to points — the pen position rounded once.</summary>
+    public static double PixelsToPoints(double pixels) =>
+        Math.Round(pixels, MidpointRounding.AwayFromZero) * 72.0 / referenceDpi;
+
+    // Converts a run of design units to points under pen-position rounding.
     static double PointsFromUnits(FontMetrics metrics, long units, int ppem) =>
-        Math.Round((double) units / metrics.UnitsPerEm * ppem, MidpointRounding.AwayFromZero) * 72.0 / referenceDpi;
+        PixelsToPoints((double) units / metrics.UnitsPerEm * ppem);
 
     /// <summary>
     /// The unrounded advance width of <paramref name="text"/> in points: <c>Σ advanceUnits * size /
@@ -81,7 +102,7 @@ sealed class CanonicalTextMeasurer
     /// Roman 1.0213×, most others ≈ 1) is the last fraction of a percent and is not yet modelled.
     /// </summary>
     public static double MeasureWidthPoints(FontMetrics metrics, string text, double sizePoints) =>
-        PointsFromUnits(metrics, AdvanceUnits(metrics, text), Ppem(sizePoints));
+        PixelsToPoints(LinearPixels(metrics, text, sizePoints));
 
     /// <summary>
     /// Greedy word wrap: breaks <paramref name="text"/> into lines that each fit within

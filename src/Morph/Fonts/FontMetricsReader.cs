@@ -22,11 +22,11 @@ static class FontMetricsReader
     // font's mapped-codepoint count.
     const int maxCmapEntries = 200_000;
 
-    /// <summary>Reads face 0 of the font file at <paramref name="path"/>.</summary>
-    public static FontMetrics? Read(string path)
+    /// <summary>Reads face <paramref name="faceIndex"/> (0 for a single-face file) of the font at <paramref name="path"/>.</summary>
+    public static FontMetrics? Read(string path, int faceIndex = 0)
     {
         using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-        return Read(stream, 0);
+        return Read(stream, faceIndex);
     }
 
     /// <summary>
