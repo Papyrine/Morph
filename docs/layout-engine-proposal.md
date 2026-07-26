@@ -199,10 +199,19 @@ Build alongside the existing renderers; do not delete anything until all three b
       baseline regeneration). Remaining as refinements: tabs and first-line/hanging indents in the
       adapter, and an optional per-font upward space factor (Aptos 1.0125×, Times 1.0213×) for the last
       fraction of a percent.
-- [ ] **2. Layout-tree types** (`LaidOutDocument` … `PlacedGlyphRun`) in `src/Morph/Layout/`.
-- [ ] **3. `Region` + `Fragmenter`** — port the 21 rules from the three render loops into the single
-      fragmenter. Start with block flow + page breaks; then columns; then widow/orphan/keep; then
-      float exclusions (reuse the `ResolveFlowBand` logic); then table sub-layout + row splitting.
+- [x] **2. Layout-tree types** — first cut landed (`LaidOutDocument`, `LaidOutPage`, `PlacedLine`,
+      `MeasuredLine`). Line-level placement for now; the glyph-run breakdown (`PlacedGlyphRun`) and the
+      image/rule/shape/table placed-item kinds attach as painter and table slices land.
+- [x] **3. `Fragmenter` — block-flow slice landed** (`Fragmenter`, `CanonicalFragmenterTests`,
+      `FragmenterPageCountTests`). Single-column flow with **line-level page breaks** (a paragraph too
+      tall for the space left splits at a line boundary and continues — the thing the raster backends
+      cannot do), plus the measured rules: max-collapse paragraph spacing, space-before dropped at a
+      broken page top, empty-paragraph mark line, explicit-break blank pages (experiment 18), and an
+      exact bottom-of-page fit with no slack. **Validated: 96/96 = 100% page-count match with Word** on
+      the corpus's pure-block documents — one backend-independent pass reproducing Word's pagination.
+      Remaining slices: `Region` + multi-column flow and column breaks; widow/orphan and
+      keep-next/keep-lines; float exclusions (reuse `ResolveFlowBand`); table sub-layout + row splitting;
+      header/footer band height.
 - [ ] **4. `DocumentLayoutEngine`** — section walk, per-page region chains, header/footer bands.
       Fix `ParseSectionBreak` (`DocumentParser` ~9318) to read the *following* section's `w:type`
       (ECMA-376 §17.6.22) so continuous multi-column sections are recognised.
