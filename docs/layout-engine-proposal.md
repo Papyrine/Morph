@@ -200,9 +200,11 @@ Build alongside the existing renderers; do not delete anything until all three b
       adapter, and an optional per-font upward space factor (Aptos 1.0125×, Times 1.0213×) for the last
       fraction of a percent.
 - [x] **2. Layout-tree types** — landed (`PlacedItem` base carrying the bounding box, with
-      `LaidOutDocument`, `LaidOutPage`, `PlacedLine`, `PlacedTableRow`, `MeasuredLine`). Line- and
-      row-level placement for now; the glyph-run breakdown (`PlacedGlyphRun`) and the image/rule/shape
-      placed-item kinds attach as painter slices land.
+      `LaidOutDocument`, `LaidOutPage`, `PlacedLine`, `PlacedTableRow`, `MeasuredLine`). `PlacedLine` now
+      carries its baseline and the `PlacedRun`s to paint (text + `RunProperties` for font/colour) — one
+      per line for now (the line's dominant font), so a painter draws without re-measuring. The mixed-font
+      per-run split with canonical advances, and the image/rule/shape placed-item kinds, attach as later
+      painter slices.
 - [x] **3. `Fragmenter` — block-flow + table + column slices landed** (`Fragmenter`,
       `CanonicalFragmenterTests`, `FragmenterPageCountTests`). Multi-column flow with **line-level
       page/column breaks** (a paragraph too tall for the space left splits at a line boundary and
@@ -227,9 +229,17 @@ Build alongside the existing renderers; do not delete anything until all three b
 - [ ] **4. `DocumentLayoutEngine`** — section walk, per-page region chains, header/footer bands.
       Fix `ParseSectionBreak` (`DocumentParser` ~9318) to read the *following* section's `w:type`
       (ECMA-376 §17.6.22) so continuous multi-column sections are recognised.
-- [ ] **5. `PdfPainter` first** — PDF already fragments, so it is the smallest leap and proves the
-      tree. Repoint `Morph.Pdf` at `LaidOutDocument`; delete `PdfTextEngine`'s pagination. Validate
-      the full container suite: PDF page-count scoreboard unchanged or better, AE/SSIM neutral.
+- [~] **5. `PdfPainter` — first slice landed** (`PdfPainter`, `PdfPainterTests`). A pure draw pass: it
+      takes a `Fragmenter`-produced `LaidOutDocument` and emits a PDF with the tree's pages, page sizes
+      and line/run positions — no measurement, no pagination. It reuses `PdfRenderContext` for font and
+      brush resolution, so a `PlacedLine`'s runs draw with `XGraphics.DrawString` at the tree's baseline.
+      **Proven end-to-end**: a synthetic multi-paragraph flow measured by the canonical measurer,
+      fragmented, painted, and rasterised by PDFium renders the paragraph text correctly at the canonical
+      positions — the tree drives real PDF output. This first slice draws paragraph text only; still to
+      land before it can replace the production `PdfRenderer`: table rows, decorations (underline, strike,
+      highlight, borders, shading), list markers, tabs, images/shapes, and per-run/per-glyph fidelity.
+      Then repoint `Morph.Pdf` at `LaidOutDocument`, delete `PdfTextEngine`'s pagination, and validate the
+      full container suite (PDF page-count scoreboard unchanged or better, AE/SSIM neutral).
 - [ ] **6. `SkiaPainter` + `ImageSharpPainter`** — the payoff step. Both become thin painters of the
       same tree; the whole-paragraph pagination and the duplicated `TextRenderer` layout code delete.
       This is where the raster knife-edges collapse (raster now paginates identically to PDF — one

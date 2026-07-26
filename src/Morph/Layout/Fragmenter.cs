@@ -145,7 +145,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 FinishPage(false);
             }
 
-            var paragraphLines = measurer.LayoutLines(paragraph, columnWidth);
+            var paragraphLines = measurer.LayoutLineContents(paragraph, columnWidth);
             var isEmpty = paragraphLines.Count == 1 && paragraphLines[0].Width <= 0;
 
             // Space-before, collapsed with the previous paragraph's after (max, not sum) and dropped at a
@@ -165,7 +165,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 var lineLeft = ColumnLeft + (float) properties.LeftIndentPoints;
-                items.Add(new PlacedLine(lineLeft, y, line.Width, line.Height, paragraph, lineIndex));
+                IReadOnlyList<PlacedRun> runs = string.IsNullOrEmpty(line.Text)
+                    ? []
+                    : [new PlacedRun(lineLeft, line.Text, line.FontProperties)];
+                items.Add(new PlacedLine(lineLeft, y, line.Width, line.Height, y + line.Ascent, paragraph, lineIndex, runs));
                 y += line.Height;
                 atRegionTop = false;
             }
