@@ -1,21 +1,23 @@
 /// <summary>
 /// Flows a document's block content into pages once, backend-independently — the heart of the layout
-/// engine (<c>docs/layout-engine-proposal.md</c>, step 3). Handles single-column block flow with
-/// **line-level** page breaks (a paragraph too tall for the space left splits at a line boundary and
-/// continues on the next page, which the raster backends cannot do today) and **row-level** table
-/// breaks (a table taller than a page flows row by row, re-emitting <c>w:tblHeader</c> rows after each
-/// break). It applies the measured height-model rules from <c>src/page_counts.md</c> — max-collapse
-/// paragraph spacing, space-before dropped at an automatically broken page top, and the empty-paragraph
-/// mark line.
+/// engine (<c>docs/layout-engine-proposal.md</c>, step 3). Handles multi-column block flow with
+/// **line-level** page/column breaks (a paragraph too tall for the space left splits at a line boundary
+/// and continues in the next column or page, which the raster backends cannot do today) and
+/// **row-level** table breaks (a table taller than a column flows row by row, re-emitting
+/// <c>w:tblHeader</c> rows after each break). Content fills column 0 to the bottom, then column 1, and so
+/// on; the last column overflowing starts a new page. It applies the measured height-model rules from
+/// <c>src/page_counts.md</c> — max-collapse paragraph spacing, space-before dropped at an automatically
+/// broken region (column or page) top, and the empty-paragraph mark line.
 ///
 /// <para>Paragraph flow fits lines exactly (the canonical measurer does not over-measure, so no slack is
-/// needed); table pagination mirrors the raster backend's tolerances (row height measurement carries the
-/// shared <see cref="TableHeightCalculator"/>'s padding conventions), so the two paginate a table
+/// needed); table pagination mirrors the raster backend's tolerances so the two paginate a table
 /// identically until a canonical row measurement retires the slack.</para>
 ///
-/// <para>Deferred to later slices, and noted so a document using them is not yet expected to paginate:
-/// multi-column sections and column breaks, widow/orphan and keep-next/keep-lines, floats and their wrap
-/// exclusions, floating tables, header/footer band height, and even/odd section-break parity. Other
+/// <para>Columns are equal-width from a single <see cref="PageSettings"/> (the common case). Deferred to
+/// later slices, and noted so a document using them is not yet expected to paginate: per-section geometry
+/// changes (a section break switching column count or page size, including the continuous mid-page kind);
+/// widow/orphan and keep-next/keep-lines; floats and their wrap exclusions; floating tables; images and
+/// nested tables inside a cell; header/footer band height; and even/odd section-break parity. Other
 /// non-paragraph, non-table elements are skipped for now.</para>
 /// </summary>
 sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
@@ -29,16 +31,27 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
     {
         readonly float contentTop = (float) page.MarginTop;
         readonly float contentBottom = (float) (page.HeightPoints - page.MarginBottom);
-        readonly float contentLeft = (float) page.MarginLeft;
-        readonly float contentWidth = (float) page.ContentWidth;
         readonly float contentHeight = (float) (page.HeightPoints - page.MarginTop - page.MarginBottom);
+        readonly float fullContentLeft = (float) page.MarginLeft;
+        readonly int columnCount = Math.Max(1, page.ColumnCount);
+        readonly float columnWidth = (float) page.ColumnWidth;
+        readonly float columnSpacing = (float) page.ColumnSpacing;
         readonly List<LaidOutPage> pages = [];
 
         List<PlacedItem> items = [];
+        int currentColumn;
         float y;
-        bool atPageTop = true;
+        // Top of the current *region* — a fresh column or a fresh page. Space-before is dropped here and a
+        // line/row is never pushed off it (nothing better to do), the same rule at a column or page top.
+        bool atRegionTop = true;
         float lastAfter;
         bool currentPageExplicit;
+
+        // Left edge of the current column, in points from the page's left.
+        float ColumnLeft => fullContentLeft + currentColumn * (columnWidth + columnSpacing);
+
+        // Top of a fresh *page* — the first column's region top. Page-level breaks skip when already here.
+        bool AtPageTop => atRegionTop && currentColumn == 0;
 
         public LaidOutDocument Run(IReadOnlyList<DocumentElement> elements)
         {
@@ -49,15 +62,21 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 switch (element)
                 {
                     case PageBreakElement:
-                        // A page break starts a page even at the top of one, so N consecutive breaks
-                        // yield N blank pages (ledger experiment 18); the page is marked explicit so it
-                        // survives FinishPage's keep test.
+                        // A page break starts a page even at the top of one, so N consecutive breaks yield
+                        // N blank pages (ledger experiment 18); the page is marked explicit so it survives
+                        // FinishPage's keep test. It resets to the first column.
                         FinishPage(nextPageExplicit: true);
                         break;
 
+                    case ColumnBreakElement:
+                        // Move to the next column, or a new page from the last column.
+                        AdvanceColumnOrPage();
+                        break;
+
                     case SectionBreakElement { BreakType: not SectionBreakType.Continuous }:
-                        // Even/odd parity is a later slice; treated as a plain page break here.
-                        if (!atPageTop)
+                        // Even/odd parity and per-section geometry are later slices; treated as a plain
+                        // page break here.
+                        if (!AtPageTop)
                         {
                             FinishPage(false);
                         }
@@ -72,21 +91,21 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         PlaceTable(table);
                         break;
 
-                    // Floats, images, column breaks and continuous sections are later slices.
+                    // Floats, images and continuous sections are later slices.
                 }
             }
 
             // Emit the trailing page. FinishPage keeps it only when it carries content, is an
-            // explicit-break blank, or is the first page — so a natural trailing-overflow blank is
-            // dropped while a deliberate one survives.
+            // explicit-break blank, or is the first page — so a natural trailing-overflow blank is dropped
+            // while a deliberate one survives.
             FinishPage(false);
 
             return new(pages);
         }
 
-        // Emits the in-progress page and starts a fresh one. A page is kept when it has content, when it
-        // is a deliberate blank left by an explicit break (Word does not absorb those), or when it is the
-        // only page; a natural trailing-overflow blank is dropped.
+        // Emits the in-progress page and starts a fresh one at its first column. A page is kept when it
+        // has content, when it is a deliberate blank left by an explicit break (Word does not absorb
+        // those), or when it is the only page; a natural trailing-overflow blank is dropped.
         void FinishPage(bool nextPageExplicit)
         {
             if (items.Count > 0 || currentPageExplicit || pages.Count == 0)
@@ -95,29 +114,44 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             items = [];
+            currentColumn = 0;
             y = contentTop;
-            atPageTop = true;
+            atRegionTop = true;
             lastAfter = 0;
             currentPageExplicit = nextPageExplicit;
+        }
+
+        // Content overflow or a column break: move to the next column, keeping the current page's items,
+        // or start a new page when the last column is full.
+        void AdvanceColumnOrPage()
+        {
+            if (currentColumn < columnCount - 1)
+            {
+                currentColumn++;
+                y = contentTop;
+                atRegionTop = true;
+                lastAfter = 0;
+                return;
+            }
+
+            FinishPage(false);
         }
 
         void PlaceParagraph(ParagraphElement paragraph)
         {
             var properties = paragraph.Properties;
-            if (properties.PageBreakBefore && !atPageTop)
+            if (properties.PageBreakBefore && !AtPageTop)
             {
                 FinishPage(false);
             }
 
-            var paragraphLines = measurer.LayoutLines(paragraph, contentWidth);
+            var paragraphLines = measurer.LayoutLines(paragraph, columnWidth);
             var isEmpty = paragraphLines.Count == 1 && paragraphLines[0].Width <= 0;
-            var lineLeft = contentLeft + (float) properties.LeftIndentPoints;
 
-            // Space-before, collapsed with the previous paragraph's after (max, not sum) and dropped at
-            // the top of an automatically broken page. If the collapsed gap plus the first line overflows,
-            // the line-level break below resets the cursor — the same space-before drop for the moved
-            // paragraph.
-            if (!atPageTop)
+            // Space-before, collapsed with the previous paragraph's after (max, not sum) and dropped at a
+            // region top. If the collapsed gap plus the first line overflows, the line-level break below
+            // resets the cursor — the same space-before drop for the moved paragraph.
+            if (!atRegionTop)
             {
                 y += Math.Max(lastAfter, (float) properties.SpacingBeforePoints);
             }
@@ -125,14 +159,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             for (var lineIndex = 0; lineIndex < paragraphLines.Count; lineIndex++)
             {
                 var line = paragraphLines[lineIndex];
-                if (!atPageTop && y + line.Height > contentBottom)
+                if (!atRegionTop && y + line.Height > contentBottom)
                 {
-                    FinishPage(false);
+                    AdvanceColumnOrPage();
                 }
 
+                var lineLeft = ColumnLeft + (float) properties.LeftIndentPoints;
                 items.Add(new PlacedLine(lineLeft, y, line.Width, line.Height, paragraph, lineIndex));
                 y += line.Height;
-                atPageTop = false;
+                atRegionTop = false;
             }
 
             lastAfter = isEmpty ? 0 : (float) properties.SpacingAfterPoints;
@@ -152,7 +187,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 return;
             }
 
-            var colWidths = TableLayout.CalculateColumnWidths(table, colCount, contentWidth, measurer);
+            var colWidths = TableLayout.CalculateColumnWidths(table, colCount, columnWidth, measurer);
             var hasVerticalMerge = TableLayout.HasVerticalMerge(table);
             var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, measurer, hasVerticalMerge);
 
@@ -169,16 +204,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             // The previous paragraph's after-spacing precedes the table (a table has no before-spacing to
-            // collapse it with), and never applies at a fresh page top.
-            if (!atPageTop)
+            // collapse it with), and never applies at a region top.
+            if (!atRegionTop)
             {
                 y += lastAfter;
             }
 
             lastAfter = 0;
 
-            // A table over 110% of a page's content height flows row by row (the raster backend's
-            // needsRowByRowRendering); otherwise it stays whole and moves down as a unit if needed.
+            // A table over 110% of a column's content height flows row by row (the raster backend's
+            // needsRowByRowRendering); otherwise it stays whole and moves as a unit if needed.
             if (totalHeight > contentHeight * 1.10f)
             {
                 PlaceTableRowByRow(table, rowHeights, tableWidth);
@@ -186,31 +221,31 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             // Narrow pre-advance for the fixed-height-row letter layouts: lift the whole table onto the
-            // next page when it would otherwise clip its exact row, ahead of the softer whole-table move.
-            if (!atPageTop && totalHeight > 0)
+            // next region when it would otherwise clip its exact row, ahead of the softer whole-table move.
+            if (!atRegionTop && totalHeight > 0)
             {
                 var remaining = Math.Max(0f, contentBottom - y);
                 if (totalHeight > remaining + 5f && HasExactRow(table))
                 {
-                    FinishPage(false);
+                    AdvanceColumnOrPage();
                 }
             }
 
             // Whole-table move: mirrors EnsureSpaceFor(totalHeight − 2%) — a flow table may over-spill the
-            // bottom margin by the shared rounding slack before it is pushed to the next page.
+            // bottom by the shared rounding slack before it is pushed to the next region.
             EnsureSpaceFor(totalHeight - contentHeight * 0.02f);
 
             for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
             {
-                items.Add(new PlacedTableRow(contentLeft, y, tableWidth, rowHeights[rowIndex], table, rowIndex, false));
+                items.Add(new PlacedTableRow(ColumnLeft, y, tableWidth, rowHeights[rowIndex], table, rowIndex, false));
                 y += rowHeights[rowIndex];
-                atPageTop = false;
+                atRegionTop = false;
             }
         }
 
-        // A table taller than a page, placed row by row. Rows do not split: one that will not fit moves
-        // whole to the next page. w:tblHeader rows are re-emitted after each break, and a trailing run of
-        // empty rows is absorbed into the bottom margin rather than starting a page for them.
+        // A table taller than a column, placed row by row. Rows do not split: one that will not fit moves
+        // whole to the next region. w:tblHeader rows are re-emitted after each break, and a trailing run of
+        // empty rows is absorbed rather than starting a region for them.
         void PlaceTableRowByRow(TableElement table, float[] rowHeights, float tableWidth)
         {
             var headerCount = 0;
@@ -234,29 +269,29 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 {
                     for (var headerIndex = 0; headerIndex < headerCount; headerIndex++)
                     {
-                        items.Add(new PlacedTableRow(contentLeft, y, tableWidth, rowHeights[headerIndex], table, headerIndex, true));
+                        items.Add(new PlacedTableRow(ColumnLeft, y, tableWidth, rowHeights[headerIndex], table, headerIndex, true));
                         y += rowHeights[headerIndex];
-                        atPageTop = false;
+                        atRegionTop = false;
                     }
                 }
 
-                items.Add(new PlacedTableRow(contentLeft, y, tableWidth, rowHeight, table, rowIndex, false));
+                items.Add(new PlacedTableRow(ColumnLeft, y, tableWidth, rowHeight, table, rowIndex, false));
                 y += rowHeight;
-                atPageTop = false;
+                atRegionTop = false;
             }
         }
 
-        // Mirrors PageRendererBase.EnsureSpaceFor: breaks to a new page when the height will not fit in
-        // the space left (a 2% rounding slack via HasSpaceFor), unless already at the page top or the
-        // height exceeds a whole page. Returns whether it broke.
+        // Mirrors PageRendererBase.EnsureSpaceFor: advances to the next column or page when the height will
+        // not fit in the space left (a 2% rounding slack via HasSpaceFor), unless already at a region top
+        // or the height exceeds a whole column. Returns whether it broke.
         bool EnsureSpaceFor(float height)
         {
-            if (height > contentHeight || atPageTop || HasSpaceFor(height))
+            if (height > contentHeight || atRegionTop || HasSpaceFor(height))
             {
                 return false;
             }
 
-            FinishPage(false);
+            AdvanceColumnOrPage();
             return true;
         }
 

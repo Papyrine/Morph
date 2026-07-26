@@ -12,6 +12,11 @@ public class CanonicalFragmenterTests
     static PageSettings Page(double heightPoints) =>
         new() { WidthPoints = 300, HeightPoints = heightPoints, MarginTop = 20, MarginBottom = 20, MarginLeft = 20, MarginRight = 20 };
 
+    // The same geometry with N equal columns at a 20pt gap. At 2 columns the 260pt measure splits into
+    // 120pt columns; column 1's left edge sits at 20 + 120 + 20 = 160pt.
+    static PageSettings ColumnPage(double heightPoints, int columns) =>
+        new() { WidthPoints = 300, HeightPoints = heightPoints, MarginTop = 20, MarginBottom = 20, MarginLeft = 20, MarginRight = 20, ColumnCount = columns, ColumnSpacing = 20 };
+
     static ParagraphElement P(string text, ParagraphProperties? properties = null) =>
         new()
         {
@@ -77,5 +82,54 @@ public class CanonicalFragmenterTests
         var document = Fragmenter.Layout([], Page(200));
         await Assert.That(document.Pages.Count).IsEqualTo(1);
         await Assert.That(document.Pages[0].Items.Count).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Content_overflowing_a_column_flows_to_the_next_column_on_the_same_page()
+    {
+        // A paragraph taller than one 160pt column fills column 0, then column 1, all on page 1.
+        var page = ColumnPage(200, 2);
+        var paragraph = P(string.Join(' ', Enumerable.Repeat("lorem", 300)));
+        var column1Left = 20f + (float) page.ColumnWidth + 20f;
+
+        var document = Fragmenter.Layout([paragraph], page);
+        var firstPageLines = document.Pages[0].Items.Cast<PlacedLine>().ToList();
+
+        // Both columns are used on page 1, and column 1 resumes at the content top (20pt), not column 0's
+        // running y — the region-top reset the raster backends get from MoveToNextColumn.
+        await Assert.That(firstPageLines.Any(_ => Math.Abs(_.X - 20f) < 0.5f)).IsTrue();
+        var column1Lines = firstPageLines.Where(_ => Math.Abs(_.X - column1Left) < 0.5f).ToList();
+        await Assert.That(column1Lines.Count > 0).IsTrue();
+        await Assert.That(column1Lines[0].Y).IsEqualTo(20f).Within(0.01f);
+    }
+
+    [Test]
+    public async Task A_column_break_moves_to_the_next_column()
+    {
+        var page = ColumnPage(400, 2);
+        var column1Left = 20f + (float) page.ColumnWidth + 20f;
+
+        var document = Fragmenter.Layout([P("before"), new ColumnBreakElement(), P("after")], page);
+
+        // One page: "before" in column 0, "after" atop column 1 — the break advances the column, not the page.
+        await Assert.That(document.Pages.Count).IsEqualTo(1);
+        var lines = document.Pages[0].Items.Cast<PlacedLine>().ToList();
+        await Assert.That(lines.Count).IsEqualTo(2);
+        await Assert.That(lines[0].X).IsEqualTo(20f).Within(0.5f);
+        await Assert.That(lines[1].X).IsEqualTo(column1Left).Within(0.5f);
+        await Assert.That(lines[1].Y).IsEqualTo(20f).Within(0.01f);
+    }
+
+    [Test]
+    public async Task Overflowing_the_last_column_starts_a_new_page_at_column_zero()
+    {
+        // Enough text to fill both columns of page 1 and spill onto page 2.
+        var document = Fragmenter.Layout([P(string.Join(' ', Enumerable.Repeat("lorem", 800)))], ColumnPage(200, 2));
+
+        await Assert.That(document.Pages.Count > 1).IsTrue();
+        // Page 2 resumes at column 0 (x=20), content top.
+        var page2First = (PlacedLine) document.Pages[1].Items[0];
+        await Assert.That(page2First.X).IsEqualTo(20f).Within(0.5f);
+        await Assert.That(page2First.Y).IsEqualTo(20f).Within(0.01f);
     }
 }
