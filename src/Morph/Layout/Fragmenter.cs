@@ -148,6 +148,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var paragraphLines = measurer.LayoutLineContents(paragraph, columnWidth);
             var isEmpty = paragraphLines.Count == 1 && paragraphLines[0].Width <= 0;
 
+            // Columns are equal width, so the available width for alignment is constant even as a line
+            // spills to the next column; the left edge (ColumnLeft) is read per line, after any advance.
+            var availableWidth = columnWidth - (float) properties.LeftIndentPoints - (float) properties.RightIndentPoints;
+
             // Space-before, collapsed with the previous paragraph's after (max, not sum) and dropped at a
             // region top. If the collapsed gap plus the first line overflows, the line-level break below
             // resets the cursor — the same space-before drop for the moved paragraph.
@@ -164,7 +168,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     AdvanceColumnOrPage();
                 }
 
-                var lineLeft = ColumnLeft + (float) properties.LeftIndentPoints;
+                var lineLeft = ColumnLeft + (float) properties.LeftIndentPoints + AlignmentOffset(properties.Alignment, availableWidth, line.Width);
                 var baseline = y + line.Ascent;
                 items.Add(new PlacedLine(lineLeft, y, line.Width, line.Height, baseline, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft), MapImages(line, lineLeft, baseline)));
                 y += line.Height;
@@ -358,11 +362,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
                 var paragraphLines = measurer.LayoutLineContents(paragraph, contentWidth);
                 var isEmpty = paragraphLines.Count == 1 && paragraphLines[0].Width <= 0;
+                var textLeft = contentLeft + (float) properties.LeftIndentPoints;
+                var availableWidth = contentWidth - (float) properties.LeftIndentPoints - (float) properties.RightIndentPoints;
 
                 for (var lineIndex = 0; lineIndex < paragraphLines.Count; lineIndex++)
                 {
                     var line = paragraphLines[lineIndex];
-                    var lineLeft = contentLeft + (float) properties.LeftIndentPoints;
+                    var lineLeft = textLeft + AlignmentOffset(properties.Alignment, availableWidth, line.Width);
                     var baseline = cellY + line.Ascent;
                     lines.Add(new PlacedLine(lineLeft, cellY, line.Width, line.Height, baseline, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft), MapImages(line, lineLeft, baseline)));
                     cellY += line.Height;
@@ -414,6 +420,25 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             return false;
+        }
+
+        // The X offset that aligns a line of the given width within the available width. Centre and right
+        // shift the whole line; left and justify sit at the left edge (justify's inter-word slack is a
+        // later slice). A line wider than the available width (rare — an unbreakable word) is not shifted.
+        static float AlignmentOffset(TextAlignment alignment, float availableWidth, float lineWidth)
+        {
+            var slack = availableWidth - lineWidth;
+            if (slack <= 0)
+            {
+                return 0;
+            }
+
+            return alignment switch
+            {
+                TextAlignment.Center => slack / 2,
+                TextAlignment.Right => slack,
+                _ => 0
+            };
         }
 
         // The runs to paint for a line: its text run segments, plus — on the first line of a list
