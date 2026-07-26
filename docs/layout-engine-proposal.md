@@ -200,12 +200,13 @@ Build alongside the existing renderers; do not delete anything until all three b
       adapter, and an optional per-font upward space factor (Aptos 1.0125×, Times 1.0213×) for the last
       fraction of a percent.
 - [x] **2. Layout-tree types** — landed (`PlacedItem` base carrying the bounding box, with
-      `LaidOutDocument`, `LaidOutPage`, `PlacedLine`, `PlacedTableRow`, `MeasuredLine`). `PlacedLine`
-      carries its baseline and the `PlacedRun`s to paint (text + `RunProperties` for font/colour) — one
-      per contiguous source run on the line, so a mixed-format line ("plain **bold** plain") is several
-      runs at their own X and a uniform line is one, and a painter draws without re-measuring. Each run's
-      X is the canonical pen position at its start; per-glyph advances (exact intra-run boundaries) and the
-      image/rule/shape placed-item kinds attach as later slices.
+      `LaidOutDocument`, `LaidOutPage`, `PlacedLine`, `PlacedTableRow`, `PlacedCell`, `MeasuredLine`).
+      `PlacedLine` carries its baseline and the `PlacedRun`s to paint (text + `RunProperties` for
+      font/colour) — one per contiguous source run on the line, so a mixed-format line ("plain **bold**
+      plain") is several runs at their own X and a uniform line is one, and a painter draws without
+      re-measuring. `PlacedTableRow` carries its `PlacedCell`s (box, shading, borders, and the cell's
+      laid-out content). Each run's X is the canonical pen position at its start; per-glyph advances (exact
+      intra-run boundaries) and the image/rule/shape placed-item kinds attach as later slices.
 - [x] **3. `Fragmenter` — block-flow + table + column slices landed** (`Fragmenter`,
       `CanonicalFragmenterTests`, `FragmenterPageCountTests`). Multi-column flow with **line-level
       page/column breaks** (a paragraph too tall for the space left splits at a line boundary and
@@ -238,12 +239,16 @@ Build alongside the existing renderers; do not delete anything until all three b
       fragmented, painted, and rasterised by PDFium renders the text correctly at the canonical positions —
       the tree drives real PDF output. **Per-run fidelity landed**: a mixed-format line paints each run in
       its own font and colour (bold, italic, red, italic-blue all confirmed in a render), and a mid-word
-      format change never splits the word at a wrap. Still to land before it can replace the production
-      `PdfRenderer`: table rows, decorations (underline, strike, highlight, borders, shading), list
-      markers, tabs, images/shapes, and per-glyph advances (exact intra-run boundaries — the painter
-      currently anchors each run at its canonical start and lets the font library fill the run). Then
-      repoint `Morph.Pdf` at `LaidOutDocument`, delete `PdfTextEngine`'s pagination, and validate the full
-      container suite (PDF page-count scoreboard unchanged or better, AE/SSIM neutral).
+      format change never splits the word at a wrap. **Table cell sub-layout landed**: the fragmenter
+      places each cell's paragraphs into the tree (column geometry, padding, vertical-merge heights, `w:jc`
+      table alignment, mirroring `RenderTableRow`) and the painter draws each cell's shading, content and
+      borders — a shaded bold header, a full border grid and wrapped multi-line cells all confirmed in a
+      render. Still to land before it can replace the production `PdfRenderer`: paragraph/run decorations
+      (underline, strike, highlight, paragraph borders, shading), list markers, tabs, images/shapes,
+      in-cell vertical alignment and nested tables, and per-glyph advances (exact intra-run boundaries —
+      the painter currently anchors each run at its canonical start and lets the font library fill the
+      run). Then repoint `Morph.Pdf` at `LaidOutDocument`, delete `PdfTextEngine`'s pagination, and
+      validate the full container suite (PDF page-count scoreboard unchanged or better, AE/SSIM neutral).
 - [ ] **6. `SkiaPainter` + `ImageSharpPainter`** — the payoff step. Both become thin painters of the
       same tree; the whole-paragraph pagination and the duplicated `TextRenderer` layout code delete.
       This is where the raster knife-edges collapse (raster now paginates identically to PDF — one

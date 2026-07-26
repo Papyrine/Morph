@@ -165,14 +165,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 var lineLeft = ColumnLeft + (float) properties.LeftIndentPoints;
-                var runs = new PlacedRun[line.Runs.Count];
-                for (var runIndex = 0; runIndex < line.Runs.Count; runIndex++)
-                {
-                    var run = line.Runs[runIndex];
-                    runs[runIndex] = new PlacedRun(lineLeft + run.X, run.Text, run.Properties);
-                }
-
-                items.Add(new PlacedLine(lineLeft, y, line.Width, line.Height, y + line.Ascent, paragraph, lineIndex, runs));
+                items.Add(new PlacedLine(lineLeft, y, line.Width, line.Height, y + line.Ascent, paragraph, lineIndex, MapRuns(line, lineLeft)));
                 y += line.Height;
                 atRegionTop = false;
             }
@@ -210,6 +203,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 totalHeight += height;
             }
 
+            var tableX = ComputeTableX(table, tableWidth);
+
             // The previous paragraph's after-spacing precedes the table (a table has no before-spacing to
             // collapse it with), and never applies at a region top.
             if (!atRegionTop)
@@ -223,7 +218,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // needsRowByRowRendering); otherwise it stays whole and moves as a unit if needed.
             if (totalHeight > contentHeight * 1.10f)
             {
-                PlaceTableRowByRow(table, rowHeights, tableWidth);
+                PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth);
                 return;
             }
 
@@ -244,7 +239,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
             {
-                items.Add(new PlacedTableRow(ColumnLeft, y, tableWidth, rowHeights[rowIndex], table, rowIndex, false));
+                items.Add(BuildRow(table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false));
                 y += rowHeights[rowIndex];
                 atRegionTop = false;
             }
@@ -253,7 +248,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // A table taller than a column, placed row by row. Rows do not split: one that will not fit moves
         // whole to the next region. w:tblHeader rows are re-emitted after each break, and a trailing run of
         // empty rows is absorbed rather than starting a region for them.
-        void PlaceTableRowByRow(TableElement table, float[] rowHeights, float tableWidth)
+        void PlaceTableRowByRow(TableElement table, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth)
         {
             var headerCount = 0;
             while (headerCount < table.Rows.Count && table.Rows[headerCount].IsHeader)
@@ -276,16 +271,118 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 {
                     for (var headerIndex = 0; headerIndex < headerCount; headerIndex++)
                     {
-                        items.Add(new PlacedTableRow(ColumnLeft, y, tableWidth, rowHeights[headerIndex], table, headerIndex, true));
+                        items.Add(BuildRow(table, headerIndex, colWidths, rowHeights, colCount, tableX, tableWidth, true));
                         y += rowHeights[headerIndex];
                         atRegionTop = false;
                     }
                 }
 
-                items.Add(new PlacedTableRow(ColumnLeft, y, tableWidth, rowHeight, table, rowIndex, false));
+                items.Add(BuildRow(table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false));
                 y += rowHeight;
                 atRegionTop = false;
             }
+        }
+
+        // Builds a placed row at the current cursor: the row box plus each cell's box, shading, borders and
+        // laid-out content. Cell geometry mirrors PageRendererBase.RenderTableRow so the tree matches the
+        // raster backend's grid — merge-continuation cells contribute nothing (the originating cell covers
+        // them), and a merge-restart cell's box spans the merged rows' heights.
+        PlacedTableRow BuildRow(TableElement table, int rowIndex, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth, bool isRepeatedHeader)
+        {
+            var row = table.Rows[rowIndex];
+            var rowHeight = rowHeights[rowIndex];
+            var cells = new List<PlacedCell>();
+            var cellX = tableX;
+            var gridColIndex = 0;
+
+            for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
+            {
+                var cell = row.Cells[cellIndex];
+                var span = cell.Properties.GridSpan;
+
+                var cellWidth = 0f;
+                for (var offset = 0; offset < span && gridColIndex + offset < colCount; offset++)
+                {
+                    cellWidth += colWidths[gridColIndex + offset];
+                }
+
+                if (cell.Properties.VerticalMerge == VerticalMergeType.Continue)
+                {
+                    cellX += cellWidth;
+                    gridColIndex += span;
+                    continue;
+                }
+
+                var cellHeight = cell.Properties.VerticalMerge == VerticalMergeType.Restart
+                    ? TableLayout.CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights)
+                    : rowHeight;
+
+                var padding = TableLayout.GetEffectivePadding(cell.Properties, table.Properties, row);
+                var content = LayoutCellContent(cell, cellX + (float) padding.Left, y + (float) padding.Top, cellWidth - (float) padding.Horizontal);
+                var borders = TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row);
+
+                cells.Add(new PlacedCell(cellX, y, cellWidth, cellHeight, cell.Properties.BackgroundColorHex, borders, content));
+
+                cellX += cellWidth;
+                gridColIndex += span;
+            }
+
+            return new PlacedTableRow(tableX, y, tableWidth, rowHeight, table, rowIndex, isRepeatedHeader, cells);
+        }
+
+        // Stacks a cell's paragraphs from the top of its padded interior, wrapping each to the cell width.
+        // No page breaks — the row height already accommodates the content. Top-aligned for now; vertical
+        // alignment, nested tables and in-cell images are later slices.
+        IReadOnlyList<PlacedItem> LayoutCellContent(TableCell cell, float contentLeft, float contentTop, float contentWidth)
+        {
+            var lines = new List<PlacedItem>();
+            var cellY = contentTop;
+            var lastCellAfter = 0f;
+            var first = true;
+
+            foreach (var element in cell.Content)
+            {
+                if (element is not ParagraphElement paragraph)
+                {
+                    continue;
+                }
+
+                var properties = paragraph.Properties;
+                if (!first)
+                {
+                    cellY += Math.Max(lastCellAfter, (float) properties.SpacingBeforePoints);
+                }
+
+                first = false;
+
+                var paragraphLines = measurer.LayoutLineContents(paragraph, contentWidth);
+                var isEmpty = paragraphLines.Count == 1 && paragraphLines[0].Width <= 0;
+
+                for (var lineIndex = 0; lineIndex < paragraphLines.Count; lineIndex++)
+                {
+                    var line = paragraphLines[lineIndex];
+                    var lineLeft = contentLeft + (float) properties.LeftIndentPoints;
+                    lines.Add(new PlacedLine(lineLeft, cellY, line.Width, line.Height, cellY + line.Ascent, paragraph, lineIndex, MapRuns(line, lineLeft)));
+                    cellY += line.Height;
+                }
+
+                lastCellAfter = isEmpty ? 0 : (float) properties.SpacingAfterPoints;
+            }
+
+            return lines;
+        }
+
+        // Table X within the current column, by w:jc alignment: centred and right collapse the indent into
+        // the slack, left applies w:tblInd — matching PageRendererBase.ComputeTableX (non-floating).
+        float ComputeTableX(TableElement table, float tableWidth)
+        {
+            var slack = columnWidth - tableWidth;
+            return table.Properties.Alignment switch
+            {
+                TextAlignment.Center => ColumnLeft + Math.Max(0, slack / 2),
+                TextAlignment.Right => ColumnLeft + Math.Max(0, slack),
+                _ => ColumnLeft + (float) table.Properties.IndentPoints
+            };
         }
 
         // Mirrors PageRendererBase.EnsureSpaceFor: advances to the next column or page when the height will
@@ -315,6 +412,20 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             return false;
+        }
+
+        // Projects a laid-out line's run segments to placed runs at absolute X (the line's left edge plus
+        // each segment's canonical offset). Shared by page-flow and cell-flow line placement.
+        static PlacedRun[] MapRuns(LaidOutLine line, float lineLeft)
+        {
+            var runs = new PlacedRun[line.Runs.Count];
+            for (var runIndex = 0; runIndex < line.Runs.Count; runIndex++)
+            {
+                var run = line.Runs[runIndex];
+                runs[runIndex] = new PlacedRun(lineLeft + run.X, run.Text, run.Properties);
+            }
+
+            return runs;
         }
     }
 }
