@@ -167,4 +167,37 @@ public class CanonicalFragmenterTests
         await Assert.That(line.Runs[0].X).IsEqualTo(line.X).Within(0.01f);
         await Assert.That(line.Runs[1].X > line.Runs[0].X).IsTrue();
     }
+
+    [Test]
+    public async Task A_table_lays_out_cells_with_their_content_tiled_left_to_right()
+    {
+        var table = new TableElement
+        {
+            Properties = new() { GridColumnWidths = [120, 120] },
+            Rows =
+            [
+                new TableRow
+                {
+                    Cells =
+                    [
+                        new TableCell { Content = [P("left cell")], Properties = new() },
+                        new TableCell { Content = [P("right cell")], Properties = new() }
+                    ]
+                }
+            ]
+        };
+
+        var row = Fragmenter.Layout([table], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single();
+
+        // Two cells tiling left to right, each carrying its paragraph text inside its box.
+        await Assert.That(row.Cells.Count).IsEqualTo(2);
+        await Assert.That(row.Cells[1].X).IsEqualTo(row.Cells[0].X + row.Cells[0].Width).Within(0.5f);
+        await Assert.That(row.Cells[0].Content.OfType<PlacedLine>().SelectMany(_ => _.Runs).Single().Text).IsEqualTo("left cell");
+        await Assert.That(row.Cells[1].Content.OfType<PlacedLine>().SelectMany(_ => _.Runs).Single().Text).IsEqualTo("right cell");
+
+        // Content is inset within the cell box (padding on the left, below the top).
+        var leftLine = row.Cells[0].Content.OfType<PlacedLine>().First();
+        await Assert.That(leftLine.X >= row.Cells[0].X).IsTrue();
+        await Assert.That(leftLine.Y >= row.Cells[0].Y).IsTrue();
+    }
 }
