@@ -190,9 +190,15 @@ Build alongside the existing renderers; do not delete anything until all three b
       paragraph sample. The advance model uses **pen-position rounding** — the whole-line total tracks
       the linear ideal to within half a device pixel, so per-glyph error can't accumulate and
       over-wrap; this is the "inter-word spaces are elastic upward" behaviour, spread across the run.
-      The lone residual is one Calibri 10pt paragraph a sub-pixel from its boundary. Remaining before
-      step 2: the `IParagraphMeasurer` surface adapter, and an optional per-font upward space factor
-      (Aptos 1.0125×, Times 1.0213×) for the last fraction of a percent.
+      The lone residual is one Calibri 10pt paragraph a sub-pixel from its boundary. The
+      **`IParagraphMeasurer` surface adapter** landed too (`CanonicalParagraphMeasurer`,
+      `CanonicalParagraphMeasurerTests`): multi-run greedy wrap (a mid-word format change never splits
+      the word), per-line height = the tallest run's hhea box under the spacing rule, and Word's
+      before/after spacing — font resolution injected as a delegate so a caller wires a
+      `FontResolver<FontMetrics>`. Not yet consumed by the render pipeline (that is step 6, and carries
+      baseline regeneration). Remaining as refinements: tabs and first-line/hanging indents in the
+      adapter, and an optional per-font upward space factor (Aptos 1.0125×, Times 1.0213×) for the last
+      fraction of a percent.
 - [ ] **2. Layout-tree types** (`LaidOutDocument` … `PlacedGlyphRun`) in `src/Morph/Layout/`.
 - [ ] **3. `Region` + `Fragmenter`** — port the 21 rules from the three render loops into the single
       fragmenter. Start with block flow + page breaks; then columns; then widow/orphan/keep; then
