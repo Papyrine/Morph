@@ -272,9 +272,17 @@ through `MoveToNextColumn` instead of forcing a page (two_columns), PDF implicit
 (two_columns, three_columns), the exact-row pre-advance `CurrentY > ContentTop` guard (blank
 leading page), and PDF WordArt reserving the shape's block height (wordart).
 
-**The remaining ten are backend-metric knife-edges.** Because Skia/ImageSharp and PdfSharp produce
-different heights for identical content, a given document's raster and PDF counts straddle Word and
-need opposite adjustments; resumes/13 is the archetype (raster 4, PDF 6, Word 5, page 1 pixel-exact
-after experiment 15). Closing them requires per-backend metric calibration against Word — a large
-change with corpus-wide regression risk against the ~310 currently matching — not another
+**The remaining four are backend-metric knife-edges** (see the corrected scoreboard at the top).
+Because Skia/ImageSharp and PdfSharp produce different heights for identical content, a given
+document's raster and PDF counts straddle Word and need opposite adjustments; resumes/13 is the
+archetype (raster 4, PDF 6, Word 5, page 1 pixel-exact after experiment 15). Closing them
+*within the current architecture* requires per-backend metric calibration against Word — a large
+change with corpus-wide regression risk against the ~320 currently matching — not another
 content-level rule.
+
+**The structural fix is to stop paginating per-backend.** The knife-edges are the symptom of three
+independent pagination engines (raster ×2, PDF) measuring and fragmenting the same content
+differently. `docs/layout-engine-proposal.md` sketches the "if effort is no object" answer: one
+backend-independent layout pass over a single canonical metric model, emitting a retained layout
+tree that each backend merely paints — so a document paginates once (matching Word once, not three
+times), and the knife-edge category dissolves rather than being calibrated away.
