@@ -102,10 +102,10 @@ public class PdfPainterFidelityTests
         Console.WriteLine(string.Join("\n", report));
 
         await Assert.That(ordered.Count).IsGreaterThan(100);
-        // Measured mean 0.934 / median 0.977 SSIM against Word — simple text and tables are near
-        // pixel-identical; the low scorers are the not-yet-painted features (paragraph alignment, tabs,
-        // headers/footers, column balancing). The floor guards the headline median from a gross
-        // regression while those gaps are closed.
+        // Measured mean 0.940 / median 0.977 SSIM against Word — plain text and tables are near
+        // pixel-identical; the low scorers are the not-yet-painted features (intra-paragraph line breaks,
+        // all-caps, justify, tabs, headers/footers, column balancing). The floor guards the headline
+        // median from a gross regression while those gaps are closed.
         await Assert.That(median > 0.95).IsTrue();
     }
 

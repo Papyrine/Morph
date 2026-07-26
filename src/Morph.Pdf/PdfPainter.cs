@@ -30,6 +30,15 @@ static class PdfPainter
             page.Height = XUnit.FromPoint(laidOutPage.Settings.HeightPoints);
 
             using var graphics = XGraphics.FromPdfPage(page);
+
+            // Page background fill (w:background) behind everything — without it a dark-themed page's
+            // white text lands invisibly on white.
+            var background = laidOutPage.Settings.BackgroundColorHex;
+            if (!string.IsNullOrEmpty(background))
+            {
+                graphics.DrawRectangle(context.GetBrush(PdfRenderContext.ParseColor(background)), 0, 0, page.Width.Point, page.Height.Point);
+            }
+
             foreach (var item in laidOutPage.Items)
             {
                 PaintItem(context, graphics, item);

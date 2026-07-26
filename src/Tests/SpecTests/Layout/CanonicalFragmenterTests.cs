@@ -249,4 +249,21 @@ public class CanonicalFragmenterTests
         await Assert.That(image.Y + image.Height).IsEqualTo(line.Baseline).Within(0.5f);
         await Assert.That(line.Height >= 80f).IsTrue();
     }
+
+    [Test]
+    public async Task Centre_and_right_alignment_shift_the_line_and_its_runs()
+    {
+        // 300pt wide, 20pt margins → 260pt available. A short word centres to half the slack and
+        // right-aligns flush to the right content edge (280pt).
+        var left = (PlacedLine) Fragmenter.Layout([P("word")], Page(400)).Pages[0].Items[0];
+        var centred = (PlacedLine) Fragmenter.Layout([P("word", new() { Alignment = TextAlignment.Center })], Page(400)).Pages[0].Items[0];
+        var right = (PlacedLine) Fragmenter.Layout([P("word", new() { Alignment = TextAlignment.Right })], Page(400)).Pages[0].Items[0];
+
+        await Assert.That(left.X).IsEqualTo(20f).Within(0.01f);
+        await Assert.That(centred.X).IsEqualTo(20f + (260f - left.Width) / 2).Within(0.5f);
+        await Assert.That(right.X).IsEqualTo(20f + (260f - left.Width)).Within(0.5f);
+        // The right-aligned line ends at the right content edge, and the run rides with the line.
+        await Assert.That(right.X + right.Width).IsEqualTo(280f).Within(0.5f);
+        await Assert.That(centred.Runs[0].X).IsEqualTo(centred.X).Within(0.01f);
+    }
 }
