@@ -33,4 +33,34 @@ sealed record FontMetrics
 
     /// <summary>The single-spaced line pitch in points at <paramref name="sizePoints"/>.</summary>
     public double LinePitchPoints(double sizePoints) => (double) LineBoxUnits / UnitsPerEm * sizePoints;
+
+    /// <summary>
+    /// Horizontal advance widths from <c>hmtx</c>, one per glyph up to <c>hhea.numberOfHMetrics</c>.
+    /// Monospaced-tail glyphs past that index reuse the last entry (the OpenType convention for CJK
+    /// fonts whose trailing glyphs share one advance). Empty when the font declares no <c>hmtx</c>.
+    /// </summary>
+    public IReadOnlyList<ushort> AdvanceWidths { get; init; } = [];
+
+    /// <summary>
+    /// Codepoint → glyph id, parsed from a Unicode <c>cmap</c> subtable (format 4 or 12). Unmapped
+    /// codepoints resolve to glyph 0 (<c>.notdef</c>) via <see cref="AdvanceUnits"/>. Empty when the
+    /// font declares no supported <c>cmap</c>.
+    /// </summary>
+    public IReadOnlyDictionary<int, ushort> GlyphForCodepoint { get; init; } = new Dictionary<int, ushort>();
+
+    /// <summary>
+    /// The horizontal advance of <paramref name="codepoint"/> in design units. Falls back to the last
+    /// <c>hmtx</c> entry for glyphs past the metric count, and to glyph 0 for unmapped codepoints.
+    /// Returns 0 when the font carries no advance data.
+    /// </summary>
+    public int AdvanceUnits(int codepoint)
+    {
+        if (AdvanceWidths.Count == 0)
+        {
+            return 0;
+        }
+
+        var glyph = GlyphForCodepoint.GetValueOrDefault(codepoint, (ushort) 0);
+        return glyph < AdvanceWidths.Count ? AdvanceWidths[glyph] : AdvanceWidths[^1];
+    }
 }
