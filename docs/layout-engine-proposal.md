@@ -243,12 +243,16 @@ Build alongside the existing renderers; do not delete anything until all three b
       places each cell's paragraphs into the tree (column geometry, padding, vertical-merge heights, `w:jc`
       table alignment, mirroring `RenderTableRow`) and the painter draws each cell's shading, content and
       borders — a shaded bold header, a full border grid and wrapped multi-line cells all confirmed in a
-      render. Still to land before it can replace the production `PdfRenderer`: paragraph/run decorations
-      (underline, strike, highlight, paragraph borders, shading), list markers, tabs, images/shapes,
-      in-cell vertical alignment and nested tables, and per-glyph advances (exact intra-run boundaries —
-      the painter currently anchors each run at its canonical start and lets the font library fill the
-      run). Then repoint `Morph.Pdf` at `LaidOutDocument`, delete `PdfTextEngine`'s pagination, and
-      validate the full container suite (PDF page-count scoreboard unchanged or better, AE/SSIM neutral).
+      render. **List markers landed**: a list paragraph's first line carries its marker as a run in the
+      hanging-indent gutter (bullet in the embedded "Morph Bullets" font or number in the paragraph font,
+      `numbering.Text` and colour mirroring `PdfTextEngine`), positioned a hanging indent left of the text
+      — bullets and numbers with correct hanging-indent continuation confirmed in a render. Still to land
+      before it can replace the production `PdfRenderer`: paragraph/run decorations (underline, strike,
+      highlight, paragraph borders, shading), tabs, images/shapes, in-cell vertical alignment and nested
+      tables, and per-glyph advances (exact intra-run boundaries — the painter currently anchors each run
+      at its canonical start and lets the font library fill the run). Then repoint `Morph.Pdf` at
+      `LaidOutDocument`, delete `PdfTextEngine`'s pagination, and validate the full container suite (PDF
+      page-count scoreboard unchanged or better, AE/SSIM neutral).
 - [ ] **6. `SkiaPainter` + `ImageSharpPainter`** — the payoff step. Both become thin painters of the
       same tree; the whole-paragraph pagination and the duplicated `TextRenderer` layout code delete.
       This is where the raster knife-edges collapse (raster now paginates identically to PDF — one

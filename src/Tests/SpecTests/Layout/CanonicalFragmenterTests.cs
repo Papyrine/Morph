@@ -200,4 +200,28 @@ public class CanonicalFragmenterTests
         await Assert.That(leftLine.X >= row.Cells[0].X).IsTrue();
         await Assert.That(leftLine.Y >= row.Cells[0].Y).IsTrue();
     }
+
+    [Test]
+    public async Task A_list_paragraph_places_its_marker_in_the_hanging_indent()
+    {
+        var paragraph = new ParagraphElement
+        {
+            Runs = [new Run { Text = "list item text", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }],
+            Properties = new()
+            {
+                LeftIndentPoints = 36,
+                HangingIndentPoints = 18,
+                Numbering = new NumberingInfo { Text = "1." }
+            }
+        };
+
+        var line = (PlacedLine) Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items[0];
+
+        // The first run is the marker, a hanging indent (18pt) left of the text edge (line.X = 20 + 36).
+        await Assert.That(line.Runs[0].Text).IsEqualTo("1.");
+        await Assert.That(line.Runs[0].X).IsEqualTo(line.X - 18f).Within(0.01f);
+        // The text run follows at the line's left edge.
+        await Assert.That(line.Runs[1].Text).IsEqualTo("list item text");
+        await Assert.That(line.Runs[1].X).IsEqualTo(line.X).Within(0.01f);
+    }
 }

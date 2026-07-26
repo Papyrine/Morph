@@ -103,6 +103,16 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         return metrics == null ? 0 : (float) ((double) metrics.Ascender / metrics.UnitsPerEm * fontProperties.FontSizePoints);
     }
 
+    /// <summary>
+    /// The width in points of a short run of text in the given font — for placing a right-aligned list
+    /// marker just before its text. Zero when the font does not resolve.
+    /// </summary>
+    public float MeasureRunWidth(string text, RunProperties properties)
+    {
+        var metrics = resolveFont(properties.FontFamily, properties.Bold, properties.Italic);
+        return metrics == null ? 0 : (float) CanonicalTextMeasurer.MeasureWidthPoints(metrics, text, properties.FontSizePoints);
+    }
+
     public float MeasureParagraphHeightWithWidth(ParagraphElement paragraph, float maxWidth)
     {
         var props = paragraph.Properties;
