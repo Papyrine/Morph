@@ -163,9 +163,34 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         var linePieces = new List<Piece>();
         var gapPieces = new List<Piece>();
 
-        void CommitLine()
+        // A line that wrapped naturally (the next word did not fit) is justified when the paragraph is;
+        // a line ended by a break or the paragraph's last line is not (Word leaves those at their natural
+        // spacing). Justify distributes the leftover width evenly across the inter-word gaps.
+        void CommitLine(bool justify)
         {
-            var (segments, images) = BuildLineItems(linePieces);
+            var extraGapPixels = 0.0;
+            if (justify && paragraph.Properties.Alignment == TextAlignment.Justify)
+            {
+                var gaps = 0;
+                foreach (var piece in linePieces)
+                {
+                    if (piece.IsSpace)
+                    {
+                        gaps++;
+                    }
+                }
+
+                if (gaps > 0)
+                {
+                    var slack = CanonicalTextMeasurer.PixelsFromPoints(wrapWidth) - linePixels;
+                    if (slack > 0)
+                    {
+                        extraGapPixels = slack / gaps;
+                    }
+                }
+            }
+
+            var (segments, images) = BuildLineItems(linePieces, extraGapPixels);
             lines.Add(new((float) CanonicalTextMeasurer.PixelsToPoints(linePixels), linePitch, segments, images));
         }
 
@@ -181,7 +206,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     linePitch = pieces[index].Pitch;
                 }
 
-                CommitLine();
+                CommitLine(justify: false);
                 linePixels = 0;
                 linePitch = 0;
                 lineHasWord = false;
@@ -232,7 +257,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             }
             else
             {
-                CommitLine();
+                CommitLine(justify: true);
                 linePixels = wordPixels;
                 linePitch = wordPitch;
                 linePieces.Clear();
@@ -246,7 +271,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
         if (lineHasWord)
         {
-            CommitLine();
+            CommitLine(justify: false);
         }
 
         if (lines.Count == 0)
@@ -263,7 +288,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // it, its Width the pen distance to the next boundary — the same rounding as the line width, so a
     // painter draws each font (and each image) at the right offset and strokes decorations across the
     // right span. An image breaks any running text segment.
-    static (IReadOnlyList<WrapSegment> Segments, IReadOnlyList<LaidOutImage> Images) BuildLineItems(List<Piece> linePieces)
+    static (IReadOnlyList<WrapSegment> Segments, IReadOnlyList<LaidOutImage> Images) BuildLineItems(List<Piece> linePieces, double extraGapPixels)
     {
         var segments = new List<WrapSegment>();
         var images = new List<LaidOutImage>();
@@ -292,6 +317,15 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 FlushSegment();
                 images.Add(image with { X = (float) CanonicalTextMeasurer.PixelsToPoints(cursor) });
                 cursor += piece.Pixels;
+                continue;
+            }
+
+            // When justifying, a space is a widened gap between words, not part of a segment: end the
+            // current word and advance past the space plus its even share of the leftover width.
+            if (extraGapPixels > 0 && piece.IsSpace)
+            {
+                FlushSegment();
+                cursor += piece.Pixels + extraGapPixels;
                 continue;
             }
 

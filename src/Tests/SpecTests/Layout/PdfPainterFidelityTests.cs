@@ -103,9 +103,11 @@ public class PdfPainterFidelityTests
 
         await Assert.That(ordered.Count).IsGreaterThan(100);
         // Measured mean 0.941 / median 0.977 SSIM against Word — plain text and tables are near
-        // pixel-identical; the low scorers each compound several not-yet-painted features (justify, tabs,
-        // headers/footers, column balancing, label grids). The floor guards the headline median from a
-        // gross regression while those gaps are closed.
+        // pixel-identical. It is a LOWER BOUND on layout fidelity: this runs on the host, so a text-dense
+        // page also carries sub-pixel glyph/line-metric drift and host-vs-container rasterization AA that
+        // depress its SSIM even when the wrap and alignment match Word exactly (e.g. long_paragraph 0.78).
+        // The remaining true-layout gaps are tabs, headers/footers, column balancing and label grids. The
+        // floor guards the headline median from a gross regression.
         await Assert.That(median > 0.95).IsTrue();
     }
 
