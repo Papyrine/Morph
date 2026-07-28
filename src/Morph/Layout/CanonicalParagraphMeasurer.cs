@@ -145,7 +145,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // quantizing once (PixelsToPoints) is pen-position rounding, which composes across fonts. Text and
     // Properties are carried so the wrap can hand a painter each line's run segments — they never enter
     // the width/pitch arithmetic.
-    readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties, LaidOutImage? Image);
+    readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties, LaidOutImage? Image, bool IsBreak);
 
     readonly record struct WrapSegment(float X, float Width, string Text, RunProperties Properties);
 
@@ -172,6 +172,27 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         var index = 0;
         while (index < pieces.Count)
         {
+            if (pieces[index].IsBreak)
+            {
+                // A soft line break: whatever has accumulated becomes a line, then a fresh line starts. A
+                // break with no preceding word emits a blank line at the break's pitch.
+                if (!lineHasWord)
+                {
+                    linePitch = pieces[index].Pitch;
+                }
+
+                CommitLine();
+                linePixels = 0;
+                linePitch = 0;
+                lineHasWord = false;
+                linePieces.Clear();
+                gapPixels = 0;
+                gapPitch = 0;
+                gapPieces.Clear();
+                index++;
+                continue;
+            }
+
             if (pieces[index].IsSpace)
             {
                 gapPixels += pieces[index].Pixels;
@@ -181,11 +202,12 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 continue;
             }
 
-            // Gather the whole word — every adjacent non-space piece, even across a run boundary.
+            // Gather the whole word — every adjacent non-space piece, even across a run boundary (but not
+            // across a forced break).
             double wordPixels = 0;
             float wordPitch = 0;
             var wordPieces = new List<Piece>();
-            while (index < pieces.Count && !pieces[index].IsSpace)
+            while (index < pieces.Count && !pieces[index].IsSpace && !pieces[index].IsBreak)
             {
                 wordPixels += pieces[index].Pixels;
                 wordPitch = Math.Max(wordPitch, pieces[index].Pitch);
@@ -312,7 +334,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 {
                     var imageWidth = (float) (run.InlineImageWidthPoints > 0 ? run.InlineImageWidthPoints : 12);
                     var imageHeight = (float) (run.InlineImageHeightPoints > 0 ? run.InlineImageHeightPoints : 12);
-                    pieces.Add(new(false, CanonicalTextMeasurer.PixelsFromPoints(imageWidth), 0, "", run.Properties, new LaidOutImage(0, imageWidth, imageHeight, data)));
+                    pieces.Add(new(false, CanonicalTextMeasurer.PixelsFromPoints(imageWidth), 0, "", run.Properties, new LaidOutImage(0, imageWidth, imageHeight, data), false));
                 }
 
                 continue;
@@ -331,9 +353,22 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
             var size = run.Properties.FontSizePoints;
             var pitch = (float) metrics.LinePitchPoints(size);
-            foreach (var (text, isSpace) in TokenizeText(run.Text))
+
+            // w:caps upper-cases the run; a soft line break (the parser emits it as "\n") splits the run
+            // into parts with a forced break between them.
+            var runText = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
+            var parts = runText.Split('\n');
+            for (var partIndex = 0; partIndex < parts.Length; partIndex++)
             {
-                pieces.Add(new(isSpace, CanonicalTextMeasurer.LinearPixels(metrics, text, size), pitch, text, run.Properties, null));
+                if (partIndex > 0)
+                {
+                    pieces.Add(new(false, 0, pitch, "", run.Properties, null, true));
+                }
+
+                foreach (var (text, isSpace) in TokenizeText(parts[partIndex]))
+                {
+                    pieces.Add(new(isSpace, CanonicalTextMeasurer.LinearPixels(metrics, text, size), pitch, text, run.Properties, null, false));
+                }
             }
         }
 
