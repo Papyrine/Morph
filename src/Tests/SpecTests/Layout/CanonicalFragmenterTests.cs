@@ -266,4 +266,39 @@ public class CanonicalFragmenterTests
         await Assert.That(right.X + right.Width).IsEqualTo(280f).Within(0.5f);
         await Assert.That(centred.Runs[0].X).IsEqualTo(centred.X).Within(0.01f);
     }
+
+    [Test]
+    public async Task All_caps_upper_cases_the_run_text()
+    {
+        var paragraph = new ParagraphElement
+        {
+            Runs = [new Run { Text = "Hello", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11, AllCaps = true } }],
+            Properties = new()
+        };
+
+        var line = (PlacedLine) Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items[0];
+        await Assert.That(line.Runs[0].Text).IsEqualTo("HELLO");
+    }
+
+    [Test]
+    public async Task A_soft_line_break_splits_the_paragraph_into_lines()
+    {
+        // The parser emits a soft line break as a run of "\n"; it splits the paragraph into two lines.
+        var paragraph = new ParagraphElement
+        {
+            Runs =
+            [
+                new Run { Text = "first", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } },
+                new Run { Text = "\n", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } },
+                new Run { Text = "second", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }
+            ],
+            Properties = new()
+        };
+
+        var lines = Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.OfType<PlacedLine>().ToList();
+        await Assert.That(lines.Count).IsEqualTo(2);
+        await Assert.That(lines[0].Runs[0].Text).IsEqualTo("first");
+        await Assert.That(lines[1].Runs[0].Text).IsEqualTo("second");
+        await Assert.That(lines[1].Y > lines[0].Y).IsTrue();
+    }
 }
