@@ -301,4 +301,21 @@ public class CanonicalFragmenterTests
         await Assert.That(lines[1].Runs[0].Text).IsEqualTo("second");
         await Assert.That(lines[1].Y > lines[0].Y).IsTrue();
     }
+
+    [Test]
+    public async Task Justify_fills_non_last_lines_to_the_width_and_leaves_the_last_line_natural()
+    {
+        // 300pt wide, 20pt margins → 260pt available, right content edge at 280pt. A justified paragraph
+        // long enough to wrap fills its non-last lines to that edge.
+        var paragraph = P(string.Join(' ', Enumerable.Repeat("lorem", 40)), new() { Alignment = TextAlignment.Justify });
+        var lines = Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.OfType<PlacedLine>().ToList();
+
+        await Assert.That(lines.Count > 1).IsTrue();
+        var firstLineRight = lines[0].Runs[^1].X + lines[0].Runs[^1].Width;
+        var lastLineRight = lines[^1].Runs[^1].X + lines[^1].Runs[^1].Width;
+
+        // The first line justifies to the right edge; the last line keeps its natural (shorter) width.
+        await Assert.That(firstLineRight).IsEqualTo(280f).Within(2f);
+        await Assert.That(firstLineRight > lastLineRight).IsTrue();
+    }
 }

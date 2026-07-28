@@ -256,25 +256,28 @@ Build alongside the existing renderers; do not delete anything until all three b
       wrap treats an image as an unbreakable box (its width counts toward the line, its height grows the
       line), the fragmenter places it with its bottom on the baseline, and the painter decodes the bytes
       (an SVG's raster fallback) and draws them — an inline icon flowing mid-sentence and a figure growing
-      its own line both confirmed in a render. **Paragraph alignment (centre/right), page background,
+      its own line both confirmed in a render. **Alignment (centre/right/justify), page background,
       intra-paragraph line breaks and all-caps landed**: the fragmenter shifts each line by its alignment
-      offset within the available width (justify still left-aligns pending inter-word slack); the painter
-      fills the page's `w:background` behind everything; a soft line break (parsed as `"\n"`) forces a line
-      break in the wrap instead of rendering a missing-glyph box; and a `w:caps` run is upper-cased.
-      **Measured end-to-end** (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real
-      corpus DOCX and SSIM the pages against Word's own render (`expected_*.png`). Across 152
-      block/table/column documents the painter scores **mean 0.941, median 0.977 SSIM** — plain text and
-      tables are near pixel-identical (0.997–1.000). Rendering the low scorers next to Word (which the
-      harness makes cheap) drove these fixes: the two worst were dark-themed cover letters rendering as
-      blank pages for want of the page background (0.246/0.322 → 0.712/0.789), then line breaks and
-      all-caps lifted them further. The aggregate barely moves because each remaining low scorer compounds
-      several gaps at once. Still to land before it can replace the production `PdfRenderer`: **justify**,
-      paragraph borders and shading, tabs, shapes/WordArt, floating (anchored) images and their wrap, image
-      rotation/flip/crop, in-cell vertical alignment and nested tables, headers/footers, label grids, and
-      per-glyph advances (exact intra-run boundaries — the painter currently anchors each run at its
-      canonical start and lets the font library fill the run). Then repoint `Morph.Pdf` at
-      `LaidOutDocument`, delete `PdfTextEngine`'s pagination, and validate the full container suite (PDF
-      page-count scoreboard unchanged or better, AE/SSIM neutral).
+      offset within the available width; justify distributes the leftover width evenly across a naturally
+      wrapped line's inter-word gaps (the last line and break-ended lines stay natural); the painter fills
+      the page's `w:background`; a soft line break (parsed as `"\n"`) forces a line break instead of a
+      missing-glyph box; and a `w:caps` run is upper-cased. **Measured end-to-end**
+      (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
+      pages against Word's own render (`expected_*.png`). Across 152 block/table/column documents the
+      painter scores **mean 0.941, median 0.977 SSIM** — plain text and tables are near pixel-identical
+      (0.997–1.000). Two lessons from rendering the low scorers next to Word (which the harness makes
+      cheap): the fixes come from *seeing* the gap, not guessing it — the two worst were dark-themed cover
+      letters rendering as blank pages for want of the page background (0.246/0.322 → 0.712/0.789), which no
+      amount of alignment work would have touched; and the score is a **lower bound** — it runs on the host,
+      so a text-dense page carries sub-pixel glyph/line-metric drift and host-vs-container rasterisation AA
+      that depress its SSIM (e.g. long_paragraph 0.78) even where the wrap and alignment match Word exactly.
+      Still to land before it can replace the production `PdfRenderer`: paragraph borders and shading, tabs,
+      shapes/WordArt, floating (anchored) images and their wrap, image rotation/flip/crop, in-cell vertical
+      alignment and nested tables, headers/footers, label grids, and per-glyph advances (exact intra-run
+      boundaries — the painter currently anchors each run at its canonical start and lets the font library
+      fill the run). Then repoint `Morph.Pdf` at `LaidOutDocument`, delete `PdfTextEngine`'s pagination, and
+      run the harness in the container (matching Word's rasteriser) to separate real gaps from AA, then
+      validate the full container suite (PDF page-count scoreboard unchanged or better, AE/SSIM neutral).
 - [ ] **6. `SkiaPainter` + `ImageSharpPainter`** — the payoff step. Both become thin painters of the
       same tree; the whole-paragraph pagination and the duplicated `TextRenderer` layout code delete.
       This is where the raster knife-edges collapse (raster now paginates identically to PDF — one
