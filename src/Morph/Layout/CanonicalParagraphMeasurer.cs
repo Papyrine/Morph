@@ -407,8 +407,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         return CanonicalTextMeasurer.PixelsToPoints(sum);
     }
 
-    static RunProperties ParagraphFont(ParagraphElement paragraph) =>
-        paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new RunProperties();
+    static RunProperties ParagraphFont(ParagraphElement paragraph) => MarkProperties(paragraph);
 
     List<Piece> Flatten(ParagraphElement paragraph)
     {
@@ -490,10 +489,18 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
     float MarkPitch(ParagraphElement paragraph)
     {
-        var mark = paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new RunProperties();
+        var mark = MarkProperties(paragraph);
         var metrics = resolveFont(mark.FontFamily, mark.Bold, mark.Italic);
         return metrics == null ? 0 : (float) metrics.LinePitchPoints(mark.FontSizePoints);
     }
+
+    // The font that sizes a paragraph's mark line. An empty paragraph has no runs, so its height comes from
+    // the paragraph mark's own run properties (w:rPr on w:pPr) — Word sizes the blank line by the mark, not
+    // a bare default. Falling back to a fresh RunProperties (default font, 11pt) shrank empty spacer lines.
+    static RunProperties MarkProperties(ParagraphElement paragraph) =>
+        paragraph.Runs.Count > 0
+            ? paragraph.Runs[0].Properties
+            : paragraph.Properties.ParagraphMarkRunProperties ?? new RunProperties();
 
     // Splits text into maximal runs of spaces vs non-spaces (U+0020 only — the inter-word break),
     // matching CanonicalTextMeasurer.WrapLines.
