@@ -353,11 +353,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 var properties = paragraph.Properties;
-                if (!first)
-                {
-                    cellY += Math.Max(lastCellAfter, (float) properties.SpacingBeforePoints);
-                }
-
+                // Space-before, collapsed with the previous paragraph's after (max, not sum). Unlike page
+                // flow, a cell's FIRST paragraph keeps its space-before — TableHeightCalculator sizes the
+                // cell with it, so the content must be positioned with it too or it floats to the top and
+                // leaves the gap at the bottom.
+                cellY += first
+                    ? (float) properties.SpacingBeforePoints
+                    : Math.Max(lastCellAfter, (float) properties.SpacingBeforePoints);
                 first = false;
 
                 var paragraphLines = measurer.LayoutLineContents(paragraph, contentWidth);

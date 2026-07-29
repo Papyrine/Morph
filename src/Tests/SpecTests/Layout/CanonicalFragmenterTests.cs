@@ -205,6 +205,26 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task A_cell_applies_its_first_paragraphs_space_before()
+    {
+        // TableHeightCalculator sizes a cell with its first paragraph's space-before, so the content must
+        // be positioned with it too (a page-flow paragraph drops it at a region top; a cell does not).
+        TableElement OneCell(double before) =>
+            new()
+            {
+                Properties = new() { GridColumnWidths = [200] },
+                Rows = [new TableRow { Cells = [new TableCell { Content = [P("cell text", new() { SpacingBeforePoints = before })], Properties = new() }] }]
+            };
+
+        var withoutBefore = Fragmenter.Layout([OneCell(0)], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single();
+        var withBefore = Fragmenter.Layout([OneCell(20)], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single();
+
+        var withoutY = withoutBefore.Cells[0].Content.OfType<PlacedLine>().First().Y;
+        var withY = withBefore.Cells[0].Content.OfType<PlacedLine>().First().Y;
+        await Assert.That(withY - withoutY).IsEqualTo(20f).Within(0.5f);
+    }
+
+    [Test]
     public async Task A_list_paragraph_places_its_marker_in_the_hanging_indent()
     {
         var paragraph = new ParagraphElement
