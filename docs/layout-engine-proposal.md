@@ -308,9 +308,11 @@ Build alongside the existing renderers; do not delete anything until all three b
       first-page header/footer, which is often null — so Word (and now the engine) shows no footer on a title
       page (agendas-minutes/01's `PAGE 1` correctly disappears). A shared `SelectVariant` also gives an
       even-numbered page its even header/footer when the document opts into `w:evenAndOddHeaders`, else the
-      default. Paint-only, so the body and page count are untouched; `Inputs/header`'s centred
-      `Document Header` renders at Word's position. `NUMPAGES`, header/footer *tables* and first/even-page
-      header *images* are the remaining band pieces.
+      default. `NUMPAGES` resolves too: the bands are assembled in a post-pass once the flow ends and the
+      total page count is known, so a `Page N of M` footer reads correctly (`page_numbers`' `Page 1 of 2`).
+      Paint-only, so the body and page count are untouched; `Inputs/header`'s centred `Document Header`
+      renders at Word's position. Header/footer *tables* and first/even-page header *images* are the
+      remaining band pieces.
       **Tabs landed**: a tab run advances the pen to its resolved stop during line building, reusing the
       production `TabStopResolver` (left / centre / right / decimal, with a stop past the column clamped to
       the column edge and right/centre/decimal measuring the text up to the next tab). `Inputs/tab_stops`'
