@@ -256,6 +256,31 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task A_title_page_takes_its_first_page_header_background_image()
+    {
+        FloatingImageElement Image(string tag) => new()
+        {
+            ImageData = System.Text.Encoding.ASCII.GetBytes(tag),
+            WidthPoints = 100,
+            HeightPoints = 100,
+            BehindText = true
+        };
+        var page = Page(400) with { DifferentFirstPage = true };
+        var document = Fragmenter.Layout(
+            [P("body one"), new PageBreakElement(), P("body two")],
+            page,
+            header: new HeaderFooterContent { Elements = [Image("default")] },
+            firstPageHeader: new HeaderFooterContent { Elements = [Image("first")] });
+
+        // The behind-text header image follows the same variant as the header text: page 1's from the
+        // first-page header, page 2's from the default.
+        string ImageTag(int pageIndex) =>
+            System.Text.Encoding.ASCII.GetString(document.Pages[pageIndex].Items.OfType<PlacedImage>().Single().Data);
+        await Assert.That(ImageTag(0)).IsEqualTo("first");
+        await Assert.That(ImageTag(1)).IsEqualTo("default");
+    }
+
+    [Test]
     public async Task A_title_pages_footer_is_suppressed_when_it_has_no_first_page_footer()
     {
         var footer = new HeaderFooterContent { Elements = [P("Footer text")] };
