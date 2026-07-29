@@ -2,10 +2,11 @@
 /// The crown validation for step 3 (<c>docs/layout-engine-proposal.md</c>): does the
 /// <see cref="Fragmenter"/> paginate real corpus documents to the same page count as Word
 /// (<c>expected_*.png</c>)? The block-flow, table and column slices handle multi-column paragraph flow
-/// (including column breaks), inline images, plus tables whose cells hold plain text paragraphs, so this
-/// compares on that subset — excluding floats, inline shape groups, mid-document section breaks, floating
-/// tables, and tables with nested tables in a cell (all later slices). Where it matches, the canonical
-/// measurer plus the height-model rules reproduce Word's pagination from one backend-independent pass.
+/// (including column breaks), inline images, non-wrapping body floats (which take no flow space), and
+/// tables whose cells hold text paragraphs or nested tables, so this compares on that subset — excluding
+/// wrapping floats, inline shape groups, mid-document section breaks, and floating tables (all later
+/// slices). Where it matches, the canonical measurer plus the height-model rules reproduce Word's
+/// pagination from one backend-independent pass.
 /// </summary>
 public class FragmenterPageCountTests
 {
@@ -65,20 +66,20 @@ public class FragmenterPageCountTests
         }
 
         await Assert.That(compared).IsGreaterThan(20);
-        // The block-flow slice matched every pure-block document (96/96); adding plain text tables,
-        // multi-column flow, the w:contextualSpacing collapse and inline images (the measurer sizes a line
-        // to its tallest inline image) widens the set to 183 and holds 182 (99.5%). All four corpus column
-        // documents match. The one miss, resumes/13, is a sub-line knife-edge Word's own backends straddle
-        // (6 vs 5). The threshold is calibrated just under the measured rate; a regression that drops another
-        // document out of agreement fails here.
+        // The block-flow slice matched every pure-block document (96/96); successively adding plain text
+        // tables, multi-column flow, the w:contextualSpacing collapse, inline images, nested tables, and now
+        // non-wrapping body floats (which take no flow space, so they leave pagination untouched) widens the
+        // set to 239 and holds 238 (99.6%). All four corpus column documents match. The one miss, resumes/13,
+        // is a sub-line knife-edge Word's own backends straddle (6 vs 5). The threshold is calibrated just
+        // under the measured rate; a regression that drops another document out of agreement fails here.
         await Assert.That(rate > 0.99).IsTrue();
     }
 
     // Documents whose top-level content is paragraphs (with inline images, but no inline shape groups),
-    // plain page and column breaks, and non-floating tables whose cells hold only such paragraphs — the
-    // shape the block-flow, table and column slices cover, at the document's single (equal-width) column
-    // geometry. Everything else (floats, inline shape groups, mid-document section breaks, floating tables,
-    // nested tables in a cell) is a later slice.
+    // plain page and column breaks, non-wrapping body floats (no flow effect), and non-floating tables whose
+    // cells hold such paragraphs or nested tables — the shape the block-flow, table and column slices cover,
+    // at the document's single (equal-width) column geometry. Everything else (wrapping floats, inline shape
+    // groups, mid-document section breaks, floating tables) is a later slice.
     static bool IsBlockTableOrColumnFlow(ParsedDocument document)
     {
         foreach (var element in document.Elements)
@@ -96,6 +97,10 @@ public class FragmenterPageCountTests
                 case ColumnBreakElement:
                     break;
                 case TableElement table when IsSimpleTable(table):
+                    break;
+                case FloatingImageElement image when image.WrapType == WrapType.None:
+                    break;
+                case FloatingShapeElement:
                     break;
                 default:
                     return false;
@@ -118,9 +123,14 @@ public class FragmenterPageCountTests
             {
                 foreach (var element in cell.Content)
                 {
-                    if (element is not ParagraphElement paragraph || ParagraphHasInlineArt(paragraph))
+                    switch (element)
                     {
-                        return false;
+                        case ParagraphElement paragraph when !ParagraphHasInlineArt(paragraph):
+                            break;
+                        case TableElement nested when IsSimpleTable(nested):
+                            break;
+                        default:
+                            return false;
                     }
                 }
             }

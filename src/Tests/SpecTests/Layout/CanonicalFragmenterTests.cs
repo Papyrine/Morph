@@ -922,4 +922,26 @@ public class CanonicalFragmenterTests
         // A different StyleId breaks the collapse, so the 12pt after-spacing sits between the two lines.
         await Assert.That(lines[1].Y - (lines[0].Y + lines[0].Height)).IsEqualTo(12f).Within(0.01f);
     }
+
+    [Test]
+    public async Task A_trailing_empty_paragraph_that_overflows_does_not_add_a_page()
+    {
+        var fillers = Enumerable.Range(0, 11).Select(_ => P("filler")).ToArray();
+        var document = Fragmenter.Layout([.. fillers, P("")], Page(200));
+
+        // The 11 fillers fill page 1; the trailing empty paragraph would overflow to page 2, but a page with
+        // only a blank spacer line is a natural overflow blank Word drops — so the document stays one page.
+        await Assert.That(document.Pages.Count).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task A_trailing_paragraph_with_text_that_overflows_still_adds_a_page()
+    {
+        var fillers = Enumerable.Range(0, 11).Select(_ => P("filler")).ToArray();
+        var document = Fragmenter.Layout([.. fillers, P("overflow")], Page(200));
+
+        // A twelfth paragraph carrying real text overflows onto a second page — only a blank trailing page
+        // is absorbed, so this stays two pages.
+        await Assert.That(document.Pages.Count).IsEqualTo(2);
+    }
 }
