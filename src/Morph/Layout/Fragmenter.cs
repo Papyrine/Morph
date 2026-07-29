@@ -538,6 +538,27 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             return (rows, rowY - top);
         }
 
+        // The total height a table would occupy at the given width — the sum of its row heights. Used to
+        // anchor a footer band (whose bottom sits a fixed distance above the page edge) before laying it out.
+        float NestedTableHeight(TableElement table, float width)
+        {
+            var colCount = TableLayout.GetColumnCount(table);
+            if (colCount == 0 || table.Rows.Count == 0)
+            {
+                return 0f;
+            }
+
+            var colWidths = TableLayout.CalculateColumnWidths(table, colCount, width, measurer);
+            var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, measurer, TableLayout.HasVerticalMerge(table));
+            var total = 0f;
+            foreach (var rowHeight in rowHeights)
+            {
+                total += rowHeight;
+            }
+
+            return total;
+        }
+
         // Stacks a cell's paragraphs from the top of its padded interior, wrapping each to the cell width,
         // then shifts them down for centre/bottom vertical alignment within the available height. No page
         // breaks — the row height already accommodates the content. A nested table lays out inline too.
@@ -661,6 +682,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var bandY = top;
             foreach (var element in elements)
             {
+                // A header/footer table (a page-number bar, an agenda's footer grid) lays out inline in the
+                // band, reusing the nested-table layout.
+                if (element is TableElement bandTable)
+                {
+                    var (tableItems, tableHeight) = LayoutNestedTable(bandTable, left, bandY, width);
+                    result.AddRange(tableItems);
+                    bandY += tableHeight;
+                    continue;
+                }
+
                 if (element is not ParagraphElement paragraph)
                 {
                     continue;
@@ -729,6 +760,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 if (element is ParagraphElement paragraph)
                 {
                     height += measurer.MeasureParagraphHeightWithWidth(paragraph, fullContentWidth);
+                }
+                else if (element is TableElement table)
+                {
+                    height += NestedTableHeight(table, fullContentWidth);
                 }
             }
 

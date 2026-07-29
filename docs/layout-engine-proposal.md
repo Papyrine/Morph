@@ -312,8 +312,10 @@ Build alongside the existing renderers; do not delete anything until all three b
       total page count is known, so a `Page N of M` footer reads correctly (`page_numbers`' `Page 1 of 2`).
       Paint-only, so the body and page count are untouched; `Inputs/header`'s centred `Document Header`
       renders at Word's position. The behind-text header background image follows the same variant as the
-      text, so a title page's frame comes from its first-page header. Header/footer *tables* and *foreground*
-      header images (a title-page illustration that is not a behind-text watermark) are the remaining pieces.
+      text, so a title page's frame comes from its first-page header. A header/footer *table* lays out in the
+      band too, reusing the nested-table layout — business/01's `CANEIRO GROUP` footer grid renders at the
+      page bottom. *Foreground* header images (a title-page illustration that is not a behind-text watermark)
+      are the remaining band piece.
       **Tabs landed**: a tab run advances the pen to its resolved stop during line building, reusing the
       production `TabStopResolver` (left / centre / right / decimal, with a stop past the column clamped to
       the column edge and right/centre/decimal measuring the text up to the next tab). `Inputs/tab_stops`'
