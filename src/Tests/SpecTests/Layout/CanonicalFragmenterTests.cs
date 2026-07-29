@@ -24,6 +24,10 @@ public class CanonicalFragmenterTests
             Properties = properties ?? new()
         };
 
+    static Run TextRun(string text) => new() { Text = text, Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } };
+
+    static Run TabRun() => new() { Text = "", IsTab = true, Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } };
+
     [Test]
     public async Task Short_paragraphs_fit_on_one_page()
     {
@@ -245,6 +249,34 @@ public class CanonicalFragmenterTests
             .SelectMany(_ => _.Runs).Any(_ => _.Text == "Footer text");
         await Assert.That(HasFooter(0)).IsFalse();
         await Assert.That(HasFooter(1)).IsTrue();
+    }
+
+    [Test]
+    public async Task A_tab_advances_the_following_text_to_the_next_default_tab_stop()
+    {
+        var paragraph = new ParagraphElement
+        {
+            Runs = [TextRun("A"), TabRun(), TextRun("B")],
+            Properties = new() { DefaultTabStopPoints = 36 }
+        };
+        var line = Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.OfType<PlacedLine>().Single();
+        var second = line.Runs.First(_ => _.Text == "B");
+        // "A" starts at the line's left; the tab jumps to the first 36pt default stop, where "B" begins.
+        await Assert.That(second.X - line.X).IsEqualTo(36f).Within(1f);
+    }
+
+    [Test]
+    public async Task A_right_tab_stop_right_aligns_the_following_text_to_end_at_the_stop()
+    {
+        var paragraph = new ParagraphElement
+        {
+            Runs = [TextRun("Chapter"), TabRun(), TextRun("12")],
+            Properties = new() { TabStops = [new TabStop { PositionPoints = 200, Alignment = TabAlignment.Right }] }
+        };
+        var line = Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.OfType<PlacedLine>().Single();
+        var number = line.Runs.First(_ => _.Text == "12");
+        // The number is right-aligned so its right edge sits at the 200pt stop (from the column's left edge).
+        await Assert.That(number.X - line.X + number.Width).IsEqualTo(200f).Within(2f);
     }
 
     [Test]
