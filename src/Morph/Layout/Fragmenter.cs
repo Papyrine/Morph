@@ -182,8 +182,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     AdvanceColumnOrPage();
                 }
 
-                var lineLeft = ColumnLeft + (float) properties.LeftIndentPoints + AlignmentOffset(properties.Alignment, availableWidth, line.Width);
+                var indentLeft = ColumnLeft + (float) properties.LeftIndentPoints;
+                var lineLeft = indentLeft + AlignmentOffset(properties.Alignment, availableWidth, line.Width);
                 var baseline = y + line.Ascent;
+
+                // Paragraph shading (w:shd) fills the paragraph's column box behind the text, regardless of
+                // the text's own width or alignment — a centred title's band still spans the full column.
+                // Emitted before the line so it paints behind; one per line tiles into a continuous band.
+                if (!string.IsNullOrEmpty(properties.BackgroundColorHex))
+                {
+                    items.Add(new PlacedShading(indentLeft, y, availableWidth, line.Height, properties.BackgroundColorHex));
+                }
+
                 items.Add(new PlacedLine(lineLeft, y, line.Width, line.Height, baseline, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft), MapImages(line, lineLeft, baseline)));
                 y += line.Height;
                 atRegionTop = false;

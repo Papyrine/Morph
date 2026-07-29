@@ -64,6 +64,9 @@ static class PdfPainter
             case PlacedShape shape:
                 PaintShape(context, graphics, shape);
                 break;
+            case PlacedShading shading:
+                graphics.DrawRectangle(context.GetBrush(PdfRenderContext.ParseColor(shading.ColorHex)), shading.X, shading.Y, shading.Width, shading.Height);
+                break;
 
             // Rules are a later slice.
         }

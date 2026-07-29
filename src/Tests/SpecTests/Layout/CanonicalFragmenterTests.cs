@@ -126,6 +126,28 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task A_shaded_paragraph_emits_a_full_column_band_behind_its_line()
+    {
+        var paragraph = new ParagraphElement
+        {
+            Runs = [new Run { Text = "TITLE", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }],
+            Properties = new() { BackgroundColorHex = "E6E0F0", Alignment = TextAlignment.Center }
+        };
+
+        var items = Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.ToList();
+        var shading = items.OfType<PlacedShading>().Single();
+        var line = items.OfType<PlacedLine>().Single();
+
+        // The band spans the full 260pt column (300pt wide, 20pt margins), not the centred text's width,
+        // and is emitted before the line so a painter draws it behind the glyphs.
+        await Assert.That(shading.ColorHex).IsEqualTo("E6E0F0");
+        await Assert.That(shading.X).IsEqualTo(20f).Within(0.5f);
+        await Assert.That(shading.Width).IsEqualTo(260f).Within(0.5f);
+        await Assert.That(shading.Height).IsEqualTo(line.Height).Within(0.01f);
+        await Assert.That(items.IndexOf(shading) < items.IndexOf(line)).IsTrue();
+    }
+
+    [Test]
     public async Task Page_break_element_starts_a_new_page()
     {
         var document = Fragmenter.Layout([P("before"), new PageBreakElement(), P("after")], Page(400));
