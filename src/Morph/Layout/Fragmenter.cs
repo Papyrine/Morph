@@ -16,12 +16,14 @@ using System.Globalization;
 /// raster backend's percentage tolerances so the two paginate a table identically until a canonical row
 /// measurement retires the slack.</para>
 ///
-/// <para>Columns are equal-width from a single <see cref="PageSettings"/> (the common case). Deferred to
-/// later slices, and noted so a document using them is not yet expected to paginate: per-section geometry
-/// changes (a section break switching column count or page size, including the continuous mid-page kind);
-/// keep-next (widow/orphan and keep-lines are handled); floats and their wrap exclusions; floating tables;
-/// inline images inside a nested table (nested tables themselves lay out); a tall header/footer band
-/// pushing the body's margin; and even/odd section-break parity. Other non-paragraph, non-table elements
+/// <para>Columns are equal-width within a section. A NextPage or even/odd section break starts the next
+/// section on a fresh page and adopts its geometry — page size, margins and column count — so each page
+/// carries its own <see cref="PageSettings"/> (portrait/landscape switches, per-section margins), and
+/// even/odd breaks insert a blank filler page for parity. Deferred to later slices, and noted so a document
+/// using them is not yet expected to paginate: a Continuous break switching column count or margins on the
+/// same page (the newsletter masthead → body case — its geometry is not yet adopted); keep-next
+/// (widow/orphan and keep-lines are handled); floats and their wrap exclusions; floating tables; and inline
+/// images inside a nested table (nested tables themselves lay out). Other non-paragraph, non-table elements
 /// are skipped for now.</para>
 /// </summary>
 sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
@@ -49,19 +51,24 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         HeaderFooterContent? evenPageHeader,
         HeaderFooterContent? evenPageFooter)
     {
-        readonly float contentTop = (float) page.MarginTop;
-        readonly float contentBottom = (float) (page.HeightPoints - page.MarginBottom);
-        readonly float contentHeight = (float) (page.HeightPoints - page.MarginTop - page.MarginBottom);
-        readonly float fullContentLeft = (float) page.MarginLeft;
-        readonly float fullContentWidth = (float) (page.WidthPoints - page.MarginLeft - page.MarginRight);
-        readonly int columnCount = Math.Max(1, page.ColumnCount);
-        readonly float columnWidth = (float) page.ColumnWidth;
-        readonly float columnSpacing = (float) page.ColumnSpacing;
+        // The current section's geometry. Mutable: a section break with new section settings switches these
+        // to the new page size, margins and column layout (ApplyGeometry). The initial values are the
+        // document's first section, from the constructor's page.
+        PageSettings current = page;
+        float contentTop = (float) page.MarginTop;
+        float contentBottom = (float) (page.HeightPoints - page.MarginBottom);
+        float contentHeight = (float) (page.HeightPoints - page.MarginTop - page.MarginBottom);
+        float fullContentLeft = (float) page.MarginLeft;
+        float fullContentWidth = (float) (page.WidthPoints - page.MarginLeft - page.MarginRight);
+        int columnCount = Math.Max(1, page.ColumnCount);
+        float columnWidth = (float) page.ColumnWidth;
+        float columnSpacing = (float) page.ColumnSpacing;
         readonly List<LaidOutPage> pages = [];
 
         List<PlacedItem> items = [];
-        // Each finished page's body items, kept until the flow ends so the bands can resolve NUMPAGES.
-        readonly List<IReadOnlyList<PlacedItem>> bodies = [];
+        // Each finished page's body items with the section geometry it was laid out at, kept until the flow
+        // ends so the bands can resolve NUMPAGES and each page renders at its own section's size and margins.
+        readonly List<(IReadOnlyList<PlacedItem> Items, PageSettings Settings)> bodies = [];
         // Body floating shapes/images, each tagged with the page it was anchored on and whether it paints
         // behind the text; assembled into their page's items once the flow ends.
         readonly List<(int Page, PlacedItem Item, bool Behind)> bodyFloats = [];
@@ -85,6 +92,57 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // Top of a fresh *page* — the first column's region top. Page-level breaks skip when already here.
         bool AtPageTop => atRegionTop && currentColumn == 0;
 
+        // Adopts a new section's page geometry — page size, margins and column layout — recomputing the
+        // derived content box and column metrics so subsequent flow uses the new section's dimensions.
+        void ApplyGeometry(PageSettings settings)
+        {
+            current = settings;
+            contentTop = (float) settings.MarginTop;
+            contentBottom = (float) (settings.HeightPoints - settings.MarginBottom);
+            contentHeight = (float) (settings.HeightPoints - settings.MarginTop - settings.MarginBottom);
+            fullContentLeft = (float) settings.MarginLeft;
+            fullContentWidth = (float) (settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
+            columnCount = Math.Max(1, settings.ColumnCount);
+            columnWidth = (float) settings.ColumnWidth;
+            columnSpacing = (float) settings.ColumnSpacing;
+        }
+
+        // A section break. A continuous break keeps the same page (a mid-page column/margin switch is a later
+        // slice, so its geometry is not yet adopted); every other kind starts the new section on a fresh page
+        // — finishing the current page unless it is already empty at its top — and adopts the new section's
+        // geometry. Even/odd breaks additionally insert a blank filler page when the next page's parity is
+        // wrong, as Word does.
+        void ApplySectionBreak(SectionBreakElement sectionBreak)
+        {
+            if (sectionBreak.BreakType == SectionBreakType.Continuous)
+            {
+                return;
+            }
+
+            if (!AtPageTop)
+            {
+                FinishPage(false);
+            }
+
+            if (sectionBreak.BreakType is SectionBreakType.EvenPage or SectionBreakType.OddPage)
+            {
+                var wantEven = sectionBreak.BreakType == SectionBreakType.EvenPage;
+                if (bodies.Count % 2 == 0 == wantEven)
+                {
+                    // The next page (bodies.Count + 1) would have the wrong parity, so emit the current empty
+                    // page as a deliberate blank and move on — Word inserts that filler page.
+                    currentPageExplicit = true;
+                    FinishPage(false);
+                }
+            }
+
+            if (sectionBreak.NewSectionSettings is { } settings)
+            {
+                ApplyGeometry(settings);
+                y = contentTop;
+            }
+        }
+
         public LaidOutDocument Run(IReadOnlyList<DocumentElement> elements)
         {
             y = contentTop;
@@ -105,14 +163,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         AdvanceColumnOrPage();
                         break;
 
-                    case SectionBreakElement { BreakType: not SectionBreakType.Continuous }:
-                        // Even/odd parity and per-section geometry are later slices; treated as a plain
-                        // page break here.
-                        if (!AtPageTop)
-                        {
-                            FinishPage(false);
-                        }
-
+                    case SectionBreakElement sectionBreak:
+                        // A continuous break continues on the same page (a mid-page column switch is a later
+                        // slice); every other kind starts the new section on a fresh page at the new geometry,
+                        // inserting an even/odd parity filler page when needed.
+                        ApplySectionBreak(sectionBreak);
                         break;
 
                     case ParagraphElement paragraph:
@@ -161,7 +216,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // the previous page — is a natural overflow blank Word does not render, so it drops.
             if (HasVisibleContent(items) || currentPageExplicit || bodies.Count == 0)
             {
-                bodies.Add(items);
+                bodies.Add((items, current));
             }
 
             items = [];
@@ -196,12 +251,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             for (var index = 0; index < bodies.Count; index++)
             {
                 var pageNumber = index + 1;
+                var settings = bodies[index].Settings;
                 // The behind-text header images follow the same first/even-page variant as the header text,
                 // so a title page's decorative frame or illustration comes from its first-page header.
-                var backgroundImages = ResolveHeaderImages(SelectVariant(pageNumber, firstPageHeader, evenPageHeader, header), page);
-                var headerBand = HeaderBand(pageNumber, total);
-                var footerBand = FooterBand(pageNumber, total);
-                var body = bodies[index];
+                var backgroundImages = ResolveHeaderImages(SelectVariant(pageNumber, firstPageHeader, evenPageHeader, header, settings), settings);
+                var headerBand = HeaderBand(pageNumber, total, settings);
+                var footerBand = FooterBand(pageNumber, total, settings);
+                var body = bodies[index].Items;
 
                 // Body floats: behind-text ones paint under the body (over the header background), in-front
                 // ones over it. Anchored on the page they were reached on.
@@ -212,7 +268,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 var pageItems = backgroundImages.Count == 0 && headerBand.Count == 0 && footerBand.Count == 0 && behindFloats.Count == 0 && frontFloats.Count == 0
                     ? body
                     : (IReadOnlyList<PlacedItem>) [.. backgroundImages, .. headerBand, .. behindFloats, .. body, .. frontFloats, .. footerBand];
-                pages.Add(new(pageNumber, page, pageItems));
+                pages.Add(new(pageNumber, settings, pageItems));
             }
 
             return pages;
@@ -804,19 +860,21 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // The header's text band for one page, at the header distance across the full content width. Page 1
         // takes the first-page header when the document has one (a "different first page" title header, which
         // may be empty); other pages take the default. Even-page headers are a later slice.
-        IReadOnlyList<PlacedItem> HeaderBand(int pageNumber, int totalPages)
+        IReadOnlyList<PlacedItem> HeaderBand(int pageNumber, int totalPages, PageSettings settings)
         {
-            var content = SelectVariant(pageNumber, firstPageHeader, evenPageHeader, header);
+            var content = SelectVariant(pageNumber, firstPageHeader, evenPageHeader, header, settings);
+            var bandLeft = (float) settings.MarginLeft;
+            var bandWidth = (float) (settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
             return content == null
                 ? []
-                : LayoutBand(SubstitutePageFields(content.Elements, pageNumber, totalPages), fullContentLeft, (float) page.HeaderDistance, fullContentWidth);
+                : LayoutBand(SubstitutePageFields(content.Elements, pageNumber, totalPages), bandLeft, (float) settings.HeaderDistance, bandWidth);
         }
 
         // Picks the header/footer for a page: page 1 of a title-page document takes the first-page variant
         // (which may be null — Word shows none on a title page, so no fall-back to the default); an
         // even-numbered page takes the even variant when the document opts into even/odd, else the default.
-        HeaderFooterContent? SelectVariant(int pageNumber, HeaderFooterContent? first, HeaderFooterContent? even, HeaderFooterContent? standard) =>
-            pageNumber == 1 && page.DifferentFirstPage ? first
+        static HeaderFooterContent? SelectVariant(int pageNumber, HeaderFooterContent? first, HeaderFooterContent? even, HeaderFooterContent? standard, PageSettings settings) =>
+            pageNumber == 1 && settings.DifferentFirstPage ? first
             : pageNumber % 2 == 0 ? even ?? standard
             : standard;
 
@@ -824,30 +882,32 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // page's bottom edge, with PAGE fields resolved to this page's number. Page 1 takes the first-page
         // footer when present (often empty — Word shows no footer on a title page). NUMPAGES (needs the final
         // total), even-page footers, footer tables and 3-way tab alignment are later slices.
-        IReadOnlyList<PlacedItem> FooterBand(int pageNumber, int totalPages)
+        IReadOnlyList<PlacedItem> FooterBand(int pageNumber, int totalPages, PageSettings settings)
         {
-            var content = SelectVariant(pageNumber, firstPageFooter, evenPageFooter, footer);
+            var content = SelectVariant(pageNumber, firstPageFooter, evenPageFooter, footer, settings);
             if (content == null)
             {
                 return [];
             }
 
+            var bandLeft = (float) settings.MarginLeft;
+            var bandWidth = (float) (settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
             var elements = SubstitutePageFields(content.Elements, pageNumber, totalPages);
             var height = 0f;
             foreach (var element in elements)
             {
                 if (element is ParagraphElement paragraph)
                 {
-                    height += measurer.MeasureParagraphHeightWithWidth(paragraph, fullContentWidth);
+                    height += measurer.MeasureParagraphHeightWithWidth(paragraph, bandWidth);
                 }
                 else if (element is TableElement table)
                 {
-                    height += NestedTableHeight(table, fullContentWidth);
+                    height += NestedTableHeight(table, bandWidth);
                 }
             }
 
-            var footerTop = (float) page.HeightPoints - (float) page.FooterDistance - height;
-            return LayoutBand(elements, fullContentLeft, footerTop, fullContentWidth);
+            var footerTop = (float) settings.HeightPoints - (float) settings.FooterDistance - height;
+            return LayoutBand(elements, bandLeft, footerTop, bandWidth);
         }
 
         // Replaces each page-field run's cached text with this page's number (PAGE) or the document total

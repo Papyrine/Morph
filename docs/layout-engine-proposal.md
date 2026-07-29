@@ -224,10 +224,13 @@ Build alongside the existing renderers; do not delete anything until all three b
       text tables are added, 154/157 = 98.1% with multi-column flow, 156/157 = 99.4% once the
       w:contextualSpacing collapse lands, 182/183 = 99.5% once inline images join the set (the measurer
       sizes each line to its tallest inline image, so they paginate), 238/239 = 99.6% once non-wrapping
-      body floats join too (they take no flow space, so pagination is unchanged), and 260/261 = 99.6% once
-      flow-neutral section breaks join (NextPage as a page break, Continuous as a no-op, same geometry) —
-      all four corpus column documents match** — one backend-independent pass reproducing Word's pagination.
-      The one remaining miss, resumes/13, is a sub-line knife-edge Word's own backends straddle (6 vs 5). Columns are equal-width from one `PageSettings`.
+      body floats join too (they take no flow space, so pagination is unchanged), 260/261 = 99.6% once
+      flow-neutral section breaks join (NextPage as a page break, Continuous as a no-op, same geometry), and
+      274/276 = 99.3% once per-section geometry lands (a NextPage or even/odd break switching page size,
+      margins or column count, plus even/odd parity filler pages) — all four corpus column documents match**
+      — one backend-independent pass reproducing Word's pagination. Two misses remain: resumes/13 (a sub-line
+      knife-edge Word's own backends straddle, 6 vs 5) and business-plans/15 (18 vs 19, a one-page knife-edge
+      across a nineteen-page multi-geometry document). Columns are equal-width within a section.
       Remaining slices: per-section geometry (a section break switching column count or page size,
       including the continuous mid-page kind — the newsletter masthead → body case); widow/orphan and
       keep-next/keep-lines; float exclusions (reuse `ResolveFlowBand`); images and nested tables inside a
@@ -389,9 +392,17 @@ Build alongside the existing renderers; do not delete anything until all three b
       same geometry (no new column count, page size, or margins) paginates like Word — a corpus census found
       section breaks in 44 documents, most single-column NextPage template dividers. Admitting the
       same-geometry ones added 22 documents to the harness at **260/261 = 99.6%** with no new miss, across
-      newsletters, menus, cards, weddings and multi-page business plans. The geometry-changing sections (a
-      continuous column switch for a newsletter masthead, a per-section page size) and even/odd parity, which
-      inserts a blank filler page, stay out until per-section geometry lands.
+      newsletters, menus, cards, weddings and multi-page business plans.
+      **Per-section geometry landed (NextPage and even/odd)**: the section geometry — page size, margins and
+      column count — is no longer fixed for the whole document. A NextPage or even/odd section break finishes
+      the current page and adopts the new section's `PageSettings`, so each page carries its own geometry:
+      the derived content box and column metrics recompute, and every emitted page records the settings it
+      was laid out at (its background, header and footer bands resolve against those). An even/odd break
+      inserts a blank filler page when the next page's parity is wrong, as Word does. business-plans/12 now
+      paginates with pages flipping between portrait and landscape and per-section margins; admitting the
+      geometry-changing and even/odd documents added 15 to the harness at **274/276 = 99.3%**. Only a
+      Continuous break's *mid-page* geometry switch — the newsletter masthead → multi-column body, where the
+      column count changes without a page break — is still deferred.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 180 block/table/column documents the

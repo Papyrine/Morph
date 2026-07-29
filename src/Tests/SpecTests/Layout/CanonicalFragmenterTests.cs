@@ -967,4 +967,33 @@ public class CanonicalFragmenterTests
         // A continuous section break at the same geometry takes no flow space — both paragraphs stay on page 1.
         await Assert.That(document.Pages.Count).IsEqualTo(1);
     }
+
+    [Test]
+    public async Task A_next_page_section_break_switches_page_geometry()
+    {
+        var second = new PageSettings { WidthPoints = 400, HeightPoints = 300, MarginTop = 20, MarginBottom = 20, MarginLeft = 20, MarginRight = 20 };
+        var document = Fragmenter.Layout(
+            [P("first"), new SectionBreakElement { BreakType = SectionBreakType.NextPage, NewSectionSettings = second }, P("second")],
+            Page(200));
+
+        // Page 1 keeps the document's original 300pt-wide geometry; page 2 adopts the new section's 400x300.
+        await Assert.That(document.Pages.Count).IsEqualTo(2);
+        await Assert.That(document.Pages[0].Settings.WidthPoints).IsEqualTo(300d).Within(0.01);
+        await Assert.That(document.Pages[1].Settings.WidthPoints).IsEqualTo(400d).Within(0.01);
+        await Assert.That(document.Pages[1].Settings.HeightPoints).IsEqualTo(300d).Within(0.01);
+    }
+
+    [Test]
+    public async Task An_odd_page_section_break_inserts_a_blank_filler_page_for_parity()
+    {
+        // "first" fills page 1 (odd). An OddPage break wants the new section on an odd page, but the next
+        // page would be 2 (even), so a blank page 2 is inserted and "second" lands on page 3.
+        var document = Fragmenter.Layout(
+            [P("first"), new SectionBreakElement { BreakType = SectionBreakType.OddPage }, P("second")],
+            Page(200));
+
+        await Assert.That(document.Pages.Count).IsEqualTo(3);
+        await Assert.That(document.Pages[1].Items.OfType<PlacedLine>().Any(_ => _.Runs.Any(run => !string.IsNullOrWhiteSpace(run.Text)))).IsFalse();
+        await Assert.That(document.Pages[2].Items.OfType<PlacedLine>().SelectMany(_ => _.Runs).Any(_ => _.Text == "second")).IsTrue();
+    }
 }
