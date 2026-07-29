@@ -48,7 +48,7 @@ public class PdfPainterFidelityTests
             byte[] pdfBytes;
             try
             {
-                var pdf = PdfPainter.Paint(Fragmenter.Layout(document.Elements, document.PageSettings, document.Header), fontsDirectory);
+                var pdf = PdfPainter.Paint(Fragmenter.Layout(document.Elements, document.PageSettings, document.Header, document.Footer, document.FirstPageHeader, document.FirstPageFooter), fontsDirectory);
                 using var stream = new MemoryStream();
                 pdf.Save(stream, false);
                 pdfBytes = stream.ToArray();

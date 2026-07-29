@@ -1,3 +1,5 @@
+using System.Globalization;
+
 /// <summary>
 /// Flows a document's block content into pages once, backend-independently — the heart of the layout
 /// engine (<c>docs/layout-engine-proposal.md</c>, step 3). Handles multi-column block flow with
@@ -18,17 +20,29 @@
 /// later slices, and noted so a document using them is not yet expected to paginate: per-section geometry
 /// changes (a section break switching column count or page size, including the continuous mid-page kind);
 /// widow/orphan and keep-next/keep-lines; floats and their wrap exclusions; floating tables; images and
-/// nested tables inside a cell; header/footer band height; and even/odd section-break parity. Other
-/// non-paragraph, non-table elements are skipped for now.</para>
+/// nested tables inside a cell; a tall header/footer band pushing the body's margin; and even/odd
+/// section-break parity. Other non-paragraph, non-table elements are skipped for now.</para>
 /// </summary>
 sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 {
-    public LaidOutDocument Layout(IReadOnlyList<DocumentElement> elements, PageSettings page, HeaderFooterContent? header = null) =>
-        new Flow(measurer, page, header).Run(elements);
+    public LaidOutDocument Layout(
+        IReadOnlyList<DocumentElement> elements,
+        PageSettings page,
+        HeaderFooterContent? header = null,
+        HeaderFooterContent? footer = null,
+        HeaderFooterContent? firstPageHeader = null,
+        HeaderFooterContent? firstPageFooter = null) =>
+        new Flow(measurer, page, header, footer, firstPageHeader, firstPageFooter).Run(elements);
 
     // One document's flow state. A fresh instance per Layout call keeps the cursor, the in-progress page
     // and the emitted pages together without leaking between runs (the Fragmenter itself is reusable).
-    sealed class Flow(CanonicalParagraphMeasurer measurer, PageSettings page, HeaderFooterContent? header)
+    sealed class Flow(
+        CanonicalParagraphMeasurer measurer,
+        PageSettings page,
+        HeaderFooterContent? header,
+        HeaderFooterContent? footer,
+        HeaderFooterContent? firstPageHeader,
+        HeaderFooterContent? firstPageFooter)
     {
         readonly float contentTop = (float) page.MarginTop;
         readonly float contentBottom = (float) (page.HeightPoints - page.MarginBottom);
@@ -45,12 +59,6 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // header on every page for now — first-page / even-page variants and footers are later slices.
         readonly IReadOnlyList<PlacedImage> backgroundImages = ResolveHeaderImages(header, page);
 
-        // The header's text paragraphs, laid out once in the header band (top margin area) and repeated on
-        // every page in front of the background image. Same header on every page for now — first-page /
-        // even-page variants, footers, header tables and per-page page-number fields are later slices.
-        IReadOnlyList<PlacedItem>? headerTextCache;
-        IReadOnlyList<PlacedItem> HeaderText => headerTextCache ??=
-            header == null ? [] : LayoutBand(header.Elements, fullContentLeft, (float) page.HeaderDistance, fullContentWidth);
 
         List<PlacedItem> items = [];
         int currentColumn;
@@ -125,12 +133,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             if (items.Count > 0 || currentPageExplicit || pages.Count == 0)
             {
                 // Header background images paint first (behind the body), then the header's text band, then
-                // the body. Neither counts toward the page's keep test — a page is kept for its body, not its
-                // decoration or repeated header.
-                IReadOnlyList<PlacedItem> pageItems = backgroundImages.Count == 0 && HeaderText.Count == 0
-                    ? items
-                    : [.. backgroundImages, .. HeaderText, .. items];
-                pages.Add(new(pages.Count + 1, page, pageItems));
+                // the body, then the footer band at the page bottom. None counts toward the page's keep test —
+                // a page is kept for its body, not its decoration, repeated header or footer.
+                var pageNumber = pages.Count + 1;
+                var headerBand = HeaderBand(pageNumber);
+                var footerBand = FooterBand(pageNumber);
+                IReadOnlyList<PlacedItem> pageItems =
+                    backgroundImages.Count == 0 && headerBand.Count == 0 && footerBand.Count == 0
+                        ? items
+                        : [.. backgroundImages, .. headerBand, .. items, .. footerBand];
+                pages.Add(new(pageNumber, page, pageItems));
             }
 
             items = [];
@@ -556,6 +568,77 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 bandY += (float) properties.SpacingAfterPoints;
+            }
+
+            return result;
+        }
+
+        // The header's text band for one page, at the header distance across the full content width. Page 1
+        // takes the first-page header when the document has one (a "different first page" title header, which
+        // may be empty); other pages take the default. Even-page headers are a later slice.
+        IReadOnlyList<PlacedItem> HeaderBand(int pageNumber)
+        {
+            // With a title page, page 1 takes the first-page header — which may be null, meaning no header
+            // (Word shows none on a title page), so it does not fall back to the default.
+            var content = pageNumber == 1 && page.DifferentFirstPage ? firstPageHeader : header;
+            return content == null
+                ? []
+                : LayoutBand(content.Elements, fullContentLeft, (float) page.HeaderDistance, fullContentWidth);
+        }
+
+        // The footer's text band for one page, anchored so its bottom sits the footer distance above the
+        // page's bottom edge, with PAGE fields resolved to this page's number. Page 1 takes the first-page
+        // footer when present (often empty — Word shows no footer on a title page). NUMPAGES (needs the final
+        // total), even-page footers, footer tables and 3-way tab alignment are later slices.
+        IReadOnlyList<PlacedItem> FooterBand(int pageNumber)
+        {
+            // With a title page, page 1 takes the first-page footer — often null, meaning no footer on the
+            // title page (agendas-minutes/01), so it does not fall back to the default "Page N".
+            var content = pageNumber == 1 && page.DifferentFirstPage ? firstPageFooter : footer;
+            if (content == null)
+            {
+                return [];
+            }
+
+            var elements = SubstitutePageFields(content.Elements, pageNumber);
+            var height = 0f;
+            foreach (var element in elements)
+            {
+                if (element is ParagraphElement paragraph)
+                {
+                    height += measurer.MeasureParagraphHeightWithWidth(paragraph, fullContentWidth);
+                }
+            }
+
+            var footerTop = (float) page.HeightPoints - (float) page.FooterDistance - height;
+            return LayoutBand(elements, fullContentLeft, footerTop, fullContentWidth);
+        }
+
+        // Replaces each PAGE field run's cached text with this page's number, cloning only the paragraphs
+        // that carry one (the common "Page N" footer). NUMPAGES / SECTIONPAGES keep their cached text until
+        // a total-aware pass lands.
+        static IReadOnlyList<DocumentElement> SubstitutePageFields(IReadOnlyList<DocumentElement> elements, int pageNumber)
+        {
+            var result = new List<DocumentElement>(elements.Count);
+            foreach (var element in elements)
+            {
+                if (element is ParagraphElement paragraph && paragraph.Runs.Any(_ => _.PageField == PageFieldKind.Page))
+                {
+                    var runs = paragraph.Runs
+                        .Select(_ => _.PageField == PageFieldKind.Page ? _.WithText(pageNumber.ToString(CultureInfo.InvariantCulture)) : _)
+                        .ToList();
+                    result.Add(new ParagraphElement
+                    {
+                        Runs = runs,
+                        Properties = paragraph.Properties,
+                        IsAnchorOnlyMark = paragraph.IsAnchorOnlyMark,
+                        IsCollapsedCellMark = paragraph.IsCollapsedCellMark
+                    });
+                }
+                else
+                {
+                    result.Add(element);
+                }
             }
 
             return result;
