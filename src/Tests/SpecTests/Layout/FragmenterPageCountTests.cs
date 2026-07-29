@@ -2,10 +2,10 @@
 /// The crown validation for step 3 (<c>docs/layout-engine-proposal.md</c>): does the
 /// <see cref="Fragmenter"/> paginate real corpus documents to the same page count as Word
 /// (<c>expected_*.png</c>)? The block-flow, table and column slices handle multi-column paragraph flow
-/// (including column breaks) plus tables whose cells hold plain text paragraphs, so this compares on that
-/// subset — excluding floats, inline art, mid-document section breaks, floating tables, and tables with
-/// images or nested tables in a cell (all later slices). Where it matches, the canonical measurer plus
-/// the height-model rules reproduce Word's pagination from one backend-independent pass.
+/// (including column breaks), inline images, plus tables whose cells hold plain text paragraphs, so this
+/// compares on that subset — excluding floats, inline shape groups, mid-document section breaks, floating
+/// tables, and tables with nested tables in a cell (all later slices). Where it matches, the canonical
+/// measurer plus the height-model rules reproduce Word's pagination from one backend-independent pass.
 /// </summary>
 public class FragmenterPageCountTests
 {
@@ -66,18 +66,19 @@ public class FragmenterPageCountTests
 
         await Assert.That(compared).IsGreaterThan(20);
         // The block-flow slice matched every pure-block document (96/96); adding plain text tables,
-        // multi-column flow and the w:contextualSpacing collapse widens the set to 157 and holds 156
-        // (99.4%). All four corpus column documents match. The one miss, resumes/13, is a sub-line
-        // knife-edge Word's own backends straddle (6 vs 5). The threshold is calibrated just under the
-        // measured rate; a regression that drops another document out of agreement fails here.
+        // multi-column flow, the w:contextualSpacing collapse and inline images (the measurer sizes a line
+        // to its tallest inline image) widens the set to 183 and holds 182 (99.5%). All four corpus column
+        // documents match. The one miss, resumes/13, is a sub-line knife-edge Word's own backends straddle
+        // (6 vs 5). The threshold is calibrated just under the measured rate; a regression that drops another
+        // document out of agreement fails here.
         await Assert.That(rate > 0.99).IsTrue();
     }
 
-    // Documents whose top-level content is paragraphs (without inline images or shape groups), plain page
-    // and column breaks, and non-floating tables whose cells hold only such paragraphs — the shape the
-    // block-flow, table and column slices cover, at the document's single (equal-width) column geometry.
-    // Everything else (floats, inline art, mid-document section breaks, floating tables, images or nested
-    // tables in a cell) is a later slice.
+    // Documents whose top-level content is paragraphs (with inline images, but no inline shape groups),
+    // plain page and column breaks, and non-floating tables whose cells hold only such paragraphs — the
+    // shape the block-flow, table and column slices cover, at the document's single (equal-width) column
+    // geometry. Everything else (floats, inline shape groups, mid-document section breaks, floating tables,
+    // nested tables in a cell) is a later slice.
     static bool IsBlockTableOrColumnFlow(ParsedDocument document)
     {
         foreach (var element in document.Elements)
@@ -128,6 +129,8 @@ public class FragmenterPageCountTests
         return true;
     }
 
+    // Inline images stay in the set — the measurer sizes each line to its tallest inline image, so they
+    // paginate. Only an inline shape group (grouped drawing / WordArt) is still out of scope.
     static bool ParagraphHasInlineArt(ParagraphElement paragraph) =>
-        paragraph.Runs.Any(_ => _.InlineImageData != null || _.InlineShapeGroup != null);
+        paragraph.Runs.Any(_ => _.InlineShapeGroup != null);
 }

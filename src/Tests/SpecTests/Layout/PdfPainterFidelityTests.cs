@@ -102,8 +102,9 @@ public class PdfPainterFidelityTests
         Console.WriteLine(string.Join("\n", report));
 
         await Assert.That(ordered.Count).IsGreaterThan(100);
-        // Measured mean 0.946 / median 0.977 SSIM against Word over the 154 page-count-matched documents
-        // (the w:contextualSpacing fix pulled business/05 and resumes/07 into agreement, so they now count) —
+        // Measured mean 0.941 / median 0.975 SSIM against Word over the 180 page-count-matched documents
+        // (the w:contextualSpacing fix and admitting inline images widened the set from 152; the mean eased
+        // as ~30 more docs — many Aptos-heavy, image-bearing — joined, not from any render regressing) —
         // plain text and tables are near
         // pixel-identical. It is a LOWER BOUND on layout fidelity: this runs on the host, so a text-dense
         // page also carries sub-pixel glyph/line-metric drift and host-vs-container rasterization AA that
@@ -122,7 +123,7 @@ public class PdfPainterFidelityTests
             switch (element)
             {
                 case ParagraphElement paragraph:
-                    if (paragraph.Runs.Any(_ => _.InlineImageData != null || _.InlineShapeGroup != null))
+                    if (ParagraphHasInlineArt(paragraph))
                     {
                         return false;
                     }
@@ -154,8 +155,7 @@ public class PdfPainterFidelityTests
             {
                 foreach (var element in cell.Content)
                 {
-                    if (element is not ParagraphElement paragraph ||
-                        paragraph.Runs.Any(_ => _.InlineImageData != null || _.InlineShapeGroup != null))
+                    if (element is not ParagraphElement paragraph || ParagraphHasInlineArt(paragraph))
                     {
                         return false;
                     }
@@ -165,4 +165,10 @@ public class PdfPainterFidelityTests
 
         return true;
     }
+
+    // Inline images paginate (the measurer sizes the line to the image) and paint (PaintLine draws
+    // PlacedLine.Images), so they stay in the set; only an inline shape group (WordArt, grouped drawing)
+    // is still out of the block/table/column subset.
+    static bool ParagraphHasInlineArt(ParagraphElement paragraph) =>
+        paragraph.Runs.Any(_ => _.InlineShapeGroup != null);
 }
