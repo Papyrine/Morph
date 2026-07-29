@@ -148,6 +148,33 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task A_bottom_bordered_paragraph_emits_a_border_box_below_its_text()
+    {
+        var paragraph = new ParagraphElement
+        {
+            Runs = [new Run { Text = "Heading", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }],
+            Properties = new()
+            {
+                Borders = new CellBorders { Bottom = new BorderEdge { IsVisible = true, ColorHex = "A6A6A6", WidthPoints = 0.8 } },
+                BorderBottomSpacePoints = 4
+            }
+        };
+
+        var items = Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.ToList();
+        var line = items.OfType<PlacedLine>().Single();
+        var border = items.OfType<PlacedBorder>().Single();
+
+        // Only the bottom edge shows; the box spans the full 260pt column and its bottom sits the 4pt border
+        // space below the line, emitted after the line so a painter strokes it over the text.
+        await Assert.That(border.Borders.Bottom.IsVisible).IsTrue();
+        await Assert.That(border.Borders.Top.IsVisible).IsFalse();
+        await Assert.That(border.X).IsEqualTo(20f).Within(0.5f);
+        await Assert.That(border.Width).IsEqualTo(260f).Within(0.5f);
+        await Assert.That(border.Y + border.Height).IsEqualTo(line.Y + line.Height + 4f).Within(0.5f);
+        await Assert.That(items.IndexOf(border) > items.IndexOf(line)).IsTrue();
+    }
+
+    [Test]
     public async Task Page_break_element_starts_a_new_page()
     {
         var document = Fragmenter.Layout([P("before"), new PageBreakElement(), P("after")], Page(400));

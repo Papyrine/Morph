@@ -67,8 +67,9 @@ static class PdfPainter
             case PlacedShading shading:
                 graphics.DrawRectangle(context.GetBrush(PdfRenderContext.ParseColor(shading.ColorHex)), shading.X, shading.Y, shading.Width, shading.Height);
                 break;
-
-            // Rules are a later slice.
+            case PlacedBorder border:
+                PaintBorder(context, graphics, border);
+                break;
         }
     }
 
@@ -258,6 +259,34 @@ static class PdfPainter
         if (borders.Left.IsVisible)
         {
             graphics.DrawLine(EdgePen(context, borders.Left), left, top, left, bottom);
+        }
+    }
+
+    // A paragraph border box: stroke each visible edge around the box the Fragmenter already expanded by
+    // the edge spaces. Same edge geometry as a table cell, just around a paragraph rather than a cell.
+    static void PaintBorder(PdfRenderContext context, XGraphics graphics, PlacedBorder border)
+    {
+        float left = border.X, top = border.Y, right = border.X + border.Width, bottom = border.Y + border.Height;
+        var borders = border.Borders;
+
+        if (borders.Top.IsVisible)
+        {
+            graphics.DrawLine(EdgePen(context, borders.Top), left, top, right, top);
+        }
+
+        if (borders.Bottom.IsVisible)
+        {
+            graphics.DrawLine(EdgePen(context, borders.Bottom), left, bottom, right, bottom);
+        }
+
+        if (borders.Left.IsVisible)
+        {
+            graphics.DrawLine(EdgePen(context, borders.Left), left, top, left, bottom);
+        }
+
+        if (borders.Right.IsVisible)
+        {
+            graphics.DrawLine(EdgePen(context, borders.Right), right, top, right, bottom);
         }
     }
 

@@ -289,7 +289,17 @@ Build alongside the existing renderers; do not delete anything until all three b
       band per line spanning its column box (indent to right margin), painted behind the text — so a centred
       title's band still spans the full column, not only the glyphs' width. resumes/15's `Janna Gardner`
       header band renders (0.75 → 0.80); run-level highlight (on the run, text-width) is separate and already
-      painted. Paragraph *borders* are the remaining half of that slice.
+      painted.
+      **Paragraph borders (w:pBdr) landed**: a paragraph with any visible edge emits one `PlacedBorder` box
+      around its column box, expanded by each edge's space, which the painter strokes edge by edge (the same
+      geometry as a table cell) — a box, a block-quote left bar, a right rule and a heading's bottom rule all
+      render (cover-letters/02's rule under `DEAR ROWAN MURPHY`). Paint-only, so no page-count effect. It does
+      not move the aggregate SSIM: a border is a thin line, so where the paragraph sits even a few points off
+      Word's position (cover-letters/02's header block is compressed by a display/script-font metric gap
+      upstream) the stroke lands beside Word's rather than over it. Deferred: the between-border collapse of
+      consecutive same-bordered paragraphs (currently each box tiles, which reads correctly), and reserving a
+      large border space in the layout (a 16pt box overlaps its neighbours — the reservation conflicts with
+      the collapse case, so the two land together).
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 152 block/table/column documents the
@@ -300,7 +310,8 @@ Build alongside the existing renderers; do not delete anything until all three b
       amount of alignment work would have touched; and the score is a **lower bound** — it runs on the host,
       so a text-dense page carries sub-pixel glyph/line-metric drift and host-vs-container rasterisation AA
       that depress its SSIM (e.g. long_paragraph 0.78) even where the wrap and alignment match Word exactly.
-      Still to land before it can replace the production `PdfRenderer`: paragraph borders (shading landed), tabs,
+      Still to land before it can replace the production `PdfRenderer`: footers and header text (45 corpus docs
+      have footers — the top gap), tabs,
       shapes/WordArt, body/page-anchored floating shapes/images and their wrap (behind-text *cell* floats
       now render; body floats do not yet), gradient and image shape fills, image recolour/duotone effects
       (letters/02's frame is drawn but blue where Word recolours it
