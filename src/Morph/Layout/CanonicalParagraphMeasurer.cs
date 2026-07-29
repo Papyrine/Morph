@@ -145,7 +145,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // quantizing once (PixelsToPoints) is pen-position rounding, which composes across fonts. Text and
     // Properties are carried so the wrap can hand a painter each line's run segments — they never enter
     // the width/pitch arithmetic.
-    readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties, LaidOutImage? Image, bool IsBreak);
+    readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties, LaidOutImage? Image, bool IsBreak, bool IsTab);
 
     readonly record struct WrapSegment(float X, float Width, string Text, RunProperties Properties);
 
@@ -190,7 +190,13 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 }
             }
 
-            var (segments, images) = BuildLineItems(linePieces, extraGapPixels);
+            var (segments, images) = BuildLineItems(
+                linePieces,
+                extraGapPixels,
+                paragraph.Properties.TabStops,
+                paragraph.Properties.DefaultTabStopPoints,
+                paragraph.Properties.LeftIndentPoints,
+                maxWidth);
             lines.Add(new((float) CanonicalTextMeasurer.PixelsToPoints(linePixels), linePitch, segments, images));
         }
 
@@ -288,7 +294,13 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // it, its Width the pen distance to the next boundary — the same rounding as the line width, so a
     // painter draws each font (and each image) at the right offset and strokes decorations across the
     // right span. An image breaks any running text segment.
-    static (IReadOnlyList<WrapSegment> Segments, IReadOnlyList<LaidOutImage> Images) BuildLineItems(List<Piece> linePieces, double extraGapPixels)
+    static (IReadOnlyList<WrapSegment> Segments, IReadOnlyList<LaidOutImage> Images) BuildLineItems(
+        List<Piece> linePieces,
+        double extraGapPixels,
+        IReadOnlyList<TabStop> tabStops,
+        double defaultTabStopPoints,
+        double leftIndentPoints,
+        double columnWidthPoints)
     {
         var segments = new List<WrapSegment>();
         var images = new List<LaidOutImage>();
@@ -310,8 +322,30 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             segmentFont = null;
         }
 
-        foreach (var piece in linePieces)
+        for (var pieceIndex = 0; pieceIndex < linePieces.Count; pieceIndex++)
         {
+            var piece = linePieces[pieceIndex];
+
+            // A tab advances the pen to its resolved stop — the shared resolver handles left / centre /
+            // right / decimal by measuring the text up to the next tab (or line end), and clamps a stop
+            // past the column to the column edge. Position-dependent, so it happens here, not in Flatten.
+            if (piece.IsTab)
+            {
+                FlushSegment();
+                var afterTab = pieceIndex + 1;
+                var cursorFromMargin = leftIndentPoints + CanonicalTextMeasurer.PixelsToPoints(cursor);
+                var (destinationFromMargin, _, _) = TabStopResolver.Resolve(
+                    cursorFromMargin,
+                    () => MeasureFollowing(linePieces, afterTab),
+                    tabStops,
+                    defaultTabStopPoints,
+                    leftIndentPoints,
+                    availableEndX: columnWidthPoints);
+                var advanced = CanonicalTextMeasurer.PixelsFromPoints((float) (destinationFromMargin - leftIndentPoints));
+                cursor = Math.Max(cursor, advanced);
+                continue;
+            }
+
             if (piece.Image is { } image)
             {
                 FlushSegment();
@@ -349,6 +383,19 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         return (segments, images);
     }
 
+    // Points of text following a tab, up to the next tab or the line end — what a right / centre / decimal
+    // stop aligns against.
+    static double MeasureFollowing(List<Piece> linePieces, int startIndex)
+    {
+        double sum = 0;
+        for (var index = startIndex; index < linePieces.Count && !linePieces[index].IsTab; index++)
+        {
+            sum += linePieces[index].Pixels;
+        }
+
+        return CanonicalTextMeasurer.PixelsToPoints(sum);
+    }
+
     static RunProperties ParagraphFont(ParagraphElement paragraph) =>
         paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new RunProperties();
 
@@ -368,13 +415,23 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 {
                     var imageWidth = (float) (run.InlineImageWidthPoints > 0 ? run.InlineImageWidthPoints : 12);
                     var imageHeight = (float) (run.InlineImageHeightPoints > 0 ? run.InlineImageHeightPoints : 12);
-                    pieces.Add(new(false, CanonicalTextMeasurer.PixelsFromPoints(imageWidth), 0, "", run.Properties, new LaidOutImage(0, imageWidth, imageHeight, data), false));
+                    pieces.Add(new(false, CanonicalTextMeasurer.PixelsFromPoints(imageWidth), 0, "", run.Properties, new LaidOutImage(0, imageWidth, imageHeight, data), false, false));
                 }
 
                 continue;
             }
 
-            if (run.IsTab || run.Properties.Hidden || string.IsNullOrEmpty(run.Text))
+            // A tab advances the pen to the next tab stop; the advance is position-dependent, so it is
+            // resolved in BuildLineItems, not here. Its pitch keeps a tab-only line the right height.
+            if (run.IsTab)
+            {
+                var tabFont = resolveFont(run.Properties.FontFamily, run.Properties.Bold, run.Properties.Italic);
+                var tabPitch = tabFont == null ? 0f : (float) tabFont.LinePitchPoints(run.Properties.FontSizePoints);
+                pieces.Add(new(false, 0, tabPitch, "", run.Properties, null, false, true));
+                continue;
+            }
+
+            if (run.Properties.Hidden || string.IsNullOrEmpty(run.Text))
             {
                 continue;
             }
@@ -401,7 +458,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             {
                 if (partIndex > 0)
                 {
-                    pieces.Add(new(false, 0, pitch, "", run.Properties, null, true));
+                    pieces.Add(new(false, 0, pitch, "", run.Properties, null, true, false));
                 }
 
                 foreach (var (text, isSpace) in TokenizeText(parts[partIndex]))
@@ -412,7 +469,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                         advance += CanonicalTextMeasurer.PixelsFromPoints((float) (trackingPerChar * text.Length));
                     }
 
-                    pieces.Add(new(isSpace, advance, pitch, text, run.Properties, null, false));
+                    pieces.Add(new(isSpace, advance, pitch, text, run.Properties, null, false, false));
                 }
             }
         }
