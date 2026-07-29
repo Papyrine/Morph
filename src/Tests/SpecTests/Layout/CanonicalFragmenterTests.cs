@@ -254,6 +254,64 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task A_behind_text_cell_float_shape_is_placed_before_the_cells_content_at_a_cell_relative_offset()
+    {
+        var shape = new FloatingShapeElement
+        {
+            WidthPoints = 80,
+            HeightPoints = 40,
+            HorizontalPositionPoints = 6,
+            VerticalPositionPoints = 8,
+            BehindText = true,
+            FillColorHex = "0F3344",
+            Preset = PresetShape.Rect
+        };
+        var table = new TableElement
+        {
+            Properties = new() { GridColumnWidths = [200] },
+            Rows =
+            [
+                new TableRow
+                {
+                    Cells = [new TableCell { Content = [P("recipient")], Floats = [shape], Properties = new() }]
+                }
+            ]
+        };
+
+        var cell = Fragmenter.Layout([table], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single().Cells[0];
+
+        // The shape is emitted ahead of the text line so a painter draws it behind the content.
+        var contentList = cell.Content.ToList();
+        var placed = contentList.OfType<PlacedShape>().Single();
+        await Assert.That(contentList.FindIndex(_ => _ is PlacedShape) < contentList.FindIndex(_ => _ is PlacedLine)).IsTrue();
+        await Assert.That(placed.Shape.FillColorHex).IsEqualTo("0F3344");
+        // Offset is measured from the cell's top-left, not the page.
+        await Assert.That(placed.X).IsEqualTo(cell.X + 6f).Within(0.01f);
+        await Assert.That(placed.Y).IsEqualTo(cell.Y + 8f).Within(0.01f);
+        await Assert.That(placed.Width).IsEqualTo(80f).Within(0.01f);
+    }
+
+    [Test]
+    public async Task An_in_front_of_text_cell_float_shape_is_not_placed()
+    {
+        var shape = new FloatingShapeElement
+        {
+            WidthPoints = 80,
+            HeightPoints = 40,
+            BehindText = false,
+            FillColorHex = "0F3344"
+        };
+        var table = new TableElement
+        {
+            Properties = new() { GridColumnWidths = [200] },
+            Rows = [new TableRow { Cells = [new TableCell { Content = [P("recipient")], Floats = [shape], Properties = new() }] }]
+        };
+
+        var cell = Fragmenter.Layout([table], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single().Cells[0];
+        await Assert.That(cell.Content.OfType<PlacedShape>().Any()).IsFalse();
+    }
+
+    [Test]
     public async Task A_list_paragraph_places_its_marker_in_the_hanging_indent()
     {
         var paragraph = new ParagraphElement

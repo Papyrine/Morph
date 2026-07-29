@@ -264,12 +264,17 @@ Build alongside the existing renderers; do not delete anything until all three b
       missing-glyph box; a `w:caps` run is upper-cased; a table cell's first paragraph keeps its
       space-before (which `TableHeightCalculator` already sizes the cell with, so the content must be
       positioned with it or float to the top); a cell's content shifts down for centre/bottom vertical
-      alignment within the space its row leaves; and a **header's behind-text floating images** are
+      alignment within the space its row leaves; a **header's behind-text floating images** are
       resolved to page positions and painted behind every page's body — the full-page decorative frames of
-      letter templates live here (letters/02 0.62 → 0.78, letters/03 0.73 → 0.79). **Measured end-to-end**
+      letter templates live here (letters/02 0.62 → 0.78, letters/03 0.73 → 0.79); and **behind-text
+      cell-float shapes** land — a cell's `Floats` are resolved to cell-relative boxes and painted before its
+      content, so a label template's coloured background panel (a preset rect) and freeform blobs (unit-square
+      subpaths scaled into the box via the reused `PdfPageRenderer.BuildShapePath`) fill each cell behind the
+      white recipient text (labels/14 blank → 0.86; solid fills only — gradient/image fills stay deferred).
+      **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 152 block/table/column documents the
-      painter scores **mean 0.941, median 0.977 SSIM** — plain text and tables are near pixel-identical
+      painter scores **mean 0.945, median 0.977 SSIM** — plain text and tables are near pixel-identical
       (0.997–1.000). Two lessons from rendering the low scorers next to Word (which the harness makes
       cheap): the fixes come from *seeing* the gap, not guessing it — the two worst were dark-themed cover
       letters rendering as blank pages for want of the page background (0.246/0.322 → 0.712/0.789), which no
@@ -277,8 +282,9 @@ Build alongside the existing renderers; do not delete anything until all three b
       so a text-dense page carries sub-pixel glyph/line-metric drift and host-vs-container rasterisation AA
       that depress its SSIM (e.g. long_paragraph 0.78) even where the wrap and alignment match Word exactly.
       Still to land before it can replace the production `PdfRenderer`: paragraph borders and shading, tabs,
-      shapes/WordArt, body floating (anchored) shapes/images and their wrap (labels/14's blobs are cell
-      floats), image recolour/duotone effects (letters/02's frame is drawn but blue where Word recolours it
+      shapes/WordArt, body/page-anchored floating shapes/images and their wrap (behind-text *cell* floats
+      now render; body floats do not yet), gradient and image shape fills, image recolour/duotone effects
+      (letters/02's frame is drawn but blue where Word recolours it
       brown) plus rotation/flip/crop, footer and header text/tables (only header floating images render so
       far), nested tables, Word-distributed table row heights (business-plans/04's section rows are taller
       in Word than the content-sized rows `TableHeightCalculator` produces, which is what actually spaces
@@ -288,11 +294,6 @@ Build alongside the existing renderers; do not delete anything until all three b
       fill the run). Then repoint `Morph.Pdf` at `LaidOutDocument`, delete `PdfTextEngine`'s pagination, and
       run the harness in the container (matching Word's rasteriser) to separate real gaps from AA, then
       validate the full container suite (PDF page-count scoreboard unchanged or better, AE/SSIM neutral).
-      One cross-cutting gap sits below the engine, in the shared `DocumentParser`: **style-based paragraph
-      spacing is not inherited** — a heading whose `after` comes from its `Heading2` style (not a direct
-      `w:spacing`) parses as `after=0`, so its space-after is lost (business-plans/04's heading→body gaps).
-      This depresses every table-heavy template equally and affects all backends, not only the tree; fixing
-      it is a parser change with broad scenario-baseline impact, tracked separately from the engine slices.
 - [ ] **6. `SkiaPainter` + `ImageSharpPainter`** — the payoff step. Both become thin painters of the
       same tree; the whole-paragraph pagination and the duplicated `TextRenderer` layout code delete.
       This is where the raster knife-edges collapse (raster now paginates identically to PDF — one
