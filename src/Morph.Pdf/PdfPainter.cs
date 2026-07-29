@@ -61,8 +61,11 @@ static class PdfPainter
             case PlacedImage image:
                 PaintImage(context, graphics, image);
                 break;
+            case PlacedShape shape:
+                PaintShape(context, graphics, shape);
+                break;
 
-            // Rules and shapes are later slices.
+            // Rules are a later slice.
         }
     }
 
@@ -122,6 +125,67 @@ static class PdfPainter
         catch
         {
             // Undecodable image bytes: skip this image rather than fail the whole paint.
+        }
+    }
+
+    // A behind-text floating shape: solid fill and outline of either its freeform contours (subpaths,
+    // scaled from the unit square into the box with flip/rotation baked in by BuildShapePath) or, absent
+    // those, its preset box (rect or ellipse). Gradient and image fills are later slices.
+    static void PaintShape(PdfRenderContext context, XGraphics graphics, PlacedShape placed)
+    {
+        var shape = placed.Shape;
+        if (shape.Gradient != null || shape.ImageData is { Length: > 0 })
+        {
+            return;
+        }
+
+        var fill = shape.FillColorHex is { } fillHex ? context.GetBrush(PdfRenderContext.ParseColor(fillHex)) : null;
+        var pen = shape.LineColorHex is { } lineHex ? context.GetPen(PdfRenderContext.ParseColor(lineHex), Math.Max(0.5, shape.LineWidthPoints ?? 1)) : null;
+        if (fill == null && pen == null)
+        {
+            return;
+        }
+
+        if (shape.Subpaths is { Count: > 0 })
+        {
+            var path = PdfPageRenderer.BuildShapePath(shape, placed.X, placed.Y, placed.Width, placed.Height);
+            if (fill != null)
+            {
+                graphics.DrawPath(fill, path);
+            }
+
+            if (pen != null)
+            {
+                graphics.DrawPath(pen, path);
+            }
+
+            return;
+        }
+
+        var box = new XRect(placed.X, placed.Y, placed.Width, placed.Height);
+        if (shape.Preset == PresetShape.Ellipse)
+        {
+            if (fill != null)
+            {
+                graphics.DrawEllipse(fill, box);
+            }
+
+            if (pen != null)
+            {
+                graphics.DrawEllipse(pen, box);
+            }
+
+            return;
+        }
+
+        if (fill != null)
+        {
+            graphics.DrawRectangle(fill, box);
+        }
+
+        if (pen != null)
+        {
+            graphics.DrawRectangle(pen, box);
         }
     }
 

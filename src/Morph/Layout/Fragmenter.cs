@@ -336,6 +336,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 var content = LayoutCellContent(cell, cellX + (float) padding.Left, y + (float) padding.Top, cellWidth - (float) padding.Horizontal, cellHeight - (float) padding.Vertical, cell.Properties.VerticalAlignment);
                 var borders = TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row);
 
+                // Behind-text floats (a label template's coloured cell background and freeform blobs) paint
+                // before the cell's paragraphs, so prepend them to the content.
+                var floatShapes = ResolveCellFloatShapes(cell, cellX, y);
+                if (floatShapes.Count > 0)
+                {
+                    content = [.. floatShapes, .. content];
+                }
+
                 cells.Add(new PlacedCell(cellX, y, cellWidth, cellHeight, cell.Properties.BackgroundColorHex, borders, content));
 
                 cellX += cellWidth;
@@ -343,6 +351,33 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             return new PlacedTableRow(tableX, y, tableWidth, rowHeight, table, rowIndex, isRepeatedHeader, cells);
+        }
+
+        // Cell-anchored behind-text shapes resolved to absolute boxes: the offset is measured from the
+        // cell's top-left (Word anchors these to the cell frame). Only solid-fill / outline shapes render
+        // for now; gradient and image fills, in-front-of-text floats, and the paragraph-anchor walk that
+        // positions non-cell-top floats are later slices (PdfPainter.PaintShape skips what it can't draw).
+        static IReadOnlyList<PlacedItem> ResolveCellFloatShapes(TableCell cell, float cellX, float cellY)
+        {
+            if (cell.Floats.Count == 0)
+            {
+                return [];
+            }
+
+            var shapes = new List<PlacedItem>();
+            foreach (var element in cell.Floats)
+            {
+                if (element is not FloatingShapeElement shape || !shape.BehindText)
+                {
+                    continue;
+                }
+
+                var shapeX = cellX + (float) shape.HorizontalPositionPoints;
+                var shapeY = cellY + (float) shape.VerticalPositionPoints;
+                shapes.Add(new PlacedShape(shapeX, shapeY, (float) shape.WidthPoints, (float) shape.HeightPoints, shape));
+            }
+
+            return shapes;
         }
 
         // Stacks a cell's paragraphs from the top of its padded interior, wrapping each to the cell width,

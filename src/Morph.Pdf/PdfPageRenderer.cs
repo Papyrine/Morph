@@ -1185,7 +1185,7 @@ sealed class PdfPageRenderer : PageRendererBase
     // Builds a path from custom geometry: each sub-path is its own closed contour, filled with
     // nonzero winding so oppositely-wound nested contours read as holes (matching DrawingML's
     // default custGeom fill) rather than fusing into one polygon.
-    static XGraphicsPath BuildShapePath(FloatingShapeElement shape, double x, double y, double width, double height)
+    internal static XGraphicsPath BuildShapePath(FloatingShapeElement shape, double x, double y, double width, double height)
     {
         var path = new XGraphicsPath
         {
