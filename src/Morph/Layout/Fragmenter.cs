@@ -71,6 +71,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // line/row is never pushed off it (nothing better to do), the same rule at a column or page top.
         bool atRegionTop = true;
         float lastAfter;
+        // Style and contextual-spacing flag of the previous flow paragraph, for w:contextualSpacing: a
+        // contextual paragraph that follows a same-style contextual one collapses the gap between them (its
+        // own space-before and the previous paragraph's space-after) — Word's tight address blocks and list
+        // runs. A table breaks the run and clears these.
+        bool lastContextual;
+        string? lastStyleId;
         bool currentPageExplicit;
 
         // Left edge of the current column, in points from the page's left.
@@ -248,10 +254,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             // Space-before, collapsed with the previous paragraph's after (max, not sum) and dropped at a
             // region top. If the collapsed gap plus the first line overflows, the line-level break below
-            // resets the cursor — the same space-before drop for the moved paragraph.
+            // resets the cursor — the same space-before drop for the moved paragraph. w:contextualSpacing
+            // removes the gap entirely between two same-style contextual paragraphs (Word's memo To/From/CC
+            // block, list runs) — matching PageRendererBase's contextual collapse.
+            var contextualCollapse = properties.ContextualSpacing && lastContextual && properties.StyleId == lastStyleId;
             if (!atRegionTop)
             {
-                y += Math.Max(lastAfter, (float) properties.SpacingBeforePoints);
+                y += contextualCollapse ? 0f : Math.Max(lastAfter, (float) properties.SpacingBeforePoints);
             }
 
             // Paragraph-border box (w:pBdr): track the first line's top and last line's bottom so a single
@@ -358,6 +367,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // collapse with the next paragraph (measured against Word: two_columns' title/blank/body gap is
             // line + after + line + after, not line + after + line). It behaves like any other paragraph.
             lastAfter = (float) properties.SpacingAfterPoints;
+            lastContextual = properties.ContextualSpacing;
+            lastStyleId = properties.StyleId;
         }
 
         void PlaceTable(TableElement table)
@@ -400,6 +411,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             lastAfter = 0;
+            // A table breaks the paragraph run, so a contextual paragraph after it does not collapse against
+            // one before it.
+            lastContextual = false;
+            lastStyleId = null;
 
             // A table over 110% of a column's content height flows row by row (the raster backend's
             // needsRowByRowRendering); otherwise it stays whole and moves as a unit if needed.

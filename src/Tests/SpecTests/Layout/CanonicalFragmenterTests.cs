@@ -896,4 +896,30 @@ public class CanonicalFragmenterTests
         // A not-behind float paints last, over the body line.
         await Assert.That(items.FindIndex(_ => _ is PlacedImage) > items.FindIndex(_ => _ is PlacedLine)).IsTrue();
     }
+
+    [Test]
+    public async Task Contextual_spacing_collapses_the_gap_between_same_style_paragraphs()
+    {
+        var properties = new ParagraphProperties { StyleId = "MemoHead", ContextualSpacing = true, SpacingAfterPoints = 12 };
+        var document = Fragmenter.Layout([P("To", properties), P("From", properties), P("CC", properties)], Page(400));
+        var lines = document.Pages[0].Items.OfType<PlacedLine>().ToList();
+
+        // Three same-style contextual paragraphs stack with no inter-paragraph spacing — each line's top is
+        // exactly the previous line's bottom, not offset by the 12pt after-spacing.
+        await Assert.That(lines.Count).IsEqualTo(3);
+        await Assert.That(lines[1].Y).IsEqualTo(lines[0].Y + lines[0].Height).Within(0.01f);
+        await Assert.That(lines[2].Y).IsEqualTo(lines[1].Y + lines[1].Height).Within(0.01f);
+    }
+
+    [Test]
+    public async Task Contextual_spacing_does_not_collapse_across_different_styles()
+    {
+        var head = new ParagraphProperties { StyleId = "A", ContextualSpacing = true, SpacingAfterPoints = 12 };
+        var body = new ParagraphProperties { StyleId = "B", ContextualSpacing = true, SpacingAfterPoints = 12 };
+        var document = Fragmenter.Layout([P("head", head), P("body", body)], Page(400));
+        var lines = document.Pages[0].Items.OfType<PlacedLine>().ToList();
+
+        // A different StyleId breaks the collapse, so the 12pt after-spacing sits between the two lines.
+        await Assert.That(lines[1].Y - (lines[0].Y + lines[0].Height)).IsEqualTo(12f).Within(0.01f);
+    }
 }

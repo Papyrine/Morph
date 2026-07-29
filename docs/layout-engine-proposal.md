@@ -221,11 +221,10 @@ Build alongside the existing renderers; do not delete anything until all three b
       region (column or page) top, empty-paragraph mark line, explicit-break blank pages (experiment 18),
       an exact bottom-of-region fit for paragraph flow, and the backend's rounding tolerances mirrored for
       table fit. **Validated: 96/96 = 100% on the corpus's pure-block documents, 150/153 = 98.0% once plain
-      text tables are added, 154/157 = 98.1% with multi-column flow — all four corpus column documents
-      match** — one backend-independent pass reproducing Word's pagination. The three misses are sub-line
-      knife-edges (a table tipping onto an extra page, a trailing line spilling — resumes/13 is one Word's
-      own backends straddle) plus the document-dependent question of how much paragraph-after-spacing
-      precedes a table (a probe would settle it). Columns are equal-width from one `PageSettings`.
+      text tables are added, 154/157 = 98.1% with multi-column flow, and 156/157 = 99.4% once the
+      w:contextualSpacing collapse lands — all four corpus column documents
+      match** — one backend-independent pass reproducing Word's pagination. The one remaining miss,
+      resumes/13, is a sub-line knife-edge Word's own backends straddle (6 vs 5). Columns are equal-width from one `PageSettings`.
       Remaining slices: per-section geometry (a section break switching column count or page size,
       including the continuous mid-page kind — the newsletter masthead → body case); widow/orphan and
       keep-next/keep-lines; float exclusions (reuse `ResolveFlowBand`); images and nested tables inside a
@@ -359,10 +358,18 @@ Build alongside the existing renderers; do not delete anything until all three b
       full-page background per page across a page break stacks both on the first page (brochures/01) — tying a
       body float to its anchor paragraph's resolved page is a later slice, as is float wrap (text flowing
       around a square/tight float). Body-float pages are excluded from the harness, so this is render-verified.
+      **Contextual spacing (w:contextualSpacing) landed**: two same-style contextual paragraphs collapse the
+      gap between them (the first's space-after and the second's space-before), matching Word's tight memo
+      To/From/CC blocks and list runs — mirroring `PageRendererBase`'s rule (both contextual, equal `StyleId`;
+      a table breaks the run). The Fragmenter previously added the full inter-paragraph spacing, so a memo's
+      three heading lines sat ~48pt too low and pushed the body table onto a second page. Applying the
+      collapse tightened business/05 and resumes/07 to Word's single page, lifting the page-count match from
+      98.1% to **99.4% (156/157)** with no document regressing — the most direct progress yet toward the
+      engine's reason for existing, one pagination answer instead of three.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
-      pages against Word's own render (`expected_*.png`). Across 152 block/table/column documents the
-      painter scores **mean 0.947 (0.9474), median 0.977 SSIM** — plain text and tables are near pixel-identical
+      pages against Word's own render (`expected_*.png`). Across 154 block/table/column documents the
+      painter scores **mean 0.946, median 0.977 SSIM** — plain text and tables are near pixel-identical
       (0.997–1.000). Two lessons from rendering the low scorers next to Word (which the harness makes
       cheap): the fixes come from *seeing* the gap, not guessing it — the two worst were dark-themed cover
       letters rendering as blank pages for want of the page background (0.246/0.322 → 0.712/0.789), which no

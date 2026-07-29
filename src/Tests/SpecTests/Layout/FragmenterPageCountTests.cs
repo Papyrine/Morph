@@ -65,13 +65,12 @@ public class FragmenterPageCountTests
         }
 
         await Assert.That(compared).IsGreaterThan(20);
-        // The block-flow slice matched every pure-block document (96/96); adding plain text tables and
-        // multi-column flow widens the set to 157 and holds 154 (98.1%). All four corpus column documents
-        // match. The three misses are sub-line knife-edges where a table tips onto an extra page or a
-        // trailing line spills — resumes/13 is one Word's own backends straddle. The threshold is
-        // calibrated just under the measured rate; a regression that drops another document out of
-        // agreement fails here.
-        await Assert.That(rate > 0.97).IsTrue();
+        // The block-flow slice matched every pure-block document (96/96); adding plain text tables,
+        // multi-column flow and the w:contextualSpacing collapse widens the set to 157 and holds 156
+        // (99.4%). All four corpus column documents match. The one miss, resumes/13, is a sub-line
+        // knife-edge Word's own backends straddle (6 vs 5). The threshold is calibrated just under the
+        // measured rate; a regression that drops another document out of agreement fails here.
+        await Assert.That(rate > 0.99).IsTrue();
     }
 
     // Documents whose top-level content is paragraphs (without inline images or shape groups), plain page
