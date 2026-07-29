@@ -402,7 +402,11 @@ Build alongside the existing renderers; do not delete anything until all three b
       paginates with pages flipping between portrait and landscape and per-section margins; admitting the
       geometry-changing and even/odd documents added 15 to the harness at **274/276 = 99.3%**. Only a
       Continuous break's *mid-page* geometry switch — the newsletter masthead → multi-column body, where the
-      column count changes without a page break — is still deferred.
+      column count changes without a page break — is still deferred, and a corpus census found it has zero
+      demand here: not one document has a continuous column change, and the three multi-column documents
+      (three_columns, two_columns, column_breaks) are multi-column from their first section, which already
+      lays out. It is held back because nothing exercises it — building it would be untested layout code —
+      not because it is next in line.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 180 block/table/column documents the
