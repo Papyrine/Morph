@@ -61,7 +61,6 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // The header's behind-text floating images, resolved once to page positions and painted behind
         // every page's body (the decorative full-page frames of letter/label templates live here). Same
         // header on every page for now — first-page / even-page variants and footers are later slices.
-        readonly IReadOnlyList<PlacedImage> backgroundImages = ResolveHeaderImages(header, page);
 
 
         List<PlacedItem> items = [];
@@ -160,6 +159,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             for (var index = 0; index < bodies.Count; index++)
             {
                 var pageNumber = index + 1;
+                // The behind-text header images follow the same first/even-page variant as the header text,
+                // so a title page's decorative frame or illustration comes from its first-page header.
+                var backgroundImages = ResolveHeaderImages(SelectVariant(pageNumber, firstPageHeader, evenPageHeader, header), page);
                 var headerBand = HeaderBand(pageNumber, total);
                 var footerBand = FooterBand(pageNumber, total);
                 var body = bodies[index];
