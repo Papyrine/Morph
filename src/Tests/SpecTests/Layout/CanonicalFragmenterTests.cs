@@ -818,4 +818,82 @@ public class CanonicalFragmenterTests
         await Assert.That(image.Width).IsEqualTo(600f).Within(0.5f);
         await Assert.That(items.OfType<PlacedLine>().Any()).IsTrue();
     }
+
+    [Test]
+    public async Task A_behind_text_body_float_image_paints_behind_the_body_at_a_margin_relative_offset()
+    {
+        var image = new FloatingImageElement
+        {
+            ImageData = System.Text.Encoding.ASCII.GetBytes("PNG"),
+            WidthPoints = 100, HeightPoints = 60,
+            HorizontalPositionPoints = 10, VerticalPositionPoints = 15,
+            HorizontalAnchor = HorizontalAnchor.Margin, VerticalAnchor = VerticalAnchor.Margin,
+            BehindText = true
+        };
+
+        var items = Fragmenter.Layout([image, P("body")], Page(200)).Pages[0].Items.ToList();
+
+        // The float paints first (behind the body line) at content-left + offset over content-top + offset.
+        var placed = (PlacedImage) items[0];
+        await Assert.That(placed.X).IsEqualTo(30f).Within(0.5f);
+        await Assert.That(placed.Y).IsEqualTo(35f).Within(0.5f);
+        await Assert.That(placed.Width).IsEqualTo(100f).Within(0.5f);
+        await Assert.That(items.FindIndex(_ => _ is PlacedImage) < items.FindIndex(_ => _ is PlacedLine)).IsTrue();
+    }
+
+    [Test]
+    public async Task An_svg_body_float_image_paints_its_raster_fallback()
+    {
+        var image = new FloatingImageElement
+        {
+            ImageData = System.Text.Encoding.ASCII.GetBytes("SVG"),
+            ContentType = "image/svg+xml",
+            RasterFallbackData = System.Text.Encoding.ASCII.GetBytes("PNG"),
+            WidthPoints = 100, HeightPoints = 60,
+            HorizontalAnchor = HorizontalAnchor.Margin, VerticalAnchor = VerticalAnchor.Margin,
+            BehindText = true
+        };
+
+        var placed = Fragmenter.Layout([image, P("body")], Page(200)).Pages[0].Items.OfType<PlacedImage>().Single();
+
+        // PdfSharp cannot rasterize SVG, so the float carries the raster equivalent, not the SVG bytes.
+        await Assert.That(System.Text.Encoding.ASCII.GetString(placed.Data)).IsEqualTo("PNG");
+    }
+
+    [Test]
+    public async Task An_image_filled_body_float_shape_paints_as_an_image()
+    {
+        var shape = new FloatingShapeElement
+        {
+            WidthPoints = 200, HeightPoints = 150,
+            ImageData = System.Text.Encoding.ASCII.GetBytes("JPG"),
+            ImageContentType = "image/jpeg",
+            HorizontalAnchor = HorizontalAnchor.Margin, VerticalAnchor = VerticalAnchor.Margin,
+            BehindText = true
+        };
+
+        var items = Fragmenter.Layout([shape, P("body")], Page(200)).Pages[0].Items;
+
+        // A full-bleed image-fill shape becomes a plain image — the shape painter skips image fills.
+        var placed = items.OfType<PlacedImage>().Single();
+        await Assert.That(System.Text.Encoding.ASCII.GetString(placed.Data)).IsEqualTo("JPG");
+        await Assert.That(items.OfType<PlacedShape>().Any()).IsFalse();
+    }
+
+    [Test]
+    public async Task An_in_front_body_float_image_paints_over_the_body()
+    {
+        var image = new FloatingImageElement
+        {
+            ImageData = System.Text.Encoding.ASCII.GetBytes("PNG"),
+            WidthPoints = 100, HeightPoints = 60,
+            HorizontalAnchor = HorizontalAnchor.Margin, VerticalAnchor = VerticalAnchor.Margin,
+            BehindText = false
+        };
+
+        var items = Fragmenter.Layout([image, P("body")], Page(200)).Pages[0].Items.ToList();
+
+        // A not-behind float paints last, over the body line.
+        await Assert.That(items.FindIndex(_ => _ is PlacedImage) > items.FindIndex(_ => _ is PlacedLine)).IsTrue();
+    }
 }

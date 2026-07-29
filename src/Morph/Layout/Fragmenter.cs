@@ -62,6 +62,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         List<PlacedItem> items = [];
         // Each finished page's body items, kept until the flow ends so the bands can resolve NUMPAGES.
         readonly List<IReadOnlyList<PlacedItem>> bodies = [];
+        // Body floating shapes/images, each tagged with the page it was anchored on and whether it paints
+        // behind the text; assembled into their page's items once the flow ends.
+        readonly List<(int Page, PlacedItem Item, bool Behind)> bodyFloats = [];
         int currentColumn;
         float y;
         // Top of the current *region* — a fresh column or a fresh page. Space-before is dropped here and a
@@ -114,7 +117,21 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         PlaceTable(table);
                         break;
 
-                    // Floats, images and continuous sections are later slices.
+                    case FloatingImageElement image when DecodableImageBytes(image) is { Length: > 0 } data:
+                        bodyFloats.Add((bodies.Count, new PlacedImage(FloatX(image.HorizontalAnchor, image.HorizontalPositionPoints), FloatY(image.VerticalAnchor, image.VerticalPositionPoints), (float) image.WidthPoints, (float) image.HeightPoints, data), image.BehindText));
+                        break;
+
+                    // An image-filled shape (a full-bleed background photo) paints as a plain image — the shape
+                    // painter skips image fills. Rotation/flip/crop on such a shape are a later slice.
+                    case FloatingShapeElement shape when shape.ImageData is { Length: > 0 } shapeImage && shape.ImageContentType != "image/svg+xml":
+                        bodyFloats.Add((bodies.Count, new PlacedImage(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints), FloatY(shape.VerticalAnchor, shape.VerticalPositionPoints), (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage), shape.BehindText));
+                        break;
+
+                    case FloatingShapeElement shape when shape.Gradient == null && shape.ImageData == null && (shape.FillColorHex != null || shape.LineColorHex != null):
+                        bodyFloats.Add((bodies.Count, new PlacedShape(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints), FloatY(shape.VerticalAnchor, shape.VerticalPositionPoints), (float) shape.WidthPoints, (float) shape.HeightPoints, shape), shape.BehindText));
+                        break;
+
+                    // Continuous sections, gradient floats and float wrap are later slices.
                 }
             }
 
@@ -161,14 +178,43 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 var headerBand = HeaderBand(pageNumber, total);
                 var footerBand = FooterBand(pageNumber, total);
                 var body = bodies[index];
-                var pageItems = backgroundImages.Count == 0 && headerBand.Count == 0 && footerBand.Count == 0
+
+                // Body floats: behind-text ones paint under the body (over the header background), in-front
+                // ones over it. Anchored on the page they were reached on.
+                var pageFloats = index;
+                var behindFloats = bodyFloats.Where(_ => _.Page == pageFloats && _.Behind).Select(_ => _.Item).ToList();
+                var frontFloats = bodyFloats.Where(_ => _.Page == pageFloats && !_.Behind).Select(_ => _.Item).ToList();
+
+                var pageItems = backgroundImages.Count == 0 && headerBand.Count == 0 && footerBand.Count == 0 && behindFloats.Count == 0 && frontFloats.Count == 0
                     ? body
-                    : (IReadOnlyList<PlacedItem>) [.. backgroundImages, .. headerBand, .. body, .. footerBand];
+                    : (IReadOnlyList<PlacedItem>) [.. backgroundImages, .. headerBand, .. behindFloats, .. body, .. frontFloats, .. footerBand];
                 pages.Add(new(pageNumber, page, pageItems));
             }
 
             return pages;
         }
+
+        // Absolute X of a body float: a page-anchored offset is from the page's left; anything else (margin,
+        // column, character) is from the content's left. Nested-frame anchors are a later slice.
+        float FloatX(HorizontalAnchor anchor, double offset) =>
+            anchor == HorizontalAnchor.Page ? (float) offset : fullContentLeft + (float) offset;
+
+        // Absolute Y of a body float: page-anchored from the top edge, margin-anchored from the top margin,
+        // otherwise from the current flow cursor (a paragraph/character anchor, approximated by where the
+        // float was reached).
+        float FloatY(VerticalAnchor anchor, double offset) => anchor switch
+        {
+            VerticalAnchor.Page => (float) offset,
+            VerticalAnchor.Margin => contentTop + (float) offset,
+            _ => y + (float) offset
+        };
+
+        // The bytes a backend can actually decode: SVG artwork carries a raster equivalent (PdfSharp, like
+        // ImageSharp, cannot rasterize SVG), so fall back to it when the primary data is SVG.
+        static byte[] DecodableImageBytes(FloatingImageElement image) =>
+            image.ContentType == "image/svg+xml" && image.RasterFallbackData is { Length: > 0 } fallback
+                ? fallback
+                : image.ImageData;
 
         // Content overflow or a column break: move to the next column, keeping the current page's items,
         // or start a new page when the last column is full.
@@ -819,7 +865,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             foreach (var element in header.Elements)
             {
-                if (element is not FloatingImageElement image || image.ImageData is not { Length: > 0 } data || !image.BehindText)
+                if (element is not FloatingImageElement image || !image.BehindText || DecodableImageBytes(image) is not { Length: > 0 } data)
                 {
                     continue;
                 }
