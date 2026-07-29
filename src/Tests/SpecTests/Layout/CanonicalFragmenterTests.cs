@@ -298,6 +298,23 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task An_empty_paragraph_sizes_its_blank_line_by_its_mark_font()
+    {
+        ParagraphElement Empty(double markSize) => new()
+        {
+            Runs = [],
+            Properties = new() { ParagraphMarkRunProperties = new() { FontFamily = "Aptos", FontSizePoints = markSize } }
+        };
+
+        float Height(double markSize) =>
+            Fragmenter.Layout([Empty(markSize)], Page(400)).Pages[0].Items.OfType<PlacedLine>().Single().Height;
+
+        // A blank paragraph has no runs, so its spacer line follows the paragraph mark's font — a 24pt mark
+        // makes a much taller line than an 8pt one, rather than both collapsing to a default size.
+        await Assert.That(Height(24) > Height(8) + 10f).IsTrue();
+    }
+
+    [Test]
     public async Task Page_break_element_starts_a_new_page()
     {
         var document = Fragmenter.Layout([P("before"), new PageBreakElement(), P("after")], Page(400));

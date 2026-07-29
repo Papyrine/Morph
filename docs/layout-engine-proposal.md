@@ -323,10 +323,16 @@ Build alongside the existing renderers; do not delete anything until all three b
       dot leaders and a `Signature` underline both render. The dots are a thin horizontal feature, so the
       *visible* render is the honest check: SSIM barely moves because a row a point off Word's leaves the
       dots on a different pixel row, but the leaders read correctly.
+      **Empty-paragraph mark font landed**: a blank paragraph has no runs, so its spacer line's height comes
+      from the paragraph mark's own run properties (`w:rPr` on `w:pPr`) — Word sizes the blank line by the
+      mark, not a bare default. Sizing it from a fresh `RunProperties` (default font, 11pt) shrank spacer
+      lines, and in a multi-column flow that under-tall gap let a column hold an extra item: three_columns'
+      title column packed 15 items where Word fits 14. Using the mark font fixed the column break (0.84 →
+      0.89) and lifted the corpus mean (0.9464 → 0.9474) as every empty-spacer document tightened toward Word.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 152 block/table/column documents the
-      painter scores **mean 0.947, median 0.977 SSIM** — plain text and tables are near pixel-identical
+      painter scores **mean 0.947 (0.9474), median 0.977 SSIM** — plain text and tables are near pixel-identical
       (0.997–1.000). Two lessons from rendering the low scorers next to Word (which the harness makes
       cheap): the fixes come from *seeing* the gap, not guessing it — the two worst were dark-themed cover
       letters rendering as blank pages for want of the page background (0.246/0.322 → 0.712/0.789), which no
