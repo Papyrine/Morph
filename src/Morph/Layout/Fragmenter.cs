@@ -19,7 +19,7 @@ using System.Globalization;
 /// <para>Columns are equal-width from a single <see cref="PageSettings"/> (the common case). Deferred to
 /// later slices, and noted so a document using them is not yet expected to paginate: per-section geometry
 /// changes (a section break switching column count or page size, including the continuous mid-page kind);
-/// keep-next/keep-lines (widow/orphan is handled); floats and their wrap exclusions; floating tables;
+/// keep-next (widow/orphan and keep-lines are handled); floats and their wrap exclusions; floating tables;
 /// images and nested tables inside a cell; a tall header/footer band pushing the body's margin; and
 /// even/odd section-break parity. Other non-paragraph, non-table elements are skipped for now.</para>
 /// </summary>
@@ -237,20 +237,28 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     fit++;
                 }
 
-                // Widow/orphan control (Word's default): never split a paragraph so that a single line sits
-                // alone at the bottom of a region (orphan → move the pair) or at the top of the next (widow →
-                // carry one more line with it). Only when a break is actually happening and not forced by a
-                // region top, and only for a paragraph of at least two lines.
+                // Keep-lines (w:keepLines) holds a whole paragraph together — if it will not all fit here it
+                // moves to the next region intact. Otherwise widow/orphan control (Word's default) keeps at
+                // least two lines together: one line alone at the bottom (orphan → move the pair) or at the
+                // top of the next region (widow → carry one more line). Both apply only when a break actually
+                // falls (fit < remaining) and there is somewhere better to move to (not already a region top).
                 var remaining = paragraphLines.Count - lineIndex;
-                if (properties.WidowControl && !atRegionTop && remaining >= 2 && fit < remaining)
+                if (!atRegionTop && fit < remaining)
                 {
-                    if (fit == 1)
+                    if (properties.KeepLines)
                     {
                         fit = 0;
                     }
-                    else if (fit == remaining - 1)
+                    else if (properties.WidowControl && remaining >= 2)
                     {
-                        fit = remaining - 2;
+                        if (fit == 1)
+                        {
+                            fit = 0;
+                        }
+                        else if (fit == remaining - 1)
+                        {
+                            fit = remaining - 2;
+                        }
                     }
                 }
 
