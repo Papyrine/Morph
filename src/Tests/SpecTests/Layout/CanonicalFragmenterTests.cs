@@ -333,6 +333,23 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task Widow_control_moves_a_paragraph_that_would_orphan_its_first_line()
+    {
+        // Ten single-line fillers fill all but one of page 1's eleven lines; then a paragraph that wraps to
+        // several lines. Without widow control its first line takes the last slot and the rest orphan onto
+        // page 2; with it (Word's default) the whole paragraph moves so no single line is left behind.
+        var fillers = Enumerable.Range(0, 10).Select(_ => P("filler")).ToArray();
+        var text = string.Join(' ', Enumerable.Repeat("lorem", 40));
+        ParagraphElement Tail(bool widowControl) => P(text, new ParagraphProperties { WidowControl = widowControl });
+
+        int Page1TailLines(LaidOutDocument document) =>
+            document.Pages[0].Items.OfType<PlacedLine>().Count(_ => _.Runs.Any(run => run.Text.Contains("lorem")));
+
+        await Assert.That(Page1TailLines(Fragmenter.Layout([.. fillers, Tail(false)], Page(200)))).IsGreaterThan(0);
+        await Assert.That(Page1TailLines(Fragmenter.Layout([.. fillers, Tail(true)], Page(200)))).IsEqualTo(0);
+    }
+
+    [Test]
     public async Task Page_break_element_starts_a_new_page()
     {
         var document = Fragmenter.Layout([P("before"), new PageBreakElement(), P("after")], Page(400));

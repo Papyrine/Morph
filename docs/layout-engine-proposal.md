@@ -331,6 +331,13 @@ Build alongside the existing renderers; do not delete anything until all three b
       lines, and in a multi-column flow that under-tall gap let a column hold an extra item: three_columns'
       title column packed 15 items where Word fits 14. Using the mark font fixed the column break (0.84 →
       0.89) and lifted the corpus mean (0.9464 → 0.9474) as every empty-spacer document tightened toward Word.
+      **Widow/orphan control landed**: the line loop became a fit-count loop — it takes as many of a
+      paragraph's remaining lines as clear the region, and when a break falls it never strands a single line
+      (Word's default `WidowControl`): one line alone at the bottom (orphan) moves the pair to the next
+      region, one line alone at the top (widow) carries a second line with it. three_columns' two-line
+      `Item 30` now stays whole in the third column instead of splitting across two (0.89 → 0.90), and
+      two_columns' break tightened (0.74 → 0.78); the page-count match held at 98.1%, since Word paginates
+      with the same rule.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 152 block/table/column documents the

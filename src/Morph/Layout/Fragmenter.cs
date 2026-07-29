@@ -19,9 +19,9 @@ using System.Globalization;
 /// <para>Columns are equal-width from a single <see cref="PageSettings"/> (the common case). Deferred to
 /// later slices, and noted so a document using them is not yet expected to paginate: per-section geometry
 /// changes (a section break switching column count or page size, including the continuous mid-page kind);
-/// widow/orphan and keep-next/keep-lines; floats and their wrap exclusions; floating tables; images and
-/// nested tables inside a cell; a tall header/footer band pushing the body's margin; and even/odd
-/// section-break parity. Other non-paragraph, non-table elements are skipped for now.</para>
+/// keep-next/keep-lines (widow/orphan is handled); floats and their wrap exclusions; floating tables;
+/// images and nested tables inside a cell; a tall header/footer band pushing the body's margin; and
+/// even/odd section-break parity. Other non-paragraph, non-table elements are skipped for now.</para>
 /// </summary>
 sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 {
@@ -216,38 +216,79 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             float? borderTop = null;
             var borderBroke = false;
 
-            for (var lineIndex = 0; lineIndex < paragraphLines.Count; lineIndex++)
+            var lineIndex = 0;
+            while (lineIndex < paragraphLines.Count)
             {
-                var line = paragraphLines[lineIndex];
-                // A line fits if its baseline clears the bottom margin — Word lets the last line's descent
-                // (and trailing line gap) encroach the margin rather than pushing it to the next page. This
-                // is self-limiting: once a line's descent spills, y passes contentBottom and the next line
-                // breaks. Without it, correct empty-paragraph spacing tips borderline pages one line early.
-                if (!atRegionTop && y + line.Ascent > contentBottom)
+                // How many of the remaining lines fit in the current region. A line fits if its baseline
+                // clears the bottom margin — Word lets the last line's descent (and trailing gap) encroach
+                // the margin rather than pushing it to the next page. The first line at a region top is
+                // always taken (nothing better to do than overflow it).
+                var fit = 0;
+                var probeY = y;
+                while (lineIndex + fit < paragraphLines.Count)
                 {
-                    AdvanceColumnOrPage();
-                    if (borderTop != null)
+                    var candidate = paragraphLines[lineIndex + fit];
+                    if (!(atRegionTop && fit == 0) && probeY + candidate.Ascent > contentBottom)
                     {
-                        borderBroke = true;
+                        break;
+                    }
+
+                    probeY += candidate.Height;
+                    fit++;
+                }
+
+                // Widow/orphan control (Word's default): never split a paragraph so that a single line sits
+                // alone at the bottom of a region (orphan → move the pair) or at the top of the next (widow →
+                // carry one more line with it). Only when a break is actually happening and not forced by a
+                // region top, and only for a paragraph of at least two lines.
+                var remaining = paragraphLines.Count - lineIndex;
+                if (properties.WidowControl && !atRegionTop && remaining >= 2 && fit < remaining)
+                {
+                    if (fit == 1)
+                    {
+                        fit = 0;
+                    }
+                    else if (fit == remaining - 1)
+                    {
+                        fit = remaining - 2;
                     }
                 }
 
-                var indentLeft = ColumnLeft + (float) properties.LeftIndentPoints;
-                var lineLeft = indentLeft + AlignmentOffset(properties.Alignment, availableWidth, line.Width);
-                var baseline = y + line.Ascent;
-
-                // Paragraph shading (w:shd) fills the paragraph's column box behind the text, regardless of
-                // the text's own width or alignment — a centred title's band still spans the full column.
-                // Emitted before the line so it paints behind; one per line tiles into a continuous band.
-                if (!string.IsNullOrEmpty(properties.BackgroundColorHex))
+                if (fit == 0)
                 {
-                    items.Add(new PlacedShading(indentLeft, y, availableWidth, line.Height, properties.BackgroundColorHex));
+                    AdvanceColumnOrPage();
+                    continue;
                 }
 
-                items.Add(new PlacedLine(lineLeft, y, line.Width, line.Height, baseline, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft), MapImages(line, lineLeft, baseline)));
-                borderTop ??= y;
-                y += line.Height;
-                atRegionTop = false;
+                for (var offset = 0; offset < fit; offset++)
+                {
+                    var placedIndex = lineIndex + offset;
+                    var line = paragraphLines[placedIndex];
+                    var indentLeft = ColumnLeft + (float) properties.LeftIndentPoints;
+                    var lineLeft = indentLeft + AlignmentOffset(properties.Alignment, availableWidth, line.Width);
+                    var baseline = y + line.Ascent;
+
+                    // Paragraph shading (w:shd) fills the paragraph's column box behind the text, regardless
+                    // of the text's own width or alignment — a centred title's band still spans the full
+                    // column. Emitted before the line so it paints behind; one per line tiles into a band.
+                    if (!string.IsNullOrEmpty(properties.BackgroundColorHex))
+                    {
+                        items.Add(new PlacedShading(indentLeft, y, availableWidth, line.Height, properties.BackgroundColorHex));
+                    }
+
+                    items.Add(new PlacedLine(lineLeft, y, line.Width, line.Height, baseline, paragraph, placedIndex, LineRuns(paragraph, line, placedIndex, lineLeft), MapImages(line, lineLeft, baseline)));
+                    borderTop ??= y;
+                    y += line.Height;
+                    atRegionTop = false;
+                }
+
+                lineIndex += fit;
+                if (lineIndex < paragraphLines.Count)
+                {
+                    // More lines remain — the paragraph breaks, so its border box would span the gap.
+                    AdvanceColumnOrPage();
+                    borderBroke = true;
+                }
             }
 
             // Stroke the border around the paragraph's box, expanded by each edge's space (the gap Word
