@@ -576,6 +576,31 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task A_nested_table_lays_out_inside_its_cell_below_the_cells_paragraph()
+    {
+        var nested = new TableElement
+        {
+            Properties = new() { GridColumnWidths = [40, 40] },
+            Rows = [new TableRow { Cells = [new TableCell { Content = [P("a")] }, new TableCell { Content = [P("b")] }] }]
+        };
+        var outer = new TableElement
+        {
+            Properties = new() { GridColumnWidths = [200] },
+            Rows = [new TableRow { Cells = [new TableCell { Content = [P("before"), nested] }] }]
+        };
+
+        var cell = Fragmenter.Layout([outer], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single().Cells[0];
+        var nestedRow = cell.Content.OfType<PlacedTableRow>().Single();
+        var beforeLine = cell.Content.OfType<PlacedLine>().First(_ => _.Runs.Any(run => run.Text == "before"));
+
+        // The nested table's two cells carry their text, and the whole table sits below the cell's paragraph.
+        await Assert.That(nestedRow.Cells.Count).IsEqualTo(2);
+        await Assert.That(nestedRow.Cells[0].Content.OfType<PlacedLine>().SelectMany(_ => _.Runs).Single().Text).IsEqualTo("a");
+        await Assert.That(nestedRow.Cells[1].Content.OfType<PlacedLine>().SelectMany(_ => _.Runs).Single().Text).IsEqualTo("b");
+        await Assert.That(nestedRow.Y).IsGreaterThan(beforeLine.Y);
+    }
+
+    [Test]
     public async Task A_behind_text_cell_float_shape_is_placed_before_the_cells_content_at_a_cell_relative_offset()
     {
         var shape = new FloatingShapeElement
