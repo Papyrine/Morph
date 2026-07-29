@@ -223,10 +223,11 @@ Build alongside the existing renderers; do not delete anything until all three b
       table fit. **Validated: 96/96 = 100% on the corpus's pure-block documents, 150/153 = 98.0% once plain
       text tables are added, 154/157 = 98.1% with multi-column flow, 156/157 = 99.4% once the
       w:contextualSpacing collapse lands, 182/183 = 99.5% once inline images join the set (the measurer
-      sizes each line to its tallest inline image, so they paginate), and 238/239 = 99.6% once non-wrapping
-      body floats join too (they take no flow space, so pagination is unchanged) — all four corpus column
-      documents match** — one backend-independent pass reproducing Word's pagination. The one remaining miss,
-      resumes/13, is a sub-line knife-edge Word's own backends straddle (6 vs 5). Columns are equal-width from one `PageSettings`.
+      sizes each line to its tallest inline image, so they paginate), 238/239 = 99.6% once non-wrapping
+      body floats join too (they take no flow space, so pagination is unchanged), and 260/261 = 99.6% once
+      flow-neutral section breaks join (NextPage as a page break, Continuous as a no-op, same geometry) —
+      all four corpus column documents match** — one backend-independent pass reproducing Word's pagination.
+      The one remaining miss, resumes/13, is a sub-line knife-edge Word's own backends straddle (6 vs 5). Columns are equal-width from one `PageSettings`.
       Remaining slices: per-section geometry (a section break switching column count or page size,
       including the continuous mid-page kind — the newsletter masthead → body case); widow/orphan and
       keep-next/keep-lines; float exclusions (reuse `ResolveFlowBand`); images and nested tables inside a
@@ -383,6 +384,14 @@ Build alongside the existing renderers; do not delete anything until all three b
       Word, which does not render a page for a trailing empty paragraph. The floats are admitted to the
       page-count harness only — their rendering is verified separately, and the multi-page background
       limitation would otherwise depress an image-AA-heavy fidelity page for a known reason.
+      **Flow-neutral section breaks joined the page-count set**: the Fragmenter already treats a NextPage
+      section break as a page break and a Continuous one as a no-op, so a document whose sections keep the
+      same geometry (no new column count, page size, or margins) paginates like Word — a corpus census found
+      section breaks in 44 documents, most single-column NextPage template dividers. Admitting the
+      same-geometry ones added 22 documents to the harness at **260/261 = 99.6%** with no new miss, across
+      newsletters, menus, cards, weddings and multi-page business plans. The geometry-changing sections (a
+      continuous column switch for a newsletter masthead, a per-section page size) and even/odd parity, which
+      inserts a blank filler page, stay out until per-section geometry lands.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 180 block/table/column documents the
