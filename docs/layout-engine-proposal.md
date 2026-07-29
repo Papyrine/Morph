@@ -285,6 +285,11 @@ Build alongside the existing renderers; do not delete anything until all three b
       (cover-letters/16's `ACCOUNTANT`) now renders at Word's width; the SSIM is unchanged because that page
       is white-on-dark, where host-vs-container text AA dominates the score — a case where the *visible*
       render is the honest check, not the number.
+      **Paragraph shading (w:shd) landed**: a paragraph with a background colour emits a `PlacedShading`
+      band per line spanning its column box (indent to right margin), painted behind the text — so a centred
+      title's band still spans the full column, not only the glyphs' width. resumes/15's `Janna Gardner`
+      header band renders (0.75 → 0.80); run-level highlight (on the run, text-width) is separate and already
+      painted. Paragraph *borders* are the remaining half of that slice.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 152 block/table/column documents the
@@ -295,7 +300,7 @@ Build alongside the existing renderers; do not delete anything until all three b
       amount of alignment work would have touched; and the score is a **lower bound** — it runs on the host,
       so a text-dense page carries sub-pixel glyph/line-metric drift and host-vs-container rasterisation AA
       that depress its SSIM (e.g. long_paragraph 0.78) even where the wrap and alignment match Word exactly.
-      Still to land before it can replace the production `PdfRenderer`: paragraph borders and shading, tabs,
+      Still to land before it can replace the production `PdfRenderer`: paragraph borders (shading landed), tabs,
       shapes/WordArt, body/page-anchored floating shapes/images and their wrap (behind-text *cell* floats
       now render; body floats do not yet), gradient and image shape fills, image recolour/duotone effects
       (letters/02's frame is drawn but blue where Word recolours it
