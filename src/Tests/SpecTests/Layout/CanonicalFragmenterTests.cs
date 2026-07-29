@@ -193,6 +193,46 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task Footer_text_renders_near_the_page_bottom_with_the_page_number_resolved_per_page()
+    {
+        ParagraphElement PageFooter() => new()
+        {
+            Runs =
+            [
+                new Run { Text = "Page ", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } },
+                new Run { Text = "0", PageField = PageFieldKind.Page, Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }
+            ],
+            Properties = new() { Alignment = TextAlignment.Right }
+        };
+        var footer = new HeaderFooterContent { Elements = [PageFooter()] };
+        var page = Page(400) with { FooterDistance = 20 };
+        var document = Fragmenter.Layout([P("body one"), new PageBreakElement(), P("body two")], page, footer: footer);
+
+        await Assert.That(document.Pages.Count).IsEqualTo(2);
+        for (var pageIndex = 0; pageIndex < 2; pageIndex++)
+        {
+            // The footer sits near the bottom (its bottom is the footer distance above the 400pt page edge).
+            var footerRuns = document.Pages[pageIndex].Items.OfType<PlacedLine>()
+                .Where(_ => _.Y > 340).SelectMany(_ => _.Runs).ToList();
+            await Assert.That(footerRuns.Any(_ => _.Text == $"{pageIndex + 1}")).IsTrue();
+        }
+    }
+
+    [Test]
+    public async Task A_title_pages_footer_is_suppressed_when_it_has_no_first_page_footer()
+    {
+        var footer = new HeaderFooterContent { Elements = [P("Footer text")] };
+        var page = Page(400) with { DifferentFirstPage = true, FooterDistance = 20 };
+        // firstPageFooter is null, so page 1 (the title page) shows no footer while page 2 shows the default.
+        var document = Fragmenter.Layout([P("body one"), new PageBreakElement(), P("body two")], page, footer: footer);
+
+        bool HasFooter(int pageIndex) => document.Pages[pageIndex].Items.OfType<PlacedLine>()
+            .SelectMany(_ => _.Runs).Any(_ => _.Text == "Footer text");
+        await Assert.That(HasFooter(0)).IsFalse();
+        await Assert.That(HasFooter(1)).IsTrue();
+    }
+
+    [Test]
     public async Task Page_break_element_starts_a_new_page()
     {
         var document = Fragmenter.Layout([P("before"), new PageBreakElement(), P("after")], Page(400));
