@@ -348,6 +348,17 @@ Build alongside the existing renderers; do not delete anything until all three b
       renders at Word's position, colours and values. A cell holding a nested table stays top-aligned, since
       the vertical-alignment shift only moves text lines; nested-table pages are excluded from the harness,
       so this is a render-verified capability rather than a metric move.
+      **Body floating images and shapes landed**: a top-level floating image or image-filled shape resolves
+      to a page position — page-anchored offsets from the sheet edge, margin-anchored from the content box,
+      paragraph-anchored from the flow cursor — and paints behind or in front of the body by its `BehindText`
+      flag, in the post-pass that assembles the header/footer bands (so the page count is known). SVG artwork
+      paints its raster fallback, since PdfSharp (like ImageSharp) cannot rasterise SVG; an image-fill shape
+      becomes a plain image, since the shape painter draws only solid and outline fills. agendas-minutes/01's
+      people-at-a-table illustration lands at Word's position and size, and a single full-bleed background
+      photo fills its page. The float is anchored to the page the flow has reached, so a document with one
+      full-page background per page across a page break stacks both on the first page (brochures/01) — tying a
+      body float to its anchor paragraph's resolved page is a later slice, as is float wrap (text flowing
+      around a square/tight float). Body-float pages are excluded from the harness, so this is render-verified.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 152 block/table/column documents the
@@ -359,8 +370,9 @@ Build alongside the existing renderers; do not delete anything until all three b
       so a text-dense page carries sub-pixel glyph/line-metric drift and host-vs-container rasterisation AA
       that depress its SSIM (e.g. long_paragraph 0.78) even where the wrap and alignment match Word exactly.
       Still to land before it can replace the production `PdfRenderer`:
-      shapes/WordArt, body/page-anchored floating shapes/images and their wrap (behind-text *cell* floats
-      now render; body floats do not yet), gradient and image shape fills, image recolour/duotone effects
+      shapes/WordArt and float wrap (behind-text *cell* floats, and now body floating images and image-fill
+      shapes, render — text flowing around a square/tight float does not, nor does tying a multi-page
+      background to its anchor paragraph's page), gradient shape fills, image recolour/duotone effects
       (letters/02's frame is drawn but blue where Word recolours it
       brown) plus rotation/flip/crop, first/even-page header/footer *images* and header/footer
       tables (default, first-page and even-page header/footer *text* plus behind-text header images render;
