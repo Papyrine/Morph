@@ -5,5 +5,7 @@
 /// line is several runs at their own X; a uniform line is one. The width spans the run's text so a
 /// painter can stroke an underline or strike and fill a highlight across it; per-glyph advances (so glyph
 /// positions come from the metric model rather than the painter's own font library) are a later slice.
+/// A tab-leader filler carries an empty <see cref="Text"/> and a non-<c>None</c> <see cref="Leader"/>: the
+/// painter fills its span with the leader (tiled dots/hyphens, or a baseline rule for underscore).
 /// </summary>
-readonly record struct PlacedRun(float X, float Width, string Text, RunProperties Properties);
+readonly record struct PlacedRun(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None);

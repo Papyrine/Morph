@@ -67,7 +67,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             var textAscent = 0f;
             for (var segment = 0; segment < segments.Count; segment++)
             {
-                runs[segment] = new(segments[segment].X, segments[segment].Width, segments[segment].Text, segments[segment].Properties);
+                runs[segment] = new(segments[segment].X, segments[segment].Width, segments[segment].Text, segments[segment].Properties, segments[segment].Leader);
                 textAscent = Math.Max(textAscent, AscentPoints(segments[segment].Properties));
             }
 
@@ -147,7 +147,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // the width/pitch arithmetic.
     readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties, LaidOutImage? Image, bool IsBreak, bool IsTab);
 
-    readonly record struct WrapSegment(float X, float Width, string Text, RunProperties Properties);
+    readonly record struct WrapSegment(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None);
 
     readonly record struct WrapLine(float Width, float Pitch, IReadOnlyList<WrapSegment> Segments, IReadOnlyList<LaidOutImage> Images);
 
@@ -333,8 +333,9 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             {
                 FlushSegment();
                 var afterTab = pieceIndex + 1;
+                var tabStart = cursor;
                 var cursorFromMargin = leftIndentPoints + CanonicalTextMeasurer.PixelsToPoints(cursor);
-                var (destinationFromMargin, _, _) = TabStopResolver.Resolve(
+                var (destinationFromMargin, matchedStop, _) = TabStopResolver.Resolve(
                     cursorFromMargin,
                     () => MeasureFollowing(linePieces, afterTab),
                     tabStops,
@@ -343,6 +344,16 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     availableEndX: columnWidthPoints);
                 var advanced = CanonicalTextMeasurer.PixelsFromPoints((float) (destinationFromMargin - leftIndentPoints));
                 cursor = Math.Max(cursor, advanced);
+
+                // A leadered stop (a TOC's dot leader, a signature underscore) leaves a filler across the gap
+                // the tab opened; the painter tiles the glyph or strokes the rule. No leader on a default stop.
+                if (matchedStop is { Leader: not TabLeader.None } && cursor > tabStart)
+                {
+                    var leaderX = (float) CanonicalTextMeasurer.PixelsToPoints(tabStart);
+                    var leaderWidth = (float) CanonicalTextMeasurer.PixelsToPoints(cursor) - leaderX;
+                    segments.Add(new(leaderX, leaderWidth, "", piece.Properties, matchedStop.Leader));
+                }
+
                 continue;
             }
 

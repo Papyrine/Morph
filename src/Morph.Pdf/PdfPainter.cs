@@ -78,6 +78,14 @@ static class PdfPainter
         var ascent = line.Baseline - line.Y;
         foreach (var run in line.Runs)
         {
+            // A tab-leader filler fills its span with the leader (tiled glyph, or a baseline rule for
+            // underscore) instead of text — its Text is empty.
+            if (run.Leader != TabLeader.None)
+            {
+                DrawLeader(context, graphics, run, line.Baseline);
+                continue;
+            }
+
             if (string.IsNullOrEmpty(run.Text))
             {
                 continue;
@@ -134,6 +142,57 @@ static class PdfPainter
             graphics.DrawString(piece, font, brush, new XPoint(x, baseline), baselineFormat);
             x += graphics.MeasureString(piece, font).Width + trackingPoints;
             i += length - 1;
+        }
+    }
+
+    // Fills a tab-leader gap: a baseline rule for underscore, otherwise the leader glyph tiled across the
+    // span (leaving ~one glyph of trailing padding). Mirrors PdfTextEngine.DrawTabLeader.
+    static void DrawLeader(PdfRenderContext context, XGraphics graphics, PlacedRun run, double baseline)
+    {
+        if (run.Width <= 0)
+        {
+            return;
+        }
+
+        var color = PdfRenderContext.ParseColor(run.Properties.ColorHex);
+        var fontSize = run.Properties.FontSizePoints;
+
+        if (run.Leader == TabLeader.Underscore)
+        {
+            var underscoreY = baseline + fontSize * 0.12;
+            graphics.DrawLine(context.GetPen(color, Math.Max(0.5, fontSize / 16)), run.X, underscoreY, run.X + run.Width, underscoreY);
+            return;
+        }
+
+        var leaderChar = run.Leader switch
+        {
+            TabLeader.Hyphen => '-',
+            TabLeader.MiddleDot => '·',
+            TabLeader.Heavy => '—',
+            _ => '.'
+        };
+
+        var font = context.GetFont(run.Properties);
+        var glyphWidth = graphics.MeasureString(leaderChar.ToString(), font).Width;
+        if (glyphWidth <= 0)
+        {
+            return;
+        }
+
+        // Word spaces leader dots about a glyph-width apart, so tile at ~2x the advance and draw each glyph
+        // at its own X — adjacent glyphs read as a dense line, not the spaced dots Word draws.
+        var spacing = glyphWidth * 2;
+        var count = (int) Math.Floor((run.Width - glyphWidth) / spacing) + 1;
+        if (count <= 0)
+        {
+            return;
+        }
+
+        var brush = context.GetBrush(color);
+        var glyph = leaderChar.ToString();
+        for (var index = 0; index < count; index++)
+        {
+            graphics.DrawString(glyph, font, brush, new XPoint(run.X + index * spacing, baseline), baselineFormat);
         }
     }
 

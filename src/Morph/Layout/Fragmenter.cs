@@ -793,7 +793,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             for (var runIndex = 0; runIndex < line.Runs.Count; runIndex++)
             {
                 var run = line.Runs[runIndex];
-                runs[runIndex] = new PlacedRun(lineLeft + run.X, run.Width, run.Text, run.Properties);
+                runs[runIndex] = new PlacedRun(lineLeft + run.X, run.Width, run.Text, run.Properties, run.Leader);
             }
 
             return runs;

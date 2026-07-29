@@ -317,8 +317,12 @@ Build alongside the existing renderers; do not delete anything until all three b
       right-aligned TOC numbers, left-aligned columns, default 0.5" stops and left/centre/right line all land
       at Word's positions, and `decimal_tabs/01` aligns on the decimal point (0.99). The advance is
       position-dependent, so it is resolved in `BuildLineItems` rather than baked into a fixed piece width.
-      Tab *leaders* (the TOC's dot leaders, a signature underline) are the remaining piece — the positions
-      match, only the fill between them is absent.
+      **Tab leaders landed**: a leadered stop leaves a filler run (empty text, a non-`None` `Leader`) across
+      the gap, and the painter fills it — a baseline rule for underscore, or the leader glyph tiled at ~2×
+      its advance for dots/hyphens (Word spaces the dots roughly a glyph apart, not a dense line). A TOC's
+      dot leaders and a `Signature` underline both render. The dots are a thin horizontal feature, so the
+      *visible* render is the honest check: SSIM barely moves because a row a point off Word's leaves the
+      dots on a different pixel row, but the leaders read correctly.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 152 block/table/column documents the
@@ -329,8 +333,8 @@ Build alongside the existing renderers; do not delete anything until all three b
       amount of alignment work would have touched; and the score is a **lower bound** — it runs on the host,
       so a text-dense page carries sub-pixel glyph/line-metric drift and host-vs-container rasterisation AA
       that depress its SSIM (e.g. long_paragraph 0.78) even where the wrap and alignment match Word exactly.
-      Still to land before it can replace the production `PdfRenderer`: tab leaders (dot/underline fills —
-      tab positions land), shapes/WordArt, body/page-anchored floating shapes/images and their wrap (behind-text *cell* floats
+      Still to land before it can replace the production `PdfRenderer`:
+      shapes/WordArt, body/page-anchored floating shapes/images and their wrap (behind-text *cell* floats
       now render; body floats do not yet), gradient and image shape fills, image recolour/duotone effects
       (letters/02's frame is drawn but blue where Word recolours it
       brown) plus rotation/flip/crop, first/even-page header/footer *images* and header/footer

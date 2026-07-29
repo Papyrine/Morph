@@ -280,6 +280,24 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task A_leadered_tab_stop_emits_a_leader_filler_across_the_gap()
+    {
+        var paragraph = new ParagraphElement
+        {
+            Runs = [TextRun("Chapter"), TabRun(), TextRun("1")],
+            Properties = new() { TabStops = [new TabStop { PositionPoints = 200, Alignment = TabAlignment.Right, Leader = TabLeader.Dot }] }
+        };
+        var line = Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.OfType<PlacedLine>().Single();
+        var leader = line.Runs.Single(_ => _.Leader == TabLeader.Dot);
+        var number = line.Runs.Single(_ => _.Text == "1");
+        // The dot-leader filler carries no text and spans the gap from "Chapter" to the right-aligned "1".
+        await Assert.That(string.IsNullOrEmpty(leader.Text)).IsTrue();
+        await Assert.That(leader.Width > 0).IsTrue();
+        await Assert.That(leader.X).IsGreaterThanOrEqualTo(line.X);
+        await Assert.That(leader.X + leader.Width).IsLessThanOrEqualTo(number.X + 1f);
+    }
+
+    [Test]
     public async Task Page_break_element_starts_a_new_page()
     {
         var document = Fragmenter.Layout([P("before"), new PageBreakElement(), P("after")], Page(400));
