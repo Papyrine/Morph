@@ -340,6 +340,12 @@ Build alongside the existing renderers; do not delete anything until all three b
       two_columns' break tightened (0.74 → 0.78); the page-count match held at 98.1%, since Word paginates
       with the same rule. **Keep-lines (w:keepLines)** rides on the same fit-count loop: a paragraph so
       marked moves to the next region intact rather than splitting when it will not all fit.
+      **Nested tables landed**: a table inside a cell lays out inline at the cell cursor with no page breaks
+      (`BuildRow` was generalised to take an explicit row Y, so the same row builder serves body and nested
+      tables). `Inputs/complex_tables`' quarterly grid — a two-column Apr/May sub-table inside its Q2 cell —
+      renders at Word's position, colours and values. A cell holding a nested table stays top-aligned, since
+      the vertical-alignment shift only moves text lines; nested-table pages are excluded from the harness,
+      so this is a render-verified capability rather than a metric move.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 152 block/table/column documents the

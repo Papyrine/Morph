@@ -20,8 +20,9 @@ using System.Globalization;
 /// later slices, and noted so a document using them is not yet expected to paginate: per-section geometry
 /// changes (a section break switching column count or page size, including the continuous mid-page kind);
 /// keep-next (widow/orphan and keep-lines are handled); floats and their wrap exclusions; floating tables;
-/// images and nested tables inside a cell; a tall header/footer band pushing the body's margin; and
-/// even/odd section-break parity. Other non-paragraph, non-table elements are skipped for now.</para>
+/// inline images inside a nested table (nested tables themselves lay out); a tall header/footer band
+/// pushing the body's margin; and even/odd section-break parity. Other non-paragraph, non-table elements
+/// are skipped for now.</para>
 /// </summary>
 sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 {
@@ -57,11 +58,6 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         readonly float columnWidth = (float) page.ColumnWidth;
         readonly float columnSpacing = (float) page.ColumnSpacing;
         readonly List<LaidOutPage> pages = [];
-
-        // The header's behind-text floating images, resolved once to page positions and painted behind
-        // every page's body (the decorative full-page frames of letter/label templates live here). Same
-        // header on every page for now — first-page / even-page variants and footers are later slices.
-
 
         List<PlacedItem> items = [];
         // Each finished page's body items, kept until the flow ends so the bands can resolve NUMPAGES.
@@ -384,7 +380,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
             {
-                items.Add(BuildRow(table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false));
+                items.Add(BuildRow(y, table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false));
                 y += rowHeights[rowIndex];
                 atRegionTop = false;
             }
@@ -416,13 +412,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 {
                     for (var headerIndex = 0; headerIndex < headerCount; headerIndex++)
                     {
-                        items.Add(BuildRow(table, headerIndex, colWidths, rowHeights, colCount, tableX, tableWidth, true));
+                        items.Add(BuildRow(y, table, headerIndex, colWidths, rowHeights, colCount, tableX, tableWidth, true));
                         y += rowHeights[headerIndex];
                         atRegionTop = false;
                     }
                 }
 
-                items.Add(BuildRow(table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false));
+                items.Add(BuildRow(y, table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false));
                 y += rowHeight;
                 atRegionTop = false;
             }
@@ -432,7 +428,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // laid-out content. Cell geometry mirrors PageRendererBase.RenderTableRow so the tree matches the
         // raster backend's grid — merge-continuation cells contribute nothing (the originating cell covers
         // them), and a merge-restart cell's box spans the merged rows' heights.
-        PlacedTableRow BuildRow(TableElement table, int rowIndex, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth, bool isRepeatedHeader)
+        PlacedTableRow BuildRow(float rowY, TableElement table, int rowIndex, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth, bool isRepeatedHeader)
         {
             var row = table.Rows[rowIndex];
             var rowHeight = rowHeights[rowIndex];
@@ -463,24 +459,24 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     : rowHeight;
 
                 var padding = TableLayout.GetEffectivePadding(cell.Properties, table.Properties, row);
-                var content = LayoutCellContent(cell, cellX + (float) padding.Left, y + (float) padding.Top, cellWidth - (float) padding.Horizontal, cellHeight - (float) padding.Vertical, cell.Properties.VerticalAlignment);
+                var content = LayoutCellContent(cell, cellX + (float) padding.Left, rowY + (float) padding.Top, cellWidth - (float) padding.Horizontal, cellHeight - (float) padding.Vertical, cell.Properties.VerticalAlignment);
                 var borders = TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row);
 
                 // Behind-text floats (a label template's coloured cell background and freeform blobs) paint
                 // before the cell's paragraphs, so prepend them to the content.
-                var floatShapes = ResolveCellFloatShapes(cell, cellX, y);
+                var floatShapes = ResolveCellFloatShapes(cell, cellX, rowY);
                 if (floatShapes.Count > 0)
                 {
                     content = [.. floatShapes, .. content];
                 }
 
-                cells.Add(new PlacedCell(cellX, y, cellWidth, cellHeight, cell.Properties.BackgroundColorHex, borders, content));
+                cells.Add(new PlacedCell(cellX, rowY, cellWidth, cellHeight, cell.Properties.BackgroundColorHex, borders, content));
 
                 cellX += cellWidth;
                 gridColIndex += span;
             }
 
-            return new PlacedTableRow(tableX, y, tableWidth, rowHeight, table, rowIndex, isRepeatedHeader, cells);
+            return new PlacedTableRow(tableX, rowY, tableWidth, rowHeight, table, rowIndex, isRepeatedHeader, cells);
         }
 
         // Cell-anchored behind-text shapes resolved to absolute boxes: the offset is measured from the
@@ -510,18 +506,67 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             return shapes;
         }
 
+        // Lays out a nested table (a table inside a cell) at a fixed position with no page breaks: its
+        // columns fit the cell width, its row heights come from the shared calculator (which already
+        // measures nested tables when sizing the outer cell), and each row is built at the running Y.
+        // Returns the placed rows and the table's total height.
+        (IReadOnlyList<PlacedItem> Items, float Height) LayoutNestedTable(TableElement table, float left, float top, float width)
+        {
+            var colCount = TableLayout.GetColumnCount(table);
+            if (colCount == 0 || table.Rows.Count == 0)
+            {
+                return ([], 0f);
+            }
+
+            var colWidths = TableLayout.CalculateColumnWidths(table, colCount, width, measurer);
+            var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, measurer, TableLayout.HasVerticalMerge(table));
+
+            var tableWidth = 0f;
+            foreach (var colWidth in colWidths)
+            {
+                tableWidth += colWidth;
+            }
+
+            var rows = new List<PlacedItem>();
+            var rowY = top;
+            for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
+            {
+                rows.Add(BuildRow(rowY, table, rowIndex, colWidths, rowHeights, colCount, left, tableWidth, false));
+                rowY += rowHeights[rowIndex];
+            }
+
+            return (rows, rowY - top);
+        }
+
         // Stacks a cell's paragraphs from the top of its padded interior, wrapping each to the cell width,
         // then shifts them down for centre/bottom vertical alignment within the available height. No page
-        // breaks — the row height already accommodates the content. Nested tables are a later slice.
+        // breaks — the row height already accommodates the content. A nested table lays out inline too.
         IReadOnlyList<PlacedItem> LayoutCellContent(TableCell cell, float contentLeft, float contentTop, float contentWidth, float availableHeight, CellVerticalAlignment verticalAlignment)
         {
             var lines = new List<PlacedItem>();
             var cellY = contentTop;
             var lastCellAfter = 0f;
             var first = true;
+            var hasNestedTable = false;
 
             foreach (var element in cell.Content)
             {
+                // A nested table lays out at the cell cursor with no page breaks — the outer row height
+                // already accommodates it (TableHeightCalculator measures nested tables). Its rows are
+                // PlacedTableRows, which the vertical-alignment shift below cannot move, so a cell holding one
+                // stays top-aligned.
+                if (element is TableElement nestedTable)
+                {
+                    cellY += first ? 0 : lastCellAfter;
+                    first = false;
+                    hasNestedTable = true;
+                    var (nestedItems, nestedHeight) = LayoutNestedTable(nestedTable, contentLeft, cellY, contentWidth);
+                    lines.AddRange(nestedItems);
+                    cellY += nestedHeight;
+                    lastCellAfter = 0;
+                    continue;
+                }
+
                 if (element is not ParagraphElement paragraph)
                 {
                     continue;
@@ -556,12 +601,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             // Centre/bottom alignment shifts the whole content down within the cell's available height
             // (top alignment leaves it at the padded top). Mirrors PageRendererBase's cell content offset.
-            var offset = verticalAlignment switch
-            {
-                CellVerticalAlignment.Center => Math.Max(0f, (availableHeight - (cellY - contentTop)) / 2),
-                CellVerticalAlignment.Bottom => Math.Max(0f, availableHeight - (cellY - contentTop)),
-                _ => 0f
-            };
+            // Skipped when a nested table is present, since ShiftDown only moves text lines.
+            var offset = hasNestedTable
+                ? 0f
+                : verticalAlignment switch
+                {
+                    CellVerticalAlignment.Center => Math.Max(0f, (availableHeight - (cellY - contentTop)) / 2),
+                    CellVerticalAlignment.Bottom => Math.Max(0f, availableHeight - (cellY - contentTop)),
+                    _ => 0f
+                };
 
             if (offset > 0.01f)
             {
