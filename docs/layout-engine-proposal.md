@@ -279,6 +279,12 @@ Build alongside the existing renderers; do not delete anything until all three b
       margin and breaks). Together they fix two_columns' column-break point (it broke after paragraph 11
       instead of 10; 0.63 → 0.74) while holding the page-count match at 98.1% (154/157) — the tolerance
       exactly offsets the extra empty-paragraph height on the borderline documents.
+      **Character spacing (w:spacing tracking) landed**: the measurer adds the per-character points to every
+      token's advance so a letter-spaced run widens the wrap and alignment maths, and the painter spreads
+      the glyphs to match (reusing `PdfTextEngine`'s per-glyph logic). A tracked all-caps subtitle
+      (cover-letters/16's `ACCOUNTANT`) now renders at Word's width; the SSIM is unchanged because that page
+      is white-on-dark, where host-vs-container text AA dominates the score — a case where the *visible*
+      render is the honest check, not the number.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 152 block/table/column documents the

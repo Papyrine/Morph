@@ -88,7 +88,7 @@ static class PdfPainter
                 graphics.DrawRectangle(context.GetBrush(PdfRenderContext.ParseColor(properties.BackgroundColorHex)), run.X, line.Y, run.Width, line.Height);
             }
 
-            graphics.DrawString(run.Text, context.GetFont(properties), context.GetBrush(color), new XPoint(run.X, line.Baseline), baselineFormat);
+            DrawTracked(graphics, run.Text, context.GetFont(properties), context.GetBrush(color), run.X, line.Baseline, properties.CharacterSpacingPoints);
 
             // Underline below the baseline, strike through the x-height — geometry from PdfTextEngine.
             var strokeWidth = Math.Max(0.5, properties.FontSizePoints / 16);
@@ -108,6 +108,28 @@ static class PdfPainter
         foreach (var image in line.Images)
         {
             PaintImage(context, graphics, image);
+        }
+    }
+
+    // Draws text, spreading each character by w:spacing tracking (letter-spacing). The run's placed width
+    // already includes the tracking (the canonical measurer widened it), so a following run starts past it.
+    // Mirrors PdfTextEngine.DrawTrackedString — per-glyph, so surrogate pairs stay intact.
+    static void DrawTracked(XGraphics graphics, string text, XFont font, XBrush brush, double penX, double baseline, double trackingPoints)
+    {
+        if (trackingPoints == 0 || text.Length <= 1)
+        {
+            graphics.DrawString(text, font, brush, new XPoint(penX, baseline), baselineFormat);
+            return;
+        }
+
+        var x = penX;
+        for (var i = 0; i < text.Length; i++)
+        {
+            var length = char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
+            var piece = text.Substring(i, length);
+            graphics.DrawString(piece, font, brush, new XPoint(x, baseline), baselineFormat);
+            x += graphics.MeasureString(piece, font).Width + trackingPoints;
+            i += length - 1;
         }
     }
 

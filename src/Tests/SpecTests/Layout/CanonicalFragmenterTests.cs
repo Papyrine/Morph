@@ -112,6 +112,20 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task Character_spacing_widens_a_runs_measured_width()
+    {
+        float Width(double tracking) =>
+            Fragmenter.Layout(
+                    [new ParagraphElement { Runs = [new Run { Text = "ACCOUNTANT", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11, CharacterSpacingPoints = tracking } }] }],
+                    Page(400))
+                .Pages[0].Items.OfType<PlacedLine>().Single().Width;
+
+        // w:spacing tracking adds its points to every one of the 10 characters' advances, so the line is
+        // ~20pt wider at 2pt tracking. Without it entering the width, wrap and alignment would be wrong.
+        await Assert.That(Width(2) - Width(0)).IsEqualTo(20f).Within(1f);
+    }
+
+    [Test]
     public async Task Page_break_element_starts_a_new_page()
     {
         var document = Fragmenter.Layout([P("before"), new PageBreakElement(), P("after")], Page(400));

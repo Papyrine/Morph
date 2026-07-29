@@ -388,6 +388,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             var size = run.Properties.FontSizePoints;
             var pitch = (float) metrics.LinePitchPoints(size);
 
+            // w:spacing tracking widens every character's advance (letter-spacing), so it enters the wrap
+            // and alignment maths through each token's pixel width — matching PdfTextEngine, which adds
+            // CharacterSpacingPoints per character to a token's measured width.
+            var trackingPerChar = run.Properties.CharacterSpacingPoints;
+
             // w:caps upper-cases the run; a soft line break (the parser emits it as "\n") splits the run
             // into parts with a forced break between them.
             var runText = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
@@ -401,7 +406,13 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
                 foreach (var (text, isSpace) in TokenizeText(parts[partIndex]))
                 {
-                    pieces.Add(new(isSpace, CanonicalTextMeasurer.LinearPixels(metrics, text, size), pitch, text, run.Properties, null, false));
+                    var advance = CanonicalTextMeasurer.LinearPixels(metrics, text, size);
+                    if (trackingPerChar != 0)
+                    {
+                        advance += CanonicalTextMeasurer.PixelsFromPoints((float) (trackingPerChar * text.Length));
+                    }
+
+                    pieces.Add(new(isSpace, advance, pitch, text, run.Properties, null, false));
                 }
             }
         }
