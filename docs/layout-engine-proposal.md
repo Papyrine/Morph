@@ -261,7 +261,9 @@ Build alongside the existing renderers; do not delete anything until all three b
       offset within the available width; justify distributes the leftover width evenly across a naturally
       wrapped line's inter-word gaps (the last line and break-ended lines stay natural); the painter fills
       the page's `w:background`; a soft line break (parsed as `"\n"`) forces a line break instead of a
-      missing-glyph box; and a `w:caps` run is upper-cased. **Measured end-to-end**
+      missing-glyph box; a `w:caps` run is upper-cased; and a table cell's first paragraph keeps its
+      space-before (which `TableHeightCalculator` already sizes the cell with, so the content must be
+      positioned with it or float to the top). **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 152 block/table/column documents the
       painter scores **mean 0.941, median 0.977 SSIM** — plain text and tables are near pixel-identical
@@ -278,6 +280,11 @@ Build alongside the existing renderers; do not delete anything until all three b
       fill the run). Then repoint `Morph.Pdf` at `LaidOutDocument`, delete `PdfTextEngine`'s pagination, and
       run the harness in the container (matching Word's rasteriser) to separate real gaps from AA, then
       validate the full container suite (PDF page-count scoreboard unchanged or better, AE/SSIM neutral).
+      One cross-cutting gap sits below the engine, in the shared `DocumentParser`: **style-based paragraph
+      spacing is not inherited** — a heading whose `after` comes from its `Heading2` style (not a direct
+      `w:spacing`) parses as `after=0`, so its space-after is lost (business-plans/04's heading→body gaps).
+      This depresses every table-heavy template equally and affects all backends, not only the tree; fixing
+      it is a parser change with broad scenario-baseline impact, tracked separately from the engine slices.
 - [ ] **6. `SkiaPainter` + `ImageSharpPainter`** — the payoff step. Both become thin painters of the
       same tree; the whole-paragraph pagination and the duplicated `TextRenderer` layout code delete.
       This is where the raster knife-edges collapse (raster now paginates identically to PDF — one
