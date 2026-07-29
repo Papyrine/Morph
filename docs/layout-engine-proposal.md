@@ -337,7 +337,8 @@ Build alongside the existing renderers; do not delete anything until all three b
       region, one line alone at the top (widow) carries a second line with it. three_columns' two-line
       `Item 30` now stays whole in the third column instead of splitting across two (0.89 → 0.90), and
       two_columns' break tightened (0.74 → 0.78); the page-count match held at 98.1%, since Word paginates
-      with the same rule.
+      with the same rule. **Keep-lines (w:keepLines)** rides on the same fit-count loop: a paragraph so
+      marked moves to the next region intact rather than splitting when it will not all fit.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 152 block/table/column documents the

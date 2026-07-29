@@ -350,6 +350,22 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task Keep_lines_moves_a_whole_paragraph_rather_than_splitting_it()
+    {
+        // Eight fillers leave three of page 1's lines free; a keep-lines paragraph that needs five lines
+        // moves to page 2 intact rather than filling the three and continuing overleaf.
+        var fillers = Enumerable.Range(0, 8).Select(_ => P("filler")).ToArray();
+        var text = string.Join(' ', Enumerable.Repeat("lorem", 40));
+        ParagraphElement Tail(bool keepLines) => P(text, new ParagraphProperties { KeepLines = keepLines });
+
+        int Page1TailLines(LaidOutDocument document) =>
+            document.Pages[0].Items.OfType<PlacedLine>().Count(_ => _.Runs.Any(run => run.Text.Contains("lorem")));
+
+        await Assert.That(Page1TailLines(Fragmenter.Layout([.. fillers, Tail(false)], Page(200)))).IsGreaterThan(0);
+        await Assert.That(Page1TailLines(Fragmenter.Layout([.. fillers, Tail(true)], Page(200)))).IsEqualTo(0);
+    }
+
+    [Test]
     public async Task Page_break_element_starts_a_new_page()
     {
         var document = Fragmenter.Layout([P("before"), new PageBreakElement(), P("after")], Page(400));
