@@ -21,12 +21,15 @@ using System.Globalization;
 /// carries its own <see cref="PageSettings"/> (portrait/landscape switches, per-section margins), and
 /// even/odd breaks insert a blank filler page for parity. A Continuous break switching column count flows
 /// the new columns from the break point (the newsletter masthead → multi-column body case), each column on
-/// that page topping out at the break and resetting to the page top on overflow. Deferred to later slices,
-/// and noted so a document using them is not yet expected to paginate: column balancing on a section's last
-/// page (Word equalises the column heights; this newspaper-flows them, which does not change the page
-/// count); a margin-only continuous change; keep-next (widow/orphan and keep-lines are handled); floats and
-/// their wrap exclusions; floating tables; and inline images inside a nested table (nested tables themselves
-/// lay out). Other non-paragraph, non-table elements are skipped for now.</para>
+/// that page topping out at the break and resetting to the page top on overflow. A multi-column section is
+/// newspaper-flowed — column 0 fills to the bottom, then column 1, and so on — which matches Word for a
+/// section that ends the document (verified against three_columns, which lands its items 1-14 / 15-29 / 30
+/// across the columns, and two_columns). Deferred to later slices, and noted so a document using them is not
+/// yet expected to paginate: column balancing of a multi-column section that a *section break* terminates
+/// (Word equalises those columns' heights; the corpus has no such non-final multi-column section, so nothing
+/// exercises it); a margin-only continuous change; keep-next (widow/orphan and keep-lines are handled);
+/// floats and their wrap exclusions; floating tables; and inline images inside a nested table (nested tables
+/// themselves lay out). Other non-paragraph, non-table elements are skipped for now.</para>
 /// </summary>
 sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 {

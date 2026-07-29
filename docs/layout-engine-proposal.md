@@ -408,9 +408,15 @@ Build alongside the existing renderers; do not delete anything until all three b
       next page resets it to the page top. A corpus census found zero documents exercise it (the three
       multi-column documents are multi-column from their first section), so it is validated on a synthetic
       fixture instead: two unit tests assert both columns begin at the break and the overflow page resets to
-      its top, and a rendered three-column newsletter confirms the shape. Word balances the columns on a
-      section's last page where this newspaper-flows them — a paint difference that does not change the page
-      count — which is the remaining refinement.
+      its top, and a rendered three-column newsletter confirms the shape.
+      **Column balancing turned out not to apply**: a multi-column section is newspaper-flowed — column 0
+      fills to the bottom, then column 1. Rendering three_columns and two_columns next to Word settled what
+      Word does at the end of a section: it does *not* balance a section that ends the document. Word lays
+      three_columns' thirty items out 14 / 15 / 1 across the columns (column 3 holds a single item), and this
+      engine reproduces that split exactly; two_columns fills column 1 and leaves column 2 ragged, likewise
+      matched. Word balances the columns only of a multi-column section a section break *terminates*, and the
+      corpus has none — every multi-column section here is the document's final one — so the newspaper flow
+      matches Word everywhere the corpus goes, and balancing is unexercised rather than a fidelity gap.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 180 block/table/column documents the
