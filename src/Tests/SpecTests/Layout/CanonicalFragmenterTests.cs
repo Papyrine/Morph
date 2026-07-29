@@ -219,6 +219,21 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task Even_pages_take_the_even_page_header_when_the_document_opts_in()
+    {
+        var header = new HeaderFooterContent { Elements = [P("Odd Header")] };
+        var evenHeader = new HeaderFooterContent { Elements = [P("Even Header")] };
+        var document = Fragmenter.Layout([P("body one"), new PageBreakElement(), P("body two")], Page(400), header: header, evenPageHeader: evenHeader);
+
+        bool HasHeader(int pageIndex, string text) =>
+            document.Pages[pageIndex].Items.OfType<PlacedLine>().SelectMany(_ => _.Runs).Any(_ => _.Text == text);
+        await Assert.That(HasHeader(0, "Odd Header")).IsTrue();
+        await Assert.That(HasHeader(0, "Even Header")).IsFalse();
+        await Assert.That(HasHeader(1, "Even Header")).IsTrue();
+        await Assert.That(HasHeader(1, "Odd Header")).IsFalse();
+    }
+
+    [Test]
     public async Task A_title_pages_footer_is_suppressed_when_it_has_no_first_page_footer()
     {
         var footer = new HeaderFooterContent { Elements = [P("Footer text")] };

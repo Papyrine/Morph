@@ -31,8 +31,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         HeaderFooterContent? header = null,
         HeaderFooterContent? footer = null,
         HeaderFooterContent? firstPageHeader = null,
-        HeaderFooterContent? firstPageFooter = null) =>
-        new Flow(measurer, page, header, footer, firstPageHeader, firstPageFooter).Run(elements);
+        HeaderFooterContent? firstPageFooter = null,
+        HeaderFooterContent? evenPageHeader = null,
+        HeaderFooterContent? evenPageFooter = null) =>
+        new Flow(measurer, page, header, footer, firstPageHeader, firstPageFooter, evenPageHeader, evenPageFooter).Run(elements);
 
     // One document's flow state. A fresh instance per Layout call keeps the cursor, the in-progress page
     // and the emitted pages together without leaking between runs (the Fragmenter itself is reusable).
@@ -42,7 +44,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         HeaderFooterContent? header,
         HeaderFooterContent? footer,
         HeaderFooterContent? firstPageHeader,
-        HeaderFooterContent? firstPageFooter)
+        HeaderFooterContent? firstPageFooter,
+        HeaderFooterContent? evenPageHeader,
+        HeaderFooterContent? evenPageFooter)
     {
         readonly float contentTop = (float) page.MarginTop;
         readonly float contentBottom = (float) (page.HeightPoints - page.MarginBottom);
@@ -578,13 +582,19 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // may be empty); other pages take the default. Even-page headers are a later slice.
         IReadOnlyList<PlacedItem> HeaderBand(int pageNumber)
         {
-            // With a title page, page 1 takes the first-page header — which may be null, meaning no header
-            // (Word shows none on a title page), so it does not fall back to the default.
-            var content = pageNumber == 1 && page.DifferentFirstPage ? firstPageHeader : header;
+            var content = SelectVariant(pageNumber, firstPageHeader, evenPageHeader, header);
             return content == null
                 ? []
                 : LayoutBand(content.Elements, fullContentLeft, (float) page.HeaderDistance, fullContentWidth);
         }
+
+        // Picks the header/footer for a page: page 1 of a title-page document takes the first-page variant
+        // (which may be null — Word shows none on a title page, so no fall-back to the default); an
+        // even-numbered page takes the even variant when the document opts into even/odd, else the default.
+        HeaderFooterContent? SelectVariant(int pageNumber, HeaderFooterContent? first, HeaderFooterContent? even, HeaderFooterContent? standard) =>
+            pageNumber == 1 && page.DifferentFirstPage ? first
+            : pageNumber % 2 == 0 ? even ?? standard
+            : standard;
 
         // The footer's text band for one page, anchored so its bottom sits the footer distance above the
         // page's bottom edge, with PAGE fields resolved to this page's number. Page 1 takes the first-page
@@ -592,9 +602,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // total), even-page footers, footer tables and 3-way tab alignment are later slices.
         IReadOnlyList<PlacedItem> FooterBand(int pageNumber)
         {
-            // With a title page, page 1 takes the first-page footer — often null, meaning no footer on the
-            // title page (agendas-minutes/01), so it does not fall back to the default "Page N".
-            var content = pageNumber == 1 && page.DifferentFirstPage ? firstPageFooter : footer;
+            var content = SelectVariant(pageNumber, firstPageFooter, evenPageFooter, footer);
             if (content == null)
             {
                 return [];
