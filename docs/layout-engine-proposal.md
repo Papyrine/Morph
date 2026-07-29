@@ -306,9 +306,11 @@ Build alongside the existing renderers; do not delete anything until all three b
       footer distance above the page edge, with each `PAGE` field resolved to that page's number (`Page 1`,
       `Page 2`, …). Page 1 honours the `w:titlePg` "different first page": with a title page it takes the
       first-page header/footer, which is often null — so Word (and now the engine) shows no footer on a title
-      page (agendas-minutes/01's `PAGE 1` correctly disappears). Paint-only, so the body and page count are
-      untouched; `Inputs/header`'s centred `Document Header` renders at Word's position. Even-page variants,
-      `NUMPAGES`, header/footer tables and 3-way tab alignment are the remaining footer pieces.
+      page (agendas-minutes/01's `PAGE 1` correctly disappears). A shared `SelectVariant` also gives an
+      even-numbered page its even header/footer when the document opts into `w:evenAndOddHeaders`, else the
+      default. Paint-only, so the body and page count are untouched; `Inputs/header`'s centred
+      `Document Header` renders at Word's position. `NUMPAGES`, header/footer *tables*, first/even-page
+      header *images*, and 3-way tab alignment are the remaining band pieces.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 152 block/table/column documents the
@@ -323,10 +325,10 @@ Build alongside the existing renderers; do not delete anything until all three b
       shapes/WordArt, body/page-anchored floating shapes/images and their wrap (behind-text *cell* floats
       now render; body floats do not yet), gradient and image shape fills, image recolour/duotone effects
       (letters/02's frame is drawn but blue where Word recolours it
-      brown) plus rotation/flip/crop, even-page and first-page header/footer *images* and header/footer
-      tables (default and first-page header/footer text plus behind-text header images render; even-page
-      variants, band tables and 3-way tab alignment do not), nested tables, Word-distributed table row
-      heights (business-plans/04's section rows are taller
+      brown) plus rotation/flip/crop, first/even-page header/footer *images* and header/footer
+      tables (default, first-page and even-page header/footer *text* plus behind-text header images render;
+      band *tables*, per-variant images and 3-way tab alignment do not), nested tables, Word-distributed
+      table row heights (business-plans/04's section rows are taller
       in Word than the content-sized rows `TableHeightCalculator` produces, which is what actually spaces
       its headings from their bodies — vertical alignment only helps once a row leaves room), label grids,
       and per-glyph advances (exact intra-run
