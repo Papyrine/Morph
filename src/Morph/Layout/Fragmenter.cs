@@ -170,6 +170,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 y += Math.Max(lastAfter, (float) properties.SpacingBeforePoints);
             }
 
+            // Paragraph-border box (w:pBdr): track the first line's top and last line's bottom so a single
+            // border can be stroked around the whole paragraph. If it breaks across a column or page the
+            // box would span the gap, so a break disables it (per-fragment borders are a later slice).
+            float? borderTop = null;
+            var borderBroke = false;
+
             for (var lineIndex = 0; lineIndex < paragraphLines.Count; lineIndex++)
             {
                 var line = paragraphLines[lineIndex];
@@ -180,6 +186,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 if (!atRegionTop && y + line.Ascent > contentBottom)
                 {
                     AdvanceColumnOrPage();
+                    if (borderTop != null)
+                    {
+                        borderBroke = true;
+                    }
                 }
 
                 var indentLeft = ColumnLeft + (float) properties.LeftIndentPoints;
@@ -195,8 +205,20 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 items.Add(new PlacedLine(lineLeft, y, line.Width, line.Height, baseline, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft), MapImages(line, lineLeft, baseline)));
+                borderTop ??= y;
                 y += line.Height;
                 atRegionTop = false;
+            }
+
+            // Stroke the border around the paragraph's box, expanded by each edge's space (the gap Word
+            // leaves between the text and the line). Emitted after the lines so it paints over any shading.
+            if (!borderBroke && borderTop is { } boxTop && properties.Borders is { HasAnyBorder: true })
+            {
+                var left = ColumnLeft + (float) properties.LeftIndentPoints - (float) properties.BorderLeftSpacePoints;
+                var top = boxTop - (float) properties.BorderTopSpacePoints;
+                var width = availableWidth + (float) properties.BorderLeftSpacePoints + (float) properties.BorderRightSpacePoints;
+                var height = y - boxTop + (float) properties.BorderTopSpacePoints + (float) properties.BorderBottomSpacePoints;
+                items.Add(new PlacedBorder(left, top, width, height, properties.Borders!));
             }
 
             // An empty paragraph is a full-height spacer line AND carries its after-spacing into the
