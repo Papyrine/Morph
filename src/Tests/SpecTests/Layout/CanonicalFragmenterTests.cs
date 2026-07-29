@@ -238,6 +238,24 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task A_num_pages_field_resolves_to_the_total_page_count()
+    {
+        Run Field(PageFieldKind kind) => new() { Text = "0", PageField = kind, Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } };
+        var footer = new HeaderFooterContent
+        {
+            Elements = [new ParagraphElement { Runs = [TextRun("Page "), Field(PageFieldKind.Page), TextRun(" of "), Field(PageFieldKind.NumberOfPages)] }]
+        };
+        var page = Page(400) with { FooterDistance = 20 };
+        var document = Fragmenter.Layout([P("body one"), new PageBreakElement(), P("body two")], page, footer: footer);
+
+        await Assert.That(document.Pages.Count).IsEqualTo(2);
+        // Page 1's footer reads "Page 1 of 2": the PAGE field is this page (1), NUMPAGES the total (2).
+        var footerTexts = document.Pages[0].Items.OfType<PlacedLine>().Where(_ => _.Y > 340).SelectMany(_ => _.Runs).Select(_ => _.Text).ToList();
+        await Assert.That(footerTexts.Contains("1")).IsTrue();
+        await Assert.That(footerTexts.Contains("2")).IsTrue();
+    }
+
+    [Test]
     public async Task A_title_pages_footer_is_suppressed_when_it_has_no_first_page_footer()
     {
         var footer = new HeaderFooterContent { Elements = [P("Footer text")] };

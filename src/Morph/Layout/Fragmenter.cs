@@ -65,6 +65,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
 
         List<PlacedItem> items = [];
+        // Each finished page's body items, kept until the flow ends so the bands can resolve NUMPAGES.
+        readonly List<IReadOnlyList<PlacedItem>> bodies = [];
         int currentColumn;
         float y;
         // Top of the current *region* — a fresh column or a fresh page. Space-before is dropped here and a
@@ -126,7 +128,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // while a deliberate one survives.
             FinishPage(false);
 
-            return new(pages);
+            return new(AssemblePages());
         }
 
         // Emits the in-progress page and starts a fresh one at its first column. A page is kept when it
@@ -134,19 +136,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // those), or when it is the only page; a natural trailing-overflow blank is dropped.
         void FinishPage(bool nextPageExplicit)
         {
-            if (items.Count > 0 || currentPageExplicit || pages.Count == 0)
+            // A page is kept when it has content, when it is a deliberate blank left by an explicit break, or
+            // when it is the only page. Only the body is stored here; the header/footer bands are assembled
+            // once the flow finishes and the total page count is known, so a NUMPAGES field can resolve.
+            if (items.Count > 0 || currentPageExplicit || bodies.Count == 0)
             {
-                // Header background images paint first (behind the body), then the header's text band, then
-                // the body, then the footer band at the page bottom. None counts toward the page's keep test —
-                // a page is kept for its body, not its decoration, repeated header or footer.
-                var pageNumber = pages.Count + 1;
-                var headerBand = HeaderBand(pageNumber);
-                var footerBand = FooterBand(pageNumber);
-                IReadOnlyList<PlacedItem> pageItems =
-                    backgroundImages.Count == 0 && headerBand.Count == 0 && footerBand.Count == 0
-                        ? items
-                        : [.. backgroundImages, .. headerBand, .. items, .. footerBand];
-                pages.Add(new(pageNumber, page, pageItems));
+                bodies.Add(items);
             }
 
             items = [];
@@ -155,6 +150,26 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             atRegionTop = true;
             lastAfter = 0;
             currentPageExplicit = nextPageExplicit;
+        }
+
+        // Wraps each page body in its header background, header/footer text bands and — now the total is
+        // known — its resolved page-number fields, producing the final pages.
+        List<LaidOutPage> AssemblePages()
+        {
+            var total = bodies.Count;
+            for (var index = 0; index < bodies.Count; index++)
+            {
+                var pageNumber = index + 1;
+                var headerBand = HeaderBand(pageNumber, total);
+                var footerBand = FooterBand(pageNumber, total);
+                var body = bodies[index];
+                var pageItems = backgroundImages.Count == 0 && headerBand.Count == 0 && footerBand.Count == 0
+                    ? body
+                    : (IReadOnlyList<PlacedItem>) [.. backgroundImages, .. headerBand, .. body, .. footerBand];
+                pages.Add(new(pageNumber, page, pageItems));
+            }
+
+            return pages;
         }
 
         // Content overflow or a column break: move to the next column, keeping the current page's items,
@@ -580,12 +595,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // The header's text band for one page, at the header distance across the full content width. Page 1
         // takes the first-page header when the document has one (a "different first page" title header, which
         // may be empty); other pages take the default. Even-page headers are a later slice.
-        IReadOnlyList<PlacedItem> HeaderBand(int pageNumber)
+        IReadOnlyList<PlacedItem> HeaderBand(int pageNumber, int totalPages)
         {
             var content = SelectVariant(pageNumber, firstPageHeader, evenPageHeader, header);
             return content == null
                 ? []
-                : LayoutBand(content.Elements, fullContentLeft, (float) page.HeaderDistance, fullContentWidth);
+                : LayoutBand(SubstitutePageFields(content.Elements, pageNumber, totalPages), fullContentLeft, (float) page.HeaderDistance, fullContentWidth);
         }
 
         // Picks the header/footer for a page: page 1 of a title-page document takes the first-page variant
@@ -600,7 +615,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // page's bottom edge, with PAGE fields resolved to this page's number. Page 1 takes the first-page
         // footer when present (often empty — Word shows no footer on a title page). NUMPAGES (needs the final
         // total), even-page footers, footer tables and 3-way tab alignment are later slices.
-        IReadOnlyList<PlacedItem> FooterBand(int pageNumber)
+        IReadOnlyList<PlacedItem> FooterBand(int pageNumber, int totalPages)
         {
             var content = SelectVariant(pageNumber, firstPageFooter, evenPageFooter, footer);
             if (content == null)
@@ -608,7 +623,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 return [];
             }
 
-            var elements = SubstitutePageFields(content.Elements, pageNumber);
+            var elements = SubstitutePageFields(content.Elements, pageNumber, totalPages);
             var height = 0f;
             foreach (var element in elements)
             {
@@ -622,18 +637,23 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             return LayoutBand(elements, fullContentLeft, footerTop, fullContentWidth);
         }
 
-        // Replaces each PAGE field run's cached text with this page's number, cloning only the paragraphs
-        // that carry one (the common "Page N" footer). NUMPAGES / SECTIONPAGES keep their cached text until
-        // a total-aware pass lands.
-        static IReadOnlyList<DocumentElement> SubstitutePageFields(IReadOnlyList<DocumentElement> elements, int pageNumber)
+        // Replaces each page-field run's cached text with this page's number (PAGE) or the document total
+        // (NUMPAGES / SECTIONPAGES — no section support yet, so both resolve to the whole-document total),
+        // cloning only the paragraphs that carry a field. A "Page N of M" footer now reads correctly.
+        static IReadOnlyList<DocumentElement> SubstitutePageFields(IReadOnlyList<DocumentElement> elements, int pageNumber, int totalPages)
         {
             var result = new List<DocumentElement>(elements.Count);
             foreach (var element in elements)
             {
-                if (element is ParagraphElement paragraph && paragraph.Runs.Any(_ => _.PageField == PageFieldKind.Page))
+                if (element is ParagraphElement paragraph && paragraph.Runs.Any(_ => _.PageField != PageFieldKind.None))
                 {
                     var runs = paragraph.Runs
-                        .Select(_ => _.PageField == PageFieldKind.Page ? _.WithText(pageNumber.ToString(CultureInfo.InvariantCulture)) : _)
+                        .Select(_ => _.PageField switch
+                        {
+                            PageFieldKind.Page => _.WithText(pageNumber.ToString(CultureInfo.InvariantCulture)),
+                            PageFieldKind.NumberOfPages or PageFieldKind.SectionPages => _.WithText(totalPages.ToString(CultureInfo.InvariantCulture)),
+                            _ => _
+                        })
                         .ToList();
                     result.Add(new ParagraphElement
                     {
