@@ -271,10 +271,18 @@ Build alongside the existing renderers; do not delete anything until all three b
       content, so a label template's coloured background panel (a preset rect) and freeform blobs (unit-square
       subpaths scaled into the box via the reused `PdfPageRenderer.BuildShapePath`) fill each cell behind the
       white recipient text (labels/14 blank → 0.86; solid fills only — gradient/image fills stay deferred).
+      **Empty-paragraph after-spacing and a last-line bottom-margin tolerance landed**: an empty paragraph
+      carries its after-spacing into the collapse with the next paragraph like any other (measured against
+      Word — two_columns' title/blank/body gap is line + after + line + after, not one dropped after), and a
+      line is placed while its *baseline* clears the bottom margin, letting the last line's descent and
+      trailing gap encroach as Word does (self-limiting: the next line's baseline then falls below the
+      margin and breaks). Together they fix two_columns' column-break point (it broke after paragraph 11
+      instead of 10; 0.63 → 0.74) while holding the page-count match at 98.1% (154/157) — the tolerance
+      exactly offsets the extra empty-paragraph height on the borderline documents.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 152 block/table/column documents the
-      painter scores **mean 0.945, median 0.977 SSIM** — plain text and tables are near pixel-identical
+      painter scores **mean 0.947, median 0.977 SSIM** — plain text and tables are near pixel-identical
       (0.997–1.000). Two lessons from rendering the low scorers next to Word (which the harness makes
       cheap): the fixes come from *seeing* the gap, not guessing it — the two worst were dark-themed cover
       letters rendering as blank pages for want of the page background (0.246/0.322 → 0.712/0.789), which no

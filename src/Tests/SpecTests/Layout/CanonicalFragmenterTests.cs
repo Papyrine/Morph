@@ -69,6 +69,49 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task An_empty_paragraphs_after_spacing_shifts_the_following_paragraph_down()
+    {
+        ParagraphElement Empty(double after) =>
+            new()
+            {
+                Runs = [new Run { Text = "", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }],
+                Properties = new() { SpacingAfterPoints = after }
+            };
+
+        float BeeY(LaidOutDocument document) =>
+            document.Pages[0].Items.OfType<PlacedLine>().First(_ => _.Runs.Any(run => run.Text == "B")).Y;
+
+        var withAfter = BeeY(Fragmenter.Layout([P("A"), Empty(10), P("B")], Page(400)));
+        var withoutAfter = BeeY(Fragmenter.Layout([P("A"), Empty(0), P("B")], Page(400)));
+
+        // An empty spacer paragraph carries its after-spacing into the gap before B (max-collapse with B's
+        // zero before-spacing), so B sits 10pt lower than when the spacer has no after-spacing. Word applies
+        // an empty paragraph's after-spacing like any other's — it is not a bare mark line.
+        await Assert.That(withAfter - withoutAfter).IsEqualTo(10f).Within(0.5f);
+    }
+
+    [Test]
+    public async Task A_line_whose_baseline_clears_the_bottom_margin_stays_on_the_page()
+    {
+        var probe = Fragmenter.Layout([P("probe")], Page(400)).Pages[0].Items.OfType<PlacedLine>().Single();
+        var lineHeight = probe.Height;
+        var ascent = probe.Baseline - probe.Y;
+
+        // A content band that ends between the third line's baseline and its bottom: the third line's
+        // descent must spill past the margin. Word keeps it on the page; the fragmenter mirrors that.
+        var page = Page(40 + 2 * lineHeight + ascent + 0.5);
+
+        var document = Fragmenter.Layout([P("one"), P("two"), P("three")], page);
+        var lines = document.Pages[0].Items.OfType<PlacedLine>().ToList();
+
+        await Assert.That(document.Pages.Count).IsEqualTo(1);
+        await Assert.That(lines.Count).IsEqualTo(3);
+        // The third line's bottom genuinely exceeds the content bottom — the tolerance is exercised, not a
+        // case that would have fit anyway.
+        await Assert.That(lines[2].Y + lines[2].Height > page.HeightPoints - page.MarginBottom).IsTrue();
+    }
+
+    [Test]
     public async Task Page_break_element_starts_a_new_page()
     {
         var document = Fragmenter.Layout([P("before"), new PageBreakElement(), P("after")], Page(400));

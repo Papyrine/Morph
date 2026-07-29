@@ -9,9 +9,10 @@
 /// <c>src/page_counts.md</c> — max-collapse paragraph spacing, space-before dropped at an automatically
 /// broken region (column or page) top, and the empty-paragraph mark line.
 ///
-/// <para>Paragraph flow fits lines exactly (the canonical measurer does not over-measure, so no slack is
-/// needed); table pagination mirrors the raster backend's tolerances so the two paginate a table
-/// identically until a canonical row measurement retires the slack.</para>
+/// <para>Paragraph flow places a line while its baseline clears the bottom margin, letting the last
+/// line's descent and trailing line gap encroach the margin as Word does; table pagination mirrors the
+/// raster backend's percentage tolerances so the two paginate a table identically until a canonical row
+/// measurement retires the slack.</para>
 ///
 /// <para>Columns are equal-width from a single <see cref="PageSettings"/> (the common case). Deferred to
 /// later slices, and noted so a document using them is not yet expected to paginate: per-section geometry
@@ -156,7 +157,6 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             var paragraphLines = measurer.LayoutLineContents(paragraph, columnWidth);
-            var isEmpty = paragraphLines.Count == 1 && paragraphLines[0].Width <= 0;
 
             // Columns are equal width, so the available width for alignment is constant even as a line
             // spills to the next column; the left edge (ColumnLeft) is read per line, after any advance.
@@ -173,7 +173,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             for (var lineIndex = 0; lineIndex < paragraphLines.Count; lineIndex++)
             {
                 var line = paragraphLines[lineIndex];
-                if (!atRegionTop && y + line.Height > contentBottom)
+                // A line fits if its baseline clears the bottom margin — Word lets the last line's descent
+                // (and trailing line gap) encroach the margin rather than pushing it to the next page. This
+                // is self-limiting: once a line's descent spills, y passes contentBottom and the next line
+                // breaks. Without it, correct empty-paragraph spacing tips borderline pages one line early.
+                if (!atRegionTop && y + line.Ascent > contentBottom)
                 {
                     AdvanceColumnOrPage();
                 }
@@ -185,7 +189,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 atRegionTop = false;
             }
 
-            lastAfter = isEmpty ? 0 : (float) properties.SpacingAfterPoints;
+            // An empty paragraph is a full-height spacer line AND carries its after-spacing into the
+            // collapse with the next paragraph (measured against Word: two_columns' title/blank/body gap is
+            // line + after + line + after, not line + after + line). It behaves like any other paragraph.
+            lastAfter = (float) properties.SpacingAfterPoints;
         }
 
         void PlaceTable(TableElement table)
