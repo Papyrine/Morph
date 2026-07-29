@@ -996,4 +996,48 @@ public class CanonicalFragmenterTests
         await Assert.That(document.Pages[1].Items.OfType<PlacedLine>().Any(_ => _.Runs.Any(run => !string.IsNullOrWhiteSpace(run.Text)))).IsFalse();
         await Assert.That(document.Pages[2].Items.OfType<PlacedLine>().SelectMany(_ => _.Runs).Any(_ => _.Text == "second")).IsTrue();
     }
+
+    [Test]
+    public async Task A_continuous_column_break_starts_both_columns_at_the_break_below_the_masthead()
+    {
+        // A full-width masthead, then a continuous break to two columns: the classic newsletter shape. The
+        // two columns (x=20 and x=20+120+20=160) both begin at the break point under the masthead, not the
+        // page top.
+        var twoColumns = new PageSettings { WidthPoints = 300, HeightPoints = 120, MarginTop = 20, MarginBottom = 20, MarginLeft = 20, MarginRight = 20, ColumnCount = 2, ColumnSpacing = 20 };
+        var body = Enumerable.Range(0, 12).Select(_ => P("body")).ToArray();
+        var document = Fragmenter.Layout(
+            [P("MASTHEAD"), new SectionBreakElement { BreakType = SectionBreakType.Continuous, NewSectionSettings = twoColumns }, .. body],
+            Page(120));
+
+        var lines = document.Pages[0].Items.OfType<PlacedLine>().ToList();
+        var masthead = lines.Single(_ => _.Runs.Any(run => run.Text == "MASTHEAD"));
+        var breakY = masthead.Y + masthead.Height;
+        var bodyLines = lines.Where(_ => _.Runs.Any(run => run.Text == "body")).ToList();
+        var column0 = bodyLines.Where(_ => _.X < 100f).ToList();
+        var column1 = bodyLines.Where(_ => _.X > 100f).ToList();
+
+        await Assert.That(masthead.Y).IsEqualTo(20f).Within(0.5f);
+        await Assert.That(column0.Count > 0).IsTrue();
+        await Assert.That(column1.Count > 0).IsTrue();
+        // Both columns top out at the break Y, and the second column sits at the two-column offset.
+        await Assert.That(column0.Min(_ => _.Y)).IsEqualTo(breakY).Within(0.5f);
+        await Assert.That(column1.Min(_ => _.Y)).IsEqualTo(breakY).Within(0.5f);
+        await Assert.That(column1.Min(_ => _.X)).IsEqualTo(160f).Within(0.5f);
+    }
+
+    [Test]
+    public async Task A_continuous_columns_overflow_resets_the_next_page_to_its_top()
+    {
+        // The two-column section is tall enough to overflow onto a second page; there, with no masthead, the
+        // columns reset to the page top (content top = 20) rather than the first page's break Y.
+        var twoColumns = new PageSettings { WidthPoints = 300, HeightPoints = 120, MarginTop = 20, MarginBottom = 20, MarginLeft = 20, MarginRight = 20, ColumnCount = 2, ColumnSpacing = 20 };
+        var body = Enumerable.Range(0, 40).Select(_ => P("body")).ToArray();
+        var document = Fragmenter.Layout(
+            [P("MASTHEAD"), new SectionBreakElement { BreakType = SectionBreakType.Continuous, NewSectionSettings = twoColumns }, .. body],
+            Page(120));
+
+        await Assert.That(document.Pages.Count > 1).IsTrue();
+        var page2Lines = document.Pages[1].Items.OfType<PlacedLine>().ToList();
+        await Assert.That(page2Lines.Min(_ => _.Y)).IsEqualTo(20f).Within(0.5f);
+    }
 }

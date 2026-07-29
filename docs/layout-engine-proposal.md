@@ -400,13 +400,17 @@ Build alongside the existing renderers; do not delete anything until all three b
       was laid out at (its background, header and footer bands resolve against those). An even/odd break
       inserts a blank filler page when the next page's parity is wrong, as Word does. business-plans/12 now
       paginates with pages flipping between portrait and landscape and per-section margins; admitting the
-      geometry-changing and even/odd documents added 15 to the harness at **274/276 = 99.3%**. Only a
-      Continuous break's *mid-page* geometry switch — the newsletter masthead → multi-column body, where the
-      column count changes without a page break — is still deferred, and a corpus census found it has zero
-      demand here: not one document has a continuous column change, and the three multi-column documents
-      (three_columns, two_columns, column_breaks) are multi-column from their first section, which already
-      lays out. It is held back because nothing exercises it — building it would be untested layout code —
-      not because it is next in line.
+      geometry-changing and even/odd documents added 15 to the harness at **274/276 = 99.3%**.
+      **The Continuous mid-page column switch landed too** — the newsletter masthead → multi-column body,
+      where the column count changes without a page break. It flows the new columns from the break point: a
+      `columnTop` cursor records where the columns begin (the break Y, below a full-width masthead, rather
+      than the page top), so `AdvanceColumnOrPage` tops each later column out there and an overflow to the
+      next page resets it to the page top. A corpus census found zero documents exercise it (the three
+      multi-column documents are multi-column from their first section), so it is validated on a synthetic
+      fixture instead: two unit tests assert both columns begin at the break and the overflow page resets to
+      its top, and a rendered three-column newsletter confirms the shape. Word balances the columns on a
+      section's last page where this newspaper-flows them — a paint difference that does not change the page
+      count — which is the remaining refinement.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 180 block/table/column documents the
