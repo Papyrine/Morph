@@ -34,6 +34,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         readonly float contentBottom = (float) (page.HeightPoints - page.MarginBottom);
         readonly float contentHeight = (float) (page.HeightPoints - page.MarginTop - page.MarginBottom);
         readonly float fullContentLeft = (float) page.MarginLeft;
+        readonly float fullContentWidth = (float) (page.WidthPoints - page.MarginLeft - page.MarginRight);
         readonly int columnCount = Math.Max(1, page.ColumnCount);
         readonly float columnWidth = (float) page.ColumnWidth;
         readonly float columnSpacing = (float) page.ColumnSpacing;
@@ -43,6 +44,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // every page's body (the decorative full-page frames of letter/label templates live here). Same
         // header on every page for now — first-page / even-page variants and footers are later slices.
         readonly IReadOnlyList<PlacedImage> backgroundImages = ResolveHeaderImages(header, page);
+
+        // The header's text paragraphs, laid out once in the header band (top margin area) and repeated on
+        // every page in front of the background image. Same header on every page for now — first-page /
+        // even-page variants, footers, header tables and per-page page-number fields are later slices.
+        IReadOnlyList<PlacedItem>? headerTextCache;
+        IReadOnlyList<PlacedItem> HeaderText => headerTextCache ??=
+            header == null ? [] : LayoutBand(header.Elements, fullContentLeft, (float) page.HeaderDistance, fullContentWidth);
 
         List<PlacedItem> items = [];
         int currentColumn;
@@ -116,11 +124,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         {
             if (items.Count > 0 || currentPageExplicit || pages.Count == 0)
             {
-                // Header background images paint first (behind the body); they never count toward the
-                // page's keep test — a page is kept for its body, not its decoration.
-                IReadOnlyList<PlacedItem> pageItems = backgroundImages.Count == 0
+                // Header background images paint first (behind the body), then the header's text band, then
+                // the body. Neither counts toward the page's keep test — a page is kept for its body, not its
+                // decoration or repeated header.
+                IReadOnlyList<PlacedItem> pageItems = backgroundImages.Count == 0 && HeaderText.Count == 0
                     ? items
-                    : [.. backgroundImages, .. items];
+                    : [.. backgroundImages, .. HeaderText, .. items];
                 pages.Add(new(pages.Count + 1, page, pageItems));
             }
 
@@ -512,6 +521,46 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // decorative frames of letter/label templates are anchored here — page/margin/column horizontally,
         // at the header paragraph vertically — and a header-band-top estimate suffices since they span the
         // whole page. Front-text header art, header text/tables and footers are later slices.
+        // Lays out a header or footer's paragraphs as a self-contained band from (left, top), wrapping each
+        // to the band width and stacking it with its own spacing — no page breaks (a band fits its margin
+        // area). Reuses the body's line mapping, alignment and shading. Tables in a band, borders, and
+        // per-page page-number fields are later slices; an empty paragraph adds only its invisible mark line.
+        IReadOnlyList<PlacedItem> LayoutBand(IReadOnlyList<DocumentElement> elements, float left, float top, float width)
+        {
+            var result = new List<PlacedItem>();
+            var bandY = top;
+            foreach (var element in elements)
+            {
+                if (element is not ParagraphElement paragraph)
+                {
+                    continue;
+                }
+
+                var properties = paragraph.Properties;
+                bandY += (float) properties.SpacingBeforePoints;
+                var paragraphLines = measurer.LayoutLineContents(paragraph, width);
+                var availableWidth = width - (float) properties.LeftIndentPoints - (float) properties.RightIndentPoints;
+                for (var lineIndex = 0; lineIndex < paragraphLines.Count; lineIndex++)
+                {
+                    var line = paragraphLines[lineIndex];
+                    var indentLeft = left + (float) properties.LeftIndentPoints;
+                    var lineLeft = indentLeft + AlignmentOffset(properties.Alignment, availableWidth, line.Width);
+                    var baseline = bandY + line.Ascent;
+                    if (!string.IsNullOrEmpty(properties.BackgroundColorHex))
+                    {
+                        result.Add(new PlacedShading(indentLeft, bandY, availableWidth, line.Height, properties.BackgroundColorHex));
+                    }
+
+                    result.Add(new PlacedLine(lineLeft, bandY, line.Width, line.Height, baseline, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft), MapImages(line, lineLeft, baseline)));
+                    bandY += line.Height;
+                }
+
+                bandY += (float) properties.SpacingAfterPoints;
+            }
+
+            return result;
+        }
+
         static IReadOnlyList<PlacedImage> ResolveHeaderImages(HeaderFooterContent? header, PageSettings page)
         {
             if (header == null)

@@ -300,6 +300,12 @@ Build alongside the existing renderers; do not delete anything until all three b
       consecutive same-bordered paragraphs (currently each box tiles, which reads correctly), and reserving a
       large border space in the layout (a 16pt box overlaps its neighbours — the reservation conflicts with
       the collapse case, so the two land together).
+      **Header text landed**: the header's text paragraphs lay out once as a self-contained band in the top
+      margin (the reusable `LayoutBand` — wrap, alignment and shading, no page breaks) and repeat on every
+      page in front of the background image (`Inputs/header`'s centred `Document Header` renders at Word's
+      position). Paint-only; the body is untouched because the band sits in the header distance above the
+      body's top margin. Footers reuse the same band (positioned from the page bottom) but add per-page
+      page-number field evaluation and 3-way tab alignment, so they land as their own slice.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 152 block/table/column documents the
@@ -310,13 +316,14 @@ Build alongside the existing renderers; do not delete anything until all three b
       amount of alignment work would have touched; and the score is a **lower bound** — it runs on the host,
       so a text-dense page carries sub-pixel glyph/line-metric drift and host-vs-container rasterisation AA
       that depress its SSIM (e.g. long_paragraph 0.78) even where the wrap and alignment match Word exactly.
-      Still to land before it can replace the production `PdfRenderer`: footers and header text (45 corpus docs
-      have footers — the top gap), tabs,
+      Still to land before it can replace the production `PdfRenderer`: footers (45 corpus docs, the top gap —
+      the `LayoutBand` is ready; the missing pieces are bottom positioning, per-page page-number fields and
+      3-way tab alignment), tabs,
       shapes/WordArt, body/page-anchored floating shapes/images and their wrap (behind-text *cell* floats
       now render; body floats do not yet), gradient and image shape fills, image recolour/duotone effects
       (letters/02's frame is drawn but blue where Word recolours it
-      brown) plus rotation/flip/crop, footer and header text/tables (only header floating images render so
-      far), nested tables, Word-distributed table row heights (business-plans/04's section rows are taller
+      brown) plus rotation/flip/crop, header and footer tables (header text and floating images render, tables
+      in a band do not), nested tables, Word-distributed table row heights (business-plans/04's section rows are taller
       in Word than the content-sized rows `TableHeightCalculator` produces, which is what actually spaces
       its headings from their bodies — vertical alignment only helps once a row leaves room), label grids,
       and per-glyph advances (exact intra-run

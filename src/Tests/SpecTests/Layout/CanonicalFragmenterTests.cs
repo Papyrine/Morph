@@ -175,6 +175,24 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task Header_text_repeats_in_the_header_band_above_the_body_on_every_page()
+    {
+        var header = new HeaderFooterContent { Elements = [P("My Header", new() { Alignment = TextAlignment.Center })] };
+        var page = Page(400) with { HeaderDistance = 10 };
+        var document = Fragmenter.Layout([P("body one"), new PageBreakElement(), P("body two")], page, header);
+
+        await Assert.That(document.Pages.Count).IsEqualTo(2);
+        foreach (var laidOutPage in document.Pages)
+        {
+            var headerLine = laidOutPage.Items.OfType<PlacedLine>().First(_ => _.Runs.Any(run => run.Text == "My Header"));
+            var bodyTop = laidOutPage.Items.OfType<PlacedLine>().Where(_ => _.Runs.Any(run => run.Text!.StartsWith("body"))).Min(_ => _.Y);
+            // The header sits at the header distance (10pt), above the body's top margin (20pt).
+            await Assert.That(headerLine.Y).IsEqualTo(10f).Within(2f);
+            await Assert.That(headerLine.Y < bodyTop).IsTrue();
+        }
+    }
+
+    [Test]
     public async Task Page_break_element_starts_a_new_page()
     {
         var document = Fragmenter.Layout([P("before"), new PageBreakElement(), P("after")], Page(400));
