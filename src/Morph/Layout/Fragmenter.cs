@@ -323,7 +323,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     : rowHeight;
 
                 var padding = TableLayout.GetEffectivePadding(cell.Properties, table.Properties, row);
-                var content = LayoutCellContent(cell, cellX + (float) padding.Left, y + (float) padding.Top, cellWidth - (float) padding.Horizontal);
+                var content = LayoutCellContent(cell, cellX + (float) padding.Left, y + (float) padding.Top, cellWidth - (float) padding.Horizontal, cellHeight - (float) padding.Vertical, cell.Properties.VerticalAlignment);
                 var borders = TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row);
 
                 cells.Add(new PlacedCell(cellX, y, cellWidth, cellHeight, cell.Properties.BackgroundColorHex, borders, content));
@@ -335,10 +335,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             return new PlacedTableRow(tableX, y, tableWidth, rowHeight, table, rowIndex, isRepeatedHeader, cells);
         }
 
-        // Stacks a cell's paragraphs from the top of its padded interior, wrapping each to the cell width.
-        // No page breaks — the row height already accommodates the content. Top-aligned for now; vertical
-        // alignment, nested tables and in-cell images are later slices.
-        IReadOnlyList<PlacedItem> LayoutCellContent(TableCell cell, float contentLeft, float contentTop, float contentWidth)
+        // Stacks a cell's paragraphs from the top of its padded interior, wrapping each to the cell width,
+        // then shifts them down for centre/bottom vertical alignment within the available height. No page
+        // breaks — the row height already accommodates the content. Nested tables are a later slice.
+        IReadOnlyList<PlacedItem> LayoutCellContent(TableCell cell, float contentLeft, float contentTop, float contentWidth, float availableHeight, CellVerticalAlignment verticalAlignment)
         {
             var lines = new List<PlacedItem>();
             var cellY = contentTop;
@@ -379,7 +379,49 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 lastCellAfter = isEmpty ? 0 : (float) properties.SpacingAfterPoints;
             }
 
+            // Centre/bottom alignment shifts the whole content down within the cell's available height
+            // (top alignment leaves it at the padded top). Mirrors PageRendererBase's cell content offset.
+            var offset = verticalAlignment switch
+            {
+                CellVerticalAlignment.Center => Math.Max(0f, (availableHeight - (cellY - contentTop)) / 2),
+                CellVerticalAlignment.Bottom => Math.Max(0f, availableHeight - (cellY - contentTop)),
+                _ => 0f
+            };
+
+            if (offset > 0.01f)
+            {
+                for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
+                {
+                    lines[lineIndex] = ShiftDown(lines[lineIndex], offset);
+                }
+            }
+
             return lines;
+        }
+
+        // Moves a placed line (and its inline images) down the page by an offset, for cell vertical
+        // alignment. Runs carry no Y of their own — the painter draws them at the line's baseline — so
+        // shifting Y and Baseline moves the text with the box.
+        static PlacedItem ShiftDown(PlacedItem item, float offset)
+        {
+            if (item is not PlacedLine line)
+            {
+                return item;
+            }
+
+            var images = line.Images.Count == 0 ? line.Images : ShiftImages(line.Images, offset);
+            return line with { Y = line.Y + offset, Baseline = line.Baseline + offset, Images = images };
+        }
+
+        static IReadOnlyList<PlacedImage> ShiftImages(IReadOnlyList<PlacedImage> images, float offset)
+        {
+            var shifted = new PlacedImage[images.Count];
+            for (var imageIndex = 0; imageIndex < images.Count; imageIndex++)
+            {
+                shifted[imageIndex] = images[imageIndex] with { Y = images[imageIndex].Y + offset };
+            }
+
+            return shifted;
         }
 
         // Table X within the current column, by w:jc alignment: centred and right collapse the indent into
