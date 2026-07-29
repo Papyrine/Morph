@@ -22,12 +22,12 @@
 /// </summary>
 sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 {
-    public LaidOutDocument Layout(IReadOnlyList<DocumentElement> elements, PageSettings page) =>
-        new Flow(measurer, page).Run(elements);
+    public LaidOutDocument Layout(IReadOnlyList<DocumentElement> elements, PageSettings page, HeaderFooterContent? header = null) =>
+        new Flow(measurer, page, header).Run(elements);
 
     // One document's flow state. A fresh instance per Layout call keeps the cursor, the in-progress page
     // and the emitted pages together without leaking between runs (the Fragmenter itself is reusable).
-    sealed class Flow(CanonicalParagraphMeasurer measurer, PageSettings page)
+    sealed class Flow(CanonicalParagraphMeasurer measurer, PageSettings page, HeaderFooterContent? header)
     {
         readonly float contentTop = (float) page.MarginTop;
         readonly float contentBottom = (float) (page.HeightPoints - page.MarginBottom);
@@ -37,6 +37,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         readonly float columnWidth = (float) page.ColumnWidth;
         readonly float columnSpacing = (float) page.ColumnSpacing;
         readonly List<LaidOutPage> pages = [];
+
+        // The header's behind-text floating images, resolved once to page positions and painted behind
+        // every page's body (the decorative full-page frames of letter/label templates live here). Same
+        // header on every page for now — first-page / even-page variants and footers are later slices.
+        readonly IReadOnlyList<PlacedImage> backgroundImages = ResolveHeaderImages(header, page);
 
         List<PlacedItem> items = [];
         int currentColumn;
@@ -110,7 +115,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         {
             if (items.Count > 0 || currentPageExplicit || pages.Count == 0)
             {
-                pages.Add(new(pages.Count + 1, page, items));
+                // Header background images paint first (behind the body); they never count toward the
+                // page's keep test — a page is kept for its body, not its decoration.
+                IReadOnlyList<PlacedItem> pageItems = backgroundImages.Count == 0
+                    ? items
+                    : [.. backgroundImages, .. items];
+                pages.Add(new(pages.Count + 1, page, pageItems));
             }
 
             items = [];
@@ -422,6 +432,44 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             return shifted;
+        }
+
+        // Resolves a header's behind-text floating images to absolute page positions. The full-page
+        // decorative frames of letter/label templates are anchored here — page/margin/column horizontally,
+        // at the header paragraph vertically — and a header-band-top estimate suffices since they span the
+        // whole page. Front-text header art, header text/tables and footers are later slices.
+        static IReadOnlyList<PlacedImage> ResolveHeaderImages(HeaderFooterContent? header, PageSettings page)
+        {
+            if (header == null)
+            {
+                return [];
+            }
+
+            var images = new List<PlacedImage>();
+            var marginLeft = (float) page.MarginLeft;
+            var headerTop = (float) page.HeaderDistance;
+
+            foreach (var element in header.Elements)
+            {
+                if (element is not FloatingImageElement image || image.ImageData is not { Length: > 0 } data || !image.BehindText)
+                {
+                    continue;
+                }
+
+                var imageX = image.HorizontalAnchor == HorizontalAnchor.Page
+                    ? (float) image.HorizontalPositionPoints
+                    : marginLeft + (float) image.HorizontalPositionPoints;
+                var imageY = image.VerticalAnchor switch
+                {
+                    VerticalAnchor.Page => (float) image.VerticalPositionPoints,
+                    VerticalAnchor.Margin => (float) page.MarginTop + (float) image.VerticalPositionPoints,
+                    _ => headerTop + (float) image.VerticalPositionPoints
+                };
+
+                images.Add(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data));
+            }
+
+            return images;
         }
 
         // Table X within the current column, by w:jc alignment: centred and right collapse the indent into

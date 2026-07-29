@@ -58,8 +58,11 @@ static class PdfPainter
             case PlacedTableRow row:
                 PaintTableRow(context, graphics, row);
                 break;
+            case PlacedImage image:
+                PaintImage(context, graphics, image);
+                break;
 
-            // Images, rules and shapes are later slices.
+            // Rules and shapes are later slices.
         }
     }
 

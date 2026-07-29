@@ -48,7 +48,7 @@ public class PdfPainterFidelityTests
             byte[] pdfBytes;
             try
             {
-                var pdf = PdfPainter.Paint(Fragmenter.Layout(document.Elements, document.PageSettings), fontsDirectory);
+                var pdf = PdfPainter.Paint(Fragmenter.Layout(document.Elements, document.PageSettings, document.Header), fontsDirectory);
                 using var stream = new MemoryStream();
                 pdf.Save(stream, false);
                 pdfBytes = stream.ToArray();
@@ -102,12 +102,12 @@ public class PdfPainterFidelityTests
         Console.WriteLine(string.Join("\n", report));
 
         await Assert.That(ordered.Count).IsGreaterThan(100);
-        // Measured mean 0.941 / median 0.977 SSIM against Word — plain text and tables are near
+        // Measured mean 0.943 / median 0.977 SSIM against Word — plain text and tables are near
         // pixel-identical. It is a LOWER BOUND on layout fidelity: this runs on the host, so a text-dense
         // page also carries sub-pixel glyph/line-metric drift and host-vs-container rasterization AA that
         // depress its SSIM even when the wrap and alignment match Word exactly (e.g. long_paragraph 0.78).
-        // The remaining true-layout gaps are tabs, headers/footers, column balancing and label grids. The
-        // floor guards the headline median from a gross regression.
+        // The remaining true-layout gaps are tabs, footers and header text, image recolour effects,
+        // cell-float shapes, column balancing and label grids. The floor guards the headline median.
         await Assert.That(median > 0.95).IsTrue();
     }
 
