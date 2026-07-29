@@ -281,6 +281,24 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task A_footer_table_lays_out_in_the_footer_band()
+    {
+        var footerTable = new TableElement
+        {
+            Properties = new() { GridColumnWidths = [100, 100] },
+            Rows = [new TableRow { Cells = [new TableCell { Content = [P("left")] }, new TableCell { Content = [P("right")] }] }]
+        };
+        var page = Page(400) with { FooterDistance = 20 };
+        var document = Fragmenter.Layout([P("body")], page, footer: new HeaderFooterContent { Elements = [footerTable] });
+
+        // The footer table lays out near the bottom of the 400pt page, carrying its two cells.
+        var footerRow = document.Pages[0].Items.OfType<PlacedTableRow>().Single();
+        await Assert.That(footerRow.Y).IsGreaterThan(340f);
+        await Assert.That(footerRow.Cells.Count).IsEqualTo(2);
+        await Assert.That(footerRow.Cells[1].Content.OfType<PlacedLine>().SelectMany(_ => _.Runs).Single().Text).IsEqualTo("right");
+    }
+
+    [Test]
     public async Task A_title_pages_footer_is_suppressed_when_it_has_no_first_page_footer()
     {
         var footer = new HeaderFooterContent { Elements = [P("Footer text")] };
