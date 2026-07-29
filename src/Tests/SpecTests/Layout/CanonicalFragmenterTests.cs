@@ -225,6 +225,35 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task A_bottom_aligned_cell_shifts_its_content_below_a_top_aligned_one()
+    {
+        // A tall neighbour forces a tall row; the short cell's line then sits far lower when bottom-aligned.
+        TableElement TwoCell(CellVerticalAlignment align) =>
+            new()
+            {
+                Properties = new() { GridColumnWidths = [120, 120] },
+                Rows =
+                [
+                    new TableRow
+                    {
+                        Cells =
+                        [
+                            new TableCell { Content = [P(string.Join(' ', Enumerable.Repeat("lorem", 60)))], Properties = new() },
+                            new TableCell { Content = [P("short")], Properties = new() { VerticalAlignment = align } }
+                        ]
+                    }
+                ]
+            };
+
+        var topAligned = Fragmenter.Layout([TwoCell(CellVerticalAlignment.Top)], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single();
+        var bottomAligned = Fragmenter.Layout([TwoCell(CellVerticalAlignment.Bottom)], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single();
+
+        var topLineY = topAligned.Cells[1].Content.OfType<PlacedLine>().Single().Y;
+        var bottomLineY = bottomAligned.Cells[1].Content.OfType<PlacedLine>().Single().Y;
+        await Assert.That(bottomLineY > topLineY + 30f).IsTrue();
+    }
+
+    [Test]
     public async Task A_list_paragraph_places_its_marker_in_the_hanging_indent()
     {
         var paragraph = new ParagraphElement
