@@ -2,11 +2,12 @@
 /// The crown validation for step 3 (<c>docs/layout-engine-proposal.md</c>): does the
 /// <see cref="Fragmenter"/> paginate real corpus documents to the same page count as Word
 /// (<c>expected_*.png</c>)? The block-flow, table and column slices handle multi-column paragraph flow
-/// (including column breaks), inline images, non-wrapping body floats (which take no flow space), and
-/// tables whose cells hold text paragraphs or nested tables, so this compares on that subset — excluding
-/// wrapping floats, inline shape groups, mid-document section breaks, and floating tables (all later
-/// slices). Where it matches, the canonical measurer plus the height-model rules reproduce Word's
-/// pagination from one backend-independent pass.
+/// (including column breaks), inline images, non-wrapping body floats (which take no flow space),
+/// flow-neutral section breaks (NextPage/Continuous at the same geometry), and tables whose cells hold text
+/// paragraphs or nested tables, so this compares on that subset — excluding wrapping floats, inline shape
+/// groups, geometry-changing or even/odd section breaks, and floating tables (all later slices). Where it
+/// matches, the canonical measurer plus the height-model rules reproduce Word's pagination from one
+/// backend-independent pass.
 /// </summary>
 public class FragmenterPageCountTests
 {
@@ -67,19 +68,21 @@ public class FragmenterPageCountTests
 
         await Assert.That(compared).IsGreaterThan(20);
         // The block-flow slice matched every pure-block document (96/96); successively adding plain text
-        // tables, multi-column flow, the w:contextualSpacing collapse, inline images, nested tables, and now
-        // non-wrapping body floats (which take no flow space, so they leave pagination untouched) widens the
-        // set to 239 and holds 238 (99.6%). All four corpus column documents match. The one miss, resumes/13,
-        // is a sub-line knife-edge Word's own backends straddle (6 vs 5). The threshold is calibrated just
-        // under the measured rate; a regression that drops another document out of agreement fails here.
+        // tables, multi-column flow, the w:contextualSpacing collapse, inline images, nested tables,
+        // non-wrapping body floats (which take no flow space), and flow-neutral section breaks (NextPage as a
+        // page break, Continuous as a no-op, same geometry) widens the set to 261 and holds 260 (99.6%). All
+        // four corpus column documents match. The one miss, resumes/13, is a sub-line knife-edge Word's own
+        // backends straddle (6 vs 5). The threshold is calibrated just under the measured rate; a regression
+        // that drops another document out of agreement fails here.
         await Assert.That(rate > 0.99).IsTrue();
     }
 
     // Documents whose top-level content is paragraphs (with inline images, but no inline shape groups),
-    // plain page and column breaks, non-wrapping body floats (no flow effect), and non-floating tables whose
-    // cells hold such paragraphs or nested tables — the shape the block-flow, table and column slices cover,
-    // at the document's single (equal-width) column geometry. Everything else (wrapping floats, inline shape
-    // groups, mid-document section breaks, floating tables) is a later slice.
+    // plain page and column breaks, flow-neutral section breaks, non-wrapping body floats (no flow effect),
+    // and non-floating tables whose cells hold such paragraphs or nested tables — the shape the block-flow,
+    // table and column slices cover, at the document's single (equal-width) column geometry. Everything else
+    // (wrapping floats, inline shape groups, geometry-changing or even/odd section breaks, floating tables)
+    // is a later slice.
     static bool IsBlockTableOrColumnFlow(ParsedDocument document)
     {
         foreach (var element in document.Elements)
@@ -101,6 +104,8 @@ public class FragmenterPageCountTests
                 case FloatingImageElement image when image.WrapType == WrapType.None:
                     break;
                 case FloatingShapeElement:
+                    break;
+                case SectionBreakElement sectionBreak when IsFlowNeutralSection(sectionBreak, document.PageSettings):
                     break;
                 default:
                     return false;
@@ -143,4 +148,29 @@ public class FragmenterPageCountTests
     // paginate. Only an inline shape group (grouped drawing / WordArt) is still out of scope.
     static bool ParagraphHasInlineArt(ParagraphElement paragraph) =>
         paragraph.Runs.Any(_ => _.InlineShapeGroup != null);
+
+    // A section break the Fragmenter paginates like Word: NextPage acts as a page break, Continuous as a
+    // no-op — but only when the new section keeps the same geometry. Even/odd parity (which inserts a blank
+    // filler page) and per-section geometry (a new column count, page size, or margins, which the engine's
+    // single-geometry layout cannot follow) are later slices, so those documents stay out.
+    static bool IsFlowNeutralSection(SectionBreakElement sectionBreak, PageSettings page)
+    {
+        if (sectionBreak.BreakType is not (SectionBreakType.NextPage or SectionBreakType.Continuous))
+        {
+            return false;
+        }
+
+        if (sectionBreak.NewSectionSettings is not { } settings)
+        {
+            return true;
+        }
+
+        return Math.Max(1, settings.ColumnCount) == Math.Max(1, page.ColumnCount) &&
+               Math.Abs(settings.WidthPoints - page.WidthPoints) <= 1 &&
+               Math.Abs(settings.HeightPoints - page.HeightPoints) <= 1 &&
+               Math.Abs(settings.MarginTop - page.MarginTop) <= 1 &&
+               Math.Abs(settings.MarginBottom - page.MarginBottom) <= 1 &&
+               Math.Abs(settings.MarginLeft - page.MarginLeft) <= 1 &&
+               Math.Abs(settings.MarginRight - page.MarginRight) <= 1;
+    }
 }

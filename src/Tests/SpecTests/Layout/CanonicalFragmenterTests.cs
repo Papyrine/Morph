@@ -944,4 +944,27 @@ public class CanonicalFragmenterTests
         // is absorbed, so this stays two pages.
         await Assert.That(document.Pages.Count).IsEqualTo(2);
     }
+
+    [Test]
+    public async Task A_next_page_section_break_starts_a_new_page()
+    {
+        var document = Fragmenter.Layout(
+            [P("first"), new SectionBreakElement { BreakType = SectionBreakType.NextPage }, P("second")],
+            Page(400));
+
+        // A NextPage section break behaves like a page break: the following content starts a fresh page.
+        await Assert.That(document.Pages.Count).IsEqualTo(2);
+        await Assert.That(document.Pages[1].Items.OfType<PlacedLine>().SelectMany(_ => _.Runs).Any(_ => _.Text == "second")).IsTrue();
+    }
+
+    [Test]
+    public async Task A_continuous_section_break_keeps_content_on_the_same_page()
+    {
+        var document = Fragmenter.Layout(
+            [P("first"), new SectionBreakElement { BreakType = SectionBreakType.Continuous }, P("second")],
+            Page(400));
+
+        // A continuous section break at the same geometry takes no flow space — both paragraphs stay on page 1.
+        await Assert.That(document.Pages.Count).IsEqualTo(1);
+    }
 }
