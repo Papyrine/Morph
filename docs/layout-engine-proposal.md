@@ -221,8 +221,9 @@ Build alongside the existing renderers; do not delete anything until all three b
       region (column or page) top, empty-paragraph mark line, explicit-break blank pages (experiment 18),
       an exact bottom-of-region fit for paragraph flow, and the backend's rounding tolerances mirrored for
       table fit. **Validated: 96/96 = 100% on the corpus's pure-block documents, 150/153 = 98.0% once plain
-      text tables are added, 154/157 = 98.1% with multi-column flow, and 156/157 = 99.4% once the
-      w:contextualSpacing collapse lands — all four corpus column documents
+      text tables are added, 154/157 = 98.1% with multi-column flow, 156/157 = 99.4% once the
+      w:contextualSpacing collapse lands, and 182/183 = 99.5% once inline images join the set (the measurer
+      sizes each line to its tallest inline image, so they paginate) — all four corpus column documents
       match** — one backend-independent pass reproducing Word's pagination. The one remaining miss,
       resumes/13, is a sub-line knife-edge Word's own backends straddle (6 vs 5). Columns are equal-width from one `PageSettings`.
       Remaining slices: per-section geometry (a section break switching column count or page size,
@@ -366,10 +367,16 @@ Build alongside the existing renderers; do not delete anything until all three b
       collapse tightened business/05 and resumes/07 to Word's single page, lifting the page-count match from
       98.1% to **99.4% (156/157)** with no document regressing — the most direct progress yet toward the
       engine's reason for existing, one pagination answer instead of three.
+      **Inline images entered the validated set**: the measurer already sized a line to its tallest inline
+      image and the painter already drew `PlacedLine.Images`, so admitting inline-image documents to the
+      page-count and fidelity harnesses (they had been excluded out of caution) added 26 documents at
+      **99.5% page-count match (182/183)** with no new miss — business-plans/03's Contoso logo and
+      left-margin arrow land at Word's positions. The residual SSIM on those Aptos-heavy pages is the
+      display-font width gap (a title wrapping to two lines in Word, one in the engine), not the image.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
-      pages against Word's own render (`expected_*.png`). Across 154 block/table/column documents the
-      painter scores **mean 0.946, median 0.977 SSIM** — plain text and tables are near pixel-identical
+      pages against Word's own render (`expected_*.png`). Across 180 block/table/column documents the
+      painter scores **mean 0.941, median 0.975 SSIM** — plain text and tables are near pixel-identical
       (0.997–1.000). Two lessons from rendering the low scorers next to Word (which the harness makes
       cheap): the fixes come from *seeing* the gap, not guessing it — the two worst were dark-themed cover
       letters rendering as blank pages for want of the page background (0.246/0.322 → 0.712/0.789), which no
