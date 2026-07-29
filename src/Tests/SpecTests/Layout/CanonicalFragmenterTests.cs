@@ -367,4 +367,32 @@ public class CanonicalFragmenterTests
         await Assert.That(firstLineRight).IsEqualTo(280f).Within(2f);
         await Assert.That(firstLineRight > lastLineRight).IsTrue();
     }
+
+    [Test]
+    public async Task A_behind_text_header_image_paints_first_at_its_page_anchored_position()
+    {
+        var header = new HeaderFooterContent
+        {
+            Elements =
+            [
+                new FloatingImageElement
+                {
+                    ImageData = [1, 2, 3], WidthPoints = 600, HeightPoints = 800,
+                    HorizontalPositionPoints = 0, VerticalPositionPoints = 0,
+                    HorizontalAnchor = HorizontalAnchor.Page, VerticalAnchor = VerticalAnchor.Page,
+                    BehindText = true
+                }
+            ]
+        };
+
+        var items = Fragmenter.Layout([P("body")], Page(200), header).Pages[0].Items;
+
+        // The full-page header image paints first (behind the body), at the page-anchored origin.
+        await Assert.That(items[0] is PlacedImage).IsTrue();
+        var image = (PlacedImage) items[0];
+        await Assert.That(image.X).IsEqualTo(0f).Within(0.5f);
+        await Assert.That(image.Y).IsEqualTo(0f).Within(0.5f);
+        await Assert.That(image.Width).IsEqualTo(600f).Within(0.5f);
+        await Assert.That(items.OfType<PlacedLine>().Any()).IsTrue();
+    }
 }

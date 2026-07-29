@@ -263,8 +263,10 @@ Build alongside the existing renderers; do not delete anything until all three b
       the page's `w:background`; a soft line break (parsed as `"\n"`) forces a line break instead of a
       missing-glyph box; a `w:caps` run is upper-cased; a table cell's first paragraph keeps its
       space-before (which `TableHeightCalculator` already sizes the cell with, so the content must be
-      positioned with it or float to the top); and a cell's content shifts down for centre/bottom vertical
-      alignment within the space its row leaves. **Measured end-to-end**
+      positioned with it or float to the top); a cell's content shifts down for centre/bottom vertical
+      alignment within the space its row leaves; and a **header's behind-text floating images** are
+      resolved to page positions and painted behind every page's body — the full-page decorative frames of
+      letter templates live here (letters/02 0.62 → 0.78, letters/03 0.73 → 0.79). **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 152 block/table/column documents the
       painter scores **mean 0.941, median 0.977 SSIM** — plain text and tables are near pixel-identical
@@ -275,10 +277,12 @@ Build alongside the existing renderers; do not delete anything until all three b
       so a text-dense page carries sub-pixel glyph/line-metric drift and host-vs-container rasterisation AA
       that depress its SSIM (e.g. long_paragraph 0.78) even where the wrap and alignment match Word exactly.
       Still to land before it can replace the production `PdfRenderer`: paragraph borders and shading, tabs,
-      shapes/WordArt, floating (anchored) images and their wrap, image rotation/flip/crop, nested tables,
-      Word-distributed table row heights (business-plans/04's section rows are taller in Word than the
-      content-sized rows `TableHeightCalculator` produces, which is what actually spaces its headings from
-      their bodies — vertical alignment only helps once a row leaves room), headers/footers, label grids,
+      shapes/WordArt, body floating (anchored) shapes/images and their wrap (labels/14's blobs are cell
+      floats), image recolour/duotone effects (letters/02's frame is drawn but blue where Word recolours it
+      brown) plus rotation/flip/crop, footer and header text/tables (only header floating images render so
+      far), nested tables, Word-distributed table row heights (business-plans/04's section rows are taller
+      in Word than the content-sized rows `TableHeightCalculator` produces, which is what actually spaces
+      its headings from their bodies — vertical alignment only helps once a row leaves room), label grids,
       and per-glyph advances (exact intra-run
       boundaries — the painter currently anchors each run at its canonical start and lets the font library
       fill the run). Then repoint `Morph.Pdf` at `LaidOutDocument`, delete `PdfTextEngine`'s pagination, and
