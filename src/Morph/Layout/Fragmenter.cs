@@ -154,10 +154,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // those), or when it is the only page; a natural trailing-overflow blank is dropped.
         void FinishPage(bool nextPageExplicit)
         {
-            // A page is kept when it has content, when it is a deliberate blank left by an explicit break, or
-            // when it is the only page. Only the body is stored here; the header/footer bands are assembled
-            // once the flow finishes and the total page count is known, so a NUMPAGES field can resolve.
-            if (items.Count > 0 || currentPageExplicit || bodies.Count == 0)
+            // A page is kept when it has visible content, when it is a deliberate blank left by an explicit
+            // break, or when it is the only page. Only the body is stored here; the header/footer bands are
+            // assembled once the flow finishes and the total page count is known, so a NUMPAGES field can
+            // resolve. A page carrying only empty spacer lines — a document-final empty paragraph pushed off
+            // the previous page — is a natural overflow blank Word does not render, so it drops.
+            if (HasVisibleContent(items) || currentPageExplicit || bodies.Count == 0)
             {
                 bodies.Add(items);
             }
@@ -168,6 +170,22 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             atRegionTop = true;
             lastAfter = 0;
             currentPageExplicit = nextPageExplicit;
+        }
+
+        // A page carries visible content if it has anything beyond empty spacer lines — a table row, an image,
+        // a shape, or a line with real text or an inline image. A blank paragraph's whitespace-only line does
+        // not count, so a trailing page left with only such lines is dropped as a natural overflow blank.
+        static bool HasVisibleContent(IReadOnlyList<PlacedItem> pageItems)
+        {
+            foreach (var item in pageItems)
+            {
+                if (item is not PlacedLine line || line.Images.Count > 0 || line.Runs.Any(run => !string.IsNullOrWhiteSpace(run.Text)))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // Wraps each page body in its header background, header/footer text bands and — now the total is

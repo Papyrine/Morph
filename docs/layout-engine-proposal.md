@@ -222,9 +222,10 @@ Build alongside the existing renderers; do not delete anything until all three b
       an exact bottom-of-region fit for paragraph flow, and the backend's rounding tolerances mirrored for
       table fit. **Validated: 96/96 = 100% on the corpus's pure-block documents, 150/153 = 98.0% once plain
       text tables are added, 154/157 = 98.1% with multi-column flow, 156/157 = 99.4% once the
-      w:contextualSpacing collapse lands, and 182/183 = 99.5% once inline images join the set (the measurer
-      sizes each line to its tallest inline image, so they paginate) — all four corpus column documents
-      match** — one backend-independent pass reproducing Word's pagination. The one remaining miss,
+      w:contextualSpacing collapse lands, 182/183 = 99.5% once inline images join the set (the measurer
+      sizes each line to its tallest inline image, so they paginate), and 238/239 = 99.6% once non-wrapping
+      body floats join too (they take no flow space, so pagination is unchanged) — all four corpus column
+      documents match** — one backend-independent pass reproducing Word's pagination. The one remaining miss,
       resumes/13, is a sub-line knife-edge Word's own backends straddle (6 vs 5). Columns are equal-width from one `PageSettings`.
       Remaining slices: per-section geometry (a section break switching column count or page size,
       including the continuous mid-page kind — the newsletter masthead → body case); widow/orphan and
@@ -373,6 +374,15 @@ Build alongside the existing renderers; do not delete anything until all three b
       **99.5% page-count match (182/183)** with no new miss — business-plans/03's Contoso logo and
       left-margin arrow land at Word's positions. The residual SSIM on those Aptos-heavy pages is the
       display-font width gap (a title wrapping to two lines in Word, one in the engine), not the image.
+      **Non-wrapping body floats joined the page-count set, with trailing-blank-page absorption**: a
+      non-wrapping float (every floating shape, and a floating image with no square/tight wrap) takes no flow
+      space, so admitting it leaves pagination untouched — the page-count harness widened by 55 documents to
+      **238/239 = 99.6%**. Two of the newcomers first missed by a page because a document-final empty
+      paragraph, pushed off a full page, landed alone on a new one; `FinishPage` now drops a page carrying
+      only blank spacer lines (a table row, an image, a shape, or a line with real text keeps it), matching
+      Word, which does not render a page for a trailing empty paragraph. The floats are admitted to the
+      page-count harness only — their rendering is verified separately, and the multi-page background
+      limitation would otherwise depress an image-AA-heavy fidelity page for a known reason.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 180 block/table/column documents the
