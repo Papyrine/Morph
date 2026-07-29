@@ -153,8 +153,9 @@ public class FragmenterPageCountTests
 
     // A section break the Fragmenter paginates like Word. NextPage/EvenPage/OddPage start the new section on
     // a fresh page and adopt its geometry (page size, margins, columns), with an even/odd parity filler page
-    // — so any geometry is supported. A Continuous break stays on the same page and is a no-op only when the
-    // geometry does not change; a mid-page column or margin switch is a later slice. NextColumn is not yet
+    // — so any geometry is supported. A Continuous break stays on the same page: a same-geometry one is a
+    // no-op, and a column-count switch flows the new columns from the break point (a page size cannot change
+    // on a continuous break); only a margin-only continuous change is not yet adopted. NextColumn is not yet
     // exercised, so those documents stay out.
     static bool IsSupportedSection(SectionBreakElement sectionBreak, PageSettings page)
     {
@@ -163,7 +164,9 @@ public class FragmenterPageCountTests
             case SectionBreakType.NextPage or SectionBreakType.EvenPage or SectionBreakType.OddPage:
                 return true;
             case SectionBreakType.Continuous:
-                return sectionBreak.NewSectionSettings is not { } settings || IsSameGeometry(settings, page);
+                return sectionBreak.NewSectionSettings is not { } settings
+                       || IsSameGeometry(settings, page)
+                       || Math.Max(1, settings.ColumnCount) != Math.Max(1, page.ColumnCount);
             default:
                 return false;
         }

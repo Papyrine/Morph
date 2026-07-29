@@ -19,12 +19,14 @@ using System.Globalization;
 /// <para>Columns are equal-width within a section. A NextPage or even/odd section break starts the next
 /// section on a fresh page and adopts its geometry — page size, margins and column count — so each page
 /// carries its own <see cref="PageSettings"/> (portrait/landscape switches, per-section margins), and
-/// even/odd breaks insert a blank filler page for parity. Deferred to later slices, and noted so a document
-/// using them is not yet expected to paginate: a Continuous break switching column count or margins on the
-/// same page (the newsletter masthead → body case — its geometry is not yet adopted); keep-next
-/// (widow/orphan and keep-lines are handled); floats and their wrap exclusions; floating tables; and inline
-/// images inside a nested table (nested tables themselves lay out). Other non-paragraph, non-table elements
-/// are skipped for now.</para>
+/// even/odd breaks insert a blank filler page for parity. A Continuous break switching column count flows
+/// the new columns from the break point (the newsletter masthead → multi-column body case), each column on
+/// that page topping out at the break and resetting to the page top on overflow. Deferred to later slices,
+/// and noted so a document using them is not yet expected to paginate: column balancing on a section's last
+/// page (Word equalises the column heights; this newspaper-flows them, which does not change the page
+/// count); a margin-only continuous change; keep-next (widow/orphan and keep-lines are handled); floats and
+/// their wrap exclusions; floating tables; and inline images inside a nested table (nested tables themselves
+/// lay out). Other non-paragraph, non-table elements are skipped for now.</para>
 /// </summary>
 sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 {
@@ -74,6 +76,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         readonly List<(int Page, PlacedItem Item, bool Behind)> bodyFloats = [];
         int currentColumn;
         float y;
+        // Y where the current page's columns begin. Normally the content top, but a continuous section break
+        // that switches column count starts the new columns at the break point (below a full-width masthead),
+        // so each column on that page tops out there rather than at the page top. Reset to the content top on
+        // every new page.
+        float columnTop = (float) page.MarginTop;
         // Top of the current *region* — a fresh column or a fresh page. Space-before is dropped here and a
         // line/row is never pushed off it (nothing better to do), the same rule at a column or page top.
         bool atRegionTop = true;
@@ -107,15 +114,32 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             columnSpacing = (float) settings.ColumnSpacing;
         }
 
-        // A section break. A continuous break keeps the same page (a mid-page column/margin switch is a later
-        // slice, so its geometry is not yet adopted); every other kind starts the new section on a fresh page
-        // — finishing the current page unless it is already empty at its top — and adopts the new section's
+        // A section break. A continuous break keeps the same page; when it switches column count the new
+        // columns begin at the break point (below a full-width masthead), so the section flows down from the
+        // current cursor rather than the page top. Every other kind starts the new section on a fresh page —
+        // finishing the current page unless it is already empty at its top — and adopts the new section's
         // geometry. Even/odd breaks additionally insert a blank filler page when the next page's parity is
         // wrong, as Word does.
         void ApplySectionBreak(SectionBreakElement sectionBreak)
         {
             if (sectionBreak.BreakType == SectionBreakType.Continuous)
             {
+                // A same-column continuous break is a flow no-op. A new column count (the masthead → columns
+                // case) adopts the new geometry and anchors the columns at the break point: column 0 flows
+                // from here to the bottom, each later column tops out here too, and an overflow to the next
+                // page resets the columns to its top (FinishPage). Page size stays — Word forces a page-size
+                // change to be a next-page break, never continuous.
+                if (sectionBreak.NewSectionSettings is { } continuous && Math.Max(1, continuous.ColumnCount) != columnCount)
+                {
+                    var breakY = y;
+                    ApplyGeometry(continuous);
+                    columnTop = breakY;
+                    y = breakY;
+                    currentColumn = 0;
+                    atRegionTop = true;
+                    lastAfter = 0;
+                }
+
                 return;
             }
 
@@ -140,6 +164,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             {
                 ApplyGeometry(settings);
                 y = contentTop;
+                columnTop = contentTop;
             }
         }
 
@@ -164,9 +189,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         break;
 
                     case SectionBreakElement sectionBreak:
-                        // A continuous break continues on the same page (a mid-page column switch is a later
-                        // slice); every other kind starts the new section on a fresh page at the new geometry,
-                        // inserting an even/odd parity filler page when needed.
+                        // A continuous break keeps the same page — switching column count starts the new
+                        // columns at the break point; every other kind starts the new section on a fresh page
+                        // at the new geometry, inserting an even/odd parity filler page when needed.
                         ApplySectionBreak(sectionBreak);
                         break;
 
@@ -222,6 +247,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             items = [];
             currentColumn = 0;
             y = contentTop;
+            columnTop = contentTop;
             atRegionTop = true;
             lastAfter = 0;
             currentPageExplicit = nextPageExplicit;
@@ -303,7 +329,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             if (currentColumn < columnCount - 1)
             {
                 currentColumn++;
-                y = contentTop;
+                y = columnTop;
                 atRegionTop = true;
                 lastAfter = 0;
                 return;
