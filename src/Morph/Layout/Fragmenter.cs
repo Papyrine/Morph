@@ -507,7 +507,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     var placedIndex = lineIndex + offset;
                     var line = paragraphLines[placedIndex];
                     var indentLeft = ColumnLeft + (float) properties.LeftIndentPoints;
-                    var lineLeft = indentLeft + AlignmentOffset(properties.Alignment, availableWidth, line.Width);
+                    var firstLineShift = FirstLineIndentOffset(properties, placedIndex);
+                    var lineLeft = indentLeft + firstLineShift + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, line.Width);
                     var baseline = y + line.Ascent;
 
                     // Paragraph shading (w:shd) fills the paragraph's column box behind the text, regardless
@@ -853,7 +854,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 for (var lineIndex = 0; lineIndex < paragraphLines.Count; lineIndex++)
                 {
                     var line = paragraphLines[lineIndex];
-                    var lineLeft = textLeft + AlignmentOffset(properties.Alignment, availableWidth, line.Width);
+                    var firstLineShift = FirstLineIndentOffset(properties, lineIndex);
+                    var lineLeft = textLeft + firstLineShift + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, line.Width);
                     var baseline = cellY + line.Ascent;
                     lines.Add(new PlacedLine(lineLeft, cellY, line.Width, line.Height, baseline, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft), MapImages(line, lineLeft, baseline)));
                     cellY += line.Height;
@@ -954,7 +956,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 {
                     var line = paragraphLines[lineIndex];
                     var indentLeft = left + (float) properties.LeftIndentPoints;
-                    var lineLeft = indentLeft + AlignmentOffset(properties.Alignment, availableWidth, line.Width);
+                    var firstLineShift = FirstLineIndentOffset(properties, lineIndex);
+                    var lineLeft = indentLeft + firstLineShift + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, line.Width);
                     var baseline = bandY + line.Ascent;
                     if (!string.IsNullOrEmpty(properties.BackgroundColorHex))
                     {
@@ -1153,6 +1156,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 _ => 0
             };
         }
+
+        // Only the FIRST line of a paragraph moves off the block's LeftIndent: w:firstLine shifts it right,
+        // w:hanging outdents it left (toward the outer margin). Subsequent lines sit at the LeftIndent. Both
+        // indents are zero for a plain paragraph. The measurer re-sizes the first line by the same amount so
+        // the wrap and the paint agree. A LIST paragraph is exempt: its hanging indent positions the marker
+        // (see MarkerRun) while the text stays at the LeftIndent on every line, so the text must not shift.
+        static float FirstLineIndentOffset(ParagraphProperties properties, int lineIndex) =>
+            lineIndex == 0 && properties.Numbering is not { Text.Length: > 0 }
+                ? (float) (properties.FirstLineIndentPoints - properties.HangingIndentPoints)
+                : 0f;
 
         // The runs to paint for a line: its text run segments, plus — on the first line of a list
         // paragraph — the list marker positioned in the hanging-indent gutter to the left of the text.

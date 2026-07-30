@@ -632,6 +632,41 @@ public class CanonicalFragmenterTests
         await Assert.That(delta > 3.99f && delta < 4.01f).IsTrue();
     }
 
+    static readonly string wrapping = string.Join(' ', Enumerable.Repeat("lorem", 60));
+
+    [Test]
+    public async Task First_line_indent_shifts_only_the_first_line_right()
+    {
+        var lines = Fragmenter.Layout([P(wrapping, new() { FirstLineIndentPoints = 24 })], Page(400))
+            .Pages[0].Items.OfType<PlacedLine>().ToList();
+        await Assert.That(lines.Count > 1).IsTrue();
+        // First line 24pt right of the block; subsequent lines at the (zero) left indent.
+        var shift = lines[0].X - lines[1].X;
+        await Assert.That(shift > 23.5f && shift < 24.5f).IsTrue();
+    }
+
+    [Test]
+    public async Task Hanging_indent_outdents_only_the_first_line_left()
+    {
+        var lines = Fragmenter.Layout([P(wrapping, new() { LeftIndentPoints = 40, HangingIndentPoints = 30 })], Page(400))
+            .Pages[0].Items.OfType<PlacedLine>().ToList();
+        await Assert.That(lines.Count > 1).IsTrue();
+        // First line outdented 30pt LEFT of the subsequent lines, which sit at the 40pt left indent.
+        var outdent = lines[1].X - lines[0].X;
+        await Assert.That(outdent > 29.5f && outdent < 30.5f).IsTrue();
+    }
+
+    [Test]
+    public async Task A_list_paragraphs_hanging_indent_does_not_shift_its_text()
+    {
+        // A list's hanging indent positions the marker, not the text: every text line stays at the left
+        // indent. The general first-line shift must exempt lists or it double-outdents the wrapped text.
+        var para = P(wrapping, new() { LeftIndentPoints = 36, HangingIndentPoints = 18, Numbering = new NumberingInfo { Text = "1." } });
+        var lines = Fragmenter.Layout([para], Page(400)).Pages[0].Items.OfType<PlacedLine>().ToList();
+        await Assert.That(lines.Count > 1).IsTrue();
+        await Assert.That(Math.Abs(lines[0].X - lines[1].X) < 0.5f).IsTrue();
+    }
+
     [Test]
     public async Task A_nested_table_lays_out_inside_its_cell_below_the_cells_paragraph()
     {
