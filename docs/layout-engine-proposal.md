@@ -449,6 +449,14 @@ Build alongside the existing renderers; do not delete anything until all three b
       fill the run). Then repoint `Morph.Pdf` at `LaidOutDocument`, delete `PdfTextEngine`'s pagination, and
       run the harness in the container (matching Word's rasteriser) to separate real gaps from AA, then
       validate the full container suite (PDF page-count scoreboard unchanged or better, AE/SSIM neutral).
+      **Apply the section-break-type parser fallback at this cutover, not before.** `DocumentParser` reads a
+      break's `w:type` from the ending section's sectPr; Word also honours it on the following section's, and
+      one corpus document (image_wrap_square) authors a continuous column switch that way, so the parser
+      mis-types it NextPage. Reading the ending section first and falling back to the following section fixes
+      the type, and the layout engine then renders it as Word does (columns mid-page, two pages). But the
+      shared parser also feeds today's production path, which cannot flow continuous mid-page columns and
+      would overlap that document's columns onto the text above — so the change regresses production until the
+      painters own pagination, and is deliberately held for this step.
 - [ ] **6. `SkiaPainter` + `ImageSharpPainter`** — the payoff step. Both become thin painters of the
       same tree; the whole-paragraph pagination and the duplicated `TextRenderer` layout code delete.
       This is where the raster knife-edges collapse (raster now paginates identically to PDF — one
