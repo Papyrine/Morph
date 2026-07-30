@@ -447,11 +447,12 @@ Build alongside the existing renderers; do not delete anything until all three b
       *inline* image still tops out a touch higher than Word, which reserves the rotated bounding box's height
       in the line; first/even-page header/footer *images* and header/footer
       tables (default, first-page and even-page header/footer *text* plus behind-text header images render;
-      band *tables*, per-variant images and 3-way tab alignment do not), nested tables, Word-distributed
-      table row heights (business-plans/04's section rows are taller
-      in Word than the content-sized rows `TableHeightCalculator` produces, which is what actually spaces
-      its headings from their bodies — vertical alignment only helps once a row leaves room), label grids,
-      and per-glyph advances (exact intra-run
+      band *tables*, per-variant images and 3-way tab alignment do not), nested tables; a partial `w:tcMar`
+      cell-margin override now inherits its absent sides from the table's `w:tblCellMar` per side instead of
+      collapsing them to zero (`DocumentParser.ParseCellMargin`), which is what actually spaces
+      business-plans/04's vAlign=bottom section headings from their bodies — Word's XPS puts that heading row
+      at 31.8pt where the dropped 14.4pt top margin had left 16pt, and the shared parser fix lifted 11 corpus
+      scenarios toward Word across all three backends; label grids, and per-glyph advances (exact intra-run
       boundaries — the painter currently anchors each run at its canonical start and lets the font library
       fill the run). Then repoint `Morph.Pdf` at `LaidOutDocument`, delete `PdfTextEngine`'s pagination, and
       run the harness in the container (matching Word's rasteriser) to separate real gaps from AA, then
