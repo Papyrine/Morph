@@ -242,8 +242,15 @@ public class RenderExpectedTests
             var pageCount = ConvertXpsToPng(xpsPath, testDir);
             Console.WriteLine($"Generated {pageCount} pages for {scenarioName}");
 
+            // MORPH_KEEP_XPS: preserve the intermediate XPS (exact glyph/border geometry) next to the PNGs
+            // for measurement studies (e.g. the table row-height model). Off by default.
             if (File.Exists(xpsPath))
             {
+                if (Environment.GetEnvironmentVariable("MORPH_KEEP_XPS") != null)
+                {
+                    File.Copy(xpsPath, Path.Combine(testDir, "word_output.xps"), overwrite: true);
+                }
+
                 File.Delete(xpsPath);
             }
         }
