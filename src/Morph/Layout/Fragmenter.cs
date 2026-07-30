@@ -284,13 +284,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         break;
 
                     case FloatingImageElement image when DecodableImageBytes(image) is { Length: > 0 } data:
-                        bodyFloats.Add((bodies.Count, new PlacedImage(FloatX(image.HorizontalAnchor, image.HorizontalPositionPoints), FloatY(image.VerticalAnchor, image.VerticalPositionPoints), (float) image.WidthPoints, (float) image.HeightPoints, data), image.BehindText));
+                        bodyFloats.Add((bodies.Count, new PlacedImage(FloatX(image.HorizontalAnchor, image.HorizontalPositionPoints), FloatY(image.VerticalAnchor, image.VerticalPositionPoints), (float) image.WidthPoints, (float) image.HeightPoints, data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, image.Crop), image.BehindText));
                         break;
 
                     // An image-filled shape (a full-bleed background photo) paints as a plain image — the shape
-                    // painter skips image fills. Rotation/flip/crop on such a shape are a later slice.
+                    // painter skips image fills. It carries the shape's rotation and flip; a shape image has no
+                    // source crop or clip geometry of its own.
                     case FloatingShapeElement shape when shape.ImageData is { Length: > 0 } shapeImage && shape.ImageContentType != "image/svg+xml":
-                        bodyFloats.Add((bodies.Count, new PlacedImage(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints), FloatY(shape.VerticalAnchor, shape.VerticalPositionPoints), (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage), shape.BehindText));
+                        bodyFloats.Add((bodies.Count, new PlacedImage(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints), FloatY(shape.VerticalAnchor, shape.VerticalPositionPoints), (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage, shape.RotationDegrees, shape.FlipHorizontal, shape.FlipVertical), shape.BehindText));
                         break;
 
                     case FloatingShapeElement shape when shape.ImageData == null && (shape.Gradient != null || shape.FillColorHex != null || shape.LineColorHex != null):
