@@ -7,6 +7,14 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
 {
     private protected override int RenderPages(ParsedDocument document, ImageExportOptions options, Action<Action<Stream>> pageCallback)
     {
+        // Step 6 raster cutover (docs/layout-engine-proposal.md): the engine paginates and ImageSharpPainter
+        // draws the documents it covers; everything else falls through to the production ImageSharpPageRenderer.
+        // Gated behind MORPH_IMAGESHARP_ENGINE while the fragmenter's emission gaps close.
+        if (Environment.GetEnvironmentVariable("MORPH_IMAGESHARP_ENGINE") != null && EngineCoverage.Covers(document))
+        {
+            return RenderViaEngine(document, options, pageCallback);
+        }
+
         var totalPageCount = CountPagesIfRequired(document, options);
 
         using var context = new ImageSharpRenderContext(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory, options.DeterministicRendering)
@@ -16,6 +24,28 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
         using var renderer = new ImageSharpPageRenderer(context);
 
         return renderer.RenderDocument(document, pageCallback);
+    }
+
+    // Paginate with the backend-independent Fragmenter and draw with ImageSharpPainter, in place of
+    // ImageSharpPageRenderer + PageRendererBase + TextRenderer. Internal so a test drives the engine path
+    // without the process-global MORPH_IMAGESHARP_ENGINE toggle.
+    internal static int RenderViaEngine(ParsedDocument document, ImageExportOptions options, Action<Action<Stream>> pageCallback)
+    {
+        using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
+        var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver));
+        var laidOut = new Fragmenter(measurer).Layout(
+            document.Elements,
+            document.PageSettings,
+            document.Header,
+            document.Footer,
+            document.FirstPageHeader,
+            document.FirstPageFooter,
+            document.EvenPageHeader,
+            document.EvenPageFooter);
+
+        using var context = new ImageSharpRenderContext(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory, options.DeterministicRendering);
+        ImageSharpPainter.Paint(laidOut, context, pageCallback);
+        return laidOut.Pages.Count;
     }
 
     // A NUMPAGES/SECTIONPAGES field needs the final page total, which is only known after the
