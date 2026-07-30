@@ -4019,11 +4019,13 @@ sealed class DocumentParser(string defaultFont)
                         bgColor = shading.Fill.Value;
                     }
 
-                    // Parse cell-level margins (which act as padding in Word)
+                    // Parse cell-level margins (which act as padding in Word). A partial w:tcMar
+                    // inherits its unspecified sides from the table's w:tblCellMar (doc, then style)
+                    // rather than zeroing them — see ParseCellMargin.
                     var tcMar = cellProps.GetFirstChild<TableCellMargin>();
                     if (tcMar != null)
                     {
-                        cellPadding = ParseCellMargin(tcMar);
+                        cellPadding = ParseCellMargin(tcMar, defaultCellPadding ?? styleInfo?.DefaultCellPadding);
                     }
                 }
 
@@ -4578,9 +4580,22 @@ sealed class DocumentParser(string defaultFont)
         return 0;
     }
 
-    internal static CellSpacing? ParseCellMargin(TableCellMargin margin)
+    /// <summary>
+    /// Parses a cell-level <c>w:tcMar</c> override. Per OOXML each side present in the override
+    /// replaces that side of the table's <c>w:tblCellMar</c>; sides that are ABSENT inherit the
+    /// table default rather than collapsing to zero. <paramref name="tableDefault"/> supplies that
+    /// per-side fallback (the document's <c>w:tblCellMar</c>, then the table style's). Returns null
+    /// only when the override carries no sides at all, letting the caller fall back to the table
+    /// default wholesale. Without this a partial override — e.g. a cover template's
+    /// <c>&lt;w:tcMar&gt;&lt;w:bottom w:w="0"/&gt;&lt;/w:tcMar&gt;</c> on a vAlign=bottom heading —
+    /// dropped the inherited top margin, crowding the heading against the row above (business-plans/04).
+    /// </summary>
+    internal static CellSpacing? ParseCellMargin(TableCellMargin margin, CellSpacing? tableDefault = null)
     {
-        double top = 0, right = 0, bottom = 0, left = 0;
+        var top = tableDefault?.Top ?? 0;
+        var right = tableDefault?.Right ?? 0;
+        var bottom = tableDefault?.Bottom ?? 0;
+        var left = tableDefault?.Left ?? 0;
         var hasAny = false;
 
         var topMargin = margin.TopMargin;
