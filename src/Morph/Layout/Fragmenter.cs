@@ -312,6 +312,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         PlaceParagraph(controlParagraph);
                         break;
 
+                    case TableElement { Properties.IsFloating: true } table:
+                        PlaceFloatingTable(table);
+                        break;
+
                     case TableElement table:
                         PlaceTable(table);
                         break;
@@ -464,6 +468,35 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             foreach (var item in LayoutCellContent(new() { Content = textBox.Content }, boxX, boxY, boxWidth, boxHeight, CellVerticalAlignment.Top))
             {
                 bodyFloats.Add((page, item, textBox.BehindText));
+            }
+        }
+
+        // A floating table (w:tblpPr): positioned by its own offsets from a page/margin/text anchor, laid out
+        // at that position with no page breaks (reusing the nested-table layout), and sitting on top of the
+        // flow like the other body floats — it takes no flow space. In front of the text.
+        void PlaceFloatingTable(TableElement table)
+        {
+            var columnCount = TableLayout.GetColumnCount(table);
+            var tableWidth = TableLayout.CalculateColumnWidths(table, columnCount, fullContentWidth, measurer).Sum();
+            var offsetX = (float) table.Properties.FloatingXOffsetPoints;
+            var left = table.Properties.FloatingHorizontalAnchor switch
+            {
+                FloatingTableHorizontalAnchor.Page => offsetX,
+                FloatingTableHorizontalAnchor.Margin => fullContentLeft + offsetX,
+                _ => ColumnLeft + offsetX
+            };
+            var offsetY = (float) table.Properties.FloatingYOffsetPoints;
+            var top = table.Properties.FloatingVerticalAnchor switch
+            {
+                FloatingTableVerticalAnchor.Page => offsetY,
+                FloatingTableVerticalAnchor.Margin => contentTop + offsetY,
+                _ => y + offsetY
+            };
+
+            var (items, _) = LayoutNestedTable(table, left, top, tableWidth);
+            foreach (var item in items)
+            {
+                bodyFloats.Add((bodies.Count, item, false));
             }
         }
 
