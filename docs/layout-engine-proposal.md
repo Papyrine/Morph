@@ -695,6 +695,29 @@ the next float slice** — it must be fixed before any raster flip that includes
 single-page doc, loses 0.043 for a different, smaller reason: percent-position float placement differs
 slightly from production.)
 
+### Emission slice: section breaks (coverage 236 → 273)
+
+The second emission slice admits `SectionBreakElement`. Again nothing new is emitted at the `Fragmenter`: it
+already paginates every break kind — NextPage/Even/Odd advance and re-lay at the new geometry (inserting an
+even/odd parity filler page), Continuous switches columns at the break point — and records the `PageSettings`
+each page was laid at. The one missing piece was on the paint side: `SkiaPainter`/`ImageSharpPainter` sized
+every page bitmap from the context's initial page size, so a mid-document portrait→landscape switch would have
+been clipped. A `RenderContextBase.PagePixels(PageSettings)` helper (the same double-precision points→pixels
+the context uses, so no off-by-one) now sizes each page from its own recorded settings. On the uniform-geometry
+covered set this changes nothing; it lights up the moment a section switches page size.
+
+Coverage jumped **236 → 273 documents** (84% of the corpus; 52 still excluded — WordArt, wrapping floats,
+non-paragraph cell content, floating tables/text-boxes). Validation: the newly-covered section documents match
+production's page count everywhere except the standing business-plans/15 knife-edge (18 vs 19), and per-page
+geometry renders exactly — business-plans/13's engine pages 13–16 and 19–20 come out landscape (1650×1275) and
+the rest portrait, matching production page-for-page, with the landscape START-UP COSTS table, header, footer
+and page number all in place. Measured the same way, the section set is at parity with production (**−0.0017**
+over 36 documents, 13 wins / 16 losses / 7 ties; the whole 271-doc covered set is **−0.0012**). The worst
+section losers (resumes/10 −0.069, wedding/04 −0.039) are the same intractable tail, not a section defect.
+The remaining excluded buckets (WordArt/inline shape groups, wrapping floats, floating tables/text-boxes,
+non-paragraph cell content) are the next emission slices; the multi-page float anchor-page bug still gates the
+multi-page float documents among the now-covered set.
+
 ## Testing strategy (a large secondary win)
 
 The current suite infers layout from rasterized PNGs (the entire struggle behind `src/page_counts.md`).

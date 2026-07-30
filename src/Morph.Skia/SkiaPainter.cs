@@ -19,7 +19,8 @@ static class SkiaPainter
     {
         foreach (var laidOutPage in document.Pages)
         {
-            using var bitmap = new SKBitmap(context.PageWidthPixels, context.PageHeightPixels, SKColorType.Rgba8888, SKAlphaType.Premul);
+            var (pageWidth, pageHeight) = context.PagePixels(laidOutPage.Settings);
+            using var bitmap = new SKBitmap(pageWidth, pageHeight, SKColorType.Rgba8888, SKAlphaType.Premul);
             using var canvas = new SKCanvas(bitmap);
 
             var background = laidOutPage.Settings.BackgroundColorHex;

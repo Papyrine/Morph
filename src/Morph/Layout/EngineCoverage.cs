@@ -19,6 +19,11 @@ static class EngineCoverage
                 case ParagraphElement paragraph when !HasInlineArt(paragraph):
                 case PageBreakElement:
                 case ColumnBreakElement:
+                // The Fragmenter paginates every section-break kind (NextPage/Even/Odd advance and re-lay at
+                // the new geometry, Continuous switches columns at the break point); each page records the
+                // settings it was laid at, so a painter that sizes per page renders a mid-document page-size
+                // or column change.
+                case SectionBreakElement:
                     break;
                 // Behind/in-front floating shapes carry no text wrap; the Fragmenter lays them out by anchor
                 // into the page's float items and every painter draws them (solid, gradient, or — routed to
