@@ -101,6 +101,15 @@ public class PdfPainterFidelityTests
         report.AddRange(ordered.AsEnumerable().Reverse().Take(12).Select(_ => $"  {_.Ssim:F3}  {_.Name} ({_.Pages}p)"));
         Console.WriteLine(string.Join("\n", report));
 
+        // MORPH_FID_REPORT: the TUnit runner swallows the Console output above, so when this env var is
+        // set write the full per-document ranking to the named file for fidelity-floor triage. Off by default.
+        if (Environment.GetEnvironmentVariable("MORPH_FID_REPORT") is { Length: > 0 } reportPath)
+        {
+            File.WriteAllText(reportPath,
+                string.Join("\n", report) + "\n\nALL (worst first):\n" +
+                string.Join("\n", ordered.AsEnumerable().Reverse().Select(_ => $"  {_.Ssim:F3}  {_.Name} ({_.Pages}p)")));
+        }
+
         await Assert.That(ordered.Count).IsGreaterThan(100);
         // Measured mean 0.941 / median 0.975 SSIM against Word over the 180 page-count-matched documents
         // (the w:contextualSpacing fix and admitting inline images widened the set from 152; the mean eased
