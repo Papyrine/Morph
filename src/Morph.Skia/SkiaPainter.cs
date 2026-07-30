@@ -206,9 +206,9 @@ static class SkiaPainter
     }
 
     // A behind-text floating shape: fill and outline of its freeform contours (reusing the production
-    // subpath geometry) or its preset rect/ellipse box. Image-fill shapes are painted as a plain image by
-    // the body-float path, so they are skipped. Gradient fill is deferred — the covered subset's float
-    // shapes (e.g. labels/14's coloured panels) are solid-filled.
+    // subpath geometry) or its preset rect/ellipse box. Fill is a solid colour or a linear gradient
+    // (built the same way as the production SkiaPageRenderer). Image-fill shapes never reach here — the
+    // Fragmenter routes them to PlacedImage — so ImageData is a defensive skip.
     static void PaintShape(SkiaRenderContext context, SKCanvas canvas, PlacedShape placed)
     {
         var shape = placed.Shape;
@@ -217,67 +217,104 @@ static class SkiaPainter
             return;
         }
 
-        var fill = shape.FillColorHex is { } fillHex ? context.GetReusableFillPaint(SkiaRenderContext.ParseColor(fillHex), antialias: true) : null;
-        var line = shape.LineColorHex is { } lineHex ? context.GetReusableRulePaint(SkiaRenderContext.ParseColor(lineHex), P(context, Math.Max(0.5, shape.LineWidthPoints ?? 1))) : null;
-        if (fill == null && line == null)
-        {
-            return;
-        }
-
         float x = P(context, placed.X), y = P(context, placed.Y), width = P(context, placed.Width), height = P(context, placed.Height);
 
-        if (shape.Subpaths is { Count: > 0 })
+        // A gradient paint owns its shader and is disposed here; a solid fill and the outline are reused
+        // paints owned by the context and must not be disposed.
+        SKPaint? gradientFill = null;
+        if (shape.Gradient is { } gradient)
         {
-            using var path = SkiaPageRenderer.BuildPolygonPath(shape, x, y, width, height);
-            if (fill != null)
-            {
-                canvas.DrawPath(path, fill);
-            }
-
-            if (line != null)
-            {
-                canvas.DrawPath(path, line);
-            }
-
-            return;
+            gradientFill = BuildGradientPaint(gradient, x, y, width, height);
         }
 
-        var rotated = shape.RotationDegrees != 0;
-        if (rotated)
+        var fill = gradientFill ?? (shape.FillColorHex is { } fillHex ? context.GetReusableFillPaint(SkiaRenderContext.ParseColor(fillHex), antialias: true) : null);
+        var line = shape.LineColorHex is { } lineHex ? context.GetReusableRulePaint(SkiaRenderContext.ParseColor(lineHex), P(context, Math.Max(0.5, shape.LineWidthPoints ?? 1))) : null;
+
+        if (fill != null || line != null)
         {
-            canvas.Save();
-            canvas.RotateDegrees((float) shape.RotationDegrees, x + width / 2, y + height / 2);
+            if (shape.Subpaths is { Count: > 0 })
+            {
+                using var path = SkiaPageRenderer.BuildPolygonPath(shape, x, y, width, height);
+                if (fill != null)
+                {
+                    canvas.DrawPath(path, fill);
+                }
+
+                if (line != null)
+                {
+                    canvas.DrawPath(path, line);
+                }
+            }
+            else
+            {
+                var rotated = shape.RotationDegrees != 0;
+                if (rotated)
+                {
+                    canvas.Save();
+                    canvas.RotateDegrees((float) shape.RotationDegrees, x + width / 2, y + height / 2);
+                }
+
+                if (shape.Preset == PresetShape.Ellipse)
+                {
+                    if (fill != null)
+                    {
+                        canvas.DrawOval(x + width / 2, y + height / 2, width / 2, height / 2, fill);
+                    }
+
+                    if (line != null)
+                    {
+                        canvas.DrawOval(x + width / 2, y + height / 2, width / 2, height / 2, line);
+                    }
+                }
+                else
+                {
+                    if (fill != null)
+                    {
+                        canvas.DrawRect(x, y, width, height, fill);
+                    }
+
+                    if (line != null)
+                    {
+                        canvas.DrawRect(x, y, width, height, line);
+                    }
+                }
+
+                if (rotated)
+                {
+                    canvas.Restore();
+                }
+            }
         }
 
-        if (shape.Preset == PresetShape.Ellipse)
+        if (gradientFill != null)
         {
-            if (fill != null)
-            {
-                canvas.DrawOval(x + width / 2, y + height / 2, width / 2, height / 2, fill);
-            }
-
-            if (line != null)
-            {
-                canvas.DrawOval(x + width / 2, y + height / 2, width / 2, height / 2, line);
-            }
+            gradientFill.Shader?.Dispose();
+            gradientFill.Dispose();
         }
-        else
+    }
+
+    // A linear gradient across the shape's bounding box, matching SkiaPageRenderer: angle 0° points along
+    // +X (OOXML a:lin/@ang), the stops run corner-to-corner through the box centre. The caller owns and
+    // disposes the returned paint and its shader.
+    static SKPaint BuildGradientPaint(GradientFill gradient, float x, float y, float width, float height)
+    {
+        var radians = gradient.DirectionDegrees * Math.PI / 180.0;
+        var dx = (float) Math.Cos(radians);
+        var dy = (float) Math.Sin(radians);
+        var centreX = x + width / 2;
+        var centreY = y + height / 2;
+        var halfDiagonal = (float) Math.Sqrt(width * width + height * height) / 2;
+        var shader = SKShader.CreateLinearGradient(
+            new SKPoint(centreX - dx * halfDiagonal, centreY - dy * halfDiagonal),
+            new SKPoint(centreX + dx * halfDiagonal, centreY + dy * halfDiagonal),
+            [SKColor.Parse(gradient.StartColorHex), SKColor.Parse(gradient.EndColorHex)],
+            SKShaderTileMode.Clamp);
+        return new SKPaint
         {
-            if (fill != null)
-            {
-                canvas.DrawRect(x, y, width, height, fill);
-            }
-
-            if (line != null)
-            {
-                canvas.DrawRect(x, y, width, height, line);
-            }
-        }
-
-        if (rotated)
-        {
-            canvas.Restore();
-        }
+            Shader = shader,
+            Style = SKPaintStyle.Fill,
+            IsAntialias = true
+        };
     }
 
     // Each cell: shading first, then its content, then its borders on top — Word's cell paint order.

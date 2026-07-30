@@ -671,6 +671,30 @@ covered documents — it is a pagination-unification move at parity. The remaini
 (WordArt/inline shape groups, float wrap, floating tables, nested-cell content) to route MORE of the corpus
 through the one engine, since the covered set already paginates identically across all three backends.
 
+### Emission slice: non-wrapping top-level floats (coverage 183 → 236)
+
+The first emission slice widens `EngineCoverage.Covers` to admit top-level `FloatingShapeElement` (behind or
+in front of text — shapes carry no wrap) and `FloatingImageElement` with `WrapType.None`. Nothing new is
+emitted: the `Fragmenter` already lays body floats out by anchor into each page's float items and every
+painter already draws `PlacedShape`/`PlacedImage`, so the predicate was the only gate. Two small pieces
+closed the seam first: the raster `PaintShape` gained the **linear-gradient fill** it had deferred (built the
+same way as each production `PageRenderer`, so gradient-filled float shapes render), and image-fill shapes
+need nothing because the `Fragmenter` routes those to `PlacedImage`. Wrapping images (Square/Tight/Through/
+TopAndBottom) stay excluded — they need flow exclusions the engine does not emit.
+
+Coverage jumped **183 → 236 documents** (89 still excluded, now dominated by section breaks and non-paragraph
+cell content). Measured the newly-covered set the same way: the **53 float documents come in at −0.0026 vs
+production** (23 wins / 21 losses / 9 ties), at parity — lower in absolute SSIM (0.842 vs 0.845) only because
+art-heavy pages are harder, not because the engine diverges. The whole covered set is **−0.0012 over 235
+docs**. The losers are the multi-**page** float documents: newsletters/12 (−0.23), brochures/05 (−0.07),
+business-plans/06, brochures/02. Their failure is one known bug — a body float is tagged with the page the
+flow has *reached* when the anchor element is encountered, not the page its anchor paragraph finally lands on,
+so page-2 floats stack onto page 1 (newsletters/12's page-2 photo overlays page-1's header). Single-page float
+documents render correctly. **Multi-page float anchor-page resolution is now the gate for those documents and
+the next float slice** — it must be fixed before any raster flip that includes them. (pct_pos_offset, a
+single-page doc, loses 0.043 for a different, smaller reason: percent-position float placement differs
+slightly from production.)
+
 ## Testing strategy (a large secondary win)
 
 The current suite infers layout from rasterized PNGs (the entire struggle behind `src/page_counts.md`).

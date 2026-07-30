@@ -1,6 +1,7 @@
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing;
+using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 
 /// <summary>
@@ -216,8 +217,9 @@ static class ImageSharpPainter
 
     // A behind-text floating shape: fill and outline of its freeform subpath contours (reusing the
     // production BuildPath geometry, rotation already baked, nonzero winding pushed via Save) or its preset
-    // rect/ellipse box (rotated about its centre). Image-fill shapes are painted as plain images; gradient
-    // fill is deferred, matching SkiaPainter.
+    // rect/ellipse box (rotated about its centre). Fill is a solid colour or a linear gradient (built the
+    // same way as the production ImageSharpPageRenderer). Image-fill shapes never reach here — the
+    // Fragmenter routes them to PlacedImage.
     static void PaintShape(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedShape placed)
     {
         var shape = placed.Shape;
@@ -226,14 +228,27 @@ static class ImageSharpPainter
             return;
         }
 
-        var fill = shape.FillColorHex is { } fillHex ? context.GetBrush(ImageSharpRenderContext.ParseColor(fillHex)) : null;
+        float x = P(context, placed.X), y = P(context, placed.Y), width = P(context, placed.Width), height = P(context, placed.Height);
+
+        Brush? fill;
+        if (shape.Gradient is { } gradient)
+        {
+            fill = BuildGradientBrush(gradient, x, y, width, height);
+        }
+        else if (shape.FillColorHex is { } fillHex)
+        {
+            fill = context.GetBrush(ImageSharpRenderContext.ParseColor(fillHex));
+        }
+        else
+        {
+            fill = null;
+        }
+
         var line = shape.LineColorHex is { } lineHex ? context.GetPen(ImageSharpRenderContext.ParseColor(lineHex), P(context, Math.Max(0.5, shape.LineWidthPoints ?? 1))) : null;
         if (fill == null && line == null)
         {
             return;
         }
-
-        float x = P(context, placed.X), y = P(context, placed.Y), width = P(context, placed.Width), height = P(context, placed.Height);
 
         if (shape.Subpaths is { Count: > 0 })
         {
@@ -274,6 +289,24 @@ static class ImageSharpPainter
         {
             canvas.Restore();
         }
+    }
+
+    // A linear gradient across the shape's bounding box, matching ImageSharpPageRenderer: angle 0° points
+    // along +X (OOXML a:lin/@ang), the stops run corner-to-corner through the box centre.
+    static LinearGradientBrush BuildGradientBrush(GradientFill gradient, float x, float y, float width, float height)
+    {
+        var radians = gradient.DirectionDegrees * Math.PI / 180.0;
+        var dx = (float) Math.Cos(radians);
+        var dy = (float) Math.Sin(radians);
+        var centreX = x + width / 2;
+        var centreY = y + height / 2;
+        var halfDiagonal = (float) Math.Sqrt(width * width + height * height) / 2;
+        return new LinearGradientBrush(
+            new PointF(centreX - dx * halfDiagonal, centreY - dy * halfDiagonal),
+            new PointF(centreX + dx * halfDiagonal, centreY + dy * halfDiagonal),
+            GradientRepetitionMode.None,
+            new ColorStop(0f, ImageSharpRenderContext.ParseColor(gradient.StartColorHex)),
+            new ColorStop(1f, ImageSharpRenderContext.ParseColor(gradient.EndColorHex)));
     }
 
     static void PaintTableRow(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedTableRow row)
