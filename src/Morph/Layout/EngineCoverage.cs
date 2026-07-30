@@ -36,6 +36,10 @@ static class EngineCoverage
                 // A non-wrapping floating text box lays out its content inside its box (the Fragmenter emits
                 // the box chrome as a shape and the content as lines); wrapping text boxes need flow exclusions.
                 case FloatingTextBoxElement { WrapType: WrapType.None }:
+                // Unwarped WordArt is Word's inline text box — box chrome plus centred text. The warp presets
+                // (arch/wave/envelope/…) are not emitted yet, so a warped WordArt still disqualifies.
+                case WordArtElement { Transform: WordArtTransform.None }:
+                case FloatingWordArtElement { Transform: WordArtTransform.None }:
                     break;
                 case TableElement table when IsSimpleTable(table):
                     break;
@@ -72,6 +76,10 @@ static class EngineCoverage
                         {
                             return false;
                         }
+                    }
+                    else if (element is WordArtElement { Transform: WordArtTransform.None })
+                    {
+                        // An unwarped WordArt in a cell renders as its box plus centred text.
                     }
                     else if (element is not (ParagraphElement or ContentControlElement))
                     {

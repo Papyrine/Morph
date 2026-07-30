@@ -326,6 +326,25 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task An_unwarped_wordart_block_emits_its_box_and_centred_text()
+    {
+        var wordArt = new WordArtElement
+        {
+            Text = "LOGO",
+            WidthPoints = 150,
+            HeightPoints = 40,
+            BoxLineColorHex = "000000",
+            BoxLineWidthPoints = 1,
+            Transform = WordArtTransform.None
+        };
+        var items = Fragmenter.Layout([wordArt, P("body")], Page(400)).Pages[0].Items;
+
+        // The unwarped WordArt paints its box frame and its centred text.
+        await Assert.That(items.OfType<PlacedShape>().Single().Shape.LineColorHex).IsEqualTo("000000");
+        await Assert.That(items.OfType<PlacedLine>().Any(_ => _.Runs.Any(run => run.Text == "LOGO"))).IsTrue();
+    }
+
+    [Test]
     public async Task A_footer_table_lays_out_in_the_footer_band()
     {
         var footerTable = new TableElement

@@ -339,6 +339,23 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         PlaceTextBox(textBox);
                         break;
 
+                    case WordArtElement { Transform: WordArtTransform.None } wordArt:
+                        PlaceWordArt(wordArt);
+                        break;
+
+                    // Floating unwarped WordArt is absolutely positioned text (no box chrome), like the other
+                    // body floats — it takes no flow space.
+                    case FloatingWordArtElement { Transform: WordArtTransform.None } floatingWordArt:
+                        foreach (var item in LayoutWordArtText(floatingWordArt.Text, floatingWordArt.FontFamily, floatingWordArt.FontSizePoints, floatingWordArt.Bold, floatingWordArt.Italic, floatingWordArt.FillColorHex,
+                                     FloatX(floatingWordArt.HorizontalAnchor, floatingWordArt.HorizontalPositionPoints),
+                                     FloatY(floatingWordArt.VerticalAnchor, floatingWordArt.VerticalPositionPoints),
+                                     (float) floatingWordArt.WidthPoints, (float) floatingWordArt.HeightPoints))
+                        {
+                            bodyFloats.Add((bodies.Count, item, floatingWordArt.BehindText));
+                        }
+
+                        break;
+
                     // Float wrap is a later slice.
                 }
             }
@@ -498,6 +515,65 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             {
                 bodyFloats.Add((bodies.Count, item, false));
             }
+        }
+
+        // Unwarped WordArt is Word's inline text box: a single line of the WordArt text, shrunk to fit and
+        // centred in its box (reusing the cell-content layout with a centred synthetic paragraph). Warp
+        // presets (arch/wave/envelope/…) are a later slice; the corpus templates are all unwarped.
+        IReadOnlyList<PlacedItem> LayoutWordArtText(string text, string fontFamily, double fontSizePoints, bool bold, bool italic, string? fillColorHex, float boxX, float boxY, float boxWidth, float boxHeight)
+        {
+            var properties = new RunProperties { FontFamily = fontFamily, FontSizePoints = fontSizePoints, Bold = bold, Italic = italic, ColorHex = fillColorHex };
+            var textWidth = measurer.MeasureRunWidth(text, properties);
+            var widthScale = textWidth > 0 ? boxWidth / textWidth : 1f;
+            var heightScale = fontSizePoints > 0 ? boxHeight / (float) (fontSizePoints * 1.2) : 1f;
+            var scale = Math.Min(Math.Min(widthScale, heightScale), 1f);
+            var paragraph = new ParagraphElement
+            {
+                Runs = [new Run { Text = text, Properties = properties with { FontSizePoints = fontSizePoints * scale } }],
+                Properties = new ParagraphProperties { Alignment = TextAlignment.Center }
+            };
+            return LayoutCellContent(new() { Content = [paragraph] }, boxX, boxY, boxWidth, boxHeight, CellVerticalAlignment.Center);
+        }
+
+        // The box chrome of an unwarped WordArt shape (business/06's frame, wedding/08's ellipse badge): its
+        // fill and outline painted as a shape, or null when the WordArt has no box. Floating WordArt has none.
+        static PlacedShape? WordArtBoxShape(WordArtElement wordArt, float boxX, float boxY)
+        {
+            if (wordArt.BoxFillColorHex == null && wordArt.BoxLineColorHex == null)
+            {
+                return null;
+            }
+
+            var boxShape = new FloatingShapeElement
+            {
+                WidthPoints = wordArt.WidthPoints,
+                HeightPoints = wordArt.HeightPoints,
+                FillColorHex = wordArt.BoxFillColorHex,
+                LineColorHex = wordArt.BoxLineColorHex,
+                LineWidthPoints = wordArt.BoxLineWidthPoints > 0 ? wordArt.BoxLineWidthPoints : null,
+                LineAlpha = wordArt.BoxLineAlpha,
+                Subpaths = wordArt.BoxSubpaths,
+                Preset = wordArt.BoxIsEllipse ? PresetShape.Ellipse : PresetShape.Rect
+            };
+            return new PlacedShape(boxX, boxY, (float) wordArt.WidthPoints, (float) wordArt.HeightPoints, boxShape);
+        }
+
+        // A block-level unwarped WordArt takes flow space (its declared height) at the current cursor, aligned
+        // by its w:jc — it paints its box chrome then its centred text.
+        void PlaceWordArt(WordArtElement wordArt)
+        {
+            var height = (float) wordArt.HeightPoints;
+            EnsureSpaceFor(height);
+            var boxWidth = (float) wordArt.WidthPoints;
+            var boxX = ColumnLeft + AlignmentOffset(wordArt.Alignment, columnWidth, boxWidth);
+            if (WordArtBoxShape(wordArt, boxX, y) is { } boxItem)
+            {
+                items.Add(boxItem);
+            }
+
+            items.AddRange(LayoutWordArtText(wordArt.Text, wordArt.FontFamily, wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic, wordArt.FillColorHex, boxX, y, boxWidth, height));
+            y += height;
+            atRegionTop = false;
         }
 
         // The bytes a backend can actually decode: SVG artwork carries a raster equivalent (PdfSharp, like
@@ -931,6 +1007,24 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     var (nestedItems, nestedHeight) = LayoutNestedTable(nestedTable, contentLeft, cellY, contentWidth);
                     lines.AddRange(nestedItems);
                     cellY += nestedHeight;
+                    lastCellAfter = 0;
+                    continue;
+                }
+
+                // An unwarped WordArt in a cell (menus/03's EVENT/DATE labels, wedding/08's badge) paints its
+                // box chrome and its centred text inside the cell, taking its declared height.
+                if (element is WordArtElement { Transform: WordArtTransform.None } cellWordArt)
+                {
+                    cellY += first ? 0 : lastCellAfter;
+                    first = false;
+                    var wordArtWidth = Math.Min((float) cellWordArt.WidthPoints, contentWidth);
+                    if (WordArtBoxShape(cellWordArt, contentLeft, cellY) is { } boxItem)
+                    {
+                        lines.Add(boxItem);
+                    }
+
+                    lines.AddRange(LayoutWordArtText(cellWordArt.Text, cellWordArt.FontFamily, cellWordArt.FontSizePoints, cellWordArt.Bold, cellWordArt.Italic, cellWordArt.FillColorHex, contentLeft, cellY, wordArtWidth, (float) cellWordArt.HeightPoints));
+                    cellY += (float) cellWordArt.HeightPoints;
                     lastCellAfter = 0;
                     continue;
                 }
