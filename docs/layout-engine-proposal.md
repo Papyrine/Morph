@@ -465,10 +465,12 @@ Build alongside the existing renderers; do not delete anything until all three b
       shared parser also feeds today's production path, which cannot flow continuous mid-page columns and
       would overlap that document's columns onto the text above — so the change regresses production until the
       painters own pagination, and is deliberately held for this step.
-- [ ] **6. `SkiaPainter` + `ImageSharpPainter`** — the payoff step. Both become thin painters of the
+- [~] **6. `SkiaPainter` + `ImageSharpPainter`** — the payoff step. Both become thin painters of the
       same tree; the whole-paragraph pagination and the duplicated `TextRenderer` layout code delete.
       This is where the raster knife-edges collapse (raster now paginates identically to PDF — one
-      answer, not a straddle). Regenerate all raster + PDF baselines; validate the scoreboard.
+      answer, not a straddle). Painters LANDED behind `MORPH_SKIA_ENGINE` / `MORPH_IMAGESHARP_ENGINE`
+      (see "The raster cutover (step 6), in detail"); the default-path flip is gated with step 5's, on
+      covered-doc parity. Then regenerate all raster + PDF baselines; validate the scoreboard.
 - [ ] **7. Delete** `PageRendererBase` pagination, `SectionBreakHandler` (subsumed), the per-backend
       `EnsureSpaceFor`/`AdvanceToNextColumnOrPage`, `TableHeightCalculator` (folded into the table
       sub-layout). Keep the backends' primitive draw ops only.
@@ -593,6 +595,51 @@ measured line. Determinism must survive the swap (verified by the unchanged `pdf
 snapshots). The engine's OpenType metrics differ subtly from PdfSharp's, so covered docs re-wrap and
 re-paginate on cutover — that is the intended new truth, but every covered baseline regenerates and must be
 reviewed against Word, not against the old production bytes.
+
+## The raster cutover (step 6), in detail
+
+The raster analogue of step 5, and structurally easier: the raster painters share the render context's own
+drawing primitives (font creation, text layout, colour parsing, image processing), so an engine-drawn page and
+a production-drawn page of the same covered document differ only where pagination differs — not in how a glyph
+or a fill is rasterized. That is why the raster gap is far smaller than PDF's −0.005.
+
+### The seams
+
+Two entry points, one per backend, both funnelling through the same `RenderPages` override:
+`SkiaDocumentConverter.RenderPages(ParsedDocument, ImageExportOptions, Action<Action<Stream>>) : int` and the
+identically-shaped `ImageSharpDocumentConverter.RenderPages`. Each emits one PNG per page through a
+`pageCallback` and returns the page count. As with PDF, only the paginate-and-draw half is replaced:
+`RenderViaEngine` runs `Fragmenter.Layout` → `<Backend>Painter.Paint`, gated behind `MORPH_SKIA_ENGINE` /
+`MORPH_IMAGESHARP_ENGINE` and `EngineCoverage.Covers`; the default path is byte-unchanged. `RenderViaEngine`
+is internal so `EngineSkiaPathTests` / `EngineImageSharpPathTests` drive it without the process-global toggle.
+
+### The unit gotcha
+
+The `LaidOutDocument` tree is in POINTS. PdfSharp is point-native and `PdfPainter` draws directly, but Skia and
+ImageSharp draw in PIXELS, so every coordinate scales by `context.PointsToPixels` (`points * dpi/72`). Text
+anchoring differs between them: Skia's `DrawText` is baseline-anchored (draw at `line.Baseline`), while
+ImageSharp's `RichTextOptions.Origin` is top-anchored, so a run's origin drops by the font ascent
+(`Origin.Y = P(baseline) − ascent*Scale`). Both draw whole strings through the context's text path — the same
+`canvas.DrawText` production uses — so covered-document text matches production advance-for-advance; only the
+per-glyph `w:spacing` tracked path re-derives advances (`DrawTracked`, matching production's own tracked path).
+
+### What landed
+
+- **`SkiaPainter`** — full `PlacedItem` switch (line/tableRow/image/shape/shading/border), per-glyph tracked
+  text, tab leaders, inline images (transforms deferred), and `PaintShape` (solid fill + outline over
+  `SkiaPageRenderer.BuildPolygonPath` freeform subpaths or a preset rect/ellipse; gradient fill deferred).
+- **`ImageSharpPainter`** — the same coverage over ImageSharp's deferred `DrawingCanvas`; images route through
+  `GetProcessedImage` (crop/rotation/flip baked for free), and `PaintShape` reuses the production
+  `ImageSharpPageRenderer.BuildPath` / `BuildPresetPath` / `BuildRotation` / `NonzeroFill` geometry.
+
+### Validation
+
+`labels/14` — a label sheet whose behind-text floating shapes tile a table grid — is the shape probe.
+Before `PaintShape`, the engine dropped every shape (**−0.28** vs production, both backends). After, the
+engine-vs-production diff shows **no shape ink at all** — the shapes match production exactly — and SSIM is
+0.956, the residual being a per-cell vertical text offset in the recipient-address cells (a Fragmenter
+cell-content-height / blank-paragraph question, unrelated to shape painting, tracked as the next raster slice).
+`EngineSkiaPathTests` / `EngineImageSharpPathTests` gain `labels/14` as the shape-path guard.
 
 ## Testing strategy (a large secondary win)
 

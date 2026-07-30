@@ -8,13 +8,14 @@ using SixLabors.ImageSharp.PixelFormats;
 /// <c>SkiaPainter</c> (docs/layout-engine-proposal.md, step 6). A pure draw pass over the tree the
 /// <c>Fragmenter</c> produced. ImageSharp records draw ops onto a deferred <see cref="DrawingCanvas"/> per
 /// page and flushes them when the canvas is disposed, then encodes the page image to PNG through the same
-/// <paramref name="pageCallback"/> the production <c>ImageSharpPageRenderer</c> uses. The tree is in points
+/// page callback the production <c>ImageSharpPageRenderer</c> uses. The tree is in points
 /// and ImageSharp draws in pixels, so every coordinate scales by <see cref="RenderContextBase.PointsToPixels"/>;
 /// text is top-anchored, so a run's baseline drops by the font ascent.
 ///
 /// <para>Covers the block/table/column subset: paragraph text with its run decorations, tables, paragraph
-/// shading and borders, inline images (crop/rotation/flip baked by the context), and tab leaders. Deferred:
-/// floating shapes (<c>PlacedShape</c>), gradient fills, and per-glyph advances.</para>
+/// shading and borders, inline images (crop/rotation/flip baked by the context), tab leaders, and behind-text
+/// floating shapes (solid fill and outline, freeform or preset). Deferred: gradient shape fills and per-glyph
+/// advances.</para>
 /// </summary>
 static class ImageSharpPainter
 {
@@ -53,6 +54,9 @@ static class ImageSharpPainter
                 break;
             case PlacedImage image:
                 PaintImage(context, canvas, image);
+                break;
+            case PlacedShape shape:
+                PaintShape(context, canvas, shape);
                 break;
             case PlacedShading shading:
                 Fill(context, canvas, shading.X, shading.Y, shading.Width, shading.Height, shading.ColorHex);
@@ -208,6 +212,68 @@ static class ImageSharpPainter
         }
 
         canvas.DrawImage(processed, new Point((int) Math.Round(P(context, image.X)), (int) Math.Round(P(context, image.Y))));
+    }
+
+    // A behind-text floating shape: fill and outline of its freeform subpath contours (reusing the
+    // production BuildPath geometry, rotation already baked, nonzero winding pushed via Save) or its preset
+    // rect/ellipse box (rotated about its centre). Image-fill shapes are painted as plain images; gradient
+    // fill is deferred, matching SkiaPainter.
+    static void PaintShape(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedShape placed)
+    {
+        var shape = placed.Shape;
+        if (shape.ImageData is { Length: > 0 })
+        {
+            return;
+        }
+
+        var fill = shape.FillColorHex is { } fillHex ? context.GetBrush(ImageSharpRenderContext.ParseColor(fillHex)) : null;
+        var line = shape.LineColorHex is { } lineHex ? context.GetPen(ImageSharpRenderContext.ParseColor(lineHex), P(context, Math.Max(0.5, shape.LineWidthPoints ?? 1))) : null;
+        if (fill == null && line == null)
+        {
+            return;
+        }
+
+        float x = P(context, placed.X), y = P(context, placed.Y), width = P(context, placed.Width), height = P(context, placed.Height);
+
+        if (shape.Subpaths is { Count: > 0 })
+        {
+            var path = ImageSharpPageRenderer.BuildPath(shape, x, y, width, height);
+            canvas.Save(ImageSharpPageRenderer.NonzeroFill);
+            if (fill != null)
+            {
+                canvas.Fill(fill, path);
+            }
+
+            if (line != null)
+            {
+                canvas.Draw(line, path);
+            }
+
+            canvas.Restore();
+            return;
+        }
+
+        var rotated = shape.RotationDegrees != 0;
+        if (rotated)
+        {
+            canvas.Save(ImageSharpPageRenderer.BuildRotation((float) (shape.RotationDegrees * Math.PI / 180.0), x + width / 2, y + height / 2));
+        }
+
+        var presetPath = ImageSharpPageRenderer.BuildPresetPath(shape, x, y, width, height);
+        if (fill != null)
+        {
+            canvas.Fill(fill, presetPath);
+        }
+
+        if (line != null)
+        {
+            canvas.Draw(line, presetPath);
+        }
+
+        if (rotated)
+        {
+            canvas.Restore();
+        }
     }
 
     static void PaintTableRow(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedTableRow row)

@@ -6,12 +6,12 @@ using SkiaSharp;
 /// run position comes from the tree the <c>Fragmenter</c> already produced, so there is no measurement and
 /// no pagination here. The tree is in points and Skia draws in pixels, so every coordinate scales by
 /// <see cref="RenderContextBase.PointsToPixels"/>. One RGBA8888 bitmap per page is encoded to PNG and
-/// streamed through the same <paramref name="pageCallback"/> the production <c>SkiaPageRenderer</c> uses.
+/// streamed through the same page callback the production <c>SkiaPageRenderer</c> uses.
 ///
 /// <para>Covers the block/table/column subset (<see cref="EngineCoverage"/>): paragraph text with its run
-/// decorations, tables (cell shading, content, borders), paragraph shading and borders, inline images, and
-/// tab leaders. Deferred to later slices: floating shapes (<c>PlacedShape</c>), image rotation/flip/crop,
-/// and per-glyph advances.</para>
+/// decorations, tables (cell shading, content, borders), paragraph shading and borders, inline images, tab
+/// leaders, and behind-text floating shapes (solid fill and outline, freeform or preset). Deferred to later
+/// slices: gradient shape fills, inline-image rotation/flip/crop, and per-glyph advances.</para>
 /// </summary>
 static class SkiaPainter
 {
