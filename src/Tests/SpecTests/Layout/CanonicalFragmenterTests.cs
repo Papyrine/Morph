@@ -881,6 +881,27 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task A_gradient_body_float_shape_is_placed_carrying_its_gradient()
+    {
+        var shape = new FloatingShapeElement
+        {
+            WidthPoints = 100, HeightPoints = 40,
+            Gradient = new GradientFill { StartColorHex = "FF0000", EndColorHex = "0000FF", DirectionDegrees = 0 },
+            HorizontalAnchor = HorizontalAnchor.Margin, VerticalAnchor = VerticalAnchor.Margin,
+            BehindText = true
+        };
+
+        var items = Fragmenter.Layout([shape, P("body")], Page(200)).Pages[0].Items;
+
+        // A gradient-filled shape is placed as a shape (the painter fills it with a linear gradient), not
+        // dropped — its gradient stops survive to the painter.
+        var placed = items.OfType<PlacedShape>().Single();
+        await Assert.That(placed.Shape.Gradient).IsNotNull();
+        await Assert.That(placed.Shape.Gradient!.StartColorHex).IsEqualTo("FF0000");
+        await Assert.That(placed.Shape.Gradient!.EndColorHex).IsEqualTo("0000FF");
+    }
+
+    [Test]
     public async Task An_in_front_body_float_image_paints_over_the_body()
     {
         var image = new FloatingImageElement

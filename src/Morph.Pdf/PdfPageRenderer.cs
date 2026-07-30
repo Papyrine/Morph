@@ -1229,7 +1229,7 @@ sealed class PdfPageRenderer : PageRendererBase
 
     // Linear gradient mirroring the Skia/ImageSharp backends: angle 0° points along +X, clockwise
     // positive (OOXML a:lin/@ang), projected onto the bounding box as start/end points.
-    static XLinearGradientBrush BuildGradientBrush(GradientFill gradient, double x, double y, double width, double height)
+    internal static XLinearGradientBrush BuildGradientBrush(GradientFill gradient, double x, double y, double width, double height)
     {
         var radians = gradient.DirectionDegrees * Math.PI / 180.0;
         var directionX = Math.Cos(radians);
