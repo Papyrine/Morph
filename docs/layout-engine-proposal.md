@@ -434,11 +434,13 @@ Build alongside the existing renderers; do not delete anything until all three b
       so a text-dense page carries sub-pixel glyph/line-metric drift and host-vs-container rasterisation AA
       that depress its SSIM (e.g. long_paragraph 0.78) even where the wrap and alignment match Word exactly.
       Still to land before it can replace the production `PdfRenderer`:
-      shapes/WordArt and float wrap (behind-text *cell* floats, and now body floating images and image-fill
-      shapes, render — text flowing around a square/tight float does not, nor does tying a multi-page
-      background to its anchor paragraph's page), gradient shape fills, image recolour/duotone effects
+      shapes/WordArt and float wrap (behind-text *cell* floats, and now body floating images, image-fill and
+      gradient-fill shapes, render — a gradient shape reuses the production linear-gradient brush and paints
+      as Word does, the vertical bars of labels/04 and the banners of cover-letters/06 among them; text
+      flowing around a square/tight float does not, nor does tying a multi-page
+      background to its anchor paragraph's page), image recolour/duotone effects
       (letters/02's frame is drawn but blue where Word recolours it
-      brown) plus rotation/flip/crop, first/even-page header/footer *images* and header/footer
+      brown — needs a pixel path Morph.Pdf lacks) plus rotation/flip/crop, first/even-page header/footer *images* and header/footer
       tables (default, first-page and even-page header/footer *text* plus behind-text header images render;
       band *tables*, per-variant images and 3-way tab alignment do not), nested tables, Word-distributed
       table row heights (business-plans/04's section rows are taller

@@ -213,18 +213,32 @@ static class PdfPainter
         }
     }
 
-    // A behind-text floating shape: solid fill and outline of either its freeform contours (subpaths,
-    // scaled from the unit square into the box with flip/rotation baked in by BuildShapePath) or, absent
-    // those, its preset box (rect or ellipse). Gradient and image fills are later slices.
+    // A behind-text floating shape: fill and outline of either its freeform contours (subpaths, scaled from
+    // the unit square into the box with flip/rotation baked in by BuildShapePath) or, absent those, its
+    // preset box (rect or ellipse). The fill is a linear gradient (reusing the production brush) or a solid
+    // colour. An image-fill shape is painted as a plain image by the body-float path, so it is skipped here.
     static void PaintShape(PdfRenderContext context, XGraphics graphics, PlacedShape placed)
     {
         var shape = placed.Shape;
-        if (shape.Gradient != null || shape.ImageData is { Length: > 0 })
+        if (shape.ImageData is { Length: > 0 })
         {
             return;
         }
 
-        var fill = shape.FillColorHex is { } fillHex ? context.GetBrush(PdfRenderContext.ParseColor(fillHex)) : null;
+        XBrush? fill;
+        if (shape.Gradient is { } gradient)
+        {
+            fill = PdfPageRenderer.BuildGradientBrush(gradient, placed.X, placed.Y, placed.Width, placed.Height);
+        }
+        else if (shape.FillColorHex is { } fillHex)
+        {
+            fill = context.GetBrush(PdfRenderContext.ParseColor(fillHex));
+        }
+        else
+        {
+            fill = null;
+        }
+
         var pen = shape.LineColorHex is { } lineHex ? context.GetPen(PdfRenderContext.ParseColor(lineHex), Math.Max(0.5, shape.LineWidthPoints ?? 1)) : null;
         if (fill == null && pen == null)
         {

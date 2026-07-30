@@ -293,11 +293,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         bodyFloats.Add((bodies.Count, new PlacedImage(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints), FloatY(shape.VerticalAnchor, shape.VerticalPositionPoints), (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage), shape.BehindText));
                         break;
 
-                    case FloatingShapeElement shape when shape.Gradient == null && shape.ImageData == null && (shape.FillColorHex != null || shape.LineColorHex != null):
+                    case FloatingShapeElement shape when shape.ImageData == null && (shape.Gradient != null || shape.FillColorHex != null || shape.LineColorHex != null):
                         bodyFloats.Add((bodies.Count, new PlacedShape(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints), FloatY(shape.VerticalAnchor, shape.VerticalPositionPoints), (float) shape.WidthPoints, (float) shape.HeightPoints, shape), shape.BehindText));
                         break;
 
-                    // Continuous sections, gradient floats and float wrap are later slices.
+                    // Float wrap is a later slice.
                 }
             }
 
