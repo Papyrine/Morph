@@ -62,9 +62,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // to the new page size, margins and column layout (ApplyGeometry). The initial values are the
         // document's first section, from the constructor's page.
         PageSettings current = page;
-        float contentTop = (float) page.MarginTop;
+        float contentTop = HeaderReservedTop(measurer, page, SelectVariant(1, firstPageHeader, evenPageHeader, header, page));
         float contentBottom = (float) (page.HeightPoints - page.MarginBottom);
-        float contentHeight = (float) (page.HeightPoints - page.MarginTop - page.MarginBottom);
+        float contentHeight = (float) (page.HeightPoints - page.MarginBottom) - HeaderReservedTop(measurer, page, SelectVariant(1, firstPageHeader, evenPageHeader, header, page));
         float fullContentLeft = (float) page.MarginLeft;
         float fullContentWidth = (float) (page.WidthPoints - page.MarginLeft - page.MarginRight);
         int columnCount = Math.Max(1, page.ColumnCount);
@@ -85,7 +85,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // that switches column count starts the new columns at the break point (below a full-width masthead),
         // so each column on that page tops out there rather than at the page top. Reset to the content top on
         // every new page.
-        float columnTop = (float) page.MarginTop;
+        float columnTop = HeaderReservedTop(measurer, page, SelectVariant(1, firstPageHeader, evenPageHeader, header, page));
         // Top of the current *region* — a fresh column or a fresh page. Space-before is dropped here and a
         // line/row is never pushed off it (nothing better to do), the same rule at a column or page top.
         bool atRegionTop = true;
@@ -109,14 +109,41 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         void ApplyGeometry(PageSettings settings)
         {
             current = settings;
-            contentTop = (float) settings.MarginTop;
+            contentTop = HeaderReservedTop(measurer, settings, header);
             contentBottom = (float) (settings.HeightPoints - settings.MarginBottom);
-            contentHeight = (float) (settings.HeightPoints - settings.MarginTop - settings.MarginBottom);
+            contentHeight = contentBottom - contentTop;
             fullContentLeft = (float) settings.MarginLeft;
             fullContentWidth = (float) (settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
             columnCount = Math.Max(1, settings.ColumnCount);
             columnWidth = (float) settings.ColumnWidth;
             columnSpacing = (float) settings.ColumnSpacing;
+        }
+
+        // Where the body starts. A positive w:top margin is a MINIMUM (ECMA-376 §17.6.11): a header whose
+        // content, laid out from the header distance, reaches past the margin pushes the body down to clear
+        // it — so a two-line header no longer overlaps the first body line. A negative w:top
+        // (TopMarginIsAbsolute) pins the body at the margin and lets the header overlap instead. Reserves for
+        // the default header (per-page first/even variants are a later refinement), mirroring how
+        // PageRendererBase parks the body cursor below the rendered header.
+        static float HeaderReservedTop(IParagraphMeasurer measurer, PageSettings settings, HeaderFooterContent? header)
+        {
+            var marginTop = (float) settings.MarginTop;
+            if (settings.TopMarginIsAbsolute || header == null)
+            {
+                return marginTop;
+            }
+
+            var bandWidth = (float) (settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
+            var headerHeight = 0f;
+            foreach (var element in header.Elements)
+            {
+                if (element is ParagraphElement paragraph)
+                {
+                    headerHeight += measurer.MeasureParagraphHeightWithWidth(paragraph, bandWidth);
+                }
+            }
+
+            return Math.Max(marginTop, (float) settings.HeaderDistance + headerHeight);
         }
 
         // A section break. A continuous break keeps the same page; when it switches column count the new

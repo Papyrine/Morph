@@ -298,6 +298,31 @@ public class CanonicalFragmenterTests
         await Assert.That(footerRow.Cells[1].Content.OfType<PlacedLine>().SelectMany(_ => _.Runs).Single().Text).IsEqualTo("right");
     }
 
+    static float BodyTop(HeaderFooterContent? header, PageSettings? page = null) =>
+        Fragmenter.Layout([P("body")], page ?? Page(400), header: header).Pages[0].Items
+            .OfType<PlacedLine>()
+            .First(_ => string.Concat(_.Runs.Select(run => run.Text)) == "body").Y;
+
+    [Test]
+    public async Task A_header_taller_than_the_top_margin_pushes_the_body_down()
+    {
+        // Word treats a positive top margin as a minimum (ECMA-376 §17.6.11): a header whose content reaches
+        // past it moves the body down. Page(400)'s 20pt top margin is well under the 36pt header distance plus
+        // two header lines, so a headed page starts its body far below a bare one.
+        var header = new HeaderFooterContent { Elements = [P("header line one"), P("header line two")] };
+        await Assert.That(BodyTop(header) > BodyTop(null) + 30f).IsTrue();
+    }
+
+    [Test]
+    public async Task A_title_page_with_no_first_page_header_reserves_no_header_space()
+    {
+        // A DifferentFirstPage document with no first-page header shows nothing on page 1, so its default
+        // header must not push page 1's body down (the over-reservation that regressed business/04).
+        var header = new HeaderFooterContent { Elements = [P("default one"), P("default two")] };
+        var page = Page(400) with { DifferentFirstPage = true };
+        await Assert.That(Math.Abs(BodyTop(header, page) - (float) page.MarginTop) < 0.5f).IsTrue();
+    }
+
     [Test]
     public async Task A_title_pages_footer_is_suppressed_when_it_has_no_first_page_footer()
     {
