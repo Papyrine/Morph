@@ -52,6 +52,9 @@ static class SkiaPainter
             case PlacedImage image:
                 PaintImage(context, canvas, image);
                 break;
+            case PlacedShape shape:
+                PaintShape(context, canvas, shape);
+                break;
             case PlacedShading shading:
                 Fill(context, canvas, shading.X, shading.Y, shading.Width, shading.Height, shading.ColorHex);
                 break;
@@ -200,6 +203,81 @@ static class SkiaPainter
 
         // Rotation/flip/crop are deferred; inline images in the covered subset draw upright.
         canvas.DrawBitmap(bitmap, SKRect.Create(P(context, image.X), P(context, image.Y), P(context, image.Width), P(context, image.Height)));
+    }
+
+    // A behind-text floating shape: fill and outline of its freeform contours (reusing the production
+    // subpath geometry) or its preset rect/ellipse box. Image-fill shapes are painted as a plain image by
+    // the body-float path, so they are skipped. Gradient fill is deferred — the covered subset's float
+    // shapes (e.g. labels/14's coloured panels) are solid-filled.
+    static void PaintShape(SkiaRenderContext context, SKCanvas canvas, PlacedShape placed)
+    {
+        var shape = placed.Shape;
+        if (shape.ImageData is { Length: > 0 })
+        {
+            return;
+        }
+
+        var fill = shape.FillColorHex is { } fillHex ? context.GetReusableFillPaint(SkiaRenderContext.ParseColor(fillHex), antialias: true) : null;
+        var line = shape.LineColorHex is { } lineHex ? context.GetReusableRulePaint(SkiaRenderContext.ParseColor(lineHex), P(context, Math.Max(0.5, shape.LineWidthPoints ?? 1))) : null;
+        if (fill == null && line == null)
+        {
+            return;
+        }
+
+        float x = P(context, placed.X), y = P(context, placed.Y), width = P(context, placed.Width), height = P(context, placed.Height);
+
+        if (shape.Subpaths is { Count: > 0 })
+        {
+            using var path = SkiaPageRenderer.BuildPolygonPath(shape, x, y, width, height);
+            if (fill != null)
+            {
+                canvas.DrawPath(path, fill);
+            }
+
+            if (line != null)
+            {
+                canvas.DrawPath(path, line);
+            }
+
+            return;
+        }
+
+        var rotated = shape.RotationDegrees != 0;
+        if (rotated)
+        {
+            canvas.Save();
+            canvas.RotateDegrees((float) shape.RotationDegrees, x + width / 2, y + height / 2);
+        }
+
+        if (shape.Preset == PresetShape.Ellipse)
+        {
+            if (fill != null)
+            {
+                canvas.DrawOval(x + width / 2, y + height / 2, width / 2, height / 2, fill);
+            }
+
+            if (line != null)
+            {
+                canvas.DrawOval(x + width / 2, y + height / 2, width / 2, height / 2, line);
+            }
+        }
+        else
+        {
+            if (fill != null)
+            {
+                canvas.DrawRect(x, y, width, height, fill);
+            }
+
+            if (line != null)
+            {
+                canvas.DrawRect(x, y, width, height, line);
+            }
+        }
+
+        if (rotated)
+        {
+            canvas.Restore();
+        }
     }
 
     // Each cell: shading first, then its content, then its borders on top — Word's cell paint order.
