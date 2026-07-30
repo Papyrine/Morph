@@ -637,9 +637,39 @@ per-glyph `w:spacing` tracked path re-derives advances (`DrawTracked`, matching 
 `labels/14` — a label sheet whose behind-text floating shapes tile a table grid — is the shape probe.
 Before `PaintShape`, the engine dropped every shape (**−0.28** vs production, both backends). After, the
 engine-vs-production diff shows **no shape ink at all** — the shapes match production exactly — and SSIM is
-0.956, the residual being a per-cell vertical text offset in the recipient-address cells (a Fragmenter
-cell-content-height / blank-paragraph question, unrelated to shape painting, tracked as the next raster slice).
-`EngineSkiaPathTests` / `EngineImageSharpPathTests` gain `labels/14` as the shape-path guard.
+0.956, the residual being a per-cell line-pitch drift in the multi-line recipient-address cells (the sender
+cells' 3 lines barely doubles, the recipient cells' 5 lines accumulates it; the shared measurer's default-
+paragraph pitch differs from production's by a fraction of a pixel per line, small enough that page-count
+parity holds at 99.3%). `EngineSkiaPathTests` / `EngineImageSharpPathTests` gain `labels/14` as the
+shape-path guard.
+
+### Characterization: the raster engine is at production parity
+
+Both raster seams were measured the way PDF Phase B was — render every covered document twice (production
+`<Backend>PageRenderer` vs the engine), SSIM each page against Word's `expected_*.png`, page-count-matched:
+
+| Backend | covered docs | engine mean | production mean | delta | engine wins / loses / ties |
+|---------|-------------:|------------:|---------------:|------:|---------------------------:|
+| Skia | 182 | — | — | **−0.0023** | — |
+| ImageSharp | 182 | 0.9395 | 0.9403 | **−0.0008** | 35 / 30 / 117 |
+
+This is the decisive contrast with PDF (**−0.0042**, held because it clearly regressed): the raster engine is
+at parity. Both raster paths share their render context's drawing primitives (font creation, text layout,
+colour, image processing), so an engine-drawn covered page and a production-drawn one differ only where
+pagination differs — and pagination already agrees (181/182 covered docs match production's page count, the
+lone exception the standing resumes/13 knife-edge). The wins and losses roughly cancel and 117 of 182 are
+ties. The split is the familiar one: the engine WINS on tables (header_row_repeat +0.093, table_multipage
++0.035, table_indent +0.027) and LOSES on the intractable tail — per-glyph advances / line-pitch (labels/14,
+labels/16), unavailable commercial fonts (business-plans/03 Aptos), compound-image and full-page-gradient
+rasterization AA (cover-letters/12 −0.058, cards/05), and `w:shd`/`w:pBdr` decoration sub-pixel offsets
+(resumes/15). Spot-checking the three biggest losers confirmed each renders correctly against Word — the gap
+is AA/pitch noise amplified by dense text or a full-bleed background, not a missing feature. The same set the
+PDF measurement named "exhausted".
+
+The consequence for the flip: unlike PDF, flipping the raster default is **not** a fidelity regression on
+covered documents — it is a pagination-unification move at parity. The remaining lever is coverage EMISSION
+(WordArt/inline shape groups, float wrap, floating tables, nested-cell content) to route MORE of the corpus
+through the one engine, since the covered set already paginates identically across all three backends.
 
 ## Testing strategy (a large secondary win)
 
