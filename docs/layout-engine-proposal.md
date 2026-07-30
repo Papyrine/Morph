@@ -543,14 +543,22 @@ everything the corpus contains (the fallback goes cold).
   reproduces `PdfPainterFidelityTests`' SSIM verbatim (multiple_pages 0.776, even_odd_headers/01 0.998,
   dot_points 0.998), so `LayoutFonts` resolves the same faces as the tests' `LayoutTestFonts`; the default
   path stays byte-identical. Not yet wired: per-conversion `FontWidthScale` into the measurer.
-- **B — Capability predicate + fallback.** Add the per-document predicate; route covered docs to the engine,
-  the rest to `PdfTextEngine`. Gate: the container suite stays green (fallback preserves current output for
-  uncovered docs; the covered subset regenerates its `pdf_result*` baselines once, reviewed against Word).
-- **C — Close emission gaps (a run of slices).** Each lands a `Fragmenter` emission, tightens the predicate,
-  and regenerates the newly-covered `pdf_result*` baselines. Ordered by corpus impact below.
-- **D — Flip and delete.** When the predicate admits ~everything, make the engine the default, regenerate all
-  `pdf_result*` baselines, confirm `compare-all-pdf.md` holds or beats 0.880 mean and the PDF page-count
-  scoreboard holds or improves, then delete `PdfTextEngine` + the `PdfPageRenderer` driver.
+- **B — Capability predicate + fallback. LANDED (predicate); flip DEFERRED.** `EngineCoverage.Covers`
+  (`src/Morph/Layout`) routes only covered documents to the engine, the rest to `PdfTextEngine`; still behind
+  `MORPH_PDF_ENGINE`, default path unchanged. A host measurement (engine vs production, both via `ConvertToPdf`,
+  SSIM vs Word over the 180 page-count-matched covered docs) found the engine at **0.9420 vs production 0.9472
+  — −0.0052**, production winning 45 to 15. The split is sharp: the engine WINS on tables (header_row_repeat
+  +0.076, table_multipage +0.031, table_indent +0.028) and LOSES on paragraph decorations and header/footer
+  (header_footer −0.074, cover-letters/02 `w:pBdr` −0.073, resumes/15 `w:shd` −0.060). So flipping the default
+  now would regress fidelity — the flip is gated on covered-doc parity, not on emission alone.
+- **C — Two tracks, run together.** (1) Covered-doc FIDELITY: close the decoration gaps the measurement named
+  (header/footer band + per-variant, `w:pBdr` position/collapse, `w:shd`, per-glyph advances) so the engine's
+  covered mean crosses production's. (2) Coverage EMISSION: land `Fragmenter` art so the predicate admits more
+  (ordered below). Each slice regenerates the affected `pdf_result*` baselines and is reviewed against Word.
+- **D — Flip and delete.** Once the engine's covered mean holds or beats production and the predicate admits
+  ~everything, make the engine the default, regenerate all `pdf_result*` baselines, confirm `compare-all-pdf.md`
+  holds or beats 0.880 mean and the PDF page-count scoreboard holds or improves, then delete `PdfTextEngine` +
+  the `PdfPageRenderer` driver.
 
 ### Emission backlog (Fragmenter — unblocks whole documents, ordered by corpus reach)
 
