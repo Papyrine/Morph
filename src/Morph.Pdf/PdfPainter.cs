@@ -205,11 +205,83 @@ static class PdfPainter
 
         try
         {
-            graphics.DrawImage(context.GetImage(image.Data), image.X, image.Y, image.Width, image.Height);
+            var decoded = context.GetImage(image.Data);
+            // a:xfrm transforms happen about the box centre, then draw; an ellipse/freeform clip is an
+            // alternative (Word does not combine the two — mirrors PdfPageRenderer.RenderFloatingImage).
+            if (Math.Abs(image.RotationDegrees) > 0.01 || image.FlipHorizontal || image.FlipVertical)
+            {
+                var centerX = image.X + image.Width / 2;
+                var centerY = image.Y + image.Height / 2;
+                var state = graphics.Save();
+                if (Math.Abs(image.RotationDegrees) > 0.01)
+                {
+                    graphics.RotateAtTransform(image.RotationDegrees, new XPoint(centerX, centerY));
+                }
+
+                if (image.FlipHorizontal || image.FlipVertical)
+                {
+                    graphics.TranslateTransform(centerX, centerY);
+                    graphics.ScaleTransform(image.FlipHorizontal ? -1 : 1, image.FlipVertical ? -1 : 1);
+                    graphics.TranslateTransform(-centerX, -centerY);
+                }
+
+                DrawIntoBox(graphics, decoded, image);
+                graphics.Restore(state);
+            }
+            else if (image.ClipToEllipse || image.ClipSubpaths != null)
+            {
+                var state = graphics.Save();
+                var clipPath = new XGraphicsPath();
+                if (image.ClipToEllipse)
+                {
+                    clipPath.AddEllipse(image.X, image.Y, image.Width, image.Height);
+                }
+                else
+                {
+                    foreach (var contour in image.ClipSubpaths!)
+                    {
+                        var points = new XPoint[contour.Count];
+                        for (var pointIndex = 0; pointIndex < contour.Count; pointIndex++)
+                        {
+                            var (unitX, unitY) = contour[pointIndex];
+                            points[pointIndex] = new XPoint(image.X + unitX * image.Width, image.Y + unitY * image.Height);
+                        }
+
+                        clipPath.AddPolygon(points);
+                    }
+                }
+
+                graphics.IntersectClip(clipPath);
+                DrawIntoBox(graphics, decoded, image);
+                graphics.Restore(state);
+            }
+            else
+            {
+                DrawIntoBox(graphics, decoded, image);
+            }
         }
         catch
         {
             // Undecodable image bytes: skip this image rather than fail the whole paint.
+        }
+    }
+
+    // Draws the decoded image into its box, honouring a source-rectangle crop by enlarging the image so its
+    // visible sub-rectangle fills the box and clipping back (PdfSharp has no source-rect API) — the same
+    // technique as PdfPageRenderer.DrawRaster.
+    static void DrawIntoBox(XGraphics graphics, XImage decoded, PlacedImage image)
+    {
+        if (image.Crop is { IsCropped: true } crop)
+        {
+            var (dx, dy, dw, dh) = crop.Expand(image.X, image.Y, image.Width, image.Height);
+            var state = graphics.Save();
+            graphics.IntersectClip(new XRect(image.X, image.Y, image.Width, image.Height));
+            graphics.DrawImage(decoded, dx, dy, dw, dh);
+            graphics.Restore(state);
+        }
+        else
+        {
+            graphics.DrawImage(decoded, image.X, image.Y, image.Width, image.Height);
         }
     }
 

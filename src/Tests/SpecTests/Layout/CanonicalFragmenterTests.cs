@@ -919,6 +919,26 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task A_body_float_image_carries_its_rotation_flip_and_clip_to_the_painter()
+    {
+        var image = new FloatingImageElement
+        {
+            ImageData = System.Text.Encoding.ASCII.GetBytes("PNG"),
+            WidthPoints = 100, HeightPoints = 60,
+            RotationDegrees = 90, FlipHorizontal = true, ClipToEllipse = true,
+            HorizontalAnchor = HorizontalAnchor.Margin, VerticalAnchor = VerticalAnchor.Margin,
+            BehindText = true
+        };
+
+        var placed = Fragmenter.Layout([image, P("body")], Page(200)).Pages[0].Items.OfType<PlacedImage>().Single();
+
+        // The DrawingML transforms flow through to the placed image (the painter applies them).
+        await Assert.That(placed.RotationDegrees).IsEqualTo(90d).Within(0.01);
+        await Assert.That(placed.FlipHorizontal).IsTrue();
+        await Assert.That(placed.ClipToEllipse).IsTrue();
+    }
+
+    [Test]
     public async Task Contextual_spacing_collapses_the_gap_between_same_style_paragraphs()
     {
         var properties = new ParagraphProperties { StyleId = "MemoHead", ContextualSpacing = true, SpacingAfterPoints = 12 };

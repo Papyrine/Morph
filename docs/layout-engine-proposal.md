@@ -440,7 +440,10 @@ Build alongside the existing renderers; do not delete anything until all three b
       flowing around a square/tight float does not, nor does tying a multi-page
       background to its anchor paragraph's page), image recolour/duotone effects
       (letters/02's frame is drawn but blue where Word recolours it
-      brown — needs a pixel path Morph.Pdf lacks) plus rotation/flip/crop, first/even-page header/footer *images* and header/footer
+      brown — needs a pixel path Morph.Pdf lacks); a floating image now applies its DrawingML
+      rotation, flip, source-rectangle crop, and ellipse/freeform clip about the box centre (reusing the
+      production geometry — letters/13's rotated letterhead banners and brochures/03's round photos match
+      Word), though an *inline* image does not yet carry those; first/even-page header/footer *images* and header/footer
       tables (default, first-page and even-page header/footer *text* plus behind-text header images render;
       band *tables*, per-variant images and 3-way tab alignment do not), nested tables, Word-distributed
       table row heights (business-plans/04's section rows are taller
