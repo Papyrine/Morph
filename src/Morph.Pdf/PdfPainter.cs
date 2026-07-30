@@ -198,14 +198,17 @@ static class PdfPainter
 
     static void PaintImage(PdfRenderContext context, XGraphics graphics, PlacedImage image)
     {
-        if (image.Data.Length == 0)
+        // An inline shape group rides the image carrier with null Data; SkiaPainter already paints it, the
+        // PDF port is a follow-up slice. Skip so the null does not reach GetImage; the coverage predicate
+        // still rejects inline groups, so nothing routes here yet.
+        if (image.ShapeGroup != null || image.Data is not { Length: > 0 } data)
         {
             return;
         }
 
         try
         {
-            var decoded = context.GetImage(image.Data);
+            var decoded = context.GetImage(data);
             // a:xfrm transforms happen about the box centre, then draw; an ellipse/freeform clip is an
             // alternative (Word does not combine the two — mirrors PdfPageRenderer.RenderFloatingImage).
             if (Math.Abs(image.RotationDegrees) > 0.01 || image.FlipHorizontal || image.FlipVertical)

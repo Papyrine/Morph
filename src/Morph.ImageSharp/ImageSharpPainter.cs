@@ -205,9 +205,17 @@ static class ImageSharpPainter
 
     static void PaintImage(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedImage image)
     {
+        // An inline shape group rides the image carrier with null Data; SkiaPainter already paints it, the
+        // ImageSharp port is a follow-up slice. Skip so the null does not reach GetProcessedImage; the
+        // coverage predicate still rejects inline groups, so nothing routes here yet.
+        if (image.ShapeGroup != null || image.Data is not { } data)
+        {
+            return;
+        }
+
         var width = (int) Math.Round(P(context, image.Width));
         var height = (int) Math.Round(P(context, image.Height));
-        var processed = context.GetProcessedImage(image.Data, width, height, image.Crop, default, (float) image.RotationDegrees, image.FlipHorizontal, image.FlipVertical);
+        var processed = context.GetProcessedImage(data, width, height, image.Crop, default, (float) image.RotationDegrees, image.FlipHorizontal, image.FlipVertical);
         if (processed == null)
         {
             return;
