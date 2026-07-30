@@ -755,6 +755,21 @@ non-top-level-float defect these documents merely *exposed* on entering the cove
 slice. Setting it aside, the inline groups themselves match production (inline_shape_arrows 1.6% AA on both
 backends).
 
+### Fidelity slice: header shapes and float-shape opacity
+
+The inline-group set's worst loser, cover-letters/10 (−0.163), was diagnosed to two small defects rather than
+the header-shape *placement* the first attempt guessed at. First, `Fragmenter.ResolveHeaderImages` emitted only
+header *images*, so the document's two behind-text header *shapes* — a charcoal banner and a companion accent
+panel — dropped entirely; it now emits header `FloatingShapeElement`s too (mirroring the body-float shape
+cases). Second, and the real subtlety: the accent panel is a full-page rectangle at **10% opacity**
+(`a:alpha`), which Word renders as a near-white tint (252,251,248) — not a solid panel. The raster and PDF
+`PaintShape` were ignoring `FillAlpha`/`LineAlpha` (a general float-shape bug, not header-specific), so the
+engine painted it as an opaque tan slab over the body. Applying the alpha (the production `PageRenderer`
+already did) makes the panel read as the same near-white tint. Together: the charcoal band renders and the
+accent panel matches Word's body colour exactly. **cover-letters/10 lifts 0.703 → 0.882 (+0.18)**; the whole
+covered set moves from −0.0027 to **−0.0011** over 297 documents (85 wins / 80 losses, up from 80/84). The
+alpha fix is a correctness win for any float shape with a translucent fill, not just this document.
+
 ## Testing strategy (a large secondary win)
 
 The current suite infers layout from rasterized PNGs (the entire struggle behind `src/page_counts.md`).

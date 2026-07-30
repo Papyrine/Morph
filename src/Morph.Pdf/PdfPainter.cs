@@ -418,6 +418,8 @@ static class PdfPainter
             return;
         }
 
+        // Honour the shape's fill/line opacity (a:alpha) — e.g. cover-letters/10's header banner is a 10%
+        // accent tint that reads as near-white, not a solid panel.
         XBrush? fill;
         if (shape.Gradient is { } gradient)
         {
@@ -425,14 +427,20 @@ static class PdfPainter
         }
         else if (shape.FillColorHex is { } fillHex)
         {
-            fill = context.GetBrush(PdfRenderContext.ParseColor(fillHex));
+            var rgb = PdfRenderContext.ParseColor(fillHex);
+            fill = new XSolidBrush(XColor.FromArgb(PdfTextEngine.AlphaByte(shape.FillAlpha), rgb.R, rgb.G, rgb.B));
         }
         else
         {
             fill = null;
         }
 
-        var pen = shape.LineColorHex is { } lineHex ? context.GetPen(PdfRenderContext.ParseColor(lineHex), Math.Max(0.5, shape.LineWidthPoints ?? 1)) : null;
+        XPen? pen = null;
+        if (shape.LineColorHex is { } lineHex)
+        {
+            var rgb = PdfRenderContext.ParseColor(lineHex);
+            pen = new XPen(XColor.FromArgb(PdfTextEngine.AlphaByte(shape.LineAlpha), rgb.R, rgb.G, rgb.B), Math.Max(0.5, shape.LineWidthPoints ?? 1));
+        }
         if (fill == null && pen == null)
         {
             return;

@@ -361,8 +361,10 @@ static class SkiaPainter
             gradientFill = BuildGradientPaint(gradient, x, y, width, height);
         }
 
-        var fill = gradientFill ?? (shape.FillColorHex is { } fillHex ? context.GetReusableFillPaint(SkiaRenderContext.ParseColor(fillHex), antialias: true) : null);
-        var line = shape.LineColorHex is { } lineHex ? context.GetReusableRulePaint(SkiaRenderContext.ParseColor(lineHex), P(context, Math.Max(0.5, shape.LineWidthPoints ?? 1))) : null;
+        // Honour the shape's fill/line opacity (a:alpha) — e.g. cover-letters/10's header banner is a 10%
+        // accent tint that reads as near-white, not a solid panel. TextRenderer.ParseColor applies the alpha.
+        var fill = gradientFill ?? (shape.FillColorHex is { } fillHex ? context.GetReusableFillPaint(TextRenderer.ParseColor(fillHex, shape.FillAlpha), antialias: true) : null);
+        var line = shape.LineColorHex is { } lineHex ? context.GetReusableRulePaint(TextRenderer.ParseColor(lineHex, shape.LineAlpha), P(context, Math.Max(0.5, shape.LineWidthPoints ?? 1))) : null;
 
         if (fill != null || line != null)
         {

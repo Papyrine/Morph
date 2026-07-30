@@ -338,6 +338,8 @@ static class ImageSharpPainter
 
         float x = P(context, placed.X), y = P(context, placed.Y), width = P(context, placed.Width), height = P(context, placed.Height);
 
+        // Honour the shape's fill/line opacity (a:alpha) — e.g. cover-letters/10's header banner is a 10%
+        // accent tint that reads as near-white, not a solid panel. TextRenderer.ParseColor applies the alpha.
         Brush? fill;
         if (shape.Gradient is { } gradient)
         {
@@ -345,14 +347,14 @@ static class ImageSharpPainter
         }
         else if (shape.FillColorHex is { } fillHex)
         {
-            fill = context.GetBrush(ImageSharpRenderContext.ParseColor(fillHex));
+            fill = context.GetBrush(TextRenderer.ParseColor(fillHex, shape.FillAlpha));
         }
         else
         {
             fill = null;
         }
 
-        var line = shape.LineColorHex is { } lineHex ? context.GetPen(ImageSharpRenderContext.ParseColor(lineHex), P(context, Math.Max(0.5, shape.LineWidthPoints ?? 1))) : null;
+        var line = shape.LineColorHex is { } lineHex ? context.GetPen(TextRenderer.ParseColor(lineHex, shape.LineAlpha), P(context, Math.Max(0.5, shape.LineWidthPoints ?? 1))) : null;
         if (fill == null && line == null)
         {
             return;

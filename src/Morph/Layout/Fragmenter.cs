@@ -1089,38 +1089,55 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             return result;
         }
 
-        static IReadOnlyList<PlacedImage> ResolveHeaderImages(HeaderFooterContent? header, PageSettings page)
+        static IReadOnlyList<PlacedItem> ResolveHeaderImages(HeaderFooterContent? header, PageSettings page)
         {
             if (header == null)
             {
                 return [];
             }
 
-            var images = new List<PlacedImage>();
+            var items = new List<PlacedItem>();
             var marginLeft = (float) page.MarginLeft;
             var headerTop = (float) page.HeaderDistance;
 
+            // A header's behind-text floating art is anchored like a body float but from the header origin —
+            // the page edge, the top margin, or the header band. Both header images and header shapes (e.g.
+            // cover-letters/10's charcoal banner and its 10%-alpha accent tint) paint behind the header text
+            // and the body.
+            (float X, float Y) Position(HorizontalAnchor horizontalAnchor, double horizontalOffset, VerticalAnchor verticalAnchor, double verticalOffset) =>
+            (
+                horizontalAnchor == HorizontalAnchor.Page ? (float) horizontalOffset : marginLeft + (float) horizontalOffset,
+                verticalAnchor switch
+                {
+                    VerticalAnchor.Page => (float) verticalOffset,
+                    VerticalAnchor.Margin => (float) page.MarginTop + (float) verticalOffset,
+                    _ => headerTop + (float) verticalOffset
+                });
+
             foreach (var element in header.Elements)
             {
-                if (element is not FloatingImageElement image || !image.BehindText || DecodableImageBytes(image) is not { Length: > 0 } data)
+                if (element is FloatingImageElement image && image.BehindText && DecodableImageBytes(image) is { Length: > 0 } data)
                 {
-                    continue;
+                    var (imageX, imageY) = Position(image.HorizontalAnchor, image.HorizontalPositionPoints, image.VerticalAnchor, image.VerticalPositionPoints);
+                    items.Add(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data));
                 }
-
-                var imageX = image.HorizontalAnchor == HorizontalAnchor.Page
-                    ? (float) image.HorizontalPositionPoints
-                    : marginLeft + (float) image.HorizontalPositionPoints;
-                var imageY = image.VerticalAnchor switch
+                else if (element is FloatingShapeElement shape && shape.BehindText)
                 {
-                    VerticalAnchor.Page => (float) image.VerticalPositionPoints,
-                    VerticalAnchor.Margin => (float) page.MarginTop + (float) image.VerticalPositionPoints,
-                    _ => headerTop + (float) image.VerticalPositionPoints
-                };
-
-                images.Add(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data));
+                    var (shapeX, shapeY) = Position(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.VerticalAnchor, shape.VerticalPositionPoints);
+                    // An image-fill shape paints as a plain image (PaintShape skips image fills); a solid,
+                    // gradient or outlined shape paints as a PlacedShape — mirroring the body-float shape cases.
+                    if (shape.ImageData is { Length: > 0 } shapeImage && shape.ImageContentType != "image/svg+xml")
+                    {
+                        items.Add(new PlacedImage(shapeX, shapeY, (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage, shape.RotationDegrees, shape.FlipHorizontal, shape.FlipVertical));
+                    }
+                    else if (shape.ImageData == null && (shape.Gradient != null || shape.FillColorHex != null || shape.LineColorHex != null))
+                    {
+                        items.Add(new PlacedShape(shapeX, shapeY, (float) shape.WidthPoints, (float) shape.HeightPoints, shape));
+                    }
+                }
             }
 
-            return images;
+            return items;
         }
 
         // Table X within the current column, by w:jc alignment: centred and right collapse the indent into

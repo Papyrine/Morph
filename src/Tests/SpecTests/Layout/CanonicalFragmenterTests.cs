@@ -281,6 +281,29 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task A_behind_text_header_shape_paints_as_a_placed_shape()
+    {
+        var banner = new FloatingShapeElement
+        {
+            WidthPoints = 400,
+            HeightPoints = 120,
+            FillColorHex = "262626",
+            FillAlpha = 0.1,
+            HorizontalAnchor = HorizontalAnchor.Page,
+            VerticalAnchor = VerticalAnchor.Page,
+            BehindText = true
+        };
+        var document = Fragmenter.Layout([P("body")], Page(400), header: new HeaderFooterContent { Elements = [banner] });
+
+        // A header's behind-text shape paints as a PlacedShape ahead of the body — the engine used to emit
+        // only header images and dropped shape banners (cover-letters/10's charcoal band). The painter
+        // honours the shape's fill alpha (the banner's 10% accent tint).
+        var shape = document.Pages[0].Items.OfType<PlacedShape>().Single();
+        await Assert.That(shape.Shape.FillColorHex).IsEqualTo("262626");
+        await Assert.That(shape.Shape.FillAlpha).IsEqualTo(0.1);
+    }
+
+    [Test]
     public async Task A_footer_table_lays_out_in_the_footer_band()
     {
         var footerTable = new TableElement
