@@ -13,6 +13,9 @@ public class EngineCoverageTests
     // Non-wrapping top-level floats are admitted: a behind/in-front floating shape and a wrap-none floating image.
     [Arguments("pct_pos_offset", true)]
     [Arguments("agendas-minutes/01", true)]
+    // Section breaks are admitted: the Fragmenter paginates every kind and each page carries its own geometry.
+    [Arguments("section_break_next_page", true)]
+    [Arguments("section_break_continuous", true)]
     [Arguments("wordart", false)]
     // A floating image that wraps text (WrapType.Square) still needs flow exclusions the engine lacks.
     [Arguments("image_wrap_square", false)]

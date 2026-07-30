@@ -24,12 +24,13 @@ static class ImageSharpPainter
     {
         foreach (var laidOutPage in document.Pages)
         {
-            using var image = new Image<Rgba32>(context.PageWidthPixels, context.PageHeightPixels);
+            var (pageWidth, pageHeight) = context.PagePixels(laidOutPage.Settings);
+            using var image = new Image<Rgba32>(pageWidth, pageHeight);
             using (var canvas = image.Frames.RootFrame.CreateCanvas(Configuration.Default, new()))
             {
                 var background = laidOutPage.Settings.BackgroundColorHex;
                 var backgroundColor = string.IsNullOrEmpty(background) ? Color.White : ImageSharpRenderContext.ParseColor(background);
-                canvas.Fill(context.GetBrush(backgroundColor), new RectangleF(0, 0, context.PageWidthPixels, context.PageHeightPixels));
+                canvas.Fill(context.GetBrush(backgroundColor), new RectangleF(0, 0, pageWidth, pageHeight));
 
                 foreach (var item in laidOutPage.Items)
                 {

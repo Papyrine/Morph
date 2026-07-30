@@ -401,6 +401,12 @@ abstract class RenderContextBase
     // boundary (1274.99995) so the truncation loses a whole pixel off each axis.
     static int ToPagePixels(double points, int dpi) => (int) (points * dpi / 72.0);
 
+    // Pixel dimensions for a specific page's geometry. The layout engine records the settings each page
+    // was laid at (a section break can switch page size mid-document), so a painter sizes each page from
+    // its own settings rather than the context's initial page size.
+    public (int Width, int Height) PagePixels(PageSettings settings) =>
+        (ToPagePixels(settings.WidthPoints, Dpi), ToPagePixels(settings.HeightPoints, Dpi));
+
     public bool HasSpaceFor(float heightPoints)
     {
         var tolerance = ContentHeight * 0.02f;
