@@ -794,6 +794,20 @@ plain-text placeholders 0.912. Word lays inline content controls out on one line
 the engine and the production renderer stack them — a pre-existing production limitation the engine matches,
 not an engine defect.
 
+### Emission slice: floating text boxes (coverage 306 → 310)
+
+A `FloatingTextBoxElement` is a floating box (background, outline, freeform geometry) with a mini-flow of
+paragraphs inside. Production draws the box then lays the content out at the box's top-left, full box width,
+with no internal inset. The engine emits both without new painter code: `Fragmenter.PlaceTextBox` adds the box
+chrome as a `PlacedShape` (a synthetic `FloatingShapeElement` carrying the box's fill/outline/geometry) and the
+content by reusing `LayoutCellContent` — wrapping the box's content in a synthetic cell — so paragraph spacing,
+alignment, inline images and even a nested table inside a text box lay out for free. Both are tagged with the
+page the flow has reached and paint behind or in front per `BehindText`. `EngineCoverage` admits a non-wrapping
+text box (wrapping ones need flow exclusions). Coverage rises **306 → 310**; all four documents measure at
+parity or better — brochures/03 +0.021 (a two-page document), cards/13 +0.0001, labels/10 −0.0006, labels/11
++0.0051 (three wins, one tie). A rotated text box currently rotates its box but not its content lines; none of
+the corpus text boxes rotate.
+
 ## Testing strategy (a large secondary win)
 
 The current suite infers layout from rasterized PNGs (the entire struggle behind `src/page_counts.md`).

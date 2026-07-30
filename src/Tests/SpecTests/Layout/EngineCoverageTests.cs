@@ -22,6 +22,8 @@ public class EngineCoverageTests
     [Arguments("complex_tables", true)]
     // Block-level content controls are admitted — each renders as its synthetic paragraph (its resolved value).
     [Arguments("content_control_inline", true)]
+    // A non-wrapping floating text box is admitted — its box chrome + content lay out inside the box.
+    [Arguments("cards/13", true)]
     // A WordArt text-warp element is a separate block/floating element the engine does not emit yet.
     [Arguments("wordart", false)]
     // A floating image that wraps text (WrapType.Square) still needs flow exclusions the engine lacks.

@@ -33,6 +33,9 @@ static class EngineCoverage
                 // Square/Tight/Through/TopAndBottom need flow exclusions the engine does not emit yet.
                 case FloatingShapeElement:
                 case FloatingImageElement { WrapType: WrapType.None }:
+                // A non-wrapping floating text box lays out its content inside its box (the Fragmenter emits
+                // the box chrome as a shape and the content as lines); wrapping text boxes need flow exclusions.
+                case FloatingTextBoxElement { WrapType: WrapType.None }:
                     break;
                 case TableElement table when IsSimpleTable(table):
                     break;
