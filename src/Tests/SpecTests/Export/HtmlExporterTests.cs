@@ -138,8 +138,12 @@ public class HtmlExporterTests
             ListItem("•", 54, "inner bullet"),
             ListItem("2.", 18, "outer two")));
 
+    // Word's letter/résumé templates space their blocks with EMPTY paragraphs, not paragraph
+    // spacing, and each is a real line — so a blank paragraph (empty or whitespace-only) exports as
+    // a one-line `<p>&nbsp;</p>` spacer carrying its own before/after spacing, matching the
+    // raster/PDF backends. Dropping them collapsed the gaps (cover-letters ran together).
     [Test]
-    public Task BlankParagraphsDropped() =>
+    public Task BlankParagraphsRenderAsSpacers() =>
         VerifyHtml(Doc(
             Para(TextRun("before")),
             Para(),
