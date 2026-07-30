@@ -13,7 +13,8 @@ static class TableHeightCalculator
         TableElement table,
         float[] colWidths,
         IParagraphMeasurer measurer,
-        bool hasVerticalMerge)
+        bool hasVerticalMerge,
+        bool addInteriorBorders = false)
     {
         var heights = new float[table.Rows.Count];
         var colCount = colWidths.Length;
@@ -130,29 +131,49 @@ static class TableHeightCalculator
             }
         }
 
-        // Fourth pass: border-collapse height. Word grows the table box by its OUTER horizontal
-        // border widths — the top border of the first row and the bottom border of the last row
-        // occupy layout space above/below the content. Shared inner edges (between two rows)
-        // collapse onto the content boundary and add no measurable row height, so only the outer
-        // edges count. Without this a fully-bordered table renders up to ~2pt tighter than Word once
-        // the (correct) after-spacing overlap removes the bottom-margin slack that used to mask it —
-        // e.g. a 1-row table whose only borders are its own top+bottom edges. A single-row table is
-        // both first and last, so it correctly accrues both edges.
+        // Fourth pass: border-collapse height. Word grows the table box by every collapsed horizontal
+        // edge — the outer top of the first row and the outer bottom of the last row always, and (when
+        // <paramref name="addInteriorBorders"/> is set) each interior edge between two rows. Word draws
+        // each edge on the boundary and insets the content below it, so a table of N rows accrues its
+        // outer top + outer bottom + the N-1 interior edges. Measured on header_row_repeat/01 (Word
+        // XPS): a 0.5pt insideH adds ~0.5pt of row-to-row pitch, which across 60 single-line rows is a
+        // whole extra row per page the engine would otherwise fit that Word does not (25 vs 24),
+        // shifting every continuation page. Each interior edge equals the row-below's resolved top
+        // border (the collapsed insideH), so HorizontalBorderWidth(top: true) reads it directly.
+        //
+        // Interior edges are OPT-IN because the two consumers position content differently. The layout
+        // engine's PdfPainter tops content in the taller cell and its pagination then matches Word, so
+        // it asks for them. The production PageRendererBase render does NOT inset content by the top
+        // border, so growing the row there drops the extra height as blank space at the cell bottom and
+        // shifts page breaks the wrong way (measured: resumes/10 −0.205, cover-letters/05 −0.05); it
+        // keeps the outer-only behaviour until it owns the content inset too. An earlier note claimed
+        // interior edges collapse and add nothing, but that was asserted on a 1-row table (no interior
+        // edge) and the XPS disproves it.
         if (heights.Length > 0)
         {
-            heights[0] += OuterHorizontalBorderWidth(table, colCount, rowIndex: 0, top: true);
+            heights[0] += HorizontalBorderWidth(table, colCount, rowIndex: 0, top: true);
             var lastRowIndex = table.Rows.Count - 1;
-            heights[^1] += OuterHorizontalBorderWidth(table, colCount, lastRowIndex, top: false);
+            heights[^1] += HorizontalBorderWidth(table, colCount, lastRowIndex, top: false);
+
+            if (addInteriorBorders)
+            {
+                for (var rowIndex = 1; rowIndex < table.Rows.Count; rowIndex++)
+                {
+                    heights[rowIndex] += HorizontalBorderWidth(table, colCount, rowIndex, top: true);
+                }
+            }
         }
 
         return heights;
     }
 
     /// <summary>
-    /// Widest visible top (or bottom) border across the cells of one row, in points — the table's
-    /// outer horizontal edge. Used to grow the first/last row by the collapsed outer border width.
+    /// Widest visible top (or bottom) border across the cells of one row, in points. For the first
+    /// row's top and the last row's bottom this is the table's outer horizontal edge; for any interior
+    /// row's top it is the collapsed edge shared with the row above (the resolved insideH). Used to
+    /// grow rows by the border width their content is inset by.
     /// </summary>
-    static float OuterHorizontalBorderWidth(TableElement table, int colCount, int rowIndex, bool top)
+    static float HorizontalBorderWidth(TableElement table, int colCount, int rowIndex, bool top)
     {
         var row = table.Rows[rowIndex];
         var width = 0f;

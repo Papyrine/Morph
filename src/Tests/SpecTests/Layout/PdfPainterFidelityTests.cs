@@ -110,9 +110,12 @@ public class PdfPainterFidelityTests
         // page also carries sub-pixel glyph/line-metric drift and host-vs-container rasterization AA that
         // depress its SSIM even when the wrap and alignment match Word exactly (e.g. long_paragraph 0.78).
         // The remaining true-layout gaps are tabs, footers and header text, image recolour effects, and
-        // row-height distribution. Behind-text cell-float shapes now paint (a label template's coloured
+        // per-row content inset. Behind-text cell-float shapes now paint (a label template's coloured
         // panels and blobs — labels/14 0.86); empty-paragraph after-spacing plus the last-line bottom-margin
-        // tolerance fixed the two_columns column-break point (0.63 → 0.74). The floor guards the median.
+        // tolerance fixed the two_columns column-break point (0.63 → 0.74); and counting collapsed interior
+        // horizontal borders in row heights (Word insets each row below its top edge) fixed a dense
+        // bordered table fitting one extra row per page (header_row_repeat/01 0.74 → 0.81). The floor
+        // guards the median.
         await Assert.That(median > 0.95).IsTrue();
     }
 

@@ -568,7 +568,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             var colWidths = TableLayout.CalculateColumnWidths(table, colCount, columnWidth, measurer);
             var hasVerticalMerge = TableLayout.HasVerticalMerge(table);
-            var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, measurer, hasVerticalMerge);
+            var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, measurer, hasVerticalMerge, addInteriorBorders: true);
 
             var tableWidth = 0f;
             foreach (var width in colWidths)
@@ -761,7 +761,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             var colWidths = TableLayout.CalculateColumnWidths(table, colCount, width, measurer);
-            var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, measurer, TableLayout.HasVerticalMerge(table));
+            var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, measurer, TableLayout.HasVerticalMerge(table), addInteriorBorders: true);
 
             var tableWidth = 0f;
             foreach (var colWidth in colWidths)
@@ -791,7 +791,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             var colWidths = TableLayout.CalculateColumnWidths(table, colCount, width, measurer);
-            var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, measurer, TableLayout.HasVerticalMerge(table));
+            var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, measurer, TableLayout.HasVerticalMerge(table), addInteriorBorders: true);
             var total = 0f;
             foreach (var rowHeight in rowHeights)
             {
