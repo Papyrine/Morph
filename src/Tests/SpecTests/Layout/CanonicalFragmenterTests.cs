@@ -939,6 +939,26 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task An_inline_image_carries_its_rotation_to_the_painter()
+    {
+        var run = new Run
+        {
+            Text = "",
+            InlineImageData = System.Text.Encoding.ASCII.GetBytes("PNG"),
+            InlineImageWidthPoints = 40,
+            InlineImageHeightPoints = 40,
+            InlineImageRotationDegrees = 45,
+            Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 }
+        };
+        var paragraph = new ParagraphElement { Runs = [run], Properties = new() };
+
+        var image = Fragmenter.Layout([paragraph], Page(200)).Pages[0].Items.OfType<PlacedLine>().SelectMany(_ => _.Images).Single();
+
+        // An inline image's transform reaches the painter the same way a floating one's does.
+        await Assert.That(image.RotationDegrees).IsEqualTo(45d).Within(0.01);
+    }
+
+    [Test]
     public async Task Contextual_spacing_collapses_the_gap_between_same_style_paragraphs()
     {
         var properties = new ParagraphProperties { StyleId = "MemoHead", ContextualSpacing = true, SpacingAfterPoints = 12 };

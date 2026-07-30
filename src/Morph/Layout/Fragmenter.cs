@@ -1219,7 +1219,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             for (var imageIndex = 0; imageIndex < line.Images.Count; imageIndex++)
             {
                 var image = line.Images[imageIndex];
-                images[imageIndex] = new PlacedImage(lineLeft + image.X, baseline - image.Height, image.Width, image.Height, image.Data);
+                images[imageIndex] = new PlacedImage(lineLeft + image.X, baseline - image.Height, image.Width, image.Height, image.Data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, Crop: image.Crop);
             }
 
             return images;
