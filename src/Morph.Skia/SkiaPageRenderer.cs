@@ -2522,7 +2522,8 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
     }
 
-    static SKPath BuildPolygonPath(FloatingShapeElement shape, float x, float y, float width, float height)
+    // Internal so SkiaPainter (the layout-engine raster path) can reuse the same custGeom subpath geometry.
+    internal static SKPath BuildPolygonPath(FloatingShapeElement shape, float x, float y, float width, float height)
     {
         var path = new SKPath();
         // Each sub-path is its own closed contour. SKPath's default Winding (nonzero) fill type
