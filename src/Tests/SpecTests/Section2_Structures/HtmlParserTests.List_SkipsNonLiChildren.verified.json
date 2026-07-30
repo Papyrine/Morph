@@ -37,7 +37,8 @@
         "Text": "•",
         "Level": 0,
         "IndentPoints": 36.0,
-        "HangingIndentPoints": 18.0
+        "HangingIndentPoints": 18.0,
+        "Format": "Decimal"
       },
       "KeepLines": false,
       "KeepNext": false,
