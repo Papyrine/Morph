@@ -808,6 +808,21 @@ parity or better — brochures/03 +0.021 (a two-page document), cards/13 +0.0001
 +0.0051 (three wins, one tie). A rotated text box currently rotates its box but not its content lines; none of
 the corpus text boxes rotate.
 
+### Emission slice: floating tables (coverage 310 → 314)
+
+A floating table (`w:tblpPr`) positions by its own offsets from a page/margin/text anchor. `PlaceFloatingTable`
+resolves the position (mirroring the production `ResolveFloatingTableY`/`ComputeTableX`), then reuses
+`LayoutNestedTable` to lay the grid out at that position with no page breaks, emitting the rows as body floats
+in front of the text. `EngineCoverage` splits its table check into an `IsSimpleTable` (non-floating) and a
+shared `HasSimpleCells`, and admits a floating table whose cells are simple. Coverage rises **310 → 314**.
+Three of the four documents are at parity — labels/04 −0.004, labels/09 −0.010, letters/01 +0.001 — where the
+floating table *is* the content with nothing to overlap. agendas-minutes/11 drops −0.073: its text-anchored
+float table sits over the body because a float takes no flow space, so the body flows into the same rows. That
+is the deferred **float-wrap** behaviour (the body should flow below or around the float), the same gap that
+keeps image_wrap_square out — not the table layout. It is admitted with that limitation documented, as the
+multi-page-anchor floats were; float wrap is the next lever, and would fix both this overlap and the wrapping
+image.
+
 ## Testing strategy (a large secondary win)
 
 The current suite infers layout from rasterized PNGs (the entire struggle behind `src/page_counts.md`).

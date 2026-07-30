@@ -39,6 +39,10 @@ static class EngineCoverage
                     break;
                 case TableElement table when IsSimpleTable(table):
                     break;
+                // A floating table (w:tblpPr) lays out at its own anchored position with simple cells — the
+                // Fragmenter positions it and reuses the nested-table layout; it takes no flow space.
+                case TableElement { Properties.IsFloating: true } table when HasSimpleCells(table):
+                    break;
                 default:
                     return false;
             }
@@ -47,13 +51,11 @@ static class EngineCoverage
         return true;
     }
 
-    static bool IsSimpleTable(TableElement table)
-    {
-        if (table.Properties.IsFloating)
-        {
-            return false;
-        }
+    static bool IsSimpleTable(TableElement table) =>
+        !table.Properties.IsFloating && HasSimpleCells(table);
 
+    static bool HasSimpleCells(TableElement table)
+    {
         foreach (var row in table.Rows)
         {
             foreach (var cell in row.Cells)

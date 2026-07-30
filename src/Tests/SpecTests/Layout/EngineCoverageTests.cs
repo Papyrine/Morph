@@ -24,6 +24,8 @@ public class EngineCoverageTests
     [Arguments("content_control_inline", true)]
     // A non-wrapping floating text box is admitted — its box chrome + content lay out inside the box.
     [Arguments("cards/13", true)]
+    // A floating table (w:tblpPr) is admitted — the Fragmenter positions it and reuses the nested-table layout.
+    [Arguments("letters/01", true)]
     // A WordArt text-warp element is a separate block/floating element the engine does not emit yet.
     [Arguments("wordart", false)]
     // A floating image that wraps text (WrapType.Square) still needs flow exclusions the engine lacks.
