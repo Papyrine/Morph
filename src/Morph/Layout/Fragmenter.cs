@@ -1246,8 +1246,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             return runs;
         }
 
-        // Projects a laid-out line's inline images to placed images: the line's left edge plus each
-        // image's offset, with its bottom sitting on the text baseline.
+        // Projects a laid-out line's inline boxes (images and shape groups) to placed images: the line's
+        // left edge plus each box's offset, with its bottom sitting on the text baseline. A shape-group box
+        // carries its group through and leaves Data null.
         static IReadOnlyList<PlacedImage> MapImages(LaidOutLine line, float lineLeft, float baseline)
         {
             if (line.Images.Count == 0)
@@ -1259,7 +1260,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             for (var imageIndex = 0; imageIndex < line.Images.Count; imageIndex++)
             {
                 var image = line.Images[imageIndex];
-                images[imageIndex] = new PlacedImage(lineLeft + image.X, baseline - image.Height, image.Width, image.Height, image.Data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, Crop: image.Crop);
+                images[imageIndex] = new PlacedImage(lineLeft + image.X, baseline - image.Height, image.Width, image.Height, image.Data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, Crop: image.Crop, ShapeGroup: image.ShapeGroup);
             }
 
             return images;

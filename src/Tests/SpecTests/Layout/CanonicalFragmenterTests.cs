@@ -275,7 +275,7 @@ public class CanonicalFragmenterTests
         // The behind-text header image follows the same variant as the header text: page 1's from the
         // first-page header, page 2's from the default.
         string ImageTag(int pageIndex) =>
-            System.Text.Encoding.ASCII.GetString(document.Pages[pageIndex].Items.OfType<PlacedImage>().Single().Data);
+            System.Text.Encoding.ASCII.GetString(document.Pages[pageIndex].Items.OfType<PlacedImage>().Single().Data!);
         await Assert.That(ImageTag(0)).IsEqualTo("first");
         await Assert.That(ImageTag(1)).IsEqualTo("default");
     }
@@ -956,7 +956,7 @@ public class CanonicalFragmenterTests
         var placed = Fragmenter.Layout([image, P("body")], Page(200)).Pages[0].Items.OfType<PlacedImage>().Single();
 
         // PdfSharp cannot rasterize SVG, so the float carries the raster equivalent, not the SVG bytes.
-        await Assert.That(System.Text.Encoding.ASCII.GetString(placed.Data)).IsEqualTo("PNG");
+        await Assert.That(System.Text.Encoding.ASCII.GetString(placed.Data!)).IsEqualTo("PNG");
     }
 
     [Test]
@@ -975,7 +975,7 @@ public class CanonicalFragmenterTests
 
         // A full-bleed image-fill shape becomes a plain image — the shape painter skips image fills.
         var placed = items.OfType<PlacedImage>().Single();
-        await Assert.That(System.Text.Encoding.ASCII.GetString(placed.Data)).IsEqualTo("JPG");
+        await Assert.That(System.Text.Encoding.ASCII.GetString(placed.Data!)).IsEqualTo("JPG");
         await Assert.That(items.OfType<PlacedShape>().Any()).IsFalse();
     }
 

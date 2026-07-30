@@ -444,6 +444,18 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 continue;
             }
 
+            // An inline shape group (a grouped drawing) is measured exactly like an inline image: an
+            // unbreakable box whose display width counts toward the line and whose height grows the line,
+            // carried on a LaidOutImage with no bytes and its ShapeGroup set. The display size is on the
+            // run's inline-image extent, since the two are mutually exclusive.
+            if (run.InlineShapeGroup is { } shapeGroup)
+            {
+                var groupWidth = (float) (run.InlineImageWidthPoints > 0 ? run.InlineImageWidthPoints : 12);
+                var groupHeight = (float) (run.InlineImageHeightPoints > 0 ? run.InlineImageHeightPoints : 12);
+                pieces.Add(new(false, CanonicalTextMeasurer.PixelsFromPoints(groupWidth), 0, "", run.Properties, new LaidOutImage(0, groupWidth, groupHeight, null, ShapeGroup: shapeGroup), false, false));
+                continue;
+            }
+
             // A tab advances the pen to the next tab stop; the advance is position-dependent, so it is
             // resolved in BuildLineItems, not here. Its pitch keeps a tab-only line the right height.
             if (run.IsTab)

@@ -196,14 +196,147 @@ static class SkiaPainter
 
     static void PaintImage(SkiaRenderContext context, SKCanvas canvas, PlacedImage image)
     {
-        var bitmap = context.GetBitmap(image.Data);
-        if (bitmap == null)
+        if (image.ShapeGroup != null)
+        {
+            PaintInlineGroup(context, canvas, image);
+            return;
+        }
+
+        if (image.Data is not { } data || context.GetBitmap(data) is not { } bitmap)
         {
             return;
         }
 
         // Rotation/flip/crop are deferred; inline images in the covered subset draw upright.
         canvas.DrawBitmap(bitmap, SKRect.Create(P(context, image.X), P(context, image.Y), P(context, image.Width), P(context, image.Height)));
+    }
+
+    // EMU per point (914400 EMU/inch ÷ 72 pt/inch), matching TextRenderer — a group member's a:ln/@w is
+    // absolute EMU and converts to points independent of the child-coordinate scale.
+    const float emusPerPoint = 12700f;
+
+    // An inline shape group (a grouped drawing embedded in a run): its child shapes scaled from the group's
+    // child coordinate space into the inline box, painted back to front. A verbatim port of
+    // TextRenderer.RenderInlineShapeGroup that reuses the same colour/contour/primitive/picture helpers, so
+    // the engine paints an inline group pixel-identically to production. The placed box is already in points
+    // with its top at Y (the fragmenter set Y = baseline − height), so no baseline subtraction is needed.
+    static void PaintInlineGroup(SkiaRenderContext context, SKCanvas canvas, PlacedImage placed)
+    {
+        var group = placed.ShapeGroup!;
+        float pixelX = P(context, placed.X), pixelY = P(context, placed.Y), pixelWidth = P(context, placed.Width), pixelHeight = P(context, placed.Height);
+
+        var sx = pixelWidth / (float) group.ChildExtentX;
+        var sy = pixelHeight / (float) group.ChildExtentY;
+
+        canvas.Save();
+        if (group.RotationDegrees != 0)
+        {
+            canvas.RotateDegrees((float) group.RotationDegrees, pixelX + pixelWidth / 2f, pixelY + pixelHeight / 2f);
+        }
+
+        foreach (var shape in group.Shapes)
+        {
+            var x1 = pixelX + (float) shape.X * sx;
+            var y1 = pixelY + (float) shape.Y * sy;
+            var width = (float) shape.Width * sx;
+            var height = (float) shape.Height * sy;
+
+            if (shape.Geometry == GroupShapeGeometry.Line)
+            {
+                var startX = x1;
+                var startY = y1;
+                var endX = x1 + width;
+                var endY = y1 + height;
+                if (shape.FlipVertical)
+                {
+                    (startY, endY) = (endY, startY);
+                }
+
+                if (shape.FlipHorizontal)
+                {
+                    (startX, endX) = (endX, startX);
+                }
+
+                using var linePaint = new SKPaint
+                {
+                    Color = TextRenderer.ParseColor(shape.ColorHex, shape.LineAlpha),
+                    Style = SKPaintStyle.Stroke,
+                    StrokeWidth = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75) * context.Scale,
+                    StrokeCap = SKStrokeCap.Square,
+                    IsAntialias = true
+                };
+                canvas.DrawLine(startX, startY, endX, endY, linePaint);
+                continue;
+            }
+
+            var isEllipse = shape.Geometry == GroupShapeGeometry.Ellipse;
+            var rect = new SKRect(x1, y1, x1 + width, y1 + height);
+            using var geometryPath = TextRenderer.BuildGroupShapePath(shape, rect);
+
+            if (shape.Shadow is { } shadow)
+            {
+                using var shadowPaint = new SKPaint
+                {
+                    Color = TextRenderer.ParseColor(shadow.ColorHex, shadow.Alpha),
+                    Style = SKPaintStyle.Fill,
+                    IsAntialias = true
+                };
+                var offset = rect;
+                offset.Offset((float) shadow.OffsetX * sx, (float) shadow.OffsetY * sy);
+                using var shadowPath = TextRenderer.BuildGroupShapePath(shape, offset);
+                if (shadowPath != null)
+                {
+                    canvas.DrawPath(shadowPath, shadowPaint);
+                }
+                else
+                {
+                    TextRenderer.DrawGeometry(canvas, offset, isEllipse, shadowPaint);
+                }
+            }
+
+            if (shape.ImageData != null)
+            {
+                TextRenderer.RenderGroupPicture(context, canvas, shape, rect, isEllipse);
+            }
+            else if (shape.FillColorHex is { } fillHex)
+            {
+                using var fillPaint = new SKPaint
+                {
+                    Color = TextRenderer.ParseColor(fillHex, shape.FillAlpha),
+                    Style = SKPaintStyle.Fill,
+                    IsAntialias = true
+                };
+                if (geometryPath != null)
+                {
+                    canvas.DrawPath(geometryPath, fillPaint);
+                }
+                else
+                {
+                    TextRenderer.DrawGeometry(canvas, rect, isEllipse, fillPaint);
+                }
+            }
+
+            if (shape.LineWidthEmu > 0)
+            {
+                using var strokePaint = new SKPaint
+                {
+                    Color = TextRenderer.ParseColor(shape.ColorHex, shape.LineAlpha),
+                    Style = SKPaintStyle.Stroke,
+                    StrokeWidth = (float) (shape.LineWidthEmu / emusPerPoint) * context.Scale,
+                    IsAntialias = true
+                };
+                if (geometryPath != null)
+                {
+                    canvas.DrawPath(geometryPath, strokePaint);
+                }
+                else
+                {
+                    TextRenderer.DrawGeometry(canvas, rect, isEllipse, strokePaint);
+                }
+            }
+        }
+
+        canvas.Restore();
     }
 
     // A behind-text floating shape: fill and outline of its freeform contours (reusing the production
