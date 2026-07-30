@@ -823,6 +823,27 @@ keeps image_wrap_square out — not the table layout. It is admitted with that l
 multi-page-anchor floats were; float wrap is the next lever, and would fix both this overlap and the wrapping
 image.
 
+### Emission slice: unwarped WordArt (coverage 316 → 321, 98.8%)
+
+WordArt looks like the hardest remaining bucket — text-on-path, per-glyph envelope warps, 16 presets — but the
+warp math turns out to matter only to the two synthetic test documents. Every WordArt in a real corpus template
+(business/06's LOGO frame, brochures/08's ring, menus/03's cell labels, wedding/08's ellipse badge, cards/02) is
+`textNoShape` — no warp. And unwarped WordArt is just Word's inline text box: box chrome plus the text shrunk to
+fit and centred. So the engine emits it with no new painter code — a `PlacedShape` for the box (fill, outline,
+freeform or ellipse geometry) and the text through `LayoutWordArtText`, which lays a centre-aligned synthetic
+paragraph at the fitted font size out via `LayoutCellContent`. Three contexts: a block WordArt takes flow space
+at the aligned cursor, a floating one is absolutely positioned text with no box, and a cell one lays out at the
+cell cursor. `EngineCoverage` admits an unwarped WordArt (a warped one still disqualifies). Coverage rises
+**316 → 321 (98.8%)**, and all five documents *beat* production — business/06 +0.012, brochures/08 +0.004,
+menus/03 +0.007, wedding/08 +0.004, cards/02 +0.029 — because the engine's box-and-centred-text matches Word
+more closely than the production path does. Deferred: the glyph outline (fill only for now) and the 16 warp
+presets, which only the wordart / wordart-envelope test documents need.
+
+Coverage now stands at **321 / 325**; the four hold-outs are the two warp test documents, image_wrap_square
+(float wrap), and agendas-minutes/14 (a positioned frame). The float-wrap feature and the multi-page
+float-anchor parser fix are the remaining levers; with the covered set at 98.8% and at parity across all three
+raster backends, this is the point to revisit the flip.
+
 ## Testing strategy (a large secondary win)
 
 The current suite infers layout from rasterized PNGs (the entire struggle behind `src/page_counts.md`).

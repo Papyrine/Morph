@@ -26,7 +26,10 @@ public class EngineCoverageTests
     [Arguments("cards/13", true)]
     // A floating table (w:tblpPr) is admitted — the Fragmenter positions it and reuses the nested-table layout.
     [Arguments("letters/01", true)]
-    // A WordArt text-warp element is a separate block/floating element the engine does not emit yet.
+    // Unwarped WordArt is admitted — a block one (business/06's LOGO box) and one in a cell (menus/03's labels).
+    [Arguments("business/06", true)]
+    [Arguments("menus/03", true)]
+    // A WARPED WordArt (arch/wave/envelope) is still excluded — the warp geometry is not emitted yet.
     [Arguments("wordart", false)]
     // A floating image that wraps text (WrapType.Square) still needs flow exclusions the engine lacks.
     [Arguments("image_wrap_square", false)]
