@@ -16,10 +16,12 @@ public class EngineCoverageTests
     // Section breaks are admitted: the Fragmenter paginates every kind and each page carries its own geometry.
     [Arguments("section_break_next_page", true)]
     [Arguments("section_break_continuous", true)]
+    // An inline shape group (a grouped drawing in a run) is admitted — the painters draw it.
+    [Arguments("inline_shape_arrows", true)]
+    // A WordArt text-warp element is a separate block/floating element the engine does not emit yet.
     [Arguments("wordart", false)]
     // A floating image that wraps text (WrapType.Square) still needs flow exclusions the engine lacks.
     [Arguments("image_wrap_square", false)]
-    [Arguments("inline_shape_arrows", false)]
     public async Task Covers_admits_block_table_column_and_rejects_art(string relative, bool covered)
     {
         var input = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", relative.Replace('/', Path.DirectorySeparatorChar), "input.docx");

@@ -14,9 +14,9 @@ static class EngineCoverage
         {
             switch (element)
             {
-                // Inline images are emitted and painted, so a plain paragraph is covered; an inline shape
-                // group (WordArt, grouped drawing) is not yet, and disqualifies the document.
-                case ParagraphElement paragraph when !HasInlineArt(paragraph):
+                // Inline images and inline shape groups (grouped drawings embedded in a run) are both
+                // emitted and painted, so any plain paragraph is covered.
+                case ParagraphElement:
                 case PageBreakElement:
                 case ColumnBreakElement:
                 // The Fragmenter paginates every section-break kind (NextPage/Even/Odd advance and re-lay at
@@ -55,7 +55,9 @@ static class EngineCoverage
             {
                 foreach (var element in cell.Content)
                 {
-                    if (element is not ParagraphElement paragraph || HasInlineArt(paragraph))
+                    // A cell holds only paragraphs (which may carry inline images or shape groups); a nested
+                    // table or other non-paragraph content is not covered yet.
+                    if (element is not ParagraphElement)
                     {
                         return false;
                     }
@@ -65,7 +67,4 @@ static class EngineCoverage
 
         return true;
     }
-
-    static bool HasInlineArt(ParagraphElement paragraph) =>
-        paragraph.Runs.Any(_ => _.InlineShapeGroup != null);
 }

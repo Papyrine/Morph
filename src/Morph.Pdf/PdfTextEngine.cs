@@ -935,7 +935,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
 
             if (shape.ImageData != null)
             {
-                DrawGroupPicture(graphics, shape, x, y, width, height, isEllipse);
+                DrawGroupPicture(context, graphics, shape, x, y, width, height, isEllipse);
             }
             else if (shape.FillColorHex is { } fillHex)
             {
@@ -981,7 +981,9 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
     /// flip flags applied, or null for primitive-geometry shapes. Alternate (even-odd) fill keeps
     /// ring shapes (frame) hollow.
     /// </summary>
-    static XGraphicsPath? BuildGroupShapePath(GroupShape shape, double x, double y, double width, double height)
+    // Internal so PdfPainter reuses the exact group-shape contour, picture, pen and alpha helpers when it
+    // paints an inline shape group through the layout engine, keeping the two paths identical.
+    internal static XGraphicsPath? BuildGroupShapePath(GroupShape shape, double x, double y, double width, double height)
     {
         if (shape.Subpaths == null)
         {
@@ -1013,7 +1015,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         return path;
     }
 
-    void DrawGroupPicture(XGraphics graphics, GroupShape shape, double x, double y, double width, double height, bool clipToEllipse)
+    internal static void DrawGroupPicture(PdfRenderContext context, XGraphics graphics, GroupShape shape, double x, double y, double width, double height, bool clipToEllipse)
     {
         // PDFsharp can't decode SVG, so an icon graphic falls back to the raster blip the parser
         // kept behind it — see PdfPageRenderer.CanRenderContentType.
@@ -1060,7 +1062,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         }
     }
 
-    static XPen StrokePen(GroupShape shape, double widthPoints)
+    internal static XPen StrokePen(GroupShape shape, double widthPoints)
     {
         var rgb = PdfRenderContext.ParseColor(shape.ColorHex);
         return new(XColor.FromArgb(AlphaByte(shape.LineAlpha), rgb.R, rgb.G, rgb.B), Math.Max(0.4, widthPoints))
@@ -1073,7 +1075,7 @@ sealed class PdfTextEngine(PdfRenderContext context) : IParagraphMeasurer
         };
     }
 
-    static int AlphaByte(double alpha) =>
+    internal static int AlphaByte(double alpha) =>
         (int) Math.Round(Math.Clamp(alpha, 0, 1) * 255);
 
     static readonly XStringFormat baselineFormat = new()
