@@ -55,9 +55,17 @@ static class EngineCoverage
             {
                 foreach (var element in cell.Content)
                 {
-                    // A cell holds only paragraphs (which may carry inline images or shape groups); a nested
-                    // table or other non-paragraph content is not covered yet.
-                    if (element is not ParagraphElement)
+                    // A cell holds paragraphs (which may carry inline images or shape groups) or a nested
+                    // table that is itself simple — the Fragmenter lays a nested table out inline at the cell
+                    // cursor. Other non-paragraph content is not covered yet.
+                    if (element is TableElement nested)
+                    {
+                        if (!IsSimpleTable(nested))
+                        {
+                            return false;
+                        }
+                    }
+                    else if (element is not ParagraphElement)
                     {
                         return false;
                     }

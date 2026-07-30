@@ -18,6 +18,8 @@ public class EngineCoverageTests
     [Arguments("section_break_continuous", true)]
     // An inline shape group (a grouped drawing in a run) is admitted — the painters draw it.
     [Arguments("inline_shape_arrows", true)]
+    // A table with a nested (simple) table in a cell is admitted — the Fragmenter lays the nested table out inline.
+    [Arguments("complex_tables", true)]
     // A WordArt text-warp element is a separate block/floating element the engine does not emit yet.
     [Arguments("wordart", false)]
     // A floating image that wraps text (WrapType.Square) still needs flow exclusions the engine lacks.
