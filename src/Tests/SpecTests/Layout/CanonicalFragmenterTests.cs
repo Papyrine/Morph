@@ -1040,4 +1040,38 @@ public class CanonicalFragmenterTests
         var page2Lines = document.Pages[1].Items.OfType<PlacedLine>().ToList();
         await Assert.That(page2Lines.Min(_ => _.Y)).IsEqualTo(20f).Within(0.5f);
     }
+
+    // A three-column geometry with columns at x=0, 156, 312 (468pt wide, no margins/spacing).
+    static PageSettings ThreeColumnSheet(int columns) =>
+        new() { WidthPoints = 468, HeightPoints = 600, MarginTop = 0, MarginBottom = 0, MarginLeft = 0, MarginRight = 0, ColumnCount = columns, ColumnSpacing = 0 };
+
+    [Test]
+    public async Task A_multi_column_section_terminated_by_a_break_balances_its_columns()
+    {
+        // Six short items in a three-column section, then a continuous break to one column. Word balances the
+        // terminated section's columns to equal heights — two items each — rather than newspaper-filling
+        // column 0 (which, on a 600pt-tall page, would hold all six).
+        var items = Enumerable.Range(1, 6).Select(_ => P($"Item {_}")).ToArray();
+        var document = Fragmenter.Layout(
+            [.. items, new SectionBreakElement { BreakType = SectionBreakType.Continuous, NewSectionSettings = ThreeColumnSheet(1) }, P("footer")],
+            ThreeColumnSheet(3));
+
+        var itemLines = document.Pages[0].Items.OfType<PlacedLine>().Where(_ => _.Runs.Any(run => run.Text.StartsWith("Item"))).ToList();
+        await Assert.That(itemLines.Count(_ => _.X < 100f)).IsEqualTo(2);
+        await Assert.That(itemLines.Count(_ => _.X is >= 100f and < 250f)).IsEqualTo(2);
+        await Assert.That(itemLines.Count(_ => _.X >= 250f)).IsEqualTo(2);
+    }
+
+    [Test]
+    public async Task A_multi_column_final_section_stays_newspaper_flowed()
+    {
+        // The same six items as a three-column section that ends the document (no terminating break). Word
+        // does not balance this — column 0 fills first — so all six short items land in the first column.
+        var items = Enumerable.Range(1, 6).Select(_ => P($"Item {_}")).ToArray();
+        var document = Fragmenter.Layout([.. items], ThreeColumnSheet(3));
+
+        var itemLines = document.Pages[0].Items.OfType<PlacedLine>().Where(_ => _.Runs.Any(run => run.Text.StartsWith("Item"))).ToList();
+        await Assert.That(itemLines.Count).IsEqualTo(6);
+        await Assert.That(itemLines.All(_ => _.X < 100f)).IsTrue();
+    }
 }

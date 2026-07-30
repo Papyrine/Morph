@@ -409,14 +409,20 @@ Build alongside the existing renderers; do not delete anything until all three b
       multi-column documents are multi-column from their first section), so it is validated on a synthetic
       fixture instead: two unit tests assert both columns begin at the break and the overflow page resets to
       its top, and a rendered three-column newsletter confirms the shape.
-      **Column balancing turned out not to apply**: a multi-column section is newspaper-flowed — column 0
-      fills to the bottom, then column 1. Rendering three_columns and two_columns next to Word settled what
-      Word does at the end of a section: it does *not* balance a section that ends the document. Word lays
-      three_columns' thirty items out 14 / 15 / 1 across the columns (column 3 holds a single item), and this
-      engine reproduces that split exactly; two_columns fills column 1 and leaves column 2 ragged, likewise
-      matched. Word balances the columns only of a multi-column section a section break *terminates*, and the
-      corpus has none — every multi-column section here is the document's final one — so the newspaper flow
-      matches Word everywhere the corpus goes, and balancing is unexercised rather than a fidelity gap.
+      **Column balancing landed**: a multi-column section that ends the document is newspaper-flowed — column
+      0 fills to the bottom, then column 1 — while a section a *section break* terminates has its last page's
+      columns balanced to equal heights. Which of the two Word applies was settled by rendering documents
+      through Word itself: three_columns (a final section) lays its thirty items out 14 / 15 / 1 across the
+      columns, the last column holding a single item, and the engine reproduces that split exactly (two_columns
+      likewise). For the balanced case the corpus has no example, so a synthetic fixture — a three-column
+      section closed by a continuous break — was authored and rendered through Word: Word balances its six
+      items two / two / two, and the engine now reproduces that, the single-column footer flowing full-width
+      below. `BalanceCurrentColumns` redistributes the last page's column lines in reading order, filling each
+      column to the average height (total / columns), triggered at the section break (a section that ends the
+      document never reaches it, so it stays newspaper-flowed). Uneven-height balancing is approximate — the
+      greedy fill targets the average rather than searching for the minimal tallest column — and a region
+      carrying a table, shading or a border box is left newspaper-flowed (those move as coupled groups); both
+      are later refinements with no corpus demand.
       **Measured end-to-end**
       (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
       pages against Word's own render (`expected_*.png`). Across 180 block/table/column documents the
