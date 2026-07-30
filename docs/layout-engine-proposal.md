@@ -744,13 +744,16 @@ only)** on both Skia and ImageSharp — the four coloured arrows and the thinner
 
 Across the corpus the inline-group set measures **−0.0180 vs production** (26 docs, 9 wins / 17 losses); the
 whole 297-doc covered set is **−0.0027**. Unlike the float and section sets, this one does not sit at parity —
-but the drag is *not* the inline-group paint. The worst losers are design-heavy documents whose **floating
-background band the engine mis-renders**: cover-letters/10 (−0.163) drops its charcoal header band entirely
-(white where Word is charcoal), and the menus/07 family (inline_group_crop/rotation, menus_07/09, −0.02 to
-−0.03) shows a green panel for charcoal. Their inline groups render correctly — cover-letters/10's yellow
-logo and the menu photos are all in place — so this is a pre-existing floating-background defect these
-documents merely *exposed* on entering the covered set, and it is the next slice. Setting those aside, the
-inline groups themselves match production (inline_shape_arrows 1.6% AA on both backends).
+but the drag is *not* the inline-group paint. The worst losers are design-heavy templates whose **coloured
+background panel the engine drops**: cover-letters/10 (−0.163) loses its charcoal header band and resumes/09
+(−0.064) its red sidebar (white where Word fills), while their inline groups render correctly (cover-letters/10's
+yellow logo, resumes/09's "JM" mark and sidebar text are all in place). cover-letters/10 has no top-level
+floating elements at all, so these panels are floats anchored in a paragraph or cell — which the engine's
+top-level-and-cell float handling does not place. (menus/07's full-page charcoal shape, by contrast, IS a
+top-level float and renders correctly — engine and production both sample charcoal.) So this is a pre-existing
+non-top-level-float defect these documents merely *exposed* on entering the covered set, and it is the next
+slice. Setting it aside, the inline groups themselves match production (inline_shape_arrows 1.6% AA on both
+backends).
 
 ## Testing strategy (a large secondary win)
 
