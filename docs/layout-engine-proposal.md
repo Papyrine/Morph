@@ -534,9 +534,15 @@ everything the corpus contains (the fallback goes cold).
 
 ### Phases
 
-- **A — Wiring spike.** Thread `resolveFont` from `PdfExportOptions` (via `PdfFontResolver` + `FontFallback`)
-  into a production `CanonicalParagraphMeasurer`. Add the engine path to `PdfRenderer.Render` behind an
-  internal gate, both paths coexisting. Gate: engine PDFs render and stay byte-deterministic.
+- **A — Wiring spike. LANDED.** `LayoutFonts` builds a `FontResolver<FontMetrics>` from the conversion's
+  `FontDirectory`/`FontFallback` (bundled seed + directory + fallback + DefaultFont; an OS metrics fallback
+  is a later slice) and wraps it as the `CanonicalParagraphMeasurer`'s `resolveFont`. `PdfRenderer.RenderViaEngine`
+  runs `Fragmenter.Layout` → `PdfPainter.Paint` and reuses the shared `MakeDeterministic`/`TrimPages`/`Normalize`
+  post-processing; the `MORPH_PDF_ENGINE` env var routes `Render` to it, and the method is internal so a test
+  drives it without the process-global toggle. Verified: the engine path through the public `ConvertToPdf`
+  reproduces `PdfPainterFidelityTests`' SSIM verbatim (multiple_pages 0.776, even_odd_headers/01 0.998,
+  dot_points 0.998), so `LayoutFonts` resolves the same faces as the tests' `LayoutTestFonts`; the default
+  path stays byte-identical. Not yet wired: per-conversion `FontWidthScale` into the measurer.
 - **B — Capability predicate + fallback.** Add the per-document predicate; route covered docs to the engine,
   the rest to `PdfTextEngine`. Gate: the container suite stays green (fallback preserves current output for
   uncovered docs; the covered subset regenerates its `pdf_result*` baselines once, reviewed against Word).
