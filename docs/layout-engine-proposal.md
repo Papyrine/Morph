@@ -473,6 +473,113 @@ Build alongside the existing renderers; do not delete anything until all three b
       `EnsureSpaceFor`/`AdvanceToNextColumnOrPage`, `TableHeightCalculator` (folded into the table
       sub-layout). Keep the backends' primitive draw ops only.
 
+## The PDF cutover (step 5), in detail
+
+Scoped against the current tree. The map below fixes the seam, the one wiring gap, the strategy, and the
+ordered backlog so the cutover can proceed as a run of small validated slices rather than one large flip.
+
+### The seam
+
+Every PDF entry point — `PdfDocumentConverter.ConvertToPdf`, `PdfHtmlConverter.ConvertToPdf`, and the
+`WordDocument`/`HtmlDocument` `ExportToPdf` extensions — funnels into one method:
+`PdfRenderer.Render(ParsedDocument, PdfExportOptions?)` (`src/Morph.Pdf/PdfRenderer.cs:8`). Its body has two
+halves. Lines 12–30 paginate and draw (`CountPagesIfRequired`, then `new PdfRenderContext(...)`,
+`new PdfPageRenderer(...)`, `renderer.RenderDocument(document)`). Lines 32–42 post-process the bytes for
+reproducibility (`MakeDeterministic`, optional `TrimPages`, `Save`, `Normalize`). **Only the first half is
+replaced.**
+
+The replacement already exists and is exercised by `PdfPainterFidelityTests`:
+
+    var pdf = PdfPainter.Paint(
+        Fragmenter.Layout(
+            document.Elements, document.PageSettings,
+            document.Header, document.Footer,
+            document.FirstPageHeader, document.FirstPageFooter,
+            document.EvenPageHeader, document.EvenPageFooter),
+        options.FontDirectory);
+
+`PdfPainter.Paint` builds its own `PdfDocument`, so `MakeDeterministic` / `TrimPages` / `Save` / `Normalize`
+run over it unchanged — the byte-reproducibility that makes the snapshots stable is untouched. The throwaway
+NUMPAGES pre-count (`CountPagesIfRequired`) becomes unnecessary on the engine path: `LaidOutDocument.Pages.Count`
+IS the total, so the page-number post-pass already has it. Swapping the seam retires **both** `PdfTextEngine`
+(paragraph-internal line breaks) **and** the `PdfPageRenderer` driver (`RenderDocument`/`RenderElement` +
+the page lifecycle). `PageRendererBase` stays — the Skia/ImageSharp backends still use it until step 6.
+
+### The one wiring gap
+
+`Fragmenter` needs a `CanonicalParagraphMeasurer` whose `resolveFont(family, bold, italic) -> FontMetrics?`
+delegate honours the conversion's `PdfExportOptions` (`FontDirectory`, `FontFallback`, `FontWidthScale`).
+The tests build it from `LayoutTestFonts.Resolve` (a `FontFileCache` over `src/Fonts` + `FontMetricsReader`);
+production has `PdfFontResolver` as the analogue, but its per-conversion `FontFallback` delegate is not yet
+wired (see `pdf-font-resolver-divergence`). The measurer's metrics drive the wrap and the painter's font
+resolution drives the draw, so both MUST resolve a given run to the same face or the paint drifts off the
+measured line. Closing this gap — one delegate, threaded from options into both the measurer and
+`PdfPainter`'s `PdfRenderContext` — is the whole of what makes the seam physically work.
+
+### Strategy: a capability-gated hybrid, not a single flip
+
+A corpus census (325 docs; regexes approximate) puts a drawing on ~49%, a text-box/shape on ~38%, a floating
+anchor on ~36%, and WordArt warp on ~28%. `PdfPainter` is already structurally complete over the `PlacedItem`
+set (all six kinds paint), so those docs are not blocked by the painter — they are blocked by the `Fragmenter`
+not yet EMITTING the art, or by a handful of painter-side fidelity items. The engine handles 180 of 325 docs
+today at 0.942 mean SSIM; production covers all 325 at 0.880.
+
+Because the unhandled 145 are concentrated in the hardest features and each tends to fail on a single emission
+gap, feature-completing everything before any flip would ship no benefit for a long time. The lower-risk path
+is a **capability predicate** — a generalisation of `PdfPainterFidelityTests.IsBlockTableOrColumnFlow` — that
+decides, per document, whether the engine covers it. `PdfRenderer.Render` routes covered documents through the
+engine and falls back to `PdfTextEngine` for the rest. Each emission slice that lands tightens the predicate,
+moving documents from the fallback onto the engine. `PdfTextEngine` is deleted only once the predicate admits
+everything the corpus contains (the fallback goes cold).
+
+### Phases
+
+- **A — Wiring spike.** Thread `resolveFont` from `PdfExportOptions` (via `PdfFontResolver` + `FontFallback`)
+  into a production `CanonicalParagraphMeasurer`. Add the engine path to `PdfRenderer.Render` behind an
+  internal gate, both paths coexisting. Gate: engine PDFs render and stay byte-deterministic.
+- **B — Capability predicate + fallback.** Add the per-document predicate; route covered docs to the engine,
+  the rest to `PdfTextEngine`. Gate: the container suite stays green (fallback preserves current output for
+  uncovered docs; the covered subset regenerates its `pdf_result*` baselines once, reviewed against Word).
+- **C — Close emission gaps (a run of slices).** Each lands a `Fragmenter` emission, tightens the predicate,
+  and regenerates the newly-covered `pdf_result*` baselines. Ordered by corpus impact below.
+- **D — Flip and delete.** When the predicate admits ~everything, make the engine the default, regenerate all
+  `pdf_result*` baselines, confirm `compare-all-pdf.md` holds or beats 0.880 mean and the PDF page-count
+  scoreboard holds or improves, then delete `PdfTextEngine` + the `PdfPageRenderer` driver.
+
+### Emission backlog (Fragmenter — unblocks whole documents, ordered by corpus reach)
+
+1. WordArt / inline shape groups (~28% carry a warp; the test filter keys off `run.InlineShapeGroup`).
+2. Floating shapes/images with text-wrap exclusions (square/tight) and multi-page float anchor-page
+   resolution (a body float currently binds to the page the flow has reached, not its anchor's page).
+3. Floating tables.
+4. Form fields and content controls.
+5. Footnote/endnote appendix at document end (`RenderNotesAppendix`).
+6. Per-variant (first/even) header/footer images, header/footer band tables, and 3-way footer tab alignment.
+7. Label grids.
+8. Line numbers, bar tabs, per-fragment paragraph borders across a break, per-section NUMPAGES restart.
+
+### Painter-fidelity backlog (does not block a document from rendering)
+
+Per-glyph advances (exact intra-run boundaries); image recolour/duotone (needs a pixel path `Morph.Pdf`
+lacks); super/subscript vertical offset (the font shrinks but is not raised — a self-contained fix);
+`w:position` baseline shift; small-caps; run borders and text effects; RTL. These depress SSIM where present
+but do not gate the predicate — a covered document still renders without them.
+
+### Validation gates (every slice)
+
+`PdfPainterFidelityTests` (SSIM vs Word, the standing gate); regenerate the touched `pdf_result*.verified.*`
+and diff `compare-all-pdf.md` for direction against Word; the PDF page-count scoreboard; the full container
+suite green. The HTML→PDF path rides the same seam (`PdfHtmlConverter` builds a `ParsedDocument` and calls the
+same `PdfRenderer.Render`), so it is covered by the same predicate and gates.
+
+### Risks
+
+Measure/paint font divergence (the wiring gap above) is the primary one — a mismatch paints text off its
+measured line. Determinism must survive the swap (verified by the unchanged `pdf_result.verified.pdf`
+snapshots). The engine's OpenType metrics differ subtly from PdfSharp's, so covered docs re-wrap and
+re-paginate on cutover — that is the intended new truth, but every covered baseline regenerates and must be
+reviewed against Word, not against the old production bytes.
+
 ## Testing strategy (a large secondary win)
 
 The current suite infers layout from rasterized PNGs (the entire struggle behind `src/page_counts.md`).
