@@ -156,7 +156,20 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         var pieces = Flatten(paragraph);
         var wrapWidth = maxWidth - (float) paragraph.Properties.LeftIndentPoints - (float) paragraph.Properties.RightIndentPoints;
 
+        // Only the FIRST line is re-sized by paragraph indents: w:firstLine indents it right (narrower by
+        // that much) and w:hanging outdents it left (wider by that much, extending toward the outer margin);
+        // subsequent lines sit at the block's LeftIndent and keep the full wrapWidth. Both indents are zero
+        // for a plain paragraph, so nothing changes. A LIST paragraph is exempt: its hanging indent only
+        // positions the marker, the text stays at the LeftIndent on every line. The Fragmenter shifts the
+        // first line's X by the same (FirstLineIndent − Hanging) so the wrap and the paint agree.
+        var firstLineWidth = paragraph.Properties.Numbering is { Text.Length: > 0 }
+            ? wrapWidth
+            : wrapWidth
+              - (float) paragraph.Properties.FirstLineIndentPoints
+              + (float) paragraph.Properties.HangingIndentPoints;
+
         var lines = new List<WrapLine>();
+        float LineWrapWidth() => lines.Count == 0 ? firstLineWidth : wrapWidth;
         double linePixels = 0, gapPixels = 0;
         float linePitch = 0, gapPitch = 0;
         var lineHasWord = false;
@@ -182,7 +195,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
                 if (gaps > 0)
                 {
-                    var slack = CanonicalTextMeasurer.PixelsFromPoints(wrapWidth) - linePixels;
+                    var slack = CanonicalTextMeasurer.PixelsFromPoints(LineWrapWidth()) - linePixels;
                     if (slack > 0)
                     {
                         extraGapPixels = slack / gaps;
@@ -254,7 +267,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 linePieces.AddRange(wordPieces);
                 lineHasWord = true;
             }
-            else if (CanonicalTextMeasurer.PixelsToPoints(linePixels + gapPixels + wordPixels) <= wrapWidth)
+            else if (CanonicalTextMeasurer.PixelsToPoints(linePixels + gapPixels + wordPixels) <= LineWrapWidth())
             {
                 linePixels += gapPixels + wordPixels;
                 linePitch = Math.Max(linePitch, Math.Max(gapPitch, wordPitch));
