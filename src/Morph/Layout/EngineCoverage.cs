@@ -15,8 +15,10 @@ static class EngineCoverage
             switch (element)
             {
                 // Inline images and inline shape groups (grouped drawings embedded in a run) are both
-                // emitted and painted, so any plain paragraph is covered.
+                // emitted and painted, so any plain paragraph is covered. A block-level content control
+                // renders as its synthetic paragraph (its resolved value is in that paragraph's runs).
                 case ParagraphElement:
+                case ContentControlElement:
                 case PageBreakElement:
                 case ColumnBreakElement:
                 // The Fragmenter paginates every section-break kind (NextPage/Even/Odd advance and re-lay at
@@ -55,9 +57,10 @@ static class EngineCoverage
             {
                 foreach (var element in cell.Content)
                 {
-                    // A cell holds paragraphs (which may carry inline images or shape groups) or a nested
-                    // table that is itself simple — the Fragmenter lays a nested table out inline at the cell
-                    // cursor. Other non-paragraph content is not covered yet.
+                    // A cell holds paragraphs (which may carry inline images or shape groups), a content
+                    // control (rendered as its synthetic paragraph), or a nested table that is itself simple
+                    // — the Fragmenter lays a nested table out inline at the cell cursor. Other non-paragraph
+                    // content is not covered yet.
                     if (element is TableElement nested)
                     {
                         if (!IsSimpleTable(nested))
@@ -65,7 +68,7 @@ static class EngineCoverage
                             return false;
                         }
                     }
-                    else if (element is not ParagraphElement)
+                    else if (element is not (ParagraphElement or ContentControlElement))
                     {
                         return false;
                     }

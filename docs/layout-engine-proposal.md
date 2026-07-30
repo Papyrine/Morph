@@ -781,6 +781,19 @@ is not the nested table (its inner grid renders): it is the standing multi-page 
 is a two-page document whose page-2 background float stacks onto page 1 — which the nested-table exclusion had
 been hiding. brochures/01 joins newsletters/12 in the set that the multi-page float-anchor fix will lift.
 
+### Emission slice: content controls (coverage 304 → 306)
+
+A `ContentControlElement` (a checkbox, dropdown, date picker or plain-text placeholder) is a wrapper whose
+`CellParagraph` property synthesizes a paragraph from its resolved value — the parser already writes every
+control type's visible text into runs (a checkbox becomes its glyph, a dropdown its selection, a date its
+formatted string). So the whole feature is: treat a control as that paragraph. `EngineCoverage` admits a
+block-level control and a control-in-cell; the `Fragmenter`'s element loop and cell-content loop render its
+`CellParagraph`. Coverage rises **304 → 306**: content_control_inline (five mixed control types) measures
+**+0.0023** vs production (engine wins — the glyph, selection and date all render), and labels/07's eight
+plain-text placeholders 0.912. Word lays inline content controls out on one line with their label where both
+the engine and the production renderer stack them — a pre-existing production limitation the engine matches,
+not an engine defect.
+
 ## Testing strategy (a large secondary win)
 
 The current suite infers layout from rasterized PNGs (the entire struggle behind `src/page_counts.md`).
