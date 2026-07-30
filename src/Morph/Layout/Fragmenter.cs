@@ -22,14 +22,16 @@ using System.Globalization;
 /// even/odd breaks insert a blank filler page for parity. A Continuous break switching column count flows
 /// the new columns from the break point (the newsletter masthead → multi-column body case), each column on
 /// that page topping out at the break and resetting to the page top on overflow. A multi-column section is
-/// newspaper-flowed — column 0 fills to the bottom, then column 1, and so on — which matches Word for a
-/// section that ends the document (verified against three_columns, which lands its items 1-14 / 15-29 / 30
-/// across the columns, and two_columns). Deferred to later slices, and noted so a document using them is not
-/// yet expected to paginate: column balancing of a multi-column section that a *section break* terminates
-/// (Word equalises those columns' heights; the corpus has no such non-final multi-column section, so nothing
-/// exercises it); a margin-only continuous change; keep-next (widow/orphan and keep-lines are handled);
-/// floats and their wrap exclusions; floating tables; and inline images inside a nested table (nested tables
-/// themselves lay out). Other non-paragraph, non-table elements are skipped for now.</para>
+/// newspaper-flowed — column 0 fills to the bottom, then column 1, and so on — when it ends the document,
+/// which matches Word (verified against three_columns, which lands its items 1-14 / 15-29 / 30 across the
+/// columns, and two_columns); a multi-column section that a *section break* terminates has its last page's
+/// columns balanced to equal heights instead, as Word does (validated against a Word-rendered fixture — six
+/// items across three columns become two, two, two). Deferred to later slices, and noted so a document using
+/// them is not yet expected to paginate: minimal-tallest-column balancing (the greedy fill targets the
+/// average height, so uneven-height columns are approximate) and balancing a region that carries a table,
+/// shading or a border; a margin-only continuous change; keep-next (widow/orphan and keep-lines are
+/// handled); floats and their wrap exclusions; floating tables; and inline images inside a nested table
+/// (nested tables themselves lay out). Other non-paragraph, non-table elements are skipped for now.</para>
 /// </summary>
 sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 {
@@ -125,6 +127,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // wrong, as Word does.
         void ApplySectionBreak(SectionBreakElement sectionBreak)
         {
+            // A multi-column section terminated by a break has its last page's columns balanced to equal
+            // heights, as Word does — unlike a section that ends the document, which stays newspaper-flowed
+            // (there is no break to trigger this). Runs before the geometry switch, on the columns just laid.
+            if (columnCount > 1)
+            {
+                BalanceCurrentColumns();
+            }
+
             if (sectionBreak.BreakType == SectionBreakType.Continuous)
             {
                 // A same-column continuous break is a flow no-op. A new column count (the masthead → columns
@@ -169,6 +179,73 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 y = contentTop;
                 columnTop = contentTop;
             }
+        }
+
+        // Redistributes the current page's multi-column content into equal-height columns, the way Word
+        // balances a multi-column section that a section break terminates. The column region is everything
+        // placed at or below columnTop (a full-width masthead above it stays put); the lines flow in reading
+        // order, so filling each column to the average height (total / columns) and advancing left to right
+        // reproduces Word's even split — six items across three columns become two, two, two. Only plain
+        // text lines are balanced; a region carrying a table, shading or a border box is left newspaper-
+        // flowed (those move as coupled groups, a later slice). Leaves the cursor at the tallest column's
+        // bottom so the following content clears the balanced block.
+        void BalanceCurrentColumns()
+        {
+            var regionStart = items.FindIndex(_ => _.Y >= columnTop - 0.01f);
+            if (regionStart < 0)
+            {
+                return;
+            }
+
+            var count = items.Count - regionStart;
+            if (count == 0)
+            {
+                return;
+            }
+
+            var lines = new PlacedLine[count];
+            for (var offset = 0; offset < count; offset++)
+            {
+                if (items[regionStart + offset] is not PlacedLine line)
+                {
+                    return;
+                }
+
+                lines[offset] = line;
+            }
+
+            var totalHeight = 0f;
+            foreach (var line in lines)
+            {
+                totalHeight += line.Height;
+            }
+
+            var target = totalHeight / columnCount;
+            var rebalanced = new List<PlacedItem>(count);
+            var column = 0;
+            var columnY = columnTop;
+            var maxBottom = columnTop;
+            var columnStride = columnWidth + columnSpacing;
+            foreach (var line in lines)
+            {
+                var usedInColumn = columnY - columnTop;
+                if (column < columnCount - 1 && usedInColumn > 0 && usedInColumn + line.Height > target + 0.01f)
+                {
+                    column++;
+                    columnY = columnTop;
+                }
+
+                var oldColumn = (int) ((line.X - fullContentLeft) / columnStride);
+                rebalanced.Add(ShiftLine(line, (column - oldColumn) * columnStride, columnY - line.Y));
+                columnY += line.Height;
+                maxBottom = Math.Max(maxBottom, columnY);
+            }
+
+            items.RemoveRange(regionStart, count);
+            items.AddRange(rebalanced);
+            y = maxBottom;
+            currentColumn = column;
+            atRegionTop = false;
         }
 
         public LaidOutDocument Run(IReadOnlyList<DocumentElement> elements)
@@ -810,26 +887,33 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // Moves a placed line (and its inline images) down the page by an offset, for cell vertical
         // alignment. Runs carry no Y of their own — the painter draws them at the line's baseline — so
         // shifting Y and Baseline moves the text with the box.
-        static PlacedItem ShiftDown(PlacedItem item, float offset)
+        static PlacedItem ShiftDown(PlacedItem item, float offset) =>
+            item is PlacedLine line ? ShiftLine(line, 0, offset) : item;
+
+        // Shifts a placed line and everything it carries — its runs and inline images — by (dx, dy). Moving a
+        // line into another column (dx) when balancing and dropping it for cell vertical alignment (dy only)
+        // both go through here.
+        static PlacedLine ShiftLine(PlacedLine line, float dx, float dy)
         {
-            if (item is not PlacedLine line)
+            var runs = new PlacedRun[line.Runs.Count];
+            for (var runIndex = 0; runIndex < line.Runs.Count; runIndex++)
             {
-                return item;
+                runs[runIndex] = line.Runs[runIndex] with { X = line.Runs[runIndex].X + dx };
             }
 
-            var images = line.Images.Count == 0 ? line.Images : ShiftImages(line.Images, offset);
-            return line with { Y = line.Y + offset, Baseline = line.Baseline + offset, Images = images };
-        }
-
-        static IReadOnlyList<PlacedImage> ShiftImages(IReadOnlyList<PlacedImage> images, float offset)
-        {
-            var shifted = new PlacedImage[images.Count];
-            for (var imageIndex = 0; imageIndex < images.Count; imageIndex++)
+            var images = line.Images;
+            if (images.Count > 0)
             {
-                shifted[imageIndex] = images[imageIndex] with { Y = images[imageIndex].Y + offset };
+                var shifted = new PlacedImage[images.Count];
+                for (var imageIndex = 0; imageIndex < images.Count; imageIndex++)
+                {
+                    shifted[imageIndex] = images[imageIndex] with { X = images[imageIndex].X + dx, Y = images[imageIndex].Y + dy };
+                }
+
+                images = shifted;
             }
 
-            return shifted;
+            return line with { X = line.X + dx, Y = line.Y + dy, Baseline = line.Baseline + dy, Runs = runs, Images = images };
         }
 
         // Resolves a header's behind-text floating images to absolute page positions. The full-page
