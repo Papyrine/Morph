@@ -306,6 +306,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         PlaceParagraph(paragraph);
                         break;
 
+                    // A block-level content control renders as its synthetic paragraph (the parser resolved
+                    // its value — checkbox glyph, dropdown selection, formatted date, plain text — into runs).
+                    case ContentControlElement control when control.CellParagraph is { } controlParagraph:
+                        PlaceParagraph(controlParagraph);
+                        break;
+
                     case TableElement table:
                         PlaceTable(table);
                         break;
@@ -858,7 +864,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     continue;
                 }
 
-                if (element is not ParagraphElement paragraph)
+                // A content control in a cell (labels/07's [Name] placeholders) renders as its synthetic
+                // paragraph — the parser resolved each control's visible text (checkbox glyph, dropdown
+                // selection, formatted date, plain text) into that paragraph's runs.
+                var paragraph = element as ParagraphElement ?? (element as ContentControlElement)?.CellParagraph;
+                if (paragraph is null)
                 {
                     continue;
                 }
