@@ -770,6 +770,17 @@ accent panel matches Word's body colour exactly. **cover-letters/10 lifts 0.703 
 covered set moves from −0.0027 to **−0.0011** over 297 documents (85 wins / 80 losses, up from 80/84). The
 alpha fix is a correctness win for any float shape with a translucent fill, not just this document.
 
+### Emission slice: nested-table cells (coverage 300 → 304)
+
+`EngineCoverage.IsSimpleTable` rejected any cell holding a non-paragraph element, including a nested table —
+even though the `Fragmenter` has laid nested tables out inline at the cell cursor since an earlier slice. It
+now admits a cell containing a nested table when that table is *itself* simple (a recursive check). Coverage
+rises **300 → 304**; the four newly-covered documents measure complex_tables +0.001, business/03 −0.002 and
+resumes/06 +0.006 — at parity, the nested-table layout is sound — while brochures/01 drops −0.375. That drop
+is not the nested table (its inner grid renders): it is the standing multi-page float-anchor bug — brochures/01
+is a two-page document whose page-2 background float stacks onto page 1 — which the nested-table exclusion had
+been hiding. brochures/01 joins newsletters/12 in the set that the multi-page float-anchor fix will lift.
+
 ## Testing strategy (a large secondary win)
 
 The current suite infers layout from rasterized PNGs (the entire struggle behind `src/page_counts.md`).
