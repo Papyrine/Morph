@@ -304,6 +304,28 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task A_floating_text_box_emits_its_box_chrome_and_content()
+    {
+        var textBox = new FloatingTextBoxElement
+        {
+            Content = [P("boxed")],
+            WidthPoints = 200,
+            HeightPoints = 80,
+            BackgroundColorHex = "C0E3EC",
+            HorizontalAnchor = HorizontalAnchor.Page,
+            VerticalAnchor = VerticalAnchor.Page
+        };
+        var items = Fragmenter.Layout([textBox, P("body")], Page(400)).Pages[0].Items;
+
+        // The box chrome paints as a shape and the box content lays out as its own line inside the box.
+        var box = items.OfType<PlacedShape>().Single();
+        await Assert.That(box.Shape.FillColorHex).IsEqualTo("C0E3EC");
+        await Assert.That(box.Width).IsEqualTo(200f);
+        var boxedLine = items.OfType<PlacedLine>().Single(_ => _.Runs.Any(run => run.Text == "boxed"));
+        await Assert.That(boxedLine.Y >= 0).IsTrue();
+    }
+
+    [Test]
     public async Task A_footer_table_lays_out_in_the_footer_band()
     {
         var footerTable = new TableElement

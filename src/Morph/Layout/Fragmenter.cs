@@ -331,6 +331,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         bodyFloats.Add((bodies.Count, new PlacedShape(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints), FloatY(shape.VerticalAnchor, shape.VerticalPositionPoints), (float) shape.WidthPoints, (float) shape.HeightPoints, shape), shape.BehindText));
                         break;
 
+                    case FloatingTextBoxElement textBox when textBox.WrapType == WrapType.None:
+                        PlaceTextBox(textBox);
+                        break;
+
                     // Float wrap is a later slice.
                 }
             }
@@ -428,6 +432,40 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             VerticalAnchor.Margin => contentTop + (float) offset,
             _ => y + (float) offset
         };
+
+        // A floating text box: a box (background/outline) with a mini-flow of paragraphs inside. Its chrome
+        // paints as a shape and its content lays out at the box top-left — Word applies no internal inset,
+        // wrapping the content to the full box width. Both are tagged with the page the flow has reached,
+        // like the other body floats, and paint behind or in front of the text per BehindText.
+        void PlaceTextBox(FloatingTextBoxElement textBox)
+        {
+            var boxX = FloatX(textBox.HorizontalAnchor, textBox.HorizontalPositionPoints);
+            var boxY = FloatY(textBox.VerticalAnchor, textBox.VerticalPositionPoints);
+            var boxWidth = (float) textBox.WidthPoints;
+            var boxHeight = (float) textBox.HeightPoints;
+            var page = bodies.Count;
+
+            if (textBox.BackgroundColorHex != null || textBox.LineColorHex != null)
+            {
+                var boxShape = new FloatingShapeElement
+                {
+                    WidthPoints = textBox.WidthPoints,
+                    HeightPoints = textBox.HeightPoints,
+                    FillColorHex = textBox.BackgroundColorHex,
+                    LineColorHex = textBox.LineColorHex,
+                    LineWidthPoints = textBox.LineWidthPoints > 0 ? textBox.LineWidthPoints : null,
+                    LineAlpha = textBox.LineAlpha,
+                    Subpaths = textBox.Subpaths,
+                    RotationDegrees = textBox.RotationDegrees
+                };
+                bodyFloats.Add((page, new PlacedShape(boxX, boxY, boxWidth, boxHeight, boxShape), textBox.BehindText));
+            }
+
+            foreach (var item in LayoutCellContent(new() { Content = textBox.Content }, boxX, boxY, boxWidth, boxHeight, CellVerticalAlignment.Top))
+            {
+                bodyFloats.Add((page, item, textBox.BehindText));
+            }
+        }
 
         // The bytes a backend can actually decode: SVG artwork carries a raster equivalent (PdfSharp, like
         // ImageSharp, cannot rasterize SVG), so fall back to it when the primary data is SVG.
