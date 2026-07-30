@@ -594,6 +594,45 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task Interior_horizontal_borders_add_to_the_table_height()
+    {
+        // Word draws each collapsed interior edge on the row boundary and insets the row below it, so an
+        // N-row bordered table is taller than the same table without inside borders by (N-1) x the border
+        // width. Missing this, the engine fit an extra row per page in a dense bordered table
+        // (header_row_repeat/01: 25 data rows per page vs Word's 24). The production render positions
+        // content differently, so interior borders are opt-in (addInteriorBorders) on the engine path.
+        TableElement ThreeRow(BorderEdge insideH) =>
+            new()
+            {
+                Properties = new()
+                {
+                    GridColumnWidths = [120],
+                    DefaultBorders = new CellBorders { Top = BorderEdge.None, Bottom = BorderEdge.None, Left = BorderEdge.None, Right = BorderEdge.None },
+                    InsideHorizontalBorder = insideH
+                },
+                Rows =
+                [
+                    new TableRow { Cells = [new TableCell { Content = [P("row a")], Properties = new() }] },
+                    new TableRow { Cells = [new TableCell { Content = [P("row b")], Properties = new() }] },
+                    new TableRow { Cells = [new TableCell { Content = [P("row c")], Properties = new() }] }
+                ]
+            };
+
+        float Total(TableElement table)
+        {
+            var rows = Fragmenter.Layout([table], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().ToList();
+            return rows[^1].Y + rows[^1].Height - rows[0].Y;
+        }
+
+        var withBorder = Total(ThreeRow(new BorderEdge { IsVisible = true, WidthPoints = 2.0 }));
+        var without = Total(ThreeRow(BorderEdge.None));
+
+        // 3 rows -> 2 interior edges -> 2 x 2.0pt taller.
+        var delta = withBorder - without;
+        await Assert.That(delta > 3.99f && delta < 4.01f).IsTrue();
+    }
+
+    [Test]
     public async Task A_nested_table_lays_out_inside_its_cell_below_the_cells_paragraph()
     {
         var nested = new TableElement
