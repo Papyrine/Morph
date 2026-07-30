@@ -20,6 +20,13 @@ static class EngineCoverage
                 case PageBreakElement:
                 case ColumnBreakElement:
                     break;
+                // Behind/in-front floating shapes carry no text wrap; the Fragmenter lays them out by anchor
+                // into the page's float items and every painter draws them (solid, gradient, or — routed to
+                // PlacedImage — image fill). A floating image is admitted only when it does not wrap text:
+                // Square/Tight/Through/TopAndBottom need flow exclusions the engine does not emit yet.
+                case FloatingShapeElement:
+                case FloatingImageElement { WrapType: WrapType.None }:
+                    break;
                 case TableElement table when IsSimpleTable(table):
                     break;
                 default:
