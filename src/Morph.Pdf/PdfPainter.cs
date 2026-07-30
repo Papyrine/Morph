@@ -198,10 +198,13 @@ static class PdfPainter
 
     static void PaintImage(PdfRenderContext context, XGraphics graphics, PlacedImage image)
     {
-        // An inline shape group rides the image carrier with null Data; SkiaPainter already paints it, the
-        // PDF port is a follow-up slice. Skip so the null does not reach GetImage; the coverage predicate
-        // still rejects inline groups, so nothing routes here yet.
-        if (image.ShapeGroup != null || image.Data is not { Length: > 0 } data)
+        if (image.ShapeGroup is { } group)
+        {
+            PaintInlineGroup(context, graphics, image, group);
+            return;
+        }
+
+        if (image.Data is not { Length: > 0 } data)
         {
             return;
         }
@@ -286,6 +289,121 @@ static class PdfPainter
         {
             graphics.DrawImage(decoded, image.X, image.Y, image.Width, image.Height);
         }
+    }
+
+    // EMU per point (914400 EMU/inch ÷ 72 pt/inch), matching PdfTextEngine.
+    const double emusPerPoint = 12700;
+
+    // An inline shape group (a grouped drawing embedded in a run): its child shapes scaled from the group's
+    // child coordinate space into the inline box, painted back to front. A verbatim port of
+    // PdfTextEngine.DrawShapeGroup that reuses the same contour/picture/pen/alpha helpers, so the engine
+    // paints an inline group identically to production. PdfSharp is point-native, so the placed box (already
+    // in points, its top at Y = baseline − height) is drawn directly.
+    static void PaintInlineGroup(PdfRenderContext context, XGraphics graphics, PlacedImage placed, InlineShapeGroup group)
+    {
+        var penX = placed.X;
+        var top = placed.Y;
+        var scaleX = placed.Width / group.ChildExtentX;
+        var scaleY = placed.Height / group.ChildExtentY;
+
+        var state = graphics.Save();
+        if (group.RotationDegrees != 0)
+        {
+            graphics.RotateAtTransform(group.RotationDegrees, new(penX + placed.Width / 2, top + placed.Height / 2));
+        }
+
+        foreach (var shape in group.Shapes)
+        {
+            var x = penX + shape.X * scaleX;
+            var y = top + shape.Y * scaleY;
+            var width = shape.Width * scaleX;
+            var height = shape.Height * scaleY;
+
+            if (shape.Geometry == GroupShapeGeometry.Line)
+            {
+                var startX = x;
+                var startY = y;
+                var endX = x + width;
+                var endY = y + height;
+                if (shape.FlipVertical)
+                {
+                    (startY, endY) = (endY, startY);
+                }
+
+                if (shape.FlipHorizontal)
+                {
+                    (startX, endX) = (endX, startX);
+                }
+
+                var strokeWidth = shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75;
+                graphics.DrawLine(PdfTextEngine.StrokePen(shape, strokeWidth), startX, startY, endX, endY);
+                continue;
+            }
+
+            var isEllipse = shape.Geometry == GroupShapeGeometry.Ellipse;
+            var geometryPath = PdfTextEngine.BuildGroupShapePath(shape, x, y, width, height);
+
+            if (shape.Shadow is { } shadow)
+            {
+                var shadowRgb = PdfRenderContext.ParseColor(shadow.ColorHex);
+                var shadowBrush = new XSolidBrush(XColor.FromArgb(PdfTextEngine.AlphaByte(shadow.Alpha), shadowRgb.R, shadowRgb.G, shadowRgb.B));
+                var shadowX = x + shadow.OffsetX * scaleX;
+                var shadowY = y + shadow.OffsetY * scaleY;
+                if (geometryPath != null)
+                {
+                    graphics.DrawPath(shadowBrush, PdfTextEngine.BuildGroupShapePath(shape, shadowX, shadowY, width, height)!);
+                }
+                else if (isEllipse)
+                {
+                    graphics.DrawEllipse(shadowBrush, shadowX, shadowY, width, height);
+                }
+                else
+                {
+                    graphics.DrawRectangle(shadowBrush, shadowX, shadowY, width, height);
+                }
+            }
+
+            if (shape.ImageData != null)
+            {
+                PdfTextEngine.DrawGroupPicture(context, graphics, shape, x, y, width, height, isEllipse);
+            }
+            else if (shape.FillColorHex is { } fillHex)
+            {
+                var rgb = PdfRenderContext.ParseColor(fillHex);
+                var brush = new XSolidBrush(XColor.FromArgb(PdfTextEngine.AlphaByte(shape.FillAlpha), rgb.R, rgb.G, rgb.B));
+                if (geometryPath != null)
+                {
+                    graphics.DrawPath(brush, geometryPath);
+                }
+                else if (isEllipse)
+                {
+                    graphics.DrawEllipse(brush, x, y, width, height);
+                }
+                else
+                {
+                    graphics.DrawRectangle(brush, x, y, width, height);
+                }
+            }
+
+            if (shape.LineWidthEmu > 0)
+            {
+                var pen = PdfTextEngine.StrokePen(shape, shape.LineWidthEmu / emusPerPoint);
+                if (geometryPath != null)
+                {
+                    graphics.DrawPath(pen, geometryPath);
+                }
+                else if (isEllipse)
+                {
+                    graphics.DrawEllipse(pen, x, y, width, height);
+                }
+                else
+                {
+                    graphics.DrawRectangle(pen, x, y, width, height);
+                }
+            }
+        }
+
+        graphics.Restore(state);
     }
 
     // A behind-text floating shape: fill and outline of either its freeform contours (subpaths, scaled from

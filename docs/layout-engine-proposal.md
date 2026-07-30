@@ -718,6 +718,40 @@ The remaining excluded buckets (WordArt/inline shape groups, wrapping floats, fl
 non-paragraph cell content) are the next emission slices; the multi-page float anchor-page bug still gates the
 multi-page float documents among the now-covered set.
 
+### Emission slice: inline shape groups (coverage 273 → 300)
+
+The third and largest emission slice admits **inline shape groups** — grouped drawings embedded in a run
+(arrow glyphs, icon bubbles on coloured circles, circle-cropped photos), distinct from the WordArt text-warp
+element (a separate block/floating element still excluded). Unlike floats and section breaks, this one *does*
+emit new geometry: the group had no representation in the laid-out tree. It measures exactly like an inline
+image, though (all three production backends share the measure branch — width/height from the run's inline
+extent, bottom on the baseline), so it rides the existing inline-image carrier: `LaidOutImage`/`PlacedImage`
+gain an optional `ShapeGroup` and `Data` becomes nullable (a group carries no bytes), and the measurer's
+`Flatten`, `MapImages`, and every line height/ascent/shift/content path are reused unchanged.
+
+Each painter's `PaintImage` branches to a `PaintInlineGroup` that is a verbatim port of the production
+`TextRenderer.RenderInlineShapeGroup` / `PdfTextEngine.DrawShapeGroup` — the group's child shapes scaled from
+its child coordinate space into the inline box, painted back to front (lines, preset rect/ellipse, custom
+subpaths, solid fills, strokes, drop shadows, picture members, per-shape flips, and a whole-group rotation).
+The ports reuse the production `ParseColor`/`BuildGroupShapePath`/`DrawGeometry`/`RenderGroupPicture`/`StrokePen`
+helpers (promoted to internal; the picture helpers made static with the context threaded in), so the engine
+paints a group pixel-identically to production. `EngineCoverage` then drops the `HasInlineArt` rejection.
+
+Coverage jumped **273 → 300 documents** (92% of the corpus; 25 still excluded — WordArt warp, wrapping floats,
+floating tables/text-boxes, nested-table and other non-paragraph cell content). Validation: on
+inline_shape_arrows (the canonical connector-arrow set) the engine-vs-production diff is **1.6% (anti-aliasing
+only)** on both Skia and ImageSharp — the four coloured arrows and the thinner-stroke variant render exactly.
+
+Across the corpus the inline-group set measures **−0.0180 vs production** (26 docs, 9 wins / 17 losses); the
+whole 297-doc covered set is **−0.0027**. Unlike the float and section sets, this one does not sit at parity —
+but the drag is *not* the inline-group paint. The worst losers are design-heavy documents whose **floating
+background band the engine mis-renders**: cover-letters/10 (−0.163) drops its charcoal header band entirely
+(white where Word is charcoal), and the menus/07 family (inline_group_crop/rotation, menus_07/09, −0.02 to
+−0.03) shows a green panel for charcoal. Their inline groups render correctly — cover-letters/10's yellow
+logo and the menu photos are all in place — so this is a pre-existing floating-background defect these
+documents merely *exposed* on entering the covered set, and it is the next slice. Setting those aside, the
+inline groups themselves match production (inline_shape_arrows 1.6% AA on both backends).
+
 ## Testing strategy (a large secondary win)
 
 The current suite infers layout from rasterized PNGs (the entire struggle behind `src/page_counts.md`).

@@ -17,6 +17,8 @@ public class EngineImageSharpPathTests
     [Arguments("dot_points", 1)]
     // A label sheet: behind-text floating shapes anchored across a table grid, so this drives ImageSharpPainter.PaintShape.
     [Arguments("labels/14", 1)]
+    // Inline arrow glyphs: grouped drawings embedded in runs, so this drives ImageSharpPainter.PaintInlineGroup.
+    [Arguments("inline_shape_arrows", 1)]
     public async Task Engine_path_renders_a_valid_png_per_page_at_the_expected_count(string relative, int pages)
     {
         var input = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", relative.Replace('/', Path.DirectorySeparatorChar), "input.docx");

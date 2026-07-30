@@ -1594,7 +1594,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
 
                 if (shape.ImageData != null)
                 {
-                    RenderGroupPicture(pageCanvas, shape, x1, y1, w, h, isEllipse ? path : null, hasRotation);
+                    RenderGroupPicture(context, pageCanvas, shape, x1, y1, w, h, isEllipse ? path : null, hasRotation);
                 }
                 else if (shape.FillColorHex is { } fillHex)
                 {
@@ -1617,7 +1617,9 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
         }
     }
 
-    static Color ParseColor(string hex, double alpha)
+    // Internal so ImageSharpPainter reuses the exact group-shape colour, contour and picture drawing when it
+    // paints an inline shape group through the layout engine, keeping the two paths pixel-identical.
+    internal static Color ParseColor(string hex, double alpha)
     {
         var color = ImageSharpRenderContext.ParseColor(hex);
         var clamped = Math.Clamp(alpha, 0, 1);
@@ -1636,7 +1638,7 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     /// flip flags applied, or null for primitive-geometry shapes. Multiple contours combine into a
     /// <see cref="ComplexPolygon"/>, whose even-odd intersection keeps ring shapes (frame) hollow.
     /// </summary>
-    static IPath? BuildGroupShapePath(GroupShape shape, float x, float y, float width, float height)
+    internal static IPath? BuildGroupShapePath(GroupShape shape, float x, float y, float width, float height)
     {
         if (shape.Subpaths == null)
         {
@@ -1676,7 +1678,9 @@ sealed class TextRenderer(ImageSharpRenderContext context) :
     /// shape's path when Word crops the picture to something other than its bounding box (the
     /// circular photos on menu templates), null for a plain <c>rect</c> picture.
     /// </summary>
-    void RenderGroupPicture(DrawingCanvas pageCanvas, GroupShape shape, float x, float y, float width, float height, IPath? clip, bool groupRotated)
+    // Internal static (context threaded in) so ImageSharpPainter draws an inline group's picture members
+    // through the exact same raster-fallback / ellipse-clip path when it renders the group via the engine.
+    internal static void RenderGroupPicture(ImageSharpRenderContext context, DrawingCanvas pageCanvas, GroupShape shape, float x, float y, float width, float height, IPath? clip, bool groupRotated)
     {
         // SVG isn't supported here; use the raster fallback the parser kept from the primary
         // <a:blip>, or skip if we don't have one.

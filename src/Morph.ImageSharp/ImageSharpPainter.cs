@@ -205,10 +205,13 @@ static class ImageSharpPainter
 
     static void PaintImage(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedImage image)
     {
-        // An inline shape group rides the image carrier with null Data; SkiaPainter already paints it, the
-        // ImageSharp port is a follow-up slice. Skip so the null does not reach GetProcessedImage; the
-        // coverage predicate still rejects inline groups, so nothing routes here yet.
-        if (image.ShapeGroup != null || image.Data is not { } data)
+        if (image.ShapeGroup is { } group)
+        {
+            PaintInlineGroup(context, canvas, image, group);
+            return;
+        }
+
+        if (image.Data is not { } data)
         {
             return;
         }
@@ -222,6 +225,102 @@ static class ImageSharpPainter
         }
 
         canvas.DrawImage(processed, new Point((int) Math.Round(P(context, image.X)), (int) Math.Round(P(context, image.Y))));
+    }
+
+    // EMU per point (914400 EMU/inch ÷ 72 pt/inch), matching TextRenderer.
+    const float emusPerPoint = 12700f;
+
+    // An inline shape group (a grouped drawing embedded in a run): its child shapes scaled from the group's
+    // child coordinate space into the inline box, painted back to front. A verbatim port of
+    // TextRenderer.RenderInlineShapeGroup that reuses the same colour/contour/picture helpers, so the engine
+    // paints an inline group pixel-identically to production. The placed box is already in points with its
+    // top at Y (the fragmenter set Y = baseline − height), so no baseline subtraction is needed.
+    static void PaintInlineGroup(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedImage placed, InlineShapeGroup group)
+    {
+        float pixelX = P(context, placed.X), pixelY = P(context, placed.Y), pixelWidth = P(context, placed.Width), pixelHeight = P(context, placed.Height);
+
+        var sx = pixelWidth / (float) group.ChildExtentX;
+        var sy = pixelHeight / (float) group.ChildExtentY;
+
+        var hasRotation = group.RotationDegrees != 0;
+        if (hasRotation)
+        {
+            canvas.Save(ImageSharpPageRenderer.BuildRotation((float) (group.RotationDegrees * Math.PI / 180.0), pixelX + pixelWidth / 2f, pixelY + pixelHeight / 2f));
+        }
+
+        foreach (var shape in group.Shapes)
+        {
+            var x1 = pixelX + (float) shape.X * sx;
+            var y1 = pixelY + (float) shape.Y * sy;
+            var width = (float) shape.Width * sx;
+            var height = (float) shape.Height * sy;
+
+            if (shape.Geometry == GroupShapeGeometry.Line)
+            {
+                var startX = x1;
+                var startY = y1;
+                var endX = x1 + width;
+                var endY = y1 + height;
+                if (shape.FlipVertical)
+                {
+                    (startY, endY) = (endY, startY);
+                }
+
+                if (shape.FlipHorizontal)
+                {
+                    (startX, endX) = (endX, startX);
+                }
+
+                var strokeWidth = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75) * context.Scale;
+                var linePen = new SolidPen(new PenOptions(TextRenderer.ParseColor(shape.ColorHex, shape.LineAlpha), strokeWidth)
+                {
+                    StrokeOptions = new()
+                    {
+                        LineCap = LineCap.Square,
+                        LineJoin = LineJoin.Bevel
+                    }
+                });
+                canvas.DrawLine(linePen, new PointF(startX, startY), new PointF(endX, endY));
+                continue;
+            }
+
+            var isEllipse = shape.Geometry == GroupShapeGeometry.Ellipse;
+            var path = TextRenderer.BuildGroupShapePath(shape, x1, y1, width, height)
+                       ?? (isEllipse
+                           ? new EllipsePolygon(x1 + width / 2, y1 + height / 2, width, height)
+                           : (IPath) new RectanglePolygon(x1, y1, width, height));
+
+            if (shape.Shadow is { } shadow)
+            {
+                var shadowX = x1 + (float) shadow.OffsetX * sx;
+                var shadowY = y1 + (float) shadow.OffsetY * sy;
+                var shadowPath = TextRenderer.BuildGroupShapePath(shape, shadowX, shadowY, width, height)
+                                 ?? (isEllipse
+                                     ? new EllipsePolygon(shadowX + width / 2, shadowY + height / 2, width, height)
+                                     : (IPath) new RectanglePolygon(shadowX, shadowY, width, height));
+                canvas.Fill(context.GetBrush(TextRenderer.ParseColor(shadow.ColorHex, shadow.Alpha)), shadowPath);
+            }
+
+            if (shape.ImageData != null)
+            {
+                TextRenderer.RenderGroupPicture(context, canvas, shape, x1, y1, width, height, isEllipse ? path : null, hasRotation);
+            }
+            else if (shape.FillColorHex is { } fillHex)
+            {
+                canvas.Fill(context.GetBrush(TextRenderer.ParseColor(fillHex, shape.FillAlpha)), path);
+            }
+
+            if (shape.LineWidthEmu > 0)
+            {
+                var strokeWidth = (float) (shape.LineWidthEmu / emusPerPoint) * context.Scale;
+                canvas.Draw(context.GetPen(TextRenderer.ParseColor(shape.ColorHex, shape.LineAlpha), strokeWidth), path);
+            }
+        }
+
+        if (hasRotation)
+        {
+            canvas.Restore();
+        }
     }
 
     // A behind-text floating shape: fill and outline of its freeform subpath contours (reusing the
