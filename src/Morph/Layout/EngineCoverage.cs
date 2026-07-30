@@ -1,0 +1,59 @@
+/// <summary>
+/// Whether the layout engine (<see cref="Fragmenter"/> → <c>PdfPainter</c>) covers a parsed document —
+/// the capability predicate that routes the PDF cutover (docs/layout-engine-proposal.md, "The PDF cutover
+/// (step 5)"). Conservative by design: it admits the block/table/column subset the painter renders at
+/// parity with Word (the <c>PdfPainterFidelityTests</c> 0.942-SSIM set), and <c>PdfRenderer</c> falls back
+/// to <c>PdfTextEngine</c> for everything else. Each Phase C emission slice (WordArt, floats, floating
+/// tables, form fields, ...) widens what is admitted.
+/// </summary>
+static class EngineCoverage
+{
+    public static bool Covers(ParsedDocument document)
+    {
+        foreach (var element in document.Elements)
+        {
+            switch (element)
+            {
+                // Inline images are emitted and painted, so a plain paragraph is covered; an inline shape
+                // group (WordArt, grouped drawing) is not yet, and disqualifies the document.
+                case ParagraphElement paragraph when !HasInlineArt(paragraph):
+                case PageBreakElement:
+                case ColumnBreakElement:
+                    break;
+                case TableElement table when IsSimpleTable(table):
+                    break;
+                default:
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    static bool IsSimpleTable(TableElement table)
+    {
+        if (table.Properties.IsFloating)
+        {
+            return false;
+        }
+
+        foreach (var row in table.Rows)
+        {
+            foreach (var cell in row.Cells)
+            {
+                foreach (var element in cell.Content)
+                {
+                    if (element is not ParagraphElement paragraph || HasInlineArt(paragraph))
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    static bool HasInlineArt(ParagraphElement paragraph) =>
+        paragraph.Runs.Any(_ => _.InlineShapeGroup != null);
+}
