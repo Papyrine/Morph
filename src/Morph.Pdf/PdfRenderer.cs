@@ -9,7 +9,10 @@ static class PdfRenderer
     {
         options ??= new();
 
-        if (Environment.GetEnvironmentVariable("MORPH_PDF_ENGINE") != null)
+        // Phase B: the engine renders the documents it covers; everything else falls through to the
+        // production PdfTextEngine path below. Gated behind MORPH_PDF_ENGINE while the fragmenter's
+        // emission gaps close (each Phase C slice widens EngineCoverage).
+        if (Environment.GetEnvironmentVariable("MORPH_PDF_ENGINE") != null && EngineCoverage.Covers(document))
         {
             return RenderViaEngine(document, options);
         }
