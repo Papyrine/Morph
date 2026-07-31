@@ -200,13 +200,11 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### brochures/06
 
 - MINOR | all | p2 | quote-box geometry residual: dash column sits at the box's right edge where Word hatches inside
-- MAJOR | all | p1 | decorative freeform art still missing on p1: striped bar above the purple panel, and balloon line art in the panel
 - MAJOR | pdf | p2 | top-right couple photo rendered ~30% narrower and shifted ~110px right, bleeding to/clipped at the right page edge (left portion of Word's crop lost)
 - MEDIUM | all | p2 | right-column reflow: "To replace any of the pictures" paragraph wraps 4 to 5 lines in a narrower block, and the services list ("Passport Expediting"..."Trip Insurance") sits 20-80px lower than Word
 - MINOR | all | p1 | "MARGIE'S TRAVEL" title shifted down ~8-10px (in pdf the panel address block is also ~18px low)
 - MINOR | skia,imagesharp | p2 | couple photo drawn slightly taller with content shifted ~8px vs Word's crop
 - MAJOR | html | - | quote box text "We don't merely book your travel..." and attribution missing from the HTML export
-- MAJOR | html | - | balloon line art missing from the HTML export
 
 ### brochures/07
 
@@ -1660,7 +1658,8 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 ### wedding/08
 
-- MINOR | all | p1 | the circled "&" badge renders its green ellipse and ampersand; residual is sub-pixel placement within the cell
+- MEDIUM | all | p1 | the circled "&" badge glyph renders BLACK; Word draws it WHITE. The Ampersand paragraph style names no colour — the white comes from the text box's `wps:style/a:fontRef` `schemeClr lt1`, a DrawingML fallback below the style chain that `ParseWordArt` does not yet consult (it resolves the style chain, which yields the doc-default black here). Needs a fontRef colour fallback that stays BELOW an explicit run/style colour so it does not flip menus/03-style boxes (whose white comes from the style, over a `dk1` fontRef)
+- MINOR | all | p1 | the circled "&" badge green ellipse + ampersand placement is sub-pixel off within the cell
 
 - MEDIUM | all | p1,p2 | card panels shorter than Word (p1 borders end ~2in early, p2 ~0.4in) with content blocks 0.4-0.8in higher (Thanks-and-Dedication and time/venue blocks)
 - MEDIUM | all | p1 | "dinner and dancing to follow" rendered upright instead of italic
