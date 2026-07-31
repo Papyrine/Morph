@@ -1,10 +1,13 @@
 # Layout engine proposal — separate layout from painting
 
-**Status: proposal; step 1 (the canonical measurer) landed, steps 2–7 open.** This is the architecture to reach for when Word-fidelity
-pagination matters more than incremental effort. It is the "if time and effort are no object"
-answer to the columns/height-model work tracked in `src/page_counts.md` and `src/todo.md` (#2, #5,
-the columns item under image_wrap_square). Nothing here has landed; the current renderers are
-described in `docs/word-features.md`.
+**Status: landed for raster — the Skia and ImageSharp backends paginate covered documents (98.8% of the
+corpus) through this one engine by default (step 6); the PDF painter is built and capability-gated but held
+on `PdfTextEngine` (step 5); the old per-backend pagination is not yet deleted (step 7).** Steps 1–3 — the
+canonical measurer, the layout tree, and the Fragmenter — are done, and step 4's section walk folded into
+the Fragmenter. This was the "if time and effort are no object" answer to the columns/height-model work
+tracked in `src/page_counts.md` and `src/todo.md` (#2, #5, the columns item under image_wrap_square); the
+running log of landed slices is below, and `docs/word-features.md` describes the per-backend draw code the
+thin painters now front. `MORPH_SKIA_ENGINE=off` / `MORPH_IMAGESHARP_ENGINE=off` are the kill switches.
 
 ## The problem this solves
 
@@ -31,6 +34,12 @@ metrics. They diverge, and that divergence is the root cause of the remaining fi
 
 Patching raster to split like PDF yields three *agreeing* engines instead of three *diverging* ones —
 but they must be kept agreeing forever, and the knife-edges remain the tax of that arrangement.
+
+*This section is the original motivation, stated as it stood before any of the work below landed. The raster
+half is now solved: as of step 6, Skia and ImageSharp no longer paginate independently — both run the single
+engine below for covered documents (98.8% of the corpus), so their counts agree by construction rather than by
+maintenance. PDF (`PdfTextEngine`) is the last independent pagination. What follows is the design that got
+there and the running log of how.*
 
 ## The proposal: one layout pass, three painters
 
@@ -235,9 +244,12 @@ Build alongside the existing renderers; do not delete anything until all three b
       including the continuous mid-page kind — the newsletter masthead → body case); widow/orphan and
       keep-next/keep-lines; float exclusions (reuse `ResolveFlowBand`); images and nested tables inside a
       cell; floating tables; header/footer band height.
-- [ ] **4. `DocumentLayoutEngine`** — section walk, per-page region chains, header/footer bands.
-      Fix `ParseSectionBreak` (`DocumentParser` ~9318) to read the *following* section's `w:type`
-      (ECMA-376 §17.6.22) so continuous multi-column sections are recognised.
+- [~] **4. `DocumentLayoutEngine`** — the section walk, per-page region chains and header/footer bands all
+      landed, folded into the `Fragmenter` rather than a separate class (per-section geometry, even/odd parity
+      pages, the Continuous mid-page column switch and header/footer band layout are in the raster-cutover log
+      below). One piece is held for the PDF cutover: fixing `ParseSectionBreak` (`DocumentParser` ~9318) to read
+      the *following* section's `w:type` (ECMA-376 §17.6.22) — it regresses production until the painters own
+      pagination, so it lands with step 5's flip.
 - [~] **5. `PdfPainter` — first slice landed** (`PdfPainter`, `PdfPainterTests`). A pure draw pass: it
       takes a `Fragmenter`-produced `LaidOutDocument` and emits a PDF with the tree's pages, page sizes
       and line/run positions — no measurement, no pagination. It reuses `PdfRenderContext` for font and
@@ -465,12 +477,15 @@ Build alongside the existing renderers; do not delete anything until all three b
       shared parser also feeds today's production path, which cannot flow continuous mid-page columns and
       would overlap that document's columns onto the text above — so the change regresses production until the
       painters own pagination, and is deliberately held for this step.
-- [~] **6. `SkiaPainter` + `ImageSharpPainter`** — the payoff step. Both become thin painters of the
-      same tree; the whole-paragraph pagination and the duplicated `TextRenderer` layout code delete.
-      This is where the raster knife-edges collapse (raster now paginates identically to PDF — one
-      answer, not a straddle). Painters LANDED behind `MORPH_SKIA_ENGINE` / `MORPH_IMAGESHARP_ENGINE`
-      (see "The raster cutover (step 6), in detail"); the default-path flip is gated with step 5's, on
-      covered-doc parity. Then regenerate all raster + PDF baselines; validate the scoreboard.
+- [x] **6. `SkiaPainter` + `ImageSharpPainter`** — the payoff step, LANDED as the DEFAULT raster path for
+      covered documents (98.8% of the corpus). Both are thin painters of the same tree; the raster knife-edges
+      collapse (raster now paginates identically across backends — one answer, not a straddle). The gate is
+      `MORPH_SKIA_ENGINE` / `MORPH_IMAGESHARP_ENGINE != "off"` (the env var became a kill switch, not an opt-in);
+      an uncovered document falls through to the production `<Backend>PageRenderer`. The flip landed at
+      covered-doc parity (aggregate −0.0001), decoupled from step 5 — PDF stays on `PdfTextEngine`, so a covered
+      document's PNG and PDF page counts can still diverge until the PDF flip. All covered raster baselines
+      regenerated. The whole-paragraph pagination and duplicated `TextRenderer` layout code still exist as the
+      fallback; deleting them is step 7. See "The raster cutover (step 6), in detail".
 - [ ] **7. Delete** `PageRendererBase` pagination, `SectionBreakHandler` (subsumed), the per-backend
       `EnsureSpaceFor`/`AdvanceToNextColumnOrPage`, `TableHeightCalculator` (folded into the table
       sub-layout). Keep the backends' primitive draw ops only.
@@ -908,6 +923,32 @@ mark branch of `CanonicalParagraphMeasurer` already restored the *ascent* from t
 the *height* too (the mark font's line pitch), matching production's `max(font, image)`. Eleven documents'
 baselines regenerated; resumes/18's rules render full-width below each heading again and its PDF SSIM vs Word
 rose **−0.12 → +0.010**.
+
+**Follow-on fix — Skia outline-only shapes flooded.** Checking the flipped covered set surfaced menus/09's
+stacked menu card rendering solid green in Skia (ImageSharp correct): its top shape is a green outline-only
+rectangle (`a:ln`, no fill) over a grey card body. `SkiaRenderContext`'s reusable rule paint set `IsAntialias`
+but no `Style`, so SkiaSharp defaulted it to `Fill`; `SkiaPainter.PaintShape` strokes a shape's outline
+through that paint via `DrawPath`/`DrawRect`, and with `Fill` those flooded the shape with the line colour
+rather than stroking a thin frame. Setting `Style = SKPaintStyle.Stroke` fixes it — Skia only, since
+ImageSharp's `PaintShape` already stroked and `DrawLine` (underline/border edges) ignores `Style`. menus/09
+renders as a grey card with a thin green border, and every Skia fill+line or line-only shape that had been
+flooding now strokes correctly (33 baselines regenerated).
+
+**Follow-on fix — inherited fills and text-box styles.** Two shared-parser gaps surfaced the same way, each a
+property Word inherits from an enclosing context that the shape/text-box parse had dropped — so both hurt
+production as much as the engine, and closing them lifts all three backends. First, brochures/06's accent
+stripes and hot-air-balloon line-art are inline `wpg:wgp` groups whose child rects carry `a:grpFill` (defer the
+fill to the group's own `a:solidFill`); the inline-group parser read only each shape's direct fill, so every
+grpFill child resolved to no colour and drew as nothing. Resolving `a:grpFill` against the ancestor group — the
+shared `ResolveGroupFill` the floating-shape path already used — restores them: brochures/06's page-1 SSIM rises
+**+0.030** on Skia, and the stripes and balloon render across raster, PDF and the HTML export alike. Second,
+menus/03's "EVENT INTRO"/"EVENT DATE" labels are unwarped WordArt boxes with no run `rPr`; `ParseWordArt` read
+their glyph colour and size from the first run's direct properties alone, so the labels drew 36pt black where
+their Heading1→Normal style resolves 10pt white. Resolving the full run/style/docDefault cascade
+(`ParseRunProperties`) for an unwarped box paints them white at Word's size. The `wps:style/a:fontRef` colour —
+a lower DrawingML fallback below the style chain, and the actual source of wedding/08's white `&` badge — is a
+distinct case left deferred, since a fontRef fallback must sit below an explicit run/style colour or it would
+flip the very menus/03-style boxes it was added to fix.
 
 ## Testing strategy (a large secondary win)
 
