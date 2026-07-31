@@ -8,9 +8,10 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
     private protected override int RenderPages(ParsedDocument document, ImageExportOptions options, Action<Action<Stream>> pageCallback)
     {
         // Step 6 raster cutover (docs/layout-engine-proposal.md): the engine paginates and ImageSharpPainter
-        // draws the documents it covers; everything else falls through to the production ImageSharpPageRenderer.
-        // Gated behind MORPH_IMAGESHARP_ENGINE while the fragmenter's emission gaps close.
-        if (Environment.GetEnvironmentVariable("MORPH_IMAGESHARP_ENGINE") != null && EngineCoverage.Covers(document))
+        // draws the documents it covers — the default now that it covers 98.8% of the corpus at production
+        // parity; everything else falls through to the production ImageSharpPageRenderer. MORPH_IMAGESHARP_ENGINE=off
+        // forces the production path (a kill switch while the last emission gaps — warp WordArt, float wrap — close).
+        if (Environment.GetEnvironmentVariable("MORPH_IMAGESHARP_ENGINE") != "off" && EngineCoverage.Covers(document))
         {
             return RenderViaEngine(document, options, pageCallback);
         }
