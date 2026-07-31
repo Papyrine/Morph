@@ -12,16 +12,16 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0116,
-      "Ssim": 0.9751,
+      "ErrorMetric": 0.0114,
+      "Ssim": 0.9755,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "imagesharp_result#page_0002.verified.png",
       "ReceivedFile": "imagesharp_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.0059,
-      "Ssim": 0.9871,
+      "ErrorMetric": 0.0058,
+      "Ssim": 0.9874,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "imagesharp_result#page_0003.verified.png",
       "ReceivedFile": "imagesharp_result#page_0003.received.png"

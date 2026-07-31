@@ -875,8 +875,28 @@ untouched.
 
 With all three levers pulled, the covered set is at production parity across all three raster backends
 (aggregate **−0.0023 → −0.0001**, 98 wins / 85 losses over 318 page-count-matched documents) and every
-visibly-regressing outlier is eliminated — the remaining losses are the intractable AA/font tail. This is the
-point to flip.
+visibly-regressing outlier is eliminated — the remaining losses are the intractable AA/font tail.
+
+### The raster flip landed (step 6)
+
+With coverage at 98.8% and the three fidelity fixes closing the last visible outliers, the raster default is
+now the engine for covered documents. Both `SkiaDocumentConverter.RenderPages` and
+`ImageSharpDocumentConverter.RenderPages` gate on `MORPH_<BACKEND>_ENGINE != "off"` (was `!= null`): a covered
+document paginates through `Fragmenter.Layout` and paints through `<Backend>Painter.Paint` by default, and the
+env var is now a kill switch (`=off` forces the production `<Backend>PageRenderer`) rather than an opt-in. An
+uncovered document still falls through to production unchanged.
+
+Every covered-document Skia + ImageSharp scenario baseline was regenerated to the engine render via
+`regenerate-baselines.sh` (1,782 files: the two backends' page PNGs, result JSON, and per-scenario
+`compare.md`); the export (HTML / Markdown / PDF) and spec snapshots are byte-unchanged, since the PDF path
+still runs `PdfTextEngine`. The container suite is green on the regenerated baselines. This unifies raster
+pagination on the one backend-independent engine at production parity — the wins land where the engine
+paginates a document more like Word (business-plans/12's page count corrects 17 → 18), and the losses are the
+AA/font tail that no pagination change touches.
+
+The remaining divergence is deliberate: PDF stays on `PdfTextEngine`, so a covered document's PNG and PDF page
+counts can differ until the PDF cutover (step 5) follows — the accepted cost of a raster-only flip, and the
+next lever alongside the last emission gaps (warp WordArt, float wrap).
 
 ## Testing strategy (a large secondary win)
 
