@@ -18,6 +18,9 @@ public class EngineSkiaPathTests
     [Arguments("dot_points", 1)]
     // A label sheet: behind-text floating shapes anchored across a table grid, so this drives SkiaPainter.PaintShape.
     [Arguments("labels/14", 1)]
+    // A menu card stacked from outline-only rectangles over a filled one — drives PaintShape's outline STROKE
+    // path (the rule paint must stroke, not fill, or the green border floods the card; menus/09 green-bg fix).
+    [Arguments("menus/09", 1)]
     // Inline arrow glyphs: grouped drawings embedded in runs, so this drives SkiaPainter.PaintInlineGroup.
     [Arguments("inline_shape_arrows", 1)]
     public async Task Engine_path_renders_a_valid_png_per_page_at_the_expected_count(string relative, int pages)
