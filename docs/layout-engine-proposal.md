@@ -538,8 +538,9 @@ measured line. Closing this gap — one delegate, threaded from options into bot
 A corpus census (325 docs; regexes approximate) puts a drawing on ~49%, a text-box/shape on ~38%, a floating
 anchor on ~36%, and WordArt warp on ~28%. `PdfPainter` is already structurally complete over the `PlacedItem`
 set (all six kinds paint), so those docs are not blocked by the painter — they are blocked by the `Fragmenter`
-not yet EMITTING the art, or by a handful of painter-side fidelity items. The engine handles 180 of 325 docs
-today at 0.942 mean SSIM; production covers all 325 at 0.880.
+not yet EMITTING the art, or by a handful of painter-side fidelity items. When this was written the engine
+covered 180 of 325 docs at 0.942 mean SSIM (production 0.880 over all 325); the raster cutover has since
+widened the *shared* predicate far past that — see the post-flip update after the phases.
 
 Because the unhandled 145 are concentrated in the hardest features and each tends to fail on a single emission
 gap, feature-completing everything before any flip would ship no benefit for a long time. The lower-risk path
@@ -577,7 +578,27 @@ everything the corpus contains (the fallback goes cold).
   holds or beats 0.880 mean and the PDF page-count scoreboard holds or improves, then delete `PdfTextEngine` +
   the `PdfPageRenderer` driver.
 
+**Update — post-raster-flip.** Phases A–D were written before step 6. Because the `Fragmenter` and
+`EngineCoverage.Covers` are SHARED with the raster path, every raster emission slice (non-wrapping floats,
+section breaks, inline shape groups, nested-table cells, content controls, floating text boxes, floating
+tables, unwarped WordArt) widened the PDF gate too, and `PdfPainter` paints each — so the shared predicate now
+admits **321 / 325** documents, not 180. Phase C's coverage-EMISSION track is therefore essentially done: the
+four hold-outs are the two warp-WordArt test documents, image_wrap_square (float wrap) and agendas-minutes/14
+(a positioned frame). A post-flip re-measurement (engine vs `PdfTextEngine`, both via `ConvertToPdf`, SSIM vs
+Word over 318 page-count-matched covered docs) put the engine at **−0.0054**, production winning 136 to 54 — a
+far wider set than Phase B's 180, same verdict. And Phase C's covered-FIDELITY track has largely landed: the
+header/footer band, `w:pBdr` and `w:shd` that Phase B named as the sharpest losses now render in `PdfPainter`
+(the step-5 painter log above). What remains is the intractable font/image tail — Aptos display-font wrap width
+amplified by PDFium's harsher AA, compound-image and full-page-gradient rasterization — the same tail the raster
+measurement called "exhausted". **The flip is held on that tail, not on coverage**, its accepted cost the
+PNG-vs-PDF page-count divergence the raster-only flip introduced, carried until the font tail is tractable.
+
 ### Emission backlog (Fragmenter — unblocks whole documents, ordered by corpus reach)
+
+Most of this has landed via the shared raster cutover (below); the list is kept for the sequence and the
+few genuinely-remaining items — **float wrap exclusions** (square/tight, `image_wrap_square`) and **warp
+WordArt** (the 16 presets, only the two envelope test documents need them) are the last emission gaps, plus
+`agendas-minutes/14`'s positioned frame.
 
 1. WordArt / inline shape groups (~28% carry a warp; the test filter keys off `run.InlineShapeGroup`).
 2. Floating shapes/images with text-wrap exclusions (square/tight) and multi-page float anchor-page
@@ -624,9 +645,12 @@ Two entry points, one per backend, both funnelling through the same `RenderPages
 `SkiaDocumentConverter.RenderPages(ParsedDocument, ImageExportOptions, Action<Action<Stream>>) : int` and the
 identically-shaped `ImageSharpDocumentConverter.RenderPages`. Each emits one PNG per page through a
 `pageCallback` and returns the page count. As with PDF, only the paginate-and-draw half is replaced:
-`RenderViaEngine` runs `Fragmenter.Layout` → `<Backend>Painter.Paint`, gated behind `MORPH_SKIA_ENGINE` /
-`MORPH_IMAGESHARP_ENGINE` and `EngineCoverage.Covers`; the default path is byte-unchanged. `RenderViaEngine`
-is internal so `EngineSkiaPathTests` / `EngineImageSharpPathTests` drive it without the process-global toggle.
+`RenderViaEngine` runs `Fragmenter.Layout` → `<Backend>Painter.Paint`, gated on `MORPH_SKIA_ENGINE` /
+`MORPH_IMAGESHARP_ENGINE != "off"` and `EngineCoverage.Covers`. This section was written when the gate was an
+opt-in (`!= null`) and the default path was byte-unchanged; since the flip landed the engine is the DEFAULT for
+covered documents (the env var a kill switch), and it is the *uncovered* fallback to the production
+`<Backend>PageRenderer` that stays byte-unchanged. `RenderViaEngine` is internal so `EngineSkiaPathTests` /
+`EngineImageSharpPathTests` drive it without the process-global toggle.
 
 ### The unit gotcha
 
@@ -849,9 +873,13 @@ paragraph at the fitted font size out via `LayoutCellContent`. Three contexts: a
 at the aligned cursor, a floating one is absolutely positioned text with no box, and a cell one lays out at the
 cell cursor. `EngineCoverage` admits an unwarped WordArt (a warped one still disqualifies). Coverage rises
 **316 → 321 (98.8%)**, and all five documents *beat* production — business/06 +0.012, brochures/08 +0.004,
-menus/03 +0.007, wedding/08 +0.004, cards/02 +0.029 — because the engine's box-and-centred-text matches Word
-more closely than the production path does. Deferred: the glyph outline (fill only for now) and the 16 warp
-presets, which only the wordart / wordart-envelope test documents need.
+menus/03 +0.007, wedding/08 +0.004, cards/02 +0.029 — because the engine's box-and-centred-text matches Word's
+*layout* more closely than the production path does. (The glyph colour and size resolved from the first run's
+direct properties alone at this point, so a box driven entirely by its paragraph style — menus/03's
+`EVENT INTRO`/`EVENT DATE` — still rendered black at the WordArt default size, a shared parse gap this slice
+shared with production; the full run/style cascade landed later, see "inherited fills and text-box styles"
+below.) Deferred: the glyph outline (fill only for now) and the 16 warp presets, which only the
+wordart / wordart-envelope test documents need.
 
 Coverage now stands at **321 / 325**; the four hold-outs are the two warp test documents, image_wrap_square
 (float wrap), and agendas-minutes/14 (a positioned frame).
