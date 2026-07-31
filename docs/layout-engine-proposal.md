@@ -898,6 +898,17 @@ The remaining divergence is deliberate: PDF stays on `PdfTextEngine`, so a cover
 counts can differ until the PDF cutover (step 5) follows — the accepted cost of a raster-only flip, and the
 next lever alongside the last emission gaps (warp WordArt, float wrap).
 
+**Follow-on fix — image-only line height.** A PDF re-measurement (engine still −0.0054 below `PdfTextEngine`,
+dominated by the font/image tail, so PDF stays held) surfaced one systematic loser that turned out to live in
+the *Fragmenter*, so it also dinged the shipped raster flip: a paragraph whose only run is an inline drawing —
+a resume template's section rule, a thin full-width line in an otherwise-empty `Line`-style paragraph —
+collapsed its line to the 0.5pt image height instead of the paragraph's font line height, dropping the rule
+onto the next line where the body text obscured its left half (it read as a partial-width rule). The empty-
+mark branch of `CanonicalParagraphMeasurer` already restored the *ascent* from the mark font; it now restores
+the *height* too (the mark font's line pitch), matching production's `max(font, image)`. Eleven documents'
+baselines regenerated; resumes/18's rules render full-width below each heading again and its PDF SSIM vs Word
+rose **−0.12 → +0.010**.
+
 ## Testing strategy (a large secondary win)
 
 The current suite infers layout from rasterized PNGs (the entire struggle behind `src/page_counts.md`).
