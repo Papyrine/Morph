@@ -515,10 +515,14 @@ collapsing them to zero (`DocumentParser.ParseCellMargin`), which is what actual
 vAlign=bottom section headings from their bodies — Word's XPS puts that heading row at 31.8pt where the dropped
 14.4pt top margin had left 16pt, and the shared parser fix lifted 11 corpus scenarios toward Word across all
 three backends; per-glyph advances (exact intra-run boundaries — the painter currently anchors each run at its
-canonical start and lets the font library fill the run). Then repoint `Morph.Pdf` at `LaidOutDocument`, delete
+canonical start and lets the font library fill the run).
+
+Then repoint `Morph.Pdf` at `LaidOutDocument`, delete
 `PdfTextEngine`'s pagination, and run the harness in the container (matching Word's rasteriser) to separate real
 gaps from AA, then validate the full container suite (PDF page-count scoreboard unchanged or better, AE/SSIM
-neutral). **Apply the section-break-type parser fallback at this cutover, not before.** `DocumentParser` reads a
+neutral).
+
+**Apply the section-break-type parser fallback at this cutover, not before.** `DocumentParser` reads a
 break's `w:type` from the ending section's sectPr; Word also honours it on the following section's, and one
 corpus document (image_wrap_square) authors a continuous column switch that way, so the parser mis-types it
 NextPage. Reading the ending section first and falling back to the following section fixes the type, and the
