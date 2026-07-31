@@ -209,7 +209,11 @@ sealed class SkiaRenderContext(
     // GetReusableTextPaint: single-threaded rendering, Skia reads paint state at draw time,
     // and no draw call uses two instances of the same shape-class at once.
     readonly SKPaint reusableFillPaint = new() { Style = SKPaintStyle.Fill };
-    readonly SKPaint reusableRulePaint = new() { IsAntialias = true };
+    // Stroke, not the SKPaint default of Fill: this paint strokes rules, text decorations and shape
+    // outlines. DrawLine ignores the style, but DrawPath/DrawRect/DrawOval honour it — with the default
+    // Fill a shape's outline flooded the whole shape with the line colour (menus/09's green border filled
+    // the card over its grey fill).
+    readonly SKPaint reusableRulePaint = new() { IsAntialias = true, Style = SKPaintStyle.Stroke };
 
     public SKPaint GetReusableFillPaint(SKColor color, bool antialias)
     {
