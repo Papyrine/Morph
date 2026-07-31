@@ -247,7 +247,7 @@ Build alongside the existing renderers; do not delete anything until all three b
 - [~] **4. `DocumentLayoutEngine`** — the section walk, per-page region chains and header/footer bands all
       landed, folded into the `Fragmenter` rather than a separate class (per-section geometry, even/odd parity
       pages, the Continuous mid-page column switch and header/footer band layout are in the raster-cutover log
-      below). One piece is held for the PDF cutover: fixing `ParseSectionBreak` (`DocumentParser` ~9318) to read
+      below). One piece is held for the PDF cutover: fixing `ParseSectionBreak` (`DocumentParser` ~9362) to read
       the *following* section's `w:type` (ECMA-376 §17.6.22) — it regresses production until the painters own
       pagination, so it lands with step 5's flip.
 - [~] **5. `PdfPainter` — built and capability-gated; flip held on `PdfTextEngine`** (`PdfPainter`,
@@ -960,8 +960,9 @@ env var is now a kill switch (`=off` forces the production `<Backend>PageRendere
 uncovered document still falls through to production unchanged.
 
 Every covered-document Skia + ImageSharp scenario baseline was regenerated to the engine render via
-`regenerate-baselines.sh` (1,782 files: the two backends' page PNGs, result JSON, and per-scenario
-`compare.md`); the export (HTML / Markdown / PDF) and spec snapshots are byte-unchanged, since the PDF path
+`regenerate-baselines.sh` — 1,780 baselines (the two backends' page PNGs, result JSON, and per-scenario
+`compare.md`) in the 1,783-file flip commit (`aab47e002`, the balance being the two gate flips and this doc);
+the export (HTML / Markdown / PDF) and spec snapshots are byte-unchanged, since the PDF path
 still runs `PdfTextEngine`. The container suite is green on the regenerated baselines. This unifies raster
 pagination on the one backend-independent engine at production parity — the wins land where the engine
 paginates a document more like Word (business-plans/12's page count corrects 17 → 18), and the losses are the
