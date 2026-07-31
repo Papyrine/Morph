@@ -1193,6 +1193,27 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task An_image_only_paragraph_reserves_its_font_line_height_not_the_image_height()
+    {
+        var rule = new Run
+        {
+            Text = "",
+            InlineImageData = System.Text.Encoding.ASCII.GetBytes("PNG"),
+            InlineImageWidthPoints = 200,
+            InlineImageHeightPoints = 0.5,
+            Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 }
+        };
+        var ruleParagraph = new ParagraphElement { Runs = [rule], Properties = new() };
+        var items = Fragmenter.Layout([ruleParagraph, P("below")], Page(400)).Pages[0].Items.ToList();
+        var belowLine = items.OfType<PlacedLine>().First(_ => _.Runs.Any(run => run.Text == "below"));
+
+        // A 0.5pt-tall inline drawing in an otherwise-empty paragraph (a heading-rule template) must still
+        // reserve the paragraph's own font line height (~14.5pt for Aptos-11), so the next paragraph clears
+        // it — without that the line collapses to the image height and the rule drops onto the next line.
+        await Assert.That(belowLine.Y).IsGreaterThan(12f);
+    }
+
+    [Test]
     public async Task Contextual_spacing_collapses_the_gap_between_same_style_paragraphs()
     {
         var properties = new ParagraphProperties { StyleId = "MemoHead", ContextualSpacing = true, SpacingAfterPoints = 12 };

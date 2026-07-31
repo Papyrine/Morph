@@ -71,10 +71,15 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 textAscent = Math.Max(textAscent, AscentPoints(segments[segment].Properties));
             }
 
-            // An empty mark line has no runs; its baseline still needs the mark's ascent.
+            // An empty mark line has no runs; its baseline still needs the mark's ascent, and its height the
+            // mark font's line pitch. Without the height, an image-only line — a heading-rule drawing in an
+            // otherwise blank paragraph (resumes/18's section rules) — collapses to the tiny image height, so
+            // the rule drops onto the following line instead of sitting in the paragraph's own font-height row.
             if (segments.Count == 0)
             {
                 textAscent = AscentPoints(ParagraphFont(paragraph));
+                textHeight = (float) CanonicalTextMeasurer.LineHeightPoints(
+                    MarkPitch(paragraph), props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints);
             }
 
             // An inline image sits with its bottom on the baseline, so it fills the whole ascent and can
