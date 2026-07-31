@@ -259,238 +259,11 @@ through the render context's own primitives rather than a common `ILayoutPainter
       the *following* section's `w:type` (ECMA-376 §17.6.22) — it regresses production until the painters own
       pagination, so it lands with step 5's flip.
 - [~] **5. `PdfPainter` — built and capability-gated; flip held on `PdfTextEngine`** (`PdfPainter`,
-      `PdfPainterTests`). The painter is structurally complete over the covered set (the log below started as a
-      single "first slice" and has accreted ~30 since); what remains is the flip itself, deferred on the
-      font/image tail (see "The PDF cutover"). A pure draw pass: it
-      takes a `Fragmenter`-produced `LaidOutDocument` and emits a PDF with the tree's pages, page sizes
-      and line/run positions — no measurement, no pagination. It reuses `PdfRenderContext` for font and
-      brush resolution, so a `PlacedLine`'s runs draw with `XGraphics.DrawString` at the tree's baseline.
-      **Proven end-to-end**: a synthetic multi-paragraph flow measured by the canonical measurer,
-      fragmented, painted, and rasterised by PDFium renders the text correctly at the canonical positions —
-      the tree drives real PDF output. **Per-run fidelity landed**: a mixed-format line paints each run in
-      its own font and colour (bold, italic, red, italic-blue all confirmed in a render), and a mid-word
-      format change never splits the word at a wrap. **Table cell sub-layout landed**: the fragmenter
-      places each cell's paragraphs into the tree (column geometry, padding, vertical-merge heights, `w:jc`
-      table alignment, mirroring `RenderTableRow`) and the painter draws each cell's shading, content and
-      borders — a shaded bold header, a full border grid and wrapped multi-line cells all confirmed in a
-      render. **List markers landed**: a list paragraph's first line carries its marker as a run in the
-      hanging-indent gutter (bullet in the embedded "Morph Bullets" font or number in the paragraph font,
-      `numbering.Text` and colour mirroring `PdfTextEngine`), positioned a hanging indent left of the text
-      — bullets and numbers with correct hanging-indent continuation confirmed in a render. **Run decorations
-      landed**: each run paints its highlight (behind the glyphs, over the line box), underline (below the
-      baseline) and strikethrough (through the x-height), coloured and sized from `RunProperties` with the
-      geometry from `PdfTextEngine` — underline, strike, yellow/green highlight, combinations, and a
-      wrapped underlined run underlined on both lines all confirmed in a render. **Inline images landed**: the
-      wrap treats an image as an unbreakable box (its width counts toward the line, its height grows the
-      line), the fragmenter places it with its bottom on the baseline, and the painter decodes the bytes
-      (an SVG's raster fallback) and draws them — an inline icon flowing mid-sentence and a figure growing
-      its own line both confirmed in a render. **Alignment (centre/right/justify), page background,
-      intra-paragraph line breaks and all-caps landed**: the fragmenter shifts each line by its alignment
-      offset within the available width; justify distributes the leftover width evenly across a naturally
-      wrapped line's inter-word gaps (the last line and break-ended lines stay natural); the painter fills
-      the page's `w:background`; a soft line break (parsed as `"\n"`) forces a line break instead of a
-      missing-glyph box; a `w:caps` run is upper-cased; a table cell's first paragraph keeps its
-      space-before (which `TableHeightCalculator` already sizes the cell with, so the content must be
-      positioned with it or float to the top); a cell's content shifts down for centre/bottom vertical
-      alignment within the space its row leaves; a **header's behind-text floating images** are
-      resolved to page positions and painted behind every page's body — the full-page decorative frames of
-      letter templates live here (letters/02 0.62 → 0.78, letters/03 0.73 → 0.79); and **behind-text
-      cell-float shapes** land — a cell's `Floats` are resolved to cell-relative boxes and painted before its
-      content, so a label template's coloured background panel (a preset rect) and freeform blobs (unit-square
-      subpaths scaled into the box via the reused `PdfPageRenderer.BuildShapePath`) fill each cell behind the
-      white recipient text (labels/14 blank → 0.86; solid fills only — gradient/image fills stay deferred).
-      **Empty-paragraph after-spacing and a last-line bottom-margin tolerance landed**: an empty paragraph
-      carries its after-spacing into the collapse with the next paragraph like any other (measured against
-      Word — two_columns' title/blank/body gap is line + after + line + after, not one dropped after), and a
-      line is placed while its *baseline* clears the bottom margin, letting the last line's descent and
-      trailing gap encroach as Word does (self-limiting: the next line's baseline then falls below the
-      margin and breaks). Together they fix two_columns' column-break point (it broke after paragraph 11
-      instead of 10; 0.63 → 0.74) while holding the page-count match at 98.1% (154/157) — the tolerance
-      exactly offsets the extra empty-paragraph height on the borderline documents.
-      **Character spacing (w:spacing tracking) landed**: the measurer adds the per-character points to every
-      token's advance so a letter-spaced run widens the wrap and alignment maths, and the painter spreads
-      the glyphs to match (reusing `PdfTextEngine`'s per-glyph logic). A tracked all-caps subtitle
-      (cover-letters/16's `ACCOUNTANT`) now renders at Word's width; the SSIM is unchanged because that page
-      is white-on-dark, where host-vs-container text AA dominates the score — a case where the *visible*
-      render is the honest check, not the number.
-      **Paragraph shading (w:shd) landed**: a paragraph with a background colour emits a `PlacedShading`
-      band per line spanning its column box (indent to right margin), painted behind the text — so a centred
-      title's band still spans the full column, not only the glyphs' width. resumes/15's `Janna Gardner`
-      header band renders (0.75 → 0.80); run-level highlight (on the run, text-width) is separate and already
-      painted.
-      **Paragraph borders (w:pBdr) landed**: a paragraph with any visible edge emits one `PlacedBorder` box
-      around its column box, expanded by each edge's space, which the painter strokes edge by edge (the same
-      geometry as a table cell) — a box, a block-quote left bar, a right rule and a heading's bottom rule all
-      render (cover-letters/02's rule under `DEAR ROWAN MURPHY`). Paint-only, so no page-count effect. It does
-      not move the aggregate SSIM: a border is a thin line, so where the paragraph sits even a few points off
-      Word's position (cover-letters/02's header block is compressed by a display/script-font metric gap
-      upstream) the stroke lands beside Word's rather than over it. Deferred: the between-border collapse of
-      consecutive same-bordered paragraphs (currently each box tiles, which reads correctly), and reserving a
-      large border space in the layout (a 16pt box overlaps its neighbours — the reservation conflicts with
-      the collapse case, so the two land together).
-      **Header and footer text landed**: header and footer paragraphs lay out per page as self-contained
-      bands (the reusable `LayoutBand` — wrap, alignment and shading, no page breaks). The header band sits at
-      the header distance in front of the background image; the footer band is anchored so its bottom is the
-      footer distance above the page edge, with each `PAGE` field resolved to that page's number (`Page 1`,
-      `Page 2`, …). Page 1 honours the `w:titlePg` "different first page": with a title page it takes the
-      first-page header/footer, which is often null — so Word (and now the engine) shows no footer on a title
-      page (agendas-minutes/01's `PAGE 1` correctly disappears). A shared `SelectVariant` also gives an
-      even-numbered page its even header/footer when the document opts into `w:evenAndOddHeaders`, else the
-      default. `NUMPAGES` resolves too: the bands are assembled in a post-pass once the flow ends and the
-      total page count is known, so a `Page N of M` footer reads correctly (`page_numbers`' `Page 1 of 2`).
-      Paint-only, so the body and page count are untouched; `Inputs/header`'s centred `Document Header`
-      renders at Word's position. The behind-text header background image follows the same variant as the
-      text, so a title page's frame comes from its first-page header. A header/footer *table* lays out in the
-      band too, reusing the nested-table layout — business/01's `CANEIRO GROUP` footer grid renders at the
-      page bottom. *Foreground* header images (a title-page illustration that is not a behind-text watermark)
-      are the remaining band piece.
-      **Tabs landed**: a tab run advances the pen to its resolved stop during line building, reusing the
-      production `TabStopResolver` (left / centre / right / decimal, with a stop past the column clamped to
-      the column edge and right/centre/decimal measuring the text up to the next tab). `Inputs/tab_stops`'
-      right-aligned TOC numbers, left-aligned columns, default 0.5" stops and left/centre/right line all land
-      at Word's positions, and `decimal_tabs/01` aligns on the decimal point (0.99). The advance is
-      position-dependent, so it is resolved in `BuildLineItems` rather than baked into a fixed piece width.
-      **Tab leaders landed**: a leadered stop leaves a filler run (empty text, a non-`None` `Leader`) across
-      the gap, and the painter fills it — a baseline rule for underscore, or the leader glyph tiled at ~2×
-      its advance for dots/hyphens (Word spaces the dots roughly a glyph apart, not a dense line). A TOC's
-      dot leaders and a `Signature` underline both render. The dots are a thin horizontal feature, so the
-      *visible* render is the honest check: SSIM barely moves because a row a point off Word's leaves the
-      dots on a different pixel row, but the leaders read correctly.
-      **Empty-paragraph mark font landed**: a blank paragraph has no runs, so its spacer line's height comes
-      from the paragraph mark's own run properties (`w:rPr` on `w:pPr`) — Word sizes the blank line by the
-      mark, not a bare default. Sizing it from a fresh `RunProperties` (default font, 11pt) shrank spacer
-      lines, and in a multi-column flow that under-tall gap let a column hold an extra item: three_columns'
-      title column packed 15 items where Word fits 14. Using the mark font fixed the column break (0.84 →
-      0.89) and lifted the corpus mean (0.9464 → 0.9474) as every empty-spacer document tightened toward Word.
-      **Widow/orphan control landed**: the line loop became a fit-count loop — it takes as many of a
-      paragraph's remaining lines as clear the region, and when a break falls it never strands a single line
-      (Word's default `WidowControl`): one line alone at the bottom (orphan) moves the pair to the next
-      region, one line alone at the top (widow) carries a second line with it. three_columns' two-line
-      `Item 30` now stays whole in the third column instead of splitting across two (0.89 → 0.90), and
-      two_columns' break tightened (0.74 → 0.78); the page-count match held at 98.1%, since Word paginates
-      with the same rule. **Keep-lines (w:keepLines)** rides on the same fit-count loop: a paragraph so
-      marked moves to the next region intact rather than splitting when it will not all fit.
-      **Nested tables landed**: a table inside a cell lays out inline at the cell cursor with no page breaks
-      (`BuildRow` was generalised to take an explicit row Y, so the same row builder serves body and nested
-      tables). `Inputs/complex_tables`' quarterly grid — a two-column Apr/May sub-table inside its Q2 cell —
-      renders at Word's position, colours and values. A cell holding a nested table stays top-aligned, since
-      the vertical-alignment shift only moves text lines; nested-table pages are excluded from the harness,
-      so this is a render-verified capability rather than a metric move.
-      **Body floating images and shapes landed**: a top-level floating image or image-filled shape resolves
-      to a page position — page-anchored offsets from the sheet edge, margin-anchored from the content box,
-      paragraph-anchored from the flow cursor — and paints behind or in front of the body by its `BehindText`
-      flag, in the post-pass that assembles the header/footer bands (so the page count is known). SVG artwork
-      paints its raster fallback, since PdfSharp (like ImageSharp) cannot rasterise SVG; an image-fill shape
-      becomes a plain image, since the shape painter draws only solid and outline fills. agendas-minutes/01's
-      people-at-a-table illustration lands at Word's position and size, and a single full-bleed background
-      photo fills its page. The float is anchored to the page the flow has reached, so a document with one
-      full-page background per page across a page break stacks both on the first page (brochures/01) — tying a
-      body float to its anchor paragraph's resolved page is a later slice, as is float wrap (text flowing
-      around a square/tight float). Body-float pages are excluded from the harness, so this is render-verified.
-      **Contextual spacing (w:contextualSpacing) landed**: two same-style contextual paragraphs collapse the
-      gap between them (the first's space-after and the second's space-before), matching Word's tight memo
-      To/From/CC blocks and list runs — mirroring `PageRendererBase`'s rule (both contextual, equal `StyleId`;
-      a table breaks the run). The Fragmenter previously added the full inter-paragraph spacing, so a memo's
-      three heading lines sat ~48pt too low and pushed the body table onto a second page. Applying the
-      collapse tightened business/05 and resumes/07 to Word's single page, lifting the page-count match from
-      98.1% to **99.4% (156/157)** with no document regressing — the most direct progress yet toward the
-      engine's reason for existing, one pagination answer instead of three.
-      **Inline images entered the validated set**: the measurer already sized a line to its tallest inline
-      image and the painter already drew `PlacedLine.Images`, so admitting inline-image documents to the
-      page-count and fidelity harnesses (they had been excluded out of caution) added 26 documents at
-      **99.5% page-count match (182/183)** with no new miss — business-plans/03's Contoso logo and
-      left-margin arrow land at Word's positions. The residual SSIM on those Aptos-heavy pages is the
-      display-font width gap (a title wrapping to two lines in Word, one in the engine), not the image.
-      **Non-wrapping body floats joined the page-count set, with trailing-blank-page absorption**: a
-      non-wrapping float (every floating shape, and a floating image with no square/tight wrap) takes no flow
-      space, so admitting it leaves pagination untouched — the page-count harness widened by 55 documents to
-      **238/239 = 99.6%**. Two of the newcomers first missed by a page because a document-final empty
-      paragraph, pushed off a full page, landed alone on a new one; `FinishPage` now drops a page carrying
-      only blank spacer lines (a table row, an image, a shape, or a line with real text keeps it), matching
-      Word, which does not render a page for a trailing empty paragraph. The floats are admitted to the
-      page-count harness only — their rendering is verified separately, and the multi-page background
-      limitation would otherwise depress an image-AA-heavy fidelity page for a known reason.
-      **Flow-neutral section breaks joined the page-count set**: the Fragmenter already treats a NextPage
-      section break as a page break and a Continuous one as a no-op, so a document whose sections keep the
-      same geometry (no new column count, page size, or margins) paginates like Word — a corpus census found
-      section breaks in 44 documents, most single-column NextPage template dividers. Admitting the
-      same-geometry ones added 22 documents to the harness at **260/261 = 99.6%** with no new miss, across
-      newsletters, menus, cards, weddings and multi-page business plans.
-      **Per-section geometry landed (NextPage and even/odd)**: the section geometry — page size, margins and
-      column count — is no longer fixed for the whole document. A NextPage or even/odd section break finishes
-      the current page and adopts the new section's `PageSettings`, so each page carries its own geometry:
-      the derived content box and column metrics recompute, and every emitted page records the settings it
-      was laid out at (its background, header and footer bands resolve against those). An even/odd break
-      inserts a blank filler page when the next page's parity is wrong, as Word does. business-plans/12 now
-      paginates with pages flipping between portrait and landscape and per-section margins; admitting the
-      geometry-changing and even/odd documents added 15 to the harness at **274/276 = 99.3%**.
-      **The Continuous mid-page column switch landed too** — the newsletter masthead → multi-column body,
-      where the column count changes without a page break. It flows the new columns from the break point: a
-      `columnTop` cursor records where the columns begin (the break Y, below a full-width masthead, rather
-      than the page top), so `AdvanceColumnOrPage` tops each later column out there and an overflow to the
-      next page resets it to the page top. A corpus census found zero documents exercise it (the three
-      multi-column documents are multi-column from their first section), so it is validated on a synthetic
-      fixture instead: two unit tests assert both columns begin at the break and the overflow page resets to
-      its top, and a rendered three-column newsletter confirms the shape.
-      **Column balancing landed**: a multi-column section that ends the document is newspaper-flowed — column
-      0 fills to the bottom, then column 1 — while a section a *section break* terminates has its last page's
-      columns balanced to equal heights. Which of the two Word applies was settled by rendering documents
-      through Word itself: three_columns (a final section) lays its thirty items out 14 / 15 / 1 across the
-      columns, the last column holding a single item, and the engine reproduces that split exactly (two_columns
-      likewise). For the balanced case the corpus has no example, so a synthetic fixture — a three-column
-      section closed by a continuous break — was authored and rendered through Word: Word balances its six
-      items two / two / two, and the engine now reproduces that, the single-column footer flowing full-width
-      below. `BalanceCurrentColumns` redistributes the last page's column lines in reading order, filling each
-      column to the average height (total / columns), triggered at the section break (a section that ends the
-      document never reaches it, so it stays newspaper-flowed). Uneven-height balancing is approximate — the
-      greedy fill targets the average rather than searching for the minimal tallest column — and a region
-      carrying a table, shading or a border box is left newspaper-flowed (those move as coupled groups); both
-      are later refinements with no corpus demand.
-      **Measured end-to-end**
-      (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX and SSIM the
-      pages against Word's own render (`expected_*.png`). Across 180 block/table/column documents the
-      painter scores **mean 0.941, median 0.975 SSIM** — plain text and tables are near pixel-identical
-      (0.997–1.000). Two lessons from rendering the low scorers next to Word (which the harness makes
-      cheap): the fixes come from *seeing* the gap, not guessing it — the two worst were dark-themed cover
-      letters rendering as blank pages for want of the page background (0.246/0.322 → 0.712/0.789), which no
-      amount of alignment work would have touched; and the score is a **lower bound** — it runs on the host,
-      so a text-dense page carries sub-pixel glyph/line-metric drift and host-vs-container rasterisation AA
-      that depress its SSIM (e.g. long_paragraph 0.78) even where the wrap and alignment match Word exactly.
-      Still to land before it can replace the production `PdfRenderer` — much of this list has since landed via
-      the shared raster cutover (nested tables, unwarped WordArt, floating tables and label grids all emit now;
-      see the post-flip update under "The PDF cutover (step 5)"), leaving the font/image tail, float wrap and
-      warp WordArt as the real blockers:
-      shapes/WordArt and float wrap (behind-text *cell* floats, and now body floating images, image-fill and
-      gradient-fill shapes, render — a gradient shape reuses the production linear-gradient brush and paints
-      as Word does, the vertical bars of labels/04 and the banners of cover-letters/06 among them; text
-      flowing around a square/tight float does not, nor does tying a multi-page
-      background to its anchor paragraph's page), image recolour/duotone effects
-      (letters/02's frame is drawn but blue where Word recolours it
-      brown — needs a pixel path Morph.Pdf lacks); a floating or inline image now applies its DrawingML
-      rotation, flip, source-rectangle crop, and ellipse/freeform clip about the box centre (reusing the
-      production geometry — letters/13's rotated letterhead banners and brochures/03's round photos match
-      Word, and the dedicated image_rotation/01 and image_cropping/01 rise to 0.989 and 0.991 SSIM); a rotated
-      *inline* image still tops out a touch higher than Word, which reserves the rotated bounding box's height
-      in the line; first/even-page header/footer *images* and header/footer
-      tables (default, first-page and even-page header/footer *text* plus behind-text header images render;
-      band *tables*, per-variant images and 3-way tab alignment do not); a partial `w:tcMar`
-      cell-margin override now inherits its absent sides from the table's `w:tblCellMar` per side instead of
-      collapsing them to zero (`DocumentParser.ParseCellMargin`), which is what actually spaces
-      business-plans/04's vAlign=bottom section headings from their bodies — Word's XPS puts that heading row
-      at 31.8pt where the dropped 14.4pt top margin had left 16pt, and the shared parser fix lifted 11 corpus
-      scenarios toward Word across all three backends; per-glyph advances (exact intra-run
-      boundaries — the painter currently anchors each run at its canonical start and lets the font library
-      fill the run). Then repoint `Morph.Pdf` at `LaidOutDocument`, delete `PdfTextEngine`'s pagination, and
-      run the harness in the container (matching Word's rasteriser) to separate real gaps from AA, then
-      validate the full container suite (PDF page-count scoreboard unchanged or better, AE/SSIM neutral).
-      **Apply the section-break-type parser fallback at this cutover, not before.** `DocumentParser` reads a
-      break's `w:type` from the ending section's sectPr; Word also honours it on the following section's, and
-      one corpus document (image_wrap_square) authors a continuous column switch that way, so the parser
-      mis-types it NextPage. Reading the ending section first and falling back to the following section fixes
-      the type, and the layout engine then renders it as Word does (columns mid-page, two pages). But the
-      shared parser also feeds today's production path, which cannot flow continuous mid-page columns and
-      would overlap that document's columns onto the text above — so the change regresses production until the
-      painters own pagination, and is deliberately held for this step.
+      `PdfPainterTests`). A pure draw pass over a `Fragmenter`-produced `LaidOutDocument` — no measurement,
+      no pagination — reusing `PdfRenderContext` for font and brush resolution. The painter is structurally
+      complete over the covered set; what remains is the flip, held on the font/image tail. The feature log
+      (the ~30 slices it renders, in landing order) is "The PDF painter — what landed" below; the cutover
+      plan and what is left are the rest of "The PDF cutover (step 5)".
 - [x] **6. `SkiaPainter` + `ImageSharpPainter`** — the payoff step, LANDED as the DEFAULT raster path for
       covered documents (98.8% of the corpus). Both are thin painters of the same tree; the raster knife-edges
       collapse (raster now paginates identically across backends — one answer, not a straddle). The gate is
@@ -526,6 +299,233 @@ The checklist is landed through step 6; what is left, most-blocking first:
 
 Scoped against the current tree. The map below fixes the seam, the one wiring gap, the strategy, and the
 ordered backlog so the cutover can proceed as a run of small validated slices rather than one large flip.
+
+### The PDF painter — what landed, in order
+
+The step-5 `PdfPainter` feature log, in landing order (pulled out of the migration checklist so it scans). A
+pure draw pass: it takes a `Fragmenter`-produced `LaidOutDocument` and emits a PDF with the tree's pages, page
+sizes and line/run positions — no measurement, no pagination. It reuses `PdfRenderContext` for font and brush
+resolution, so a `PlacedLine`'s runs draw with `XGraphics.DrawString` at the tree's baseline. **Proven
+end-to-end**: a synthetic multi-paragraph flow measured by the canonical measurer, fragmented, painted, and
+rasterised by PDFium renders the text correctly at the canonical positions — the tree drives real PDF output.
+
+- **Per-run fidelity landed**: a mixed-format line paints each run in its own font and colour (bold, italic,
+  red, italic-blue all confirmed in a render), and a mid-word format change never splits the word at a wrap.
+- **Table cell sub-layout landed**: the fragmenter places each cell's paragraphs into the tree (column geometry,
+  padding, vertical-merge heights, `w:jc` table alignment, mirroring `RenderTableRow`) and the painter draws
+  each cell's shading, content and borders — a shaded bold header, a full border grid and wrapped multi-line
+  cells all confirmed in a render.
+- **List markers landed**: a list paragraph's first line carries its marker as a run in the hanging-indent
+  gutter (bullet in the embedded "Morph Bullets" font or number in the paragraph font, `numbering.Text` and
+  colour mirroring `PdfTextEngine`), positioned a hanging indent left of the text — bullets and numbers with
+  correct hanging-indent continuation confirmed in a render.
+- **Run decorations landed**: each run paints its highlight (behind the glyphs, over the line box), underline
+  (below the baseline) and strikethrough (through the x-height), coloured and sized from `RunProperties` with
+  the geometry from `PdfTextEngine` — underline, strike, yellow/green highlight, combinations, and a wrapped
+  underlined run underlined on both lines all confirmed in a render.
+- **Inline images landed**: the wrap treats an image as an unbreakable box (its width counts toward the line,
+  its height grows the line), the fragmenter places it with its bottom on the baseline, and the painter decodes
+  the bytes (an SVG's raster fallback) and draws them — an inline icon flowing mid-sentence and a figure growing
+  its own line both confirmed in a render.
+- **Alignment (centre/right/justify), page background, intra-paragraph line breaks and all-caps landed**: the
+  fragmenter shifts each line by its alignment offset within the available width; justify distributes the
+  leftover width evenly across a naturally wrapped line's inter-word gaps (the last line and break-ended lines
+  stay natural); the painter fills the page's `w:background`; a soft line break (parsed as `"\n"`) forces a line
+  break instead of a missing-glyph box; a `w:caps` run is upper-cased; a table cell's first paragraph keeps its
+  space-before (which `TableHeightCalculator` already sizes the cell with, so the content must be positioned
+  with it or float to the top); a cell's content shifts down for centre/bottom vertical alignment within the
+  space its row leaves; a **header's behind-text floating images** are resolved to page positions and painted
+  behind every page's body — the full-page decorative frames of letter templates live here (letters/02 0.62 →
+  0.78, letters/03 0.73 → 0.79); and **behind-text cell-float shapes** land — a cell's `Floats` are resolved to
+  cell-relative boxes and painted before its content, so a label template's coloured background panel (a preset
+  rect) and freeform blobs (unit-square subpaths scaled into the box via the reused
+  `PdfPageRenderer.BuildShapePath`) fill each cell behind the white recipient text (labels/14 blank → 0.86;
+  solid fills only — gradient/image fills stay deferred).
+- **Empty-paragraph after-spacing and a last-line bottom-margin tolerance landed**: an empty paragraph carries
+  its after-spacing into the collapse with the next paragraph like any other (measured against Word —
+  two_columns' title/blank/body gap is line + after + line + after, not one dropped after), and a line is placed
+  while its *baseline* clears the bottom margin, letting the last line's descent and trailing gap encroach as
+  Word does (self-limiting: the next line's baseline then falls below the margin and breaks). Together they fix
+  two_columns' column-break point (it broke after paragraph 11 instead of 10; 0.63 → 0.74) while holding the
+  page-count match at 98.1% (154/157) — the tolerance exactly offsets the extra empty-paragraph height on the
+  borderline documents.
+- **Character spacing (w:spacing tracking) landed**: the measurer adds the per-character points to every token's
+  advance so a letter-spaced run widens the wrap and alignment maths, and the painter spreads the glyphs to
+  match (reusing `PdfTextEngine`'s per-glyph logic). A tracked all-caps subtitle (cover-letters/16's
+  `ACCOUNTANT`) now renders at Word's width; the SSIM is unchanged because that page is white-on-dark, where
+  host-vs-container text AA dominates the score — a case where the *visible* render is the honest check, not the
+  number.
+- **Paragraph shading (w:shd) landed**: a paragraph with a background colour emits a `PlacedShading` band per
+  line spanning its column box (indent to right margin), painted behind the text — so a centred title's band
+  still spans the full column, not only the glyphs' width. resumes/15's `Janna Gardner` header band renders
+  (0.75 → 0.80); run-level highlight (on the run, text-width) is separate and already painted.
+- **Paragraph borders (w:pBdr) landed**: a paragraph with any visible edge emits one `PlacedBorder` box around
+  its column box, expanded by each edge's space, which the painter strokes edge by edge (the same geometry as a
+  table cell) — a box, a block-quote left bar, a right rule and a heading's bottom rule all render
+  (cover-letters/02's rule under `DEAR ROWAN MURPHY`). Paint-only, so no page-count effect. It does not move the
+  aggregate SSIM: a border is a thin line, so where the paragraph sits even a few points off Word's position
+  (cover-letters/02's header block is compressed by a display/script-font metric gap upstream) the stroke lands
+  beside Word's rather than over it. Deferred: the between-border collapse of consecutive same-bordered
+  paragraphs (currently each box tiles, which reads correctly), and reserving a large border space in the layout
+  (a 16pt box overlaps its neighbours — the reservation conflicts with the collapse case, so the two land
+  together).
+- **Header and footer text landed**: header and footer paragraphs lay out per page as self-contained bands (the
+  reusable `LayoutBand` — wrap, alignment and shading, no page breaks). The header band sits at the header
+  distance in front of the background image; the footer band is anchored so its bottom is the footer distance
+  above the page edge, with each `PAGE` field resolved to that page's number (`Page 1`, `Page 2`, …). Page 1
+  honours the `w:titlePg` "different first page": with a title page it takes the first-page header/footer, which
+  is often null — so Word (and now the engine) shows no footer on a title page (agendas-minutes/01's `PAGE 1`
+  correctly disappears). A shared `SelectVariant` also gives an even-numbered page its even header/footer when
+  the document opts into `w:evenAndOddHeaders`, else the default. `NUMPAGES` resolves too: the bands are
+  assembled in a post-pass once the flow ends and the total page count is known, so a `Page N of M` footer reads
+  correctly (`page_numbers`' `Page 1 of 2`). Paint-only, so the body and page count are untouched;
+  `Inputs/header`'s centred `Document Header` renders at Word's position. The behind-text header background
+  image follows the same variant as the text, so a title page's frame comes from its first-page header. A
+  header/footer *table* lays out in the band too, reusing the nested-table layout — business/01's `CANEIRO
+  GROUP` footer grid renders at the page bottom. *Foreground* header images (a title-page illustration that is
+  not a behind-text watermark) are the remaining band piece.
+- **Tabs landed**: a tab run advances the pen to its resolved stop during line building, reusing the production
+  `TabStopResolver` (left / centre / right / decimal, with a stop past the column clamped to the column edge and
+  right/centre/decimal measuring the text up to the next tab). `Inputs/tab_stops`' right-aligned TOC numbers,
+  left-aligned columns, default 0.5" stops and left/centre/right line all land at Word's positions, and
+  `decimal_tabs/01` aligns on the decimal point (0.99). The advance is position-dependent, so it is resolved in
+  `BuildLineItems` rather than baked into a fixed piece width.
+- **Tab leaders landed**: a leadered stop leaves a filler run (empty text, a non-`None` `Leader`) across the
+  gap, and the painter fills it — a baseline rule for underscore, or the leader glyph tiled at ~2× its advance
+  for dots/hyphens (Word spaces the dots roughly a glyph apart, not a dense line). A TOC's dot leaders and a
+  `Signature` underline both render. The dots are a thin horizontal feature, so the *visible* render is the
+  honest check: SSIM barely moves because a row a point off Word's leaves the dots on a different pixel row, but
+  the leaders read correctly.
+- **Empty-paragraph mark font landed**: a blank paragraph has no runs, so its spacer line's height comes from
+  the paragraph mark's own run properties (`w:rPr` on `w:pPr`) — Word sizes the blank line by the mark, not a
+  bare default. Sizing it from a fresh `RunProperties` (default font, 11pt) shrank spacer lines, and in a
+  multi-column flow that under-tall gap let a column hold an extra item: three_columns' title column packed 15
+  items where Word fits 14. Using the mark font fixed the column break (0.84 → 0.89) and lifted the corpus mean
+  (0.9464 → 0.9474) as every empty-spacer document tightened toward Word.
+- **Widow/orphan control landed**: the line loop became a fit-count loop — it takes as many of a paragraph's
+  remaining lines as clear the region, and when a break falls it never strands a single line (Word's default
+  `WidowControl`): one line alone at the bottom (orphan) moves the pair to the next region, one line alone at
+  the top (widow) carries a second line with it. three_columns' two-line `Item 30` now stays whole in the third
+  column instead of splitting across two (0.89 → 0.90), and two_columns' break tightened (0.74 → 0.78); the
+  page-count match held at 98.1%, since Word paginates with the same rule. **Keep-lines (w:keepLines)** rides on
+  the same fit-count loop: a paragraph so marked moves to the next region intact rather than splitting when it
+  will not all fit.
+- **Nested tables landed**: a table inside a cell lays out inline at the cell cursor with no page breaks
+  (`BuildRow` was generalised to take an explicit row Y, so the same row builder serves body and nested tables).
+  `Inputs/complex_tables`' quarterly grid — a two-column Apr/May sub-table inside its Q2 cell — renders at
+  Word's position, colours and values. A cell holding a nested table stays top-aligned, since the
+  vertical-alignment shift only moves text lines; nested-table pages are excluded from the harness, so this is a
+  render-verified capability rather than a metric move.
+- **Body floating images and shapes landed**: a top-level floating image or image-filled shape resolves to a
+  page position — page-anchored offsets from the sheet edge, margin-anchored from the content box,
+  paragraph-anchored from the flow cursor — and paints behind or in front of the body by its `BehindText` flag,
+  in the post-pass that assembles the header/footer bands (so the page count is known). SVG artwork paints its
+  raster fallback, since PdfSharp (like ImageSharp) cannot rasterise SVG; an image-fill shape becomes a plain
+  image, since the shape painter draws only solid and outline fills. agendas-minutes/01's people-at-a-table
+  illustration lands at Word's position and size, and a single full-bleed background photo fills its page. The
+  float is anchored to the page the flow has reached, so a document with one full-page background per page
+  across a page break stacks both on the first page (brochures/01) — tying a body float to its anchor
+  paragraph's resolved page is a later slice, as is float wrap (text flowing around a square/tight float).
+  Body-float pages are excluded from the harness, so this is render-verified.
+- **Contextual spacing (w:contextualSpacing) landed**: two same-style contextual paragraphs collapse the gap
+  between them (the first's space-after and the second's space-before), matching Word's tight memo To/From/CC
+  blocks and list runs — mirroring `PageRendererBase`'s rule (both contextual, equal `StyleId`; a table breaks
+  the run). The Fragmenter previously added the full inter-paragraph spacing, so a memo's three heading lines
+  sat ~48pt too low and pushed the body table onto a second page. Applying the collapse tightened business/05
+  and resumes/07 to Word's single page, lifting the page-count match from 98.1% to **99.4% (156/157)** with no
+  document regressing — the most direct progress yet toward the engine's reason for existing, one pagination
+  answer instead of three.
+- **Inline images entered the validated set**: the measurer already sized a line to its tallest inline image and
+  the painter already drew `PlacedLine.Images`, so admitting inline-image documents to the page-count and
+  fidelity harnesses (they had been excluded out of caution) added 26 documents at **99.5% page-count match
+  (182/183)** with no new miss — business-plans/03's Contoso logo and left-margin arrow land at Word's
+  positions. The residual SSIM on those Aptos-heavy pages is the display-font width gap (a title wrapping to two
+  lines in Word, one in the engine), not the image.
+- **Non-wrapping body floats joined the page-count set, with trailing-blank-page absorption**: a non-wrapping
+  float (every floating shape, and a floating image with no square/tight wrap) takes no flow space, so admitting
+  it leaves pagination untouched — the page-count harness widened by 55 documents to **238/239 = 99.6%**. Two of
+  the newcomers first missed by a page because a document-final empty paragraph, pushed off a full page, landed
+  alone on a new one; `FinishPage` now drops a page carrying only blank spacer lines (a table row, an image, a
+  shape, or a line with real text keeps it), matching Word, which does not render a page for a trailing empty
+  paragraph. The floats are admitted to the page-count harness only — their rendering is verified separately,
+  and the multi-page background limitation would otherwise depress an image-AA-heavy fidelity page for a known
+  reason.
+- **Flow-neutral section breaks joined the page-count set**: the Fragmenter already treats a NextPage section
+  break as a page break and a Continuous one as a no-op, so a document whose sections keep the same geometry (no
+  new column count, page size, or margins) paginates like Word — a corpus census found section breaks in 44
+  documents, most single-column NextPage template dividers. Admitting the same-geometry ones added 22 documents
+  to the harness at **260/261 = 99.6%** with no new miss, across newsletters, menus, cards, weddings and
+  multi-page business plans.
+- **Per-section geometry landed (NextPage and even/odd)**: the section geometry — page size, margins and column
+  count — is no longer fixed for the whole document. A NextPage or even/odd section break finishes the current
+  page and adopts the new section's `PageSettings`, so each page carries its own geometry: the derived content
+  box and column metrics recompute, and every emitted page records the settings it was laid out at (its
+  background, header and footer bands resolve against those). An even/odd break inserts a blank filler page when
+  the next page's parity is wrong, as Word does. business-plans/12 now paginates with pages flipping between
+  portrait and landscape and per-section margins; admitting the geometry-changing and even/odd documents added
+  15 to the harness at **274/276 = 99.3%**.
+- **The Continuous mid-page column switch landed too** — the newsletter masthead → multi-column body, where the
+  column count changes without a page break. It flows the new columns from the break point: a `columnTop` cursor
+  records where the columns begin (the break Y, below a full-width masthead, rather than the page top), so
+  `AdvanceColumnOrPage` tops each later column out there and an overflow to the next page resets it to the page
+  top. A corpus census found zero documents exercise it (the three multi-column documents are multi-column from
+  their first section), so it is validated on a synthetic fixture instead: two unit tests assert both columns
+  begin at the break and the overflow page resets to its top, and a rendered three-column newsletter confirms
+  the shape.
+- **Column balancing landed**: a multi-column section that ends the document is newspaper-flowed — column 0
+  fills to the bottom, then column 1 — while a section a *section break* terminates has its last page's columns
+  balanced to equal heights. Which of the two Word applies was settled by rendering documents through Word
+  itself: three_columns (a final section) lays its thirty items out 14 / 15 / 1 across the columns, the last
+  column holding a single item, and the engine reproduces that split exactly (two_columns likewise). For the
+  balanced case the corpus has no example, so a synthetic fixture — a three-column section closed by a
+  continuous break — was authored and rendered through Word: Word balances its six items two / two / two, and
+  the engine now reproduces that, the single-column footer flowing full-width below. `BalanceCurrentColumns`
+  redistributes the last page's column lines in reading order, filling each column to the average height (total
+  / columns), triggered at the section break (a section that ends the document never reaches it, so it stays
+  newspaper-flowed). Uneven-height balancing is approximate — the greedy fill targets the average rather than
+  searching for the minimal tallest column — and a region carrying a table, shading or a border box is left
+  newspaper-flowed (those move as coupled groups); both are later refinements with no corpus demand.
+- **Measured end-to-end** (`PdfPainterFidelityTests`): parse → fragment → paint → rasterise a real corpus DOCX
+  and SSIM the pages against Word's own render (`expected_*.png`). Across 180 block/table/column documents the
+  painter scores **mean 0.941, median 0.975 SSIM** — plain text and tables are near pixel-identical
+  (0.997–1.000). Two lessons from rendering the low scorers next to Word (which the harness makes cheap): the
+  fixes come from *seeing* the gap, not guessing it — the two worst were dark-themed cover letters rendering as
+  blank pages for want of the page background (0.246/0.322 → 0.712/0.789), which no amount of alignment work
+  would have touched; and the score is a **lower bound** — it runs on the host, so a text-dense page carries
+  sub-pixel glyph/line-metric drift and host-vs-container rasterisation AA that depress its SSIM (e.g.
+  long_paragraph 0.78) even where the wrap and alignment match Word exactly.
+
+Still to land before it can replace the production `PdfRenderer` — much of this list has since landed via the
+shared raster cutover (nested tables, unwarped WordArt, floating tables and label grids all emit now; see the
+post-flip update under "The PDF cutover (step 5)"), leaving the font/image tail, float wrap and warp WordArt as
+the real blockers: shapes/WordArt and float wrap (behind-text *cell* floats, and now body floating images,
+image-fill and gradient-fill shapes, render — a gradient shape reuses the production linear-gradient brush and
+paints as Word does, the vertical bars of labels/04 and the banners of cover-letters/06 among them; text flowing
+around a square/tight float does not, nor does tying a multi-page background to its anchor paragraph's page),
+image recolour/duotone effects (letters/02's frame is drawn but blue where Word recolours it brown — needs a
+pixel path Morph.Pdf lacks); a floating or inline image now applies its DrawingML rotation, flip,
+source-rectangle crop, and ellipse/freeform clip about the box centre (reusing the production geometry —
+letters/13's rotated letterhead banners and brochures/03's round photos match Word, and the dedicated
+image_rotation/01 and image_cropping/01 rise to 0.989 and 0.991 SSIM); a rotated *inline* image still tops out a
+touch higher than Word, which reserves the rotated bounding box's height in the line; first/even-page
+header/footer *images* and header/footer tables (default, first-page and even-page header/footer *text* plus
+behind-text header images render; band *tables*, per-variant images and 3-way tab alignment do not); a partial
+`w:tcMar` cell-margin override now inherits its absent sides from the table's `w:tblCellMar` per side instead of
+collapsing them to zero (`DocumentParser.ParseCellMargin`), which is what actually spaces business-plans/04's
+vAlign=bottom section headings from their bodies — Word's XPS puts that heading row at 31.8pt where the dropped
+14.4pt top margin had left 16pt, and the shared parser fix lifted 11 corpus scenarios toward Word across all
+three backends; per-glyph advances (exact intra-run boundaries — the painter currently anchors each run at its
+canonical start and lets the font library fill the run). Then repoint `Morph.Pdf` at `LaidOutDocument`, delete
+`PdfTextEngine`'s pagination, and run the harness in the container (matching Word's rasteriser) to separate real
+gaps from AA, then validate the full container suite (PDF page-count scoreboard unchanged or better, AE/SSIM
+neutral). **Apply the section-break-type parser fallback at this cutover, not before.** `DocumentParser` reads a
+break's `w:type` from the ending section's sectPr; Word also honours it on the following section's, and one
+corpus document (image_wrap_square) authors a continuous column switch that way, so the parser mis-types it
+NextPage. Reading the ending section first and falling back to the following section fixes the type, and the
+layout engine then renders it as Word does (columns mid-page, two pages). But the shared parser also feeds
+today's production path, which cannot flow continuous mid-page columns and would overlap that document's columns
+onto the text above — so the change regresses production until the painters own pagination, and is deliberately
+held for this step.
 
 ### The seam
 
