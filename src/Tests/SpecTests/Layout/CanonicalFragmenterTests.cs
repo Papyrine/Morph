@@ -1102,6 +1102,77 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task An_absolute_body_float_resolves_to_the_page_its_following_content_lands_on()
+    {
+        var shape = new FloatingShapeElement
+        {
+            WidthPoints = 100, HeightPoints = 40,
+            FillColorHex = "FF0000",
+            HorizontalAnchor = HorizontalAnchor.Margin, VerticalAnchor = VerticalAnchor.Margin,
+            BehindText = true
+        };
+        var fillers = Enumerable.Range(0, 11).Select(_ => P("filler")).ToArray();
+
+        // The shape's element is reached while the cursor is still on page 1 (after its eleven lines), but it
+        // precedes the paragraph that overflows to page 2. A margin anchor makes its position absolute, so it
+        // belongs to the page carrying the content it anchors — page 2 — not the emit-time cursor page. Before
+        // the deferral this stacked a page-2 background onto page 1 (brochures/01).
+        var document = Fragmenter.Layout([.. fillers, shape, P("page two")], Page(200));
+
+        await Assert.That(document.Pages.Count).IsEqualTo(2);
+        await Assert.That(document.Pages[0].Items.OfType<PlacedShape>().Any()).IsFalse();
+        await Assert.That(document.Pages[1].Items.OfType<PlacedShape>().Any()).IsTrue();
+    }
+
+    [Test]
+    public async Task A_text_anchored_floating_table_flows_inline_below_the_preceding_content()
+    {
+        var floatingTable = new TableElement
+        {
+            Properties = new()
+            {
+                GridColumnWidths = [100, 100],
+                IsFloating = true,
+                FloatingVerticalAnchor = FloatingTableVerticalAnchor.Text,
+                FloatingHorizontalAnchor = FloatingTableHorizontalAnchor.Margin
+            },
+            Rows = [new TableRow { Cells = [new TableCell { Content = [P("date")] }, new TableCell { Content = [P("value")] }] }]
+        };
+
+        var above = P("above", new() { SpacingAfterPoints = 30 });
+        var items = Fragmenter.Layout([above, floatingTable, P("below")], Page(400)).Pages[0].Items.ToList();
+        var aboveLine = items.OfType<PlacedLine>().First(_ => _.Runs.Any(run => run.Text == "above"));
+        var row = items.OfType<PlacedTableRow>().Single();
+        var belowLine = items.OfType<PlacedLine>().First(_ => _.Runs.Any(run => run.Text == "below"));
+
+        // A text-anchored floating table takes flow space rather than overlaying: the preceding paragraph's
+        // 30pt after-spacing pushes it down (agendas-minutes/11's placeholder gap), and the following
+        // paragraph clears its bottom instead of overlapping it.
+        await Assert.That(row.Y).IsEqualTo(aboveLine.Y + aboveLine.Height + 30f).Within(0.5f);
+        await Assert.That(belowLine.Y).IsGreaterThanOrEqualTo(row.Y + row.Height - 0.5f);
+    }
+
+    [Test]
+    public async Task A_percentage_positioned_float_resolves_against_its_anchor_reference()
+    {
+        var shape = new FloatingShapeElement
+        {
+            WidthPoints = 40, HeightPoints = 40,
+            FillColorHex = "0000FF",
+            HorizontalAnchor = HorizontalAnchor.Page, VerticalAnchor = VerticalAnchor.Page,
+            HorizontalPositionPercent = 0.5, VerticalPositionPercent = 0.5,
+            BehindText = true
+        };
+
+        // Page(200) is 300pt wide × 200pt tall. A 50% page-anchored offset (wp14:pctPosHOffset/pctPosVOffset)
+        // lands the shape's top-left at the page centre (150, 100), not at the anchor origin — the percentage
+        // resolves as a fraction of the page dimension.
+        var placed = Fragmenter.Layout([shape, P("body")], Page(200)).Pages[0].Items.OfType<PlacedShape>().Single();
+        await Assert.That(placed.X).IsEqualTo(150f).Within(0.5f);
+        await Assert.That(placed.Y).IsEqualTo(100f).Within(0.5f);
+    }
+
+    [Test]
     public async Task An_inline_image_carries_its_rotation_to_the_painter()
     {
         var run = new Run
