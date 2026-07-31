@@ -250,7 +250,10 @@ Build alongside the existing renderers; do not delete anything until all three b
       below). One piece is held for the PDF cutover: fixing `ParseSectionBreak` (`DocumentParser` ~9318) to read
       the *following* section's `w:type` (ECMA-376 §17.6.22) — it regresses production until the painters own
       pagination, so it lands with step 5's flip.
-- [~] **5. `PdfPainter` — first slice landed** (`PdfPainter`, `PdfPainterTests`). A pure draw pass: it
+- [~] **5. `PdfPainter` — built and capability-gated; flip held on `PdfTextEngine`** (`PdfPainter`,
+      `PdfPainterTests`). The painter is structurally complete over the covered set (the log below started as a
+      single "first slice" and has accreted ~30 since); what remains is the flip itself, deferred on the
+      font/image tail (see "The PDF cutover"). A pure draw pass: it
       takes a `Fragmenter`-produced `LaidOutDocument` and emits a PDF with the tree's pages, page sizes
       and line/run positions — no measurement, no pagination. It reuses `PdfRenderContext` for font and
       brush resolution, so a `PlacedLine`'s runs draw with `XGraphics.DrawString` at the tree's baseline.
@@ -445,7 +448,10 @@ Build alongside the existing renderers; do not delete anything until all three b
       amount of alignment work would have touched; and the score is a **lower bound** — it runs on the host,
       so a text-dense page carries sub-pixel glyph/line-metric drift and host-vs-container rasterisation AA
       that depress its SSIM (e.g. long_paragraph 0.78) even where the wrap and alignment match Word exactly.
-      Still to land before it can replace the production `PdfRenderer`:
+      Still to land before it can replace the production `PdfRenderer` — much of this list has since landed via
+      the shared raster cutover (nested tables, unwarped WordArt, floating tables and label grids all emit now;
+      see the post-flip update under "The PDF cutover (step 5)"), leaving the font/image tail, float wrap and
+      warp WordArt as the real blockers:
       shapes/WordArt and float wrap (behind-text *cell* floats, and now body floating images, image-fill and
       gradient-fill shapes, render — a gradient shape reuses the production linear-gradient brush and paints
       as Word does, the vertical bars of labels/04 and the banners of cover-letters/06 among them; text
@@ -459,12 +465,12 @@ Build alongside the existing renderers; do not delete anything until all three b
       *inline* image still tops out a touch higher than Word, which reserves the rotated bounding box's height
       in the line; first/even-page header/footer *images* and header/footer
       tables (default, first-page and even-page header/footer *text* plus behind-text header images render;
-      band *tables*, per-variant images and 3-way tab alignment do not), nested tables; a partial `w:tcMar`
+      band *tables*, per-variant images and 3-way tab alignment do not); a partial `w:tcMar`
       cell-margin override now inherits its absent sides from the table's `w:tblCellMar` per side instead of
       collapsing them to zero (`DocumentParser.ParseCellMargin`), which is what actually spaces
       business-plans/04's vAlign=bottom section headings from their bodies — Word's XPS puts that heading row
       at 31.8pt where the dropped 14.4pt top margin had left 16pt, and the shared parser fix lifted 11 corpus
-      scenarios toward Word across all three backends; label grids, and per-glyph advances (exact intra-run
+      scenarios toward Word across all three backends; per-glyph advances (exact intra-run
       boundaries — the painter currently anchors each run at its canonical start and lets the font library
       fill the run). Then repoint `Morph.Pdf` at `LaidOutDocument`, delete `PdfTextEngine`'s pagination, and
       run the harness in the container (matching Word's rasteriser) to separate real gaps from AA, then
@@ -489,6 +495,24 @@ Build alongside the existing renderers; do not delete anything until all three b
 - [ ] **7. Delete** `PageRendererBase` pagination, `SectionBreakHandler` (subsumed), the per-backend
       `EnsureSpaceFor`/`AdvanceToNextColumnOrPage`, `TableHeightCalculator` (folded into the table
       sub-layout). Keep the backends' primitive draw ops only.
+
+### Remaining work, in one place
+
+The checklist is landed through step 6; what is left, most-blocking first:
+
+1. **The PDF flip** (step 5 D) — painter and predicate are done; the flip is held on the font/image tail
+   (−0.0054, dominated by Aptos display-font wrap under PDFium's AA plus compound-image and full-page-gradient
+   rasterization). See "The PDF cutover (step 5)".
+2. **The four coverage hold-outs** of 325 — warp WordArt (`wordart`, `wordart-envelope`; the 16 presets), float
+   wrap (`image_wrap_square`; text flowing around a square/tight float, an exclusion the Fragmenter does not
+   emit), and `agendas-minutes/14` (a positioned frame). These plus the flip take the `PdfTextEngine` fallback
+   cold.
+3. **Step 7 — delete** the old pagination (`PageRendererBase`, `PdfTextEngine`, `SectionBreakHandler`,
+   `TableHeightCalculator`), once PDF flips and coverage is total — the fallback still serves uncovered
+   documents and the kill switch until then.
+4. **Painter-fidelity backlog** — score-improving, not gating a document: per-glyph advances, image
+   recolour/duotone, super/subscript raise, `w:position`, small-caps, run borders/effects, RTL, per-variant
+   header/footer images and band tables (detailed under the two cutover sections).
 
 ## The PDF cutover (step 5), in detail
 
@@ -732,7 +756,8 @@ so page-2 floats stack onto page 1 (newsletters/12's page-2 photo overlays page-
 documents render correctly. **Multi-page float anchor-page resolution is now the gate for those documents and
 the next float slice** — it must be fixed before any raster flip that includes them. (pct_pos_offset, a
 single-page doc, loses 0.043 for a different, smaller reason: percent-position float placement differs
-slightly from production.)
+slightly from production.) **Both were fixed in the fidelity slice below** — multi-page anchoring lifts
+brochures/01 −0.375 → −0.021 and newsletters/12 to +0.018, and percent-position placement reaches exact parity.
 
 ### Emission slice: section breaks (coverage 236 → 273)
 
@@ -881,8 +906,13 @@ shared with production; the full run/style cascade landed later, see "inherited 
 below.) Deferred: the glyph outline (fill only for now) and the 16 warp presets, which only the
 wordart / wordart-envelope test documents need.
 
-Coverage now stands at **321 / 325**; the four hold-outs are the two warp test documents, image_wrap_square
-(float wrap), and agendas-minutes/14 (a positioned frame).
+Coverage now stands at **321 / 325** — verified by counting `EngineCoverage.Covers` over every corpus document
+with a Word reference render (`Inputs/**/input.docx` beside an `expected_*.png`). The four hold-outs are the two
+warp test documents (`wordart`, `wordart-envelope`), `image_wrap_square` (float wrap), and `agendas-minutes/14`
+(a positioned frame). The per-slice tallies above are point-in-time counts taken as each slice landed, so they
+drift by a document or two between slices as the shared predicate shifted (the +2 between the floating-tables
+and unwarped-WordArt slices is one such step) and do not chain exactly to this total — 321 / 325 is the
+authoritative figure.
 
 ### Fidelity slice: multi-page float anchoring and inline floating tables
 
@@ -986,19 +1016,24 @@ Y-positions, break points — and diff it *directly* against Word's XPS box geom
 rasterization. That turns "why is this page 2px off" into a structural diff. Keep the existing
 Verify-PNG scenario tests as the painter-fidelity gate; add layout-tree snapshots as the pagination gate.
 
+*Partly realized.* The page-count half is a standing gate: `FragmenterPageCountTests` diffs the tree's
+`Pages.Count` against Word at 99%+ agreement, and `CanonicalFragmenterTests` / `CanonicalWrapAgreementTests`
+assert specific placements and wraps. The full-geometry structural diff the paragraph above envisions — every
+region rectangle and line Y-position snapshotted as text and diffed against Word's XPS box tree — is the part
+that remains unbuilt; today the painter-fidelity `Verify`-PNG suite is still the backstop for placement.
+
 ## What is preserved vs deleted
 
 - **Preserved:** the parser and `ParsedDocument` model (unchanged input); the 21 measured rules (become
   fragmenter rules); the float pipeline knowledge (`docs/floating-art-pipeline.md`, becomes exclusions);
   the shape/WordArt geometry (becomes `PlacedShape`); the Verify-PNG suite (becomes the painter gate).
-- **Deleted:** three copies of pagination; `TableHeightCalculator` as a separate measure pass; the
-  whole-paragraph widow approximation; the raster/PDF metric divergence; and the knife-edge category.
+- **Deleted (step 7 — the remaining cleanup):** three copies of pagination; `TableHeightCalculator` as a
+  separate measure pass; the whole-paragraph widow approximation; the raster/PDF metric divergence; and the
+  knife-edge category. For covered raster documents these are already gone; the old code persists as the
+  uncovered fallback and the kill switch until step 7, and PDF keeps its copy until its own flip.
 
 ## Open questions
 
-- **Column balancing** — Word equalizes a continuous section's last-page column heights
-  (`PropertyMap.cxx:900`). Cosmetic, not page-count; the fragmenter can add it as a second pass, but it
-  is not required for correctness. Defer.
 - **`image_wrap_square` residual** — it also exercises the mode ≤14 `UseFormerTextWrapping` flag
   (`src/page_counts.md`, LO rule index), which is orthogonal to columns; columns are necessary but may
   not be sufficient there.
