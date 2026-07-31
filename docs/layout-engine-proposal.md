@@ -189,6 +189,14 @@ target, versus three that cancel differently and mask the model).
 
 Build alongside the existing renderers; do not delete anything until all three backends consume the tree.
 
+**A note on names.** The type and method sketches in the proposal above are the design as first drafted; the
+implementation refined several, and the checklist and cutover logs below use the landed names. `PlacedGlyphRun`
+became `PlacedRun` (per-glyph advances deferred — see step 2); the sketched `PlacedRule`/`PlacedFill` became
+`PlacedBorder`/`PlacedShading`, with `PlacedCell`/`PlacedTableRow` added for tables; the `DocumentLayoutEngine`
+section walk and the `Region` chain folded into the `Fragmenter`, whose entry point is `Fragmenter.Layout`
+returning a `LaidOutDocument` (not the sketched `Place(flow, region, sink)`); and each backend's painter draws
+through the render context's own primitives rather than a common `ILayoutPainter` interface.
+
 - [x] **1. `CanonicalTextMeasurer`** — landed (`src/Morph/Fonts/FontMetrics.cs`,
       `FontMetricsReader.cs`, `src/Morph/Layout/CanonicalTextMeasurer.cs`, `CanonicalMetricsTests`).
       A backend-independent reader pulls `head`/`hhea`/`hmtx`/`cmap` from the font file; the measurer
