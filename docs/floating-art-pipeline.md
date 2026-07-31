@@ -202,7 +202,10 @@ business-plans/08's accent rule).
   `grpSp`/`wgp` chain to the nearest group whose `grpSpPr` carries a solid fill. Fill-less
   wrapper groups are looked through (labels/07 nests clusters two wrappers deep); an ancestor
   with a concrete non-solid fill (gradient/blip/noFill) stops the walk rather than inheriting a
-  wrong colour.
+  wrong colour. Both the floating walk (`ParseSolidFillShape`) and the INLINE group parser
+  (`ParseInlineShapeGroupRun`) resolve it — brochures/06's accent stripes and balloon line-art are
+  inline `wpg:wgp` clusters whose every rect defers via `grpFill` (outline `a:noFill` too), so
+  before the inline path resolved it they drew as nothing on p1 in every backend.
 - Linear `a:gradFill` parses in BOTH group paths (SP's grouped branch and the walk) — every
   corpus gradient sits on a group child (labels/04's 90° accent bars, cover-letters/06's
   banner wash + page-bottom band), and until 2026-07-20 only SP's unused STANDALONE branch

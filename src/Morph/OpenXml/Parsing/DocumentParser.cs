@@ -5562,7 +5562,7 @@ sealed class DocumentParser(string defaultFont)
                         }
                         else
                         {
-                            var wordArtElement = ParseWordArt(drawing, props.Alignment);
+                            var wordArtElement = ParseWordArt(drawing, mainPart, props.Alignment);
                             if (wordArtElement != null)
                             {
                                 // Emit current paragraph content before the WordArt
@@ -6245,7 +6245,19 @@ sealed class DocumentParser(string defaultFont)
                     continue;
                 }
 
-                var fill = shapeProps.GetFirstChild<A.SolidFill>();
+                // a:grpFill defers the fill to the ancestor group's a:solidFill — Word's brochure
+                // templates paint a whole cluster (brochures/06's accent stripes, its balloon
+                // silhouette) by filling the wpg:wgp once and letting each rect inherit it. Reading
+                // only the shape's own a:solidFill left every grpFill child with no colour, so they
+                // drew as nothing (their outline is a:noFill too). Mirror the floating path's
+                // resolution (ParseSolidFillShape) so inline groups pick up the same cluster colour.
+                var explicitNoFill = shapeProps.GetFirstChild<A.NoFill>() != null;
+                var fill = explicitNoFill ? null : shapeProps.GetFirstChild<A.SolidFill>();
+                if (fill == null && !explicitNoFill && shapeProps.GetFirstChild<A.GroupFill>() != null)
+                {
+                    fill = ResolveGroupFill(wsp);
+                }
+
                 var stroke = ReadGroupStroke(shapeProps, wsp.GetFirstChild<WPS.ShapeStyle>()?.LineReference);
 
                 // A wps:wsp can be picture-filled the same way a pic:pic is (Word's "fill a
@@ -8555,7 +8567,7 @@ sealed class DocumentParser(string defaultFont)
     /// Parses a Drawing element to extract a WordArt shape.
     /// Returns WordArtElement for inline WordArt, FloatingWordArtElement for anchored WordArt.
     /// </summary>
-    DocumentElement? ParseWordArt(Drawing drawing, TextAlignment alignment = TextAlignment.Left)
+    DocumentElement? ParseWordArt(Drawing drawing, MainDocumentPart mainPart, TextAlignment alignment = TextAlignment.Left)
     {
         // Get dimensions from Inline or Anchor
         long widthEmu = 0;
@@ -8752,6 +8764,25 @@ sealed class DocumentParser(string defaultFont)
                 // ExtractLineStyle resolves theme colours and the wps:style lnRef fallback.
                 (boxLineColor, var boxWidthPts, boxLineAlpha) = ShapeParser.ExtractLineStyle(wsp, spPr, currentThemeColors);
                 boxLineWidth = boxWidthPts ?? 0;
+
+                // An unwarped inline text box (Word routes these through the WordArt dispatch)
+                // renders as an ordinary text box: its glyph colour, size, weight and font follow
+                // the run's RESOLVED properties — direct run rPr over the paragraph style chain over
+                // the document defaults — not the WordArt defaults the first-run read above used.
+                // menus/03's "EVENT INTRO"/"EVENT DATE" labels carry NO run rPr, so their formatting
+                // lives entirely in the Heading1 -> Normal chain (10pt, w:color FFFFFF/background1);
+                // the WordArt drew them 36pt black (invisible on the dark band). ParseRunProperties
+                // is the body path's cascade (it folds in theme fonts and the auto-colour sentinel),
+                // so a directly-formatted text box resolves to the same values it already had.
+                var firstParagraph = txbxContent.Descendants<Paragraph>().FirstOrDefault();
+                var firstParagraphStyleId = firstParagraph?.ParagraphProperties?.ParagraphStyleId?.Val?.Value;
+                var firstRunProperties = txbxContent.Descendants<OoxmlRun>().FirstOrDefault()?.RunProperties;
+                var resolvedRun = ParseRunProperties(firstRunProperties, mainPart, firstParagraphStyleId);
+                fillColor = resolvedRun.ColorHex;
+                fontSize = resolvedRun.FontSizePoints;
+                bold = resolvedRun.Bold;
+                italic = resolvedRun.Italic;
+                fontFamily = resolvedRun.FontFamily;
             }
             else
             {
