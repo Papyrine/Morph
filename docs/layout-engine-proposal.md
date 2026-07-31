@@ -818,10 +818,9 @@ shared `HasSimpleCells`, and admits a floating table whose cells are simple. Cov
 Three of the four documents are at parity — labels/04 −0.004, labels/09 −0.010, letters/01 +0.001 — where the
 floating table *is* the content with nothing to overlap. agendas-minutes/11 drops −0.073: its text-anchored
 float table sits over the body because a float takes no flow space, so the body flows into the same rows. That
-is the deferred **float-wrap** behaviour (the body should flow below or around the float), the same gap that
-keeps image_wrap_square out — not the table layout. It is admitted with that limitation documented, as the
-multi-page-anchor floats were; float wrap is the next lever, and would fix both this overlap and the wrapping
-image.
+overlap is fixed in the fidelity slice below (a text-anchored floating table flows inline, matching
+production); a wrapping *image* like image_wrap_square is a separate case that still needs flow exclusions.
+It is admitted with the overlap documented, as the multi-page-anchor floats were.
 
 ### Emission slice: unwarped WordArt (coverage 316 → 321, 98.8%)
 
@@ -840,9 +839,44 @@ more closely than the production path does. Deferred: the glyph outline (fill on
 presets, which only the wordart / wordart-envelope test documents need.
 
 Coverage now stands at **321 / 325**; the four hold-outs are the two warp test documents, image_wrap_square
-(float wrap), and agendas-minutes/14 (a positioned frame). The float-wrap feature and the multi-page
-float-anchor parser fix are the remaining levers; with the covered set at 98.8% and at parity across all three
-raster backends, this is the point to revisit the flip.
+(float wrap), and agendas-minutes/14 (a positioned frame).
+
+### Fidelity slice: multi-page float anchoring and inline floating tables
+
+The worst covered documents shared three deferred root causes, all now fixed in the Fragmenter (no
+parser change needed) ahead of the flip.
+
+**Multi-page float anchor-page.** A body float was tagged with the page the flow cursor happened to be on
+when its *element* was reached (`bodies.Count`). But a full-page background for page 2 is declared before
+page-1's content finishes flowing, so both of a document's backgrounds landed on page 1 — brochures/01
+stacked its page-2 blob over the page-1 text and lost its page-2 background entirely (−0.375); newsletters/12
+did the same (−0.23). The fix defers an *absolutely*-positioned float (page/margin anchor — an absolute Y
+independent of the cursor) into a `pendingFloats` queue and resolves it to the page where the next *visible*
+line or row commits, skipping an empty spacer paragraph at a page boundary so a knife-edge does not
+misassign it. A flow-anchored float keeps the emit-time cursor page, where its Y offset is measured.
+brochures/01 lifts **−0.375 → −0.021**, and newsletters/12 **−0.23 → +0.018** (it now beats production).
+
+**Inline text-anchored floating tables.** `PlaceFloatingTable` overlaid every floating table as a body float
+taking no flow space, so agendas-minutes/11's text-anchored Date/Time block sat *over* the headings that
+flowed into the same rows (−0.073). Production renders a text-anchored floating table inline (PageRendererBase
+leaves the cursor at its bottom); the engine now mirrors that — a `Text`-anchored floating table lays out at
+the cursor, consuming the preceding paragraph's after-spacing (a 30pt placeholder gap here) and advancing the
+cursor past its bottom so the body clears it. Page/margin-anchored floating tables stay absolute overlays and
+now defer like the other absolute floats. agendas-minutes/11 lifts **−0.073 → −0.028**: the overlap is gone
+and the block is positioned correctly, leaving only minor table-height variance.
+
+**Percentage-positioned floats.** `FloatX`/`FloatY` read only the point offset, so a `wp14:pctPosHOffset` /
+`pctPosVOffset` float (its point offset zero) collapsed onto the anchor origin — pct_pos_offset's centre
+shape rendered in the top-left corner (−0.043, the flip's single *visible* loser; every other loss is
+sub-pixel AA). The fix resolves a percentage offset as that fraction of the anchor's reference dimension —
+the page for a page anchor, else the content box — mirroring the production `FloatingPosition`. pct_pos_offset
+lifts **−0.043 → 0.000** (exact parity); the point-offset path is byte-identical, so every other float is
+untouched.
+
+With all three levers pulled, the covered set is at production parity across all three raster backends
+(aggregate **−0.0023 → −0.0001**, 98 wins / 85 losses over 318 page-count-matched documents) and every
+visibly-regressing outlier is eliminated — the remaining losses are the intractable AA/font tail. This is the
+point to flip.
 
 ## Testing strategy (a large secondary win)
 

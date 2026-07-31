@@ -79,6 +79,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // Body floating shapes/images, each tagged with the page it was anchored on and whether it paints
         // behind the text; assembled into their page's items once the flow ends.
         readonly List<(int Page, PlacedItem Item, bool Behind)> bodyFloats = [];
+        // Absolutely-positioned body floats (page/margin anchor) awaiting page resolution: their element is
+        // reached before the content they belong to has flowed, so the page is only known once the next
+        // visible line or row commits (a page-2 background is declared before page-1 finishes). Resolved into
+        // bodyFloats there; a flow-anchored float never lands here — its page is the emit-time cursor page.
+        readonly List<(PlacedItem Item, bool Behind)> pendingFloats = [];
         int currentColumn;
         float y;
         // Y where the current page's columns begin. Normally the content top, but a continuous section break
@@ -321,18 +326,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         break;
 
                     case FloatingImageElement image when DecodableImageBytes(image) is { Length: > 0 } data:
-                        bodyFloats.Add((bodies.Count, new PlacedImage(FloatX(image.HorizontalAnchor, image.HorizontalPositionPoints), FloatY(image.VerticalAnchor, image.VerticalPositionPoints), (float) image.WidthPoints, (float) image.HeightPoints, data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, image.Crop), image.BehindText));
+                        AddBodyFloat(new PlacedImage(FloatX(image.HorizontalAnchor, image.HorizontalPositionPoints, image.HorizontalPositionPercent), FloatY(image.VerticalAnchor, image.VerticalPositionPoints, image.VerticalPositionPercent), (float) image.WidthPoints, (float) image.HeightPoints, data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, image.Crop), image.BehindText, IsAbsoluteY(image.VerticalAnchor));
                         break;
 
                     // An image-filled shape (a full-bleed background photo) paints as a plain image — the shape
                     // painter skips image fills. It carries the shape's rotation and flip; a shape image has no
                     // source crop or clip geometry of its own.
                     case FloatingShapeElement shape when shape.ImageData is { Length: > 0 } shapeImage && shape.ImageContentType != "image/svg+xml":
-                        bodyFloats.Add((bodies.Count, new PlacedImage(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints), FloatY(shape.VerticalAnchor, shape.VerticalPositionPoints), (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage, shape.RotationDegrees, shape.FlipHorizontal, shape.FlipVertical), shape.BehindText));
+                        AddBodyFloat(new PlacedImage(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent), FloatY(shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent), (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage, shape.RotationDegrees, shape.FlipHorizontal, shape.FlipVertical), shape.BehindText, IsAbsoluteY(shape.VerticalAnchor));
                         break;
 
                     case FloatingShapeElement shape when shape.ImageData == null && (shape.Gradient != null || shape.FillColorHex != null || shape.LineColorHex != null):
-                        bodyFloats.Add((bodies.Count, new PlacedShape(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints), FloatY(shape.VerticalAnchor, shape.VerticalPositionPoints), (float) shape.WidthPoints, (float) shape.HeightPoints, shape), shape.BehindText));
+                        AddBodyFloat(new PlacedShape(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent), FloatY(shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent), (float) shape.WidthPoints, (float) shape.HeightPoints, shape), shape.BehindText, IsAbsoluteY(shape.VerticalAnchor));
                         break;
 
                     case FloatingTextBoxElement textBox when textBox.WrapType == WrapType.None:
@@ -347,11 +352,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     // body floats — it takes no flow space.
                     case FloatingWordArtElement { Transform: WordArtTransform.None } floatingWordArt:
                         foreach (var item in LayoutWordArtText(floatingWordArt.Text, floatingWordArt.FontFamily, floatingWordArt.FontSizePoints, floatingWordArt.Bold, floatingWordArt.Italic, floatingWordArt.FillColorHex,
-                                     FloatX(floatingWordArt.HorizontalAnchor, floatingWordArt.HorizontalPositionPoints),
-                                     FloatY(floatingWordArt.VerticalAnchor, floatingWordArt.VerticalPositionPoints),
+                                     FloatX(floatingWordArt.HorizontalAnchor, floatingWordArt.HorizontalPositionPoints, floatingWordArt.HorizontalPositionPercent),
+                                     FloatY(floatingWordArt.VerticalAnchor, floatingWordArt.VerticalPositionPoints, floatingWordArt.VerticalPositionPercent),
                                      (float) floatingWordArt.WidthPoints, (float) floatingWordArt.HeightPoints))
                         {
-                            bodyFloats.Add((bodies.Count, item, floatingWordArt.BehindText));
+                            AddBodyFloat(item, floatingWordArt.BehindText, IsAbsoluteY(floatingWordArt.VerticalAnchor));
                         }
 
                         break;
@@ -359,6 +364,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     // Float wrap is a later slice.
                 }
             }
+
+            // Any float still deferred had no visible content after it — settle it on the in-progress final
+            // page before that page is emitted.
+            ResolvePendingFloats();
 
             // Emit the trailing page. FinishPage keeps it only when it carries content, is an
             // explicit-break blank, or is the first page — so a natural trailing-overflow blank is dropped
@@ -440,19 +449,70 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         }
 
         // Absolute X of a body float: a page-anchored offset is from the page's left; anything else (margin,
-        // column, character) is from the content's left. Nested-frame anchors are a later slice.
-        float FloatX(HorizontalAnchor anchor, double offset) =>
-            anchor == HorizontalAnchor.Page ? (float) offset : fullContentLeft + (float) offset;
+        // column, character) is from the content's left. A percentage offset (wp14:pctPosHOffset) resolves as
+        // that fraction of the anchor's reference width — the page for a page anchor, else the content box —
+        // mirroring the production FloatingPosition. Nested-frame anchors are a later slice.
+        float FloatX(HorizontalAnchor anchor, double offset, double? percent)
+        {
+            var baseX = anchor == HorizontalAnchor.Page ? 0f : fullContentLeft;
+            return percent is { } fraction
+                ? baseX + (float) (fraction * (anchor == HorizontalAnchor.Page ? current.WidthPoints : fullContentWidth))
+                : baseX + (float) offset;
+        }
 
         // Absolute Y of a body float: page-anchored from the top edge, margin-anchored from the top margin,
         // otherwise from the current flow cursor (a paragraph/character anchor, approximated by where the
-        // float was reached).
-        float FloatY(VerticalAnchor anchor, double offset) => anchor switch
+        // float was reached). A percentage offset (wp14:pctPosVOffset) resolves as that fraction of the
+        // anchor's reference height (the page for a page anchor, else the content box).
+        float FloatY(VerticalAnchor anchor, double offset, double? percent)
         {
-            VerticalAnchor.Page => (float) offset,
-            VerticalAnchor.Margin => contentTop + (float) offset,
-            _ => y + (float) offset
-        };
+            var baseY = anchor switch
+            {
+                VerticalAnchor.Page => 0f,
+                VerticalAnchor.Margin => contentTop,
+                _ => y
+            };
+            return percent is { } fraction
+                ? baseY + (float) (fraction * (anchor == VerticalAnchor.Page ? current.HeightPoints : contentHeight))
+                : baseY + (float) offset;
+        }
+
+        // A page/margin anchor gives the float an absolute Y independent of the flow cursor, so it belongs to
+        // the page carrying the content it is anchored to rather than the page the cursor is on when its
+        // element is reached — a page-2 full-page background is declared before page-1's flow finishes.
+        static bool IsAbsoluteY(VerticalAnchor anchor) => anchor is VerticalAnchor.Page or VerticalAnchor.Margin;
+
+        // Records a body float. An absolutely-positioned one defers until the next visible line/row reveals its
+        // page; a flow-anchored one is tagged with the current cursor page, where its y offset was measured.
+        void AddBodyFloat(PlacedItem item, bool behind, bool absoluteY)
+        {
+            if (absoluteY)
+            {
+                pendingFloats.Add((item, behind));
+            }
+            else
+            {
+                bodyFloats.Add((bodies.Count, item, behind));
+            }
+        }
+
+        // Assigns every deferred float to the page just committed to (the current bodies.Count) and clears the
+        // queue. Called once the next visible line or row lands, and again when the flow ends so a trailing
+        // float settles on the last page.
+        void ResolvePendingFloats()
+        {
+            if (pendingFloats.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var (item, behind) in pendingFloats)
+            {
+                bodyFloats.Add((bodies.Count, item, behind));
+            }
+
+            pendingFloats.Clear();
+        }
 
         // A floating text box: a box (background/outline) with a mini-flow of paragraphs inside. Its chrome
         // paints as a shape and its content lays out at the box top-left — Word applies no internal inset,
@@ -460,11 +520,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // like the other body floats, and paint behind or in front of the text per BehindText.
         void PlaceTextBox(FloatingTextBoxElement textBox)
         {
-            var boxX = FloatX(textBox.HorizontalAnchor, textBox.HorizontalPositionPoints);
-            var boxY = FloatY(textBox.VerticalAnchor, textBox.VerticalPositionPoints);
+            var boxX = FloatX(textBox.HorizontalAnchor, textBox.HorizontalPositionPoints, textBox.HorizontalPositionPercent);
+            var boxY = FloatY(textBox.VerticalAnchor, textBox.VerticalPositionPoints, textBox.VerticalPositionPercent);
             var boxWidth = (float) textBox.WidthPoints;
             var boxHeight = (float) textBox.HeightPoints;
-            var page = bodies.Count;
+            var absoluteY = IsAbsoluteY(textBox.VerticalAnchor);
 
             if (textBox.BackgroundColorHex != null || textBox.LineColorHex != null)
             {
@@ -479,18 +539,21 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     Subpaths = textBox.Subpaths,
                     RotationDegrees = textBox.RotationDegrees
                 };
-                bodyFloats.Add((page, new PlacedShape(boxX, boxY, boxWidth, boxHeight, boxShape), textBox.BehindText));
+                AddBodyFloat(new PlacedShape(boxX, boxY, boxWidth, boxHeight, boxShape), textBox.BehindText, absoluteY);
             }
 
             foreach (var item in LayoutCellContent(new() { Content = textBox.Content }, boxX, boxY, boxWidth, boxHeight, CellVerticalAlignment.Top))
             {
-                bodyFloats.Add((page, item, textBox.BehindText));
+                AddBodyFloat(item, textBox.BehindText, absoluteY);
             }
         }
 
         // A floating table (w:tblpPr): positioned by its own offsets from a page/margin/text anchor, laid out
-        // at that position with no page breaks (reusing the nested-table layout), and sitting on top of the
-        // flow like the other body floats — it takes no flow space. In front of the text.
+        // reusing the nested-table layout with no page breaks. A text-anchored table flows with the
+        // surrounding text — it renders at the cursor (nudged by tblpY) and leaves the cursor at its bottom,
+        // so the following content clears it (Word wraps a full-width one below rather than beside it,
+        // agendas-minutes/11's Date/Time block). A page/margin-anchored table sits absolutely on top of the
+        // layout and takes no flow space, deferred to its content's page like the other absolute floats.
         void PlaceFloatingTable(TableElement table)
         {
             var columnCount = TableLayout.GetColumnCount(table);
@@ -503,17 +566,35 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 _ => ColumnLeft + offsetX
             };
             var offsetY = (float) table.Properties.FloatingYOffsetPoints;
-            var top = table.Properties.FloatingVerticalAnchor switch
-            {
-                FloatingTableVerticalAnchor.Page => offsetY,
-                FloatingTableVerticalAnchor.Margin => contentTop + offsetY,
-                _ => y + offsetY
-            };
 
-            var (items, _) = LayoutNestedTable(table, left, top, tableWidth);
-            foreach (var item in items)
+            if (table.Properties.FloatingVerticalAnchor == FloatingTableVerticalAnchor.Text)
             {
-                bodyFloats.Add((bodies.Count, item, false));
+                // The previous paragraph's after-spacing precedes the table (a table has no before-spacing to
+                // collapse it with), exactly as for an inline table, and never applies at a region top —
+                // without this the block starts one after-gap too high (agendas-minutes/11's 30pt placeholder).
+                if (!atRegionTop)
+                {
+                    y += lastAfter;
+                }
+
+                lastAfter = 0;
+                lastContextual = false;
+                lastStyleId = null;
+
+                var flowTop = y + offsetY;
+                var (rows, height) = LayoutNestedTable(table, left, flowTop, tableWidth);
+                items.AddRange(rows);
+                ResolvePendingFloats();
+                y = Math.Max(y, flowTop + height);
+                atRegionTop = false;
+                return;
+            }
+
+            var top = table.Properties.FloatingVerticalAnchor == FloatingTableVerticalAnchor.Margin ? contentTop + offsetY : offsetY;
+            var (absoluteRows, _) = LayoutNestedTable(table, left, top, tableWidth);
+            foreach (var item in absoluteRows)
+            {
+                AddBodyFloat(item, false, absoluteY: true);
             }
         }
 
@@ -699,7 +780,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         items.Add(new PlacedShading(indentLeft, y, availableWidth, line.Height, properties.BackgroundColorHex));
                     }
 
-                    items.Add(new PlacedLine(lineLeft, y, line.Width, line.Height, baseline, paragraph, placedIndex, LineRuns(paragraph, line, placedIndex, lineLeft), MapImages(line, lineLeft, baseline)));
+                    var placedLine = new PlacedLine(lineLeft, y, line.Width, line.Height, baseline, paragraph, placedIndex, LineRuns(paragraph, line, placedIndex, lineLeft), MapImages(line, lineLeft, baseline));
+                    items.Add(placedLine);
+
+                    // A deferred float anchored above this paragraph belongs to the page this line landed on —
+                    // but only once a line with real content appears, so an empty spacer paragraph at a page
+                    // boundary does not claim the float for the wrong page.
+                    if (pendingFloats.Count > 0 && (placedLine.Images.Count > 0 || placedLine.Runs.Any(run => !string.IsNullOrWhiteSpace(run.Text))))
+                    {
+                        ResolvePendingFloats();
+                    }
+
                     borderTop ??= y;
                     y += line.Height;
                     atRegionTop = false;
@@ -804,6 +895,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
             {
                 items.Add(BuildRow(y, table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false));
+                ResolvePendingFloats();
                 y += rowHeights[rowIndex];
                 atRegionTop = false;
             }
@@ -842,6 +934,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 items.Add(BuildRow(y, table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false));
+                ResolvePendingFloats();
                 y += rowHeight;
                 atRegionTop = false;
             }
