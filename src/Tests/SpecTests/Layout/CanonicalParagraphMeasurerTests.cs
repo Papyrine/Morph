@@ -77,6 +77,37 @@ public class CanonicalParagraphMeasurerTests
     }
 
     [Test]
+    public async Task Empty_paragraph_line_is_sized_by_the_mark_not_a_phantom_run()
+    {
+        // A blank spacer paragraph parked over a zero-length 11pt run whose font differs from the 8pt
+        // paragraph mark (resumes/11's contact-block spacers, a deleted-text artefact). Word sizes the
+        // line by the mark, not the phantom run — matching PdfTextEngine.EmptyLineHeight.
+        var overPhantomRun = new ParagraphElement
+        {
+            Runs = [new Run { Text = "", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }],
+            Properties = new() { ParagraphMarkRunProperties = new() { FontFamily = "Aptos", FontSizePoints = 8 } }
+        };
+
+        // The same 8pt mark with no phantom run — the reference for "sized by the mark".
+        var markOnly = new ParagraphElement
+        {
+            Runs = [],
+            Properties = new() { ParagraphMarkRunProperties = new() { FontFamily = "Aptos", FontSizePoints = 8 } }
+        };
+
+        // A larger 11pt mark — the phantom run's size, which the line must NOT take.
+        var largerMark = new ParagraphElement
+        {
+            Runs = [],
+            Properties = new() { ParagraphMarkRunProperties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }
+        };
+
+        var height = Measurer.LayoutParagraphForMeasurement(overPhantomRun, 200)[0];
+        await Assert.That(height).IsEqualTo(Measurer.LayoutParagraphForMeasurement(markOnly, 200)[0]).Within(0.01f);
+        await Assert.That(height).IsLessThan(Measurer.LayoutParagraphForMeasurement(largerMark, 200)[0]);
+    }
+
+    [Test]
     public async Task Height_includes_before_and_after_for_a_normal_paragraph()
     {
         var paragraph = new ParagraphElement

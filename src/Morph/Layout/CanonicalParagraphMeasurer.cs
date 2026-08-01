@@ -9,9 +9,10 @@
 ///
 /// <para>Modelled: multi-run greedy wrap (adjacent non-space pieces across runs form one word, so a
 /// mid-word format change never splits the word), per-line height = the tallest run's hhea box under
-/// the paragraph's line-spacing rule, and Word's before/after spacing. Not yet modelled — deferred to
-/// later layout work: tabs, first-line / hanging indents (only the block left/right indent is applied),
-/// and the empty-paragraph mark's exact style (approximated by the first run's font).</para>
+/// the paragraph's line-spacing rule, Word's before/after spacing, and the empty-paragraph mark's own
+/// run properties (w:pPr/w:rPr) sizing the blank line — matching PdfTextEngine, so a spacer parked over
+/// a differently-sized phantom run keeps its true height. Not yet modelled — deferred to later layout
+/// work: tabs, first-line / hanging indents (only the block left/right indent is applied).</para>
 /// </summary>
 sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> resolveFont, double fontWidthScale = 1.0) : IParagraphMeasurer
 {
@@ -524,13 +525,15 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         return metrics == null ? 0 : (float) metrics.LinePitchPoints(mark.FontSizePoints);
     }
 
-    // The font that sizes a paragraph's mark line. An empty paragraph has no runs, so its height comes from
-    // the paragraph mark's own run properties (w:rPr on w:pPr) — Word sizes the blank line by the mark, not
-    // a bare default. Falling back to a fresh RunProperties (default font, 11pt) shrank empty spacer lines.
+    // The font that sizes a paragraph's mark line. Word sizes a blank line by the paragraph mark's own run
+    // properties (w:rPr on w:pPr) — so the mark's rPr wins, mirroring PdfTextEngine.EmptyLineHeight. A
+    // leading run stands in only when the mark carries no rPr: falling straight to a fresh RunProperties
+    // (default font, 11pt) shrank empty spacer lines. The mark must win over a run to avoid a zero-length
+    // leading run — a deleted-text artefact whose font differs from the mark (resumes/11 parks an empty
+    // 11pt run over an 8pt mark) — over-sizing the spacer line by half a line each.
     static RunProperties MarkProperties(ParagraphElement paragraph) =>
-        paragraph.Runs.Count > 0
-            ? paragraph.Runs[0].Properties
-            : paragraph.Properties.ParagraphMarkRunProperties ?? new RunProperties();
+        paragraph.Properties.ParagraphMarkRunProperties
+        ?? (paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new RunProperties());
 
     // Splits text into maximal runs of spaces vs non-spaces (U+0020 only — the inter-word break),
     // matching CanonicalTextMeasurer.WrapLines.

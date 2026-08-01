@@ -282,8 +282,13 @@ through the render context's own primitives rather than a common `ILayoutPainter
 The checklist is landed through step 6; what is left, most-blocking first:
 
 1. **The PDF flip** (step 5 D) — painter and predicate are done; the flip is held on the font/image tail
-   (−0.0054, dominated by Aptos display-font wrap under PDFium's AA plus compound-image and full-page-gradient
-   rasterization). See "The PDF cutover (step 5)".
+   (measured −0.0054 before the empty-mark phantom-run fix above). That reading — "dominated by Aptos display
+   wrap under PDFium's AA" — was half wrong: a visual PDF check (rasterise engine-PDF and production-PDF at
+   150 DPI, diff per-paragraph Y) traced the *worst* per-document losses to the phantom-run spacer bug, not
+   AA, and fixing it recovered resumes/11 and /18 by +0.07…+0.09. What remains is a genuine mix — Aptos
+   display-font wrap *width* (business/05 breaks a word early), a still-uncharacterised resume-template loss
+   (resumes/09, /15, unchanged by the spacer fix), and the compound-image and full-page-gradient rasterization
+   tail. See "The PDF cutover (step 5)".
 2. **The four coverage hold-outs** of 325 — warp WordArt (`wordart`, `wordart-envelope`; the 16 presets), float
    wrap (`image_wrap_square`; text flowing around a square/tight float, an exclusion the Fragmenter does not
    emit), and `agendas-minutes/14` (a positioned frame). These plus the flip take the `PdfTextEngine` fallback
@@ -402,6 +407,26 @@ rasterised by PDFium renders the text correctly at the canonical positions — t
   multi-column flow that under-tall gap let a column hold an extra item: three_columns' title column packed 15
   items where Word fits 14. Using the mark font fixed the column break (0.84 → 0.89) and lifted the corpus mean
   (0.9464 → 0.9474) as every empty-spacer document tightened toward Word.
+- **Empty-mark sizing hardened against a phantom run**: the mark-font rule above keyed on "a blank paragraph
+  has no runs", but a spacer can carry a *zero-length* run — a deleted-text artefact whose font differs from
+  the mark (resumes/11's contact-block and section spacers park an empty 11pt run over an 8pt mark). The
+  measurer sized the line by that phantom run, over-tall by half a line, where Word (and `PdfTextEngine`'s
+  `EmptyLineHeight`) size it by the mark. `MarkProperties` now lets the mark's own `w:rPr` win over any
+  leading run, falling back to the run only when the mark carries none. The diagnosis came from the visual
+  PDF check, not the SSIM number: rasterising the engine PDF and the production PDF at 150 DPI and diffing
+  their per-paragraph Y showed the engine's looseness was **not** PDFium AA but four discrete +2.6…+5.6pt
+  steps, each at an empty spacer whose phantom run out-sized the mark. With the mark winning, the engine's
+  paragraph positions match the production PDF to 0.1pt down the whole page; engine-PDF-vs-Word rose +0.072
+  on resumes/11 (from a loss to a slight win over production PDF) and +0.090 on resumes/18, whose section
+  rules sit in the same spacers. The fix is in the shared measurer, so the default raster path tightens by
+  the same amount — the raster-vs-Word looseness was real, only hidden by raster-vs-production-raster parity
+  (both diverged from Word the same way; the PDF comparison exposed it). Regenerating baselines moved six
+  documents across both raster backends (brochures/03, business-plans/05, letters/05, resumes/11, /14, /18)
+  — the ones authored with a differently-sized phantom run over the mark. Two showed a *lower* SSIM
+  (resumes/14 −0.011, brochures/03 −0.025), but that is the sub-pixel-row artifact, not a layout regression:
+  measured against Word by position, resumes/14's four section rules moved from 44px off to 15px off (3×
+  closer), and brochures/03's headings and footer band stayed pixel-identical to Word — so on these
+  spacer-height moves the honest check is the landmark position, not the SSIM number.
 - **Widow/orphan control landed**: the line loop became a fit-count loop — it takes as many of a paragraph's
   remaining lines as clear the region, and when a break falls it never strands a single line (Word's default
   `WidowControl`): one line alone at the bottom (orphan) moves the pair to the next region, one line alone at
