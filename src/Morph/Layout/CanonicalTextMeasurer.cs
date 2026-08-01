@@ -49,8 +49,11 @@ sealed class CanonicalTextMeasurer
 
     /// <summary>
     /// The device-pixel em size text lays out at: <c>round(sizePoints * 120/72)</c>. 11pt and 10.5pt
-    /// both round to 18px (em 10.8pt), which is why they wrap identically — the advance model in
-    /// <c>src/page_counts.md</c>.
+    /// both round to 18px (em 10.8pt), so the measurer wraps them identically — the advance model in
+    /// <c>src/page_counts.md</c>. A Word probe (recorded there) shows Word does not: it renders
+    /// 10.5pt ~1.7% narrower than 11pt, so this bucketing over-widths 10 / 10.5pt text by ~2–3% and
+    /// wraps it early. Word sits between this grain and raw-fractional (which over-corrects), matching
+    /// no single-dpi integer ppem — this is the closest available approximation, not Word's model.
     /// </summary>
     public static int Ppem(double sizePoints) =>
         (int) Math.Round(sizePoints * referenceDpi / 72.0, MidpointRounding.AwayFromZero);
