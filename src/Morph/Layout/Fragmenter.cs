@@ -997,9 +997,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         }
 
         // Cell-anchored behind-text shapes resolved to absolute boxes: the offset is measured from the
-        // cell's top-left (Word anchors these to the cell frame). Only solid-fill / outline shapes render
-        // for now; gradient and image fills, in-front-of-text floats, and the paragraph-anchor walk that
-        // positions non-cell-top floats are later slices (PdfPainter.PaintShape skips what it can't draw).
+        // cell's top-left (Word anchors these to the cell frame). Solid, gradient and outline fills render;
+        // image fills, in-front-of-text floats, and the paragraph-anchor walk that positions non-cell-top
+        // floats are later slices (each painter's PaintShape skips what it cannot draw).
         static IReadOnlyList<PlacedItem> ResolveCellFloatShapes(TableCell cell, float cellX, float cellY)
         {
             if (cell.Floats.Count == 0)

@@ -1,10 +1,11 @@
 /// <summary>
-/// Whether the layout engine (<see cref="Fragmenter"/> → <c>PdfPainter</c>) covers a parsed document —
-/// the capability predicate that routes the PDF cutover (docs/layout-engine-proposal.md, "The PDF cutover
-/// (step 5)"). Conservative by design: it admits the block/table/column subset the painter renders at
-/// parity with Word (the <c>PdfPainterFidelityTests</c> 0.942-SSIM set), and <c>PdfRenderer</c> falls back
-/// to <c>PdfTextEngine</c> for everything else. Each Phase C emission slice (WordArt, floats, floating
-/// tables, form fields, ...) widens what is admitted.
+/// Whether the layout engine (<see cref="Fragmenter"/> → a backend painter) covers a parsed document — the
+/// shared capability predicate gating BOTH the raster default path and the opt-in PDF cutover
+/// (docs/layout-engine-proposal.md). A covered document paginates through the engine; an uncovered one falls
+/// back to the production <c>PageRenderer</c> (raster) or <c>PdfTextEngine</c> (PDF). Successive emission
+/// slices widened it from the original block/table/column subset to 321 of the 325 corpus documents; the four
+/// left out are the two warped-WordArt test documents, one wrapping float (an exclusion the Fragmenter does
+/// not emit), and one positioned frame.
 /// </summary>
 static class EngineCoverage
 {

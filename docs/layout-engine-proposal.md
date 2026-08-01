@@ -7,7 +7,18 @@ canonical measurer, the layout tree, and the Fragmenter — are done, and step 4
 the Fragmenter. This was the "if time and effort are no object" answer to the columns/height-model work
 tracked in `src/page_counts.md` and `src/todo.md` (#2, #5, the columns item under image_wrap_square); the
 running log of landed slices is below, and `docs/word-features.md` describes the per-backend draw code the
-thin painters now front. `MORPH_SKIA_ENGINE=off` / `MORPH_IMAGESHARP_ENGINE=off` are the kill switches.
+thin painters now front. `MORPH_SKIA_ENGINE=off` / `MORPH_IMAGESHARP_ENGINE=off` are the kill switches. The sharpest known modelling
+limit in what has shipped is the `Ppem` grain: Word lays 10.5pt out ~1.7% narrower than 11pt where the integer
+ppem@120 bucket makes them equal, so the canonical measurer over-widths 10 / 10.5pt text by ~2–3% and wraps
+it early ("Remaining work" item 1). Approximate column balancing is the other (see the balancing slice).
+
+**How to read this document.** It began as a proposal and became the implementation log, so it mixes three
+kinds of material. The design sections — "The problem this solves" through "The crux" — are as first drafted;
+where later work superseded a claim they carry an *italic update note* rather than a rewrite, so a
+point-in-time measurement always keeps its original figure. "Migration checklist" tracks the seven steps, and
+**"Remaining work, in one place" is the live status** — start there for what is still open. The two "in
+detail" sections (the PDF cutover, step 5, and the raster cutover, step 6) are landing history in the order
+slices landed; read them for *why* something is the way it is, not for current status.
 
 ## The problem this solves
 
@@ -42,6 +53,10 @@ maintenance. PDF (`PdfTextEngine`) is the last independent pagination. What foll
 there and the running log of how.*
 
 ## The proposal: one layout pass, three painters
+
+*Everything from here to the migration checklist is the design as first drafted, in the present tense of the
+time. Where it describes what Morph does "today", that now names the uncovered fallback path — for covered
+documents the raster backends already run the engine described below (step 6).*
 
 Compute the paginated layout **once**, backend-independently, into a retained **layout tree**; make
 every backend a dumb painter that walks the tree and draws placed boxes at their computed positions.
@@ -91,6 +106,11 @@ advances; the rasterizer's own metrics affect only anti-aliasing/hinting, never 
 points. This is `DefaultFontSettings.DeterministicRendering` extended from glyph rasterization all
 the way up to line breaking.
 
+*As landed, only the wrap-point half of this holds. `PlacedRun` carries a run's start X and its width, not
+per-glyph advances, so each painter's own font library still positions the glyphs within a run — line
+breaking and run origins are backend-independent, intra-run glyph placement is not. Closing that is
+"Remaining work" item 4.*
+
 ### The layout pass (the one pagination engine)
 
 ```csharp
@@ -129,6 +149,15 @@ Columns stop being special: a 2-column section is a region whose `Next` is the s
 `Next` is the first column of the following page. `image_wrap_square` then works because the
 continuous section builds a 2-column region chain anchored at the break Y and the fragmenter
 fills it.
+
+*Not landed as sketched — this is the one design idea above that did not survive implementation. There is no
+`Region` type: the Fragmenter tracks a column index and an at-region-top flag directly, table cells lay out
+through a separate `LayoutCellContent` sub-layout, header/footer bands through `LayoutBand`, and
+float-exclusion bands are unbuilt — so the four mechanisms this section proposed to unify are still four.
+The column half of the payoff did land (all four corpus column documents match Word, step 3, including the
+continuous mid-page switch anchored at the break Y), but `image_wrap_square` remains a coverage hold-out
+precisely because the exclusions never got built, so this section's sufficiency claim is untested. Unifying
+them remains a plausible refactor, not a described reality.*
 
 ### The fragmenter (the heart — the thing raster lacks)
 
@@ -198,10 +227,15 @@ Build alongside the existing renderers; do not delete anything until all three b
 
 **A note on names.** The type and method sketches in the proposal above are the design as first drafted; the
 implementation refined several, and the checklist and cutover logs below use the landed names. `PlacedGlyphRun`
-became `PlacedRun` (per-glyph advances deferred — see step 2); the sketched `PlacedRule`/`PlacedFill` became
+became `PlacedRun` (per-glyph advances deferred — see step 2); `LaidOutPage`'s sketched
+`Background`/`Body`/`Foreground` triple collapsed into a single paint-ordered `Items` list, with
+behind-versus-in-front resolved as the Fragmenter assembles it (`AddBodyFloat`'s `behind` flag) rather than by
+the painter picking a list; the sketched `PlacedRule`/`PlacedFill` became
 `PlacedBorder`/`PlacedShading`, with `PlacedCell`/`PlacedTableRow` added for tables; the `DocumentLayoutEngine`
-section walk and the `Region` chain folded into the `Fragmenter`, whose entry point is `Fragmenter.Layout`
-returning a `LaidOutDocument` (not the sketched `Place(flow, region, sink)`); and each backend's painter draws
+section walk folded into the `Fragmenter`, whose entry point is `Fragmenter.Layout`
+returning a `LaidOutDocument` (not the sketched `Place(flow, region, sink)`); the `Region` chain did not land
+as a type at all — the Fragmenter tracks the column chain directly (see the update note under "Regions
+unify …"); and each backend's painter draws
 through the render context's own primitives rather than a common `ILayoutPainter` interface.
 
 - [x] **1. `CanonicalTextMeasurer`** — landed (`src/Morph/Fonts/FontMetrics.cs`,
@@ -294,8 +328,8 @@ The checklist is landed through step 6; what is left, most-blocking first:
 
 1. **The PDF flip** (step 5 D) — painter and predicate are done; the flip is held on the font/image tail
    (measured −0.0054 before the empty-mark phantom-run fix, described in the step-5 painter log below). That
-   reading — "dominated by Aptos display
-   wrap under PDFium's AA" — was half wrong: a visual PDF check (rasterise engine-PDF and production-PDF at
+   reading — the tail read as Aptos display-font wrap width amplified by PDFium's harsher AA (the
+   post-raster-flip update below) — was half wrong: a visual PDF check (rasterise engine-PDF and production-PDF at
    150 DPI, diff per-paragraph Y) traced the *worst* per-document losses to the phantom-run spacer bug, not
    AA, and fixing it recovered resumes/11 and /18 by +0.07…+0.09. What remains is a genuine mix. The
    wrap-*width* losers (business/05 10.5pt, resumes/15 10pt) are the **`Ppem` grain**: a Word probe (2026-08-01,
@@ -313,8 +347,12 @@ The checklist is landed through step 6; what is left, most-blocking first:
    `TableHeightCalculator`), once PDF flips and coverage is total — the fallback still serves uncovered
    documents and the kill switch until then.
 4. **Painter-fidelity backlog** — score-improving, not gating a document: per-glyph advances, image
-   recolour/duotone, super/subscript raise, `w:position`, small-caps, run borders/effects, RTL, and
-   foreground header/footer images (detailed under the two cutover sections; band tables have landed).
+   recolour/duotone, shape image fills, super/subscript raise, `w:position`, small-caps, run borders/effects,
+   RTL, and foreground header/footer images (detailed under the two cutover sections; band tables have landed).
+5. **Emission-backlog items not covered above** — form fields (content controls, their item-4 companion,
+   landed), the footnote/endnote appendix (`RenderNotesAppendix`), line numbers, bar tabs, per-fragment
+   paragraph borders across a break, and per-section NUMPAGES restart (the unlanded remainder of items 4, 5
+   and 8 of the "Emission backlog" below — none is a coverage hold-out, so they gate no document today).
 
 ## The PDF cutover (step 5), in detail
 
@@ -361,7 +399,9 @@ rasterised by PDFium renders the text correctly at the canonical positions — t
   cell-relative boxes and painted before its content, so a label template's coloured background panel (a preset
   rect) and freeform blobs (unit-square subpaths scaled into the box via the reused
   `PdfPageRenderer.BuildShapePath`) fill each cell behind the white recipient text (labels/14 blank → 0.86;
-  solid fills only — gradient/image fills stay deferred).
+  solid fills only — gradient/image fills stay deferred). *Gradient fills have since landed for every placed
+  shape, cell floats included. Image fills remain deferred for cell floats specifically — a **body**
+  image-fill shape is routed to a `PlacedImage` and does draw.*
 - **Empty-paragraph after-spacing and a last-line bottom-margin tolerance landed**: an empty paragraph carries
   its after-spacing into the collapse with the next paragraph like any other (measured against Word —
   two_columns' title/blank/body gap is line + after + line + after, not one dropped after), and a line is placed
@@ -404,7 +444,7 @@ rasterised by PDFium renders the text correctly at the canonical positions — t
   image follows the same variant as the text, so a title page's frame comes from its first-page header. A
   header/footer *table* lays out in the band too, reusing the nested-table layout — business/01's `CANEIRO
   GROUP` footer grid renders at the page bottom. *Foreground* header images (a title-page illustration that is
-  not a behind-text watermark) are the remaining band piece.
+  not a behind-text watermark) and 3-way footer tab alignment are the remaining band pieces.
 - **Tabs landed**: a tab run advances the pen to its resolved stop during line building, reusing the production
   `TabStopResolver` (left / centre / right / decimal, with a stop past the column clamped to the column edge and
   right/centre/decimal measuring the text up to the next tab). `Inputs/tab_stops`' right-aligned TOC numbers,
@@ -537,10 +577,12 @@ rasterised by PDFium renders the text correctly at the canonical positions — t
   sub-pixel glyph/line-metric drift and host-vs-container rasterisation AA that depress its SSIM (e.g.
   long_paragraph 0.78) even where the wrap and alignment match Word exactly.
 
+### Still to land before the PDF flip
+
 Still to land before it can replace the production `PdfRenderer` — much of this list has since landed via the
-shared raster cutover (nested tables, unwarped WordArt, floating tables and label grids all emit now; see the
-post-flip update under "The PDF cutover (step 5)"), leaving the font/image tail, float wrap and warp WordArt as
-the real blockers:
+shared raster cutover (nested tables, unwarped WordArt, floating tables and label grids all emit now; see
+"Update — post-raster-flip" at the end of "Phases" below), leaving the font/image tail, float wrap and warp
+WordArt as the real blockers:
 
 - Shapes/WordArt and float wrap (behind-text *cell* floats, and now body floating images, image-fill and
   gradient-fill shapes, render — a gradient shape reuses the production linear-gradient brush and paints as Word
@@ -549,7 +591,7 @@ the real blockers:
   landed via the shared Fragmenter's float-anchor fix), image
   recolour/duotone effects (letters/02's frame is drawn but blue where Word recolours it brown — needs a pixel
   path Morph.Pdf lacks)
-- A floating or inline image now applies its DrawingML rotation, flip, source-rectangle crop, and
+- *Landed:* A floating or inline image now applies its DrawingML rotation, flip, source-rectangle crop, and
   ellipse/freeform clip about the box centre (reusing the production geometry — letters/13's rotated letterhead
   banners and brochures/03's round photos match Word, and the dedicated image_rotation/01 and image_cropping/01
   rise to 0.989 and 0.991 SSIM)
@@ -558,7 +600,7 @@ the real blockers:
 - Foreground (front-text) header/footer *images* — any variant (default, first-page and even-page
   header/footer *text*, behind-text header images per variant, and band *tables* — business/01's footer
   grid — all render; foreground images and 3-way tab alignment do not)
-- A partial `w:tcMar` cell-margin override now inherits its absent sides from the table's `w:tblCellMar` per
+- *Landed:* A partial `w:tcMar` cell-margin override now inherits its absent sides from the table's `w:tblCellMar` per
   side instead of collapsing them to zero (`DocumentParser.ParseCellMargin`), which is what actually spaces
   business-plans/04's vAlign=bottom section headings from their bodies — Word's XPS puts that heading row at
   31.8pt where the dropped 14.4pt top margin had left 16pt, and the shared parser fix lifted 11 corpus scenarios
@@ -724,7 +766,9 @@ WordArt** (the 16 presets, only the two envelope test documents need them) are t
 4. Form fields and content controls.
 5. Footnote/endnote appendix at document end (`RenderNotesAppendix`).
 6. Foreground (front-text) header/footer images — any variant — and 3-way footer tab alignment (*band
-   tables have since landed — business/01's footer grid*).
+   tables have since landed — business/01's footer grid. Reclassified: foreground header/footer images gate
+   no document's coverage, so they belong to painter fidelity, "Remaining work" item 4; 3-way footer tab
+   alignment stays emission work.*).
 7. Label grids.
 8. Line numbers, bar tabs, per-fragment paragraph borders across a break, per-section NUMPAGES restart.
 
@@ -961,7 +1005,8 @@ with no internal inset. The engine emits both without new painter code: `Fragmen
 chrome as a `PlacedShape` (a synthetic `FloatingShapeElement` carrying the box's fill/outline/geometry) and the
 content by reusing `LayoutCellContent` — wrapping the box's content in a synthetic cell — so paragraph spacing,
 alignment, inline images and even a nested table inside a text box lay out for free. Both are tagged with the
-page the flow has reached and paint behind or in front per `BehindText`. `EngineCoverage` admits a non-wrapping
+page the flow has reached and paint behind or in front per `BehindText` (*a page/margin-anchored text box now
+defers with the other absolute floats — see the multi-page float-anchor fix below*). `EngineCoverage` admits a non-wrapping
 text box (wrapping ones need flow exclusions). Coverage rises **306 → 310**; all four documents measure at
 parity or better — brochures/03 +0.021 (a two-page document), cards/13 +0.0001, labels/10 −0.0006, labels/11
 +0.0051 (three wins, one tie). A rotated text box currently rotates its box but not its content lines; none of
@@ -1125,8 +1170,12 @@ that remains unbuilt; today the painter-fidelity `Verify`-PNG suite is still the
   the shape/WordArt geometry (becomes `PlacedShape`); the Verify-PNG suite (becomes the painter gate).
 - **Deleted (step 7 — the remaining cleanup):** three copies of pagination; `TableHeightCalculator` as a
   separate measure pass; the whole-paragraph widow approximation; the raster/PDF metric divergence; and the
-  knife-edge category. For covered raster documents these are already gone; the old code persists as the
-  uncovered fallback and the kill switch until step 7, and PDF keeps its copy until its own flip.
+  knife-edge category. For covered raster documents the duplicate pagination and the whole-paragraph widow
+  approximation are gone — the two raster backends paginate through one engine — while the old code persists
+  as the uncovered fallback and the kill switch until step 7. The other three are **not** yet retired:
+  `TableHeightCalculator` is still a separate measure pass the Fragmenter calls before placing rows (folding
+  it in is step 7); PDF keeps its own pagination until its flip, so a covered document's PNG and PDF page
+  counts can still disagree; and resumes/13 remains a knife-edge inside the engine itself.
 
 ## Open questions
 

@@ -5,10 +5,13 @@
 /// produced, so a paint is a pure draw pass. This proves the tree drives real output.
 ///
 /// <para>Draws paragraph text (one <see cref="PlacedRun"/> per source run at the line's baseline, in its
-/// resolved font and colour) and tables (each <see cref="PlacedCell"/>'s shading, content and borders).
-/// Deferred to later slices: paragraph/run decorations (underline, strike, highlight, paragraph borders,
-/// shading), list markers, tabs, images and shapes, in-cell vertical alignment and nested tables, and
-/// per-glyph advances — until those land, the normal <c>PdfRenderer</c> stays the production path.</para>
+/// resolved font and colour), tables (each <see cref="PlacedCell"/>'s shading, content and borders),
+/// run decorations, list markers, tabs and leaders, images, shapes and nested tables — the feature log
+/// is in the proposal doc. Still deferred: per-glyph advances (a run anchors at its canonical start and
+/// the font library fills it), image recolour/duotone, cell-anchored image-fill shapes (a body one is
+/// routed to a <see cref="PlacedImage"/> and draws), and foreground header/footer
+/// images. <c>PdfRenderer</c> routes a covered document here behind the <c>MORPH_PDF_ENGINE</c> gate;
+/// the flip to make it the default is held (see the doc's "Remaining work").</para>
 /// </summary>
 static class PdfPainter
 {
