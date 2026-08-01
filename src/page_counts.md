@@ -254,6 +254,21 @@ This model took the scoreboard from 304/305/296 to 307/307/301 (pass 2).
 The PdfSharp implementation was a wash (zero count moves); the model is the keeper for any future
 wrap-width work.
 
+**Word probe (2026-08-01) — the ppem@120 grain is an approximation, not Word's model.** A fixture
+rendering a fixed string at 10–14pt in 0.5pt steps through Word at 150 dpi, measured by both ink-edge
+extent and ink-profile autocorrelation over two renders, puts W(10.5)/W(11) at **0.983 — not 1.000**:
+Word does *not* lay 10.5 and 11pt out identically. Word sits *between* the integer-ppem@120 model
+(which buckets both to em 10.8pt → ratio 1.000) and the raw-fractional model (10.5/11 → 0.955), and
+wanders per size, matching no integer ppem at any single dpi — DirectWrite fractional-plus-hinting.
+At 10.5pt the ppem@120 bucket (1.000) is actually the *closer* of the two to Word (0.983); raw
+fractional (0.955) is further, so going fractional over-corrects — too narrow, wraps late. The
+residual: ppem@120 over-widths 10 / 10.5pt text by ~2–3% versus Word, which is the visible early wrap
+on those documents (resumes/15's 10pt contact block, business/05's 10.5pt body). Because the error is
+*size-dependent*, no uniform knob corrects it — the per-font factor and FontWidthScale both washed for
+exactly this reason. The model stays the keeper (closest of the two available), but the "wrap
+identically" reading is a ppem-bucket artefact, not Word behaviour; closing the last 2–3% needs a real
+fractional-plus-hinted advance model, not a scale, and is a fidelity ceiling rather than a quick fix.
+
 ## Root-cause lessons
 
 **The text-metrics attribution is a measured dead end as a fix lever.** Raster once measured words

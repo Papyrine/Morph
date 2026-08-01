@@ -285,10 +285,14 @@ The checklist is landed through step 6; what is left, most-blocking first:
    (measured −0.0054 before the empty-mark phantom-run fix above). That reading — "dominated by Aptos display
    wrap under PDFium's AA" — was half wrong: a visual PDF check (rasterise engine-PDF and production-PDF at
    150 DPI, diff per-paragraph Y) traced the *worst* per-document losses to the phantom-run spacer bug, not
-   AA, and fixing it recovered resumes/11 and /18 by +0.07…+0.09. What remains is a genuine mix — Aptos
-   display-font wrap *width* (business/05 breaks a word early), a still-uncharacterised resume-template loss
-   (resumes/09, /15, unchanged by the spacer fix), and the compound-image and full-page-gradient rasterization
-   tail. See "The PDF cutover (step 5)".
+   AA, and fixing it recovered resumes/11 and /18 by +0.07…+0.09. What remains is a genuine mix. The
+   wrap-*width* losers (business/05 10.5pt, resumes/15 10pt) are the **`Ppem` grain**: a Word probe (2026-08-01,
+   recorded in `page_counts.md`) measured Word's W(10.5)/W(11) at 0.983, not the 1.000 the ppem@120 bucket
+   assumes — so the canonical measurer over-widths 10 / 10.5pt text by ~2–3% and wraps it early. Word sits
+   *between* ppem@120 and raw-fractional (fractional over-corrects), matching no single-dpi integer ppem, so
+   this is a size-dependent modelling ceiling, not a scale knob — which is why the per-font factor and
+   FontWidthScale both washed. Plus the compound-image and full-page-gradient rasterization tail. See "The PDF
+   cutover (step 5)".
 2. **The four coverage hold-outs** of 325 — warp WordArt (`wordart`, `wordart-envelope`; the 16 presets), float
    wrap (`image_wrap_square`; text flowing around a square/tight float, an exclusion the Fragmenter does not
    emit), and `agendas-minutes/14` (a positioned frame). These plus the flip take the `PdfTextEngine` fallback
