@@ -541,10 +541,12 @@ held for this step.
 
 Every PDF entry point — `PdfDocumentConverter.ConvertToPdf`, `PdfHtmlConverter.ConvertToPdf`, and the
 `WordDocument`/`HtmlDocument` `ExportToPdf` extensions — funnels into one method:
-`PdfRenderer.Render(ParsedDocument, PdfExportOptions?)` (`src/Morph.Pdf/PdfRenderer.cs:8`). Its body has two
-halves. Lines 12–30 paginate and draw (`CountPagesIfRequired`, then `new PdfRenderContext(...)`,
-`new PdfPageRenderer(...)`, `renderer.RenderDocument(document)`). Lines 32–42 post-process the bytes for
-reproducibility (`MakeDeterministic`, optional `TrimPages`, `Save`, `Normalize`). **Only the first half is
+`PdfRenderer.Render(ParsedDocument, PdfExportOptions?)` (`src/Morph.Pdf/PdfRenderer.cs:8`). It opens with the
+engine gate (lines 12–18: `MORPH_PDF_ENGINE` + `EngineCoverage.Covers` → `RenderViaEngine`, the opt-in
+replacement already in place); the production path below is two halves. Lines 20–38 paginate and draw
+(`CountPagesIfRequired`, then `new PdfRenderContext(...)`, `new PdfPageRenderer(...)`,
+`renderer.RenderDocument(document)`). Lines 40–50 post-process the bytes for reproducibility
+(`MakeDeterministic`, optional `TrimPages`, `Save`, `Normalize`). **Only the paginate-and-draw half is
 replaced.**
 
 The replacement already exists and is exercised by `PdfPainterFidelityTests`:
