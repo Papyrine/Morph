@@ -30,8 +30,9 @@ using System.Globalization;
 /// them is not yet expected to paginate: minimal-tallest-column balancing (the greedy fill targets the
 /// average height, so uneven-height columns are approximate) and balancing a region that carries a table,
 /// shading or a border; a margin-only continuous change; keep-next (widow/orphan and keep-lines are
-/// handled); floats and their wrap exclusions; floating tables; and inline images inside a nested table
-/// (nested tables themselves lay out). Other non-paragraph, non-table elements are skipped for now.</para>
+/// handled); float wrap exclusions (square/tight — floats themselves and floating tables lay out); and
+/// inline images inside a nested table (nested tables themselves lay out). Other non-paragraph,
+/// non-table elements are skipped for now.</para>
 /// </summary>
 sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 {
@@ -1214,14 +1215,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             return line with { X = line.X + dx, Y = line.Y + dy, Baseline = line.Baseline + dy, Runs = runs, Images = images };
         }
 
-        // Resolves a header's behind-text floating images to absolute page positions. The full-page
-        // decorative frames of letter/label templates are anchored here — page/margin/column horizontally,
-        // at the header paragraph vertically — and a header-band-top estimate suffices since they span the
-        // whole page. Front-text header art, header text/tables and footers are later slices.
-        // Lays out a header or footer's paragraphs as a self-contained band from (left, top), wrapping each
-        // to the band width and stacking it with its own spacing — no page breaks (a band fits its margin
-        // area). Reuses the body's line mapping, alignment and shading. Tables in a band, borders, and
-        // per-page page-number fields are later slices; an empty paragraph adds only its invisible mark line.
+        // Lays out a header or footer's content as a self-contained band from (left, top), wrapping each
+        // paragraph to the band width and stacking it with its own spacing — no page breaks (a band fits
+        // its margin area). Reuses the body's line mapping, alignment and shading; a band table lays out
+        // inline via the nested-table layout, and page-number fields are substituted per page before the
+        // band lays out (SubstitutePageFields). Band paragraph borders are a later slice; an empty
+        // paragraph adds only its invisible mark line.
         IReadOnlyList<PlacedItem> LayoutBand(IReadOnlyList<DocumentElement> elements, float left, float top, float width)
         {
             var result = new List<PlacedItem>();
@@ -1271,7 +1270,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
         // The header's text band for one page, at the header distance across the full content width. Page 1
         // takes the first-page header when the document has one (a "different first page" title header, which
-        // may be empty); other pages take the default. Even-page headers are a later slice.
+        // may be empty); an even page its even variant when the document opts in; other pages the default.
         IReadOnlyList<PlacedItem> HeaderBand(int pageNumber, int totalPages, PageSettings settings)
         {
             var content = SelectVariant(pageNumber, firstPageHeader, evenPageHeader, header, settings);
@@ -1291,9 +1290,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             : standard;
 
         // The footer's text band for one page, anchored so its bottom sits the footer distance above the
-        // page's bottom edge, with PAGE fields resolved to this page's number. Page 1 takes the first-page
-        // footer when present (often empty — Word shows no footer on a title page). NUMPAGES (needs the final
-        // total), even-page footers, footer tables and 3-way tab alignment are later slices.
+        // page's bottom edge, with PAGE/NUMPAGES fields resolved for this page (the bands assemble in a
+        // post-pass once the total is known). Page 1 takes the first-page footer when present (often empty —
+        // Word shows no footer on a title page); an even page its even variant when the document opts in.
+        // 3-way footer tab alignment is a later slice.
         IReadOnlyList<PlacedItem> FooterBand(int pageNumber, int totalPages, PageSettings settings)
         {
             var content = SelectVariant(pageNumber, firstPageFooter, evenPageFooter, footer, settings);
@@ -1357,6 +1357,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             return result;
         }
 
+        // Resolves a header's behind-text floating images and shapes to absolute page positions. The
+        // full-page decorative frames of letter/label templates are anchored here — page/margin/column
+        // horizontally, at the header paragraph vertically — and a header-band-top estimate suffices since
+        // they span the whole page. Front-text (foreground) header art is a later slice; header/footer
+        // text and band tables lay out in LayoutBand.
         static IReadOnlyList<PlacedItem> ResolveHeaderImages(HeaderFooterContent? header, PageSettings page)
         {
             if (header == null)

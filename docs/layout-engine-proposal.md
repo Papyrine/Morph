@@ -185,6 +185,13 @@ it is *the* work. Get it right and every backend inherits Word-fidelity for free
 every backend inherits the *same* error (still strictly better — one error to calibrate against one
 target, versus three that cancel differently and mask the model).
 
+*Update, as measured: the space elasticity landed as pen-position rounding (step 1) rather than an explicit
+factor; the per-font factor itself was later ruled out empirically (the Phase A note under the PDF cutover);
+and a Word probe found a size-dependent ceiling the integer-ppem model cannot reach — Word renders 10.5pt
+~1.7% narrower than 11pt where the ppem@120 bucket makes them equal, sitting between that grain and
+raw-fractional ("Remaining work" item 1, and `src/page_counts.md`). The model is the closest available
+approximation, not Word's own; the residual is ~2–3% over-width at 10/10.5pt.*
+
 ## Migration checklist (sequence matters even unbounded)
 
 Build alongside the existing renderers; do not delete anything until all three backends consume the tree.
@@ -212,10 +219,11 @@ through the render context's own primitives rather than a common `ILayoutPainter
       `CanonicalParagraphMeasurerTests`): multi-run greedy wrap (a mid-word format change never splits
       the word), per-line height = the tallest run's hhea box under the spacing rule, and Word's
       before/after spacing — font resolution injected as a delegate so a caller wires a
-      `FontResolver<FontMetrics>`. Not yet consumed by the render pipeline (that is step 6, and carries
-      baseline regeneration). Remaining as refinements: tabs and first-line/hanging indents in the
-      adapter, and an optional per-font upward space factor (Aptos 1.0125×, Times 1.0213×) for the last
-      fraction of a percent.
+      `FontResolver<FontMetrics>`. *All of this bullet's tail has since resolved: step 6 landed the
+      adapter as the default raster path's measurer; tabs landed (position-dependent advances resolved in
+      the measurer's `BuildLineItems` — the tabs slice under step 5) and first-line/hanging indents
+      landed in the adapter's wrap plus the Fragmenter's `FirstLineIndentOffset`; and the once-planned
+      per-font upward space factor was investigated and ruled out empirically (the Phase A note).*
 - [x] **2. Layout-tree types** — landed (`PlacedItem` base carrying the bounding box, with
       `LaidOutDocument`, `LaidOutPage`, `PlacedLine`, `PlacedTableRow`, `PlacedCell`, `PlacedImage`,
       `MeasuredLine`). `PlacedLine` carries its baseline and the `PlacedRun`s to paint (text, width and
@@ -251,7 +259,10 @@ through the render context's own primitives rather than a common `ILayoutPainter
       Remaining slices: per-section geometry (a section break switching column count or page size,
       including the continuous mid-page kind — the newsletter masthead → body case); widow/orphan and
       keep-next/keep-lines; float exclusions (reuse `ResolveFlowBand`); images and nested tables inside a
-      cell; floating tables; header/footer band height.
+      cell; floating tables; header/footer band height. *Nearly all of these have since landed — per-section
+      geometry, widow/orphan + keep-lines, cell images and nested tables, floating tables, and the
+      header/footer bands are in the cutover logs below; float wrap exclusions, keep-next, and inline
+      images inside a nested table are what genuinely remain.*
 - [~] **4. `DocumentLayoutEngine`** — the section walk, per-page region chains and header/footer bands all
       landed, folded into the `Fragmenter` rather than a separate class (per-section geometry, even/odd parity
       pages, the Continuous mid-page column switch and header/footer band layout are in the raster-cutover log
@@ -282,7 +293,8 @@ through the render context's own primitives rather than a common `ILayoutPainter
 The checklist is landed through step 6; what is left, most-blocking first:
 
 1. **The PDF flip** (step 5 D) — painter and predicate are done; the flip is held on the font/image tail
-   (measured −0.0054 before the empty-mark phantom-run fix above). That reading — "dominated by Aptos display
+   (measured −0.0054 before the empty-mark phantom-run fix, described in the step-5 painter log below). That
+   reading — "dominated by Aptos display
    wrap under PDFium's AA" — was half wrong: a visual PDF check (rasterise engine-PDF and production-PDF at
    150 DPI, diff per-paragraph Y) traced the *worst* per-document losses to the phantom-run spacer bug, not
    AA, and fixing it recovered resumes/11 and /18 by +0.07…+0.09. What remains is a genuine mix. The
@@ -301,8 +313,8 @@ The checklist is landed through step 6; what is left, most-blocking first:
    `TableHeightCalculator`), once PDF flips and coverage is total — the fallback still serves uncovered
    documents and the kill switch until then.
 4. **Painter-fidelity backlog** — score-improving, not gating a document: per-glyph advances, image
-   recolour/duotone, super/subscript raise, `w:position`, small-caps, run borders/effects, RTL, per-variant
-   header/footer images and band tables (detailed under the two cutover sections).
+   recolour/duotone, super/subscript raise, `w:position`, small-caps, run borders/effects, RTL, and
+   foreground header/footer images (detailed under the two cutover sections; band tables have landed).
 
 ## The PDF cutover (step 5), in detail
 
@@ -454,7 +466,8 @@ rasterised by PDFium renders the text correctly at the canonical positions — t
   illustration lands at Word's position and size, and a single full-bleed background photo fills its page. The
   float is anchored to the page the flow has reached, so a document with one full-page background per page
   across a page break stacks both on the first page (brochures/01) — tying a body float to its anchor
-  paragraph's resolved page is a later slice, as is float wrap (text flowing around a square/tight float).
+  paragraph's resolved page is a later slice (*since landed — the multi-page float-anchor fidelity slice
+  under the raster cutover*), as is float wrap (text flowing around a square/tight float, still open).
   Body-float pages are excluded from the harness, so this is render-verified.
 - **Contextual spacing (w:contextualSpacing) landed**: two same-style contextual paragraphs collapse the gap
   between them (the first's space-after and the second's space-before), matching Word's tight memo To/From/CC
@@ -532,7 +545,8 @@ the real blockers:
 - Shapes/WordArt and float wrap (behind-text *cell* floats, and now body floating images, image-fill and
   gradient-fill shapes, render — a gradient shape reuses the production linear-gradient brush and paints as Word
   does, the vertical bars of labels/04 and the banners of cover-letters/06 among them; text flowing around a
-  square/tight float does not, nor does tying a multi-page background to its anchor paragraph's page), image
+  square/tight float does not, while tying a multi-page background to its anchor paragraph's page *has* since
+  landed via the shared Fragmenter's float-anchor fix), image
   recolour/duotone effects (letters/02's frame is drawn but blue where Word recolours it brown — needs a pixel
   path Morph.Pdf lacks)
 - A floating or inline image now applies its DrawingML rotation, flip, source-rectangle crop, and
@@ -541,9 +555,9 @@ the real blockers:
   rise to 0.989 and 0.991 SSIM)
 - A rotated *inline* image still tops out a touch higher than Word, which reserves the rotated bounding box's
   height in the line
-- First/even-page header/footer *images* and header/footer tables (default, first-page and even-page
-  header/footer *text* plus behind-text header images render; band *tables*, per-variant images and 3-way tab
-  alignment do not)
+- Foreground (front-text) header/footer *images* — any variant (default, first-page and even-page
+  header/footer *text*, behind-text header images per variant, and band *tables* — business/01's footer
+  grid — all render; foreground images and 3-way tab alignment do not)
 - A partial `w:tcMar` cell-margin override now inherits its absent sides from the table's `w:tblCellMar` per
   side instead of collapsing them to zero (`DocumentParser.ParseCellMargin`), which is what actually spaces
   business-plans/04's vAlign=bottom section headings from their bodies — Word's XPS puts that heading row at
@@ -593,18 +607,22 @@ run over it unchanged — the byte-reproducibility that makes the snapshots stab
 NUMPAGES pre-count (`CountPagesIfRequired`) becomes unnecessary on the engine path: `LaidOutDocument.Pages.Count`
 IS the total, so the page-number post-pass already has it. Swapping the seam retires **both** `PdfTextEngine`
 (paragraph-internal line breaks) **and** the `PdfPageRenderer` driver (`RenderDocument`/`RenderElement` +
-the page lifecycle). `PageRendererBase` stays — the Skia/ImageSharp backends still use it until step 6.
+the page lifecycle). `PageRendererBase` stays — since the step-6 flip the Skia/ImageSharp backends use it
+only for uncovered documents and the kill switch, until step 7 deletes it.
 
 ### The one wiring gap
 
 `Fragmenter` needs a `CanonicalParagraphMeasurer` whose `resolveFont(family, bold, italic) -> FontMetrics?`
 delegate honours the conversion's `PdfExportOptions` (`FontDirectory`, `FontFallback`, `FontWidthScale`).
 The tests build it from `LayoutTestFonts.Resolve` (a `FontFileCache` over `src/Fonts` + `FontMetricsReader`);
-production has `PdfFontResolver` as the analogue, but its per-conversion `FontFallback` delegate is not yet
-wired (see `pdf-font-resolver-divergence`). The measurer's metrics drive the wrap and the painter's font
-resolution drives the draw, so both MUST resolve a given run to the same face or the paint drifts off the
-measured line. Closing this gap — one delegate, threaded from options into both the measurer and
-`PdfPainter`'s `PdfRenderContext` — is the whole of what makes the seam physically work.
+production has `PdfFontResolver` as the analogue, whose per-conversion `FontFallback` delegate is wired
+outside the process-global resolver (`PdfRenderContext.ResolveFamily`, with `PdfFontResolver.CanResolve`
+letting it fire at the shared resolver's point in the chain). The measurer's metrics drive the wrap and the
+painter's font resolution drives the draw, so both MUST resolve a given run to the same face or the paint
+drifts off the measured line. Closing this gap — one delegate, threaded from options into both the measurer
+and `PdfPainter`'s `PdfRenderContext` — is the whole of what makes the seam physically work. *Closed by
+Phase A below: `LayoutFonts` threads the conversion's `FontDirectory`/`FontFallback` (and later
+`FontWidthScale`) into the measurer, and `RenderViaEngine` reuses `PdfRenderContext` for the paint.*
 
 ### Strategy: a capability-gated hybrid, not a single flip
 
@@ -650,7 +668,11 @@ everything the corpus contains (the fallback goes cold).
     so any widening over-wraps *away* from Word. And the wraps are one shared `LaidOutDocument` for raster and
     PDF, so **the −0.0054 PDF gap is not the wraps** (raster proves them correct) — it is the PDF rendering path
     (PdfSharp glyphs + PDFium's harsher AA vs Skia), which no measurer change reaches. The per-font factor stays
-    unmodelled by choice, not omission.
+    unmodelled by choice, not omission. *The conclusion stands — a flat factor is not the lever — but this
+    bullet's causal reading is superseded: the phantom-run measurer fix later recovered the worst per-document
+    PDF losses (+0.072/+0.090, so a measurer change did reach the gap), "raster parity" only proved
+    engine ≈ production-raster (both shared the same divergence from Word), and the Ppem-grain probe showed the
+    wrap-width losers ARE the measurer over-widthing 10/10.5pt text. See "Remaining work" item 1.*
 - **B — Capability predicate + fallback. LANDED (predicate); flip DEFERRED.** `EngineCoverage.Covers`
   (`src/Morph/Layout`) routes only covered documents to the engine, the rest to `PdfTextEngine`; still behind
   `MORPH_PDF_ENGINE`, default path unchanged. A host measurement (engine vs production, both via `ConvertToPdf`,
@@ -680,8 +702,12 @@ far wider set than Phase B's 180, same verdict. And Phase C's covered-FIDELITY t
 header/footer band, `w:pBdr` and `w:shd` that Phase B named as the sharpest losses now render in `PdfPainter`
 (the step-5 painter log above). What remains is the intractable font/image tail — Aptos display-font wrap width
 amplified by PDFium's harsher AA, compound-image and full-page-gradient rasterization — the same tail the raster
-measurement called "exhausted". **The flip is held on that tail, not on coverage**, its accepted cost the
+characterization identified. **The flip is held on that tail, not on coverage**, its accepted cost the
 PNG-vs-PDF page-count divergence the raster-only flip introduced, carried until the font tail is tractable.
+*Half-corrected since: the worst per-document losses in that −0.0054 were the phantom-run spacer bug (fixed —
+the empty-mark hardening in the painter log), and the wrap-width residual is the Ppem-grain measurer ceiling,
+not PDFium AA; the compound-image and gradient rasterization tail is the genuinely AA part. See "Remaining
+work" item 1.*
 
 ### Emission backlog (Fragmenter — unblocks whole documents, ordered by corpus reach)
 
@@ -692,11 +718,13 @@ WordArt** (the 16 presets, only the two envelope test documents need them) are t
 
 1. WordArt / inline shape groups (~28% carry a warp; the test filter keys off `run.InlineShapeGroup`).
 2. Floating shapes/images with text-wrap exclusions (square/tight) and multi-page float anchor-page
-   resolution (a body float currently binds to the page the flow has reached, not its anchor's page).
+   resolution (a body float bound to the page the flow had reached, not its anchor's page — *the
+   anchor-page half has since landed in the float-anchor fidelity slice; the wrap exclusions remain*).
 3. Floating tables.
 4. Form fields and content controls.
 5. Footnote/endnote appendix at document end (`RenderNotesAppendix`).
-6. Per-variant (first/even) header/footer images, header/footer band tables, and 3-way footer tab alignment.
+6. Foreground (front-text) header/footer images — any variant — and 3-way footer tab alignment (*band
+   tables have since landed — business/01's footer grid*).
 7. Label grids.
 8. Line numbers, bar tabs, per-fragment paragraph borders across a break, per-section NUMPAGES restart.
 
@@ -783,8 +811,8 @@ Both raster seams were measured the way PDF Phase B was — render every covered
 | Skia | 182 | — | — | **−0.0023** | — |
 | ImageSharp | 182 | 0.9395 | 0.9403 | **−0.0008** | 35 / 30 / 117 |
 
-This is the decisive contrast with PDF (**−0.0042**, held because it clearly regressed): the raster engine is
-at parity. Both raster paths share their render context's drawing primitives (font creation, text layout,
+This is the decisive contrast with PDF (**−0.0052** at Phase B, held because it clearly regressed): the raster
+engine is at parity. Both raster paths share their render context's drawing primitives (font creation, text layout,
 colour, image processing), so an engine-drawn covered page and a production-drawn one differ only where
 pagination differs — and pagination already agrees (181/182 covered docs match production's page count, the
 lone exception the standing resumes/13 knife-edge). The wins and losses roughly cancel and 117 of 182 are
@@ -793,8 +821,8 @@ ties. The split is the familiar one: the engine WINS on tables (header_row_repea
 labels/16), unavailable commercial fonts (business-plans/03 Aptos), compound-image and full-page-gradient
 rasterization AA (cover-letters/12 −0.058, cards/05), and `w:shd`/`w:pBdr` decoration sub-pixel offsets
 (resumes/15). Spot-checking the three biggest losers confirmed each renders correctly against Word — the gap
-is AA/pitch noise amplified by dense text or a full-bleed background, not a missing feature. The same set the
-PDF measurement named "exhausted".
+is AA/pitch noise amplified by dense text or a full-bleed background, not a missing feature. The same
+intractable AA/font set the PDF measurement identified.
 
 The consequence for the flip: unlike PDF, flipping the raster default is **not** a fidelity regression on
 covered documents — it is a pagination-unification move at parity. The remaining lever is coverage EMISSION
@@ -1013,7 +1041,7 @@ the page for a page anchor, else the content box — mirroring the production `F
 lifts **−0.043 → 0.000** (exact parity); the point-offset path is byte-identical, so every other float is
 untouched.
 
-With all three levers pulled, the covered set is at production parity across all three raster backends
+With all three levers pulled, the covered set is at production parity across both raster backends
 (aggregate **−0.0023 → −0.0001**, 98 wins / 85 losses over 318 page-count-matched documents) and every
 visibly-regressing outlier is eliminated — the remaining losses are the intractable AA/font tail.
 
