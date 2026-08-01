@@ -609,9 +609,19 @@ everything the corpus contains (the fallback goes cold).
   matching production's `advance × FontWidthScale`; the three `RenderViaEngine` sites pass `options.FontWidthScale`.
   It is a no-op at the 1.0 default the whole corpus and the tests run at (so no baseline moved), closing a latent
   divergence for any conversion that sets the knob — the engine, now the default raster path, ignored it while
-  production honoured it. It is NOT the lever for the −0.0054 PDF Aptos-wrapping gap (that sits at scale 1.0): that
-  gap is the separate per-font upward factor (Aptos ≈1.0125×, noted in the `CanonicalTextMeasurer` advance-model
-  comment) the model does not yet apply. Test: `CanonicalFontWidthScaleTests`.
+  production honoured it. It is NOT the lever for the −0.0054 PDF Aptos-wrapping gap (that sits at scale 1.0).
+  Test: `CanonicalFontWidthScaleTests`.
+  - **Per-font width factor investigated and ruled out (empirically).** The `CanonicalTextMeasurer` comment
+    names a per-font upward factor (Aptos 1.0125×, Times New Roman 1.0213×, `src/page_counts.md` experiment 6).
+    Implementing the measured spaces-only model (Word stretches inter-word spaces by the factor, glyphs nominal)
+    was a **wash** — zero SSIM change across 19 Aptos-heavy docs — because the ≈1% on the few spaces per line is
+    too small to tip a wrap, exactly the "PdfSharp implementation was a wash" `page_counts.md` records. Applying
+    it whole-advance (glyphs + spaces) instead **regressed** — long_paragraph −0.0158, cover-letters/16 −0.0064,
+    −0.0012 aggregate — because the engine's Aptos wraps are already at Word-parity (the raster flip's −0.0001),
+    so any widening over-wraps *away* from Word. And the wraps are one shared `LaidOutDocument` for raster and
+    PDF, so **the −0.0054 PDF gap is not the wraps** (raster proves them correct) — it is the PDF rendering path
+    (PdfSharp glyphs + PDFium's harsher AA vs Skia), which no measurer change reaches. The per-font factor stays
+    unmodelled by choice, not omission.
 - **B — Capability predicate + fallback. LANDED (predicate); flip DEFERRED.** `EngineCoverage.Covers`
   (`src/Morph/Layout`) routes only covered documents to the engine, the rest to `PdfTextEngine`; still behind
   `MORPH_PDF_ENGINE`, default path unchanged. A host measurement (engine vs production, both via `ConvertToPdf`,
