@@ -1,8 +1,9 @@
 /// <summary>
-/// The capability predicate that routes the cutover: block/table/column documents — plus non-wrapping
-/// top-level floating shapes and images — are covered by the layout engine; the rest (WordArt, wrapping
-/// floats, section breaks, non-paragraph cell content) fall back to the production renderers until a
-/// later emission slice admits them.
+/// The shared capability predicate gating the raster default path and the PDF cutover: block/table/column
+/// documents — plus non-wrapping floats, section breaks, inline shape groups, nested-table cells, content
+/// controls, floating text boxes and tables, and unwarped WordArt — are covered by the layout engine; what
+/// is left (warped WordArt, wrapping floats, a positioned frame) falls back to the production
+/// renderers until a later emission slice admits it.
 /// </summary>
 public class EngineCoverageTests
 {

@@ -14,9 +14,9 @@ using SixLabors.ImageSharp.PixelFormats;
 /// text is top-anchored, so a run's baseline drops by the font ascent.
 ///
 /// <para>Covers the block/table/column subset: paragraph text with its run decorations, tables, paragraph
-/// shading and borders, inline images (crop/rotation/flip baked by the context), tab leaders, and behind-text
-/// floating shapes (solid fill and outline, freeform or preset). Deferred: gradient shape fills and per-glyph
-/// advances.</para>
+/// shading and borders, inline images (crop/rotation/flip baked by the context), tab leaders, and floating
+/// shapes (solid, gradient or outline fill, freeform or preset). Deferred: cell-anchored image-fill shapes
+/// (a body one is routed to a PlacedImage and draws) and per-glyph advances.</para>
 /// </summary>
 static class ImageSharpPainter
 {

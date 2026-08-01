@@ -10,8 +10,9 @@ using SkiaSharp;
 ///
 /// <para>Covers the block/table/column subset (<see cref="EngineCoverage"/>): paragraph text with its run
 /// decorations, tables (cell shading, content, borders), paragraph shading and borders, inline images, tab
-/// leaders, and behind-text floating shapes (solid fill and outline, freeform or preset). Deferred to later
-/// slices: gradient shape fills, inline-image rotation/flip/crop, and per-glyph advances.</para>
+/// leaders, and floating shapes (solid, gradient or outline fill, freeform or preset). Deferred to later
+/// slices: cell-anchored image-fill shapes (a body one is routed to a PlacedImage and draws), image
+/// rotation/flip/crop, and per-glyph advances.</para>
 /// </summary>
 static class SkiaPainter
 {
