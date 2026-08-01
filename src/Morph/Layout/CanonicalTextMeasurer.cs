@@ -70,10 +70,12 @@ sealed class CanonicalTextMeasurer
     /// The device pixels (unrounded) that <paramref name="text"/> advances at the reference ppem. This
     /// is the accumulator for pen-position rounding: summing it across runs of different fonts/sizes on
     /// one line and quantizing once with <see cref="PixelsToPoints"/> keeps a mixed-font line on the
-    /// linear track, exactly as a single-font line stays on it.
+    /// linear track, exactly as a single-font line stays on it. <paramref name="fontWidthScale"/> is the
+    /// per-conversion widening (<c>PdfExportOptions</c>/<c>ImageExportOptions.FontWidthScale</c>), applied
+    /// linearly before quantization — the same knob production's <c>RenderContextBase</c> multiplies advances by.
     /// </summary>
-    public static double LinearPixels(FontMetrics metrics, string text, double sizePoints) =>
-        (double) AdvanceUnits(metrics, text) / metrics.UnitsPerEm * Ppem(sizePoints);
+    public static double LinearPixels(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0) =>
+        (double) AdvanceUnits(metrics, text) / metrics.UnitsPerEm * Ppem(sizePoints) * fontWidthScale;
 
     /// <summary>Quantizes an accumulated linear-pixel total to points — the pen position rounded once.</summary>
     public static double PixelsToPoints(double pixels) =>
@@ -106,8 +108,8 @@ sealed class CanonicalTextMeasurer
     /// accumulate upward and over-wrap long lines. A per-font upward factor (Aptos 1.0125×, Times New
     /// Roman 1.0213×, most others ≈ 1) is the last fraction of a percent and is not yet modelled.
     /// </summary>
-    public static double MeasureWidthPoints(FontMetrics metrics, string text, double sizePoints) =>
-        PixelsToPoints(LinearPixels(metrics, text, sizePoints));
+    public static double MeasureWidthPoints(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0) =>
+        PixelsToPoints(LinearPixels(metrics, text, sizePoints, fontWidthScale));
 
     /// <summary>
     /// Greedy word wrap: breaks <paramref name="text"/> into lines that each fit within

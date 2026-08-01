@@ -604,7 +604,14 @@ everything the corpus contains (the fallback goes cold).
   drives it without the process-global toggle. Verified: the engine path through the public `ConvertToPdf`
   reproduces `PdfPainterFidelityTests`' SSIM verbatim (multiple_pages 0.776, even_odd_headers/01 0.998,
   dot_points 0.998), so `LayoutFonts` resolves the same faces as the tests' `LayoutTestFonts`; the default
-  path stays byte-identical. Not yet wired: per-conversion `FontWidthScale` into the measurer.
+  path stays byte-identical. **`FontWidthScale` now wired:** `CanonicalParagraphMeasurer` takes the scale and
+  multiplies the glyph advance (in `CanonicalTextMeasurer.LinearPixels`, before pen-position quantization),
+  matching production's `advance × FontWidthScale`; the three `RenderViaEngine` sites pass `options.FontWidthScale`.
+  It is a no-op at the 1.0 default the whole corpus and the tests run at (so no baseline moved), closing a latent
+  divergence for any conversion that sets the knob — the engine, now the default raster path, ignored it while
+  production honoured it. It is NOT the lever for the −0.0054 PDF Aptos-wrapping gap (that sits at scale 1.0): that
+  gap is the separate per-font upward factor (Aptos ≈1.0125×, noted in the `CanonicalTextMeasurer` advance-model
+  comment) the model does not yet apply. Test: `CanonicalFontWidthScaleTests`.
 - **B — Capability predicate + fallback. LANDED (predicate); flip DEFERRED.** `EngineCoverage.Covers`
   (`src/Morph/Layout`) routes only covered documents to the engine, the rest to `PdfTextEngine`; still behind
   `MORPH_PDF_ENGINE`, default path unchanged. A host measurement (engine vs production, both via `ConvertToPdf`,

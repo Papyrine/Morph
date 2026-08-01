@@ -13,7 +13,7 @@
 /// later layout work: tabs, first-line / hanging indents (only the block left/right indent is applied),
 /// and the empty-paragraph mark's exact style (approximated by the first run's font).</para>
 /// </summary>
-sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> resolveFont) : IParagraphMeasurer
+sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> resolveFont, double fontWidthScale = 1.0) : IParagraphMeasurer
 {
     public List<float> LayoutParagraphForMeasurement(ParagraphElement paragraph, float maxWidth)
     {
@@ -124,7 +124,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     public float MeasureRunWidth(string text, RunProperties properties)
     {
         var metrics = resolveFont(properties.FontFamily, properties.Bold, properties.Italic);
-        return metrics == null ? 0 : (float) CanonicalTextMeasurer.MeasureWidthPoints(metrics, text, properties.FontSizePoints);
+        return metrics == null ? 0 : (float) CanonicalTextMeasurer.MeasureWidthPoints(metrics, text, properties.FontSizePoints, fontWidthScale);
     }
 
     public float MeasureParagraphHeightWithWidth(ParagraphElement paragraph, float maxWidth)
@@ -503,7 +503,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
                 foreach (var (text, isSpace) in TokenizeText(parts[partIndex]))
                 {
-                    var advance = CanonicalTextMeasurer.LinearPixels(metrics, text, size);
+                    var advance = CanonicalTextMeasurer.LinearPixels(metrics, text, size, fontWidthScale);
                     if (trackingPerChar != 0)
                     {
                         advance += CanonicalTextMeasurer.PixelsFromPoints((float) (trackingPerChar * text.Length));
