@@ -710,7 +710,8 @@ per-glyph `w:spacing` tracked path re-derives advances (`DrawTracked`, matching 
 
 - **`SkiaPainter`** — full `PlacedItem` switch (line/tableRow/image/shape/shading/border), per-glyph tracked
   text, tab leaders, inline images (transforms deferred), and `PaintShape` (solid fill + outline over
-  `SkiaPageRenderer.BuildPolygonPath` freeform subpaths or a preset rect/ellipse; gradient fill deferred).
+  `SkiaPageRenderer.BuildPolygonPath` freeform subpaths or a preset rect/ellipse; the gradient fill deferred
+  here landed later, in the non-wrapping-float slice below).
 - **`ImageSharpPainter`** — the same coverage over ImageSharp's deferred `DrawingCanvas`; images route through
   `GetProcessedImage` (crop/rotation/flip baked for free), and `PaintShape` reuses the production
   `ImageSharpPageRenderer.BuildPath` / `BuildPresetPath` / `BuildRotation` / `NonzeroFill` geometry.
