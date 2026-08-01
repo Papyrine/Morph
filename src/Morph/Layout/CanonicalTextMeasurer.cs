@@ -109,7 +109,9 @@ sealed class CanonicalTextMeasurer
     /// which is exactly the "inter-word spaces are elastic upward" behaviour: the flex is spread
     /// across the run rather than snapped per glyph. Rounding each glyph independently instead would
     /// accumulate upward and over-wrap long lines. A per-font upward factor (Aptos 1.0125×, Times New
-    /// Roman 1.0213×, most others ≈ 1) is the last fraction of a percent and is not yet modelled.
+    /// Roman 1.0213×, most others ≈ 1) was measured and ruled out empirically — a wash applied to
+    /// spaces only, a regression applied whole-advance (<c>src/page_counts.md</c>) — so it stays
+    /// unmodelled by choice.
     /// </summary>
     public static double MeasureWidthPoints(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0) =>
         PixelsToPoints(LinearPixels(metrics, text, sizePoints, fontWidthScale));

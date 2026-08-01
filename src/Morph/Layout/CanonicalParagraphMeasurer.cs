@@ -11,8 +11,10 @@
 /// mid-word format change never splits the word), per-line height = the tallest run's hhea box under
 /// the paragraph's line-spacing rule, Word's before/after spacing, and the empty-paragraph mark's own
 /// run properties (w:pPr/w:rPr) sizing the blank line — matching PdfTextEngine, so a spacer parked over
-/// a differently-sized phantom run keeps its true height. Not yet modelled — deferred to later layout
-/// work: tabs, first-line / hanging indents (only the block left/right indent is applied).</para>
+/// a differently-sized phantom run keeps its true height. Tabs and first-line/hanging indents are
+/// modelled too: a tab piece's advance resolves position-dependently in BuildLineItems below,
+/// and the wrap narrows the first line by the first-line or hanging indent (lists exempt — their
+/// hanging indent is the marker gutter).</para>
 /// </summary>
 sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> resolveFont, double fontWidthScale = 1.0) : IParagraphMeasurer
 {
