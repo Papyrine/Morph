@@ -498,24 +498,30 @@ rasterised by PDFium renders the text correctly at the canonical positions — t
 Still to land before it can replace the production `PdfRenderer` — much of this list has since landed via the
 shared raster cutover (nested tables, unwarped WordArt, floating tables and label grids all emit now; see the
 post-flip update under "The PDF cutover (step 5)"), leaving the font/image tail, float wrap and warp WordArt as
-the real blockers: shapes/WordArt and float wrap (behind-text *cell* floats, and now body floating images,
-image-fill and gradient-fill shapes, render — a gradient shape reuses the production linear-gradient brush and
-paints as Word does, the vertical bars of labels/04 and the banners of cover-letters/06 among them; text flowing
-around a square/tight float does not, nor does tying a multi-page background to its anchor paragraph's page),
-image recolour/duotone effects (letters/02's frame is drawn but blue where Word recolours it brown — needs a
-pixel path Morph.Pdf lacks); a floating or inline image now applies its DrawingML rotation, flip,
-source-rectangle crop, and ellipse/freeform clip about the box centre (reusing the production geometry —
-letters/13's rotated letterhead banners and brochures/03's round photos match Word, and the dedicated
-image_rotation/01 and image_cropping/01 rise to 0.989 and 0.991 SSIM); a rotated *inline* image still tops out a
-touch higher than Word, which reserves the rotated bounding box's height in the line; first/even-page
-header/footer *images* and header/footer tables (default, first-page and even-page header/footer *text* plus
-behind-text header images render; band *tables*, per-variant images and 3-way tab alignment do not); a partial
-`w:tcMar` cell-margin override now inherits its absent sides from the table's `w:tblCellMar` per side instead of
-collapsing them to zero (`DocumentParser.ParseCellMargin`), which is what actually spaces business-plans/04's
-vAlign=bottom section headings from their bodies — Word's XPS puts that heading row at 31.8pt where the dropped
-14.4pt top margin had left 16pt, and the shared parser fix lifted 11 corpus scenarios toward Word across all
-three backends; per-glyph advances (exact intra-run boundaries — the painter currently anchors each run at its
-canonical start and lets the font library fill the run).
+the real blockers:
+
+- Shapes/WordArt and float wrap (behind-text *cell* floats, and now body floating images, image-fill and
+  gradient-fill shapes, render — a gradient shape reuses the production linear-gradient brush and paints as Word
+  does, the vertical bars of labels/04 and the banners of cover-letters/06 among them; text flowing around a
+  square/tight float does not, nor does tying a multi-page background to its anchor paragraph's page), image
+  recolour/duotone effects (letters/02's frame is drawn but blue where Word recolours it brown — needs a pixel
+  path Morph.Pdf lacks)
+- A floating or inline image now applies its DrawingML rotation, flip, source-rectangle crop, and
+  ellipse/freeform clip about the box centre (reusing the production geometry — letters/13's rotated letterhead
+  banners and brochures/03's round photos match Word, and the dedicated image_rotation/01 and image_cropping/01
+  rise to 0.989 and 0.991 SSIM)
+- A rotated *inline* image still tops out a touch higher than Word, which reserves the rotated bounding box's
+  height in the line
+- First/even-page header/footer *images* and header/footer tables (default, first-page and even-page
+  header/footer *text* plus behind-text header images render; band *tables*, per-variant images and 3-way tab
+  alignment do not)
+- A partial `w:tcMar` cell-margin override now inherits its absent sides from the table's `w:tblCellMar` per
+  side instead of collapsing them to zero (`DocumentParser.ParseCellMargin`), which is what actually spaces
+  business-plans/04's vAlign=bottom section headings from their bodies — Word's XPS puts that heading row at
+  31.8pt where the dropped 14.4pt top margin had left 16pt, and the shared parser fix lifted 11 corpus scenarios
+  toward Word across all three backends
+- Per-glyph advances (exact intra-run boundaries — the painter currently anchors each run at its canonical start
+  and lets the font library fill the run).
 
 Then repoint `Morph.Pdf` at `LaidOutDocument`, delete
 `PdfTextEngine`'s pagination, and run the harness in the container (matching Word's rasteriser) to separate real
