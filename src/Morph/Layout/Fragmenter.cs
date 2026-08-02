@@ -884,14 +884,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
         // A block-level unwarped WordArt takes flow space (its declared height) at the current cursor, aligned
         // by its w:jc — it paints its box chrome then its centred text.
-        // Note: WordArt does NOT consume the previous paragraph's after-spacing here, though a table and every
-        // other block does, and the production renderer does. Adding it is defensible in principle and lands
-        // wordart-envelope's four warps on Word's rows (−0.019 → −0.001), but it pushes business/06's flow a
-        // matching 10pt the other way, past Word (−0.025), so it measures as a wash and was reverted rather
-        // than shipped. Whatever rule Word applies here is not simply "consume the gap"; deriving it needs an
-        // ad-hoc probe isolating a WordArt block after a spaced paragraph, not a fit to these two documents.
+        // The preceding paragraph's after-spacing precedes the shape, as it does for a table or any other
+        // block. WordArt carries no spacing of its own, so without this the box rides up by that gap and
+        // every later block follows it — wordart-envelope's warps each sat 10pt (the subtitle's w:after)
+        // above Word. Never at a region top, where the break swallows the gap.
         void PlaceWordArt(WordArtElement wordArt)
         {
+            if (!atRegionTop)
+            {
+                y += lastAfter;
+            }
+
+            lastAfter = 0;
             var height = (float) wordArt.HeightPoints;
             EnsureSpaceFor(height);
             var boxWidth = (float) wordArt.WidthPoints;
