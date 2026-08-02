@@ -30,4 +30,29 @@ public class EnginePdfPathTests
         using var rendered = PdfiumDocument.Load(pdf);
         await Assert.That(rendered.PageCount).IsEqualTo(pages);
     }
+
+    /// <summary>
+    /// The engine path forwards the conversion's own options to the painter, not just to the measurer.
+    /// RasterizeWordArt is the observable one: with it off the warp is dropped, so the page carries less
+    /// ink. Before the wiring landed, the painter hardcoded its settings and honoured neither this nor the
+    /// font width scale / fallback / compatibility the measurer was given — a painter resolving a different
+    /// face than the measurer draws text off its measured line.
+    /// </summary>
+    [Test]
+    public async Task The_engine_path_honours_RasterizeWordArt()
+    {
+        var input = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "wordart-envelope", "input.docx");
+        await using var stream = File.OpenRead(input);
+        var document = new DocumentParser().Parse(stream);
+
+        var withArt = PdfRenderer.RenderViaEngine(document, new() { FontDirectory = fontsDirectory, RasterizeWordArt = true });
+        var withoutArt = PdfRenderer.RenderViaEngine(document, new() { FontDirectory = fontsDirectory, RasterizeWordArt = false });
+
+        // Both stay valid single-page PDFs — the warps reserve their height either way, so only the drawing
+        // differs — and dropping four rasterized warps makes for a markedly smaller file.
+        using var withRendered = PdfiumDocument.Load(withArt);
+        using var withoutRendered = PdfiumDocument.Load(withoutArt);
+        await Assert.That(withRendered.PageCount).IsEqualTo(withoutRendered.PageCount);
+        await Assert.That(withoutArt.Length).IsLessThan(withArt.Length);
+    }
 }
