@@ -323,7 +323,9 @@ through the render context's own primitives rather than a common `ILayoutPainter
       fallback; deleting them is step 7. See "The raster cutover (step 6), in detail".
 - [ ] **7. Delete** `PageRendererBase` pagination, `SectionBreakHandler` (subsumed), the per-backend
       `EnsureSpaceFor`/`AdvanceToNextColumnOrPage`, `TableHeightCalculator` (folded into the table
-      sub-layout). Keep the backends' primitive draw ops only.
+      sub-layout). Keep the backends' primitive draw ops only. *Blocked at the root, not merely pending:
+      every page renderer is still reachable through the uncovered-document fallback, HTML→PNG, or the
+      WordArt rasterizers — the chain is mapped under "Remaining work" item 3.*
 
 ### Remaining work, in one place
 
@@ -367,6 +369,22 @@ The checklist is landed through step 6; what is left, most-blocking first:
 3. **Step 7 — delete** the old pagination (`PageRendererBase`, `PdfTextEngine`, `SectionBreakHandler`,
    `TableHeightCalculator`), once PDF flips and coverage is total — the fallback still serves uncovered
    documents and the kill switch until then.
+
+   **The blocker chain, mapped 2026-08-02, so the next attempt does not re-derive it.** All three page
+   renderers derive from `PageRendererBase`, and each is still reachable, so nothing at the root can go yet:
+   - `SkiaPageRenderer` / `ImageSharpPageRenderer` have **three** live consumers each — the uncovered-document
+     fallback in `<Backend>DocumentConverter` (live while `image_wrap_square` is out, item 2), **all** of
+     HTML→PNG (`<Backend>HtmlConverter` constructs one directly, with no engine gate), and
+     `<Backend>WordArtRasterizer`, which rasterizes a warp by running a whole page render — and which PDF
+     itself depends on for WordArt embedding, engine path included.
+   - `PdfPageRenderer` + `PdfTextEngine` stay while the flip is held (item 1).
+   - `EngineCoverage` and the three `MORPH_*_ENGINE` reads stay while any fallback exists, since they are what
+     select it.
+
+   So the order is forced: retire the WordArt rasterizers' dependency on a page render, put HTML→PNG on the
+   engine seam, and clear item 2 — *then* the raster half can go. The PDF half additionally needs item 1.
+   Deleting `TableHeightCalculator` is a different kind of task: it is not dead code, the `Fragmenter` is its
+   main caller, so it is a fold rather than a delete.
 4. **Painter-fidelity backlog** — score-improving, not gating a document: per-glyph advances, image
    recolour/duotone, shape image fills, super/subscript raise, `w:position`, small-caps, run borders/effects,
    RTL, and foreground header/footer images (detailed under the two cutover sections; band tables have landed).
@@ -1177,6 +1195,41 @@ their Heading1→Normal style resolves 10pt white. Resolving the full run/style/
 a lower DrawingML fallback below the style chain, and the actual source of wedding/08's white `&` badge — is a
 distinct case left deferred, since a fontRef fallback must sit below an explicit run/style colour or it would
 flip the very menus/03-style boxes it was added to fix.
+
+### Closing the hold-outs (coverage 321 → 324)
+
+Three slices, one per remaining hold-out, all landed 2026-08-02. Each was gated the same way: run the suite
+*before* regenerating and require the failure set to be exactly the target document, so a change that quietly
+moved something else showed up as an extra failing scenario rather than as a laundered baseline.
+
+- **Positioned frames** (`agendas-minutes/14`). A `w:framePr` block is Word's legacy floating text box, lifted
+  out of the flow by `FrameGrouper`. The production render was already backend-independent
+  (`PageRendererBase.RenderPositionedFrame` needs only an `IParagraphMeasurer` and a bounded paragraph draw),
+  so the Fragmenter reproduces its arithmetic — auto-size from content unless `w:w`/`w:h` override, resolve
+  the anchors, emit as an absolutely-positioned float taking no flow space. Both empirical constants carried
+  over with their rationale intact: the 0.122 right-inset fraction and the 36pt threshold below which a
+  page-anchored frame is the "footer info block" that floats above the bottom margin. Neither is derivable
+  from the markup and no unit test isolates them, so losing them in translation would have been silent. The
+  frame lands at the production renderer's exact bounding box.
+- **Warped WordArt** (`wordart`, `wordart-envelope`). A warp is one opaque figure rather than text lines, so
+  it gets its own `PlacedWordArt` item, and each painter draws it by rasterizing through its own backend's
+  `IWordArtRasterizer` — the route `PdfPageRenderer.TryEmbedWordArt` already took. No warp geometry was
+  reimplemented. The worry that compositing a raster would blur against production's native canvas drawing
+  proved unfounded: rasterizing at the page's own DPI keeps the bitmap pixel-aligned, and `wordart`'s 15 pages
+  measure −0.0003. Each raster painter calls its *own* rasterizer, never the reflective factory, which prefers
+  Morph.Skia and would draw Skia glyphs onto an ImageSharp page.
+- **Float wrap** (`image_wrap_square`) — mechanism only. `RegisterFloatExclusion` / `ResolveFlowBand` were
+  ported faithfully, so text now flows beside a wrapping float. But the document stayed a hold-out: gating
+  exclusion registration behind a temporary switch separated the two effects and showed page 1 sits at −0.08
+  *either way*, so the wrap was never what held it back — see "Remaining work" item 2. The wrap is a real win
+  where it applies (+0.013 on that document), and three unit tests keep it honest rather than unreachable.
+
+The WordArt hold-out also flushed out a general pagination bug worth more than the hold-out itself:
+**space-before was being dropped on the document's first page.** The Fragmenter treated every region top as a
+place to swallow it, but Word treats the drop as a *break* rule — `ShouldSuppressPageTopSpacingBefore`'s
+`pagesStarted <= 1` guard says the same thing. Ten documents moved toward Word, several strongly
+(`business-plans/07` +0.090, `menus/04` +0.061, `menus/02` and `business-plans/06` +0.043). Chasing a hold-out
+was worth it partly for what it exposed on the way.
 
 ## Testing strategy (a large secondary win)
 
