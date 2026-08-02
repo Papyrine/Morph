@@ -41,6 +41,9 @@ static class EngineCoverage
                 // (arch/wave/envelope/…) are not emitted yet, so a warped WordArt still disqualifies.
                 case WordArtElement { Transform: WordArtTransform.None }:
                 case FloatingWordArtElement { Transform: WordArtTransform.None }:
+                // A positioned text frame (w:framePr, lifted out of the flow by FrameGrouper) auto-sizes to its
+                // paragraphs and paints at its resolved anchor position, taking no flow space.
+                case PositionedFrameElement:
                     break;
                 case TableElement table when IsSimpleTable(table):
                     break;
