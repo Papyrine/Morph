@@ -257,7 +257,10 @@ wrap-width work.
 **Word probe (2026-08-01) — the ppem@120 grain is an approximation, not Word's model.** A fixture
 rendering a fixed string at 10–14pt in 0.5pt steps through Word at 150 dpi, measured by both ink-edge
 extent and ink-profile autocorrelation over two renders, puts W(10.5)/W(11) at **0.983 — not 1.000**:
-Word does *not* lay 10.5 and 11pt out identically. Word sits *between* the integer-ppem@120 model
+Word does *not* lay 10.5 and 11pt out identically. *The rest of this paragraph's conclusion — that Word
+sits between the models and the grain is an unreachable ceiling — was WRONG, and the 0.983 was a
+measurement artefact. Superseded by the 2026-08-02 probe below; kept only because it is cited elsewhere.*
+Word sits *between* the integer-ppem@120 model
 (which buckets both to em 10.8pt → ratio 1.000) and the raw-fractional model (10.5/11 → 0.955), and
 wanders per size, matching no integer ppem at any single dpi — DirectWrite fractional-plus-hinting.
 At 10.5pt the ppem@120 bucket (1.000) is actually the *closer* of the two to Word (0.983); raw
@@ -265,9 +268,49 @@ fractional (0.955) is further, so going fractional over-corrects — too narrow,
 residual: ppem@120 over-widths 10 / 10.5pt text by ~2–3% versus Word, which is the visible early wrap
 on those documents (resumes/15's 10pt contact block, business/05's 10.5pt body). Because the error is
 *size-dependent*, no uniform knob corrects it — the per-font factor and FontWidthScale both washed for
-exactly this reason. The model stays the keeper (closest of the two available), but the "wrap
-identically" reading is a ppem-bucket artefact, not Word behaviour; closing the last 2–3% needs a real
-fractional-plus-hinted advance model, not a scale, and is a fidelity ceiling rather than a quick fix.
+exactly this reason.
+
+### Ppem grain root-caused (2026-08-02) — Word does not quantize the em at all
+
+The probe above measured a doubled *sentence* and recovered its period by autocorrelation, which is
+noisy enough at these magnitudes to invent a result. Redone with a **repeated single glyph** — 60 `n`
+on one line, so the gap between consecutive ink starts IS the advance, averaged over 59 samples with
+no autocorrelation and no wrap — the picture is unambiguous, across Calibri, Aptos and Arial at 8–16pt:
+
+- **Every advance is an integer number of device pixels**, and the *distribution* is mixed
+  (11pt Calibri: 20×11px, 22×12px, 17×13px). Word rounds the pen POSITION to a whole pixel; it does
+  not round the advance.
+- **The mean of those integers tracks the nominal fractional advance**, within ~1% at most sizes
+  (Calibri 8pt 8.746 measured vs 8.757 nominal; 11pt 11.949 vs 12.040; 16pt 17.492 vs 17.513). So the
+  em is **not** quantized — there is no bucket.
+- W(10.5)/W(11) measures **0.952**, against raw-fractional's 0.955 and ppem@120's 1.000. Word *is*
+  fractional. The earlier 0.983 "between the models" reading does not reproduce.
+- No `hdmx` and no `LTSH` table in Calibri, Aptos or Arial, so there are no cached device metrics to
+  explain a per-ppem advance; FreeType's hinted advances do not match Word's either.
+
+**So the grain is the engine's own error, not a property of Word.** `Ppem(size) = round(size × 120/72)`
+quantizes the em onto a fixed 120-dpi grid regardless of the output resolution. At 10.5pt that is
+17.5 → **18** (+2.9% wide); at 11pt 18.33 → **18** (−1.8% narrow) — two sizes 4.5% apart in nominal
+width collapse onto one em. Measured against Word for Aptos over 8–16pt:
+
+| model | RMS error | worst swing between adjacent sizes |
+|---|---|---|
+| engine, `ppem@120` | 1.61% | **3.97%** (10pt +3.00% → 11pt −0.97%) |
+| plain fractional | 1.07% | **0.90%** |
+
+The RMS barely moves, and that is the point: **what breaks wrapping is not the magnitude of the error
+but its discontinuity.** A smooth systematic bias shifts every size alike and largely cancels in
+relative layout; the engine's error jitters by up to 4% between neighbouring point sizes, so a document
+set in 10 or 10.5pt wraps early while the same document at 11pt does not. That is precisely the
+observed symptom — resumes/15's 10pt contact block, business/05's 10.5pt body, and image_wrap_square's
+11pt density.
+
+**The fix direction is therefore to stop quantizing the em** (keep the nominal fractional advance) and
+round only the pen position, at the *actual* output DPI rather than a fixed 120. That is a change to
+`CanonicalTextMeasurer.Ppem`/`LinearPixels`/`PixelsToPoints` and it moves every wrap in the corpus, so
+it needs its own slice and a full re-measurement — but it is a modelling bug with a known direction,
+**not** the fidelity ceiling the earlier probe concluded. A residual smooth trend (−1% at 8pt to +2% at
+16pt, consistent across Aptos and Arial) is still unexplained and is the honest remaining unknown.
 
 ## Root-cause lessons
 
