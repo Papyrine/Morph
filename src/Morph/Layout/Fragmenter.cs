@@ -362,6 +362,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
                         break;
 
+                    case PositionedFrameElement frame:
+                        PlaceFrame(frame);
+                        break;
+
                     // Float wrap is a later slice.
                 }
             }
@@ -546,6 +550,112 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             foreach (var item in LayoutCellContent(new() { Content = textBox.Content }, boxX, boxY, boxWidth, boxHeight, CellVerticalAlignment.Top))
             {
                 AddBodyFloat(item, textBox.BehindText, absoluteY);
+            }
+        }
+
+        // A positioned text frame (w:framePr) — Word's legacy floating text block, which FrameGrouper lifts to
+        // the top level. It auto-sizes to its content (an explicit w:w / w:h overrides), resolves an absolute
+        // position from its anchors and alignment, and paints there without taking flow space. The frame has no
+        // fill or border of its own, so this is content placement only. Mirrors
+        // PageRendererBase.RenderPositionedFrame, whose measurements and anchor rules it reproduces.
+        void PlaceFrame(PositionedFrameElement frame)
+        {
+            float measuredWidth = 0;
+            float measuredHeight = 0;
+            foreach (var element in frame.Content)
+            {
+                if (element is ParagraphElement paragraph)
+                {
+                    measuredWidth = Math.Max(measuredWidth, measurer.MeasureParagraphNaturalWidth(paragraph, columnWidth));
+                    measuredHeight += measurer.MeasureParagraphHeightWithWidth(paragraph, columnWidth);
+                }
+            }
+
+            // The measured natural width IS the exact line width and the wrap check is a strict ">", so laying
+            // out at exactly that width can spill the last word onto a second line. Two points is below the
+            // visual threshold and avoids the wrap.
+            const float autoWidthPaddingPoints = 2;
+            var frameWidth = Math.Min(
+                frame.WidthPoints is { } explicitWidth ? (float) explicitWidth : measuredWidth + autoWidthPaddingPoints,
+                columnWidth);
+            var frameHeight = frame.HeightPoints is { } explicitHeight ? (float) explicitHeight : measuredHeight;
+
+            // Lifted frames paint over the flow (FrameGrouper appends them after the in-flow content), and
+            // their anchors are page/margin (the ShouldLift gate), so they defer like the other absolute floats.
+            foreach (var item in LayoutCellContent(new() { Content = frame.Content }, FrameX(frame, frameWidth), FrameY(frame, frameHeight), frameWidth, frameHeight, CellVerticalAlignment.Top))
+            {
+                AddBodyFloat(item, behind: false, absoluteY: true);
+            }
+        }
+
+        float FrameX(PositionedFrameElement frame, float width)
+        {
+            var anchorLeft = frame.HorizontalAnchor switch
+            {
+                HorizontalAnchor.Page => 0f,
+                HorizontalAnchor.Margin => (float) current.MarginLeft,
+                _ => ColumnLeft
+            };
+            var anchorWidth = frame.HorizontalAnchor switch
+            {
+                HorizontalAnchor.Page => (float) current.WidthPoints,
+                HorizontalAnchor.Margin => (float) (current.WidthPoints - current.MarginLeft - current.MarginRight),
+                _ => columnWidth
+            };
+
+            // Word's legacy text-frame layout does not right-align these footer blocks flush to the text
+            // margin — it leaves a wide band of empty space on the right. Measured from Word's
+            // agendas-minutes/14 render (the block's right edge lands ~0.9" / ~12.2% of the content width
+            // inside the right margin); the inset is not expressed anywhere in the frame markup, so it can
+            // only be reproduced empirically. Same constant as PageRendererBase.
+            const float frameRightInsetFraction = 0.122f;
+            var rightInset = anchorWidth * frameRightInsetFraction;
+
+            return frame.HorizontalAlignment switch
+            {
+                FrameHorizontalAlignment.Right => anchorLeft + Math.Max(0, anchorWidth - width - rightInset),
+                FrameHorizontalAlignment.Center => anchorLeft + Math.Max(0, (anchorWidth - width) / 2),
+                FrameHorizontalAlignment.Left => anchorLeft,
+                _ => anchorLeft + (float) frame.XPoints
+            };
+        }
+
+        // A page/margin-anchored frame with a small explicit y (under half an inch) sitting out of flow is
+        // Word's "footer info block" pattern (a right-aligned Location/Date/Time stack): Word floats it just
+        // above the bottom margin rather than at the literal y from the top. A larger y is an intentional
+        // upper-page placement and is honoured from the top. Threshold shared with PageRendererBase.
+        float FrameY(PositionedFrameElement frame, float height)
+        {
+            const float bottomAnchorYThresholdPoints = 36;
+            var anchorTop = frame.VerticalAnchor switch
+            {
+                VerticalAnchor.Page => 0f,
+                VerticalAnchor.Margin => contentTop,
+                _ => y
+            };
+            var anchorBottom = frame.VerticalAnchor switch
+            {
+                VerticalAnchor.Page => (float) (current.HeightPoints - current.MarginBottom),
+                _ => contentBottom
+            };
+
+            switch (frame.VerticalAlignment)
+            {
+                case FrameVerticalAlignment.Top:
+                    return anchorTop + (float) frame.YPoints;
+                case FrameVerticalAlignment.Center:
+                    return anchorTop + Math.Max(0, (anchorBottom - anchorTop - height) / 2);
+                case FrameVerticalAlignment.Bottom:
+                    return anchorBottom - height;
+                default:
+                    if (frame.VerticalAnchor is VerticalAnchor.Page or VerticalAnchor.Margin)
+                    {
+                        return frame.YPoints >= bottomAnchorYThresholdPoints
+                            ? anchorTop + (float) frame.YPoints
+                            : anchorBottom - height;
+                    }
+
+                    return y + (float) frame.YPoints;
             }
         }
 

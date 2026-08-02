@@ -30,6 +30,8 @@ public class EngineCoverageTests
     // Unwarped WordArt is admitted — a block one (business/06's LOGO box) and one in a cell (menus/03's labels).
     [Arguments("business/06", true)]
     [Arguments("menus/03", true)]
+    // A positioned text frame (w:framePr) is admitted — it auto-sizes and paints at its anchored position.
+    [Arguments("agendas-minutes/14", true)]
     // A WARPED WordArt (arch/wave/envelope) is still excluded — the warp geometry is not emitted yet.
     [Arguments("wordart", false)]
     // A floating image that wraps text (WrapType.Square) still needs flow exclusions the engine lacks.
