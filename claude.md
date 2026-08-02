@@ -107,7 +107,9 @@ Brackets (`[...]`) in treenode filters are for property-bag filters (e.g. `[Cate
 
 ## Architecture
 
-The conversion pipeline is **Parse → Render**, split across multiple assemblies:
+The conversion pipeline is **Parse → Layout → Paint**, split across multiple assemblies. For DOCX→PNG the
+layout half is the shared engine described below; everything else still runs the older Parse → Render path,
+so both exist side by side:
 
 **Core** (`src/Morph/`): the model (`ParsedDocument` and the `DocumentElement` hierarchy, one type per file under `src/Morph/Parsing/`), shared rendering base (`RenderContextBase`, `FontCacheLoader`, `FontHelpers`, `TableLayout`), the `ExportOptions` records, `ConversionResult`, the text exporters (HTML/Markdown), **and both parsers**:
 - **DOCX** (`src/Morph/OpenXml/`): `DocumentParser` reads OOXML via DocumentFormat.OpenXml and builds a `ParsedDocument`. Sub-parsers handle shapes, ink, themes, and HTML (AltChunk).
@@ -115,13 +117,30 @@ The conversion pipeline is **Parse → Render**, split across multiple assemblie
 
 Because both parsers live in core, `Morph` depends on both `DocumentFormat.OpenXml` and `AngleSharp`, and every downstream assembly transitively drags both.
 
-**Rendering backends** — each has its own `PageRenderer`, `TextRenderer`, `RenderContext`, **and the public entry-point converters** (DOCX→PNG and HTML→PNG live together in the same engine assembly):
+**The layout engine** (`src/Morph/Layout/`): one backend-independent pagination —
+`CanonicalParagraphMeasurer` measures from the font's own OpenType metrics, `Fragmenter` paginates into a
+retained `LaidOutDocument` of absolutely-positioned `PlacedItem`s, and each backend's thin `<Backend>Painter`
+draws that tree without measuring or breaking anything. `EngineCoverage.Covers` decides per document whether
+the engine handles it. **This is the default DOCX→PNG path** (324 of the 325 corpus documents);
+`MORPH_SKIA_ENGINE=off` / `MORPH_IMAGESHARP_ENGINE=off` are kill switches back to the old path. It is
+**opt-in for PDF** (`MORPH_PDF_ENGINE`) — it already reproduces `PdfTextEngine`'s page count everywhere, but
+rasterization fidelity holds the flip. See `docs/layout-engine-proposal.md`, which is the design plus the
+running log of how it landed.
+
+**Rendering backends** — each has its own `<Backend>Painter` (the engine path) *and* the older
+`PageRenderer` / `TextRenderer` / `RenderContext` trio, which still serves uncovered documents, HTML→PNG,
+and WordArt rasterization. Both share the same `RenderContext` drawing primitives, so an engine-drawn page
+and a production-drawn one differ only where pagination differs. The public entry-point converters live here
+too (DOCX→PNG and HTML→PNG in the same assembly):
 - **SkiaSharp** (`src/Morph.Skia/`): SkiaSharp + Svg.Skia. Entry points `SkiaDocumentConverter` (DOCX→PNG) and `SkiaHtmlConverter` (HTML→PNG).
 - **ImageSharp** (`src/Morph.ImageSharp/`): SixLabors.ImageSharp / ImageSharp.Drawing / Fonts. Entry points `ImageSharpDocumentConverter` and `ImageSharpHtmlConverter`.
 
-**PDF** (`src/Morph.Pdf/`): `PdfRenderer` plus the DOCX→PDF and HTML→PDF converters, via PdfSharp.
+**PDF** (`src/Morph.Pdf/`): `PdfRenderer` plus the DOCX→PDF and HTML→PDF converters, via PdfSharp. Still
+paginates through `PdfTextEngine` by default; `PdfPainter` is the engine-path painter beside it.
 
-For a complete feature-by-feature mapping to code locations, see `docs/word-features.md`.
+For a complete feature-by-feature mapping to code locations, see `docs/word-features.md` — its render
+locations name the production `TextRenderer`/`PdfTextEngine` code, which for DOCX→PNG is now the fallback
+rather than the primary path.
 
 ## Code Style
 
