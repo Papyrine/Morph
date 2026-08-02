@@ -1252,6 +1252,17 @@ place to swallow it, but Word treats the drop as a *break* rule — `ShouldSuppr
 (`business-plans/07` +0.090, `menus/04` +0.061, `menus/02` and `business-plans/06` +0.043). Chasing a hold-out
 was worth it partly for what it exposed on the way.
 
+One document went the other way, `agendas-minutes/15` at −0.023, and it was accepted at the time on the
+argument that the old engine had only scored better by accident. That argument was a hypothesis then; it has
+since been **measured, and it holds**. Both renderers lay this document's body lines out about 0.6pt too tall
+— production +0.640pt per line, the engine +0.587pt, so the engine is marginally the *better* of the two —
+which accumulates to roughly +15px down the page. The old engine also began the page ~20pt high, because it
+was dropping exactly the space-before this fix restores, and those two errors ran in opposite directions and
+partly cancelled. Correcting the top removed the cancellation and left the pre-existing pitch drift on its
+own. Word, production and the engine now all start band 0 within 1px of each other; what remains is that
+shared line-pitch tail plus a single ~3px gap the engine loses higher up. Nothing here is a regression the
+space-before fix introduced.
+
 ## Testing strategy (a large secondary win)
 
 The current suite infers layout from rasterized PNGs (the entire struggle behind `src/page_counts.md`).

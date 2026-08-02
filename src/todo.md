@@ -125,7 +125,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### agendas-minutes/15
 
 - MEDIUM | skia,imagesharp | p1 | Numbered-list continuation lines indented deeper than Word (wrap lines don't return to the hanging-indent column), changing item 4's wrap ("...ribbon, click / an Insert option." vs Word's "...click an / Insert option.")
-- MINOR | all | p1 | Body text drifts a few px lower down the page and the action-items table (dark green header bar) sits ~10px lower than Word
+- MINOR | all | p1 | Body text drifts a few px lower down the page and the action-items table (dark green header bar) sits ~10px lower than Word. Measured 2026-08-02: the body line pitch is ~0.6pt too tall in BOTH renderers (production +0.640pt/line, engine +0.587pt — the engine is marginally the better of the two), accumulating to ~15px by the foot of the page. It is the shared height-model tail, not a placement bug: band 0 starts within 1px of Word in both. This is what the engine's −0.023 on the first-page space-before fix exposed — the old engine began the page ~20pt high and the two errors partly cancelled.
 - CLEAN: html
 
 ### agendas-minutes/16
