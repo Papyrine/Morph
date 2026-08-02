@@ -1,8 +1,9 @@
 # Layout engine proposal — separate layout from painting
 
-**Status: landed for raster — the Skia and ImageSharp backends paginate covered documents (98.8% of the
-corpus) through this one engine by default (step 6); the PDF painter is built and capability-gated but held
-on `PdfTextEngine` (step 5); the old per-backend pagination is not yet deleted (step 7).** Steps 1–3 — the
+**Status: landed for raster — the Skia and ImageSharp backends paginate covered documents (324 of the 325
+corpus documents, 99.7%) through this one engine by default (step 6); the PDF painter is built and
+capability-gated but held on `PdfTextEngine` (step 5); the old per-backend pagination is not yet deleted
+(step 7).** Steps 1–3 — the
 canonical measurer, the layout tree, and the Fragmenter — are done, and step 4's section walk folded into
 the Fragmenter. This was the "if time and effort are no object" answer to the columns/height-model work
 tracked in `src/page_counts.md` and `src/todo.md` (#2, #5, the columns item under image_wrap_square); the
@@ -48,9 +49,11 @@ but they must be kept agreeing forever, and the knife-edges remain the tax of th
 
 *This section is the original motivation, stated as it stood before any of the work below landed. The raster
 half is now solved: as of step 6, Skia and ImageSharp no longer paginate independently — both run the single
-engine below for covered documents (98.8% of the corpus), so their counts agree by construction rather than by
-maintenance. PDF (`PdfTextEngine`) is the last independent pagination. What follows is the design that got
-there and the running log of how.*
+engine below for covered documents (324 of 325), so their counts agree by construction rather than by
+maintenance. PDF (`PdfTextEngine`) is the last independent pagination — though a 2026-08-02 measurement found
+the engine already reproduces its page count on every covered document (286 of 286), so what holds the PDF
+flip is rasterization fidelity, not pagination. What follows is the design that got there and the running log
+of how.*
 
 ## The proposal: one layout pass, three painters
 
@@ -339,10 +342,28 @@ The checklist is landed through step 6; what is left, most-blocking first:
    this is a size-dependent modelling ceiling, not a scale knob — which is why the per-font factor and
    FontWidthScale both washed. Plus the compound-image and full-page-gradient rasterization tail. See "The PDF
    cutover (step 5)".
-2. **The four coverage hold-outs** of 325 — warp WordArt (`wordart`, `wordart-envelope`; the 16 presets), float
-   wrap (`image_wrap_square`; text flowing around a square/tight float, an exclusion the Fragmenter does not
-   emit), and `agendas-minutes/14` (a positioned frame). These plus the flip take the `PdfTextEngine` fallback
-   cold.
+
+   **Re-measured 2026-08-02, after the coverage and wiring work, and the flip is still held.** The gate was
+   run properly this time: the engine gate was toggled *in source* (the container wrapper does not forward
+   env vars, so an env-var toggle silently measures production against itself and reads as perfect parity),
+   the suite re-rendered every covered document, and each scenario's `pdf_result.received.json` was diffed
+   against its committed `.verified.json` — both carry per-page SSIM against Word from the same in-container
+   plumbing. Over **286 documents: 46 improved, 207 flat, 33 regressed, aggregate −0.0050** against a −0.002
+   bar, worst `cards/05` −0.107, `brochures/04` −0.087, `cover-letters/12` −0.074. That is the 2026-07
+   figure (−0.0054) essentially unmoved, which is the useful part: closing three coverage hold-outs and the
+   painter's font wiring did **not** shift the PDF gap, so the gap is neither coverage nor wiring. It is the
+   font/image rasterization tail plus the `Ppem` grain above — the losers are art- and font-heavy templates,
+   while the engine *wins* on tables (`header_row_repeat/01` +0.076, `business-plans/12` +0.051, `menus/08`
+   +0.045, `table_multipage` +0.031).
+
+   One result worth keeping separate from the verdict: **zero of the 286 changed page count.** The engine
+   paginates PDF exactly as `PdfTextEngine` does, everywhere. The pagination half of the cutover is done and
+   measured; only rasterization fidelity holds the flip.
+2. **The one coverage hold-out** of 325 — `image_wrap_square`. Positioned frames, warped WordArt and float
+   wrap all emit now (324/325, asserted by `EngineCoverageTests`). This document is held for a different
+   reason than the others were: its wrap *is* emitted, and honouring it helps (+0.013), but it is 11pt-dense
+   where the `Ppem` grain bites, so the engine lands 0.037 under the production fallback either way.
+   Admitting it would buy a coverage count by giving up fidelity. It clears when the grain does.
 3. **Step 7 — delete** the old pagination (`PageRendererBase`, `PdfTextEngine`, `SectionBreakHandler`,
    `TableHeightCalculator`), once PDF flips and coverage is total — the fallback still serves uncovered
    documents and the kill switch until then.
@@ -1053,6 +1074,14 @@ warp test documents (`wordart`, `wordart-envelope`), `image_wrap_square` (float 
 drift by a document or two between slices as the shared predicate shifted (the +2 between the floating-tables
 and unwarped-WordArt slices is one such step) and do not chain exactly to this total — 321 / 325 is the
 authoritative figure.
+
+*Since raised to **324 / 325**, and the count is now a test rather than a hand tally
+(`EngineCoverageTests.The_corpus_coverage_count_holds`, which also names the hold-out, so a predicate change
+that narrows coverage fails instead of drifting). Three of the four hold-outs closed in their own slices —
+positioned frames, warped WordArt, and float-wrap exclusions, each logged below. `image_wrap_square` is the
+one left, and for a different reason than it was listed here: its wrap is emitted and honouring it helps,
+but the `Ppem` grain costs more on that 11pt-dense document than the wrap gains, so the production fallback
+is still the better renderer for it. See "Remaining work" item 2.*
 
 ### Fidelity slice: multi-page float anchoring and inline floating tables
 
