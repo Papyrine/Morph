@@ -379,14 +379,32 @@ The checklist is landed through step 6; what is left, most-blocking first:
    paginates PDF exactly as `PdfTextEngine` does, everywhere. The pagination half of the cutover is done and
    measured; only rasterization fidelity holds the flip.
 2. **The one coverage hold-out** of 325 — `image_wrap_square`. Positioned frames, warped WordArt and float
-   wrap all emit now (324/325, asserted by `EngineCoverageTests`). This document is held for a different
-   reason than the others were: its wrap *is* emitted and honouring it helps (+0.013), but the engine still
-   renders it worse than the production fallback. **The `Ppem` grain was blamed for that and has since been
-   fixed (item 1), which moved it −0.0365 → −0.0242 — real, and not enough.** So the grain was one cause of
-   about half the gap and the remaining 0.024 is now genuinely **uncharacterised**: measure it rather than
-   assuming the rasterization tail. Admitting the document today would buy a coverage count by giving up
-   fidelity, and that single uncovered document is what keeps the raster fallback alive and step 7 blocked
-   (item 3) — so characterising it is the highest-leverage unknown left in this whole migration.
+   wrap all emit now (324/325, asserted by `EngineCoverageTests`). Its wrap *is* emitted and honouring it
+   helps (+0.013); the `Ppem` grain took it from −0.0365 to −0.0242 (item 1). **The rest is now characterised,
+   and it is a baseline bug, not a tail: the engine reads the wrong ascent.**
+
+   `CanonicalParagraphMeasurer.AscentPoints` puts the baseline at hhea `Ascender`; the production backends
+   take theirs from the backend font object, which is `usWinAscent`. The gap between those two metrics is
+   **font-specific**, and that is why it hid for so long:
+
+   | font | hhea `Ascender` | `usWinAscent` | delta |
+   |---|---|---|---|
+   | Aptos | 0.9390 em | 1.0098 em | 0.071 em |
+   | Calibri | 0.7500 em | 0.9521 em | **0.202 em** |
+
+   Aptos is Word's default and dominates the corpus, where 0.071 em is ~1.6px at 11pt — invisible. Calibri
+   costs 0.202 em, and `image_wrap_square` is a Calibri document opening with a 24pt Heading1: 0.202 × 24 =
+   4.85pt = **10.1px**, exactly the offset measured. Its whole page-1 body then sits ~10px high, for −0.056
+   on that page. Measuring the first ink row across documents confirms the shape — Aptos-set
+   `long_paragraph` and `multiple_pages` match production to 1px, Calibri-set `dot_points` is 5px high, and
+   `image_wrap_square` 10px. The line *pitch* is not implicated and stays XPS-validated; only the baseline
+   inside the box moves.
+
+   Fixing it means surfacing `usWinAscent` through `FontMetricsReader`/`FontMetrics` (which carry only
+   `Ascender`/`Descender`/`LineGap` today) and using it for the baseline. That shifts the ink of every line
+   in the corpus, so it wants its own slice and a full re-measurement — but unlike the tail it is a defect
+   with a known cause and a known direction. It is also the highest-leverage item here: this single uncovered
+   document is what keeps the raster fallback alive and step 7 blocked (item 3).
 3. **Step 7 — delete** the old pagination (`PageRendererBase`, `PdfTextEngine`, `SectionBreakHandler`,
    `TableHeightCalculator`), once PDF flips and coverage is total — the fallback still serves uncovered
    documents and the kill switch until then.
