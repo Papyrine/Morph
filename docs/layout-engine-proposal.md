@@ -9,10 +9,11 @@ the Fragmenter. This was the "if time and effort are no object" answer to the co
 tracked in `src/page_counts.md` and `src/todo.md` (#2, #5, the columns item under image_wrap_square); the
 running log of landed slices is below, and `docs/word-features.md` describes the per-backend draw code the
 thin painters now front. `MORPH_SKIA_ENGINE=off` / `MORPH_IMAGESHARP_ENGINE=off` are the kill switches. The sharpest known modelling
-limit in what has shipped is the `Ppem` grain — a known **bug**, now root-caused, not an inherent ceiling:
-the measurer rounds the em onto a fixed 120-dpi grid where Word never quantizes the em at all, which makes
-its width error jump ~4% between adjacent point sizes and wraps 10 / 10.5pt documents early
-("Remaining work" item 1). Approximate column balancing is the other (see the balancing slice).
+limit in what has shipped was the `Ppem` grain — the measurer rounding the em onto a fixed 120-dpi grid
+where Word never quantizes the em at all. That was root-caused and **fixed**, for a modest +0.0006 against
+Word and no change in page-count agreement ("Remaining work" item 1). Approximate column balancing remains
+(see the balancing slice), as does whatever still holds `image_wrap_square` back — the grain accounted for
+only about half of it.
 
 **How to read this document.** It began as a proposal and became the implementation log, so it mixes three
 kinds of material. The design sections — "The problem this solves" through "The crux" — are as first drafted;
@@ -223,8 +224,8 @@ factor, and the per-font factor itself was later ruled out empirically (the Phas
 cutover). The integer-ppem half of this section is **wrong**, and knowing why matters more than the sentence
 it replaces: a repeated-glyph probe shows Word rounds the pen POSITION to a whole device pixel but never
 quantizes the em, so the advance model above is right about the rounding and wrong about where it applies.
-Rounding the em too — onto a fixed 120-dpi grid at that — is what produces the `Ppem` grain. See "Remaining
-work" item 1 and `src/page_counts.md`.*
+Rounding the em too — onto a fixed 120-dpi grid at that — was what produced the `Ppem` grain, since fixed.
+See "Remaining work" item 1 and `src/page_counts.md`.*
 
 ## Migration checklist (sequence matters even unbounded)
 
@@ -351,10 +352,14 @@ The checklist is landed through step 6; what is left, most-blocking first:
    versus 0.90%. A smooth bias shifts every size alike and cancels in relative layout; a 4% jitter between
    neighbouring sizes wraps a 10pt document early and an 11pt one correctly, which is exactly the observed
    symptom. The earlier reading — that Word sits between the two models, so no model reaches it — came from a
-   noisier probe and does not reproduce. Fix direction: stop quantizing the em, round only the pen position,
-   at the real output DPI. It moves every wrap in the corpus, so it wants its own slice and a full
-   re-measurement; `src/page_counts.md` has the numbers. Plus the compound-image and full-page-gradient
-   rasterization tail. See "The PDF cutover (step 5)".
+   noisier probe and does not reproduce.
+
+   **The fix landed** (`Ppem` → `EmPixels`, the em unrounded, the pen position still quantized once per line
+   as Word does), and it bought less than the diagnosis implied: aggregate **+0.0006** against Word over the
+   corpus, 36 snapshots improved / 218 flat / 18 regressed, and **page-count agreement unchanged** at 321/324
+   — removing the grain moved no page break at all. It did **not** bring the PDF flip into range: +0.0006 does
+   not close −0.0050, so the font/image rasterization tail is now the whole of that gap rather than half of
+   it. See "The PDF cutover (step 5)" and `src/page_counts.md` for the numbers.
 
    **Re-measured 2026-08-02, after the coverage and wiring work, and the flip is still held.** The gate was
    run properly this time: the engine gate was toggled *in source* (the container wrapper does not forward
@@ -365,7 +370,8 @@ The checklist is landed through step 6; what is left, most-blocking first:
    bar, worst `cards/05` −0.107, `brochures/04` −0.087, `cover-letters/12` −0.074. That is the 2026-07
    figure (−0.0054) essentially unmoved, which is the useful part: closing three coverage hold-outs and the
    painter's font wiring did **not** shift the PDF gap, so the gap is neither coverage nor wiring. It is the
-   font/image rasterization tail plus the `Ppem` grain above — the losers are art- and font-heavy templates,
+   font/image rasterization tail plus the `Ppem` grain above (since fixed, for +0.0006 — so the tail is now
+   the whole of this gap) — the losers are art- and font-heavy templates,
    while the engine *wins* on tables (`header_row_repeat/01` +0.076, `business-plans/12` +0.051, `menus/08`
    +0.045, `table_multipage` +0.031).
 
@@ -374,9 +380,13 @@ The checklist is landed through step 6; what is left, most-blocking first:
    measured; only rasterization fidelity holds the flip.
 2. **The one coverage hold-out** of 325 — `image_wrap_square`. Positioned frames, warped WordArt and float
    wrap all emit now (324/325, asserted by `EngineCoverageTests`). This document is held for a different
-   reason than the others were: its wrap *is* emitted, and honouring it helps (+0.013), but it is 11pt-dense
-   where the `Ppem` grain bites, so the engine lands 0.037 under the production fallback either way.
-   Admitting it would buy a coverage count by giving up fidelity. It clears when the grain does.
+   reason than the others were: its wrap *is* emitted and honouring it helps (+0.013), but the engine still
+   renders it worse than the production fallback. **The `Ppem` grain was blamed for that and has since been
+   fixed (item 1), which moved it −0.0365 → −0.0242 — real, and not enough.** So the grain was one cause of
+   about half the gap and the remaining 0.024 is now genuinely **uncharacterised**: measure it rather than
+   assuming the rasterization tail. Admitting the document today would buy a coverage count by giving up
+   fidelity, and that single uncovered document is what keeps the raster fallback alive and step 7 blocked
+   (item 3) — so characterising it is the highest-leverage unknown left in this whole migration.
 3. **Step 7 — delete** the old pagination (`PageRendererBase`, `PdfTextEngine`, `SectionBreakHandler`,
    `TableHeightCalculator`), once PDF flips and coverage is total — the fallback still serves uncovered
    documents and the kill switch until then.
