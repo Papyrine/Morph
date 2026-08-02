@@ -114,18 +114,14 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         return widest;
     }
 
-    // KNOWN DEFECT — the baseline sits too high, by a font-specific amount. This uses hhea Ascender where
-    // the production backends take the ascent from the backend font object, which is usWinAscent. For Aptos
-    // the two differ by 0.071 em (~1.6px at 11pt, invisible, which is why the corpus looks fine); for
-    // Calibri they differ by 0.202 em, so a Calibri document's text rides up to a fifth of an em high inside
-    // every line box — 10px on image_wrap_square's 24pt heading, and that page's whole body with it. The
-    // line PITCH is unaffected and stays XPS-validated; only the baseline within the box is wrong. Fixing it
-    // needs usWinAscent surfaced through FontMetricsReader/FontMetrics and moves every line's ink in the
-    // corpus, so it wants its own slice. See "Remaining work" item 2 in docs/layout-engine-proposal.md.
+    // The baseline sits usWinAscent below the line-box top, not hhea ascender — the two are different
+    // metrics whose gap is font-specific (0.071 em for Aptos, 0.202 em for Calibri), and using the hhea one
+    // put a Calibri document's text up to a fifth of an em high inside every line. The line PITCH stays on
+    // the hhea box, which is what Word's XPS-measured pitch matches; only the baseline within it moves.
     float AscentPoints(RunProperties fontProperties)
     {
         var metrics = resolveFont(fontProperties.FontFamily, fontProperties.Bold, fontProperties.Italic);
-        return metrics == null ? 0 : (float) ((double) metrics.Ascender / metrics.UnitsPerEm * fontProperties.FontSizePoints);
+        return metrics == null ? 0 : (float) metrics.BaselineAscentPoints(fontProperties.FontSizePoints);
     }
 
     /// <summary>
