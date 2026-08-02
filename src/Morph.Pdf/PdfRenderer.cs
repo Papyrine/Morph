@@ -72,7 +72,12 @@ static class PdfRenderer
             document.EvenPageHeader,
             document.EvenPageFooter);
 
-        var pdf = PdfPainter.Paint(laidOut, options.FontDirectory);
+        // The painter's context resolves fonts with the conversion's own width scale, fallback and
+        // compatibility settings — the same values LayoutFonts gave the measurer above. They have to agree:
+        // the measurer decides where a line breaks, the painter draws it, and a painter resolving a different
+        // face would put text off its measured line.
+        var context = PdfPainter.NewContext(laidOut, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory);
+        var pdf = PdfPainter.Paint(laidOut, context, options.RasterizeWordArt, options.OnWarning);
 
         MakeDeterministic(pdf);
         if (options.Pages is { } range)
@@ -82,6 +87,7 @@ static class PdfRenderer
 
         using var stream = new MemoryStream();
         pdf.Save(stream, closeStream: false);
+        context.DisposeImages();
         return Normalize(stream.ToArray());
     }
 

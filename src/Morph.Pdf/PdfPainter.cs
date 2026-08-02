@@ -18,14 +18,39 @@ static class PdfPainter
     // Positions text by its baseline at the drawn point, matching how the tree records PlacedLine.Baseline.
     static readonly XStringFormat baselineFormat = new() { LineAlignment = XLineAlignment.BaseLine };
 
-    public static PdfDocument Paint(LaidOutDocument document, string? fontDirectory)
-    {
-        // The context is created once for the font resolver, cache and PdfDocument; its PageSettings is
-        // only a constructor formality here (each page's size comes from the tree, positions are absolute,
-        // and the painter never measures), so the first page's settings serve.
-        var settings = document.Pages.Count > 0 ? document.Pages[0].Settings : new PageSettings();
-        var context = new PdfRenderContext(settings, compatibility: null, fontWidthScale: 1, fontFallback: null, fontDirectory);
+    /// <summary>
+    /// The context is created once for the font resolver, cache and PdfDocument; its PageSettings is only a
+    /// constructor formality here (each page's size comes from the tree, positions are absolute, and the
+    /// painter never measures), so the first page's settings serve. Prefer the overload taking a context when
+    /// the conversion's font settings matter — this one resolves at the defaults.
+    /// </summary>
+    public static PdfDocument Paint(LaidOutDocument document, string? fontDirectory) =>
+        Paint(document, NewContext(document, compatibility: null, fontWidthScale: 1, fontFallback: null, fontDirectory));
 
+    public static PdfRenderContext NewContext(
+        LaidOutDocument document,
+        CompatibilitySettings? compatibility,
+        double fontWidthScale,
+        Func<string, string?>? fontFallback,
+        string? fontDirectory) =>
+        new(document.Pages.Count > 0 ? document.Pages[0].Settings : new PageSettings(),
+            compatibility,
+            fontWidthScale,
+            fontFallback,
+            fontDirectory);
+
+    /// <summary>
+    /// Draws the tree onto <paramref name="context"/>'s document. The caller owns the context so it can
+    /// resolve fonts with the conversion's own width scale, fallback and compatibility settings — the
+    /// measurer already does, and a painter resolving a different face would draw text off its measured
+    /// line — and so it can dispose the image cache after saving.
+    /// </summary>
+    public static PdfDocument Paint(
+        LaidOutDocument document,
+        PdfRenderContext context,
+        bool rasterizeWordArt = true,
+        Action<ExportWarning>? onWarning = null)
+    {
         foreach (var laidOutPage in document.Pages)
         {
             var page = context.Document.AddPage();
@@ -44,14 +69,14 @@ static class PdfPainter
 
             foreach (var item in laidOutPage.Items)
             {
-                PaintItem(context, graphics, item);
+                PaintItem(context, graphics, item, rasterizeWordArt, onWarning);
             }
         }
 
         return context.Document;
     }
 
-    static void PaintItem(PdfRenderContext context, XGraphics graphics, PlacedItem item)
+    static void PaintItem(PdfRenderContext context, XGraphics graphics, PlacedItem item, bool rasterizeWordArt = true, Action<ExportWarning>? onWarning = null)
     {
         switch (item)
         {
@@ -68,7 +93,7 @@ static class PdfPainter
                 PaintShape(context, graphics, shape);
                 break;
             case PlacedWordArt wordArt:
-                PaintWordArt(context, graphics, wordArt);
+                PaintWordArt(context, graphics, wordArt, rasterizeWordArt, onWarning);
                 break;
             case PlacedShading shading:
                 graphics.DrawRectangle(context.GetBrush(PdfRenderContext.ParseColor(shading.ColorHex)), shading.X, shading.Y, shading.Width, shading.Height);
@@ -92,10 +117,20 @@ static class PdfPainter
     // to match — leaving the box region at (X, Y) with the overflow spilling onto the page. When no raster
     // backend is present the shape is dropped rather than drawn wrong; the caller reserved its height either
     // way, so pagination is unaffected.
-    static void PaintWordArt(PdfRenderContext context, XGraphics graphics, PlacedWordArt wordArt)
+    static void PaintWordArt(PdfRenderContext context, XGraphics graphics, PlacedWordArt wordArt, bool rasterizeWordArt, Action<ExportWarning>? onWarning)
     {
+        if (!rasterizeWordArt)
+        {
+            // The conversion asked for no rasterized WordArt (a text-only or size-sensitive PDF), so the
+            // warp is dropped rather than approximated. Its height was reserved either way, so the flow
+            // below it is unaffected.
+            return;
+        }
+
         if (WordArtRasterizerFactory.TryGet() is not { } rasterizer)
         {
+            onWarning?.Invoke(new(WarningKind.UnsupportedElement,
+                "WordArt could not be drawn in the PDF: no raster backend (Morph.Skia or Morph.ImageSharp) is loaded."));
             return;
         }
 
@@ -113,8 +148,10 @@ static class PdfPainter
         {
             png = rasterizer.Render(wordArt.Visual, options);
         }
-        catch
+        catch (Exception exception)
         {
+            onWarning?.Invoke(new(WarningKind.UnsupportedElement,
+                $"WordArt could not be rasterized for the PDF and was dropped: {exception.Message}"));
             return;
         }
 
