@@ -312,6 +312,27 @@ it needs its own slice and a full re-measurement — but it is a modelling bug w
 **not** the fidelity ceiling the earlier probe concluded. A residual smooth trend (−1% at 8pt to +2% at
 16pt, consistent across Aptos and Arial) is still unexplained and is the honest remaining unknown.
 
+**Landed, and it bought less than the diagnosis promised.** `Ppem` became `EmPixels` — the em is no
+longer rounded; only the accumulated pen position still quantizes, once per line, which is the part
+Word does share. Measured over the corpus: **aggregate +0.0006 against Word, 36 snapshots improved,
+218 flat, 18 regressed, and page-count agreement unchanged at 321/324** (the same three misses —
+business-plans/15, newsletters/06, resumes/13 — so removing the grain moved no page break at all). Best
+`agendas-minutes/09` +0.046; worst `business/06` −0.025 and `letters/10` −0.024, though the engine still
+beats the production fallback on letters/10 by +0.037 even after that.
+
+Two things it did **not** do, recorded so the next attempt does not assume otherwise:
+
+- **`image_wrap_square` is still a coverage hold-out.** The grain was worth about +0.012 there
+  (−0.0365 → −0.0242 against the production fallback), so it was a genuine cause but not the only one.
+  What accounts for the remaining 0.024 is now **uncharacterised** — do not re-attribute it to the
+  rasterization tail without measuring.
+- **It did not move the PDF flip** into range; a +0.0006-scale gain does not close −0.0050.
+
+The change shipped on correctness rather than on that payoff: the old model asserted 10.5pt and 11pt
+lay out identically, which the probe shows is false, and the assertion was pinned by two passing tests
+(`Ppem_quantizes_at_120_dpi` asserted the bucket; the pen-position test compared against the ideal at
+the *quantized* em, so it passed under either model). Both now assert the measured behaviour.
+
 ## Root-cause lessons
 
 **The text-metrics attribution is a measured dead end as a fix lever.** Raster once measured words

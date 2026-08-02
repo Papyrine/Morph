@@ -44,26 +44,24 @@ sealed class CanonicalTextMeasurer
         };
 
     // The reference rasterizer runs at 120 dpi — the 125%-scaled display the XPS baselines were
-    // measured on — so text lays out at an integer ppem of round(size * 120/72) device pixels.
+    // measured on. It is the grid the pen position rounds onto; the em itself is not rounded (EmPixels).
     const double referenceDpi = 120.0;
 
     /// <summary>
-    /// The device-pixel em size text lays out at: <c>round(sizePoints * 120/72)</c>. 11pt and 10.5pt
-    /// both round to 18px (em 10.8pt), so the measurer wraps them identically — the advance model in
-    /// <c>src/page_counts.md</c>.
+    /// The device-pixel em size text lays out at, <c>sizePoints * 120/72</c> — deliberately NOT rounded.
     ///
-    /// <para><b>This is known to be wrong, and root-caused</b> (probe recorded in
-    /// <c>src/page_counts.md</c>, "Ppem grain root-caused"). Measuring a repeated glyph through Word
-    /// shows it does not quantize the em at all: advances land on whole device pixels, but their mean
-    /// tracks the plain fractional advance, so 10.5pt is genuinely narrower than 11pt rather than
-    /// identical. Rounding the em onto a fixed 120-dpi grid — regardless of the real output DPI —
-    /// makes this measurer's width error jump by up to ~4% between adjacent point sizes (10pt +3.0%,
-    /// 11pt −1.0%), and it is that discontinuity, not the magnitude, that wraps 10 / 10.5pt documents
-    /// early. Dropping the em quantization and rounding only the pen position, at the actual output
-    /// DPI, is the fix; it moves every wrap in the corpus, so it wants its own slice.</para>
+    /// <para>This used to round to a whole pixel, which bucketed 10.5pt and 11pt onto the same 18px em
+    /// and wrapped them identically. Measuring Word directly settled it (the probe is recorded in
+    /// <c>src/page_counts.md</c>, "Ppem grain root-caused"): a run of one repeated glyph shows Word's
+    /// advances landing on whole device pixels while their *mean* tracks the plain fractional advance,
+    /// so Word rounds the pen position and never the em. Rounding the em — onto a fixed 120-dpi grid
+    /// unrelated to the output resolution, at that — made the width error jump ~4% between adjacent
+    /// point sizes, and that discontinuity, not its magnitude, is what wrapped 10 / 10.5pt documents
+    /// early while 11pt behaved. The quantization that remains, and that Word does share, is
+    /// <see cref="PixelsToPoints"/> rounding the accumulated pen position once per line.</para>
     /// </summary>
-    public static int Ppem(double sizePoints) =>
-        (int) Math.Round(sizePoints * referenceDpi / 72.0, MidpointRounding.AwayFromZero);
+    public static double EmPixels(double sizePoints) =>
+        sizePoints * referenceDpi / 72.0;
 
     static long AdvanceUnits(FontMetrics metrics, string text)
     {
@@ -85,7 +83,7 @@ sealed class CanonicalTextMeasurer
     /// linearly before quantization — the same knob production's <c>RenderContextBase</c> multiplies advances by.
     /// </summary>
     public static double LinearPixels(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0) =>
-        (double) AdvanceUnits(metrics, text) / metrics.UnitsPerEm * Ppem(sizePoints) * fontWidthScale;
+        (double) AdvanceUnits(metrics, text) / metrics.UnitsPerEm * EmPixels(sizePoints) * fontWidthScale;
 
     /// <summary>Quantizes an accumulated linear-pixel total to points — the pen position rounded once.</summary>
     public static double PixelsToPoints(double pixels) =>
@@ -97,8 +95,8 @@ sealed class CanonicalTextMeasurer
         points * referenceDpi / 72.0;
 
     // Converts a run of design units to points under pen-position rounding.
-    static double PointsFromUnits(FontMetrics metrics, long units, int ppem) =>
-        PixelsToPoints((double) units / metrics.UnitsPerEm * ppem);
+    static double PointsFromUnits(FontMetrics metrics, long units, double emPixels) =>
+        PixelsToPoints((double) units / metrics.UnitsPerEm * emPixels);
 
     /// <summary>
     /// The unrounded advance width of <paramref name="text"/> in points: <c>Σ advanceUnits * size /
@@ -133,7 +131,7 @@ sealed class CanonicalTextMeasurer
     public static List<string> WrapLines(FontMetrics metrics, string text, double sizePoints, double maxWidthPoints)
     {
         var lines = new List<string>();
-        var ppem = Ppem(sizePoints);
+        var emPixels = EmPixels(sizePoints);
         var spaceUnits = metrics.AdvanceUnits(' ');
         foreach (var segment in text.Split('\n'))
         {
@@ -149,7 +147,7 @@ sealed class CanonicalTextMeasurer
                 }
                 // Measure the whole candidate line (its cumulative units, rounded once) so the pen
                 // position tracks the linear ideal instead of accumulating a per-word rounding error.
-                else if (PointsFromUnits(metrics, lineUnits + spaceUnits + wordUnits, ppem) <= maxWidthPoints)
+                else if (PointsFromUnits(metrics, lineUnits + spaceUnits + wordUnits, emPixels) <= maxWidthPoints)
                 {
                     current.Append(' ').Append(word);
                     lineUnits += spaceUnits + wordUnits;

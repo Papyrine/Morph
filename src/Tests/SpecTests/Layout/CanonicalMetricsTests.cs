@@ -93,14 +93,26 @@ public class CanonicalMetricsTests
         await Assert.That(CanonicalTextMeasurer.MeasureWidthRawPoints(Read("Calibri_400.ttf"), "Hello", 11)).IsEqualTo(23.1763).Within(0.001);
     }
 
-    // src/page_counts.md advance model: ppem = round(size * 120/72), so 11pt and 10.5pt both lay out
-    // at 18px (em 10.8pt) — which is why they wrap identically.
+    // The em is NOT quantized: Word rounds the pen position to a device pixel but never the em, so two
+    // sizes 4.8% apart in nominal width must stay 4.8% apart rather than collapsing onto one em. Rounding
+    // it (the old round(size * 120/72)) put 10.5pt and 11pt both at 18px and wrapped them identically —
+    // the "Ppem grain" root-caused in src/page_counts.md.
     [Test]
-    public async Task Ppem_quantizes_at_120_dpi()
+    public async Task The_em_is_not_quantized()
     {
-        await Assert.That(CanonicalTextMeasurer.Ppem(11)).IsEqualTo(18);
-        await Assert.That(CanonicalTextMeasurer.Ppem(10.5)).IsEqualTo(18);
-        await Assert.That(CanonicalTextMeasurer.Ppem(12)).IsEqualTo(20);
+        await Assert.That(CanonicalTextMeasurer.EmPixels(11)).IsEqualTo(18.3333).Within(0.001);
+        await Assert.That(CanonicalTextMeasurer.EmPixels(10.5)).IsEqualTo(17.5).Within(0.001);
+        await Assert.That(CanonicalTextMeasurer.EmPixels(12)).IsEqualTo(20).Within(0.001);
+
+        // The distinction that matters: 10.5pt must measure narrower than 11pt, in the nominal ratio. A long
+        // line, so the one pen-position rounding (0.6pt at 120dpi) is a small fraction of the total — on a
+        // short string that single rounding is ~1% on its own and would swamp the ratio being asserted.
+        var aptos = Read("Aptos_400.ttf");
+        const string line = "The quick brown fox jumps over the lazy dog again and again and again";
+        var narrow = CanonicalTextMeasurer.MeasureWidthPoints(aptos, line, 10.5);
+        var wide = CanonicalTextMeasurer.MeasureWidthPoints(aptos, line, 11);
+        await Assert.That(narrow).IsLessThan(wide);
+        await Assert.That(narrow / wide).IsEqualTo(10.5 / 11.0).Within(0.005);
     }
 
     [Test]
@@ -109,14 +121,13 @@ public class CanonicalMetricsTests
         var aptos = Read("Aptos_400.ttf");
         const string text = "The quick brown fox jumps over the lazy dog again and again and again";
 
-        // 11pt lays out at ppem 18 = em 10.8pt (the quantized size). Compared at that same em, the
-        // pen-position measurement sits within half a device pixel (0.5px @120dpi = 0.3pt) of the
-        // unrounded ideal, no matter how long the line — because the whole-line total is rounded once.
-        // Per-glyph rounding over this many glyphs would drift several points and over-wrap.
-        var quantizedEmPoints = CanonicalTextMeasurer.Ppem(11) * 72.0 / 120.0;
-        var idealAtQuantizedEm = CanonicalTextMeasurer.MeasureWidthRawPoints(aptos, text, quantizedEmPoints);
+        // The pen-position measurement sits within half a device pixel (0.5px @120dpi = 0.3pt) of the
+        // unrounded ideal at the same size, no matter how long the line — because the whole-line total is
+        // rounded once. Per-glyph rounding over this many glyphs would drift several points and over-wrap.
+        // Now that the em is unquantized the ideal is simply the nominal width at 11pt.
+        var ideal = CanonicalTextMeasurer.MeasureWidthRawPoints(aptos, text, 11);
         var measured = CanonicalTextMeasurer.MeasureWidthPoints(aptos, text, 11);
-        await Assert.That(Math.Abs(measured - idealAtQuantizedEm) < 0.31).IsTrue();
+        await Assert.That(Math.Abs(measured - ideal) < 0.31).IsTrue();
     }
 
     [Test]
