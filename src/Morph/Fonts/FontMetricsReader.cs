@@ -16,6 +16,7 @@ static class FontMetricsReader
     const uint hheaTag = 0x68686561;    // 'hhea'
     const uint hmtxTag = 0x686D7478;    // 'hmtx'
     const uint cmapTag = 0x636D6170;    // 'cmap'
+    const uint os2Tag = 0x4F532F32;     // 'OS/2'
 
     // Safety bound on the eagerly-expanded codepoint→glyph map, so a malformed cmap claiming a
     // group spanning the whole Unicode range can't allocate unbounded memory. Far above any real
@@ -135,6 +136,7 @@ static class FontMetricsReader
             Ascender = BinaryPrimitives.ReadInt16BigEndian(hheaBytes.AsSpan(4, 2)),
             Descender = BinaryPrimitives.ReadInt16BigEndian(hheaBytes.AsSpan(6, 2)),
             LineGap = BinaryPrimitives.ReadInt16BigEndian(hheaBytes.AsSpan(8, 2)),
+            WinAscent = ReadWinAscent(stream, tables),
             AdvanceWidths = ReadAdvanceWidths(stream, tables, numberOfHMetrics),
             GlyphForCodepoint = ReadCmap(stream, tables)
         };
@@ -166,6 +168,26 @@ static class FontMetricsReader
         }
 
         return advances;
+    }
+
+    /// <summary>
+    /// Reads <c>OS/2.usWinAscent</c> — a uint16 at offset 74, present from table version 0 onwards. This is
+    /// the ascent Windows positions the baseline against, and what every backend font object reports; the
+    /// hhea ascender is a different metric that can sit a fifth of an em higher (see
+    /// <see cref="FontMetrics.BaselineAscentUnits"/>). Returns 0 when the font declares no <c>OS/2</c> table
+    /// or a truncated one, which the caller treats as "fall back to hhea".
+    /// </summary>
+    static int ReadWinAscent(Stream stream, Dictionary<uint, (long Offset, int Length)> tables)
+    {
+        if (!tables.TryGetValue(os2Tag, out var os2) || os2.Length < 76)
+        {
+            return 0;
+        }
+
+        var bytes = new byte[76];
+        return TryReadExactAt(stream, os2.Offset, bytes)
+            ? BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(74, 2))
+            : 0;
     }
 
     /// <summary>

@@ -35,6 +35,25 @@ sealed record FontMetrics
     public double LinePitchPoints(double sizePoints) => (double) LineBoxUnits / UnitsPerEm * sizePoints;
 
     /// <summary>
+    /// <c>OS/2.usWinAscent</c> — the ascent Windows lays text out against, and the one every backend font
+    /// object reports. Zero when the font declares no <c>OS/2</c> table.
+    /// </summary>
+    public int WinAscent { get; init; }
+
+    /// <summary>
+    /// Where the baseline sits below the top of the line box. This is <see cref="WinAscent"/>, NOT
+    /// <see cref="Ascender"/>: the two are different metrics and their gap is font-specific — 0.071 em for
+    /// Aptos but 0.202 em for Calibri — so using the hhea value put a Calibri document's text up to a fifth
+    /// of an em too high inside every line. Falls back to the hhea ascender for a font with no <c>OS/2</c>
+    /// table. Note this is deliberately independent of <see cref="LineBoxUnits"/>, which stays on the
+    /// hhea box because that is what Word's XPS-measured line pitch matches.
+    /// </summary>
+    public int BaselineAscentUnits => WinAscent > 0 ? WinAscent : Ascender;
+
+    /// <summary>The baseline's distance below the line-box top, in points at <paramref name="sizePoints"/>.</summary>
+    public double BaselineAscentPoints(double sizePoints) => (double) BaselineAscentUnits / UnitsPerEm * sizePoints;
+
+    /// <summary>
     /// Horizontal advance widths from <c>hmtx</c>, one per glyph up to <c>hhea.numberOfHMetrics</c>.
     /// Monospaced-tail glyphs past that index reuse the last entry (the OpenType convention for CJK
     /// fonts whose trailing glyphs share one advance). Empty when the font declares no <c>hmtx</c>.
