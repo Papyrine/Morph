@@ -32,8 +32,9 @@ public class EngineCoverageTests
     [Arguments("menus/03", true)]
     // A positioned text frame (w:framePr) is admitted — it auto-sizes and paints at its anchored position.
     [Arguments("agendas-minutes/14", true)]
-    // A WARPED WordArt (arch/wave/envelope) is still excluded — the warp geometry is not emitted yet.
-    [Arguments("wordart", false)]
+    // A WARPED WordArt (arch/wave/envelope) is admitted — it stays one figure the painter rasterizes.
+    [Arguments("wordart", true)]
+    [Arguments("wordart-envelope", true)]
     // A floating image that wraps text (WrapType.Square) still needs flow exclusions the engine lacks.
     [Arguments("image_wrap_square", false)]
     public async Task Covers_admits_block_table_column_and_rejects_art(string relative, bool covered)

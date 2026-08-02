@@ -67,6 +67,9 @@ static class PdfPainter
             case PlacedShape shape:
                 PaintShape(context, graphics, shape);
                 break;
+            case PlacedWordArt wordArt:
+                PaintWordArt(context, graphics, wordArt);
+                break;
             case PlacedShading shading:
                 graphics.DrawRectangle(context.GetBrush(PdfRenderContext.ParseColor(shading.ColorHex)), shading.X, shading.Y, shading.Width, shading.Height);
                 break;
@@ -74,6 +77,54 @@ static class PdfPainter
                 PaintBorder(context, graphics, border);
                 break;
         }
+    }
+
+    // Resolution the WordArt raster is produced at. PDF is vector, so the shape has no natural pixel size;
+    // 300 dpi keeps the embedded bitmap sharp in print without bloating the file — the same value the
+    // production PdfPageRenderer embeds at.
+    const int wordArtRasterDpi = 300;
+
+    // A warped WordArt figure. PdfSharp cannot draw the warp geometry, so — exactly as the production
+    // PdfPageRenderer.TryEmbedWordArt does — a raster backend rasterizes the shape to a transparent PNG
+    // (discovered reflectively, so Morph.Pdf keeps no compile-time dependency on either engine) and the PNG
+    // is embedded. The PNG is the box surrounded by WordArtRasterPage.Padding on every side, since several
+    // warps draw past the declared box, so the draw origin steps back by that padding and the rectangle grows
+    // to match — leaving the box region at (X, Y) with the overflow spilling onto the page. When no raster
+    // backend is present the shape is dropped rather than drawn wrong; the caller reserved its height either
+    // way, so pagination is unaffected.
+    static void PaintWordArt(PdfRenderContext context, XGraphics graphics, PlacedWordArt wordArt)
+    {
+        if (WordArtRasterizerFactory.TryGet() is not { } rasterizer)
+        {
+            return;
+        }
+
+        var options = new WordArtRasterOptions
+        {
+            Dpi = wordArtRasterDpi,
+            FontWidthScale = context.FontWidthScale,
+            FontFallback = context.FontFallback,
+            FontDirectory = context.FontDirectory,
+            Deterministic = true
+        };
+
+        byte[]? png;
+        try
+        {
+            png = rasterizer.Render(wordArt.Visual, options);
+        }
+        catch
+        {
+            return;
+        }
+
+        if (png == null)
+        {
+            return;
+        }
+
+        var pad = WordArtRasterPage.Padding(wordArt.Visual);
+        graphics.DrawImage(context.GetImage(png), wordArt.X - pad, wordArt.Y - pad, wordArt.Width + 2 * pad, wordArt.Height + 2 * pad);
     }
 
     static void PaintLine(PdfRenderContext context, XGraphics graphics, PlacedLine line)

@@ -37,10 +37,11 @@ static class EngineCoverage
                 // A non-wrapping floating text box lays out its content inside its box (the Fragmenter emits
                 // the box chrome as a shape and the content as lines); wrapping text boxes need flow exclusions.
                 case FloatingTextBoxElement { WrapType: WrapType.None }:
-                // Unwarped WordArt is Word's inline text box — box chrome plus centred text. The warp presets
-                // (arch/wave/envelope/…) are not emitted yet, so a warped WordArt still disqualifies.
-                case WordArtElement { Transform: WordArtTransform.None }:
-                case FloatingWordArtElement { Transform: WordArtTransform.None }:
+                // Unwarped WordArt is Word's inline text box — box chrome plus centred text. A warped one
+                // (arch/wave/envelope/…) stays a single figure the painter rasterizes through its backend's
+                // IWordArtRasterizer, reusing the warp geometry rather than reimplementing it.
+                case WordArtElement:
+                case FloatingWordArtElement:
                 // A positioned text frame (w:framePr, lifted out of the flow by FrameGrouper) auto-sizes to its
                 // paragraphs and paints at its resolved anchor position, taking no flow space.
                 case PositionedFrameElement:
@@ -81,9 +82,10 @@ static class EngineCoverage
                             return false;
                         }
                     }
-                    else if (element is WordArtElement { Transform: WordArtTransform.None })
+                    else if (element is WordArtElement)
                     {
-                        // An unwarped WordArt in a cell renders as its box plus centred text.
+                        // WordArt in a cell renders as its box plus centred text, or — warped — as one
+                        // rasterized figure.
                     }
                     else if (element is not (ParagraphElement or ContentControlElement))
                     {

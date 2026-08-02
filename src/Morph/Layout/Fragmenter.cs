@@ -345,21 +345,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         PlaceTextBox(textBox);
                         break;
 
-                    case WordArtElement { Transform: WordArtTransform.None } wordArt:
+                    case WordArtElement wordArt:
                         PlaceWordArt(wordArt);
                         break;
 
-                    // Floating unwarped WordArt is absolutely positioned text (no box chrome), like the other
-                    // body floats — it takes no flow space.
-                    case FloatingWordArtElement { Transform: WordArtTransform.None } floatingWordArt:
-                        foreach (var item in LayoutWordArtText(floatingWordArt.Text, floatingWordArt.FontFamily, floatingWordArt.FontSizePoints, floatingWordArt.Bold, floatingWordArt.Italic, floatingWordArt.FillColorHex,
-                                     FloatX(floatingWordArt.HorizontalAnchor, floatingWordArt.HorizontalPositionPoints, floatingWordArt.HorizontalPositionPercent),
-                                     FloatY(floatingWordArt.VerticalAnchor, floatingWordArt.VerticalPositionPoints, floatingWordArt.VerticalPositionPercent),
-                                     (float) floatingWordArt.WidthPoints, (float) floatingWordArt.HeightPoints))
-                        {
-                            AddBodyFloat(item, floatingWordArt.BehindText, IsAbsoluteY(floatingWordArt.VerticalAnchor));
-                        }
-
+                    // Floating WordArt is absolutely positioned (no box chrome), like the other body floats —
+                    // it takes no flow space.
+                    case FloatingWordArtElement floatingWordArt:
+                        PlaceFloatingWordArt(floatingWordArt);
                         break;
 
                     case PositionedFrameElement frame:
@@ -752,20 +745,53 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
         // A block-level unwarped WordArt takes flow space (its declared height) at the current cursor, aligned
         // by its w:jc — it paints its box chrome then its centred text.
+        // Note: WordArt does NOT consume the previous paragraph's after-spacing here, though a table and every
+        // other block does, and the production renderer does. Adding it is defensible in principle and lands
+        // wordart-envelope's four warps on Word's rows (−0.019 → −0.001), but it pushes business/06's flow a
+        // matching 10pt the other way, past Word (−0.025), so it measures as a wash and was reverted rather
+        // than shipped. Whatever rule Word applies here is not simply "consume the gap"; deriving it needs an
+        // ad-hoc probe isolating a WordArt block after a spaced paragraph, not a fit to these two documents.
         void PlaceWordArt(WordArtElement wordArt)
         {
             var height = (float) wordArt.HeightPoints;
             EnsureSpaceFor(height);
             var boxWidth = (float) wordArt.WidthPoints;
             var boxX = ColumnLeft + AlignmentOffset(wordArt.Alignment, columnWidth, boxWidth);
-            if (WordArtBoxShape(wordArt, boxX, y) is { } boxItem)
+            if (wordArt.Transform != WordArtTransform.None)
             {
-                items.Add(boxItem);
+                items.Add(new PlacedWordArt(boxX, y, boxWidth, height, wordArt));
+            }
+            else
+            {
+                if (WordArtBoxShape(wordArt, boxX, y) is { } boxItem)
+                {
+                    items.Add(boxItem);
+                }
+
+                items.AddRange(LayoutWordArtText(wordArt.Text, wordArt.FontFamily, wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic, wordArt.FillColorHex, boxX, y, boxWidth, height));
             }
 
-            items.AddRange(LayoutWordArtText(wordArt.Text, wordArt.FontFamily, wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic, wordArt.FillColorHex, boxX, y, boxWidth, height));
             y += height;
             atRegionTop = false;
+        }
+
+        // Floating WordArt: absolutely positioned at its anchor, taking no flow space. A warp stays one
+        // figure for the painter to rasterize; an unwarped one is centred text with no box chrome.
+        void PlaceFloatingWordArt(FloatingWordArtElement wordArt)
+        {
+            var boxX = FloatX(wordArt.HorizontalAnchor, wordArt.HorizontalPositionPoints, wordArt.HorizontalPositionPercent);
+            var boxY = FloatY(wordArt.VerticalAnchor, wordArt.VerticalPositionPoints, wordArt.VerticalPositionPercent);
+            var absoluteY = IsAbsoluteY(wordArt.VerticalAnchor);
+            if (wordArt.Transform != WordArtTransform.None)
+            {
+                AddBodyFloat(new PlacedWordArt(boxX, boxY, (float) wordArt.WidthPoints, (float) wordArt.HeightPoints, wordArt), wordArt.BehindText, absoluteY);
+                return;
+            }
+
+            foreach (var item in LayoutWordArtText(wordArt.Text, wordArt.FontFamily, wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic, wordArt.FillColorHex, boxX, boxY, (float) wordArt.WidthPoints, (float) wordArt.HeightPoints))
+            {
+                AddBodyFloat(item, wordArt.BehindText, absoluteY);
+            }
         }
 
         // The bytes a backend can actually decode: SVG artwork carries a raster equivalent (PdfSharp, like
@@ -810,8 +836,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // resets the cursor — the same space-before drop for the moved paragraph. w:contextualSpacing
             // removes the gap entirely between two same-style contextual paragraphs (Word's memo To/From/CC
             // block, list runs) — matching PageRendererBase's contextual collapse.
+            //
+            // The drop is a *break* rule, not a top-of-box rule: Word applies a leading space-before on the
+            // document's own first page and only swallows it where the flow broke onto a new region. Treating
+            // the document start as a region top lost it — wordart-envelope's title sat 20pt (its w:before)
+            // high. PageRendererBase draws the same distinction through ShouldSuppressPageTopSpacingBefore's
+            // `pagesStarted <= 1` guard.
             var contextualCollapse = properties.ContextualSpacing && lastContextual && properties.StyleId == lastStyleId;
-            if (!atRegionTop)
+            var atDocumentStart = bodies.Count == 0 && items.Count == 0 && currentColumn == 0;
+            if (!atRegionTop || atDocumentStart)
             {
                 y += contextualCollapse ? 0f : Math.Max(lastAfter, (float) properties.SpacingBeforePoints);
             }
@@ -1217,17 +1250,25 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
                 // An unwarped WordArt in a cell (menus/03's EVENT/DATE labels, wedding/08's badge) paints its
                 // box chrome and its centred text inside the cell, taking its declared height.
-                if (element is WordArtElement { Transform: WordArtTransform.None } cellWordArt)
+                if (element is WordArtElement cellWordArt)
                 {
                     cellY += first ? 0 : lastCellAfter;
                     first = false;
                     var wordArtWidth = Math.Min((float) cellWordArt.WidthPoints, contentWidth);
-                    if (WordArtBoxShape(cellWordArt, contentLeft, cellY) is { } boxItem)
+                    if (cellWordArt.Transform != WordArtTransform.None)
                     {
-                        lines.Add(boxItem);
+                        lines.Add(new PlacedWordArt(contentLeft, cellY, wordArtWidth, (float) cellWordArt.HeightPoints, cellWordArt));
+                    }
+                    else
+                    {
+                        if (WordArtBoxShape(cellWordArt, contentLeft, cellY) is { } boxItem)
+                        {
+                            lines.Add(boxItem);
+                        }
+
+                        lines.AddRange(LayoutWordArtText(cellWordArt.Text, cellWordArt.FontFamily, cellWordArt.FontSizePoints, cellWordArt.Bold, cellWordArt.Italic, cellWordArt.FillColorHex, contentLeft, cellY, wordArtWidth, (float) cellWordArt.HeightPoints));
                     }
 
-                    lines.AddRange(LayoutWordArtText(cellWordArt.Text, cellWordArt.FontFamily, cellWordArt.FontSizePoints, cellWordArt.Bold, cellWordArt.Italic, cellWordArt.FillColorHex, contentLeft, cellY, wordArtWidth, (float) cellWordArt.HeightPoints));
                     cellY += (float) cellWordArt.HeightPoints;
                     lastCellAfter = 0;
                     continue;
