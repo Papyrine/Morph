@@ -57,6 +57,9 @@ static class SkiaPainter
             case PlacedShape shape:
                 PaintShape(context, canvas, shape);
                 break;
+            case PlacedWordArt wordArt:
+                PaintWordArt(context, canvas, wordArt);
+                break;
             case PlacedShading shading:
                 Fill(context, canvas, shading.X, shading.Y, shading.Width, shading.Height, shading.ColorHex);
                 break;
@@ -193,6 +196,38 @@ static class SkiaPainter
         {
             canvas.DrawText(leaderChar, startX + index * spacing, y, font, paint);
         }
+    }
+
+    // A warped WordArt figure. The warp geometry (text on an arc, envelope, wave) lives in the backend's
+    // WordArt rasterizer, which lays the shape out on a page sized to its box and returns a
+    // transparent-background PNG — so the painter reuses it verbatim rather than reimplementing the presets.
+    // The PNG is the box surrounded by WordArtRasterPage.Padding on every side (several warps draw past the
+    // declared box), so the draw origin steps back by that padding and the rectangle grows to match, leaving
+    // the box region at (X, Y) and letting the overflow spill onto the page — mirroring PdfPainter and the
+    // production renderers. Rasterizing at the render's own DPI keeps the bitmap pixel-aligned with the page.
+    static void PaintWordArt(SkiaRenderContext context, SKCanvas canvas, PlacedWordArt wordArt)
+    {
+        var options = new WordArtRasterOptions
+        {
+            Dpi = context.Dpi,
+            FontWidthScale = context.FontWidthScale,
+            FontFallback = context.FontFallback,
+            FontDirectory = context.FontDirectory,
+            Deterministic = context.DeterministicRendering
+        };
+
+        if (new SkiaWordArtRasterizer().Render(wordArt.Visual, options) is not { } png ||
+            context.GetBitmap(png) is not { } bitmap)
+        {
+            return;
+        }
+
+        var pad = (float) WordArtRasterPage.Padding(wordArt.Visual);
+        canvas.DrawBitmap(bitmap, SKRect.Create(
+            P(context, wordArt.X - pad),
+            P(context, wordArt.Y - pad),
+            P(context, wordArt.Width + 2 * pad),
+            P(context, wordArt.Height + 2 * pad)));
     }
 
     static void PaintImage(SkiaRenderContext context, SKCanvas canvas, PlacedImage image)

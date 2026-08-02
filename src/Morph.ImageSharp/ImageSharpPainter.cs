@@ -60,6 +60,9 @@ static class ImageSharpPainter
             case PlacedShape shape:
                 PaintShape(context, canvas, shape);
                 break;
+            case PlacedWordArt wordArt:
+                PaintWordArt(context, canvas, wordArt);
+                break;
             case PlacedShading shading:
                 Fill(context, canvas, shading.X, shading.Y, shading.Width, shading.Height, shading.ColorHex);
                 break;
@@ -201,6 +204,43 @@ static class ImageSharpPainter
         {
             canvas.DrawText(Options(context, font, startX + index * spacing, top), leaderChar.AsSpan(), brush, null);
         }
+    }
+
+    // A warped WordArt figure. The warp geometry (text on an arc, envelope, wave) lives in this backend's
+    // WordArt rasterizer, which lays the shape out on a page sized to its box and returns a
+    // transparent-background PNG — reused verbatim rather than reimplementing the presets. The PNG is the box
+    // surrounded by WordArtRasterPage.Padding on every side (several warps draw past the declared box), so the
+    // draw origin steps back by that padding, leaving the box region at (X, Y) and letting the overflow spill
+    // onto the page. Rasterizing at the render's own DPI keeps the bitmap pixel-aligned with the page. This
+    // backend's own rasterizer is used directly — never the reflective factory, which prefers Morph.Skia and
+    // would draw Skia's glyphs onto an ImageSharp page.
+    static void PaintWordArt(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedWordArt wordArt)
+    {
+        var options = new WordArtRasterOptions
+        {
+            Dpi = context.Dpi,
+            FontWidthScale = context.FontWidthScale,
+            FontFallback = context.FontFallback,
+            FontDirectory = context.FontDirectory,
+            Deterministic = context.DeterministicRendering
+        };
+
+        if (new ImageSharpWordArtRasterizer().Render(wordArt.Visual, options) is not { } png)
+        {
+            return;
+        }
+
+        var pad = WordArtRasterPage.Padding(wordArt.Visual);
+        var width = (int) Math.Round(P(context, wordArt.Width + 2 * pad));
+        var height = (int) Math.Round(P(context, wordArt.Height + 2 * pad));
+        if (context.GetProcessedImage(png, width, height, null, default, 0, false, false) is not { } processed)
+        {
+            return;
+        }
+
+        canvas.DrawImage(processed, new Point(
+            (int) Math.Round(P(context, wordArt.X - pad)),
+            (int) Math.Round(P(context, wordArt.Y - pad))));
     }
 
     static void PaintImage(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedImage image)
