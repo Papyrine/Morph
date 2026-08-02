@@ -50,10 +50,17 @@ sealed class CanonicalTextMeasurer
     /// <summary>
     /// The device-pixel em size text lays out at: <c>round(sizePoints * 120/72)</c>. 11pt and 10.5pt
     /// both round to 18px (em 10.8pt), so the measurer wraps them identically — the advance model in
-    /// <c>src/page_counts.md</c>. A Word probe (recorded there) shows Word does not: it renders
-    /// 10.5pt ~1.7% narrower than 11pt, so this bucketing over-widths 10 / 10.5pt text by ~2–3% and
-    /// wraps it early. Word sits between this grain and raw-fractional (which over-corrects), matching
-    /// no single-dpi integer ppem — this is the closest available approximation, not Word's model.
+    /// <c>src/page_counts.md</c>.
+    ///
+    /// <para><b>This is known to be wrong, and root-caused</b> (probe recorded in
+    /// <c>src/page_counts.md</c>, "Ppem grain root-caused"). Measuring a repeated glyph through Word
+    /// shows it does not quantize the em at all: advances land on whole device pixels, but their mean
+    /// tracks the plain fractional advance, so 10.5pt is genuinely narrower than 11pt rather than
+    /// identical. Rounding the em onto a fixed 120-dpi grid — regardless of the real output DPI —
+    /// makes this measurer's width error jump by up to ~4% between adjacent point sizes (10pt +3.0%,
+    /// 11pt −1.0%), and it is that discontinuity, not the magnitude, that wraps 10 / 10.5pt documents
+    /// early. Dropping the em quantization and rounding only the pen position, at the actual output
+    /// DPI, is the fix; it moves every wrap in the corpus, so it wants its own slice.</para>
     /// </summary>
     public static int Ppem(double sizePoints) =>
         (int) Math.Round(sizePoints * referenceDpi / 72.0, MidpointRounding.AwayFromZero);

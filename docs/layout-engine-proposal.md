@@ -9,9 +9,10 @@ the Fragmenter. This was the "if time and effort are no object" answer to the co
 tracked in `src/page_counts.md` and `src/todo.md` (#2, #5, the columns item under image_wrap_square); the
 running log of landed slices is below, and `docs/word-features.md` describes the per-backend draw code the
 thin painters now front. `MORPH_SKIA_ENGINE=off` / `MORPH_IMAGESHARP_ENGINE=off` are the kill switches. The sharpest known modelling
-limit in what has shipped is the `Ppem` grain: Word lays 10.5pt out ~1.7% narrower than 11pt where the integer
-ppem@120 bucket makes them equal, so the canonical measurer over-widths 10 / 10.5pt text by ~2–3% and wraps
-it early ("Remaining work" item 1). Approximate column balancing is the other (see the balancing slice).
+limit in what has shipped is the `Ppem` grain — a known **bug**, now root-caused, not an inherent ceiling:
+the measurer rounds the em onto a fixed 120-dpi grid where Word never quantizes the em at all, which makes
+its width error jump ~4% between adjacent point sizes and wraps 10 / 10.5pt documents early
+("Remaining work" item 1). Approximate column balancing is the other (see the balancing slice).
 
 **How to read this document.** It began as a proposal and became the implementation log, so it mixes three
 kinds of material. The design sections — "The problem this solves" through "The crux" — are as first drafted;
@@ -218,11 +219,12 @@ every backend inherits the *same* error (still strictly better — one error to 
 target, versus three that cancel differently and mask the model).
 
 *Update, as measured: the space elasticity landed as pen-position rounding (step 1) rather than an explicit
-factor; the per-font factor itself was later ruled out empirically (the Phase A note under the PDF cutover);
-and a Word probe found a size-dependent ceiling the integer-ppem model cannot reach — Word renders 10.5pt
-~1.7% narrower than 11pt where the ppem@120 bucket makes them equal, sitting between that grain and
-raw-fractional ("Remaining work" item 1, and `src/page_counts.md`). The model is the closest available
-approximation, not Word's own; the residual is ~2–3% over-width at 10/10.5pt.*
+factor, and the per-font factor itself was later ruled out empirically (the Phase A note under the PDF
+cutover). The integer-ppem half of this section is **wrong**, and knowing why matters more than the sentence
+it replaces: a repeated-glyph probe shows Word rounds the pen POSITION to a whole device pixel but never
+quantizes the em, so the advance model above is right about the rounding and wrong about where it applies.
+Rounding the em too — onto a fixed 120-dpi grid at that — is what produces the `Ppem` grain. See "Remaining
+work" item 1 and `src/page_counts.md`.*
 
 ## Migration checklist (sequence matters even unbounded)
 
@@ -337,13 +339,22 @@ The checklist is landed through step 6; what is left, most-blocking first:
    post-raster-flip update below) — was half wrong: a visual PDF check (rasterise engine-PDF and production-PDF at
    150 DPI, diff per-paragraph Y) traced the *worst* per-document losses to the phantom-run spacer bug, not
    AA, and fixing it recovered resumes/11 and /18 by +0.07…+0.09. What remains is a genuine mix. The
-   wrap-*width* losers (business/05 10.5pt, resumes/15 10pt) are the **`Ppem` grain**: a Word probe (2026-08-01,
-   recorded in `page_counts.md`) measured Word's W(10.5)/W(11) at 0.983, not the 1.000 the ppem@120 bucket
-   assumes — so the canonical measurer over-widths 10 / 10.5pt text by ~2–3% and wraps it early. Word sits
-   *between* ppem@120 and raw-fractional (fractional over-corrects), matching no single-dpi integer ppem, so
-   this is a size-dependent modelling ceiling, not a scale knob — which is why the per-font factor and
-   FontWidthScale both washed. Plus the compound-image and full-page-gradient rasterization tail. See "The PDF
-   cutover (step 5)".
+   wrap-*width* losers (business/05 10.5pt, resumes/15 10pt) are the **`Ppem` grain** — **root-caused
+   2026-08-02, and it is a bug in this engine rather than the ceiling it was first taken for.** Measuring a
+   repeated glyph through Word (60 `n` on a line, so the gap between ink starts *is* the advance, over
+   Calibri/Aptos/Arial at 8–16pt) shows Word does not quantize the em at all: advances land on whole device
+   pixels, but their mean tracks the plain fractional advance, and W(10.5)/W(11) measures 0.952 against
+   fractional's 0.955. `Ppem(size) = round(size × 120/72)` rounds the em onto a fixed 120-dpi grid regardless
+   of the output resolution, collapsing 10.5pt and 11pt onto one em though their nominal widths differ by
+   4.5%. The damage is not the size of the error but its **discontinuity**: measured against Word the RMS is
+   1.61% versus fractional's 1.07% — nearly a wash — while the swing between *adjacent* point sizes is 3.97%
+   versus 0.90%. A smooth bias shifts every size alike and cancels in relative layout; a 4% jitter between
+   neighbouring sizes wraps a 10pt document early and an 11pt one correctly, which is exactly the observed
+   symptom. The earlier reading — that Word sits between the two models, so no model reaches it — came from a
+   noisier probe and does not reproduce. Fix direction: stop quantizing the em, round only the pen position,
+   at the real output DPI. It moves every wrap in the corpus, so it wants its own slice and a full
+   re-measurement; `src/page_counts.md` has the numbers. Plus the compound-image and full-page-gradient
+   rasterization tail. See "The PDF cutover (step 5)".
 
    **Re-measured 2026-08-02, after the coverage and wiring work, and the flip is still held.** The gate was
    run properly this time: the engine gate was toggled *in source* (the container wrapper does not forward
