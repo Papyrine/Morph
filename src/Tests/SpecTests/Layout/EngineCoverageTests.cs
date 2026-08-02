@@ -35,7 +35,9 @@ public class EngineCoverageTests
     // A WARPED WordArt (arch/wave/envelope) is admitted — it stays one figure the painter rasterizes.
     [Arguments("wordart", true)]
     [Arguments("wordart-envelope", true)]
-    // A floating image that wraps text (WrapType.Square) still needs flow exclusions the engine lacks.
+    // A floating image that wraps text is excluded — not for the wrap, which the Fragmenter now flows text
+    // beside, but because that document is 11pt-dense and the measurer's ppem grain costs more than the
+    // production fallback there. See the note in EngineCoverage.
     [Arguments("image_wrap_square", false)]
     public async Task Covers_admits_block_table_column_and_rejects_art(string relative, bool covered)
     {
@@ -44,5 +46,47 @@ public class EngineCoverageTests
         var document = new DocumentParser().Parse(stream);
 
         await Assert.That(EngineCoverage.Covers(document)).IsEqualTo(covered);
+    }
+
+    /// <summary>
+    /// Counts the predicate over the whole corpus, so a change that silently narrows or widens coverage
+    /// shows up as a number rather than as drift nobody notices. The uncovered set is asserted by name:
+    /// these fall back to the production renderers, so anything joining them is a document that stopped
+    /// paginating through the one engine.
+    /// </summary>
+    [Test]
+    public async Task The_corpus_coverage_count_holds()
+    {
+        var inputs = Directory.GetFiles(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs"), "input.docx", SearchOption.AllDirectories)
+            .Where(_ => Directory.GetFiles(Path.GetDirectoryName(_)!, "expected_*.png").Length > 0)
+            .Order()
+            .ToList();
+
+        var uncovered = new List<string>();
+        foreach (var input in inputs)
+        {
+            ParsedDocument document;
+            try
+            {
+                await using var stream = File.OpenRead(input);
+                document = new DocumentParser().Parse(stream);
+            }
+            catch
+            {
+                continue;
+            }
+
+            if (!EngineCoverage.Covers(document))
+            {
+                var directory = Path.GetDirectoryName(input)!;
+                uncovered.Add($"{Path.GetFileName(Path.GetDirectoryName(directory))}/{Path.GetFileName(directory)}");
+            }
+        }
+
+        // image_wrap_square is the lone hold-out: the wrap itself is emitted, but the ppem grain makes the
+        // engine the worse renderer for that document today.
+        await Assert.That(uncovered.Count).IsEqualTo(1);
+        await Assert.That(uncovered[0]).Contains("image_wrap_square");
+        await Assert.That(inputs.Count - uncovered.Count).IsGreaterThanOrEqualTo(324);
     }
 }
