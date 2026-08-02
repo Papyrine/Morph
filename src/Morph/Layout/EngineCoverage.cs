@@ -30,8 +30,16 @@ static class EngineCoverage
                     break;
                 // Behind/in-front floating shapes carry no text wrap; the Fragmenter lays them out by anchor
                 // into the page's float items and every painter draws them (solid, gradient, or — routed to
-                // PlacedImage — image fill). A floating image is admitted only when it does not wrap text:
-                // Square/Tight/Through/TopAndBottom need flow exclusions the engine does not emit yet.
+                // PlacedImage — image fill).
+                //
+                // A wrapping floating image is held back, though the Fragmenter now DOES flow text beside one
+                // (RegisterFloatExclusion / ResolveFlowBand, verified to lift the corpus's only such document
+                // by +0.013 over ignoring the wrap). The blocker is no longer the wrap: image_wrap_square is
+                // 11pt-dense, the size where the canonical measurer's integer-ppem grain under-measures by
+                // ~1.8%, so it fits more words per line than Word and the page compresses — the engine lands
+                // 0.037 below the production fallback whether or not the wrap is honoured. Admitting it would
+                // trade real fidelity for a coverage count. Revisit when the Ppem grain closes
+                // ("Remaining work" item 1 in docs/layout-engine-proposal.md).
                 case FloatingShapeElement:
                 case FloatingImageElement { WrapType: WrapType.None }:
                 // A non-wrapping floating text box lays out its content inside its box (the Fragmenter emits

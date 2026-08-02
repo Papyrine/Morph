@@ -85,6 +85,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // visible line or row commits (a page-2 background is declared before page-1 finishes). Resolved into
         // bodyFloats there; a flow-anchored float never lands here — its page is the emit-time cursor page.
         readonly List<(PlacedItem Item, bool Behind)> pendingFloats = [];
+        // Boxes a wrapping float (wp:wrapSquare / wrapTight / wrapThrough / wrapTopAndBottom) carves out of
+        // the text measure, in absolute page points. Page-scoped: cleared when a page starts, since a float
+        // never carries its exclusion across a break. A wrapNone or behind-text float registers nothing —
+        // overlap is its design. Mirrors RenderContextBase's list, which the production renderers consume.
+        readonly List<FloatExclusion> floatExclusions = [];
         int currentColumn;
         float y;
         // Y where the current page's columns begin. Normally the content top, but a continuous section break
@@ -327,8 +332,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         break;
 
                     case FloatingImageElement image when DecodableImageBytes(image) is { Length: > 0 } data:
-                        AddBodyFloat(new PlacedImage(FloatX(image.HorizontalAnchor, image.HorizontalPositionPoints, image.HorizontalPositionPercent), FloatY(image.VerticalAnchor, image.VerticalPositionPoints, image.VerticalPositionPercent), (float) image.WidthPoints, (float) image.HeightPoints, data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, image.Crop), image.BehindText, IsAbsoluteY(image.VerticalAnchor));
+                    {
+                        var imageX = FloatX(image.HorizontalAnchor, image.HorizontalPositionPoints, image.HorizontalPositionPercent);
+                        var imageY = FloatY(image.VerticalAnchor, image.VerticalPositionPoints, image.VerticalPositionPercent);
+                        AddBodyFloat(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, image.Crop), image.BehindText, IsAbsoluteY(image.VerticalAnchor));
+                        RegisterFloatExclusion(image, imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints);
                         break;
+                    }
 
                     // An image-filled shape (a full-bleed background photo) paints as a plain image — the shape
                     // painter skips image fills. It carries the shape's rotation and flip; a shape image has no
@@ -397,6 +407,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             atRegionTop = true;
             lastAfter = 0;
             currentPageExplicit = nextPageExplicit;
+            // A float's exclusion belongs to the page it was anchored on; the new page starts clear.
+            floatExclusions.Clear();
         }
 
         // A page carries visible content if it has anything beyond empty spacer lines — a table row, an image,
@@ -479,6 +491,133 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // the page carrying the content it is anchored to rather than the page the cursor is on when its
         // element is reached — a page-2 full-page background is declared before page-1's flow finishes.
         static bool IsAbsoluteY(VerticalAnchor anchor) => anchor is VerticalAnchor.Page or VerticalAnchor.Margin;
+
+        readonly record struct FloatExclusion(float Left, float Top, float Right, float Bottom, bool FullWidth, WrapTextSide Side);
+
+        // Records the measure a wrapping float takes away, expanded by its wrap distances. Tight and Through
+        // wrap the image outline in Word; the rectangular extent is the approximation for both, as in
+        // production. A TopAndBottom float takes the full column width, so no text sits beside it at all.
+        void RegisterFloatExclusion(FloatingImageElement image, float left, float top, float width, float height)
+        {
+            if (image.BehindText)
+            {
+                return;
+            }
+
+            switch (image.WrapType)
+            {
+                case WrapType.Square or WrapType.Tight or WrapType.Through:
+                    floatExclusions.Add(new(
+                        left - (float) image.WrapDistanceLeftPoints,
+                        top - (float) image.WrapDistanceTopPoints,
+                        left + width + (float) image.WrapDistanceRightPoints,
+                        top + height + (float) image.WrapDistanceBottomPoints,
+                        FullWidth: false,
+                        image.WrapTextSide));
+                    break;
+                case WrapType.TopAndBottom:
+                    floatExclusions.Add(new(
+                        ColumnLeft,
+                        top - (float) image.WrapDistanceTopPoints,
+                        ColumnLeft + columnWidth,
+                        top + height + (float) image.WrapDistanceBottomPoints,
+                        FullWidth: true,
+                        WrapTextSide.BothSides));
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Where a paragraph starting at <paramref name="top"/> can lay out given the active exclusions: the
+        /// widest free horizontal segment of the column beside the floats. When no usable segment exists there
+        /// (a TopAndBottom band, or floats covering the whole measure) the top advances below the blocking
+        /// floats. Constrained is false when the paragraph gets the full column width. A faithful port of
+        /// RenderContextBase.ResolveFlowBand, including its band-per-paragraph granularity: Word reflows back
+        /// to the full measure below a float mid-paragraph, and neither engine models that yet.
+        /// </summary>
+        (float X, float Width, float Y, bool Constrained) ResolveFlowBand(float top)
+        {
+            var left = ColumnLeft;
+            var right = ColumnLeft + columnWidth;
+            if (floatExclusions.Count == 0)
+            {
+                return (left, right - left, top, false);
+            }
+
+            // The paragraph's own first-line height is not known yet, so probe with a nominal line: a
+            // paragraph starting just above a float still wraps beside it.
+            const float probeHeight = 12f;
+            // Below half an inch the band is unusable and the text skips below the float instead — about
+            // where Word stops squeezing words in.
+            const float minUsableWidth = 36f;
+
+            var currentTop = top;
+            for (var guard = 0; guard < 8; guard++)
+            {
+                float? clearTo = null;
+                var segments = new List<(float Start, float End)> { (left, right) };
+                foreach (var exclusion in floatExclusions)
+                {
+                    if (currentTop + probeHeight <= exclusion.Top || currentTop >= exclusion.Bottom)
+                    {
+                        continue;
+                    }
+
+                    clearTo = clearTo is { } clear ? Math.Max(clear, exclusion.Bottom) : exclusion.Bottom;
+                    var blockLeft = exclusion.FullWidth ? left : Math.Max(left, exclusion.Left);
+                    var blockRight = exclusion.FullWidth ? right : Math.Min(right, exclusion.Right);
+                    var remaining = new List<(float Start, float End)>();
+                    foreach (var (start, end) in segments)
+                    {
+                        if (blockRight <= start || blockLeft >= end)
+                        {
+                            remaining.Add((start, end));
+                            continue;
+                        }
+
+                        // An explicit @wrapText side restricts which side of THIS float text may use;
+                        // BothSides/Largest leave both segments available and the widest wins below, since a
+                        // single band cannot carry both sides at once.
+                        if (blockLeft > start && exclusion.Side != WrapTextSide.Right)
+                        {
+                            remaining.Add((start, blockLeft));
+                        }
+
+                        if (blockRight < end && exclusion.Side != WrapTextSide.Left)
+                        {
+                            remaining.Add((blockRight, end));
+                        }
+                    }
+
+                    segments = remaining;
+                }
+
+                if (clearTo == null)
+                {
+                    return (left, right - left, currentTop, false);
+                }
+
+                var bestStart = 0f;
+                var bestWidth = 0f;
+                foreach (var (start, end) in segments)
+                {
+                    if (end - start > bestWidth)
+                    {
+                        bestStart = start;
+                        bestWidth = end - start;
+                    }
+                }
+
+                if (bestWidth >= minUsableWidth)
+                {
+                    return (bestStart, bestWidth, currentTop, true);
+                }
+
+                currentTop = clearTo.Value;
+            }
+
+            return (left, right - left, currentTop, false);
+        }
 
         // Records a body float. An absolutely-positioned one defers until the next visible line/row reveals its
         // page; a flow-anchored one is tagged with the current cursor page, where its y offset was measured.
@@ -825,12 +964,6 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 FinishPage(false);
             }
 
-            var paragraphLines = measurer.LayoutLineContents(paragraph, columnWidth);
-
-            // Columns are equal width, so the available width for alignment is constant even as a line
-            // spills to the next column; the left edge (ColumnLeft) is read per line, after any advance.
-            var availableWidth = columnWidth - (float) properties.LeftIndentPoints - (float) properties.RightIndentPoints;
-
             // Space-before, collapsed with the previous paragraph's after (max, not sum) and dropped at a
             // region top. If the collapsed gap plus the first line overflows, the line-level break below
             // resets the cursor — the same space-before drop for the moved paragraph. w:contextualSpacing
@@ -848,6 +981,24 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             {
                 y += contextualCollapse ? 0f : Math.Max(lastAfter, (float) properties.SpacingBeforePoints);
             }
+
+            // Where this paragraph may lay out beside any wrapping float, resolved once at its first line's
+            // position and held for the whole paragraph (Word reflows to the full measure below the float
+            // mid-paragraph; neither engine models that yet). With no exclusions — every document but a
+            // wrapping-float one — this returns the full column unchanged, so nothing else moves.
+            var (bandLeft, bandWidth, bandTop, bandConstrained) = ResolveFlowBand(y);
+            if (bandTop > y)
+            {
+                // No usable band here: the text starts below the float that blocked it.
+                y = bandTop;
+            }
+
+            var wrapWidth = bandConstrained ? bandWidth : columnWidth;
+            var paragraphLines = measurer.LayoutLineContents(paragraph, wrapWidth);
+
+            // Columns are equal width, so the width available for alignment is constant even as a line spills
+            // to the next column; the left edge is read per line, after any advance.
+            var availableWidth = wrapWidth - (float) properties.LeftIndentPoints - (float) properties.RightIndentPoints;
 
             // Paragraph-border box (w:pBdr): track the first line's top and last line's bottom so a single
             // border can be stroked around the whole paragraph. If it breaks across a column or page the
@@ -911,7 +1062,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 {
                     var placedIndex = lineIndex + offset;
                     var line = paragraphLines[placedIndex];
-                    var indentLeft = ColumnLeft + (float) properties.LeftIndentPoints;
+                    // The float band's left edge when one narrowed this paragraph, else the column's — read
+                    // per line, so a paragraph spilling into the next column follows it. A banded paragraph
+                    // keeps its band even then, matching the scope production holds open across the wrap.
+                    var indentLeft = (bandConstrained ? bandLeft : ColumnLeft) + (float) properties.LeftIndentPoints;
                     var firstLineShift = FirstLineIndentOffset(properties, placedIndex);
                     var lineLeft = indentLeft + firstLineShift + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, line.Width);
                     var baseline = y + line.Ascent;
