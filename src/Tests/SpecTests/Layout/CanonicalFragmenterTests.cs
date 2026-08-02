@@ -1390,4 +1390,61 @@ public class CanonicalFragmenterTests
         await Assert.That(itemLines.Count).IsEqualTo(6);
         await Assert.That(itemLines.All(_ => _.X < 100f)).IsTrue();
     }
+
+    // A 1x1 PNG: the float only has to decode, its drawn pixels are irrelevant to where text lands.
+    static readonly byte[] pixel = Convert.FromBase64String(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+
+    static FloatingImageElement Float(WrapType wrap, double width, double height, WrapTextSide side = WrapTextSide.BothSides) =>
+        new()
+        {
+            ImageData = pixel,
+            ContentType = "image/png",
+            WidthPoints = width,
+            HeightPoints = height,
+            WrapType = wrap,
+            WrapTextSide = side,
+            HorizontalAnchor = HorizontalAnchor.Column,
+            VerticalAnchor = VerticalAnchor.Paragraph
+        };
+
+    [Test]
+    public async Task A_wrapping_float_narrows_the_paragraphs_beside_it()
+    {
+        // A 100pt-wide square float at the column's left edge over a 260pt measure. Text beside it must
+        // start past the float and wrap to the ~160pt that remains, not the full measure.
+        const string text = "The quick brown fox jumps over the lazy dog again and again and again";
+        var withFloat = Fragmenter.Layout([Float(WrapType.Square, 100, 60), P(text)], Page(400));
+        var without = Fragmenter.Layout([P(text)], Page(400));
+
+        var banded = withFloat.Pages[0].Items.OfType<PlacedLine>().ToList();
+        var full = without.Pages[0].Items.OfType<PlacedLine>().ToList();
+
+        // Pushed clear of the float horizontally, and narrower — so it takes more lines than unobstructed.
+        await Assert.That(banded[0].X).IsGreaterThanOrEqualTo(100f);
+        await Assert.That(banded.Count).IsGreaterThan(full.Count);
+    }
+
+    [Test]
+    public async Task A_wrap_none_float_leaves_the_measure_alone()
+    {
+        // wrapNone (and behind-text) floats overlap the text by design: no exclusion, no narrowing.
+        const string text = "The quick brown fox jumps over the lazy dog again and again and again";
+        var withFloat = Fragmenter.Layout([Float(WrapType.None, 100, 60), P(text)], Page(400));
+        var without = Fragmenter.Layout([P(text)], Page(400));
+
+        var banded = withFloat.Pages[0].Items.OfType<PlacedLine>().ToList();
+        var full = without.Pages[0].Items.OfType<PlacedLine>().ToList();
+        await Assert.That(banded.Count).IsEqualTo(full.Count);
+        await Assert.That(banded[0].X).IsEqualTo(full[0].X).Within(0.01f);
+    }
+
+    [Test]
+    public async Task A_top_and_bottom_float_pushes_the_text_below_it()
+    {
+        // wrapTopAndBottom takes the whole measure, so nothing sits beside it — the text starts under it.
+        var document = Fragmenter.Layout([Float(WrapType.TopAndBottom, 100, 60), P("Below")], Page(400));
+        var line = document.Pages[0].Items.OfType<PlacedLine>().First();
+        await Assert.That(line.Y).IsGreaterThanOrEqualTo(60f);
+    }
 }
