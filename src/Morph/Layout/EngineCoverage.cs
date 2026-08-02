@@ -3,9 +3,8 @@
 /// shared capability predicate gating BOTH the raster default path and the opt-in PDF cutover
 /// (docs/layout-engine-proposal.md). A covered document paginates through the engine; an uncovered one falls
 /// back to the production <c>PageRenderer</c> (raster) or <c>PdfTextEngine</c> (PDF). Successive emission
-/// slices widened it from the original block/table/column subset to 321 of the 325 corpus documents; the four
-/// left out are the two warped-WordArt test documents, one wrapping float (an exclusion the Fragmenter does
-/// not emit), and one positioned frame.
+/// slices widened it from the original block/table/column subset to every one of the 325 corpus documents,
+/// so the fallback is now cold for the raster path (PDF still routes through it until that flip).
 /// </summary>
 static class EngineCoverage
 {
@@ -30,18 +29,13 @@ static class EngineCoverage
                     break;
                 // Behind/in-front floating shapes carry no text wrap; the Fragmenter lays them out by anchor
                 // into the page's float items and every painter draws them (solid, gradient, or — routed to
-                // PlacedImage — image fill).
-                //
-                // A wrapping floating image is held back, though the Fragmenter now DOES flow text beside one
-                // (RegisterFloatExclusion / ResolveFlowBand, verified to lift the corpus's only such document
-                // by +0.013 over ignoring the wrap). The blocker is no longer the wrap: image_wrap_square is
-                // 11pt-dense, the size where the canonical measurer's integer-ppem grain under-measures by
-                // ~1.8%, so it fits more words per line than Word and the page compresses — the engine lands
-                // 0.037 below the production fallback whether or not the wrap is honoured. Admitting it would
-                // trade real fidelity for a coverage count. Revisit when the Ppem grain closes
-                // ("Remaining work" item 1 in docs/layout-engine-proposal.md).
+                // PlacedImage — image fill). A wrapping floating image is admitted too: the Fragmenter flows
+                // text beside it (RegisterFloatExclusion / ResolveFlowBand). This was the last hold-out, held
+                // back not by the wrap but by two measurer defects that made the engine the worse renderer
+                // for the corpus's only wrapping-float document — the Ppem grain and the baseline ascent,
+                // both since fixed, which took it from 0.037 below the production fallback to 0.016 above.
                 case FloatingShapeElement:
-                case FloatingImageElement { WrapType: WrapType.None }:
+                case FloatingImageElement:
                 // A non-wrapping floating text box lays out its content inside its box (the Fragmenter emits
                 // the box chrome as a shape and the content as lines); wrapping text boxes need flow exclusions.
                 case FloatingTextBoxElement { WrapType: WrapType.None }:

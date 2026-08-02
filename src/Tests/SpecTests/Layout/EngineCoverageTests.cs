@@ -1,9 +1,9 @@
 /// <summary>
-/// The shared capability predicate gating the raster default path and the PDF cutover: block/table/column
-/// documents — plus non-wrapping floats, section breaks, inline shape groups, nested-table cells, content
-/// controls, floating text boxes and tables, and unwarped WordArt — are covered by the layout engine; what
-/// is left (warped WordArt, wrapping floats, a positioned frame) falls back to the production
-/// renderers until a later emission slice admits it.
+/// The shared capability predicate gating the raster default path and the PDF cutover. It now admits every
+/// corpus document — block/table/column flow, floats wrapping and not, section breaks, inline shape groups,
+/// nested-table cells, content controls, floating text boxes and tables, WordArt warped and not, and
+/// positioned frames — so the raster fallback is cold. These arguments keep one named example per admitted
+/// shape, so a predicate change that drops a shape fails here and says which.
 /// </summary>
 public class EngineCoverageTests
 {
@@ -35,10 +35,9 @@ public class EngineCoverageTests
     // A WARPED WordArt (arch/wave/envelope) is admitted — it stays one figure the painter rasterizes.
     [Arguments("wordart", true)]
     [Arguments("wordart-envelope", true)]
-    // A floating image that wraps text is excluded — not for the wrap, which the Fragmenter now flows text
-    // beside, but because that document is 11pt-dense and the measurer's ppem grain costs more than the
-    // production fallback there. See the note in EngineCoverage.
-    [Arguments("image_wrap_square", false)]
+    // A floating image that wraps text: the Fragmenter flows text beside it, and with the ppem-grain and
+    // baseline-ascent defects fixed the engine now renders this document better than the fallback.
+    [Arguments("image_wrap_square", true)]
     public async Task Covers_admits_block_table_column_and_rejects_art(string relative, bool covered)
     {
         var input = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", relative.Replace('/', Path.DirectorySeparatorChar), "input.docx");
@@ -83,10 +82,10 @@ public class EngineCoverageTests
             }
         }
 
-        // image_wrap_square is the lone hold-out: the wrap itself is emitted, but the ppem grain makes the
-        // engine the worse renderer for that document today.
-        await Assert.That(uncovered.Count).IsEqualTo(1);
-        await Assert.That(uncovered[0]).Contains("image_wrap_square");
-        await Assert.That(inputs.Count - uncovered.Count).IsGreaterThanOrEqualTo(324);
+        // Nothing is left out: every corpus document paginates through the engine. If this ever fails, a
+        // predicate change has pushed documents back onto the production renderers, which is the thing the
+        // whole migration exists to retire — the names say which.
+        await Assert.That(uncovered).IsEmpty();
+        await Assert.That(inputs.Count).IsGreaterThanOrEqualTo(325);
     }
 }
