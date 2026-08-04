@@ -22,7 +22,7 @@ public class BookmarkPageTests
     {
         using var docx = BuildDocument(paragraphs: 1, bookmarkAt: 0);
 
-        var pages = new SkiaDocumentConverter().GetBookmarkPages(docx, Options);
+        var pages = DocumentConverter.GetBookmarkPages(docx, Options);
 
         await Assert.That(pages["target"]).IsEqualTo(1);
     }
@@ -34,7 +34,7 @@ public class BookmarkPageTests
     {
         using var docx = BuildDocument(paragraphs: 120, bookmarkAt: 119);
 
-        var pages = new SkiaDocumentConverter().GetBookmarkPages(docx, Options);
+        var pages = DocumentConverter.GetBookmarkPages(docx, Options);
 
         await Assert.That(pages["target"]).IsGreaterThan(1);
     }
@@ -44,7 +44,7 @@ public class BookmarkPageTests
     {
         using var docx = BuildDocument(paragraphs: 3, bookmarkAt: null);
 
-        var pages = new SkiaDocumentConverter().GetBookmarkPages(docx, Options);
+        var pages = DocumentConverter.GetBookmarkPages(docx, Options);
 
         await Assert.That(pages).IsEmpty();
     }
@@ -54,7 +54,7 @@ public class BookmarkPageTests
     {
         using var docx = BuildDocument(paragraphs: 3, bookmarkAt: 0, extraBookmarkAt: 2);
 
-        var pages = new SkiaDocumentConverter().GetBookmarkPages(docx, Options);
+        var pages = DocumentConverter.GetBookmarkPages(docx, Options);
 
         await Assert.That(pages.Count).IsEqualTo(2);
         await Assert.That(pages.ContainsKey("target")).IsTrue();

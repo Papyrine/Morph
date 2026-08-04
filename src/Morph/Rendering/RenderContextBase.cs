@@ -45,17 +45,6 @@ abstract class RenderContextBase
     public float CurrentY { get; set; }
     public int CurrentPageNumber { get; private set; } = 1;
 
-    /// <summary>
-    /// The page each rendered paragraph starts on, keyed by the paragraph itself.
-    /// </summary>
-    /// <remarks>
-    /// Recorded so a cross-reference can be resolved to a page: a bookmark knows which paragraph it
-    /// sits in, and only layout knows where that paragraph landed. Populated once the paragraph's
-    /// page-break decisions are settled, so the number is where it starts rather than where the
-    /// renderer happened to be beforehand.
-    /// </remarks>
-    public Dictionary<ParagraphElement, int> ParagraphPages { get; } = [];
-
     /// <summary>Display offset for PAGE fields from the active section's <c>w:pgNumType/@start</c>
     /// restart: displayed number = <see cref="CurrentPageNumber"/> + this. 0 = physical numbering.</summary>
     public int PageNumberDisplayOffset { get; private set; }
@@ -411,6 +400,12 @@ abstract class RenderContextBase
     // and float Scale is a hair below the true dpi/72 ratio, which drags the product just under the
     // boundary (1274.99995) so the truncation loses a whole pixel off each axis.
     static int ToPagePixels(double points, int dpi) => (int) (points * dpi / 72.0);
+
+    // Pixel dimensions for a specific page's geometry. The layout engine records the settings each page
+    // was laid at (a section break can switch page size mid-document), so a painter sizes each page from
+    // its own settings rather than the context's initial page size.
+    public (int Width, int Height) PagePixels(PageSettings settings) =>
+        (ToPagePixels(settings.WidthPoints, Dpi), ToPagePixels(settings.HeightPoints, Dpi));
 
     public bool HasSpaceFor(float heightPoints)
     {

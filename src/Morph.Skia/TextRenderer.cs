@@ -1642,7 +1642,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
 
                 if (shape.ImageData != null)
                 {
-                    RenderGroupPicture(canvas, shape, rect, isEllipse);
+                    RenderGroupPicture(context, canvas, shape, rect, isEllipse);
                 }
                 else if (shape.FillColorHex is { } fillHex)
                 {
@@ -1686,7 +1686,9 @@ sealed class TextRenderer(SkiaRenderContext context) :
         canvas.Restore();
     }
 
-    static SKColor ParseColor(string hex, double alpha) =>
+    // Internal so SkiaPainter reuses the exact group-shape colour, contour and primitive drawing when it
+    // paints an inline shape group through the layout engine, keeping the two paths pixel-identical.
+    internal static SKColor ParseColor(string hex, double alpha) =>
         SkiaRenderContext.ParseColor(hex)
             .WithAlpha((byte) Math.Round(Math.Clamp(alpha, 0, 1) * 255));
 
@@ -1695,7 +1697,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
     /// with the flip flags applied, or null for primitive-geometry shapes. Even-odd fill keeps
     /// ring shapes (frame) hollow.
     /// </summary>
-    static SKPath? BuildGroupShapePath(GroupShape shape, SKRect rect)
+    internal static SKPath? BuildGroupShapePath(GroupShape shape, SKRect rect)
     {
         if (shape.Subpaths == null)
         {
@@ -1733,7 +1735,7 @@ sealed class TextRenderer(SkiaRenderContext context) :
         return path;
     }
 
-    static void DrawGeometry(SKCanvas canvas, SKRect rect, bool isEllipse, SKPaint paint)
+    internal static void DrawGeometry(SKCanvas canvas, SKRect rect, bool isEllipse, SKPaint paint)
     {
         if (isEllipse)
         {
@@ -1745,7 +1747,9 @@ sealed class TextRenderer(SkiaRenderContext context) :
         }
     }
 
-    void RenderGroupPicture(SKCanvas canvas, GroupShape shape, SKRect destRect, bool clipToEllipse)
+    // Internal static (context threaded in) so SkiaPainter draws an inline group's picture members through
+    // the exact same SVG/crop/ellipse-clip path when it renders the group via the layout engine.
+    internal static void RenderGroupPicture(SkiaRenderContext context, SKCanvas canvas, GroupShape shape, SKRect destRect, bool clipToEllipse)
     {
         var imageData = shape.ImageData!;
 

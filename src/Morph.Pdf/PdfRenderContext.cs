@@ -141,11 +141,16 @@ sealed class PdfRenderContext : RenderContextBase
     {
         if (!imageCache.TryGetValue(data, out var image))
         {
-            // A sub-8-bit indexed PNG is re-encoded to 8 bits first: PDFsharp emits an all-zero
-            // (fully transparent) soft mask for those, so the picture lands in the PDF and draws
-            // as nothing. See IndexedPngNormalizer. Keyed on the ORIGINAL array so the cache stays
-            // reference-stable and the conversion happens at most once per source image.
-            using var stream = new MemoryStream(IndexedPngNormalizer.Normalize(data));
+            // Two formats need re-encoding before PDFsharp will take them, both keyed on the
+            // ORIGINAL array so the cache stays reference-stable and the work happens at most once:
+            //   * GIF — PDFsharp's cross-platform build cannot decode it at all, so the first frame
+            //     is transcoded to an indexed PNG (GifToPng).
+            //   * a sub-8-bit indexed PNG — PDFsharp emits an all-zero soft mask for those, so the
+            //     picture lands in the PDF and draws as nothing (IndexedPngNormalizer).
+            var decodable = GifToPng.IsGif(data)
+                ? GifToPng.Convert(data) ?? data
+                : IndexedPngNormalizer.Normalize(data);
+            using var stream = new MemoryStream(decodable);
             image = XImage.FromStream(stream);
             imageCache[data] = image;
         }

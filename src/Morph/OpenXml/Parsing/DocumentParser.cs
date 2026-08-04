@@ -2695,9 +2695,20 @@ sealed class DocumentParser(string defaultFont)
             FontFamily = levelDef.FontFamily,
             ColorHex = levelDef.ColorHex,
             IndentPoints = levelDef.LeftIndentPoints,
-            HangingIndentPoints = levelDef.HangingIndentPoints
+            HangingIndentPoints = levelDef.HangingIndentPoints,
+            Format = levelDef.IsBullet ? ListNumberFormat.Bullet : MapNumberFormat(levelDef.NumberFormat)
         };
     }
+
+    // The five counter styles CSS list-style-type can name directly; everything else (ordinal,
+    // cardinal text, hex, decimal-enclosed variants) has no faithful CSS equivalent and falls
+    // through to Decimal, which is also the browser default.
+    static ListNumberFormat MapNumberFormat(NumberFormatValues format) =>
+        format == NumberFormatValues.UpperRoman ? ListNumberFormat.UpperRoman :
+        format == NumberFormatValues.LowerRoman ? ListNumberFormat.LowerRoman :
+        format == NumberFormatValues.UpperLetter ? ListNumberFormat.UpperLetter :
+        format == NumberFormatValues.LowerLetter ? ListNumberFormat.LowerLetter :
+        ListNumberFormat.Decimal;
 
     void ResetDeeperCounters(int abstractId, int incrementedIlvl, Dictionary<int, NumberingLevelDefinition> levels)
     {
@@ -3756,6 +3767,35 @@ sealed class DocumentParser(string defaultFont)
         }
     }
 
+    /// <summary>
+    /// A row's cells in document order, unwrapping any cell-level content control. Word wraps a
+    /// templated cell in <c>w:sdt</c> (an <see cref="SdtCell"/> whose <see cref="SdtContentCell"/>
+    /// holds the real <c>w:tc</c>), and reading only the row's DIRECT <c>w:tc</c> children dropped
+    /// those cells and everything in them — menus/03's "EVENT TITLE", resumes/19's Skills list and
+    /// wedding/11's venue block all live in one. The direct count also UNDER-shoots the grid
+    /// (newsletters/09 has a row of 4 direct cells against an 11-column grid), so the survivors
+    /// stretched to the wrong widths; unwrapping restores the exact grid column count. Order is
+    /// preserved so a row that mixes plain and wrapped cells keeps its left-to-right layout.
+    /// </summary>
+    static IEnumerable<DocumentFormat.OpenXml.Wordprocessing.TableCell> RowCells(
+        DocumentFormat.OpenXml.Wordprocessing.TableRow row)
+    {
+        foreach (var child in row.ChildElements)
+        {
+            if (child is DocumentFormat.OpenXml.Wordprocessing.TableCell cell)
+            {
+                yield return cell;
+            }
+            else if (child is SdtCell {SdtContentCell: { } content})
+            {
+                foreach (var wrapped in content.Elements<DocumentFormat.OpenXml.Wordprocessing.TableCell>())
+                {
+                    yield return wrapped;
+                }
+            }
+        }
+    }
+
     TableElement? ParseTableCore(Table table, MainDocumentPart mainPart)
     {
         var rows = new List<TableRow>();
@@ -3876,7 +3916,7 @@ sealed class DocumentParser(string defaultFont)
         var totalCols = gridColumnWidths?.Count ?? 0;
         if (totalCols == 0 && rowList.Count > 0)
         {
-            foreach (var cell in rowList[0].Elements<DocumentFormat.OpenXml.Wordprocessing.TableCell>())
+            foreach (var cell in RowCells(rowList[0]))
             {
                 var span = cell.GetFirstChild<OoxmlTableCellProperties>()?.GetFirstChild<GridSpan>()?.Val?.Value ?? 1;
                 totalCols += span;
@@ -3890,7 +3930,7 @@ sealed class DocumentParser(string defaultFont)
             var gridColIndex = 0;
             var rowFlags = ParseConditionalFormatFlags(row.GetFirstChild<TableRowProperties>()?.GetFirstChild<ConditionalFormatStyle>());
 
-            foreach (var cell in row.Elements<DocumentFormat.OpenXml.Wordprocessing.TableCell>())
+            foreach (var cell in RowCells(row))
             {
                 var cellContent = new List<DocumentElement>();
                 var cellProps = cell.GetFirstChild<OoxmlTableCellProperties>();
@@ -3979,11 +4019,13 @@ sealed class DocumentParser(string defaultFont)
                         bgColor = shading.Fill.Value;
                     }
 
-                    // Parse cell-level margins (which act as padding in Word)
+                    // Parse cell-level margins (which act as padding in Word). A partial w:tcMar
+                    // inherits its unspecified sides from the table's w:tblCellMar (doc, then style)
+                    // rather than zeroing them — see ParseCellMargin.
                     var tcMar = cellProps.GetFirstChild<TableCellMargin>();
                     if (tcMar != null)
                     {
-                        cellPadding = ParseCellMargin(tcMar);
+                        cellPadding = ParseCellMargin(tcMar, defaultCellPadding ?? styleInfo?.DefaultCellPadding);
                     }
                 }
 
@@ -4538,9 +4580,22 @@ sealed class DocumentParser(string defaultFont)
         return 0;
     }
 
-    internal static CellSpacing? ParseCellMargin(TableCellMargin margin)
+    /// <summary>
+    /// Parses a cell-level <c>w:tcMar</c> override. Per OOXML each side present in the override
+    /// replaces that side of the table's <c>w:tblCellMar</c>; sides that are ABSENT inherit the
+    /// table default rather than collapsing to zero. <paramref name="tableDefault"/> supplies that
+    /// per-side fallback (the document's <c>w:tblCellMar</c>, then the table style's). Returns null
+    /// only when the override carries no sides at all, letting the caller fall back to the table
+    /// default wholesale. Without this a partial override — e.g. a cover template's
+    /// <c>&lt;w:tcMar&gt;&lt;w:bottom w:w="0"/&gt;&lt;/w:tcMar&gt;</c> on a vAlign=bottom heading —
+    /// dropped the inherited top margin, crowding the heading against the row above (business-plans/04).
+    /// </summary>
+    internal static CellSpacing? ParseCellMargin(TableCellMargin margin, CellSpacing? tableDefault = null)
     {
-        double top = 0, right = 0, bottom = 0, left = 0;
+        var top = tableDefault?.Top ?? 0;
+        var right = tableDefault?.Right ?? 0;
+        var bottom = tableDefault?.Bottom ?? 0;
+        var left = tableDefault?.Left ?? 0;
         var hasAny = false;
 
         var topMargin = margin.TopMargin;
@@ -5507,7 +5562,7 @@ sealed class DocumentParser(string defaultFont)
                         }
                         else
                         {
-                            var wordArtElement = ParseWordArt(drawing, props.Alignment);
+                            var wordArtElement = ParseWordArt(drawing, mainPart, props.Alignment);
                             if (wordArtElement != null)
                             {
                                 // Emit current paragraph content before the WordArt
@@ -6190,7 +6245,19 @@ sealed class DocumentParser(string defaultFont)
                     continue;
                 }
 
-                var fill = shapeProps.GetFirstChild<A.SolidFill>();
+                // a:grpFill defers the fill to the ancestor group's a:solidFill — Word's brochure
+                // templates paint a whole cluster (brochures/06's accent stripes, its balloon
+                // silhouette) by filling the wpg:wgp once and letting each rect inherit it. Reading
+                // only the shape's own a:solidFill left every grpFill child with no colour, so they
+                // drew as nothing (their outline is a:noFill too). Mirror the floating path's
+                // resolution (ParseSolidFillShape) so inline groups pick up the same cluster colour.
+                var explicitNoFill = shapeProps.GetFirstChild<A.NoFill>() != null;
+                var fill = explicitNoFill ? null : shapeProps.GetFirstChild<A.SolidFill>();
+                if (fill == null && !explicitNoFill && shapeProps.GetFirstChild<A.GroupFill>() != null)
+                {
+                    fill = ResolveGroupFill(wsp);
+                }
+
                 var stroke = ReadGroupStroke(shapeProps, wsp.GetFirstChild<WPS.ShapeStyle>()?.LineReference);
 
                 // A wps:wsp can be picture-filled the same way a pic:pic is (Word's "fill a
@@ -8500,7 +8567,7 @@ sealed class DocumentParser(string defaultFont)
     /// Parses a Drawing element to extract a WordArt shape.
     /// Returns WordArtElement for inline WordArt, FloatingWordArtElement for anchored WordArt.
     /// </summary>
-    DocumentElement? ParseWordArt(Drawing drawing, TextAlignment alignment = TextAlignment.Left)
+    DocumentElement? ParseWordArt(Drawing drawing, MainDocumentPart mainPart, TextAlignment alignment = TextAlignment.Left)
     {
         // Get dimensions from Inline or Anchor
         long widthEmu = 0;
@@ -8697,6 +8764,25 @@ sealed class DocumentParser(string defaultFont)
                 // ExtractLineStyle resolves theme colours and the wps:style lnRef fallback.
                 (boxLineColor, var boxWidthPts, boxLineAlpha) = ShapeParser.ExtractLineStyle(wsp, spPr, currentThemeColors);
                 boxLineWidth = boxWidthPts ?? 0;
+
+                // An unwarped inline text box (Word routes these through the WordArt dispatch)
+                // renders as an ordinary text box: its glyph colour, size, weight and font follow
+                // the run's RESOLVED properties — direct run rPr over the paragraph style chain over
+                // the document defaults — not the WordArt defaults the first-run read above used.
+                // menus/03's "EVENT INTRO"/"EVENT DATE" labels carry NO run rPr, so their formatting
+                // lives entirely in the Heading1 -> Normal chain (10pt, w:color FFFFFF/background1);
+                // the WordArt drew them 36pt black (invisible on the dark band). ParseRunProperties
+                // is the body path's cascade (it folds in theme fonts and the auto-colour sentinel),
+                // so a directly-formatted text box resolves to the same values it already had.
+                var firstParagraph = txbxContent.Descendants<Paragraph>().FirstOrDefault();
+                var firstParagraphStyleId = firstParagraph?.ParagraphProperties?.ParagraphStyleId?.Val?.Value;
+                var firstRunProperties = txbxContent.Descendants<OoxmlRun>().FirstOrDefault()?.RunProperties;
+                var resolvedRun = ParseRunProperties(firstRunProperties, mainPart, firstParagraphStyleId);
+                fillColor = resolvedRun.ColorHex;
+                fontSize = resolvedRun.FontSizePoints;
+                bold = resolvedRun.Bold;
+                italic = resolvedRun.Italic;
+                fontFamily = resolvedRun.FontFamily;
             }
             else
             {

@@ -406,6 +406,16 @@ static class HtmlExporter
         {
             if (IsBlankForHtml(paragraph))
             {
+                // Word's letter/résumé templates space their blocks (date, address, greeting, body
+                // paragraphs, closing) with EMPTY paragraphs rather than paragraph spacing, and each
+                // is a real line. Silently dropping them — the obvious "skip empty blocks" move —
+                // collapses those gaps (cover-letters run together). Emit a one-line spacer instead,
+                // carrying the paragraph's own before/after spacing; the &nbsp; forces the line box a
+                // bare <p> would collapse. Matches the raster/PDF backends, which lay the empty line
+                // out at its font height.
+                Indent(depth).Append("<p");
+                AppendParagraphStyle(paragraph.Properties);
+                builder.Append(">&nbsp;</p>\n");
                 return;
             }
 
@@ -757,9 +767,20 @@ static class HtmlExporter
                 Indent(depth).Append('<').Append(tag);
                 if (ordered)
                 {
+                    var numbering = nodes[index].Paragraph.Properties.Numbering!;
+
+                    // Word's roman/letter markers (w:numFmt) become the CSS counter style — an <ol>
+                    // defaults to decimal, so without this every "I."/"a)" list renders "1.". Only
+                    // the four non-decimal styles need an override; decimal inherits and stays clean.
+                    var listStyle = ListStyleType(numbering.Format);
+                    if (listStyle != null)
+                    {
+                        builder.Append(" style=\"list-style-type: ").Append(listStyle).Append('"');
+                    }
+
                     // Carry the real start ordinal ("10." after a w:startOverride) so restarted /
                     // continued lists keep their numbers.
-                    var start = DocumentExportHelpers.ListStartNumber(nodes[index].Paragraph.Properties.Numbering!);
+                    var start = DocumentExportHelpers.ListStartNumber(numbering);
                     if (start is > 1)
                     {
                         builder.Append(" start=\"").Append(start.Value).Append('"');
@@ -790,6 +811,18 @@ static class HtmlExporter
 
             builder.Append("</li>\n");
         }
+
+        // The CSS list-style-type for an ordered level's counter style, or null for Decimal (the
+        // <ol> default, which needs no override). CSS names letter styles "alpha"; the ")" vs "."
+        // marker suffix isn't expressible via list-style-type and is left as the CSS default ".".
+        static string? ListStyleType(ListNumberFormat format) => format switch
+        {
+            ListNumberFormat.UpperRoman => "upper-roman",
+            ListNumberFormat.LowerRoman => "lower-roman",
+            ListNumberFormat.UpperLetter => "upper-alpha",
+            ListNumberFormat.LowerLetter => "lower-alpha",
+            _ => null
+        };
 
         void WriteTable(TableElement table, int depth)
         {
@@ -1111,6 +1144,19 @@ static class HtmlExporter
                             separatorPending = true;
                         }
 
+                        break;
+                    case ParagraphElement:
+                        // An empty cell paragraph is a blank line — Word's inter-line spacer inside
+                        // the cell (a résumé's contact block, a letter body). Reserve it with a
+                        // <br /> so "text / <empty> / text" keeps its gap instead of collapsing to a
+                        // single break; the body path spaces the same empty paragraph with a
+                        // one-line <p>. Left blank once (leading empty) contributes no break.
+                        if (separatorPending)
+                        {
+                            builder.Append("<br />");
+                        }
+
+                        separatorPending = true;
                         break;
                     case TableElement nestedTable:
                         builder.Append('\n');

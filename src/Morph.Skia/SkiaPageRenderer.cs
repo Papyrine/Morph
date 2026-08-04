@@ -415,11 +415,6 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
 
     protected override void RenderParagraph(ParagraphElement paragraph, DocumentElement? nextElement = null)
     {
-        // The caller's paragraph, before page-field substitution swaps it for a copy — a
-        // cross-reference is resolved against the document's own paragraphs, so that is the
-        // identity the recorded page has to be filed under.
-        var source = paragraph;
-
         // Substitute live page numbers for any PAGE/NUMPAGES/SECTIONPAGES field before measuring,
         // so wrapping and drawing both use the resolved text.
         paragraph = ResolveParagraphPageFields(paragraph);
@@ -531,10 +526,6 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         {
             EnsureSpaceFor(height);
         }
-
-        // Every break decision for this paragraph has now been taken, so this is the page it starts
-        // on rather than the one the renderer was on when it arrived.
-        context.ParagraphPages[source] = context.CurrentPageNumber;
 
         // Render the paragraph
         if (currentCanvas != null)
@@ -2531,7 +2522,8 @@ sealed class SkiaPageRenderer(SkiaRenderContext context) :
         }
     }
 
-    static SKPath BuildPolygonPath(FloatingShapeElement shape, float x, float y, float width, float height)
+    // Internal so SkiaPainter (the layout-engine raster path) can reuse the same custGeom subpath geometry.
+    internal static SKPath BuildPolygonPath(FloatingShapeElement shape, float x, float y, float width, float height)
     {
         var path = new SKPath();
         // Each sub-path is its own closed contour. SKPath's default Winding (nonzero) fill type

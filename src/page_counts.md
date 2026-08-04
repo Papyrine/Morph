@@ -1,14 +1,36 @@
 # Page-count divergence analysis
 
 Word page counts (Word COM via RenderHelper → `expected_*.png`) versus each backend's verified
-output (`skia_result#page_*`, `imagesharp_result#page_*`, `pdf_result#page_*`) across 321 scenario
+output (`skia_result#page_*`, `imagesharp_result#page_*`, `pdf_result#page_*`) across the scenario
 directories in `src/Tests/Inputs/`. The match is *recorded*, not asserted, by the scenario tests —
 these mismatches never fail the suite; closing them improves Word fidelity.
 
-**Current state (pass 4, experiment 19 committed): Skia 315, ImageSharp 315, PDF 316.** Eight
-scenarios still differ — business-plans/13/15, complex_spacing, cover-letters/06,
-image_wrap_square, newsletters/06, resumes/13, resumes/16. Pass 2 ended 307/307/301, so pass 4 is
-net +8/+8/+15.
+**Current state (full recount, 2026-07-25): Skia 322, ImageSharp 322, PDF 321 of 325 scenarios.**
+Only **four** scenarios still differ, and the previous "eight" list was stale — the recount was run
+after experiments 20/21 landed and four more scenarios were added to the corpus:
+
+| scenario | Word | Skia | ImageSharp | PDF | nature |
+|---|---|---|---|---|---|
+| business-plans/15 | 19 | 19 | 19 | **18** | PDF-only knife-edge (metric; PDF one line short) |
+| image_wrap_square | 2 | **3** | **3** | **3** | continuous two-column section (experiment 11 architecture — needs paragraph-split-across-columns + Skia parity + PDF routing) |
+| newsletters/06 | 4 | **6** | **6** | **6** | all-backend table knife-edge (see below) |
+| resumes/13 | 5 | **4** | **4** | **6** | the archetype: raster short, PDF over, Word between (metric) |
+
+Four of the previous eight now match Word on every backend — **business-plans/13, complex_spacing,
+cover-letters/06, resumes/16** — so they are no longer listed. The "experiment 19 committed:
+315/315/316 of 321" snapshot below is the historical figure the ledger was written against.
+
+**newsletters/06 is a near-full-page `atLeast`-table knife-edge, not a content rule.** Each of the
+four newspaper "pages" is one 10-row layout table whose explicit `w:trHeight` rows already sum to
+almost the full 746pt content height (table A 662pt + three auto rows; table B 713pt), all `atLeast`.
+The big text rows (row 7 `[7p,4empty]`, row 9 `[9p,5empty]`) hold body paragraphs separated by
+empty-paragraph spacers. A ~30–80pt cumulative over-measurement in those rows grows the table past
+the page, tipping the last ~184–216pt row (row 9) entirely onto a fresh page — measured: skia page 2
+fits with **13pt** to spare, then row 9 bumps, and the spilled row renders on a *white* page because
+the light-blue background is a float anchored to the section's first page. The empty spacers are NOT
+the lever (Word lays an empty paragraph out as a full line — verified on the `empty_paragraphs`
+scenario), so the residual is the raster text-line-height difference the root-cause lesson below
+calls a dead-end lever. Two of the four tables (the taller layout) cross the edge; the other two clear it.
 
 **The "backend-metric divergence" label on these was partly wrong.** business-plans/02 and /12 were
 both filed under it — Skia/ImageSharp and PdfSharp producing different per-line/per-cell heights,
@@ -232,6 +254,85 @@ This model took the scoreboard from 304/305/296 to 307/307/301 (pass 2).
 The PdfSharp implementation was a wash (zero count moves); the model is the keeper for any future
 wrap-width work.
 
+**Word probe (2026-08-01) — the ppem@120 grain is an approximation, not Word's model.** A fixture
+rendering a fixed string at 10–14pt in 0.5pt steps through Word at 150 dpi, measured by both ink-edge
+extent and ink-profile autocorrelation over two renders, puts W(10.5)/W(11) at **0.983 — not 1.000**:
+Word does *not* lay 10.5 and 11pt out identically. *The rest of this paragraph's conclusion — that Word
+sits between the models and the grain is an unreachable ceiling — was WRONG, and the 0.983 was a
+measurement artefact. Superseded by the 2026-08-02 probe below; kept only because it is cited elsewhere.*
+Word sits *between* the integer-ppem@120 model
+(which buckets both to em 10.8pt → ratio 1.000) and the raw-fractional model (10.5/11 → 0.955), and
+wanders per size, matching no integer ppem at any single dpi — DirectWrite fractional-plus-hinting.
+At 10.5pt the ppem@120 bucket (1.000) is actually the *closer* of the two to Word (0.983); raw
+fractional (0.955) is further, so going fractional over-corrects — too narrow, wraps late. The
+residual: ppem@120 over-widths 10 / 10.5pt text by ~2–3% versus Word, which is the visible early wrap
+on those documents (resumes/15's 10pt contact block, business/05's 10.5pt body). Because the error is
+*size-dependent*, no uniform knob corrects it — the per-font factor and FontWidthScale both washed for
+exactly this reason.
+
+### Ppem grain root-caused (2026-08-02) — Word does not quantize the em at all
+
+The probe above measured a doubled *sentence* and recovered its period by autocorrelation, which is
+noisy enough at these magnitudes to invent a result. Redone with a **repeated single glyph** — 60 `n`
+on one line, so the gap between consecutive ink starts IS the advance, averaged over 59 samples with
+no autocorrelation and no wrap — the picture is unambiguous, across Calibri, Aptos and Arial at 8–16pt:
+
+- **Every advance is an integer number of device pixels**, and the *distribution* is mixed
+  (11pt Calibri: 20×11px, 22×12px, 17×13px). Word rounds the pen POSITION to a whole pixel; it does
+  not round the advance.
+- **The mean of those integers tracks the nominal fractional advance**, within ~1% at most sizes
+  (Calibri 8pt 8.746 measured vs 8.757 nominal; 11pt 11.949 vs 12.040; 16pt 17.492 vs 17.513). So the
+  em is **not** quantized — there is no bucket.
+- W(10.5)/W(11) measures **0.952**, against raw-fractional's 0.955 and ppem@120's 1.000. Word *is*
+  fractional. The earlier 0.983 "between the models" reading does not reproduce.
+- No `hdmx` and no `LTSH` table in Calibri, Aptos or Arial, so there are no cached device metrics to
+  explain a per-ppem advance; FreeType's hinted advances do not match Word's either.
+
+**So the grain is the engine's own error, not a property of Word.** `Ppem(size) = round(size × 120/72)`
+quantizes the em onto a fixed 120-dpi grid regardless of the output resolution. At 10.5pt that is
+17.5 → **18** (+2.9% wide); at 11pt 18.33 → **18** (−1.8% narrow) — two sizes 4.5% apart in nominal
+width collapse onto one em. Measured against Word for Aptos over 8–16pt:
+
+| model | RMS error | worst swing between adjacent sizes |
+|---|---|---|
+| engine, `ppem@120` | 1.61% | **3.97%** (10pt +3.00% → 11pt −0.97%) |
+| plain fractional | 1.07% | **0.90%** |
+
+The RMS barely moves, and that is the point: **what breaks wrapping is not the magnitude of the error
+but its discontinuity.** A smooth systematic bias shifts every size alike and largely cancels in
+relative layout; the engine's error jitters by up to 4% between neighbouring point sizes, so a document
+set in 10 or 10.5pt wraps early while the same document at 11pt does not. That is precisely the
+observed symptom — resumes/15's 10pt contact block, business/05's 10.5pt body, and image_wrap_square's
+11pt density.
+
+**The fix direction is therefore to stop quantizing the em** (keep the nominal fractional advance) and
+round only the pen position, at the *actual* output DPI rather than a fixed 120. That is a change to
+`CanonicalTextMeasurer.Ppem`/`LinearPixels`/`PixelsToPoints` and it moves every wrap in the corpus, so
+it needs its own slice and a full re-measurement — but it is a modelling bug with a known direction,
+**not** the fidelity ceiling the earlier probe concluded. A residual smooth trend (−1% at 8pt to +2% at
+16pt, consistent across Aptos and Arial) is still unexplained and is the honest remaining unknown.
+
+**Landed, and it bought less than the diagnosis promised.** `Ppem` became `EmPixels` — the em is no
+longer rounded; only the accumulated pen position still quantizes, once per line, which is the part
+Word does share. Measured over the corpus: **aggregate +0.0006 against Word, 36 snapshots improved,
+218 flat, 18 regressed, and page-count agreement unchanged at 321/324** (the same three misses —
+business-plans/15, newsletters/06, resumes/13 — so removing the grain moved no page break at all). Best
+`agendas-minutes/09` +0.046; worst `business/06` −0.025 and `letters/10` −0.024, though the engine still
+beats the production fallback on letters/10 by +0.037 even after that.
+
+Two things it did **not** do, recorded so the next attempt does not assume otherwise:
+
+- **`image_wrap_square` is still a coverage hold-out.** The grain was worth about +0.012 there
+  (−0.0365 → −0.0242 against the production fallback), so it was a genuine cause but not the only one.
+  What accounts for the remaining 0.024 is now **uncharacterised** — do not re-attribute it to the
+  rasterization tail without measuring.
+- **It did not move the PDF flip** into range; a +0.0006-scale gain does not close −0.0050.
+
+The change shipped on correctness rather than on that payoff: the old model asserted 10.5pt and 11pt
+lay out identically, which the probe shows is false, and the assertion was pinned by two passing tests
+(`Ppem_quantizes_at_120_dpi` asserted the bucket; the pen-position test compared against the ideal at
+the *quantized* em, so it passed under either model). Both now assert the measured behaviour.
+
 ## Root-cause lessons
 
 **The text-metrics attribution is a measured dead end as a fix lever.** Raster once measured words
@@ -250,9 +351,17 @@ through `MoveToNextColumn` instead of forcing a page (two_columns), PDF implicit
 (two_columns, three_columns), the exact-row pre-advance `CurrentY > ContentTop` guard (blank
 leading page), and PDF WordArt reserving the shape's block height (wordart).
 
-**The remaining ten are backend-metric knife-edges.** Because Skia/ImageSharp and PdfSharp produce
-different heights for identical content, a given document's raster and PDF counts straddle Word and
-need opposite adjustments; resumes/13 is the archetype (raster 4, PDF 6, Word 5, page 1 pixel-exact
-after experiment 15). Closing them requires per-backend metric calibration against Word — a large
-change with corpus-wide regression risk against the ~310 currently matching — not another
+**The remaining four are backend-metric knife-edges** (see the corrected scoreboard at the top).
+Because Skia/ImageSharp and PdfSharp produce different heights for identical content, a given
+document's raster and PDF counts straddle Word and need opposite adjustments; resumes/13 is the
+archetype (raster 4, PDF 6, Word 5, page 1 pixel-exact after experiment 15). Closing them
+*within the current architecture* requires per-backend metric calibration against Word — a large
+change with corpus-wide regression risk against the ~320 currently matching — not another
 content-level rule.
+
+**The structural fix is to stop paginating per-backend.** The knife-edges are the symptom of three
+independent pagination engines (raster ×2, PDF) measuring and fragmenting the same content
+differently. `docs/layout-engine-proposal.md` sketches the "if effort is no object" answer: one
+backend-independent layout pass over a single canonical metric model, emitting a retained layout
+tree that each backend merely paints — so a document paginates once (matching Word once, not three
+times), and the knife-edge category dissolves rather than being calibrated away.

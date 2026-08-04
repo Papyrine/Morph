@@ -379,11 +379,6 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     protected override void RenderParagraph(ParagraphElement paragraph, DocumentElement? nextElement = null)
     {
-        // The caller's paragraph, before page-field substitution swaps it for a copy — a
-        // cross-reference is resolved against the document's own paragraphs, so that is the
-        // identity the recorded page has to be filed under.
-        var source = paragraph;
-
         // Substitute live page numbers for any PAGE/NUMPAGES/SECTIONPAGES field before measuring.
         paragraph = ResolveParagraphPageFields(paragraph);
 
@@ -473,10 +468,6 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         {
             EnsureSpaceFor(height);
         }
-
-        // Every break decision for this paragraph has now been taken, so this is the page it starts
-        // on rather than the one the renderer was on when it arrived.
-        context.ParagraphPages[source] = context.CurrentPageNumber;
 
         if (currentCanvas != null)
         {
@@ -1439,7 +1430,8 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
     /// <see cref="DrawingCanvas.Restore"/> to render content rotated in geometry space, avoiding
     /// the temp-image + <c>Mutate(_.Rotate(...))</c> + composite round trip.
     /// </summary>
-    static DrawingOptions BuildRotation(float radians, float pivotX, float pivotY) =>
+    // Internal so SkiaPainter's ImageSharp counterpart (ImageSharpPainter) can reuse the same shape rotation.
+    internal static DrawingOptions BuildRotation(float radians, float pivotX, float pivotY) =>
         new()
         {
             Transform = new(Matrix3x2.CreateRotation(radians, new(pivotX, pivotY)))
@@ -1984,7 +1976,7 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
             var path = BuildPath(shape, x, y, width, height);
             // DrawingCanvas.Fill takes no per-call options, so push the nonzero winding rule for
             // this fill via Save/Restore (the same mechanism used for rotated content).
-            currentCanvas!.Save(nonzeroFill);
+            currentCanvas!.Save(NonzeroFill);
             currentCanvas.Fill(brush, path);
             currentCanvas.Restore();
             return;
@@ -2008,19 +2000,19 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     /// <summary>The preset rect/ellipse as an unrotated path (rotation applies via
     /// <see cref="BuildRotation"/> around the box centre at the call sites).</summary>
-    static IPath BuildPresetPath(FloatingShapeElement shape, float x, float y, float width, float height) =>
+    internal static IPath BuildPresetPath(FloatingShapeElement shape, float x, float y, float width, float height) =>
         shape.Preset == PresetShape.Ellipse
             ? new EllipsePolygon(x + width / 2, y + height / 2, width, height)
             : new RectanglePolygon(x, y, width, height);
 
     // custGeom fills use nonzero winding to match SkiaSharp's default and DrawingML — without
     // this ImageSharp's default even-odd rule would punch holes wherever contours overlap.
-    static readonly DrawingOptions nonzeroFill = new()
+    internal static readonly DrawingOptions NonzeroFill = new()
     {
         ShapeOptions = new() { IntersectionRule = IntersectionRule.NonZero }
     };
 
-    static IPath BuildPath(FloatingShapeElement shape, float x, float y, float width, float height)
+    internal static IPath BuildPath(FloatingShapeElement shape, float x, float y, float width, float height)
     {
         var rotRad = (float) (shape.RotationDegrees * Math.PI / 180.0);
         var cos = (float) Math.Cos(rotRad);

@@ -71,7 +71,7 @@ public abstract class DocumentConverter
     }
 
     /// <summary>Reports the page each bookmark in a DOCX file falls on.</summary>
-    public IReadOnlyDictionary<string, int> GetBookmarkPages(string docxPath, ImageExportOptions? options = null)
+    public static IReadOnlyDictionary<string, int> GetBookmarkPages(string docxPath, ImageExportOptions? options = null)
     {
         using var stream = File.OpenRead(docxPath);
         return GetBookmarkPages(stream, options);
@@ -83,31 +83,33 @@ public abstract class DocumentConverter
     /// <remarks>
     /// A cross-reference — a PAGEREF field, or a table-of-contents entry — needs a page number that
     /// only layout can supply, which is why Word leaves those fields for itself to compute on open.
-    /// This lays the document out to answer the same question up front, so a generator can write the
+    /// This paginates the document to answer the same question up front, so a generator can write the
     /// numbers into the file it produces.
     /// <para>
-    /// The pages are laid out but not drawn, so this costs a layout pass rather than a full render.
-    /// Bookmarks the layout cannot place — one outside the body flow, or naming a paragraph that
-    /// never renders — are absent from the result rather than reported at a guessed page.
+    /// It costs a layout pass and nothing more: the answer comes off the <see cref="Fragmenter"/>'s
+    /// placed items, so no page is ever drawn and no backend is involved. Bookmarks that cannot be
+    /// placed — one outside the body flow, or in a document the engine does not cover — are absent
+    /// from the result rather than reported at a guessed page.
     /// </para>
     /// </remarks>
-    public IReadOnlyDictionary<string, int> GetBookmarkPages(Stream docxStream, ImageExportOptions? options = null)
+    public static IReadOnlyDictionary<string, int> GetBookmarkPages(Stream docxStream, ImageExportOptions? options = null)
     {
         options ??= new();
-        DefaultFontSettings.MarkRenderOccurred();
+        var pages = new Dictionary<string, int>(StringComparer.Ordinal);
 
         var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.DefaultFont).Parse(docxStream);
-        if (document.Bookmarks.Count == 0)
+        if (document.Bookmarks.Count == 0 ||
+            !EngineCoverage.Covers(document))
         {
-            return new Dictionary<string, int>(StringComparer.Ordinal);
+            return pages;
         }
 
-        var paragraphPages = MeasureParagraphPages(document, options);
+        DefaultFontSettings.MarkRenderOccurred();
+        var paragraphPages = ParagraphPages(document, options);
 
         // A bookmark knows the ordinal of the body paragraph it sits in; layout knows where that
         // paragraph landed. Joining the two is the whole trick.
         var bodyParagraphs = document.Elements.OfType<ParagraphElement>().ToList();
-        var pages = new Dictionary<string, int>(StringComparer.Ordinal);
         foreach (var bookmark in document.Bookmarks)
         {
             if (bookmark.ParagraphIndex is not { } index ||
@@ -119,6 +121,40 @@ public abstract class DocumentConverter
             }
 
             pages[bookmark.Name] = page;
+        }
+
+        return pages;
+    }
+
+    // The page each paragraph starts on, read straight off the laid-out tree: a placed line is
+    // anchored back to the paragraph it came from, and the page it sits on knows its own number. A
+    // paragraph split across a page boundary contributes lines to both, so the lowest page wins —
+    // a cross-reference points at where the paragraph begins.
+    static Dictionary<ParagraphElement, int> ParagraphPages(ParsedDocument document, ImageExportOptions options)
+    {
+        using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
+        var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale);
+        var laidOut = new Fragmenter(measurer).Layout(
+            document.Elements,
+            document.PageSettings,
+            document.Header,
+            document.Footer,
+            document.FirstPageHeader,
+            document.FirstPageFooter,
+            document.EvenPageHeader,
+            document.EvenPageFooter);
+
+        var pages = new Dictionary<ParagraphElement, int>();
+        foreach (var page in laidOut.Pages)
+        {
+            foreach (var line in page.Items.OfType<PlacedLine>())
+            {
+                if (!pages.TryGetValue(line.Paragraph, out var existing) ||
+                    page.Number < existing)
+                {
+                    pages[line.Paragraph] = page.Number;
+                }
+            }
         }
 
         return pages;
@@ -156,9 +192,4 @@ public abstract class DocumentConverter
     /// </summary>
     /// <returns>Number of pages produced.</returns>
     private protected abstract int RenderPages(ParsedDocument document, ImageExportOptions options, Action<Action<Stream>> pageCallback);
-
-    /// <summary>
-    /// Lays the document out without drawing it, reporting the page each paragraph starts on.
-    /// </summary>
-    private protected abstract IReadOnlyDictionary<ParagraphElement, int> MeasureParagraphPages(ParsedDocument document, ImageExportOptions options);
 }

@@ -1185,7 +1185,7 @@ sealed class PdfPageRenderer : PageRendererBase
     // Builds a path from custom geometry: each sub-path is its own closed contour, filled with
     // nonzero winding so oppositely-wound nested contours read as holes (matching DrawingML's
     // default custGeom fill) rather than fusing into one polygon.
-    static XGraphicsPath BuildShapePath(FloatingShapeElement shape, double x, double y, double width, double height)
+    internal static XGraphicsPath BuildShapePath(FloatingShapeElement shape, double x, double y, double width, double height)
     {
         var path = new XGraphicsPath
         {
@@ -1229,7 +1229,7 @@ sealed class PdfPageRenderer : PageRendererBase
 
     // Linear gradient mirroring the Skia/ImageSharp backends: angle 0° points along +X, clockwise
     // positive (OOXML a:lin/@ang), projected onto the bounding box as start/end points.
-    static XLinearGradientBrush BuildGradientBrush(GradientFill gradient, double x, double y, double width, double height)
+    internal static XLinearGradientBrush BuildGradientBrush(GradientFill gradient, double x, double y, double width, double height)
     {
         var radians = gradient.DirectionDegrees * Math.PI / 180.0;
         var directionX = Math.Cos(radians);

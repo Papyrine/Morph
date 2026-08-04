@@ -9,6 +9,14 @@ static class PdfRenderer
     {
         options ??= new();
 
+        // Phase B: the engine renders the documents it covers; everything else falls through to the
+        // production PdfTextEngine path below. Gated behind MORPH_PDF_ENGINE while the fragmenter's
+        // emission gaps close (each Phase C slice widens EngineCoverage).
+        if (Environment.GetEnvironmentVariable("MORPH_PDF_ENGINE") != null && EngineCoverage.Covers(document))
+        {
+            return RenderViaEngine(document, options);
+        }
+
         var totalPageCount = CountPagesIfRequired(document, options);
 
         var context = new PdfRenderContext(
@@ -38,6 +46,47 @@ static class PdfRenderer
 
         using var stream = new MemoryStream();
         context.Document.Save(stream, closeStream: false);
+        context.DisposeImages();
+        return Normalize(stream.ToArray());
+    }
+
+    // Phase A of the layout-engine PDF cutover (docs/layout-engine-proposal.md, "The PDF cutover (step 5)"):
+    // paginate with the backend-independent Fragmenter and draw with PdfPainter, in place of
+    // PdfPageRenderer + PdfTextEngine. Gated behind MORPH_PDF_ENGINE so both paths coexist while the
+    // fragmenter's emission gaps close. The byte-reproducibility post-processing (MakeDeterministic /
+    // TrimPages / Normalize) is shared with the production path — PdfPainter builds its own PdfDocument, so
+    // it applies unchanged. The engine knows its own page total (LaidOutDocument.Pages.Count), so no
+    // NUMPAGES pre-count pass runs here; per-section NUMPAGES restart is a later slice. Internal so a test
+    // can drive the engine path directly, without toggling the process-global MORPH_PDF_ENGINE env var.
+    internal static byte[] RenderViaEngine(ParsedDocument document, PdfExportOptions options)
+    {
+        using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
+        var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale);
+        var laidOut = new Fragmenter(measurer).Layout(
+            document.Elements,
+            document.PageSettings,
+            document.Header,
+            document.Footer,
+            document.FirstPageHeader,
+            document.FirstPageFooter,
+            document.EvenPageHeader,
+            document.EvenPageFooter);
+
+        // The painter's context resolves fonts with the conversion's own width scale, fallback and
+        // compatibility settings — the same values LayoutFonts gave the measurer above. They have to agree:
+        // the measurer decides where a line breaks, the painter draws it, and a painter resolving a different
+        // face would put text off its measured line.
+        var context = PdfPainter.NewContext(laidOut, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory);
+        var pdf = PdfPainter.Paint(laidOut, context, options.RasterizeWordArt, options.OnWarning);
+
+        MakeDeterministic(pdf);
+        if (options.Pages is { } range)
+        {
+            TrimPages(pdf, range);
+        }
+
+        using var stream = new MemoryStream();
+        pdf.Save(stream, closeStream: false);
         context.DisposeImages();
         return Normalize(stream.ToArray());
     }

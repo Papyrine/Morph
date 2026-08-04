@@ -14,23 +14,23 @@ Meeting minutes
 
 Facilitator Name called to order the regular meeting of the Marketing & sales team at location or time on date
 
-1. **Roll call**
+2. **Roll call**
 
 Facilitator Name conducted a roll call. The following persons were present: Marketing & sales team
 
-1. **Approval of minutes from last meeting**
+3. **Approval of minutes from last meeting**
 
 Facilitator Name read the minutes from the last meeting. The minutes were approved as read.
 
-1. **Open issues**
+4. **Open issues**
     1. Budget assessment 
     2. Building maintenance 
     3. Board chair elections 
-2. **New business**
+5. **New business**
     1. Marketing & sales team 
     2. Marketing & sales team 
     3. Marketing & sales team 
-3. **Adjournment**
+6. **Adjournment**
 
 Facilitator Name adjourned the meeting at location or time.
 

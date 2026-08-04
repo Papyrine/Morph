@@ -7,6 +7,15 @@ public sealed class SkiaDocumentConverter : DocumentConverter
 {
     private protected override int RenderPages(ParsedDocument document, ImageExportOptions options, Action<Action<Stream>> pageCallback)
     {
+        // Step 6 raster cutover (docs/layout-engine-proposal.md): the engine paginates and SkiaPainter draws
+        // the documents it covers — the default now that it covers 98.8% of the corpus at production parity;
+        // everything else falls through to the production SkiaPageRenderer path. MORPH_SKIA_ENGINE=off forces
+        // the production path (a kill switch while the last emission gaps — warp WordArt, float wrap — close).
+        if (Environment.GetEnvironmentVariable("MORPH_SKIA_ENGINE") != "off" && EngineCoverage.Covers(document))
+        {
+            return RenderViaEngine(document, options, pageCallback);
+        }
+
         var totalPageCount = CountPagesIfRequired(document, options);
 
         using var context = new SkiaRenderContext(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory, options.DeterministicRendering)
@@ -18,17 +27,27 @@ public sealed class SkiaDocumentConverter : DocumentConverter
         return renderer.RenderDocument(document, pageCallback);
     }
 
-    private protected override IReadOnlyDictionary<ParagraphElement, int> MeasureParagraphPages(ParsedDocument document, ImageExportOptions options)
+    // Paginate with the backend-independent Fragmenter and draw with SkiaPainter, in place of
+    // SkiaPageRenderer + PageRendererBase + TextRenderer. Internal so a test can drive the engine path
+    // directly without the process-global MORPH_SKIA_ENGINE toggle. The engine knows its own page total
+    // (LaidOutDocument.Pages.Count), so no NUMPAGES pre-count pass runs here.
+    internal static int RenderViaEngine(ParsedDocument document, ImageExportOptions options, Action<Action<Stream>> pageCallback)
     {
-        // CountOnly lays the document out without encoding any pixels, which is all a page number
-        // needs — the same pass NUMPAGES already relies on.
-        using var context = new SkiaRenderContext(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory, options.DeterministicRendering)
-        {
-            TotalPageCount = CountPagesIfRequired(document, options)
-        };
-        using var renderer = new SkiaPageRenderer(context) {CountOnly = true};
-        renderer.RenderDocument(document, _ => { });
-        return context.ParagraphPages;
+        using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
+        var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale);
+        var laidOut = new Fragmenter(measurer).Layout(
+            document.Elements,
+            document.PageSettings,
+            document.Header,
+            document.Footer,
+            document.FirstPageHeader,
+            document.FirstPageFooter,
+            document.EvenPageHeader,
+            document.EvenPageFooter);
+
+        using var context = new SkiaRenderContext(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory, options.DeterministicRendering);
+        SkiaPainter.Paint(laidOut, context, pageCallback);
+        return laidOut.Pages.Count;
     }
 
     // A NUMPAGES/SECTIONPAGES field needs the final page total, which is only known after the
