@@ -2276,7 +2276,7 @@ Numbered references with content at the bottom of the page.
 - **OOXML**: `footnotes.xml` part, `w:footnoteReference` in document
 - **Model**: `Footnote` record (id, flat text); `ParsedDocument.Footnotes`; the reference run carries the citation-order number as superscripted `Text` plus `FootnoteReferenceId`
 - **Parse**: `DocumentParser.ExtractFootnotes()` reads `FootnotesPart`, skipping the built-in separator entries (`type` ≠ Normal). Reference marks number by citation order (`footnoteCitationNumbers` — footnotes.xml ids start at 2, so ids are never the display number; repeat citations reuse their number) and render through the ordinary superscript path in every backend. The exporters branch on `FootnoteReferenceId` before `Text` and keep their own marker emission.
-- **Render**: `RenderNotesAppendix` in each `PageRenderer` — Skia, ImageSharp AND PDF — appends a "Footnotes" section after the body content, numbering entries sequentially to match the citation marks. Page-bottom placement isn't implemented — footnotes render at document end alongside endnotes.
+- **Render**: the shared `NotesAppendix` builder appends a "Footnotes" section after the body content, numbering entries sequentially to match the citation marks — the layout engine appends it to the element flow (`NotesAppendix.AppendTo` at each `RenderViaEngine`) and each production `PageRenderer`'s `RenderNotesAppendix` renders the same builder's paragraphs. Page-bottom placement isn't implemented — footnotes render at document end alongside endnotes.
 
 > **AI**: True page-bottom placement requires reserving footnote space during pagination measurement (currently we only know paragraph heights at draw time). The appendix rendering preserves all the footnote text so consumers can still find it; consumers who require Word-style page-bottom placement should pre-process the docx.
 
@@ -2288,7 +2288,7 @@ Numbered references with content at the end of the document or section.
 - **OOXML**: `endnotes.xml` part, `w:endnoteReference` in document
 - **Model**: `Endnote` record (id, flat text); `ParsedDocument.Endnotes`
 - **Parse**: `DocumentParser.ExtractEndnotes()` reads `EndnotesPart`, skipping the built-in separator entries
-- **Render**: `RenderNotesAppendix` appends an "Endnotes" section after the body content (and after Footnotes if both are present) with each entry rendered as `id. text` paragraphs.
+- **Render**: the shared `NotesAppendix` builder appends an "Endnotes" section after the body content (and after Footnotes if both are present) with each entry rendered as numbered paragraphs — on both the layout-engine and production paths.
 
 > **AI**: Section-end placement (one endnote group per section break) is not modelled; everything renders at document end. The `w:endnoteReference` characters in the body still don't draw the reference number — only the body text comes through.
 
