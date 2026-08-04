@@ -5,15 +5,15 @@
     {
       "Page": 1,
       "ErrorMetric": 0.0092,
-      "Ssim": 0.982,
+      "Ssim": 0.9815,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "imagesharp_result#page_0001.verified.png",
       "ReceivedFile": "imagesharp_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0559,
-      "Ssim": 0.9241,
+      "ErrorMetric": 0.0543,
+      "Ssim": 0.9265,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "imagesharp_result#page_0002.verified.png",
       "ReceivedFile": "imagesharp_result#page_0002.received.png"
@@ -36,88 +36,88 @@
     },
     {
       "Page": 5,
-      "ErrorMetric": 0.0174,
-      "Ssim": 0.968,
+      "ErrorMetric": 0.0218,
+      "Ssim": 0.9623,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "imagesharp_result#page_0005.verified.png",
       "ReceivedFile": "imagesharp_result#page_0005.received.png"
     },
     {
       "Page": 6,
-      "ErrorMetric": 0.0179,
-      "Ssim": 0.969,
+      "ErrorMetric": 0.0195,
+      "Ssim": 0.9654,
       "ExpectedFile": "expected_0006.png",
       "VerifiedFile": "imagesharp_result#page_0006.verified.png",
       "ReceivedFile": "imagesharp_result#page_0006.received.png"
     },
     {
       "Page": 7,
-      "ErrorMetric": 0.0335,
-      "Ssim": 0.9372,
+      "ErrorMetric": 0.0297,
+      "Ssim": 0.9454,
       "ExpectedFile": "expected_0007.png",
       "VerifiedFile": "imagesharp_result#page_0007.verified.png",
       "ReceivedFile": "imagesharp_result#page_0007.received.png"
     },
     {
       "Page": 8,
-      "ErrorMetric": 0.038,
-      "Ssim": 0.9406,
+      "ErrorMetric": 0.0317,
+      "Ssim": 0.9414,
       "ExpectedFile": "expected_0008.png",
       "VerifiedFile": "imagesharp_result#page_0008.verified.png",
       "ReceivedFile": "imagesharp_result#page_0008.received.png"
     },
     {
       "Page": 9,
-      "ErrorMetric": 0.0331,
-      "Ssim": 0.9411,
+      "ErrorMetric": 0.0324,
+      "Ssim": 0.9389,
       "ExpectedFile": "expected_0009.png",
       "VerifiedFile": "imagesharp_result#page_0009.verified.png",
       "ReceivedFile": "imagesharp_result#page_0009.received.png"
     },
     {
       "Page": 10,
-      "ErrorMetric": 0.0462,
-      "Ssim": 0.9438,
+      "ErrorMetric": 0.0238,
+      "Ssim": 0.9615,
       "ExpectedFile": "expected_0010.png",
       "VerifiedFile": "imagesharp_result#page_0010.verified.png",
       "ReceivedFile": "imagesharp_result#page_0010.received.png"
     },
     {
       "Page": 11,
-      "ErrorMetric": 0.0257,
-      "Ssim": 0.962,
+      "ErrorMetric": 0.0292,
+      "Ssim": 0.9479,
       "ExpectedFile": "expected_0011.png",
       "VerifiedFile": "imagesharp_result#page_0011.verified.png",
       "ReceivedFile": "imagesharp_result#page_0011.received.png"
     },
     {
       "Page": 12,
-      "ErrorMetric": 0.0135,
-      "Ssim": 0.9758,
+      "ErrorMetric": 0.0154,
+      "Ssim": 0.9741,
       "ExpectedFile": "expected_0012.png",
       "VerifiedFile": "imagesharp_result#page_0012.verified.png",
       "ReceivedFile": "imagesharp_result#page_0012.received.png"
     },
     {
       "Page": 13,
-      "ErrorMetric": 0.0086,
-      "Ssim": 0.9833,
+      "ErrorMetric": 0.012,
+      "Ssim": 0.9785,
       "ExpectedFile": "expected_0013.png",
       "VerifiedFile": "imagesharp_result#page_0013.verified.png",
       "ReceivedFile": "imagesharp_result#page_0013.received.png"
     },
     {
       "Page": 14,
-      "ErrorMetric": 0.0323,
-      "Ssim": 0.9468,
+      "ErrorMetric": 0.0307,
+      "Ssim": 0.9482,
       "ExpectedFile": "expected_0014.png",
       "VerifiedFile": "imagesharp_result#page_0014.verified.png",
       "ReceivedFile": "imagesharp_result#page_0014.received.png"
     },
     {
       "Page": 15,
-      "ErrorMetric": 0.022,
-      "Ssim": 0.957,
+      "ErrorMetric": 0.0211,
+      "Ssim": 0.9618,
       "ExpectedFile": "expected_0015.png",
       "VerifiedFile": "imagesharp_result#page_0015.verified.png",
       "ReceivedFile": "imagesharp_result#page_0015.received.png"

@@ -125,7 +125,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### agendas-minutes/15
 
 - MEDIUM | skia,imagesharp | p1 | Numbered-list continuation lines indented deeper than Word (wrap lines don't return to the hanging-indent column), changing item 4's wrap ("...ribbon, click / an Insert option." vs Word's "...click an / Insert option.")
-- MINOR | all | p1 | Body text drifts a few px lower down the page and the action-items table (dark green header bar) sits ~10px lower than Word. Measured 2026-08-02: the body line pitch is ~0.6pt too tall in BOTH renderers (production +0.640pt/line, engine +0.587pt — the engine is marginally the better of the two), accumulating to ~15px by the foot of the page. It is the shared height-model tail, not a placement bug: band 0 starts within 1px of Word in both. This is what the engine's −0.023 on the first-page space-before fix exposed — the old engine began the page ~20pt high and the two errors partly cancelled.
+- MINOR | all | p1 | Body sits a constant ~6px above Word from the date block down (band 2 is +10, then −6 steady — a one-time element-height difference in the title/date area, not accumulation). The former ~0.6pt/line pitch drift is FIXED (2026-08-04): it was the parser's invented 1.04/1.08 default line-spacing multipliers — Word probes showed absent `w:line` is exactly single (see `DocumentParser`'s `lineSpacingMultiplier` comment); per-line pitch now matches Word identically.
 - CLEAN: html
 
 ### agendas-minutes/16
@@ -1391,7 +1391,7 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 ### resumes/01
 
-- MINOR | all | p1 | body content drifts upward slightly (~8-15px by the bottom of the page). Root-caused 2026-08-04 (Word probes, see `TableHeightCalculator` pass-4 comment): the drift is the shared line-pitch excess (~+1pt per body line vs Word) plus ~4px accrued over the pre-rule rows; the production paths additionally run the two 2.25pt-rule spacer rows 2.25pt short (no interior-edge growth), which partially cancels their drift — the layout engine's rows match Word (16.21pt vs Word's measured 16.22pt) and show the shared drift undamped. Fix is the pitch tail, not the rows.
+- FIXED 2026-08-04: the former upward drift was the invented default line-spacing multiplier (see agendas-minutes/15); with absent `w:line` treated as single per the Word probe, the engine tracks Word within 0–4px over the whole page (was drifting to +27px). The spacer-row analysis stands in `TableHeightCalculator`'s pass-4 comment.
 
 ### resumes/02
 

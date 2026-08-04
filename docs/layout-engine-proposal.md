@@ -393,7 +393,12 @@ The checklist is landed through step 6; what is left, most-blocking first:
    silent-absence guard: eight scenarios' metrics are suppressed by standing page-count mismatches vs Word
    and seven more changed pixels without metric rows — all listed by the gate as unverified rather than
    passing silently. Closing the remaining −0.0009-to-bar needs either the image/gradient rasterization work
-   or the shared line-pitch tail, not another measurer sweep.
+   or the shared line-pitch tail, not another measurer sweep. **The pitch tail has since been root-caused
+   and FIXED (2026-08-04): the parser's invented default line-spacing multipliers (1.04 on the style path,
+   1.08 on the style-less-paragraph path) where Word treats an absent `w:line` as exactly single — probed
+   with long wrapping paragraphs at ±0.35px resolution, full ledger in `src/page_counts.md`. Corpus-wide
+   the correction measured +0.0079 aggregate SSIM with page counts moving only TOWARD Word — so the flip
+   deserves one more measurement on the new baselines.**
 
    **The `resumes/01` / `compatibility_mode_14` breach pair (−0.045 each) is root-caused (2026-08-04), and
    the engine is the *correct* side of it.** The two are byte-identical templates: a résumé table whose
@@ -403,13 +408,14 @@ The checklist is landed through step 6; what is left, most-blocking first:
    2.25pt interior-edge growth the engine opts into and production does not. Two Word probes settled which
    is right: interior horizontal edges grow the row by the **full** border width (measured at 0.5 / 2.25 /
    4.5 / 6pt insideH and with per-cell authored borders — all full width, content inset below the drawn
-   edge), and an empty spacer row is one mark line under the inherited ~1.04 multiplier (13.97pt — forcing
-   `w:line="240"` measurably shrinks it, so the multiplier is Word's too). Word's spacer row is therefore
-   13.97 + 2.25 = 16.22pt; the engine computes 16.21. Production still *scores* closer to Word on this page
-   because its −2.25pt-per-spacer shortfall partially cancels a separate drift both paths share (~+1pt of
-   line pitch per body line vs Word, plus ~4px accrued over the pre-rule rows) — a compensating-error pair
-   that the engine's correct rows unmask. There is no engine defect to fix here; the breach clears when the
-   shared pitch tail does.
+   edge), and an empty spacer row is one mark line plus the full edge. (The first spacer probe read the
+   mark line as carrying a ~1.04 inherited multiplier; the later higher-precision wrapping-paragraph probe
+   corrected that — absent `w:line` is exactly single, and the 1.04 was Morph's own invented default
+   reflected back by the comparison render.) Production still *scored* closer to Word on this page because
+   its −2.25pt-per-spacer shortfall partially cancelled the multiplier drift both paths shared — a
+   compensating-error pair the engine's correct rows unmasked. With the single-spacing fix landed the
+   engine tracks Word within 0–4px over resumes/01's whole page, and the pair flipped from the two worst
+   PDF-gate breaches (−0.045 each) to two of its biggest wins (+0.06 to +0.11).
 2. **Coverage is total — 325/325, asserted by `EngineCoverageTests` — and the ascent defect that held the
    last document out is fixed.** `image_wrap_square` was a Calibri document whose whole body sat 10px high
    because `CanonicalParagraphMeasurer.AscentPoints` put the baseline at hhea `Ascender` where Word (GDI)

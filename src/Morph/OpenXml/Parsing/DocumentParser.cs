@@ -186,9 +186,11 @@ sealed class DocumentParser(string defaultFont)
     TextAlignment defaultAlignment = TextAlignment.Left;
 
     // Document default line spacing, used when no style supplies one. Word's built-in Normal
-    // applies only when the document declares no styles.xml or no docDefaults (see
-    // ExtractDefaultParagraphProperties); otherwise this keeps its long-standing 1.08.
-    double defaultLineSpacingMultiplier = 1.08;
+    // (line=278) applies only when the document declares no styles.xml or no docDefaults (see
+    // ExtractDefaultParagraphProperties); a document that DOES declare docDefaults without a
+    // w:line is single-spaced — Word-probed 2026-08-04 alongside the style-path fallback above
+    // (an invented 1.08 lived here and was part of the same corpus-wide pitch drift).
+    double defaultLineSpacingMultiplier = 1.0;
 
     // Document-wide line multiplier from docDefaults/pPrDefault/w:spacing/@w:line, read only under
     // the auto rule (under exact/atLeast it is a twip measurement and belongs to the per-paragraph
@@ -1597,14 +1599,18 @@ sealed class DocumentParser(string defaultFont)
                 var alignment = baseProps?.Alignment ?? defaultAlignment;
                 var spacingBefore = baseProps?.SpacingBeforePoints ?? defaultSpacingBeforePoints;
                 var spacingAfter = baseProps?.SpacingAfterPoints ?? defaultSpacingAfterPoints;
-                // 1.04 is invented, and applies only where the document declares no docDefaults
-                // w:line for the cascade to supply. OOXML says an absent w:spacing/@w:line is
-                // SINGLE, i.e. the font's own line box, which line.Height already carries, but 1.0
-                // measures right only in isolation: moving it alone costs more than it gains
-                // (123 scenarios, 40 better / 67 worse).
+                // OOXML says an absent w:spacing/@w:line is SINGLE — the font's own line box —
+                // and a Word probe confirms it directly (2026-08-04, long wrapping paragraphs
+                // in the resumes/01 and agendas-minutes/15 packages, both styles.xml-bearing:
+                // inherited pitch == explicit w:line="240" == the hhea box, for Calibri Light,
+                // Segoe UI and Aptos alike; ×1.04 would have been +1.1px/line and the measurement
+                // resolves ±0.35px). An invented 1.04 lived here for a long time because moving it
+                // to 1.0 alone once measured worse (40 better / 67 worse) — that verdict predated
+                // the Ppem, usWinAscent, interior-border and atLeast-row fixes it was compensating
+                // for, and it was the corpus-wide "~0.6-1pt/line too tall" drift vs Word.
                 var lineSpacingMultiplier = baseProps?.LineSpacingMultiplier
                                             ?? docDefaultLineSpacingMultiplier
-                                            ?? 1.04;
+                                            ?? 1.0;
                 var lineSpacingPoints = baseProps?.LineSpacingPoints ?? 0;
                 var lineSpacingRule = baseProps?.LineSpacingRule ?? LineSpacingRule.Auto;
                 var firstLineIndent = baseProps?.FirstLineIndentPoints ?? 0;
@@ -9500,7 +9506,7 @@ sealed class DocumentParser(string defaultFont)
         var spacingAfter = styleDefaults?.SpacingAfterPoints ?? defaultSpacingAfterPoints;
         // When no style applies (bare docx without styles.xml), Word falls back to its built-in
         // Normal style — see defaultLineSpacingMultiplier, which carries that value only when the
-        // document declares no styles.xml or no docDefaults, and 1.08 otherwise.
+        // document declares no styles.xml or no docDefaults, and single spacing otherwise.
         var lineSpacingMultiplier = styleDefaults?.LineSpacingMultiplier
                                     ?? docDefaultLineSpacingMultiplier
                                     ?? defaultLineSpacingMultiplier;
