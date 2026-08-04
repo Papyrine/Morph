@@ -536,10 +536,26 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // leading run stands in only when the mark carries no rPr: falling straight to a fresh RunProperties
     // (default font, 11pt) shrank empty spacer lines. The mark must win over a run to avoid a zero-length
     // leading run — a deleted-text artefact whose font differs from the mark (resumes/11 parks an empty
-    // 11pt run over an 8pt mark) — over-sizing the spacer line by half a line each.
-    static RunProperties MarkProperties(ParagraphElement paragraph) =>
-        paragraph.Properties.ParagraphMarkRunProperties
-        ?? (paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new RunProperties());
+    // 11pt run over an 8pt mark) — over-sizing the spacer line by half a line each. With neither rPr nor a
+    // run, a bare ParagraphMarkFontSizePoints still sizes the mark at the default face — again mirroring
+    // PdfTextEngine (`ParagraphMarkFontSizePoints ?? 11`): cards/05's header holds an empty 2pt-mark
+    // paragraph, and ignoring the size reserved a full 11pt header line, starting every card table 11pt low.
+    static RunProperties MarkProperties(ParagraphElement paragraph)
+    {
+        if (paragraph.Properties.ParagraphMarkRunProperties is { } markProperties)
+        {
+            return markProperties;
+        }
+
+        if (paragraph.Runs.Count > 0)
+        {
+            return paragraph.Runs[0].Properties;
+        }
+
+        return paragraph.Properties.ParagraphMarkFontSizePoints is { } markSize
+            ? new() { FontSizePoints = markSize }
+            : new();
+    }
 
     // Splits text into maximal runs of spaces vs non-spaces (U+0020 only — the inter-word break),
     // matching CanonicalTextMeasurer.WrapLines.
