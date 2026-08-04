@@ -47,6 +47,7 @@ static class EngineCoverage
                 // A positioned text frame (w:framePr, lifted out of the flow by FrameGrouper) auto-sizes to its
                 // paragraphs and paints at its resolved anchor position, taking no flow space.
                 case PositionedFrameElement:
+                case HorizontalRuleElement:
                     break;
                 case TableElement table when IsSimpleTable(table):
                     break;

@@ -46,10 +46,9 @@ public class ConsecutivePageBreakTests
             }
         };
 
-        using var context = new SkiaRenderContext(document.PageSettings, 96, fontDirectory: ProjectFonts.Directory);
-        using var renderer = new SkiaPageRenderer(context) {CountOnly = true};
+        var options = new ImageExportOptions {Dpi = 96, FontDirectory = ProjectFonts.Directory};
 
-        await Assert.That(renderer.RenderDocument(document, _ => { })).IsEqualTo(expectedPages);
+        await Assert.That(SkiaDocumentConverter.RenderViaEngine(document, options, _ => { })).IsEqualTo(expectedPages);
     }
 
     static ParagraphElement Paragraph(string text) =>

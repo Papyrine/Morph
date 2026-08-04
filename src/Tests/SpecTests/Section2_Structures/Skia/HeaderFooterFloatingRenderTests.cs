@@ -1,4 +1,4 @@
-extern alias Skia;
+﻿extern alias Skia;
 using SkiaSharp;
 
 /// <summary>
@@ -15,11 +15,10 @@ public class HeaderFooterFloatingRenderTests
 
     static byte[] RenderDocument(ParsedDocument doc)
     {
-        using var context = new SkiaRenderContext(doc.PageSettings, 96, fontDirectory: ProjectFonts.Directory);
-        using var renderer = new SkiaPageRenderer(context);
+        var options = new ImageExportOptions {Dpi = 96, FontDirectory = ProjectFonts.Directory};
 
         byte[]? result = null;
-        renderer.RenderDocument(doc, writePng =>
+        SkiaDocumentConverter.RenderViaEngine(doc, options, writePng =>
         {
             using var ms = new MemoryStream();
             writePng(ms);

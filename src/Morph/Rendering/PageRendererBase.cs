@@ -1,7 +1,9 @@
 ﻿/// <summary>
-/// Backend-agnostic orchestration shared by SkiaPageRenderer and ImageSharpPageRenderer.
-/// Owns table rendering, pagination, and cell-content fan-out. Backends supply only the
-/// drawing primitives via the abstract members.
+/// Backend-agnostic orchestration for the production pagination path. The Skia and ImageSharp
+/// page renderers that shared it were deleted when the layout engine became the only raster path
+/// (step 7 of <c>docs/layout-engine-proposal.md</c>); <c>PdfPageRenderer</c> is the remaining
+/// subclass while the PDF flip is held. Owns table rendering, pagination, and cell-content
+/// fan-out. Backends supply only the drawing primitives via the abstract members.
 /// </summary>
 abstract class PageRendererBase(RenderContextBase context)
 {

@@ -1,4 +1,4 @@
-extern alias ImageSharp;
+﻿extern alias ImageSharp;
 
 /// <summary>
 /// Rendering tests for HTML-parsed elements through the ImageSharp pipeline.
@@ -22,11 +22,10 @@ public class ImageSharpHtmlElementRenderTests
             Elements = elements
         };
 
-        using var context = new ImageSharpRenderContext(doc.PageSettings, 96, fontDirectory: ProjectFonts.Directory);
-        using var renderer = new ImageSharpPageRenderer(context);
+        var options = new ImageExportOptions {Dpi = 96, FontDirectory = ProjectFonts.Directory};
 
         byte[]? result = null;
-        renderer.RenderDocument(doc, writePng =>
+        ImageSharpDocumentConverter.RenderViaEngine(doc, options, writePng =>
         {
             using var ms = new MemoryStream();
             writePng(ms);
