@@ -503,6 +503,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### compatibility_mode_14
 
 - MINOR | html | - | blank space above each education/work entry heading is collapsed, entries run together noticeably tighter than Word
+- (raster/PDF drift: byte-identical template to resumes/01 — same root cause, see that entry)
 
 ### complex_spacing
 
@@ -1390,7 +1391,7 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 ### resumes/01
 
-- MINOR | all | p1 | body content drifts upward slightly (~8-15px by the bottom of the page)
+- MINOR | all | p1 | body content drifts upward slightly (~8-15px by the bottom of the page). Root-caused 2026-08-04 (Word probes, see `TableHeightCalculator` pass-4 comment): the drift is the shared line-pitch excess (~+1pt per body line vs Word) plus ~4px accrued over the pre-rule rows; the production paths additionally run the two 2.25pt-rule spacer rows 2.25pt short (no interior-edge growth), which partially cancels their drift — the layout engine's rows match Word (16.21pt vs Word's measured 16.22pt) and show the shared drift undamped. Fix is the pitch tail, not the rows.
 
 ### resumes/02
 

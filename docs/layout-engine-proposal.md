@@ -387,51 +387,51 @@ The checklist is landed through step 6; what is left, most-blocking first:
    the "tail" label always claimed: the breach list is led by the compound-image and full-page-gradient
    documents (`cards/05` −0.107, `cover-letters/12` −0.090, `brochures/04` −0.085) with the residual spread
    across art-heavy templates, while the engine's wins are the table set (`header_row_repeat/01` +0.087,
-   `resumes/03` +0.070, `business-plans/12` +0.051). Two entries in the breach list are the known
-   ascent-drift open item wearing its PDF face (`resumes/01` / `compatibility_mode_14` −0.045, the same
-   documents whose raster drift is recorded as unexplained). The verdict machinery this time also proved the
+   `resumes/03` +0.070, `business-plans/12` +0.051). The verdict machinery this time also proved the
    silent-absence guard: eight scenarios' metrics are suppressed by standing page-count mismatches vs Word
    and seven more changed pixels without metric rows — all listed by the gate as unverified rather than
    passing silently. Closing the remaining −0.0009-to-bar needs either the image/gradient rasterization work
-   or the ascent-drift root cause, not another measurer sweep.
-2. **The one coverage hold-out** of 325 — `image_wrap_square`. Positioned frames, warped WordArt and float
-   wrap all emit now (324/325, asserted by `EngineCoverageTests`). Its wrap *is* emitted and honouring it
-   helps (+0.013); the `Ppem` grain took it from −0.0365 to −0.0242 (item 1). **The rest is now characterised,
-   and it is a baseline bug, not a tail: the engine reads the wrong ascent.**
+   or the shared line-pitch tail, not another measurer sweep.
 
-   `CanonicalParagraphMeasurer.AscentPoints` puts the baseline at hhea `Ascender`; the production backends
-   take theirs from the backend font object, which is `usWinAscent`. The gap between those two metrics is
-   **font-specific**, and that is why it hid for so long:
-
-   | font | hhea `Ascender` | `usWinAscent` | delta |
-   |---|---|---|---|
-   | Aptos | 0.9390 em | 1.0098 em | 0.071 em |
-   | Calibri | 0.7500 em | 0.9521 em | **0.202 em** |
-
-   Aptos is Word's default and dominates the corpus, where 0.071 em is ~1.6px at 11pt — invisible. Calibri
-   costs 0.202 em, and `image_wrap_square` is a Calibri document opening with a 24pt Heading1: 0.202 × 24 =
-   4.85pt = **10.1px**, exactly the offset measured. Its whole page-1 body then sits ~10px high, for −0.056
-   on that page. Measuring the first ink row across documents confirms the shape — Aptos-set
-   `long_paragraph` and `multiple_pages` match production to 1px, Calibri-set `dot_points` is 5px high, and
-   `image_wrap_square` 10px. The line *pitch* is not implicated and stays XPS-validated; only the baseline
-   inside the box moves.
-
-   Fixing it means surfacing `usWinAscent` through `FontMetricsReader`/`FontMetrics` (which carry only
-   `Ascender`/`Descender`/`LineGap` today) and using it for the baseline. That shifts the ink of every line
-   in the corpus, so it wants its own slice and a full re-measurement — but unlike the tail it is a defect
-   with a known cause and a known direction. It is also the highest-leverage item here: this single uncovered
-   document is what keeps the raster fallback alive and step 7 blocked (item 3).
+   **The `resumes/01` / `compatibility_mode_14` breach pair (−0.045 each) is root-caused (2026-08-04), and
+   the engine is the *correct* side of it.** The two are byte-identical templates: a résumé table whose
+   section rules are 2.25pt cell borders on 72/144-twip `atLeast` spacer rows holding one empty 11pt
+   paragraph. Instrumenting the shared `TableHeightCalculator` under both measurers showed all eight row
+   heights identical except the two spacer rows: engine 16.21pt, production `PdfTextEngine` 13.96pt — the
+   2.25pt interior-edge growth the engine opts into and production does not. Two Word probes settled which
+   is right: interior horizontal edges grow the row by the **full** border width (measured at 0.5 / 2.25 /
+   4.5 / 6pt insideH and with per-cell authored borders — all full width, content inset below the drawn
+   edge), and an empty spacer row is one mark line under the inherited ~1.04 multiplier (13.97pt — forcing
+   `w:line="240"` measurably shrinks it, so the multiplier is Word's too). Word's spacer row is therefore
+   13.97 + 2.25 = 16.22pt; the engine computes 16.21. Production still *scores* closer to Word on this page
+   because its −2.25pt-per-spacer shortfall partially cancels a separate drift both paths share (~+1pt of
+   line pitch per body line vs Word, plus ~4px accrued over the pre-rule rows) — a compensating-error pair
+   that the engine's correct rows unmask. There is no engine defect to fix here; the breach clears when the
+   shared pitch tail does.
+2. **Coverage is total — 325/325, asserted by `EngineCoverageTests` — and the ascent defect that held the
+   last document out is fixed.** `image_wrap_square` was a Calibri document whose whole body sat 10px high
+   because `CanonicalParagraphMeasurer.AscentPoints` put the baseline at hhea `Ascender` where Word (GDI)
+   uses `usWinAscent` — a font-specific gap (0.071 em for Aptos, 0.202 em for Calibri) that Aptos's corpus
+   dominance kept invisible. `FontMetrics.BaselineAscentUnits` now reads `usWinAscent` (168 documents
+   improved, +0.00287 aggregate) and `image_wrap_square` is admitted (+0.0392 in-container). The line
+   *pitch* stays on the hhea box, XPS-validated. Two follow-on findings are pinned by
+   `BaselineAscentContractTests`: the `USE_TYPO_METRICS` flag is deliberately ignored (honouring it matched
+   the production backends exactly but moved the corpus −0.0017 away from Word — Word is GDI, GDI ignores
+   the flag), and SkiaSharp's reported ascent is platform-dependent (usWinAscent on Windows, hhea ascender
+   under FreeType on linux — the metrics the container baselines were drawn with), so "match production" is
+   not a single target across platforms and the rule anchors to Word instead.
 3. **Step 7 — delete** the old pagination (`PageRendererBase`, `PdfTextEngine`, `SectionBreakHandler`,
    `TableHeightCalculator`), once PDF flips and coverage is total — the fallback still serves uncovered
    documents and the kill switch until then.
 
    **The blocker chain, mapped 2026-08-02, so the next attempt does not re-derive it.** All three page
    renderers derive from `PageRendererBase`, and each is still reachable, so nothing at the root can go yet:
-   - `SkiaPageRenderer` / `ImageSharpPageRenderer` have **three** live consumers each — the uncovered-document
-     fallback in `<Backend>DocumentConverter` (live while `image_wrap_square` is out, item 2), **all** of
-     HTML→PNG (`<Backend>HtmlConverter` constructs one directly, with no engine gate), and
-     `<Backend>WordArtRasterizer`, which rasterizes a warp by running a whole page render — and which PDF
-     itself depends on for WordArt embedding, engine path included.
+   - `SkiaPageRenderer` / `ImageSharpPageRenderer` are down to **one** live consumer each —
+     `<Backend>WordArtRasterizer`, which rasterizes a warp by running a whole page render, and which PDF
+     itself depends on for WordArt embedding, engine path included. The uncovered-document fallback is cold
+     (coverage is total, item 2) and HTML→PNG now routes through the same engine seam as DOCX
+     (byte-identical snapshots on the port). Deleting the raster path also drops the footnote/endnote
+     appendix (`RenderNotesAppendix`) for out-of-corpus documents — a product call, not a mechanical one.
    - `PdfPageRenderer` + `PdfTextEngine` stay while the flip is held (item 1).
    - `EngineCoverage` and the three `MORPH_*_ENGINE` reads stay while any fallback exists, since they are what
      select it.
