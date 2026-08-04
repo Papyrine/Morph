@@ -415,7 +415,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### cards/05
 
 - MINOR | all | p1,p2,p3,p4,p5,p6,p7,p8 | whole card content block (picture+caption on odd pages, placeholder text on even pages) drawn ~10-15px (~0.1in) higher than Word; picture content/framing itself is faithful
-- PDF-flip-gate characterization (2026-08-04, engine vs production PDF, worst page 7): the engine draws the card pictures ~10px shifted and slightly larger than production, the teal lake renders MORE saturated on the engine path (a decode/embed difference — one path re-encodes), and production draws a faint vertical fold line between the two cards that the engine drops. Three concrete leads for the flip's cards/05 −0.107 breach.
+- PDF-flip-gate root causes, refined 2026-08-04 (page-7 referee measurement, Word expected vs both PDFs): (1) POSITION — production matches Word's card-block box exactly (ink rows 637–1164 at 150dpi); the ENGINE draws the whole block 74px (~35pt) LOWER — the table's first row or the pre-table paragraph is ~35pt too tall on the engine path (cards are inline 360pt JPEGs in a 2-row 3-column table, image row = r1). (2) COLOUR — Word renders the picture most muted (centre RGB spread 20), production close (33), the engine far too vivid (64): the engine PDF embeds the raw JPEG bytes (PdfPainter → context.GetImage) while production's decode path lands near Word — check ICC/colour handling in the embed. The fold line lead is retracted — all three renders have it (thumbnail artifact).
 
 ### cards/06
 
