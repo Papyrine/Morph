@@ -120,27 +120,26 @@ Because both parsers live in core, `Morph` depends on both `DocumentFormat.OpenX
 **The layout engine** (`src/Morph/Layout/`): one backend-independent pagination —
 `CanonicalParagraphMeasurer` measures from the font's own OpenType metrics, `Fragmenter` paginates into a
 retained `LaidOutDocument` of absolutely-positioned `PlacedItem`s, and each backend's thin `<Backend>Painter`
-draws that tree without measuring or breaking anything. `EngineCoverage.Covers` decides per document whether
-the engine handles it. **This is the default DOCX→PNG path** (324 of the 325 corpus documents);
-`MORPH_SKIA_ENGINE=off` / `MORPH_IMAGESHARP_ENGINE=off` are kill switches back to the old path. It is
-**opt-in for PDF** (`MORPH_PDF_ENGINE`) — it already reproduces `PdfTextEngine`'s page count everywhere, but
-rasterization fidelity holds the flip. See `docs/layout-engine-proposal.md`, which is the design plus the
-running log of how it landed.
+draws that tree without measuring or breaking anything. **This is the ONLY DOCX→PNG and HTML→PNG path** —
+the production raster renderers (`SkiaPageRenderer`/`ImageSharpPageRenderer` and both `TextRenderer`s) were
+deleted once the engine covered the whole corpus. It is **opt-in for PDF** (`MORPH_PDF_ENGINE`;
+`EngineCoverage.Covers` gates that path) — it already reproduces `PdfTextEngine`'s page count everywhere,
+but rasterization fidelity holds the flip. See `docs/layout-engine-proposal.md`, which is the design plus
+the running log of how it landed.
 
-**Rendering backends** — each has its own `<Backend>Painter` (the engine path) *and* the older
-`PageRenderer` / `TextRenderer` / `RenderContext` trio, which still serves uncovered documents, HTML→PNG,
-and WordArt rasterization. Both share the same `RenderContext` drawing primitives, so an engine-drawn page
-and a production-drawn one differ only where pagination differs. The public entry-point converters live here
-too (DOCX→PNG and HTML→PNG in the same assembly):
+**Rendering backends** — each is a thin drawing layer over the engine: the `<Backend>Painter` draws the
+`LaidOutDocument`, the `<Backend>RenderContext` owns the drawing primitives and font/image caches, and the
+`<Backend>WordArtDrawer`/`<Backend>WordArtRasterizer` pair draws WordArt (the rasterizer feeds PDF
+embedding). The public entry-point converters live here too (DOCX→PNG and HTML→PNG in the same assembly):
 - **SkiaSharp** (`src/Morph.Skia/`): SkiaSharp + Svg.Skia. Entry points `SkiaDocumentConverter` (DOCX→PNG) and `SkiaHtmlConverter` (HTML→PNG).
 - **ImageSharp** (`src/Morph.ImageSharp/`): SixLabors.ImageSharp / ImageSharp.Drawing / Fonts. Entry points `ImageSharpDocumentConverter` and `ImageSharpHtmlConverter`.
 
 **PDF** (`src/Morph.Pdf/`): `PdfRenderer` plus the DOCX→PDF and HTML→PDF converters, via PdfSharp. Still
 paginates through `PdfTextEngine` by default; `PdfPainter` is the engine-path painter beside it.
 
-For a complete feature-by-feature mapping to code locations, see `docs/word-features.md` — its render
-locations name the production `TextRenderer`/`PdfTextEngine` code, which for DOCX→PNG is now the fallback
-rather than the primary path.
+For a complete feature-by-feature mapping to code locations, see `docs/word-features.md` — render
+locations that name the deleted production raster code describe history; for DOCX→PNG the engine painters
+are the only path, while `PdfTextEngine` remains PDF's default until the flip.
 
 ## Code Style
 

@@ -1,4 +1,4 @@
-extern alias Skia;
+﻿extern alias Skia;
 
 /// <summary>
 /// Verifies that rendering gracefully handles image data in formats
@@ -25,10 +25,9 @@ public class UnsupportedImageFormatTests
             Elements = elements
         };
 
-        using var context = new SkiaRenderContext(doc.PageSettings, 96, fontDirectory: ProjectFonts.Directory);
-        using var renderer = new SkiaPageRenderer(context);
+        var options = new ImageExportOptions {Dpi = 96, FontDirectory = ProjectFonts.Directory};
 
-        return renderer.RenderDocument(doc, _ => { });
+        return SkiaDocumentConverter.RenderViaEngine(doc, options, _ => { });
     }
 
     [Test]

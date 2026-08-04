@@ -1,8 +1,4 @@
-extern alias Skia;
-using SkiaSharp;
-using SkiaTextRenderer = Skia::TextRenderer;
-
-/// <summary>
+﻿/// <summary>
 /// Tests that document-level default paragraph indentation (from pPrDefault)
 /// is applied to paragraphs through the style chain.
 /// </summary>
@@ -78,28 +74,8 @@ public class DocDefaultIndentTests
     [Test]
     public async Task RightIndent_NarrowsAvailableWidthInTableCells()
     {
-        // Verify that right indent reduces the available width for text layout
-        // in table cell rendering (RenderParagraphInBounds).
-        var pageSettings = new PageSettings
-        {
-            WidthPoints = 300,
-            HeightPoints = 400,
-            MarginTop = 20,
-            MarginBottom = 20,
-            MarginLeft = 20,
-            MarginRight = 20
-        };
-
-        using var context1 = new SkiaRenderContext(pageSettings, 96, fontDirectory: ProjectFonts.Directory);
-        var tr1 = new SkiaTextRenderer(context1);
-        using var bmp1 = new SKBitmap(context1.PageWidthPixels, context1.PageHeightPixels);
-        using var cvs1 = new SKCanvas(bmp1);
-
-        using var context2 = new SkiaRenderContext(pageSettings, 96, fontDirectory: ProjectFonts.Directory);
-        var tr2 = new SkiaTextRenderer(context2);
-        using var bmp2 = new SKBitmap(context2.PageWidthPixels, context2.PageHeightPixels);
-        using var cvs2 = new SKCanvas(bmp2);
-
+        // Right indent reduces the available width for text layout — asserted against the
+        // canonical measurer, the one layout model since the production renderers were deleted.
         var text = "Sample text for width";
         const float cellWidth = 130;
 
@@ -115,11 +91,8 @@ public class DocDefaultIndentTests
             Properties = new() { RightIndentPoints = 50 }
         };
 
-        tr1.RenderParagraphInBounds(cvs1, noIndent, 20, cellWidth);
-        var heightNoIndent = context1.CurrentY - context1.ContentTop;
-
-        tr2.RenderParagraphInBounds(cvs2, withRightIndent, 20, cellWidth);
-        var heightWithIndent = context2.CurrentY - context2.ContentTop;
+        var heightNoIndent = LayoutTestFonts.Measurer.LayoutParagraphForMeasurement(noIndent, cellWidth).Sum();
+        var heightWithIndent = LayoutTestFonts.Measurer.LayoutParagraphForMeasurement(withRightIndent, cellWidth).Sum();
 
         // Right indent narrows available width → text wraps to more lines → taller paragraph
         await Assert.That(heightWithIndent).IsGreaterThan(heightNoIndent);

@@ -1,4 +1,4 @@
-using SkiaSharp;
+﻿using SkiaSharp;
 
 /// <summary>
 /// Paints a backend-independent <see cref="LaidOutDocument"/> to PNG bitmaps — the raster analogue of
@@ -253,7 +253,7 @@ static class SkiaPainter
 
     // An inline shape group (a grouped drawing embedded in a run): its child shapes scaled from the group's
     // child coordinate space into the inline box, painted back to front. A verbatim port of
-    // TextRenderer.RenderInlineShapeGroup that reuses the same colour/contour/primitive/picture helpers, so
+    // SkiaShapeDrawing.RenderInlineShapeGroup that reuses the same colour/contour/primitive/picture helpers, so
     // the engine paints an inline group pixel-identically to production. The placed box is already in points
     // with its top at Y (the fragmenter set Y = baseline − height), so no baseline subtraction is needed.
     static void PaintInlineGroup(SkiaRenderContext context, SKCanvas canvas, PlacedImage placed)
@@ -295,7 +295,7 @@ static class SkiaPainter
 
                 using var linePaint = new SKPaint
                 {
-                    Color = TextRenderer.ParseColor(shape.ColorHex, shape.LineAlpha),
+                    Color = SkiaShapeDrawing.ParseColor(shape.ColorHex, shape.LineAlpha),
                     Style = SKPaintStyle.Stroke,
                     StrokeWidth = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75) * context.Scale,
                     StrokeCap = SKStrokeCap.Square,
@@ -307,38 +307,38 @@ static class SkiaPainter
 
             var isEllipse = shape.Geometry == GroupShapeGeometry.Ellipse;
             var rect = new SKRect(x1, y1, x1 + width, y1 + height);
-            using var geometryPath = TextRenderer.BuildGroupShapePath(shape, rect);
+            using var geometryPath = SkiaShapeDrawing.BuildGroupShapePath(shape, rect);
 
             if (shape.Shadow is { } shadow)
             {
                 using var shadowPaint = new SKPaint
                 {
-                    Color = TextRenderer.ParseColor(shadow.ColorHex, shadow.Alpha),
+                    Color = SkiaShapeDrawing.ParseColor(shadow.ColorHex, shadow.Alpha),
                     Style = SKPaintStyle.Fill,
                     IsAntialias = true
                 };
                 var offset = rect;
                 offset.Offset((float) shadow.OffsetX * sx, (float) shadow.OffsetY * sy);
-                using var shadowPath = TextRenderer.BuildGroupShapePath(shape, offset);
+                using var shadowPath = SkiaShapeDrawing.BuildGroupShapePath(shape, offset);
                 if (shadowPath != null)
                 {
                     canvas.DrawPath(shadowPath, shadowPaint);
                 }
                 else
                 {
-                    TextRenderer.DrawGeometry(canvas, offset, isEllipse, shadowPaint);
+                    SkiaShapeDrawing.DrawGeometry(canvas, offset, isEllipse, shadowPaint);
                 }
             }
 
             if (shape.ImageData != null)
             {
-                TextRenderer.RenderGroupPicture(context, canvas, shape, rect, isEllipse);
+                SkiaShapeDrawing.RenderGroupPicture(context, canvas, shape, rect, isEllipse);
             }
             else if (shape.FillColorHex is { } fillHex)
             {
                 using var fillPaint = new SKPaint
                 {
-                    Color = TextRenderer.ParseColor(fillHex, shape.FillAlpha),
+                    Color = SkiaShapeDrawing.ParseColor(fillHex, shape.FillAlpha),
                     Style = SKPaintStyle.Fill,
                     IsAntialias = true
                 };
@@ -348,7 +348,7 @@ static class SkiaPainter
                 }
                 else
                 {
-                    TextRenderer.DrawGeometry(canvas, rect, isEllipse, fillPaint);
+                    SkiaShapeDrawing.DrawGeometry(canvas, rect, isEllipse, fillPaint);
                 }
             }
 
@@ -356,7 +356,7 @@ static class SkiaPainter
             {
                 using var strokePaint = new SKPaint
                 {
-                    Color = TextRenderer.ParseColor(shape.ColorHex, shape.LineAlpha),
+                    Color = SkiaShapeDrawing.ParseColor(shape.ColorHex, shape.LineAlpha),
                     Style = SKPaintStyle.Stroke,
                     StrokeWidth = (float) (shape.LineWidthEmu / emusPerPoint) * context.Scale,
                     IsAntialias = true
@@ -367,7 +367,7 @@ static class SkiaPainter
                 }
                 else
                 {
-                    TextRenderer.DrawGeometry(canvas, rect, isEllipse, strokePaint);
+                    SkiaShapeDrawing.DrawGeometry(canvas, rect, isEllipse, strokePaint);
                 }
             }
         }
@@ -398,15 +398,15 @@ static class SkiaPainter
         }
 
         // Honour the shape's fill/line opacity (a:alpha) — e.g. cover-letters/10's header banner is a 10%
-        // accent tint that reads as near-white, not a solid panel. TextRenderer.ParseColor applies the alpha.
-        var fill = gradientFill ?? (shape.FillColorHex is { } fillHex ? context.GetReusableFillPaint(TextRenderer.ParseColor(fillHex, shape.FillAlpha), antialias: true) : null);
-        var line = shape.LineColorHex is { } lineHex ? context.GetReusableRulePaint(TextRenderer.ParseColor(lineHex, shape.LineAlpha), P(context, Math.Max(0.5, shape.LineWidthPoints ?? 1))) : null;
+        // accent tint that reads as near-white, not a solid panel. SkiaShapeDrawing.ParseColor applies the alpha.
+        var fill = gradientFill ?? (shape.FillColorHex is { } fillHex ? context.GetReusableFillPaint(SkiaShapeDrawing.ParseColor(fillHex, shape.FillAlpha), antialias: true) : null);
+        var line = shape.LineColorHex is { } lineHex ? context.GetReusableRulePaint(SkiaShapeDrawing.ParseColor(lineHex, shape.LineAlpha), P(context, Math.Max(0.5, shape.LineWidthPoints ?? 1))) : null;
 
         if (fill != null || line != null)
         {
             if (shape.Subpaths is { Count: > 0 })
             {
-                using var path = SkiaPageRenderer.BuildPolygonPath(shape, x, y, width, height);
+                using var path = SkiaShapeDrawing.BuildPolygonPath(shape, x, y, width, height);
                 if (fill != null)
                 {
                     canvas.DrawPath(path, fill);

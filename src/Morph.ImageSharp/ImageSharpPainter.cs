@@ -1,4 +1,4 @@
-using SixLabors.Fonts;
+﻿using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
@@ -267,12 +267,12 @@ static class ImageSharpPainter
         canvas.DrawImage(processed, new Point((int) Math.Round(P(context, image.X)), (int) Math.Round(P(context, image.Y))));
     }
 
-    // EMU per point (914400 EMU/inch ÷ 72 pt/inch), matching TextRenderer.
+    // EMU per point (914400 EMU/inch ÷ 72 pt/inch), matching ImageSharpShapeDrawing.
     const float emusPerPoint = 12700f;
 
     // An inline shape group (a grouped drawing embedded in a run): its child shapes scaled from the group's
     // child coordinate space into the inline box, painted back to front. A verbatim port of
-    // TextRenderer.RenderInlineShapeGroup that reuses the same colour/contour/picture helpers, so the engine
+    // ImageSharpShapeDrawing.RenderInlineShapeGroup that reuses the same colour/contour/picture helpers, so the engine
     // paints an inline group pixel-identically to production. The placed box is already in points with its
     // top at Y (the fragmenter set Y = baseline − height), so no baseline subtraction is needed.
     static void PaintInlineGroup(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedImage placed, InlineShapeGroup group)
@@ -285,7 +285,7 @@ static class ImageSharpPainter
         var hasRotation = group.RotationDegrees != 0;
         if (hasRotation)
         {
-            canvas.Save(ImageSharpPageRenderer.BuildRotation((float) (group.RotationDegrees * Math.PI / 180.0), pixelX + pixelWidth / 2f, pixelY + pixelHeight / 2f));
+            canvas.Save(ImageSharpShapeDrawing.BuildRotation((float) (group.RotationDegrees * Math.PI / 180.0), pixelX + pixelWidth / 2f, pixelY + pixelHeight / 2f));
         }
 
         foreach (var shape in group.Shapes)
@@ -312,7 +312,7 @@ static class ImageSharpPainter
                 }
 
                 var strokeWidth = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75) * context.Scale;
-                var linePen = new SolidPen(new PenOptions(TextRenderer.ParseColor(shape.ColorHex, shape.LineAlpha), strokeWidth)
+                var linePen = new SolidPen(new PenOptions(ImageSharpShapeDrawing.ParseColor(shape.ColorHex, shape.LineAlpha), strokeWidth)
                 {
                     StrokeOptions = new()
                     {
@@ -325,7 +325,7 @@ static class ImageSharpPainter
             }
 
             var isEllipse = shape.Geometry == GroupShapeGeometry.Ellipse;
-            var path = TextRenderer.BuildGroupShapePath(shape, x1, y1, width, height)
+            var path = ImageSharpShapeDrawing.BuildGroupShapePath(shape, x1, y1, width, height)
                        ?? (isEllipse
                            ? new EllipsePolygon(x1 + width / 2, y1 + height / 2, width, height)
                            : (IPath) new RectanglePolygon(x1, y1, width, height));
@@ -334,26 +334,26 @@ static class ImageSharpPainter
             {
                 var shadowX = x1 + (float) shadow.OffsetX * sx;
                 var shadowY = y1 + (float) shadow.OffsetY * sy;
-                var shadowPath = TextRenderer.BuildGroupShapePath(shape, shadowX, shadowY, width, height)
+                var shadowPath = ImageSharpShapeDrawing.BuildGroupShapePath(shape, shadowX, shadowY, width, height)
                                  ?? (isEllipse
                                      ? new EllipsePolygon(shadowX + width / 2, shadowY + height / 2, width, height)
                                      : (IPath) new RectanglePolygon(shadowX, shadowY, width, height));
-                canvas.Fill(context.GetBrush(TextRenderer.ParseColor(shadow.ColorHex, shadow.Alpha)), shadowPath);
+                canvas.Fill(context.GetBrush(ImageSharpShapeDrawing.ParseColor(shadow.ColorHex, shadow.Alpha)), shadowPath);
             }
 
             if (shape.ImageData != null)
             {
-                TextRenderer.RenderGroupPicture(context, canvas, shape, x1, y1, width, height, isEllipse ? path : null, hasRotation);
+                ImageSharpShapeDrawing.RenderGroupPicture(context, canvas, shape, x1, y1, width, height, isEllipse ? path : null, hasRotation);
             }
             else if (shape.FillColorHex is { } fillHex)
             {
-                canvas.Fill(context.GetBrush(TextRenderer.ParseColor(fillHex, shape.FillAlpha)), path);
+                canvas.Fill(context.GetBrush(ImageSharpShapeDrawing.ParseColor(fillHex, shape.FillAlpha)), path);
             }
 
             if (shape.LineWidthEmu > 0)
             {
                 var strokeWidth = (float) (shape.LineWidthEmu / emusPerPoint) * context.Scale;
-                canvas.Draw(context.GetPen(TextRenderer.ParseColor(shape.ColorHex, shape.LineAlpha), strokeWidth), path);
+                canvas.Draw(context.GetPen(ImageSharpShapeDrawing.ParseColor(shape.ColorHex, shape.LineAlpha), strokeWidth), path);
             }
         }
 
@@ -379,7 +379,7 @@ static class ImageSharpPainter
         float x = P(context, placed.X), y = P(context, placed.Y), width = P(context, placed.Width), height = P(context, placed.Height);
 
         // Honour the shape's fill/line opacity (a:alpha) — e.g. cover-letters/10's header banner is a 10%
-        // accent tint that reads as near-white, not a solid panel. TextRenderer.ParseColor applies the alpha.
+        // accent tint that reads as near-white, not a solid panel. ImageSharpShapeDrawing.ParseColor applies the alpha.
         Brush? fill;
         if (shape.Gradient is { } gradient)
         {
@@ -387,14 +387,14 @@ static class ImageSharpPainter
         }
         else if (shape.FillColorHex is { } fillHex)
         {
-            fill = context.GetBrush(TextRenderer.ParseColor(fillHex, shape.FillAlpha));
+            fill = context.GetBrush(ImageSharpShapeDrawing.ParseColor(fillHex, shape.FillAlpha));
         }
         else
         {
             fill = null;
         }
 
-        var line = shape.LineColorHex is { } lineHex ? context.GetPen(TextRenderer.ParseColor(lineHex, shape.LineAlpha), P(context, Math.Max(0.5, shape.LineWidthPoints ?? 1))) : null;
+        var line = shape.LineColorHex is { } lineHex ? context.GetPen(ImageSharpShapeDrawing.ParseColor(lineHex, shape.LineAlpha), P(context, Math.Max(0.5, shape.LineWidthPoints ?? 1))) : null;
         if (fill == null && line == null)
         {
             return;
@@ -402,8 +402,8 @@ static class ImageSharpPainter
 
         if (shape.Subpaths is { Count: > 0 })
         {
-            var path = ImageSharpPageRenderer.BuildPath(shape, x, y, width, height);
-            canvas.Save(ImageSharpPageRenderer.NonzeroFill);
+            var path = ImageSharpShapeDrawing.BuildPath(shape, x, y, width, height);
+            canvas.Save(ImageSharpShapeDrawing.NonzeroFill);
             if (fill != null)
             {
                 canvas.Fill(fill, path);
@@ -421,10 +421,10 @@ static class ImageSharpPainter
         var rotated = shape.RotationDegrees != 0;
         if (rotated)
         {
-            canvas.Save(ImageSharpPageRenderer.BuildRotation((float) (shape.RotationDegrees * Math.PI / 180.0), x + width / 2, y + height / 2));
+            canvas.Save(ImageSharpShapeDrawing.BuildRotation((float) (shape.RotationDegrees * Math.PI / 180.0), x + width / 2, y + height / 2));
         }
 
-        var presetPath = ImageSharpPageRenderer.BuildPresetPath(shape, x, y, width, height);
+        var presetPath = ImageSharpShapeDrawing.BuildPresetPath(shape, x, y, width, height);
         if (fill != null)
         {
             canvas.Fill(fill, presetPath);

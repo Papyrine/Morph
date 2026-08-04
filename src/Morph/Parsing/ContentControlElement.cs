@@ -62,6 +62,43 @@ sealed class ContentControlElement : DocumentElement
                         Properties = new()
                     };
                 }
+                else if (ControlType == ContentControlType.Date && DateValue.HasValue)
+                {
+                    // A date control whose display text was not captured as runs still shows its
+                    // value, formatted per the control's declared format (invariant culture, so
+                    // page output is deterministic across machines).
+                    cellParagraph = new()
+                    {
+                        Runs =
+                        [
+                            new()
+                            {
+                                Text = DateControlText.Resolve(this),
+                                Properties = new()
+                            }
+                        ],
+                        Properties = new()
+                    };
+                }
+                else if (!string.IsNullOrEmpty(PlaceholderText))
+                {
+                    // An empty control shows its placeholder, grayed the way Word does.
+                    cellParagraph = new()
+                    {
+                        Runs =
+                        [
+                            new()
+                            {
+                                Text = PlaceholderText,
+                                Properties = new()
+                                {
+                                    ColorHex = "808080"
+                                }
+                            }
+                        ],
+                        Properties = new()
+                    };
+                }
             }
 
             return cellParagraph;

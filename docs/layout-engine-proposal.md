@@ -8,7 +8,8 @@ canonical measurer, the layout tree, and the Fragmenter — are done, and step 4
 the Fragmenter. This was the "if time and effort are no object" answer to the columns/height-model work
 tracked in `src/page_counts.md` and `src/todo.md` (#2, #5, the columns item under image_wrap_square); the
 running log of landed slices is below, and `docs/word-features.md` describes the per-backend draw code the
-thin painters now front. `MORPH_SKIA_ENGINE=off` / `MORPH_IMAGESHARP_ENGINE=off` are the kill switches. The sharpest known modelling
+thin painters now front. The raster kill switches retired with the production raster path (step 7's raster
+half); `MORPH_PDF_ENGINE` remains the PDF opt-in while the flip is held. The sharpest known modelling
 limit in what has shipped was the `Ppem` grain — the measurer rounding the em onto a fixed 120-dpi grid
 where Word never quantizes the em at all. That was root-caused and **fixed**, for a modest +0.0006 against
 Word and no change in page-count agreement ("Remaining work" item 1). Approximate column balancing remains
@@ -319,7 +320,8 @@ through the render context's own primitives rather than a common `ILayoutPainter
       covered documents (98.8% of the corpus). Both are thin painters of the same tree; the raster knife-edges
       collapse (raster now paginates identically across backends — one answer, not a straddle). The gate is
       `MORPH_SKIA_ENGINE` / `MORPH_IMAGESHARP_ENGINE != "off"` (the env var became a kill switch, not an opt-in);
-      an uncovered document falls through to the production `<Backend>PageRenderer`. The flip landed at
+      an uncovered document fell through to the production `<Backend>PageRenderer` — until the raster deletion
+      removed both the fallback and the switches (step 7's raster half). The flip landed at
       covered-doc parity (aggregate −0.0001), decoupled from step 5 — PDF stays on `PdfTextEngine`, so a covered
       document's PNG and PDF page counts can still diverge until the PDF flip. All covered raster baselines
       regenerated. The whole-paragraph pagination and duplicated `TextRenderer` layout code still exist as the
@@ -424,23 +426,23 @@ The checklist is landed through step 6; what is left, most-blocking first:
    `TableHeightCalculator`), once PDF flips and coverage is total — the fallback still serves uncovered
    documents and the kill switch until then.
 
-   **The blocker chain, mapped 2026-08-02 and updated as slices land.** All three page renderers derive
-   from `PageRendererBase`; what still reaches each one:
-   - `SkiaPageRenderer` / `ImageSharpPageRenderer` have **zero** engine-path consumers left. The
-     uncovered-document fallback is cold (coverage is total, item 2), HTML→PNG routes through the same
-     engine seam as DOCX (byte-identical snapshots on the port), and the WordArt rasterizers now draw
-     through their own `<Backend>WordArtDrawer` instead of running a page render (the ~900-line drawing
-     block per backend moved verbatim; gated by a full delete-and-regenerate of all 4490 snapshots
-     reproducing every one byte-identically). Only the `MORPH_*_ENGINE=off` kill switch still constructs
-     them. The last content gap closed with the footnote decision (2026-08-04): the shared
-     `NotesAppendix` builder feeds both paths — the engine appends it to the element flow at each
-     `RenderViaEngine`, replacing the appendix the engine had silently dropped since coverage went total
-     (the engine's gate never consulted `ParsedDocument.Footnotes`, so `document_capture/01`'s baselines
-     had lost theirs) — and the three production `RenderNotesAppendix` copies collapsed onto the same
-     builder. **Nothing blocks the raster deletion.**
-   - `PdfPageRenderer` + `PdfTextEngine` stay while the flip is held (item 1).
-   - `EngineCoverage` and the three `MORPH_*_ENGINE` reads stay while any fallback exists, since they are what
-     select it.
+   **The raster half is DONE (2026-08-04): `SkiaPageRenderer`, `ImageSharpPageRenderer` and both
+   `TextRenderer`s are deleted** (~8300 lines), along with the `MORPH_SKIA_ENGINE` /
+   `MORPH_IMAGESHARP_ENGINE` kill switches — the converters route unconditionally through
+   `RenderViaEngine` for DOCX and HTML alike. The slice was unblocked in order by: coverage going total
+   (item 2), HTML→PNG joining the engine seam (byte-identical), the WordArt rasterizers moving onto their
+   own `<Backend>WordArtDrawer` (gated by a full delete-and-regenerate of all 4490 snapshots reproducing
+   byte-identically), and the footnote decision — the shared `NotesAppendix` builder feeds the engine flow
+   at each `RenderViaEngine`, restoring the appendix the engine had silently dropped since coverage went
+   total. The keep-list statics the painters shared with the deleted classes moved to
+   `SkiaShapeDrawing` / `ImageSharpShapeDrawing`; render-behaviour spec tests were rewritten onto the
+   engine seam (their behavioural assertions held, exposing and fixing one real gap in the process:
+   behind-text FOOTER floating art was resolved for the header band only — `ResolveBandImages` now serves
+   both bands). What remains at the root:
+   - `PdfPageRenderer` + `PdfTextEngine` (and `PageRendererBase` under them) stay while the flip is held
+     (item 1).
+   - `EngineCoverage` is down to one consumer — the `MORPH_PDF_ENGINE` gate — and retires with it after
+     the flip.
 
    Deleting `TableHeightCalculator` is a different kind of task: it is not dead code, the `Fragmenter` is its
    main caller, so it is a fold rather than a delete.
@@ -907,12 +909,10 @@ Two entry points, one per backend, both funnelling through the same `RenderPages
 `SkiaDocumentConverter.RenderPages(ParsedDocument, ImageExportOptions, Action<Action<Stream>>) : int` and the
 identically-shaped `ImageSharpDocumentConverter.RenderPages`. Each emits one PNG per page through a
 `pageCallback` and returns the page count. As with PDF, only the paginate-and-draw half is replaced:
-`RenderViaEngine` runs `Fragmenter.Layout` → `<Backend>Painter.Paint`, gated on `MORPH_SKIA_ENGINE` /
-`MORPH_IMAGESHARP_ENGINE != "off"` and `EngineCoverage.Covers`. This section was written when the gate was an
-opt-in (`!= null`) and the default path was byte-unchanged; since the flip landed the engine is the DEFAULT for
-covered documents (the env var a kill switch), and it is the *uncovered* fallback to the production
-`<Backend>PageRenderer` that stays byte-unchanged. `RenderViaEngine` is internal so `EngineSkiaPathTests` /
-`EngineImageSharpPathTests` drive it without the process-global toggle.
+`RenderViaEngine` runs `Fragmenter.Layout` → `<Backend>Painter.Paint`, unconditionally — the gate history ran
+opt-in (`!= null`) → default-with-kill-switch (`!= "off"`) → gone, when the raster deletion removed the
+production fallback the switch selected. `RenderViaEngine` is internal so `EngineSkiaPathTests` /
+`EngineImageSharpPathTests` (and the rewritten render-behaviour spec tests) drive it directly.
 
 ### The unit gotcha
 

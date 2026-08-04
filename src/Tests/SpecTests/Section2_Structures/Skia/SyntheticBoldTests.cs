@@ -1,6 +1,4 @@
-extern alias Skia;
 using SkiaSharp;
-using SkiaTextRenderer = Skia::TextRenderer;
 
 /// <summary>
 /// A bold run whose resolved face is not itself bold must still render bold.
@@ -14,6 +12,7 @@ using SkiaTextRenderer = Skia::TextRenderer;
 /// The old gate only emboldened when the NAME-derived target weight exceeded the face by 200+, so
 /// "Franklin Gothic Book" resolved a target of 400 against a 400 face and never fired — resumes/07's
 /// "Company, location" and its SKILLS labels rendered at normal weight against Word's bold.
+/// Rendered through the engine path, the only raster pipeline.
 /// </summary>
 public class SyntheticBoldTests
 {
@@ -31,35 +30,45 @@ public class SyntheticBoldTests
 
     static int InkPixels(string fontFamily, bool bold)
     {
-        var pageSettings = new PageSettings
+        var document = new ParsedDocument
         {
-            WidthPoints = 300,
-            HeightPoints = 120,
-            MarginTop = 10,
-            MarginBottom = 10,
-            MarginLeft = 10,
-            MarginRight = 10
-        };
-
-        using var context = new SkiaRenderContext(pageSettings, 150, fontDirectory: ProjectFonts.Directory);
-        var textRenderer = new SkiaTextRenderer(context);
-        using var bitmap = new SKBitmap(context.PageWidthPixels, context.PageHeightPixels);
-        using var canvas = new SKCanvas(bitmap);
-        canvas.Clear(SKColors.White);
-
-        var paragraph = new ParagraphElement
-        {
-            Runs =
+            PageSettings = new()
+            {
+                WidthPoints = 300,
+                HeightPoints = 120,
+                MarginTop = 10,
+                MarginBottom = 10,
+                MarginLeft = 10,
+                MarginRight = 10
+            },
+            Elements =
             [
-                new()
+                new ParagraphElement
                 {
-                    Text = "Company, location",
-                    Properties = new() {FontFamily = fontFamily, FontSizePoints = 24, Bold = bold}
+                    Runs =
+                    [
+                        new()
+                        {
+                            Text = "Company, location",
+                            Properties = new() {FontFamily = fontFamily, FontSizePoints = 24, Bold = bold}
+                        }
+                    ]
                 }
             ]
         };
-        textRenderer.RenderParagraph(canvas, paragraph);
 
+        byte[]? png = null;
+        SkiaDocumentConverter.RenderViaEngine(
+            document,
+            new() {Dpi = 150, FontDirectory = ProjectFonts.Directory},
+            write =>
+            {
+                using var memory = new MemoryStream();
+                write(memory);
+                png ??= memory.ToArray();
+            });
+
+        using var bitmap = SKBitmap.Decode(png!);
         var ink = 0;
         for (var y = 0; y < bitmap.Height; y++)
         {

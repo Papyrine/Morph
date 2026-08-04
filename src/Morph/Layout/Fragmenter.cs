@@ -369,6 +369,24 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         PlaceFrame(frame);
                         break;
 
+                    // An HTML <hr>: a 0.75pt gray line across the content width in a 6pt slot,
+                    // mirroring the production RenderHorizontalRule geometry (line at slot middle).
+                    case HorizontalRuleElement:
+                        EnsureSpaceFor(6);
+                        items.Add(new PlacedBorder(ColumnLeft, y + 3, columnWidth, 0, new()
+                        {
+                            Top = new()
+                            {
+                                IsVisible = true,
+                                WidthPoints = 0.75,
+                                ColorHex = "A0A0A0"
+                            }
+                        }));
+                        y += 6;
+                        atRegionTop = false;
+                        lastAfter = 0;
+                        break;
+
                     // Float wrap is a later slice.
                 }
             }
@@ -436,9 +454,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             {
                 var pageNumber = index + 1;
                 var settings = bodies[index].Settings;
-                // The behind-text header images follow the same first/even-page variant as the header text,
-                // so a title page's decorative frame or illustration comes from its first-page header.
-                var backgroundImages = ResolveHeaderImages(SelectVariant(pageNumber, firstPageHeader, evenPageHeader, header, settings), settings);
+                // The behind-text header/footer images follow the same first/even-page variant as the band
+                // text, so a title page's decorative frame or illustration comes from its first-page header.
+                var backgroundImages = ResolveBandImages(SelectVariant(pageNumber, firstPageHeader, evenPageHeader, header, settings), settings, isFooter: false);
+                var footerImages = ResolveBandImages(SelectVariant(pageNumber, firstPageFooter, evenPageFooter, footer, settings), settings, isFooter: true);
                 var headerBand = HeaderBand(pageNumber, total, settings);
                 var footerBand = FooterBand(pageNumber, total, settings);
                 var body = bodies[index].Items;
@@ -449,9 +468,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 var behindFloats = bodyFloats.Where(_ => _.Page == pageFloats && _.Behind).Select(_ => _.Item).ToList();
                 var frontFloats = bodyFloats.Where(_ => _.Page == pageFloats && !_.Behind).Select(_ => _.Item).ToList();
 
-                var pageItems = backgroundImages.Count == 0 && headerBand.Count == 0 && footerBand.Count == 0 && behindFloats.Count == 0 && frontFloats.Count == 0
+                var pageItems = backgroundImages.Count == 0 && footerImages.Count == 0 && headerBand.Count == 0 && footerBand.Count == 0 && behindFloats.Count == 0 && frontFloats.Count == 0
                     ? body
-                    : (IReadOnlyList<PlacedItem>) [.. backgroundImages, .. headerBand, .. behindFloats, .. body, .. frontFloats, .. footerBand];
+                    : (IReadOnlyList<PlacedItem>) [.. backgroundImages, .. footerImages, .. headerBand, .. behindFloats, .. body, .. frontFloats, .. footerBand];
                 pages.Add(new(pageNumber, settings, pageItems));
             }
 
@@ -1671,20 +1690,25 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // horizontally, at the header paragraph vertically — and a header-band-top estimate suffices since
         // they span the whole page. Front-text (foreground) header art is a later slice; header/footer
         // text and band tables lay out in LayoutBand.
-        static IReadOnlyList<PlacedItem> ResolveHeaderImages(HeaderFooterContent? header, PageSettings page)
+        static IReadOnlyList<PlacedItem> ResolveBandImages(HeaderFooterContent? band, PageSettings page, bool isFooter)
         {
-            if (header == null)
+            if (band == null)
             {
                 return [];
             }
 
             var items = new List<PlacedItem>();
             var marginLeft = (float) page.MarginLeft;
-            var headerTop = (float) page.HeaderDistance;
+            // A paragraph-anchored band float positions from the band's own origin: the header distance for
+            // a header, the footer distance up from the page bottom for a footer. Page/margin anchors are
+            // absolute and shared by both.
+            var bandTop = isFooter
+                ? (float) (page.HeightPoints - page.FooterDistance)
+                : (float) page.HeaderDistance;
 
-            // A header's behind-text floating art is anchored like a body float but from the header origin —
-            // the page edge, the top margin, or the header band. Both header images and header shapes (e.g.
-            // cover-letters/10's charcoal banner and its 10%-alpha accent tint) paint behind the header text
+            // A band's behind-text floating art is anchored like a body float but from the band origin —
+            // the page edge, the top margin, or the band itself. Both band images and band shapes (e.g.
+            // cover-letters/10's charcoal banner and its 10%-alpha accent tint) paint behind the band text
             // and the body.
             (float X, float Y) Position(HorizontalAnchor horizontalAnchor, double horizontalOffset, VerticalAnchor verticalAnchor, double verticalOffset) =>
             (
@@ -1693,10 +1717,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 {
                     VerticalAnchor.Page => (float) verticalOffset,
                     VerticalAnchor.Margin => (float) page.MarginTop + (float) verticalOffset,
-                    _ => headerTop + (float) verticalOffset
+                    _ => bandTop + (float) verticalOffset
                 });
 
-            foreach (var element in header.Elements)
+            foreach (var element in band.Elements)
             {
                 if (element is FloatingImageElement image && image.BehindText && DecodableImageBytes(image) is { Length: > 0 } data)
                 {

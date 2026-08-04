@@ -1,4 +1,4 @@
-extern alias ImageSharp;
+﻿extern alias ImageSharp;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -15,11 +15,10 @@ public class ImageSharpHeaderFooterFloatingRenderTests
 
     static byte[] RenderDocument(ParsedDocument doc)
     {
-        using var context = new ImageSharpRenderContext(doc.PageSettings, 96, fontDirectory: ProjectFonts.Directory);
-        using var renderer = new ImageSharpPageRenderer(context);
+        var options = new ImageExportOptions {Dpi = 96, FontDirectory = ProjectFonts.Directory};
 
         byte[]? result = null;
-        renderer.RenderDocument(doc, writePng =>
+        ImageSharpDocumentConverter.RenderViaEngine(doc, options, writePng =>
         {
             using var ms = new MemoryStream();
             writePng(ms);
