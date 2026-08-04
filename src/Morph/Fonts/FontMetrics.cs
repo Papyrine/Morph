@@ -35,18 +35,33 @@ sealed record FontMetrics
     public double LinePitchPoints(double sizePoints) => (double) LineBoxUnits / UnitsPerEm * sizePoints;
 
     /// <summary>
-    /// <c>OS/2.usWinAscent</c> — the ascent Windows lays text out against, and the one every backend font
-    /// object reports. Zero when the font declares no <c>OS/2</c> table.
+    /// <c>OS/2.usWinAscent</c> — the ascent Windows lays text out against for a font that does not opt into
+    /// typographic metrics. Zero when the font declares no <c>OS/2</c> table.
     /// </summary>
     public int WinAscent { get; init; }
 
+    /// <summary><c>OS/2.sTypoAscender</c> — the typographic ascent. Zero when the font declares no <c>OS/2</c> table.</summary>
+    public int TypoAscender { get; init; }
+
+    /// <summary><c>OS/2.fsSelection</c> bit 7 (USE_TYPO_METRICS) — the font opts into typographic metrics.</summary>
+    public bool UseTypoMetrics { get; init; }
+
     /// <summary>
-    /// Where the baseline sits below the top of the line box. This is <see cref="WinAscent"/>, NOT
-    /// <see cref="Ascender"/>: the two are different metrics and their gap is font-specific — 0.071 em for
-    /// Aptos but 0.202 em for Calibri — so using the hhea value put a Calibri document's text up to a fifth
-    /// of an em too high inside every line. Falls back to the hhea ascender for a font with no <c>OS/2</c>
-    /// table. Note this is deliberately independent of <see cref="LineBoxUnits"/>, which stays on the
-    /// hhea box because that is what Word's XPS-measured line pitch matches.
+    /// Where the baseline sits below the top of the line box: <see cref="WinAscent"/>, for every font —
+    /// including one that sets <c>USE_TYPO_METRICS</c> (OS/2 fsSelection bit 7). That flag is deliberately
+    /// ignored, and the choice is measured, twice over. Word lays text out with GDI metrics, which use
+    /// usWinAscent regardless of the flag; SkiaSharp honours the flag, so the production backends sit
+    /// ~0.071 em high against Word on every flagged font (Aptos — the corpus default — Bahnschrift, Trade
+    /// Gothic Next). A flag-honouring rule was implemented and measured corpus-wide: it matched the
+    /// production renderers exactly (184 faces, zero mismatches against SkiaSharp) and moved the corpus
+    /// AWAY from Word by −0.0017, 90 documents regressing — so it was reverted in favour of Word's own
+    /// behaviour. The engine's baselines therefore intentionally diverge from the production renderers on
+    /// flagged fonts, and beat them against Word there. "Match production" is not even one target:
+    /// SkiaSharp's reported ascent is platform-dependent — usWinAscent on Windows (GDI-compatible), the
+    /// hhea ascender on linux (FreeType), which is what the container-rendered baselines were drawn with —
+    /// so this rule is anchored to Word, the one stable oracle. Falls back to the hhea ascender for a font with no
+    /// <c>OS/2</c> table. Deliberately independent of <see cref="LineBoxUnits"/>, which stays on the hhea
+    /// box because that is what Word's XPS-measured line pitch matches.
     /// </summary>
     public int BaselineAscentUnits => WinAscent > 0 ? WinAscent : Ascender;
 

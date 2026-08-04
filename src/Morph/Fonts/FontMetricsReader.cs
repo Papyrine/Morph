@@ -129,6 +129,7 @@ static class FontMetricsReader
         }
 
         var numberOfHMetrics = BinaryPrimitives.ReadUInt16BigEndian(hheaBytes.AsSpan(34, 2));
+        var os2 = ReadOs2(stream, tables);
 
         return new()
         {
@@ -136,7 +137,10 @@ static class FontMetricsReader
             Ascender = BinaryPrimitives.ReadInt16BigEndian(hheaBytes.AsSpan(4, 2)),
             Descender = BinaryPrimitives.ReadInt16BigEndian(hheaBytes.AsSpan(6, 2)),
             LineGap = BinaryPrimitives.ReadInt16BigEndian(hheaBytes.AsSpan(8, 2)),
-            WinAscent = ReadWinAscent(stream, tables),
+            WinAscent = os2.WinAscent,
+            TypoAscender = os2.TypoAscender,
+            UseTypoMetrics = os2.UseTypoMetrics,
+
             AdvanceWidths = ReadAdvanceWidths(stream, tables, numberOfHMetrics),
             GlyphForCodepoint = ReadCmap(stream, tables)
         };
@@ -171,23 +175,31 @@ static class FontMetricsReader
     }
 
     /// <summary>
-    /// Reads <c>OS/2.usWinAscent</c> — a uint16 at offset 74, present from table version 0 onwards. This is
-    /// the ascent Windows positions the baseline against, and what every backend font object reports; the
-    /// hhea ascender is a different metric that can sit a fifth of an em higher (see
-    /// <see cref="FontMetrics.BaselineAscentUnits"/>). Returns 0 when the font declares no <c>OS/2</c> table
-    /// or a truncated one, which the caller treats as "fall back to hhea".
+    /// Reads the <c>OS/2</c> fields the baseline needs, in one pass: <c>fsSelection</c> (uint16 at offset
+    /// 62, bit 7 = USE_TYPO_METRICS), <c>sTypoAscender</c> (int16 at offset 68) and <c>usWinAscent</c>
+    /// (uint16 at offset 74) — all present from table version 0 onwards. Which one positions the baseline
+    /// is the flag's call (<see cref="FontMetrics.BaselineAscentUnits"/>), matching what every backend font
+    /// object does. Zeros when the font declares no <c>OS/2</c> table or a truncated one, which the model
+    /// treats as "fall back to hhea".
     /// </summary>
-    static int ReadWinAscent(Stream stream, Dictionary<uint, (long Offset, int Length)> tables)
+    static (int WinAscent, int TypoAscender, bool UseTypoMetrics) ReadOs2(Stream stream, Dictionary<uint, (long Offset, int Length)> tables)
     {
         if (!tables.TryGetValue(os2Tag, out var os2) || os2.Length < 76)
         {
-            return 0;
+            return (0, 0, false);
         }
 
         var bytes = new byte[76];
-        return TryReadExactAt(stream, os2.Offset, bytes)
-            ? BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(74, 2))
-            : 0;
+        if (!TryReadExactAt(stream, os2.Offset, bytes))
+        {
+            return (0, 0, false);
+        }
+
+        var fsSelection = BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(62, 2));
+        return (
+            BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(74, 2)),
+            BinaryPrimitives.ReadInt16BigEndian(bytes.AsSpan(68, 2)),
+            (fsSelection & 0x80) != 0);
     }
 
     /// <summary>
