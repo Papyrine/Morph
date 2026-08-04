@@ -397,8 +397,18 @@ The checklist is landed through step 6; what is left, most-blocking first:
    and FIXED (2026-08-04): the parser's invented default line-spacing multipliers (1.04 on the style path,
    1.08 on the style-less-paragraph path) where Word treats an absent `w:line` as exactly single — probed
    with long wrapping paragraphs at ±0.35px resolution, full ledger in `src/page_counts.md`. Corpus-wide
-   the correction measured +0.0079 aggregate SSIM with page counts moving only TOWARD Word — so the flip
-   deserves one more measurement on the new baselines.**
+   the correction measured +0.0079 aggregate SSIM with page counts moving only TOWARD Word.**
+
+   **Re-measured with the pitch fix in (2026-08-04, third measurement): aggregate −0.0022 — 0.0002 short
+   of the −0.002 bar, held again.** 307 scored, 56 improved / 226 mid / 25 breaching. Two readings matter
+   for the next attempt. First, the engine's PDF page counts now beat production's: `resumes/13` renders
+   Word's 5 pages where production PDF renders 6 (the gate scorer flags it as a count change — it is a
+   regained agreement, production's side had no metrics to compare). Second, the pitch fix RAISED the bar:
+   it landed in the regenerated production baselines too, so production PDF improved under the engine
+   (e.g. `cover-letters/03` production +0.055, which now shows as an engine breach at −0.065). The breach
+   list is otherwise still led by the compound-image/full-page-gradient tail (`cards/05` −0.107,
+   `cover-letters/12` −0.090, `brochures/04` −0.072). The remaining 0.0002 needs the image/gradient
+   rasterization work — the one lever left with the measurer now probe-exact on pitch, baseline and em.
 
    **The `resumes/01` / `compatibility_mode_14` breach pair (−0.045 each) is root-caused (2026-08-04), and
    the engine is the *correct* side of it.** The two are byte-identical templates: a résumé table whose
