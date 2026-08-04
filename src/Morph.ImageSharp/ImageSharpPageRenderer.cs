@@ -379,6 +379,11 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     protected override void RenderParagraph(ParagraphElement paragraph, DocumentElement? nextElement = null)
     {
+        // The caller's paragraph, before page-field substitution swaps it for a copy — a
+        // cross-reference is resolved against the document's own paragraphs, so that is the
+        // identity the recorded page has to be filed under.
+        var source = paragraph;
+
         // Substitute live page numbers for any PAGE/NUMPAGES/SECTIONPAGES field before measuring.
         paragraph = ResolveParagraphPageFields(paragraph);
 
@@ -468,6 +473,10 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
         {
             EnsureSpaceFor(height);
         }
+
+        // Every break decision for this paragraph has now been taken, so this is the page it starts
+        // on rather than the one the renderer was on when it arrived.
+        context.ParagraphPages[source] = context.CurrentPageNumber;
 
         if (currentCanvas != null)
         {

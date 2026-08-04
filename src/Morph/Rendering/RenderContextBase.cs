@@ -45,6 +45,17 @@ abstract class RenderContextBase
     public float CurrentY { get; set; }
     public int CurrentPageNumber { get; private set; } = 1;
 
+    /// <summary>
+    /// The page each rendered paragraph starts on, keyed by the paragraph itself.
+    /// </summary>
+    /// <remarks>
+    /// Recorded so a cross-reference can be resolved to a page: a bookmark knows which paragraph it
+    /// sits in, and only layout knows where that paragraph landed. Populated once the paragraph's
+    /// page-break decisions are settled, so the number is where it starts rather than where the
+    /// renderer happened to be beforehand.
+    /// </remarks>
+    public Dictionary<ParagraphElement, int> ParagraphPages { get; } = [];
+
     /// <summary>Display offset for PAGE fields from the active section's <c>w:pgNumType/@start</c>
     /// restart: displayed number = <see cref="CurrentPageNumber"/> + this. 0 = physical numbering.</summary>
     public int PageNumberDisplayOffset { get; private set; }
