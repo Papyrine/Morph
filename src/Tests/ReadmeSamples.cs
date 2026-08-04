@@ -304,4 +304,20 @@ public class Samples
 
         #endregion
     }
+
+    public static void GetBookmarkPages()
+    {
+        #region GetBookmarkPages
+
+        // Which page each bookmark falls on — the number a PAGEREF field or a table-of-contents
+        // entry needs, and which only pagination can answer.
+        var pages = DocumentConverter.GetBookmarkPages("report.docx");
+
+        foreach (var (bookmark, page) in pages)
+        {
+            Console.WriteLine($"{bookmark} is on page {page}");
+        }
+
+        #endregion
+    }
 }

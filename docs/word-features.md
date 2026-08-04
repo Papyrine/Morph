@@ -2304,8 +2304,8 @@ Named locations within the document for cross-references and navigation.
 - **Spec**: [Bookmarks](http://officeopenxml.com/WPbookmark.php)
 - **Model**: `Bookmark` record (id, name, optional ParagraphIndex); `ParsedDocument.Bookmarks`
 - **Parse**: `DocumentParser.ExtractBookmarks()` collects every `w:bookmarkStart` and resolves the enclosing paragraph's body ordinal via parent-chain walk
-- **Render**: not visible — bookmarks pass through with no draw step. Cross-reference fields (PAGEREF / REF) can use `ParagraphIndex` to locate the anchor.
-- **Test**: spec test `BookmarksTests`
+- **Render**: not visible — bookmarks pass through with no draw step. `DocumentConverter.GetBookmarkPages` resolves each one to a page number for cross-reference fields (PAGEREF / REF) to consume, joining `ParagraphIndex` to the page its paragraph was laid out on (`PlacedLine.Paragraph` → `LaidOutPage.Number`); a document outside `EngineCoverage` reports nothing rather than a guess.
+- **Test**: spec tests `BookmarksTests`, `BookmarkPageTests`
 
 > **Contributors**: Internal anchors like `_GoBack` and `_Hlk*` are kept; consumers can filter by name prefix. Bookmarks at body level (between paragraphs) have `ParagraphIndex == null`.
 

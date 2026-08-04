@@ -453,6 +453,32 @@ document.ExportToPdf("page.pdf");   // extension method from Morph.Pdf
 <!-- endSnippet -->
 
 
+### Bookmark page numbers
+
+A cross-reference — a PAGEREF field, or an entry in a table of contents — needs to know which page its target landed on. That is a product of pagination, which is why Word leaves those fields to compute when the document opens, and why a generated document typically ships placeholders and a prompt.
+
+`GetBookmarkPages` paginates the document and reports where each bookmark ended up, so a generator can write the numbers into the file it produces instead:
+
+<!-- snippet: GetBookmarkPages -->
+<a id='snippet-GetBookmarkPages'></a>
+```cs
+// Which page each bookmark falls on — the number a PAGEREF field or a table-of-contents
+// entry needs, and which only pagination can answer.
+var pages = DocumentConverter.GetBookmarkPages("report.docx");
+
+foreach (var (bookmark, page) in pages)
+{
+    Console.WriteLine($"{bookmark} is on page {page}");
+}
+```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L310-L321' title='Snippet source file'>snippet source</a> | <a href='#snippet-GetBookmarkPages' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+It costs a layout pass and nothing more — the answer is read off the layout engine's placed items, so no page is drawn and no rendering backend is involved. Bookmarks that cannot be placed, such as one sitting between paragraphs at body level (`ParagraphIndex == null`), are absent from the result rather than reported at a guessed page.
+
+[Parchment](https://github.com/Papyrine/Parchment) consumes this through its `Parchment.Morph` package to resolve a generated document's table of contents as it is built.
+
+
 ## Shrinking a DOCX
 
 A DOCX authored in Word carries parts that hold no rendering information. `DocumentCleaner` removes them. Applied to this repository's own 328-document test corpus it recovered 9.5 MB, 14% of the corpus on disk.
