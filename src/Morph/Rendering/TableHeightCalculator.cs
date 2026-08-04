@@ -141,6 +141,15 @@ static class TableHeightCalculator
         // shifting every continuation page. Each interior edge equals the row-below's resolved top
         // border (the collapsed insideH), so HorizontalBorderWidth(top: true) reads it directly.
         //
+        // The FULL edge width is Word's law, probed directly (2026-08-04, single-column tables of
+        // identical 12pt rows varying only the border): insideH of 0.5 / 2.25 / 4.5 / 6pt each grew the
+        // row-to-row pitch by the full width, per-cell authored top/bottom borders behaved identically to
+        // insideH, and the content ink starts a full border-width lower in bordered rows — Word draws the
+        // edge at the boundary and insets the row-below's content under it. The same probe settled the
+        // resumes/01 spacer rows (2.25pt rules over empty atLeast rows): Word's spacer row is the empty
+        // mark line + the full edge (13.97 + 2.25 = 16.22pt), which is what this pass computes — the
+        // production PDF path, which does not opt in, runs those rows 2.25pt short.
+        //
         // Interior edges are OPT-IN because the two consumers position content differently. The layout
         // engine's PdfPainter tops content in the taller cell and its pagination then matches Word, so
         // it asks for them. The production PageRendererBase render does NOT inset content by the top
