@@ -410,6 +410,19 @@ The checklist is landed through step 6; what is left, most-blocking first:
    `cover-letters/12` −0.090, `brochures/04` −0.072). The remaining 0.0002 needs the image/gradient
    rasterization work — the one lever left with the measurer now probe-exact on pitch, baseline and em.
 
+   **Fourth measurement (2026-08-05, after the cards/05 pair of fixes): the AGGREGATE clears the bar for
+   the first time — −0.0012 against −0.002** (trajectory −0.0054 → −0.0050 → −0.0029 → −0.0022 →
+   −0.0012), 58 improved / 228 mid / 20 per-doc breaches. The locked per-doc clause still holds the flip:
+   the scripted landmark adjudication (per-page ink-band positions vs Word, engine vs production) CLEARS
+   five of the twelve worst — `cover-letters/12` (engine 11.9px mean error vs production 15.1),
+   `brochures/04` (37.5 vs 55.0), `brochures/01` (tie), `business-plans/03` (19.0 vs 24.4),
+   `cover-letters/10` (tie) — and CONFIRMS seven as real engine deficits: `business-plans/05` (59.5px vs
+   13.0), `agendas-minutes/05` (32.3 vs 5.0), `business/05` (29.3 vs 0.8), `business-plans/08` (page 2:
+   24.8 vs 7.3), `labels/12` (13.2 vs 0.4), `business-plans/10` (pages 2-3), `resumes/10` (all pages,
+   ~2×). Those seven (plus the eight breaches below rank 12, unadjudicated) are the flip's remaining work:
+   per-document position defects of the same species as the cards/05 pair, each with a page number and a
+   magnitude attached.
+
    **The `resumes/01` / `compatibility_mode_14` breach pair (−0.045 each) is root-caused (2026-08-04), and
    the engine is the *correct* side of it.** The two are byte-identical templates: a résumé table whose
    section rules are 2.25pt cell borders on 72/144-twip `atLeast` spacer rows holding one empty 11pt
