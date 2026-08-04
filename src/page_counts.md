@@ -237,6 +237,16 @@ references are evidence for the behaviour, not code to port (LO is MPL-2.0). Ver
 - **Line pitch = hhea (ascent + descent + line gap) × the Auto multiplier** (exact for Exactly, max
   for AtLeast). Measured: Aptos 12pt single = 14.65pt, Calibri 10.8pt single = 13.18pt. PdfSharp's
   `GetHeight()` and Skia's `ascent + descent + leading` both equal this for every bundled font.
+- **An absent `w:spacing/@w:line` is exactly SINGLE (multiplier 1.0) in any styles.xml-bearing
+  document** — Word-probed 2026-08-04 with long wrapping paragraphs (line deltas free of
+  before/after spacing) in two host packages: inherited pitch == explicit `w:line="240"` == the
+  hhea box, for Calibri Light / Segoe UI / Aptos alike, at ±0.35px resolution. Ten fonts probed at
+  explicit single all sit on the hhea box (Segoe UI's 1.3301em included). The parser's invented
+  1.04 (style path) and 1.08 (style-less-paragraph path) defaults were the corpus-wide
+  "~0.6-1pt/line too tall" drift vs Word; fixing them to 1.0 measured +0.0079 aggregate SSIM
+  (85 improved / 58 regressed) and moved page counts only TOWARD Word (resumes/13 6→5; nine
+  backend-scenarios regained page-count agreement). The `builtInLineSpacingMultiplier` (278/240,
+  for documents with no styles.xml at all) is a separately-measured keeper and stays.
 - **Adjacent paragraph spacing collapses to max(after, before)**, not the sum.
 - **No 1.20×size floor and no ×1.035 leading boost** — both were fudges compensating the missing
   line gap; they cancel for Calibri-class fonts, which masked the wrong model.
