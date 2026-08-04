@@ -1,8 +1,10 @@
 /// <summary>
-/// Rasterizes a WordArt shape to a transparent-background PNG with the SkiaSharp backend. It lays
-/// the shape out on a single-element page sized exactly to the WordArt box, so all of
-/// <see cref="SkiaPageRenderer"/>'s WordArt drawing (warps, outline, shadow, glow, reflection) is
-/// reused verbatim. Discovered reflectively by <c>Morph.Pdf</c> to embed high-fidelity WordArt.
+/// Rasterizes a WordArt shape to a transparent-background PNG with the SkiaSharp backend. It draws
+/// through <see cref="SkiaWordArtDrawer"/> onto a bitmap sized exactly to the WordArt box (plus the
+/// shared overflow padding), reproducing the geometry the page renderer used when this went through
+/// a single-element page render — same content origin, same bitmap format, same encode — without
+/// constructing a page renderer. Discovered reflectively by <c>Morph.Pdf</c> to embed high-fidelity
+/// WordArt.
 /// </summary>
 sealed class SkiaWordArtRasterizer : IWordArtRasterizer
 {
@@ -26,28 +28,32 @@ sealed class SkiaWordArtRasterizer : IWordArtRasterizer
         {
             TransparentBackground = true
         };
-        using var renderer = new SkiaPageRenderer(context);
+        context.SetHeaderFooterSpace(0, 0);
 
-        var document = new ParsedDocument
-        {
-            PageSettings = pageSettings,
-            Elements = [WordArtRasterPage.ToInlineElement(visual)]
-        };
+        using var bitmap = new SKBitmap(
+            context.PageWidthPixels,
+            context.PageHeightPixels,
+            SKColorType.Rgba8888,
+            SKAlphaType.Premul);
+        using var canvas = new SKCanvas(bitmap);
+        canvas.Clear(SKColors.Transparent);
 
-        byte[]? png = null;
-        renderer.RenderDocument(document, writePng =>
-        {
-            // The box is a single page; keep the first (only) page's bytes.
-            if (png != null)
-            {
-                return;
-            }
+        // The element draws at the content origin — the same place the page render put it, with
+        // the box the full content area (the raster page's margins ARE the overflow padding).
+        var element = WordArtRasterPage.ToInlineElement(visual);
+        var x = context.PointsToPixels(context.ContentLeft) +
+                SkiaWordArtDrawer.AlignWordArtOffset(
+                    element,
+                    context.PointsToPixels(context.ContentWidth),
+                    context.PointsToPixels((float) element.WidthPoints));
+        var y = context.PointsToPixels(context.ContentTop);
+        var width = context.PointsToPixels((float) element.WidthPoints);
+        var pixelHeight = context.PointsToPixels((float) element.HeightPoints);
 
-            using var stream = new MemoryStream();
-            writePng(stream);
-            png = stream.ToArray();
-        });
+        new SkiaWordArtDrawer(context, canvas).DrawInline(element, x, y, width, pixelHeight);
 
-        return png;
+        using var pixmap = bitmap.PeekPixels();
+        using var data = pixmap.Encode(SKEncodedImageFormat.Png, 100)!;
+        return data.ToArray();
     }
 }
