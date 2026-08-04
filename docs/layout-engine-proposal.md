@@ -432,9 +432,12 @@ The checklist is landed through step 6; what is left, most-blocking first:
      through their own `<Backend>WordArtDrawer` instead of running a page render (the ~900-line drawing
      block per backend moved verbatim; gated by a full delete-and-regenerate of all 4490 snapshots
      reproducing every one byte-identically). Only the `MORPH_*_ENGINE=off` kill switch still constructs
-     them. Deleting them therefore waits on exactly one decision: dropping the raster path drops the
-     footnote/endnote appendix (`RenderNotesAppendix`) for out-of-corpus documents — a product call, not a
-     mechanical one.
+     them. The last content gap closed with the footnote decision (2026-08-04): the shared
+     `NotesAppendix` builder feeds both paths — the engine appends it to the element flow at each
+     `RenderViaEngine`, replacing the appendix the engine had silently dropped since coverage went total
+     (the engine's gate never consulted `ParsedDocument.Footnotes`, so `document_capture/01`'s baselines
+     had lost theirs) — and the three production `RenderNotesAppendix` copies collapsed onto the same
+     builder. **Nothing blocks the raster deletion.**
    - `PdfPageRenderer` + `PdfTextEngine` stay while the flip is held (item 1).
    - `EngineCoverage` and the three `MORPH_*_ENGINE` reads stay while any fallback exists, since they are what
      select it.
@@ -445,7 +448,7 @@ The checklist is landed through step 6; what is left, most-blocking first:
    recolour/duotone, shape image fills, super/subscript raise, `w:position`, small-caps, run borders/effects,
    RTL, and foreground header/footer images (detailed under the two cutover sections; band tables have landed).
 5. **Emission-backlog items not covered above** — form fields (content controls, their item-4 companion,
-   landed), the footnote/endnote appendix (`RenderNotesAppendix`), line numbers, bar tabs, per-fragment
+   landed), line numbers, bar tabs, per-fragment
    paragraph borders across a break, and per-section NUMPAGES restart (the unlanded remainder of items 4, 5
    and 8 of the "Emission backlog" below — none is a coverage hold-out, so they gate no document today).
 
@@ -859,7 +862,9 @@ WordArt** (the 16 presets, only the two envelope test documents need them) are t
    anchor-page half has since landed in the float-anchor fidelity slice; the wrap exclusions remain*).
 3. Floating tables.
 4. Form fields and content controls.
-5. Footnote/endnote appendix at document end (`RenderNotesAppendix`).
+5. Footnote/endnote appendix at document end (*landed 2026-08-04: the shared `NotesAppendix` builder
+   appends the notes to the element flow at each `RenderViaEngine`; the three production
+   `RenderNotesAppendix` copies collapsed onto it*).
 6. Foreground (front-text) header/footer images — any variant — and 3-way footer tab alignment (*band
    tables have since landed — business/01's footer grid. Reclassified: foreground header/footer images gate
    no document's coverage, so they belong to painter fidelity, "Remaining work" item 4; 3-way footer tab

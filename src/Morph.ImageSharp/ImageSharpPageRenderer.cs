@@ -135,70 +135,9 @@ sealed class ImageSharpPageRenderer(ImageSharpRenderContext context) :
 
     void RenderNotesAppendix(ParsedDocument document)
     {
-        var footnotes = document.Footnotes
-            .Where(_ => _.Id != "0" &&
-                        _.Id != "-1" &&
-                        !string.IsNullOrWhiteSpace(_.Text))
-            .ToList();
-        var endnotes = document.Endnotes
-            .Where(_ => _.Id != "0" &&
-                        _.Id != "-1" &&
-                        !string.IsNullOrWhiteSpace(_.Text))
-            .ToList();
-
-        if (footnotes.Count == 0 &&
-            endnotes.Count == 0)
+        foreach (var paragraph in NotesAppendix.BuildElements(document))
         {
-            return;
-        }
-
-        AppendNotesSection("Footnotes", footnotes.Select(_ => (_.Id, _.Text)).ToList());
-        AppendNotesSection("Endnotes", endnotes.Select(_ => (_.Id, _.Text)).ToList());
-    }
-
-    void AppendNotesSection(string heading, List<(string Id, string Text)> entries)
-    {
-        if (entries.Count == 0)
-        {
-            return;
-        }
-
-        var headingParagraph = new ParagraphElement
-        {
-            Runs =
-            [
-                new()
-                {
-                    Text = heading,
-                    Properties = new()
-                    {
-                        Bold = true, FontSizePoints = 12
-                    }
-                }
-            ],
-            Properties = new()
-            {
-                SpacingBeforePoints = 12,
-                SpacingAfterPoints = 6
-            }
-        };
-        RenderParagraph(headingParagraph);
-
-        for (var noteIndex = 0; noteIndex < entries.Count; noteIndex++)
-        {
-            var (_, text) = entries[noteIndex];
-            var noteParagraph = new ParagraphElement
-            {
-                Runs =
-                [
-                    // Sequential display number, matching the citation marks (footnotes.xml
-                    // ids start at 2; Word shows 1, 2, 3...).
-                    new() {Text = $"{noteIndex + 1}. ", Properties = new() {Bold = true, FontSizePoints = 10}},
-                    new() {Text = text, Properties = new() {FontSizePoints = 10}}
-                ],
-                Properties = new() {SpacingAfterPoints = 4}
-            };
-            RenderParagraph(noteParagraph);
+            RenderParagraph(paragraph);
         }
     }
 

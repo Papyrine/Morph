@@ -35,7 +35,7 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
         using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
         var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale);
         var laidOut = new Fragmenter(measurer).Layout(
-            document.Elements,
+            NotesAppendix.AppendTo(document),
             document.PageSettings,
             document.Header,
             document.Footer,
