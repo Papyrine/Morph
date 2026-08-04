@@ -424,20 +424,21 @@ The checklist is landed through step 6; what is left, most-blocking first:
    `TableHeightCalculator`), once PDF flips and coverage is total — the fallback still serves uncovered
    documents and the kill switch until then.
 
-   **The blocker chain, mapped 2026-08-02, so the next attempt does not re-derive it.** All three page
-   renderers derive from `PageRendererBase`, and each is still reachable, so nothing at the root can go yet:
-   - `SkiaPageRenderer` / `ImageSharpPageRenderer` are down to **one** live consumer each —
-     `<Backend>WordArtRasterizer`, which rasterizes a warp by running a whole page render, and which PDF
-     itself depends on for WordArt embedding, engine path included. The uncovered-document fallback is cold
-     (coverage is total, item 2) and HTML→PNG now routes through the same engine seam as DOCX
-     (byte-identical snapshots on the port). Deleting the raster path also drops the footnote/endnote
-     appendix (`RenderNotesAppendix`) for out-of-corpus documents — a product call, not a mechanical one.
+   **The blocker chain, mapped 2026-08-02 and updated as slices land.** All three page renderers derive
+   from `PageRendererBase`; what still reaches each one:
+   - `SkiaPageRenderer` / `ImageSharpPageRenderer` have **zero** engine-path consumers left. The
+     uncovered-document fallback is cold (coverage is total, item 2), HTML→PNG routes through the same
+     engine seam as DOCX (byte-identical snapshots on the port), and the WordArt rasterizers now draw
+     through their own `<Backend>WordArtDrawer` instead of running a page render (the ~900-line drawing
+     block per backend moved verbatim; gated by a full delete-and-regenerate of all 4490 snapshots
+     reproducing every one byte-identically). Only the `MORPH_*_ENGINE=off` kill switch still constructs
+     them. Deleting them therefore waits on exactly one decision: dropping the raster path drops the
+     footnote/endnote appendix (`RenderNotesAppendix`) for out-of-corpus documents — a product call, not a
+     mechanical one.
    - `PdfPageRenderer` + `PdfTextEngine` stay while the flip is held (item 1).
    - `EngineCoverage` and the three `MORPH_*_ENGINE` reads stay while any fallback exists, since they are what
      select it.
 
-   So the order is forced: retire the WordArt rasterizers' dependency on a page render, put HTML→PNG on the
-   engine seam, and clear item 2 — *then* the raster half can go. The PDF half additionally needs item 1.
    Deleting `TableHeightCalculator` is a different kind of task: it is not dead code, the `Fragmenter` is its
    main caller, so it is a fold rather than a delete.
 4. **Painter-fidelity backlog** — score-improving, not gating a document: per-glyph advances, image
