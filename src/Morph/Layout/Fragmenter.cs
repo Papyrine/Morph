@@ -1317,9 +1317,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         }
 
         // Cell-anchored behind-text shapes resolved to absolute boxes: the offset is measured from the
-        // cell's top-left (Word anchors these to the cell frame). Solid, gradient and outline fills render;
-        // image fills, in-front-of-text floats, and the paragraph-anchor walk that positions non-cell-top
-        // floats are later slices (each painter's PaintShape skips what it cannot draw).
+        // cell's top-left (Word anchors these to the cell frame). Solid, gradient, outline and image
+        // fills render (an image-fill shape paints as a plain image, mirroring the body-float case —
+        // brochures/04's construction photo is one, silently dropped before this); in-front-of-text
+        // floats and the paragraph-anchor walk that positions non-cell-top floats are later slices
+        // (each painter's PaintShape skips what it cannot draw).
         static IReadOnlyList<PlacedItem> ResolveCellFloatShapes(TableCell cell, float cellX, float cellY)
         {
             if (cell.Floats.Count == 0)
@@ -1337,7 +1339,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
                 var shapeX = cellX + (float) shape.HorizontalPositionPoints;
                 var shapeY = cellY + (float) shape.VerticalPositionPoints;
-                shapes.Add(new PlacedShape(shapeX, shapeY, (float) shape.WidthPoints, (float) shape.HeightPoints, shape));
+                if (shape.ImageData is { Length: > 0 } shapeImage && shape.ImageContentType != "image/svg+xml")
+                {
+                    shapes.Add(new PlacedImage(shapeX, shapeY, (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage, shape.RotationDegrees, shape.FlipHorizontal, shape.FlipVertical));
+                }
+                else if (shape.ImageData == null)
+                {
+                    shapes.Add(new PlacedShape(shapeX, shapeY, (float) shape.WidthPoints, (float) shape.HeightPoints, shape));
+                }
             }
 
             return shapes;
