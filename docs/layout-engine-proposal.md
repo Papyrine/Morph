@@ -378,6 +378,22 @@ The checklist is landed through step 6; what is left, most-blocking first:
    One result worth keeping separate from the verdict: **zero of the 286 changed page count.** The engine
    paginates PDF exactly as `PdfTextEngine` does, everywhere. The pagination half of the cutover is done and
    measured; only rasterization fidelity holds the flip.
+
+   **Re-measured 2026-08-04, with both measurer fixes in — held again, but the gap is now well
+   characterised.** After the `Ppem` grain and the `usWinAscent` baseline landed (the two defects that turned
+   out to be stacked on the raster hold-out), the same source-toggled measurement over 308 scored documents:
+   **51 improved / 231 mid / 26 breaching, aggregate −0.0029** against the −0.002 bar, zero page-count
+   changes. So the fixes recovered roughly **40% of the −0.0050 gap**, and what remains finally has the shape
+   the "tail" label always claimed: the breach list is led by the compound-image and full-page-gradient
+   documents (`cards/05` −0.107, `cover-letters/12` −0.090, `brochures/04` −0.085) with the residual spread
+   across art-heavy templates, while the engine's wins are the table set (`header_row_repeat/01` +0.087,
+   `resumes/03` +0.070, `business-plans/12` +0.051). Two entries in the breach list are the known
+   ascent-drift open item wearing its PDF face (`resumes/01` / `compatibility_mode_14` −0.045, the same
+   documents whose raster drift is recorded as unexplained). The verdict machinery this time also proved the
+   silent-absence guard: eight scenarios' metrics are suppressed by standing page-count mismatches vs Word
+   and seven more changed pixels without metric rows — all listed by the gate as unverified rather than
+   passing silently. Closing the remaining −0.0009-to-bar needs either the image/gradient rasterization work
+   or the ascent-drift root cause, not another measurer sweep.
 2. **The one coverage hold-out** of 325 — `image_wrap_square`. Positioned frames, warped WordArt and float
    wrap all emit now (324/325, asserted by `EngineCoverageTests`). Its wrap *is* emitted and honouring it
    helps (+0.013); the `Ppem` grain took it from −0.0365 to −0.0242 (item 1). **The rest is now characterised,
