@@ -1736,11 +1736,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     var (imageX, imageY) = Position(image.HorizontalAnchor, image.HorizontalPositionPoints, image.VerticalAnchor, image.VerticalPositionPoints);
                     items.Add(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data));
                 }
-                else if (element is FloatingShapeElement shape && shape.BehindText)
+                else if (element is FloatingShapeElement shape)
                 {
                     var (shapeX, shapeY) = Position(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.VerticalAnchor, shape.VerticalPositionPoints);
                     // An image-fill shape paints as a plain image (PaintShape skips image fills); a solid,
                     // gradient or outlined shape paints as a PlacedShape — mirroring the body-float shape cases.
+                    // Front-of-text band shapes are admitted too: production painted the whole header before
+                    // the body, so its front-text shapes also sat under the body content — cards/05's two
+                    // 0.5pt fold-guide rules (a full-height vertical and a full-width horizontal, both
+                    // front-text page-anchored header shapes) were silently dropped by the behind-only gate.
                     if (shape.ImageData is { Length: > 0 } shapeImage && shape.ImageContentType != "image/svg+xml")
                     {
                         items.Add(new PlacedImage(shapeX, shapeY, (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage, shape.RotationDegrees, shape.FlipHorizontal, shape.FlipVertical));
