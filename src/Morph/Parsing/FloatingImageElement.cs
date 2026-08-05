@@ -3,6 +3,14 @@
 /// </summary>
 sealed class FloatingImageElement : DocumentElement
 {
+    /// <summary>
+    /// The paragraph this float is anchored to — the ParagraphElement produced by the same
+    /// ParseParagraph call, when that call produced one (a shape-only paragraph may not). A
+    /// paragraph-relative vertical offset resolves against this paragraph's laid-out top; null falls
+    /// back to the flow cursor at emission. Assigned after the paragraph is constructed, so settable.
+    /// </summary>
+    public ParagraphElement? AnchorParagraph { get; set; }
+
     public required byte[] ImageData { get; init; }
     public required double WidthPoints { get; init; }
     public required double HeightPoints { get; init; }

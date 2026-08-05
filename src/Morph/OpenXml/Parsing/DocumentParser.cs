@@ -5788,6 +5788,30 @@ sealed class DocumentParser(string defaultFont)
             result.Add(sectionBreak);
         }
 
+        // Wire this paragraph's floats to their anchor: every float parsed by this call belongs to
+        // THIS paragraph, whatever side of the flush ordering it landed on, and a Word probe (2026-08-05,
+        // _probe_anchor_ref) pins the reference to the paragraph's PRE-SPACING top — an offset-0
+        // paragraph-anchored shape on a 60pt-before paragraph sits at the previous paragraph's bottom
+        // edge, not at the line top. Multiple fragments in one call (splits around breaks) anchor to the
+        // FIRST — the paragraph's start. A call that produced no paragraph leaves the anchor null and
+        // the layout falls back to the flow cursor, which is the same position.
+        var anchorParagraph = result.OfType<ParagraphElement>().FirstOrDefault();
+        if (anchorParagraph != null)
+        {
+            foreach (var element in result)
+            {
+                switch (element)
+                {
+                    case FloatingImageElement { AnchorParagraph: null } image:
+                        image.AnchorParagraph = anchorParagraph;
+                        break;
+                    case FloatingShapeElement { AnchorParagraph: null } shape:
+                        shape.AnchorParagraph = anchorParagraph;
+                        break;
+                }
+            }
+        }
+
         return result;
     }
 
