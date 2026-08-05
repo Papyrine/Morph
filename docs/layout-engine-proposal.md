@@ -436,6 +436,22 @@ The checklist is landed through step 6; what is left, most-blocking first:
    still renders `resumes/13` at Word's page count where production does not. The five stands are the
    whole distance to the flip.
 
+   **Sixth measurement (2026-08-05, after the business-plans/08 carried-after fix and the measurer
+   DefaultFont fallback): aggregate +0.0002 — the engine beats production on aggregate for the first
+   time** (trajectory −0.0054 → −0.0050 → −0.0029 → −0.0022 → −0.0012 → −0.0001 → +0.0002), 60 improved
+   / 235 mid / 10 breaching. The landmark adjudication CLEARS seven of the ten (`cover-letters/12`
+   11.9px vs production's 15.1, `brochures/04` 37.5/70.9 vs 55.0/82.1, `brochures/01`,
+   `business-plans/03` 19.0 vs 24.4, `cover-letters/10`, `newsletters/14`, `labels/14`). Three stand:
+   `resumes/10` (6.2/11.0/6.5 vs 3.6/4.3/4.3), `newsletters/05` (mixed — engine wins p2 21.2 vs 34.9,
+   loses p1/p3/p4), and `business/05` (29.3 vs 0.8 on the coarse metric; known segmentation artifact —
+   full resolution shows a constant 6px / 3pt header-reservation step). Trap-4 diligence over the
+   metric-suppressed docs: page counts engine = production everywhere (the wordart "13 vs 15" was
+   received-PNGs-only-for-changed-pages, not a count change); pixel sweep adds one unscored deficit,
+   `cover-letters/09` (engine 26.0px vs production 17.5 on its single page), and one unscored win
+   (`complex_tables` p1 62.1 vs 70.6). The per-doc clause therefore still holds the flip on
+   resumes/10 + newsletters/05 (+ business/05 if its artifact reading is not accepted); the aggregate
+   clause passes with headroom.
+
    **The `resumes/01` / `compatibility_mode_14` breach pair (−0.045 each) is root-caused (2026-08-04), and
    the engine is the *correct* side of it.** The two are byte-identical templates: a résumé table whose
    section rules are 2.25pt cell borders on 72/144-twip `atLeast` spacer rows holding one empty 11pt
