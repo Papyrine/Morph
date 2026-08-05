@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 
 /// <summary>
 /// Flows a document's block content into pages once, backend-independently — the heart of the layout
@@ -331,24 +331,19 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         PlaceTable(table);
                         break;
 
-                    case FloatingImageElement image when DecodableImageBytes(image) is { Length: > 0 } data:
-                    {
-                        var imageX = FloatX(image.HorizontalAnchor, image.HorizontalPositionPoints, image.HorizontalPositionPercent);
-                        var imageY = FloatY(image.VerticalAnchor, image.VerticalPositionPoints, image.VerticalPositionPercent);
-                        AddBodyFloat(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, image.Crop), image.BehindText, IsAbsoluteY(image.VerticalAnchor));
-                        RegisterFloatExclusion(image, imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints);
+                    case FloatingImageElement image when DecodableImageBytes(image) is { Length: > 0 }:
+                        EmitBodyFloat(image, image.VerticalAnchor, image.AnchorParagraph);
                         break;
-                    }
 
                     // An image-filled shape (a full-bleed background photo) paints as a plain image — the shape
                     // painter skips image fills. It carries the shape's rotation and flip; a shape image has no
                     // source crop or clip geometry of its own.
-                    case FloatingShapeElement shape when shape.ImageData is { Length: > 0 } shapeImage && shape.ImageContentType != "image/svg+xml":
-                        AddBodyFloat(new PlacedImage(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent), FloatY(shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent), (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage, shape.RotationDegrees, shape.FlipHorizontal, shape.FlipVertical), shape.BehindText, IsAbsoluteY(shape.VerticalAnchor));
+                    case FloatingShapeElement shape when shape.ImageData is { Length: > 0 } && shape.ImageContentType != "image/svg+xml":
+                        EmitBodyFloat(shape, shape.VerticalAnchor, shape.AnchorParagraph);
                         break;
 
                     case FloatingShapeElement shape when shape.ImageData == null && (shape.Gradient != null || shape.FillColorHex != null || shape.LineColorHex != null):
-                        AddBodyFloat(new PlacedShape(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent), FloatY(shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent), (float) shape.WidthPoints, (float) shape.HeightPoints, shape), shape.BehindText, IsAbsoluteY(shape.VerticalAnchor));
+                        EmitBodyFloat(shape, shape.VerticalAnchor, shape.AnchorParagraph);
                         break;
 
                     case FloatingTextBoxElement textBox when textBox.WrapType == WrapType.None:
@@ -475,6 +470,73 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             return pages;
+        }
+
+        // Each flow paragraph's PRE-SPACING top — where the cursor sat before its space-before was
+        // applied, which is Word's paragraph-anchor reference (probed: an offset-0 anchored shape on a
+        // 60pt-before paragraph sits at the previous paragraph's bottom edge). A float whose anchor
+        // paragraph laid out before the float reached the flow resolves from here.
+        readonly Dictionary<ParagraphElement, float> paragraphPreSpacingTops = [];
+
+        // Emits a body float now when its Y is absolute (page/margin) or it has no recorded anchor;
+        // defers a paragraph-anchored one until its anchor paragraph's top is known. Resolving from the
+        // cursor at emission ran agendas-minutes/05's decorative shapes a paragraph-gap low, and static
+        // previous/next-paragraph choices invert that document against menus/05 — only the recorded
+        // anchor serves both.
+        void EmitBodyFloat(DocumentElement element, VerticalAnchor verticalAnchor, ParagraphElement? anchor)
+        {
+            if (!IsAbsoluteY(verticalAnchor) && anchor != null &&
+                paragraphPreSpacingTops.TryGetValue(anchor, out var placedTop))
+            {
+                // The anchor paragraph laid out BEFORE this float reached the flow (a background-shape
+                // drawing flushes the paragraph first) — resolve against its recorded pre-spacing top.
+                EmitBodyFloatAt(element, placedTop);
+                return;
+            }
+
+            // Forward case: the anchor paragraph is still ahead. Its pre-spacing top will be exactly
+            // the cursor's current position (nothing places between a float and its own paragraph), so
+            // emit here and now — deferring changed page-tagging timing and shifted multi-page
+            // documents (wedding/07 ran 86px off under a deferral that resolves to the same value).
+            EmitBodyFloatAt(element, y);
+        }
+
+        // Places one body float, resolving a paragraph-relative Y against anchorTop (page/margin anchors
+        // are absolute and ignore it).
+        void EmitBodyFloatAt(DocumentElement element, float anchorTop)
+        {
+            float AnchoredY(VerticalAnchor anchor, double offset, double? percent)
+            {
+                var baseY = anchor switch
+                {
+                    VerticalAnchor.Page => 0f,
+                    VerticalAnchor.Margin => contentTop,
+                    _ => anchorTop
+                };
+                return percent is { } fraction
+                    ? baseY + (float) (fraction * (anchor == VerticalAnchor.Page ? current.HeightPoints : contentHeight))
+                    : baseY + (float) offset;
+            }
+
+            switch (element)
+            {
+                case FloatingImageElement image when DecodableImageBytes(image) is { Length: > 0 } data:
+                {
+                    var imageX = FloatX(image.HorizontalAnchor, image.HorizontalPositionPoints, image.HorizontalPositionPercent);
+                    var imageY = AnchoredY(image.VerticalAnchor, image.VerticalPositionPoints, image.VerticalPositionPercent);
+                    AddBodyFloat(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, image.Crop), image.BehindText, IsAbsoluteY(image.VerticalAnchor));
+                    RegisterFloatExclusion(image, imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints);
+                    break;
+                }
+
+                case FloatingShapeElement shape when shape.ImageData is { Length: > 0 } shapeImage && shape.ImageContentType != "image/svg+xml":
+                    AddBodyFloat(new PlacedImage(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent), AnchoredY(shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent), (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage, shape.RotationDegrees, shape.FlipHorizontal, shape.FlipVertical), shape.BehindText, IsAbsoluteY(shape.VerticalAnchor));
+                    break;
+
+                case FloatingShapeElement shape:
+                    AddBodyFloat(new PlacedShape(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent), AnchoredY(shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent), (float) shape.WidthPoints, (float) shape.HeightPoints, shape), shape.BehindText, IsAbsoluteY(shape.VerticalAnchor));
+                    break;
+            }
         }
 
         // Absolute X of a body float: a page-anchored offset is from the page's left; anything else (margin,
@@ -998,6 +1060,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // the document start as a region top lost it — wordart-envelope's title sat 20pt (its w:before)
             // high. PageRendererBase draws the same distinction through ShouldSuppressPageTopSpacingBefore's
             // `pagesStarted <= 1` guard.
+            // Word's paragraph-anchor reference is this pre-spacing position (see paragraphPreSpacingTops).
+            paragraphPreSpacingTops[paragraph] = y;
+
             var contextualCollapse = properties.ContextualSpacing && lastContextual && properties.StyleId == lastStyleId;
             var atDocumentStart = bodies.Count == 0 && items.Count == 0 && currentColumn == 0;
             if (!atRegionTop || atDocumentStart)

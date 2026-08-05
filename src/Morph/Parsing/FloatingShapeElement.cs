@@ -1,8 +1,16 @@
-/// <summary>
+﻿/// <summary>
 /// Represents a floating shape (solid-fill or image-fill, typically used as background).
 /// </summary>
 sealed class FloatingShapeElement : DocumentElement
 {
+    /// <summary>
+    /// The paragraph this float is anchored to — the ParagraphElement produced by the same
+    /// ParseParagraph call, when that call produced one (a shape-only paragraph may not). A
+    /// paragraph-relative vertical offset resolves against this paragraph's laid-out top; null falls
+    /// back to the flow cursor at emission. Assigned after the paragraph is constructed, so settable.
+    /// </summary>
+    public ParagraphElement? AnchorParagraph { get; set; }
+
     /// <summary>Width in points.</summary>
     public required double WidthPoints { get; init; }
 
