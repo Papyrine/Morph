@@ -288,6 +288,10 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MAJOR | html | - | top accent line missing (only a stray dot remains near its start position)
 - MINOR | html | - | list numbers "3./4./5." rendered tiny beside large section headings (Word renders number and heading at the same size)
 
+### business-plans/08
+
+- Flip-gate p2 deficit HALVED 2026-08-05 (24.8 → 17.7px vs prod 7.3): the constant 22pt high start was the engine dropping spacing-before at EVERY page top — Word keeps it on a page started by a non-continuous section break (the engine now mirrors production's ShouldSuppressPageTopSpacingBefore carve-out). A second ~10pt component remains undug. The same fix cleared business-plans/10 outright (p2 22.1 → 2.0, far better than production; p3-p5 ties).
+
 ### business-plans/09
 
 - MAJOR | all | p4 | "PUT THE PLAN INTO ACTION" table broken: header row ("Step/Action/Due date/% complete") plus the Action and Due-date columns missing; only a collapsed two-column Step+"%" fragment renders at top-left
@@ -1008,6 +1012,10 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### labels/12
 
 - MEDIUM | all | p1 | label columns pulled inward (~30px: col1 text sits 32px right, col3 34px left of Word, rules move with them) and the whole grid starts ~20px lower
+
+### labels/12
+
+- FIXED 2026-08-05: the 13.2px flip-gate deficit (engine 0.4 after, exact production tie) was LayoutCellContent omitting the LAST paragraph's spacing-after from the vertical-alignment content height — MeasureCellHeight sizes the row with it and production counted it, so every centre/bottom-aligned cell sat lower by exactly that spacing (these bottom-aligned label cells: 10pt).
 
 ### labels/13
 
