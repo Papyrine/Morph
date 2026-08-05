@@ -113,6 +113,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // reached by automatic overflow (business-plans/08's page 2 ran 22pt high without this).
         // Mirrors PageRendererBase.ShouldSuppressPageTopSpacingBefore's section-break carve-out.
         bool currentPageSectionStart;
+        // The trailing after-spacing of the page that just finished. Word's flow adds a paragraph's
+        // after when it completes and the NEXT paragraph adds only the excess of its before — and that
+        // carry survives a section-break page boundary: business-plans/08's page-2 Heading1
+        // (before=30pt) sits 22pt below the margin because the previous page's 8pt after already
+        // "spent" part of it. Captured in FinishPage before lastAfter resets.
+        float pageCarriedAfter;
 
         // Left edge of the current column, in points from the page's left.
         float ColumnLeft => fullContentLeft + currentColumn * (columnWidth + columnSpacing);
@@ -426,6 +432,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             y = contentTop;
             columnTop = contentTop;
             atRegionTop = true;
+            pageCarriedAfter = lastAfter;
             lastAfter = 0;
             currentPageExplicit = nextPageExplicit;
             currentPageSectionStart = false;
@@ -1075,9 +1082,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var contextualCollapse = properties.ContextualSpacing && lastContextual && properties.StyleId == lastStyleId;
             var atDocumentStart = bodies.Count == 0 && items.Count == 0 && currentColumn == 0;
             var atSectionStart = AtPageTop && currentPageSectionStart && items.Count == 0;
-            if (!atRegionTop || atDocumentStart || atSectionStart)
+            if (!atRegionTop || atDocumentStart)
             {
                 y += contextualCollapse ? 0f : Math.Max(lastAfter, (float) properties.SpacingBeforePoints);
+            }
+            else if (atSectionStart)
+            {
+                // The kept spacing is the EXCESS over the previous page's trailing after (see
+                // pageCarriedAfter) — Word's after-then-excess flow carries across the break.
+                y += contextualCollapse ? 0f : Math.Max(0f, (float) properties.SpacingBeforePoints - pageCarriedAfter);
             }
 
             // Where this paragraph may lay out beside any wrapping float, resolved once at its first line's

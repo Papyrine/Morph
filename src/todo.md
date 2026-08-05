@@ -290,7 +290,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### business-plans/08
 
-- Flip-gate p2 deficit HALVED 2026-08-05 (24.8 → 17.7px vs prod 7.3): the constant 22pt high start was the engine dropping spacing-before at EVERY page top — Word keeps it on a page started by a non-continuous section break (the engine now mirrors production's ShouldSuppressPageTopSpacingBefore carve-out). A second ~10pt component remains undug. The same fix cleared business-plans/10 outright (p2 22.1 → 2.0, far better than production; p3-p5 ties).
+- FIXED 2026-08-05, both components (17.7 → 7.3px, exact production tie): (1) Word keeps spacing-before on section-break-started pages (the earlier carve-out); (2) the kept spacing is the EXCESS over the previous page's trailing after — Word's after-then-excess flow carries across the break (Heading1 before=30pt lands 22pt below the margin because the prior page's 8pt after already spent part of it; production implements this as max(0, before − lastAfter) with the carry never reset across pages). The pair also cleared business-plans/10 (p2 2.0, far better than production) and recovered business-plans/12 (+0.019).
 
 ### business-plans/09
 
