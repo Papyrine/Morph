@@ -423,6 +423,19 @@ The checklist is landed through step 6; what is left, most-blocking first:
    per-document position defects of the same species as the cards/05 pair, each with a page number and a
    magnitude attached.
 
+   **Fifth measurement (2026-08-05, after the anchor-resolution, cell-alignment and section-start fixes):
+   aggregate −0.0001 — exact parity** (trajectory −0.0054 → −0.0050 → −0.0029 → −0.0022 → −0.0012 →
+   −0.0001), 60 improved / 233 mid / 12 breaching. The landmark adjudication CLEARS seven of the twelve
+   (`cover-letters/12` 11.9px vs production's 15.1, `brochures/04` 37.5 vs 55.0, `brochures/01`,
+   `business-plans/03` 19.0 vs 24.4, `cover-letters/10`, `newsletters/14`, `labels/14` — ties or engine
+   wins that SSIM mis-scores) and five stand: `business-plans/08` p2 (17.7 vs 7.3 — the undug second
+   component of its page-top offset), `resumes/10` (6.2/11.0/6.5 vs 3.6/4.3/4.3), `newsletters/05`
+   (mixed — the engine WINS p2 21.2 vs 34.9 but loses p1/p3/p4), `brochures/03` p1 (14.0 vs 1.5), and
+   `business/05` (29.3 vs 0.8 by the coarse band metric — previously shown to be a segmentation
+   artifact; at full resolution the engine tracks production within a constant 6px). The engine also
+   still renders `resumes/13` at Word's page count where production does not. The five stands are the
+   whole distance to the flip.
+
    **The `resumes/01` / `compatibility_mode_14` breach pair (−0.045 each) is root-caused (2026-08-04), and
    the engine is the *correct* side of it.** The two are byte-identical templates: a résumé table whose
    section rules are 2.25pt cell borders on 72/144-twip `atLeast` spacer rows holding one empty 11pt
