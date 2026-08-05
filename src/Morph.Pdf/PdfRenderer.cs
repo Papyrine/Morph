@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Renders a parsed document to a PDF byte array using PdfSharp. Shared entry point for the
 /// DOCX → PDF and HTML → PDF public converters. Output is made byte-reproducible (see
 /// <see cref="MakeDeterministic"/> / <see cref="Normalize"/>) so it can be snapshot-tested.
