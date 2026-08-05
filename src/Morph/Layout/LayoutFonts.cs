@@ -20,9 +20,14 @@ static class LayoutFonts
             seed: FontResolver<FontMetrics>.BuildBundledSeed(bytes => FontMetricsReader.Read(new MemoryStream(bytes))!));
 
     /// <summary>
-    /// Adapts <see cref="FontResolver{TFont}.Resolve"/> to the measurer's contract. The measurer reads a
-    /// null metric as an unresolved font (zero width); the resolver instead throws once even DefaultFont
-    /// fails, so that terminal case is translated into the null the measurer expects.
+    /// Adapts <see cref="FontResolver{TFont}.Resolve"/> to the measurer's contract. A family the resolver
+    /// cannot serve (no bundled face, no FontFallbacks alias) retries as
+    /// <see cref="DefaultFontSettings.DefaultFont"/> — the same last resort
+    /// <c>PdfFontResolver.ResolveTypeface</c> and the raster backends apply, so the measurer sizes the
+    /// line the painter will draw. Without it an unresolvable mark font measured a ZERO-height line:
+    /// brochures/03's first paragraph (mark font Biome, unbundled) collapsed and started the full-page
+    /// table 16pt high. The measurer reads a null metric as an unresolved font (zero width), so only the
+    /// terminal case — even DefaultFont fails — is translated into null.
     /// </summary>
     public static Func<string, bool, bool, FontMetrics?> ToDelegate(FontResolver<FontMetrics> resolver) =>
         (family, bold, italic) =>
@@ -30,6 +35,14 @@ static class LayoutFonts
             try
             {
                 return resolver.Resolve(family, bold, italic);
+            }
+            catch (InvalidOperationException)
+            {
+            }
+
+            try
+            {
+                return resolver.Resolve(DefaultFontSettings.DefaultFont, bold, italic);
             }
             catch (InvalidOperationException)
             {
