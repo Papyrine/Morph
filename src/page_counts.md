@@ -247,6 +247,16 @@ references are evidence for the behaviour, not code to port (LO is MPL-2.0). Ver
   (85 improved / 58 regressed) and moved page counts only TOWARD Word (resumes/13 6→5; nine
   backend-scenarios regained page-count agreement). The `builtInLineSpacingMultiplier` (278/240,
   for documents with no styles.xml at all) is a separately-measured keeper and stays.
+- **The line box itself is flag-dependent (Word-probed 2026-08-05 on Baskerville Old Face, the first
+  bundled font whose models split):** USE_TYPO_METRICS → the typographic box (sTypoAscender −
+  sTypoDescender + sTypoLineGap); otherwise the GDI cell — usWinAscent + usWinDescent + max(0, hheaGap −
+  (winTotal − hheaBoxNoGap)). Word measured 14.64 pt at 13 pt single and 17.76 pt at ×1.2 — the GDI
+  numbers (hhea would be 13.00/15.60). The hhea-box model survived every earlier probe only because the
+  probed fonts' typo/win boxes coincide with their hhea boxes (Aptos, Calibri, Segoe UI, Arial, Times,
+  Franklin, Avenir all do); 31 bundled faces diverge (Baskerville +0.14 em, Georgia Pro +0.16, Helvetica
+  +0.18, Lato Light +0.22, Work Sans +0.27), and business-plans/05 (Baskerville Normal) ran ~2.2 pt short
+  per line under hhea — the largest adjudication-confirmed flip breach (engine 59.5 px mean band error →
+  24.0 after the fix, beating production's 20.2 on most bands).
 - **Adjacent paragraph spacing collapses to max(after, before)**, not the sum.
 - **No 1.20×size floor and no ×1.035 leading boost** — both were fudges compensating the missing
   line gap; they cancel for Calibri-class fonts, which masked the wrong model.

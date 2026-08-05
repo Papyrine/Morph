@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Backend-independent font metrics read straight from a font file's OpenType tables, so the
 /// layout engine can measure line heights (and, later, glyph advances) without consulting
 /// SkiaSharp / SixLabors.Fonts / PdfSharp. This is the single canonical metric source the layout
@@ -24,12 +24,35 @@ sealed record FontMetrics
     public required int LineGap { get; init; }
 
     /// <summary>
-    /// The single-spaced line box in design units: <c>ascender - descender + lineGap</c> (descender is
-    /// negative, so this is ascent + |descent| + gap). This is the XPS-validated Word line pitch
-    /// (<c>src/page_counts.md</c>, "Height model"): PdfSharp's <c>GetHeight()</c> and Skia's
-    /// <c>ascent + descent + leading</c> both equal it for every bundled font.
+    /// The single-spaced line box in design units — Word's rule, settled by two Word probes
+    /// (<c>src/page_counts.md</c>, "Height model"): a font that sets USE_TYPO_METRICS takes the
+    /// typographic box (<c>sTypoAscender − sTypoDescender + sTypoLineGap</c>); any other OS/2-bearing
+    /// font takes the GDI cell — <c>usWinAscent + usWinDescent</c> plus the external leading
+    /// <c>max(0, hheaGap − (winTotal − (hheaAsc − hheaDesc)))</c>. The original hhea-box model was
+    /// XPS-validated only on fonts where all three coincide (Aptos's typo box and Calibri's win cell
+    /// both equal their hhea boxes); Baskerville Old Face split them — hhea 1.0000 em, GDI 1.1406 em —
+    /// and Word measured 14.64/17.76 pt at 13 pt single/×1.2, the GDI numbers, leaving business-plans/05
+    /// compressed ~2.2 pt per line under the hhea model. Falls back to the hhea box for a font with no
+    /// <c>OS/2</c> table.
     /// </summary>
-    public int LineBoxUnits => Ascender - Descender + LineGap;
+    public int LineBoxUnits
+    {
+        get
+        {
+            if (UseTypoMetrics)
+            {
+                return TypoAscender - TypoDescender + TypoLineGap;
+            }
+
+            if (WinAscent > 0)
+            {
+                var winTotal = WinAscent + WinDescent;
+                return winTotal + Math.Max(0, LineGap - (winTotal - (Ascender - Descender)));
+            }
+
+            return Ascender - Descender + LineGap;
+        }
+    }
 
     /// <summary>The single-spaced line pitch in points at <paramref name="sizePoints"/>.</summary>
     public double LinePitchPoints(double sizePoints) => (double) LineBoxUnits / UnitsPerEm * sizePoints;
@@ -40,8 +63,17 @@ sealed record FontMetrics
     /// </summary>
     public int WinAscent { get; init; }
 
+    /// <summary><c>OS/2.usWinDescent</c> — the descent below the baseline Windows reserves (positive). Zero when the font declares no <c>OS/2</c> table.</summary>
+    public int WinDescent { get; init; }
+
     /// <summary><c>OS/2.sTypoAscender</c> — the typographic ascent. Zero when the font declares no <c>OS/2</c> table.</summary>
     public int TypoAscender { get; init; }
+
+    /// <summary><c>OS/2.sTypoDescender</c> — the typographic descent (negative in the font). Zero when the font declares no <c>OS/2</c> table.</summary>
+    public int TypoDescender { get; init; }
+
+    /// <summary><c>OS/2.sTypoLineGap</c> — the typographic line gap. Zero when the font declares no <c>OS/2</c> table.</summary>
+    public int TypoLineGap { get; init; }
 
     /// <summary><c>OS/2.fsSelection</c> bit 7 (USE_TYPO_METRICS) — the font opts into typographic metrics.</summary>
     public bool UseTypoMetrics { get; init; }
@@ -60,8 +92,8 @@ sealed record FontMetrics
     /// SkiaSharp's reported ascent is platform-dependent — usWinAscent on Windows (GDI-compatible), the
     /// hhea ascender on linux (FreeType), which is what the container-rendered baselines were drawn with —
     /// so this rule is anchored to Word, the one stable oracle. Falls back to the hhea ascender for a font with no
-    /// <c>OS/2</c> table. Deliberately independent of <see cref="LineBoxUnits"/>, which stays on the hhea
-    /// box because that is what Word's XPS-measured line pitch matches.
+    /// <c>OS/2</c> table. Deliberately independent of <see cref="LineBoxUnits"/>: the baseline ignores the
+    /// typo flag while the line pitch honours it — each side separately Word-probed.
     /// </summary>
     public int BaselineAscentUnits => WinAscent > 0 ? WinAscent : Ascender;
 

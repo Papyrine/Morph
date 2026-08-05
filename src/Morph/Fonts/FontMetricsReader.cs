@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Reads the OpenType metric tables a font declares — <c>head</c>, <c>hhea</c> (line metrics) and
 /// <c>maxp</c>/<c>hmtx</c>/<c>cmap</c> (glyph advances) — backend-independently, as the canonical
 /// metric source for the layout engine (<c>docs/layout-engine-proposal.md</c>). It uses the same
@@ -138,7 +138,10 @@ static class FontMetricsReader
             Descender = BinaryPrimitives.ReadInt16BigEndian(hheaBytes.AsSpan(6, 2)),
             LineGap = BinaryPrimitives.ReadInt16BigEndian(hheaBytes.AsSpan(8, 2)),
             WinAscent = os2.WinAscent,
+            WinDescent = os2.WinDescent,
             TypoAscender = os2.TypoAscender,
+            TypoDescender = os2.TypoDescender,
+            TypoLineGap = os2.TypoLineGap,
             UseTypoMetrics = os2.UseTypoMetrics,
 
             AdvanceWidths = ReadAdvanceWidths(stream, tables, numberOfHMetrics),
@@ -175,30 +178,35 @@ static class FontMetricsReader
     }
 
     /// <summary>
-    /// Reads the <c>OS/2</c> fields the baseline needs, in one pass: <c>fsSelection</c> (uint16 at offset
-    /// 62, bit 7 = USE_TYPO_METRICS), <c>sTypoAscender</c> (int16 at offset 68) and <c>usWinAscent</c>
-    /// (uint16 at offset 74) — all present from table version 0 onwards. Which one positions the baseline
-    /// is the flag's call (<see cref="FontMetrics.BaselineAscentUnits"/>), matching what every backend font
-    /// object does. Zeros when the font declares no <c>OS/2</c> table or a truncated one, which the model
-    /// treats as "fall back to hhea".
+    /// Reads the <c>OS/2</c> fields the baseline and line pitch need, in one pass: <c>fsSelection</c>
+    /// (uint16 at offset 62, bit 7 = USE_TYPO_METRICS), the typographic trio <c>sTypoAscender</c> /
+    /// <c>sTypoDescender</c> / <c>sTypoLineGap</c> (int16 at offsets 68/70/72) and the Windows pair
+    /// <c>usWinAscent</c> / <c>usWinDescent</c> (uint16 at offsets 74/76) — all present from table
+    /// version 0 onwards. Which set drives the baseline is the flag's call
+    /// (<see cref="FontMetrics.BaselineAscentUnits"/>); which drives the line pitch is
+    /// <see cref="FontMetrics.LineBoxUnits"/>'s. Zeros when the font declares no <c>OS/2</c> table or a
+    /// truncated one, which the model treats as "fall back to hhea".
     /// </summary>
-    static (int WinAscent, int TypoAscender, bool UseTypoMetrics) ReadOs2(Stream stream, Dictionary<uint, (long Offset, int Length)> tables)
+    static (int WinAscent, int WinDescent, int TypoAscender, int TypoDescender, int TypoLineGap, bool UseTypoMetrics) ReadOs2(Stream stream, Dictionary<uint, (long Offset, int Length)> tables)
     {
-        if (!tables.TryGetValue(os2Tag, out var os2) || os2.Length < 76)
+        if (!tables.TryGetValue(os2Tag, out var os2) || os2.Length < 78)
         {
-            return (0, 0, false);
+            return (0, 0, 0, 0, 0, false);
         }
 
-        var bytes = new byte[76];
+        var bytes = new byte[78];
         if (!TryReadExactAt(stream, os2.Offset, bytes))
         {
-            return (0, 0, false);
+            return (0, 0, 0, 0, 0, false);
         }
 
         var fsSelection = BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(62, 2));
         return (
             BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(74, 2)),
+            BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(76, 2)),
             BinaryPrimitives.ReadInt16BigEndian(bytes.AsSpan(68, 2)),
+            BinaryPrimitives.ReadInt16BigEndian(bytes.AsSpan(70, 2)),
+            BinaryPrimitives.ReadInt16BigEndian(bytes.AsSpan(72, 2)),
             (fsSelection & 0x80) != 0);
     }
 
