@@ -107,9 +107,12 @@ public abstract class DocumentConverter
         DefaultFontSettings.MarkRenderOccurred();
         var paragraphPages = ParagraphPages(document, options);
 
-        // A bookmark knows the ordinal of the body paragraph it sits in; layout knows where that
-        // paragraph landed. Joining the two is the whole trick.
-        var bodyParagraphs = document.Elements.OfType<ParagraphElement>().ToList();
+        // A bookmark knows the ordinal of the paragraph it sits in; layout knows where that
+        // paragraph landed. Joining the two is the whole trick — and the two sides have to count
+        // the same paragraphs, which means every w:p in document order rather than only the ones at
+        // body level. A table's cells hold paragraphs too, so counting only the top level shifts
+        // every bookmark below a table onto some other paragraph's page.
+        var bodyParagraphs = Flatten(document.Elements).ToList();
         foreach (var bookmark in document.Bookmarks)
         {
             if (bookmark.ParagraphIndex is not { } index ||
@@ -124,6 +127,49 @@ public abstract class DocumentConverter
         }
 
         return pages;
+    }
+
+    // Every paragraph under these elements, depth-first, matching the document order the parser
+    // assigns bookmark ordinals in (see DocumentParser's paragraph-ordinal map, which walks
+    // body.Descendants&lt;Paragraph&gt;()).
+    static IEnumerable<ParagraphElement> Flatten(IEnumerable<DocumentElement> elements)
+    {
+        foreach (var element in elements)
+        {
+            switch (element)
+            {
+                case ParagraphElement paragraph:
+                    yield return paragraph;
+                    break;
+                case TableElement table:
+                    foreach (var row in table.Rows)
+                    {
+                        foreach (var cell in row.Cells)
+                        {
+                            foreach (var nested in Flatten(cell.Content))
+                            {
+                                yield return nested;
+                            }
+                        }
+                    }
+
+                    break;
+                case FloatingTextBoxElement textBox:
+                    foreach (var nested in Flatten(textBox.Content))
+                    {
+                        yield return nested;
+                    }
+
+                    break;
+                case PositionedFrameElement frame:
+                    foreach (var nested in Flatten(frame.Content))
+                    {
+                        yield return nested;
+                    }
+
+                    break;
+            }
+        }
     }
 
     // The page each paragraph starts on, read straight off the laid-out tree: a placed line is

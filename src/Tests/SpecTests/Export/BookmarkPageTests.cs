@@ -39,6 +39,20 @@ public class BookmarkPageTests
         await Assert.That(pages["target"]).IsGreaterThan(1);
     }
 
+    // A table's cells are paragraphs too. Counting them on one side of the join and not the other
+    // silently shifts every bookmark below the table, which reads as a plausible page rather than a
+    // missing one — so a document with a table ahead of the anchor is the case worth pinning.
+    [Test]
+    public async Task ABookmarkAfterATableStillReportsItsOwnPage()
+    {
+        using var docx = BuildDocument(paragraphs: 3, bookmarkAt: 2, tableBeforeParagraph: 1);
+
+        var pages = DocumentConverter.GetBookmarkPages(docx, Options);
+
+        await Assert.That(pages.ContainsKey("target")).IsTrue();
+        await Assert.That(pages["target"]).IsEqualTo(1);
+    }
+
     [Test]
     public async Task ADocumentWithNoBookmarksReportsNothing()
     {
@@ -61,7 +75,7 @@ public class BookmarkPageTests
         await Assert.That(pages.ContainsKey("second")).IsTrue();
     }
 
-    static MemoryStream BuildDocument(int paragraphs, int? bookmarkAt, int? extraBookmarkAt = null)
+    static MemoryStream BuildDocument(int paragraphs, int? bookmarkAt, int? extraBookmarkAt = null, int? tableBeforeParagraph = null)
     {
         var stream = new MemoryStream();
         using (var doc = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
@@ -70,6 +84,11 @@ public class BookmarkPageTests
             var body = new W.Body();
             for (var i = 0; i < paragraphs; i++)
             {
+                if (i == tableBeforeParagraph)
+                {
+                    body.Append(Table());
+                }
+
                 var paragraph = new W.Paragraph();
                 if (i == bookmarkAt)
                 {
@@ -92,6 +111,23 @@ public class BookmarkPageTests
         stream.Position = 0;
         return stream;
     }
+
+    // Two rows of two cells: four more w:p elements that are not body-level paragraphs.
+    static W.Table Table() =>
+        new(
+            new W.TableProperties(
+                new W.TableWidth
+                {
+                    Type = W.TableWidthUnitValues.Auto
+                }),
+            new W.TableGrid(new W.GridColumn(), new W.GridColumn()),
+            Row("a", "b"),
+            Row("c", "d"));
+
+    static W.TableRow Row(string left, string right) =>
+        new(
+            new W.TableCell(new W.Paragraph(new W.Run(new W.Text(left)))),
+            new W.TableCell(new W.Paragraph(new W.Run(new W.Text(right)))));
 
     static void Bookmark(W.Paragraph paragraph, string name, int id)
     {
