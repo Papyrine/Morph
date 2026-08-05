@@ -72,6 +72,10 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - MINOR | all | p1 | content drifts up ~1.5 line heights by the action-items table
 
+### agendas-minutes/05
+
+- Flip-gate deficit root-caused, fix needs a parser change (2026-08-05): the 32px engine error is paragraph-anchor resolution — the page's decorative shapes are paragraph-anchored with negative offsets and the Fragmenter resolves them from the flow cursor at emission. Anchoring to the LAST paragraph's top fixed this page exactly (32.3 → 5.0, tie with production, +0.029 SSIM) but regressed menus/05 by −0.037, and deferring to the NEXT paragraph's top inverted both — the parser emits body floats BEFORE their anchor paragraph in some constructs and AFTER it in others, so no static choice works. The proper fix mirrors the cell-float path, which already records each float's anchor-paragraph ordinal (DocumentParser ~line 4200): carry the same ordinal for body floats and resolve each against its own paragraph's laid-out top.
+
 ### agendas-minutes/06
 
 - MEDIUM | all | p1 | cumulative vertical compression ~3 line heights: ADJOURNMENT section ends ~0.5in higher than Word
@@ -377,6 +381,10 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - MAJOR | html | - | same corner graphics missing in HTML
 - MINOR | html | - | footer address left-aligned instead of Word's centered-right placement
+
+### business/05
+
+- Flip-gate residual (2026-08-05, narrowed): the coarse adjudication's "29.3px vs 0.8" was a band-segmentation artifact — at full resolution the engine tracks production within a constant +6px (3pt) from the second band on, and BOTH paths share a large drift vs Word (+91..+264, two merged bands) that is not engine-specific. The 3pt step arises in the header reservation (header = table + two empty 11pt-mark paragraphs; the engine's HeaderReservedTop sums only paragraphs while production measures the painted header) — small, not yet dug.
 
 ### business/06
 
