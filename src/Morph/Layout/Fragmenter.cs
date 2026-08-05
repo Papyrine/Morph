@@ -108,6 +108,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         bool lastContextual;
         string? lastStyleId;
         bool currentPageExplicit;
+        // True while the current page was started by a non-continuous section break — Word KEEPS a
+        // paragraph's spacing-before at the top of such a page (a new page setup), unlike a page
+        // reached by automatic overflow (business-plans/08's page 2 ran 22pt high without this).
+        // Mirrors PageRendererBase.ShouldSuppressPageTopSpacingBefore's section-break carve-out.
+        bool currentPageSectionStart;
 
         // Left edge of the current column, in points from the page's left.
         float ColumnLeft => fullContentLeft + currentColumn * (columnWidth + columnSpacing);
@@ -217,6 +222,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 y = contentTop;
                 columnTop = contentTop;
             }
+
+            // The page this break started keeps a leading paragraph's spacing-before (see the field).
+            currentPageSectionStart = true;
         }
 
         // Redistributes the current page's multi-column content into equal-height columns, the way Word
@@ -420,6 +428,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             atRegionTop = true;
             lastAfter = 0;
             currentPageExplicit = nextPageExplicit;
+            currentPageSectionStart = false;
             // A float's exclusion belongs to the page it was anchored on; the new page starts clear.
             floatExclusions.Clear();
         }
@@ -1065,7 +1074,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             var contextualCollapse = properties.ContextualSpacing && lastContextual && properties.StyleId == lastStyleId;
             var atDocumentStart = bodies.Count == 0 && items.Count == 0 && currentColumn == 0;
-            if (!atRegionTop || atDocumentStart)
+            var atSectionStart = AtPageTop && currentPageSectionStart && items.Count == 0;
+            if (!atRegionTop || atDocumentStart || atSectionStart)
             {
                 y += contextualCollapse ? 0f : Math.Max(lastAfter, (float) properties.SpacingBeforePoints);
             }
@@ -1561,6 +1571,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
                 lastCellAfter = isEmpty ? 0 : (float) properties.SpacingAfterPoints;
             }
+
+            // The trailing after-spacing counts as content space in full — MeasureCellHeight sizes the
+            // row with it and the production render counted it in its alignment content height, so
+            // leaving it out here made every centre/bottom-aligned cell sit lower by that spacing
+            // (labels/12's bottom-aligned label cells ran exactly their 10pt after-spacing low).
+            cellY += lastCellAfter;
 
             // Centre/bottom alignment shifts the whole content down within the cell's available height
             // (top alignment leaves it at the padded top). Mirrors PageRendererBase's cell content offset.
