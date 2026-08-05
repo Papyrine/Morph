@@ -177,6 +177,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### brochures/03
 
+- FIXED 2026-08-05: the flip-gate p1 deficit (14.0 vs production's 1.5) was a measurement-side font-resolution hole, not a layout rule — the only flow paragraph before the full-page table carries mark font Biome (unbundled, no FontFallbacks alias); `FontResolver` throws in directory mode and `LayoutFonts.ToDelegate` turned that into null → a ZERO-height line, starting the table 16pt high. The delegate now retries `DefaultFontSettings.DefaultFont` (the same last resort `PdfFontResolver.ResolveTypeface` and the raster backends apply). p1 is now an exact production tie (landmarks −1..−2px vs Word on both paths); p2 improves too (16.51 vs production's 17.16 mean). Skia p1 SSIM 0.881→0.916, ImageSharp 0.738→0.782.
 - MEDIUM | all | p2 | right circle photo sits ~20pt higher than Word (its greyscale rendering landed 2026-07-19)
 - MEDIUM | all | p2 | page content sits too high: Relecloud block ~0.3-0.45in up, itinerary rows ~0.25in up, and "ConnectAbove"/"Launch Event" footer links 60px too high (tucked under the card instead of centered in the navy band)
 - MINOR | pdf | p1,p2 | photo interior crop wider than Word and the other backends (more scene, hands smaller)
