@@ -5748,14 +5748,23 @@ sealed class DocumentParser(string defaultFont)
         {
             // Empty paragraph - still counts for spacing
             // Keep runs empty so the renderer can avoid creating spurious extra pages at document end.
-            // A paragraph whose only purpose is carrying the sectPr is not a numbered line in Word —
-            // it keeps its height but must neither draw nor consume a line number.
+            // A paragraph whose only purpose is carrying the sectPr consumes no line number, and for a
+            // CONTINUOUS break draws no line either — only its spacing survives (Word-probed; see
+            // ParagraphElement.IsSectionBreakMark).
+            //
+            // Restricted to continuous breaks because that is what the probe measured: the gap between
+            // the paragraphs either side is only observable when both sit on the same page. For a
+            // next-page break the mark ends the outgoing page, where its line would instead decide
+            // whether the preceding content still fits — a different question, and one that moved
+            // sample.docx from 6 pages to 5 with no Word reference to adjudicate it. Left alone until
+            // it is probed on its own terms.
             result.Add(new ParagraphElement
             {
                 Runs = [],
                 Properties = sectionBreak != null
                     ? props with {SuppressLineNumbers = true}
-                    : props
+                    : props,
+                IsSectionBreakMark = sectionBreak is {BreakType: SectionBreakType.Continuous}
             });
         }
         else if (runs.Count > 0)

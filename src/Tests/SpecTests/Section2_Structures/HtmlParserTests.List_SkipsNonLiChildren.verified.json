@@ -54,6 +54,7 @@
       "MirrorIndents": false
     },
     "IsAnchorOnlyMark": false,
+    "IsSectionBreakMark": false,
     "IsCollapsedCellMark": false
   }
 ]
