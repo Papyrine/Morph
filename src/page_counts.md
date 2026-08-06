@@ -101,9 +101,15 @@ unflagged fixtures split) but moved 129 corpus pages, 87 of them worse against 3
 (`_probe_lastline_*`) and refutes BOTH readings: at 13pt exact spacing Word breaks the flow at 49
 lines where the engine's ascent test takes 50, but switching the flow to the full line box regressed
 `image_wrap_square` from 2 pages to 3 and was reverted. Auto spacing cannot separate the two tests,
-which is why the ascent version survived so long. The surviving candidate is the line's INK box
-(ascent + descent) fitting with only the external leading allowed to hang — consistent with every
-measurement, but untestable until `MeasuredLine` carries a descent. Word's flow and cell also differ
+which is why the ascent version survived so long. The ink-box candidate (ascent + descent fitting,
+only the external leading allowed to hang) was built and tried: it matches Word on all four controlled
+fixtures — 49/49/42/41 — yet the corpus result came back byte-identical to the full-box attempt and
+`image_wrap_square` lost its page again. **For a zero-leading font the ink box IS the line box**, so
+the two rules only differ where the font declares a line gap, and the corpus's fonts mostly do not.
+That clears the fit rule of `image_wrap_square`'s extra page: Word's own render puts that column's last
+line at 713.8-720.0pt against a content bottom of exactly 720, so it fits by a hair under any reading,
+and the engine losing it means the line is measured slightly taller than Word's — a line-height
+question, not a page-break one. Word's flow and cell also differ
 from each other under auto spacing (42 lines against 41, which the engine reproduces): a separate,
 uncharacterised difference in a cell's usable height, not the last-line rule.
 
