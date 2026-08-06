@@ -28,8 +28,6 @@ sealed class ImageSharpWordArtRasterizer : IWordArtRasterizer
         {
             TransparentBackground = true
         };
-        context.SetHeaderFooterSpace(0, 0);
-
         // A fresh Image<Rgba32> is already transparent, so no background fill is needed.
         using var image = new Image<Rgba32>(context.PageWidthPixels, context.PageHeightPixels);
 

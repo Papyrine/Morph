@@ -28,8 +28,6 @@ sealed class SkiaWordArtRasterizer : IWordArtRasterizer
         {
             TransparentBackground = true
         };
-        context.SetHeaderFooterSpace(0, 0);
-
         using var bitmap = new SKBitmap(
             context.PageWidthPixels,
             context.PageHeightPixels,
