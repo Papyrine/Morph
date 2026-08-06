@@ -13,14 +13,14 @@
     {
       "Page": 2,
       "ErrorMetric": 0.056,
-      "Ssim": 0.9083,
+      "Ssim": 0.9082,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "imagesharp_result#page_0002.verified.png",
       "ReceivedFile": "imagesharp_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.0535,
+      "ErrorMetric": 0.0536,
       "Ssim": 0.9131,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "imagesharp_result#page_0003.verified.png",

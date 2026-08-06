@@ -16,14 +16,14 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "LAWN AND LANDSCAPE\nIdeas for growing your\nsummer garden\nBy Peyton Davis\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product or\nblog. They can be printed or emailed\nand are an excellent way to maintain\nregular contact with your subscribers\nand drive traffic to your site. Type the\ncontent of your newsletter here.\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product or\nblog. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product or\nblog. They can be printed or emailed\nand are an excellent way to maintain\nregular contact with your subscribers\nand drive traffic to your site. Type the\ncontent of your newsletter here.\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product or\nblog. They can be printed or emailed\nand are an excellent way to maintain\nregular contact with your subscribers\nand drive traffic to your site. Type the\ncontent of your newsletter here.\nNewsletters are periodicals used to\nadvertise or update your subscribers.\nTony’s landscapes\nand more\nBy Gerd Simonsen\nNewsletters are periodicals used to advertise or\nupdate your subscribers with information about your\nproduct or blog. They can be printed or emailed and\nare an excellent way to maintain regular contact\nwith your subscribers and drive traffic to your site.\nType the content of your newsletter here.\nNewsletters are periodicals used to advertise or\nupdate your subscribers with information about your\nproduct or blog. Type the content of your newsletter\nhere.\nNewsletters are periodicals used to advertise or\nupdate your subscribers with information about your\nproduct or blog. They can be printed or emailed and\nare an excellent way to maintain regular contact\nwith your subscribers and drive traffic to your site.\nType the content of your newsletter here.\nNewsletters are periodicals used to advertise or\nupdate your subscribers with information about your\nproduct or blog."
+        "Text": "LAWN AND LANDSCAPE\nIdeas for growing your\nsummer garden\nBy Peyton Davis\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product\nor blog. They can be printed or\nemailed and are an excellent way\nto maintain regular contact with\nyour subscribers and drive traffic to\nyour site. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product\nor blog. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product\nor blog. They can be printed or\nemailed and are an excellent way\nto maintain regular contact with\nyour subscribers and drive traffic to\nyour site. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to\nadvertise or update your subscribers\nwith information about your product\nor blog. They can be printed or\nemailed and are an excellent way\nto maintain regular contact with\nyour subscribers and drive traffic to\nyour site. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to\nadvertise or update your subscribers.\nTony’s landscapes\nand more\nBy Gerd Simonsen\nNewsletters are periodicals used to advertise or\nupdate your subscribers with information about\nyour product or blog. They can be printed or\nemailed and are an excellent way to maintain\nregular contact with your subscribers and drive\ntraffic to your site. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to advertise or\nupdate your subscribers with information about\nyour product or blog. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to advertise or\nupdate your subscribers with information about\nyour product or blog. They can be printed or\nemailed and are an excellent way to maintain\nregular contact with your subscribers and drive\ntraffic to your site. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to advertise or\nupdate your subscribers with information about\nyour product or blog."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.2956,
+      "ErrorMetric": 0.2957,
       "Ssim": 0.749,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
@@ -31,8 +31,8 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.3265,
-      "Ssim": 0.636,
+      "ErrorMetric": 0.3204,
+      "Ssim": 0.6425,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
