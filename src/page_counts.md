@@ -81,8 +81,22 @@ the ordered form it is 43, and pages 16/17 improve by 0.6 and 3.8 grey levels. `
 too, on its own gate: the corpus does not contain a single instance of the differing case, so the
 scenario suite is byte-unchanged either way and `CanonicalFragmenterTests` pins the rule instead
 (the three-line test fails under the alternative reading, which is what makes it a guard rather than
-decoration). This also makes `w:cantSplit` implementable for the first time: it selects move-whole
-for a row that would otherwise split.
+decoration).
+
+`w:cantSplit` is now read and honoured, settled by its own probe (`_probe_cantsplit_*`, four fixtures
+at 12pt-exact lines): **Word keeps the attribute even when splitting is the only way to show the
+content.** A flagged row taller than any page ran to 791.5pt on a 792pt page with the following
+paragraph alone overleaf, where the unflagged control split 53 lines / 17 — so Word would rather lose
+the overflow off the paper edge than break a flagged row. Letting a flagged row fall through to the
+move-whole path reproduces that exactly, and two `CanonicalFragmenterTests` pin it since no corpus
+document sets the attribute.
+
+The same probe turned up a wider divergence, filed as todo.md #25 rather than folded in: **Word splits
+a row that merely does not fit the space left**, even when the row would fit a fresh page — 168pt free
+against a 240pt row put 13 lines on page 1 and 7 overleaf. The engine splits only a row taller than a
+whole region, so it currently behaves as though every row carried `w:cantSplit`. Widening the trigger
+is a far broader change than reading the attribute, and the corpus is at 325/325 page counts with the
+present rule, so it wants its own gate.
 
 The 2026-07-25 recount (Skia 322 / ImageSharp 322 / PDF 321, with per-backend disagreements) and the
 "experiment 19 committed: 315/315/316 of 321" snapshot below are the historical figures the ledger

@@ -4270,9 +4270,16 @@ sealed class DocumentParser(string defaultFont)
             double? rowHeight = null;
             var isExactHeight = false;
             var isHeader = false;
+            var cannotSplit = false;
             var rowProps = row.GetFirstChild<TableRowProperties>();
             if (rowProps != null)
             {
+                var cantSplitElement = rowProps.GetFirstChild<CantSplit>();
+                if (cantSplitElement != null)
+                {
+                    cannotSplit = cantSplitElement.Val?.Value != OnOffOnlyValues.Off;
+                }
+
                 var trHeight = rowProps.GetFirstChild<TableRowHeight>();
                 if (trHeight?.Val?.HasValue == true)
                 {
@@ -4335,6 +4342,7 @@ sealed class DocumentParser(string defaultFont)
                     HeightPoints = rowHeight,
                     IsExactHeight = isExactHeight,
                     IsHeader = isHeader,
+                    CannotSplit = cannotSplit,
                     OverrideBorders = rowOverrideBorders,
                     OverrideInsideHBorder = rowOverrideInsideH,
                     OverrideInsideVBorder = rowOverrideInsideV,
