@@ -19,7 +19,7 @@ static class FrameGrouper
     // "footer info block" (e.g. a right-aligned Location/Date/Time stack) that floats just above the
     // bottom margin. Larger y values mean an intentional upper-page placement (a centred sub-title),
     // which renders fine in normal flow — lifting those risks disturbing layout, so we leave them.
-    // Keep in sync with PageRendererBase.frameBottomAnchorYThresholdPoints.
+    // Keep in sync with the Fragmenter's frame bottom-anchor threshold.
     const double bottomAnchorYThresholdPoints = 36;
 
     // Fallback icon→label gap when the style carries no hanging indent (0.3" ≈ Word's default).

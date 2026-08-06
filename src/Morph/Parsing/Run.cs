@@ -83,7 +83,7 @@ sealed class Run
     /// <summary>
     /// When not <see cref="PageFieldKind.None"/>, this run is the result of a page-numbering
     /// field (PAGE / NUMPAGES / SECTIONPAGES). <see cref="Text"/> holds Word's cached value; the
-    /// paginated renderers replace it with the live value per page (see PageRendererBase), and
+    /// engine replaces it with the live value per page, and
     /// the text exporters emit the cached text as-is.
     /// </summary>
     public PageFieldKind PageField { get; init; } = PageFieldKind.None;
