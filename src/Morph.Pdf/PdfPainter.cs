@@ -10,7 +10,7 @@
 /// is in the proposal doc. Still deferred: per-glyph advances (a run anchors at its canonical start and
 /// the font library fills it), image recolour/duotone, cell-anchored image-fill shapes (a body one is
 /// routed to a <see cref="PlacedImage"/> and draws), and foreground header/footer
-/// images. <c>PdfRenderer</c> routes a covered document here behind the <c>MORPH_PDF_ENGINE</c> gate;
+/// images. <c>PdfRenderer</c> routes a covered document here by default (<c>MORPH_PDF_ENGINE=off</c> is the kill switch);
 /// the flip to make it the default is held (see the doc's "Remaining work").</para>
 /// </summary>
 static class PdfPainter

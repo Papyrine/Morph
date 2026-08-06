@@ -9,7 +9,13 @@ the Fragmenter. This was the "if time and effort are no object" answer to the co
 tracked in `src/page_counts.md` and `src/todo.md` (#2, #5, the columns item under image_wrap_square); the
 running log of landed slices is below, and `docs/word-features.md` describes the per-backend draw code the
 thin painters now front. The raster kill switches retired with the production raster path (step 7's raster
-half); `MORPH_PDF_ENGINE` remains the PDF opt-in while the flip is held. The sharpest known modelling
+half); **the PDF flip LANDED 2026-08-06** (eighth measurement, aggregate +0.0017; the gate's one stand,
+business/05, is a full-resolution-verified constant 3pt header-reservation step) — `MORPH_PDF_ENGINE=off`
+is now the kill switch back to `PdfTextEngine`, which survives only as that switch and the
+uncovered-document fallback until step 8.3 deletes it. All three backends paginate through the one
+engine: the post-flip recount is **Skia 322 / ImageSharp 322 / PDF 322 of 325**, every remaining
+mismatch identical across backends, and `resumes/13` renders Word's 5 pages on all three — the
+three-way divergence the engine was built to end is over. The sharpest known modelling
 limit in what has shipped was the `Ppem` grain — the measurer rounding the em onto a fixed 120-dpi grid
 where Word never quantizes the em at all. That was root-caused and **fixed**, for a modest +0.0006 against
 Word and no change in page-count agreement ("Remaining work" item 1). Approximate column balancing remains
@@ -313,12 +319,17 @@ through the render context's own primitives rather than a common `ILayoutPainter
       authors `continuous` for its own start, sections 2-3 author none → nextPage), moved
       image_wrap_square sub-grey-level with its page count unchanged, and left production's PDF snapshots
       byte-stable across the corpus.
-- [~] **5. `PdfPainter` — built and capability-gated; flip held on `PdfTextEngine`** (`PdfPainter`,
+- [x] **5. `PdfPainter` — LANDED as the DEFAULT PDF path (the flip, 2026-08-06)** (`PdfPainter`,
       `PdfPainterTests`). A pure draw pass over a `Fragmenter`-produced `LaidOutDocument` — no measurement,
-      no pagination — reusing `PdfRenderContext` for font and brush resolution. The painter is structurally
-      complete over the covered set; what remains is the flip, held on the font/image tail. The feature log
-      (the ~30 slices it renders, in landing order) is "The PDF painter — what landed" below; the cutover
-      plan and what is left are the rest of "The PDF cutover (step 5)".
+      no pagination — reusing `PdfRenderContext` for font and brush resolution. The flip passed the parity
+      gate at the eighth measurement: aggregate **+0.0017** over `PdfTextEngine` against Word (trajectory
+      −0.0054 → … → +0.0017 across eight measurements), three of the four remaining per-doc breaches
+      mechanically cleared, and the one stand (business/05) full-resolution-verified as a constant 3pt
+      header-reservation step. `MORPH_PDF_ENGINE=off` is the kill switch; `PdfTextEngine` +
+      `PdfPageRenderer` survive only as that switch and the uncovered-document fallback until step 8.3.
+      All 1173 pdf_result baselines regenerated to engine output; raster baselines byte-untouched;
+      `resumes/13` now renders Word's 5 pages on every backend. The feature log (the ~30 slices it
+      renders, in landing order) is "The PDF painter — what landed" below.
 - [x] **6. `SkiaPainter` + `ImageSharpPainter`** — the payoff step, LANDED as the DEFAULT raster path for
       covered documents (98.8% of the corpus). Both are thin painters of the same tree; the raster knife-edges
       collapse (raster now paginates identically across backends — one answer, not a straddle). The gate is
@@ -337,7 +348,11 @@ through the render context's own primitives rather than a common `ILayoutPainter
 
 ### Remaining work, in one place
 
-The checklist is landed through step 6; what is left, most-blocking first:
+The checklist is landed through step 6, **and the PDF flip (step 5) landed 2026-08-06** — item 1 below is
+retained as the historical record of how the gate was fought down from −0.0054 to +0.0017; what actually
+remains is the step-8.3+ deletion chain (`PdfTextEngine`, `PdfPageRenderer`, `PageRendererBase`,
+`RenderContextBase` slimming, and the `EngineCoverage`/`MORPH_PDF_ENGINE` retirement, in that order), the
+business/05 3pt header-reservation step, and the backlog items below.
 
 1. **The PDF flip** (step 5 D) — painter and predicate are done; the flip is held on the font/image tail
    (measured −0.0054 before the empty-mark phantom-run fix, described in the step-5 painter log below). That

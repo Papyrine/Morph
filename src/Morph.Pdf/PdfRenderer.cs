@@ -9,10 +9,11 @@ static class PdfRenderer
     {
         options ??= new();
 
-        // Phase B: the engine renders the documents it covers; everything else falls through to the
-        // production PdfTextEngine path below. Gated behind MORPH_PDF_ENGINE while the fragmenter's
-        // emission gaps close (each Phase C slice widens EngineCoverage).
-        if (Environment.GetEnvironmentVariable("MORPH_PDF_ENGINE") != null && EngineCoverage.Covers(document))
+        // The engine is the DEFAULT PDF path for covered documents (the flip landed 2026-08-06 at
+        // aggregate +0.0017 vs production, eighth measurement — docs/layout-engine-proposal.md).
+        // MORPH_PDF_ENGINE=off is the kill switch back to PdfTextEngine, mirroring the raster
+        // switches' sense before their deletion; an uncovered document still falls through.
+        if (Environment.GetEnvironmentVariable("MORPH_PDF_ENGINE") != "off" && EngineCoverage.Covers(document))
         {
             return RenderViaEngine(document, options);
         }
@@ -50,14 +51,15 @@ static class PdfRenderer
         return Normalize(stream.ToArray());
     }
 
-    // Phase A of the layout-engine PDF cutover (docs/layout-engine-proposal.md, "The PDF cutover (step 5)"):
-    // paginate with the backend-independent Fragmenter and draw with PdfPainter, in place of
-    // PdfPageRenderer + PdfTextEngine. Gated behind MORPH_PDF_ENGINE so both paths coexist while the
-    // fragmenter's emission gaps close. The byte-reproducibility post-processing (MakeDeterministic /
-    // TrimPages / Normalize) is shared with the production path — PdfPainter builds its own PdfDocument, so
-    // it applies unchanged. The engine knows its own page total (LaidOutDocument.Pages.Count), so no
-    // NUMPAGES pre-count pass runs here; per-section NUMPAGES restart is a later slice. Internal so a test
-    // can drive the engine path directly, without toggling the process-global MORPH_PDF_ENGINE env var.
+    // The layout-engine PDF path (docs/layout-engine-proposal.md, "The PDF cutover (step 5)") — the
+    // DEFAULT for covered documents since the 2026-08-06 flip: paginate with the backend-independent
+    // Fragmenter and draw with PdfPainter, in place of PdfPageRenderer + PdfTextEngine (which remain
+    // only as the MORPH_PDF_ENGINE=off kill switch and the uncovered-document fallback until step 8.3
+    // deletes them). The byte-reproducibility post-processing (MakeDeterministic / TrimPages /
+    // Normalize) is shared with the fallback path — PdfPainter builds its own PdfDocument, so it
+    // applies unchanged. The engine knows its own page total (LaidOutDocument.Pages.Count), so no
+    // NUMPAGES pre-count pass runs here; per-section NUMPAGES restart is a later slice. Internal so a
+    // test can drive the engine path directly, without touching the process-global env var.
     internal static byte[] RenderViaEngine(ParsedDocument document, PdfExportOptions options)
     {
         using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
