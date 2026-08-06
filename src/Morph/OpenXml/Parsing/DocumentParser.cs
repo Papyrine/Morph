@@ -72,6 +72,7 @@ sealed class DocumentParser(string defaultFont)
 
     // Section transitions: for a given sectPr (end of a section), what settings apply to the next section?
     Dictionary<SectionProperties, PageSettings?>? nextSectionSettings;
+    Dictionary<SectionProperties, SectionProperties?>? nextSectionProps;
     PageSettings? anchorAlignmentPage;
 
     int lastRenderedPageBreakCount;
@@ -307,6 +308,7 @@ sealed class DocumentParser(string defaultFont)
         hyperlinkUrlsByRelId = null;
         imagePartBytes.Clear();
         nextSectionSettings = new();
+        nextSectionProps = new();
         for (var i = 0; i < sectionPropsList.Count; i++)
         {
             var current = sectionPropsList[i];
@@ -314,6 +316,7 @@ sealed class DocumentParser(string defaultFont)
                 ? ExtractPageSettings(sectionPropsList[i + 1])
                 : null;
             nextSectionSettings[current] = next;
+            nextSectionProps[current] = i + 1 < sectionPropsList.Count ? sectionPropsList[i + 1] : null;
         }
 
         var pageSettings = sectionPropsList.Count > 0
@@ -9391,7 +9394,19 @@ sealed class DocumentParser(string defaultFont)
 
     SectionBreakElement ParseSectionBreak(SectionProperties sectionProps)
     {
-        var typeElement = sectionProps.GetFirstChild<SectionType>();
+        // w:type describes how the section it belongs to is placed relative to the PREVIOUS section
+        // (ECMA-376 §17.6.22). The break this inline sectPr marks starts the FOLLOWING section, so the
+        // break's type comes from the following sectPr — the same lookahead the page settings use.
+        // resumes/10: section 1 authors type=continuous (its own start), sections 2-3 author none →
+        // nextPage; reading the ending sectPr rendered the whole document without section page breaks.
+        // The ending sectPr stands in only when no following sectPr exists.
+        var typeSource = sectionProps;
+        if (nextSectionProps != null && nextSectionProps.TryGetValue(sectionProps, out var followingProps) && followingProps != null)
+        {
+            typeSource = followingProps;
+        }
+
+        var typeElement = typeSource.GetFirstChild<SectionType>();
         var breakType = SectionBreakType.NextPage; // Default
 
         if (typeElement?.Val?.HasValue == true)

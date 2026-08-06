@@ -587,6 +587,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### cover-letters/09
 
+- FIXED 2026-08-05 (flip-gate unscored deficit, found by the trap-4 pixel sweep): the letter's Address block — five contextual paragraphs with 42pt after — rendered 42pt apart because `LayoutCellContent` never applied the w:contextualSpacing collapse (production collapses in bounded rendering too, `PdfTextEngine.TrackContextualSpacing`), and the block's trailing EMPTY paragraph's 42pt after was dropped entirely where production charges it. With both mirrored the letter column tracks Word at 2.5px mean band error vs production's 15.6 — the engine now decisively beats production here.
 - MAJOR | all | p1 | Sidebar content redistributed: "DIAN NUGRAHA" sits ~0.4in higher and the contact rows spread down the column so the email and website rows land on the yellow/pink waves (white-on-yellow, barely legible) instead of on the navy panel
 - MEDIUM | all | p1 | Decorative wave shapes mis-rendered: bottom waves start higher than Word
 - MEDIUM | all | p1 | Bullet "Knowledge of the latest technology in [industry or field]?" wraps with the "?" orphaned alone on the next line (Word breaks at "[industry or / field]?")
@@ -1463,6 +1464,7 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 ### resumes/10
 
+- LARGELY FIXED 2026-08-05 (flip-gate stand): the dominant component was `ParseSectionBreak` reading the ENDING sectPr's w:type — ECMA-376 §17.6.22 puts the break's type on the FOLLOWING section's sectPr (resumes/10: section 1 authors continuous for its own start; sections 2-3 author none → nextPage). The engine never broke at the section boundaries, so each page's decorative circle (paragraph-anchored to the next section's first paragraph) stranded at the previous page's bottom. With the lookahead fix all three circles sit at their page tops matching Word exactly and p2's band error halved (11.0 → 6.5). A Word probe en route (_probe_float_push) established that a paragraph-anchored shape NEVER pushes its anchor to the next page — it clips at the page edge. Residual (engine 6.2-6.5 vs production 3.6-4.3): two characterized components — the interior-edge row growth around the red heading rules lands one row late (heading envelopes net zero but the heading baseline sits ~3.8pt high / the post-heading gap ~3.8pt large), and cell empty-spacer marks resolve to the 11pt default font (13.43pt line) where Word's chain gives ~11.6-12.0pt (cells are excluded from the mark-rPr style resolution, DocumentParser ~9519).
 - MEDIUM | pdf | p1,p2,p3 | Progressive downward drift through the page — SKILLS/ACTIVITIES sections end ~20-26px (~1 line) lower than Word
 - MINOR | html | - | SKILLS bullets black instead of accent color
 
