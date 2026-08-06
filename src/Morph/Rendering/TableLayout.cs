@@ -165,13 +165,25 @@ static class TableLayout
         var gridWidths = table.Properties.GridColumnWidths;
         var isAutoFit = table.Properties.IsAutoFit;
 
-        // In a fixed-layout table w:tblGrid defines the columns and the per-cell w:tcW is
-        // advisory, so the grid wins when they disagree. labels/13 is the proof: its grid is
-        // 11376 twips, exactly the text column, while its cells declare 11724 (+17.4pt). Word
-        // lays the sheet out at the grid. Reading the tcW sum instead only looked right while
-        // over-wide tables were squeezed back to the column — the squeeze was cancelling the
-        // wrong width, and removing it exposed the label columns running off the page.
-        var gridIsAuthoritative = !isAutoFit && gridWidths is {Count: > 0};
+        // w:tblGrid defines the columns and the per-cell w:tcW is advisory, so the grid wins when they
+        // disagree. labels/13 is the proof: its grid is 11376 twips, exactly the text column, while its
+        // cells declare 11724 (+17.4pt). Word lays the sheet out at the grid. Reading the tcW sum
+        // instead only looked right while over-wide tables were squeezed back to the column — the
+        // squeeze was cancelling the wrong width, and removing it exposed the label columns running off
+        // the page.
+        //
+        // This held only for FIXED-layout tables until 2026-08-06, which left an autofit table's grid on
+        // the floor: the loop below takes a width only from a single-span cell carrying an explicit
+        // w:tcW, so a column covered exclusively by spanned cells stayed at zero and then split the
+        // leftover evenly with its neighbours. newsletters/06's newspaper tables declare a grid of
+        // [42.4, 141.6, 14.0, 9.0, 157.5, 13.5, 4.5, 7.3, 150.2]pt and came out
+        // [42.4, 35.3, 35.3, 35.3, 157.5, 13.5, 35.3, 35.3, 150.2] — five columns flattened to their
+        // 176.4pt total divided five ways. The middle newspaper column rendered 114pt wide against
+        // Word's 156, so its text wrapped far longer, inflating one row by 88-210pt until two of the
+        // four page-tables overflowed the 745.75pt content height and spilled a row onto an extra page
+        // (6 pages against Word's 4). An authored grid is Word's starting point under autofit too:
+        // autofit adjusts columns to their content, it does not discard the grid.
+        var gridIsAuthoritative = gridWidths is {Count: > 0};
 
         var hasExplicitWidths = false;
 

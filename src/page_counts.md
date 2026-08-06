@@ -5,8 +5,8 @@ output (`skia_result#page_*`, `imagesharp_result#page_*`, `pdf_result#page_*`) a
 directories in `src/Tests/Inputs/`. The match is *recorded*, not asserted, by the scenario tests —
 these mismatches never fail the suite; closing them improves Word fidelity.
 
-**Current state (full recount, 2026-08-06, after the layout-engine PDF flip): Skia 322, ImageSharp
-322, PDF 322 of 325 scenarios — and the three-way divergence this document exists to track is OVER.**
+**Current state (full recount, 2026-08-06): Skia 324, ImageSharp 324, PDF 324 of 325 scenarios — and
+the three-way divergence this document exists to track is OVER.**
 All three backends paginate through the one engine (`Fragmenter`), so every remaining mismatch is
 identical across backends; no scenario disagrees *between* backends anymore. `resumes/13` — the
 archetype (raster short, PDF over, Word between) — left the list entirely: all three backends now
@@ -15,7 +15,22 @@ render Word's 5 pages.
 | scenario | Word | Skia | ImageSharp | PDF | nature |
 |---|---|---|---|---|---|
 | business-plans/15 | 19 | **18** | **18** | **18** | cumulative drift (see below) |
-| newsletters/06 | 4 | **6** | **6** | **6** | all-backend table knife-edge (see below) |
+
+`newsletters/06` left the list on 2026-08-06 and now matches Word at 4 pages. **Its recorded cause —
+an `atLeast`-table knife-edge whose residual was the raster line-height "dead-end lever" — was wrong
+on both counts.** Line metrics agree with Word (pitch 12.48 vs 12.60pt, ink height 8.64pt on both)
+and its fonts are bundled. The defect was COLUMN WIDTH: `TableLayout` made the declared `w:tblGrid`
+authoritative only for fixed-layout tables, and the per-cell width loop reads only single-span cells
+carrying an explicit `w:tcW` — so under autofit a column covered exclusively by spanned cells stayed
+at zero and split the leftover evenly. The declared grid
+`[42.4, 141.6, 14.0, 9.0, 157.5, 13.5, 4.5, 7.3, 150.2]`pt came out
+`[42.4, 35.3, 35.3, 35.3, 157.5, 13.5, 35.3, 35.3, 150.2]` — five columns flattened to their 176.4pt
+total divided five ways. Measured on page 1, the three newspaper columns rendered 159/**114**/165pt
+against Word's 151/156/141: the middle column 42pt narrow, so its text wrapped far longer and
+inflated one row by 88-210pt until two of the four page-tables crossed the 745.75pt content height
+and spilled a row. An authored grid is Word's starting point under autofit too. Corpus effect of
+making the grid authoritative everywhere: 257 pages moved, 62 better / 153 same / 42 worse, aggregate
+mean |Word−render| 10.916 → 10.461, largest win −17.6 and largest loss +1.3, no page count lost.
 
 `image_wrap_square` left the list on 2026-08-06 and now matches Word at 2 pages. It was never a
 knife-edge: an empty paragraph carrying the section's `sectPr` sat between the "Columns" heading and
