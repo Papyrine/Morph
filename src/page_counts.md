@@ -44,12 +44,28 @@ fixture can measure: for a next-page break the two paragraphs land on different 
 unobservable and the mark's line instead decides whether the *preceding* content still fits. Applying
 it there unprobed moved `sample.docx` 6 pages to 5 with nothing to adjudicate against.
 
-**business-plans/15 is cumulative drift, not a rule.** Traced page by page (2026-08-06): the engine
-tracks Word until the mid-teens, then pulls ahead — by page 17 Word still has the balance-sheet
-bullets above the ASSETS/LIABILITIES table where the engine already starts with the table, and by
-page 19 that is a whole page. Word's page 18 ends at ~70% and starts a fresh page for the
-"Miscellaneous documents" block, which the engine fits on 18. No single law accounts for it: the
-document is 19 pages, 8 sections and 41 tables, and the divergence accrues rather than stepping.
+**business-plans/15 needs table-row splitting — root-caused 2026-08-06, superseding the earlier
+"cumulative drift" reading.** The engine NEVER splits a table row across a page: `PlaceTableRowByRow`
+moves a row that will not fit whole to the next region, and `LayoutCellContent` takes no page breaks
+at all ("the row height already accommodates the content"). That holds until a single row is taller
+than the content height — then it simply overflows off the page.
+
+This document wraps whole prose sections in one-row tables, so that case is the norm rather than an
+edge: **table35 is a single row of 23 paragraphs** (the balance-sheet guidance), table39 a single row
+of 12 (break-even) and table40 a single row of 12 (miscellaneous documents). Measured on page 16, the
+engine places cell lines at y = 755, 767, 779, 800, 812, 832pt against a content bottom of 756 — the
+last two bullets are drawn over the footer and clipped at the page edge, and the footer band lands at
+781.9pt where Word's sits at 761.8. Word splits that row: its page 16 stops after "Payroll Accrual"
+and its page 17 opens with "Long-term Liabilities" and "Net Worth", the two bullets the engine
+overflowed. One page saved, and the same thing happens again at table39/table40, which is why the
+engine's last page carries both the break-even body and the whole miscellaneous block.
+
+Closing it is a feature, not a tweak: splitting a row means breaking a cell's content at a line
+boundary, re-emitting the row's borders and shading per fragment, and deciding what happens to
+vertical alignment, spanned cells, nested tables and `w:tblHeader` repeats across the split. It is
+also the prerequisite for honouring `w:cantSplit` (todo.md #25), which is meaningless while nothing
+splits. Everything else about the document already agrees with Word — pages 1-16 align, and the
+orientation, margins and footer distance of every page match.
 
 The 2026-07-25 recount (Skia 322 / ImageSharp 322 / PDF 321, with per-backend disagreements) and the
 "experiment 19 committed: 315/315/316 of 321" snapshot below are the historical figures the ledger
