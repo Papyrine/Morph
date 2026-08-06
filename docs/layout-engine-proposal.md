@@ -455,6 +455,21 @@ The checklist is landed through step 6; what is left, most-blocking first:
    resumes/10 + newsletters/05 (+ business/05 if its artifact reading is not accepted); the aggregate
    clause passes with headroom.
 
+   **Seventh measurement (2026-08-06, after the cell-contextual/empty-after/float-deferral slice, the
+   measurer DefaultFont fallback, and the ParseSectionBreak w:type fix): aggregate +0.0004 — the third
+   consecutive improvement** (trajectory −0.0054 → −0.0050 → −0.0029 → −0.0022 → −0.0012 → −0.0001 →
+   +0.0002 → +0.0004), 59 improved / 236 mid / 8 breaching. The landmark adjudication clears SIX of the
+   eight (`cover-letters/12` 11.9 vs 15.1, `brochures/04` 55.0-tie/70.9-win, `business-plans/03` 18.0
+   vs 24.4, `brochures/01` tie, `brochures/03` exact tie 1.5/1.5 + 0.0/0.0 — its −0.0425 SSIM entry is
+   a pure mis-verdict, `cover-letters/10` 54.6 vs 53.7 tie). `resumes/10`, `newsletters/14` and
+   `labels/14` left the breach list entirely. TWO stand: `newsletters/05` (mixed — engine wins p2 21.2
+   vs 34.9, loses p1/p3/p4 at 26.8–36.8 vs 17.2–18.1) and `business/05` (29.3 vs 0.8 on the coarse
+   metric; the full-resolution reading remains a constant 3pt header-reservation step). The trap-4
+   sweep: `cover-letters/09` RESOLVED (engine-vs-production 15.0 → 4.8, and by landmarks the engine
+   beats production 2.5 vs 15.6 against Word); page counts engine = production everywhere;
+   `resumes/13` stays the scorer inversion (engine matches Word's 5, production renders 6). The
+   per-doc clause is held by one genuinely mixed document and one metric artifact.
+
    **The `resumes/01` / `compatibility_mode_14` breach pair (−0.045 each) is root-caused (2026-08-04), and
    the engine is the *correct* side of it.** The two are byte-identical templates: a résumé table whose
    section rules are 2.25pt cell borders on 72/144-twip `atLeast` spacer rows holding one empty 11pt
