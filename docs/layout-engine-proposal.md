@@ -370,9 +370,12 @@ through the render context's own primitives rather than a common `ILayoutPainter
 The checklist is **complete**: every step from the parser seam to the deletion has landed, and the PDF
 flip (step 5) went in on 2026-08-06 at aggregate +0.0017 over the renderer it replaced. Item 1 below is
 retained as the historical record of how that gate was fought down from −0.0054. What actually remains is
-small and named: the business/05 3pt header-reservation step (the engine's `HeaderReservedTop` sums only
-the header's paragraphs where the deleted renderer measured the painted header including its tables), the
-three page-count knife-edges in `src/page_counts.md`, and the backlog items below.
+small and named: the three page-count knife-edges in `src/page_counts.md` and the backlog items below.
+The business/05 "3pt header-reservation step" that stood last is CLOSED (2026-08-06) — and its recorded
+cause was wrong. The header is `null` on that page (`w:titlePg` with only a default header), so
+`HeaderReservedTop` never ran; the 3pt was `TableHeightCalculator` growing three `w:hRule="exact"`
+letterhead rows by their four collapsed border edges, which ECMA-376 §17.4.81 forbids — an exact height
+is verbatim. Exact rows are now exempt, and every backend moved closer to Word.
 
 1. **The PDF flip** (step 5 D) — painter and predicate are done; the flip is held on the font/image tail
    (measured −0.0054 before the empty-mark phantom-run fix, described in the step-5 painter log below). That
