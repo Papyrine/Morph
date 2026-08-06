@@ -37,6 +37,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     /// </summary>
     public IReadOnlyList<MeasuredLine> LayoutLines(ParagraphElement paragraph, float maxWidth)
     {
+        if (TakesNoLine(paragraph))
+        {
+            return [];
+        }
+
         var props = paragraph.Properties;
         var wrapped = Wrap(paragraph, maxWidth);
         var result = new MeasuredLine[wrapped.Count];
@@ -67,6 +72,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     /// </summary>
     public IReadOnlyList<LaidOutLine> LayoutLineContents(ParagraphElement paragraph, float maxWidth)
     {
+        if (TakesNoLine(paragraph))
+        {
+            return [];
+        }
+
         var props = paragraph.Properties;
         var wrapped = Wrap(paragraph, maxWidth);
         var result = new LaidOutLine[wrapped.Count];
@@ -533,6 +543,19 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
         return pieces;
     }
+
+    // A runless paragraph that exists only to carry a section break's sectPr contributes its spacing but
+    // no line box — see ParagraphElement.IsSectionBreakMark for the Word probe. A paragraph with runs
+    // keeps its line whatever the flag says, so this can never swallow visible text.
+    //
+    // Deliberately NOT keyed on IsAnchorOnlyMark, the neighbouring "mark without a line box" flag the
+    // parser sets for a paragraph whose only content was behind-text decorative art. That flag is
+    // currently inert — the deleted production renderers consumed it and the engine never did — and
+    // honouring it here as well regressed 104 of 108 changed pages (aggregate mean |Word−render| 8.4 →
+    // 56.8, menus/08 and brochures/01 to ~190 grey levels), because those paragraphs anchor art whose
+    // placement depends on the line. Reviving it is its own investigation, not a side effect of this one.
+    static bool TakesNoLine(ParagraphElement paragraph) =>
+        paragraph.IsSectionBreakMark && paragraph.Runs.Count == 0;
 
     float MarkPitch(ParagraphElement paragraph)
     {

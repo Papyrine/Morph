@@ -1861,7 +1861,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         Runs = runs,
                         Properties = paragraph.Properties,
                         IsAnchorOnlyMark = paragraph.IsAnchorOnlyMark,
-                        IsCollapsedCellMark = paragraph.IsCollapsedCellMark
+                        IsCollapsedCellMark = paragraph.IsCollapsedCellMark,
+                        IsSectionBreakMark = paragraph.IsSectionBreakMark
                     });
                 }
                 else

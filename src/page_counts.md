@@ -14,9 +14,27 @@ render Word's 5 pages.
 
 | scenario | Word | Skia | ImageSharp | PDF | nature |
 |---|---|---|---|---|---|
-| business-plans/15 | 19 | **18** | **18** | **18** | knife-edge (one line short, all backends agree) |
-| image_wrap_square | 2 | **3** | **3** | **3** | continuous two-column section (paragraph-split-across-columns remains) |
+| business-plans/15 | 19 | **18** | **18** | **18** | cumulative drift (see below) |
 | newsletters/06 | 4 | **6** | **6** | **6** | all-backend table knife-edge (see below) |
+
+`image_wrap_square` left the list on 2026-08-06 and now matches Word at 2 pages. It was never a
+knife-edge: an empty paragraph carrying the section's `sectPr` sat between the "Columns" heading and
+the column text, and the engine gave it a line Word does not draw. Both agree the heading ends at
+617pt, but Word's first column line starts at 635.5pt against the engine's 650.2 — exactly one line
+pitch, which cost the left column its sixth line and pushed the second paragraph onto a third page.
+Word-probed (`_probe_sect_break`): ALPHA / empty paragraph / BRAVO at single spacing puts BRAVO
+27.3pt below ALPHA when the empty paragraph is ordinary (two line pitches) but **13.4pt — one pitch —
+when it carries the `sectPr`**. The rule is applied to CONTINUOUS breaks only, which is what the
+fixture can measure: for a next-page break the two paragraphs land on different pages, so the gap is
+unobservable and the mark's line instead decides whether the *preceding* content still fits. Applying
+it there unprobed moved `sample.docx` 6 pages to 5 with nothing to adjudicate against.
+
+**business-plans/15 is cumulative drift, not a rule.** Traced page by page (2026-08-06): the engine
+tracks Word until the mid-teens, then pulls ahead — by page 17 Word still has the balance-sheet
+bullets above the ASSETS/LIABILITIES table where the engine already starts with the table, and by
+page 19 that is a whole page. Word's page 18 ends at ~70% and starts a fresh page for the
+"Miscellaneous documents" block, which the engine fits on 18. No single law accounts for it: the
+document is 19 pages, 8 sections and 41 tables, and the divergence accrues rather than stepping.
 
 The 2026-07-25 recount (Skia 322 / ImageSharp 322 / PDF 321, with per-backend disagreements) and the
 "experiment 19 committed: 315/315/316 of 321" snapshot below are the historical figures the ledger
