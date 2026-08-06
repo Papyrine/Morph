@@ -400,6 +400,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
             }
 
+            // A deferred anchored float whose anchor paragraph never reached PlaceParagraph (lifted into
+            // a positioned frame, or suppressed) settles at the cursor — the pre-deferral behaviour.
+            foreach (var orphanedFloats in anchorDeferredFloats.Values)
+            {
+                foreach (var orphaned in orphanedFloats)
+                {
+                    EmitBodyFloatAt(orphaned, y);
+                }
+            }
+
+            anchorDeferredFloats.Clear();
+
             // Any float still deferred had no visible content after it — settle it on the in-progress final
             // page before that page is emitted.
             ResolvePendingFloats();
@@ -491,8 +503,22 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // Each flow paragraph's PRE-SPACING top — where the cursor sat before its space-before was
         // applied, which is Word's paragraph-anchor reference (probed: an offset-0 anchored shape on a
         // 60pt-before paragraph sits at the previous paragraph's bottom edge). A float whose anchor
-        // paragraph laid out before the float reached the flow resolves from here.
+        // paragraph laid out before the float resolves from here.
         readonly Dictionary<ParagraphElement, float> paragraphPreSpacingTops = [];
+
+        // Non-wrapping floats waiting for their anchor paragraph's first line to place. Emitting at the
+        // cursor is usually equivalent (nothing places between a float and its own paragraph), but when
+        // the anchor's first line page-breaks away the cursor value strands the float on the old page
+        // (letters/05 page 2 ran 34-54px of band error from a stranded float). Word never splits a
+        // float from its anchor paragraph — probed (_probe_float_push): a 76pt shape anchored at a
+        // page's last paragraph stays with it and CLIPS at the page edge rather than pushing the
+        // paragraph over, so the anchor's own placement is the single source of the float's page.
+        readonly Dictionary<ParagraphElement, List<DocumentElement>> anchorDeferredFloats = [];
+
+        // True when EmitBodyFloatAt would register a wrap exclusion for this element — such a float
+        // cannot defer past its anchor paragraph, whose flow band must see the exclusion.
+        static bool RegistersExclusion(DocumentElement element) =>
+            element is FloatingImageElement { BehindText: false, WrapType: WrapType.Square or WrapType.Tight or WrapType.Through or WrapType.TopAndBottom };
 
         // Emits a body float now when its Y is absolute (page/margin) or it has no recorded anchor;
         // defers a paragraph-anchored one until its anchor paragraph's top is known. Resolving from the
@@ -510,10 +536,25 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 return;
             }
 
-            // Forward case: the anchor paragraph is still ahead. Its pre-spacing top will be exactly
-            // the cursor's current position (nothing places between a float and its own paragraph), so
-            // emit here and now — deferring changed page-tagging timing and shifted multi-page
-            // documents (wedding/07 ran 86px off under a deferral that resolves to the same value).
+            // Forward case: the anchor paragraph is still ahead. A non-wrapping float defers to that
+            // paragraph's first-line placement, which pins both the anchor top and the page even when
+            // the paragraph breaks to a new region first. A wrapping float emits here and now — its
+            // exclusion must be registered before the anchor paragraph resolves its flow band — which
+            // keeps the cursor value; that is exact whenever the anchor does not move. (An earlier
+            // flush-at-page-end deferral shifted wedding/07 86px; flushing at the anchor's own
+            // placement keeps the old timing byte-for-byte in the no-break case.)
+            if (anchor != null && !RegistersExclusion(element))
+            {
+                if (!anchorDeferredFloats.TryGetValue(anchor, out var deferred))
+                {
+                    deferred = [];
+                    anchorDeferredFloats[anchor] = deferred;
+                }
+
+                deferred.Add(element);
+                return;
+            }
+
             EmitBodyFloatAt(element, y);
         }
 
@@ -1166,7 +1207,25 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 if (fit == 0)
                 {
                     AdvanceColumnOrPage();
+                    if (lineIndex == 0)
+                    {
+                        // The first line moved to a new region, so the paragraph's pre-spacing top —
+                        // Word's paragraph-anchor reference — is the new region top, not where the
+                        // cursor first sat (spacing-before is dropped at a region top).
+                        paragraphPreSpacingTops[paragraph] = y;
+                    }
+
                     continue;
+                }
+
+                // The first line's region is now final: floats deferred to this anchor emit here, tagged
+                // with the page the paragraph actually starts on.
+                if (lineIndex == 0 && anchorDeferredFloats.Remove(paragraph, out var deferredFloats))
+                {
+                    foreach (var deferred in deferredFloats)
+                    {
+                        EmitBodyFloatAt(deferred, paragraphPreSpacingTops[paragraph]);
+                    }
                 }
 
                 for (var offset = 0; offset < fit; offset++)
@@ -1501,6 +1560,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var lines = new List<PlacedItem>();
             var cellY = contentTop;
             var lastCellAfter = 0f;
+            var lastCellVisibleAfter = 0f;
+            var lastCellContextual = false;
+            string? lastCellStyleId = null;
             var first = true;
             var hasNestedTable = false;
 
@@ -1519,6 +1581,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     lines.AddRange(nestedItems);
                     cellY += nestedHeight;
                     lastCellAfter = 0;
+                    lastCellVisibleAfter = 0;
+                    lastCellContextual = false;
                     continue;
                 }
 
@@ -1545,6 +1609,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
                     cellY += (float) cellWordArt.HeightPoints;
                     lastCellAfter = 0;
+                    lastCellVisibleAfter = 0;
+                    lastCellContextual = false;
                     continue;
                 }
 
@@ -1561,10 +1627,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // Space-before, collapsed with the previous paragraph's after (max, not sum). Unlike page
                 // flow, a cell's FIRST paragraph keeps its space-before — TableHeightCalculator sizes the
                 // cell with it, so the content must be positioned with it too or it floats to the top and
-                // leaves the gap at the bottom.
+                // leaves the gap at the bottom. w:contextualSpacing removes the gap entirely between two
+                // same-style contextual paragraphs — production collapses in bounded (cell) rendering too
+                // (PdfTextEngine.TrackContextualSpacing "in both flow and bounded"), while the shared
+                // TableHeightCalculator measures WITHOUT the collapse; both paths draw tight content in
+                // the uncollapsed row, so the placement here must match (cover-letters/09's Address block:
+                // five 42pt-after contextual paragraphs rendered 42pt apart instead of tight).
+                var cellContextualCollapse = properties.ContextualSpacing && lastCellContextual && properties.StyleId == lastCellStyleId;
                 cellY += first
                     ? (float) properties.SpacingBeforePoints
-                    : Math.Max(lastCellAfter, (float) properties.SpacingBeforePoints);
+                    : cellContextualCollapse
+                        ? 0f
+                        : Math.Max(lastCellAfter, (float) properties.SpacingBeforePoints);
                 first = false;
 
                 var paragraphLines = measurer.LayoutLineContents(paragraph, contentWidth);
@@ -1582,14 +1656,25 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     cellY += line.Height;
                 }
 
-                lastCellAfter = isEmpty ? 0 : (float) properties.SpacingAfterPoints;
+                // An empty paragraph's after-spacing still separates it from the NEXT paragraph —
+                // production's bounded render advances past EmptyLineHeight + full after
+                // (PdfTextEngine.Draw's empty arm) — but a TRAILING empty's after does not count as
+                // content space for centre/bottom alignment (ParagraphHasVisibleContent in
+                // PageRendererBase's mirror). cover-letters/09 ends its Address block with an empty
+                // 42pt-after paragraph before the salutation: dropping that gap sat the whole letter
+                // body 42pt high.
+                lastCellAfter = (float) properties.SpacingAfterPoints;
+                lastCellVisibleAfter = isEmpty ? 0 : lastCellAfter;
+                lastCellContextual = properties.ContextualSpacing;
+                lastCellStyleId = properties.StyleId;
             }
 
             // The trailing after-spacing counts as content space in full — MeasureCellHeight sizes the
             // row with it and the production render counted it in its alignment content height, so
             // leaving it out here made every centre/bottom-aligned cell sit lower by that spacing
-            // (labels/12's bottom-aligned label cells ran exactly their 10pt after-spacing low).
-            cellY += lastCellAfter;
+            // (labels/12's bottom-aligned label cells ran exactly their 10pt after-spacing low). A
+            // trailing EMPTY paragraph's after is excluded, mirroring ParagraphHasVisibleContent.
+            cellY += lastCellVisibleAfter;
 
             // Centre/bottom alignment shifts the whole content down within the cell's available height
             // (top alignment leaves it at the padded top). Mirrors PageRendererBase's cell content offset.
