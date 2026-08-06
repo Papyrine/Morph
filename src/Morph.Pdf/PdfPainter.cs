@@ -10,8 +10,8 @@
 /// is in the proposal doc. Still deferred: per-glyph advances (a run anchors at its canonical start and
 /// the font library fills it), image recolour/duotone, cell-anchored image-fill shapes (a body one is
 /// routed to a <see cref="PlacedImage"/> and draws), and foreground header/footer
-/// images. <c>PdfRenderer</c> routes a covered document here by default (<c>MORPH_PDF_ENGINE=off</c> is the kill switch);
-/// the flip to make it the default is held (see the doc's "Remaining work").</para>
+/// images. <c>PdfRenderer</c> routes every document here — this is the only PDF path since the
+/// 2026-08-06 flip and the step-8.3 deletion of <c>PdfTextEngine</c>/<c>PdfPageRenderer</c>.</para>
 /// </summary>
 static class PdfPainter
 {
@@ -106,11 +106,11 @@ static class PdfPainter
 
     // Resolution the WordArt raster is produced at. PDF is vector, so the shape has no natural pixel size;
     // 300 dpi keeps the embedded bitmap sharp in print without bloating the file — the same value the
-    // production PdfPageRenderer embeds at.
+    // deleted production PdfPageRenderer embedded at.
     const int wordArtRasterDpi = 300;
 
-    // A warped WordArt figure. PdfSharp cannot draw the warp geometry, so — exactly as the production
-    // PdfPageRenderer.TryEmbedWordArt does — a raster backend rasterizes the shape to a transparent PNG
+    // A warped WordArt figure. PdfSharp cannot draw the warp geometry, so — exactly as the deleted
+    // production TryEmbedWordArt did — a raster backend rasterizes the shape to a transparent PNG
     // (discovered reflectively, so Morph.Pdf keeps no compile-time dependency on either engine) and the PNG
     // is embedded. The PNG is the box surrounded by WordArtRasterPage.Padding on every side, since several
     // warps draw past the declared box, so the draw origin steps back by that padding and the rectangle grows
@@ -193,7 +193,8 @@ static class PdfPainter
 
             DrawTracked(graphics, run.Text, context.GetFont(properties), context.GetBrush(color), run.X, line.Baseline, properties.CharacterSpacingPoints);
 
-            // Underline below the baseline, strike through the x-height — geometry from PdfTextEngine.
+            // Underline below the baseline, strike through the x-height — geometry carried over from the
+            // deleted PdfTextEngine.
             var strokeWidth = Math.Max(0.5, properties.FontSizePoints / 16);
             if (properties.Underline)
             {
@@ -216,7 +217,7 @@ static class PdfPainter
 
     // Draws text, spreading each character by w:spacing tracking (letter-spacing). The run's placed width
     // already includes the tracking (the canonical measurer widened it), so a following run starts past it.
-    // Mirrors PdfTextEngine.DrawTrackedString — per-glyph, so surrogate pairs stay intact.
+    // Per-glyph, so surrogate pairs stay intact.
     static void DrawTracked(XGraphics graphics, string text, XFont font, XBrush brush, double penX, double baseline, double trackingPoints)
     {
         if (trackingPoints == 0 || text.Length <= 1)
@@ -237,7 +238,7 @@ static class PdfPainter
     }
 
     // Fills a tab-leader gap: a baseline rule for underscore, otherwise the leader glyph tiled across the
-    // span (leaving ~one glyph of trailing padding). Mirrors PdfTextEngine.DrawTabLeader.
+    // span (leaving ~one glyph of trailing padding).
     static void DrawLeader(PdfRenderContext context, XGraphics graphics, PlacedRun run, double baseline)
     {
         if (run.Width <= 0)
@@ -304,7 +305,7 @@ static class PdfPainter
         {
             var decoded = context.GetImage(data);
             // a:xfrm transforms happen about the box centre, then draw; an ellipse/freeform clip is an
-            // alternative (Word does not combine the two — mirrors PdfPageRenderer.RenderFloatingImage).
+            // alternative (Word does not combine the two).
             if (Math.Abs(image.RotationDegrees) > 0.01 || image.FlipHorizontal || image.FlipVertical)
             {
                 var centerX = image.X + image.Width / 2;
@@ -365,7 +366,7 @@ static class PdfPainter
 
     // Draws the decoded image into its box, honouring a source-rectangle crop by enlarging the image so its
     // visible sub-rectangle fills the box and clipping back (PdfSharp has no source-rect API) — the same
-    // technique as PdfPageRenderer.DrawRaster.
+    // technique the deleted production DrawRaster used.
     static void DrawIntoBox(XGraphics graphics, XImage decoded, PlacedImage image)
     {
         if (image.Crop is { IsCropped: true } crop)
@@ -382,12 +383,13 @@ static class PdfPainter
         }
     }
 
-    // EMU per point (914400 EMU/inch ÷ 72 pt/inch), matching PdfTextEngine.
+    // EMU per point (914400 EMU/inch ÷ 72 pt/inch).
     const double emusPerPoint = 12700;
 
     // An inline shape group (a grouped drawing embedded in a run): its child shapes scaled from the group's
     // child coordinate space into the inline box, painted back to front. A verbatim port of
-    // PdfTextEngine.DrawShapeGroup that reuses the same contour/picture/pen/alpha helpers, so the engine
+    // the deleted PdfTextEngine.DrawShapeGroup, reusing the same contour/picture/pen/alpha helpers (now on
+    // PdfShapeDrawing), so the engine
     // paints an inline group identically to production. PdfSharp is point-native, so the placed box (already
     // in points, its top at Y = baseline − height) is drawn directly.
     static void PaintInlineGroup(PdfRenderContext context, XGraphics graphics, PlacedImage placed, InlineShapeGroup group)
@@ -427,22 +429,22 @@ static class PdfPainter
                 }
 
                 var strokeWidth = shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75;
-                graphics.DrawLine(PdfTextEngine.StrokePen(shape, strokeWidth), startX, startY, endX, endY);
+                graphics.DrawLine(PdfShapeDrawing.StrokePen(shape, strokeWidth), startX, startY, endX, endY);
                 continue;
             }
 
             var isEllipse = shape.Geometry == GroupShapeGeometry.Ellipse;
-            var geometryPath = PdfTextEngine.BuildGroupShapePath(shape, x, y, width, height);
+            var geometryPath = PdfShapeDrawing.BuildGroupShapePath(shape, x, y, width, height);
 
             if (shape.Shadow is { } shadow)
             {
                 var shadowRgb = PdfRenderContext.ParseColor(shadow.ColorHex);
-                var shadowBrush = new XSolidBrush(XColor.FromArgb(PdfTextEngine.AlphaByte(shadow.Alpha), shadowRgb.R, shadowRgb.G, shadowRgb.B));
+                var shadowBrush = new XSolidBrush(XColor.FromArgb(PdfShapeDrawing.AlphaByte(shadow.Alpha), shadowRgb.R, shadowRgb.G, shadowRgb.B));
                 var shadowX = x + shadow.OffsetX * scaleX;
                 var shadowY = y + shadow.OffsetY * scaleY;
                 if (geometryPath != null)
                 {
-                    graphics.DrawPath(shadowBrush, PdfTextEngine.BuildGroupShapePath(shape, shadowX, shadowY, width, height)!);
+                    graphics.DrawPath(shadowBrush, PdfShapeDrawing.BuildGroupShapePath(shape, shadowX, shadowY, width, height)!);
                 }
                 else if (isEllipse)
                 {
@@ -456,12 +458,12 @@ static class PdfPainter
 
             if (shape.ImageData != null)
             {
-                PdfTextEngine.DrawGroupPicture(context, graphics, shape, x, y, width, height, isEllipse);
+                PdfShapeDrawing.DrawGroupPicture(context, graphics, shape, x, y, width, height, isEllipse);
             }
             else if (shape.FillColorHex is { } fillHex)
             {
                 var rgb = PdfRenderContext.ParseColor(fillHex);
-                var brush = new XSolidBrush(XColor.FromArgb(PdfTextEngine.AlphaByte(shape.FillAlpha), rgb.R, rgb.G, rgb.B));
+                var brush = new XSolidBrush(XColor.FromArgb(PdfShapeDrawing.AlphaByte(shape.FillAlpha), rgb.R, rgb.G, rgb.B));
                 if (geometryPath != null)
                 {
                     graphics.DrawPath(brush, geometryPath);
@@ -478,7 +480,7 @@ static class PdfPainter
 
             if (shape.LineWidthEmu > 0)
             {
-                var pen = PdfTextEngine.StrokePen(shape, shape.LineWidthEmu / emusPerPoint);
+                var pen = PdfShapeDrawing.StrokePen(shape, shape.LineWidthEmu / emusPerPoint);
                 if (geometryPath != null)
                 {
                     graphics.DrawPath(pen, geometryPath);
@@ -514,12 +516,12 @@ static class PdfPainter
         XBrush? fill;
         if (shape.Gradient is { } gradient)
         {
-            fill = PdfPageRenderer.BuildGradientBrush(gradient, placed.X, placed.Y, placed.Width, placed.Height);
+            fill = PdfShapeDrawing.BuildGradientBrush(gradient, placed.X, placed.Y, placed.Width, placed.Height);
         }
         else if (shape.FillColorHex is { } fillHex)
         {
             var rgb = PdfRenderContext.ParseColor(fillHex);
-            fill = new XSolidBrush(XColor.FromArgb(PdfTextEngine.AlphaByte(shape.FillAlpha), rgb.R, rgb.G, rgb.B));
+            fill = new XSolidBrush(XColor.FromArgb(PdfShapeDrawing.AlphaByte(shape.FillAlpha), rgb.R, rgb.G, rgb.B));
         }
         else
         {
@@ -530,7 +532,7 @@ static class PdfPainter
         if (shape.LineColorHex is { } lineHex)
         {
             var rgb = PdfRenderContext.ParseColor(lineHex);
-            pen = new XPen(XColor.FromArgb(PdfTextEngine.AlphaByte(shape.LineAlpha), rgb.R, rgb.G, rgb.B), Math.Max(0.5, shape.LineWidthPoints ?? 1));
+            pen = new XPen(XColor.FromArgb(PdfShapeDrawing.AlphaByte(shape.LineAlpha), rgb.R, rgb.G, rgb.B), Math.Max(0.5, shape.LineWidthPoints ?? 1));
         }
         if (fill == null && pen == null)
         {
@@ -539,7 +541,7 @@ static class PdfPainter
 
         if (shape.Subpaths is { Count: > 0 })
         {
-            var path = PdfPageRenderer.BuildShapePath(shape, placed.X, placed.Y, placed.Width, placed.Height);
+            var path = PdfShapeDrawing.BuildShapePath(shape, placed.X, placed.Y, placed.Width, placed.Height);
             if (fill != null)
             {
                 graphics.DrawPath(fill, path);

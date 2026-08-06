@@ -234,24 +234,14 @@ public class ExportApiTests
         await Assert.That(font.FontFamily.Name).IsEqualTo(unresolvableFamily);
     }
 
-    static PdfTextEngine EngineAtScale(double scale) =>
-        new(new(
-            new()
-            {
-                WidthPoints = 612,
-                HeightPoints = 792,
-                MarginTop = 72,
-                MarginBottom = 72,
-                MarginLeft = 72,
-                MarginRight = 72
-            },
-            compatibility: null,
-            fontWidthScale: scale,
-            fontFallback: null,
-            fontDirectory: fontsDirectory));
+    // PdfExportOptions.FontWidthScale reaches PDF wrapping through the shared canonical measurer
+    // (LayoutFonts builds exactly this pairing in PdfRenderer), so the option's effect is asserted
+    // where it is applied.
+    static CanonicalParagraphMeasurer EngineAtScale(double scale) =>
+        new(LayoutTestFonts.Resolve, scale);
 
     // Plain text, no character spacing — so every measured width term scales linearly and the
-    // scaled/unscaled split inside PdfTextEngine can't hide behind a tracking constant.
+    // scaled/unscaled split inside the measurer can't hide behind a tracking constant.
     static ParagraphElement ScaleProbe() =>
         Para(TextRun("The quick brown fox jumps over the lazy dog"));
 

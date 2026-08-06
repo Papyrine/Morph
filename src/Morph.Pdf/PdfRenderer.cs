@@ -5,61 +5,16 @@
 /// </summary>
 static class PdfRenderer
 {
-    public static byte[] Render(ParsedDocument document, PdfExportOptions? options)
-    {
-        options ??= new();
+    public static byte[] Render(ParsedDocument document, PdfExportOptions? options) =>
+        RenderViaEngine(document, options ?? new());
 
-        // The engine is the DEFAULT PDF path for covered documents (the flip landed 2026-08-06 at
-        // aggregate +0.0017 vs production, eighth measurement — docs/layout-engine-proposal.md).
-        // MORPH_PDF_ENGINE=off is the kill switch back to PdfTextEngine, mirroring the raster
-        // switches' sense before their deletion; an uncovered document still falls through.
-        if (Environment.GetEnvironmentVariable("MORPH_PDF_ENGINE") != "off" && EngineCoverage.Covers(document))
-        {
-            return RenderViaEngine(document, options);
-        }
-
-        var totalPageCount = CountPagesIfRequired(document, options);
-
-        var context = new PdfRenderContext(
-            document.PageSettings,
-            document.Compatibility,
-            options.FontWidthScale,
-            options.FontFallback,
-            options.FontDirectory)
-        {
-            TotalPageCount = totalPageCount
-        };
-
-        var renderer = new PdfPageRenderer(context)
-        {
-            OnWarning = options.OnWarning,
-            Pages = options.Pages,
-            RasterizeWordArt = options.RasterizeWordArt
-        };
-        renderer.RenderDocument(document);
-
-        MakeDeterministic(context.Document);
-
-        if (options.Pages is { } range)
-        {
-            TrimPages(context.Document, range);
-        }
-
-        using var stream = new MemoryStream();
-        context.Document.Save(stream, closeStream: false);
-        context.DisposeImages();
-        return Normalize(stream.ToArray());
-    }
-
-    // The layout-engine PDF path (docs/layout-engine-proposal.md, "The PDF cutover (step 5)") — the
-    // DEFAULT for covered documents since the 2026-08-06 flip: paginate with the backend-independent
-    // Fragmenter and draw with PdfPainter, in place of PdfPageRenderer + PdfTextEngine (which remain
-    // only as the MORPH_PDF_ENGINE=off kill switch and the uncovered-document fallback until step 8.3
-    // deletes them). The byte-reproducibility post-processing (MakeDeterministic / TrimPages /
-    // Normalize) is shared with the fallback path — PdfPainter builds its own PdfDocument, so it
-    // applies unchanged. The engine knows its own page total (LaidOutDocument.Pages.Count), so no
-    // NUMPAGES pre-count pass runs here; per-section NUMPAGES restart is a later slice. Internal so a
-    // test can drive the engine path directly, without touching the process-global env var.
+    // The layout-engine PDF path (docs/layout-engine-proposal.md, "The PDF cutover (step 5)") — the ONLY
+    // PDF path since the 2026-08-06 flip and the step-8.3 deletion of PdfTextEngine + PdfPageRenderer:
+    // paginate with the backend-independent Fragmenter and draw with PdfPainter. The byte-reproducibility
+    // post-processing (MakeDeterministic / TrimPages / Normalize) is unchanged from the deleted path —
+    // PdfPainter builds its own PdfDocument, so it applies as before. The engine knows its own page total
+    // (LaidOutDocument.Pages.Count), so no NUMPAGES pre-count pass runs here (the old CountPagesIfRequired
+    // laid the whole document out a second time); per-section NUMPAGES restart is a later slice.
     internal static byte[] RenderViaEngine(ParsedDocument document, PdfExportOptions options)
     {
         using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
@@ -91,35 +46,6 @@ static class PdfRenderer
         pdf.Save(stream, closeStream: false);
         context.DisposeImages();
         return Normalize(stream.ToArray());
-    }
-
-    // A NUMPAGES/SECTIONPAGES field needs the final page total, which is only known after the
-    // document is laid out. Build a throwaway document first to count pages so the real render can
-    // substitute the total. Documents without such a field render once. Any page range is applied
-    // only to the real render, so the count reflects the whole document (matching Word's NUMPAGES).
-    static int CountPagesIfRequired(ParsedDocument document, PdfExportOptions options)
-    {
-        if (!document.RequiresTotalPageCount)
-        {
-            return 0;
-        }
-
-        var context = new PdfRenderContext(
-            document.PageSettings,
-            document.Compatibility,
-            options.FontWidthScale,
-            options.FontFallback,
-            options.FontDirectory);
-        // No OnWarning here — the real render reports warnings; forwarding them from the counting
-        // pass too would emit every warning twice. RasterizeWordArt must match the real render so
-        // WordArt reserves the same height in both passes and pagination stays consistent.
-        var renderer = new PdfPageRenderer(context)
-        {
-            RasterizeWordArt = options.RasterizeWordArt
-        };
-        var total = renderer.RenderDocument(document);
-        context.DisposeImages();
-        return total;
     }
 
     /// <summary>
