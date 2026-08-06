@@ -307,9 +307,12 @@ through the render context's own primitives rather than a common `ILayoutPainter
 - [~] **4. `DocumentLayoutEngine`** — the section walk, per-page region chains and header/footer bands all
       landed, folded into the `Fragmenter` rather than a separate class (per-section geometry, even/odd parity
       pages, the Continuous mid-page column switch and header/footer band layout are in the raster-cutover log
-      below). One piece is held for the PDF cutover: fixing `ParseSectionBreak` (`DocumentParser` ~9362) to read
-      the *following* section's `w:type` (ECMA-376 §17.6.22) — it regresses production until the painters own
-      pagination, so it lands with step 5's flip.
+      below). The held piece LANDED 2026-08-05 (64f676828): `ParseSectionBreak` reads the *following*
+      section's `w:type` (ECMA-376 §17.6.22) through the same lookahead the page settings use. It closed
+      resumes/10's stranded per-page circles (the engine never broke at its section boundaries — section 1
+      authors `continuous` for its own start, sections 2-3 author none → nextPage), moved
+      image_wrap_square sub-grey-level with its page count unchanged, and left production's PDF snapshots
+      byte-stable across the corpus.
 - [~] **5. `PdfPainter` — built and capability-gated; flip held on `PdfTextEngine`** (`PdfPainter`,
       `PdfPainterTests`). A pure draw pass over a `Fragmenter`-produced `LaidOutDocument` — no measurement,
       no pagination — reusing `PdfRenderContext` for font and brush resolution. The painter is structurally
