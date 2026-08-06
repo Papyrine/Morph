@@ -71,11 +71,16 @@ merged cell's height derives from the rows it spans. Corpus effect: business-pla
 — all nine changed pages improved (aggregate mean |Word−render| 17.85 → 15.39, page 18 by −7.7) and
 the new page 19 lands at 2.9 grey levels from Word.
 
-Known residue: the engine breaks one line later than Word here. Word moves the whole three-line
-"Long-term Liabilities" bullet to page 17; the engine keeps two lines and leaves one overleaf, because
-widow/orphan control is implemented in `PlaceParagraph` for the page flow but not yet in the cell
-splitter. Page counts agree regardless. This also makes `w:cantSplit` implementable for the first
-time (todo.md #25) — it selects the move-whole behaviour for a row that would otherwise split.
+The splitter applies keep-lines and widow/orphan control, and porting `PlaceParagraph`'s version
+verbatim was NOT enough: Word settles the two rules in order and lets the second act on the first's
+result. The three-line "Long-term Liabilities" bullet is the case — two lines fit, the widow carry
+takes that to one, and the orphan rule then takes it to none, which is exactly where Word breaks.
+Checking orphan-then-widow as mutually exclusive branches (what the flow path does) stops after the
+first step and leaves a lone line behind: page 16 came out with 44 ink bands against Word's 43. With
+the ordered form it is 43, and pages 16/17 improve by 0.6 and 3.8 grey levels. `PlaceParagraph` still
+has the unordered form for the page flow — aligning it is corpus-wide and wants its own gate
+(todo.md #25). This also makes `w:cantSplit` implementable for the first time: it selects move-whole
+for a row that would otherwise split.
 
 The 2026-07-25 recount (Skia 322 / ImageSharp 322 / PDF 321, with per-backend disagreements) and the
 "experiment 19 committed: 315/315/316 of 321" snapshot below are the historical figures the ledger
