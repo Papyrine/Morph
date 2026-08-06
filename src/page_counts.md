@@ -5,16 +5,14 @@ output (`skia_result#page_*`, `imagesharp_result#page_*`, `pdf_result#page_*`) a
 directories in `src/Tests/Inputs/`. The match is *recorded*, not asserted, by the scenario tests —
 these mismatches never fail the suite; closing them improves Word fidelity.
 
-**Current state (full recount, 2026-08-06): Skia 324, ImageSharp 324, PDF 324 of 325 scenarios — and
-the three-way divergence this document exists to track is OVER.**
+**Current state (full recount, 2026-08-06): Skia 325, ImageSharp 325, PDF 325 of 325 — every scenario
+in the corpus now renders Word's page count, on every backend.** The three-way divergence this document
+exists to track is over, and so is the gap to Word.
 All three backends paginate through the one engine (`Fragmenter`), so every remaining mismatch is
 identical across backends; no scenario disagrees *between* backends anymore. `resumes/13` — the
 archetype (raster short, PDF over, Word between) — left the list entirely: all three backends now
 render Word's 5 pages.
 
-| scenario | Word | Skia | ImageSharp | PDF | nature |
-|---|---|---|---|---|---|
-| business-plans/15 | 19 | **18** | **18** | **18** | cumulative drift (see below) |
 
 `newsletters/06` left the list on 2026-08-06 and now matches Word at 4 pages. **Its recorded cause —
 an `atLeast`-table knife-edge whose residual was the raster line-height "dead-end lever" — was wrong
@@ -44,11 +42,11 @@ fixture can measure: for a next-page break the two paragraphs land on different 
 unobservable and the mark's line instead decides whether the *preceding* content still fits. Applying
 it there unprobed moved `sample.docx` 6 pages to 5 with nothing to adjudicate against.
 
-**business-plans/15 needs table-row splitting — root-caused 2026-08-06, superseding the earlier
-"cumulative drift" reading.** The engine NEVER splits a table row across a page: `PlaceTableRowByRow`
-moves a row that will not fit whole to the next region, and `LayoutCellContent` takes no page breaks
-at all ("the row height already accommodates the content"). That holds until a single row is taller
-than the content height — then it simply overflows off the page.
+**business-plans/15 was closed 2026-08-06 by implementing table-row splitting**, the last page-count
+gap. The engine used to NEVER split a table row across a page: `PlaceTableRowByRow` moved a row that
+would not fit whole to the next region, and `LayoutCellContent` took no page breaks at all ("the row
+height already accommodates the content"). That held until a single row was taller than the content
+height — then it simply overflowed off the page.
 
 This document wraps whole prose sections in one-row tables, so that case is the norm rather than an
 edge: **table35 is a single row of 23 paragraphs** (the balance-sheet guidance), table39 a single row
@@ -60,12 +58,24 @@ and its page 17 opens with "Long-term Liabilities" and "Net Worth", the two bull
 overflowed. One page saved, and the same thing happens again at table39/table40, which is why the
 engine's last page carries both the break-even body and the whole miscellaneous block.
 
-Closing it is a feature, not a tweak: splitting a row means breaking a cell's content at a line
-boundary, re-emitting the row's borders and shading per fragment, and deciding what happens to
-vertical alignment, spanned cells, nested tables and `w:tblHeader` repeats across the split. It is
-also the prerequisite for honouring `w:cantSplit` (todo.md #25), which is meaningless while nothing
-splits. Everything else about the document already agrees with Word — pages 1-16 align, and the
-orientation, margins and footer distance of every page match.
+**The implemented rule is narrow on purpose: a row splits only when it is taller than a whole empty
+region.** Such a row cannot be rescued by moving it, so the old behaviour was provably wrong there;
+a row that does fit keeps moving whole, which is what matches Word across the other 324 scenarios.
+`LayoutCellFragment` carries a start point (element index + line index) and a height budget, returning
+what fit and where to resume, so each cell continues independently; the unlimited path is unchanged.
+A fragment that continues drops its bottom border and a resumed one drops its top, so the split edge
+draws no rule; `w:tblHeader` rows re-emit above each continuation; cell-anchored art draws only on the
+first fragment; vertical alignment is skipped for a split row (its content no longer has one box to be
+centred in, and Word tops each fragment out); and a row carrying a vertical merge is excluded, since a
+merged cell's height derives from the rows it spans. Corpus effect: business-plans/15 and nothing else
+— all nine changed pages improved (aggregate mean |Word−render| 17.85 → 15.39, page 18 by −7.7) and
+the new page 19 lands at 2.9 grey levels from Word.
+
+Known residue: the engine breaks one line later than Word here. Word moves the whole three-line
+"Long-term Liabilities" bullet to page 17; the engine keeps two lines and leaves one overleaf, because
+widow/orphan control is implemented in `PlaceParagraph` for the page flow but not yet in the cell
+splitter. Page counts agree regardless. This also makes `w:cantSplit` implementable for the first
+time (todo.md #25) — it selects the move-whole behaviour for a row that would otherwise split.
 
 The 2026-07-25 recount (Skia 322 / ImageSharp 322 / PDF 321, with per-backend disagreements) and the
 "experiment 19 committed: 315/315/316 of 321" snapshot below are the historical figures the ledger

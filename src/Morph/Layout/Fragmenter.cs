@@ -1389,6 +1389,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
             {
                 var rowHeight = rowHeights[rowIndex];
+
+                // A row taller than a whole empty region cannot be rescued by moving it — it would overflow
+                // wherever it went, drawing over the footer and clipping at the page edge. Word splits such a
+                // row at a line boundary and continues it overleaf. Rows that DO fit keep the move-whole
+                // behaviour below, which matches Word across the rest of the corpus.
+                if (rowIndex <= lastVisibleRow && rowHeight > contentHeight && CanSplitRow(table.Rows[rowIndex]))
+                {
+                    PlaceSplitRow(table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, headerCount);
+                    continue;
+                }
+
                 var broke = rowIndex <= lastVisibleRow && EnsureSpaceFor(rowHeight);
 
                 if (broke && headerCount > 0 && rowIndex >= headerCount)
@@ -1406,6 +1417,190 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 y += rowHeight;
                 atRegionTop = false;
             }
+        }
+
+        // A row may be split across pages when nothing in it ties its cells to one box. A vertical merge
+        // does exactly that — the merged cell's height is derived from the rows it spans — so a row carrying
+        // one keeps the move-whole behaviour.
+        static bool CanSplitRow(TableRow row)
+        {
+            foreach (var cell in row.Cells)
+            {
+                if (cell.Properties.VerticalMerge != VerticalMergeType.None)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // Places a row too tall for one page as a run of fragments, breaking at line boundaries inside its
+        // cells. Each fragment fills the space left on its page and the row continues at the top of the next,
+        // with w:tblHeader rows re-emitted above each continuation exactly as an unsplit row's break does.
+        void PlaceSplitRow(TableElement table, int rowIndex, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth, int headerCount)
+        {
+            var row = table.Rows[rowIndex];
+            var starts = new CellSplitPoint?[row.Cells.Count];
+            for (var cellIndex = 0; cellIndex < starts.Length; cellIndex++)
+            {
+                starts[cellIndex] = default(CellSplitPoint);
+            }
+
+            var isFirstFragment = true;
+            while (true)
+            {
+                // A sliver at the bottom of a page holds nothing useful, so start the fragment on the next
+                // region rather than emitting a stub. minFragmentHeight is one generous line.
+                const float minFragmentHeight = 24f;
+                if (!atRegionTop && contentBottom - y < minFragmentHeight)
+                {
+                    AdvanceColumnOrPage();
+                }
+
+                if (!isFirstFragment && headerCount > 0 && rowIndex >= headerCount)
+                {
+                    for (var headerIndex = 0; headerIndex < headerCount; headerIndex++)
+                    {
+                        items.Add(BuildRow(y, table, headerIndex, colWidths, rowHeights, colCount, tableX, tableWidth, true));
+                        y += rowHeights[headerIndex];
+                        atRegionTop = false;
+                    }
+                }
+
+                var available = Math.Max(minFragmentHeight, contentBottom - y);
+                var (fragment, continuations, height) = BuildRowFragment(y, table, rowIndex, colWidths, colCount, tableX, tableWidth, starts, available, isFirstFragment);
+                items.Add(fragment);
+                ResolvePendingFloats();
+                y += height;
+                atRegionTop = false;
+
+                var finished = true;
+                foreach (var continuation in continuations)
+                {
+                    if (continuation != null)
+                    {
+                        finished = false;
+                        break;
+                    }
+                }
+
+                if (finished)
+                {
+                    return;
+                }
+
+                starts = continuations;
+                isFirstFragment = false;
+                AdvanceColumnOrPage();
+            }
+        }
+
+        // One fragment of a split row: the same geometry as BuildRow, but each cell lays out only what fits in
+        // <paramref name="available"/> starting from its own carried split point. A cell that continues
+        // overleaf drops its bottom border and a fragment that is not the first drops its top border, so the
+        // split edge draws no rule — Word runs the cell's sides through the break and closes the box only at
+        // the row's real end.
+        (PlacedTableRow Row, CellSplitPoint?[] Continuations, float Height) BuildRowFragment(
+            float rowY,
+            TableElement table,
+            int rowIndex,
+            float[] colWidths,
+            int colCount,
+            float tableX,
+            float tableWidth,
+            CellSplitPoint?[] starts,
+            float available,
+            bool isFirstFragment)
+        {
+            var row = table.Rows[rowIndex];
+            var cells = new List<PlacedCell>();
+            var continuations = new CellSplitPoint?[row.Cells.Count];
+            var cellX = tableX;
+            var gridColIndex = 0;
+            var usedHeight = 0f;
+            var anyContinues = false;
+
+            for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
+            {
+                var cell = row.Cells[cellIndex];
+                var span = cell.Properties.GridSpan;
+
+                var cellWidth = 0f;
+                for (var offset = 0; offset < span && gridColIndex + offset < colCount; offset++)
+                {
+                    cellWidth += colWidths[gridColIndex + offset];
+                }
+
+                var padding = TableLayout.GetEffectivePadding(cell.Properties, table.Properties, row);
+                var start = starts[cellIndex];
+                if (start == null)
+                {
+                    // This cell finished on an earlier fragment; it still draws its box and sides.
+                    cells.Add(new PlacedCell(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, FragmentBorders(cell, table, rowIndex, gridColIndex, colCount, row, continues: false, isFirstFragment), []));
+                    cellX += cellWidth;
+                    gridColIndex += span;
+                    continue;
+                }
+
+                var budget = Math.Max(0f, available - (float) padding.Vertical);
+                var (content, continuation, height) = LayoutCellFragment(
+                    cell,
+                    cellX + (float) padding.Left,
+                    rowY + (float) padding.Top,
+                    cellWidth - (float) padding.Horizontal,
+                    budget,
+                    cell.Properties.VerticalAlignment,
+                    start.Value,
+                    budget);
+
+                continuations[cellIndex] = continuation;
+                anyContinues |= continuation != null;
+                usedHeight = Math.Max(usedHeight, height + (float) padding.Vertical);
+
+                // Cell-anchored behind-text art belongs to the row's first fragment; repeating it on every
+                // continuation would stamp it down the document.
+                if (isFirstFragment)
+                {
+                    var floatShapes = ResolveCellFloatShapes(cell, cellX, rowY);
+                    if (floatShapes.Count > 0)
+                    {
+                        content = [.. floatShapes, .. content];
+                    }
+                }
+
+                cells.Add(new PlacedCell(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, FragmentBorders(cell, table, rowIndex, gridColIndex, colCount, row, continuation != null, isFirstFragment), content));
+
+                cellX += cellWidth;
+                gridColIndex += span;
+            }
+
+            // A fragment that continues fills its page; the last one shrinks to what it actually used.
+            var fragmentHeight = anyContinues ? available : Math.Min(available, usedHeight);
+            var boxed = new List<PlacedCell>(cells.Count);
+            foreach (var cell in cells)
+            {
+                boxed.Add(cell with {Height = fragmentHeight});
+            }
+
+            return (new PlacedTableRow(tableX, rowY, tableWidth, fragmentHeight, table, rowIndex, false, boxed), continuations, fragmentHeight);
+        }
+
+        // The row's resolved borders with the split edges removed: no bottom rule where the cell carries on
+        // overleaf, no top rule where it is resuming.
+        static CellBorders? FragmentBorders(TableCell cell, TableElement table, int rowIndex, int gridColIndex, int colCount, TableRow row, bool continues, bool isFirstFragment)
+        {
+            var borders = TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row);
+            if (borders == null || (!continues && isFirstFragment))
+            {
+                return borders;
+            }
+
+            return borders with
+            {
+                Top = isFirstFragment ? borders.Top : BorderEdge.None,
+                Bottom = continues ? BorderEdge.None : borders.Bottom
+            };
         }
 
         // Builds a placed row at the current cursor: the row box plus each cell's box, shading, borders and
@@ -1555,7 +1750,25 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // Stacks a cell's paragraphs from the top of its padded interior, wrapping each to the cell width,
         // then shifts them down for centre/bottom vertical alignment within the available height. No page
         // breaks — the row height already accommodates the content. A nested table lays out inline too.
-        IReadOnlyList<PlacedItem> LayoutCellContent(TableCell cell, float contentLeft, float contentTop, float contentWidth, float availableHeight, CellVerticalAlignment verticalAlignment)
+        IReadOnlyList<PlacedItem> LayoutCellContent(TableCell cell, float contentLeft, float contentTop, float contentWidth, float availableHeight, CellVerticalAlignment verticalAlignment) =>
+            LayoutCellFragment(cell, contentLeft, contentTop, contentWidth, availableHeight, verticalAlignment, default, budget: null).Items;
+
+        /// <summary>
+        /// Lays a cell's content out from <paramref name="start"/>, stopping once <paramref name="budget"/>
+        /// points of height are used. A null budget places everything — the whole-row case, byte-identical to
+        /// before row splitting existed. With a budget the return carries the point the content reached, so
+        /// the caller can continue the cell on the next page; <c>null</c> means the cell finished.
+        /// At least one line is always placed, so a budget too small to hold anything still advances.
+        /// </summary>
+        (IReadOnlyList<PlacedItem> Items, CellSplitPoint? Continuation, float Height) LayoutCellFragment(
+            TableCell cell,
+            float contentLeft,
+            float contentTop,
+            float contentWidth,
+            float availableHeight,
+            CellVerticalAlignment verticalAlignment,
+            CellSplitPoint start,
+            float? budget)
         {
             var lines = new List<PlacedItem>();
             var cellY = contentTop;
@@ -1563,11 +1776,27 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var lastCellVisibleAfter = 0f;
             var lastCellContextual = false;
             string? lastCellStyleId = null;
-            var first = true;
+            // A continuation fragment is never at the cell's start, so its first paragraph does not get the
+            // first-paragraph spacing-before treatment (and a paragraph resumed mid-way gets no spacing at all).
+            var first = start is {ElementIndex: 0, LineIndex: 0};
             var hasNestedTable = false;
+            var limit = budget is { } allowed ? contentTop + allowed : float.MaxValue;
+            CellSplitPoint? continuation = null;
 
-            foreach (var element in cell.Content)
+            for (var elementIndex = start.ElementIndex; elementIndex < cell.Content.Count; elementIndex++)
             {
+                var element = cell.Content[elementIndex];
+                // Where a paragraph was cut in half by a page break, resume at the line it reached.
+                var resumeLine = elementIndex == start.ElementIndex ? start.LineIndex : 0;
+
+                // Anything already placed and no room left for this element: stop here and let the caller
+                // continue the cell on the next page.
+                if (budget != null && lines.Count > 0 && cellY >= limit)
+                {
+                    continuation = new(elementIndex, resumeLine);
+                    break;
+                }
+
                 // A nested table lays out at the cell cursor with no page breaks — the outer row height
                 // already accommodates it (TableHeightCalculator measures nested tables). Its rows are
                 // PlacedTableRows, which the vertical-alignment shift below cannot move, so a cell holding one
@@ -1646,14 +1875,29 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 var textLeft = contentLeft + (float) properties.LeftIndentPoints;
                 var availableWidth = contentWidth - (float) properties.LeftIndentPoints - (float) properties.RightIndentPoints;
 
-                for (var lineIndex = 0; lineIndex < paragraphLines.Count; lineIndex++)
+                var stopped = false;
+                for (var lineIndex = resumeLine; lineIndex < paragraphLines.Count; lineIndex++)
                 {
                     var line = paragraphLines[lineIndex];
+                    // The budget is exhausted mid-paragraph: the rest of it continues on the next page. One
+                    // line always goes down, so a fragment can never be empty and loop forever.
+                    if (budget != null && lines.Count > 0 && cellY + line.Height > limit)
+                    {
+                        continuation = new(elementIndex, lineIndex);
+                        stopped = true;
+                        break;
+                    }
+
                     var firstLineShift = FirstLineIndentOffset(properties, lineIndex);
                     var lineLeft = textLeft + firstLineShift + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, line.Width);
                     var baseline = cellY + line.Ascent;
                     lines.Add(new PlacedLine(lineLeft, cellY, line.Width, line.Height, baseline, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft), MapImages(line, lineLeft, baseline)));
                     cellY += line.Height;
+                }
+
+                if (stopped)
+                {
+                    break;
                 }
 
                 // An empty paragraph's after-spacing still separates it from the NEXT paragraph —
@@ -1673,13 +1917,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // row with it and the production render counted it in its alignment content height, so
             // leaving it out here made every centre/bottom-aligned cell sit lower by that spacing
             // (labels/12's bottom-aligned label cells ran exactly their 10pt after-spacing low). A
-            // trailing EMPTY paragraph's after is excluded, mirroring ParagraphHasVisibleContent.
-            cellY += lastCellVisibleAfter;
+            // trailing EMPTY paragraph's after is excluded, mirroring ParagraphHasVisibleContent. A
+            // fragment that continues overleaf has no trailing paragraph yet, so it charges none.
+            if (continuation == null)
+            {
+                cellY += lastCellVisibleAfter;
+            }
 
             // Centre/bottom alignment shifts the whole content down within the cell's available height
             // (top alignment leaves it at the padded top).
-            // Skipped when a nested table is present, since ShiftDown only moves text lines.
-            var offset = hasNestedTable
+            // Skipped when a nested table is present, since ShiftDown only moves text lines, and for a split
+            // row — its content no longer has one box to be centred in, and Word tops each fragment out.
+            var offset = hasNestedTable || budget != null
                 ? 0f
                 : verticalAlignment switch
                 {
@@ -1696,7 +1945,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
             }
 
-            return lines;
+            return (lines, continuation, cellY - contentTop);
         }
 
         // Moves a placed line (and its inline images) down the page by an offset, for cell vertical
