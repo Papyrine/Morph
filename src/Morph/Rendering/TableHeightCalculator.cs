@@ -152,7 +152,7 @@ static class TableHeightCalculator
         //
         // Interior edges are OPT-IN because the two consumers position content differently. The layout
         // engine's PdfPainter tops content in the taller cell and its pagination then matches Word, so
-        // it asks for them. The production PageRendererBase render does NOT inset content by the top
+        // it asks for them. The deleted production render did NOT inset content by the top
         // border, so growing the row there drops the extra height as blank space at the cell bottom and
         // shifts page breaks the wrong way (measured: resumes/10 −0.205, cover-letters/05 −0.05); it
         // keeps the outer-only behaviour until it owns the content inset too. An earlier note claimed

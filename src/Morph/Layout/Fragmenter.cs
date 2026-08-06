@@ -111,7 +111,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // True while the current page was started by a non-continuous section break — Word KEEPS a
         // paragraph's spacing-before at the top of such a page (a new page setup), unlike a page
         // reached by automatic overflow (business-plans/08's page 2 ran 22pt high without this).
-        // Mirrors PageRendererBase.ShouldSuppressPageTopSpacingBefore's section-break carve-out.
+        // Mirrors the deleted production ShouldSuppressPageTopSpacingBefore's section-break carve-out.
         bool currentPageSectionStart;
         // The trailing after-spacing of the page that just finished. Word's flow adds a paragraph's
         // after when it completes and the NEXT paragraph adds only the excess of its before — and that
@@ -146,7 +146,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // it — so a two-line header no longer overlaps the first body line. A negative w:top
         // (TopMarginIsAbsolute) pins the body at the margin and lets the header overlap instead. Reserves for
         // the default header (per-page first/even variants are a later refinement), mirroring how
-        // PageRendererBase parks the body cursor below the rendered header.
+        // The deleted production render parked the body cursor below the rendered header.
         static float HeaderReservedTop(IParagraphMeasurer measurer, PageSettings settings, HeaderFooterContent? header)
         {
             var marginTop = (float) settings.MarginTop;
@@ -599,7 +599,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // Absolute X of a body float: a page-anchored offset is from the page's left; anything else (margin,
         // column, character) is from the content's left. A percentage offset (wp14:pctPosHOffset) resolves as
         // that fraction of the anchor's reference width — the page for a page anchor, else the content box —
-        // mirroring the production FloatingPosition. Nested-frame anchors are a later slice.
+        // mirroring the deleted production FloatingPosition. Nested-frame anchors are a later slice.
         float FloatX(HorizontalAnchor anchor, double offset, double? percent)
         {
             var baseX = anchor == HorizontalAnchor.Page ? 0f : fullContentLeft;
@@ -827,7 +827,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // the top level. It auto-sizes to its content (an explicit w:w / w:h overrides), resolves an absolute
         // position from its anchors and alignment, and paints there without taking flow space. The frame has no
         // fill or border of its own, so this is content placement only. Mirrors
-        // PageRendererBase.RenderPositionedFrame, whose measurements and anchor rules it reproduces.
+        // the deleted production RenderPositionedFrame, whose measurements and anchor rules it reproduces.
         void PlaceFrame(PositionedFrameElement frame)
         {
             float measuredWidth = 0;
@@ -877,7 +877,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // margin — it leaves a wide band of empty space on the right. Measured from Word's
             // agendas-minutes/14 render (the block's right edge lands ~0.9" / ~12.2% of the content width
             // inside the right margin); the inset is not expressed anywhere in the frame markup, so it can
-            // only be reproduced empirically. Same constant as PageRendererBase.
+            // only be reproduced empirically. Same constant the deleted production render used.
             const float frameRightInsetFraction = 0.122f;
             var rightInset = anchorWidth * frameRightInsetFraction;
 
@@ -893,7 +893,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // A page/margin-anchored frame with a small explicit y (under half an inch) sitting out of flow is
         // Word's "footer info block" pattern (a right-aligned Location/Date/Time stack): Word floats it just
         // above the bottom margin rather than at the literal y from the top. A larger y is an intentional
-        // upper-page placement and is honoured from the top. Threshold shared with PageRendererBase.
+        // upper-page placement and is honoured from the top.
         float FrameY(PositionedFrameElement frame, float height)
         {
             const float bottomAnchorYThresholdPoints = 36;
@@ -1110,12 +1110,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // region top. If the collapsed gap plus the first line overflows, the line-level break below
             // resets the cursor — the same space-before drop for the moved paragraph. w:contextualSpacing
             // removes the gap entirely between two same-style contextual paragraphs (Word's memo To/From/CC
-            // block, list runs) — matching PageRendererBase's contextual collapse.
+            // block, list runs).
             //
             // The drop is a *break* rule, not a top-of-box rule: Word applies a leading space-before on the
             // document's own first page and only swallows it where the flow broke onto a new region. Treating
             // the document start as a region top lost it — wordart-envelope's title sat 20pt (its w:before)
-            // high. PageRendererBase draws the same distinction through ShouldSuppressPageTopSpacingBefore's
+            // high. The deleted production render drew the same distinction through its
             // `pagesStarted <= 1` guard.
             // Word's paragraph-anchor reference is this pre-spacing position (see paragraphPreSpacingTops).
             paragraphPreSpacingTops[paragraph] = y;
@@ -1409,7 +1409,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         }
 
         // Builds a placed row at the current cursor: the row box plus each cell's box, shading, borders and
-        // laid-out content. Cell geometry mirrors PageRendererBase.RenderTableRow so the tree matches the
+        // laid-out content. Cell geometry mirrors the deleted production RenderTableRow so the tree matches the
         // raster backend's grid — merge-continuation cells contribute nothing (the originating cell covers
         // them), and a merge-restart cell's box spans the merged rows' heights.
         PlacedTableRow BuildRow(float rowY, TableElement table, int rowIndex, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth, bool isRepeatedHeader)
@@ -1660,7 +1660,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // production's bounded render advances past EmptyLineHeight + full after
                 // (PdfTextEngine.Draw's empty arm) — but a TRAILING empty's after does not count as
                 // content space for centre/bottom alignment (ParagraphHasVisibleContent in
-                // PageRendererBase's mirror). cover-letters/09 ends its Address block with an empty
+                // the deleted production mirror). cover-letters/09 ends its Address block with an empty
                 // 42pt-after paragraph before the salutation: dropping that gap sat the whole letter
                 // body 42pt high.
                 lastCellAfter = (float) properties.SpacingAfterPoints;
@@ -1677,7 +1677,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             cellY += lastCellVisibleAfter;
 
             // Centre/bottom alignment shifts the whole content down within the cell's available height
-            // (top alignment leaves it at the padded top). Mirrors PageRendererBase's cell content offset.
+            // (top alignment leaves it at the padded top).
             // Skipped when a nested table is present, since ShiftDown only moves text lines.
             var offset = hasNestedTable
                 ? 0f
@@ -1939,7 +1939,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         }
 
         // Table X within the current column, by w:jc alignment: centred and right collapse the indent into
-        // the slack, left applies w:tblInd — matching PageRendererBase.ComputeTableX (non-floating).
+        // the slack, left applies w:tblInd (non-floating).
         float ComputeTableX(TableElement table, float tableWidth)
         {
             var slack = columnWidth - tableWidth;
@@ -1951,7 +1951,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             };
         }
 
-        // Mirrors PageRendererBase.EnsureSpaceFor: advances to the next column or page when the height will
+        // Advances to the next column or page when the height will
         // not fit in the space left (a 2% rounding slack via HasSpaceFor), unless already at a region top
         // or the height exceeds a whole column. Returns whether it broke.
         bool EnsureSpaceFor(float height)

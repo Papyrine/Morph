@@ -1627,7 +1627,7 @@ static class HtmlExporter
         // Resolves a shape's box into page coordinates. The body's padding equals the page margins,
         // and CSS resolves absolutely-positioned children against the padding box, so the
         // positioning origin is the page origin and shapes place at their raw page position.
-        // Mirrors FloatingPosition.ResolveShapeBounds, which needs a render context the exporter
+        // Mirrors the deleted FloatingPosition.ResolveShapeBounds, which needed a render context the exporter
         // lacks.
         static (double left, double top, double width, double height) ShapeBox(FloatingShapeElement shape, PageSettings page)
         {
