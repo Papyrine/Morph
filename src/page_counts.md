@@ -94,9 +94,16 @@ document sets the attribute.
 The same probe turned up a wider divergence, filed as todo.md #25 rather than folded in: **Word splits
 a row that merely does not fit the space left**, even when the row would fit a fresh page — 168pt free
 against a 240pt row put 13 lines on page 1 and 7 overleaf. The engine splits only a row taller than a
-whole region, so it currently behaves as though every row carried `w:cantSplit`. Widening the trigger
-is a far broader change than reading the attribute, and the corpus is at 325/325 page counts with the
-present rule, so it wants its own gate.
+whole region, so it currently behaves as though every row carried `w:cantSplit`. **Widening the
+trigger was attempted on its own gate and reverted**: it reproduced Word's shape on the probe (both
+unflagged fixtures split) but moved 129 corpus pages, 87 of them worse against 38 better, aggregate
+10.375 → 13.299 with individual pages up to +20.7. The same probe shows why — with the trigger
+widened the engine put one 12pt line more on the page than Word (719.5 against 709.4), because the
+cell fragment's budget runs to the content bottom and tests the full line height where
+`PlaceParagraph` tests the ascent and lets the descent encroach. Under the narrow trigger that
+disagreement fires on the few rows taller than a region; widened, it fires at every table break and
+compounds. The fragment's last-line rule has to be settled against Word before the widening can be
+re-attempted.
 
 The 2026-07-25 recount (Skia 322 / ImageSharp 322 / PDF 321, with per-backend disagreements) and the
 "experiment 19 committed: 315/315/316 of 321" snapshot below are the historical figures the ledger
