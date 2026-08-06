@@ -27,7 +27,7 @@ public class UnsupportedImageFormatTests
 
         var options = new ImageExportOptions {Dpi = 96, FontDirectory = ProjectFonts.Directory};
 
-        return SkiaDocumentConverter.RenderViaEngine(doc, options, _ => { });
+        return SkiaDocumentConverter.RenderPagesCounted(doc, options, _ => { });
     }
 
     [Test]

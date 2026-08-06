@@ -42,6 +42,27 @@ public class PdfConverterTests
     }
 
     /// <summary>
+    /// <see cref="PdfExportOptions.RasterizeWordArt"/> reaches the painter, not just the measurer: with it
+    /// off the warped figures are dropped, so the page carries less ink. The scenario snapshots cannot
+    /// guard this — they all render at the default — and the painter once hardcoded its settings, honouring
+    /// neither this nor the font width scale / fallback / compatibility the measurer was given (a painter
+    /// resolving a different face than the measurer draws text off its measured line).
+    /// </summary>
+    [Test]
+    public async Task RasterizeWordArtOffDropsTheWarpedFigures()
+    {
+        var input = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "wordart-envelope", "input.docx");
+
+        var withArt = PdfDocumentConverter.ConvertToPdf(input, new() {FontDirectory = fontsDirectory, RasterizeWordArt = true});
+        var withoutArt = PdfDocumentConverter.ConvertToPdf(input, new() {FontDirectory = fontsDirectory, RasterizeWordArt = false});
+
+        // The warps reserve their height either way, so only the drawing differs — dropping four
+        // rasterized figures makes for a markedly smaller file.
+        await Assert.That(withoutArt.Length).IsLessThan(withArt.Length);
+        await Assert.That(Encoding.ASCII.GetString(withoutArt, 0, 5)).IsEqualTo("%PDF-");
+    }
+
+    /// <summary>
     /// When an image's primary content type is one PdfSharp can't decode (SVG) <em>and</em> its
     /// raster fallback is equally undecodable, <c>PdfPainter</c> must skip the image
     /// rather than hand the bytes to <c>XImage.FromStream</c> — which throws. Regression guard for

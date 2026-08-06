@@ -340,19 +340,39 @@ through the render context's own primitives rather than a common `ILayoutPainter
       document's PNG and PDF page counts can still diverge until the PDF flip. All covered raster baselines
       regenerated. The whole-paragraph pagination and duplicated `TextRenderer` layout code still exist as the
       fallback; deleting them is step 7. See "The raster cutover (step 6), in detail".
-- [ ] **7. Delete** `PageRendererBase` pagination, `SectionBreakHandler` (subsumed), the per-backend
-      `EnsureSpaceFor`/`AdvanceToNextColumnOrPage`, `TableHeightCalculator` (folded into the table
-      sub-layout). Keep the backends' primitive draw ops only. *Blocked at the root, not merely pending:
-      every page renderer is still reachable through the uncovered-document fallback, HTML→PNG, or the
-      WordArt rasterizers — the chain is mapped under "Remaining work" item 3.*
+- [x] **7. Delete — COMPLETE (2026-08-06).** Every production renderer, its pagination, and the
+      two-path scaffolding are gone; the engine is the only way a Morph document reaches a page. The
+      chain ran in six slices, each built, suite-green at 3068/3068 and committed on its own:
+      - **8.1** moved the ~500-line warp block per raster backend out of the page renderers into their
+        `<Backend>WordArtRasterizer`, gated on producing byte-identical baselines.
+      - **8.2** deleted `SkiaPageRenderer`, `ImageSharpPageRenderer` and both `TextRenderer`s (~8300
+        lines) with the raster kill switches, moving the keep-list statics to
+        `SkiaShapeDrawing`/`ImageSharpShapeDrawing`.
+      - **8.3** deleted `PdfTextEngine` + `PdfPageRenderer` (2983 lines) and `CountPagesIfRequired`'s
+        duplicate layout pass, moving six shared statics to `PdfShapeDrawing`. The five tests that
+        instantiated the text engine were rewritten onto the canonical measurer and the `Fragmenter`
+        rather than dropped — the indent-wrap, leading-tab and contextual-spacing rules they guard now
+        live once, so they moved to `SpecTests/Layout` as `CanonicalIndentWrapTests` /
+        `CanonicalContextualSpacingTests`.
+      - **8.4** deleted `PageRendererBase` (1828) and `SectionBreakHandler` (122), which had no
+        subclasses left, and with them `FloatingPosition` + `FloatingBounds` — reachable only through
+        the base renderer's float placement.
+      - **8.5** slimmed `RenderContextBase` from 447 lines to 91. A member-by-member sweep found 22
+        unused: the flow cursor and page/column advance, header/footer reservation, the float-wrap
+        exclusions, the contextual-spacing carry, page numbering and all five line-numbering methods.
+        The context is now the drawing context its name always implied.
+      - **8.6** retired `EngineCoverage`, the four engine-path test classes and the `RenderViaEngine`
+        indirection. `TableHeightCalculator` was NOT folded — the `Fragmenter` is its main caller, so
+        it is shared code, not residue.
 
 ### Remaining work, in one place
 
-The checklist is landed through step 6, **and the PDF flip (step 5) landed 2026-08-06** — item 1 below is
-retained as the historical record of how the gate was fought down from −0.0054 to +0.0017; what actually
-remains is the step-8.3+ deletion chain (`PdfTextEngine`, `PdfPageRenderer`, `PageRendererBase`,
-`RenderContextBase` slimming, and the `EngineCoverage`/`MORPH_PDF_ENGINE` retirement, in that order), the
-business/05 3pt header-reservation step, and the backlog items below.
+The checklist is **complete**: every step from the parser seam to the deletion has landed, and the PDF
+flip (step 5) went in on 2026-08-06 at aggregate +0.0017 over the renderer it replaced. Item 1 below is
+retained as the historical record of how that gate was fought down from −0.0054. What actually remains is
+small and named: the business/05 3pt header-reservation step (the engine's `HeaderReservedTop` sums only
+the header's paragraphs where the deleted renderer measured the painted header including its tables), the
+three page-count knife-edges in `src/page_counts.md`, and the backlog items below.
 
 1. **The PDF flip** (step 5 D) — painter and predicate are done; the flip is held on the font/image tail
    (measured −0.0054 before the empty-mark phantom-run fix, described in the step-5 painter log below). That

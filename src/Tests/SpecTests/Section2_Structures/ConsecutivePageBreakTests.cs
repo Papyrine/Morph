@@ -48,7 +48,7 @@ public class ConsecutivePageBreakTests
 
         var options = new ImageExportOptions {Dpi = 96, FontDirectory = ProjectFonts.Directory};
 
-        await Assert.That(SkiaDocumentConverter.RenderViaEngine(document, options, _ => { })).IsEqualTo(expectedPages);
+        await Assert.That(SkiaDocumentConverter.RenderPagesCounted(document, options, _ => { })).IsEqualTo(expectedPages);
     }
 
     static ParagraphElement Paragraph(string text) =>

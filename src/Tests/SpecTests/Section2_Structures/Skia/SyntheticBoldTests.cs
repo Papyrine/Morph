@@ -58,7 +58,7 @@ public class SyntheticBoldTests
         };
 
         byte[]? png = null;
-        SkiaDocumentConverter.RenderViaEngine(
+        SkiaDocumentConverter.RenderPagesCounted(
             document,
             new() {Dpi = 150, FontDirectory = ProjectFonts.Directory},
             write =>
