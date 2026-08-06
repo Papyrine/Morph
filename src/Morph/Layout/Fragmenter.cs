@@ -1875,19 +1875,62 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 var textLeft = contentLeft + (float) properties.LeftIndentPoints;
                 var availableWidth = contentWidth - (float) properties.LeftIndentPoints - (float) properties.RightIndentPoints;
 
-                var stopped = false;
-                for (var lineIndex = resumeLine; lineIndex < paragraphLines.Count; lineIndex++)
+                // How many of the paragraph's remaining lines this fragment takes. Without a budget that is
+                // all of them (the whole-row path, unchanged). With one, count what fits — always at least
+                // one line, so a fragment can never come out empty and loop forever — then apply the same
+                // keep-lines and widow/orphan rules PlaceParagraph uses for the page flow, so a paragraph
+                // breaks at the same place whether it sits in the flow or inside a splittable row.
+                var remaining = paragraphLines.Count - resumeLine;
+                var take = remaining;
+                if (budget != null)
                 {
-                    var line = paragraphLines[lineIndex];
-                    // The budget is exhausted mid-paragraph: the rest of it continues on the next page. One
-                    // line always goes down, so a fragment can never be empty and loop forever.
-                    if (budget != null && lines.Count > 0 && cellY + line.Height > limit)
+                    take = 0;
+                    var probeY = cellY;
+                    for (var lineIndex = resumeLine; lineIndex < paragraphLines.Count; lineIndex++)
                     {
-                        continuation = new(elementIndex, lineIndex);
-                        stopped = true;
-                        break;
+                        var candidate = paragraphLines[lineIndex];
+                        if ((lines.Count > 0 || take > 0) && probeY + candidate.Height > limit)
+                        {
+                            break;
+                        }
+
+                        probeY += candidate.Height;
+                        take++;
                     }
 
+                    // Only when a break actually falls here and there is somewhere better to put the
+                    // paragraph — with nothing placed yet, moving it on would just empty this fragment.
+                    if (lines.Count > 0 && take < remaining)
+                    {
+                        if (properties.KeepLines)
+                        {
+                            take = 0;
+                        }
+                        else if (properties.WidowControl && remaining >= 2)
+                        {
+                            // Word settles the two rules in order and lets the second act on the first's
+                            // result. A widow — one line alone at the top of the next page — is fixed by
+                            // carrying a second line down to join it; if that leaves a lone line behind, the
+                            // orphan rule then moves the whole paragraph. business-plans/15's three-line
+                            // "Long-term Liabilities" bullet is the case: two lines fit, the widow carry
+                            // takes it to one, and the orphan rule takes that to none — which is exactly
+                            // where Word breaks.
+                            if (take == remaining - 1)
+                            {
+                                take = remaining - 2;
+                            }
+
+                            if (take == 1)
+                            {
+                                take = 0;
+                            }
+                        }
+                    }
+                }
+
+                for (var lineIndex = resumeLine; lineIndex < resumeLine + take; lineIndex++)
+                {
+                    var line = paragraphLines[lineIndex];
                     var firstLineShift = FirstLineIndentOffset(properties, lineIndex);
                     var lineLeft = textLeft + firstLineShift + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, line.Width);
                     var baseline = cellY + line.Ascent;
@@ -1895,8 +1938,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     cellY += line.Height;
                 }
 
-                if (stopped)
+                if (take < remaining)
                 {
+                    // The rest of this paragraph continues on the next page.
+                    continuation = new(elementIndex, resumeLine + take);
                     break;
                 }
 
