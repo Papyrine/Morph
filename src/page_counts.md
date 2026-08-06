@@ -97,13 +97,15 @@ against a 240pt row put 13 lines on page 1 and 7 overleaf. The engine splits onl
 whole region, so it currently behaves as though every row carried `w:cantSplit`. **Widening the
 trigger was attempted on its own gate and reverted**: it reproduced Word's shape on the probe (both
 unflagged fixtures split) but moved 129 corpus pages, 87 of them worse against 38 better, aggregate
-10.375 → 13.299 with individual pages up to +20.7. The same probe shows why — with the trigger
-widened the engine put one 12pt line more on the page than Word (719.5 against 709.4), because the
-cell fragment's budget runs to the content bottom and tests the full line height where
-`PlaceParagraph` tests the ascent and lets the descent encroach. Under the narrow trigger that
-disagreement fires on the few rows taller than a region; widened, it fires at every table break and
-compounds. The fragment's last-line rule has to be settled against Word before the widening can be
-re-attempted.
+10.375 → 13.299 with individual pages up to +20.7. The last-line rule was probed next
+(`_probe_lastline_*`) and refutes BOTH readings: at 13pt exact spacing Word breaks the flow at 49
+lines where the engine's ascent test takes 50, but switching the flow to the full line box regressed
+`image_wrap_square` from 2 pages to 3 and was reverted. Auto spacing cannot separate the two tests,
+which is why the ascent version survived so long. The surviving candidate is the line's INK box
+(ascent + descent) fitting with only the external leading allowed to hang — consistent with every
+measurement, but untestable until `MeasuredLine` carries a descent. Word's flow and cell also differ
+from each other under auto spacing (42 lines against 41, which the engine reproduces): a separate,
+uncharacterised difference in a cell's usable height, not the last-line rule.
 
 The 2026-07-25 recount (Skia 322 / ImageSharp 322 / PDF 321, with per-backend disagreements) and the
 "experiment 19 committed: 315/315/316 of 321" snapshot below are the historical figures the ledger
