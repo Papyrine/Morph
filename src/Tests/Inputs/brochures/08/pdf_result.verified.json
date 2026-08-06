@@ -11,7 +11,7 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "JOIN OUR TEAM\nIf you love the design and layout of this\nbrochure, fantastic! If you’d like to change\nanything, you can make it yours by making a\nfew minor design tweaks. Tips on updating\nspecific features are available throughout this\nexample text.\nIf you think a document that looks this good\nhas to be difficult to format, think again! We've\ncreated styles that let you match the\nformatting in this brochure with just a click. On\nthe Home tab of the ribbon, check out the\nStyles gallery.\n“Strive not to be\na success, but\nrather to be of\nvalue.”\n- Albert Einstein\n12 BEACON STREET\nBOSTON, MA 98765\n505-555-0155\nWWW.CONTOSO.COM\nINFO@CONTOSO.COM"
+        "Text": "JOIN OUR TEAM\nIf you love the design and layout of this\nbrochure, fantastic! If you’d like to change\nanything, you can make it yours by making a\nfew minor design tweaks. Tips on updating\nspecific features are available throughout this\nexample text.\nIf you think a document that looks this good\nhas to be difficult to format, think again! We've\ncreated styles that let you match the\nformatting in this brochure with just a click. On\nthe Home tab of the ribbon, check out the\nStyles gallery.\n“Strive not to be\na success, but\nrather to be of\nvalue.”\n- Albert Einstein\n12 BEACON STREET\nBOSTON, MA 98765\n505-555-0155\nWWW.CONTOSO.COM\nINFO@CONTOSO.COM\nContoso\nLogo"
       },
       {
         "Width": 792.0,
@@ -23,16 +23,16 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.3768,
-      "Ssim": 0.7675,
+      "ErrorMetric": 0.3843,
+      "Ssim": 0.7601,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.435,
-      "Ssim": 0.5669,
+      "ErrorMetric": 0.4325,
+      "Ssim": 0.5745,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

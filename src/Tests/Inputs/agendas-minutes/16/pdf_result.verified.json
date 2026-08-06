@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Minutes\nBoard meeting\nDATE September 30th\nTIME 10:00 AM\nMEETING CALLED TO ORDER BY Gael Torres\nIN ATTENDANCE\nGael Torres, Jeff Hay, Carlota Melgar, Diego Sagese, Chanchal Sharma, Anita Rajput, Benito Dellucci\nAPPROVAL OF MINUTES\nThe minutes were read from the August meeting and approved.\nBOARD\nCarlota Melgar was nominated as the new secretary. A motion to elect Carlota was made by Jeff Hay and seconded by\nGael Torres. All present voted in favor, and Carlota was confirmed as the new secretary.\nREPORTS\nPresident Jeff Hay presented his report.\nNew business.\n• Review of upcoming fiscal year\n• Employee education programs – trainings & opportunities\n• Patent application process – in progress\nANNOUNCEMENTS\nDate and venue for the company holiday party have been confirmed. More details coming soon.\nNEXT MEETING\nOctober 28th\n, conference room A"
+        "Text": "Minutes\nBoard meeting\nDATE September 30th\nTIME 10:00 AM\nMEETING CALLED TO ORDER BY Gael Torres\nIN ATTENDANCE\nGael Torres, Jeff Hay, Carlota Melgar, Diego Sagese, Chanchal Sharma, Anita Rajput, Benito Dellucci\nAPPROVAL OF MINUTES\nThe minutes were read from the August meeting and approved.\nBOARD\nCarlota Melgar was nominated as the new secretary. A motion to elect Carlota was made by Jeff Hay and seconded by\nGael Torres. All present voted in favor, and Carlota was confirmed as the new secretary.\nREPORTS\nPresident Jeff Hay presented his report.\nNew business.\n• Review of upcoming fiscal year\n• Employee education programs – trainings & opportunities\n• Patent application process – in progress\nANNOUNCEMENTS\nDate and venue for the company holiday party have been confirmed. More details coming soon.\nNEXT MEETING\nOctober 28th , conference room A"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0951,
-      "Ssim": 0.8315,
+      "ErrorMetric": 0.0949,
+      "Ssim": 0.8365,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

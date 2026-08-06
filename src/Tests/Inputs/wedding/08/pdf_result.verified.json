@@ -11,7 +11,7 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "Thanks and Dedication\nWe would like to express thanks to our parents,\nfamily, and friends for all their love and support.\nThank you all for sharing this special day with us.\nBRIDE’S FULL\nNAME\nGROOM’S FULL\nNAME\n00:00 PM\nYEAR\nVENUE/PLACE\nMONTH\n01\nADDRESS OF THE CEREMONY\ndinner and dancing to follow"
+        "Text": "Thanks and Dedication\nWe would like to express thanks to our parents,\nfamily, and friends for all their love and support.\nThank you all for sharing this special day with us.\nBRIDE’S FULL\nNAME\n&\nGROOM’S FULL\nNAME\n00:00 PM\nYEAR\nVENUE/PLACE\nMONTH\n01\nADDRESS OF THE CEREMONY\ndinner and dancing to follow"
       },
       {
         "Width": 792.0,
@@ -23,16 +23,16 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0761,
-      "Ssim": 0.8513,
+      "ErrorMetric": 0.083,
+      "Ssim": 0.8515,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0527,
-      "Ssim": 0.8875,
+      "ErrorMetric": 0.0529,
+      "Ssim": 0.8862,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

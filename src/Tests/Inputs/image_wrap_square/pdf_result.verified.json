@@ -15,12 +15,12 @@
     {
       "Width": 612.0,
       "Height": 792.0,
-      "Text": "Some images, such as charts or graphs, require long\ndescriptions, but not all document types allow that. In\nweb pages, long descriptions may be provided in several\nways: on the page below the image, via a link below the\nimage, or via a link on the image.\nTables\nSimple Tables\nSimple tables have a uniform number of columns and rows, without any merged cells:\nScreen Reader Responses Share\nJAWS 853 49%\nNVDA 238 14%\nWindow-Eyes 214 12%\nSystem Access 181 10%\nVoiceOver 159 9%\nComplex Tables\nThe following is a complex table, using merged cells as headers for sections within the table. This can't\nbe made accessible in all types of documents:\nMay 2012 September 2010\nScreen Reader Responses Share Responses Share\nJAWS 853 49% 727 59%\nNVDA 238 14% 105 9%\nWindow-Eyes 214 12% 138 11%\nSystem Access 181 10% 58 5%\nVoiceOver 159 9% 120 10%\nColumns"
+      "Text": "Some images, such as charts or graphs, require long\ndescriptions, but not all document types allow that. In\nweb pages, long descriptions may be provided in several\nways: on the page below the image, via a link below the\nimage, or via a link on the image.\nTables\nSimple Tables\nSimple tables have a uniform number of columns and rows, without any merged cells:\nScreen Reader Responses Share\nJAWS 853 49%\nNVDA 238 14%\nWindow-Eyes 214 12%\nSystem Access 181 10%\nVoiceOver 159 9%\nComplex Tables\nThe following is a complex table, using merged cells as headers for sections within the table. This can't\nbe made accessible in all types of documents:\nMay 2012 September 2010\nScreen Reader Responses Share Responses Share\nJAWS 853 49% 727 59%\nNVDA 238 14% 105 9%\nWindow-Eyes 214 12% 138 11%\nSystem Access 181 10% 58 5%\nVoiceOver 159 9% 120 10%\nColumns\nThis is an example of columns. With columns,\nthe page is split into two or more horizontal\nsections. Unlike tables, in which you usually\nread across a row and then down to the next, in\ncolumns, you read down a column and then\nacross to the next."
     },
     {
       "Width": 612.0,
       "Height": 792.0,
-      "Text": "This is an example of columns. With columns,\nthe page is split into two or more horizontal\nsections. Unlike tables, in which you usually\nread across a row and then down to the next, in\ncolumns, you read down a column and then\nacross to the next.\nWhen columns are not created correctly, screen\nreaders may run lines together, reading the first\nline of the first column, then the first line of the\nsecond column, then the second line of the first\ncolumn, and so on. Obviously, that is not\naccessible."
+      "Text": "When columns are not created correctly, screen\nreaders may run lines together, reading the first\nline of the first column, then the first line of the\nsecond column, then the second line of the first\ncolumn, and so on. Obviously, that is not\naccessible."
     }
   ]
 }

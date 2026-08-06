@@ -21,7 +21,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "PRACTICAL\nAND STYLISH\nEXAMPLES OF LIVING SIMPLY\nTo change any of the text in this document, just click\non the block of text you want to update! The\nformatting has already been programmed for ease\nof formatting.\nIn this panel, you can highlight even more\ninformation about your organization! Tell the\naudience why you are the best! Don’t be shy!\nShare, explain, and tell us what makes your\ncompany so great!\nPlenty of text will fit in any of these panels. Simply\nclick on the placeholders and add your own text.\nHARNESSING NATURAL LIGHT\nCHOOSING THE RIGHT LOCATION FOR YOUR SKYLIGHTS\nTo change any of the text in this document, just click on the block of text you want to update! The formatting has already been\nprogrammed for ease of formatting.\nHave other images you wish to use? It is simple to replace any of the pictures in this newsletter. Click on the image you wish to change.\nOnce the image you wish to replace is selected, select Insert > Picture."
+        "Text": "PRACTICAL\nAND STYLISH\nEXAMPLES OF LIVING SIMPLY\nTo change any of the text in this document, just\nclick on the block of text you want to update! The\nformatting has already been programmed for ease\nof formatting.\nIn this panel, you can highlight even more\ninformation about your organization! Tell the\naudience why you are the best! Don’t be shy!\nShare, explain, and tell us what makes your\ncompany so great!\nPlenty of text will fit in any of these panels. Simply\nclick on the placeholders and add your own text.\nHARNESSING NATURAL LIGHT\nCHOOSING THE RIGHT LOCATION FOR YOUR SKYLIGHTS\nTo change any of the text in this document, just click on the block of text you want to update! The formatting has already been\nprogrammed for ease of formatting.\nHave other images you wish to use? It is simple to replace any of the pictures in this newsletter. Click on the image you wish to change.\nOnce the image you wish to replace is selected, select Insert > Picture."
       },
       {
         "Width": 612.0,
@@ -33,8 +33,8 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.4461,
-      "Ssim": 0.6135,
+      "ErrorMetric": 0.4457,
+      "Ssim": 0.615,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
@@ -49,16 +49,16 @@
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.3371,
-      "Ssim": 0.7155,
+      "ErrorMetric": 0.3374,
+      "Ssim": 0.7135,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.5621,
-      "Ssim": 0.5573,
+      "ErrorMetric": 0.5622,
+      "Ssim": 0.5569,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"

@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "2 Paragraph 1 - Line numbers restart on each page.\n3 Paragraph 2 - Line numbers restart on each page.\n4 Paragraph 3 - Line numbers restart on each page.\n5 Paragraph 4 - Line numbers restart on each page.\n6 Paragraph 5 - Line numbers restart on each page.\n7 Paragraph 6 - Line numbers restart on each page.\n8 Paragraph 7 - Line numbers restart on each page.\n9 Paragraph 8 - Line numbers restart on each page.\n10 Paragraph 9 - Line numbers restart on each page.\n11 Paragraph 10 - Line numbers restart on each page.\n12 Paragraph 11 - Line numbers restart on each page.\n13 Paragraph 12 - Line numbers restart on each page.\n14 Paragraph 13 - Line numbers restart on each page.\n15 Paragraph 14 - Line numbers restart on each page.\n16 Paragraph 15 - Line numbers restart on each page.\n17 Paragraph 16 - Line numbers restart on each page.\n18 Paragraph 17 - Line numbers restart on each page.\n19 Paragraph 18 - Line numbers restart on each page."
+        "Text": "Paragraph 1 - Line numbers restart on each page.\nParagraph 2 - Line numbers restart on each page.\nParagraph 3 - Line numbers restart on each page.\nParagraph 4 - Line numbers restart on each page.\nParagraph 5 - Line numbers restart on each page.\nParagraph 6 - Line numbers restart on each page.\nParagraph 7 - Line numbers restart on each page.\nParagraph 8 - Line numbers restart on each page.\nParagraph 9 - Line numbers restart on each page.\nParagraph 10 - Line numbers restart on each page.\nParagraph 11 - Line numbers restart on each page.\nParagraph 12 - Line numbers restart on each page.\nParagraph 13 - Line numbers restart on each page.\nParagraph 14 - Line numbers restart on each page.\nParagraph 15 - Line numbers restart on each page.\nParagraph 16 - Line numbers restart on each page.\nParagraph 17 - Line numbers restart on each page.\nParagraph 18 - Line numbers restart on each page."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0464,
-      "Ssim": 0.9419,
+      "ErrorMetric": 0.0466,
+      "Ssim": 0.9352,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

@@ -16,7 +16,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Adding pictures to your\nnewsletter\nPictures of your family trips or special events can\nbring your newsletter to life. Once you've chosen a\npicture, place it close to the information. Be sure to\nput the caption of the image near the image. Want\nto use online images in your newsletter? Find\nthousands of images online to download and insert\ninto your newsletter.\nTo change the pictures in this newsletter to your\nown, select the image you wish to change. Go to\nInsert, Pictures, and then select either Pictures or\nOnline Pictures. Locate the image you want and\ndouble-click it. The new picture will add to the\nexisting text box for easy positioning.\nTip: Borders may not show on text boxes that\ncontain images or text. Before you add anything\nelse, make sure it's placed within a text box.\nPictures of your family trips or special events can\nbring your newsletter to life. Once you've chosen a\npicture, place it close to the information. Be sure to\nput the caption of the image near the image.\nAdd caption here\nAdd caption here\nAdding your own message\nAdd a simple greeting, poem, or your children's\nartwork on the back of your family's newsletter.\nMake sure that it is festive and eye-catching\nbecause it'll be the first thing seen.\nYou can add your own artwork to the back of a\nfamily newsletter by scanning in a drawing or a\nphotograph.\nAdd a simple greeting, poem, or your children's\nartwork on the back of your family's newsletter.\nMake sure that it is festive and eye-catching\nbecause it'll be the first thing seen.\nPage 2"
+        "Text": "Adding pictures to your\nnewsletter\nPictures of your family trips or special events can\nbring your newsletter to life. Once you've chosen a\npicture, place it close to the information. Be sure to\nput the caption of the image near the image. Want\nto use online images in your newsletter? Find\nthousands of images online to download and insert\ninto your newsletter. \nTo change the pictures in this newsletter to your\nown, select the image you wish to change. Go\nto Insert, Pictures, and then select\neither Pictures or Online Pictures. Locate the\nimage you want and double-click it. The new\npicture will add to the existing text box for easy\npositioning.\nTip: Borders may not show on text boxes that\ncontain images or text. Before you add anything\nelse, make sure it's placed within a text box.\nPictures of your family trips or special events can\nbring your newsletter to life. Once you've chosen a\npicture, place it close to the information. Be sure to\nput the caption of the image near the image.\nAdd caption here\nAdd caption here\nAdding your own message\nAdd a simple greeting, poem, or your children's\nartwork on the back of your family's newsletter.\nMake sure that it is festive and eye-catching\nbecause it'll be the first thing seen.\nYou can add your own artwork to the back of a\nfamily newsletter by scanning in a drawing or a\nphotograph.\nAdd a simple greeting, poem, or your children's\nartwork on the back of your family's newsletter.\nMake sure that it is festive and eye-catching\nbecause it'll be the first thing seen.\nPage 2"
       },
       {
         "Width": 612.0,
@@ -41,24 +41,24 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.2584,
-      "Ssim": 0.7278,
+      "ErrorMetric": 0.2514,
+      "Ssim": 0.7312,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.5376,
-      "Ssim": 0.7005,
+      "ErrorMetric": 0.5375,
+      "Ssim": 0.7011,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.2749,
-      "Ssim": 0.6908,
+      "ErrorMetric": 0.2748,
+      "Ssim": 0.6907,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"

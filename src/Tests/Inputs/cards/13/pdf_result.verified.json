@@ -11,14 +11,14 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Fabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com"
+        "Text": "-\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\nFabrikam, Inc.\nKristel Kangro\n1234 East Main Street\nPortland, OR 54321\nwww.fabrikam.com\n(415) 555-0123| kristel@fabrikam.com\n-"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.1099,
+      "ErrorMetric": 0.11,
       "Ssim": 0.792,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",

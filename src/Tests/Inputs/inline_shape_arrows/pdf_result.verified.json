@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Arrow variants:\nThinner stroke:"
+        "Text": "Arrow variants: \nThinner stroke: "
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0337,
-      "Ssim": 0.9667,
+      "ErrorMetric": 0.0311,
+      "Ssim": 0.9681,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

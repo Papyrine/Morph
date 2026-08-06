@@ -16,23 +16,23 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "To get started right away,\njust tap any placeholder\ntext (such as this) and start\ntyping to replace it with\nyour own text.\nTo get started right away,\njust tap any placeholder\ntext (such as this) and start\ntyping to replace it with\nyour own text."
+        "Text": "To get started right away,\njust tap any placeholder text\n(such as this) and start\ntyping to replace it with your\nown text.\nTo get started right away,\njust tap any placeholder text\n(such as this) and start\ntyping to replace it with your\nown text.\nTo get started right away, just tap any placeholder text (such as this) and start typing to replace it with your own text."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0943,
-      "Ssim": 0.8742,
+      "ErrorMetric": 0.0789,
+      "Ssim": 0.9094,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0706,
-      "Ssim": 0.8703,
+      "ErrorMetric": 0.0679,
+      "Ssim": 0.8762,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

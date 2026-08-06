@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "SCHOOL OF\nKristi Laar\nkristi@example.com\n123 45th Ave\nChicago, IL 54321\nOffice: 505-555-0155\nwww.fineartschool.net\n14 August 20XX\nDear Renata,\nIt is with great enthusiasm that I recommend Mia Karlsson\nfor the position at Printed Page Publishers. Mia has been an\nexceptional student in my creative writing courses,\nconsistently demonstrating a strong work ethic and a\npassion for storytelling.\nHer ability to take constructive feedback and improve her\ncraft is truly impressive. I am confident she will bring\ncreativity and dedication to your team.\nSincerely,\nKristi Laar\nFINE ART"
+        "Text": "SCHOOL OF\nKristi Laar \nkristi@example.com\n123 45th Ave\nChicago, IL 54321\nOffice: 505-555-0155\nwww.fineartschool.net\n14 August 20XX\nDear Renata,\nIt is with great enthusiasm that I recommend Mia Karlsson\nfor the position at Printed Page Publishers. Mia has been an\nexceptional student in my creative writing courses,\nconsistently demonstrating a strong work ethic and a\npassion for storytelling.\nHer ability to take constructive feedback and improve her\ncraft is truly impressive. I am confident she will bring\ncreativity and dedication to your team.\nSincerely,\nKristi Laar\nFINE ART"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0349,
-      "Ssim": 0.9538,
+      "ErrorMetric": 0.0355,
+      "Ssim": 0.9515,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

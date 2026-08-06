@@ -5,20 +5,22 @@ output (`skia_result#page_*`, `imagesharp_result#page_*`, `pdf_result#page_*`) a
 directories in `src/Tests/Inputs/`. The match is *recorded*, not asserted, by the scenario tests —
 these mismatches never fail the suite; closing them improves Word fidelity.
 
-**Current state (full recount, 2026-07-25): Skia 322, ImageSharp 322, PDF 321 of 325 scenarios.**
-Only **four** scenarios still differ, and the previous "eight" list was stale — the recount was run
-after experiments 20/21 landed and four more scenarios were added to the corpus:
+**Current state (full recount, 2026-08-06, after the layout-engine PDF flip): Skia 322, ImageSharp
+322, PDF 322 of 325 scenarios — and the three-way divergence this document exists to track is OVER.**
+All three backends paginate through the one engine (`Fragmenter`), so every remaining mismatch is
+identical across backends; no scenario disagrees *between* backends anymore. `resumes/13` — the
+archetype (raster short, PDF over, Word between) — left the list entirely: all three backends now
+render Word's 5 pages.
 
 | scenario | Word | Skia | ImageSharp | PDF | nature |
 |---|---|---|---|---|---|
-| business-plans/15 | 19 | 19 | 19 | **18** | PDF-only knife-edge (metric; PDF one line short) |
-| image_wrap_square | 2 | **3** | **3** | **3** | continuous two-column section (experiment 11 architecture — needs paragraph-split-across-columns + Skia parity + PDF routing) |
+| business-plans/15 | 19 | **18** | **18** | **18** | knife-edge (one line short, all backends agree) |
+| image_wrap_square | 2 | **3** | **3** | **3** | continuous two-column section (paragraph-split-across-columns remains) |
 | newsletters/06 | 4 | **6** | **6** | **6** | all-backend table knife-edge (see below) |
-| resumes/13 | 5 | **4** | **4** | **6** | the archetype: raster short, PDF over, Word between (metric) |
 
-Four of the previous eight now match Word on every backend — **business-plans/13, complex_spacing,
-cover-letters/06, resumes/16** — so they are no longer listed. The "experiment 19 committed:
-315/315/316 of 321" snapshot below is the historical figure the ledger was written against.
+The 2026-07-25 recount (Skia 322 / ImageSharp 322 / PDF 321, with per-backend disagreements) and the
+"experiment 19 committed: 315/315/316 of 321" snapshot below are the historical figures the ledger
+was written against.
 
 **newsletters/06 is a near-full-page `atLeast`-table knife-edge, not a content rule.** Each of the
 four newspaper "pages" is one 10-row layout table whose explicit `w:trHeight` rows already sum to

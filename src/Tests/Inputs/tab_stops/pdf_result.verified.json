@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Tab stops demo\nChapter 1: Introduction.................................................................................................. 1\nChapter 2: Background and motivation......................................................................... 12\nChapter 3: Implementation......................................................................................... 147\nName Role Team Location\nAlice Engineer Platform Sydney\nBob Designer Product Remote\nDefault tabs (0.5\"):\nA B C D\nLeft Centered Right\nSignature"
+        "Text": "Tab stops demo\nChapter 1: Introduction. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .1\nChapter 2: Background and motivation. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12\nChapter 3: Implementation. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 147\nName Role Team Location\nAlice Engineer Platform Sydney\nBob Designer Product Remote\nDefault tabs (0.5\"):\nA B C D\nLeft Centered Right\nSignature"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.017,
-      "Ssim": 0.9744,
+      "ErrorMetric": 0.0163,
+      "Ssim": 0.9714,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

@@ -11,7 +11,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "A M A R I R I V E R A\nD i g i t a l M a r k e t i n g\nAdrian King\nExpress Shippers Ltd.\n89 Pacific Ave,\nSan Francisco, CA 65432\n14 September, 20XX\nDear Adrian King,\nAt Beyond Social Strategy, we specialize in elevating brands like Express Shippers Ltd. through targeted\nand data-driven marketing campaigns. With the logistics and shipping industry evolving rapidly, our\ntailored digital marketing solutions are designed to increase your visibility and drive engagement in key\nmarkets.\nI would love to discuss how we can optimize your online presence and develop a customized strategy\nthat amplifies your reach. Together, we can create high-conversion campaigns that strengthen your\nbrand and drive new business.\nLooking forward to the opportunity to collaborate.\nSincerely,\nAmari Rivera\n909-555-0155\n321 Avenue A\nPortland, OR 76543\namari@example.com"
+        "Text": "A M A R I R I V E R A\nD i g i t a l M a r k e t i n g\nAdrian King\nExpress Shippers Ltd.\n89 Pacific Ave,\nSan Francisco, CA 65432\n14 September, 20XX\nDear Adrian King,\nAt Beyond Social Strategy, we specialize in elevating brands like Express Shippers Ltd. through targeted\nand data-driven marketing campaigns. With the logistics and shipping industry evolving rapidly, our\ntailored digital marketing solutions are designed to increase your visibility and drive engagement in key\nmarkets.\nI would love to discuss how we can optimize your online presence and develop a customized strategy\nthat amplifies your reach. Together, we can create high-conversion campaigns that strengthen your\nbrand and drive new business.\nLooking forward to the opportunity to collaborate.\nSincerely,\nAmari Rivera\n909-555-0155\n321 Avenue A\nPortland, OR 76543 amari@example.com"
       }
     ]
   },
@@ -19,7 +19,7 @@
     {
       "Page": 1,
       "ErrorMetric": 0.2776,
-      "Ssim": 0.8547,
+      "Ssim": 0.8546,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

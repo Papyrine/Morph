@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Inline Content Controls Test\nCheckbox (checked):\nYes\nCheckbox (unchecked):\nNo\nDropdown:\nMedium\nDate:\n2025-06-15\nName:\nJohn Doe"
+        "Text": "Inline Content Controls Test\nCheckbox (checked):\n\nYes\nCheckbox (unchecked):\n☐\nNo\nDropdown:\nMedium\nDate:\n2025-06-15\nName:\nJohn Doe"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0175,
-      "Ssim": 0.9727,
+      "ErrorMetric": 0.0098,
+      "Ssim": 0.9762,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

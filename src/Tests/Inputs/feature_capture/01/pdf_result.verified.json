@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "ALL FEATURES\nDrop cap paragraph Header\nHeader2\nData Data2"
+        "Text": "All features\nDrop cap paragraph\nHeader Header2\nData Data2"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0039,
-      "Ssim": 0.9925,
+      "ErrorMetric": 0.0044,
+      "Ssim": 0.991,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

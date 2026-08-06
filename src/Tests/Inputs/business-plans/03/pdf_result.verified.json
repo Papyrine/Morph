@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "April 4, 20XX\nB2B BUSINESS\nPROPOSAL\nPrepared for:\nAres Grau\nContoso, Ltd.\nares@contoso.com\nwww.contoso.com\n698-555-0133\n76 Bluebonnet Way,\nCypress, TX 11490\nSUMMARY\nThis proposal outlines a streamlined solution designed to address key\nbusiness challenges and drive growth. Our approach leverages industry\nexpertise, innovative strategies, and data-driven insights to create a\ntailored plan that delivers measurable results.\nPROBLEM STATEMENT\nBusinesses today face challenges such as inefficiencies, rising costs, and\nevolving market demands. Addressing these issues requires a\nwell-structured, strategic approach that ensures long-term success.\nSOLUTION\nOur solution is designed to enhance operations, increase efficiency, and\nimprove overall performance. By implementing best practices and\nmodern technology, we help businesses optimize workflows, reduce\ncosts, and drive innovation.\nMARKET OPPORTUNITY\nWith industry trends shifting rapidly, adopting a flexible and\nforward-thinking model is essential. Our approach provides businesses\nwith scalable, adaptable solutions that align with market demands and\nensure long-term sustainability.\nFINANCIAL SUMMARY\nBased on market analysis, businesses that implement our strategies see\nan average 20% reduction in operational costs and a 35% improvement\nin workflow efficiency within the first year. Clients can expect a strong\nreturn on investment through improved productivity and streamlined\noperations.\nPrepared by:\nKorakod Santisaku\nFabrikam, Inc.\nkorakod@fabrikam.com\nwww.fabrikam.com\n755-555-0149\n2345 Creek Road\nFrankfort, KY 09876"
+        "Text": "April 4, 20XX\nB2B BUSINESS PROPOSAL\nPrepared for:\nAres Grau\nContoso, Ltd.\nares@contoso.com\nwww.contoso.com\n698-555-0133\n76 Bluebonnet Way,\nCypress, TX 11490\nSUMMARY\nThis proposal outlines a streamlined solution designed to address key\nbusiness challenges and drive growth. Our approach leverages industry\nexpertise, innovative strategies, and data-driven insights to create a\ntailored plan that delivers measurable results.\nPROBLEM STATEMENT\nBusinesses today face challenges such as inefficiencies, rising costs, and\nevolving market demands. Addressing these issues requires a\nwell-structured, strategic approach that ensures long-term success.\nSOLUTION\nOur solution is designed to enhance operations, increase efficiency, and\nimprove overall performance. By implementing best practices and\nmodern technology, we help businesses optimize workflows, reduce\ncosts, and drive innovation.\nMARKET OPPORTUNITY\nWith industry trends shifting rapidly, adopting a flexible and\nforward-thinking model is essential. Our approach provides businesses\nwith scalable, adaptable solutions that align with market demands and\nensure long-term sustainability.\nFINANCIAL SUMMARY\nBased on market analysis, businesses that implement our strategies see\nan average 20% reduction in operational costs and a 35% improvement\nin workflow efficiency within the first year. Clients can expect a strong\nreturn on investment through improved productivity and streamlined\noperations.\nPrepared by:\nKorakod Santisaku\nFabrikam, Inc.\nkorakod@fabrikam.com\nwww.fabrikam.com\n755-555-0149\n2345 Creek Road\nFrankfort, KY 09876"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.1095,
-      "Ssim": 0.7933,
+      "ErrorMetric": 0.1144,
+      "Ssim": 0.7851,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

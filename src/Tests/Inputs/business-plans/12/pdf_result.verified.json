@@ -16,7 +16,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "TABLE OF CONTENTS\nintroduction....................................................... 3\n1. executive summary.................................... 4\n2. company overview..................................... 5\n3. business description.................................. 6\n4. market analysis.......................................... 8\n5. operating plan.......................................... 10\n6. marketing and sales plan......................... 11\n7. financial plan............................................ 12\nAppendix......................................................... 15\nInstructions for Getting Started with Estimated\nStart-Up Costs................................................ 16\nInstructions for Getting Started on Profit & Loss\nProjections...................................................... 18"
+        "Text": "TABLE OF CONTENTS\nintroduction. . . . . . . . . . . . . . . . . . . . . . . . . . . . 3\n1. executive summary. . . . . . . . . . . . . . . . . . .4\n2. company overview. . . . . . . . . . . . . . . . . . . 5\n3. business description. . . . . . . . . . . . . . . . . . 6\n4. market analysis. . . . . . . . . . . . . . . . . . . . . .8\n5. operating plan. . . . . . . . . . . . . . . . . . . . . .10\n6. marketing and sales plan. . . . . . . . . . . . . 11\n7. financial plan. . . . . . . . . . . . . . . . . . . . . . .12\nAppendix. . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15\nInstructions for Getting Started with Estimated\nStart-Up Costs. . . . . . . . . . . . . . . . . . . . . . . . . 16\nInstructions for Getting Started on Profit & Loss\nProjections. . . . . . . . . . . . . . . . . . . . . . . . . . . . 18"
       },
       {
         "Width": 612.0,
@@ -31,7 +31,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "2.COMPANY OVERVIEW\nThe Company Overview is a brief summary of the intended business, including what it uniquely\ndelivers, the mission, how it got started, market positioning, operational structure, and financial\ngoals. After reviewing this section, the reader should have a broad understanding of what the\nbusiness is setting out to do and how it is organized.\nThis section is not meant to be lengthy. Keep it short and succinct. This is a snapshot of the\nbusiness. The type of business will determine which of the following sections will be required\nfor the business plan. Only include what is needed to properly represent the business and\nremove anything else.\n• Company summary: This is the introductory section to the company, also known as the\n‘elevator pitch’ of what the company stands for and is setting out to do. Include the\ncompany’s goals and some of the near-term objectives. Even if it is a small,\nservice-oriented company, developing a summary is an important step to explain and focus\non the core business.\n• Mission statement: This is a concise statement on the guiding principles of the company\nand what the company aims to do for customers, employees, owners, and other\nstakeholders.\n• Company history: This provides the back story, especially the personal story, of why the\nbusiness was founded. Use this section to give the overarching history of the company\nfrom its start and bring the reader up-to-date on where the company is now in terms of\nsales, profits, key services, and customers.\n• Markets and services: This outlines the target market and related needs that the company\nwill address. Include brief descriptions of offered services and targeted markets and\ncustomer types. This section can be a general overview as more details will be suggested\nin a later section of this plan.\n• Operational structure: This describes the operational details of the business. List any\npotential employees needed on the payroll to make the business run.\n• Financial goals: This describes the start-up capital needed, projected revenue and profits,\nforecast, and budget of the business."
+        "Text": "2.COMPANY OVERVIEW\nThe Company Overview is a brief summary of the intended business, including what it uniquely\ndelivers, the mission, how it got started, market positioning, operational structure, and financial\ngoals. After reviewing this section, the reader should have a broad understanding of what the\nbusiness is setting out to do and how it is organized.\nThis section is not meant to be lengthy. Keep it short and succinct. This is a snapshot of the\nbusiness. The type of business will determine which of the following sections will be required\nfor the business plan. Only include what is needed to properly represent the business and\nremove anything else.\n• Company summary: This is the introductory section to the company, also known as the\n‘elevator pitch’ of what the company stands for and is setting out to do. Include the\ncompany’s goals and some of the near-term objectives. Even if it is a small,\nservice-oriented company, developing a summary is an important step to explain and focus\non the core business.\n• Mission statement: This is a concise statement on the guiding principles of the company\nand what the company aims to do for customers, employees, owners, and other\nstakeholders.\n• Company history: This provides the back story, especially the personal story, of why the\nbusiness was founded. Use this section to give the overarching history of the company from\nits start and bring the reader up-to-date on where the company is now in terms of sales,\nprofits, key services, and customers.\n• Markets and services: This outlines the target market and related needs that the company\nwill address. Include brief descriptions of offered services and targeted markets and\ncustomer types. This section can be a general overview as more details will be suggested\nin a later section of this plan.\n• Operational structure: This describes the operational details of the business. List any\npotential employees needed on the payroll to make the business run.\n• Financial goals: This describes the start-up capital needed, projected revenue and profits,\nforecast, and budget of the business."
       },
       {
         "Width": 612.0,
@@ -103,48 +103,48 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.5946,
-      "Ssim": 0.4752,
+      "ErrorMetric": 0.6275,
+      "Ssim": 0.4404,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.5053,
-      "Ssim": 0.7085,
+      "ErrorMetric": 0.5018,
+      "Ssim": 0.7221,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.1354,
-      "Ssim": 0.704,
+      "ErrorMetric": 0.1345,
+      "Ssim": 0.7118,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.1144,
-      "Ssim": 0.7739,
+      "ErrorMetric": 0.117,
+      "Ssim": 0.7567,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"
     },
     {
       "Page": 5,
-      "ErrorMetric": 0.1732,
-      "Ssim": 0.6418,
+      "ErrorMetric": 0.1705,
+      "Ssim": 0.6567,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "pdf_result#page_0005.verified.png",
       "ReceivedFile": "pdf_result#page_0005.received.png"
     },
     {
       "Page": 6,
-      "ErrorMetric": 0.21,
-      "Ssim": 0.5665,
+      "ErrorMetric": 0.2035,
+      "Ssim": 0.5927,
       "ExpectedFile": "expected_0006.png",
       "VerifiedFile": "pdf_result#page_0006.verified.png",
       "ReceivedFile": "pdf_result#page_0006.received.png"
@@ -152,95 +152,95 @@
     {
       "Page": 7,
       "ErrorMetric": 0.0175,
-      "Ssim": 0.9596,
+      "Ssim": 0.9594,
       "ExpectedFile": "expected_0007.png",
       "VerifiedFile": "pdf_result#page_0007.verified.png",
       "ReceivedFile": "pdf_result#page_0007.received.png"
     },
     {
       "Page": 8,
-      "ErrorMetric": 0.2103,
-      "Ssim": 0.5715,
+      "ErrorMetric": 0.1972,
+      "Ssim": 0.6201,
       "ExpectedFile": "expected_0008.png",
       "VerifiedFile": "pdf_result#page_0008.verified.png",
       "ReceivedFile": "pdf_result#page_0008.received.png"
     },
     {
       "Page": 9,
-      "ErrorMetric": 0.178,
-      "Ssim": 0.7579,
+      "ErrorMetric": 0.1783,
+      "Ssim": 0.7562,
       "ExpectedFile": "expected_0009.png",
       "VerifiedFile": "pdf_result#page_0009.verified.png",
       "ReceivedFile": "pdf_result#page_0009.received.png"
     },
     {
       "Page": 10,
-      "ErrorMetric": 0.1805,
-      "Ssim": 0.625,
+      "ErrorMetric": 0.178,
+      "Ssim": 0.6283,
       "ExpectedFile": "expected_0010.png",
       "VerifiedFile": "pdf_result#page_0010.verified.png",
       "ReceivedFile": "pdf_result#page_0010.received.png"
     },
     {
       "Page": 11,
-      "ErrorMetric": 0.1669,
-      "Ssim": 0.6601,
+      "ErrorMetric": 0.165,
+      "Ssim": 0.6682,
       "ExpectedFile": "expected_0011.png",
       "VerifiedFile": "pdf_result#page_0011.verified.png",
       "ReceivedFile": "pdf_result#page_0011.received.png"
     },
     {
       "Page": 12,
-      "ErrorMetric": 0.1124,
-      "Ssim": 0.7829,
+      "ErrorMetric": 0.109,
+      "Ssim": 0.7871,
       "ExpectedFile": "expected_0012.png",
       "VerifiedFile": "pdf_result#page_0012.verified.png",
       "ReceivedFile": "pdf_result#page_0012.received.png"
     },
     {
       "Page": 13,
-      "ErrorMetric": 0.1739,
-      "Ssim": 0.5924,
+      "ErrorMetric": 0.1178,
+      "Ssim": 0.7655,
       "ExpectedFile": "expected_0013.png",
       "VerifiedFile": "pdf_result#page_0013.verified.png",
       "ReceivedFile": "pdf_result#page_0013.received.png"
     },
     {
       "Page": 14,
-      "ErrorMetric": 0.2873,
-      "Ssim": 0.4747,
+      "ErrorMetric": 0.2565,
+      "Ssim": 0.5016,
       "ExpectedFile": "expected_0014.png",
       "VerifiedFile": "pdf_result#page_0014.verified.png",
       "ReceivedFile": "pdf_result#page_0014.received.png"
     },
     {
       "Page": 15,
-      "ErrorMetric": 0.1662,
-      "Ssim": 0.6749,
+      "ErrorMetric": 0.1603,
+      "Ssim": 0.6266,
       "ExpectedFile": "expected_0015.png",
       "VerifiedFile": "pdf_result#page_0015.verified.png",
       "ReceivedFile": "pdf_result#page_0015.received.png"
     },
     {
       "Page": 16,
-      "ErrorMetric": 0.088,
-      "Ssim": 0.8137,
+      "ErrorMetric": 0.0855,
+      "Ssim": 0.8281,
       "ExpectedFile": "expected_0016.png",
       "VerifiedFile": "pdf_result#page_0016.verified.png",
       "ReceivedFile": "pdf_result#page_0016.received.png"
     },
     {
       "Page": 17,
-      "ErrorMetric": 0.1734,
-      "Ssim": 0.5968,
+      "ErrorMetric": 0.1126,
+      "Ssim": 0.7438,
       "ExpectedFile": "expected_0017.png",
       "VerifiedFile": "pdf_result#page_0017.verified.png",
       "ReceivedFile": "pdf_result#page_0017.received.png"
     },
     {
       "Page": 18,
-      "ErrorMetric": 0.1251,
-      "Ssim": 0.7343,
+      "ErrorMetric": 0.1175,
+      "Ssim": 0.7531,
       "ExpectedFile": "expected_0018.png",
       "VerifiedFile": "pdf_result#page_0018.verified.png",
       "ReceivedFile": "pdf_result#page_0018.received.png"

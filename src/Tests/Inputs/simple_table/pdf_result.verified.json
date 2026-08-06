@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Simple 3x3 table:\nRow 1, Col 1Row 1, Col 2Row 1, Col 3\nRow 2, Col 1Row 2, Col 2Row 2, Col 3\nRow 3, Col 1Row 3, Col 2Row 3, Col 3"
+        "Text": "Simple 3x3 table:\nRow 1, Col\n1\nRow 1, Col\n2\nRow 1, Col\n3\nRow 2, Col\n1\nRow 2, Col\n2\nRow 2, Col\n3\nRow 3, Col\n1\nRow 3, Col\n2\nRow 3, Col\n3"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.007,
-      "Ssim": 0.9874,
+      "ErrorMetric": 0.0083,
+      "Ssim": 0.9792,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

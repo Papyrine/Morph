@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "05.26.2023 Memo\nTO\nAll\nFROM\nAyano Harada\nCC\nNone\nRE\nHoliday closure\nCOMMENTS:\nPlease be advised that all offices will be closed Monday, May 29th for Memorial Day. We\nwill return to our normal business hours on Tuesday, May 30th\n.\nThank you,\nAyano Harada\nOffice Manager\nCANEIRO GROUP\nTel 123-456-7890\nFax 123-456-7891"
+        "Text": "05.26.2023 Memo\nTO\nAll\nFROM\nAyano Harada\nCC\nNone\nRE\nHoliday closure\nCOMMENTS:\nPlease be advised that all offices will be closed Monday, May 29th for Memorial Day. We\nwill return to our normal business hours on Tuesday, May 30th .\nThank you,\nAyano Harada\nOffice Manager\nCANEIRO GROUP\nTel 123-456-7890\nFax 123-456-7891"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0287,
-      "Ssim": 0.9462,
+      "ErrorMetric": 0.0286,
+      "Ssim": 0.9463,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

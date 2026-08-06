@@ -11,7 +11,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "f\nCelebrate!\nCelebrate!"
+        "Text": "f­­\nCelebrate!\nCelebrate!"
       },
       {
         "Width": 612.0,
@@ -23,16 +23,16 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.3254,
-      "Ssim": 0.931,
+      "ErrorMetric": 0.3258,
+      "Ssim": 0.9211,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0165,
-      "Ssim": 0.9778,
+      "ErrorMetric": 0.017,
+      "Ssim": 0.967,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

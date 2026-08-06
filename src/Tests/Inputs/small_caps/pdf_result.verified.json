@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "MIXED CASE HEADING\nTHE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.\nCompare: lowercase letters in this paragraph render at full size."
+        "Text": "Mixed Case Heading\nThe quick brown fox jumps over the lazy DOG.\nCompare: lowercase letters in this paragraph render at full size."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.007,
-      "Ssim": 0.9883,
+      "ErrorMetric": 0.0079,
+      "Ssim": 0.9854,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
