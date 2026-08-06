@@ -43,7 +43,7 @@ public class PdfConverterTests
 
     /// <summary>
     /// When an image's primary content type is one PdfSharp can't decode (SVG) <em>and</em> its
-    /// raster fallback is equally undecodable, <c>PdfPageRenderer.DrawRaster</c> must skip the image
+    /// raster fallback is equally undecodable, <c>PdfPainter</c> must skip the image
     /// rather than hand the bytes to <c>XImage.FromStream</c> — which throws. Regression guard for
     /// the fallback check; without it this render throws instead of producing a PDF.
     /// </summary>
