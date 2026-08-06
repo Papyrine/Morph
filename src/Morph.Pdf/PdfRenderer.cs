@@ -5,18 +5,16 @@
 /// </summary>
 static class PdfRenderer
 {
-    public static byte[] Render(ParsedDocument document, PdfExportOptions? options) =>
-        RenderViaEngine(document, options ?? new());
-
-    // The layout-engine PDF path (docs/layout-engine-proposal.md, "The PDF cutover (step 5)") — the ONLY
-    // PDF path since the 2026-08-06 flip and the step-8.3 deletion of PdfTextEngine + PdfPageRenderer:
-    // paginate with the backend-independent Fragmenter and draw with PdfPainter. The byte-reproducibility
-    // post-processing (MakeDeterministic / TrimPages / Normalize) is unchanged from the deleted path —
-    // PdfPainter builds its own PdfDocument, so it applies as before. The engine knows its own page total
-    // (LaidOutDocument.Pages.Count), so no NUMPAGES pre-count pass runs here (the old CountPagesIfRequired
-    // laid the whole document out a second time); per-section NUMPAGES restart is a later slice.
-    internal static byte[] RenderViaEngine(ParsedDocument document, PdfExportOptions options)
+    // Paginate with the backend-independent Fragmenter and draw with PdfPainter
+    // (docs/layout-engine-proposal.md). The byte-reproducibility post-processing (MakeDeterministic /
+    // TrimPages / Normalize) is unchanged from the deleted production path — PdfPainter builds its own
+    // PdfDocument, so it applies as before. The engine knows its own page total
+    // (LaidOutDocument.Pages.Count), so no NUMPAGES pre-count pass runs here (the deleted
+    // CountPagesIfRequired laid the whole document out a second time); per-section NUMPAGES restart is a
+    // later slice.
+    public static byte[] Render(ParsedDocument document, PdfExportOptions? optionsOrNull)
     {
+        var options = optionsOrNull ?? new PdfExportOptions();
         using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
         var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale);
         var laidOut = new Fragmenter(measurer).Layout(

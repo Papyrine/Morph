@@ -8,7 +8,7 @@
 /// <see cref="RenderContextBase.PointsToPixels"/>. One RGBA8888 bitmap per page is encoded to PNG and
 /// streamed through the same page callback the production <c>SkiaPageRenderer</c> uses.
 ///
-/// <para>Covers the block/table/column subset (<see cref="EngineCoverage"/>): paragraph text with its run
+/// <para>Covers the block/table/column subset: paragraph text with its run
 /// decorations, tables (cell shading, content, borders), paragraph shading and borders, inline images, tab
 /// leaders, and floating shapes (solid, gradient or outline fill, freeform or preset). Deferred to later
 /// slices: cell-anchored image-fill shapes (a body one is routed to a PlacedImage and draws), image

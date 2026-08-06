@@ -18,7 +18,7 @@ public class HeaderFooterFloatingRenderTests
         var options = new ImageExportOptions {Dpi = 96, FontDirectory = ProjectFonts.Directory};
 
         byte[]? result = null;
-        SkiaDocumentConverter.RenderViaEngine(doc, options, writePng =>
+        SkiaDocumentConverter.RenderPagesCounted(doc, options, writePng =>
         {
             using var ms = new MemoryStream();
             writePng(ms);

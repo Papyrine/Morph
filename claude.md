@@ -120,14 +120,14 @@ Because both parsers live in core, `Morph` depends on both `DocumentFormat.OpenX
 **The layout engine** (`src/Morph/Layout/`): one backend-independent pagination —
 `CanonicalParagraphMeasurer` measures from the font's own OpenType metrics, `Fragmenter` paginates into a
 retained `LaidOutDocument` of absolutely-positioned `PlacedItem`s, and each backend's thin `<Backend>Painter`
-draws that tree without measuring or breaking anything. **This is the DEFAULT path for every output** —
-the production raster renderers (`SkiaPageRenderer`/`ImageSharpPageRenderer` and both `TextRenderer`s) were
-deleted once the engine covered the whole corpus, and the PDF flip landed 2026-08-06 (aggregate +0.0017
-over `PdfTextEngine` against Word; all three backends now paginate identically — the three-way page-count
-divergence is over). `MORPH_PDF_ENGINE=off` is the PDF kill switch back to `PdfTextEngine`, which
-survives only as that switch and the uncovered-document fallback (`EngineCoverage.Covers`) until the
-step-8.3 deletion. See `docs/layout-engine-proposal.md`, which is the design plus the running log of how
-it landed.
+draws that tree without measuring or breaking anything. **This is the ONLY path to a rendered page —
+PNG, PDF and every backend.** The production renderers that preceded it (`SkiaPageRenderer`,
+`ImageSharpPageRenderer`, both `TextRenderer`s, `PdfTextEngine`, `PdfPageRenderer` and the
+`PageRendererBase` under them) were deleted in 2026-08 once the engine covered the whole corpus and the
+PDF flip landed at aggregate +0.0017 against Word. All three backends therefore paginate identically —
+the three-way page-count divergence the engine was built to end is over. There is no fallback path and no
+engine kill switch. See `docs/layout-engine-proposal.md`, the design plus the running log of how it
+landed.
 
 **Rendering backends** — each is a thin drawing layer over the engine: the `<Backend>Painter` draws the
 `LaidOutDocument`, the `<Backend>RenderContext` owns the drawing primitives and font/image caches, and the

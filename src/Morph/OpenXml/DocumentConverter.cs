@@ -87,9 +87,10 @@ public abstract class DocumentConverter
     /// numbers into the file it produces.
     /// <para>
     /// It costs a layout pass and nothing more: the answer comes off the <see cref="Fragmenter"/>'s
-    /// placed items, so no page is ever drawn and no backend is involved. Bookmarks that cannot be
-    /// placed — one outside the body flow, or in a document the engine does not cover — are absent
-    /// from the result rather than reported at a guessed page.
+    /// placed items, so no page is ever drawn and no backend is involved — the same pagination every
+    /// rendered output goes through, so a bookmark's reported page is the page it renders on. A bookmark
+    /// that cannot be placed (one outside the body flow) is absent from the result rather than reported
+    /// at a guessed page.
     /// </para>
     /// </remarks>
     public static IReadOnlyDictionary<string, int> GetBookmarkPages(Stream docxStream, ImageExportOptions? options = null)
@@ -98,8 +99,7 @@ public abstract class DocumentConverter
         var pages = new Dictionary<string, int>(StringComparer.Ordinal);
 
         var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.DefaultFont).Parse(docxStream);
-        if (document.Bookmarks.Count == 0 ||
-            !EngineCoverage.Covers(document))
+        if (document.Bookmarks.Count == 0)
         {
             return pages;
         }
