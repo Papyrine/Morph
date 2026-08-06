@@ -44,6 +44,16 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         {
             var height = (float) CanonicalTextMeasurer.LineHeightPoints(
                 wrapped[i].Pitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints);
+
+            // An inline image grows the line exactly as LayoutLineContents places it — measure and
+            // placement must agree or a cell's row height omits its image: newsletters/05's school
+            // photo (213pt, alone in a cell paragraph) measured as a 12pt mark line, and every row
+            // below overlapped it by the difference.
+            foreach (var image in wrapped[i].Images)
+            {
+                height = Math.Max(height, image.Height);
+            }
+
             result[i] = new(wrapped[i].Width, height);
         }
 

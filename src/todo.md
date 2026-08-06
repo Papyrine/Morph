@@ -318,6 +318,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### business-plans/12
 
+- FINDING 2026-08-06 (from the image-height measurement fix): the p1 cover renders the 520x461pt inline photo at its full height on both paths, but Word shows only ~264pt of it (photo visibly ends at ~311pt) — the lower half is overdrawn by later rows' fills in Word's cover collage, a z-order/overdraw the engine does not reproduce. The old baseline's band-error 0.0 was a compensating accident (rows measured without the image squeezed the layout back to Word's landmark positions while pixel error was 35.9 grey); with rows honestly sized the cover scores worse (60.7) until the overdraw is modelled. Undug.
 - MAJOR | all | p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18 | footer page number missing on every content page (Word shows "3".."18" bottom-right; all three backends render nothing there)
 - MEDIUM | all | p2 | the thick black rule below the "TABLE OF CONTENTS" heading is missing
 - MAJOR | skia,imagesharp | p1 | cover text block pushed ~1in down: colored-arrows logo sits clipped at the bottom page edge and "First Up Consultants" is pushed off-page entirely (missing)
@@ -1251,6 +1252,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### newsletters/05
 
+- LARGELY FIXED 2026-08-06 (last real flip-gate stand): `CanonicalParagraphMeasurer.LayoutLines` — the measurement view feeding `TableHeightCalculator` — computed line heights from the font pitch alone, ignoring inline images, while placement (`LayoutLineContents`) maxes them in. A cell whose paragraph holds only the 213pt school photo measured as a ~12pt mark line, so every row below overlapped it by the difference (body text drew ON the photo). One-line fix: measure maxes with image heights, so measure = placement. Engine PDF vs Word: p1 36.8 → 17.2 (exact production tie), p2 21.2 → 8.7 (production 34.9 — engine 4× better, band count = Word's), p3 29.1 → 17.4 (tie), p4 26.8 → 19.1 (production 17.8; residual is a bottom block where both paths err ~35px in opposite directions). Corpus: newsletters/03/07 and brochures/07 (−151/−181 on p2) improved; regressions concentrate on collage covers (bp/12, brochures/04 p2, newsletters/04 p2) where images previously overlapped in ways that accidentally scored better — those pages carry separate unrelated defects (see bp/12's cover entry).
 - MEDIUM | all | p1,p3 | body copy under "Welcome back to school!" wraps to one extra line (17 text bands vs Word's 16), block ends 26-80px lower
 - MEDIUM | skia,imagesharp | p1,p3 | "Welcome back to school!" heading and body start ~45-50px lower than Word (extra gap inserted below the school photo)
 - MEDIUM | skia,imagesharp | p1,p3 | sidebar "Ms. Tanaka" contact block ~22px and "Upcoming Events" block ~48px lower than Word (PDF within 10px)
