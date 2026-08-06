@@ -158,16 +158,34 @@ static class TableHeightCalculator
         // keeps the outer-only behaviour until it owns the content inset too. An earlier note claimed
         // interior edges collapse and add nothing, but that was asserted on a 1-row table (no interior
         // edge) and the XPS disproves it.
+        // An exact row (w:hRule="exact") is exempt from all of it. ECMA-376 §17.4.81 makes that height
+        // the row's height verbatim, and Word honours it against borders as it does against overflowing
+        // content — it draws the edge and clips rather than growing the row. business/05's letterhead is
+        // three exact rows (22.3 + 25.9 + 66.2pt) under a bordered layout table: Word starts the
+        // "Memorandum" heading at exactly margin + 114.4pt, while growing those rows by their outer top,
+        // outer bottom and two interior edges put every line on the page ~3pt low.
         if (heights.Length > 0)
         {
-            heights[0] += HorizontalBorderWidth(table, colCount, rowIndex: 0, top: true);
             var lastRowIndex = table.Rows.Count - 1;
-            heights[^1] += HorizontalBorderWidth(table, colCount, lastRowIndex, top: false);
+            if (!IsPinnedExact(table.Rows[0]))
+            {
+                heights[0] += HorizontalBorderWidth(table, colCount, rowIndex: 0, top: true);
+            }
+
+            if (!IsPinnedExact(table.Rows[lastRowIndex]))
+            {
+                heights[^1] += HorizontalBorderWidth(table, colCount, lastRowIndex, top: false);
+            }
 
             if (addInteriorBorders)
             {
                 for (var rowIndex = 1; rowIndex < table.Rows.Count; rowIndex++)
                 {
+                    if (IsPinnedExact(table.Rows[rowIndex]))
+                    {
+                        continue;
+                    }
+
                     heights[rowIndex] += HorizontalBorderWidth(table, colCount, rowIndex, top: true);
                 }
             }
@@ -175,6 +193,10 @@ static class TableHeightCalculator
 
         return heights;
     }
+
+    // A row whose w:trHeight carries w:hRule="exact": its height is that value verbatim, so neither
+    // content nor a collapsed border edge may grow it.
+    static bool IsPinnedExact(TableRow row) => row.HeightPoints.HasValue && row.IsExactHeight;
 
     /// <summary>
     /// Widest visible top (or bottom) border across the cells of one row, in points. For the first
