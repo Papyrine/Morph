@@ -470,6 +470,21 @@ The checklist is landed through step 6; what is left, most-blocking first:
    `resumes/13` stays the scorer inversion (engine matches Word's 5, production renders 6). The
    per-doc clause is held by one genuinely mixed document and one metric artifact.
 
+   **Eighth measurement (2026-08-06, after the inline-image measurement fix): aggregate +0.0017 — a
+   four-fold jump, passing the −0.002 bar with 3.7× headroom on the positive side** (trajectory
+   −0.0054 → −0.0050 → −0.0029 → −0.0022 → −0.0012 → −0.0001 → +0.0002 → +0.0004 → +0.0017). Only
+   FOUR breaches remain (was 25 at the third measurement); the landmark adjudication clears three
+   (`cover-letters/12` 11.9 vs 15.1, `brochures/01` tie, `brochures/03` exact tie). `newsletters/05`
+   left the breach list entirely (the image-height fix), as did `resumes/10` (now −0.0141, below the
+   bar). **The gate stands on `business/05` alone**, and its full-resolution verification at this HEAD
+   shows the engine tracking production at a CONSTANT +2.9pt on every band — the characterized 3pt
+   header-reservation step (engine `HeaderReservedTop` sums only paragraphs; production measures the
+   painted header including tables) — while both paths share an identical +233px drift vs Word at the
+   page bottom that is not engine-specific. The −0.0503 SSIM entry is the coarse metric inflating that
+   constant offset. Page counts: engine = production everywhere; `resumes/13` remains the inversion
+   where the engine matches Word's count and production does not. Every other clause of the gate
+   passes.
+
    **The `resumes/01` / `compatibility_mode_14` breach pair (−0.045 each) is root-caused (2026-08-04), and
    the engine is the *correct* side of it.** The two are byte-identical templates: a résumé table whose
    section rules are 2.25pt cell borders on 72/144-twip `atLeast` spacer rows holding one empty 11pt
