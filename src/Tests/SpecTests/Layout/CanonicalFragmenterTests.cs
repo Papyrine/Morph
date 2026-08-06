@@ -28,6 +28,60 @@ public class CanonicalFragmenterTests
 
     static Run TabRun() => new() { Text = "", IsTab = true, Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } };
 
+    /// <summary>
+    /// Widow and orphan control are settled in ORDER, the orphan check acting on what the widow carry
+    /// left — Word does not treat them as alternatives. A three-line paragraph with room for exactly two
+    /// is the case that separates the two readings: the carry drops it to one line on this page, and the
+    /// orphan rule then moves the whole paragraph. Checking them as mutually exclusive branches stops
+    /// after the carry and leaves behind exactly the orphan the rule exists to prevent.
+    ///
+    /// No corpus document exercises this — the scenario suite is unchanged either way — so the rule is
+    /// pinned here. It was verified against Word through the equivalent path in a splittable table row
+    /// (business-plans/15's "Long-term Liabilities" bullet, where Word breaks 0/3 and the alternative
+    /// reading gives 1/2).
+    /// </summary>
+    [Test]
+    public async Task A_three_line_paragraph_with_room_for_two_moves_whole()
+    {
+        var page = Page(200);
+        // Nine single-line paragraphs leave 160 - 9 × 14.5 = 29.5pt, which holds two more lines and not
+        // a third.
+        var fillers = Enumerable.Range(0, 9).Select(index => P($"Filler {index}")).ToList();
+        var tail = P(string.Join(' ', Enumerable.Repeat("lorem", 21)));
+
+        // Guard: the geometry above only tests the rule while the tail really is three lines and really
+        // does have room for two.
+        var tailLines = LayoutTestFonts.Measurer.LayoutLines(tail, (float) page.ContentWidth);
+        await Assert.That(tailLines.Count).IsEqualTo(3);
+
+        var document = Fragmenter.Layout([.. fillers, tail], page);
+
+        await Assert.That(document.Pages.Count).IsEqualTo(2);
+        // Nothing of the tail stays behind: page 1 keeps only the nine fillers.
+        await Assert.That(document.Pages[0].Items.OfType<PlacedLine>().Count()).IsEqualTo(9);
+        await Assert.That(document.Pages[1].Items.OfType<PlacedLine>().Count(_ => ReferenceEquals(_.Paragraph, tail))).IsEqualTo(3);
+    }
+
+    /// <summary>A lone line left at a region top is carried a second line down to join it.</summary>
+    [Test]
+    public async Task A_widow_carries_a_second_line_down_to_join_it()
+    {
+        var page = Page(200);
+        // Eight fillers leave 44pt — three of the tail's four lines fit, so the fourth would sit alone
+        // overleaf. The carry takes a second line with it, leaving two on each page.
+        var fillers = Enumerable.Range(0, 8).Select(index => P($"Filler {index}")).ToList();
+        var tail = P(string.Join(' ', Enumerable.Repeat("lorem", 29)));
+
+        var tailLines = LayoutTestFonts.Measurer.LayoutLines(tail, (float) page.ContentWidth);
+        await Assert.That(tailLines.Count).IsEqualTo(4);
+
+        var document = Fragmenter.Layout([.. fillers, tail], page);
+
+        await Assert.That(document.Pages.Count).IsEqualTo(2);
+        await Assert.That(document.Pages[0].Items.OfType<PlacedLine>().Count(_ => ReferenceEquals(_.Paragraph, tail))).IsEqualTo(2);
+        await Assert.That(document.Pages[1].Items.OfType<PlacedLine>().Count(_ => ReferenceEquals(_.Paragraph, tail))).IsEqualTo(2);
+    }
+
     [Test]
     public async Task Short_paragraphs_fit_on_one_page()
     {

@@ -77,9 +77,11 @@ result. The three-line "Long-term Liabilities" bullet is the case — two lines 
 takes that to one, and the orphan rule then takes it to none, which is exactly where Word breaks.
 Checking orphan-then-widow as mutually exclusive branches (what the flow path does) stops after the
 first step and leaves a lone line behind: page 16 came out with 44 ink bands against Word's 43. With
-the ordered form it is 43, and pages 16/17 improve by 0.6 and 3.8 grey levels. `PlaceParagraph` still
-has the unordered form for the page flow — aligning it is corpus-wide and wants its own gate
-(todo.md #25). This also makes `w:cantSplit` implementable for the first time: it selects move-whole
+the ordered form it is 43, and pages 16/17 improve by 0.6 and 3.8 grey levels. `PlaceParagraph` was brought to the ordered form
+too, on its own gate: the corpus does not contain a single instance of the differing case, so the
+scenario suite is byte-unchanged either way and `CanonicalFragmenterTests` pins the rule instead
+(the three-line test fails under the alternative reading, which is what makes it a guard rather than
+decoration). This also makes `w:cantSplit` implementable for the first time: it selects move-whole
 for a row that would otherwise split.
 
 The 2026-07-25 recount (Skia 322 / ImageSharp 322 / PDF 321, with per-backend disagreements) and the

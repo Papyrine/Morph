@@ -1181,9 +1181,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
                 // Keep-lines (w:keepLines) holds a whole paragraph together — if it will not all fit here it
                 // moves to the next region intact. Otherwise widow/orphan control (Word's default) keeps at
-                // least two lines together: one line alone at the bottom (orphan → move the pair) or at the
-                // top of the next region (widow → carry one more line). Both apply only when a break actually
-                // falls (fit < remaining) and there is somewhere better to move to (not already a region top).
+                // least two lines together: one line alone at the top of the next region (widow → carry one
+                // more line down to join it) or at the bottom of this one (orphan → move the paragraph).
+                // Both apply only when a break actually falls (fit < remaining) and there is somewhere better
+                // to move to (not already a region top).
+                //
+                // The two are settled in ORDER, the orphan check acting on what the widow carry left — Word
+                // does not treat them as alternatives. A three-line paragraph with room for two is the case
+                // that separates the two readings: the carry takes it to one line here, and the orphan rule
+                // then takes that to none. Checking them as mutually exclusive branches stops after the carry
+                // and leaves behind exactly the orphan the rule exists to prevent. Verified against Word on
+                // business-plans/15's "Long-term Liabilities" bullet, where the ordered form reproduces
+                // Word's break (0/3) and the alternative form gives 1/2.
                 var remaining = paragraphLines.Count - lineIndex;
                 if (!atRegionTop && fit < remaining)
                 {
@@ -1193,13 +1202,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     }
                     else if (properties.WidowControl && remaining >= 2)
                     {
+                        if (fit == remaining - 1)
+                        {
+                            fit = remaining - 2;
+                        }
+
                         if (fit == 1)
                         {
                             fit = 0;
-                        }
-                        else if (fit == remaining - 1)
-                        {
-                            fit = remaining - 2;
                         }
                     }
                 }
