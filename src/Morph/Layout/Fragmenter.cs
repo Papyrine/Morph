@@ -1429,11 +1429,20 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
         }
 
-        // A row may be split across pages when nothing in it ties its cells to one box. A vertical merge
-        // does exactly that — the merged cell's height is derived from the rows it spans — so a row carrying
-        // one keeps the move-whole behaviour.
+        // A row may be split across pages when nothing in it ties its cells to one box. w:cantSplit says so
+        // outright, and Word honours it even when splitting is the only way to show the content: a
+        // cantSplit row taller than any page overflows the content area and clips at the paper edge rather
+        // than continuing overleaf (Word-probed, _probe_cantsplit_tall_on — the flagged row ran to 791.5pt
+        // on a 792pt page and the following paragraph was alone on page 2, where the unflagged control
+        // split 53/17). Falling through to the move-whole path below reproduces that. A vertical merge ties
+        // the cells too — the merged cell's height derives from the rows it spans.
         static bool CanSplitRow(TableRow row)
         {
+            if (row.CannotSplit)
+            {
+                return false;
+            }
+
             foreach (var cell in row.Cells)
             {
                 if (cell.Properties.VerticalMerge != VerticalMergeType.None)

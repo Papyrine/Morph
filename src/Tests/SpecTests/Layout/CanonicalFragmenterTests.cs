@@ -82,6 +82,64 @@ public class CanonicalFragmenterTests
         await Assert.That(document.Pages[1].Items.OfType<PlacedLine>().Count(_ => ReferenceEquals(_.Paragraph, tail))).IsEqualTo(2);
     }
 
+    // A one-row table whose single cell holds `lines` short paragraphs — the shape that forces a row
+    // taller than the page.
+    static TableElement OneRowTable(int lines, bool cannotSplit) =>
+        new()
+        {
+            Properties = new(),
+            Rows =
+            [
+                new TableRow
+                {
+                    CannotSplit = cannotSplit,
+                    Cells = [new TableCell { Content = [.. Enumerable.Range(0, lines).Select(index => P($"Row line {index}"))], Properties = new() }]
+                }
+            ]
+        };
+
+    /// <summary>
+    /// A row taller than a whole region splits at a line boundary and continues overleaf, rather than
+    /// overflowing off the page as it used to. business-plans/15 wraps whole prose sections in one-row
+    /// tables and lost a page to that overflow.
+    /// </summary>
+    [Test]
+    public async Task A_row_taller_than_the_page_splits_across_pages()
+    {
+        // 30 lines at 14.5pt is 435pt against a 160pt content band, so the row cannot fit any page.
+        var document = Fragmenter.Layout([OneRowTable(30, cannotSplit: false)], Page(200));
+
+        await Assert.That(document.Pages.Count > 1).IsTrue();
+        // Every line is placed exactly once across the fragments, and none runs past the content bottom.
+        var placed = document.Pages.SelectMany(_ => _.Items).OfType<PlacedTableRow>()
+            .SelectMany(_ => _.Cells).SelectMany(_ => _.Content).OfType<PlacedLine>().ToList();
+        await Assert.That(placed.Count).IsEqualTo(30);
+        foreach (var line in placed)
+        {
+            await Assert.That(line.Y + line.Height).IsLessThanOrEqualTo(181f);
+        }
+    }
+
+    /// <summary>
+    /// <c>w:cantSplit</c> forbids the split even when splitting is the only way to show the content: Word
+    /// lets such a row overflow the content area and clip at the paper edge instead. Word-probed
+    /// (<c>_probe_cantsplit_tall_on</c>): the flagged row ran to 791.5pt on a 792pt page with the
+    /// following paragraph alone overleaf, where the unflagged control split 53 lines / 17.
+    /// No corpus document sets the attribute, so this is the only guard on it.
+    /// </summary>
+    [Test]
+    public async Task A_cantSplit_row_is_not_split_even_when_it_cannot_fit()
+    {
+        var document = Fragmenter.Layout([OneRowTable(30, cannotSplit: true)], Page(200));
+
+        // One row, placed once, overflowing rather than continuing overleaf.
+        var rows = document.Pages.SelectMany(_ => _.Items).OfType<PlacedTableRow>().ToList();
+        await Assert.That(rows.Count).IsEqualTo(1);
+        var placed = rows.SelectMany(_ => _.Cells).SelectMany(_ => _.Content).OfType<PlacedLine>().ToList();
+        await Assert.That(placed.Count).IsEqualTo(30);
+        await Assert.That(placed.Max(_ => _.Y + _.Height)).IsGreaterThan(181f);
+    }
+
     [Test]
     public async Task Short_paragraphs_fit_on_one_page()
     {

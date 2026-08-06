@@ -26,6 +26,14 @@ sealed class TableRow
     public bool IsHeader { get; init; }
 
     /// <summary>
+    /// Whether the row forbids being split across a page (<c>w:trPr/w:cantSplit</c>). Word-probed
+    /// (<c>_probe_cantsplit_*</c>, 2026-08-06): without it a row that does not fit the space left splits
+    /// there, even when it would fit a fresh page; with it the row moves whole instead — and a row taller
+    /// than any page is NOT split either, it overflows the content area and clips at the paper edge.
+    /// </summary>
+    public bool CannotSplit { get; init; }
+
+    /// <summary>
     /// Per-row outer-border override from <c>w:tblPrEx/w:tblBorders</c>.
     /// When set, replaces <see cref="TableProperties.DefaultBorders"/> when computing
     /// effective borders for this row's cells.

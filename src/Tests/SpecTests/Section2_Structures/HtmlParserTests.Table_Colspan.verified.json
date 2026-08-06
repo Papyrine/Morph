@@ -62,7 +62,8 @@
           }
         ],
         "IsExactHeight": false,
-        "IsHeader": false
+        "IsHeader": false,
+        "CannotSplit": false
       },
       {
         "Cells": [
@@ -182,7 +183,8 @@
           }
         ],
         "IsExactHeight": false,
-        "IsHeader": false
+        "IsHeader": false,
+        "CannotSplit": false
       }
     ],
     "Properties": {
