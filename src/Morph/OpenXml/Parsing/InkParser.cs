@@ -319,7 +319,7 @@ static class InkParser
             }
 
             // Process pairs of (x, y) tokens
-            ReadOnlySpan<char> firstToken = default;
+            CharSpan firstToken = default;
             var haveFirst = false;
             foreach (var tokenRange in segment.SplitAny(" \t"))
             {

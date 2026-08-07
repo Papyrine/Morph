@@ -302,8 +302,8 @@ var html = DocumentConverter.ConvertToHtml(
             var extension = image.ContentType switch
             {
                 "image/svg+xml" => "svg",
-                "image/jpeg"    => "jpg",
-                _               => "png"
+                "image/jpeg" => "jpg",
+                _ => "png"
             };
             var path = $"media/image-{image.Index}.{extension}";
             File.WriteAllBytes(path, image.Data);
