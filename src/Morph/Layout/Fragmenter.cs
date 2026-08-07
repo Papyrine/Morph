@@ -1459,8 +1459,6 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     continue;
                 }
 
-                var fitHeight = RowFitHeight(table, rowIndex, colWidths, rowHeight);
-
                 // A row taller than a whole empty region cannot be rescued by moving it — it would overflow
                 // wherever it went, drawing over the footer and clipping at the page edge. Word splits such a
                 // row at a line boundary and continues it overleaf. Rows that DO fit keep the move-whole
@@ -1474,10 +1472,38 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // boundary row that squeezes under the shared rounding slack stays whole; testing the
                 // remainder strictly here split rows the move path would have kept, pushing their tails
                 // onto the next region and costing business-plans/15 a page.
-                var doesNotFitHere = !atRegionTop &&
-                                     !HasSpaceFor(fitHeight) &&
-                                     !TableHeightCalculator.IsPinnedExact(row);
-                var oversize = fitHeight > contentHeight;
+                // The height is the row's FULL height, an atLeast w:trHeight floor included. A content-only
+                // fit was briefly landed off a letters/04 in-situ reading ("Word keeps a floored row whose
+                // content fits the remainder") and is REFUTED: all four controlled fixtures
+                // (_probe_floorfit_single/_last/_mid/_enddoc, 2026-08-07) show Word MOVING a floored row
+                // whose floor misses the space whatever its content does. letters/04's keep is upstream
+                // height drift: Word's letter runs ~50pt more compact, so the floor simply FITS in Word's
+                // layout — and the engine keeps its one-page count through the whole-table move's slack.
+                //
+                // The slack itself is CONTENT'S: Word keeps business-plans/15's content-sized 79.6pt
+                // boundary table 13pt past the margin (drawn and clipped, the same tolerance the last-line
+                // rule gives auto-spaced text), yet moves business-plans/13's 21.6pt-FLOORED row when its
+                // floor crosses the bottom by 1.2pt (row box to 519.4, floor to 541.2, margin 540 — the
+                // measured break on every one of its landscape pages). A floor is a reservation, and a
+                // reservation must fit exactly — the same law that makes exact/atLeast line boxes strict
+                // where auto lines may overhang. So a floor-driven row is tested against the hard bottom,
+                // and a content-driven one keeps HasSpaceFor's shared rounding slack.
+                //
+                // A row carrying a vertical merge is exempt from the strict test: a merge span is one
+                // drawn unit and Word clips its overflow at the paper edge rather than moving it
+                // (resumes/06's bar span — the tie rule below stacks the continuations for the same
+                // reason), so its HEAD keeps the shared slack too. Without the exemption, resumes/06's
+                // span head at 1.1pt over the margin moved to a fresh page and re-split the document
+                // 3 pages into 6.
+                var floorDriven = !row.IsExactHeight &&
+                                  row.HeightPoints is { } declaredFloor &&
+                                  rowHeight <= (float) declaredFloor + 0.5f &&
+                                  !HasMergedCell(row);
+                var overflows = floorDriven
+                    ? y + rowHeight > contentBottom
+                    : !HasSpaceFor(rowHeight);
+                var doesNotFitHere = !atRegionTop && overflows && !TableHeightCalculator.IsPinnedExact(row);
+                var oversize = rowHeight > contentHeight;
 
                 // A fit-triggered split may be rejected (the fragment placed in the remainder must
                 // genuinely split — see PlaceSplitRow), falling through to the move-whole path below. An
@@ -1488,7 +1514,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     continue;
                 }
 
-                var broke = rowIndex <= lastVisibleRow && EnsureSpaceFor(fitHeight);
+                // The move mirrors EnsureSpaceFor with the same floor-strict fit as the trigger above.
+                var broke = false;
+                if (rowIndex <= lastVisibleRow && !atRegionTop && !oversize && overflows)
+                {
+                    AdvanceColumnOrPage();
+                    broke = true;
+                }
                 if (broke && headerCount > 0 && rowIndex >= headerCount)
                 {
                     for (var headerIndex = 0; headerIndex < headerCount; headerIndex++)
@@ -1521,46 +1553,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             return false;
         }
 
-        // The height a row occupies in a BREAK decision. An atLeast w:trHeight floor is drawn at full
-        // height but does not push its row off the page: Word fits the CONTENT into the space left and
-        // lets the floored box run past the bottom margin (Word-measured on letters/04 — a 76.5pt-floored
-        // signature row with 29.5pt of content stays in a 60.5pt page-bottom remainder, its box
-        // overflowing the margin, where moving it would make a second page Word does not have). An exact
-        // row's declared box is verbatim in both directions and fits as declared (table_layout_tall_row's
-        // exact rows move to the page they were carried to), as does a row with no declared height —
-        // for both, the calculator's height IS the content. The content re-measure mirrors the
-        // calculator's first pass; merged cells are sized by their span and excluded here.
-        float RowFitHeight(TableElement table, int rowIndex, float[] colWidths, float rowHeight)
+        // Any vertical-merge participation at all — a span HEAD included; see the strict-floor exemption.
+        static bool HasMergedCell(TableRow row)
         {
-            var row = table.Rows[rowIndex];
-            if (row.IsExactHeight || row.HeightPoints is null)
+            foreach (var cell in row.Cells)
             {
-                return rowHeight;
-            }
-
-            var colCount = colWidths.Length;
-            var maxHeight = 0f;
-            var gridColIndex = 0;
-            for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
-            {
-                var cell = row.Cells[cellIndex];
-                var span = cell.Properties.GridSpan;
-                if (cell.Properties.VerticalMerge == VerticalMergeType.None)
+                if (cell.Properties.VerticalMerge != VerticalMergeType.None)
                 {
-                    var cellWidth = 0f;
-                    for (var offset = 0; offset < span && gridColIndex + offset < colCount; offset++)
-                    {
-                        cellWidth += colWidths[gridColIndex + offset];
-                    }
-
-                    maxHeight = Math.Max(maxHeight, TableHeightCalculator.MeasureCellHeight(cell, cellWidth, table.Properties, measurer, row));
+                    return true;
                 }
-
-                gridColIndex += span;
             }
 
-            var content = maxHeight + 2 * (float) table.Properties.CellSpacingPoints;
-            return Math.Min(rowHeight, content);
+            return false;
         }
 
         // A row may be split across pages when nothing in it ties its cells to one box. w:cantSplit says so

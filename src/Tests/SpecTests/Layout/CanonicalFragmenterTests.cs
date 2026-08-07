@@ -161,14 +161,17 @@ public class CanonicalFragmenterTests
     }
 
     /// <summary>
-    /// The atLeast floor does not participate in the BREAK decision: a row whose content fits the
-    /// space left stays on the page at its full declared height, the floored box running past the
-    /// bottom margin. Word-measured on letters/04 — a 76.5pt-floored signature row with 29.5pt of
-    /// content stays in a 60.5pt page-bottom remainder on Word's single page, where moving it (as the
-    /// engine briefly did once the fit routing landed) makes a second page Word does not have.
+    /// The atLeast floor PARTICIPATES in the BREAK decision: a row whose content would fit the space
+    /// left but whose floor does not moves whole to the next region, floor honoured there. Word-probed
+    /// four ways (<c>_probe_floorfit_single</c>/<c>_last</c>/<c>_mid</c>/<c>_enddoc</c>, 2026-08-07):
+    /// a 30pt-floored row of one 12pt line offered a 24pt remainder moves in every structure — single-row
+    /// table, last row, mid row, end of document — and business-plans/13's landscape pages break exactly
+    /// where the floored row's floor crosses the bottom margin. A content-only fit was briefly landed off
+    /// an in-situ letters/04 reading; that keep is upstream height drift (Word's letter runs ~50pt more
+    /// compact, so the floor simply fits), not a fit law.
     /// </summary>
     [Test]
-    public async Task A_floored_row_whose_content_fits_stays_and_overflows()
+    public async Task A_floored_row_whose_content_fits_but_floor_does_not_moves_whole()
     {
         var page = Page(200);
         // Ten fillers reach 145pt, leaving 15pt — enough for the row's one ~14.5pt line, nowhere near
@@ -191,13 +194,13 @@ public class CanonicalFragmenterTests
         var document = Fragmenter.Layout([.. fillers, table, after], page);
 
         await Assert.That(document.Pages.Count).IsEqualTo(2);
-        var row = document.Pages[0].Items.OfType<PlacedTableRow>().Single();
-        // The row sits in the remainder at its full floor, overflowing the 180pt content bottom.
-        await Assert.That(row.Y).IsEqualTo(165f).Within(0.1f);
+        // The row moves whole to page 2's region top at its full floor; nothing of it stays behind.
+        await Assert.That(document.Pages[0].Items.OfType<PlacedTableRow>().Any()).IsFalse();
+        var row = document.Pages[1].Items.OfType<PlacedTableRow>().Single();
+        await Assert.That(row.Y).IsEqualTo(20f);
         await Assert.That(row.Height).IsEqualTo(100f);
-        // Only AFTER moves to page 2, at the region top.
         var afterLine = document.Pages[1].Items.OfType<PlacedLine>().Single(_ => ReferenceEquals(_.Paragraph, after));
-        await Assert.That(afterLine.Y).IsEqualTo(20f);
+        await Assert.That(afterLine.Y).IsEqualTo(120f);
     }
 
     /// <summary>
