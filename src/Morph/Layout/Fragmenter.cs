@@ -1374,10 +1374,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             lastStyleId = null;
 
             // A table over 110% of a column's content height flows row by row (the raster backend's
-            // needsRowByRowRendering); otherwise it stays whole and moves as a unit if needed. Routing a
-            // table that merely will not fit the space left through here as well is Word's own behaviour and
-            // is what todo #25 still needs, but it orphans a blank trailing row onto a page of its own in
-            // resumes/06 — attempted and reverted twice now, see the entry there.
+            // needsRowByRowRendering); otherwise it stays whole and moves as a unit if needed.
             if (totalHeight > contentHeight * 1.10f)
             {
                 PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth);
@@ -1386,6 +1383,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             // Narrow pre-advance for the fixed-height-row letter layouts: lift the whole table onto the
             // next region when it would otherwise clip its exact row, ahead of the softer whole-table move.
+            // Deliberately ahead of the fit routing below, so an exact-row table keeps its whole-table lift.
             if (!atRegionTop && totalHeight > 0)
             {
                 var remaining = Math.Max(0f, contentBottom - y);
@@ -1393,6 +1391,22 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 {
                     AdvanceColumnOrPage();
                 }
+            }
+
+            // A table that merely does not fit the space left ALSO flows row by row — Word's own behaviour
+            // (probed: _probe_cantsplit_fit_off splits the boundary row 13/7 where the whole-table move put
+            // all 20 lines overleaf; LibreOffice's SwTabFrame::Split deadline is likewise the remaining
+            // area, not a page height). Two earlier attempts at this routing were reverted on corpus
+            // damage; the piece both lacked is the split-acceptance test in PlaceSplitRow, which turns the
+            // pathological splits (unbreakable content force-placed into the remainder, or a trHeight floor
+            // mistaken for content) back into whole-row moves. The condition mirrors the whole-table move
+            // below EXACTLY — height less 2%, against HasSpaceFor's 2%-extended bottom — so a knife-edge
+            // table the move would have squeezed onto the page (business-plans/15's 79.6pt boundary table
+            // clears it by 0.24pt) is not routed into a split the old path never made.
+            if (!atRegionTop && !HasSpaceFor(totalHeight - contentHeight * 0.02f))
+            {
+                PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth);
+                return;
             }
 
             // Whole-table move: mirrors EnsureSpaceFor(totalHeight − 2%) — a flow table may over-spill the
@@ -1428,6 +1442,24 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
             {
                 var rowHeight = rowHeights[rowIndex];
+                var row = table.Rows[rowIndex];
+
+                // A vertical-merge CONTINUATION row never breaks from its predecessor — a break between
+                // them would tear the merged cell apart, so the span head carries the only break decision
+                // and the continuations stack under it wherever it landed, overflowing the bottom margin
+                // and clipping at the paper edge if they must. Word-measured on resumes/06: a sidebar's
+                // restartless-continue rows run to the paper edge (bar band at 750–792, clipped) rather
+                // than moving to a page they would comfortably fit.
+                if (IsMergeContinuation(row))
+                {
+                    items.Add(BuildRow(y, table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false));
+                    ResolvePendingFloats();
+                    y += rowHeight;
+                    atRegionTop = false;
+                    continue;
+                }
+
+                var fitHeight = RowFitHeight(table, rowIndex, colWidths, rowHeight);
 
                 // A row taller than a whole empty region cannot be rescued by moving it — it would overflow
                 // wherever it went, drawing over the footer and clipping at the page edge. Word splits such a
@@ -1438,16 +1470,25 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // Splitting one lets its sparse content collapse into the space left and the reservation
                 // vanishes: table_layout_tall_row is two exact rows (80pt and 530pt) that Word carries onto a
                 // second page, and splitting the tall one folded the document back to a single page.
+                // Fit is judged with the SAME 2% slack every other break decision uses (HasSpaceFor) — a
+                // boundary row that squeezes under the shared rounding slack stays whole; testing the
+                // remainder strictly here split rows the move path would have kept, pushing their tails
+                // onto the next region and costing business-plans/15 a page.
                 var doesNotFitHere = !atRegionTop &&
-                                     rowHeight > contentBottom - y &&
-                                     !TableHeightCalculator.IsPinnedExact(table.Rows[rowIndex]);
-                if (rowIndex <= lastVisibleRow && (rowHeight > contentHeight || doesNotFitHere) && CanSplitRow(table.Rows[rowIndex]))
+                                     !HasSpaceFor(fitHeight) &&
+                                     !TableHeightCalculator.IsPinnedExact(row);
+                var oversize = fitHeight > contentHeight;
+
+                // A fit-triggered split may be rejected (the fragment placed in the remainder must
+                // genuinely split — see PlaceSplitRow), falling through to the move-whole path below. An
+                // oversize row has no such escape: moving it cannot rescue it, so its split always stands.
+                if (rowIndex <= lastVisibleRow && (oversize || doesNotFitHere) && CanSplitRow(row) &&
+                    PlaceSplitRow(table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, headerCount, allowReject: !oversize))
                 {
-                    PlaceSplitRow(table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, headerCount);
                     continue;
                 }
 
-                var broke = rowIndex <= lastVisibleRow && EnsureSpaceFor(rowHeight);
+                var broke = rowIndex <= lastVisibleRow && EnsureSpaceFor(fitHeight);
                 if (broke && headerCount > 0 && rowIndex >= headerCount)
                 {
                     for (var headerIndex = 0; headerIndex < headerCount; headerIndex++)
@@ -1463,6 +1504,63 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 y += rowHeight;
                 atRegionTop = false;
             }
+        }
+
+        // Any cell continuing a vertical merge ties this row to the one above; see the tie rule in
+        // PlaceTableRowByRow.
+        static bool IsMergeContinuation(TableRow row)
+        {
+            foreach (var cell in row.Cells)
+            {
+                if (cell.Properties.VerticalMerge == VerticalMergeType.Continue)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // The height a row occupies in a BREAK decision. An atLeast w:trHeight floor is drawn at full
+        // height but does not push its row off the page: Word fits the CONTENT into the space left and
+        // lets the floored box run past the bottom margin (Word-measured on letters/04 — a 76.5pt-floored
+        // signature row with 29.5pt of content stays in a 60.5pt page-bottom remainder, its box
+        // overflowing the margin, where moving it would make a second page Word does not have). An exact
+        // row's declared box is verbatim in both directions and fits as declared (table_layout_tall_row's
+        // exact rows move to the page they were carried to), as does a row with no declared height —
+        // for both, the calculator's height IS the content. The content re-measure mirrors the
+        // calculator's first pass; merged cells are sized by their span and excluded here.
+        float RowFitHeight(TableElement table, int rowIndex, float[] colWidths, float rowHeight)
+        {
+            var row = table.Rows[rowIndex];
+            if (row.IsExactHeight || row.HeightPoints is null)
+            {
+                return rowHeight;
+            }
+
+            var colCount = colWidths.Length;
+            var maxHeight = 0f;
+            var gridColIndex = 0;
+            for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
+            {
+                var cell = row.Cells[cellIndex];
+                var span = cell.Properties.GridSpan;
+                if (cell.Properties.VerticalMerge == VerticalMergeType.None)
+                {
+                    var cellWidth = 0f;
+                    for (var offset = 0; offset < span && gridColIndex + offset < colCount; offset++)
+                    {
+                        cellWidth += colWidths[gridColIndex + offset];
+                    }
+
+                    maxHeight = Math.Max(maxHeight, TableHeightCalculator.MeasureCellHeight(cell, cellWidth, table.Properties, measurer, row));
+                }
+
+                gridColIndex += span;
+            }
+
+            var content = maxHeight + 2 * (float) table.Properties.CellSpacingPoints;
+            return Math.Min(rowHeight, content);
         }
 
         // A row may be split across pages when nothing in it ties its cells to one box. w:cantSplit says so
@@ -1493,7 +1591,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // Places a row too tall for one page as a run of fragments, breaking at line boundaries inside its
         // cells. Each fragment fills the space left on its page and the row continues at the top of the next,
         // with w:tblHeader rows re-emitted above each continuation exactly as an unsplit row's break does.
-        void PlaceSplitRow(TableElement table, int rowIndex, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth, int headerCount)
+        //
+        // With allowReject, a first fragment offered only the REMAINDER of a region must genuinely split to
+        // stand: some cell has to continue overleaf, and what was placed has to fit the space. Otherwise the
+        // split is rejected — nothing is emitted, false comes back, and the caller moves the row whole. This
+        // is LibreOffice's lcl_RecalcSplitLine acceptance (a rejected split retries without splitting the
+        // row), and it is what the two reverted trigger widenings lacked: without it, a cell whose content
+        // cannot break (a nested table — LayoutCellFragment places one whole) was force-placed overflowing
+        // the remainder, and a row whose w:trHeight floor was the only thing that did not fit was "split"
+        // into a content-sized stub that dropped the floor. A fragment built after the sliver advance is
+        // exempt — it has a whole region, and a non-continuing fragment there is the carried-whole-row case
+        // (_probe_trail2_nested: authored floor honoured at the region top).
+        bool PlaceSplitRow(TableElement table, int rowIndex, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth, int headerCount, bool allowReject)
         {
             var row = table.Rows[rowIndex];
             var starts = new CellSplitPoint?[row.Cells.Count];
@@ -1532,11 +1641,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 var available = Math.Max(minFragmentHeight, contentBottom - y);
-                var (fragment, continuations, height) = BuildRowFragment(y, table, rowIndex, colWidths, colCount, tableX, tableWidth, starts, available, isFirstFragment, atRegionTop);
-                items.Add(fragment);
-                ResolvePendingFloats();
-                y += height;
-                atRegionTop = false;
+                var (fragment, continuations, height, contentHeight) = BuildRowFragment(y, table, rowIndex, colWidths, colCount, tableX, tableWidth, starts, available, isFirstFragment, atRegionTop);
 
                 var finished = true;
                 foreach (var continuation in continuations)
@@ -1548,9 +1653,21 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     }
                 }
 
+                // The acceptance test. Nothing has been emitted yet on this path (no advance, so no header
+                // re-emission either), so rejection leaves the cursor untouched for the caller's move.
+                if (allowReject && isFirstFragment && !advanced && (finished || contentHeight > available + 0.5f))
+                {
+                    return false;
+                }
+
+                items.Add(fragment);
+                ResolvePendingFloats();
+                y += height;
+                atRegionTop = false;
+
                 if (finished)
                 {
-                    return;
+                    return true;
                 }
 
                 starts = continuations;
@@ -1564,7 +1681,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // overleaf drops its bottom border and a fragment that is not the first drops its top border, so the
         // split edge draws no rule — Word runs the cell's sides through the break and closes the box only at
         // the row's real end.
-        (PlacedTableRow Row, CellSplitPoint?[] Continuations, float Height) BuildRowFragment(
+        (PlacedTableRow Row, CellSplitPoint?[] Continuations, float Height, float ContentHeight) BuildRowFragment(
             float rowY,
             TableElement table,
             int rowIndex,
@@ -1681,7 +1798,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 boxed.Add(cell with {Height = fragmentHeight});
             }
 
-            return (new PlacedTableRow(tableX, rowY, tableWidth, fragmentHeight, table, rowIndex, false, boxed), continuations, fragmentHeight);
+            return (new PlacedTableRow(tableX, rowY, tableWidth, fragmentHeight, table, rowIndex, false, boxed), continuations, fragmentHeight, usedHeight + horizontalEdges);
         }
 
         // Every fragment draws its whole box, split edges included. This read the other way until Word was

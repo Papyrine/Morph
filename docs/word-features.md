@@ -638,6 +638,16 @@ Forces the paragraph to start on a new page.
 - **Model**: `ParagraphProperties.PageBreakBefore`
 - **Test**: `page_breaks/`
 
+> **Contributors**: The property inherits from styles like every other pagination property — a
+> parser comment long claimed Word only honours it inline, and Word refuted that directly
+> (probes `_probe_bp10_nointro`/`_nokeep`, 2026-08-07): a Heading1 paragraph whose only
+> `pageBreakBefore` is the style's breaks the page, with or without the style's `keepNext`.
+> The inline element is an on/off toggle over the style value — bare presence turns the break
+> on, `w:val="0"` suppresses an inherited one (`_probe_bp10_pbboff`). `business-plans/10`'s
+> "Campaign Sign-off" page rides on the style-level break; before the fix the engine
+> reproduced that page boundary only through an accident of whole-table pagination, and the
+> fit-routing change exposed the miss.
+
 
 #### Keep With Next `DONE`
 
@@ -1009,12 +1019,58 @@ Explicit row height control: exact (fixed) or atLeast (minimum).
 
 #### Multi-page Tables `DONE`
 
-Tables that span multiple pages with automatic page breaks between rows.
+Tables that span multiple pages with automatic page breaks between rows, splitting a row at a
+line boundary when it does not fit.
 
-- **Render**: `PageRenderer.RenderTableRowByRow()`
-- **Test**: `table_multipage/`, `table_page_break/`
+- **Render**: `Fragmenter.PlaceTableRowByRow` / `PlaceSplitRow` / `BuildRowFragment`
+- **Test**: `table_multipage/`, `table_page_break/`, `business-plans/15`, `CanonicalFragmenterTests`
 
-> **Contributors**: Triggered when table height exceeds content area + 10% tolerance. Switches to row-by-row rendering with page break check before each row.
+> **Contributors**: Two routes into row-by-row placement: a table over 110% of a column's
+> content height, and — Word's own trigger, probed and landed 2026-08-07 after two reverted
+> attempts — a table that merely does not fit the space left. The routing condition mirrors the
+> whole-table move it replaces exactly (height less 2% against the 2%-extended bottom, an
+> effective 4% slack), because a knife-edge table the move would have squeezed onto the page
+> must not be routed into a split the old path never made (`business-plans/15`'s 79.6pt
+> boundary table clears the move by 0.24pt).
+>
+> Probe-measured row rules (`_probe_multirow_*`, `_probe_straddle_*`, `_probe_cantsplit_*`,
+> `_probe_trail2_*`, plus `resumes/06` and `letters/04` measured in situ, 2026-08-07):
+>
+> 1. **Rows flow into the remainder.** A multi-row table starting near the page bottom puts as
+>    many rows as fit there, with or without a keep-next heading above it (Word band-measured:
+>    4 of 10 rows fill a 204pt remainder, the rest overleaf).
+> 2. **A straddling row splits at a line boundary** when at least one of its lines fits
+>    (`_probe_straddle_25`/`_35`: exactly 2 and 3 of the row's 4 lines placed); with no room
+>    for a single line it moves whole. A first row with the whole remainder splits the same way
+>    (`_probe_cantsplit_fit_off`: 13 of 20 lines, 7 overleaf).
+> 3. **The split-acceptance test**: a first fragment offered only a region remainder stands
+>    only when something continues overleaf AND the placed content fits the space; otherwise
+>    the split is rejected and the row moves whole. This is what turns unbreakable content
+>    (a nested table force-placed into the remainder) and floor-only misses into the moves
+>    Word makes, and its absence is what wrecked the two earlier trigger attempts (129 pages
+>    then 3 documents regressed). LibreOffice implements the same rejection
+>    (`lcl_RecalcSplitLine`, tabfrm.cxx:868-884).
+> 4. **A vertical-merge continuation row never breaks from its predecessor** — the span head
+>    carries the only break decision and the continuations stack under it, overflowing the
+>    bottom margin and clipping at the paper edge if they must (`resumes/06`: the sidebar's
+>    restartless-continue rows run to a clipped band at 750–792pt rather than moving to a page
+>    they would fit).
+> 5. **An atLeast `w:trHeight` floor does not participate in break decisions.** The break
+>    tests the row's CONTENT height; the floored box is drawn at full height and may overflow
+>    the bottom margin (`letters/04`: a 76.5pt-floored, 29.5pt-content signature row stays in a
+>    60.5pt remainder on Word's single page). An exact row's declared box is verbatim in both
+>    directions and fits as declared. A whole row carried to a region top keeps the authored
+>    floor (`_probe_trail2_nested`: AFTER text at 174.72pt, margin plus the full declared
+>    height).
+> 6. **Fragment chrome**: a fragment pays its own horizontal border edges out of the cell
+>    budget, draws its full box including rules at the split edges (Word closes the outgoing
+>    fragment at 708.96 and reopens the continuation at 72.00 in `_probe_cantsplit_tall_off`),
+>    and sizes tight to its content rather than stretching to the region bottom. Repeated
+>    `w:tblHeader` rows re-emit above every fragment that follows a break, including a first
+>    fragment carried by the sliver advance.
+> 7. **`w:cantSplit` is honoured until the row exceeds a full region's height**, at which point
+>    the row overflows and clips rather than splitting (`_probe_cantsplit_tall_on`) — and a
+>    cantSplit row that fits a fresh page moves whole (`_probe_cantsplit_fit_on`).
 
 
 ### 4.4 Advanced Table Features
