@@ -2748,7 +2748,9 @@ sealed class DocumentParser(string defaultFont)
 
             // lvlRestart=K means "restart when an item at level <= K-1 increments".
             // If our incrementedIlvl is deeper than K-1, this level keeps its value.
-            if (deeperLevel.LevelRestart is { } restart && restart > 0 && incrementedIlvl > restart - 1)
+            if (deeperLevel.LevelRestart is { } restart &&
+                restart > 0 &&
+                incrementedIlvl > restart - 1)
             {
                 continue;
             }
@@ -2772,7 +2774,8 @@ sealed class DocumentParser(string defaultFont)
     /// </remarks>
     static string MapBulletPuaToUnicode(string levelText, string? fontFamily)
     {
-        if (string.IsNullOrEmpty(levelText) || levelText.Length != 1)
+        if (string.IsNullOrEmpty(levelText) ||
+            levelText.Length != 1)
         {
             return levelText;
         }
@@ -2991,7 +2994,8 @@ sealed class DocumentParser(string defaultFont)
             var uri = compatSetting.Uri?.Value;
             var val = compatSetting.Val?.Value;
 
-            if (string.Equals(name, "compatibilityMode", StringComparison.OrdinalIgnoreCase) && uri == "http://schemas.microsoft.com/office/word" && val != null)
+            if (string.Equals(name, "compatibilityMode", StringComparison.OrdinalIgnoreCase) &&
+                uri == "http://schemas.microsoft.com/office/word" && val != null)
             {
                 if (int.TryParse(val, out var mode))
                 {
@@ -3309,8 +3313,15 @@ sealed class DocumentParser(string defaultFont)
             LeftSpacePoints = ReadSpacePoints(element.GetFirstChild<LeftBorder>())
         };
 
-        static double ReadSpacePoints(BorderType? edge) =>
-            edge?.Space?.HasValue == true ? edge.Space.Value : 24;
+        static double ReadSpacePoints(BorderType? edge)
+        {
+            if (edge?.Space?.HasValue == true)
+            {
+                return edge.Space.Value;
+            }
+
+            return 24;
+        }
     }
 
     static LineNumberSettings? ParseLineNumberSettings(SectionProperties sectionProps)
