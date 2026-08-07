@@ -9,4 +9,5 @@ sealed record PlacedShading(
     float Y,
     float Width,
     float Height,
-    string ColorHex) : PlacedItem(X, Y, Width, Height);
+    string ColorHex) :
+    PlacedItem(X, Y, Width, Height);

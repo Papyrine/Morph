@@ -14,4 +14,5 @@ sealed record PlacedTableRow(
     TableElement Table,
     int RowIndex,
     bool IsRepeatedHeader,
-    IReadOnlyList<PlacedCell> Cells) : PlacedItem(X, Y, Width, Height);
+    IReadOnlyList<PlacedCell> Cells) :
+    PlacedItem(X, Y, Width, Height);

@@ -2589,7 +2589,8 @@ sealed class DocumentParser(string defaultFont)
 
     NumberingInfo? GetNumberingInfo(OoxmlParagraphProperties? paraProps, string? styleId)
     {
-        if (numberingDefinitions == null || numberingDefinitions.Count == 0)
+        if (numberingDefinitions == null ||
+            numberingDefinitions.Count == 0)
         {
             return null;
         }
@@ -2605,7 +2606,9 @@ sealed class DocumentParser(string defaultFont)
             ilvl = numPr.NumberingLevelReference?.Val?.Value ?? 0;
         }
         // Fall back to style numbering
-        else if (styleId != null && styleNumbering != null && styleNumbering.TryGetValue(styleId, out var styleNumInfo))
+        else if (styleId != null &&
+                 styleNumbering != null &&
+                 styleNumbering.TryGetValue(styleId, out var styleNumInfo))
         {
             numId = styleNumInfo.numId;
             ilvl = styleNumInfo.ilvl;
@@ -2650,7 +2653,8 @@ sealed class DocumentParser(string defaultFont)
             var abstractId = numberingAbstractIds.GetValueOrDefault(numId, numId);
             var counterKey = (abstractId, ilvl);
             int counter;
-            if (numberingStartOverrides.Contains((numId, ilvl)) && appliedStartOverrides.Add((numId, ilvl)))
+            if (numberingStartOverrides.Contains((numId, ilvl)) &&
+                appliedStartOverrides.Add((numId, ilvl)))
             {
                 counter = levelDef.StartNumber;
             }
