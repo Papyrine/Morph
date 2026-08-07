@@ -24,31 +24,56 @@ public class TagCoverageAuditTests
     static readonly HashSet<string> relevantNamespaces =
     [
         with(StringComparer.Ordinal),
-        "http://schemas.openxmlformats.org/wordprocessingml/2006/main", // w
-        "http://schemas.microsoft.com/office/word/2010/wordml", // w14
-        "http://schemas.microsoft.com/office/word/2012/wordml", // w15
-        "http://schemas.microsoft.com/office/word/2018/wordml", // w16
-        "http://schemas.openxmlformats.org/officeDocument/2006/math", // m
-        "http://schemas.openxmlformats.org/drawingml/2006/main", // a
-        "http://schemas.microsoft.com/office/drawing/2010/main", // a14
-        "http://schemas.microsoft.com/office/drawing/2012/main", // a16
-        "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing", // wp
-        "http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing", // wp14
-        "http://schemas.openxmlformats.org/drawingml/2006/picture", // pic
-        "http://schemas.openxmlformats.org/markup-compatibility/2006", // mc
-        "http://schemas.microsoft.com/office/word/2010/wordprocessingShape", // wps
-        "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup", // wpg
-        "http://schemas.microsoft.com/office/word/2010/wordprocessingInk", // wpi
-        "http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas", // wpc
-        "http://schemas.microsoft.com/office/drawing/2014/chartex", // cx
-        "http://schemas.openxmlformats.org/officeDocument/2006/chartDrawing", // cdr
-        "http://schemas.openxmlformats.org/drawingml/2006/chartDrawing", // cdr
-        "http://schemas.openxmlformats.org/drawingml/2006/diagram", // dgm
-        "http://schemas.openxmlformats.org/drawingml/2006/chart", // c
-        "urn:schemas-microsoft-com:vml", // v
-        "urn:schemas-microsoft-com:office:office", // o
-        "urn:schemas-microsoft-com:office:word", // w10
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships" // r
+        // w
+        "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
+        // w14
+        "http://schemas.microsoft.com/office/word/2010/wordml",
+        // w15
+        "http://schemas.microsoft.com/office/word/2012/wordml",
+        // w16
+        "http://schemas.microsoft.com/office/word/2018/wordml",
+        // m
+        "http://schemas.openxmlformats.org/officeDocument/2006/math",
+        // a
+        "http://schemas.openxmlformats.org/drawingml/2006/main",
+        // a14
+        "http://schemas.microsoft.com/office/drawing/2010/main",
+        // a16
+        "http://schemas.microsoft.com/office/drawing/2012/main",
+        // wp
+        "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing",
+        // wp14
+        "http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing",
+        // pic
+        "http://schemas.openxmlformats.org/drawingml/2006/picture",
+        // mc
+        "http://schemas.openxmlformats.org/markup-compatibility/2006",
+        // wps
+        "http://schemas.microsoft.com/office/word/2010/wordprocessingShape",
+        // wpg
+        "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup",
+        // wpi
+        "http://schemas.microsoft.com/office/word/2010/wordprocessingInk",
+        // wpc
+        "http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas",
+        // cx
+        "http://schemas.microsoft.com/office/drawing/2014/chartex",
+        // cdr
+        "http://schemas.openxmlformats.org/officeDocument/2006/chartDrawing",
+        // cdr
+        "http://schemas.openxmlformats.org/drawingml/2006/chartDrawing",
+        // dgm
+        "http://schemas.openxmlformats.org/drawingml/2006/diagram",
+        // c
+        "http://schemas.openxmlformats.org/drawingml/2006/chart",
+        // v
+        "urn:schemas-microsoft-com:vml",
+        // o
+        "urn:schemas-microsoft-com:office:office",
+        // w10
+        "urn:schemas-microsoft-com:office:word",
+        // r
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
     ];
 
     [Test]

@@ -47,7 +47,8 @@ public class CanonicalMetricsTests
     public async Task LineHeight_applies_words_spacing_rules()
     {
         var metrics = Read("Aptos_400.ttf");
-        var single = metrics.LinePitchPoints(12); // ~14.648
+        // ~14.648
+        var single = metrics.LinePitchPoints(12);
 
         // Auto: single-spaced by default, scaled by the multiplier.
         await Assert.That(CanonicalTextMeasurer.LineHeightPoints(metrics, 12)).IsEqualTo(single).Within(1e-9);

@@ -11,7 +11,8 @@ sealed record RunProperties
     public bool Strikethrough { get; init; }
     public bool AllCaps { get; init; }
     public bool SmallCaps { get; init; }
-    public string? ColorHex { get; init; } // null = black
+    // null = black
+    public string? ColorHex { get; init; }
 
     /// <summary>
     /// Background/shading color for text (from w:shd element).

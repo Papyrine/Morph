@@ -26,15 +26,22 @@ using System.IO.Compression;
 static class OpenTypeReader
 {
     // sfntVersion magic numbers
-    const uint ttfMagic = 0x00010000;       // TrueType outlines
-    const uint otfMagic = 0x4F54544F;       // 'OTTO' — CFF outlines
-    const uint trueMagic = 0x74727565;      // 'true' — older Apple TrueType
-    const uint ttcMagic = 0x74746366;       // 'ttcf' — TrueType Collection
-    const uint woff2Magic = 0x774F4632;     // 'wOF2' — Web Open Font Format 2.0
+    // TrueType outlines
+    const uint ttfMagic = 0x00010000;
+    // 'OTTO' — CFF outlines
+    const uint otfMagic = 0x4F54544F;
+    // 'true' — older Apple TrueType
+    const uint trueMagic = 0x74727565;
+    // 'ttcf' — TrueType Collection
+    const uint ttcMagic = 0x74746366;
+    // 'wOF2' — Web Open Font Format 2.0
+    const uint woff2Magic = 0x774F4632;
 
     // Table tags (big-endian 4-char codes)
-    const uint nameTag = 0x6E616D65;        // 'name'
-    const uint os2Tag = 0x4F532F32;         // 'OS/2'
+    // 'name'
+    const uint nameTag = 0x6E616D65;
+    // 'OS/2'
+    const uint os2Tag = 0x4F532F32;
 
     // Name IDs we extract (ignoring the rest)
     const int nameIdFamily = 1;

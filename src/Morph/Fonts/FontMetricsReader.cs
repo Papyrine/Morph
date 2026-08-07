@@ -7,16 +7,25 @@
 /// </summary>
 static class FontMetricsReader
 {
-    const uint ttfMagic = 0x00010000;   // TrueType outlines
-    const uint otfMagic = 0x4F54544F;   // 'OTTO' — CFF outlines
-    const uint trueMagic = 0x74727565;  // 'true' — older Apple TrueType
-    const uint ttcMagic = 0x74746366;   // 'ttcf' — TrueType Collection
+    // TrueType outlines
+    const uint ttfMagic = 0x00010000;
+    // 'OTTO' — CFF outlines
+    const uint otfMagic = 0x4F54544F;
+    // 'true' — older Apple TrueType
+    const uint trueMagic = 0x74727565;
+    // 'ttcf' — TrueType Collection
+    const uint ttcMagic = 0x74746366;
 
-    const uint headTag = 0x68656164;    // 'head'
-    const uint hheaTag = 0x68686561;    // 'hhea'
-    const uint hmtxTag = 0x686D7478;    // 'hmtx'
-    const uint cmapTag = 0x636D6170;    // 'cmap'
-    const uint os2Tag = 0x4F532F32;     // 'OS/2'
+    // 'head'
+    const uint headTag = 0x68656164;
+    // 'hhea'
+    const uint hheaTag = 0x68686561;
+    // 'hmtx'
+    const uint hmtxTag = 0x686D7478;
+    // 'cmap'
+    const uint cmapTag = 0x636D6170;
+    // 'OS/2'
+    const uint os2Tag = 0x4F532F32;
 
     // Safety bound on the eagerly-expanded codepoint→glyph map, so a malformed cmap claiming a
     // group spanning the whole Unicode range can't allocate unbounded memory. Far above any real
@@ -284,7 +293,8 @@ static class FontMetricsReader
         var segCountX2 = BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(subtable + 6, 2));
         var segCount = segCountX2 / 2;
         var endCodes = subtable + 14;
-        var startCodes = endCodes + segCountX2 + 2;       // + reservedPad
+        // + reservedPad
+        var startCodes = endCodes + segCountX2 + 2;
         var idDeltas = startCodes + segCountX2;
         var idRangeOffsets = idDeltas + segCountX2;
         if (idRangeOffsets + segCountX2 > bytes.Length)
@@ -302,7 +312,8 @@ static class FontMetricsReader
 
             if (start > end || start == 0xFFFF)
             {
-                continue; // the required 0xFFFF sentinel segment maps nothing
+                // the required 0xFFFF sentinel segment maps nothing
+                continue;
             }
 
             for (var code = start; code <= end; code++)
@@ -378,7 +389,8 @@ static class FontMetricsReader
 
                 if (code == 0xFFFFFFFF)
                 {
-                    break; // guard the unsigned wrap at the top of the range
+                    // guard the unsigned wrap at the top of the range
+                    break;
                 }
             }
         }

@@ -37,7 +37,8 @@ public class PageBordersTests
         await Assert.That(borders.Right.IsVisible).IsTrue();
         await Assert.That(borders.Bottom.IsVisible).IsTrue();
         await Assert.That(borders.Left.IsVisible).IsTrue();
-        await Assert.That(borders.Top.WidthPoints).IsEqualTo(3); // sz=24 → 24/8 = 3pt
+        // sz=24 → 24/8 = 3pt
+        await Assert.That(borders.Top.WidthPoints).IsEqualTo(3);
         await Assert.That(borders.Top.ColorHex).IsEqualTo("000000");
         await Assert.That(borders.TopSpacePoints).IsEqualTo(24);
     }

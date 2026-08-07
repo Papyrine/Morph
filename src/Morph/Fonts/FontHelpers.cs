@@ -293,8 +293,7 @@ static class FontHelpers
     // there, and Word glyph-falls-back to Segoe UI Symbol when it doesn't (which these four
     // mirror via the subset).
     internal static bool RequiresBulletFont(string? markerText) =>
-        markerText is {Length: 1} &&
-        markerText[0] is '■' or '◆' or '▸' or '►';
+        markerText is ['■' or '◆' or '▸' or '►'];
 
     // Bullets declared in Symbol/Wingdings always need the embedded subset — Linux/macOS don't
     // ship those proprietary faces.

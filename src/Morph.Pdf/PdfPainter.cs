@@ -15,8 +15,19 @@
 /// </summary>
 static class PdfPainter
 {
+    // Resolution the WordArt raster is produced at. PDF is vector, so the shape has no natural pixel size;
+    // 300 dpi keeps the embedded bitmap sharp in print without bloating the file — the same value the
+    // deleted production PdfPageRenderer embedded at.
+    const int wordArtRasterDpi = 300;
+
+    // EMU per point (914400 EMU/inch ÷ 72 pt/inch).
+    const double emusPerPoint = 12700;
+
     // Positions text by its baseline at the drawn point, matching how the tree records PlacedLine.Baseline.
-    static readonly XStringFormat baselineFormat = new() { LineAlignment = XLineAlignment.BaseLine };
+    static readonly XStringFormat baselineFormat = new()
+    {
+        LineAlignment = XLineAlignment.BaseLine
+    };
 
     /// <summary>
     /// The context is created once for the font resolver, cache and PdfDocument; its PageSettings is only a
@@ -33,7 +44,7 @@ static class PdfPainter
         double fontWidthScale,
         Func<string, string?>? fontFallback,
         string? fontDirectory) =>
-        new(document.Pages.Count > 0 ? document.Pages[0].Settings : new PageSettings(),
+        new(document.Pages.Count > 0 ? document.Pages[0].Settings : new(),
             compatibility,
             fontWidthScale,
             fontFallback,
@@ -90,7 +101,7 @@ static class PdfPainter
                 PaintImage(context, graphics, image);
                 break;
             case PlacedShape shape:
-                PaintShape(context, graphics, shape);
+                PaintShape(graphics, shape);
                 break;
             case PlacedWordArt wordArt:
                 PaintWordArt(context, graphics, wordArt, rasterizeWordArt, onWarning);
@@ -103,11 +114,6 @@ static class PdfPainter
                 break;
         }
     }
-
-    // Resolution the WordArt raster is produced at. PDF is vector, so the shape has no natural pixel size;
-    // 300 dpi keeps the embedded bitmap sharp in print without bloating the file — the same value the
-    // deleted production PdfPageRenderer embedded at.
-    const int wordArtRasterDpi = 300;
 
     // A warped WordArt figure. PdfSharp cannot draw the warp geometry, so — exactly as the deleted
     // production TryEmbedWordArt did — a raster backend rasterizes the shape to a transparent PNG
@@ -313,7 +319,7 @@ static class PdfPainter
                 var state = graphics.Save();
                 if (Math.Abs(image.RotationDegrees) > 0.01)
                 {
-                    graphics.RotateAtTransform(image.RotationDegrees, new XPoint(centerX, centerY));
+                    graphics.RotateAtTransform(image.RotationDegrees, new(centerX, centerY));
                 }
 
                 if (image.FlipHorizontal || image.FlipVertical)
@@ -342,7 +348,7 @@ static class PdfPainter
                         for (var pointIndex = 0; pointIndex < contour.Count; pointIndex++)
                         {
                             var (unitX, unitY) = contour[pointIndex];
-                            points[pointIndex] = new XPoint(image.X + unitX * image.Width, image.Y + unitY * image.Height);
+                            points[pointIndex] = new(image.X + unitX * image.Width, image.Y + unitY * image.Height);
                         }
 
                         clipPath.AddPolygon(points);
@@ -382,9 +388,6 @@ static class PdfPainter
             graphics.DrawImage(decoded, image.X, image.Y, image.Width, image.Height);
         }
     }
-
-    // EMU per point (914400 EMU/inch ÷ 72 pt/inch).
-    const double emusPerPoint = 12700;
 
     // An inline shape group (a grouped drawing embedded in a run): its child shapes scaled from the group's
     // child coordinate space into the inline box, painted back to front. A verbatim port of
@@ -503,7 +506,7 @@ static class PdfPainter
     // the unit square into the box with flip/rotation baked in by BuildShapePath) or, absent those, its
     // preset box (rect or ellipse). The fill is a linear gradient (reusing the production brush) or a solid
     // colour. An image-fill shape is painted as a plain image by the body-float path, so it is skipped here.
-    static void PaintShape(PdfRenderContext context, XGraphics graphics, PlacedShape placed)
+    static void PaintShape(XGraphics graphics, PlacedShape placed)
     {
         var shape = placed.Shape;
         if (shape.ImageData is { Length: > 0 })
@@ -532,7 +535,7 @@ static class PdfPainter
         if (shape.LineColorHex is { } lineHex)
         {
             var rgb = PdfRenderContext.ParseColor(lineHex);
-            pen = new XPen(XColor.FromArgb(PdfShapeDrawing.AlphaByte(shape.LineAlpha), rgb.R, rgb.G, rgb.B), Math.Max(0.5, shape.LineWidthPoints ?? 1));
+            pen = new(XColor.FromArgb(PdfShapeDrawing.AlphaByte(shape.LineAlpha), rgb.R, rgb.G, rgb.B), Math.Max(0.5, shape.LineWidthPoints ?? 1));
         }
         if (fill == null && pen == null)
         {

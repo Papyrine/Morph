@@ -11,7 +11,7 @@ using Morph.PDFium;
 public class PdfPainterFidelityTests
 {
     static readonly string inputsDirectory = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
-    static readonly Fragmenter Fragmenter = new(LayoutTestFonts.Measurer);
+    static readonly Fragmenter fragmenter = new(LayoutTestFonts.Measurer);
     static readonly string fontsDirectory = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
 
     [Test]
@@ -48,9 +48,9 @@ public class PdfPainterFidelityTests
             byte[] pdfBytes;
             try
             {
-                var pdf = PdfPainter.Paint(Fragmenter.Layout(document.Elements, document.PageSettings, document.Header, document.Footer, document.FirstPageHeader, document.FirstPageFooter, document.EvenPageHeader, document.EvenPageFooter), fontsDirectory);
+                var pdf = PdfPainter.Paint(fragmenter.Layout(document.Elements, document.PageSettings, document.Header, document.Footer, document.FirstPageHeader, document.FirstPageFooter, document.EvenPageHeader, document.EvenPageFooter), fontsDirectory);
                 using var stream = new MemoryStream();
-                pdf.Save(stream, false);
+                await pdf.SaveAsync(stream);
                 pdfBytes = stream.ToArray();
             }
             catch
@@ -93,7 +93,7 @@ public class PdfPainterFidelityTests
             $"Painter fidelity vs Word: {ordered.Count} documents (page count matched), {pageCountMismatches} page-count mismatches skipped.",
             $"SSIM mean={meanSsim:F3} median={median:F3} (1.000 = pixel-identical to Word).",
             "",
-            "Best 8:",
+            "Best 8:"
         };
         report.AddRange(ordered.Take(8).Select(_ => $"  {_.Ssim:F3}  {_.Name} ({_.Pages}p)"));
         report.Add("");
@@ -105,9 +105,9 @@ public class PdfPainterFidelityTests
         // set write the full per-document ranking to the named file for fidelity-floor triage. Off by default.
         if (Environment.GetEnvironmentVariable("MORPH_FID_REPORT") is { Length: > 0 } reportPath)
         {
-            File.WriteAllText(reportPath,
-                string.Join("\n", report) + "\n\nALL (worst first):\n" +
-                string.Join("\n", ordered.AsEnumerable().Reverse().Select(_ => $"  {_.Ssim:F3}  {_.Name} ({_.Pages}p)")));
+            await File.WriteAllTextAsync(reportPath,
+                string.Join('\n', report) + "\n\nALL (worst first):\n" +
+                string.Join('\n', ordered.AsEnumerable().Reverse().Select(_ => $"  {_.Ssim:F3}  {_.Name} ({_.Pages}p)")));
         }
 
         await Assert.That(ordered.Count).IsGreaterThan(100);

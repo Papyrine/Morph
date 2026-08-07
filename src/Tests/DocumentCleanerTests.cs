@@ -1,12 +1,8 @@
-using System.IO.Compression;
-using System.Xml.Linq;
-
 /// <summary>
 /// Covers <see cref="DocumentCleaner"/>. The parts it removes are unreachable from
 /// <c>word/document.xml</c> content, so the load-bearing assertion in most of these tests is not
 /// "the part is gone" but "the exported HTML is byte-identical afterwards" — if a removal ever
 /// starts changing what Morph renders, that is the assertion that catches it.
-///
 /// Every removable part is grafted onto a clean corpus copy rather than borrowed from a corpus
 /// document that happens to carry one. That is not incidental: <see cref="InputDocxUnusedPartsTests"/>
 /// forbids the corpus from carrying any of them, so a fixture that borrowed would be asserting
@@ -83,12 +79,12 @@ public class DocumentCleanerTests
     public async Task LeavesAPackageWithNothingToRemoveByteIdentical()
     {
         using var fixture = Fixture.Clean();
-        var original = File.ReadAllBytes(fixture.Path);
+        var original = await File.ReadAllBytesAsync(fixture.Path);
 
         var removed = DocumentCleaner.Remove(fixture.Path);
 
         await Assert.That(removed).IsEqualTo(DocumentParts.None);
-        await Assert.That(File.ReadAllBytes(fixture.Path)).IsEquivalentTo(original);
+        await Assert.That(await File.ReadAllBytesAsync(fixture.Path)).IsEquivalentTo(original);
     }
 
     [Test]
@@ -112,6 +108,9 @@ public class DocumentCleanerTests
         const string relationshipTypes = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 
         public required string Path { get; init; }
+
+        public void Dispose() =>
+            File.Delete(Path);
 
         /// <summary>A copy exactly as it sits in the corpus — carrying no removable part at all.</summary>
         public static Fixture Clean()
@@ -241,8 +240,5 @@ public class DocumentCleanerTests
             using var reader = new StreamReader(content);
             return reader.ReadToEnd();
         }
-
-        public void Dispose() =>
-            File.Delete(Path);
     }
 }

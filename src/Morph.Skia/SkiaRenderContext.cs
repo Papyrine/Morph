@@ -196,7 +196,10 @@ sealed class SkiaRenderContext(
     // reused across consecutive RenderFragment calls. Only the dominant fill paint is
     // shared — effects/borders/strikes that need different Style or StrokeWidth still
     // allocate their own to avoid mutation leaks across the call.
-    readonly SKPaint reusableTextPaint = new() { IsAntialias = true };
+    readonly SKPaint reusableTextPaint = new()
+    {
+        IsAntialias = true
+    };
 
     public SKPaint GetReusableTextPaint(RunProperties props)
     {
@@ -208,12 +211,19 @@ sealed class SkiaRenderContext(
     // fills, underline/strikethrough rules, cell shading) — same contract as
     // GetReusableTextPaint: single-threaded rendering, Skia reads paint state at draw time,
     // and no draw call uses two instances of the same shape-class at once.
-    readonly SKPaint reusableFillPaint = new() { Style = SKPaintStyle.Fill };
+    readonly SKPaint reusableFillPaint = new()
+    {
+        Style = SKPaintStyle.Fill
+    };
     // Stroke, not the SKPaint default of Fill: this paint strokes rules, text decorations and shape
     // outlines. DrawLine ignores the style, but DrawPath/DrawRect/DrawOval honour it — with the default
     // Fill a shape's outline flooded the whole shape with the line colour (menus/09's green border filled
     // the card over its grey fill).
-    readonly SKPaint reusableRulePaint = new() { IsAntialias = true, Style = SKPaintStyle.Stroke };
+    readonly SKPaint reusableRulePaint = new()
+    {
+        IsAntialias = true,
+        Style = SKPaintStyle.Stroke
+    };
 
     public SKPaint GetReusableFillPaint(SKColor color, bool antialias)
     {

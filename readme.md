@@ -277,9 +277,10 @@ var document = new WordDocument("document.docx");
 
 File.WriteAllText("document.html", document.ExportToHtml());
 File.WriteAllText("document.md",   document.ExportToMarkdown());
-document.ExportToPdf("document.pdf");   // extension method from Morph.Pdf
+// extension method from Morph.Pdf
+document.ExportToPdf("document.pdf");
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L123-L133' title='Snippet source file'>snippet source</a> | <a href='#snippet-ParseOnceExportMany' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L123-L134' title='Snippet source file'>snippet source</a> | <a href='#snippet-ParseOnceExportMany' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -310,7 +311,7 @@ var html = DocumentConverter.ConvertToHtml(
         }
     });
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L138-L160' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlExportWithImageHandler' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L139-L161' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlExportWithImageHandler' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -336,7 +337,7 @@ foreach (var warning in warnings)
     Console.WriteLine($"[{warning.Kind}] {warning.Message}");
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L165-L182' title='Snippet source file'>snippet source</a> | <a href='#snippet-WarningCallback' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L166-L183' title='Snippet source file'>snippet source</a> | <a href='#snippet-WarningCallback' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -357,7 +358,7 @@ var firstThreePages = PdfDocumentConverter.ConvertToPdf(
 
 File.WriteAllBytes("document-preview.pdf", firstThreePages);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L187-L199' title='Snippet source file'>snippet source</a> | <a href='#snippet-PdfPageRange' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L188-L200' title='Snippet source file'>snippet source</a> | <a href='#snippet-PdfPageRange' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -383,7 +384,7 @@ foreach (var path in result.ImagePaths)
     Console.WriteLine($"Created: {path}");
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L204-L218' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToImages' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L205-L219' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToImages' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -401,7 +402,7 @@ foreach (var pngBytes in imageData)
     // Use the PNG byte array as needed
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L223-L234' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToImageData' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L224-L235' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToImageData' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -416,9 +417,9 @@ The same exporters are available for an HTML source: `HtmlConverter.ConvertToHtm
 <a id='snippet-HtmlToMarkdown'></a>
 ```cs
 var markdown = await HtmlConverter.ConvertToMarkdown("<h1>Hello</h1><p>World</p>");
-File.WriteAllText("page.md", markdown);
+await File.WriteAllTextAsync("page.md", markdown);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L239-L244' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToMarkdown' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L240-L245' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToMarkdown' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -428,9 +429,9 @@ File.WriteAllText("page.md", markdown);
 <a id='snippet-HtmlToPdf'></a>
 ```cs
 var pdf = await PdfHtmlConverter.ConvertToPdf("<h1>Hello</h1><p>World</p>");
-File.WriteAllBytes("page.pdf", pdf);
+await File.WriteAllBytesAsync("page.pdf", pdf);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L249-L254' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToPdf' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L250-L255' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToPdf' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -445,11 +446,12 @@ File.WriteAllBytes("page.pdf", pdf);
 // source HTML is only parsed a single time.
 var document = await HtmlDocument.LoadAsync("<h1>Hello</h1><p>World</p>");
 
-File.WriteAllText("page.html", document.ExportToHtml());
-File.WriteAllText("page.md",   document.ExportToMarkdown());
-document.ExportToPdf("page.pdf");   // extension method from Morph.Pdf
+await File.WriteAllTextAsync("page.html", document.ExportToHtml());
+await File.WriteAllTextAsync("page.md",   document.ExportToMarkdown());
+// extension method from Morph.Pdf
+document.ExportToPdf("page.pdf");
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L259-L269' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlParseOnceExportMany' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L260-L271' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlParseOnceExportMany' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -471,7 +473,7 @@ foreach (var (bookmark, page) in pages)
     Console.WriteLine($"{bookmark} is on page {page}");
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L310-L321' title='Snippet source file'>snippet source</a> | <a href='#snippet-GetBookmarkPages' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L312-L323' title='Snippet source file'>snippet source</a> | <a href='#snippet-GetBookmarkPages' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 It costs a layout pass and nothing more — the answer is read off the layout engine's placed items, so no page is drawn and no rendering backend is involved. Bookmarks that cannot be placed, such as one sitting between paragraphs at body level (`ParagraphIndex == null`), are absent from the result rather than reported at a guessed page.
@@ -504,7 +506,7 @@ var removed = DocumentCleaner.Remove("document.docx");
 
 Console.WriteLine($"Removed: {removed}");
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L274-L283' title='Snippet source file'>snippet source</a> | <a href='#snippet-ShrinkDocx' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L276-L285' title='Snippet source file'>snippet source</a> | <a href='#snippet-ShrinkDocx' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 `DocumentParts` is a `[Flags]` enum, so a subset can be selected, and `Find` reports what a package holds without touching it:
@@ -527,7 +529,7 @@ using var source = File.OpenRead("document.docx");
 using var target = File.Create("document-clean.docx");
 DocumentCleaner.Remove(source, target, DocumentParts.Thumbnail | DocumentParts.Glossary);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L288-L305' title='Snippet source file'>snippet source</a> | <a href='#snippet-ShrinkDocxSelectively' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L290-L307' title='Snippet source file'>snippet source</a> | <a href='#snippet-ShrinkDocxSelectively' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 One caveat on `CustomXml`: a content control can carry a `w:dataBinding` into a data island. The bound value is also cached inline in `word/document.xml` — which is what Morph, and Word until it refreshes, actually reads — but if the island and the cache have drifted apart, removing the island changes what Word eventually shows.

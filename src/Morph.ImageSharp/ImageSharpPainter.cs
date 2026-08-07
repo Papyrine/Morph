@@ -1,10 +1,4 @@
-﻿using SixLabors.Fonts;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing;
-using SixLabors.ImageSharp.Drawing.Processing;
-using SixLabors.ImageSharp.PixelFormats;
-
-/// <summary>
+﻿/// <summary>
 /// Paints a backend-independent <see cref="LaidOutDocument"/> to PNG bitmaps — the ImageSharp analogue of
 /// <c>SkiaPainter</c> (docs/layout-engine.md, step 6). A pure draw pass over the tree the
 /// <c>Fragmenter</c> produced. ImageSharp records draw ops onto a deferred <see cref="DrawingCanvas"/> per
@@ -20,6 +14,9 @@ using SixLabors.ImageSharp.PixelFormats;
 /// </summary>
 static class ImageSharpPainter
 {
+    // EMU per point (914400 EMU/inch ÷ 72 pt/inch), matching ImageSharpShapeDrawing.
+    const float emusPerPoint = 12700f;
+
     public static void Paint(LaidOutDocument document, ImageSharpRenderContext context, Action<Action<Stream>> pageCallback)
     {
         foreach (var laidOutPage in document.Pages)
@@ -233,14 +230,16 @@ static class ImageSharpPainter
         var pad = WordArtRasterPage.Padding(wordArt.Visual);
         var width = (int) Math.Round(P(context, wordArt.Width + 2 * pad));
         var height = (int) Math.Round(P(context, wordArt.Height + 2 * pad));
-        if (context.GetProcessedImage(png, width, height, null, default, 0, false, false) is not { } processed)
+        if (context.GetProcessedImage(png, width, height, null, default, 0) is not {} processed)
         {
             return;
         }
 
-        canvas.DrawImage(processed, new Point(
-            (int) Math.Round(P(context, wordArt.X - pad)),
-            (int) Math.Round(P(context, wordArt.Y - pad))));
+        canvas.DrawImage(
+            processed,
+            new(
+                (int) Math.Round(P(context, wordArt.X - pad)),
+                (int) Math.Round(P(context, wordArt.Y - pad))));
     }
 
     static void PaintImage(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedImage image)
@@ -264,11 +263,8 @@ static class ImageSharpPainter
             return;
         }
 
-        canvas.DrawImage(processed, new Point((int) Math.Round(P(context, image.X)), (int) Math.Round(P(context, image.Y))));
+        canvas.DrawImage(processed, new((int) Math.Round(P(context, image.X)), (int) Math.Round(P(context, image.Y))));
     }
-
-    // EMU per point (914400 EMU/inch ÷ 72 pt/inch), matching ImageSharpShapeDrawing.
-    const float emusPerPoint = 12700f;
 
     // An inline shape group (a grouped drawing embedded in a run): its child shapes scaled from the group's
     // child coordinate space into the inline box, painted back to front. A verbatim port of
@@ -328,7 +324,7 @@ static class ImageSharpPainter
             var path = ImageSharpShapeDrawing.BuildGroupShapePath(shape, x1, y1, width, height)
                        ?? (isEllipse
                            ? new EllipsePolygon(x1 + width / 2, y1 + height / 2, width, height)
-                           : (IPath) new RectanglePolygon(x1, y1, width, height));
+                           : new RectanglePolygon(x1, y1, width, height));
 
             if (shape.Shadow is { } shadow)
             {
@@ -337,7 +333,7 @@ static class ImageSharpPainter
                 var shadowPath = ImageSharpShapeDrawing.BuildGroupShapePath(shape, shadowX, shadowY, width, height)
                                  ?? (isEllipse
                                      ? new EllipsePolygon(shadowX + width / 2, shadowY + height / 2, width, height)
-                                     : (IPath) new RectanglePolygon(shadowX, shadowY, width, height));
+                                     : new RectanglePolygon(shadowX, shadowY, width, height));
                 canvas.Fill(context.GetBrush(ImageSharpShapeDrawing.ParseColor(shadow.ColorHex, shadow.Alpha)), shadowPath);
             }
 
@@ -451,9 +447,9 @@ static class ImageSharpPainter
         var centreX = x + width / 2;
         var centreY = y + height / 2;
         var halfDiagonal = (float) Math.Sqrt(width * width + height * height) / 2;
-        return new LinearGradientBrush(
-            new PointF(centreX - dx * halfDiagonal, centreY - dy * halfDiagonal),
-            new PointF(centreX + dx * halfDiagonal, centreY + dy * halfDiagonal),
+        return new(
+            new(centreX - dx * halfDiagonal, centreY - dy * halfDiagonal),
+            new(centreX + dx * halfDiagonal, centreY + dy * halfDiagonal),
             GradientRepetitionMode.None,
             new ColorStop(0f, ImageSharpRenderContext.ParseColor(gradient.StartColorHex)),
             new ColorStop(1f, ImageSharpRenderContext.ParseColor(gradient.EndColorHex)));

@@ -10,14 +10,12 @@
 /// itself the broken image. That scenario is doubly instructive: it renders 6 pages against
 /// Word's 4, and a page-count mismatch suppresses the per-page AE/SSIM diffs entirely, so it
 /// had no metric coverage at all — this guard was the only thing watching it.
-///
 /// A rendered document page essentially always carries anti-aliased text, so it has hundreds
 /// of unique colours. A page that has collapsed to a single solid fill has a handful. Across
 /// the whole corpus the two populations are cleanly separated: the degenerate pages sit at
 /// 1–3 unique colours, the lowest healthy raster page at 159, with nothing in between. This
 /// guard flags any paginated raster baseline (<c>{skia,imagesharp,pdf}_result#page_*.verified.png</c>)
-/// whose unique-colour count has collapsed below <see cref="DegenerateColorThreshold"/>.
-///
+/// whose unique-colour count has collapsed below <see cref="degenerateColorThreshold"/>.
 /// Scope notes:
 /// * Only paginated page renders are checked. The single-image HTML/Markdown export snapshots
 ///   (<c>html_result.verified.png</c> / <c>md_result.verified.png</c>) are excluded: a text
@@ -43,12 +41,11 @@ public class BaselineHealthTests
     /// sits in that empty band with generous headroom against a future legitimately sparse
     /// page while still catching a solid fill plus a little hard-edged chrome.
     /// </summary>
-    const int DegenerateColorThreshold = 16;
+    const int degenerateColorThreshold = 16;
 
     /// <summary>
     /// Baselines that are allowed to be degenerate, keyed by their path relative to
     /// <c>Inputs/</c> with forward slashes. Two categories, kept distinct on purpose:
-    ///
     /// 1. Intentionally blank — Word itself renders the page empty, so the collapse is
     ///    correct and permanent.
     /// 2. Known regressions — a real defect that is tracked elsewhere and not yet fixed.
@@ -58,20 +55,20 @@ public class BaselineHealthTests
     /// The test also asserts that every entry here is STILL degenerate, so a fixed-and-
     /// regenerated page forces its own removal from this list instead of rotting here.
     /// </summary>
-    static readonly HashSet<string> KnownDegenerate = new(StringComparer.OrdinalIgnoreCase)
-    {
+    static readonly HashSet<string> knownDegenerate =
+    [
+        with(StringComparer.OrdinalIgnoreCase),
         // -- Intentionally blank (permanent) --
         // explicit_break_blank_page's second page is empty by design; Word renders it blank
         // too (the scenario ships expected_0002.png as a blank reference).
         "explicit_break_blank_page/skia_result#page_0002.verified.png",
         "explicit_break_blank_page/imagesharp_result#page_0002.verified.png",
-        "explicit_break_blank_page/pdf_result#page_0002.verified.png",
-
+        "explicit_break_blank_page/pdf_result#page_0002.verified.png"
         // -- Known regressions (temporary — remove when fixed) --
         // (none currently: the four newsletters/06 Skia pages this guard was written for were
         // fixed by treating a:ln/@w as absolute rather than group-scaled, see
         // docs/floating-art-pipeline.md.)
-    };
+    ];
 
     public static IEnumerable<string> GetScenarioDirectories()
     {
@@ -95,29 +92,29 @@ public class BaselineHealthTests
         foreach (var file in baselines)
         {
             var relative = Path.GetRelativePath(inputsDir, file).Replace('\\', '/');
-            var colors = CountColorsUpTo(file, DegenerateColorThreshold);
-            var suppressed = KnownDegenerate.Contains(relative);
+            var colors = CountColorsUpTo(file, degenerateColorThreshold);
+            var suppressed = knownDegenerate.Contains(relative);
 
             if (suppressed)
             {
-                if (colors > DegenerateColorThreshold)
+                if (colors > degenerateColorThreshold)
                 {
                     problems.Add(
                         $"{relative}: on the known-degenerate allow-list but now has more than " +
-                        $"{DegenerateColorThreshold} unique colours — it is no longer degenerate. If it " +
-                        $"was fixed, remove it from {nameof(KnownDegenerate)}.");
+                        $"{degenerateColorThreshold} unique colours — it is no longer degenerate. If it " +
+                        $"was fixed, remove it from {nameof(knownDegenerate)}.");
                 }
 
                 continue;
             }
 
-            if (colors <= DegenerateColorThreshold)
+            if (colors <= degenerateColorThreshold)
             {
                 problems.Add(
                     $"{relative}: only {colors} unique colours — the page has collapsed to a near-solid " +
                     "fill with no rendered content. The Verify suite cannot catch this because AE and " +
                     "SSIM compare the baseline against itself. If the page is intentionally blank, add " +
-                    $"it to {nameof(KnownDegenerate)}; otherwise this is a rendering regression that " +
+                    $"it to {nameof(knownDegenerate)}; otherwise this is a rendering regression that " +
                     "must be fixed before the baseline is promoted.");
             }
         }
@@ -130,7 +127,6 @@ public class BaselineHealthTests
     /// Distinct pixel colours in the page, counted from the decoded pixels (the same vendored
     /// decoder <see cref="PageComparison"/> uses, so the whole suite stays off Magick — see
     /// docs/fidelity-audit.md).
-    ///
     /// Counting stops once more than <paramref name="cap"/> distinct colours have been seen: the
     /// guard only needs to tell "collapsed to a solid fill" from "has content", and a healthy page
     /// hits the cap within its first few hundred pixels, which keeps a full-corpus scan quick. The
@@ -144,7 +140,7 @@ public class BaselineHealthTests
         var seen = new HashSet<uint>();
         for (var i = 0; i < rgba.Length; i += 4)
         {
-            var color = (uint) (rgba[i] << 24 | rgba[i + 1] << 16 | rgba[i + 2] << 8 | rgba[i + 3]);
+            var color = (uint) ((rgba[i] << 24) | (rgba[i + 1] << 16) | (rgba[i + 2] << 8) | rgba[i + 3]);
             if (seen.Add(color) && seen.Count > cap)
             {
                 return cap + 1;
