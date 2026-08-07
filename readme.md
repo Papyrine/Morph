@@ -276,7 +276,7 @@ For multi-format export, `WordDocument` parses the source a single time and supp
 var document = new WordDocument("document.docx");
 
 File.WriteAllText("document.html", document.ExportToHtml());
-File.WriteAllText("document.md", document.ExportToMarkdown());
+File.WriteAllText("document.md",   document.ExportToMarkdown());
 // extension method from Morph.Pdf
 document.ExportToPdf("document.pdf");
 ```
@@ -302,8 +302,8 @@ var html = DocumentConverter.ConvertToHtml(
             var extension = image.ContentType switch
             {
                 "image/svg+xml" => "svg",
-                "image/jpeg" => "jpg",
-                _ => "png"
+                "image/jpeg"    => "jpg",
+                _               => "png"
             };
             var path = $"media/image-{image.Index}.{extension}";
             File.WriteAllBytes(path, image.Data);
@@ -447,7 +447,7 @@ await File.WriteAllBytesAsync("page.pdf", pdf);
 var document = await HtmlDocument.LoadAsync("<h1>Hello</h1><p>World</p>");
 
 await File.WriteAllTextAsync("page.html", document.ExportToHtml());
-await File.WriteAllTextAsync("page.md", document.ExportToMarkdown());
+await File.WriteAllTextAsync("page.md",   document.ExportToMarkdown());
 // extension method from Morph.Pdf
 document.ExportToPdf("page.pdf");
 ```
