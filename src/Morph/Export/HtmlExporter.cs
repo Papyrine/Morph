@@ -79,7 +79,15 @@ static class HtmlExporter
         // streams the body straight into the document builder — the whole output used to be
         // materialized as a body string and copied into a second builder at the end.
         var doc = new StringBuilder();
-        doc.Append("<!doctype html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n<style>\n");
+        doc.Append(
+            """
+            <!doctype html>
+            <html>
+            <head>
+            <meta charset="utf-8">
+            <style>
+
+            """);
         doc.Append(defaultStylesheet);
         doc.Append("\n</style>\n</head>\n<body");
 
@@ -183,9 +191,12 @@ static class HtmlExporter
     {
         var weights = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
         AccumulateFontWeights(elements, weights);
-        return weights.Count == 0
-            ? null
-            : weights.OrderByDescending(_ => _.Value).ThenBy(_ => _.Key, StringComparer.Ordinal).First().Key;
+        if (weights.Count == 0)
+        {
+            return null;
+        }
+
+        return weights.OrderByDescending(_ => _.Value).ThenBy(_ => _.Key, StringComparer.Ordinal).First().Key;
     }
 
     static void AccumulateFontWeights(IReadOnlyList<DocumentElement> elements, Dictionary<string, long> weights)
@@ -888,8 +899,9 @@ static class HtmlExporter
             var gridColumn = 0;
             foreach (var cell in cells)
             {
-                var span = Math.Max(1, cell.Properties.GridSpan);
-                if (cell.Properties.VerticalMerge == VerticalMergeType.Continue)
+                var properties = cell.Properties;
+                var span = Math.Max(1, properties.GridSpan);
+                if (properties.VerticalMerge == VerticalMergeType.Continue)
                 {
                     gridColumn += span;
                     continue;
@@ -902,7 +914,7 @@ static class HtmlExporter
                     builder.Append(" colspan=\"").Append(span).Append('"');
                 }
 
-                var rowSpan = cell.Properties.VerticalMerge == VerticalMergeType.Restart
+                var rowSpan = properties.VerticalMerge == VerticalMergeType.Restart
                     ? ComputeRowSpan(rows, rowIndex, gridColumn)
                     : 1;
                 if (rowSpan > 1)
@@ -913,9 +925,9 @@ static class HtmlExporter
                 // Resolve the cell's effective borders through the shared cell→table→inside cascade,
                 // so a cell inherits the table's grid/outline borders when it sets none of its own.
                 var borders = TableLayout.ResolveCellBorders(
-                    cell.Properties, table.Properties, rowIndex, gridColumn, rows.Count, totalColumns, rows[rowIndex]);
+                    properties, table.Properties, rowIndex, gridColumn, rows.Count, totalColumns, rows[rowIndex]);
 
-                var cellStyle = CellStyle(cell.Properties, borders);
+                var cellStyle = CellStyle(properties, borders);
 
                 // Cell paragraphs render inline (see AppendCellContent), so their alignment must
                 // ride on the cell: when every non-heading paragraph shares one non-left alignment
@@ -974,16 +986,25 @@ static class HtmlExporter
                 AppendBorders(parts, borders);
             }
 
-            return parts.Count == 0 ? null : string.Join("; ", parts);
+            if (parts.Count == 0)
+            {
+                return null;
+            }
+
+            return string.Join(';', parts);
         }
 
         // Emits the minimal CSS border declarations for a four-edge border set: a single shorthand
         // when all four edges are present and identical, otherwise one declaration per visible edge.
         static void AppendBorders(List<string> parts, CellBorders borders)
         {
-            if (borders.Top.IsVisible && borders.Right.IsVisible &&
-                borders.Bottom.IsVisible && borders.Left.IsVisible &&
-                borders.Top == borders.Right && borders.Right == borders.Bottom && borders.Bottom == borders.Left)
+            if (borders.Top.IsVisible &&
+                borders.Right.IsVisible &&
+                borders.Bottom.IsVisible &&
+                borders.Left.IsVisible &&
+                borders.Top == borders.Right &&
+                borders.Right == borders.Bottom &&
+                borders.Bottom == borders.Left)
             {
                 parts.Add($"border: {BorderCss(borders.Top)}");
                 return;
@@ -1196,7 +1217,8 @@ static class HtmlExporter
                 if (run.HyperlinkUrl is {Length: > 0} url)
                 {
                     builder.Append($"""<a href="{EncodeAttribute(url)}">""");
-                    while (index < runs.Count && runs[index].HyperlinkUrl == url)
+                    while (index < runs.Count &&
+                           runs[index].HyperlinkUrl == url)
                     {
                         AppendRun(runs[index], inHeading, inheritedFontSizePoints);
                         index++;
@@ -1662,7 +1684,10 @@ static class HtmlExporter
         // space is not always EMU (see docs/floating-art-pipeline.md).
         void AppendShapeGroup(InlineShapeGroup group, double widthPoints, double heightPoints)
         {
-            if (widthPoints <= 0 || heightPoints <= 0 || group.ChildExtentX <= 0 || group.ChildExtentY <= 0)
+            if (widthPoints <= 0 ||
+                heightPoints <= 0 ||
+                group.ChildExtentX <= 0 ||
+                group.ChildExtentY <= 0)
             {
                 return;
             }
@@ -1786,7 +1811,9 @@ static class HtmlExporter
             }
 
             AppendGroupGeometry(shape, isEllipse);
-            builder.Append(" fill=\"").Append(DocumentExportHelpers.NormalizeColor(shape.FillColorHex) ?? "none").Append('"');
+            builder
+                .Append(" fill=\"")
+                .Append(DocumentExportHelpers.NormalizeColor(shape.FillColorHex) ?? "none").Append('"');
             if (shape is
                 {
                     FillColorHex: not null,
@@ -1930,7 +1957,15 @@ static class HtmlExporter
                 ? dropDown.Items[dropDown.SelectedIndex]
                 : "";
 
-        StringBuilder Indent(int depth) => options.PrettyFormat ? builder.Append(' ', depth * 2) : builder;
+        StringBuilder Indent(int depth)
+        {
+            if (options.PrettyFormat)
+            {
+                return builder.Append(' ', depth * 2);
+            }
+
+            return builder;
+        }
 
         static int ToPixels(double points) => (int) Math.Round(points * 96.0 / 72.0);
 
