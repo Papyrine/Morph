@@ -15,16 +15,26 @@ static class DefaultPageSize
     static HashSet<string> letterRegions =
     [
         with(StringComparer.OrdinalIgnoreCase),
-        "US", // United States
-        "CA", // Canada
-        "MX", // Mexico
-        "PH", // Philippines
-        "CL", // Chile
-        "CO", // Colombia
-        "VE", // Venezuela
-        "GT", // Guatemala
-        "CR", // Costa Rica
-        "PA" // Panama
+        // United States
+        "US",
+        // Canada
+        "CA",
+        // Mexico
+        "MX",
+        // Philippines
+        "PH",
+        // Chile
+        "CL",
+        // Colombia
+        "CO",
+        // Venezuela
+        "VE",
+        // Guatemala
+        "GT",
+        // Costa Rica
+        "CR",
+        // Panama
+        "PA"
     ];
 
     static bool? useLetterSize;

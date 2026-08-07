@@ -9,19 +9,38 @@ using PdfSharp.Pdf.IO;
 /// </summary>
 public class PdfPainterTests
 {
-    static readonly Fragmenter Fragmenter = new(LayoutTestFonts.Measurer);
+    static readonly Fragmenter fragmenter = new(LayoutTestFonts.Measurer);
     static readonly string fontsDirectory = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
+
+    // US Letter, 1-inch margins.
+    static PageSettings LetterPage =>
+        new()
+        {
+            WidthPoints = 612,
+            HeightPoints = 792,
+            MarginTop = 72,
+            MarginBottom = 72,
+            MarginLeft = 72,
+            MarginRight = 72
+        };
 
     static ParagraphElement P(string text) =>
         new()
         {
-            Runs = [new Run { Text = text, Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }],
+            Runs =
+            [
+                new()
+                {
+                    Text = text,
+                    Properties = new()
+                    {
+                        FontFamily = "Aptos",
+                        FontSizePoints = 11
+                    }
+                }
+            ],
             Properties = new()
         };
-
-    // US Letter, 1-inch margins.
-    static PageSettings LetterPage =>
-        new() { WidthPoints = 612, HeightPoints = 792, MarginTop = 72, MarginBottom = 72, MarginLeft = 72, MarginRight = 72 };
 
     [Test]
     public async Task Paints_the_tree_to_a_valid_multipage_pdf_at_the_trees_geometry()
@@ -30,7 +49,7 @@ public class PdfPainterTests
         var elements = Enumerable.Range(0, 120)
             .Select(_ => (DocumentElement) P($"Paragraph {_} with several words to fill out a line of the page."))
             .ToList();
-        var tree = Fragmenter.Layout(elements, LetterPage);
+        var tree = fragmenter.Layout(elements, LetterPage);
         await Assert.That(tree.Pages.Count > 1).IsTrue();
 
         // The painter's input is real content: the tree's placed lines carry the paragraph text.
@@ -40,7 +59,7 @@ public class PdfPainterTests
 
         var pdf = PdfPainter.Paint(tree, fontsDirectory);
         using var stream = new MemoryStream();
-        pdf.Save(stream, false);
+        await pdf.SaveAsync(stream);
 
         // Reopen the saved bytes: a valid PDF with exactly the tree's pages at the tree's geometry — the
         // painter added no pages and paginated nothing.

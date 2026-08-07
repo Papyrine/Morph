@@ -356,7 +356,10 @@ sealed class HtmlParser
                 elements.Add(new ParagraphElement
                 {
                     Runs = para.Runs,
-                    Properties = para.Properties with { BackgroundColorHex = background },
+                    Properties = para.Properties with
+                    {
+                        BackgroundColorHex = background
+                    },
                     IsAnchorOnlyMark = para.IsAnchorOnlyMark,
                     IsCollapsedCellMark = para.IsCollapsedCellMark
                 });

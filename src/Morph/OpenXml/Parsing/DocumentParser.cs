@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using A = DocumentFormat.OpenXml.Drawing;
+﻿using A = DocumentFormat.OpenXml.Drawing;
 using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using OoxmlParagraphProperties = DocumentFormat.OpenXml.Wordprocessing.ParagraphProperties;
 using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
@@ -1792,7 +1791,7 @@ sealed class DocumentParser(string defaultFont)
                 if (widowControlEl != null)
                 {
                     var valAttribute = widowControlEl.Val;
-                    if (valAttribute != null && valAttribute.HasValue)
+                    if (valAttribute is {HasValue: true})
                     {
                         widowControl = valAttribute.Value;
                     }
@@ -2787,13 +2786,20 @@ sealed class DocumentParser(string defaultFont)
         {
             return c switch
             {
-                '' => "▪", // Wingdings 0x76 - small filled square
-                '' => "▪", // Wingdings 0xA7 - black small square (Word's default bullet at ilvl 2)
-                '' => "▢", // Wingdings 0xA8 - white square
-                '' => "✓", // Wingdings 0xFC - check mark
-                '' => "✗", // Wingdings 0xFB - ballot X
-                '' => "►", // Wingdings 0xD8 - black right-pointing pointer
-                _ => "▪" // Default Wingdings bullet to a small square
+                // Wingdings 0x76 - small filled square
+                '' => "▪",
+                // Wingdings 0xA7 - black small square (Word's default bullet at ilvl 2)
+                '' => "▪",
+                // Wingdings 0xA8 - white square
+                '' => "▢",
+                // Wingdings 0xFC - check mark
+                '' => "✓",
+                // Wingdings 0xFB - ballot X
+                '' => "✗",
+                // Wingdings 0xD8 - black right-pointing pointer
+                '' => "►",
+                // Default Wingdings bullet to a small square
+                _ => "▪"
             };
         }
 
@@ -2801,10 +2807,14 @@ sealed class DocumentParser(string defaultFont)
         // bullet font in Word templates, so it's the safest default).
         return c switch
         {
-            '' => "•", // Symbol 0xB7 - bullet operator
-            '' => "●", // Symbol 0x6C - filled circle
-            '' => "○", // Symbol 0xA8 - hollow circle
-            '' => "◆", // Symbol 0xD8 - diamond
+            // Symbol 0xB7 - bullet operator
+            '' => "•",
+            // Symbol 0x6C - filled circle
+            '' => "●",
+            // Symbol 0xA8 - hollow circle
+            '' => "○",
+            // Symbol 0xD8 - diamond
+            '' => "◆",
             _ => "•"
         };
     }
@@ -3200,16 +3210,26 @@ sealed class DocumentParser(string defaultFont)
     /// </summary>
     static readonly Dictionary<int, (double Width, double Height)> paperSizePoints = new()
     {
-        [1] = (612, 792),               // Letter, 8.5 x 11 in
-        [3] = (792, 1224),              // Tabloid, 11 x 17 in
-        [5] = (612, 1008),              // Legal, 8.5 x 14 in
-        [7] = (522, 756),               // Executive, 7.25 x 10.5 in
-        [8] = (841.8898, 1190.5512),    // A3, 297 x 420 mm
-        [9] = (595.2756, 841.8898),     // A4, 210 x 297 mm
-        [11] = (419.5276, 595.2756),    // A5, 148 x 210 mm
-        [13] = (515.9055, 728.5039),    // B5 (JIS), 182 x 257 mm
-        [23] = (360, 828),              // Envelope #14, 5 x 11.5 in
-        [27] = (311.8110, 623.6220)     // Envelope DL, 110 x 220 mm
+        // Letter, 8.5 x 11 in
+        [1] = (612, 792),
+        // Tabloid, 11 x 17 in
+        [3] = (792, 1224),
+        // Legal, 8.5 x 14 in
+        [5] = (612, 1008),
+        // Executive, 7.25 x 10.5 in
+        [7] = (522, 756),
+        // A3, 297 x 420 mm
+        [8] = (841.8898, 1190.5512),
+        // A4, 210 x 297 mm
+        [9] = (595.2756, 841.8898),
+        // A5, 148 x 210 mm
+        [11] = (419.5276, 595.2756),
+        // B5 (JIS), 182 x 257 mm
+        [13] = (515.9055, 728.5039),
+        // Envelope #14, 5 x 11.5 in
+        [23] = (360, 828),
+        // Envelope DL, 110 x 220 mm
+        [27] = (311.8110, 623.6220)
     };
 
     /// <summary>
@@ -4734,7 +4754,8 @@ sealed class DocumentParser(string defaultFont)
         var width = 0.5;
         if (border.Size?.HasValue == true)
         {
-            width = border.Size.Value / 8.0; // Size is in eighths of a point
+            // Size is in eighths of a point
+            width = border.Size.Value / 8.0;
         }
 
         var color = "000000";
@@ -5856,7 +5877,8 @@ sealed class DocumentParser(string defaultFont)
         public double M12;
         public double M21;
         public double M22;
-        public double OffsetX; // Accumulated translation in EMUs
+        // Accumulated translation in EMUs
+        public double OffsetX;
         public double OffsetY;
 
         public static AccumulatedTransform Identity =>
@@ -9282,7 +9304,8 @@ sealed class DocumentParser(string defaultFont)
             ListItems = listItems,
             DateValue = dateValue,
             DateFormat = dateFormat,
-            WidthPoints = 100 // Default width
+            // Default width
+            WidthPoints = 100
         };
     }
 
@@ -9390,7 +9413,8 @@ sealed class DocumentParser(string defaultFont)
                 Value = defaultElement?.Val?.Value ?? "",
                 MaxLength = maxLengthElement?.Val?.Value ?? 0,
                 TextType = textType,
-                WidthPoints = 100 // Default width
+                // Default width
+                WidthPoints = 100
             };
         }
 
@@ -9411,7 +9435,8 @@ sealed class DocumentParser(string defaultFont)
                 Enabled = enabled,
                 Items = items,
                 SelectedIndex = selectedIndex,
-                WidthPoints = 100 // Default width
+                // Default width
+                WidthPoints = 100
             };
         }
 
@@ -9433,7 +9458,8 @@ sealed class DocumentParser(string defaultFont)
         }
 
         var typeElement = typeSource.GetFirstChild<SectionType>();
-        var breakType = SectionBreakType.NextPage; // Default
+        // Default
+        var breakType = SectionBreakType.NextPage;
 
         if (typeElement?.Val?.HasValue == true)
         {
@@ -9635,7 +9661,8 @@ sealed class DocumentParser(string defaultFont)
         // Pagination properties - get from style defaults
         var keepLines = styleDefaults?.KeepLines ?? false;
         var keepNext = styleDefaults?.KeepNext ?? false;
-        var widowControl = styleDefaults?.WidowControl ?? true; // Default is true per OpenXML spec
+        // Default is true per OpenXML spec
+        var widowControl = styleDefaults?.WidowControl ?? true;
         var pageBreakBefore = styleDefaults?.PageBreakBefore ?? false;
         var backgroundColor = styleDefaults?.BackgroundColorHex;
 
@@ -9848,13 +9875,14 @@ sealed class DocumentParser(string defaultFont)
             // If the element exists with val="0" or val="false", widow control is disabled
             // If val is missing or true, it's enabled (but we default to true anyway)
             var valAttribute = widowControlEl.Val;
-            if (valAttribute != null && valAttribute.HasValue)
+            if (valAttribute is {HasValue: true})
             {
                 widowControl = valAttribute.Value;
             }
             else
             {
-                widowControl = true; // Presence without val means enabled
+                // Presence without val means enabled
+                widowControl = true;
             }
         }
 
@@ -10088,8 +10116,10 @@ sealed class DocumentParser(string defaultFont)
     }
 
     // Unicode characters for hyphenation
-    const char softHyphenChar = '\u00AD'; // Soft hyphen (optional break point)
-    const char nonBreakingHyphenChar = '\u2011'; // Non-breaking hyphen
+    // Soft hyphen (optional break point)
+    const char softHyphenChar = '\u00AD';
+    // Non-breaking hyphen
+    const char nonBreakingHyphenChar = '\u2011';
 
     string? ResolveHyperlinkUrl(Hyperlink hyperlink, MainDocumentPart mainPart)
     {

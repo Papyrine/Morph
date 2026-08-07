@@ -99,7 +99,13 @@ static class StrictToTransitional
             }
 
             using var stream = entry.Open();
-            using var reader = XmlReader.Create(stream, new() { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null });
+            using var reader = XmlReader.Create(
+                stream,
+                new()
+                {
+                    DtdProcessing = DtdProcessing.Prohibit,
+                    XmlResolver = null
+                });
             while (reader.Read())
             {
                 if (reader.NodeType == XmlNodeType.Element)

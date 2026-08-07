@@ -212,7 +212,8 @@ static class PngDecoder
         var dstRow = y * width * 4;
         switch (colorType)
         {
-            case 0: // gray
+            // gray
+            case 0:
                 for (var x = 0; x < width; x++)
                 {
                     var g = src[x];
@@ -224,7 +225,8 @@ static class PngDecoder
                 }
 
                 break;
-            case 2: // rgb
+            // rgb
+            case 2:
                 for (var x = 0; x < width; x++)
                 {
                     var o = dstRow + x * 4;
@@ -235,7 +237,8 @@ static class PngDecoder
                 }
 
                 break;
-            case 3: // palette
+            // palette
+            case 3:
                 if (palette is null)
                 {
                     throw new("Paletted PNG missing PLTE chunk.");
@@ -258,7 +261,8 @@ static class PngDecoder
                 }
 
                 break;
-            case 4: // gray + alpha
+            // gray + alpha
+            case 4:
                 for (var x = 0; x < width; x++)
                 {
                     var g = src[x * 2];
@@ -279,21 +283,24 @@ static class PngDecoder
         {
             case 0:
                 return;
-            case 1: // Sub
+            // Sub
+            case 1:
                 for (var i = bpp; i < curr.Length; i++)
                 {
                     curr[i] = (byte)(curr[i] + curr[i - bpp]);
                 }
 
                 return;
-            case 2: // Up
+            // Up
+            case 2:
                 for (var i = 0; i < curr.Length; i++)
                 {
                     curr[i] = (byte)(curr[i] + prev[i]);
                 }
 
                 return;
-            case 3: // Average
+            // Average
+            case 3:
                 for (var i = 0; i < curr.Length; i++)
                 {
                     var left = i >= bpp ? curr[i - bpp] : 0;
@@ -301,7 +308,8 @@ static class PngDecoder
                 }
 
                 return;
-            case 4: // Paeth
+            // Paeth
+            case 4:
                 for (var i = 0; i < curr.Length; i++)
                 {
                     var left = i >= bpp ? curr[i - bpp] : 0;

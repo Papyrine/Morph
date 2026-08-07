@@ -6,6 +6,11 @@ using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 static class OpenXmlExtensions
 {
     /// <summary>
+    /// Conversion constant: EMUs per point.
+    /// </summary>
+    public const double EmusPerPoint = 914400.0 / 72.0;
+
+    /// <summary>
     /// Materialises the builder's content with leading and trailing whitespace removed,
     /// trimming in place so only the final string is allocated (unlike
     /// <c>builder.ToString().Trim()</c>, which also allocates the untrimmed intermediate).
@@ -25,11 +30,6 @@ static class OpenXmlExtensions
 
         return builder.ToString(start, builder.Length - start);
     }
-
-    /// <summary>
-    /// Conversion constant: EMUs per point.
-    /// </summary>
-    public const double EmusPerPoint = 914400.0 / 72.0;
 
     /// <summary>
     /// Converts EMUs to points.
@@ -349,7 +349,7 @@ static class OpenXmlExtensions
         foreach (var ancestor in anchor.Ancestors())
         {
             if (ancestor is DocumentFormat.OpenXml.Wordprocessing.TableCell
-                or DocumentFormat.OpenXml.Wordprocessing.TextBoxContent)
+                or TextBoxContent)
             {
                 return true;
             }

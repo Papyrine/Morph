@@ -196,7 +196,12 @@ static class TableHeightCalculator
 
     // A row whose w:trHeight carries w:hRule="exact": its height is that value verbatim, so neither
     // content nor a collapsed border edge may grow it.
-    internal static bool IsPinnedExact(TableRow row) => row.HeightPoints.HasValue && row.IsExactHeight;
+    internal static bool IsPinnedExact(TableRow row) =>
+        row is
+        {
+            HeightPoints: not null,
+            IsExactHeight: true
+        };
 
     /// <summary>
     /// Widest visible top (or bottom) border across the cells of one row, in points. For the first

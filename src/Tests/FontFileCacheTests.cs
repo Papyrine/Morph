@@ -99,7 +99,8 @@ public class FontFileCacheTests
     {
         var cache = Build(("a.ttf", "Arial"));
         await Assert.That(cache.Contains("Arial")).IsTrue();
-        await Assert.That(cache.Contains("Arial Bold")).IsTrue(); // stripped fallback
+        // stripped fallback
+        await Assert.That(cache.Contains("Arial Bold")).IsTrue();
         await Assert.That(cache.Contains("Nothing")).IsFalse();
     }
 

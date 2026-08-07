@@ -235,10 +235,14 @@ public class NumberingTests
 
         await Assert.That(texts).IsEquivalentTo(new List<string>
         {
-            "I.",  "a.", "b.",  // Introductions
-            "II.", "a.", "b.",  // New business
-            "III.","a.",        // Old business
-            "IV.", "a."         // Conclusion
+            // Introductions
+            "I.",  "a.", "b.",
+            // New business
+            "II.", "a.", "b.",
+            // Old business
+            "III.","a.",
+            // Conclusion
+            "IV.", "a."
         });
     }
 }

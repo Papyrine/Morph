@@ -135,8 +135,10 @@ static class MarkdownExporter
                     break;
                 case InkElement:
                 case FloatingShapeElement:
-                    options.OnWarning?.Invoke(new(WarningKind.UnsupportedElement,
-                        $"{element.GetType().Name} cannot be represented in Markdown and was dropped."));
+                    options.OnWarning?.Invoke(
+                        new(
+                            WarningKind.UnsupportedElement,
+                            $"{element.GetType().Name} cannot be represented in Markdown and was dropped."));
                     break;
             }
         }
@@ -404,19 +406,29 @@ static class MarkdownExporter
                 var gridColumn = 0;
                 foreach (var cell in rows[rowIndex].Cells)
                 {
-                    if (DocumentExportHelpers.NormalizeColor(cell.Properties.BackgroundColorHex) != null)
+                    var properties = cell.Properties;
+                    if (DocumentExportHelpers.NormalizeColor(properties.BackgroundColorHex) != null)
                     {
                         return true;
                     }
 
                     var borders = TableLayout.ResolveCellBorders(
-                        cell.Properties, table.Properties, rowIndex, gridColumn, rows.Count, columnCount, rows[rowIndex]);
-                    if (borders is {HasAnyBorder: true})
+                        properties,
+                        table.Properties,
+                        rowIndex,
+                        gridColumn,
+                        rows.Count,
+                        columnCount,
+                        rows[rowIndex]);
+                    if (borders is
+                        {
+                            HasAnyBorder: true
+                        })
                     {
                         return true;
                     }
 
-                    gridColumn += Math.Max(1, cell.Properties.GridSpan);
+                    gridColumn += Math.Max(1, properties.GridSpan);
                 }
             }
 

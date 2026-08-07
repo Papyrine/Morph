@@ -444,8 +444,10 @@ public class CT_SchemeColorTests
         var themeColors = new ThemeColors { Accent3 = "73B3B8" };
         var transforms = new ColorTransforms
         {
-            LumMod = 20,  // 20% of original luminance
-            LumOff = 80   // Add 80% to luminance
+            // 20% of original luminance
+            LumMod = 20,
+            // Add 80% to luminance
+            LumOff = 80
         };
         var result = themeColors.ResolveColor("accent3", transforms);
         await Assert.That(result).IsNotNull();

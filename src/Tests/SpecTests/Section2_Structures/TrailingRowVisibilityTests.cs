@@ -39,15 +39,30 @@
 public class TrailingRowVisibilityTests
 {
     static TableRow RowWith(params DocumentElement[] content) =>
-        new() {Cells = [new TableCell {Content = content}]};
+        new()
+        {
+            Cells =
+            [
+                new()
+                {
+                    Content = content
+                }
+            ]
+        };
 
-    static ParagraphElement EmptyParagraph() => new() {Runs = []};
+    static ParagraphElement EmptyParagraph() => new()
+    {
+        Runs = []
+    };
 
     static TableElement NestedTable(CellBorders? borders) =>
         new()
         {
             Rows = [RowWith(EmptyParagraph())],
-            Properties = new() {DefaultBorders = borders}
+            Properties = new()
+            {
+                DefaultBorders = borders
+            }
         };
 
     /// <summary>An empty nested table keeps its row visible — Word carries such a row to a new page.</summary>
@@ -69,7 +84,17 @@ public class TrailingRowVisibilityTests
     {
         var row = new TableRow
         {
-            Cells = [new TableCell {Content = [EmptyParagraph()], Properties = new() {BackgroundColorHex = "000000"}}]
+            Cells =
+            [
+                new()
+                {
+                    Content = [EmptyParagraph()],
+                    Properties = new()
+                    {
+                        BackgroundColorHex = "000000"
+                    }
+                }
+            ]
         };
 
         await Assert.That(TableLayout.RowHasVisibleContent(row)).IsTrue();
