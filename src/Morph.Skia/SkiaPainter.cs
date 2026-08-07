@@ -1,6 +1,4 @@
-﻿using SkiaSharp;
-
-/// <summary>
+﻿/// <summary>
 /// Paints a backend-independent <see cref="LaidOutDocument"/> to PNG bitmaps — the raster analogue of
 /// <c>PdfPainter</c> (docs/layout-engine.md, step 6). A pure draw pass: every page size, line and
 /// run position comes from the tree the <c>Fragmenter</c> already produced, so there is no measurement and
@@ -477,11 +475,11 @@ static class SkiaPainter
         var centreY = y + height / 2;
         var halfDiagonal = (float) Math.Sqrt(width * width + height * height) / 2;
         var shader = SKShader.CreateLinearGradient(
-            new SKPoint(centreX - dx * halfDiagonal, centreY - dy * halfDiagonal),
-            new SKPoint(centreX + dx * halfDiagonal, centreY + dy * halfDiagonal),
+            new(centreX - dx * halfDiagonal, centreY - dy * halfDiagonal),
+            new(centreX + dx * halfDiagonal, centreY + dy * halfDiagonal),
             [SKColor.Parse(gradient.StartColorHex), SKColor.Parse(gradient.EndColorHex)],
             SKShaderTileMode.Clamp);
-        return new SKPaint
+        return new()
         {
             Shader = shader,
             Style = SKPaintStyle.Fill,

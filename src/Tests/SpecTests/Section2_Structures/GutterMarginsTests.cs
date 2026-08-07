@@ -19,7 +19,8 @@ public class GutterMarginsTests
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);
 
-        await Assert.That(doc.PageSettings.GutterPoints).IsEqualTo(36); // 720 twips = 36 pt
+        // 720 twips = 36 pt
+        await Assert.That(doc.PageSettings.GutterPoints).IsEqualTo(36);
         await Assert.That(doc.PageSettings.GutterAtTop).IsFalse();
         // Left margin (72 pt) plus gutter (36 pt) = 108 pt effective.
         await Assert.That(doc.PageSettings.MarginLeft).IsEqualTo(108);

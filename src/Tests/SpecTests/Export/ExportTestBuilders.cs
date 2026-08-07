@@ -4,6 +4,9 @@
 /// </summary>
 static class ExportTestBuilders
 {
+    // The run sizes Word's stock Heading 1-6 styles resolve to; index = level - 1.
+    static readonly double[] stockHeadingFontSizes = [16, 13, 12, 11, 11, 11];
+
     public static ParsedDocument Doc(params DocumentElement[] elements) =>
         new()
         {
@@ -18,11 +21,11 @@ static class ExportTestBuilders
             // Word's Normal style resolves to 8pt spacing-after; the parser surfaces that effective
             // value, so fixtures use it too — otherwise the exporter would treat the record's 0
             // default as a deviation and emit a spurious margin-bottom:0pt.
-            Properties = new() {SpacingAfterPoints = 8}
+            Properties = new()
+            {
+                SpacingAfterPoints = 8
+            }
         };
-
-    // The run sizes Word's stock Heading 1-6 styles resolve to; index = level - 1.
-    static readonly double[] stockHeadingFontSizes = [16, 13, 12, 11, 11, 11];
 
     public static ParagraphElement Heading(int level, string text) =>
         new()
@@ -31,7 +34,7 @@ static class ExportTestBuilders
             // the fixtures model it too (HTML emits <strong>, Markdown suppresses the redundant **).
             // The run size mirrors the stock style's resolved size so the fixture stays free of a
             // lifted font-size override.
-            Runs = [TextRun(text, bold: true, fontSize: stockHeadingFontSizes[Math.Min(level, 6) - 1])],
+            Runs = [TextRun(text, true, fontSize: stockHeadingFontSizes[Math.Min(level, 6) - 1])],
             Properties = new()
             {
                 StyleId = $"Heading{level}",
@@ -157,12 +160,22 @@ static class ExportTestBuilders
             }
         };
 
-    /// <summary>An empty marker run citing a footnote, the shape the parser emits for
-    /// <c>w:footnoteReference</c>.</summary>
-    public static Run FootnoteRef(string id) => new() {Text = "", FootnoteReferenceId = id};
+    /// <summary>
+    /// An empty marker run citing a footnote, the shape the parser emits for
+    /// <c>w:footnoteReference</c>.
+    /// </summary>
+    public static Run FootnoteRef(string id) => new()
+    {
+        Text = "",
+        FootnoteReferenceId = id
+    };
 
     /// <summary>An empty marker run citing an endnote (<c>w:endnoteReference</c>).</summary>
-    public static Run EndnoteRef(string id) => new() {Text = "", EndnoteReferenceId = id};
+    public static Run EndnoteRef(string id) => new()
+    {
+        Text = "",
+        EndnoteReferenceId = id
+    };
 
     public static TableElement Table(params TableRow[] rows) =>
         new()

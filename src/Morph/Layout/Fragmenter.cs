@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-/// <summary>
+﻿/// <summary>
 /// Flows a document's block content into pages once, backend-independently — the heart of the layout
 /// engine (<c>docs/layout-engine.md</c>, step 3). Handles multi-column block flow with
 /// **line-level** page/column breaks (a paragraph too tall for the space left splits at a line boundary
@@ -333,7 +331,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
                     // A block-level content control renders as its synthetic paragraph (the parser resolved
                     // its value — checkbox glyph, dropdown selection, formatted date, plain text — into runs).
-                    case ContentControlElement control when control.CellParagraph is { } controlParagraph:
+                    case ContentControlElement {CellParagraph: { } controlParagraph}:
                         PlaceParagraph(controlParagraph);
                         break;
 
@@ -352,15 +350,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     // An image-filled shape (a full-bleed background photo) paints as a plain image — the shape
                     // painter skips image fills. It carries the shape's rotation and flip; a shape image has no
                     // source crop or clip geometry of its own.
-                    case FloatingShapeElement shape when shape.ImageData is { Length: > 0 } && shape.ImageContentType != "image/svg+xml":
+                    case FloatingShapeElement {ImageData.Length: > 0} shape when shape.ImageContentType != "image/svg+xml":
                         EmitBodyFloat(shape, shape.VerticalAnchor, shape.AnchorParagraph);
                         break;
 
-                    case FloatingShapeElement shape when shape.ImageData == null && (shape.Gradient != null || shape.FillColorHex != null || shape.LineColorHex != null):
+                    case FloatingShapeElement {ImageData: null} shape when (shape.Gradient != null || shape.FillColorHex != null || shape.LineColorHex != null):
                         EmitBodyFloat(shape, shape.VerticalAnchor, shape.AnchorParagraph);
                         break;
 
-                    case FloatingTextBoxElement textBox when textBox.WrapType == WrapType.None:
+                    case FloatingTextBoxElement {WrapType: WrapType.None} textBox:
                         PlaceTextBox(textBox);
                         break;
 
@@ -586,7 +584,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     break;
                 }
 
-                case FloatingShapeElement shape when shape.ImageData is { Length: > 0 } shapeImage && shape.ImageContentType != "image/svg+xml":
+                case FloatingShapeElement {ImageData: { Length: > 0 } shapeImage} shape when shape.ImageContentType != "image/svg+xml":
                     AddBodyFloat(new PlacedImage(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent), AnchoredY(shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent), (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage, shape.RotationDegrees, shape.FlipHorizontal, shape.FlipVertical), shape.BehindText, IsAbsoluteY(shape.VerticalAnchor));
                     break;
 
@@ -991,8 +989,19 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var scale = Math.Min(Math.Min(widthScale, heightScale), 1f);
             var paragraph = new ParagraphElement
             {
-                Runs = [new Run { Text = text, Properties = properties with { FontSizePoints = fontSizePoints * scale } }],
-                Properties = new ParagraphProperties { Alignment = TextAlignment.Center }
+                Runs = [
+                    new()
+                    {
+                        Text = text,
+                        Properties = properties with
+                        {
+                            FontSizePoints = fontSizePoints * scale
+                        }
+                    }],
+                Properties = new()
+                {
+                    Alignment = TextAlignment.Center
+                }
             };
             return LayoutCellContent(new() { Content = [paragraph] }, boxX, boxY, boxWidth, boxHeight, CellVerticalAlignment.Center);
         }
@@ -1017,7 +1026,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 Subpaths = wordArt.BoxSubpaths,
                 Preset = wordArt.BoxIsEllipse ? PresetShape.Ellipse : PresetShape.Rect
             };
-            return new PlacedShape(boxX, boxY, (float) wordArt.WidthPoints, (float) wordArt.HeightPoints, boxShape);
+            return new(boxX, boxY, (float) wordArt.WidthPoints, (float) wordArt.HeightPoints, boxShape);
         }
 
         // A block-level unwarped WordArt takes flow space (its declared height) at the current cursor, aligned
@@ -1077,10 +1086,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
         // The bytes a backend can actually decode: SVG artwork carries a raster equivalent (PdfSharp, like
         // ImageSharp, cannot rasterize SVG), so fall back to it when the primary data is SVG.
-        static byte[] DecodableImageBytes(FloatingImageElement image) =>
-            image.ContentType == "image/svg+xml" && image.RasterFallbackData is { Length: > 0 } fallback
-                ? fallback
-                : image.ImageData;
+        static byte[] DecodableImageBytes(FloatingImageElement image)
+        {
+            if (image is {ContentType: "image/svg+xml", RasterFallbackData: {Length: > 0} fallback})
+            {
+                return fallback;
+            }
+
+            return image.ImageData;
+        }
 
         // Content overflow or a column break: move to the next column, keeping the current page's items,
         // or start a new page when the last column is full.
@@ -1495,8 +1509,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // reason), so its HEAD keeps the shared slack too. Without the exemption, resumes/06's
                 // span head at 1.1pt over the margin moved to a fresh page and re-split the document
                 // 3 pages into 6.
-                var floorDriven = !row.IsExactHeight &&
-                                  row.HeightPoints is { } declaredFloor &&
+                var floorDriven = row is
+                                  {
+                                      IsExactHeight: false,
+                                      HeightPoints: { } declaredFloor
+                                  } &&
                                   rowHeight <= (float) declaredFloor + 0.5f &&
                                   !HasMergedCell(row);
                 var overflows = floorDriven
@@ -1736,7 +1753,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 if (start == null)
                 {
                     // This cell finished on an earlier fragment; it still draws its box and sides.
-                    cells.Add(new PlacedCell(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, FragmentBorders(cell, table, rowIndex, gridColIndex, colCount, row), []));
+                    cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, FragmentBorders(cell, table, rowIndex, gridColIndex, colCount, row), []));
                     cellX += cellWidth;
                     gridColIndex += span;
                     continue;
@@ -1768,7 +1785,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     }
                 }
 
-                cells.Add(new PlacedCell(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, FragmentBorders(cell, table, rowIndex, gridColIndex, colCount, row), content));
+                cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, FragmentBorders(cell, table, rowIndex, gridColIndex, colCount, row), content));
 
                 cellX += cellWidth;
                 gridColIndex += span;
@@ -1792,7 +1809,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // without advancing regressed business-plans/13 on every backend, while business/03 — whose
             // floored rows land at region tops, the probed geometry — improved. A row split across regions
             // fills by content; no probe covers distributing a declared height across fragments.
-            if (isFirstFragment && atRegionStart && !anyContinues && !row.IsExactHeight && row.HeightPoints is { } declaredFloor)
+            if (isFirstFragment &&
+                atRegionStart &&
+                !anyContinues &&
+                row is
+                {
+                    IsExactHeight: false,
+                    HeightPoints: { } declaredFloor
+                })
             {
                 fragmentHeight = Math.Min(available, Math.Max(fragmentHeight, (float) declaredFloor));
             }
@@ -1802,7 +1826,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 boxed.Add(cell with {Height = fragmentHeight});
             }
 
-            return (new PlacedTableRow(tableX, rowY, tableWidth, fragmentHeight, table, rowIndex, false, boxed), continuations, fragmentHeight, usedHeight + horizontalEdges);
+            return (new(tableX, rowY, tableWidth, fragmentHeight, table, rowIndex, false, boxed), continuations, fragmentHeight, usedHeight + horizontalEdges);
         }
 
         // Every fragment draws its whole box, split edges included. This read the other way until Word was
@@ -1859,13 +1883,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     content = [.. floatShapes, .. content];
                 }
 
-                cells.Add(new PlacedCell(cellX, rowY, cellWidth, cellHeight, cell.Properties.BackgroundColorHex, borders, content));
+                cells.Add(new(cellX, rowY, cellWidth, cellHeight, cell.Properties.BackgroundColorHex, borders, content));
 
                 cellX += cellWidth;
                 gridColIndex += span;
             }
 
-            return new PlacedTableRow(tableX, rowY, tableWidth, rowHeight, table, rowIndex, isRepeatedHeader, cells);
+            return new(tableX, rowY, tableWidth, rowHeight, table, rowIndex, isRepeatedHeader, cells);
         }
 
         // Cell-anchored behind-text shapes resolved to absolute boxes: the offset is measured from the
@@ -1884,7 +1908,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var shapes = new List<PlacedItem>();
             foreach (var element in cell.Floats)
             {
-                if (element is not FloatingShapeElement shape || !shape.BehindText)
+                if (element is not FloatingShapeElement {BehindText: true} shape)
                 {
                     continue;
                 }
@@ -2081,7 +2105,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 first = false;
 
                 var paragraphLines = measurer.LayoutLineContents(paragraph, contentWidth);
-                var isEmpty = paragraphLines.Count == 1 && paragraphLines[0].Width <= 0;
+                var isEmpty = paragraphLines is [{Width: <= 0} _];
                 var textLeft = contentLeft + (float) properties.LeftIndentPoints;
                 var availableWidth = contentWidth - (float) properties.LeftIndentPoints - (float) properties.RightIndentPoints;
 
@@ -2415,7 +2439,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             foreach (var element in band.Elements)
             {
-                if (element is FloatingImageElement image && image.BehindText && DecodableImageBytes(image) is { Length: > 0 } data)
+                if (element is FloatingImageElement {BehindText: true} image &&
+                    DecodableImageBytes(image) is { Length: > 0 } data)
                 {
                     var (imageX, imageY) = Position(image.HorizontalAnchor, image.HorizontalPositionPoints, image.VerticalAnchor, image.VerticalPositionPoints);
                     items.Add(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data));
@@ -2533,7 +2558,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // text edge, so the marker offsets back from there.
         PlacedRun MarkerRun(ParagraphElement paragraph, NumberingInfo numbering, float lineLeft)
         {
-            var firstProperties = paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new RunProperties();
+            var firstProperties = paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new();
             var useBulletFont = FontHelpers.UseBulletFont(numbering.Text, numbering.FontFamily);
             var markerProperties = new RunProperties
             {
@@ -2549,7 +2574,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 ? lineLeft - hanging
                 : lineLeft - markerWidth - 3f;
 
-            return new PlacedRun(markerX, markerWidth, numbering.Text, markerProperties);
+            return new(markerX, markerWidth, numbering.Text, markerProperties);
         }
 
         // Projects a laid-out line's run segments to placed runs at absolute X (the line's left edge plus
@@ -2560,7 +2585,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             for (var runIndex = 0; runIndex < line.Runs.Count; runIndex++)
             {
                 var run = line.Runs[runIndex];
-                runs[runIndex] = new PlacedRun(lineLeft + run.X, run.Width, run.Text, run.Properties, run.Leader);
+                runs[runIndex] = new(lineLeft + run.X, run.Width, run.Text, run.Properties, run.Leader);
             }
 
             return runs;
@@ -2580,7 +2605,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             for (var imageIndex = 0; imageIndex < line.Images.Count; imageIndex++)
             {
                 var image = line.Images[imageIndex];
-                images[imageIndex] = new PlacedImage(lineLeft + image.X, baseline - image.Height, image.Width, image.Height, image.Data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, Crop: image.Crop, ShapeGroup: image.ShapeGroup);
+                images[imageIndex] = new(lineLeft + image.X, baseline - image.Height, image.Width, image.Height, image.Data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, Crop: image.Crop, ShapeGroup: image.ShapeGroup);
             }
 
             return images;

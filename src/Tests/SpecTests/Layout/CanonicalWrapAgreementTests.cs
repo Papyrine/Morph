@@ -63,7 +63,8 @@ public class CanonicalWrapAgreementTests
             }
             catch
             {
-                continue; // a parse failure isn't what this gate measures
+                // a parse failure isn't what this gate measures
+                continue;
             }
 
             var contentWidth = (float) document.PageSettings.ContentWidth;
@@ -137,7 +138,10 @@ public class CanonicalWrapAgreementTests
 
             var visible = paragraph.Runs.Where(_ => !string.IsNullOrEmpty(_.Text) && !_.IsTab).ToList();
             if (visible.Count == 0 ||
-                paragraph.Runs.Any(_ => _.IsTab || _.InlineImageData != null || _.PageField != PageFieldKind.None || (_.Text?.Contains('\n') ?? false)) ||
+                paragraph.Runs.Any(_ => _.IsTab ||
+                                        _.InlineImageData != null ||
+                                        _.PageField != PageFieldKind.None ||
+                                        _.Text.Contains('\n')) ||
                 paragraph.Properties.Numbering != null)
             {
                 continue;

@@ -290,10 +290,12 @@ public class FontHelperTests
     // === InsertMissingSpaces ===
 
     [Test]
-    [Arguments("AvenirNext LT Pro Medium", "Avenir Next LT Pro Medium")] // newsletters/07's typo
+    // newsletters/07's typo
+    [Arguments("AvenirNext LT Pro Medium", "Avenir Next LT Pro Medium")]
     [Arguments("TwCenMT", "Tw Cen MT")]
     [Arguments("TimesNewRoman", "Times New Roman")]
-    [Arguments("Segoe2UI", "Segoe2 UI")] // digit then upper also counts as a lost space
+    // digit then upper also counts as a lost space
+    [Arguments("Segoe2UI", "Segoe2 UI")]
     public async Task InsertMissingSpaces_RepairsLostSpaces(string fontFamily, string expected) =>
         await Assert.That(FontHelpers.InsertMissingSpaces(fontFamily)).IsEqualTo(expected);
 
@@ -301,7 +303,8 @@ public class FontHelperTests
     [Arguments("Arial")]
     [Arguments("Times New Roman")]
     [Arguments("Franklin Gothic Book")]
-    [Arguments("ARIAL")] // consecutive capitals are not a lost space
+    // consecutive capitals are not a lost space
+    [Arguments("ARIAL")]
     [Arguments("Segoe UI")]
     [Arguments("")]
     public async Task InsertMissingSpaces_LeavesWellFormedNamesAlone(string fontFamily) =>

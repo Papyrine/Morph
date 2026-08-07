@@ -142,10 +142,14 @@ public class TableCellMarginParseTests
 
         var result = DocumentParser.ParseCellMargin(margin);
 
-        await Assert.That(result!.Top).IsEqualTo(18);   // 18pt
-        await Assert.That(result.Left).IsEqualTo(72);   // 1in = 72pt
-        await Assert.That(result.Bottom).IsEqualTo(12); // 1pc = 12pt
-        await Assert.That(result.Right).IsEqualTo(72);  // 72pt
+        // 18pt
+        await Assert.That(result!.Top).IsEqualTo(18);
+        // 1in = 72pt
+        await Assert.That(result.Left).IsEqualTo(72);
+        // 1pc = 12pt
+        await Assert.That(result.Bottom).IsEqualTo(12);
+        // 72pt
+        await Assert.That(result.Right).IsEqualTo(72);
     }
 
     [Test]
@@ -185,10 +189,14 @@ public class TableCellMarginParseTests
         var result = DocumentParser.ParseCellMargin(margin, tableDefault);
 
         await Assert.That(result).IsNotNull();
-        await Assert.That(result!.Bottom).IsEqualTo(0);    // overridden
-        await Assert.That(result.Top).IsEqualTo(14.4);     // inherited
-        await Assert.That(result.Left).IsEqualTo(18);      // inherited
-        await Assert.That(result.Right).IsEqualTo(57.6);   // inherited
+        // overridden
+        await Assert.That(result!.Bottom).IsEqualTo(0);
+        // inherited
+        await Assert.That(result.Top).IsEqualTo(14.4);
+        // inherited
+        await Assert.That(result.Left).IsEqualTo(18);
+        // inherited
+        await Assert.That(result.Right).IsEqualTo(57.6);
     }
 
     // Without a table default the absent sides stay zero — the pre-fix behaviour, so tables that
@@ -248,9 +256,13 @@ public class TableCellMarginParseTests
                     .Contains("problem statement", StringComparison.OrdinalIgnoreCase)));
 
         await Assert.That(headingCell.Properties.Padding).IsNotNull();
-        await Assert.That(headingCell.Properties.Padding!.Top).IsEqualTo(14.4);  // inherited
-        await Assert.That(headingCell.Properties.Padding.Bottom).IsEqualTo(0);   // overridden
-        await Assert.That(headingCell.Properties.Padding.Left).IsEqualTo(18);    // inherited
-        await Assert.That(headingCell.Properties.Padding.Right).IsEqualTo(57.6); // inherited
+        // inherited
+        await Assert.That(headingCell.Properties.Padding!.Top).IsEqualTo(14.4);
+        // overridden
+        await Assert.That(headingCell.Properties.Padding.Bottom).IsEqualTo(0);
+        // inherited
+        await Assert.That(headingCell.Properties.Padding.Left).IsEqualTo(18);
+        // inherited
+        await Assert.That(headingCell.Properties.Padding.Right).IsEqualTo(57.6);
     }
 }

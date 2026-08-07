@@ -33,15 +33,19 @@ public class CanonicalFontWidthScaleTests
     public async Task Scale_of_one_is_the_unscaled_advance()
     {
         var metrics = Aptos();
-        await Assert.That(CanonicalTextMeasurer.MeasureWidthPoints(metrics, "Accountant", 11, 1.0))
+        await Assert.That(CanonicalTextMeasurer.MeasureWidthPoints(metrics, "Accountant", 11))
             .IsEqualTo(CanonicalTextMeasurer.MeasureWidthPoints(metrics, "Accountant", 11));
     }
 
     [Test]
     public async Task The_measurer_threads_the_scale_from_its_constructor()
     {
-        FontMetrics Resolve(string family, bool bold, bool italic) => Aptos();
-        var properties = new RunProperties { FontFamily = "Aptos", FontSizePoints = 11 };
+        static FontMetrics Resolve(string family, bool bold, bool italic) => Aptos();
+        var properties = new RunProperties
+        {
+            FontFamily = "Aptos",
+            FontSizePoints = 11
+        };
 
         var narrow = new CanonicalParagraphMeasurer(Resolve).MeasureRunWidth("Accountant", properties);
         var wider = new CanonicalParagraphMeasurer(Resolve, 1.08).MeasureRunWidth("Accountant", properties);

@@ -8,7 +8,6 @@ using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 /// draw a missing-glyph box, because text faces carry no glyph for either — <c>business-plans/01</c>
 /// rendered two of them, after "Contoso, Ltd." and "Casey Jensen". The parser now substitutes a
 /// space.
-///
 /// A space and NOT a line break, which the names and UAX #14 both suggest. A Word probe settled it:
 /// given <c>LINESEPAAA</c> U+2028 <c>LINESEPBBB</c>, Word keeps both words on one line separated by
 /// a blank gap, while a <c>w:br</c> control in the same document does split. U+2029 behaves
@@ -61,15 +60,14 @@ public class SeparatorCharacterTests
     {
         // The contrast that gives the tests above their meaning: a real w:br does become a line
         // break, so the separator handling has not disabled break handling generally.
-        var paragraph = ParseParagraph(
-            paragraph =>
-            {
-                var run = new OoxmlRun();
-                run.AppendChild(new Text("AAA"));
-                run.AppendChild(new Break());
-                run.AppendChild(new Text("BBB"));
-                paragraph.AppendChild(run);
-            });
+        var paragraph = ParseParagraph(paragraph =>
+        {
+            var run = new OoxmlRun();
+            run.AppendChild(new Text("AAA"));
+            run.AppendChild(new Break());
+            run.AppendChild(new Text("BBB"));
+            paragraph.AppendChild(run);
+        });
 
         await Assert.That(paragraph.Runs.Select(_ => _.Text)).IsEquivalentTo(["AAA", "\n", "BBB"]);
     }
@@ -94,13 +92,15 @@ public class SeparatorCharacterTests
     static Run SingleRun(string text) => ParseSingleParagraph(text).Runs.Single();
 
     static ParagraphElement ParseSingleParagraph(string text) =>
-        ParseParagraph(
-            paragraph =>
+        ParseParagraph(paragraph =>
+        {
+            var run = new OoxmlRun();
+            run.AppendChild(new Text(text)
             {
-                var run = new OoxmlRun();
-                run.AppendChild(new Text(text) {Space = SpaceProcessingModeValues.Preserve});
-                paragraph.AppendChild(run);
+                Space = SpaceProcessingModeValues.Preserve
             });
+            paragraph.AppendChild(run);
+        });
 
     static ParagraphElement ParseParagraph(Action<Paragraph> configure)
     {
@@ -110,7 +110,7 @@ public class SeparatorCharacterTests
             var mainPart = package.AddMainDocumentPart();
             var paragraph = new Paragraph();
             configure(paragraph);
-            mainPart.Document = new(new Body(paragraph));
+            mainPart.Document = [with(new Body(paragraph))];
         }
 
         var path = Path.GetTempFileName();

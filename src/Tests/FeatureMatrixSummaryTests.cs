@@ -8,12 +8,10 @@ using System.Text.RegularExpressions;
 /// 22/2/1/1 when the section held three PARTIALs, understating the total by one; once a merge
 /// added a Tables feature on one side while the other side rewrote the summary rows, and git
 /// resolved both cleanly into numbers that matched neither.
-///
 /// Neither failure is visible to a reader or to any other test — the document stays well-formed
 /// and the wrong figure is the one people quote. This recomputes the tally from the headings and
 /// fails with the exact deltas, so the counts stop depending on whoever edits the file next
 /// remembering to recount by hand.
-///
 /// Categories are matched on their leading number, not their label: the section heading carries a
 /// qualifier the table row omits (<c>## 1. Text Formatting (Run Properties)</c> versus
 /// <c>| 1. Text Formatting |</c>), and the number is the stable key across both.
@@ -43,7 +41,7 @@ public class FeatureMatrixSummaryTests
         RegexOptions.Compiled);
 
     //     "Done" : 162
-    static readonly Regex pieSlice = new(@"^\s*""(Done|Partial|Todo|Wontfix)"" : (\d+)\s*$", RegexOptions.Compiled);
+    static readonly Regex pieSlice = new("""^\s*"(Done|Partial|Todo|Wontfix)" : (\d+)\s*$""", RegexOptions.Compiled);
 
     static readonly string[] statuses = ["DONE", "PARTIAL", "TODO", "WONTFIX"];
 

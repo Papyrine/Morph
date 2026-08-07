@@ -102,7 +102,8 @@ public class CanonicalIndentWrapTests
         // proving the indent narrows the first line's wrap.
         var naturalWidth = measurer.MeasureParagraphNaturalWidth(FirstLineIndented(0), float.MaxValue / 4);
         var slack = contentWidth - naturalWidth;
-        await Assert.That(slack).IsGreaterThan(0f); // guard: the sentence really does fit on one line
+        // guard: the sentence really does fit on one line
+        await Assert.That(slack).IsGreaterThan(0f);
 
         var plainHeight = measurer.MeasureParagraphHeightWithWidth(FirstLineIndented(0), contentWidth);
         var indentedHeight = measurer.MeasureParagraphHeightWithWidth(FirstLineIndented(slack + 20), contentWidth);
@@ -135,7 +136,8 @@ public class CanonicalIndentWrapTests
         // Sized so the whole run fits on the widened first line, the paragraph collapses to fewer lines
         // than it wraps to without the hanging indent.
         var naturalWidth = measurer.MeasureParagraphNaturalWidth(HangingParagraph(0), float.MaxValue / 4);
-        await Assert.That(naturalWidth).IsGreaterThan(contentWidth); // guard: wraps at content width
+        // guard: wraps at content width
+        await Assert.That(naturalWidth).IsGreaterThan(contentWidth);
 
         var hanging = naturalWidth - contentWidth + 20;
         var plainHeight = measurer.MeasureParagraphHeightWithWidth(HangingParagraph(0), contentWidth);

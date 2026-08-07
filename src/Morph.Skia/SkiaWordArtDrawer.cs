@@ -189,7 +189,8 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
             using var glowPaint = new SKPaint
             {
                 IsAntialias = true,
-                Color = new(255, 215, 0, 100), // Gold glow
+                // Gold glow
+                Color = new(255, 215, 0, 100),
                 Style = SKPaintStyle.Stroke,
                 StrokeWidth = context.PointsToPixels(4),
                 MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 3)

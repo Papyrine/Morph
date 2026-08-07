@@ -26,7 +26,13 @@ public class ConversionServiceTests
     [Test]
     public async Task RenderPngPages_ProducesAPngPerPage()
     {
-        var pages = ConversionService.RenderPngPages(Sample.DocxBytes, new() { Dpi = 96 }, Sample.FontDirectory);
+        var pages = ConversionService.RenderPngPages(
+            Sample.DocxBytes,
+            new()
+            {
+                Dpi = 96
+            },
+            Sample.FontDirectory);
 
         await Assert.That(pages.Count).IsGreaterThanOrEqualTo(1);
         foreach (var page in pages)
@@ -38,8 +44,20 @@ public class ConversionServiceTests
     [Test]
     public async Task RenderPngPages_HigherDpi_ProducesWiderImage()
     {
-        var low = ConversionService.RenderPngPages(Sample.DocxBytes, new() { Dpi = 96 }, Sample.FontDirectory);
-        var high = ConversionService.RenderPngPages(Sample.DocxBytes, new() { Dpi = 200 }, Sample.FontDirectory);
+        var low = ConversionService.RenderPngPages(Sample
+                .DocxBytes,
+            new()
+            {
+                Dpi = 96
+            },
+            Sample.FontDirectory);
+        var high = ConversionService.RenderPngPages(
+            Sample.DocxBytes,
+            new()
+            {
+                Dpi = 200
+            },
+            Sample.FontDirectory);
 
         // PNG IHDR width is a big-endian 32-bit int at byte offset 16.
         await Assert.That(Width(high[0])).IsGreaterThan(Width(low[0]));
@@ -81,7 +99,13 @@ public class ConversionServiceTests
             await Assert.That(payload.Extension).IsEqualTo(".zip");
             await Assert.That(payload.ContentType).IsEqualTo("application/zip");
             // Zip local-file-header signature "PK\x03\x04".
-            await Assert.That(payload.Bytes[..4]).IsEquivalentTo(new byte[] { 0x50, 0x4B, 0x03, 0x04 });
+            await Assert.That(payload.Bytes[..4]).IsEquivalentTo(new byte[]
+            {
+                0x50,
+                0x4B,
+                0x03,
+                0x04
+            });
         }
         else
         {

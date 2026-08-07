@@ -12,7 +12,7 @@
 public class FragmenterPageCountTests
 {
     static readonly string inputsDirectory = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
-    static readonly Fragmenter Fragmenter = new(LayoutTestFonts.Measurer);
+    static readonly Fragmenter fragmenter = new(LayoutTestFonts.Measurer);
 
     [Test]
     public async Task Fragmenter_page_count_matches_Word_on_block_table_and_column_documents()
@@ -46,7 +46,7 @@ public class FragmenterPageCountTests
                 continue;
             }
 
-            var pages = Fragmenter.Layout(document.Elements, document.PageSettings).Pages.Count;
+            var pages = fragmenter.Layout(document.Elements, document.PageSettings).Pages.Count;
             compared++;
             if (pages == wordPages)
             {
@@ -103,7 +103,7 @@ public class FragmenterPageCountTests
                     break;
                 case TableElement table when IsSimpleTable(table):
                     break;
-                case FloatingImageElement image when image.WrapType == WrapType.None:
+                case FloatingImageElement {WrapType: WrapType.None}:
                     break;
                 case FloatingShapeElement:
                     break;

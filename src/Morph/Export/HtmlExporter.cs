@@ -1787,7 +1787,11 @@ static class HtmlExporter
 
             AppendGroupGeometry(shape, isEllipse);
             builder.Append(" fill=\"").Append(DocumentExportHelpers.NormalizeColor(shape.FillColorHex) ?? "none").Append('"');
-            if (shape.FillColorHex != null && shape.FillAlpha < 0.999)
+            if (shape is
+                {
+                    FillColorHex: not null,
+                    FillAlpha: < 0.999
+                })
             {
                 builder.Append(" fill-opacity=\"").Append(Number(shape.FillAlpha)).Append('"');
             }

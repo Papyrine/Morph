@@ -83,8 +83,8 @@ static class ShapeParser
                 extent.Cx != null && extent.Cy != null && extent.Cx.Value > 0 && extent.Cy.Value > 0
                     ? (positioning.HorizontalPositionPoints,
                         positioning.VerticalPositionPoints,
-                        ((long) extent.Cx.Value).EmuToPoints(),
-                        ((long) extent.Cy.Value).EmuToPoints())
+                        extent.Cx.Value.EmuToPoints(),
+                        extent.Cy.Value.EmuToPoints())
                     : null;
 
             // Process ALL non-decorative shapes in the group
@@ -966,7 +966,7 @@ static class ShapeParser
             themeColors != null)
         {
             // Get the actual XML value (e.g., "tx2" not "Text2")
-            var schemeValue = ((IEnumValue)schemeClr.Val.Value).Value;
+            var schemeValue = ((IEnumValue) schemeClr.Val.Value).Value;
 
             // Check for alpha - if nearly invisible, skip this shape
             // Only skip shapes that are less than 5% opaque (nearly invisible)

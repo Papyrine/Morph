@@ -5,7 +5,8 @@ sealed record ParagraphProperties
 {
     public TextAlignment Alignment { get; init; } = TextAlignment.Left;
     public double SpacingBeforePoints { get; init; }
-    public double SpacingAfterPoints { get; init; } // OpenXML default when not specified
+    // OpenXML default when not specified
+    public double SpacingAfterPoints { get; init; }
 
     /// <summary>
     /// Line spacing multiplier for Auto mode (1.0 = single, 1.5 = 1.5 lines, 2.0 = double).

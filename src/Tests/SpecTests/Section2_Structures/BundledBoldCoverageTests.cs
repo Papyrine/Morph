@@ -35,35 +35,62 @@ public class BundledBoldCoverageTests
     /// </summary>
     static readonly Dictionary<string, int> knownMissingBold = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["Arial Rounded MT Bold"] = 400,         // 1 scenario, resumes/03 — sole face, and its OS/2
+        // 1 scenario, resumes/03 — sole face, and its OS/2
+        ["Arial Rounded MT Bold"] = 400,
                                                  // usWeightClass is 400 despite the name saying Bold
-        ["Avenir Next LT Pro Light"] = 400,      // 2 scenarios, e.g. business-plans/13
-        ["AvenirNext LT Pro Medium"] = 400,      // 1 scenario, newsletters/07 — suffix pins 500, and
+        // 2 scenarios, e.g. business-plans/13
+        ["Avenir Next LT Pro Light"] = 400,
+        // 1 scenario, newsletters/07 — suffix pins 500, and
+        ["AvenirNext LT Pro Medium"] = 400,
                                                  // the 400 face is nearer that than the bundled 700
-        ["Bahnschrift"] = 400,                   // 4 scenarios, e.g. cover-letters/07
-        ["Baskerville Old Face"] = 400,          // 2 scenarios, e.g. business-plans/05
-        ["Batang"] = 400,                        // 1 scenario, newsletters/10
-        ["Book Antiqua"] = 400,                  // 2 scenarios, e.g. agendas-minutes/16
-        ["Bookman Old Style"] = 600,             // 2 scenarios, e.g. cards/02
-        ["Calibri Light"] = 300,                 // 6 scenarios, e.g. business/03
-        ["Cochocib Script Latin Pro"] = 400,     // 1 scenario, labels/15
-        ["Euphemia"] = 400,                      // 1 scenario, newsletters/04
-        ["Franklin Gothic Book"] = 400,          // 3 scenarios, e.g. resumes/07
-        ["Franklin Gothic Demi"] = 600,          // 3 scenarios, e.g. brochures/02
-        ["Franklin Gothic Medium"] = 400,        // 2 scenarios, e.g. cover-letters/05
-        ["Franklin Gothic Medium Cond"] = 400,   // 1 scenario, wedding/05
-        ["Impact"] = 400,                        // 2 scenarios, e.g. wordart
-        ["Lato Light"] = 300,                    // 1 scenario, business-plans/04
-        ["Lucida Sans Typewriter"] = 600,        // 1 scenario, menus/06
-        ["Neue Haas Grotesk Text Pro"] = 400,    // 1 scenario, business-plans/06
-        ["Playfair Display"] = 400,              // 1 scenario, business-plans/04
-        ["Source Sans Pro Light"] = 400,         // 1 scenario, cards/19
-        ["Sylfaen"] = 400,                       // 1 scenario, newsletters/04
-        ["The Hand"] = 400,                      // 1 scenario, cards/08
-        ["Trade Gothic Next"] = 400,             // 1 scenario, business-plans/03
-        ["Trade Gothic Next Cond"] = 400,        // 1 scenario, business-plans/02
-        ["Tw Cen MT"] = 400,                     // 1 scenario, agendas-minutes/02
-        ["Work Sans"] = 400                      // 1 scenario, business-plans/06
+        // 4 scenarios, e.g. cover-letters/07
+        ["Bahnschrift"] = 400,
+        // 2 scenarios, e.g. business-plans/05
+        ["Baskerville Old Face"] = 400,
+        // 1 scenario, newsletters/10
+        ["Batang"] = 400,
+        // 2 scenarios, e.g. agendas-minutes/16
+        ["Book Antiqua"] = 400,
+        // 2 scenarios, e.g. cards/02
+        ["Bookman Old Style"] = 600,
+        // 6 scenarios, e.g. business/03
+        ["Calibri Light"] = 300,
+        // 1 scenario, labels/15
+        ["Cochocib Script Latin Pro"] = 400,
+        // 1 scenario, newsletters/04
+        ["Euphemia"] = 400,
+        // 3 scenarios, e.g. resumes/07
+        ["Franklin Gothic Book"] = 400,
+        // 3 scenarios, e.g. brochures/02
+        ["Franklin Gothic Demi"] = 600,
+        // 2 scenarios, e.g. cover-letters/05
+        ["Franklin Gothic Medium"] = 400,
+        // 1 scenario, wedding/05
+        ["Franklin Gothic Medium Cond"] = 400,
+        // 2 scenarios, e.g. wordart
+        ["Impact"] = 400,
+        // 1 scenario, business-plans/04
+        ["Lato Light"] = 300,
+        // 1 scenario, menus/06
+        ["Lucida Sans Typewriter"] = 600,
+        // 1 scenario, business-plans/06
+        ["Neue Haas Grotesk Text Pro"] = 400,
+        // 1 scenario, business-plans/04
+        ["Playfair Display"] = 400,
+        // 1 scenario, cards/19
+        ["Source Sans Pro Light"] = 400,
+        // 1 scenario, newsletters/04
+        ["Sylfaen"] = 400,
+        // 1 scenario, cards/08
+        ["The Hand"] = 400,
+        // 1 scenario, business-plans/03
+        ["Trade Gothic Next"] = 400,
+        // 1 scenario, business-plans/02
+        ["Trade Gothic Next Cond"] = 400,
+        // 1 scenario, agendas-minutes/02
+        ["Tw Cen MT"] = 400,
+        // 1 scenario, business-plans/06
+        ["Work Sans"] = 400
     };
 
     [Test]

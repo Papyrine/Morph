@@ -555,7 +555,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // 56.8, menus/08 and brochures/01 to ~190 grey levels), because those paragraphs anchor art whose
     // placement depends on the line. Reviving it is its own investigation, not a side effect of this one.
     static bool TakesNoLine(ParagraphElement paragraph) =>
-        paragraph.IsSectionBreakMark && paragraph.Runs.Count == 0;
+        paragraph is {IsSectionBreakMark: true, Runs.Count: 0};
 
     float MarkPitch(ParagraphElement paragraph)
     {
