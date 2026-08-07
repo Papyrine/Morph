@@ -446,7 +446,8 @@ static class MarkdownExporter
                 if (run.HyperlinkUrl is {Length: > 0} url)
                 {
                     var linkText = new StringBuilder();
-                    while (index < runs.Count && runs[index].HyperlinkUrl == url)
+                    while (index < runs.Count &&
+                           runs[index].HyperlinkUrl == url)
                     {
                         AppendRun(linkText, runs[index], inTable, inHeading);
                         index++;
@@ -822,7 +823,9 @@ static class MarkdownExporter
                     continue;
                 }
 
-                joined.Append("\\\n").Append(EscapeLineStart(lines[index].TrimStart()));
+                joined
+                    .Append("\\\n")
+                    .Append(EscapeLineStart(lines[index].TrimStart()));
             }
 
             return joined.ToString();
@@ -876,14 +879,24 @@ static class MarkdownExporter
                         hashes++;
                     }
 
-                    return hashes <= 6 && (hashes == line.Length || line[hashes] is ' ' or '\t')
-                        ? $"\\{line}"
-                        : line;
+                    if (hashes <= 6 &&
+                        (hashes == line.Length || line[hashes] is ' ' or '\t'))
+                    {
+                        return $"\\{line}";
+                    }
+
+                    return line;
                 }
                 case '-' or '+':
-                    return line.Length == 1 || line[1] is ' ' or '\t' || (line[0] == '-' && line[1] == '-')
-                        ? $"\\{line}"
-                        : line;
+                    if (line.Length == 1 ||
+                        line[1] is ' ' or '\t' ||
+                        (line[0] == '-' &&
+                         line[1] == '-'))
+                    {
+                        return $"\\{line}";
+                    }
+
+                    return line;
                 case '=':
                 {
                     // Only a line consisting entirely of '=' is a setext-heading underline.
@@ -907,11 +920,15 @@ static class MarkdownExporter
 
                     // "1998. was ..." — escape the separator ("1998\.") so it stays prose; the
                     // digits themselves are not escapable characters.
-                    return digits <= 9 && digits < line.Length &&
-                           line[digits] is '.' or ')' &&
-                           (digits + 1 == line.Length || line[digits + 1] is ' ' or '\t')
-                        ? $"{line[..digits]}\\{line[digits..]}"
-                        : line;
+                    if (digits <= 9 && digits < line.Length &&
+                        line[digits] is '.' or ')' &&
+                        (digits + 1 == line.Length ||
+                         line[digits + 1] is ' ' or '\t'))
+                    {
+                        return $"{line[..digits]}\\{line[digits..]}";
+                    }
+
+                    return line;
                 }
                 default:
                     return line;
@@ -955,20 +972,32 @@ static class MarkdownExporter
             if (index < text.Length && text[index] == '#')
             {
                 index++;
-                if (index < text.Length && text[index] is 'x' or 'X')
+                if (index < text.Length &&
+                    text[index] is 'x' or 'X')
                 {
                     index++;
                 }
             }
 
             var nameLength = 0;
-            while (index < text.Length && char.IsAsciiLetterOrDigit(text[index]))
+            while (index < text.Length &&
+                   char.IsAsciiLetterOrDigit(text[index]))
             {
                 index++;
                 nameLength++;
             }
 
-            return nameLength > 0 && index < text.Length && text[index] == ';';
+            if (nameLength <= 0)
+            {
+                return false;
+            }
+
+            if (index >= text.Length)
+            {
+                return false;
+            }
+
+            return text[index] == ';';
         }
 
         // '(' and ')' would end (or unbalance) the "](…)" destination; spaces are invalid in a
