@@ -196,7 +196,7 @@ static class TableHeightCalculator
 
     // A row whose w:trHeight carries w:hRule="exact": its height is that value verbatim, so neither
     // content nor a collapsed border edge may grow it.
-    static bool IsPinnedExact(TableRow row) => row.HeightPoints.HasValue && row.IsExactHeight;
+    internal static bool IsPinnedExact(TableRow row) => row.HeightPoints.HasValue && row.IsExactHeight;
 
     /// <summary>
     /// Widest visible top (or bottom) border across the cells of one row, in points. For the first
@@ -204,7 +204,7 @@ static class TableHeightCalculator
     /// row's top it is the collapsed edge shared with the row above (the resolved insideH). Used to
     /// grow rows by the border width their content is inset by.
     /// </summary>
-    static float HorizontalBorderWidth(TableElement table, int colCount, int rowIndex, bool top)
+    internal static float HorizontalBorderWidth(TableElement table, int colCount, int rowIndex, bool top)
     {
         var row = table.Rows[rowIndex];
         var width = 0f;
