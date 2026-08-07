@@ -88,7 +88,7 @@ static class PresetShapeGeometry
     }
 
     static double Adjustment(Dictionary<string, double> adjustments, string name, double fallback) =>
-        adjustments.TryGetValue(name, out var value) ? value : fallback;
+        adjustments.GetValueOrDefault(name, fallback);
 
     static double Pin(double min, double value, double max) => Math.Clamp(value, min, max);
 
@@ -141,10 +141,14 @@ static class PresetShapeGeometry
     {
         var radius = Math.Min(width, height) * Pin(0, Adjustment(adjustments, "adj", 16667), 50000) / 100000;
         var contour = new List<(double X, double Y)>();
-        AddArc(contour, radius, radius, radius, 180, 90);                          // top-left
-        AddArc(contour, width - radius, radius, radius, 270, 90);                  // top-right
-        AddArc(contour, width - radius, height - radius, radius, 0, 90);           // bottom-right
-        AddArc(contour, radius, height - radius, radius, 90, 90);                  // bottom-left
+        // top-left
+        AddArc(contour, radius, radius, radius, 180, 90);
+        // top-right
+        AddArc(contour, width - radius, radius, radius, 270, 90);
+        // bottom-right
+        AddArc(contour, width - radius, height - radius, radius, 0, 90);
+        // bottom-left
+        AddArc(contour, radius, height - radius, radius, 90, 90);
         return Single(contour);
     }
 
@@ -154,10 +158,14 @@ static class PresetShapeGeometry
     {
         var radius = Math.Min(width, height) * Pin(0, Adjustment(adjustments, "adj", 16667), 50000) / 100000;
         var contour = new List<(double X, double Y)>();
-        AddArc(contour, 0, 0, radius, 90, -90);                                    // top-left notch: (0,r) -> (r,0)
-        AddArc(contour, width, 0, radius, 180, -90);                               // top-right notch: (w-r,0) -> (w,r)
-        AddArc(contour, width, height, radius, 270, -90);                          // bottom-right notch: (w,h-r) -> (w-r,h)
-        AddArc(contour, 0, height, radius, 0, -90);                                // bottom-left notch: (r,h) -> (0,h-r)
+        // top-left notch: (0,r) -> (r,0)
+        AddArc(contour, 0, 0, radius, 90, -90);
+        // top-right notch: (w-r,0) -> (w,r)
+        AddArc(contour, width, 0, radius, 180, -90);
+        // bottom-right notch: (w,h-r) -> (w-r,h)
+        AddArc(contour, width, height, radius, 270, -90);
+        // bottom-left notch: (r,h) -> (0,h-r)
+        AddArc(contour, 0, height, radius, 0, -90);
         return Single(contour);
     }
 
@@ -191,7 +199,7 @@ static class PresetShapeGeometry
         var contour = new List<(double X, double Y)>(10);
         for (var point = 0; point < 5; point++)
         {
-            var outerAngle = (point * 72) * Math.PI / 180;
+            var outerAngle = point * 72 * Math.PI / 180;
             contour.Add((centerX + outerX * Math.Sin(outerAngle), centerY - outerY * Math.Cos(outerAngle)));
             var innerAngle = (point * 72 + 36) * Math.PI / 180;
             contour.Add((centerX + outerX * inner * Math.Sin(innerAngle), centerY - outerY * inner * Math.Cos(innerAngle)));

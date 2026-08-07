@@ -181,7 +181,6 @@ static class DocumentExportHelpers
             // break as a <br />, so they are content there. Markdown has no equivalent (a lone
             // newline is a soft break that renders as a space), so it keeps treating them as blank.
             if (lineBreaksRender &&
-                run.Text != null &&
                 run.Text.Contains('\n'))
             {
                 return false;
@@ -412,7 +411,7 @@ static class DocumentExportHelpers
         {
             if (char.IsAsciiLetter(character))
             {
-                value = value * 26 + (char.ToUpperInvariant(character) - 'A' + 1);
+                value = value * 26 + (char.ToUpperInvariant(character) - 'A') + 1;
                 matched++;
             }
             else if (matched > 0)

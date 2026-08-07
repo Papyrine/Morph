@@ -1,11 +1,10 @@
-using Microsoft.Playwright;
 using Markdig;
+using Microsoft.Playwright;
 
 /// <summary>
 /// Shared Playwright (Chromium) instance for rendering HTML and Markdown fragments to PNG. The
 /// browser is launched lazily on first use and reused across all tests in the run; each call gets
 /// its own page so concurrent screenshots don't collide.
-///
 /// Rendering is pinned to the repo's bundled fonts (<c>src/Fonts/</c>) via injected
 /// <c>@font-face</c> rules so the screenshots are reproducible across machines. Without this,
 /// Chromium falls back to whatever fonts the host OS has installed, so text reflows between the
@@ -37,7 +36,11 @@ static class BrowserScreenshot
         var instance = await GetBrowserAsync();
         await using var context = await instance.NewContextAsync(new()
         {
-            ViewportSize = new() {Width = 1024, Height = 768},
+            ViewportSize = new()
+            {
+                Width = 1024,
+                Height = 768
+            },
             DeviceScaleFactor = 1
         });
         var page = await context.NewPageAsync();
@@ -48,11 +51,20 @@ static class BrowserScreenshot
         await File.WriteAllTextAsync(tempFile, WrapHtmlFragment(html));
         try
         {
-            await page.GotoAsync(new Uri(tempFile).AbsoluteUri, new() {WaitUntil = WaitUntilState.Load});
+            await page.GotoAsync(
+                new Uri(tempFile).AbsoluteUri,
+                new()
+                {
+                    WaitUntil = WaitUntilState.Load
+                });
             // Block until every @font-face the page references has finished loading, so no glyph is
             // captured mid-swap from a fallback face.
             await page.EvaluateAsync("async () => { await document.fonts.ready; }");
-            return await page.ScreenshotAsync(new() {FullPage = true, Type = ScreenshotType.Png});
+            return await page.ScreenshotAsync(new()
+            {
+                FullPage = true,
+                Type = ScreenshotType.Png
+            });
         }
         finally
         {

@@ -128,7 +128,8 @@ public class Samples
 
         File.WriteAllText("document.html", document.ExportToHtml());
         File.WriteAllText("document.md",   document.ExportToMarkdown());
-        document.ExportToPdf("document.pdf");   // extension method from Morph.Pdf
+        // extension method from Morph.Pdf
+        document.ExportToPdf("document.pdf");
 
         #endregion
     }
@@ -239,7 +240,7 @@ public class Samples
         #region HtmlToMarkdown
 
         var markdown = await HtmlConverter.ConvertToMarkdown("<h1>Hello</h1><p>World</p>");
-        File.WriteAllText("page.md", markdown);
+        await File.WriteAllTextAsync("page.md", markdown);
 
         #endregion
     }
@@ -249,7 +250,7 @@ public class Samples
         #region HtmlToPdf
 
         var pdf = await PdfHtmlConverter.ConvertToPdf("<h1>Hello</h1><p>World</p>");
-        File.WriteAllBytes("page.pdf", pdf);
+        await File.WriteAllBytesAsync("page.pdf", pdf);
 
         #endregion
     }
@@ -262,9 +263,10 @@ public class Samples
         // source HTML is only parsed a single time.
         var document = await HtmlDocument.LoadAsync("<h1>Hello</h1><p>World</p>");
 
-        File.WriteAllText("page.html", document.ExportToHtml());
-        File.WriteAllText("page.md",   document.ExportToMarkdown());
-        document.ExportToPdf("page.pdf");   // extension method from Morph.Pdf
+        await File.WriteAllTextAsync("page.html", document.ExportToHtml());
+        await File.WriteAllTextAsync("page.md",   document.ExportToMarkdown());
+        // extension method from Morph.Pdf
+        document.ExportToPdf("page.pdf");
 
         #endregion
     }

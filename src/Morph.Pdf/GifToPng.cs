@@ -36,12 +36,15 @@ static class GifToPng
     static byte[]? ConvertCore(byte[] data)
     {
         var reader = new Reader(data);
-        reader.Skip(6); // header
+        // header
+        reader.Skip(6);
 
         // Logical Screen Descriptor.
-        reader.Skip(4); // canvas width/height — the frame carries its own
+        // canvas width/height — the frame carries its own
+        reader.Skip(4);
         var packed = reader.Byte();
-        reader.Skip(2); // background colour index, pixel aspect ratio
+        // background colour index, pixel aspect ratio
+        reader.Skip(2);
 
         var globalTable = (packed & 0x80) != 0 ? reader.ColorTable(2 << (packed & 0x07)) : null;
 
@@ -50,22 +53,28 @@ static class GifToPng
         while (true)
         {
             var block = reader.Byte();
-            if (block == 0x3B || block == -1) // trailer / end of data before an image
+            // trailer / end of data before an image
+            if (block is 0x3B or -1)
             {
                 return null;
             }
 
-            if (block == 0x21) // extension
+            // extension
+            if (block == 0x21)
             {
                 var label = reader.Byte();
-                if (label == 0xF9) // graphic control — may name a transparent index
+                // graphic control — may name a transparent index
+                if (label == 0xF9)
                 {
-                    var size = reader.Byte(); // always 4
+                    // always 4
+                    var size = reader.Byte();
                     var flags = reader.Byte();
-                    reader.Skip(2); // delay
+                    // delay
+                    reader.Skip(2);
                     var index = reader.Byte();
                     reader.Skip(size - 4);
-                    reader.Skip(1); // block terminator
+                    // block terminator
+                    reader.Skip(1);
                     if ((flags & 0x01) != 0)
                     {
                         transparentIndex = index;
@@ -79,13 +88,15 @@ static class GifToPng
                 continue;
             }
 
-            if (block != 0x2C) // anything other than an image descriptor is unexpected
+            // anything other than an image descriptor is unexpected
+            if (block != 0x2C)
             {
                 return null;
             }
 
             // Image Descriptor.
-            reader.Skip(4); // left, top
+            // left, top
+            reader.Skip(4);
             var width = reader.UInt16();
             var height = reader.UInt16();
             var imagePacked = reader.Byte();
@@ -265,8 +276,10 @@ static class GifToPng
         var header = new byte[13];
         BinaryPrimitives.WriteUInt32BigEndian(header.AsSpan(0), (uint) width);
         BinaryPrimitives.WriteUInt32BigEndian(header.AsSpan(4), (uint) height);
-        header[8] = 8; // bit depth
-        header[9] = 3; // colour type: indexed
+        // bit depth
+        header[8] = 8;
+        // colour type: indexed
+        header[9] = 3;
         WriteChunk(output, "IHDR", header);
 
         var plte = new byte[palette.Length * 3];
@@ -311,7 +324,7 @@ static class GifToPng
         BinaryPrimitives.WriteUInt32BigEndian(length, (uint) data.Length);
         stream.Write(length);
 
-        var typeBytes = System.Text.Encoding.ASCII.GetBytes(type);
+        var typeBytes = Encoding.ASCII.GetBytes(type);
         stream.Write(typeBytes);
         stream.Write(data);
 

@@ -4,7 +4,7 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="AngleSharp" Version="1.7.0" />
+    <PackageVersion Include="AngleSharp" Version="1.7.1" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <!-- Blazor WASM web app (Morph.Web) + its bUnit/Playwright test project. Versions pinned to
          match the .NET 10 runtime the web SDK ships. The web projects are in Morph.slnx but excluded
@@ -25,18 +25,20 @@
     <PackageVersion Include="NUnit3TestAdapter" Version="6.2.0" />
     <PackageVersion Include="PdfSharp" Version="6.2.4" />
     <PackageVersion Include="ProjectDefaults" Version="1.0.176" />
-    <PackageVersion Include="SponsorCheck" Version="0.16.0" GitHubSponsorsAccount="Papyrine" SponsorOwner="Papyrine" CheckTransitiveReferences="true" SponsorLandingUrl="https://github.com/sponsors/Papyrine" />
-    <SponsorExemption Include="MaintainerConsulting" Message="Organizations that have engaged any of the core maintainers of Papyrine in consulting work could be exempt from the Maintenance Fee for 6 months from the final date of that work." />
+    <PackageVersion Include="SponsorCheck" Version="0.19.0" GitHubSponsorsAccount="Papyrine" SponsorOwner="Papyrine"
+                    CheckTransitiveReferences="true" SponsorLandingUrl="https://github.com/sponsors/Papyrine" />
+    <SponsorExemption Include="MaintainerConsulting"
+                      Message="Organizations that have engaged any of the core maintainers of Papyrine in consulting work could be exempt from the Maintenance Fee for 6 months from the final date of that work." />
     <SponsorExemption Include="SmallRevenue" Message="Consumers under US$10,000 annual gross revenue are exempt." />
     <PackageVersion Include="ProjectFiles" Version="1.4.0" />
-    <PackageVersion Include="SkiaSharp" Version="4.151.0" />
-    <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.151.0" />
-    <PackageVersion Include="SkiaSharp.NativeAssets.macOS" Version="4.151.0" />
-    <PackageVersion Include="SkiaSharp.NativeAssets.Win32" Version="4.151.0" />
+    <PackageVersion Include="SkiaSharp" Version="4.151.1" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.151.1" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.macOS" Version="4.151.1" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.Win32" Version="4.151.1" />
     <PackageVersion Include="SixLabors.Fonts" Version="3.0.0" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="4.0.0" />
     <PackageVersion Include="SixLabors.ImageSharp.Drawing" Version="3.0.0" />
-    <PackageVersion Include="Svg.Skia" Version="5.1.1" />
+    <PackageVersion Include="Svg.Skia" Version="5.2.0" />
     <PackageVersion Include="Verify.PDFium" Version="1.4.0" />
     <PackageVersion Include="TUnit" Version="1.63.0" />
     <PackageVersion Include="Verify.DiffPlex" Version="3.3.1" />

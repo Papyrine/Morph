@@ -21,7 +21,8 @@ public class HeaderSpaceReservationTests
     {
         var settings = Parse("nonstandard_main_part_name");
 
-        await Assert.That(settings.MarginTop).IsEqualTo(72); // w:top=1440 twips
+        // w:top=1440 twips
+        await Assert.That(settings.MarginTop).IsEqualTo(72);
         await Assert.That(settings.TopMarginIsAbsolute).IsFalse();
     }
 
@@ -35,7 +36,8 @@ public class HeaderSpaceReservationTests
     {
         var settings = Parse("agendas-minutes", "11");
 
-        await Assert.That(settings.MarginTop).IsEqualTo(13.25); // w:top=-265 twips
+        // w:top=-265 twips
+        await Assert.That(settings.MarginTop).IsEqualTo(13.25);
         await Assert.That(settings.TopMarginIsAbsolute).IsTrue();
     }
 

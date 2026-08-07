@@ -18,6 +18,7 @@ using System.IO.Compression;
 /// </summary>
 static class IndexedPngNormalizer
 {
+    static readonly uint[] crcTable = BuildCrcTable();
     static ReadOnlySpan<byte> Signature => [0x89, (byte) 'P', (byte) 'N', (byte) 'G', 0x0D, 0x0A, 0x1A, 0x0A];
 
     public static byte[] Normalize(byte[] data)
@@ -42,7 +43,7 @@ static class IndexedPngNormalizer
                 return data;
             }
 
-            return Rebuild(chunks, expanded, width, height);
+            return Rebuild(chunks, expanded);
         }
         catch (Exception)
         {
@@ -62,7 +63,8 @@ static class IndexedPngNormalizer
 
         // IHDR is always the first chunk: length(4) type(4) then width, height, depth, colour,
         // compression, filter, interlace.
-        if (BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(12, 4)) != 0x49484452) // "IHDR"
+        // "IHDR"
+        if (BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(12, 4)) != 0x49484452)
         {
             return false;
         }
@@ -80,8 +82,6 @@ static class IndexedPngNormalizer
                height > 0;
     }
 
-    record struct Chunk(string Type, byte[] Data);
-
     static List<Chunk> ReadChunks(byte[] data)
     {
         var chunks = new List<Chunk>();
@@ -89,7 +89,7 @@ static class IndexedPngNormalizer
         while (offset + 8 <= data.Length)
         {
             var length = (int) BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(offset, 4));
-            var type = System.Text.Encoding.ASCII.GetString(data, offset + 4, 4);
+            var type = Encoding.ASCII.GetString(data, offset + 4, 4);
             var payload = data.AsSpan(offset + 8, length).ToArray();
             chunks.Add(new(type, payload));
             offset += 12 + length;
@@ -163,7 +163,8 @@ static class IndexedPngNormalizer
             }
 
             var destination = row * (width + 1);
-            result[destination] = 0; // filter None
+            // filter None
+            result[destination] = 0;
             for (var x = 0; x < width; x++)
             {
                 var bitOffset = x * bitDepth;
@@ -192,7 +193,7 @@ static class IndexedPngNormalizer
         return pb <= pc ? b : c;
     }
 
-    static byte[] Rebuild(List<Chunk> chunks, byte[] expanded, int width, int height)
+    static byte[] Rebuild(List<Chunk> chunks, byte[] expanded)
     {
         using var output = new MemoryStream();
         output.Write(Signature);
@@ -204,7 +205,8 @@ static class IndexedPngNormalizer
             {
                 case "IHDR":
                     var header = (byte[]) chunk.Data.Clone();
-                    header[8] = 8; // bit depth
+                    // bit depth
+                    header[8] = 8;
                     WriteChunk(output, "IHDR", header);
                     break;
 
@@ -236,7 +238,7 @@ static class IndexedPngNormalizer
         BinaryPrimitives.WriteUInt32BigEndian(length, (uint) data.Length);
         stream.Write(length);
 
-        var typeBytes = System.Text.Encoding.ASCII.GetBytes(type);
+        var typeBytes = Encoding.ASCII.GetBytes(type);
         stream.Write(typeBytes);
         stream.Write(data);
 
@@ -244,8 +246,6 @@ static class IndexedPngNormalizer
         BinaryPrimitives.WriteUInt32BigEndian(crc, Crc32(typeBytes, data));
         stream.Write(crc);
     }
-
-    static readonly uint[] crcTable = BuildCrcTable();
 
     static uint[] BuildCrcTable()
     {
@@ -279,4 +279,6 @@ static class IndexedPngNormalizer
 
         return c ^ 0xFFFFFFFFu;
     }
+
+    record struct Chunk(string Type, byte[] Data);
 }

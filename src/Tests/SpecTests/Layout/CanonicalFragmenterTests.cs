@@ -5,28 +5,80 @@
 /// </summary>
 public class CanonicalFragmenterTests
 {
-    static readonly Fragmenter Fragmenter = new(LayoutTestFonts.Measurer);
+    static readonly Fragmenter fragmenter = new(LayoutTestFonts.Measurer);
+
+    static readonly string wrapping = string.Join(' ', Enumerable.Repeat("lorem", 60));
+
+    // A 1x1 PNG: the float only has to decode, its drawn pixels are irrelevant to where text lands.
+    static readonly byte[] pixel = Convert.FromBase64String(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
 
     // 300pt wide, 20pt margins → 260pt measure. At 200pt tall the content band is 160pt = 11 Aptos-11
     // lines (14.5pt each), so the twelfth line breaks the page.
     static PageSettings Page(double heightPoints) =>
-        new() { WidthPoints = 300, HeightPoints = heightPoints, MarginTop = 20, MarginBottom = 20, MarginLeft = 20, MarginRight = 20 };
+        new()
+        {
+            WidthPoints = 300,
+            HeightPoints = heightPoints,
+            MarginTop = 20,
+            MarginBottom = 20,
+            MarginLeft = 20,
+            MarginRight = 20
+        };
 
     // The same geometry with N equal columns at a 20pt gap. At 2 columns the 260pt measure splits into
     // 120pt columns; column 1's left edge sits at 20 + 120 + 20 = 160pt.
     static PageSettings ColumnPage(double heightPoints, int columns) =>
-        new() { WidthPoints = 300, HeightPoints = heightPoints, MarginTop = 20, MarginBottom = 20, MarginLeft = 20, MarginRight = 20, ColumnCount = columns, ColumnSpacing = 20 };
+        new()
+        {
+            WidthPoints = 300,
+            HeightPoints = heightPoints,
+            MarginTop = 20,
+            MarginBottom = 20,
+            MarginLeft = 20,
+            MarginRight = 20,
+            ColumnCount = columns,
+            ColumnSpacing = 20
+        };
 
     static ParagraphElement P(string text, ParagraphProperties? properties = null) =>
         new()
         {
-            Runs = [new Run { Text = text, Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }],
+            Runs =
+            [
+                new()
+                {
+                    Text = text,
+                    Properties = new()
+                    {
+                        FontFamily = "Aptos",
+                        FontSizePoints = 11
+                    }
+                }
+            ],
             Properties = properties ?? new()
         };
 
-    static Run TextRun(string text) => new() { Text = text, Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } };
+    static Run TextRun(string text) => new()
+    {
+        Text = text,
+        Properties = new()
+        {
+            FontFamily = "Aptos",
+            FontSizePoints = 11
+        }
+    };
 
-    static Run TabRun() => new() { Text = "", IsTab = true, Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } };
+    static Run TabRun() => new()
+    {
+        Text = "",
+        IsTab = true,
+        Properties = new()
+        {
+            FontFamily = "Aptos",
+            FontSizePoints = 11
+        }
+    };
 
     /// <summary>
     /// Under <c>w:lineRule="exact"</c> the declared height is an absolute reservation, so the whole line
@@ -39,7 +91,11 @@ public class CanonicalFragmenterTests
     public async Task An_exact_spaced_line_needs_its_whole_box_inside_the_margin()
     {
         var page = Page(200);
-        var properties = new ParagraphProperties { LineSpacingRule = LineSpacingRule.Exactly, LineSpacingPoints = 13.5 };
+        var properties = new ParagraphProperties
+        {
+            LineSpacingRule = LineSpacingRule.Exactly,
+            LineSpacingPoints = 13.5
+        };
         var paragraph = P(string.Join(' ', Enumerable.Repeat("lorem", 98)), properties);
 
         // Guard: the geometry only tests the rule while the twelfth line is the discriminating one — its
@@ -47,11 +103,11 @@ public class CanonicalFragmenterTests
         // bounds would make the test pass for the wrong reason.
         var lines = LayoutTestFonts.Measurer.LayoutLineContents(paragraph, (float) page.ContentWidth);
         await Assert.That(lines.Count).IsGreaterThanOrEqualTo(13);
-        var twelfthTop = 20 + (11 * lines[0].Height);
+        var twelfthTop = 20 + 11 * lines[0].Height;
         await Assert.That(twelfthTop + lines[11].Ascent).IsLessThanOrEqualTo(180f);
         await Assert.That(twelfthTop + lines[11].Height).IsGreaterThan(180f);
 
-        var document = Fragmenter.Layout([paragraph], page);
+        var document = fragmenter.Layout([paragraph], page);
 
         await Assert.That(document.Pages[0].Items.OfType<PlacedLine>().Count()).IsEqualTo(11);
     }
@@ -62,7 +118,6 @@ public class CanonicalFragmenterTests
     /// overhang and clipping it at the text area. Word-probed twice — <c>_probe_lastline_auto_flow</c>
     /// keeps a 42nd line whose box ends 0.56pt past the margin, and <c>image_wrap_square</c>'s column
     /// keeps a line whose box ends 4.36pt past it (and whose ink band stops dead on the boundary).
-    ///
     /// This is the half of the rule that must NOT tighten with the exact case: the full box costs
     /// <c>image_wrap_square</c> Word's page count, which is how two earlier readings were caught.
     /// </summary>
@@ -75,11 +130,11 @@ public class CanonicalFragmenterTests
 
         var lines = LayoutTestFonts.Measurer.LayoutLineContents(paragraph, (float) page.ContentWidth);
         await Assert.That(lines.Count).IsGreaterThanOrEqualTo(12);
-        var eleventhTop = 20 + (10 * lines[0].Height);
+        var eleventhTop = 20 + 10 * lines[0].Height;
         await Assert.That(eleventhTop + lines[10].Ascent).IsLessThanOrEqualTo(177f);
         await Assert.That(eleventhTop + lines[10].Height).IsGreaterThan(177f);
 
-        var document = Fragmenter.Layout([paragraph], page);
+        var document = fragmenter.Layout([paragraph], page);
 
         await Assert.That(document.Pages[0].Items.OfType<PlacedLine>().Count()).IsEqualTo(11);
     }
@@ -91,7 +146,6 @@ public class CanonicalFragmenterTests
     /// derived. Word-probed three ways (<c>_probe_lastline_atleast_a/b/c</c>): strict at a declared 15.5pt
     /// (Word keeps 41 where the lenient reading takes 42), at 21pt (30 against 31), and at a declared 10pt
     /// beaten by Calibri's 13.4277pt natural pitch (44 against 45).
-    ///
     /// The two cases need different page heights because their boxes differ: 16pt binds, where 10pt loses
     /// to the font and leaves the bare single-spaced pitch — which is NOT the auto test's box either, since
     /// the default <see cref="ParagraphProperties.LineSpacingMultiplier"/> is Word's 1.08.
@@ -103,7 +157,11 @@ public class CanonicalFragmenterTests
     {
         var page = Page(pageHeight);
         var contentBottom = (float) pageHeight - 20;
-        var properties = new ParagraphProperties { LineSpacingRule = LineSpacingRule.AtLeast, LineSpacingPoints = declaredPoints };
+        var properties = new ParagraphProperties
+        {
+            LineSpacingRule = LineSpacingRule.AtLeast,
+            LineSpacingPoints = declaredPoints
+        };
         var paragraph = P(string.Join(' ', Enumerable.Repeat("lorem", 98)), properties);
 
         // Guard: the line after the last one kept has to straddle the content bottom — baseline inside, box
@@ -112,11 +170,11 @@ public class CanonicalFragmenterTests
         var lines = LayoutTestFonts.Measurer.LayoutLineContents(paragraph, (float) page.ContentWidth);
         await Assert.That(lines.Count).IsGreaterThanOrEqualTo(expected + 2);
         await Assert.That(lines[0].Height > declaredPoints).IsEqualTo(declaredPoints < 14);
-        var straddlingTop = 20 + (expected * lines[0].Height);
+        var straddlingTop = 20 + expected * lines[0].Height;
         await Assert.That(straddlingTop + lines[expected].Ascent).IsLessThanOrEqualTo(contentBottom);
         await Assert.That(straddlingTop + lines[expected].Height).IsGreaterThan(contentBottom);
 
-        var document = Fragmenter.Layout([paragraph], page);
+        var document = fragmenter.Layout([paragraph], page);
 
         await Assert.That(document.Pages[0].Items.OfType<PlacedLine>().Count()).IsEqualTo(expected);
     }
@@ -143,16 +201,23 @@ public class CanonicalFragmenterTests
             Properties = new(),
             Rows =
             [
-                new TableRow
+                new()
                 {
                     HeightPoints = 100,
-                    Cells = [new TableCell {Content = [P("Short")], Properties = new()}]
+                    Cells =
+                    [
+                        new()
+                        {
+                            Content = [P("Short")],
+                            Properties = new()
+                        }
+                    ]
                 }
             ]
         };
         var after = P("AFTER");
 
-        var document = Fragmenter.Layout([.. fillers, table, after], page);
+        var document = fragmenter.Layout([.. fillers, table, after], page);
 
         await Assert.That(document.Pages.Count).IsEqualTo(2);
         var afterLine = document.Pages[1].Items.OfType<PlacedLine>().Single(_ => ReferenceEquals(_.Paragraph, after));
@@ -182,16 +247,23 @@ public class CanonicalFragmenterTests
             Properties = new(),
             Rows =
             [
-                new TableRow
+                new()
                 {
                     HeightPoints = 100,
-                    Cells = [new TableCell {Content = [P("Short")], Properties = new()}]
+                    Cells =
+                    [
+                        new()
+                        {
+                            Content = [P("Short")],
+                            Properties = new()
+                        }
+                    ]
                 }
             ]
         };
         var after = P("AFTER");
 
-        var document = Fragmenter.Layout([.. fillers, table, after], page);
+        var document = fragmenter.Layout([.. fillers, table, after], page);
 
         await Assert.That(document.Pages.Count).IsEqualTo(2);
         // The row moves whole to page 2's region top at its full floor; nothing of it stays behind.
@@ -218,26 +290,46 @@ public class CanonicalFragmenterTests
         // Seven fillers reach 101.5pt, leaving 58.5pt — the 87pt table is fit-routed row by row. Row 0
         // (43.5pt) fits the remainder; row 1 is tied to it by the merge and must stack, not move.
         var fillers = Enumerable.Range(0, 7).Select(index => P($"Filler {index}")).ToList();
-        TableCell ContentCell(string prefix) =>
-            new() {Content = [.. Enumerable.Range(0, 3).Select(index => P($"{prefix} {index}"))], Properties = new()};
+
+        static TableCell ContentCell(string prefix) =>
+            new()
+            {
+                Content = [.. Enumerable.Range(0, 3).Select(index => P($"{prefix} {index}"))],
+                Properties = new()
+            };
+
         var table = new TableElement
         {
             Properties = new(),
             Rows =
             [
-                new TableRow
+                new()
                 {
                     Cells =
                     [
-                        new TableCell {Content = [], Properties = new() {VerticalMerge = VerticalMergeType.Restart}},
+                        new()
+                        {
+                            Content = [],
+                            Properties = new()
+                            {
+                                VerticalMerge = VerticalMergeType.Restart
+                            }
+                        },
                         ContentCell("Top")
                     ]
                 },
-                new TableRow
+                new()
                 {
                     Cells =
                     [
-                        new TableCell {Content = [], Properties = new() {VerticalMerge = VerticalMergeType.Continue}},
+                        new()
+                        {
+                            Content = [],
+                            Properties = new()
+                            {
+                                VerticalMerge = VerticalMergeType.Continue
+                            }
+                        },
                         ContentCell("Tied")
                     ]
                 }
@@ -245,7 +337,7 @@ public class CanonicalFragmenterTests
         };
         var after = P("AFTER");
 
-        var document = Fragmenter.Layout([.. fillers, table, after], page);
+        var document = fragmenter.Layout([.. fillers, table, after], page);
 
         // Both rows on page 1, the continuation stacked directly under row 0, its box past the 180pt
         // content bottom; only AFTER breaks to page 2.
@@ -264,7 +356,6 @@ public class CanonicalFragmenterTests
     /// is the case that separates the two readings: the carry drops it to one line on this page, and the
     /// orphan rule then moves the whole paragraph. Checking them as mutually exclusive branches stops
     /// after the carry and leaves behind exactly the orphan the rule exists to prevent.
-    ///
     /// No corpus document exercises this — the scenario suite is unchanged either way — so the rule is
     /// pinned here. It was verified against Word through the equivalent path in a splittable table row
     /// (business-plans/15's "Long-term Liabilities" bullet, where Word breaks 0/3 and the alternative
@@ -284,7 +375,7 @@ public class CanonicalFragmenterTests
         var tailLines = LayoutTestFonts.Measurer.LayoutLines(tail, (float) page.ContentWidth);
         await Assert.That(tailLines.Count).IsEqualTo(3);
 
-        var document = Fragmenter.Layout([.. fillers, tail], page);
+        var document = fragmenter.Layout([.. fillers, tail], page);
 
         await Assert.That(document.Pages.Count).IsEqualTo(2);
         // Nothing of the tail stays behind: page 1 keeps only the nine fillers.
@@ -305,7 +396,7 @@ public class CanonicalFragmenterTests
         var tailLines = LayoutTestFonts.Measurer.LayoutLines(tail, (float) page.ContentWidth);
         await Assert.That(tailLines.Count).IsEqualTo(4);
 
-        var document = Fragmenter.Layout([.. fillers, tail], page);
+        var document = fragmenter.Layout([.. fillers, tail], page);
 
         await Assert.That(document.Pages.Count).IsEqualTo(2);
         await Assert.That(document.Pages[0].Items.OfType<PlacedLine>().Count(_ => ReferenceEquals(_.Paragraph, tail))).IsEqualTo(2);
@@ -320,10 +411,17 @@ public class CanonicalFragmenterTests
             Properties = new(),
             Rows =
             [
-                new TableRow
+                new()
                 {
                     CannotSplit = cannotSplit,
-                    Cells = [new TableCell { Content = [.. Enumerable.Range(0, lines).Select(index => P($"Row line {index}"))], Properties = new() }]
+                    Cells =
+                    [
+                        new()
+                        {
+                            Content = [.. Enumerable.Range(0, lines).Select(index => P($"Row line {index}"))],
+                            Properties = new()
+                        }
+                    ]
                 }
             ]
         };
@@ -337,7 +435,7 @@ public class CanonicalFragmenterTests
     public async Task A_row_taller_than_the_page_splits_across_pages()
     {
         // 30 lines at 14.5pt is 435pt against a 160pt content band, so the row cannot fit any page.
-        var document = Fragmenter.Layout([OneRowTable(30, cannotSplit: false)], Page(200));
+        var document = fragmenter.Layout([OneRowTable(30, false)], Page(200));
 
         await Assert.That(document.Pages.Count > 1).IsTrue();
         // Every line is placed exactly once across the fragments, and none runs past the content bottom.
@@ -360,7 +458,7 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task A_cantSplit_row_is_not_split_even_when_it_cannot_fit()
     {
-        var document = Fragmenter.Layout([OneRowTable(30, cannotSplit: true)], Page(200));
+        var document = fragmenter.Layout([OneRowTable(30, true)], Page(200));
 
         // One row, placed once, overflowing rather than continuing overleaf.
         var rows = document.Pages.SelectMany(_ => _.Items).OfType<PlacedTableRow>().ToList();
@@ -373,7 +471,7 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task Short_paragraphs_fit_on_one_page()
     {
-        var document = Fragmenter.Layout([P("One"), P("Two"), P("Three")], Page(200));
+        var document = fragmenter.Layout([P("One"), P("Two"), P("Three")], Page(200));
         await Assert.That(document.Pages.Count).IsEqualTo(1);
         await Assert.That(document.Pages[0].Items.Count).IsEqualTo(3);
     }
@@ -385,7 +483,7 @@ public class CanonicalFragmenterTests
         var page = Page(200);
         var totalLines = LayoutTestFonts.Measurer.LayoutLines(paragraph, (float) page.ContentWidth).Count;
 
-        var document = Fragmenter.Layout([paragraph], page);
+        var document = fragmenter.Layout([paragraph], page);
 
         // Every wrapped line is placed exactly once, and the paragraph continues onto a second page —
         // the line-level split the raster backends cannot do.
@@ -405,9 +503,12 @@ public class CanonicalFragmenterTests
     {
         // Eleven single-line paragraphs fill page 1; a twelfth with a big space-before lands atop page 2.
         var fillers = Enumerable.Range(0, 11).Select(_ => P("filler")).ToArray();
-        var moved = P("moved", new ParagraphProperties { SpacingBeforePoints = 50 });
+        var moved = P("moved", new()
+        {
+            SpacingBeforePoints = 50
+        });
 
-        var document = Fragmenter.Layout([.. fillers, moved], Page(200));
+        var document = fragmenter.Layout([.. fillers, moved], Page(200));
 
         await Assert.That(document.Pages.Count).IsEqualTo(2);
         // Its first line sits at the content top — the 50pt before was dropped, not applied.
@@ -417,18 +518,32 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task An_empty_paragraphs_after_spacing_shifts_the_following_paragraph_down()
     {
-        ParagraphElement Empty(double after) =>
+        static ParagraphElement Empty(double after) =>
             new()
             {
-                Runs = [new Run { Text = "", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }],
-                Properties = new() { SpacingAfterPoints = after }
+                Runs =
+                [
+                    new()
+                    {
+                        Text = "",
+                        Properties = new()
+                        {
+                            FontFamily = "Aptos",
+                            FontSizePoints = 11
+                        }
+                    }
+                ],
+                Properties = new()
+                {
+                    SpacingAfterPoints = after
+                }
             };
 
-        float BeeY(LaidOutDocument document) =>
+        static float BeeY(LaidOutDocument document) =>
             document.Pages[0].Items.OfType<PlacedLine>().First(_ => _.Runs.Any(run => run.Text == "B")).Y;
 
-        var withAfter = BeeY(Fragmenter.Layout([P("A"), Empty(10), P("B")], Page(400)));
-        var withoutAfter = BeeY(Fragmenter.Layout([P("A"), Empty(0), P("B")], Page(400)));
+        var withAfter = BeeY(fragmenter.Layout([P("A"), Empty(10), P("B")], Page(400)));
+        var withoutAfter = BeeY(fragmenter.Layout([P("A"), Empty(0), P("B")], Page(400)));
 
         // An empty spacer paragraph carries its after-spacing into the gap before B (max-collapse with B's
         // zero before-spacing), so B sits 10pt lower than when the spacer has no after-spacing. Word applies
@@ -439,7 +554,7 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task A_line_whose_baseline_clears_the_bottom_margin_stays_on_the_page()
     {
-        var probe = Fragmenter.Layout([P("probe")], Page(400)).Pages[0].Items.OfType<PlacedLine>().Single();
+        var probe = fragmenter.Layout([P("probe")], Page(400)).Pages[0].Items.OfType<PlacedLine>().Single();
         var lineHeight = probe.Height;
         var ascent = probe.Baseline - probe.Y;
 
@@ -447,7 +562,7 @@ public class CanonicalFragmenterTests
         // descent must spill past the margin. Word keeps it on the page; the fragmenter mirrors that.
         var page = Page(40 + 2 * lineHeight + ascent + 0.5);
 
-        var document = Fragmenter.Layout([P("one"), P("two"), P("three")], page);
+        var document = fragmenter.Layout([P("one"), P("two"), P("three")], page);
         var lines = document.Pages[0].Items.OfType<PlacedLine>().ToList();
 
         await Assert.That(document.Pages.Count).IsEqualTo(1);
@@ -460,9 +575,26 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task Character_spacing_widens_a_runs_measured_width()
     {
-        float Width(double tracking) =>
-            Fragmenter.Layout(
-                    [new ParagraphElement { Runs = [new Run { Text = "ACCOUNTANT", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11, CharacterSpacingPoints = tracking } }] }],
+        static float Width(double tracking) =>
+            fragmenter.Layout(
+                    [
+                        new ParagraphElement
+                        {
+                            Runs =
+                            [
+                                new()
+                                {
+                                    Text = "ACCOUNTANT",
+                                    Properties = new()
+                                    {
+                                        FontFamily = "Aptos",
+                                        FontSizePoints = 11,
+                                        CharacterSpacingPoints = tracking
+                                    }
+                                }
+                            ]
+                        }
+                    ],
                     Page(400))
                 .Pages[0].Items.OfType<PlacedLine>().Single().Width;
 
@@ -476,11 +608,26 @@ public class CanonicalFragmenterTests
     {
         var paragraph = new ParagraphElement
         {
-            Runs = [new Run { Text = "TITLE", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }],
-            Properties = new() { BackgroundColorHex = "E6E0F0", Alignment = TextAlignment.Center }
+            Runs =
+            [
+                new()
+                {
+                    Text = "TITLE",
+                    Properties = new()
+                    {
+                        FontFamily = "Aptos",
+                        FontSizePoints = 11
+                    }
+                }
+            ],
+            Properties = new()
+            {
+                BackgroundColorHex = "E6E0F0",
+                Alignment = TextAlignment.Center
+            }
         };
 
-        var items = Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.ToList();
+        var items = fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.ToList();
         var shading = items.OfType<PlacedShading>().Single();
         var line = items.OfType<PlacedLine>().Single();
 
@@ -498,15 +645,34 @@ public class CanonicalFragmenterTests
     {
         var paragraph = new ParagraphElement
         {
-            Runs = [new Run { Text = "Heading", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }],
+            Runs =
+            [
+                new()
+                {
+                    Text = "Heading",
+                    Properties = new()
+                    {
+                        FontFamily = "Aptos",
+                        FontSizePoints = 11
+                    }
+                }
+            ],
             Properties = new()
             {
-                Borders = new CellBorders { Bottom = new BorderEdge { IsVisible = true, ColorHex = "A6A6A6", WidthPoints = 0.8 } },
+                Borders = new()
+                {
+                    Bottom = new()
+                    {
+                        IsVisible = true,
+                        ColorHex = "A6A6A6",
+                        WidthPoints = 0.8
+                    }
+                },
                 BorderBottomSpacePoints = 4
             }
         };
 
-        var items = Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.ToList();
+        var items = fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.ToList();
         var line = items.OfType<PlacedLine>().Single();
         var border = items.OfType<PlacedBorder>().Single();
 
@@ -523,9 +689,21 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task Header_text_repeats_in_the_header_band_above_the_body_on_every_page()
     {
-        var header = new HeaderFooterContent { Elements = [P("My Header", new() { Alignment = TextAlignment.Center })] };
-        var page = Page(400) with { HeaderDistance = 10 };
-        var document = Fragmenter.Layout([P("body one"), new PageBreakElement(), P("body two")], page, header);
+        var header = new HeaderFooterContent
+        {
+            Elements =
+            [
+                P("My Header", new()
+                {
+                    Alignment = TextAlignment.Center
+                })
+            ]
+        };
+        var page = Page(400) with
+        {
+            HeaderDistance = 10
+        };
+        var document = fragmenter.Layout([P("body one"), new PageBreakElement(), P("body two")], page, header);
 
         await Assert.That(document.Pages.Count).IsEqualTo(2);
         foreach (var laidOutPage in document.Pages)
@@ -541,18 +719,45 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task Footer_text_renders_near_the_page_bottom_with_the_page_number_resolved_per_page()
     {
-        ParagraphElement PageFooter() => new()
+        static ParagraphElement PageFooter() => new()
         {
             Runs =
             [
-                new Run { Text = "Page ", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } },
-                new Run { Text = "0", PageField = PageFieldKind.Page, Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }
+                new()
+                {
+                    Text = "Page ",
+                    Properties = new()
+                    {
+                        FontFamily = "Aptos",
+                        FontSizePoints = 11
+                    }
+                },
+                new()
+                {
+                    Text = "0",
+                    PageField = PageFieldKind.Page,
+                    Properties = new()
+                    {
+                        FontFamily = "Aptos",
+                        FontSizePoints = 11
+                    }
+                }
             ],
-            Properties = new() { Alignment = TextAlignment.Right }
+            Properties = new()
+            {
+                Alignment = TextAlignment.Right
+            }
         };
-        var footer = new HeaderFooterContent { Elements = [PageFooter()] };
-        var page = Page(400) with { FooterDistance = 20 };
-        var document = Fragmenter.Layout([P("body one"), new PageBreakElement(), P("body two")], page, footer: footer);
+
+        var footer = new HeaderFooterContent
+        {
+            Elements = [PageFooter()]
+        };
+        var page = Page(400) with
+        {
+            FooterDistance = 20
+        };
+        var document = fragmenter.Layout([P("body one"), new PageBreakElement(), P("body two")], page, footer: footer);
 
         await Assert.That(document.Pages.Count).IsEqualTo(2);
         for (var pageIndex = 0; pageIndex < 2; pageIndex++)
@@ -567,9 +772,15 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task Even_pages_take_the_even_page_header_when_the_document_opts_in()
     {
-        var header = new HeaderFooterContent { Elements = [P("Odd Header")] };
-        var evenHeader = new HeaderFooterContent { Elements = [P("Even Header")] };
-        var document = Fragmenter.Layout([P("body one"), new PageBreakElement(), P("body two")], Page(400), header: header, evenPageHeader: evenHeader);
+        var header = new HeaderFooterContent
+        {
+            Elements = [P("Odd Header")]
+        };
+        var evenHeader = new HeaderFooterContent
+        {
+            Elements = [P("Even Header")]
+        };
+        var document = fragmenter.Layout([P("body one"), new PageBreakElement(), P("body two")], Page(400), header, evenPageHeader: evenHeader);
 
         bool HasHeader(int pageIndex, string text) =>
             document.Pages[pageIndex].Items.OfType<PlacedLine>().SelectMany(_ => _.Runs).Any(_ => _.Text == text);
@@ -582,13 +793,32 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task A_num_pages_field_resolves_to_the_total_page_count()
     {
-        Run Field(PageFieldKind kind) => new() { Text = "0", PageField = kind, Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } };
+        static Run Field(PageFieldKind kind) => new()
+        {
+            Text = "0",
+            PageField = kind,
+            Properties = new()
+            {
+                FontFamily = "Aptos",
+                FontSizePoints = 11
+            }
+        };
+
         var footer = new HeaderFooterContent
         {
-            Elements = [new ParagraphElement { Runs = [TextRun("Page "), Field(PageFieldKind.Page), TextRun(" of "), Field(PageFieldKind.NumberOfPages)] }]
+            Elements =
+            [
+                new ParagraphElement
+                {
+                    Runs = [TextRun("Page "), Field(PageFieldKind.Page), TextRun(" of "), Field(PageFieldKind.NumberOfPages)]
+                }
+            ]
         };
-        var page = Page(400) with { FooterDistance = 20 };
-        var document = Fragmenter.Layout([P("body one"), new PageBreakElement(), P("body two")], page, footer: footer);
+        var page = Page(400) with
+        {
+            FooterDistance = 20
+        };
+        var document = fragmenter.Layout([P("body one"), new PageBreakElement(), P("body two")], page, footer: footer);
 
         await Assert.That(document.Pages.Count).IsEqualTo(2);
         // Page 1's footer reads "Page 1 of 2": the PAGE field is this page (1), NUMPAGES the total (2).
@@ -600,24 +830,35 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task A_title_page_takes_its_first_page_header_background_image()
     {
-        FloatingImageElement Image(string tag) => new()
+        static FloatingImageElement Image(string tag) => new()
         {
-            ImageData = System.Text.Encoding.ASCII.GetBytes(tag),
+            ImageData = Encoding.ASCII.GetBytes(tag),
             WidthPoints = 100,
             HeightPoints = 100,
             BehindText = true
         };
-        var page = Page(400) with { DifferentFirstPage = true };
-        var document = Fragmenter.Layout(
+
+        var page = Page(400) with
+        {
+            DifferentFirstPage = true
+        };
+        var document = fragmenter.Layout(
             [P("body one"), new PageBreakElement(), P("body two")],
             page,
-            header: new HeaderFooterContent { Elements = [Image("default")] },
-            firstPageHeader: new HeaderFooterContent { Elements = [Image("first")] });
+            new()
+            {
+                Elements = [Image("default")]
+            },
+            firstPageHeader: new()
+            {
+                Elements = [Image("first")]
+            });
 
         // The behind-text header image follows the same variant as the header text: page 1's from the
         // first-page header, page 2's from the default.
         string ImageTag(int pageIndex) =>
-            System.Text.Encoding.ASCII.GetString(document.Pages[pageIndex].Items.OfType<PlacedImage>().Single().Data!);
+            Encoding.ASCII.GetString(document.Pages[pageIndex].Items.OfType<PlacedImage>().Single().Data!);
+
         await Assert.That(ImageTag(0)).IsEqualTo("first");
         await Assert.That(ImageTag(1)).IsEqualTo("default");
     }
@@ -635,7 +876,13 @@ public class CanonicalFragmenterTests
             VerticalAnchor = VerticalAnchor.Page,
             BehindText = true
         };
-        var document = Fragmenter.Layout([P("body")], Page(400), header: new HeaderFooterContent { Elements = [banner] });
+        var document = fragmenter.Layout(
+            [P("body")],
+            Page(400),
+            new()
+            {
+                Elements = [banner]
+            });
 
         // A header's behind-text shape paints as a PlacedShape ahead of the body — the engine used to emit
         // only header images and dropped shape banners (cover-letters/10's charcoal band). The painter
@@ -657,7 +904,7 @@ public class CanonicalFragmenterTests
             HorizontalAnchor = HorizontalAnchor.Page,
             VerticalAnchor = VerticalAnchor.Page
         };
-        var items = Fragmenter.Layout([textBox, P("body")], Page(400)).Pages[0].Items;
+        var items = fragmenter.Layout([textBox, P("body")], Page(400)).Pages[0].Items;
 
         // The box chrome paints as a shape and the box content lays out as its own line inside the box.
         var box = items.OfType<PlacedShape>().Single();
@@ -679,7 +926,7 @@ public class CanonicalFragmenterTests
             BoxLineWidthPoints = 1,
             Transform = WordArtTransform.None
         };
-        var items = Fragmenter.Layout([wordArt, P("body")], Page(400)).Pages[0].Items;
+        var items = fragmenter.Layout([wordArt, P("body")], Page(400)).Pages[0].Items;
 
         // The unwarped WordArt paints its box frame and its centred text.
         await Assert.That(items.OfType<PlacedShape>().Single().Shape.LineColorHex).IsEqualTo("000000");
@@ -692,7 +939,10 @@ public class CanonicalFragmenterTests
         // WordArt carries no spacing of its own, so the gap before it is the previous paragraph's
         // after-spacing — as for a table or any other block. Without this the box rides up by that gap and
         // every later block follows it (business/06's memo header and wordart-envelope's warps both did).
-        var spaced = new ParagraphProperties { SpacingAfterPoints = 20 };
+        var spaced = new ParagraphProperties
+        {
+            SpacingAfterPoints = 20
+        };
         var wordArt = new WordArtElement
         {
             Text = "LOGO",
@@ -701,8 +951,8 @@ public class CanonicalFragmenterTests
             Transform = WordArtTransform.None
         };
 
-        var withGap = Fragmenter.Layout([P("above", spaced), wordArt], Page(400)).Pages[0].Items;
-        var withoutGap = Fragmenter.Layout([P("above"), wordArt], Page(400)).Pages[0].Items;
+        var withGap = fragmenter.Layout([P("above", spaced), wordArt], Page(400)).Pages[0].Items;
+        var withoutGap = fragmenter.Layout([P("above"), wordArt], Page(400)).Pages[0].Items;
 
         var gapTop = withGap.OfType<PlacedLine>().Single(_ => _.Runs.Any(run => run.Text == "LOGO")).Y;
         var flushTop = withoutGap.OfType<PlacedLine>().Single(_ => _.Runs.Any(run => run.Text == "LOGO")).Y;
@@ -714,11 +964,39 @@ public class CanonicalFragmenterTests
     {
         var footerTable = new TableElement
         {
-            Properties = new() { GridColumnWidths = [100, 100] },
-            Rows = [new TableRow { Cells = [new TableCell { Content = [P("left")] }, new TableCell { Content = [P("right")] }] }]
+            Properties = new()
+            {
+                GridColumnWidths = [100, 100]
+            },
+            Rows =
+            [
+                new()
+                {
+                    Cells =
+                    [
+                        new()
+                        {
+                            Content = [P("left")]
+                        },
+                        new()
+                        {
+                            Content = [P("right")]
+                        }
+                    ]
+                }
+            ]
         };
-        var page = Page(400) with { FooterDistance = 20 };
-        var document = Fragmenter.Layout([P("body")], page, footer: new HeaderFooterContent { Elements = [footerTable] });
+        var page = Page(400) with
+        {
+            FooterDistance = 20
+        };
+        var document = fragmenter.Layout(
+            [P("body")],
+            page,
+            footer: new()
+            {
+                Elements = [footerTable]
+            });
 
         // The footer table lays out near the bottom of the 400pt page, carrying its two cells.
         var footerRow = document.Pages[0].Items.OfType<PlacedTableRow>().Single();
@@ -728,7 +1006,7 @@ public class CanonicalFragmenterTests
     }
 
     static float BodyTop(HeaderFooterContent? header, PageSettings? page = null) =>
-        Fragmenter.Layout([P("body")], page ?? Page(400), header: header).Pages[0].Items
+        fragmenter.Layout([P("body")], page ?? Page(400), header).Pages[0].Items
             .OfType<PlacedLine>()
             .First(_ => string.Concat(_.Runs.Select(run => run.Text)) == "body").Y;
 
@@ -738,7 +1016,10 @@ public class CanonicalFragmenterTests
         // Word treats a positive top margin as a minimum (ECMA-376 §17.6.11): a header whose content reaches
         // past it moves the body down. Page(400)'s 20pt top margin is well under the 36pt header distance plus
         // two header lines, so a headed page starts its body far below a bare one.
-        var header = new HeaderFooterContent { Elements = [P("header line one"), P("header line two")] };
+        var header = new HeaderFooterContent
+        {
+            Elements = [P("header line one"), P("header line two")]
+        };
         await Assert.That(BodyTop(header) > BodyTop(null) + 30f).IsTrue();
     }
 
@@ -747,18 +1028,31 @@ public class CanonicalFragmenterTests
     {
         // A DifferentFirstPage document with no first-page header shows nothing on page 1, so its default
         // header must not push page 1's body down (the over-reservation that regressed business/04).
-        var header = new HeaderFooterContent { Elements = [P("default one"), P("default two")] };
-        var page = Page(400) with { DifferentFirstPage = true };
+        var header = new HeaderFooterContent
+        {
+            Elements = [P("default one"), P("default two")]
+        };
+        var page = Page(400) with
+        {
+            DifferentFirstPage = true
+        };
         await Assert.That(Math.Abs(BodyTop(header, page) - (float) page.MarginTop) < 0.5f).IsTrue();
     }
 
     [Test]
     public async Task A_title_pages_footer_is_suppressed_when_it_has_no_first_page_footer()
     {
-        var footer = new HeaderFooterContent { Elements = [P("Footer text")] };
-        var page = Page(400) with { DifferentFirstPage = true, FooterDistance = 20 };
+        var footer = new HeaderFooterContent
+        {
+            Elements = [P("Footer text")]
+        };
+        var page = Page(400) with
+        {
+            DifferentFirstPage = true,
+            FooterDistance = 20
+        };
         // firstPageFooter is null, so page 1 (the title page) shows no footer while page 2 shows the default.
-        var document = Fragmenter.Layout([P("body one"), new PageBreakElement(), P("body two")], page, footer: footer);
+        var document = fragmenter.Layout([P("body one"), new PageBreakElement(), P("body two")], page, footer: footer);
 
         bool HasFooter(int pageIndex) => document.Pages[pageIndex].Items.OfType<PlacedLine>()
             .SelectMany(_ => _.Runs).Any(_ => _.Text == "Footer text");
@@ -772,9 +1066,12 @@ public class CanonicalFragmenterTests
         var paragraph = new ParagraphElement
         {
             Runs = [TextRun("A"), TabRun(), TextRun("B")],
-            Properties = new() { DefaultTabStopPoints = 36 }
+            Properties = new()
+            {
+                DefaultTabStopPoints = 36
+            }
         };
-        var line = Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.OfType<PlacedLine>().Single();
+        var line = fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.OfType<PlacedLine>().Single();
         var second = line.Runs.First(_ => _.Text == "B");
         // "A" starts at the line's left; the tab jumps to the first 36pt default stop, where "B" begins.
         await Assert.That(second.X - line.X).IsEqualTo(36f).Within(1f);
@@ -786,9 +1083,19 @@ public class CanonicalFragmenterTests
         var paragraph = new ParagraphElement
         {
             Runs = [TextRun("Chapter"), TabRun(), TextRun("12")],
-            Properties = new() { TabStops = [new TabStop { PositionPoints = 200, Alignment = TabAlignment.Right }] }
+            Properties = new()
+            {
+                TabStops =
+                [
+                    new()
+                    {
+                        PositionPoints = 200,
+                        Alignment = TabAlignment.Right
+                    }
+                ]
+            }
         };
-        var line = Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.OfType<PlacedLine>().Single();
+        var line = fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.OfType<PlacedLine>().Single();
         var number = line.Runs.First(_ => _.Text == "12");
         // The number is right-aligned so its right edge sits at the 200pt stop (from the column's left edge).
         await Assert.That(number.X - line.X + number.Width).IsEqualTo(200f).Within(2f);
@@ -800,9 +1107,20 @@ public class CanonicalFragmenterTests
         var paragraph = new ParagraphElement
         {
             Runs = [TextRun("Chapter"), TabRun(), TextRun("1")],
-            Properties = new() { TabStops = [new TabStop { PositionPoints = 200, Alignment = TabAlignment.Right, Leader = TabLeader.Dot }] }
+            Properties = new()
+            {
+                TabStops =
+                [
+                    new()
+                    {
+                        PositionPoints = 200,
+                        Alignment = TabAlignment.Right,
+                        Leader = TabLeader.Dot
+                    }
+                ]
+            }
         };
-        var line = Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.OfType<PlacedLine>().Single();
+        var line = fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.OfType<PlacedLine>().Single();
         var leader = line.Runs.Single(_ => _.Leader == TabLeader.Dot);
         var number = line.Runs.Single(_ => _.Text == "1");
         // The dot-leader filler carries no text and spans the gap from "Chapter" to the right-aligned "1".
@@ -815,14 +1133,21 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task An_empty_paragraph_sizes_its_blank_line_by_its_mark_font()
     {
-        ParagraphElement Empty(double markSize) => new()
+        static ParagraphElement Empty(double markSize) => new()
         {
             Runs = [],
-            Properties = new() { ParagraphMarkRunProperties = new() { FontFamily = "Aptos", FontSizePoints = markSize } }
+            Properties = new()
+            {
+                ParagraphMarkRunProperties = new()
+                {
+                    FontFamily = "Aptos",
+                    FontSizePoints = markSize
+                }
+            }
         };
 
-        float Height(double markSize) =>
-            Fragmenter.Layout([Empty(markSize)], Page(400)).Pages[0].Items.OfType<PlacedLine>().Single().Height;
+        static float Height(double markSize) =>
+            fragmenter.Layout([Empty(markSize)], Page(400)).Pages[0].Items.OfType<PlacedLine>().Single().Height;
 
         // A blank paragraph has no runs, so its spacer line follows the paragraph mark's font — a 24pt mark
         // makes a much taller line than an 8pt one, rather than both collapsing to a default size.
@@ -837,13 +1162,17 @@ public class CanonicalFragmenterTests
         // page 2; with it (Word's default) the whole paragraph moves so no single line is left behind.
         var fillers = Enumerable.Range(0, 10).Select(_ => P("filler")).ToArray();
         var text = string.Join(' ', Enumerable.Repeat("lorem", 40));
-        ParagraphElement Tail(bool widowControl) => P(text, new ParagraphProperties { WidowControl = widowControl });
 
-        int Page1TailLines(LaidOutDocument document) =>
+        ParagraphElement Tail(bool widowControl) => P(text, new()
+        {
+            WidowControl = widowControl
+        });
+
+        static int Page1TailLines(LaidOutDocument document) =>
             document.Pages[0].Items.OfType<PlacedLine>().Count(_ => _.Runs.Any(run => run.Text.Contains("lorem")));
 
-        await Assert.That(Page1TailLines(Fragmenter.Layout([.. fillers, Tail(false)], Page(200)))).IsGreaterThan(0);
-        await Assert.That(Page1TailLines(Fragmenter.Layout([.. fillers, Tail(true)], Page(200)))).IsEqualTo(0);
+        await Assert.That(Page1TailLines(fragmenter.Layout([.. fillers, Tail(false)], Page(200)))).IsGreaterThan(0);
+        await Assert.That(Page1TailLines(fragmenter.Layout([.. fillers, Tail(true)], Page(200)))).IsEqualTo(0);
     }
 
     [Test]
@@ -853,19 +1182,25 @@ public class CanonicalFragmenterTests
         // moves to page 2 intact rather than filling the three and continuing overleaf.
         var fillers = Enumerable.Range(0, 8).Select(_ => P("filler")).ToArray();
         var text = string.Join(' ', Enumerable.Repeat("lorem", 40));
-        ParagraphElement Tail(bool keepLines) => P(text, new ParagraphProperties { KeepLines = keepLines });
 
-        int Page1TailLines(LaidOutDocument document) =>
+        ParagraphElement Tail(bool keepLines) => P(
+            text,
+            new()
+            {
+                KeepLines = keepLines
+            });
+
+        static int Page1TailLines(LaidOutDocument document) =>
             document.Pages[0].Items.OfType<PlacedLine>().Count(_ => _.Runs.Any(run => run.Text.Contains("lorem")));
 
-        await Assert.That(Page1TailLines(Fragmenter.Layout([.. fillers, Tail(false)], Page(200)))).IsGreaterThan(0);
-        await Assert.That(Page1TailLines(Fragmenter.Layout([.. fillers, Tail(true)], Page(200)))).IsEqualTo(0);
+        await Assert.That(Page1TailLines(fragmenter.Layout([.. fillers, Tail(false)], Page(200)))).IsGreaterThan(0);
+        await Assert.That(Page1TailLines(fragmenter.Layout([.. fillers, Tail(true)], Page(200)))).IsEqualTo(0);
     }
 
     [Test]
     public async Task Page_break_element_starts_a_new_page()
     {
-        var document = Fragmenter.Layout([P("before"), new PageBreakElement(), P("after")], Page(400));
+        var document = fragmenter.Layout([P("before"), new PageBreakElement(), P("after")], Page(400));
         await Assert.That(document.Pages.Count).IsEqualTo(2);
         await Assert.That(document.Pages[1].Items[0].Y).IsEqualTo(20f).Within(0.01f);
     }
@@ -873,7 +1208,7 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task Empty_document_is_one_empty_page()
     {
-        var document = Fragmenter.Layout([], Page(200));
+        var document = fragmenter.Layout([], Page(200));
         await Assert.That(document.Pages.Count).IsEqualTo(1);
         await Assert.That(document.Pages[0].Items.Count).IsEqualTo(0);
     }
@@ -886,7 +1221,7 @@ public class CanonicalFragmenterTests
         var paragraph = P(string.Join(' ', Enumerable.Repeat("lorem", 300)));
         var column1Left = 20f + (float) page.ColumnWidth + 20f;
 
-        var document = Fragmenter.Layout([paragraph], page);
+        var document = fragmenter.Layout([paragraph], page);
         var firstPageLines = document.Pages[0].Items.Cast<PlacedLine>().ToList();
 
         // Both columns are used on page 1, and column 1 resumes at the content top (20pt), not column 0's
@@ -903,7 +1238,7 @@ public class CanonicalFragmenterTests
         var page = ColumnPage(400, 2);
         var column1Left = 20f + (float) page.ColumnWidth + 20f;
 
-        var document = Fragmenter.Layout([P("before"), new ColumnBreakElement(), P("after")], page);
+        var document = fragmenter.Layout([P("before"), new ColumnBreakElement(), P("after")], page);
 
         // One page: "before" in column 0, "after" atop column 1 — the break advances the column, not the page.
         await Assert.That(document.Pages.Count).IsEqualTo(1);
@@ -918,7 +1253,7 @@ public class CanonicalFragmenterTests
     public async Task Overflowing_the_last_column_starts_a_new_page_at_column_zero()
     {
         // Enough text to fill both columns of page 1 and spill onto page 2.
-        var document = Fragmenter.Layout([P(string.Join(' ', Enumerable.Repeat("lorem", 800)))], ColumnPage(200, 2));
+        var document = fragmenter.Layout([P(string.Join(' ', Enumerable.Repeat("lorem", 800)))], ColumnPage(200, 2));
 
         await Assert.That(document.Pages.Count > 1).IsTrue();
         // Page 2 resumes at column 0 (x=20), content top.
@@ -930,7 +1265,7 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task A_uniform_line_is_one_run_carrying_the_whole_text()
     {
-        var line = (PlacedLine) Fragmenter.Layout([P("hello world")], Page(400)).Pages[0].Items[0];
+        var line = (PlacedLine) fragmenter.Layout([P("hello world")], Page(400)).Pages[0].Items[0];
 
         await Assert.That(line.Runs.Count).IsEqualTo(1);
         await Assert.That(line.Runs[0].Text).IsEqualTo("hello world");
@@ -944,13 +1279,30 @@ public class CanonicalFragmenterTests
         {
             Runs =
             [
-                new Run { Text = "plain ", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } },
-                new Run { Text = "bold", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11, Bold = true } }
+                new()
+                {
+                    Text = "plain ",
+                    Properties = new()
+                    {
+                        FontFamily = "Aptos",
+                        FontSizePoints = 11
+                    }
+                },
+                new()
+                {
+                    Text = "bold",
+                    Properties = new()
+                    {
+                        FontFamily = "Aptos",
+                        FontSizePoints = 11,
+                        Bold = true
+                    }
+                }
             ],
             Properties = new()
         };
 
-        var line = (PlacedLine) Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items[0];
+        var line = (PlacedLine) fragmenter.Layout([paragraph], Page(400)).Pages[0].Items[0];
 
         // One run per source run, each with its own formatting, placed left to right.
         await Assert.That(line.Runs.Count).IsEqualTo(2);
@@ -970,21 +1322,32 @@ public class CanonicalFragmenterTests
     {
         var table = new TableElement
         {
-            Properties = new() { GridColumnWidths = [120, 120] },
+            Properties = new()
+            {
+                GridColumnWidths = [120, 120]
+            },
             Rows =
             [
-                new TableRow
+                new()
                 {
                     Cells =
                     [
-                        new TableCell { Content = [P("left cell")], Properties = new() },
-                        new TableCell { Content = [P("right cell")], Properties = new() }
+                        new()
+                        {
+                            Content = [P("left cell")],
+                            Properties = new()
+                        },
+                        new()
+                        {
+                            Content = [P("right cell")],
+                            Properties = new()
+                        }
                     ]
                 }
             ]
         };
 
-        var row = Fragmenter.Layout([table], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single();
+        var row = fragmenter.Layout([table], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single();
 
         // Two cells tiling left to right, each carrying its paragraph text inside its box.
         await Assert.That(row.Cells.Count).IsEqualTo(2);
@@ -1003,15 +1366,39 @@ public class CanonicalFragmenterTests
     {
         // TableHeightCalculator sizes a cell with its first paragraph's space-before, so the content must
         // be positioned with it too (a page-flow paragraph drops it at a region top; a cell does not).
-        TableElement OneCell(double before) =>
+        static TableElement OneCell(double before) =>
             new()
             {
-                Properties = new() { GridColumnWidths = [200] },
-                Rows = [new TableRow { Cells = [new TableCell { Content = [P("cell text", new() { SpacingBeforePoints = before })], Properties = new() }] }]
+                Properties = new()
+                {
+                    GridColumnWidths = [200]
+                },
+                Rows =
+                [
+                    new()
+                    {
+                        Cells =
+                        [
+                            new()
+                            {
+                                Content =
+                                [
+                                    P(
+                                        "cell text",
+                                        new()
+                                        {
+                                            SpacingBeforePoints = before
+                                        })
+                                ],
+                                Properties = new()
+                            }
+                        ]
+                    }
+                ]
             };
 
-        var withoutBefore = Fragmenter.Layout([OneCell(0)], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single();
-        var withBefore = Fragmenter.Layout([OneCell(20)], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single();
+        var withoutBefore = fragmenter.Layout([OneCell(0)], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single();
+        var withBefore = fragmenter.Layout([OneCell(20)], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single();
 
         var withoutY = withoutBefore.Cells[0].Content.OfType<PlacedLine>().First().Y;
         var withY = withBefore.Cells[0].Content.OfType<PlacedLine>().First().Y;
@@ -1022,25 +1409,42 @@ public class CanonicalFragmenterTests
     public async Task A_bottom_aligned_cell_shifts_its_content_below_a_top_aligned_one()
     {
         // A tall neighbour forces a tall row; the short cell's line then sits far lower when bottom-aligned.
-        TableElement TwoCell(CellVerticalAlignment align) =>
+        static TableElement TwoCell(CellVerticalAlignment align) =>
             new()
             {
-                Properties = new() { GridColumnWidths = [120, 120] },
+                Properties = new()
+                {
+                    GridColumnWidths = [120, 120]
+                },
                 Rows =
                 [
-                    new TableRow
+                    new()
                     {
                         Cells =
                         [
-                            new TableCell { Content = [P(string.Join(' ', Enumerable.Repeat("lorem", 60)))], Properties = new() },
-                            new TableCell { Content = [P("short")], Properties = new() { VerticalAlignment = align } }
+                            new()
+                            {
+                                Content =
+                                [
+                                    P(string.Join(' ', Enumerable.Repeat("lorem", 60)))
+                                ],
+                                Properties = new()
+                            },
+                            new()
+                            {
+                                Content = [P("short")],
+                                Properties = new()
+                                {
+                                    VerticalAlignment = align
+                                }
+                            }
                         ]
                     }
                 ]
             };
 
-        var topAligned = Fragmenter.Layout([TwoCell(CellVerticalAlignment.Top)], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single();
-        var bottomAligned = Fragmenter.Layout([TwoCell(CellVerticalAlignment.Bottom)], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single();
+        var topAligned = fragmenter.Layout([TwoCell(CellVerticalAlignment.Top)], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single();
+        var bottomAligned = fragmenter.Layout([TwoCell(CellVerticalAlignment.Bottom)], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single();
 
         var topLineY = topAligned.Cells[1].Content.OfType<PlacedLine>().Single().Y;
         var bottomLineY = bottomAligned.Cells[1].Content.OfType<PlacedLine>().Single().Y;
@@ -1055,59 +1459,110 @@ public class CanonicalFragmenterTests
         // width. Missing this, the engine fit an extra row per page in a dense bordered table
         // (header_row_repeat/01: 25 data rows per page vs Word's 24). The production render positions
         // content differently, so interior borders are opt-in (addInteriorBorders) on the engine path.
-        TableElement ThreeRow(BorderEdge insideH) =>
+        static TableElement ThreeRow(BorderEdge insideH) =>
             new()
             {
                 Properties = new()
                 {
                     GridColumnWidths = [120],
-                    DefaultBorders = new CellBorders { Top = BorderEdge.None, Bottom = BorderEdge.None, Left = BorderEdge.None, Right = BorderEdge.None },
+                    DefaultBorders = new()
+                    {
+                        Top = BorderEdge.None,
+                        Bottom = BorderEdge.None,
+                        Left = BorderEdge.None,
+                        Right = BorderEdge.None
+                    },
                     InsideHorizontalBorder = insideH
                 },
                 Rows =
                 [
-                    new TableRow { Cells = [new TableCell { Content = [P("row a")], Properties = new() }] },
-                    new TableRow { Cells = [new TableCell { Content = [P("row b")], Properties = new() }] },
-                    new TableRow { Cells = [new TableCell { Content = [P("row c")], Properties = new() }] }
+                    new()
+                    {
+                        Cells =
+                        [
+                            new()
+                            {
+                                Content = [P("row a")],
+                                Properties = new()
+                            }
+                        ]
+                    },
+                    new()
+                    {
+                        Cells =
+                        [
+                            new()
+                            {
+                                Content = [P("row b")],
+                                Properties = new()
+                            }
+                        ]
+                    },
+                    new()
+                    {
+                        Cells =
+                        [
+                            new()
+                            {
+                                Content = [P("row c")],
+                                Properties = new()
+                            }
+                        ]
+                    }
                 ]
             };
 
-        float Total(TableElement table)
+        static float Total(TableElement table)
         {
-            var rows = Fragmenter.Layout([table], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().ToList();
+            var rows = fragmenter.Layout([table], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().ToList();
             return rows[^1].Y + rows[^1].Height - rows[0].Y;
         }
 
-        var withBorder = Total(ThreeRow(new BorderEdge { IsVisible = true, WidthPoints = 2.0 }));
+        var withBorder = Total(
+            ThreeRow(
+                new()
+                {
+                    IsVisible = true,
+                    WidthPoints = 2.0
+                }));
         var without = Total(ThreeRow(BorderEdge.None));
 
         // 3 rows -> 2 interior edges -> 2 x 2.0pt taller.
         var delta = withBorder - without;
-        await Assert.That(delta > 3.99f && delta < 4.01f).IsTrue();
+        await Assert.That(delta is > 3.99f and < 4.01f).IsTrue();
     }
-
-    static readonly string wrapping = string.Join(' ', Enumerable.Repeat("lorem", 60));
 
     [Test]
     public async Task First_line_indent_shifts_only_the_first_line_right()
     {
-        var lines = Fragmenter.Layout([P(wrapping, new() { FirstLineIndentPoints = 24 })], Page(400))
+        var lines = fragmenter.Layout([
+                P(wrapping, new()
+                {
+                    FirstLineIndentPoints = 24
+                })
+            ], Page(400))
             .Pages[0].Items.OfType<PlacedLine>().ToList();
         await Assert.That(lines.Count > 1).IsTrue();
         // First line 24pt right of the block; subsequent lines at the (zero) left indent.
         var shift = lines[0].X - lines[1].X;
-        await Assert.That(shift > 23.5f && shift < 24.5f).IsTrue();
+        await Assert.That(shift is > 23.5f and < 24.5f).IsTrue();
     }
 
     [Test]
     public async Task Hanging_indent_outdents_only_the_first_line_left()
     {
-        var lines = Fragmenter.Layout([P(wrapping, new() { LeftIndentPoints = 40, HangingIndentPoints = 30 })], Page(400))
+        var lines = fragmenter.Layout([
+                P(wrapping, new()
+                {
+                    LeftIndentPoints = 40,
+                    HangingIndentPoints = 30
+                })
+            ], Page(400))
             .Pages[0].Items.OfType<PlacedLine>().ToList();
         await Assert.That(lines.Count > 1).IsTrue();
         // First line outdented 30pt LEFT of the subsequent lines, which sit at the 40pt left indent.
         var outdent = lines[1].X - lines[0].X;
-        await Assert.That(outdent > 29.5f && outdent < 30.5f).IsTrue();
+        await Assert.That(outdent is > 29.5f and < 30.5f).IsTrue();
     }
 
     [Test]
@@ -1115,8 +1570,18 @@ public class CanonicalFragmenterTests
     {
         // A list's hanging indent positions the marker, not the text: every text line stays at the left
         // indent. The general first-line shift must exempt lists or it double-outdents the wrapped text.
-        var para = P(wrapping, new() { LeftIndentPoints = 36, HangingIndentPoints = 18, Numbering = new NumberingInfo { Text = "1." } });
-        var lines = Fragmenter.Layout([para], Page(400)).Pages[0].Items.OfType<PlacedLine>().ToList();
+        var para = P(
+            wrapping,
+            new()
+            {
+                LeftIndentPoints = 36,
+                HangingIndentPoints = 18,
+                Numbering = new()
+                {
+                    Text = "1."
+                }
+            });
+        var lines = fragmenter.Layout([para], Page(400)).Pages[0].Items.OfType<PlacedLine>().ToList();
         await Assert.That(lines.Count > 1).IsTrue();
         await Assert.That(Math.Abs(lines[0].X - lines[1].X) < 0.5f).IsTrue();
     }
@@ -1126,16 +1591,50 @@ public class CanonicalFragmenterTests
     {
         var nested = new TableElement
         {
-            Properties = new() { GridColumnWidths = [40, 40] },
-            Rows = [new TableRow { Cells = [new TableCell { Content = [P("a")] }, new TableCell { Content = [P("b")] }] }]
+            Properties = new()
+            {
+                GridColumnWidths = [40, 40]
+            },
+            Rows =
+            [
+                new()
+                {
+                    Cells =
+                    [
+                        new()
+                        {
+                            Content = [P("a")]
+                        },
+                        new()
+                        {
+                            Content = [P("b")]
+                        }
+                    ]
+                }
+            ]
         };
         var outer = new TableElement
         {
-            Properties = new() { GridColumnWidths = [200] },
-            Rows = [new TableRow { Cells = [new TableCell { Content = [P("before"), nested] }] }]
+            Properties = new()
+            {
+                GridColumnWidths = [200]
+            },
+            Rows =
+            [
+                new()
+                {
+                    Cells =
+                    [
+                        new()
+                        {
+                            Content = [P("before"), nested]
+                        }
+                    ]
+                }
+            ]
         };
 
-        var cell = Fragmenter.Layout([outer], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single().Cells[0];
+        var cell = fragmenter.Layout([outer], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single().Cells[0];
         var nestedRow = cell.Content.OfType<PlacedTableRow>().Single();
         var beforeLine = cell.Content.OfType<PlacedLine>().First(_ => _.Runs.Any(run => run.Text == "before"));
 
@@ -1161,17 +1660,28 @@ public class CanonicalFragmenterTests
         };
         var table = new TableElement
         {
-            Properties = new() { GridColumnWidths = [200] },
+            Properties = new()
+            {
+                GridColumnWidths = [200]
+            },
             Rows =
             [
-                new TableRow
+                new()
                 {
-                    Cells = [new TableCell { Content = [P("recipient")], Floats = [shape], Properties = new() }]
+                    Cells =
+                    [
+                        new()
+                        {
+                            Content = [P("recipient")],
+                            Floats = [shape],
+                            Properties = new()
+                        }
+                    ]
                 }
             ]
         };
 
-        var cell = Fragmenter.Layout([table], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single().Cells[0];
+        var cell = fragmenter.Layout([table], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single().Cells[0];
 
         // The shape is emitted ahead of the text line so a painter draws it behind the content.
         var contentList = cell.Content.ToList();
@@ -1196,11 +1706,28 @@ public class CanonicalFragmenterTests
         };
         var table = new TableElement
         {
-            Properties = new() { GridColumnWidths = [200] },
-            Rows = [new TableRow { Cells = [new TableCell { Content = [P("recipient")], Floats = [shape], Properties = new() }] }]
+            Properties = new()
+            {
+                GridColumnWidths = [200]
+            },
+            Rows =
+            [
+                new()
+                {
+                    Cells =
+                    [
+                        new()
+                        {
+                            Content = [P("recipient")],
+                            Floats = [shape],
+                            Properties = new()
+                        }
+                    ]
+                }
+            ]
         };
 
-        var cell = Fragmenter.Layout([table], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single().Cells[0];
+        var cell = fragmenter.Layout([table], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single().Cells[0];
         await Assert.That(cell.Content.OfType<PlacedShape>().Any()).IsFalse();
     }
 
@@ -1209,16 +1736,30 @@ public class CanonicalFragmenterTests
     {
         var paragraph = new ParagraphElement
         {
-            Runs = [new Run { Text = "list item text", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }],
+            Runs =
+            [
+                new()
+                {
+                    Text = "list item text",
+                    Properties = new()
+                    {
+                        FontFamily = "Aptos",
+                        FontSizePoints = 11
+                    }
+                }
+            ],
             Properties = new()
             {
                 LeftIndentPoints = 36,
                 HangingIndentPoints = 18,
-                Numbering = new NumberingInfo { Text = "1." }
+                Numbering = new()
+                {
+                    Text = "1."
+                }
             }
         };
 
-        var line = (PlacedLine) Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items[0];
+        var line = (PlacedLine) fragmenter.Layout([paragraph], Page(400)).Pages[0].Items[0];
 
         // The first run is the marker, a hanging indent (18pt) left of the text edge (line.X = 20 + 36).
         await Assert.That(line.Runs[0].Text).IsEqualTo("1.");
@@ -1233,11 +1774,25 @@ public class CanonicalFragmenterTests
     {
         var paragraph = new ParagraphElement
         {
-            Runs = [new Run { Text = "", InlineImageData = [1, 2, 3], InlineImageWidthPoints = 100, InlineImageHeightPoints = 80, Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }],
+            Runs =
+            [
+                new()
+                {
+                    Text = "",
+                    InlineImageData = [1, 2, 3],
+                    InlineImageWidthPoints = 100,
+                    InlineImageHeightPoints = 80,
+                    Properties = new()
+                    {
+                        FontFamily = "Aptos",
+                        FontSizePoints = 11
+                    }
+                }
+            ],
             Properties = new()
         };
 
-        var line = (PlacedLine) Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items[0];
+        var line = (PlacedLine) fragmenter.Layout([paragraph], Page(400)).Pages[0].Items[0];
 
         // One placed image at the line's left edge, its box the image's display size.
         await Assert.That(line.Images.Count).IsEqualTo(1);
@@ -1255,9 +1810,19 @@ public class CanonicalFragmenterTests
     {
         // 300pt wide, 20pt margins → 260pt available. A short word centres to half the slack and
         // right-aligns flush to the right content edge (280pt).
-        var left = (PlacedLine) Fragmenter.Layout([P("word")], Page(400)).Pages[0].Items[0];
-        var centred = (PlacedLine) Fragmenter.Layout([P("word", new() { Alignment = TextAlignment.Center })], Page(400)).Pages[0].Items[0];
-        var right = (PlacedLine) Fragmenter.Layout([P("word", new() { Alignment = TextAlignment.Right })], Page(400)).Pages[0].Items[0];
+        var left = (PlacedLine) fragmenter.Layout([P("word")], Page(400)).Pages[0].Items[0];
+        var centred = (PlacedLine) fragmenter.Layout([
+            P("word", new()
+            {
+                Alignment = TextAlignment.Center
+            })
+        ], Page(400)).Pages[0].Items[0];
+        var right = (PlacedLine) fragmenter.Layout([
+            P("word", new()
+            {
+                Alignment = TextAlignment.Right
+            })
+        ], Page(400)).Pages[0].Items[0];
 
         await Assert.That(left.X).IsEqualTo(20f).Within(0.01f);
         await Assert.That(centred.X).IsEqualTo(20f + (260f - left.Width) / 2).Within(0.5f);
@@ -1272,11 +1837,23 @@ public class CanonicalFragmenterTests
     {
         var paragraph = new ParagraphElement
         {
-            Runs = [new Run { Text = "Hello", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11, AllCaps = true } }],
+            Runs =
+            [
+                new()
+                {
+                    Text = "Hello",
+                    Properties = new()
+                    {
+                        FontFamily = "Aptos",
+                        FontSizePoints = 11,
+                        AllCaps = true
+                    }
+                }
+            ],
             Properties = new()
         };
 
-        var line = (PlacedLine) Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items[0];
+        var line = (PlacedLine) fragmenter.Layout([paragraph], Page(400)).Pages[0].Items[0];
         await Assert.That(line.Runs[0].Text).IsEqualTo("HELLO");
     }
 
@@ -1288,14 +1865,38 @@ public class CanonicalFragmenterTests
         {
             Runs =
             [
-                new Run { Text = "first", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } },
-                new Run { Text = "\n", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } },
-                new Run { Text = "second", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }
+                new()
+                {
+                    Text = "first",
+                    Properties = new()
+                    {
+                        FontFamily = "Aptos",
+                        FontSizePoints = 11
+                    }
+                },
+                new()
+                {
+                    Text = "\n",
+                    Properties = new()
+                    {
+                        FontFamily = "Aptos",
+                        FontSizePoints = 11
+                    }
+                },
+                new()
+                {
+                    Text = "second",
+                    Properties = new()
+                    {
+                        FontFamily = "Aptos",
+                        FontSizePoints = 11
+                    }
+                }
             ],
             Properties = new()
         };
 
-        var lines = Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.OfType<PlacedLine>().ToList();
+        var lines = fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.OfType<PlacedLine>().ToList();
         await Assert.That(lines.Count).IsEqualTo(2);
         await Assert.That(lines[0].Runs[0].Text).IsEqualTo("first");
         await Assert.That(lines[1].Runs[0].Text).IsEqualTo("second");
@@ -1307,8 +1908,11 @@ public class CanonicalFragmenterTests
     {
         // 300pt wide, 20pt margins → 260pt available, right content edge at 280pt. A justified paragraph
         // long enough to wrap fills its non-last lines to that edge.
-        var paragraph = P(string.Join(' ', Enumerable.Repeat("lorem", 40)), new() { Alignment = TextAlignment.Justify });
-        var lines = Fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.OfType<PlacedLine>().ToList();
+        var paragraph = P(string.Join(' ', Enumerable.Repeat("lorem", 40)), new()
+        {
+            Alignment = TextAlignment.Justify
+        });
+        var lines = fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.OfType<PlacedLine>().ToList();
 
         await Assert.That(lines.Count > 1).IsTrue();
         var firstLineRight = lines[0].Runs[^1].X + lines[0].Runs[^1].Width;
@@ -1328,15 +1932,19 @@ public class CanonicalFragmenterTests
             [
                 new FloatingImageElement
                 {
-                    ImageData = [1, 2, 3], WidthPoints = 600, HeightPoints = 800,
-                    HorizontalPositionPoints = 0, VerticalPositionPoints = 0,
-                    HorizontalAnchor = HorizontalAnchor.Page, VerticalAnchor = VerticalAnchor.Page,
+                    ImageData = [1, 2, 3],
+                    WidthPoints = 600,
+                    HeightPoints = 800,
+                    HorizontalPositionPoints = 0,
+                    VerticalPositionPoints = 0,
+                    HorizontalAnchor = HorizontalAnchor.Page,
+                    VerticalAnchor = VerticalAnchor.Page,
                     BehindText = true
                 }
             ]
         };
 
-        var items = Fragmenter.Layout([P("body")], Page(200), header).Pages[0].Items;
+        var items = fragmenter.Layout([P("body")], Page(200), header).Pages[0].Items;
 
         // The full-page header image paints first (behind the body), at the page-anchored origin.
         await Assert.That(items[0] is PlacedImage).IsTrue();
@@ -1352,14 +1960,17 @@ public class CanonicalFragmenterTests
     {
         var image = new FloatingImageElement
         {
-            ImageData = System.Text.Encoding.ASCII.GetBytes("PNG"),
-            WidthPoints = 100, HeightPoints = 60,
-            HorizontalPositionPoints = 10, VerticalPositionPoints = 15,
-            HorizontalAnchor = HorizontalAnchor.Margin, VerticalAnchor = VerticalAnchor.Margin,
+            ImageData = "PNG"u8.ToArray(),
+            WidthPoints = 100,
+            HeightPoints = 60,
+            HorizontalPositionPoints = 10,
+            VerticalPositionPoints = 15,
+            HorizontalAnchor = HorizontalAnchor.Margin,
+            VerticalAnchor = VerticalAnchor.Margin,
             BehindText = true
         };
 
-        var items = Fragmenter.Layout([image, P("body")], Page(200)).Pages[0].Items.ToList();
+        var items = fragmenter.Layout([image, P("body")], Page(200)).Pages[0].Items.ToList();
 
         // The float paints first (behind the body line) at content-left + offset over content-top + offset.
         var placed = (PlacedImage) items[0];
@@ -1374,18 +1985,20 @@ public class CanonicalFragmenterTests
     {
         var image = new FloatingImageElement
         {
-            ImageData = System.Text.Encoding.ASCII.GetBytes("SVG"),
+            ImageData = "SVG"u8.ToArray(),
             ContentType = "image/svg+xml",
-            RasterFallbackData = System.Text.Encoding.ASCII.GetBytes("PNG"),
-            WidthPoints = 100, HeightPoints = 60,
-            HorizontalAnchor = HorizontalAnchor.Margin, VerticalAnchor = VerticalAnchor.Margin,
+            RasterFallbackData = "PNG"u8.ToArray(),
+            WidthPoints = 100,
+            HeightPoints = 60,
+            HorizontalAnchor = HorizontalAnchor.Margin,
+            VerticalAnchor = VerticalAnchor.Margin,
             BehindText = true
         };
 
-        var placed = Fragmenter.Layout([image, P("body")], Page(200)).Pages[0].Items.OfType<PlacedImage>().Single();
+        var placed = fragmenter.Layout([image, P("body")], Page(200)).Pages[0].Items.OfType<PlacedImage>().Single();
 
         // PdfSharp cannot rasterize SVG, so the float carries the raster equivalent, not the SVG bytes.
-        await Assert.That(System.Text.Encoding.ASCII.GetString(placed.Data!)).IsEqualTo("PNG");
+        await Assert.That(Encoding.ASCII.GetString(placed.Data!)).IsEqualTo("PNG");
     }
 
     [Test]
@@ -1393,18 +2006,20 @@ public class CanonicalFragmenterTests
     {
         var shape = new FloatingShapeElement
         {
-            WidthPoints = 200, HeightPoints = 150,
-            ImageData = System.Text.Encoding.ASCII.GetBytes("JPG"),
+            WidthPoints = 200,
+            HeightPoints = 150,
+            ImageData = "JPG"u8.ToArray(),
             ImageContentType = "image/jpeg",
-            HorizontalAnchor = HorizontalAnchor.Margin, VerticalAnchor = VerticalAnchor.Margin,
+            HorizontalAnchor = HorizontalAnchor.Margin,
+            VerticalAnchor = VerticalAnchor.Margin,
             BehindText = true
         };
 
-        var items = Fragmenter.Layout([shape, P("body")], Page(200)).Pages[0].Items;
+        var items = fragmenter.Layout([shape, P("body")], Page(200)).Pages[0].Items;
 
         // A full-bleed image-fill shape becomes a plain image — the shape painter skips image fills.
         var placed = items.OfType<PlacedImage>().Single();
-        await Assert.That(System.Text.Encoding.ASCII.GetString(placed.Data!)).IsEqualTo("JPG");
+        await Assert.That(Encoding.ASCII.GetString(placed.Data!)).IsEqualTo("JPG");
         await Assert.That(items.OfType<PlacedShape>().Any()).IsFalse();
     }
 
@@ -1413,13 +2028,20 @@ public class CanonicalFragmenterTests
     {
         var shape = new FloatingShapeElement
         {
-            WidthPoints = 100, HeightPoints = 40,
-            Gradient = new GradientFill { StartColorHex = "FF0000", EndColorHex = "0000FF", DirectionDegrees = 0 },
-            HorizontalAnchor = HorizontalAnchor.Margin, VerticalAnchor = VerticalAnchor.Margin,
+            WidthPoints = 100,
+            HeightPoints = 40,
+            Gradient = new()
+            {
+                StartColorHex = "FF0000",
+                EndColorHex = "0000FF",
+                DirectionDegrees = 0
+            },
+            HorizontalAnchor = HorizontalAnchor.Margin,
+            VerticalAnchor = VerticalAnchor.Margin,
             BehindText = true
         };
 
-        var items = Fragmenter.Layout([shape, P("body")], Page(200)).Pages[0].Items;
+        var items = fragmenter.Layout([shape, P("body")], Page(200)).Pages[0].Items;
 
         // A gradient-filled shape is placed as a shape (the painter fills it with a linear gradient), not
         // dropped — its gradient stops survive to the painter.
@@ -1434,13 +2056,15 @@ public class CanonicalFragmenterTests
     {
         var image = new FloatingImageElement
         {
-            ImageData = System.Text.Encoding.ASCII.GetBytes("PNG"),
-            WidthPoints = 100, HeightPoints = 60,
-            HorizontalAnchor = HorizontalAnchor.Margin, VerticalAnchor = VerticalAnchor.Margin,
+            ImageData = "PNG"u8.ToArray(),
+            WidthPoints = 100,
+            HeightPoints = 60,
+            HorizontalAnchor = HorizontalAnchor.Margin,
+            VerticalAnchor = VerticalAnchor.Margin,
             BehindText = false
         };
 
-        var items = Fragmenter.Layout([image, P("body")], Page(200)).Pages[0].Items.ToList();
+        var items = fragmenter.Layout([image, P("body")], Page(200)).Pages[0].Items.ToList();
 
         // A not-behind float paints last, over the body line.
         await Assert.That(items.FindIndex(_ => _ is PlacedImage) > items.FindIndex(_ => _ is PlacedLine)).IsTrue();
@@ -1451,14 +2075,18 @@ public class CanonicalFragmenterTests
     {
         var image = new FloatingImageElement
         {
-            ImageData = System.Text.Encoding.ASCII.GetBytes("PNG"),
-            WidthPoints = 100, HeightPoints = 60,
-            RotationDegrees = 90, FlipHorizontal = true, ClipToEllipse = true,
-            HorizontalAnchor = HorizontalAnchor.Margin, VerticalAnchor = VerticalAnchor.Margin,
+            ImageData = "PNG"u8.ToArray(),
+            WidthPoints = 100,
+            HeightPoints = 60,
+            RotationDegrees = 90,
+            FlipHorizontal = true,
+            ClipToEllipse = true,
+            HorizontalAnchor = HorizontalAnchor.Margin,
+            VerticalAnchor = VerticalAnchor.Margin,
             BehindText = true
         };
 
-        var placed = Fragmenter.Layout([image, P("body")], Page(200)).Pages[0].Items.OfType<PlacedImage>().Single();
+        var placed = fragmenter.Layout([image, P("body")], Page(200)).Pages[0].Items.OfType<PlacedImage>().Single();
 
         // The DrawingML transforms flow through to the placed image (the painter applies them).
         await Assert.That(placed.RotationDegrees).IsEqualTo(90d).Within(0.01);
@@ -1471,9 +2099,11 @@ public class CanonicalFragmenterTests
     {
         var shape = new FloatingShapeElement
         {
-            WidthPoints = 100, HeightPoints = 40,
+            WidthPoints = 100,
+            HeightPoints = 40,
             FillColorHex = "FF0000",
-            HorizontalAnchor = HorizontalAnchor.Margin, VerticalAnchor = VerticalAnchor.Margin,
+            HorizontalAnchor = HorizontalAnchor.Margin,
+            VerticalAnchor = VerticalAnchor.Margin,
             BehindText = true
         };
         var fillers = Enumerable.Range(0, 11).Select(_ => P("filler")).ToArray();
@@ -1482,7 +2112,7 @@ public class CanonicalFragmenterTests
         // precedes the paragraph that overflows to page 2. A margin anchor makes its position absolute, so it
         // belongs to the page carrying the content it anchors — page 2 — not the emit-time cursor page. Before
         // the deferral this stacked a page-2 background onto page 1 (brochures/01).
-        var document = Fragmenter.Layout([.. fillers, shape, P("page two")], Page(200));
+        var document = fragmenter.Layout([.. fillers, shape, P("page two")], Page(200));
 
         await Assert.That(document.Pages.Count).IsEqualTo(2);
         await Assert.That(document.Pages[0].Items.OfType<PlacedShape>().Any()).IsFalse();
@@ -1501,11 +2131,30 @@ public class CanonicalFragmenterTests
                 FloatingVerticalAnchor = FloatingTableVerticalAnchor.Text,
                 FloatingHorizontalAnchor = FloatingTableHorizontalAnchor.Margin
             },
-            Rows = [new TableRow { Cells = [new TableCell { Content = [P("date")] }, new TableCell { Content = [P("value")] }] }]
+            Rows =
+            [
+                new()
+                {
+                    Cells =
+                    [
+                        new()
+                        {
+                            Content = [P("date")]
+                        },
+                        new()
+                        {
+                            Content = [P("value")]
+                        }
+                    ]
+                }
+            ]
         };
 
-        var above = P("above", new() { SpacingAfterPoints = 30 });
-        var items = Fragmenter.Layout([above, floatingTable, P("below")], Page(400)).Pages[0].Items.ToList();
+        var above = P("above", new()
+        {
+            SpacingAfterPoints = 30
+        });
+        var items = fragmenter.Layout([above, floatingTable, P("below")], Page(400)).Pages[0].Items.ToList();
         var aboveLine = items.OfType<PlacedLine>().First(_ => _.Runs.Any(run => run.Text == "above"));
         var row = items.OfType<PlacedTableRow>().Single();
         var belowLine = items.OfType<PlacedLine>().First(_ => _.Runs.Any(run => run.Text == "below"));
@@ -1522,17 +2171,20 @@ public class CanonicalFragmenterTests
     {
         var shape = new FloatingShapeElement
         {
-            WidthPoints = 40, HeightPoints = 40,
+            WidthPoints = 40,
+            HeightPoints = 40,
             FillColorHex = "0000FF",
-            HorizontalAnchor = HorizontalAnchor.Page, VerticalAnchor = VerticalAnchor.Page,
-            HorizontalPositionPercent = 0.5, VerticalPositionPercent = 0.5,
+            HorizontalAnchor = HorizontalAnchor.Page,
+            VerticalAnchor = VerticalAnchor.Page,
+            HorizontalPositionPercent = 0.5,
+            VerticalPositionPercent = 0.5,
             BehindText = true
         };
 
         // Page(200) is 300pt wide × 200pt tall. A 50% page-anchored offset (wp14:pctPosHOffset/pctPosVOffset)
         // lands the shape's top-left at the page centre (150, 100), not at the anchor origin — the percentage
         // resolves as a fraction of the page dimension.
-        var placed = Fragmenter.Layout([shape, P("body")], Page(200)).Pages[0].Items.OfType<PlacedShape>().Single();
+        var placed = fragmenter.Layout([shape, P("body")], Page(200)).Pages[0].Items.OfType<PlacedShape>().Single();
         await Assert.That(placed.X).IsEqualTo(150f).Within(0.5f);
         await Assert.That(placed.Y).IsEqualTo(100f).Within(0.5f);
     }
@@ -1543,15 +2195,23 @@ public class CanonicalFragmenterTests
         var run = new Run
         {
             Text = "",
-            InlineImageData = System.Text.Encoding.ASCII.GetBytes("PNG"),
+            InlineImageData = "PNG"u8.ToArray(),
             InlineImageWidthPoints = 40,
             InlineImageHeightPoints = 40,
             InlineImageRotationDegrees = 45,
-            Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 }
+            Properties = new()
+            {
+                FontFamily = "Aptos",
+                FontSizePoints = 11
+            }
         };
-        var paragraph = new ParagraphElement { Runs = [run], Properties = new() };
+        var paragraph = new ParagraphElement
+        {
+            Runs = [run],
+            Properties = new()
+        };
 
-        var image = Fragmenter.Layout([paragraph], Page(200)).Pages[0].Items.OfType<PlacedLine>().SelectMany(_ => _.Images).Single();
+        var image = fragmenter.Layout([paragraph], Page(200)).Pages[0].Items.OfType<PlacedLine>().SelectMany(_ => _.Images).Single();
 
         // An inline image's transform reaches the painter the same way a floating one's does.
         await Assert.That(image.RotationDegrees).IsEqualTo(45d).Within(0.01);
@@ -1563,13 +2223,21 @@ public class CanonicalFragmenterTests
         var rule = new Run
         {
             Text = "",
-            InlineImageData = System.Text.Encoding.ASCII.GetBytes("PNG"),
+            InlineImageData = "PNG"u8.ToArray(),
             InlineImageWidthPoints = 200,
             InlineImageHeightPoints = 0.5,
-            Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 }
+            Properties = new()
+            {
+                FontFamily = "Aptos",
+                FontSizePoints = 11
+            }
         };
-        var ruleParagraph = new ParagraphElement { Runs = [rule], Properties = new() };
-        var items = Fragmenter.Layout([ruleParagraph, P("below")], Page(400)).Pages[0].Items.ToList();
+        var ruleParagraph = new ParagraphElement
+        {
+            Runs = [rule],
+            Properties = new()
+        };
+        var items = fragmenter.Layout([ruleParagraph, P("below")], Page(400)).Pages[0].Items.ToList();
         var belowLine = items.OfType<PlacedLine>().First(_ => _.Runs.Any(run => run.Text == "below"));
 
         // A 0.5pt-tall inline drawing in an otherwise-empty paragraph (a heading-rule template) must still
@@ -1581,8 +2249,13 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task Contextual_spacing_collapses_the_gap_between_same_style_paragraphs()
     {
-        var properties = new ParagraphProperties { StyleId = "MemoHead", ContextualSpacing = true, SpacingAfterPoints = 12 };
-        var document = Fragmenter.Layout([P("To", properties), P("From", properties), P("CC", properties)], Page(400));
+        var properties = new ParagraphProperties
+        {
+            StyleId = "MemoHead",
+            ContextualSpacing = true,
+            SpacingAfterPoints = 12
+        };
+        var document = fragmenter.Layout([P("To", properties), P("From", properties), P("CC", properties)], Page(400));
         var lines = document.Pages[0].Items.OfType<PlacedLine>().ToList();
 
         // Three same-style contextual paragraphs stack with no inter-paragraph spacing — each line's top is
@@ -1595,9 +2268,19 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task Contextual_spacing_does_not_collapse_across_different_styles()
     {
-        var head = new ParagraphProperties { StyleId = "A", ContextualSpacing = true, SpacingAfterPoints = 12 };
-        var body = new ParagraphProperties { StyleId = "B", ContextualSpacing = true, SpacingAfterPoints = 12 };
-        var document = Fragmenter.Layout([P("head", head), P("body", body)], Page(400));
+        var head = new ParagraphProperties
+        {
+            StyleId = "A",
+            ContextualSpacing = true,
+            SpacingAfterPoints = 12
+        };
+        var body = new ParagraphProperties
+        {
+            StyleId = "B",
+            ContextualSpacing = true,
+            SpacingAfterPoints = 12
+        };
+        var document = fragmenter.Layout([P("head", head), P("body", body)], Page(400));
         var lines = document.Pages[0].Items.OfType<PlacedLine>().ToList();
 
         // A different StyleId breaks the collapse, so the 12pt after-spacing sits between the two lines.
@@ -1608,7 +2291,7 @@ public class CanonicalFragmenterTests
     public async Task A_trailing_empty_paragraph_that_overflows_does_not_add_a_page()
     {
         var fillers = Enumerable.Range(0, 11).Select(_ => P("filler")).ToArray();
-        var document = Fragmenter.Layout([.. fillers, P("")], Page(200));
+        var document = fragmenter.Layout([.. fillers, P("")], Page(200));
 
         // The 11 fillers fill page 1; the trailing empty paragraph would overflow to page 2, but a page with
         // only a blank spacer line is a natural overflow blank Word drops — so the document stays one page.
@@ -1619,7 +2302,7 @@ public class CanonicalFragmenterTests
     public async Task A_trailing_paragraph_with_text_that_overflows_still_adds_a_page()
     {
         var fillers = Enumerable.Range(0, 11).Select(_ => P("filler")).ToArray();
-        var document = Fragmenter.Layout([.. fillers, P("overflow")], Page(200));
+        var document = fragmenter.Layout([.. fillers, P("overflow")], Page(200));
 
         // A twelfth paragraph carrying real text overflows onto a second page — only a blank trailing page
         // is absorbed, so this stays two pages.
@@ -1629,8 +2312,14 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task A_next_page_section_break_starts_a_new_page()
     {
-        var document = Fragmenter.Layout(
-            [P("first"), new SectionBreakElement { BreakType = SectionBreakType.NextPage }, P("second")],
+        var document = fragmenter.Layout(
+            [
+                P("first"), new SectionBreakElement
+                {
+                    BreakType = SectionBreakType.NextPage
+                },
+                P("second")
+            ],
             Page(400));
 
         // A NextPage section break behaves like a page break: the following content starts a fresh page.
@@ -1641,8 +2330,14 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task A_continuous_section_break_keeps_content_on_the_same_page()
     {
-        var document = Fragmenter.Layout(
-            [P("first"), new SectionBreakElement { BreakType = SectionBreakType.Continuous }, P("second")],
+        var document = fragmenter.Layout(
+            [
+                P("first"), new SectionBreakElement
+                {
+                    BreakType = SectionBreakType.Continuous
+                },
+                P("second")
+            ],
             Page(400));
 
         // A continuous section break at the same geometry takes no flow space — both paragraphs stay on page 1.
@@ -1652,9 +2347,24 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task A_next_page_section_break_switches_page_geometry()
     {
-        var second = new PageSettings { WidthPoints = 400, HeightPoints = 300, MarginTop = 20, MarginBottom = 20, MarginLeft = 20, MarginRight = 20 };
-        var document = Fragmenter.Layout(
-            [P("first"), new SectionBreakElement { BreakType = SectionBreakType.NextPage, NewSectionSettings = second }, P("second")],
+        var second = new PageSettings
+        {
+            WidthPoints = 400,
+            HeightPoints = 300,
+            MarginTop = 20,
+            MarginBottom = 20,
+            MarginLeft = 20,
+            MarginRight = 20
+        };
+        var document = fragmenter.Layout(
+            [
+                P("first"), new SectionBreakElement
+                {
+                    BreakType = SectionBreakType.NextPage,
+                    NewSectionSettings = second
+                },
+                P("second")
+            ],
             Page(200));
 
         // Page 1 keeps the document's original 300pt-wide geometry; page 2 adopts the new section's 400x300.
@@ -1669,8 +2379,14 @@ public class CanonicalFragmenterTests
     {
         // "first" fills page 1 (odd). An OddPage break wants the new section on an odd page, but the next
         // page would be 2 (even), so a blank page 2 is inserted and "second" lands on page 3.
-        var document = Fragmenter.Layout(
-            [P("first"), new SectionBreakElement { BreakType = SectionBreakType.OddPage }, P("second")],
+        var document = fragmenter.Layout(
+            [
+                P("first"), new SectionBreakElement
+                {
+                    BreakType = SectionBreakType.OddPage
+                },
+                P("second")
+            ],
             Page(200));
 
         await Assert.That(document.Pages.Count).IsEqualTo(3);
@@ -1684,10 +2400,27 @@ public class CanonicalFragmenterTests
         // A full-width masthead, then a continuous break to two columns: the classic newsletter shape. The
         // two columns (x=20 and x=20+120+20=160) both begin at the break point under the masthead, not the
         // page top.
-        var twoColumns = new PageSettings { WidthPoints = 300, HeightPoints = 120, MarginTop = 20, MarginBottom = 20, MarginLeft = 20, MarginRight = 20, ColumnCount = 2, ColumnSpacing = 20 };
+        var twoColumns = new PageSettings
+        {
+            WidthPoints = 300,
+            HeightPoints = 120,
+            MarginTop = 20,
+            MarginBottom = 20,
+            MarginLeft = 20,
+            MarginRight = 20,
+            ColumnCount = 2,
+            ColumnSpacing = 20
+        };
         var body = Enumerable.Range(0, 12).Select(_ => P("body")).ToArray();
-        var document = Fragmenter.Layout(
-            [P("MASTHEAD"), new SectionBreakElement { BreakType = SectionBreakType.Continuous, NewSectionSettings = twoColumns }, .. body],
+        var document = fragmenter.Layout(
+            [
+                P("MASTHEAD"), new SectionBreakElement
+                {
+                    BreakType = SectionBreakType.Continuous,
+                    NewSectionSettings = twoColumns
+                },
+                .. body
+            ],
             Page(120));
 
         var lines = document.Pages[0].Items.OfType<PlacedLine>().ToList();
@@ -1711,10 +2444,27 @@ public class CanonicalFragmenterTests
     {
         // The two-column section is tall enough to overflow onto a second page; there, with no masthead, the
         // columns reset to the page top (content top = 20) rather than the first page's break Y.
-        var twoColumns = new PageSettings { WidthPoints = 300, HeightPoints = 120, MarginTop = 20, MarginBottom = 20, MarginLeft = 20, MarginRight = 20, ColumnCount = 2, ColumnSpacing = 20 };
+        var twoColumns = new PageSettings
+        {
+            WidthPoints = 300,
+            HeightPoints = 120,
+            MarginTop = 20,
+            MarginBottom = 20,
+            MarginLeft = 20,
+            MarginRight = 20,
+            ColumnCount = 2,
+            ColumnSpacing = 20
+        };
         var body = Enumerable.Range(0, 40).Select(_ => P("body")).ToArray();
-        var document = Fragmenter.Layout(
-            [P("MASTHEAD"), new SectionBreakElement { BreakType = SectionBreakType.Continuous, NewSectionSettings = twoColumns }, .. body],
+        var document = fragmenter.Layout(
+            [
+                P("MASTHEAD"), new SectionBreakElement
+                {
+                    BreakType = SectionBreakType.Continuous,
+                    NewSectionSettings = twoColumns
+                },
+                .. body
+            ],
             Page(120));
 
         await Assert.That(document.Pages.Count > 1).IsTrue();
@@ -1724,7 +2474,17 @@ public class CanonicalFragmenterTests
 
     // A three-column geometry with columns at x=0, 156, 312 (468pt wide, no margins/spacing).
     static PageSettings ThreeColumnSheet(int columns) =>
-        new() { WidthPoints = 468, HeightPoints = 600, MarginTop = 0, MarginBottom = 0, MarginLeft = 0, MarginRight = 0, ColumnCount = columns, ColumnSpacing = 0 };
+        new()
+        {
+            WidthPoints = 468,
+            HeightPoints = 600,
+            MarginTop = 0,
+            MarginBottom = 0,
+            MarginLeft = 0,
+            MarginRight = 0,
+            ColumnCount = columns,
+            ColumnSpacing = 0
+        };
 
     [Test]
     public async Task A_multi_column_section_terminated_by_a_break_balances_its_columns()
@@ -1733,8 +2493,15 @@ public class CanonicalFragmenterTests
         // terminated section's columns to equal heights — two items each — rather than newspaper-filling
         // column 0 (which, on a 600pt-tall page, would hold all six).
         var items = Enumerable.Range(1, 6).Select(_ => P($"Item {_}")).ToArray();
-        var document = Fragmenter.Layout(
-            [.. items, new SectionBreakElement { BreakType = SectionBreakType.Continuous, NewSectionSettings = ThreeColumnSheet(1) }, P("footer")],
+        var document = fragmenter.Layout(
+            [
+                .. items, new SectionBreakElement
+                {
+                    BreakType = SectionBreakType.Continuous,
+                    NewSectionSettings = ThreeColumnSheet(1)
+                },
+                P("footer")
+            ],
             ThreeColumnSheet(3));
 
         var itemLines = document.Pages[0].Items.OfType<PlacedLine>().Where(_ => _.Runs.Any(run => run.Text.StartsWith("Item"))).ToList();
@@ -1749,16 +2516,12 @@ public class CanonicalFragmenterTests
         // The same six items as a three-column section that ends the document (no terminating break). Word
         // does not balance this — column 0 fills first — so all six short items land in the first column.
         var items = Enumerable.Range(1, 6).Select(_ => P($"Item {_}")).ToArray();
-        var document = Fragmenter.Layout([.. items], ThreeColumnSheet(3));
+        var document = fragmenter.Layout([.. items], ThreeColumnSheet(3));
 
         var itemLines = document.Pages[0].Items.OfType<PlacedLine>().Where(_ => _.Runs.Any(run => run.Text.StartsWith("Item"))).ToList();
         await Assert.That(itemLines.Count).IsEqualTo(6);
         await Assert.That(itemLines.All(_ => _.X < 100f)).IsTrue();
     }
-
-    // A 1x1 PNG: the float only has to decode, its drawn pixels are irrelevant to where text lands.
-    static readonly byte[] pixel = Convert.FromBase64String(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
 
     static FloatingImageElement Float(WrapType wrap, double width, double height, WrapTextSide side = WrapTextSide.BothSides) =>
         new()
@@ -1779,8 +2542,8 @@ public class CanonicalFragmenterTests
         // A 100pt-wide square float at the column's left edge over a 260pt measure. Text beside it must
         // start past the float and wrap to the ~160pt that remains, not the full measure.
         const string text = "The quick brown fox jumps over the lazy dog again and again and again";
-        var withFloat = Fragmenter.Layout([Float(WrapType.Square, 100, 60), P(text)], Page(400));
-        var without = Fragmenter.Layout([P(text)], Page(400));
+        var withFloat = fragmenter.Layout([Float(WrapType.Square, 100, 60), P(text)], Page(400));
+        var without = fragmenter.Layout([P(text)], Page(400));
 
         var banded = withFloat.Pages[0].Items.OfType<PlacedLine>().ToList();
         var full = without.Pages[0].Items.OfType<PlacedLine>().ToList();
@@ -1795,8 +2558,8 @@ public class CanonicalFragmenterTests
     {
         // wrapNone (and behind-text) floats overlap the text by design: no exclusion, no narrowing.
         const string text = "The quick brown fox jumps over the lazy dog again and again and again";
-        var withFloat = Fragmenter.Layout([Float(WrapType.None, 100, 60), P(text)], Page(400));
-        var without = Fragmenter.Layout([P(text)], Page(400));
+        var withFloat = fragmenter.Layout([Float(WrapType.None, 100, 60), P(text)], Page(400));
+        var without = fragmenter.Layout([P(text)], Page(400));
 
         var banded = withFloat.Pages[0].Items.OfType<PlacedLine>().ToList();
         var full = without.Pages[0].Items.OfType<PlacedLine>().ToList();
@@ -1808,7 +2571,7 @@ public class CanonicalFragmenterTests
     public async Task A_top_and_bottom_float_pushes_the_text_below_it()
     {
         // wrapTopAndBottom takes the whole measure, so nothing sits beside it — the text starts under it.
-        var document = Fragmenter.Layout([Float(WrapType.TopAndBottom, 100, 60), P("Below")], Page(400));
+        var document = fragmenter.Layout([Float(WrapType.TopAndBottom, 100, 60), P("Below")], Page(400));
         var line = document.Pages[0].Items.OfType<PlacedLine>().First();
         await Assert.That(line.Y).IsGreaterThanOrEqualTo(60f);
     }

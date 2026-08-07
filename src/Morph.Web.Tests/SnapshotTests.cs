@@ -197,27 +197,43 @@ public class SnapshotTests
         await UploadSampleAsync(page);
 
         await page.SelectOptionAsync(".convert-panel .format-select", "Markdown");
-        var text = await page.WaitForSelectorAsync(".result-text", new() { Timeout = 30000 });
+        var text = await page.WaitForSelectorAsync(".result-text", new()
+        {
+            Timeout = 30000
+        });
         // The sample document embeds images; the pane view swaps their base64 payloads for size notes.
         await Assert.That(await text!.TextContentAsync()).Contains("KB elided");
         // ...and captions that swap under the header.
-        var note = await page.WaitForSelectorAsync(".result-note", new() { Timeout = 30000 });
+        var note = await page.WaitForSelectorAsync(".result-note", new()
+        {
+            Timeout = 30000
+        });
         await Assert.That(await note!.TextContentAsync()).Contains("omitted for brevity");
 
         await page.SelectOptionAsync(".convert-panel .format-select", "Html");
-        var frame = await page.WaitForSelectorAsync(".result-frame", new() { Timeout = 30000 });
+        var frame = await page.WaitForSelectorAsync(".result-frame", new()
+        {
+            Timeout = 30000
+        });
         var source = await frame!.GetAttributeAsync("src");
         await Assert.That(source).StartsWith("blob:");
 
         await page.SelectOptionAsync(".convert-panel .format-select", "Png");
-        await page.WaitForSelectorAsync(".result-pane", new() { State = WaitForSelectorState.Detached, Timeout = 30000 });
+        await page.WaitForSelectorAsync(
+            ".result-pane",
+            new()
+            {
+                State = WaitForSelectorState.Detached,
+                Timeout = 30000
+            });
     }
 
     [Test]
     public async Task HomePageMobile()
     {
         var page = await browser!.NewPageAsync();
-        await page.SetViewportSizeAsync(375, 667); // iPhone SE size
+        // iPhone SE size
+        await page.SetViewportSizeAsync(375, 667);
 
         await page.GotoAsync($"http://localhost:{port}/");
 
@@ -248,7 +264,8 @@ public class SnapshotTests
     public async Task HomePageDarkModeMobile()
     {
         var page = await browser!.NewPageAsync();
-        await page.SetViewportSizeAsync(375, 667); // iPhone SE size
+        // iPhone SE size
+        await page.SetViewportSizeAsync(375, 667);
 
         await page.GotoAsync($"http://localhost:{port}/");
 
@@ -271,7 +288,10 @@ public class SnapshotTests
             MimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             Buffer = Sample.DocxBytes
         });
-        await page.WaitForSelectorAsync(".preview-page", new() { Timeout = 90000 });
+        await page.WaitForSelectorAsync(".preview-page", new()
+        {
+            Timeout = 90000
+        });
     }
 
     // Waits for the app to be fully settled before a snapshot: the upload UI present, every asset loaded,
@@ -304,8 +324,14 @@ public class SnapshotTests
         // render; wait for them so the captured HTML/PNG always includes them rather than racing a partial
         // footer. Match on Attached, not the default Visible, since the payload size is display:none at the
         // mobile viewport — it's still in the DOM, which is all we need to know the interop has completed.
-        await page.WaitForSelectorAsync(".footer-size", new() { State = WaitForSelectorState.Attached });
-        await page.WaitForSelectorAsync(".footer-ram", new() { State = WaitForSelectorState.Attached });
+        await page.WaitForSelectorAsync(".footer-size", new()
+        {
+            State = WaitForSelectorState.Attached
+        });
+        await page.WaitForSelectorAsync(".footer-ram", new()
+        {
+            State = WaitForSelectorState.Attached
+        });
     }
 
     static int GetAvailablePort()

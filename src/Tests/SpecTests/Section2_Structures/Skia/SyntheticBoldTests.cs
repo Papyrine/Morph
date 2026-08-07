@@ -17,9 +17,12 @@ using SkiaSharp;
 public class SyntheticBoldTests
 {
     [Test]
-    [Arguments("Franklin Gothic Book")] // weight word in the name, and no bold face bundled
-    [Arguments("Segoe UI Semilight")] // name weight deliberately outranks bold for face selection
-    [Arguments("Arial")] // control: a family that does bundle a real bold face
+    // weight word in the name, and no bold face bundled
+    [Arguments("Franklin Gothic Book")]
+    // name weight deliberately outranks bold for face selection
+    [Arguments("Segoe UI Semilight")]
+    // control: a family that does bundle a real bold face
+    [Arguments("Arial")]
     public async Task BoldRun_RendersHeavierThanRegular(string fontFamily)
     {
         var regular = InkPixels(fontFamily, bold: false);

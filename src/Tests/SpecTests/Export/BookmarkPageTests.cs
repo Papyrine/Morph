@@ -45,7 +45,7 @@ public class BookmarkPageTests
     [Test]
     public async Task ABookmarkAfterATableStillReportsItsOwnPage()
     {
-        using var docx = BuildDocument(paragraphs: 3, bookmarkAt: 2, tableBeforeParagraph: 1);
+        using var docx = BuildDocument(3, 2, tableBeforeParagraph: 1);
 
         var pages = DocumentConverter.GetBookmarkPages(docx, Options);
 
@@ -104,7 +104,7 @@ public class BookmarkPageTests
                 body.Append(paragraph);
             }
 
-            mainPart.Document = new(body);
+            mainPart.Document = [with(body)];
             mainPart.Document.Save();
         }
 
@@ -114,20 +114,22 @@ public class BookmarkPageTests
 
     // Two rows of two cells: four more w:p elements that are not body-level paragraphs.
     static W.Table Table() =>
-        new(
-            new W.TableProperties(
+    [
+        with(new W.TableProperties(
                 new W.TableWidth
                 {
                     Type = W.TableWidthUnitValues.Auto
                 }),
             new W.TableGrid(new W.GridColumn(), new W.GridColumn()),
             Row("a", "b"),
-            Row("c", "d"));
+            Row("c", "d"))
+    ];
 
     static W.TableRow Row(string left, string right) =>
-        new(
-            new W.TableCell(new W.Paragraph(new W.Run(new W.Text(left)))),
-            new W.TableCell(new W.Paragraph(new W.Run(new W.Text(right)))));
+    [
+        with(new W.TableCell(new W.Paragraph(new W.Run(new W.Text(left)))),
+            new W.TableCell(new W.Paragraph(new W.Run(new W.Text(right)))))
+    ];
 
     static void Bookmark(W.Paragraph paragraph, string name, int id)
     {

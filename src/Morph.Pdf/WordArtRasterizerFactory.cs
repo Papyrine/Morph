@@ -1,5 +1,3 @@
-using System.Reflection;
-
 /// <summary>
 /// Locates an <see cref="IWordArtRasterizer"/> from an optional raster backend so the PDF engine
 /// can embed high-fidelity WordArt without a compile-time dependency on either engine. Prefers
@@ -42,7 +40,7 @@ static class WordArtRasterizerFactory
                 if (type is {IsAbstract: false, IsInterface: false} &&
                     typeof(IWordArtRasterizer).IsAssignableFrom(type))
                 {
-                    return (IWordArtRasterizer?) Activator.CreateInstance(type, nonPublic: true);
+                    return (IWordArtRasterizer?)Activator.CreateInstance(type, true);
                 }
             }
         }
