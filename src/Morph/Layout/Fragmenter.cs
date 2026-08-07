@@ -1161,16 +1161,42 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var lineIndex = 0;
             while (lineIndex < paragraphLines.Count)
             {
-                // How many of the remaining lines fit in the current region. A line fits if its baseline
-                // clears the bottom margin — Word lets the last line's descent (and trailing gap) encroach
-                // the margin rather than pushing it to the next page. The first line at a region top is
-                // always taken (nothing better to do than overflow it).
+                // How many of the remaining lines fit in the current region. What the line has to get inside
+                // the bottom margin depends on w:lineRule, which three Word renders pin down (all against a
+                // content bottom of exactly 720pt, box/ink/ascent bottoms measured):
+                //
+                //   exact flow, line 50           REJECTED   722.00 / 722.43 / 719.47
+                //   auto flow, line 42            KEPT       720.56 / 718.55 / 715.59
+                //   image_wrap_square col, line 6 KEPT       724.36 / 722.35 / 719.39
+                //
+                // No single quantity survives that: the full box is refuted by rows 2-3, the ink box by row 3,
+                // the ascent by row 1 — and no threshold separates rows 1 and 3 either, since they straddle by
+                // 0.08pt in ascent bottom while disagreeing, and the box overhang runs non-monotone across the
+                // three (0.56 kept, 2.00 rejected, 4.36 kept). The discriminator is the spacing rule itself.
+                //
+                // Only AUTO tolerates an overhang: the baseline has to clear the margin, and Word lets the
+                // last line's descent and trailing gap encroach it rather than pushing the line to the next
+                // page, drawing the overhang and clipping it at the text area — visible in image_wrap_square,
+                // whose last column line has a full-width ink band ending dead on the content bottom where the
+                // line above it trails descenders 1.92pt past its own band. Every other rule reserves the
+                // whole box. For exact that is what "exact" means, the declared height being an absolute
+                // reservation; atLeast was assumed to follow auto and does NOT — Word-probed three ways
+                // (_probe_lastline_atleast_a/b/c), it is strict at 15.5pt (Word 41, the lenient reading 42),
+                // at 21pt (30 against 31), and — the case that makes this categorical rather than a
+                // declared-value rule — ALSO strict at a declared 10pt that LOSES to Calibri's natural
+                // 13.4277pt pitch (44 against 45). That last box is the font's own, identical to what single
+                // auto produces, so the leniency belongs to the auto rule itself and not to the box's
+                // provenance.
+                //
+                // The first line at a region top is always taken (nothing better to do than overflow it).
+                var reserveWholeBox = properties.LineSpacingRule != LineSpacingRule.Auto;
                 var fit = 0;
                 var probeY = y;
                 while (lineIndex + fit < paragraphLines.Count)
                 {
                     var candidate = paragraphLines[lineIndex + fit];
-                    if (!(atRegionTop && fit == 0) && probeY + candidate.Ascent > contentBottom)
+                    var reserved = reserveWholeBox ? candidate.Height : candidate.Ascent;
+                    if (!(atRegionTop && fit == 0) && probeY + reserved > contentBottom)
                     {
                         break;
                     }
@@ -1348,7 +1374,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             lastStyleId = null;
 
             // A table over 110% of a column's content height flows row by row (the raster backend's
-            // needsRowByRowRendering); otherwise it stays whole and moves as a unit if needed.
+            // needsRowByRowRendering); otherwise it stays whole and moves as a unit if needed. Routing a
+            // table that merely will not fit the space left through here as well is Word's own behaviour and
+            // is what todo #25 still needs, but it orphans a blank trailing row onto a page of its own in
+            // resumes/06 — attempted and reverted twice now, see the entry there.
             if (totalHeight > contentHeight * 1.10f)
             {
                 PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth);
@@ -1404,14 +1433,21 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // wherever it went, drawing over the footer and clipping at the page edge. Word splits such a
                 // row at a line boundary and continues it overleaf. Rows that DO fit keep the move-whole
                 // behaviour below, which matches Word across the rest of the corpus.
-                if (rowIndex <= lastVisibleRow && rowHeight > contentHeight && CanSplitRow(table.Rows[rowIndex]))
+                // A row that merely does not fit the space left is split too — EXCEPT a w:hRule="exact" one,
+                // whose height is a verbatim box rather than a measure of its content (ECMA-376 §17.4.81).
+                // Splitting one lets its sparse content collapse into the space left and the reservation
+                // vanishes: table_layout_tall_row is two exact rows (80pt and 530pt) that Word carries onto a
+                // second page, and splitting the tall one folded the document back to a single page.
+                var doesNotFitHere = !atRegionTop &&
+                                     rowHeight > contentBottom - y &&
+                                     !TableHeightCalculator.IsPinnedExact(table.Rows[rowIndex]);
+                if (rowIndex <= lastVisibleRow && (rowHeight > contentHeight || doesNotFitHere) && CanSplitRow(table.Rows[rowIndex]))
                 {
                     PlaceSplitRow(table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, headerCount);
                     continue;
                 }
 
                 var broke = rowIndex <= lastVisibleRow && EnsureSpaceFor(rowHeight);
-
                 if (broke && headerCount > 0 && rowIndex >= headerCount)
                 {
                     for (var headerIndex = 0; headerIndex < headerCount; headerIndex++)
@@ -1472,12 +1508,20 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // A sliver at the bottom of a page holds nothing useful, so start the fragment on the next
                 // region rather than emitting a stub. minFragmentHeight is one generous line.
                 const float minFragmentHeight = 24f;
+                var advanced = false;
                 if (!atRegionTop && contentBottom - y < minFragmentHeight)
                 {
                     AdvanceColumnOrPage();
+                    advanced = true;
                 }
 
-                if (!isFirstFragment && headerCount > 0 && rowIndex >= headerCount)
+                // w:tblHeader rows re-emit above every fragment that follows a break — the continuations, and
+                // ALSO a first fragment the sliver advance just carried to a fresh region. That advance is the
+                // same page break EnsureSpaceFor produces on the unsplit path, which re-emits headers; missing
+                // it here cost business-plans/13's continuation pages their three repeated header rows
+                // ("Start-up costs" / agency / column headers) whenever the fit trigger routed the boundary
+                // row through this path, leaving every following page to start bare at a data row.
+                if ((!isFirstFragment || advanced) && headerCount > 0 && rowIndex >= headerCount)
                 {
                     for (var headerIndex = 0; headerIndex < headerCount; headerIndex++)
                     {
@@ -1488,7 +1532,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 var available = Math.Max(minFragmentHeight, contentBottom - y);
-                var (fragment, continuations, height) = BuildRowFragment(y, table, rowIndex, colWidths, colCount, tableX, tableWidth, starts, available, isFirstFragment);
+                var (fragment, continuations, height) = BuildRowFragment(y, table, rowIndex, colWidths, colCount, tableX, tableWidth, starts, available, isFirstFragment, atRegionTop);
                 items.Add(fragment);
                 ResolvePendingFloats();
                 y += height;
@@ -1530,7 +1574,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             float tableWidth,
             CellSplitPoint?[] starts,
             float available,
-            bool isFirstFragment)
+            bool isFirstFragment,
+            bool atRegionStart)
         {
             var row = table.Rows[rowIndex];
             var cells = new List<PlacedCell>();
@@ -1539,6 +1584,20 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var gridColIndex = 0;
             var usedHeight = 0f;
             var anyContinues = false;
+
+            // A fragment pays for its own horizontal edges, exactly as TableHeightCalculator's collapse pass
+            // charges an unsplit row for its outer top and bottom: Word draws each edge on the boundary and
+            // insets the content below it, so the edges come out of what the cells have to fill. Word closes
+            // every fragment with a rule and reopens the next one with another, so both are charged on every
+            // fragment rather than only at the row's real ends. Without this the budget over-reports by the
+            // two edge widths, which is a whole extra line whenever the content divides the region evenly —
+            // _probe_cantsplit_tall_off is exactly that case: 648pt of region against 12pt lines, where the
+            // unpaid budget takes 54 lines to Word's 53. An exact row is exempt, mirroring the height model,
+            // since ECMA-376 §17.4.81 makes its height verbatim against borders as against content.
+            var chargesEdges = !TableHeightCalculator.IsPinnedExact(row);
+            var topEdge = chargesEdges ? TableHeightCalculator.HorizontalBorderWidth(table, colCount, rowIndex, top: true) : 0f;
+            var bottomEdge = chargesEdges ? TableHeightCalculator.HorizontalBorderWidth(table, colCount, rowIndex, top: false) : 0f;
+            var horizontalEdges = topEdge + bottomEdge;
 
             for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
             {
@@ -1556,17 +1615,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 if (start == null)
                 {
                     // This cell finished on an earlier fragment; it still draws its box and sides.
-                    cells.Add(new PlacedCell(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, FragmentBorders(cell, table, rowIndex, gridColIndex, colCount, row, continues: false, isFirstFragment), []));
+                    cells.Add(new PlacedCell(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, FragmentBorders(cell, table, rowIndex, gridColIndex, colCount, row), []));
                     cellX += cellWidth;
                     gridColIndex += span;
                     continue;
                 }
 
-                var budget = Math.Max(0f, available - (float) padding.Vertical);
+                var budget = Math.Max(0f, available - (float) padding.Vertical - horizontalEdges);
                 var (content, continuation, height) = LayoutCellFragment(
                     cell,
                     cellX + (float) padding.Left,
-                    rowY + (float) padding.Top,
+                    rowY + (float) padding.Top + topEdge,
                     cellWidth - (float) padding.Horizontal,
                     budget,
                     cell.Properties.VerticalAlignment,
@@ -1588,14 +1647,34 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     }
                 }
 
-                cells.Add(new PlacedCell(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, FragmentBorders(cell, table, rowIndex, gridColIndex, colCount, row, continuation != null, isFirstFragment), content));
+                cells.Add(new PlacedCell(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, FragmentBorders(cell, table, rowIndex, gridColIndex, colCount, row), content));
 
                 cellX += cellWidth;
                 gridColIndex += span;
             }
 
-            // A fragment that continues fills its page; the last one shrinks to what it actually used.
-            var fragmentHeight = anyContinues ? available : Math.Min(available, usedHeight);
+            // Every fragment shrinks to what it actually used, the one that carries on included — Word closes
+            // it tight around its content rather than stretching it to the region bottom (_probe_cantsplit_
+            // tall_off: Word's closing rule sits at 708.96 against a 720pt content bottom, hard against the
+            // 53 lines it holds, not 11pt below them). Only the drawn box is at stake: the cursor moves to
+            // the next region straight after a continuing fragment either way.
+            var fragmentHeight = Math.Min(available, usedHeight + horizontalEdges);
+
+            // A whole row CARRIED TO A REGION TOP keeps its authored atLeast floor (w:trHeight): Word
+            // places such a row at its declared height — probed with a 100pt row of ~25pt content
+            // (_probe_trail2_nested/_bordered), where the paragraph after the table starts at 174.72pt,
+            // margin plus the full declared height, against 99.36 for the content-sized fragment. The floor
+            // is deliberately NARROW, each widening having been tried and adjudicated away from Word:
+            // the calculator's full rowHeights model regressed even floor-less scenarios
+            // (header_row_repeat/01 and table_multipage author no trHeight — actual layout beats the model's
+            // estimate), and applying the authored floor to a row SQUEEZED into the page-bottom remainder
+            // without advancing regressed business-plans/13 on every backend, while business/03 — whose
+            // floored rows land at region tops, the probed geometry — improved. A row split across regions
+            // fills by content; no probe covers distributing a declared height across fragments.
+            if (isFirstFragment && atRegionStart && !anyContinues && !row.IsExactHeight && row.HeightPoints is { } declaredFloor)
+            {
+                fragmentHeight = Math.Min(available, Math.Max(fragmentHeight, (float) declaredFloor));
+            }
             var boxed = new List<PlacedCell>(cells.Count);
             foreach (var cell in cells)
             {
@@ -1605,22 +1684,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             return (new PlacedTableRow(tableX, rowY, tableWidth, fragmentHeight, table, rowIndex, false, boxed), continuations, fragmentHeight);
         }
 
-        // The row's resolved borders with the split edges removed: no bottom rule where the cell carries on
-        // overleaf, no top rule where it is resuming.
-        static CellBorders? FragmentBorders(TableCell cell, TableElement table, int rowIndex, int gridColIndex, int colCount, TableRow row, bool continues, bool isFirstFragment)
-        {
-            var borders = TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row);
-            if (borders == null || (!continues && isFirstFragment))
-            {
-                return borders;
-            }
-
-            return borders with
-            {
-                Top = isFirstFragment ? borders.Top : BorderEdge.None,
-                Bottom = continues ? BorderEdge.None : borders.Bottom
-            };
-        }
+        // Every fragment draws its whole box, split edges included. This read the other way until Word was
+        // asked directly (_probe_cantsplit_tall_off): Word CLOSES the fragment that carries on with a rule at
+        // 708.96 and REOPENS the continuation with another at 72.00, rather than running the cell's sides
+        // through the break and boxing only the row's real ends. The edges are charged to the fragment's
+        // content budget above, so the rules and the space they occupy stay in step.
+        static CellBorders? FragmentBorders(TableCell cell, TableElement table, int rowIndex, int gridColIndex, int colCount, TableRow row) =>
+            TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row);
 
         // Builds a placed row at the current cursor: the row box plus each cell's box, shading, borders and
         // laid-out content. Cell geometry mirrors the deleted production RenderTableRow so the tree matches the

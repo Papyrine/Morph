@@ -29,6 +29,137 @@ public class CanonicalFragmenterTests
     static Run TabRun() => new() { Text = "", IsTab = true, Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } };
 
     /// <summary>
+    /// Under <c>w:lineRule="exact"</c> the declared height is an absolute reservation, so the whole line
+    /// box has to be inside the bottom margin — a line whose baseline clears it but whose box does not is
+    /// pushed to the next page. Word-probed (<c>_probe_lastline_flow</c>, 60 paragraphs of 13pt exact
+    /// lines against a 648pt band): Word keeps 49 and rejects a 50th whose box ends 2pt past the margin
+    /// but whose baseline sits 0.53pt inside it.
+    /// </summary>
+    [Test]
+    public async Task An_exact_spaced_line_needs_its_whole_box_inside_the_margin()
+    {
+        var page = Page(200);
+        var properties = new ParagraphProperties { LineSpacingRule = LineSpacingRule.Exactly, LineSpacingPoints = 13.5 };
+        var paragraph = P(string.Join(' ', Enumerable.Repeat("lorem", 98)), properties);
+
+        // Guard: the geometry only tests the rule while the twelfth line is the discriminating one — its
+        // baseline inside the 180pt content bottom, its box past it. Sitting on either side of both
+        // bounds would make the test pass for the wrong reason.
+        var lines = LayoutTestFonts.Measurer.LayoutLineContents(paragraph, (float) page.ContentWidth);
+        await Assert.That(lines.Count).IsGreaterThanOrEqualTo(13);
+        var twelfthTop = 20 + (11 * lines[0].Height);
+        await Assert.That(twelfthTop + lines[11].Ascent).IsLessThanOrEqualTo(180f);
+        await Assert.That(twelfthTop + lines[11].Height).IsGreaterThan(180f);
+
+        var document = Fragmenter.Layout([paragraph], page);
+
+        await Assert.That(document.Pages[0].Items.OfType<PlacedLine>().Count()).IsEqualTo(11);
+    }
+
+    /// <summary>
+    /// Under auto spacing only the baseline has to clear the bottom margin: Word lets the last line's
+    /// descent and trailing gap encroach it rather than pushing the line to the next page, drawing the
+    /// overhang and clipping it at the text area. Word-probed twice — <c>_probe_lastline_auto_flow</c>
+    /// keeps a 42nd line whose box ends 0.56pt past the margin, and <c>image_wrap_square</c>'s column
+    /// keeps a line whose box ends 4.36pt past it (and whose ink band stops dead on the boundary).
+    ///
+    /// This is the half of the rule that must NOT tighten with the exact case: the full box costs
+    /// <c>image_wrap_square</c> Word's page count, which is how two earlier readings were caught.
+    /// </summary>
+    [Test]
+    public async Task An_auto_spaced_line_keeps_only_its_baseline_inside_the_margin()
+    {
+        // 197pt tall puts the content bottom at 177, between the eleventh line's baseline and its box.
+        var page = Page(197);
+        var paragraph = P(string.Join(' ', Enumerable.Repeat("lorem", 98)));
+
+        var lines = LayoutTestFonts.Measurer.LayoutLineContents(paragraph, (float) page.ContentWidth);
+        await Assert.That(lines.Count).IsGreaterThanOrEqualTo(12);
+        var eleventhTop = 20 + (10 * lines[0].Height);
+        await Assert.That(eleventhTop + lines[10].Ascent).IsLessThanOrEqualTo(177f);
+        await Assert.That(eleventhTop + lines[10].Height).IsGreaterThan(177f);
+
+        var document = Fragmenter.Layout([paragraph], page);
+
+        await Assert.That(document.Pages[0].Items.OfType<PlacedLine>().Count()).IsEqualTo(11);
+    }
+
+    /// <summary>
+    /// <c>atLeast</c> reserves the whole box too, and does so even where the declared value LOSES to the
+    /// font's natural pitch — the box is then the font's own, identical to what single auto produces, and
+    /// Word is still strict. So the leniency above belongs to the auto rule itself, not to how the box was
+    /// derived. Word-probed three ways (<c>_probe_lastline_atleast_a/b/c</c>): strict at a declared 15.5pt
+    /// (Word keeps 41 where the lenient reading takes 42), at 21pt (30 against 31), and at a declared 10pt
+    /// beaten by Calibri's 13.4277pt natural pitch (44 against 45).
+    ///
+    /// The two cases need different page heights because their boxes differ: 16pt binds, where 10pt loses
+    /// to the font and leaves the bare single-spaced pitch — which is NOT the auto test's box either, since
+    /// the default <see cref="ParagraphProperties.LineSpacingMultiplier"/> is Word's 1.08.
+    /// </summary>
+    [Test]
+    [Arguments(10, 199, 11)]
+    [Arguments(16, 197, 9)]
+    public async Task An_atLeast_spaced_line_needs_its_whole_box_inside_the_margin(double declaredPoints, double pageHeight, int expected)
+    {
+        var page = Page(pageHeight);
+        var contentBottom = (float) pageHeight - 20;
+        var properties = new ParagraphProperties { LineSpacingRule = LineSpacingRule.AtLeast, LineSpacingPoints = declaredPoints };
+        var paragraph = P(string.Join(' ', Enumerable.Repeat("lorem", 98)), properties);
+
+        // Guard: the line after the last one kept has to straddle the content bottom — baseline inside, box
+        // outside — or the test would pass without separating the two readings. The 10pt case additionally
+        // has to LOSE to the font, which is the whole point of it.
+        var lines = LayoutTestFonts.Measurer.LayoutLineContents(paragraph, (float) page.ContentWidth);
+        await Assert.That(lines.Count).IsGreaterThanOrEqualTo(expected + 2);
+        await Assert.That(lines[0].Height > declaredPoints).IsEqualTo(declaredPoints < 14);
+        var straddlingTop = 20 + (expected * lines[0].Height);
+        await Assert.That(straddlingTop + lines[expected].Ascent).IsLessThanOrEqualTo(contentBottom);
+        await Assert.That(straddlingTop + lines[expected].Height).IsGreaterThan(contentBottom);
+
+        var document = Fragmenter.Layout([paragraph], page);
+
+        await Assert.That(document.Pages[0].Items.OfType<PlacedLine>().Count()).IsEqualTo(expected);
+    }
+
+    /// <summary>
+    /// A row that does not fit the space left is routed through the split path, but one that then fits
+    /// whole on the fresh region is not split at all — it lands as a normal row with its declared
+    /// <c>w:trHeight</c> honoured. <c>BuildRowFragment</c> sizes a fragment from its content alone, so
+    /// letting it place a fits-whole row silently drops the atLeast floor. Word-probed
+    /// (<c>_probe_trail2_nested</c>/<c>_bordered</c>): a 100pt row of ~25pt content carried to a fresh
+    /// page puts the paragraph after the table at 174.72pt — margin plus the full declared height —
+    /// where the fragment-sized row put it at 99.36.
+    /// </summary>
+    [Test]
+    public async Task A_carried_row_keeps_its_declared_height()
+    {
+        var page = Page(200);
+        // Ten fillers reach 145pt, leaving 15pt — under the 24pt sliver minimum, so the row advances
+        // whole to page 2 rather than leaving a fragment behind.
+        var fillers = Enumerable.Range(0, 10).Select(index => P($"Filler {index}")).ToList();
+        var table = new TableElement
+        {
+            Properties = new(),
+            Rows =
+            [
+                new TableRow
+                {
+                    HeightPoints = 100,
+                    Cells = [new TableCell {Content = [P("Short")], Properties = new()}]
+                }
+            ]
+        };
+        var after = P("AFTER");
+
+        var document = Fragmenter.Layout([.. fillers, table, after], page);
+
+        await Assert.That(document.Pages.Count).IsEqualTo(2);
+        var afterLine = document.Pages[1].Items.OfType<PlacedLine>().Single(_ => ReferenceEquals(_.Paragraph, after));
+        // Content top 20 + the declared 100pt row, not 20 + the ~14.5pt its one line measures.
+        await Assert.That(afterLine.Y).IsEqualTo(120f);
+    }
+
+    /// <summary>
     /// Widow and orphan control are settled in ORDER, the orphan check acting on what the widow carry
     /// left — Word does not treat them as alternatives. A three-line paragraph with room for exactly two
     /// is the case that separates the two readings: the carry drops it to one line on this page, and the
