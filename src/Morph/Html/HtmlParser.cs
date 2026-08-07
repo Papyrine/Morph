@@ -790,7 +790,7 @@ sealed class HtmlParser
 
         while (!remaining.IsEmpty)
         {
-            ReadOnlySpan<char> declaration;
+            CharSpan declaration;
             var semicolon = remaining.IndexOf(';');
             if (semicolon < 0)
             {
@@ -1722,7 +1722,7 @@ sealed class HtmlParser
         return null;
     }
 
-    static bool TryParseCssDimension(ReadOnlySpan<char> value, out double result)
+    static bool TryParseCssDimension(CharSpan value, out double result)
     {
         var span = value.Trim();
         if (span.EndsWith("px", StringComparison.OrdinalIgnoreCase) ||
@@ -1738,7 +1738,7 @@ sealed class HtmlParser
     // px. Word sizes a `width: 400px` table at 300pt — measured at 623px against 625 predicted at
     // 150 DPI. Unlike TryParseCssDimension (which reads px as pt), so use this only where the value
     // is a genuine CSS length whose px→pt scaling has been Word-confirmed.
-    static bool TryParseCssLengthToPoints(ReadOnlySpan<char> value, out double points)
+    static bool TryParseCssLengthToPoints(CharSpan value, out double points)
     {
         var span = value.Trim();
         var isPoints = span.EndsWith("pt", StringComparison.OrdinalIgnoreCase);

@@ -182,7 +182,10 @@ static class FontHelpers
 
     internal static string StripWeightSuffixes(string fontFamily)
     {
-        var result = fontFamily;
+        // Slice rather than substring: "Calibri Light Italic" strips twice, and every intermediate
+        // string was allocated only to be thrown away. The span narrows in place and only the final
+        // result materialises.
+        var result = fontFamily.AsSpan();
         bool changed;
         do
         {
@@ -197,7 +200,16 @@ static class FontHelpers
             }
         } while (changed);
 
-        return result.Trim();
+        result = result.Trim();
+
+        // A slice as long as the input is the input, so the common no-suffix case (every plain
+        // "Arial" / "Times New Roman" lookup) returns the existing instance and allocates nothing.
+        if (result.Length == fontFamily.Length)
+        {
+            return fontFamily;
+        }
+
+        return result.ToString();
     }
 
     /// <summary>
@@ -278,7 +290,8 @@ static class FontHelpers
                 continue;
             }
 
-            builder ??= new StringBuilder(fontFamily.Length + 4).Append(fontFamily, 0, i);
+            builder ??= new StringBuilder(fontFamily.Length + 4)
+                .Append(fontFamily, 0, i);
             builder.Append(' ').Append(fontFamily[i]);
         }
 
@@ -328,5 +341,6 @@ static class FontHelpers
 
     // Single marker-font decision shared by the three render backends.
     internal static bool UseBulletFont(string? markerText, string? declaredFontFamily) =>
-        IsProprietaryBulletFont(declaredFontFamily) || RequiresBulletFont(markerText);
+        IsProprietaryBulletFont(declaredFontFamily) ||
+        RequiresBulletFont(markerText);
 }
