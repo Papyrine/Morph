@@ -1055,10 +1055,19 @@ line boundary when it does not fit.
 >    bottom margin and clipping at the paper edge if they must (`resumes/06`: the sidebar's
 >    restartless-continue rows run to a clipped band at 750–792pt rather than moving to a page
 >    they would fit).
-> 5. **An atLeast `w:trHeight` floor does not participate in break decisions.** The break
->    tests the row's CONTENT height; the floored box is drawn at full height and may overflow
->    the bottom margin (`letters/04`: a 76.5pt-floored, 29.5pt-content signature row stays in a
->    60.5pt remainder on Word's single page). An exact row's declared box is verbatim in both
+> 5. **An atLeast `w:trHeight` floor participates in break decisions and reserves STRICTLY.**
+>    Probed four ways (`_probe_floorfit_single`/`_last`/`_mid`/`_enddoc`): a 30pt-floored row
+>    of one 12pt line offered a 24pt remainder moves whole in every structure — single-row
+>    table, last row, mid row, end of document — and `business-plans/13`'s landscape pages
+>    break exactly where the floored row's floor crosses the bottom margin (box to 519.4pt,
+>    floor to 541.2, margin 540). A content-only fit was briefly landed off an in-situ
+>    letters/04 reading; that keep is upstream height drift (Word's letter runs ~50pt more
+>    compact, so the floor fits its layout), not a fit law. The bottom-margin overhang
+>    tolerance belongs to CONTENT: Word keeps `business-plans/15`'s content-sized 79.6pt
+>    boundary table 13pt past the margin, drawn and clipped — the same shape as the last-line
+>    rule, where auto lines overhang and exact/atLeast boxes reserve fully. A row carrying any
+>    vertical merge (span head included) is exempt from the strict test — a merge span is one
+>    drawn unit Word clips rather than moves. An exact row's declared box is verbatim in both
 >    directions and fits as declared. A whole row carried to a region top keeps the authored
 >    floor (`_probe_trail2_nested`: AFTER text at 174.72pt, margin plus the full declared
 >    height).
