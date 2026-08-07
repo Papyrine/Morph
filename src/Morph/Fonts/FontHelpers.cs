@@ -26,19 +26,43 @@ static class FontHelpers
     // Note: Do NOT include vendor suffixes like " MT", " Pro", " LT", " ITC" as these are part of the font name
     static string[] StyleSuffixes { get; } =
     [
-        " Condensed", " Compressed", " Narrow", " Extended", " Wide",
-        " UltraBlack", " Black", " Heavy",
-        " UltraBold", " ExtraBold", " Demibold", " Bold", " Semibold", " Demi",
-        " Medium", " Regular", " Book",
-        " UltraLight", " ExtraLight", " Semilight", " Light", " Thin", " Hairline",
-        " Italic", " Oblique", " Cond"
+        " Condensed",
+        " Compressed",
+        " Narrow",
+        " Extended",
+        " Wide",
+        " UltraBlack",
+        " Black",
+        " Heavy",
+        " UltraBold",
+        " ExtraBold",
+        " Demibold",
+        " Bold",
+        " Semibold",
+        " Demi",
+        " Medium",
+        " Regular",
+        " Book",
+        " UltraLight",
+        " ExtraLight",
+        " Semilight",
+        " Light",
+        " Thin",
+        " Hairline",
+        " Italic",
+        " Oblique",
+        " Cond"
     ];
 
     // Weight suffixes that are "medium-weight" - when Bold is requested on these fonts,
     // we should look for the Bold variant of the base family instead
     static string[] mediumWeightSuffixes =
     [
-        " Semibold", " Demi", " Medium", " Regular", " Book"
+        " Semibold",
+        " Demi",
+        " Medium",
+        " Regular",
+        " Book"
     ];
 
     /// <summary>
