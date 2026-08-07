@@ -2230,8 +2230,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // Moves a placed line (and its inline images) down the page by an offset, for cell vertical
         // alignment. Runs carry no Y of their own — the painter draws them at the line's baseline — so
         // shifting Y and Baseline moves the text with the box.
-        static PlacedItem ShiftDown(PlacedItem item, float offset) =>
-            item is PlacedLine line ? ShiftLine(line, 0, offset) : item;
+        static PlacedItem ShiftDown(PlacedItem item, float offset)
+        {
+            if (item is PlacedLine line)
+            {
+                return ShiftLine(line, 0, offset);
+            }
+
+            return item;
+        }
 
         // Shifts a placed line and everything it carries — its runs and inline images — by (dx, dy). Moving a
         // line into another column (dx) when balancing and dropping it for cell vertical alignment (dy only)
@@ -2250,13 +2257,24 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 var shifted = new PlacedImage[images.Count];
                 for (var imageIndex = 0; imageIndex < images.Count; imageIndex++)
                 {
-                    shifted[imageIndex] = images[imageIndex] with { X = images[imageIndex].X + dx, Y = images[imageIndex].Y + dy };
+                    shifted[imageIndex] = images[imageIndex] with
+                    {
+                        X = images[imageIndex].X + dx,
+                        Y = images[imageIndex].Y + dy
+                    };
                 }
 
                 images = shifted;
             }
 
-            return line with { X = line.X + dx, Y = line.Y + dy, Baseline = line.Baseline + dy, Runs = runs, Images = images };
+            return line with
+            {
+                X = line.X + dx,
+                Y = line.Y + dy,
+                Baseline = line.Baseline + dy,
+                Runs = runs,
+                Images = images
+            };
         }
 
         // Lays out a header or footer's content as a self-contained band from (left, top), wrapping each
@@ -2374,7 +2392,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var result = new List<DocumentElement>(elements.Count);
             foreach (var element in elements)
             {
-                if (element is ParagraphElement paragraph && paragraph.Runs.Any(_ => _.PageField != PageFieldKind.None))
+                if (element is ParagraphElement paragraph &&
+                    paragraph.Runs.Any(_ => _.PageField != PageFieldKind.None))
                 {
                     var runs = paragraph.Runs
                         .Select(_ => _.PageField switch

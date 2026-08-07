@@ -10,4 +10,5 @@ sealed record PlacedShape(
     float Y,
     float Width,
     float Height,
-    FloatingShapeElement Shape) : PlacedItem(X, Y, Width, Height);
+    FloatingShapeElement Shape) :
+    PlacedItem(X, Y, Width, Height);

@@ -561,7 +561,12 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     {
         var mark = MarkProperties(paragraph);
         var metrics = resolveFont(mark.FontFamily, mark.Bold, mark.Italic);
-        return metrics == null ? 0 : (float) metrics.LinePitchPoints(mark.FontSizePoints);
+        if (metrics == null)
+        {
+            return 0;
+        }
+
+        return (float) metrics.LinePitchPoints(mark.FontSizePoints);
     }
 
     // The font that sizes a paragraph's mark line. Word sizes a blank line by the paragraph mark's own run
@@ -585,9 +590,15 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             return paragraph.Runs[0].Properties;
         }
 
-        return paragraph.Properties.ParagraphMarkFontSizePoints is { } markSize
-            ? new() { FontSizePoints = markSize }
-            : new();
+        if (paragraph.Properties.ParagraphMarkFontSizePoints is { } markSize)
+        {
+            return new()
+            {
+                FontSizePoints = markSize
+            };
+        }
+
+        return new();
     }
 
     // Splits text into maximal runs of spaces vs non-spaces (U+0020 only — the inter-word break),

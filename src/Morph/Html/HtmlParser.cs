@@ -970,7 +970,8 @@ sealed class HtmlParser
         CellSpacing? defaultCellPadding = null;
         double? cellPaddingPixels = null;
         var cellpadding = tableElement.GetAttribute("cellpadding");
-        if (!string.IsNullOrEmpty(cellpadding) && double.TryParse(cellpadding, out var padding))
+        if (!string.IsNullOrEmpty(cellpadding) &&
+            double.TryParse(cellpadding, out var padding))
         {
             cellPaddingPixels = padding;
             defaultCellPadding = new(padding);
@@ -984,7 +985,8 @@ sealed class HtmlParser
         var defaultBorders = new CellBorders();
         var borderWidthPoints = 0.0;
         var borderAttribute = tableElement.GetAttribute("border");
-        if (!string.IsNullOrEmpty(borderAttribute) && double.TryParse(borderAttribute, out var borderWidth))
+        if (!string.IsNullOrEmpty(borderAttribute) &&
+            double.TryParse(borderAttribute, out var borderWidth))
         {
             if (borderWidth > 0)
             {
@@ -1644,7 +1646,8 @@ sealed class HtmlParser
     static ImageElement? ParseImgElement(IElement element)
     {
         var src = element.GetAttribute("src");
-        if (string.IsNullOrEmpty(src) || !src.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrEmpty(src) ||
+            !src.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
         {
             return null;
         }
@@ -1669,7 +1672,8 @@ sealed class HtmlParser
 
     static (byte[]? Data, string? ContentType) ParseDataUri(string src)
     {
-        if (string.IsNullOrEmpty(src) || !src.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrEmpty(src) ||
+            !src.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
         {
             return (null, null);
         }
@@ -1738,7 +1742,8 @@ sealed class HtmlParser
     {
         var span = value.Trim();
         var isPoints = span.EndsWith("pt", StringComparison.OrdinalIgnoreCase);
-        if (isPoints || span.EndsWith("px", StringComparison.OrdinalIgnoreCase))
+        if (isPoints ||
+            span.EndsWith("px", StringComparison.OrdinalIgnoreCase))
         {
             span = span[..^2].TrimEnd();
         }
@@ -1820,14 +1825,5 @@ sealed class HtmlParser
             Bottom = edge,
             Left = edge
         };
-    }
-
-    class InlineStyle
-    {
-        public TextAlignment Alignment { get; set; } = TextAlignment.Left;
-        public string? Color { get; set; }
-        public string? BackgroundColor { get; set; }
-        public double? TextIndent { get; set; }
-        public double? LineHeight { get; set; }
     }
 }

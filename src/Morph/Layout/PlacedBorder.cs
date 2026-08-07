@@ -10,4 +10,5 @@ sealed record PlacedBorder(
     float Y,
     float Width,
     float Height,
-    CellBorders Borders) : PlacedItem(X, Y, Width, Height);
+    CellBorders Borders) :
+    PlacedItem(X, Y, Width, Height);
