@@ -1,7 +1,7 @@
 using PdfSharp.Pdf.IO;
 
 /// <summary>
-/// Validates the layout engine's first painter (<c>docs/layout-engine-proposal.md</c>, step 5):
+/// Validates the layout engine's first painter (<c>docs/layout-engine.md</c>, step 5):
 /// <c>PdfPainter</c> draws a <c>Fragmenter</c>-produced <see cref="LaidOutDocument"/> to a PDF with the
 /// tree's pages and geometry — no pagination or measurement of its own. This proves the tree drives real
 /// PDF output. Text rendering (ink) is confirmed by rasterising a page; here the focus is the structural

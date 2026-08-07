@@ -107,9 +107,10 @@ Brackets (`[...]`) in treenode filters are for property-bag filters (e.g. `[Cate
 
 ## Architecture
 
-The conversion pipeline is **Parse → Layout → Paint**, split across multiple assemblies. For DOCX→PNG the
-layout half is the shared engine described below; everything else still runs the older Parse → Render path,
-so both exist side by side:
+The conversion pipeline is **Parse → Layout → Paint**, split across multiple assemblies. Every rendered
+output — DOCX or HTML in, PNG or PDF out — runs the one shared layout engine described below; the older
+per-backend Parse → Render path is deleted. The text exporters (HTML/Markdown) deliberately reflow instead
+and never paginate.
 
 **Core** (`src/Morph/`): the model (`ParsedDocument` and the `DocumentElement` hierarchy, one type per file under `src/Morph/Parsing/`), shared rendering base (`RenderContextBase`, `FontCacheLoader`, `FontHelpers`, `TableLayout`), the `ExportOptions` records, `ConversionResult`, the text exporters (HTML/Markdown), **and both parsers**:
 - **DOCX** (`src/Morph/OpenXml/`): `DocumentParser` reads OOXML via DocumentFormat.OpenXml and builds a `ParsedDocument`. Sub-parsers handle shapes, ink, themes, and HTML (AltChunk).
@@ -126,8 +127,8 @@ PNG, PDF and every backend.** The production renderers that preceded it (`SkiaPa
 `PageRendererBase` under them) were deleted in 2026-08 once the engine covered the whole corpus and the
 PDF flip landed at aggregate +0.0017 against Word. All three backends therefore paginate identically —
 the three-way page-count divergence the engine was built to end is over. There is no fallback path and no
-engine kill switch. See `docs/layout-engine-proposal.md`, the design plus the running log of how it
-landed.
+engine kill switch. See `docs/layout-engine.md` — the architecture reference for this subsystem, plus the
+landing history of how it got there.
 
 **Rendering backends** — each is a thin drawing layer over the engine: the `<Backend>Painter` draws the
 `LaidOutDocument`, the `<Backend>RenderContext` owns the drawing primitives and font/image caches, and the

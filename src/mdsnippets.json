@@ -4,6 +4,6 @@
   "MaxWidth": 120,
   "ValidateContent": true,
   "Convention": "InPlaceOverwrite",
-  "ExcludeMarkdownFiles": [ "page_counts.md", "*.verified.md", "*.received.md", "todo.md", "layout-engine-proposal.md" ],
+  "ExcludeMarkdownFiles": [ "page_counts.md", "*.verified.md", "*.received.md", "todo.md", "layout-engine.md" ],
   "ExcludeDirectories": ["Inputs", "superpowers"]
 }

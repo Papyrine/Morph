@@ -1,6 +1,6 @@
 /// <summary>
 /// Paints a backend-independent <see cref="LaidOutDocument"/> onto a PDF — the layout engine's first
-/// painter (<c>docs/layout-engine-proposal.md</c>, step 5). It performs **no** measurement and **no**
+/// painter (<c>docs/layout-engine.md</c>, step 5). It performs **no** measurement and **no**
 /// pagination: every page size, line and run position comes from the tree the <c>Fragmenter</c> already
 /// produced, so a paint is a pure draw pass. This proves the tree drives real output.
 ///

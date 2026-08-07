@@ -1,6 +1,6 @@
 /// <summary>
 /// Tests the block-flow slice of the <see cref="Fragmenter"/> (step 3 of
-/// <c>docs/layout-engine-proposal.md</c>): single-column pagination with line-level page breaks and the
+/// <c>docs/layout-engine.md</c>): single-column pagination with line-level page breaks and the
 /// height-model spacing rules. A small page geometry forces the interesting boundaries.
 /// </summary>
 public class CanonicalFragmenterTests

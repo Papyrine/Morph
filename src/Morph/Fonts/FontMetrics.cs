@@ -2,7 +2,7 @@
 /// Backend-independent font metrics read straight from a font file's OpenType tables, so the
 /// layout engine can measure line heights (and, later, glyph advances) without consulting
 /// SkiaSharp / SixLabors.Fonts / PdfSharp. This is the single canonical metric source the layout
-/// engine is built on — see <c>docs/layout-engine-proposal.md</c>. Divergent per-backend metrics
+/// engine is built on — see <c>docs/layout-engine.md</c>. Divergent per-backend metrics
 /// are the root cause of the page-count knife-edges (<c>src/page_counts.md</c>); reading the numbers
 /// once, here, is how every backend is made to paginate identically.
 ///

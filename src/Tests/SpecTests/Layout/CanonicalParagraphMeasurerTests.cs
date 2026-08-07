@@ -1,6 +1,6 @@
 /// <summary>
 /// Tests the <see cref="IParagraphMeasurer"/> surface over the canonical measurer
-/// (<see cref="CanonicalParagraphMeasurer"/>, step 1 of <c>docs/layout-engine-proposal.md</c>): its
+/// (<see cref="CanonicalParagraphMeasurer"/>, step 1 of <c>docs/layout-engine.md</c>): its
 /// multi-run wrapping, per-line heights and before/after spacing, resolving fonts from the bundled
 /// directory the same way the renderers do.
 /// </summary>

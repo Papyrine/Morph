@@ -2,7 +2,7 @@
 
 /// <summary>
 /// Flows a document's block content into pages once, backend-independently — the heart of the layout
-/// engine (<c>docs/layout-engine-proposal.md</c>, step 3). Handles multi-column block flow with
+/// engine (<c>docs/layout-engine.md</c>, step 3). Handles multi-column block flow with
 /// **line-level** page/column breaks (a paragraph too tall for the space left splits at a line boundary
 /// and continues in the next column or page, which the raster backends cannot do today) and
 /// **row-level** table breaks (a table taller than a column flows row by row, re-emitting

@@ -10,7 +10,7 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
 
     // Paginate with the backend-independent Fragmenter and draw with ImageSharpPainter — the one
     // raster path since the production ImageSharpPageRenderer + TextRenderer were deleted (step 7 of
-    // docs/layout-engine-proposal.md). The engine knows its own page total
+    // docs/layout-engine.md). The engine knows its own page total
     // (LaidOutDocument.Pages.Count), so no NUMPAGES pre-count pass runs here; the count is returned
     // for the callers that need it. Internal so tests can drive it with a synthesized ParsedDocument.
     internal static int RenderPagesCounted(ParsedDocument document, ImageExportOptions options, Action<Action<Stream>> pageCallback)

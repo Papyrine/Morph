@@ -1,34 +1,26 @@
-# Layout engine proposal — separate layout from painting
+# The layout engine — one pagination, three painters
 
-**Status: landed for raster — the Skia and ImageSharp backends paginate covered documents (324 of the 325
-corpus documents, 99.7%) through this one engine by default (step 6); the PDF painter is built and
-capability-gated but held on `PdfTextEngine` (step 5); the old per-backend pagination is not yet deleted
-(step 7).** Steps 1–3 — the
-canonical measurer, the layout tree, and the Fragmenter — are done, and step 4's section walk folded into
-the Fragmenter. This was the "if time and effort are no object" answer to the columns/height-model work
-tracked in `src/page_counts.md` and `src/todo.md` (#2, #5, the columns item under image_wrap_square); the
-running log of landed slices is below, and `docs/word-features.md` describes the per-backend draw code the
-thin painters now front. The raster kill switches retired with the production raster path (step 7's raster
-half); **the PDF flip LANDED 2026-08-06** (eighth measurement, aggregate +0.0017; the gate's one stand,
-business/05, is a full-resolution-verified constant 3pt header-reservation step) — `MORPH_PDF_ENGINE=off`
-is now the kill switch back to `PdfTextEngine`, which survives only as that switch and the
-uncovered-document fallback until step 8.3 deletes it. All three backends paginate through the one
-engine: the post-flip recount is **Skia 322 / ImageSharp 322 / PDF 322 of 325**, every remaining
-mismatch identical across backends, and `resumes/13` renders Word's 5 pages on all three — the
-three-way divergence the engine was built to end is over. The sharpest known modelling
-limit in what has shipped was the `Ppem` grain — the measurer rounding the em onto a fixed 120-dpi grid
-where Word never quantizes the em at all. That was root-caused and **fixed**, for a modest +0.0006 against
-Word and no change in page-count agreement ("Remaining work" item 1). Approximate column balancing remains
-(see the balancing slice), as does whatever still holds `image_wrap_square` back — the grain accounted for
-only about half of it.
+**Status: complete.** Every Morph document — DOCX or HTML, rendered to PNG, PDF or an image stream — is
+paginated once by the engine described here and drawn by a thin per-backend painter. There is no fallback
+path, no coverage predicate and no kill switch: the three independent pagination loops this document was
+written to replace (`SkiaPageRenderer`, `ImageSharpPageRenderer`, `PdfTextEngine`, and the
+`PageRendererBase` and `SectionBreakHandler` under them — about 14,000 lines) were deleted on 2026-08-06.
+The divergence that motivated the work is over: all three backends render **325 of the 325** corpus
+documents at Word's page count, the same answer on every backend.
 
-**How to read this document.** It began as a proposal and became the implementation log, so it mixes three
-kinds of material. The design sections — "The problem this solves" through "The crux" — are as first drafted;
-where later work superseded a claim they carry an *italic update note* rather than a rewrite, so a
-point-in-time measurement always keeps its original figure. "Migration checklist" tracks the seven steps, and
-**"Remaining work, in one place" is the live status** — start there for what is still open. The two "in
-detail" sections (the PDF cutover, step 5, and the raster cutover, step 6) are landing history in the order
-slices landed; read them for *why* something is the way it is, not for current status.
+**What this document is for.** It began as a proposal and became the implementation log, so it holds three
+kinds of material — and is worth reading for two of them:
+
+- **The design** ("The problem this solves" through "The crux") — why pagination is separated from
+  painting, what the layout tree is, and the canonical metric model the whole engine rests on. This is the
+  architecture reference the engine's source files point at; read it before changing the subsystem.
+- **The landing history** (the migration checklist and the two "in detail" cutover sections) — the order
+  slices landed in, what each was measured at, and which ideas were tried and refuted. Read it for *why*
+  something is the way it is. Point-in-time measurements keep their original figures, and where later work
+  superseded a claim an *italic update note* records that rather than rewriting it away.
+- **Live status** — none remains here. Open fidelity findings live in `src/todo.md`, page-count
+  experiments in `src/page_counts.md`, per-feature behaviour and its Word-probe evidence in
+  `docs/word-features.md`, and the anchored-art pipeline in `docs/floating-art-pipeline.md`.
 
 ## The problem this solves
 
@@ -56,19 +48,19 @@ metrics. They diverge, and that divergence is the root cause of the remaining fi
 Patching raster to split like PDF yields three *agreeing* engines instead of three *diverging* ones —
 but they must be kept agreeing forever, and the knife-edges remain the tax of that arrangement.
 
-*This section is the original motivation, stated as it stood before any of the work below landed. The raster
-half is now solved: as of step 6, Skia and ImageSharp no longer paginate independently — both run the single
-engine below for covered documents (324 of 325), so their counts agree by construction rather than by
-maintenance. PDF (`PdfTextEngine`) is the last independent pagination — though a 2026-08-02 measurement found
-the engine already reproduces its page count on every covered document (286 of 286), so what holds the PDF
-flip is rasterization fidelity, not pagination. What follows is the design that got there and the running log
-of how.*
+*This section is the original motivation, stated as it stood before any of the work below landed. Every
+count in the table is now historical: none of those six classes exists. All three backends paginate through
+the single engine below, so their page counts agree by construction rather than by maintenance, each rule is
+written once, and columns flow. The three symptoms this section named are closed in the corpus —
+`resumes/13` renders Word's 5 pages on every backend, the height-model experiments live in the Fragmenter as
+one rule set, and `image_wrap_square` matches Word. What follows is the design that got there and the running
+log of how.*
 
 ## The proposal: one layout pass, three painters
 
 *Everything from here to the migration checklist is the design as first drafted, in the present tense of the
-time. Where it describes what Morph does "today", that now names the uncovered fallback path — for covered
-documents the raster backends already run the engine described below (step 6).*
+time. Where it describes what Morph does "today", read that as the state before the cutover: the code it
+names is deleted, and the architecture it proposes is what the tree now holds.*
 
 Compute the paginated layout **once**, backend-independently, into a retained **layout tree**; make
 every backend a dumb painter that walks the tree and draws placed boxes at their computed positions.
@@ -162,14 +154,15 @@ Columns stop being special: a 2-column section is a region whose `Next` is the s
 continuous section builds a 2-column region chain anchored at the break Y and the fragmenter
 fills it.
 
-*Not landed as sketched — this is the one design idea above that did not survive implementation. There is no
-`Region` type: the Fragmenter tracks a column index and an at-region-top flag directly, table cells lay out
-through a separate `LayoutCellContent` sub-layout, header/footer bands through `LayoutBand`, and
-float-exclusion bands are unbuilt — so the four mechanisms this section proposed to unify are still four.
-The column half of the payoff did land (all four corpus column documents match Word, step 3, including the
-continuous mid-page switch anchored at the break Y), but `image_wrap_square` remains a coverage hold-out
-precisely because the exclusions never got built, so this section's sufficiency claim is untested. Unifying
-them remains a plausible refactor, not a described reality.*
+*Not landed as sketched — this is the one design idea above that did not survive implementation, and it is
+worth knowing that the engine works without it. There is no `Region` type: the Fragmenter tracks a column
+index and an at-region-top flag directly, table cells lay out through a separate `LayoutCellContent`
+sub-layout, header/footer bands through `LayoutBand`, and float exclusions through their own
+register-and-resolve pair (`RegisterFloatExclusion`/`ResolveFlowBand`). So the four mechanisms this section
+proposed to unify are still four, and every payoff it predicted arrived anyway: all four corpus column
+documents match Word including the continuous mid-page switch anchored at the break Y, and
+`image_wrap_square` matches Word once the exclusions landed. Unifying them remains a plausible refactor
+rather than a described reality — and one with no known defect waiting on it.*
 
 ### The fragmenter (the heart — the thing raster lacks)
 
@@ -306,10 +299,11 @@ through the render context's own primitives rather than a common `ILayoutPainter
       Remaining slices: per-section geometry (a section break switching column count or page size,
       including the continuous mid-page kind — the newsletter masthead → body case); widow/orphan and
       keep-next/keep-lines; float exclusions (reuse `ResolveFlowBand`); images and nested tables inside a
-      cell; floating tables; header/footer band height. *Nearly all of these have since landed — per-section
-      geometry, widow/orphan + keep-lines, cell images and nested tables, floating tables, and the
-      header/footer bands are in the cutover logs below; float wrap exclusions, keep-next, and inline
-      images inside a nested table are what genuinely remain.*
+      cell; floating tables; header/footer band height. *All but one of these landed — per-section geometry,
+      widow/orphan + keep-lines, cell images and nested tables, floating tables, float wrap exclusions and
+      the header/footer bands are in the cutover logs below, and both misses named above closed too
+      (`business-plans/15` by row splitting, `resumes/13` by the measurer fixes). Keep-next is approximated
+      rather than modelled, and inline images inside a nested table are unmeasured.*
 - [~] **4. `DocumentLayoutEngine`** — the section walk, per-page region chains and header/footer bands all
       landed, folded into the `Fragmenter` rather than a separate class (per-section geometry, even/odd parity
       pages, the Continuous mid-page column switch and header/footer band layout are in the raster-cutover log
@@ -325,8 +319,9 @@ through the render context's own primitives rather than a common `ILayoutPainter
       gate at the eighth measurement: aggregate **+0.0017** over `PdfTextEngine` against Word (trajectory
       −0.0054 → … → +0.0017 across eight measurements), three of the four remaining per-doc breaches
       mechanically cleared, and the one stand (business/05) full-resolution-verified as a constant 3pt
-      header-reservation step. `MORPH_PDF_ENGINE=off` is the kill switch; `PdfTextEngine` +
-      `PdfPageRenderer` survive only as that switch and the uncovered-document fallback until step 8.3.
+      header-reservation step. `MORPH_PDF_ENGINE=off` was the kill switch for a day; `PdfTextEngine` +
+      `PdfPageRenderer` survived only as that switch and the uncovered-document fallback until step 8.3
+      deleted all three.
       All 1173 pdf_result baselines regenerated to engine output; raster baselines byte-untouched;
       `resumes/13` now renders Word's 5 pages on every backend. The feature log (the ~30 slices it
       renders, in landing order) is "The PDF painter — what landed" below.
@@ -365,19 +360,34 @@ through the render context's own primitives rather than a common `ILayoutPainter
         indirection. `TableHeightCalculator` was NOT folded — the `Fragmenter` is its main caller, so
         it is shared code, not residue.
 
-### Remaining work, in one place
+### How the work ended
 
-The checklist is **complete**: every step from the parser seam to the deletion has landed, and the PDF
-flip (step 5) went in on 2026-08-06 at aggregate +0.0017 over the renderer it replaced. Item 1 below is
-retained as the historical record of how that gate was fought down from −0.0054. What actually remains is
-small and named: the three page-count knife-edges in `src/page_counts.md` and the backlog items below.
-The business/05 "3pt header-reservation step" that stood last is CLOSED (2026-08-06) — and its recorded
-cause was wrong. The header is `null` on that page (`w:titlePg` with only a default header), so
+The checklist is **complete**: every step from the parser seam to the deletion landed, the PDF flip went in
+on 2026-08-06 at aggregate +0.0017 over the renderer it replaced, and the page-count knife-edges that
+outlived it closed afterwards — the corpus stands at 325/325 on every backend.
+
+**Nothing in this section is open work.** Items 1 and 2 are the historical record of how the PDF gate was
+fought down from −0.0054 to +0.0017 and how the last coverage hold-out fell; items 3 to 5 are the
+backlogs as they stood at the deletion, several since closed. What is genuinely still open lives in
+`src/todo.md`, and the two durable lessons from the measurement campaign are worth carrying into any
+future gate:
+
+- **A metric that is silently absent reads as agreement.** `PageDiffs` returns null when a scenario's page
+  count differs from Word's, so a snapshot diff reports "nothing changed" for exactly the documents most
+  likely to be broken. Confirm a metric exists before believing it.
+- **SSIM can fall while positions improve.** It mis-verdicted four changes in one session, twice in the
+  direction that would have discarded a correct fix. Adjudicate a threshold breach by landmark position at
+  full resolution, not by the aggregate number — and never treat "position is better" as licence to ship a
+  wash. `docs/fidelity-audit.md` carries the method.
+
+The business/05 "3pt header-reservation step" that stood last against the gate is closed (2026-08-06), and
+its recorded cause was wrong — a useful reminder that an attribution surviving several measurement rounds is
+not thereby verified. The header is `null` on that page (`w:titlePg` with only a default header), so
 `HeaderReservedTop` never ran; the 3pt was `TableHeightCalculator` growing three `w:hRule="exact"`
 letterhead rows by their four collapsed border edges, which ECMA-376 §17.4.81 forbids — an exact height
 is verbatim. Exact rows are now exempt, and every backend moved closer to Word.
 
-1. **The PDF flip** (step 5 D) — painter and predicate are done; the flip is held on the font/image tail
+1. **The PDF flip** (step 5 D) — *history.* Painter and predicate were done; the flip was held on the font/image tail
    (measured −0.0054 before the empty-mark phantom-run fix, described in the step-5 painter log below). That
    reading — the tail read as Aptos display-font wrap width amplified by PDFium's harsher AA (the
    post-raster-flip update below) — was half wrong: a visual PDF check (rasterise engine-PDF and production-PDF at
@@ -551,9 +561,9 @@ is verbatim. Exact rows are now exempt, and every backend moved closer to Word.
    the flag), and SkiaSharp's reported ascent is platform-dependent (usWinAscent on Windows, hhea ascender
    under FreeType on linux — the metrics the container baselines were drawn with), so "match production" is
    not a single target across platforms and the rule anchors to Word instead.
-3. **Step 7 — delete** the old pagination (`PageRendererBase`, `PdfTextEngine`, `SectionBreakHandler`,
-   `TableHeightCalculator`), once PDF flips and coverage is total — the fallback still serves uncovered
-   documents and the kill switch until then.
+3. **Step 7 — delete** the old pagination — *complete; the checklist's step 7 entry above records the six
+   slices as they ran.* The paragraph below is how the raster half read when it landed first, with the PDF
+   half still pending.
 
    **The raster half is DONE (2026-08-04): `SkiaPageRenderer`, `ImageSharpPageRenderer` and both
    `TextRenderer`s are deleted** (~8300 lines), along with the `MORPH_SKIA_ENGINE` /
@@ -575,18 +585,21 @@ is verbatim. Exact rows are now exempt, and every backend moved closer to Word.
 
    Deleting `TableHeightCalculator` is a different kind of task: it is not dead code, the `Fragmenter` is its
    main caller, so it is a fold rather than a delete.
-4. **Painter-fidelity backlog** — score-improving, not gating a document: per-glyph advances, image
-   recolour/duotone, shape image fills, super/subscript raise, `w:position`, small-caps, run borders/effects,
-   RTL, and foreground header/footer images (detailed under the two cutover sections; band tables have landed).
-5. **Emission-backlog items not covered above** — form fields (content controls, their item-4 companion,
-   landed), line numbers, bar tabs, per-fragment
-   paragraph borders across a break, and per-section NUMPAGES restart (the unlanded remainder of items 4, 5
-   and 8 of the "Emission backlog" below — none is a coverage hold-out, so they gate no document today).
+4. **Painter-fidelity backlog** — as it stood at the deletion; score-improving, never gating a document:
+   per-glyph advances, image recolour/duotone, shape image fills, super/subscript raise, `w:position`,
+   small-caps, run borders/effects, RTL, and foreground header/footer images (detailed under the two cutover
+   sections; band tables landed). Several have closed since — check `src/todo.md` and
+   `docs/word-features.md` before treating any entry here as open.
+5. **Emission-backlog items not covered above** — line numbers, bar tabs, per-fragment paragraph borders
+   across a break, and per-section NUMPAGES restart (the unlanded remainder of items 4, 5 and 8 of the
+   "Emission backlog" below; form fields landed). None gates a document.
 
 ## The PDF cutover (step 5), in detail
 
-Scoped against the current tree. The map below fixes the seam, the one wiring gap, the strategy, and the
-ordered backlog so the cutover can proceed as a run of small validated slices rather than one large flip.
+**Landing history — written while the cutover was in progress, and left in that tense.** The seam it maps,
+the wiring gap it names and the gated strategy it argues for are all spent: the flip landed and the code it
+gated is deleted. Read it for why a slice was built the way it was, and for the measurement discipline the
+gate ran under — not for what the tree looks like now.
 
 ### The PDF painter — what landed, in order
 
@@ -1027,6 +1040,10 @@ reviewed against Word, not against the old production bytes.
 
 ## The raster cutover (step 6), in detail
 
+**Landing history, in the tense it was written.** The gates, kill switches and coverage predicate it
+describes are gone; the emission slices below are the record of how the engine grew to cover the corpus,
+one document class at a time, and each carries the measurement that justified it.
+
 The raster analogue of step 5, and structurally easier: the raster painters share the render context's own
 drawing primitives (font creation, text layout, colour parsing, image processing), so an engine-drawn page and
 a production-drawn page of the same covered document differ only where pagination differs — not in how a glyph
@@ -1448,22 +1465,27 @@ that remains unbuilt; today the painter-fidelity `Verify`-PNG suite is still the
 
 ## What is preserved vs deleted
 
-- **Preserved:** the parser and `ParsedDocument` model (unchanged input); the 21 measured rules (become
-  fragmenter rules); the float pipeline knowledge (`docs/floating-art-pipeline.md`, becomes exclusions);
-  the shape/WordArt geometry (becomes `PlacedShape`); the Verify-PNG suite (becomes the painter gate).
-- **Deleted (step 7 — the remaining cleanup):** three copies of pagination; `TableHeightCalculator` as a
-  separate measure pass; the whole-paragraph widow approximation; the raster/PDF metric divergence; and the
-  knife-edge category. For covered raster documents the duplicate pagination and the whole-paragraph widow
-  approximation are gone — the two raster backends paginate through one engine — while the old code persists
-  as the uncovered fallback and the kill switch until step 7. The other three are **not** yet retired:
-  `TableHeightCalculator` is still a separate measure pass the Fragmenter calls before placing rows (folding
-  it in is step 7); PDF keeps its own pagination until its flip, so a covered document's PNG and PDF page
-  counts can still disagree; and resumes/13 remains a knife-edge inside the engine itself.
+- **Preserved, as predicted:** the parser and `ParsedDocument` model (unchanged input); the 21 measured
+  rules (now the Fragmenter's rule set); the float pipeline knowledge (`docs/floating-art-pipeline.md`, now
+  the exclusion bands); the shape/WordArt geometry; the Verify-PNG suite (now the painter gate).
+- **Deleted, as predicted:** three copies of pagination; the whole-paragraph widow approximation; the
+  raster/PDF metric divergence; and the knife-edge category — `resumes/13`, the archetype that gave one
+  document three page counts, renders Word's 5 on every backend.
+- **Kept against the prediction:** `TableHeightCalculator` is still a separate measure pass the Fragmenter
+  calls before placing rows. Folding it in was listed as cleanup and then deliberately not done — the
+  Fragmenter is its main caller, so it is shared code rather than residue, and the fold would buy nothing
+  but churn.
 
 ## Open questions
 
-- **`image_wrap_square` residual** — it also exercises the mode ≤14 `UseFormerTextWrapping` flag
-  (`src/page_counts.md`, LO rule index), which is orthogonal to columns; columns are necessary but may
-  not be sufficient there.
-- **Incremental relayout** — not needed (Morph is batch, not interactive), so the tree can be
-  immutable and recomputed wholesale. This removes the hardest part of real layout engines.
+- **Incremental relayout** — not needed (Morph is batch, not interactive), so the tree is immutable and
+  recomputed wholesale. This removes the hardest part of real layout engines, and nothing since has wanted
+  the other behaviour.
+- **The structural layout-tree snapshot** described under "Testing strategy" — still unbuilt. Pagination is
+  gated by page counts and targeted placement assertions; full-geometry diffing against Word's XPS box tree
+  would replace the rasterized backstop, and is the one piece of the original testing argument left on the
+  table.
+
+*The `image_wrap_square` residual that stood here is closed: the last-line fit rule under `w:lineRule`, the
+continuous-section mark line and the float exclusions between them brought it to Word's page count. The
+mode ≤14 `UseFormerTextWrapping` flag it was suspected of needing never came into it.*

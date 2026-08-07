@@ -9,7 +9,7 @@
 /// numbering — because the production page renderers paginated as they drew. The layout engine
 /// separates the two: the <c>Fragmenter</c> decides every position up front and each painter draws the
 /// resulting <c>LaidOutDocument</c> without measuring or advancing anything. All of that state went
-/// with the production renderers (step 8.5 of <c>docs/layout-engine-proposal.md</c>); the engine holds
+/// with the production renderers (step 8.5 of <c>docs/layout-engine.md</c>); the engine holds
 /// the equivalents as its own locals, where they cannot leak between pages.</para>
 /// </summary>
 abstract class RenderContextBase
