@@ -1622,12 +1622,16 @@ sealed class DocumentParser(string defaultFont)
                 var hangingIndent = baseProps?.HangingIndentPoints ?? 0;
                 var contextualSpacing = baseProps?.ContextualSpacing ?? false;
 
-                // Pagination properties from base style
-                // Note: pageBreakBefore is NOT inherited from styles to match Word's typical behavior
-                // where it's only applied when explicitly set on the paragraph
+                // Pagination properties from base style. pageBreakBefore inherits like the others —
+                // an earlier note here claimed Word only honours it inline, and Word refuted that
+                // directly (_probe_bp10_nointro/_nokeep, 2026-08-07): a Heading1 whose only
+                // pageBreakBefore is the STYLE's breaks the page, and an inline w:val="0" suppresses
+                // it (_probe_bp10_pbboff). business-plans/10's "Campaign Sign-off" page 5 rides on
+                // exactly this.
                 var keepLines = baseProps?.KeepLines ?? false;
                 var keepNext = baseProps?.KeepNext ?? false;
                 var widowControl = baseProps?.WidowControl ?? true;
+                var pageBreakBefore = baseProps?.PageBreakBefore ?? false;
                 var backgroundColor = baseProps?.BackgroundColorHex;
 
                 // If no paragraph properties, still save inherited properties
@@ -1652,8 +1656,8 @@ sealed class DocumentParser(string defaultFont)
                         BackgroundColorHex = backgroundColor,
                         TabStops = baseProps?.TabStops ?? [],
                         DefaultTabStopPoints = defaultTabStopPoints,
-                        Frame = baseProps?.Frame
-                        // PageBreakBefore intentionally not inherited from styles
+                        Frame = baseProps?.Frame,
+                        PageBreakBefore = pageBreakBefore
                     };
                     processed.Add(styleId);
                     continue;
@@ -1768,10 +1772,15 @@ sealed class DocumentParser(string defaultFont)
                 }
 
                 // Parse pagination properties
-                // Note: pageBreakBefore is NOT parsed from styles - only from inline paragraph properties
                 if (paraProps.GetFirstChild<KeepLines>() != null)
                 {
                     keepLines = true;
+                }
+
+                var stylePageBreakBefore = paraProps.GetFirstChild<PageBreakBefore>();
+                if (stylePageBreakBefore != null)
+                {
+                    pageBreakBefore = stylePageBreakBefore.Val?.Value ?? true;
                 }
 
                 if (paraProps.GetFirstChild<KeepNext>() != null)
@@ -1870,8 +1879,8 @@ sealed class DocumentParser(string defaultFont)
                     BorderBetweenSpacePoints = borderBetweenSpace,
                     TabStops = ParseTabs(paraProps, baseProps?.TabStops ?? []),
                     DefaultTabStopPoints = defaultTabStopPoints,
-                    Frame = frame
-                    // PageBreakBefore intentionally not inherited from styles
+                    Frame = frame,
+                    PageBreakBefore = pageBreakBefore
                 };
                 processed.Add(styleId);
             }
@@ -9849,9 +9858,11 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        // Inline w:pageBreakBefore is an on/off toggle over the style value: bare presence turns it
+        // on, w:val="0" turns a style-inherited break OFF (Word-probed, _probe_bp10_pbboff).
         if (pageBreakBeforeElement != null)
         {
-            pageBreakBefore = true;
+            pageBreakBefore = pageBreakBeforeElement.Val?.Value ?? true;
         }
 
         // w:mirrorIndents — left/right indents swap on even pages (mirror printing).

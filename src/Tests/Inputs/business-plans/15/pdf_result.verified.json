@@ -46,12 +46,12 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Who else is doing what you are trying to do?\nBriefly describe several of your nearest and greatest competitors. What percentage of the\nmarket does each reach? What are their strengths and weaknesses? What can you learn from\nthe way they do business, from their pricing, advertising, and general marketing approaches?\nHow do you expect to compete? How do you hope to do better?\nWhat indirect competition will you face, such as from internet sales, department stores, or\ninternational imports?\nHow will you keep abreast of technology and changing trends that may impact your business in\nthe future?\nPricing\nHow have you developed your pricing policy?\nWhich of the following pricing strategies might best suit your business? Retail cost and pricing,\ncompetitive position, pricing below competition, pricing above competition, multiple pricing,\nprice lining, pricing based on cost-plus-markup, or other?\nWhat are your competitors’ pricing policies and how do yours compare? Are your prices in line\nwith industry averages?\nHow will you monitor prices and overhead to ensure that your business will operate at a profit?\nHow do you plan to stay abreast of changes in the marketplace, to ensure that your profit\nmargins are not adversely affected by new innovations or competition?\nAdvertising and promotion\nHow do you intend to advertise your business?\nWhich of the following advertising and promotion options offer you the best chances of\nsuccessfully growing your business? Directory services, social networking websites, media\n(newspaper, magazine, television, radio), direct mail, telephone solicitation, seminars and other\nevents, joint advertising with other companies, sales representatives, word-of-mouth, other?\nHow will you determine your advertising budget?\nHow will you track the results of your advertising and promotion efforts?\nWill you advertise regularly or conduct seasonal campaigns?\nHow will your products be packaged? Have you done research to see what type of packaging\nwill best appeal to your customers? Have you done a cost analysis of different forms of\npackaging?\nStrategy and implementation\nBUSINESS PLAN | APRIL 25, 20XX 8"
+        "Text": "Who else is doing what you are trying to do?\nBriefly describe several of your nearest and greatest competitors. What percentage of the\nmarket does each reach? What are their strengths and weaknesses? What can you learn from\nthe way they do business, from their pricing, advertising, and general marketing approaches?\nHow do you expect to compete? How do you hope to do better?\nWhat indirect competition will you face, such as from internet sales, department stores, or\ninternational imports?\nHow will you keep abreast of technology and changing trends that may impact your business in\nthe future?\nPricing\nHow have you developed your pricing policy?\nWhich of the following pricing strategies might best suit your business? Retail cost and pricing,\ncompetitive position, pricing below competition, pricing above competition, multiple pricing,\nprice lining, pricing based on cost-plus-markup, or other?\nWhat are your competitors’ pricing policies and how do yours compare? Are your prices in line\nwith industry averages?\nHow will you monitor prices and overhead to ensure that your business will operate at a profit?\nHow do you plan to stay abreast of changes in the marketplace, to ensure that your profit\nmargins are not adversely affected by new innovations or competition?\nAdvertising and promotion\nHow do you intend to advertise your business?\nWhich of the following advertising and promotion options offer you the best chances of\nsuccessfully growing your business? Directory services, social networking websites, media\n(newspaper, magazine, television, radio), direct mail, telephone solicitation, seminars and other\nevents, joint advertising with other companies, sales representatives, word-of-mouth, other?\nHow will you determine your advertising budget?\nHow will you track the results of your advertising and promotion efforts?\nWill you advertise regularly or conduct seasonal campaigns?\nHow will your products be packaged? Have you done research to see what type of packaging\nwill best appeal to your customers? Have you done a cost analysis of different forms of\npackaging?\nStrategy and implementation\nNow that you have described the essential elements of your business, you may want to\nsummarize your strategy for their implementation. If your business is new, prioritize the steps\nyou must take to open your doors for business. Describe your objectives and how you intend to\nBUSINESS PLAN | APRIL 25, 20XX 8"
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Now that you have described the essential elements of your business, you may want to\nsummarize your strategy for their implementation. If your business is new, prioritize the steps\nyou must take to open your doors for business. Describe your objectives and how you intend to\nreach them and in what time parameters.\nPlanning is one of the most overlooked but most vital parts of your business plan to ensure that\nyou are in control (as much as possible) of events and the direction in which your business\nmoves. What planning methods will you utilize?\nBUSINESS PLAN | APRIL 25, 20XX 9"
+        "Text": "reach them and in what time parameters.\nPlanning is one of the most overlooked but most vital parts of your business plan to ensure that\nyou are in control (as much as possible) of events and the direction in which your business\nmoves. What planning methods will you utilize?\nBUSINESS PLAN | APRIL 25, 20XX 9"
       },
       {
         "Width": 612.0,
@@ -164,16 +164,16 @@
     },
     {
       "Page": 8,
-      "ErrorMetric": 0.1158,
-      "Ssim": 0.724,
+      "ErrorMetric": 0.1244,
+      "Ssim": 0.7039,
       "ExpectedFile": "expected_0008.png",
       "VerifiedFile": "pdf_result#page_0008.verified.png",
       "ReceivedFile": "pdf_result#page_0008.received.png"
     },
     {
       "Page": 9,
-      "ErrorMetric": 0.0719,
-      "Ssim": 0.8069,
+      "ErrorMetric": 0.0637,
+      "Ssim": 0.8239,
       "ExpectedFile": "expected_0009.png",
       "VerifiedFile": "pdf_result#page_0009.verified.png",
       "ReceivedFile": "pdf_result#page_0009.received.png"

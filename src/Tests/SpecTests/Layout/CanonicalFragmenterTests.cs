@@ -134,9 +134,10 @@ public class CanonicalFragmenterTests
     public async Task A_carried_row_keeps_its_declared_height()
     {
         var page = Page(200);
-        // Ten fillers reach 145pt, leaving 15pt — under the 24pt sliver minimum, so the row advances
-        // whole to page 2 rather than leaving a fragment behind.
-        var fillers = Enumerable.Range(0, 10).Select(index => P($"Filler {index}")).ToList();
+        // Eleven fillers reach 159.5pt, leaving half a point — too little even for the row's CONTENT
+        // (the break decision ignores the atLeast floor, see the test below), so the row advances whole
+        // to page 2 rather than leaving a fragment behind.
+        var fillers = Enumerable.Range(0, 11).Select(index => P($"Filler {index}")).ToList();
         var table = new TableElement
         {
             Properties = new(),
@@ -157,6 +158,101 @@ public class CanonicalFragmenterTests
         var afterLine = document.Pages[1].Items.OfType<PlacedLine>().Single(_ => ReferenceEquals(_.Paragraph, after));
         // Content top 20 + the declared 100pt row, not 20 + the ~14.5pt its one line measures.
         await Assert.That(afterLine.Y).IsEqualTo(120f);
+    }
+
+    /// <summary>
+    /// The atLeast floor does not participate in the BREAK decision: a row whose content fits the
+    /// space left stays on the page at its full declared height, the floored box running past the
+    /// bottom margin. Word-measured on letters/04 — a 76.5pt-floored signature row with 29.5pt of
+    /// content stays in a 60.5pt page-bottom remainder on Word's single page, where moving it (as the
+    /// engine briefly did once the fit routing landed) makes a second page Word does not have.
+    /// </summary>
+    [Test]
+    public async Task A_floored_row_whose_content_fits_stays_and_overflows()
+    {
+        var page = Page(200);
+        // Ten fillers reach 145pt, leaving 15pt — enough for the row's one ~14.5pt line, nowhere near
+        // its 100pt floor.
+        var fillers = Enumerable.Range(0, 10).Select(index => P($"Filler {index}")).ToList();
+        var table = new TableElement
+        {
+            Properties = new(),
+            Rows =
+            [
+                new TableRow
+                {
+                    HeightPoints = 100,
+                    Cells = [new TableCell {Content = [P("Short")], Properties = new()}]
+                }
+            ]
+        };
+        var after = P("AFTER");
+
+        var document = Fragmenter.Layout([.. fillers, table, after], page);
+
+        await Assert.That(document.Pages.Count).IsEqualTo(2);
+        var row = document.Pages[0].Items.OfType<PlacedTableRow>().Single();
+        // The row sits in the remainder at its full floor, overflowing the 180pt content bottom.
+        await Assert.That(row.Y).IsEqualTo(165f).Within(0.1f);
+        await Assert.That(row.Height).IsEqualTo(100f);
+        // Only AFTER moves to page 2, at the region top.
+        var afterLine = document.Pages[1].Items.OfType<PlacedLine>().Single(_ => ReferenceEquals(_.Paragraph, after));
+        await Assert.That(afterLine.Y).IsEqualTo(20f);
+    }
+
+    /// <summary>
+    /// A vertical-merge CONTINUATION row never breaks from its predecessor — a page break between them
+    /// would tear the merged cell apart, so it stacks under the row above wherever that landed,
+    /// overflowing the bottom margin if it must. Word-measured on resumes/06: a sidebar table's
+    /// restartless-continue rows run to the paper edge and clip (the black bar band at 750–792pt on a
+    /// 792pt page) rather than moving to a page they would comfortably fit; the engine breaking before
+    /// the continuation was exactly what turned that document from 3 pages into 6.
+    /// </summary>
+    [Test]
+    public async Task A_merge_continuation_row_stacks_rather_than_breaking()
+    {
+        var page = Page(200);
+        // Seven fillers reach 101.5pt, leaving 58.5pt — the 87pt table is fit-routed row by row. Row 0
+        // (43.5pt) fits the remainder; row 1 is tied to it by the merge and must stack, not move.
+        var fillers = Enumerable.Range(0, 7).Select(index => P($"Filler {index}")).ToList();
+        TableCell ContentCell(string prefix) =>
+            new() {Content = [.. Enumerable.Range(0, 3).Select(index => P($"{prefix} {index}"))], Properties = new()};
+        var table = new TableElement
+        {
+            Properties = new(),
+            Rows =
+            [
+                new TableRow
+                {
+                    Cells =
+                    [
+                        new TableCell {Content = [], Properties = new() {VerticalMerge = VerticalMergeType.Restart}},
+                        ContentCell("Top")
+                    ]
+                },
+                new TableRow
+                {
+                    Cells =
+                    [
+                        new TableCell {Content = [], Properties = new() {VerticalMerge = VerticalMergeType.Continue}},
+                        ContentCell("Tied")
+                    ]
+                }
+            ]
+        };
+        var after = P("AFTER");
+
+        var document = Fragmenter.Layout([.. fillers, table, after], page);
+
+        // Both rows on page 1, the continuation stacked directly under row 0, its box past the 180pt
+        // content bottom; only AFTER breaks to page 2.
+        var rows = document.Pages[0].Items.OfType<PlacedTableRow>().ToList();
+        await Assert.That(rows.Count).IsEqualTo(2);
+        await Assert.That(rows[1].Y).IsEqualTo(rows[0].Y + rows[0].Height);
+        await Assert.That(rows[1].Y + rows[1].Height).IsGreaterThan(180f);
+        await Assert.That(document.Pages.Count).IsEqualTo(2);
+        var afterLine = document.Pages[1].Items.OfType<PlacedLine>().Single(_ => ReferenceEquals(_.Paragraph, after));
+        await Assert.That(afterLine.Y).IsEqualTo(20f);
     }
 
     /// <summary>
