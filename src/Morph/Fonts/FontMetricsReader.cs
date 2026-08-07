@@ -1,7 +1,7 @@
 ﻿/// <summary>
 /// Reads the OpenType metric tables a font declares — <c>head</c>, <c>hhea</c> (line metrics) and
 /// <c>maxp</c>/<c>hmtx</c>/<c>cmap</c> (glyph advances) — backend-independently, as the canonical
-/// metric source for the layout engine (<c>docs/layout-engine-proposal.md</c>). It uses the same
+/// metric source for the layout engine (<c>docs/layout-engine.md</c>). It uses the same
 /// random-access table-directory parsing as <see cref="OpenTypeReader"/>; that reader pulls the
 /// <c>name</c>/<c>OS/2</c> strings resolution needs, this one pulls the numbers layout needs.
 /// </summary>

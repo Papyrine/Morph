@@ -1,7 +1,7 @@
 /// <summary>
 /// The <see cref="IParagraphMeasurer"/> surface over the backend-independent
 /// <see cref="CanonicalTextMeasurer"/> — step 1 of the layout engine
-/// (<c>docs/layout-engine-proposal.md</c>). It wraps a paragraph's runs and reports line heights,
+/// (<c>docs/layout-engine.md</c>). It wraps a paragraph's runs and reports line heights,
 /// natural width and total height from the font's own OpenType metrics, so the shared table-height
 /// math (and, later, the fragmenter) can measure without a backend font library. Font resolution is
 /// injected as a delegate — the caller wires a <c>FontResolver&lt;FontMetrics&gt;</c> — keeping this

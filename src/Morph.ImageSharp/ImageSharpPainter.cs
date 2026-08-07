@@ -6,7 +6,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 /// <summary>
 /// Paints a backend-independent <see cref="LaidOutDocument"/> to PNG bitmaps — the ImageSharp analogue of
-/// <c>SkiaPainter</c> (docs/layout-engine-proposal.md, step 6). A pure draw pass over the tree the
+/// <c>SkiaPainter</c> (docs/layout-engine.md, step 6). A pure draw pass over the tree the
 /// <c>Fragmenter</c> produced. ImageSharp records draw ops onto a deferred <see cref="DrawingCanvas"/> per
 /// page and flushes them when the canvas is disposed, then encodes the page image to PNG through the same
 /// page callback the production <c>ImageSharpPageRenderer</c> uses. The tree is in points

@@ -1,5 +1,5 @@
 /// <summary>
-/// The single canonical text measurer for the layout engine (<c>docs/layout-engine-proposal.md</c>):
+/// The single canonical text measurer for the layout engine (<c>docs/layout-engine.md</c>):
 /// given a font's OpenType <see cref="FontMetrics"/>, it computes layout measurements with no backend
 /// font library involved, so every backend paginates from identical numbers rather than from
 /// SkiaSharp / SixLabors.Fonts / PdfSharp metrics that diverge (the root cause of the page-count

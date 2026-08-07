@@ -1,5 +1,5 @@
 /// <summary>
-/// The crown validation for step 3 (<c>docs/layout-engine-proposal.md</c>): does the
+/// The crown validation for step 3 (<c>docs/layout-engine.md</c>): does the
 /// <see cref="Fragmenter"/> paginate real corpus documents to the same page count as Word
 /// (<c>expected_*.png</c>)? The block-flow, table and column slices handle multi-column paragraph flow
 /// (including column breaks), inline images, non-wrapping body floats (which take no flow space), section

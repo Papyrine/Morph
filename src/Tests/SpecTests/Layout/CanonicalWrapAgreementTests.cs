@@ -1,7 +1,7 @@
 using SkiaSharp;
 
 /// <summary>
-/// Integration gate for step 1 of the layout engine (<c>docs/layout-engine-proposal.md</c>): does the
+/// Integration gate for step 1 of the layout engine (<c>docs/layout-engine.md</c>): does the
 /// backend-independent <see cref="CanonicalTextMeasurer"/> break real corpus paragraphs at the same
 /// lines the raster backend's own font engine (SkiaSharp) does? SkiaSharp matches Word on ~97% of the
 /// corpus, so high agreement here is evidence the canonical metric model reproduces Word's line

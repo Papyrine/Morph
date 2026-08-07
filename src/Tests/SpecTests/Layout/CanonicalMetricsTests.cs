@@ -1,6 +1,6 @@
 /// <summary>
 /// Validates the backend-independent metric source for the layout engine
-/// (<c>docs/layout-engine-proposal.md</c>, step 1): <see cref="FontMetricsReader"/> reading a font's
+/// (<c>docs/layout-engine.md</c>, step 1): <see cref="FontMetricsReader"/> reading a font's
 /// own <c>head</c>/<c>hhea</c> tables, and <see cref="CanonicalTextMeasurer"/> turning them into line
 /// heights. The line-pitch assertions pin the reader against Word's XPS-measured numbers recorded in
 /// <c>src/page_counts.md</c> ("Height model") — so the canonical model is unit-tested directly, not

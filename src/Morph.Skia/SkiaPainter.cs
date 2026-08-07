@@ -2,7 +2,7 @@
 
 /// <summary>
 /// Paints a backend-independent <see cref="LaidOutDocument"/> to PNG bitmaps — the raster analogue of
-/// <c>PdfPainter</c> (docs/layout-engine-proposal.md, step 6). A pure draw pass: every page size, line and
+/// <c>PdfPainter</c> (docs/layout-engine.md, step 6). A pure draw pass: every page size, line and
 /// run position comes from the tree the <c>Fragmenter</c> already produced, so there is no measurement and
 /// no pagination here. The tree is in points and Skia draws in pixels, so every coordinate scales by
 /// <see cref="RenderContextBase.PointsToPixels"/>. One RGBA8888 bitmap per page is encoded to PNG and

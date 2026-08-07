@@ -6,7 +6,7 @@
 static class PdfRenderer
 {
     // Paginate with the backend-independent Fragmenter and draw with PdfPainter
-    // (docs/layout-engine-proposal.md). The byte-reproducibility post-processing (MakeDeterministic /
+    // (docs/layout-engine.md). The byte-reproducibility post-processing (MakeDeterministic /
     // TrimPages / Normalize) is unchanged from the deleted production path — PdfPainter builds its own
     // PdfDocument, so it applies as before. The engine knows its own page total
     // (LaidOutDocument.Pages.Count), so no NUMPAGES pre-count pass runs here (the deleted

@@ -478,7 +478,9 @@ content-level rule.
 
 **The structural fix is to stop paginating per-backend.** The knife-edges are the symptom of three
 independent pagination engines (raster ×2, PDF) measuring and fragmenting the same content
-differently. `docs/layout-engine-proposal.md` sketches the "if effort is no object" answer: one
+differently. `docs/layout-engine.md` sketched the "if effort is no object" answer: one
 backend-independent layout pass over a single canonical metric model, emitting a retained layout
 tree that each backend merely paints — so a document paginates once (matching Word once, not three
-times), and the knife-edge category dissolves rather than being calibrated away.
+times), and the knife-edge category dissolves rather than being calibrated away. **That is what
+shipped**, and the category did dissolve: all three backends now agree by construction, at Word's
+page count on every corpus document.
