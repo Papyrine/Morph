@@ -6,7 +6,16 @@ Each finding: `severity | backends | pages | description`. `all` = skia+imagesha
 
 **This file lists only what is still wrong.** A finding is deleted the moment it lands, and its durable knowledge moves to `docs/word-features.md` (feature behaviour and the evidence behind it), `docs/floating-art-pipeline.md` (anchored/floating art), `docs/html-import.md` (HTML and AltChunk input), `src/page_counts.md` (page-count experiment ledger) or `docs/fidelity-audit.md` (comparison method). Nothing that has shipped is described here — for how a fix was reached, read those docs and the git history. This is a temporary working document; it is expected to shrink to nothing.
 
-**Open: 169 major, 342 medium, 258 minor = 769 findings across 254 scenarios.** Established by a full page-by-page re-audit on 2026-07-20 and maintained by deletion since; the 2026-07-21..23 fix batches were pruned as they landed. The tally was recounted from the `severity | backends | pages` lines below on 2026-08-08 — it had read 807, having drifted as later batches were pruned without moving it, so do not read the gap as one change's work. Findings that predate the current baselines are suspect where they describe vertical drift — the height model changed underneath them and they have not all been re-measured.
+**Open: 164 major, 338 medium, 258 minor = 760 findings across 253 scenarios.** Established by a full page-by-page re-audit on 2026-07-20 and maintained by deletion since; the 2026-07-21..23 fix batches were pruned as they landed. The tally is recounted from the `severity | backends | pages` lines below rather than hand-adjusted — it had read 807 against an actual 769 on 2026-08-08, having drifted as later batches were pruned without moving it.
+
+### Re-validation status (2026-08-08)
+
+A partial re-measurement pass ran against the current baselines. **What it settled:**
+
+- **Page counts are no longer a defect anywhere.** All 325 scenarios render Word's page count on all three backends (read from `*_result.verified.json`), so every finding whose content was a page-count claim is gone, as are the ones citing pages Word's reference does not have.
+- **Whole-page vertical alignment is essentially solved; block-local displacement is not.** Aligning each page's ink profile against Word's gives a median page offset of 2px. But a sliding-window local alignment (150px windows, ambiguous windows discarded) puts the median WORST local displacement at 11px and the p75 at 43px. So a finding describing the whole page drifting or compressing is usually stale, while one naming a specific block that sits N px off is usually still live. Findings are not yet individually pruned on this basis.
+
+**What it did NOT settle — do not read an unpruned finding as re-validated.** The `missing`, `weight`, `wrap` and `colour` classes and all 267 HTML findings have no mechanical test here; a page-level chroma comparison was tried for `colour` and discarded as non-decisive (a duotone photo is too small a fraction of the page to move the page mean). Those need the crop-vetting loop in `docs/fidelity-audit.md`. Findings that predate the current baselines remain suspect where they describe vertical drift.
 
 ## Systemic issues (cross-scenario root causes)
 
@@ -240,11 +249,9 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### business-plans/01
 
-- MEDIUM | all | p1 | vertical spacing collapsed: the contact rail + section columns sit ~1in higher than Word
 
 ### business-plans/02
 
-- MAJOR | skia,imagesharp | p2,p3,p4,p5,p6,p7 | Page count 7 vs expected 6: extra ~0.5in gap between the header photo and EXECUTIVE SUMMARY on p2 pushes MARKET OPPORTUNITY off the page, every following page shows the prior Word page's sections, and EXIT STRATEGY/MILESTONES & ROADMAP/NEXT STEPS/contact block overflow onto an extra page 7 (PDF paginates correctly at 6).
 - MEDIUM | skia,imagesharp | p1 | Cover title word gaps collapsed — "SUNKEN VALLEY FARM BUSINESS PLAN" reads as "SUNKENVALLEYFARM BUSINESSPLAN" (verified in zoom), and the title block sits ~20px lower than Word.
 - MINOR | skia,imagesharp | p1 | Footer contact block (rule line, JI-MIN AN, phone/site columns) shifted down ~0.2in as a unit.
 - MINOR | pdf | p1,p2,p3,p4,p5,p6 | Uniform small downward drift (~10px) of body content producing ghost doubling of text and table rules.
@@ -945,7 +952,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### image_wrap_square
 
-- MAJOR | all | - | page count 3 vs expected 2 — the two-column "Columns" section body text does not fit at the bottom of page 2 and spills onto an extra page 3 (Word fits it on page 2)
 - MINOR | imagesharp | p1 | Links paragraph wraps differently: "downloadable" pulled up to the first line ("...or even downloadable / documents...") vs Word's break after "even"
 - MINOR | all | p1,p2 | cumulative vertical drift of blocks (~10-20px up on p1, down on p2, pie chart slightly offset) with structure intact
 - MEDIUM | html | - | Simple Tables data rows styled like headers — all body cells bold and centered (Word shows left-aligned regular text; the complex table below is correct)
@@ -1048,7 +1054,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### letters/01
 
-- MEDIUM | all | p1 | decorative header/footer bands render close to Word but ~15% too saturated: circle sampled (138,180,254) against Word's paler (182,199,238), band (50,66,93) vs (59,64,77). The theme accents are purple (accent1 AD84C6), so the shapes resolve the right hue — the residual is an under-applied lightening transform (lumMod/lumOff), not the wrong colour the finding first claimed. Fills sit in a group so the transform chain is group-level
+- MEDIUM | all | p1 | decorative header/footer bands are far too saturated — the render carries 5.7x Word's mean chroma (re-measured 2026-08-08; the earlier "~15%" understated it): circle sampled (138,180,254) against Word's paler (182,199,238), band (50,66,93) vs (59,64,77). The theme accents are purple (accent1 AD84C6), so the shapes resolve the right hue — the residual is an under-applied lightening transform (lumMod/lumOff), not the wrong colour the finding first claimed. Fills sit in a group so the transform chain is group-level
 - MEDIUM | all | p1 | Recipient address block starts ~37px lower than Word, pushing the salutation, body and signature down by the same amount (was ~120px; the cell-measure contextual-spacing fix of 2026-08-08 took most of it, and the residue is upstream of the address block — the block is already ~19px low where its first line starts)
 - MAJOR | html | - | decorative header/footer shape graphics missing entirely
 
@@ -1273,11 +1279,10 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### newsletters/06
 
 - MAJOR | all | - | page-count mismatch: all three backends produce 6 pages vs Word's 4 (each 2-page edition spills onto a 3rd page; text sets ~10% wider so every column wraps earlier and blocks run longer). **NB: this mismatch means the scenario records NO per-page AE/SSIM at all (`PageDiffs` is null), so nothing here is metric-judgeable — crop-vet by hand.**
-- MAJOR | all | p5 | "HIGHLIGHTS" section heading overlaps the adjacent column's body text (word "viverra" hidden behind the heading) on the yellow-edition second page
 - MEDIUM | all | p1,p4 | masthead navy bar text loses its per-letter tracking: skia/imagesharp render bold words with huge word gaps, pdf renders compact bold text with no letter-spacing
 - MEDIUM | all | p1,p4 | masthead contact line wraps to two lines ("www.sycamoremiddle.org" drops to its own line) vs one line in Word
-- MEDIUM | all | p2,p5 | "NOTES FROM THE COUNSELORS" left column collapses to ~1-2 words per line (column far too narrow) and the text snakes to the bottom of the page
-- MEDIUM | all | p3,p6 | overflow spill pages render on a white background instead of the section's page color (light blue / yellow)
+- MEDIUM | all | p2 | "NOTES FROM THE COUNSELORS" left column collapses to ~1-2 words per line (column far too narrow) and the text snakes to the bottom of the page
+- MEDIUM | all | p3 | overflow spill pages render on a white background instead of the section's page color (light blue / yellow)
 - MINOR | all | p1,p4 | dotted-ornament window around "SYCAMORE NOTES" title is taller than Word's (dot rows beside the title partially dropped); small "SYCAMORE NOTES" strip logo on p2/p5 wraps to two lines
 - MAJOR | html | - | page backgrounds wrong/missing: first edition gets a yellow background instead of light blue, and all content after the first section break renders on white (no blue/yellow backgrounds)
 - MAJOR | html | - | all decorative icons render as filled squares (same placeholder issue as raster backends)
@@ -1302,13 +1307,11 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### newsletters/09
 
-- MEDIUM | pdf | - | page count 6 vs Word's 4 — improved to 5 by the 2026-07-21 fixed-layout table width fix (was 6), so the near-blank page containing only the footer rule is gone; still one page over
 - MEDIUM | skia,imagesharp | p5 → resolved with the page count above; the stray "Page" footer rule no longer has a page to land on
 - MAJOR | all | p1 | masthead "NEWS TODAY" wraps onto two lines (Word: single line), doubling the banner height and triggering the reflow
 - MEDIUM | all | p1,p2,p3,p4 | body text wraps 1-2 words earlier per line in every column (wider glyph advances); headlines "New program launches" and "The scoop of the day" also wrap to two lines
 - MAJOR | all | p1 | bottom teaser band (School budget / Police prevent crime / Athlete sets record) pushed to the page edge and clipped mid-content; bodies spill to p2 (PDF spills the entire band including headers)
 - MEDIUM | all | p3,p4 | photo captions detach from their images and collide with neighbouring content (caption box overlaps the section rule above "Mirjam Nilsson" on p3; caption floats over the "scoop of the day" columns on p4)
-- MEDIUM | pdf | p6 | same "Page 4" footer rule drawn through the final column's text
 - MAJOR | html | - | several article bodies dropped entirely: "Community rallies for charity" two-column body, Vanja Jovanovic's "The latest breaking news of the day" body (empty table row in export), and the Takuma Hayashi article's left-column paragraphs
 - MEDIUM | html | - | teaser-band table column widths wrong — "Police prevent crime" column is ~one word wide, wrapping every word (Word has three equal columns)
 - MINOR | html | - | full four-sided borders drawn around the bridge sidebar box and the pull-quote box where Word shows only top/bottom rules
@@ -1479,8 +1482,7 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 ### resumes/11
 
-- MEDIUM | skia,imagesharp | p1 | Vertical spacing compressed from the EXPERIENCE section down — sections creep progressively higher, SKILLS block ends ~110px (~0.75 in) above Word's position (PDF matches Word within 1px)
-- MINOR | all | p1 | Name block starts ~15px lower than Word
+- MINOR | all | p1 | Name block starts ~17px lower than Word, and the three thin divider rules sit ~15-20px higher (re-measured 2026-08-08; the body text between them tracks Word to +-1px)
 - MINOR | html | - | Short section-divider rules above EDUCATION and SKILLS missing (only the contact-row rule is kept)
 
 ### resumes/12
@@ -1490,8 +1492,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 ### resumes/13
 
-- MAJOR | skia,imagesharp | - | Page count 4 vs Word's 5 — compressed vertical layout pulls content up one page from p2 onward (p3 shows Word's p4 content, p4 shows Word's p5 content)
-- MAJOR | pdf | - | Page count 6 vs Word's 5 — looser layout pushes Teaching experience off p2, content lags ~1 page behind and overflows onto an extra page 6
 - MINOR | all | - | Footer page-number field now recomputes per page (was cached "3" everywhere); the remaining gap vs Word's 1-5 is the page-count divergence [systemic #2], not the field
 - MAJOR | skia,imagesharp | p2 | Overflowing content ("Publications" heading and intro paragraph, plus a section rule) is drawn through/below the footer row and clipped at the bottom page edge
 - MEDIUM | all | p3,p5 | Sidebar headings wrap mid-word — "Presentations and invited l/ectures", "Professional t/raining", "Professional a/ffiliations" (Word breaks between whole words; skia/imagesharp on their p3, pdf on its p5)
