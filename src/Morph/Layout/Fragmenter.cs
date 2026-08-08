@@ -2083,6 +2083,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 var paragraph = element as ParagraphElement ?? (element as ContentControlElement)?.CellParagraph;
                 if (paragraph is null)
                 {
+                    // Non-paragraph content separates the paragraphs either side of it, so the next one
+                    // is not the contextual neighbour of the last (wedding/08's cell is Title, inline
+                    // oval, Title — the drawing keeps the two contextual Titles apart).
+                    lastCellContextual = false;
+                    lastCellStyleId = null;
                     continue;
                 }
 
@@ -2092,10 +2097,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // cell with it, so the content must be positioned with it too or it floats to the top and
                 // leaves the gap at the bottom. w:contextualSpacing removes the gap entirely between two
                 // same-style contextual paragraphs — production collapses in bounded (cell) rendering too
-                // (PdfTextEngine.TrackContextualSpacing "in both flow and bounded"), while the shared
-                // TableHeightCalculator measures WITHOUT the collapse; both paths draw tight content in
-                // the uncollapsed row, so the placement here must match (cover-letters/09's Address block:
-                // five 42pt-after contextual paragraphs rendered 42pt apart instead of tight).
+                // (PdfTextEngine.TrackContextualSpacing "in both flow and bounded"), so the placement here
+                // collapses as well (cover-letters/09's Address block: five 42pt-after contextual
+                // paragraphs rendered 42pt apart instead of tight). TableHeightCalculator once measured
+                // WITHOUT the collapse, leaving the row oversized by every suppressed gap; it now applies
+                // the same rule, so measure and placement agree.
                 var cellContextualCollapse = properties.ContextualSpacing && lastCellContextual && properties.StyleId == lastCellStyleId;
                 cellY += first
                     ? (float) properties.SpacingBeforePoints

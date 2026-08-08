@@ -261,25 +261,36 @@ static class TableHeightCalculator
         }
 
         // Collect paragraphs (and content-control wrappers) so we know first/last for spacing collapse.
+        // Non-paragraph content between two paragraphs SEPARATES them: w:contextualSpacing suppresses
+        // spacing only against the immediately preceding/following PARAGRAPH, so a paragraph that
+        // follows a drawing is not adjacent to the one before it however the two styles compare.
+        // Collapsing across the gap sank wedding/08's "GROOM'S FULL NAME" — its cell is Title,
+        // inline oval (a WordArtElement), Title, and the two contextual Titles are three list entries
+        // apart in the document but were neighbours once the drawing was filtered out.
         var paragraphs = new List<ParagraphElement>();
+        var separatedFromPrevious = new HashSet<int>();
+        var sawNonParagraph = false;
         foreach (var element in cell.Content)
         {
-            if (element is ParagraphElement para)
+            var cellParagraph = element as ParagraphElement ?? (element as ContentControlElement)?.CellParagraph;
+            if (cellParagraph is not null)
             {
-                paragraphs.Add(para);
-            }
-            else if (element is ContentControlElement contentControl)
-            {
-                // The shared wrapper keeps the layout-cache key identical across the
-                // measure/render pipeline stages.
-                if (contentControl.CellParagraph is { } measurePara)
+                // The shared ContentControlElement wrapper keeps the layout-cache key identical
+                // across the measure/render pipeline stages.
+                if (sawNonParagraph)
                 {
-                    paragraphs.Add(measurePara);
+                    separatedFromPrevious.Add(paragraphs.Count);
+                    sawNonParagraph = false;
                 }
+
+                paragraphs.Add(cellParagraph);
+                continue;
             }
-            else if (element is TableElement {Properties.IsFloating: false})
+
+            if (element is TableElement {Properties.IsFloating: false})
             {
                 height += 50;
+                sawNonParagraph = true;
             }
             else if (element is WordArtElement wordArt)
             {
@@ -289,10 +300,13 @@ static class TableHeightCalculator
                 // overflowed and pushed content onto a further page (brochures/08 went 2 pages to
                 // 3). Measure and render have to agree.
                 height += (float) wordArt.HeightPoints;
+                sawNonParagraph = true;
             }
         }
 
         float previousAfter = 0;
+        var previousContextual = false;
+        string? previousStyleId = null;
         for (var i = 0; i < paragraphs.Count; i++)
         {
             // Measured at exactly the width the cell render lays out at — the render path
@@ -311,8 +325,29 @@ static class TableHeightCalculator
             // them — tables with explicit w:tblCellMar rendered too tight as a result.)
             // Between consecutive paragraphs Word charges max(after, before), not the sum
             // (verified against Word XPS baselines), so only the excess of this paragraph's
-            // before over the previous paragraph's after adds height.
-            height += Math.Max(0, (float) props.SpacingBeforePoints - previousAfter);
+            // before over the previous paragraph's after adds height. w:contextualSpacing
+            // removes that gap ENTIRELY between two same-style contextual paragraphs, exactly
+            // as the placement path does (Fragmenter's cell arm). Measuring without the
+            // collapse sized the row as if every suppressed gap were paid while the render drew
+            // the paragraphs tight, so the row carried the difference as dead space below its
+            // content: letters/04's four 18pt-after RecipientAddress lines left 54pt of it, and
+            // the salutation and everything under it — down to the footer contact strip, which
+            // landed in the navy band — shifted down the page by that much.
+            var contextualCollapse = i > 0 &&
+                                     !separatedFromPrevious.Contains(i) &&
+                                     props.ContextualSpacing &&
+                                     previousContextual &&
+                                     props.StyleId == previousStyleId;
+            if (contextualCollapse)
+            {
+                // The boundary contributes nothing at all, so take back the previous
+                // paragraph's after rather than adding a before on top of it.
+                height -= previousAfter;
+            }
+            else
+            {
+                height += Math.Max(0, (float) props.SpacingBeforePoints - previousAfter);
+            }
 
             foreach (var lineHeight in lines)
             {
@@ -328,6 +363,8 @@ static class TableHeightCalculator
             // — each was calibrated against the other.
             height += (float) props.SpacingAfterPoints;
             previousAfter = (float) props.SpacingAfterPoints;
+            previousContextual = props.ContextualSpacing;
+            previousStyleId = props.StyleId;
         }
 
         return height;
