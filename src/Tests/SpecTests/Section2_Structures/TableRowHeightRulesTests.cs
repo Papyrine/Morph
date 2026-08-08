@@ -122,6 +122,114 @@ public class TableRowHeightRulesTests
     }
 
     [Test]
+    public async Task ContextualSpacing_CollapsesTheGapBetweenSameStyleParagraphs()
+    {
+        // w:contextualSpacing suppresses the gap between same-style contextual paragraphs, so the
+        // row must be sized without it — the placement path (Fragmenter's cell arm) draws them
+        // tight, and measuring the gaps anyway left the row that much too tall with the surplus
+        // as dead space below the content. Four 18pt-after paragraphs: three boundaries collapse
+        // (3 x 18 = 54pt saved), while the LAST paragraph's after still stacks on the bottom
+        // margin. This is letters/04's RecipientAddress block to the point.
+        var cell = new TableCell
+        {
+            Content =
+            [
+                ContextualParagraph("a"),
+                ContextualParagraph("b"),
+                ContextualParagraph("c"),
+                ContextualParagraph("d")
+            ],
+            Properties = new()
+        };
+        var tableProps = new TableProperties
+        {
+            DefaultCellPadding = new(top: 0, right: 0, bottom: 0, left: 0)
+        };
+
+        var height = TableHeightCalculator.MeasureCellHeight(cell, cellWidth: 100, tableProps, new StubMeasurer());
+
+        // 4 lines (48) + trailing after (18) = 66; the three inter-paragraph gaps cost nothing.
+        await Assert.That(height).IsEqualTo(66f).Within(0.01f);
+    }
+
+    [Test]
+    public async Task ContextualSpacing_DoesNotCollapseAcrossDifferentStyles()
+    {
+        // The collapse is same-style only: a contextual paragraph followed by a contextual one of
+        // another style still pays the gap, matching the placement path's StyleId test.
+        var cell = new TableCell
+        {
+            Content =
+            [
+                ContextualParagraph("a"),
+                ContextualParagraph("b", styleId: "Other")
+            ],
+            Properties = new()
+        };
+        var tableProps = new TableProperties
+        {
+            DefaultCellPadding = new(top: 0, right: 0, bottom: 0, left: 0)
+        };
+
+        var height = TableHeightCalculator.MeasureCellHeight(cell, cellWidth: 100, tableProps, new StubMeasurer());
+
+        // line(12) + first-after(18) + line(12) + trailing after(18) = 60.
+        await Assert.That(height).IsEqualTo(60f).Within(0.01f);
+    }
+
+    [Test]
+    public async Task ContextualSpacing_DoesNotCollapseAcrossInterveningContent()
+    {
+        // w:contextualSpacing suppresses spacing only against the immediately preceding/following
+        // PARAGRAPH. A drawing between two same-style contextual paragraphs separates them, so the
+        // gap is still paid — wedding/08's cell is Title, inline oval, Title, and collapsing across
+        // the oval pulled the second title and everything below it up the page.
+        var cell = new TableCell
+        {
+            Content =
+            [
+                ContextualParagraph("a"),
+                new WordArtElement
+                {
+                    Text = "art",
+                    HeightPoints = 20,
+                    WidthPoints = 20
+                },
+                ContextualParagraph("b")
+            ],
+            Properties = new()
+        };
+        var tableProps = new TableProperties
+        {
+            DefaultCellPadding = new(top: 0, right: 0, bottom: 0, left: 0)
+        };
+
+        var height = TableHeightCalculator.MeasureCellHeight(cell, cellWidth: 100, tableProps, new StubMeasurer());
+
+        // wordArt(20) + line(12) + first-after(18) + line(12) + trailing after(18) = 80.
+        await Assert.That(height).IsEqualTo(80f).Within(0.01f);
+    }
+
+    static ParagraphElement ContextualParagraph(string text, string styleId = "RecipientAddress") =>
+        new()
+        {
+            Runs =
+            [
+                new()
+                {
+                    Text = text,
+                    Properties = new()
+                }
+            ],
+            Properties = new()
+            {
+                StyleId = styleId,
+                ContextualSpacing = true,
+                SpacingAfterPoints = 18
+            }
+        };
+
+    [Test]
     public async Task BorderCollapse_OuterBordersGrowSingleRow()
     {
         var cell = new TableCell

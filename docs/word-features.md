@@ -592,8 +592,36 @@ Suppresses spacing between paragraphs of the same style.
 - **OOXML**: `w:contextualSpacing`
 - **Spec**: [ContextualSpacing](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.contextualspacing)
 - **Model**: `ParagraphProperties.ContextualSpacing`
+- **Render**: `Fragmenter` (flow arm and cell arm), `TableHeightCalculator.MeasureCellHeight`
+- **Test**: `CanonicalContextualSpacingTests`, `TableRowHeightRulesTests`
 
 > **Contributors**: Collapses both before and after spacing when adjacent paragraphs share the same `StyleId`. Tracked via `LastParagraphStyleId` and `LastParagraphHadContextualSpacing` in `RenderContextBase`.
+>
+> **Two rules the cell path learned the hard way (2026-08-08).**
+>
+> 1. **Measure and placement must apply the collapse alike.** `TableHeightCalculator.MeasureCellHeight`
+>    sizes the row and `Fragmenter`'s cell arm positions the content inside it; for a while only the
+>    latter collapsed, so a contextual block was drawn tight in a row sized as if every suppressed gap
+>    were paid, and the surplus sat as dead space below the content. `letters/04`'s address block —
+>    four 18pt-after `RecipientAddress` paragraphs in the last row of the header table — carried 54pt
+>    of it, measured band-to-band (Word's address-to-salutation gap 53.28pt against the engine's
+>    107.04pt), and pushed the salutation, the signature and the footer contact strip down the page by
+>    exactly that much; the strip landed inside the navy footer band. With the rules aligned every
+>    landmark on that page sits within 2px of Word's.
+> 2. **Non-paragraph content separates the paragraphs either side of it.** The suppression is against
+>    the immediately preceding/following PARAGRAPH, so a drawing between two same-style contextual
+>    paragraphs keeps them apart. Both paths once filtered non-paragraph elements out and left the
+>    survivors looking adjacent: `wedding/08`'s cell is Title, an inline oval (a `WordArtElement`),
+>    Title, and collapsing across the oval pulled "GROOM'S FULL NAME" and everything below it 8pt up
+>    the page.
+>
+> The corpus adjudication for the pair: 23 pages better, 6 worse, mean SSIM 0.8359 → 0.8474, no
+> page-count changes. Of the six, `resumes/19`'s three ImageSharp pages move ±0.0009 while Skia and
+> PDF improve on the same pages (rasterisation noise), and `letters/01` is the fidelity audit's
+> documented new-ink offset penalty — its whole-page metric is dominated by the large-area colour
+> error on its decorative bands, while direct measurement of the text rows shows the layout moving
+> much closer to Word (best-alignment offset 137px → 53px, residual 30570 → 26735; its recipient
+> block goes from 120px below Word's to 37px).
 
 
 ### 2.3 Indentation
@@ -1061,8 +1089,10 @@ line boundary when it does not fit.
 >    table, last row, mid row, end of document — and `business-plans/13`'s landscape pages
 >    break exactly where the floored row's floor crosses the bottom margin (box to 519.4pt,
 >    floor to 541.2, margin 540). A content-only fit was briefly landed off an in-situ
->    letters/04 reading; that keep is upstream height drift (Word's letter runs ~50pt more
->    compact, so the floor fits its layout), not a fit law. The bottom-margin overhang
+>    letters/04 reading; that keep was upstream height drift, not a fit law — the drift was
+>    root-caused on 2026-08-08 as the cell-measure contextual-spacing hole (see Contextual
+>    Spacing), which sized that document's address row 54pt over its drawn content. The
+>    bottom-margin overhang
 >    tolerance belongs to CONTENT: Word keeps `business-plans/15`'s content-sized 79.6pt
 >    boundary table 13pt past the margin, drawn and clipped — the same shape as the last-line
 >    rule, where auto lines overhang and exact/atLeast boxes reserve fully. A row carrying any
