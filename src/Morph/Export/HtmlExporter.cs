@@ -105,13 +105,13 @@ static class HtmlExporter
         bodyStyle.Add($"max-width: {Length(page.ContentWidth)}");
         bodyStyle.Add($"padding: {BoxShorthand(page.MarginTop, page.MarginRight, page.MarginBottom, page.MarginLeft)}");
 
-        // Background shapes are emitted as absolutely-positioned <svg> children; they resolve their
-        // top/left against the body, so the body must be a positioning context. Header and footer
-        // content counts too — a template whose only floating art lives in its header (a full-page
-        // banner band) would otherwise resolve it against the viewport.
-        if (document.Elements.OfType<FloatingShapeElement>().Any() ||
-            HasFloatingShape(headerContent) ||
-            HasFloatingShape(footerContent))
+        // Background shapes and wrap-NONE floating images are emitted as absolutely-positioned
+        // children; they resolve their top/left against the body, so the body must be a positioning
+        // context. Header and footer content counts too — a template whose only floating art lives
+        // in its header (a full-page banner band) would otherwise resolve it against the viewport.
+        if (HasAbsoluteFloat(document.Elements) ||
+            HasAbsoluteFloat(headerContent?.Elements) ||
+            HasAbsoluteFloat(footerContent?.Elements))
         {
             bodyStyle.Add("position: relative");
         }
@@ -176,8 +176,26 @@ static class HtmlExporter
     static bool IsBlankForHtml(ParagraphElement paragraph) =>
         DocumentExportHelpers.IsBlank(paragraph, lineBreaksRender: true);
 
-    static bool HasFloatingShape(HeaderFooterContent? content) =>
-        content != null && content.Elements.OfType<FloatingShapeElement>().Any();
+    // Whether a flow holds anything the writer places absolutely: a floating shape, or a floating
+    // image that neither wraps nor displaces (see WriteFloatingImage).
+    static bool HasAbsoluteFloat(IReadOnlyList<DocumentElement>? elements)
+    {
+        if (elements == null)
+        {
+            return false;
+        }
+
+        foreach (var element in elements)
+        {
+            if (element is FloatingShapeElement ||
+                element is FloatingImageElement {WrapType: WrapType.None})
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     static bool HasContent(HeaderFooterContent? content) =>
         content != null &&
@@ -612,9 +630,25 @@ static class HtmlExporter
         // which is already HTML's closest match for them.
         void WriteFloatingImage(FloatingImageElement image, int depth)
         {
-            if (image.WrapType is not (WrapType.Square or WrapType.Tight or WrapType.Through))
+            // Wrap NONE means the image floats over or under the text rather than displacing it, so
+            // it is placed absolutely at its anchor coordinates exactly as a floating SHAPE is
+            // (WriteShape) — same page-absolute arithmetic, same z-index rule. Emitting it as a
+            // block paragraph instead cost it both its position and, worse, its transparency to the
+            // flow: a full-width decorative banner then consumed its own height, pushing the text
+            // that follows down the document. That is how a template's white cover text ends up
+            // BELOW the dark panel meant to sit behind it, rendering white-on-white and
+            // unreadable (agendas-minutes/02's masthead and roster; todo.md HTML #26). TopAndBottom
+            // is the one non-wrapping type that genuinely does take flow space — text goes above and
+            // below it, never beside — so it keeps the paragraph.
+            if (image.WrapType == WrapType.TopAndBottom)
             {
                 WriteImageParagraph(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Description, depth);
+                return;
+            }
+
+            if (image.WrapType == WrapType.None)
+            {
+                WriteAbsoluteImage(image, depth);
                 return;
             }
 
@@ -647,6 +681,47 @@ static class HtmlExporter
             AppendImageTag(source, image.WidthPoints, image.HeightPoints, image.Description, style);
             builder.Append('\n');
         }
+
+        // A wrap-NONE float, placed at its anchor coordinates and layered by its behind-text flag.
+        // The box arithmetic mirrors ShapeBox: a page-relative anchor measures from the paper edge,
+        // anything else from the margin, and the absolute coordinates land against the body's
+        // padding box — which starts at the page edge, since the body carries the page margins as
+        // padding and no margin of its own.
+        void WriteAbsoluteImage(FloatingImageElement image, int depth)
+        {
+            var source = ResolveImageSource(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints);
+            if (source == null)
+            {
+                return;
+            }
+
+            var pageLeft = (image.HorizontalAnchor == HorizontalAnchor.Page ? 0 : pageSettings.MarginLeft) + image.HorizontalPositionPoints;
+            var pageTop = (image.VerticalAnchor == VerticalAnchor.Page ? 0 : pageSettings.MarginTop) + image.VerticalPositionPoints;
+            var (left, top) = FloatOrigin(pageLeft, pageTop, image.VerticalAnchor);
+            var style = $"position: absolute; left: {Length(left)}; top: {Length(top)}; z-index: {(image.BehindText ? "-1" : "1")}";
+
+            Indent(depth).Append("""<div style="position: relative">""");
+            AppendImageTag(source, image.WidthPoints, image.HeightPoints, image.Description, style);
+            builder.Append("</div>\n");
+        }
+
+        /// <summary>
+        /// Turns a float's page-absolute box into coordinates relative to an empty
+        /// <c>position: relative</c> wrapper emitted at the float's own place in the flow — which is
+        /// where the anchor paragraph sits, since the parser detaches a float from the paragraph that
+        /// declared it. Anchoring there rather than at the document origin is what Word's dominant
+        /// case actually asks for: across the corpus 128 of ~207 wrap-NONE floats declare
+        /// <c>wp:positionV relativeFrom="paragraph"</c> against only 24 page-relative ones, so a
+        /// document-origin placement mis-positions the majority and, worse, stacks every page's
+        /// background art on page one — the HTML export has no pages to separate them. The wrapper
+        /// is empty and zero-height, so it collapses through and costs the flow nothing.
+        /// A page-relative anchor keeps its offset, treating the anchor point as its page top; that
+        /// is exact for art anchored at a page's first paragraph (the common template shape) and an
+        /// approximation elsewhere, which beats collapsing pages together.
+        /// </summary>
+        (double Left, double Top) FloatOrigin(double pageLeft, double pageTop, VerticalAnchor verticalAnchor) =>
+            (pageLeft - pageSettings.MarginLeft,
+                pageTop - (verticalAnchor == VerticalAnchor.Page ? 0 : pageSettings.MarginTop));
 
         void WriteContentControl(ContentControlElement contentControl, int depth)
         {
@@ -1500,14 +1575,16 @@ static class HtmlExporter
         // flattened custom polygon, plus rotation/flip — all map straight onto SVG primitives.
         void WriteShape(FloatingShapeElement shape, int depth)
         {
-            var (left, top, width, height) = ShapeBox(shape, pageSettings);
+            var (pageLeft, pageTop, width, height) = ShapeBox(shape, pageSettings);
             if (width <= 0.01 || height <= 0.01)
             {
                 return;
             }
 
+            var (left, top) = FloatOrigin(pageLeft, pageTop, shape.VerticalAnchor);
             var shapeId = shapeIndex++;
-            Indent(depth).Append($"""<svg style="position: absolute; left: {Length(left)}; top: {Length(top)}; width: {Length(width)}; height: {Length(height)}; z-index: {(shape.BehindText ? "-1" : "1")}" viewBox="0 0 {Number(width)} {Number(height)}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">""");
+            Indent(depth).Append("""<div style="position: relative">""");
+            builder.Append($"""<svg style="position: absolute; left: {Length(left)}; top: {Length(top)}; width: {Length(width)}; height: {Length(height)}; z-index: {(shape.BehindText ? "-1" : "1")}" viewBox="0 0 {Number(width)} {Number(height)}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">""");
 
             if (shape is {ImageData: {} imageData, FillColorHex: null, Gradient: null})
             {
@@ -1537,7 +1614,7 @@ static class HtmlExporter
                 AppendShapeGeometry(shape, width, height, fill);
             }
 
-            builder.Append("</svg>\n");
+            builder.Append("</svg></div>\n");
         }
 
         void AppendShapeGeometry(FloatingShapeElement shape, double width, double height, string fill)

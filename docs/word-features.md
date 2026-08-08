@@ -1493,7 +1493,7 @@ Solid background color for the entire page.
 - **OOXML**: `w:background` with `w:color`
 - **Model**: `PageSettings.BackgroundColorHex`
 
-> **AI**: The HTML export does not paint the page background (nor dark floating-shape fills) behind text, so automatic-white runs that render correctly in the raster/PDF backends can appear white-on-white in `html_result` — a documented export gap, not a colour-cascade defect.
+> **AI**: The HTML export paints all three backings — a `w:background` page colour becomes the body's `background-color`, and floating shapes and wrap-NONE floating images are placed absolutely behind the text at `z-index: -1`. A long-standing note here claimed the opposite and blamed white-on-white text on a missing background; that was wrong. The panels were painted, and the text was landing OFF them because wrap-none floating images were emitted in flow and displaced it (see the wrap-NONE placement rule under Text Wrapping). When white text still reads white-on-white, check where the text landed before suspecting the paint.
 
 
 #### Page Borders `DONE`
@@ -1571,6 +1571,8 @@ How text flows around floating images and shapes.
 - **Test**: `image_wrap_square/` (issue #145 sample: left-anchored wrapSquare images with text flowing beside them)
 
 > **Consumers**: Tight and Through use the image's rectangular extent (same as Square), matching Word only for rectangular artwork. A paragraph keeps its band width for its whole height — Word additionally reflows back to full measure below the float mid-paragraph. Explicit `wrapText="left"/"right"` preferences are honoured (text flows only on that side); `bothSides`/`largest` take the widest free side, since a single band can't carry both sides at once. The HTML exporter emits these floats as CSS floats with a same-side `clear` so successive floats stack vertically as their anchors do in Word. Text boxes and shapes don't yet register exclusions.
+>
+> **HTML export — wrap NONE is placed, not flowed.** A wrap-NONE float sits over or under the text without displacing it, so the exporter places it absolutely (shapes as `<svg>`, images as `<img>`) with `z-index` from the behind-text flag, rather than emitting a block that consumes flow height. `w:wrapTopAndBottom` is the exception and keeps its paragraph — it is the one non-wrapping type that genuinely does displace text. The coordinates resolve against an empty, zero-height `position: relative` wrapper emitted at the float's own place in the flow, NOT against the document origin: across the corpus 128 of ~207 wrap-none floats declare `wp:positionV relativeFrom="paragraph"` against only 24 page-relative ones, so a document-origin placement mis-positions the common case, and — because the export has no pages — it stacks every page's background art onto page one. The wrapper is empty so it collapses through and costs the flow nothing. Known limit: a page-RELATIVE float approximates its page top by the anchor's flow position, exact when the art is anchored at a page's first paragraph (the usual template shape) and drifting otherwise, so a multi-panel brochure can still overlap where Word separates by page.
 
 
 #### SVG Images `DONE`
