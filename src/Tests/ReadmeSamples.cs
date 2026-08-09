@@ -307,6 +307,51 @@ public class Samples
         #endregion
     }
 
+    public static void CompressImages()
+    {
+        #region CompressImages
+
+        // Resamples every picture down to the resolution it is actually drawn at, and
+        // re-encodes it. A picture is only ever replaced by a smaller one, and the file
+        // is left byte-for-byte untouched when nothing got smaller.
+        var result = ImageCompressor.Compress("document.docx");
+
+        Console.WriteLine($"Saved {result.Saved} bytes across {result.Images.Count} images");
+
+        #endregion
+    }
+
+    public static void CompressImagesSelectively()
+    {
+        #region CompressImagesSelectively
+
+        // Report what a package is carrying without touching it. RenderedDpi is the one
+        // to look at: an image far above the target is holding pixels nothing can show.
+        foreach (var image in ImageCompressor.Inspect("document.docx"))
+        {
+            Console.WriteLine($"{image.PartName} {image.Width}x{image.Height} at {image.RenderedDpi:F0} DPI");
+        }
+
+        // Word's Compress Pictures defaults to 220 DPI for print, which is a safer target
+        // if the document is going to be printed rather than read on screen.
+        ImageCompressor.Compress("document.docx", new()
+        {
+            TargetDpi = 220,
+            JpegQuality = 85,
+
+            // Opt in to writing opaque PNGs out as JPEG. Lossy, and it renames the package
+            // part, but for photographic content it is much the largest saving available.
+            ConvertOpaquePngToJpeg = true
+        });
+
+        // Stream overloads write the compressed package to any destination.
+        using var source = File.OpenRead("document.docx");
+        using var target = File.Create("document-small.docx");
+        ImageCompressor.Compress(source, target);
+
+        #endregion
+    }
+
     public static void GetBookmarkPages()
     {
         #region GetBookmarkPages
