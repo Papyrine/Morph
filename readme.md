@@ -473,7 +473,7 @@ foreach (var (bookmark, page) in pages)
     Console.WriteLine($"{bookmark} is on page {page}");
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L312-L323' title='Snippet source file'>snippet source</a> | <a href='#snippet-GetBookmarkPages' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L357-L368' title='Snippet source file'>snippet source</a> | <a href='#snippet-GetBookmarkPages' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 It costs a layout pass and nothing more — the answer is read off the layout engine's placed items, so no page is drawn and no rendering backend is involved. Bookmarks that cannot be placed, such as one sitting between paragraphs at body level (`ParagraphIndex == null`), are absent from the result rather than reported at a guessed page.
@@ -533,6 +533,64 @@ DocumentCleaner.Remove(source, target, DocumentParts.Thumbnail | DocumentParts.G
 <!-- endSnippet -->
 
 One caveat on `CustomXml`: a content control can carry a `w:dataBinding` into a data island. The bound value is also cached inline in `word/document.xml` — which is what Morph, and Word until it refreshes, actually reads — but if the island and the cache have drifted apart, removing the island changes what Word eventually shows.
+
+
+### Recompressing images
+
+`DocumentCleaner` never touches `word/media`, which is where the bytes usually are: across this repository's test corpus images account for 29.9 MB of 57.3 MB, or 48% on disk. `ImageCompressor` rewrites them.
+
+Each image is resampled down to the resolution it is actually drawn at, then re-encoded, which also discards EXIF, XMP and ICC metadata. Nothing is guessed: the size comes from the drawing that places the image, so a picture cropped to half its width is credited with the pixels the crop implies, one used in several places is sized for the largest, and one inside a scaled group is sized after the group's transform. An image no drawing states a size for is re-encoded but never resampled — there is nothing to say how many pixels it needs.
+
+**A part is only ever replaced by a smaller one.** Re-encoding that comes out larger is discarded and the original kept, so no image can end up both worse and bigger.
+
+<!-- snippet: CompressImages -->
+<a id='snippet-CompressImages'></a>
+```cs
+// Resamples every picture down to the resolution it is actually drawn at, and
+// re-encodes it. A picture is only ever replaced by a smaller one, and the file
+// is left byte-for-byte untouched when nothing got smaller.
+var result = ImageCompressor.Compress("document.docx");
+
+Console.WriteLine($"Saved {result.Saved} bytes across {result.Images.Count} images");
+```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L312-L321' title='Snippet source file'>snippet source</a> | <a href='#snippet-CompressImages' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+Formats that cannot survive a raster round trip are copied across untouched: SVG, EMF and WMF metafiles, JPEG XR (`.wdp`), GIF, TIFF and BMP. Nothing keys off the file extension either — image parts are found through `[Content_Types].xml` and sized through DrawingML, so `.xlsx` and `.pptx` are handled by the same walk.
+
+<!-- snippet: CompressImagesSelectively -->
+<a id='snippet-CompressImagesSelectively'></a>
+```cs
+// Report what a package is carrying without touching it. RenderedDpi is the one
+// to look at: an image far above the target is holding pixels nothing can show.
+foreach (var image in ImageCompressor.Inspect("document.docx"))
+{
+    Console.WriteLine($"{image.PartName} {image.Width}x{image.Height} at {image.RenderedDpi:F0} DPI");
+}
+
+// Word's Compress Pictures defaults to 220 DPI for print, which is a safer target
+// if the document is going to be printed rather than read on screen.
+ImageCompressor.Compress("document.docx", new()
+{
+    TargetDpi = 220,
+    JpegQuality = 85,
+
+    // Opt in to writing opaque PNGs out as JPEG. Lossy, and it renames the package
+    // part, but for photographic content it is much the largest saving available.
+    ConvertOpaquePngToJpeg = true
+});
+
+// Stream overloads write the compressed package to any destination.
+using var source = File.OpenRead("document.docx");
+using var target = File.Create("document-small.docx");
+ImageCompressor.Compress(source, target);
+```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L326-L352' title='Snippet source file'>snippet source</a> | <a href='#snippet-CompressImagesSelectively' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+The encoding is done by an `ImageCodec`, because the core `Morph` package has no imaging dependency. Referencing `Morph.ImageSharp` or `Morph.Skia` is enough for one to be found — ImageSharp is preferred, since SkiaSharp's PNG encoder exposes no compression level. Set `ImageCompressionOptions.Codec` to supply a different one.
+
+**On what to expect.** Word downsamples pictures as it inserts them, so a document Word wrote has usually already had this done to it: over the whole corpus the defaults recover 5.9% of image bytes and 2.9% of the files, resampling 134 images of 464 and finding no gain at all in 322. The case worth reaching for this over is the other one — a document where *Do not compress images in file* was set, or that came from some other producer, where a 4000 pixel photograph is shown two inches wide. That is 2000 DPI against a 150 DPI target, and the picture loses 99% of its pixels without losing anything visible.
 
 
 ## Configuration Options

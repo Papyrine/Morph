@@ -16,7 +16,6 @@ namespace Morph;
 public static class DocumentCleaner
 {
     const string thumbnailRelationship = "http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail";
-    const string contentTypesPart = "[Content_Types].xml";
 
     /// <summary>Removes <paramref name="parts"/> from the DOCX file at <paramref name="docxPath"/>, in place.</summary>
     /// <returns>The parts actually removed, or <see cref="DocumentParts.None"/> if the package held none of them.</returns>
@@ -49,7 +48,7 @@ public static class DocumentCleaner
 
         var removals = MatchParts(archive, parts, out var removed);
         var survivors = archive.Entries
-            .Select(_ => NormalizePartName(_.FullName))
+            .Select(_ => PackagePaths.NormalizePartName(_.FullName))
             .Where(_ => !removals.Contains(_))
             .ToList();
         var orphaned = OrphanedExtensions(removals, survivors);
@@ -57,7 +56,7 @@ public static class DocumentCleaner
         using var output = new ZipArchive(target, ZipArchiveMode.Create, leaveOpen: true);
         foreach (var entry in archive.Entries)
         {
-            if (removals.Contains(NormalizePartName(entry.FullName)))
+            if (removals.Contains(PackagePaths.NormalizePartName(entry.FullName)))
             {
                 continue;
             }
@@ -73,13 +72,13 @@ public static class DocumentCleaner
             using var content = entry.Open();
             using var destination = copy.Open();
 
-            if (IsRelationshipPart(entry.FullName))
+            if (PackagePaths.IsRelationshipPart(entry.FullName))
             {
-                Rewrite(content, destination, document => DropRelationships(document, entry.FullName, removals));
+                PackageXml.Rewrite(content, destination, document => DropRelationships(document, entry.FullName, removals));
             }
-            else if (entry.FullName.Equals(contentTypesPart, StringComparison.OrdinalIgnoreCase))
+            else if (PackagePaths.IsContentTypesPart(entry.FullName))
             {
-                Rewrite(content, destination, document => DropContentTypes(document, removals, orphaned));
+                PackageXml.Rewrite(content, destination, document => DropContentTypes(document, removals, orphaned));
             }
             else
             {
@@ -119,7 +118,7 @@ public static class DocumentCleaner
                 continue;
             }
 
-            names.Add(NormalizePartName(entry.FullName));
+            names.Add(PackagePaths.NormalizePartName(entry.FullName));
             matched |= part;
         }
 
@@ -142,7 +141,7 @@ public static class DocumentCleaner
 
     static DocumentParts Classify(string partName)
     {
-        var normalized = NormalizePartName(partName);
+        var normalized = PackagePaths.NormalizePartName(partName);
 
         if (normalized.StartsWith("docProps/thumbnail", StringComparison.OrdinalIgnoreCase))
         {
@@ -186,9 +185,9 @@ public static class DocumentCleaner
 
             var target = relationship.Attribute("Target")?.Value;
             if (target is not null &&
-                !IsExternal(relationship))
+                !PackagePaths.IsExternal(relationship))
             {
-                yield return ResolvePartName("_rels/.rels", target);
+                yield return PackagePaths.ResolvePartName("_rels/.rels", target);
             }
         }
     }
@@ -198,14 +197,14 @@ public static class DocumentCleaner
         foreach (var relationship in document.Root!.Elements().ToList())
         {
             if (relationship.Name.LocalName != "Relationship" ||
-                IsExternal(relationship))
+                PackagePaths.IsExternal(relationship))
             {
                 continue;
             }
 
             var target = relationship.Attribute("Target")?.Value;
             if (target is not null &&
-                removals.Contains(ResolvePartName(relsPartName, target)))
+                removals.Contains(PackagePaths.ResolvePartName(relsPartName, target)))
             {
                 relationship.Remove();
             }
@@ -220,7 +219,7 @@ public static class DocumentCleaner
             {
                 var partName = declaration.Attribute("PartName")?.Value;
                 if (partName is not null &&
-                    removals.Contains(NormalizePartName(partName)))
+                    removals.Contains(PackagePaths.NormalizePartName(partName)))
                 {
                     declaration.Remove();
                 }
@@ -245,85 +244,12 @@ public static class DocumentCleaner
     static HashSet<string> OrphanedExtensions(HashSet<string> removals, IEnumerable<string> survivors)
     {
         var extensions = removals
-            .Select(Extension)
+            .Select(PackagePaths.Extension)
             .Where(_ => _.Length > 0)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        extensions.ExceptWith(survivors.Select(Extension));
+        extensions.ExceptWith(survivors.Select(PackagePaths.Extension));
         return extensions;
     }
 
-    static void Rewrite(Stream content, Stream destination, Action<XDocument> edit)
-    {
-        var document = XDocument.Load(content);
-        edit(document);
-
-        var settings = new XmlWriterSettings
-        {
-            // Word writes these parts as UTF-8 with a BOM and no pretty-printing
-            Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true),
-            Indent = false,
-        };
-
-        using var writer = XmlWriter.Create(destination, settings);
-        document.Save(writer);
-    }
-
-    static bool IsExternal(XElement relationship) =>
-        string.Equals(relationship.Attribute("TargetMode")?.Value, "External", StringComparison.OrdinalIgnoreCase);
-
-    static bool IsRelationshipPart(string partName) =>
-        partName.EndsWith(".rels", StringComparison.OrdinalIgnoreCase) &&
-        partName.Contains("_rels/", StringComparison.OrdinalIgnoreCase);
-
-    static string Extension(string partName)
-    {
-        var dot = partName.LastIndexOf('.');
-        return dot < 0 ? "" : partName[(dot + 1)..];
-    }
-
-    /// <summary>
-    /// Resolves a relationship <c>Target</c> to a package-root-relative part name. Targets are
-    /// either absolute (<c>/docProps/thumbnail.emf</c>) or relative to the folder owning the
-    /// <c>_rels</c> directory, so <c>word/_rels/document.xml.rels</c> resolves
-    /// <c>../customXml/item1.xml</c> against <c>word/</c>.
-    /// </summary>
-    static string ResolvePartName(string relsPartName, string target)
-    {
-        if (target.StartsWith('/'))
-        {
-            return NormalizePartName(target);
-        }
-
-        var marker = relsPartName.LastIndexOf("_rels/", StringComparison.OrdinalIgnoreCase);
-        var directory = marker < 0 ? "" : relsPartName[..marker];
-        return NormalizePartName(directory + target);
-    }
-
-    static string NormalizePartName(string partName)
-    {
-        var segments = new List<string>();
-        foreach (var segment in partName.Replace('\\', '/').Split('/'))
-        {
-            if (segment.Length == 0 ||
-                segment == ".")
-            {
-                continue;
-            }
-
-            if (segment == "..")
-            {
-                if (segments.Count > 0)
-                {
-                    segments.RemoveAt(segments.Count - 1);
-                }
-
-                continue;
-            }
-
-            segments.Add(segment);
-        }
-
-        return string.Join('/', segments);
-    }
 }
