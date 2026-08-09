@@ -979,7 +979,46 @@ Space between cell border and cell content (inside the cell).
 - **OOXML**: `w:tcMar` (per-cell) or `w:tblCellMar` (table default; also inherited from the referenced table style and its `w:basedOn` chain)
 - **Spec**: [Cell Margins](http://officeopenxml.com/WPtableCellMargins.php)
 - **Model**: `TableCellProperties.Padding` (per-cell), `TableProperties.DefaultCellPadding`
-- **Test**: `table_cell_padding/`, `table_cell_padding_varied/`, `table_default_cell_margin/`, `table_grid_styling_padding/`
+- **Parse**: `DocumentParser.ResolveStyleCellPadding` walks the style's `w:basedOn` chain taking each side from the NEAREST ancestor that states it; `MergeTableCellMargin` then merges the table's own `w:tblPr/w:tblCellMar` over that result per side (the pair is cached as `effectiveCellPadding`) and again for a row's `w:tblPrEx/w:tblCellMar`; `ParseCellMargin` does the same for a `w:tcMar`
+- **Test**: `table_cell_padding/`, `table_cell_padding_varied/`, `table_default_cell_margin/`, `table_grid_styling_padding/`, `TableCellMarginParseTests`
+
+> **Contributors**: `w:tblCellMar` merges PER SIDE at EVERY level of the cascade — style
+> `w:basedOn` chain → the table's own `w:tblPr` → a row's `w:tblPrEx` → a cell's `w:tcMar`. It is
+> NOT a box that the nearest definition replaces wholesale. Absent ≠ zero at any level: only a side
+> actually written in the XML overrides the level below it, and each level merges against the
+> RESOLVED result of the ones above it (not against the style directly).
+>
+> Both merge points were measured against Word with isolating probes — copies of one table
+> differing only in `w:tblCellMar`, rendered at 150 DPI with the glyph inset measured from the cell
+> edge rather than eyeballed.
+>
+> Table level, over a style chain supplying left/right = 108 dxa:
+>
+> | Table's own `w:tblCellMar` | Word's effective left padding |
+> |---|---|
+> | *(absent)* | 12px ≈ 108 dxa — from the style chain |
+> | `top`/`bottom` only | 11px ≈ 108 dxa — **style's left/right survives** |
+> | `left`/`right` = `0` explicitly | 0px — the stated zero wins |
+> | `left`/`right` = `720` | 720 dxa — override wins (columns crush to one char per line) |
+>
+> Row level, over a table default of 360 dxa with a style chain of 108 — three-way discriminating,
+> since a wholesale replace could plausibly have fallen back to either the style (108) or zero:
+>
+> | Row's `w:tblPrEx/w:tblCellMar` | Word's effective left padding |
+> |---|---|
+> | *(absent)* | 38–40px ≈ 360 dxa — the table default |
+> | `top`/`bottom` only | 38–40px ≈ 360 dxa — **identical to no `w:tblPrEx`**, and the row is visibly taller, so the element WAS honoured |
+> | `left`/`right` = `0` explicitly | 0px |
+> | `left`/`right` = `720` | 76–78px ≈ 720 dxa |
+>
+> Getting this wrong is very visible: resolving the first `w:tblCellMar` found as the whole box
+> zeroed the horizontal padding, rendering cell text flush against the column rules and widening
+> the text measure so lines that Word wraps fit on one line (`wedding/04`).
+>
+> The corpus cannot guard the row level — `newsletters/09` is the only scenario whose `w:tblPrEx`
+> carries a `w:tblCellMar`, and its enclosing table resolves to an all-zero default, so merging and
+> replacing coincide there. `TableCellMarginParseTests` builds an in-memory document with a
+> non-zero table default for that reason.
 
 
 #### Cell Margins `DONE`
