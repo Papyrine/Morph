@@ -1004,6 +1004,12 @@ static class HtmlExporter
 
                 var cellStyle = CellStyle(properties, borders);
 
+                // A cell holding anchored art becomes the positioning context for it (below).
+                if (cell.Floats.Count > 0)
+                {
+                    cellStyle = cellStyle == null ? "position: relative" : $"{cellStyle}; position: relative";
+                }
+
                 // Cell paragraphs render inline (see AppendCellContent), so their alignment must
                 // ride on the cell: when every non-heading paragraph shares one non-left alignment
                 // (card/label templates centre their panel text), emit it as the td's text-align.
@@ -1019,6 +1025,7 @@ static class HtmlExporter
                 }
 
                 builder.Append('>');
+                AppendCellFloats(cell);
                 AppendCellContent(cell.Content, depth + 1);
                 builder.Append($"</{tag}>\n");
                 gridColumn += span;
@@ -1278,6 +1285,37 @@ static class HtmlExporter
                         AppendImage(floatingImage.ImageData, floatingImage.ContentType, floatingImage.WidthPoints, floatingImage.HeightPoints, floatingImage.Description);
                         separatorPending = true;
                         break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Emits a cell's anchored art. The DOCX parser DETACHES a float out of the cell's flow
+        /// content into <see cref="TableCell.Floats"/> (so the cell measures without it), and the
+        /// HTML export read only the content — so every cell-anchored drawing was silently dropped:
+        /// the missing hexagon accents, corner graphics and banner blobs logged against labels/14,
+        /// business/04-05, brochures/04/06/07, letters/13 and menus/06. They are placed against the
+        /// cell, which Word also does (<c>wp:anchor@layoutInCell</c>, default true), and the cell
+        /// carries <c>position: relative</c> for them.
+        /// </summary>
+        void AppendCellFloats(TableCell cell)
+        {
+            foreach (var element in cell.Floats)
+            {
+                if (element is FloatingImageElement {WrapType: WrapType.None} image)
+                {
+                    var source = ResolveImageSource(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints);
+                    if (source == null)
+                    {
+                        continue;
+                    }
+
+                    var style = $"position: absolute; left: {Length(image.HorizontalPositionPoints)}; top: {Length(image.VerticalPositionPoints)}; z-index: {(image.BehindText ? "-1" : "1")}";
+                    AppendImageTag(source, image.WidthPoints, image.HeightPoints, image.Description, style);
+                }
+                else if (element is FloatingShapeElement shape)
+                {
+                    WriteShape(shape, 0);
                 }
             }
         }
