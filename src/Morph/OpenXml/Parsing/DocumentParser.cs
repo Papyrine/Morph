@@ -2315,10 +2315,19 @@ sealed class DocumentParser(string defaultFont)
         return result;
     }
 
-    static CellSpacing? ResolveStyleCellPadding(Style style, Dictionary<string, Style> tableStylesById)
+    /// <summary>
+    /// Resolves a table style's default cell padding by walking the <c>w:basedOn</c> chain and
+    /// taking each side from the NEAREST ancestor that specifies it. Word merges
+    /// <c>w:tblCellMar</c> per side rather than letting the first one found replace the whole box,
+    /// and real templates lean on that: a house style that sets only top/bottom (57 twips) on top
+    /// of TableNormal's left/right (108 twips) is a common shape, and taking the first hit whole
+    /// zeroed its horizontal padding — text rendered flush against the column rules.
+    /// </summary>
+    internal static CellSpacing? ResolveStyleCellPadding(Style style, Dictionary<string, Style> tableStylesById)
     {
         var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var current = style;
+        double? top = null, right = null, bottom = null, left = null;
         while (current != null)
         {
             if (current.StyleId?.Value is { } id && !visited.Add(id))
@@ -2329,10 +2338,15 @@ sealed class DocumentParser(string defaultFont)
             var tblCellMar = current.StyleTableProperties?.GetFirstChild<TableCellMarginDefault>();
             if (tblCellMar != null)
             {
-                var padding = ParseTableCellMargin(tblCellMar);
-                if (padding != null)
+                var sides = ReadTableCellMarginSides(tblCellMar);
+                top ??= sides.Top;
+                right ??= sides.Right;
+                bottom ??= sides.Bottom;
+                left ??= sides.Left;
+
+                if (top != null && right != null && bottom != null && left != null)
                 {
-                    return padding;
+                    break;
                 }
             }
 
@@ -2345,7 +2359,12 @@ sealed class DocumentParser(string defaultFont)
             current = baseStyle;
         }
 
-        return null;
+        if (top == null && right == null && bottom == null && left == null)
+        {
+            return null;
+        }
+
+        return new(top ?? 0, right ?? 0, bottom ?? 0, left ?? 0);
     }
 
     static string? ReadShadingFill(Shading? shading)
@@ -3928,7 +3947,13 @@ sealed class DocumentParser(string defaultFont)
             var tblCellMar = tableProps.GetFirstChild<TableCellMarginDefault>();
             if (tblCellMar != null)
             {
-                defaultCellPadding = ParseTableCellMargin(tblCellMar);
+                // Merges with the table style's padding PER SIDE — a document that states only
+                // top/bottom keeps the style's left/right. Verified against Word with a probe
+                // (docs/word-features.md, Cell Padding): a table whose w:tblCellMar carried only
+                // top/bottom rendered at the style chain's 108-twip horizontal padding, identical
+                // to the same table with no w:tblCellMar at all, while an explicit left/right of 0
+                // rendered flush. So absent is not zero here either.
+                defaultCellPadding = MergeTableCellMargin(tblCellMar, styleInfo?.DefaultCellPadding);
             }
 
             // Check for floating table positioning (tblpPr).
@@ -3959,6 +3984,12 @@ sealed class DocumentParser(string defaultFont)
                         : FloatingTableHorizontalAnchor.Text;
             }
         }
+
+        // The table's resolved cell padding: the style chain merged per side, then the table's own
+        // w:tblCellMar merged over it. Everything further down the cascade — a row's w:tblPrEx and
+        // a cell's w:tcMar — inherits its unstated sides from THIS, so it is computed once here
+        // rather than re-derived at each site.
+        var effectiveCellPadding = defaultCellPadding ?? styleInfo?.DefaultCellPadding;
 
         // tblLook gates which conditional flags can be derived from cell position when the
         // document doesn't carry explicit w:cnfStyle.
@@ -4078,7 +4109,7 @@ sealed class DocumentParser(string defaultFont)
                     var tcMar = cellProps.GetFirstChild<TableCellMargin>();
                     if (tcMar != null)
                     {
-                        cellPadding = ParseCellMargin(tcMar, defaultCellPadding ?? styleInfo?.DefaultCellPadding);
+                        cellPadding = ParseCellMargin(tcMar, effectiveCellPadding);
                     }
                 }
 
@@ -4375,7 +4406,13 @@ sealed class DocumentParser(string defaultFont)
                 var exCellMar = tblPrEx.GetFirstChild<TableCellMarginDefault>();
                 if (exCellMar != null)
                 {
-                    rowOverrideCellPadding = ParseTableCellMargin(exCellMar);
+                    // Merges with the table's resolved padding PER SIDE, like every other level of
+                    // the cascade. Verified against Word with a probe (docs/word-features.md, Cell
+                    // Padding): over a table default of 360 twips with a style chain of 108, a row
+                    // whose w:tblPrEx stated only top/bottom rendered at 360 horizontally —
+                    // identical to a row with no w:tblPrEx at all, and visibly taller, so the
+                    // element WAS honoured. Not 108 (the style) and not 0.
+                    rowOverrideCellPadding = MergeTableCellMargin(exCellMar, effectiveCellPadding);
                 }
             }
 
@@ -4516,8 +4553,7 @@ sealed class DocumentParser(string defaultFont)
                 // breathing room). An earlier 2pt top/bottom fudge here compensated for the
                 // built-in Normal line height being too small (11pt x 1.08 instead of Word's
                 // 12pt x 278/240); with that fixed, the fudge overshot every unstyled row.
-                DefaultCellPadding = defaultCellPadding ?? styleInfo?.DefaultCellPadding ??
-                    new CellSpacing(0),
+                DefaultCellPadding = effectiveCellPadding ?? new CellSpacing(0),
                 DefaultCellMargin = defaultCellMargin ?? new CellSpacing(0),
                 IndentPoints = indentPoints,
                 GridColumnWidths = gridColumnWidths,
@@ -4559,48 +4595,68 @@ sealed class DocumentParser(string defaultFont)
         return twips / twipsPerPoint;
     }
 
-    internal static CellSpacing? ParseTableCellMargin(TableCellMarginDefault margin)
+    /// <summary>
+    /// Reads the four sides of a <c>w:tblCellMar</c>, leaving a side null when the element omits
+    /// it. Keeping "absent" distinct from "zero" is what lets a style's partial cell margin merge
+    /// with its <c>w:basedOn</c> ancestor's per side — see <see cref="ResolveStyleCellPadding"/>.
+    /// </summary>
+    static (double? Top, double? Right, double? Bottom, double? Left) ReadTableCellMarginSides(TableCellMarginDefault margin)
     {
-        double top = 0, right = 0, bottom = 0, left = 0;
-        var hasAny = false;
+        double? top = null, right = null, bottom = null, left = null;
 
         var topMargin = margin.TopMargin;
         if (topMargin?.Width?.HasValue == true)
         {
             top = TableWidthToPoints(topMargin.Width.Value!);
-            hasAny = true;
         }
 
         if (margin.EndMargin?.Width?.HasValue == true)
         {
             right = TableWidthToPoints(margin.EndMargin.Width.Value!);
-            hasAny = true;
         }
         else if (margin.TableCellRightMargin?.Width?.HasValue == true)
         {
             right = margin.TableCellRightMargin.Width.Value / twipsPerPoint;
-            hasAny = true;
         }
 
         var bottomMargin = margin.BottomMargin;
         if (bottomMargin?.Width?.HasValue == true)
         {
             bottom = TableWidthToPoints(bottomMargin.Width.Value!);
-            hasAny = true;
         }
 
         if (margin.StartMargin?.Width?.HasValue == true)
         {
             left = TableWidthToPoints(margin.StartMargin.Width.Value!);
-            hasAny = true;
         }
         else if (margin.TableCellLeftMargin?.Width?.HasValue == true)
         {
             left = margin.TableCellLeftMargin.Width.Value / twipsPerPoint;
-            hasAny = true;
         }
 
-        return hasAny ? new CellSpacing(top, right, bottom, left) : null;
+        return (top, right, bottom, left);
+    }
+
+    internal static CellSpacing? ParseTableCellMargin(TableCellMarginDefault margin) =>
+        MergeTableCellMargin(margin, fallback: null);
+
+    /// <summary>
+    /// Parses a <c>w:tblCellMar</c>, taking each side the element omits from
+    /// <paramref name="fallback"/> instead of zeroing it. Returns null only when the element
+    /// carries no sides at all, letting the caller fall back wholesale.
+    /// </summary>
+    internal static CellSpacing? MergeTableCellMargin(TableCellMarginDefault margin, CellSpacing? fallback)
+    {
+        var (top, right, bottom, left) = ReadTableCellMarginSides(margin);
+        if (top == null && right == null && bottom == null && left == null)
+        {
+            return null;
+        }
+
+        return new(top ?? fallback?.Top ?? 0,
+            right ?? fallback?.Right ?? 0,
+            bottom ?? fallback?.Bottom ?? 0,
+            left ?? fallback?.Left ?? 0);
     }
 
     // Parses an OOXML table-width measure (CT_TblWidth/@w:w, type ST_MeasurementOrPercent) to points.
