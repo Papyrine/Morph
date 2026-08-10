@@ -31,7 +31,7 @@ public class TableCaptureTests
     [Test]
     public async Task DocumentParser_ParsesFixedTableLayout()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "feature_capture", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "feature_capture", "01", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);
@@ -43,7 +43,7 @@ public class TableCaptureTests
     [Test]
     public async Task DocumentParser_ParsesHeaderRow()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "feature_capture", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "feature_capture", "01", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);
@@ -56,7 +56,7 @@ public class TableCaptureTests
     [Test]
     public async Task DocumentParser_ParsesCellTextDirection()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "feature_capture", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "feature_capture", "01", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);

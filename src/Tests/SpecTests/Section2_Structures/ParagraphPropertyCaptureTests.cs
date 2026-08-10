@@ -17,7 +17,7 @@ public class ParagraphPropertyCaptureTests
     [Test]
     public async Task DocumentParser_ParsesDropCap()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "feature_capture", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "feature_capture", "01", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);
@@ -31,7 +31,7 @@ public class ParagraphPropertyCaptureTests
     [Test]
     public async Task DocumentParser_ParsesParagraphRtl()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "feature_capture", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "feature_capture", "01", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);

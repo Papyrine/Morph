@@ -1,16 +1,20 @@
 using A = DocumentFormat.OpenXml.Drawing;
 
 /// <summary>
-/// Parses theme information (colors and fonts) from Word documents.
+/// Parses theme information (colors and fonts) out of a <see cref="ThemePart"/>.
+///
+/// A theme part is pure DrawingML and identical across the three OOXML packages, so both entry
+/// points take the part itself rather than the format-specific part that owns it: Word reaches it
+/// through <c>MainDocumentPart.ThemePart</c>, PowerPoint through <c>SlideMasterPart.ThemePart</c>
+/// and Excel through <c>WorkbookPart.ThemePart</c>.
 /// </summary>
 static class ThemeParser
 {
     /// <summary>
-    /// Extracts theme fonts from the document.
+    /// Extracts theme fonts. Null when the part is absent or declares no font scheme.
     /// </summary>
-    public static ThemeFonts? ExtractThemeFonts(MainDocumentPart mainPart)
+    public static ThemeFonts? ExtractThemeFonts(ThemePart? themePart)
     {
-        var themePart = mainPart.ThemePart;
         if (themePart?.Theme?.ThemeElements?.FontScheme == null)
         {
             return null;
@@ -42,11 +46,10 @@ static class ThemeParser
     }
 
     /// <summary>
-    /// Extracts theme colors from the document.
+    /// Extracts theme colors. Null when the part is absent or declares no color scheme.
     /// </summary>
-    public static ThemeColors? ExtractThemeColors(MainDocumentPart mainPart)
+    public static ThemeColors? ExtractThemeColors(ThemePart? themePart)
     {
-        var themePart = mainPart.ThemePart;
         if (themePart?.Theme?.ThemeElements?.ColorScheme == null)
         {
             return null;

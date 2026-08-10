@@ -8,7 +8,7 @@
 public class ExportBenchmarks
 {
     static string GetSourceDir([CallerFilePath] string path = "") => Path.GetDirectoryName(path)!;
-    static readonly string inputsDir = Path.GetFullPath(Path.Combine(GetSourceDir(), "..", "Tests", "Inputs"));
+    static readonly string inputsDir = Path.GetFullPath(Path.Combine(GetSourceDir(), "..", "Tests", "Inputs", "word"));
 
     WordDocument medium = null!;
     WordDocument large = null!;

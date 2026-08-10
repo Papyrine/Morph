@@ -8,7 +8,7 @@
 public class ParseBenchmarks
 {
     static string GetSourceDir([CallerFilePath] string path = "") => Path.GetDirectoryName(path)!;
-    static readonly string inputsDir = Path.GetFullPath(Path.Combine(GetSourceDir(), "..", "Tests", "Inputs"));
+    static readonly string inputsDir = Path.GetFullPath(Path.Combine(GetSourceDir(), "..", "Tests", "Inputs", "word"));
 
     static readonly string smallDoc = Path.Combine(inputsDir, "resumes", "01", "input.docx");
     static readonly string complexTablesDoc = Path.Combine(inputsDir, "complex_tables", "input.docx");

@@ -14,7 +14,7 @@ public class BookmarksTests
     [Test]
     public async Task DocumentParser_CapturesBookmarks()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "cards", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "cards", "01", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);
@@ -26,7 +26,7 @@ public class BookmarksTests
     [Test]
     public async Task DocumentParser_BookmarkParagraphIndex_PointsAtEnclosingParagraph()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "cards", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "cards", "01", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);
@@ -39,7 +39,7 @@ public class BookmarksTests
     [Test]
     public async Task DocumentParser_NoBookmarks_EmptyList()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "all_caps", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "all_caps", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);

@@ -2,31 +2,44 @@ using Morph.PDFium;
 
 /// <summary>
 /// Scenario tests for the HTML, Markdown and PDF exporters, following the same per-input-directory
-/// Verify pattern as <c>SkiaScenarioTests</c> and enumerating every <c>input.docx</c> under
-/// <c>Inputs/</c>. Our output is snapshotted as <c>html_result.verified.html</c>,
+/// Verify pattern as <c>SkiaScenarioTests</c> and enumerating every scenario across every input
+/// format. Our output is snapshotted as <c>html_result.verified.html</c>,
 /// <c>md_result.verified.md</c> and <c>pdf_result.verified.pdf</c> beside each input.
 ///
-/// Each format is its own test so a diff in one doesn't block the others (important when bulk
+/// Each OUTPUT format is its own test so a diff in one doesn't block the others (important when bulk
 /// re-seeding baselines), and each uses a distinct file-name stem so the formats don't race over
-/// orphan-cleanup of each other's received/verified files.
+/// orphan-cleanup of each other's received/verified files. INPUT formats stay in one class instead —
+/// they share every stem, so splitting them would reintroduce exactly that race.
 /// </summary>
 public class ExportScenarioTests
 {
     static readonly string fontsDirectory = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
 
-    public static IEnumerable<string> Scenarios()
-    {
-        var inputs = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
-        return Directory.GetFiles(inputs, "input.docx", SearchOption.AllDirectories)
-            .Select(Path.GetDirectoryName)!;
-    }
+    public static IEnumerable<string> Scenarios() => ScenarioInputs.AllDirectories();
+
+    // The exporters are format-blind below ParsedDocument, so the only per-format part is which
+    // parser produces it.
+    static string ToHtml(string input, HtmlExportOptions? options = null) =>
+        ScenarioInputs.FormatOf(Path.GetDirectoryName(input)!) == ScenarioFormat.PowerPoint
+            ? PowerPointConverter.ConvertToHtml(input, options)
+            : DocumentConverter.ConvertToHtml(input, options);
+
+    static string ToMarkdown(string input, MarkdownExportOptions? options = null) =>
+        ScenarioInputs.FormatOf(Path.GetDirectoryName(input)!) == ScenarioFormat.PowerPoint
+            ? PowerPointConverter.ConvertToMarkdown(input, options)
+            : DocumentConverter.ConvertToMarkdown(input, options);
+
+    static byte[] ToPdf(string input, PdfExportOptions options) =>
+        ScenarioInputs.FormatOf(Path.GetDirectoryName(input)!) == ScenarioFormat.PowerPoint
+            ? PdfPowerPointConverter.ConvertToPdf(input, options)
+            : PdfDocumentConverter.ConvertToPdf(input, options);
 
     [Test]
     [MethodDataSource(nameof(Scenarios))]
     public async Task HtmlOutput(string directory)
     {
         ContainerOnly.Require();
-        var html = DocumentConverter.ConvertToHtml(Path.Combine(directory, "input.docx"));
+        var html = ToHtml(ScenarioInputs.InputFile(directory));
         var png = await BrowserScreenshot.RenderHtmlAsync(html);
         Target[] targets =
         [
@@ -44,7 +57,7 @@ public class ExportScenarioTests
     public async Task MarkdownOutput(string directory)
     {
         ContainerOnly.Require();
-        var markdown = DocumentConverter.ConvertToMarkdown(Path.Combine(directory, "input.docx"));
+        var markdown = ToMarkdown(ScenarioInputs.InputFile(directory));
         var png = await BrowserScreenshot.RenderMarkdownAsync(markdown);
         var targets = new[]
         {
@@ -67,12 +80,13 @@ public class ExportScenarioTests
     public async Task PdfOutput(string directory)
     {
         ContainerOnly.Require();
-        var input = Path.Combine(directory, "input.docx");
-        var pdf = PdfDocumentConverter.ConvertToPdf(
+        var input = ScenarioInputs.InputFile(directory);
+        var pdf = ToPdf(
             input,
             new()
             {
-                FontDirectory = fontsDirectory
+                FontDirectory = fontsDirectory,
+                Pages = ScenarioInputs.Pages(ScenarioInputs.FormatOf(directory))
             });
 
         // Record a per-page ErrorMetric against the Word reference (expected_*.png), mirroring the

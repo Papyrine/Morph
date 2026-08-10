@@ -14,7 +14,7 @@ public class WordArtTextBoxStyleColorTests
     public async Task UnwarpedTextBoxLabelsInheritTheirStyleColourAndSize()
     {
         var parser = new DocumentParser();
-        using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "menus", "03", "input.docx"));
+        using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "menus", "03", "input.docx"));
         var doc = parser.Parse(stream);
 
         var labels = CollectWordArt(doc.Elements)

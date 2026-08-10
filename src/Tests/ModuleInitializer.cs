@@ -43,9 +43,19 @@ public static class ModuleInitializer
 
         AppDomain.CurrentDomain.ProcessExit += (_, _) =>
         {
-            var inputs = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
-            ScenarioMarkdownGenerator.RegenerateAll(inputs);
-            ScenarioMarkdownGenerator.RegenerateAllExport(inputs);
+            // One aggregate set per input-format corpus. Roots that do not exist yet are skipped, so
+            // a format can land its parser before its scenarios are committed.
+            foreach (var format in Enum.GetValues<ScenarioFormat>())
+            {
+                var root = ScenarioInputs.Root(format);
+                if (!Directory.Exists(root))
+                {
+                    continue;
+                }
+
+                ScenarioMarkdownGenerator.RegenerateAll(root);
+                ScenarioMarkdownGenerator.RegenerateAllExport(root);
+            }
         };
     }
 }

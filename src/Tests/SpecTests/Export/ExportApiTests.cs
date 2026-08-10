@@ -122,7 +122,7 @@ public class ExportApiTests
     [Test]
     public async Task WordDocument_ParseOnceExportMany()
     {
-        var docxPath = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "bold_text", "input.docx");
+        var docxPath = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "bold_text", "input.docx");
         var document = new WordDocument(docxPath);
 
         // Same source produces consistent output across calls — the point of parse-once.
@@ -138,7 +138,7 @@ public class ExportApiTests
     [Test]
     public async Task PdfPageRange_LimitsOutputToRequestedPages()
     {
-        var inputPath = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "agendas-minutes", "02", "input.docx");
+        var inputPath = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "agendas-minutes", "02", "input.docx");
         if (!File.Exists(inputPath))
         {
             return;

@@ -46,7 +46,7 @@ static class ScenarioMarkdownGenerator
 
     public static void RegenerateAll(string inputsDirectory)
     {
-        var scenarioDirs = Directory.GetFiles(inputsDirectory, "input.docx", SearchOption.AllDirectories)
+        var scenarioDirs = Directory.GetFiles(inputsDirectory, "input.*", SearchOption.AllDirectories)
             .Select(_ => Path.GetDirectoryName(_)!)
             .OrderBy(_ => _, StringComparer.OrdinalIgnoreCase)
             .ToArray();
@@ -83,8 +83,9 @@ static class ScenarioMarkdownGenerator
     }
 
     /// <summary>
-    /// Generates the per-format export aggregates at the Inputs root, the export-pipeline
-    /// counterparts to <see cref="RegenerateAll"/>:
+    /// Generates the per-format export aggregates at the scenario format root
+    /// (<c>Inputs/word/</c> and friends), the export-pipeline counterparts to
+    /// <see cref="RegenerateAll"/>:
     /// <list type="bullet">
     /// <item><c>compare-all-html.md</c> — the Word pages beside the HTML exporter's render</item>
     /// <item><c>compare-all-markdown.md</c> — the Word pages beside the Markdown exporter's render</item>
@@ -129,7 +130,7 @@ static class ScenarioMarkdownGenerator
         Func<string, bool> hasContent,
         Action<StringBuilder, string, string> appendBody)
     {
-        var scenarios = Directory.GetFiles(inputsDirectory, "input.docx", SearchOption.AllDirectories)
+        var scenarios = Directory.GetFiles(inputsDirectory, "input.*", SearchOption.AllDirectories)
             .Select(_ => Path.GetDirectoryName(_)!)
             .OrderBy(_ => _, StringComparer.OrdinalIgnoreCase)
             .Select(_ => (Directory: _, Name: GetScenarioName(_)))
@@ -410,17 +411,7 @@ static class ScenarioMarkdownGenerator
         return result;
     }
 
-    static string GetScenarioName(string directory)
-    {
-        var inputsDir = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs"));
-        var full = Path.GetFullPath(directory);
-        var relative = Path.GetRelativePath(inputsDir, full);
-        if (relative == "." || relative.StartsWith("..", StringComparison.Ordinal))
-        {
-            return Path.GetFileName(directory);
-        }
-        return relative.Replace('\\', '/');
-    }
+    static string GetScenarioName(string directory) => ScenarioInputs.ScenarioName(directory);
 
     // Mirrors GitHub's heading-anchor algorithm: lowercase, drop punctuation,
     // collapse whitespace to '-'. Underscores are kept.

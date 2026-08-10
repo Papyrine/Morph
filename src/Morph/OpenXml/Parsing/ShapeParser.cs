@@ -945,7 +945,13 @@ static class ShapeParser
     /// <summary>
     /// Extracts the color from a solid fill element.
     /// </summary>
-    public static string? ExtractSolidFillColor(A.SolidFill solidFill, ThemeColors? themeColors)
+    /// <summary>
+    /// Resolves the colour a container element declares. Typed as <see cref="OpenXmlElement"/> rather
+    /// than <c>a:solidFill</c> because DrawingML puts a colour child under several different parents —
+    /// <c>a:solidFill</c>, and the <c>a:fillRef</c>/<c>a:lnRef</c> style references PowerPoint shapes
+    /// lean on heavily — and the resolution is identical for all of them.
+    /// </summary>
+    public static string? ExtractSolidFillColor(OpenXmlElement solidFill, ThemeColors? themeColors)
     {
         // Try RGB color first
         var rgbColor = solidFill.GetFirstChild<A.RgbColorModelHex>();
@@ -1050,8 +1056,11 @@ static class ShapeParser
     /// <summary>
     /// Extracts image data from a blip fill element. <paramref name="partBytes"/> is the
     /// caller's per-parse part-buffer cache, so repeated references share one array.
+    /// <paramref name="hostPart"/> is only a relationship resolver, so it is the part that OWNS the
+    /// blip — the main document part for a body drawing, a header part for a header one, a slide part
+    /// for a PowerPoint shape.
     /// </summary>
-    public static (byte[]? ImageData, string? ContentType) ExtractBlipFillImage(A.BlipFill blipFill, MainDocumentPart mainPart, Func<OpenXmlPart, byte[]>? partBytes)
+    public static (byte[]? ImageData, string? ContentType) ExtractBlipFillImage(OpenXmlElement blipFill, OpenXmlPart hostPart, Func<OpenXmlPart, byte[]>? partBytes)
     {
         var blip = blipFill.GetFirstChild<A.Blip>();
         if (blip == null)
@@ -1066,7 +1075,7 @@ static class ShapeParser
         }
 
         // Try to get the image part
-        if (mainPart.GetPartById(embedAttribute) is not ImagePart imagePart)
+        if (hostPart.GetPartById(embedAttribute) is not ImagePart imagePart)
         {
             return (null, null);
         }

@@ -15,6 +15,7 @@
     <PackageReference Include="NUnit3TestAdapter" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Microsoft.Office.Interop.Word" />
+    <PackageReference Include="Microsoft.Office.Interop.PowerPoint" />
     <Reference Include="ReachFramework" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />

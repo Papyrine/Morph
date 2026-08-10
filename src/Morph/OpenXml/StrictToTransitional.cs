@@ -3,7 +3,7 @@ using System.IO.Compression;
 namespace Morph;
 
 /// <summary>
-/// Adds ISO/IEC 29500 <em>Strict</em> DOCX support to the parser.
+/// Adds ISO/IEC 29500 <em>Strict</em> support to the parsers — DOCX, PPTX and XLSX alike.
 ///
 /// The Open XML SDK opens a Strict package fine — it maps the relationship-type namespaces to their
 /// Transitional equivalents on open — but throws <see cref="InvalidDataException"/> the moment it
@@ -21,7 +21,6 @@ namespace Morph;
 static class StrictToTransitional
 {
     const string strictMarker = "http://purl.oclc.org/ooxml/";
-    const string strictWordprocessingMain = "http://purl.oclc.org/ooxml/wordprocessingml/main";
 
     static readonly UTF8Encoding utf8NoBom = new(encoderShouldEmitUTF8Identifier: false);
 
@@ -82,17 +81,27 @@ static class StrictToTransitional
         return buffer;
     }
 
-    // Peeks word/document.xml's root namespace without materialising the DOM, restoring the stream
-    // position afterwards. Only a positively-identified Strict root triggers the rewrite; anything else
+    // The main part of each package kind. Probed in turn because the check runs before the SDK opens the
+    // package, so the relationship graph is not available yet; a package carries exactly one of these.
+    static readonly string[] mainParts =
+    [
+        "word/document.xml",
+        "ppt/presentation.xml",
+        "xl/workbook.xml"
+    ];
+
+    // Peeks the main part's root namespace without materialising the DOM, restoring the stream position
+    // afterwards. Only a positively-identified Strict root triggers the rewrite; anything else
     // (Transitional, or an unexpected layout) passes straight through to the SDK, which handles it or
-    // reports the canonical error.
+    // reports the canonical error. The test is the Strict marker PREFIX rather than the wordprocessing
+    // namespace alone, so .pptx and .xlsx are covered by the same peek.
     static bool IsStrict(Stream input)
     {
         var start = input.Position;
         try
         {
             using var zip = new ZipArchive(input, ZipArchiveMode.Read, leaveOpen: true);
-            var entry = zip.GetEntry("word/document.xml");
+            var entry = mainParts.Select(zip.GetEntry).FirstOrDefault(_ => _ is not null);
             if (entry is null)
             {
                 return false;
@@ -110,7 +119,7 @@ static class StrictToTransitional
             {
                 if (reader.NodeType == XmlNodeType.Element)
                 {
-                    return reader.NamespaceURI == strictWordprocessingMain;
+                    return reader.NamespaceURI.StartsWith(strictMarker, StringComparison.Ordinal);
                 }
             }
 

@@ -44,8 +44,8 @@ public class BaselineHealthTests
     const int degenerateColorThreshold = 16;
 
     /// <summary>
-    /// Baselines that are allowed to be degenerate, keyed by their path relative to
-    /// <c>Inputs/</c> with forward slashes. Two categories, kept distinct on purpose:
+    /// Baselines that are allowed to be degenerate, keyed by their path relative to the format root
+    /// (<c>Inputs/word/</c> and friends) with forward slashes. Two categories, kept distinct on purpose:
     /// 1. Intentionally blank — Word itself renders the page empty, so the collapse is
     ///    correct and permanent.
     /// 2. Known regressions — a real defect that is tracked elsewhere and not yet fixed.
@@ -70,19 +70,12 @@ public class BaselineHealthTests
         // docs/floating-art-pipeline.md.)
     ];
 
-    public static IEnumerable<string> GetScenarioDirectories()
-    {
-        var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
-        return Directory.GetFiles(inputsDir, "input.docx", SearchOption.AllDirectories)
-            .Select(Path.GetDirectoryName)!;
-    }
+    public static IEnumerable<string> GetScenarioDirectories() => ScenarioInputs.AllDirectories();
 
     [Test]
     [MethodDataSource(nameof(GetScenarioDirectories))]
     public async Task RasterPageBaselinesAreNotDegenerate(string directory)
     {
-        var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
-
         // "*_result#page_*.verified.png" matches exactly the paginated raster backends
         // (skia_/imagesharp_/pdf_); the html_result / md_result export snapshots carry no
         // "#page_" segment and are correctly excluded.
@@ -91,7 +84,7 @@ public class BaselineHealthTests
         var problems = new List<string>();
         foreach (var file in baselines)
         {
-            var relative = Path.GetRelativePath(inputsDir, file).Replace('\\', '/');
+            var relative = $"{ScenarioInputs.ScenarioName(directory)}/{Path.GetFileName(file)}";
             var colors = CountColorsUpTo(file, degenerateColorThreshold);
             var suppressed = knownDegenerate.Contains(relative);
 

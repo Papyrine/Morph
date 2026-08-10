@@ -6,7 +6,7 @@ public class ImageRotationTests
     [Test]
     public async Task DocumentParser_ParsesInlineImageRotation()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "image_rotation", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "image_rotation", "01", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);
@@ -22,7 +22,7 @@ public class ImageRotationTests
     [Test]
     public async Task DocumentParser_NoRotation_DefaultsToZero()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "inline_image", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "inline_image", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);

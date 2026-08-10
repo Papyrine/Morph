@@ -20,7 +20,7 @@ public class FieldCodesTests
     [Test]
     public async Task DocumentParser_CapturesPageField()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "newsletters", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "newsletters", "01", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);
@@ -32,7 +32,7 @@ public class FieldCodesTests
     [Test]
     public async Task DocumentParser_NoFields_EmptyList()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "all_caps", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "all_caps", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);
@@ -44,7 +44,7 @@ public class FieldCodesTests
     public async Task DocumentParser_CapturesSimpleFields()
     {
         // field_codes_simple/01 uses two w:fldSimple entries (PAGE and NUMPAGES) on the same paragraph.
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "field_codes_simple", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "field_codes_simple", "01", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);
@@ -81,7 +81,7 @@ public class FieldCodesTests
     public async Task SimpleField_PageAndNumPages_TaggedAndFlagsTotalNeeded()
     {
         // field_codes_simple/01: two w:fldSimple fields (PAGE, NUMPAGES) in the body.
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "field_codes_simple", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "field_codes_simple", "01", "input.docx");
         var doc = new DocumentParser().Parse(inputFile);
 
         var pageFields = AllRuns(doc.Elements).Select(_ => _.PageField).ToList();
@@ -96,7 +96,7 @@ public class FieldCodesTests
     public async Task ComplexField_PageInFooter_Tagged()
     {
         // page_numbers footer: "Page <PAGE> of <NUMPAGES>" built from complex w:fldChar fields.
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "page_numbers", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "page_numbers", "input.docx");
         var doc = new DocumentParser().Parse(inputFile);
 
         await Assert.That(doc.Footer).IsNotNull();
@@ -111,7 +111,7 @@ public class FieldCodesTests
     {
         // business-plans/10 footer is a lone PAGE field — the current page number is known during
         // the normal pass, so no counting pass is needed.
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "business-plans", "10", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "business-plans", "10", "input.docx");
         var doc = new DocumentParser().Parse(inputFile);
 
         await Assert.That(AllRuns(doc.Footer!.Elements).Any(_ => _.PageField == PageFieldKind.Page)).IsTrue();
@@ -122,7 +122,7 @@ public class FieldCodesTests
     [Test]
     public async Task NoFields_DoesNotRequireTotal()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "all_caps", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "all_caps", "input.docx");
         var doc = new DocumentParser().Parse(inputFile);
 
         await Assert.That(doc.RequiresTotalPageCount).IsFalse();
@@ -134,7 +134,7 @@ public class FieldCodesTests
     {
         // field_codes_simple/01's NUMPAGES cached value is 3, but the document is a single page;
         // the counting pass must produce a 1-page render (Word shows "Page 1 of 1").
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "field_codes_simple", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "field_codes_simple", "01", "input.docx");
         var options = new ImageExportOptions {Dpi = 150, FontDirectory = FontsDirectory, DeterministicRendering = true};
 
         var pages = new ImageSharpDocumentConverter().ConvertToImageData(inputFile, options);
@@ -145,7 +145,7 @@ public class FieldCodesTests
     [Test]
     public async Task PageNumbersFooter_RendersBothPages_ImageSharp()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "page_numbers", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "page_numbers", "input.docx");
         var options = new ImageExportOptions {Dpi = 150, FontDirectory = FontsDirectory, DeterministicRendering = true};
 
         var pages = new ImageSharpDocumentConverter().ConvertToImageData(inputFile, options);

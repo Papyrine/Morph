@@ -9,7 +9,7 @@ Two entry points share one parser:
 
 Everything below therefore applies to both. Parsing is AngleSharp-based and async; the output is the ordinary `DocumentElement` tree, so all four exporters and both raster backends see HTML-sourced content as though it came from OOXML.
 
-The reference for "correct" is Word's own AltChunk import, captured as `expected_*.png` for the `html_*` scenarios in `src/Tests/Inputs/` and compared the same way as everything else (`fidelity-audit.md`).
+The reference for "correct" is Word's own AltChunk import, captured as `expected_*.png` for the `html_*` scenarios in `src/Tests/Inputs/word/` and compared the same way as everything else (`fidelity-audit.md`).
 
 ## Block elements carry character CSS
 
