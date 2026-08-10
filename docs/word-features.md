@@ -938,10 +938,23 @@ Tables within table cells.
 
 #### Table Indent `DONE`
 
-Horizontal offset of the table from the left margin.
+Horizontal offset of the table from the left margin. May be NEGATIVE, which outdents the table past the
+margin — and past the paper edge, which is how a template draws a full-bleed rule or colour bar.
 
 - **OOXML**: `w:tblInd`
 - **Model**: `TableProperties.IndentPoints`
+- **Layout**: `Fragmenter.ComputeTableX` in the body (centred/right tables collapse the indent into the
+  slack instead); `Fragmenter.LayoutBand` in a header or footer band
+- **Test**: `table_indent/` (body, positive indents); `header_full_bleed_banner/` (band, negative indent)
+
+> **Contributors — the full-bleed band idiom.** A banner header is usually a one-column table far wider
+> than the text column, pulled left by a negative `w:tblInd`: `header_full_bleed_banner` is 12792 twips
+> indented −1593 against a 720-twip margin, so it starts 79.65pt off the left edge and ends level with the
+> right edge of an A4 sheet. Laying a band table out at the band's own left edge instead — which is what
+> happens if `w:tblInd` is only honoured on the body path — insets the bar by the margin on one side and
+> runs it off the paper on the other. The width itself needs no special case: the table is `tblLayout`
+> fixed, and `TableLayout.CalculateColumnWidths` only squeezes an over-wide table back to the column when
+> it is autofit.
 
 
 ### 4.2 Cell Properties
@@ -1238,11 +1251,13 @@ Cell-level flags selecting which `w:tblStylePr` block applies (first row, last r
 - **OOXML**: `w:cnfStyle` within `w:tcPr` / `w:trPr`; `w:tblStylePr` blocks inside the table style; `w:tblLook` gating which conditions auto-apply
 - **Spec**: [ConditionalFormatStyle](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.conditionalformatstyle)
 - **Model**: `ConditionalFormatFlags` mirrors `w:cnfStyle`; `TableStyleBorderInfo.Conditionals` holds per-region `ConditionalFormat` (borders + shading)
-- **Parse**: `DocumentParser.ParseConditionalFormatFlags` reads cell/row flags. `ParseTableLookMask` reads `w:tblLook`. `ResolveActiveConditions` cascades regions in ECMA-376 priority order (whole-table → bandHorz → bandVert → lastCol → firstCol → lastRow → firstRow → corner cells)
+- **Parse**: `DocumentParser.ParseConditionalFormatFlags` reads cell/row flags. `ParseTableLookMask` reads `w:tblLook`. `ResolveActiveConditions` cascades regions in ECMA-376 priority order (whole-table → bandHorz → bandVert → lastCol → firstCol → lastRow → firstRow → corner cells). The whole-table `w:tblBorders` under the regions comes from `ResolveStyleBorders`, which walks `w:basedOn` per side (see below)
 - **Render**: not a separate render step — the cascade resolves to the existing `Borders` and `BackgroundColorHex` cell properties, which both backends already paint
-- **Test**: `ConditionalFormattingTests` (spec tests + end-to-end against `agendas-minutes/15` which uses `BlueCurveMinutesTable` with a `firstRow` shading override)
+- **Test**: `ConditionalFormattingTests` (spec tests + end-to-end against `agendas-minutes/15` which uses `BlueCurveMinutesTable` with a `firstRow` shading override); `TableStyleBorderInheritanceTests` for the `w:basedOn` merge, end-to-end in `header_full_bleed_banner/` (two sibling styles over one inherited grid, differing only in their `firstRow` fill)
 
-> **Contributors**: Cell- and row-level explicit `w:shd` / `w:tcBorders` win over conditional formatting. When a row/cell carries no `w:cnfStyle`, the cascade derives flags from grid position (firstRow, lastRow, firstColumn, lastColumn, banding) — but only for the conditions that `w:tblLook` permits (e.g. `w:noHBand="1"` suppresses horizontal banding). Run-property and paragraph-property overrides inside `w:tblStylePr` (bold, font colour, alignment) are not yet cascaded — that requires threading the active conditions into paragraph parsing.
+> **Contributors**: Cell- and row-level explicit `w:shd` / `w:tcBorders` win over conditional formatting. When a row/cell carries no `w:cnfStyle`, the cascade derives flags from grid position (firstRow, lastRow, firstColumn, lastColumn, banding) — but only for the conditions that `w:tblLook` permits (e.g. `w:noHBand="1"` suppresses horizontal banding). Run-property and paragraph-property overrides inside `w:tblStylePr` (bold, font colour, alignment) are not yet cascaded — that requires threading the active conditions into paragraph parsing. Run COLOUR is the exception: it cascades via `ApplyDefaultRunColor` onto runs carrying no explicit `w:color`. The bold half was landed once and reverted (`src/todo.md` #10) — a post-pass cannot distinguish a run that never mentioned `w:b` from one that turned it off, so it needs tri-state `w:b` modelling first.
+
+> **Contributors — the style's own `w:tblBorders` inherit through `w:basedOn`.** `ResolveStyleBorders` walks the chain taking each side (plus `insideH`/`insideV`) from the NEAREST ancestor that declares it, exactly as `ResolveStyleCellPadding` does for the margins; a side declared `w:val="none"` STOPS the walk for that side, since that is a derived style switching a base's rule off. The common template shape makes this load-bearing: a base style carries the grid and a per-variant style based on it adds nothing but a `w:tblStylePr` header colour. Reading only the leaf's own `w:tblPr` dropped every rule in such a table while the header band still painted, so it looked deliberately borderless rather than broken. Note the CONDITIONAL blocks themselves do not inherit yet — a `w:tblStylePr` on the leaf shadows the base's block for that region whole, where Word merges them per property.
 
 #### Table Style Paragraph Properties `DONE`
 
@@ -1494,7 +1509,7 @@ Content repeated at the top/bottom of every page.
 - **OOXML**: `w:headerReference` / `w:footerReference` with `w:type="default"`
 - **Spec**: [Headers & Footers](http://officeopenxml.com/WPheaders.php)
 - **Model**: `ParsedDocument.Header`, `ParsedDocument.Footer` → `HeaderFooterContent`
-- **Test**: `header/`, `footer/`, `header_footer/`
+- **Test**: `header/`, `footer/`, `header_footer/`, `header_banner_table/` (a shaded banner table at text width), `header_full_bleed_banner/` (the same shape bleeding off both edges, and tall enough that the body has to clear it)
 
 > **Contributors**: Header/footer content supports paragraphs, tables, inline images, and anchored (floating) images — including full-page `behindDoc` background images used by many Word templates. Rendered at fixed positions based on `HeaderDistance`/`FooterDistance` from page edge. Image relationships (`r:embed`) inside header/footer parts are resolved against the host part, not the main document part.
 
@@ -1505,6 +1520,8 @@ Content repeated at the top/bottom of every page.
 > **Contributors — footer anchoring**: `w:pgMar/@footer` is the distance from the bottom of the PAGE to the bottom of the FOOTER, so a footer grows UPWARD — adding paragraphs leaves its last line where it was. `PageRendererBase.RenderFooter` therefore starts the block at `pageHeight − footer − MeasureHeaderFooterHeight(activeFooter)`, measuring the ACTIVE footer since first/even/default differ in height. Verified against Word with probe copies of `nonstandard_main_part_name` carrying 1 and 3 footer paragraphs: the final line held at y=1684..1705 in both while the block extended up. `MeasureHeaderFooterHeight` sums the flow elements (paragraphs and tables); floating shapes and images position independently and contribute nothing, matching Word, whose header/footer extent is its text flow.
 
 > **Contributors — header space reservation**: A positive `w:pgMar/@top` is a MINIMUM, not a fixed offset. Word starts the body at `max(top, header + headerContentHeight)`, so a header taller than the top margin pushes the body down instead of being drawn through by it — and it shortens the page's content area, which moves where pagination breaks (`header_footer`'s page 1 holds 24 paragraphs like Word's, not 25). `PageRendererBase.RenderHeader` reserves the space via `RenderContextBase.SetPageHeaderBottom` from the header it just painted, PER PAGE: the active header varies (first/even/default) and those differ in height, so a `titlePg` banner in the first-page header reserves nothing if only the default header is measured. Reserving from the rendered header also removes any chance of a separate measurement pass drifting out of step with what is drawn. A page with no header releases the previous page's reservation. A NEGATIVE `w:top` is exempt (ECMA-376 §17.6.11 makes it the absolute body offset and Word lets the header overlap) — spec-driven, but note no corpus scenario exercises that render path: `agendas-minutes/11` is the only document with a negative `w:top` and it has no header at all.
+
+> **Contributors — the engine reserves from a MEASUREMENT, and must measure band tables.** `Fragmenter.HeaderReservedTop` is the live implementation of the rule above (the `PageRendererBase` account beside it is history). Unlike the deleted renderer it cannot reserve from what it just painted — the body flows before the bands assemble — so it re-measures the header, and it has to stack it the same way `LayoutBand` will: paragraphs AND tables. Counting only the paragraphs reserved a banner header's two lines of marking text and none of the bar below them, dropping the body ~40pt and landing the first heading inside the bar (`header_full_bleed_banner` and `nonstandard_main_part_name`, page 1 of each). `FooterBand` had always summed both; the two now agree.
 
 
 #### First-Page Different Headers / Footers `DONE`

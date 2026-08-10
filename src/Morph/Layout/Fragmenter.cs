@@ -145,6 +145,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // (TopMarginIsAbsolute) pins the body at the margin and lets the header overlap instead. Reserves for
         // the default header (per-page first/even variants are a later refinement), mirroring how
         // The deleted production render parked the body cursor below the rendered header.
+        //
+        // A header TABLE counts toward that height exactly as a paragraph does — LayoutBand stacks the two
+        // the same way, and FooterBand has always measured both. Skipping tables here left the body reserving
+        // only the header's text: a banner header whose masthead is a shaded one-column table (a protective
+        // marking over a colour bar) reserved two lines and let the first body heading land inside the bar.
         static float HeaderReservedTop(IParagraphMeasurer measurer, PageSettings settings, HeaderFooterContent? header)
         {
             var marginTop = (float) settings.MarginTop;
@@ -160,6 +165,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 if (element is ParagraphElement paragraph)
                 {
                     headerHeight += measurer.MeasureParagraphHeightWithWidth(paragraph, bandWidth);
+                }
+                else if (element is TableElement table)
+                {
+                    headerHeight += NestedTableHeight(table, bandWidth, measurer);
                 }
             }
 
@@ -1971,8 +1980,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         }
 
         // The total height a table would occupy at the given width — the sum of its row heights. Used to
-        // anchor a footer band (whose bottom sits a fixed distance above the page edge) before laying it out.
-        float NestedTableHeight(TableElement table, float width)
+        // anchor a footer band (whose bottom sits a fixed distance above the page edge) before laying it out,
+        // and to reserve a header table's height above the body (HeaderReservedTop, which is static — hence
+        // the explicit measurer).
+        static float NestedTableHeight(TableElement table, float width, IParagraphMeasurer measurer)
         {
             var colCount = TableLayout.GetColumnCount(table);
             if (colCount == 0 || table.Rows.Count == 0)
@@ -2307,9 +2318,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             {
                 // A header/footer table (a page-number bar, an agenda's footer grid) lays out inline in the
                 // band, reusing the nested-table layout.
+                //
+                // w:tblInd applies here as it does in the body. A band table is the usual way to draw a
+                // FULL-BLEED rule or colour bar, and it does that with a NEGATIVE indent: a one-column
+                // 12792-twip table indented -1593 starts 79.65pt left of a 36pt margin, i.e. off the paper,
+                // and runs the full width of the sheet. Pinning it at the band's left edge instead left the
+                // bar starting at the margin and overhanging the right edge — a banner visibly inset on one
+                // side and clipped on the other.
                 if (element is TableElement bandTable)
                 {
-                    var (tableItems, tableHeight) = LayoutNestedTable(bandTable, left, bandY, width);
+                    var (tableItems, tableHeight) = LayoutNestedTable(bandTable, left + (float) bandTable.Properties.IndentPoints, bandY, width);
                     result.AddRange(tableItems);
                     bandY += tableHeight;
                     continue;
@@ -2392,7 +2410,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
                 else if (element is TableElement table)
                 {
-                    height += NestedTableHeight(table, bandWidth);
+                    height += NestedTableHeight(table, bandWidth, measurer);
                 }
             }
 
