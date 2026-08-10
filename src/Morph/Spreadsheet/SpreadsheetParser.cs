@@ -89,7 +89,8 @@ sealed class SpreadsheetParser(string defaultFont)
             }
 
             var scale = ResolveScale(worksheet, bounds, settings);
-            var table = builder.Build(worksheet, bounds, scale, definedNames.PrintTitleRows(name));
+            var conditional = new ConditionalFormats(worksheet, workbookPart.WorkbookStylesPart?.Stylesheet, themeColors);
+            var table = builder.Build(worksheet, bounds, scale, definedNames.PrintTitleRows(name), conditional);
             if (table == null)
             {
                 continue;

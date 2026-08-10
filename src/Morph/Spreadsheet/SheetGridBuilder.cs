@@ -27,7 +27,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
     /// <summary>Excel's default row height for an 11pt body font.</summary>
     const double defaultRowHeightPoints = 15;
 
-    public TableElement? Build(S.Worksheet worksheet, SheetRange range, double scale, (int First, int Last)? titleRows)
+    public TableElement? Build(S.Worksheet worksheet, SheetRange range, double scale, (int First, int Last)? titleRows, ConditionalFormats conditional)
     {
         var sheetData = worksheet.GetFirstChild<S.SheetData>();
         if (sheetData == null || range.IsEmpty)
@@ -48,7 +48,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         {
             rowsByIndex.TryGetValue(rowIndex, out var row);
             var isHeader = titleRows is { } titles && rowIndex >= titles.First && rowIndex <= titles.Last;
-            rows.Add(BuildRow(row, rowIndex, range, merges, widths, defaultHeight, scale, isHeader));
+            rows.Add(BuildRow(row, rowIndex, range, merges, widths, defaultHeight, scale, isHeader, conditional));
         }
 
         return new()
@@ -70,7 +70,8 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         double[] widths,
         double defaultHeight,
         double scale,
-        bool isHeader)
+        bool isHeader,
+        ConditionalFormats conditional)
     {
         var cellsByColumn = row?.Elements<S.Cell>()
             .Select(cell => (Column: CellReference.ColumnOf(cell.CellReference?.Value), Cell: cell))
@@ -106,7 +107,10 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                 found,
                 overflow > merge.ColumnSpan ? merge with { ColumnSpan = overflow } : merge,
                 width,
-                scale));
+                scale,
+                conditional,
+                rowIndex,
+                column));
 
             column += Math.Max(merge.ColumnSpan, overflow) - 1;
         }
@@ -183,10 +187,23 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         return span;
     }
 
-    TableCell BuildCell(S.Cell? cell, MergeInfo merge, double widthPoints, double scale)
+    TableCell BuildCell(
+        S.Cell? cell,
+        MergeInfo merge,
+        double widthPoints,
+        double scale,
+        ConditionalFormats conditional,
+        int rowIndex,
+        int column)
     {
         var style = styles.Resolve(cell?.StyleIndex?.Value ?? 0);
         var (text, colorOverride) = Value(cell, style);
+
+        // A conditional rule overlays the cell's own style rather than replacing it, so each member
+        // falls back to what the style already resolved.
+        var overlay = conditional.IsEmpty
+            ? null
+            : conditional.For(rowIndex, column, text, Number(cell));
 
         var runs = text.Length == 0
             ? []
@@ -199,11 +216,11 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                     {
                         FontFamily = style.FontFamily ?? styles.DefaultFont.Family ?? defaultFont,
                         FontSizePoints = (style.FontSizePoints ?? styles.DefaultFont.SizePoints) * scale,
-                        Bold = style.Bold,
-                        Italic = style.Italic,
+                        Bold = style.Bold || overlay?.Bold == true,
+                        Italic = style.Italic || overlay?.Italic == true,
                         Underline = style.Underline,
                         Strikethrough = style.Strikethrough,
-                        ColorHex = colorOverride ?? style.ColorHex
+                        ColorHex = overlay?.ColorHex ?? colorOverride ?? style.ColorHex
                     }
                 }
             };
@@ -229,7 +246,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             Properties = new()
             {
                 WidthPoints = widthPoints,
-                BackgroundColorHex = style.BackgroundColorHex,
+                BackgroundColorHex = overlay?.BackgroundColorHex ?? style.BackgroundColorHex,
                 Borders = style.Borders,
                 GridSpan = merge.ColumnSpan,
                 VerticalMerge = merge.VerticalMerge,
@@ -239,6 +256,13 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             }
         };
     }
+
+    /// <summary>The cell's numeric value, for the conditional rules that compare against one.</summary>
+    static double? Number(S.Cell? cell) =>
+        cell?.DataType?.Value == null &&
+        double.TryParse(cell?.CellValue?.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out var value)
+            ? value
+            : null;
 
     /// <summary>
     /// The cell's display text, plus any colour the number format's own section demands (the
