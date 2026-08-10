@@ -5,11 +5,11 @@
 [![NuGet Status](https://img.shields.io/nuget/v/Morph.ImageSharp.svg?label=Morph.ImageSharp)](https://www.nuget.org/packages/Morph.ImageSharp/)
 [![NuGet Status](https://img.shields.io/nuget/v/Morph.Pdf.svg?label=Morph.Pdf)](https://www.nuget.org/packages/Morph.Pdf/)
 
-A .NET library that converts Microsoft Word DOCX documents or HTML content into **PNG images, PDF, semantic HTML, or Markdown**.
+A .NET library that converts docx/pptx/xlsx documents or html content into **png images, pdf, semantic html, or markdown**.
 
 Either input can produce any of the four outputs, and a document is parsed once no matter how many formats it is exported to.
 
-**[Try it live in the browser](https://morph.papyrine.org/)** — a Blazor WebAssembly app that converts a DOCX, XLSX or PPTX to PNG, PDF, HTML, Markdown or plain text client-side, built on `Morph.ImageSharp` and `Morph.Pdf`.
+**[Try it live in the browser](https://morph.papyrine.org/)** — a Blazor WebAssembly app that does the conversions client-side, built on `Morph.ImageSharp` and `Morph.Pdf`.
 
 
 ## Open Source Maintenance Fee
