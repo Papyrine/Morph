@@ -1,0 +1,41 @@
+﻿{
+  "target": {
+    "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 595.2760009765625,
+        "Height": 841.8900146484375,
+        "Text": "SENSITIVE//EXAMPLE\nAttachment 5A\nLegislation available for debate in the Parliament\nWeek commencing 1 Oct 2020\nas at 12:00 AM 10 Jan 2020\nHouse of Representatives - Legislation available for debate\nAvailable\nFrom\nBill Minister Comment\nTBC Bill 1 Minister 1 Critical date\nCriticalDateSittingPeriod -\nCriticalDateReason\nCommittee reported (House) 1\nOct 2020\nSENSITIVE//EXAMPLE\nPage 1 of 2"
+      },
+      {
+        "Width": 595.2760009765625,
+        "Height": 841.8900146484375,
+        "Text": "SENSITIVE//EXAMPLE\nSenate - Legislation available for debate\nAvailable\nFrom\nBill Minister Comment\nTBC Bill 2 Minister 1 Critical date\nCriticalDateSittingPeriod -\nCriticalDateReason\nCommittee reported (House) 1\nOct 2020\nSENSITIVE//EXAMPLE\nPage 2 of 2"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0752,
+      "Ssim": 0.8732,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0563,
+      "Ssim": 0.9056,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}
