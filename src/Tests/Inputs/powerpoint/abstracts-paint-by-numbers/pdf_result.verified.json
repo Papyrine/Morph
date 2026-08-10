@@ -1,0 +1,54 @@
+﻿{
+  "target": {
+    "PageCount": 3,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 756.0,
+        "Height": 576.0,
+        "Text": "Abstract art\nNumber-guided\npainting"
+      },
+      {
+        "Width": 756.0,
+        "Height": 576.0,
+        "Text": "Abstract swirls"
+      },
+      {
+        "Width": 756.0,
+        "Height": 576.0,
+        "Text": "Print then paint or color"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.6365,
+      "Ssim": 0.8882,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.5778,
+      "Ssim": 0.9772,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.4088,
+      "Ssim": 0.9463,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    }
+  ]
+}

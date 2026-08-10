@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "Business Cards\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0686,
+      "Ssim": 0.876,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

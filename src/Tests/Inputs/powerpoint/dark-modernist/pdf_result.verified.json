@@ -1,0 +1,54 @@
+﻿{
+  "target": {
+    "PageCount": 3,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "PRESENTATION\nTITLE\nPRESENTER NAME"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "A G E N D A\nINTRODUCTION\nPRIMARY GOALS\nAREAS OF GROWTH\nTIMELINE\nSUMMARY"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "I N T R O\nAt Contoso, we empower\norganizations to foster collaborative\nthinking to further drive workplace\ninnovation. By closing the loop and\nleveraging agile frameworks, we help\nbusiness grow organically and foster a\nconsumer-first mindset.\nP R E S E N T A T I O N T I T L E\n3"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.2179,
+      "Ssim": 0.9613,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.2566,
+      "Ssim": 0.937,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.2645,
+      "Ssim": 0.9151,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    }
+  ]
+}

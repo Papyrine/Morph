@@ -1,0 +1,54 @@
+﻿{
+  "target": {
+    "PageCount": 3,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "Basic presentation"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "Agenda\nIntroduction\nBuilding confidence\nEngaging the audience\nVisual aids\nFinal tips & takeaways\n22"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "The power of\ncommunication"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.7273,
+      "Ssim": 0.9077,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.1179,
+      "Ssim": 0.8703,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.1698,
+      "Ssim": 0.9596,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    }
+  ]
+}

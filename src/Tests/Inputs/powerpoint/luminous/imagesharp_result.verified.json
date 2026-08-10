@@ -1,0 +1,30 @@
+﻿{
+  "ExpectedPageCount": 3,
+  "ResultingPageCount": 3,
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.9998,
+      "Ssim": 0.8964,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "imagesharp_result#page_0001.verified.png",
+      "ReceivedFile": "imagesharp_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.98,
+      "Ssim": 0.637,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "imagesharp_result#page_0002.verified.png",
+      "ReceivedFile": "imagesharp_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.3932,
+      "Ssim": 0.8793,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "imagesharp_result#page_0003.verified.png",
+      "ReceivedFile": "imagesharp_result#page_0003.received.png"
+    }
+  ]
+}

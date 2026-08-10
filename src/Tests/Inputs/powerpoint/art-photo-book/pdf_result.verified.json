@@ -1,0 +1,54 @@
+﻿{
+  "target": {
+    "PageCount": 3,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "Place Your Title\nHere\nLorem ipsum dolor sit\namet, consectetur.\nFabrikam\n15 July 2026"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "Section Header\nLorem ipsum dolor sit amet, consectetur\nadipiscing elit."
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "Placeholder Title 01\nCaption / Credits Lorem\nipsum dolor sit amet,\nconsectetur"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.8328,
+      "Ssim": 0.8959,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.8206,
+      "Ssim": 0.9354,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.5899,
+      "Ssim": 0.9457,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    }
+  ]
+}

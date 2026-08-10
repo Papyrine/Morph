@@ -1,0 +1,54 @@
+﻿{
+  "target": {
+    "PageCount": 3,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "BAS IC PRESENTATI O N"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "A G ENDA\nEco-friendly packaging and materials\nRenewable energy technologies and their\nintegration\nCircular economy and product lifecycle\nmanagement \nSustainability and plant-based alternatives"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "T H E P OWER O F\nC OMMUNICATI O N"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 1.0,
+      "Ssim": 0.3961,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 1.0,
+      "Ssim": 0.3389,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.9645,
+      "Ssim": 0.5718,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    }
+  ]
+}

@@ -25,11 +25,13 @@ sealed class SlideShapeParser(
     string defaultFont,
     Func<OpenXmlPart, byte[]> partBytes,
     double slideWidthPoints,
-    double slideHeightPoints)
+    double slideHeightPoints,
+    TableStylesPart? tableStylesPart)
 {
     const double emusPerPoint = 914400.0 / 72.0;
 
     readonly DrawingTextParser textParser = new(themeColors, themeFonts, defaultFont);
+    readonly SlideTableParser tableParser = new(themeColors, new(themeColors, themeFonts, defaultFont));
 
     /// <summary>
     /// Emits the slide's shapes in <c>spTree</c> order. Paint order is document order, which is also
@@ -458,10 +460,20 @@ sealed class SlideShapeParser(
         var graphicData = frame.Graphic?.GraphicData;
         var uri = graphicData?.Uri?.Value;
 
+        if (uri == "http://schemas.openxmlformats.org/drawingml/2006/table")
+        {
+            if (ParseTable(frame, graphicData!, transform, ordinal) is { } table)
+            {
+                yield return table;
+            }
+
+            yield break;
+        }
+
         if (uri != "http://schemas.openxmlformats.org/drawingml/2006/diagram")
         {
-            // Charts and tables are separate slices; a chart frame reserves nothing today, matching
-            // the DOCX policy of leaving the slot blank rather than drawing a wrong chart.
+            // A chart frame reserves nothing today, matching the DOCX policy of leaving the slot
+            // blank rather than drawing a wrong chart.
             yield break;
         }
 
@@ -488,6 +500,48 @@ sealed class SlideShapeParser(
                 index++;
             }
         }
+    }
+
+    /// <summary>
+    /// A table frame, wrapped in a text box rather than emitted as a floating table.
+    ///
+    /// The wrapper is what gives a slide table absolute placement. The fragmenter's floating-table
+    /// path offers two anchors and neither fits: a text anchor advances the flow cursor, which would
+    /// shift every shape emitted after it, while a page anchor defers the rows to the pending-float
+    /// queue that a slide never drains. A text box places its content at absolute coordinates,
+    /// touches no flow state, and lays out a nested table through the ordinary cell-content path.
+    /// </summary>
+    DocumentElement? ParseTable(P.GraphicFrame frame, A.GraphicData graphicData, SlideTransform transform, uint ordinal)
+    {
+        var table = graphicData.GetFirstChild<A.Table>();
+        if (table == null)
+        {
+            return null;
+        }
+
+        var geometry = ResolveGeometry(frame.Transform, transform);
+        if (geometry is not { } box)
+        {
+            return null;
+        }
+
+        var parsed = tableParser.Parse(table, tableStylesPart);
+        if (parsed == null)
+        {
+            return null;
+        }
+
+        return new FloatingTextBoxElement
+        {
+            Content = [parsed],
+            WidthPoints = box.Width,
+            HeightPoints = box.Height,
+            HorizontalPositionPoints = box.X,
+            VerticalPositionPoints = box.Y,
+            HorizontalAnchor = HorizontalAnchor.Page,
+            VerticalAnchor = VerticalAnchor.Paragraph,
+            RelativeHeight = ordinal
+        };
     }
 
     /// <summary>
@@ -583,17 +637,24 @@ sealed class SlideShapeParser(
     /// Maps a shape's <c>a:xfrm</c> through the accumulated group transform into slide points.
     /// Null when nothing in the placeholder chain declared geometry, or the shape is degenerate.
     /// </summary>
-    static ResolvedBox? ResolveGeometry(A.Transform2D? shapeTransform, SlideTransform transform)
+    static ResolvedBox? ResolveGeometry(OpenXmlElement? shapeTransform, SlideTransform transform)
     {
         if (shapeTransform == null)
         {
             return null;
         }
 
-        var offsetX = shapeTransform.Offset?.X?.Value ?? 0;
-        var offsetY = shapeTransform.Offset?.Y?.Value ?? 0;
-        var extentX = shapeTransform.Extents?.Cx?.Value ?? 0;
-        var extentY = shapeTransform.Extents?.Cy?.Value ?? 0;
+        // Read generically rather than off A.Transform2D: a shape's a:xfrm, a graphic frame's
+        // p:xfrm and a diagram shape's dsp a:xfrm are three different generated types wrapping the
+        // identical a:off / a:ext / rot / flip payload.
+        var offset = shapeTransform.GetFirstChild<A.Offset>();
+        var extents = shapeTransform.GetFirstChild<A.Extents>();
+        var attributes = shapeTransform.GetAttributes();
+
+        var offsetX = offset?.X?.Value ?? 0;
+        var offsetY = offset?.Y?.Value ?? 0;
+        var extentX = extents?.Cx?.Value ?? 0;
+        var extentY = extents?.Cy?.Value ?? 0;
 
         // Zero on ONE axis is legitimate and common: a horizontal rule is a connector with cy="0",
         // a vertical one has cx="0". Rejecting those (as an area test would) drops every divider a
@@ -610,10 +671,23 @@ sealed class SlideShapeParser(
             y / emusPerPoint,
             width / emusPerPoint,
             height / emusPerPoint,
-            // a:xfrm/@rot is 60000ths of a degree, clockwise.
-            (shapeTransform.Rotation?.Value ?? 0) / 60000.0,
-            shapeTransform.HorizontalFlip?.Value ?? false,
-            shapeTransform.VerticalFlip?.Value ?? false);
+            // rot is 60000ths of a degree, clockwise.
+            (long.TryParse(Attribute(attributes, "rot"), out var rotation) ? rotation : 0) / 60000.0,
+            Attribute(attributes, "flipH") is "1" or "true",
+            Attribute(attributes, "flipV") is "1" or "true");
+    }
+
+    static string? Attribute(IEnumerable<OpenXmlAttribute> attributes, string name)
+    {
+        foreach (var attribute in attributes)
+        {
+            if (attribute.LocalName == name)
+            {
+                return attribute.Value;
+            }
+        }
+
+        return null;
     }
 
     readonly record struct ResolvedBox(

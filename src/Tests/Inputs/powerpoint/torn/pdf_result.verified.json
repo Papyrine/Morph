@@ -1,0 +1,54 @@
+﻿{
+  "target": {
+    "PageCount": 3,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "Title\nSubtitle"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "Agenda\nTopic one\nTopic two\nTopic three\nTopic four\nTopic five\n2\nSample Footer Text"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "Introduction\n3\nWith PowerPoint, you can create presentations and\nshare your work with others, wherever they are. Type\nthe text you want here to get started. You can also\nadd images, art, and videos on this template. Save to\nOneDrive and access your presentations from your\ncomputer, tablet, or phone.\nSample Footer Text"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.7073,
+      "Ssim": 0.706,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.954,
+      "Ssim": 0.2678,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.9175,
+      "Ssim": 0.3311,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    }
+  ]
+}

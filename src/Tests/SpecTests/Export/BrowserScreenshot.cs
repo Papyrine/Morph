@@ -63,7 +63,12 @@ static class BrowserScreenshot
             return await page.ScreenshotAsync(new()
             {
                 FullPage = true,
-                Type = ScreenshotType.Png
+                Type = ScreenshotType.Png,
+                // Playwright's 30s default is not enough for the image-heavy scenarios. A slide deck
+                // exports every slide's artwork inline as base64, so a photo album's Markdown is a
+                // single page tens of megabytes tall; three of them timed out mid-screenshot while
+                // rendering correctly. The wait is for the browser, not for Morph.
+                Timeout = 180_000
             });
         }
         finally

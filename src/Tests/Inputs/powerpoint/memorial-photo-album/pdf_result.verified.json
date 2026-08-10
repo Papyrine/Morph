@@ -1,0 +1,54 @@
+﻿{
+  "target": {
+    "PageCount": 3,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "Celebrating\nTHE LIFE OF\nIRI S\nL E P E K"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "Iris’s\nCHILDHOOD\nGrowing up on Lake Michigan,\nIris developed an early love of\nthe outdoors. She spent many\ndays out on the water with\nfriends and family."
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "Slide 3\nBuilding on her love of adventure, Iris was also an avid\ntraveler. She loved to visit new and exciting places and\nmeet all kinds of people.\nOver her lifetime she visited 56 countries and 6 out of\n7 continents, making her the most well-traveled\nmember of our family."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.3501,
+      "Ssim": 0.8978,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.356,
+      "Ssim": 0.906,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.365,
+      "Ssim": 0.8994,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    }
+  ]
+}

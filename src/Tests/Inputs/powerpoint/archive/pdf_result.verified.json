@@ -1,0 +1,54 @@
+﻿{
+  "target": {
+    "PageCount": 3,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "P R E S E N T A T I O N T I T L E\nPresenter name"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "A\nG\nE\nN\nD\nA\n•\nT\no\np\ni\nc\no\nn\ne\n•\nT\no\np\ni\nc\nt\nw\no\n•\nT\no\np\ni\nc\nt\nh\nr\ne\ne\n•\nT\no\np\ni\nc\nfo\nu\nr\nP\nR\nE\nS\nE\nN\nT\nA\nT\nI\nO\nN\nT\nI\nT\nL\nE\n2"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "I N T R O D U C T I O N\nWith PowerPoint, you can create\npresentations and share your work with\nothers, wherever they are. Type the text\nyou want here to get started. You can\nalso add images, art, and videos on this\ntemplate. Save to OneDrive and access\nyour presentations from your computer,\ntablet, or phone.\nP R E S E N T A T I O N T I T L E\n3"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.5549,
+      "Ssim": 0.9745,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.1528,
+      "Ssim": 0.9625,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.8497,
+      "Ssim": 0.8132,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    }
+  ]
+}

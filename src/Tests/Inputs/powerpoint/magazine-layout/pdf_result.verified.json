@@ -1,0 +1,54 @@
+﻿{
+  "target": {
+    "PageCount": 3,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 1224.0,
+        "Height": 792.0,
+        "Text": "// ARCHJAN 20XX\nThe art of building\n// Page 03\nInnovative\nDesign\n// Page 05\n+\nPreserving the past\n// Page 06"
+      },
+      {
+        "Width": 1224.0,
+        "Height": 792.0,
+        "Text": "//ARCH\nOur staff\nEditor In Chief\nMirjam Nilsson\nCreative Director\nVictoria Lindqvist\nArt Director\nAugust Bergqvist\nArt & Design\nAlexander Martensson\nAngelica Astrom\nAllan Mattsson\nPhotography\nFlora Berggren\nIan Hansson\nMira Karlsson\nWeb Team\nApril Hansson\nKalle Persson\nJens Martensso\nJANUARY 20XX\nThe art of building //03\nLorem ipsum sit amet consectetur\nadipiscing elit, sed do eiusmod\ntempor incididunt lorem ipsum sit\namet.\nInnovative Design //05\nLorem ipsum sit amet consectetur\nadipiscing elit, sed do eiusmod\ntempor incididunt lorem ipsum sit\namet.\nPreserving the past //06\nLorem ipsum sit amet consectetur\nadipiscing elit, sed do eiusmod\ntempor incididunt lorem ipsum sit\namet.\nThe beauty of imperfection //11\nLorem ipsum sit amet consectetur\nadipiscing elit, sed do eiusmod\ntempor incididunt lorem ipsum sit\namet."
+      },
+      {
+        "Width": 1224.0,
+        "Height": 792.0,
+        "Text": "The art\nof building\nSonu Jain //\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat\nnulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui\nofficia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur\nadipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex\nea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse\ncillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non\nproident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum\ndolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut\nlabore et dolore magna aliqua.\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex\nea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse\ncillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non\nproident, sunt in culpa qui officia deserunt mollit anim id est laborum.\nLorem ipsum dolor sit amet consectetur adipiscing elit, sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat\nnulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui\nofficia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur\nadipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nExcepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt\nmollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit.\nPicture caption // “Caption here” 3"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.2906,
+      "Ssim": 0.9472,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.4504,
+      "Ssim": 0.8548,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.3639,
+      "Ssim": 0.7307,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    }
+  ]
+}

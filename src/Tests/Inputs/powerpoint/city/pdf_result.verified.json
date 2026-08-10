@@ -1,0 +1,54 @@
+﻿{
+  "target": {
+    "PageCount": 3,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "PRESENTATION\nTITLE\na presentation by mirjam nilsson"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "Agenda\n3 Introduction\n4 Primary goals\n5 areas of growth\n10 timeline\n13 summary"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "INTRODUCTION\nAt Contoso, we empower organizations\nto foster collaborative thinking to further\ndrive workplace innovation. By closing\nthe loop and leveraging agile\nframeworks, we help business grow\norganically and foster a consumer-first\nmindset.\n3 p r e s e n t a t i o n t i t l e 2 0 X X"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.2258,
+      "Ssim": 0.9118,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.3471,
+      "Ssim": 0.8686,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.2387,
+      "Ssim": 0.8806,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    }
+  ]
+}

@@ -91,7 +91,8 @@ sealed class PresentationParser(string defaultFont)
             defaultFont,
             GetPartBytes,
             pageSettings.WidthPoints,
-            pageSettings.HeightPoints);
+            pageSettings.HeightPoints,
+            presentationPart.TableStylesPart);
 
         var elements = new List<DocumentElement>();
         var slideParts = OrderedSlideParts(presentationPart).ToArray();

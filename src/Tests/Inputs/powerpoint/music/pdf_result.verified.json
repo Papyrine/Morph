@@ -1,0 +1,54 @@
+﻿{
+  "target": {
+    "PageCount": 3,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "ARTIST\nELECTRONIC\nDANCE MUSIC BY\nPORTFOLDAIONIEL MELAMED"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "CONTENTS\n+ ABOUT ME\n+ STREAMING STATS\n+ MEET OUR TEAM\n+ PRODUCTS & SERVICES\n+ TOUR DATES\n2\nA R T I S T P O R T F O L I O"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "ABOUT ME\nAs an EDM artist, I'm inspired by my fans to think\nconstantly about the future landscape of electronic\nmusic and where I fit in. By staying involved with the\nfestival circuit and maintaining an active presence on\nsocial media, I'm able to create organically for me\nand my fans which helps me foster a genuine\ncreator-listener relationship.\n3\nA R T I S T P O R T F O L I O"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.8796,
+      "Ssim": 0.7299,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.8009,
+      "Ssim": 0.5859,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.898,
+      "Ssim": 0.8249,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    }
+  ]
+}
