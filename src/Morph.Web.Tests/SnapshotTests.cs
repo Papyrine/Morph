@@ -79,12 +79,12 @@ public class SnapshotTests
     [Test]
     public async Task HomePage()
     {
-        var page = await browser!.NewPageAsync();
+        var page = await NewPinnedPageAsync();
         await page.GotoAsync($"http://localhost:{port}/");
 
         await SettleAsync(page);
 
-        await Verify(page);
+        await VerifyPinnedAsync(page);
     }
 
     // End-to-end on the real WASM runtime: uploading a DOCX reads it, renders each page, and paints a
@@ -224,7 +224,7 @@ public class SnapshotTests
     [Test]
     public async Task HomePageMobile()
     {
-        var page = await browser!.NewPageAsync();
+        var page = await NewPinnedPageAsync();
         // iPhone SE size
         await page.SetViewportSizeAsync(375, 667);
 
@@ -232,13 +232,13 @@ public class SnapshotTests
 
         await SettleAsync(page);
 
-        await Verify(page);
+        await VerifyPinnedAsync(page);
     }
 
     [Test]
     public async Task HomePageDarkMode()
     {
-        var page = await browser!.NewPageAsync();
+        var page = await NewPinnedPageAsync();
 
         await page.GotoAsync($"http://localhost:{port}/");
 
@@ -250,13 +250,13 @@ public class SnapshotTests
 
         await SettleAsync(page);
 
-        await Verify(page);
+        await VerifyPinnedAsync(page);
     }
 
     [Test]
     public async Task HomePageDarkModeMobile()
     {
-        var page = await browser!.NewPageAsync();
+        var page = await NewPinnedPageAsync();
         // iPhone SE size
         await page.SetViewportSizeAsync(375, 667);
 
@@ -269,6 +269,56 @@ public class SnapshotTests
         await page.ReloadAsync();
 
         await SettleAsync(page);
+
+        await VerifyPinnedAsync(page);
+    }
+
+    // app.css deliberately uses a system font stack, which resolves to Segoe UI on the Windows machine a
+    // baseline is captured on and to DejaVu on the Linux CI runner. That is a different typeface rather
+    // than sub-pixel drift, so the page screenshots' SSIM fell as the page gained text — two mobile
+    // snapshots dropped under the 0.7 threshold on CI while their HTML matched byte for byte. Pin every
+    // face to the Aptos the app already ships so a screenshot is OS-independent, and the comparison
+    // measures real layout and colour regressions instead of spending its tolerance on fonts.
+    //
+    // Rewriting the stylesheet response rather than injecting a <style> keeps the captured HTML identical
+    // to what the app actually serves — the HTML snapshot stays a record of the real page. Emoji still
+    // come from the OS (Aptos has none), but they are a negligible share of the frame.
+    const string fontPin = """
+
+        @font-face { font-family: 'SnapshotPin'; font-weight: 400; font-style: normal; src: url('/fonts/Aptos_400.ttf') format('truetype'); }
+        @font-face { font-family: 'SnapshotPin'; font-weight: 400; font-style: italic; src: url('/fonts/Aptos_400_Italic.ttf') format('truetype'); }
+        @font-face { font-family: 'SnapshotPin'; font-weight: 700; font-style: normal; src: url('/fonts/Aptos_700.ttf') format('truetype'); }
+        @font-face { font-family: 'SnapshotPin'; font-weight: 700; font-style: italic; src: url('/fonts/Aptos_700_Italic.ttf') format('truetype'); }
+        * { font-family: 'SnapshotPin', sans-serif !important; }
+        """;
+
+    static async Task<IPage> NewPinnedPageAsync()
+    {
+        var page = await browser!.NewPageAsync();
+        await page.RouteAsync(
+            "**/css/app.css",
+            async route =>
+            {
+                var response = await route.FetchAsync();
+                var css = await response.TextAsync();
+                await route.FulfillAsync(
+                    new()
+                    {
+                        Response = response,
+                        Body = css + fontPin,
+                        ContentType = "text/css"
+                    });
+            });
+        return page;
+    }
+
+    // Guards the pin above: if the route pattern ever stops matching the stylesheet, the screenshots
+    // would silently revert to OS fonts and start drifting across machines again — passing locally and
+    // failing only on CI, which is exactly the failure this replaced.
+    static async Task VerifyPinnedAsync(IPage page)
+    {
+        var family = await page.EvaluateAsync<string>("() => getComputedStyle(document.body).fontFamily");
+        await Assert.That(family).Contains("SnapshotPin");
 
         await Verify(page);
     }
