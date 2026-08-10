@@ -11,15 +11,15 @@
       {
         "Width": 595.280029296875,
         "Height": 841.8900146484375,
-        "Text": "Debit Note\nYour Company\nName\nStreet Address\nCity, State,\nZip/Postal Code\nBALANCE DUE $210.00\nPhone\nEmail\nDebit To: Debit Date:\nClient Company Name Debit No.:\nContact Name Invoice No.:\nAddress\nPhone\nEmail\n# Item name Description Quantity Price Amount\n1 Item A Description 1 1 200.00 $200.00\nSubtotal $200.00\nNote Shipping $10.00\nTotal $210.00\nThank you for your business!"
+        "Text": "Debit Note Your Company\nName Street Address\nCity, State,\nZip/Postal Code\nBALANCE DUE $210.00\nPhone\nEmail\nDebit To: Debit Date:\nClient Company Name Debit No.:\nContact Name Invoice No.:\nAddress\nPhone\nEmail\n# Item name Description Quantity Price Amount\n1 Item A Description 1 1 200.00 $200.00\nSubtotal $200.00\nNote Shipping $10.00\nTotal $210.00\nThank you for your business!"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.2201,
-      "Ssim": 0.7945,
+      "ErrorMetric": 0.1999,
+      "Ssim": 0.8214,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

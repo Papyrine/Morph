@@ -11,15 +11,15 @@
       {
         "Width": 595.280029296875,
         "Height": 841.8900146484375,
-        "Text": "INVOICE\nINVOICE # 1234567\nDATE 7/16/2026\nDUE DATE 7/16/2026\nFROM BILL TO\nYour Company Name Client Company\nName\nStreet Address Contact Name\nCity, State, Zip/Postal\nCode Address\nPhone Phone\nEmail Email\nDESCRIPTION HOURS RATE AMOUNT\nStrategy Consulting 50 $500.00 $25,000.00\nSUBTOTAL $25,000.00\nDISCOUNT $0.00\nSUBTOTAL LESS\nDISCOUNT $25,000.00\nTAX RATE 5.00%\nTOTAL TAX $1,250.00\nTOTAL $26,250.00\nTERMS & CONDITIONS\nPlease make checks payable to: Your Company Name\nThank you for your business!"
+        "Text": "INVOICE\nINVOICE # 1234567\nDATE 7/16/2026\nDUE DATE 7/16/2026\nFROM BILL TO\nYour Company Name Client Company\nName Street Address Contact Name\nCity, State, Zip/Postal\nCode\nAddress\nPhone Phone\nEmail Email\nDESCRIPTION HOURS RATE AMOUNT\nStrategy Consulting 50 $500.00 $25,000.00\nSUBTOTAL $25,000.00\nDISCOUNT $0.00\nSUBTOTAL LESS\nDISCOUNT $25,000.00\nTAX RATE 5.00%\nTOTAL TAX $1,250.00\nTOTAL $26,250.00\nTERMS & CONDITIONS\nPlease make checks payable to: Your Company Name\nThank you for your business!"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.4721,
-      "Ssim": 0.7988,
+      "ErrorMetric": 0.4425,
+      "Ssim": 0.8074,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

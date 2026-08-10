@@ -116,9 +116,12 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             Cells = cells,
             IsHeader = isHeader,
             HeightPoints = row?.Height?.Value is { } height ? height * scale : defaultHeight,
-            // A row grows to fit wrapped text even when it declares a height, so the declared value
-            // is a floor rather than a clamp.
-            IsExactHeight = false
+            // customHeight="1" means the author fixed the height, and Excel then CLIPS wrapped text
+            // to it rather than growing the row. Treating every height as a floor instead let one
+            // sheet of paragraph-length text in a 2.6-character column grow into six blank pages,
+            // where Excel renders a single page and simply shows almost none of that text. Only an
+            // auto-height row (no customHeight) grows to its content.
+            IsExactHeight = row?.CustomHeight?.Value == true
         };
     }
 

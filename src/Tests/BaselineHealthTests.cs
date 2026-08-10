@@ -65,21 +65,14 @@ public class BaselineHealthTests
         "explicit_break_blank_page/imagesharp_result#page_0002.verified.png",
         "explicit_break_blank_page/pdf_result#page_0002.verified.png",
         // -- Known regressions (temporary — remove when fixed) --
-        // Long unwrapped cell text renders blank. NOT a parse fault: the same workbook exports 24k
-        // characters of correct text through the Markdown exporter, and the overflow rules are now
-        // probe-settled (see SpreadsheetParser.ExtendForOverflow) and applied. The remaining cause is
-        // downstream, in laying out a single no-wrap line several times wider than its page —
-        // invoice-accessibility-guide's sheets are narrow columns holding paragraph-length
-        // instructions. Isolating that is tracked in src/todo.md; suppressing it here keeps the guard
-        // meaningful for every other page rather than switching it off.
+        // Sheet drawings are not parsed yet, so a sheet whose visible content is entirely a drawing
+        // renders empty. invoice-accessibility-guide's first sheet holds twelve cells of narrow
+        // column-A text that Excel itself clips to almost nothing, and everything a reader actually
+        // sees on that page — the green banner, the contents list, the invoice thumbnail — comes
+        // from the drawing hanging off the sheet. Tracked in src/todo.md.
         "invoice-accessibility-guide/skia_result#page_0001.verified.png",
-        "invoice-accessibility-guide/skia_result#page_0002.verified.png",
         "invoice-accessibility-guide/imagesharp_result#page_0001.verified.png",
-        "invoice-accessibility-guide/imagesharp_result#page_0002.verified.png",
-        "invoice-accessibility-guide/pdf_result#page_0001.verified.png",
-        "invoice-accessibility-guide/pdf_result#page_0002.verified.png",
-        "modern-corporate-purple-black-timesheet/skia_result#page_0002.verified.png",
-        "modern-corporate-purple-black-timesheet/pdf_result#page_0002.verified.png"
+        "invoice-accessibility-guide/pdf_result#page_0001.verified.png"
     ];
 
     public static IEnumerable<string> GetScenarioDirectories() => ScenarioInputs.AllDirectories();
