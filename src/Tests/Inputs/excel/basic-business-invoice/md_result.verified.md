@@ -1,4 +1,6 @@
-﻿|  |  |  |
+﻿**LOGO GOES HERE**
+
+|  |  |  |
 | --- | --- | --- |
 | **Company Name** |  |  |
 |  Address, City, ST, ZIP code<br> Phone number \| Fax Number |  |  |

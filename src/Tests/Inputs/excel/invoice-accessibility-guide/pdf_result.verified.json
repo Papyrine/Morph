@@ -11,7 +11,7 @@
       {
         "Width": 841.8900146484375,
         "Height": 595.280029296875,
-        "Text": "Learn\nhow\nto\ncreate\nan\naccessible\ntemplate\nin\nthis\nworksheet\nusing\nan\nInvoice\ntemplate\nas\nan\nexample.\nEach\nworksheet\nhas\naccessible\ndescriptions\nin\ncolumn\nA,\nexcept\nInvoice\nworksheet.\nThese\naccessible\ninstructions\nhelp\nusers\nnavigate\nthe\ntutorial,\nbut\nare\nnot\ncommonly\nused\nwhen\ncreating\ntemplates.\nColumns\nB,\nC,\nand\nD\ncontain\nnon-accessible\ndescriptions.\nColumn\nF\ncontains\nimages\nor\ndata\nrelevant\nto\nthe\nworksheet\ntopic.\nThis\nworksheet\nhas\na\ntitle,\nsubtitle\nand\ntable\nof\ncontents\nfor\nall\ntabs\nin\nthis\nworkbook.\nCell\nB12\nhas\nthe\nExcel\nlogo,\ncells\nC3\nthrough\nC12\nhas\nan\nimage\nof\nthe\naccessible\nInvoice\ntemplate\nand\ncell\nC12\nhas\na\nnavigation\nbutton\nthat\nlinks\nto\nthe\nInvoice\nworksheet\nto\nget\nstarted.\nPress\nUP\nor\nDOWN\nARROW\nin\ncolumn\nA\nto\nread\nthrough\nthe\ndocument.\nPress\nCTRL+PG\nDOWN\nto\ngo\nto\nthe\nnext\nworksheet.\nTitle:\nSample\naccessible\nInvoice\ntemplate\nis\nin\nthis\nworkbook.\nDescriptions\nfor\nhow\nthis\ninvoice\nwas\nmade\naccessible\nare\noutlined\nbeneath\nthe\nContents,\nin\nthis\ncolumn.\nContents.\nNavigate\nthrough\neach\nitem\nlisted\nbelow\nto\nlearn\nhow\nthis\nsample\nInvoice\nwas\nmade\naccessible,\nstarting\nwith\nthe\naccessible\nInvoice\nin\nthe\nInvoice\nworksheet.\nSample\nInvoice\nworksheet\nStyling\nInput\nMessages\nAlternative\nText\n(aka\nAlt\nText)\nMerged\nCells\nTables\nNamed\nDefinitions\nLearn\nMore\nExcel\nlogo\nin\ncell\nB12,\nAccessible\nInvoice\nimage\nand\nNavigation\nbutton\nto\nInvoice\nworksheet\nin\nC12."
+        "Text": "Learn\nhow\nto\ncreate\nan\naccessible\ntemplate\nin\nthis\nworksheet\nusing\nan\nInvoice\ntemplate\nas\nan\nexample.\nEach\nworksheet\nhas\naccessible\ndescriptions\nin\ncolumn\nA,\nexcept\nInvoice\nworksheet.\nThese\naccessible\ninstructions\nhelp\nusers\nnavigate\nthe\ntutorial,\nbut\nare\nnot\ncommonly\nused\nwhen\ncreating\ntemplates.\nColumns\nB,\nC,\nand D\ncontain\nnon-accessible\ndescriptions.\nColumn F\ncontains\nimages\nor\ndata\nrelevant\nto\nthe\nworksheet\ntopic.\nThis\nworksheet\nhas a\ntitle,\nsubtitle\nand\ntable\nof\ncontents\nfor\nall\ntabs\nin\nthis\nworkbook.\nCell\nB12\nhas\nthe\nExcel\nlogo,\ncells\nC3\nthrough\nC12\nhas\nan\nimage\nof\nthe\naccessible\nInvoice\ntemplate\nand\ncell\nC12\nhas a\nnavigation\nbutton\nthat\nlinks\nto\nthe\nInvoice\nworksheet\nto\nget\nstarted.\nPress\nUP\nor\nDOWN\nARROW\nin\ncolumn A\nto\nread\nthrough\nthe\ndocument.\nPress\nCTRL+PG\nDOWN\nto\ngo\nto\nthe\nnext\nworksheet.\nTitle:\nSample\naccessible\nInvoice\ntemplate\nis\nin\nthis\nworkbook.\nDescriptions\nfor\nhow\nthis\ninvoice\nwas\nmade\naccessible\nare\noutlined\nbeneath\nthe\nContents,\nin\nthis\ncolumn.\nContents.\nNavigate\nthrough\neach\nitem\nlisted\nbelow\nto\nlearn\nhow\nthis\nsample\nInvoice\nwas\nmade\naccessible,\nstarting\nwith\nthe\naccessible\nInvoice\nin\nthe\nInvoice\nworksheet.\nSample\nInvoice\nworksheet\nStyling\nInput\nMessages\nAlternative\nText\n(aka\nAlt\nText)\nMerged\nCells\nTables\nNamed\nDefinitions\nLearn\nMore\nExcel\nlogo\nin\ncell\nB12,\nAccessible\nInvoice\nimage\nand\nNavigation\nbutton\nto\nInvoice\nworksheet\nin\nC12.\nSample Invoice\naccessible template\nContents\nInput Messages\nAlt Text (aka alternative text)\nMerged Cells & Whitespace\nTables\nNamed Definitions\nLearn More\nSample Invoice\nStyling\nLet's go >"
       },
       {
         "Width": 595.280029296875,
@@ -23,8 +23,8 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.4093,
-      "Ssim": 0.7821,
+      "ErrorMetric": 0.2725,
+      "Ssim": 0.7596,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

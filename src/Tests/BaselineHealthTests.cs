@@ -65,14 +65,10 @@ public class BaselineHealthTests
         "explicit_break_blank_page/imagesharp_result#page_0002.verified.png",
         "explicit_break_blank_page/pdf_result#page_0002.verified.png",
         // -- Known regressions (temporary — remove when fixed) --
-        // Sheet drawings are not parsed yet, so a sheet whose visible content is entirely a drawing
-        // renders empty. invoice-accessibility-guide's first sheet holds twelve cells of narrow
-        // column-A text that Excel itself clips to almost nothing, and everything a reader actually
-        // sees on that page — the green banner, the contents list, the invoice thumbnail — comes
-        // from the drawing hanging off the sheet. Tracked in src/todo.md.
-        "invoice-accessibility-guide/skia_result#page_0001.verified.png",
-        "invoice-accessibility-guide/imagesharp_result#page_0001.verified.png",
-        "invoice-accessibility-guide/pdf_result#page_0001.verified.png"
+        // (none currently. The newsletters/06 Skia pages this guard was written for were fixed by
+        // treating a:ln/@w as absolute rather than group-scaled, see docs/floating-art-pipeline.md;
+        // invoice-accessibility-guide's blank pages were fixed by honouring row customHeight and
+        // then by parsing sheet drawings.)
     ];
 
     public static IEnumerable<string> GetScenarioDirectories() => ScenarioInputs.AllDirectories();

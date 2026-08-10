@@ -16,7 +16,7 @@
       {
         "Width": 841.8900146484375,
         "Height": 595.280029296875,
-        "Text": "Layered 5 level\nSCHOOL DISTRICT\nSUPERINTENDENT SUPERINTENDENT SUPERINTENDENT SUPERINTENDENT SUPERINTENDENT\nPRINCIPAL PRINCIPAL PRINCIPAL PRINCIPAL PRINCIPAL\nVICE PRINCIPAL VICE PRINCIPAL VICE PRINCIPAL VICE PRINCIPAL VICE PRINCIPAL\nTREASURER TREASURER TREASURER TREASURER TREASURER\nSECRETARY SECRETARY SECRETARY SECRETARY SECRETARY"
+        "Text": "Layered 5 level\nSCHOOL DISTRICT\nSUPERINTENDENT SUPERINTENDENT SUPERINTENDENT SUPERINTENDENT SUPERINTENDENT\nPRINCIPAL PRINCIPAL PRINCIPAL PRINCIPAL PRINCIPAL\nVICE PRINCIPAL VICE PRINCIPAL VICE PRINCIPAL VICE PRINCIPAL VICE PRINCIPAL\nTREASURER TREASURER TREASURER TREASURER TREASURER\nSECRETARY SECRETARY SECRETARY SECRETARY SECRETARY\n< Back to\nContents"
       }
     ]
   },
@@ -24,15 +24,15 @@
     {
       "Page": 1,
       "ErrorMetric": 0.3861,
-      "Ssim": 0.9304,
+      "Ssim": 0.9218,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.1632,
-      "Ssim": 0.9205,
+      "ErrorMetric": 0.1637,
+      "Ssim": 0.9168,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

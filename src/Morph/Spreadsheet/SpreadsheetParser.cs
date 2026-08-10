@@ -18,6 +18,8 @@ sealed class SpreadsheetParser(string defaultFont)
 {
     const double pointsPerInch = 72.0;
 
+    readonly Dictionary<OpenXmlPart, byte[]> partBytes = [];
+
     public SpreadsheetParser()
         : this(DefaultFontSettings.DefaultFont)
     {
@@ -55,6 +57,10 @@ sealed class SpreadsheetParser(string defaultFont)
         var themeFonts = ThemeParser.ExtractThemeFonts(workbookPart.ThemePart);
         var styles = new CellStyles(workbookPart, themeColors);
         var builder = new SheetGridBuilder(styles, new(workbookPart), defaultFont);
+        var drawings = new SheetDrawingParser(
+            themeColors,
+            new(themeColors, themeFonts, defaultFont),
+            GetPartBytes);
         var definedNames = DefinedNames.For(workbookPart);
 
         var elements = new List<DocumentElement>();
@@ -89,6 +95,12 @@ sealed class SpreadsheetParser(string defaultFont)
                 continue;
             }
 
+            // Drawings are emitted BEFORE the table: they anchor vertically to the flow cursor, which
+            // still sits at the content top until the table is placed, so each binds to this sheet's
+            // first page rather than deferring. Their coordinates are relative to the grid's
+            // top-left, which is where the table begins.
+            var art = drawings.Parse(worksheetPart, new(worksheet, bounds, scale), scale, 0);
+
             if (first == null)
             {
                 first = settings;
@@ -104,6 +116,7 @@ sealed class SpreadsheetParser(string defaultFont)
                 });
             }
 
+            elements.AddRange(art);
             elements.Add(table);
         }
 
@@ -114,6 +127,23 @@ sealed class SpreadsheetParser(string defaultFont)
             ThemeColors = themeColors,
             ThemeFonts = themeFonts
         };
+    }
+
+    // One buffer per image part per parse, so a logo repeated across sheets shares a single array —
+    // the render-side image caches key on byte-array reference identity.
+    byte[] GetPartBytes(OpenXmlPart part)
+    {
+        if (partBytes.TryGetValue(part, out var cached))
+        {
+            return cached;
+        }
+
+        using var stream = part.GetStream();
+        using var buffer = new MemoryStream();
+        stream.CopyTo(buffer);
+        var bytes = buffer.ToArray();
+        partBytes[part] = bytes;
+        return bytes;
     }
 
     /// <summary>
