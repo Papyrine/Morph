@@ -1,0 +1,21 @@
+﻿{
+  "PageCount": 2,
+  "Properties": {
+    "CreationDate": "DateTimeOffset_1",
+    "Creator": "Morph",
+    "ModDate": "DateTimeOffset_1",
+    "Producer": "PDFsharp 6.2.4"
+  },
+  "Pages": [
+    {
+      "Width": 595.280029296875,
+      "Height": 841.8900146484375,
+      "Text": "INVOICE INVOICE NO.:\nDATE:\nDUE DATE:\nFROM BILL TO\nYour Company Name Client Company Name\nStreet Address Contact Name\nCity, State, Zip/Postal Code Address\nPhone Phone\nEmail Email\nSTART DATE END DATE LOCATION CLIENT\n7/16/2026 7/16/2026\nLABOR\nDESCRIPTION HOURS RATE AMOUNT\nLabor 50 $50.00 $2,500.00\nSUBTOTAL $2,500.00\nMATERIAL\nDESCRIPTION QTY UNIT PRICE AMOUNT\nBox 50 $50.00 $2,500.00\nSUBTOTAL $2,500.00\nOTHER\nDESCRIPTION QTY UNIT PRICE AMOUNT\nOther 50 $50.00 $2,500.00\nSUBTOTAL $2,500.00\nTERMS & CONDITIONS DISCOUNT $0.00\nSUBTOTAL LESS\nDISCOUNT $7,500.00"
+    },
+    {
+      "Width": 595.280029296875,
+      "Height": 841.8900146484375,
+      "Text": "TAX RATE 5.00%\nTOTAL TAX $375.00\nTOTAL $7,875.00\nThank you for your business!"
+    }
+  ]
+}

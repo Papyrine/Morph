@@ -1,0 +1,21 @@
+﻿{
+  "PageCount": 2,
+  "Properties": {
+    "CreationDate": "DateTimeOffset_1",
+    "Creator": "Morph",
+    "ModDate": "DateTimeOffset_1",
+    "Producer": "PDFsharp 6.2.4"
+  },
+  "Pages": [
+    {
+      "Width": 595.280029296875,
+      "Height": 841.8900146484375,
+      "Text": "INVOICE\nYour\nCompany\nName\nStreet\nAddress\nCity, State,\nZip/Postal\nCode\nPhone\nEmail\nBill To\nInvoice No.\nClient\nCompany\nName\nDate of Issue Enter Date Here Address\nDue Date Enter Due Date Here Phone\nEmail\nItem Description Hours Rate Amount\n1 Logo design 3 $50.00 $150.00\nSubtotal $150.00\nTerms Discount $0.00\nTax Rate 5.00%\nTax $7.50\nTotal $157.50"
+    },
+    {
+      "Width": 595.280029296875,
+      "Height": 841.8900146484375,
+      "Text": "Thank you for your business!"
+    }
+  ]
+}

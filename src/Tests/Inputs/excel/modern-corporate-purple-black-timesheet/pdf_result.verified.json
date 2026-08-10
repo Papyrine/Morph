@@ -1,0 +1,20 @@
+﻿{
+  "PageCount": 2,
+  "Properties": {
+    "CreationDate": "DateTimeOffset_1",
+    "Creator": "Morph",
+    "ModDate": "DateTimeOffset_1",
+    "Producer": "PDFsharp 6.2.4"
+  },
+  "Pages": [
+    {
+      "Width": 595.280029296875,
+      "Height": 841.8900146484375,
+      "Text": "Your Company Name\nINVOICE Street Address\nCity, State, Zip/Postal Code\nPhone\nEmail\nBILL TO INVOICE NO. 1234567\nClient Company Name DATE 7/16/2026\nContact Name DUE DATE 7/16/2026\nAddress\nPhone\nEmail\nDESCRIPTION HOURS PRICE AMOUNT\nConsultation 1 $500.00 $500.00\nSUBTOTAL $500.00\nTAX RATE 5.00%\nTOTAL TAX $25.00\nTOTAL $525.00\nTERMS\nThank you for\nyour business!"
+    },
+    {
+      "Width": 595.280029296875,
+      "Height": 841.8900146484375
+    }
+  ]
+}

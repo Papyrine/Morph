@@ -1,0 +1,351 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
+p { margin: 0 0 8pt; }
+/* Sizes only. Word's BUILT-IN Heading 4/6 are italic, but the document's own style decides:
+   an italic one reaches us as italic runs, which emit <em>. Asserting it here instead
+   forced italic onto every h4/h6 whose style is upright — of the 12 corpus scenarios using
+   Heading 4, not one declares italic. Bold is different: it IS asserted here, and the run
+   writer suppresses <strong> in a heading to match (an explicitly non-bold run still emits
+   font-weight: normal). */
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; clear: both; }
+h1 { font-size: 16pt; }
+h2 { font-size: 13pt; }
+h3 { font-size: 12pt; }
+h4 { font-size: 11pt; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+td, th { padding: 4pt 7pt; vertical-align: top; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
+footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
+</style>
+</head>
+<body style="font-family: Corbel, sans-serif; max-width: 559.28pt; padding: 36pt 18pt">
+<table>
+  <tbody>
+    <tr style="height: 54.23pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle"><span style="font-family: Impact, sans-serif; font-size: 28.92pt;">Back to school</span></td>
+      <td colspan="6" style="width: 389.12pt;vertical-align: middle"><span style="font-family: Impact, sans-serif; color: #7e7c7a; font-size: 28.92pt;">planner</span></td>
+    </tr>
+    <tr style="height: 190.67pt">
+      <td style="width: 170.16pt;background-color: #d9eff1;vertical-align: middle"></td>
+      <td style="width: 78.64pt;background-color: #d9eff1;vertical-align: middle"></td>
+      <td style="width: 58.3pt;background-color: #d9eff1;vertical-align: middle"></td>
+      <td style="width: 58.3pt;background-color: #d9eff1;vertical-align: middle"></td>
+      <td style="width: 58.3pt;background-color: #d9eff1;vertical-align: middle"></td>
+      <td style="width: 58.3pt;background-color: #d9eff1;vertical-align: middle"></td>
+      <td style="width: 77.28pt;background-color: #d9eff1;vertical-align: middle"></td>
+    </tr>
+    <tr style="height: 24.95pt">
+      <td colspan="7" style="width: 559.28pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Track your shopping progress against the budget category amounts entered in budget breakdown.</span></td>
+    </tr>
+    <tr style="height: 27.12pt">
+      <td colspan="2" style="width: 248.79pt;background-color: #ffffff;vertical-align: middle"><span style="font-family: Impact, sans-serif; font-size: 18.08pt;">Budget summary</span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td colspan="4" style="width: 252.18pt;background-color: #ffffff;vertical-align: middle"><span style="font-family: Impact, sans-serif; font-size: 18.08pt;">Purchasing progress (1 of 6)</span></td>
+    </tr>
+    <tr style="height: 19.66pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;">Budget</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;">$1,500.00 </span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td colspan="4" style="width: 252.18pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.94pt;">17%</span></td>
+    </tr>
+    <tr style="height: 19.66pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;">Shopping list total</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;">$365.00 </span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: middle"></td>
+    </tr>
+    <tr style="height: 27.12pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle;border-top: 2pt solid #7e7c7a; text-align: right"><span style="font-size: 10.85pt;"><strong>Remaining cash</strong></span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle;border-top: 2pt solid #7e7c7a; text-align: right"><span style="color: #3a0f0d; font-size: 10.85pt;"><strong>$1,135.00 </strong></span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: middle"></td>
+    </tr>
+    <tr style="height: 31.73pt">
+      <td colspan="7" style="width: 559.28pt;background-color: #ffffff;vertical-align: bottom"><span style="color: #7e7c7a; font-size: 16.27pt;"><strong>Shopping list</strong></span></td>
+    </tr>
+    <tr style="height: 22.55pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: bottom"><span style="font-size: 10.85pt;">Item</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: bottom"><span style="font-size: 10.85pt;">Category</span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: bottom"><span style="font-size: 10.85pt;">Qty</span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: bottom"><span style="font-size: 10.85pt;">To buy</span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: bottom"><span style="font-size: 10.85pt;">Cost</span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: bottom"><span style="font-size: 10.85pt;">Bought</span></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: bottom"><span style="font-size: 10.85pt;">Total cost</span></td>
+    </tr>
+    <tr style="height: 27.12pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Math</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Textbooks</span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">1 </span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;">1</span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $55.00 </span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;">1</span></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $55.00 </span></td>
+    </tr>
+    <tr style="height: 27.12pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">English</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Textbooks</span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">1 </span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;">1</span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $- </span></td>
+    </tr>
+    <tr style="height: 27.12pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Backpack</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Supplies</span></td>
+      <td colspan="2" style="width: 116.6pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">1 </span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $30.00 </span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $30.00 </span></td>
+    </tr>
+    <tr style="height: 27.12pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Calculator</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Supplies</span></td>
+      <td colspan="4" style="width: 233.2pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">1 </span></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $- </span></td>
+    </tr>
+    <tr style="height: 27.12pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Highlighters</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Supplies</span></td>
+      <td colspan="4" style="width: 233.2pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">3 </span></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $- </span></td>
+    </tr>
+    <tr style="height: 27.12pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Uniform</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Clothes</span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">2 </span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;">1</span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $100.00 </span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $200.00 </span></td>
+    </tr>
+    <tr style="height: 27.12pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Shirt, button-up</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Clothes</span></td>
+      <td colspan="4" style="width: 233.2pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">4 </span></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $- </span></td>
+    </tr>
+    <tr style="height: 27.12pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Shirt, t-shirts</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Clothes</span></td>
+      <td colspan="4" style="width: 233.2pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">5 </span></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $- </span></td>
+    </tr>
+    <tr style="height: 27.12pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Shorts</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Clothes</span></td>
+      <td colspan="4" style="width: 233.2pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">2 </span></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $- </span></td>
+    </tr>
+    <tr style="height: 27.12pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Sneakers</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Clothes</span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">2 </span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;">1</span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $- </span></td>
+    </tr>
+    <tr style="height: 27.12pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Socks</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Clothes</span></td>
+      <td colspan="4" style="width: 233.2pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">10 </span></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $- </span></td>
+    </tr>
+    <tr style="height: 27.12pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Spring jacket</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Clothes</span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">1 </span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;">1</span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $80.00 </span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $80.00 </span></td>
+    </tr>
+    <tr style="height: 27.12pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Sweaters</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Clothes</span></td>
+      <td colspan="4" style="width: 233.2pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">1 </span></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $- </span></td>
+    </tr>
+    <tr style="height: 27.12pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Sweatshirts</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Clothes</span></td>
+      <td colspan="4" style="width: 233.2pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">1 </span></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $- </span></td>
+    </tr>
+    <tr style="height: 27.12pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Underwear</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Clothes</span></td>
+      <td colspan="4" style="width: 233.2pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">10 </span></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $- </span></td>
+    </tr>
+    <tr style="height: 27.12pt">
+      <td style="width: 170.16pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Winter jacket</span></td>
+      <td style="width: 78.64pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">Clothes</span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.94pt;">1 </span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;">1</span></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 58.3pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 77.28pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d; font-size: 9.94pt;"> $- </span></td>
+    </tr>
+  </tbody>
+</table>
+<table>
+  <tbody>
+    <tr style="height: 35.1pt">
+      <td colspan="2" style="width: 219.75pt;vertical-align: bottom"><span style="color: #7e7c7a; font-size: 18pt;"><strong>Budget breakdown</strong></span></td>
+    </tr>
+    <tr style="height: 35.1pt">
+      <td colspan="2" style="width: 219.75pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Add categories and budget amounts to track against in your shopping list.</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 111.75pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Category</span></td>
+      <td style="width: 108pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Total cost</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 111.75pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Clothes</span></td>
+      <td style="width: 108pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d;"> $280.00 </span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 111.75pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Supplies</span></td>
+      <td style="width: 108pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d;"> $30.00 </span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 111.75pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Textbooks</span></td>
+      <td style="width: 108pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="color: #3a0f0d;"> $55.00 </span></td>
+    </tr>
+  </tbody>
+</table>
+<table>
+  <tbody>
+    <tr style="height: 35.1pt">
+      <td colspan="2" style="width: 525.75pt;vertical-align: bottom"><span style="color: #7e7c7a; font-size: 18pt;"><strong>To-do list</strong></span></td>
+    </tr>
+    <tr style="height: 35.1pt">
+      <td colspan="2" style="width: 525.75pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Track all the activities you need to get done before school starts.</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Done</span></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Task</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle; text-align: center"><span style="color: #3a0f0d;">x</span></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Complete All Registration Forms</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Schedule school physical and visual exam if needed</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Verify all required immunizations</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Obtain note with dosage instructions for all required medications from physician</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Review school dress code</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Obtain a list of school supplies</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Meet the teacher</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Determine teacher&#39;s preferred communication method (phone, email, written note)</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Tour the school with your child</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Help your child memorize your home phone, work phone, and home address</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Arrange transportation, designate a safe meeting spot, and practice the routine</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">If walking, practice the route to and from school with your child a few times</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">If carpooling, introduce your child to all carpool drivers</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">If riding the bus, determine times and bus stops</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Arrange for child care/after school care</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Plan a menu for breakfasts, school snacks, packed lunches, and after-school snacks</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Determine homework location and schedule</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Establish a bedtime routine at least two weeks before school starts</span></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 64.5pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 461.25pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d;">Prepare a calendar of all school events and activities</span></td>
+    </tr>
+  </tbody>
+</table>
+<table>
+  <tbody>
+    <tr style="height: 41.02pt">
+      <td colspan="3" style="width: 249.71pt;vertical-align: bottom"><span style="color: #7e7c7a; font-size: 14.8pt;"><strong>Share list</strong></span></td>
+      <td style="width: 244.77pt;background-color: #fdf7d8;vertical-align: middle; text-align: center"><span style="color: #46202f; font-size: 9.04pt;">Share this list with others so they can contribute. Select Share in the upper right or press ALT and then press “Z” followed by “S”. Save the file to OneDrive and send the link to your friends.</span></td>
+    </tr>
+    <tr style="height: 24.66pt">
+      <td style="width: 91.87pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.04pt;">Name</span></td>
+      <td style="width: 88.78pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.04pt;">Email</span></td>
+      <td style="width: 69.05pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.04pt;">Shared?</span></td>
+      <td style="width: 244.77pt;background-color: #ffffff;vertical-align: middle"></td>
+    </tr>
+    <tr style="height: 24.66pt">
+      <td style="width: 91.87pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.04pt;">Nikola Janu</span></td>
+      <td style="width: 88.78pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.04pt;">nikola@example.com</span></td>
+      <td style="width: 69.05pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.04pt;">Yes</span></td>
+      <td style="width: 244.77pt;background-color: #ffffff;vertical-align: middle"></td>
+    </tr>
+    <tr style="height: 24.66pt">
+      <td style="width: 91.87pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.04pt;">Robert Anic</span></td>
+      <td style="width: 88.78pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.04pt;">robert@example.com</span></td>
+      <td style="width: 69.05pt;background-color: #ffffff;vertical-align: middle"><span style="color: #3a0f0d; font-size: 9.04pt;">No</span></td>
+      <td style="width: 244.77pt;background-color: #ffffff;vertical-align: middle"></td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>

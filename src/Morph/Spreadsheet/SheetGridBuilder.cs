@@ -89,11 +89,26 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             }
 
             cellsByColumn.TryGetValue(column, out var found);
+            var merge = merges.At(rowIndex, column);
+            var overflow = OverflowSpan(found, merge, cellsByColumn, merges, rowIndex, column, range);
+
+            var width = 0d;
+            for (var span = 0; span < Math.Max(merge.ColumnSpan, overflow); span++)
+            {
+                var index = column - range.FirstColumn + span;
+                if (index < widths.Length)
+                {
+                    width += widths[index];
+                }
+            }
+
             cells.Add(BuildCell(
                 found,
-                merges.At(rowIndex, column),
-                widths[column - range.FirstColumn],
+                overflow > merge.ColumnSpan ? merge with { ColumnSpan = overflow } : merge,
+                width,
                 scale));
+
+            column += Math.Max(merge.ColumnSpan, overflow) - 1;
         }
 
         return new()
@@ -105,6 +120,64 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             // is a floor rather than a clamp.
             IsExactHeight = false
         };
+    }
+
+    /// <summary>
+    /// How many columns an unwrapped cell's text is allowed to run across.
+    ///
+    /// Excel does not clip text at its column: while the cells to the right are EMPTY, the text
+    /// simply runs on over them, which is how a title in a narrow column or an instruction sheet
+    /// built on one 2.6-character column reads at all. Clipping to the column instead renders those
+    /// pages blank. The span stops at the first cell holding anything, at a merge, and at the range
+    /// edge.
+    ///
+    /// Restricted to left-aligned text on purpose. Excel overflows centred and right-aligned text in
+    /// both directions, and widening the cell would re-centre a short label that Excel leaves put —
+    /// a visible regression in exchange for a rarer case.
+    /// </summary>
+    int OverflowSpan(
+        S.Cell? cell,
+        MergeInfo merge,
+        Dictionary<int, S.Cell> cellsByColumn,
+        MergeMap merges,
+        int rowIndex,
+        int column,
+        SheetRange range)
+    {
+        if (cell == null || merge.ColumnSpan > 1)
+        {
+            return merge.ColumnSpan;
+        }
+
+        var style = styles.Resolve(cell.StyleIndex?.Value ?? 0);
+        if (style.WrapText || (style.HorizontalAlignment ?? DefaultAlignment(cell)) != TextAlignment.Left)
+        {
+            return merge.ColumnSpan;
+        }
+
+        if (Value(cell, style).Text.Length == 0)
+        {
+            return merge.ColumnSpan;
+        }
+
+        var span = 1;
+        for (var next = column + 1; next <= range.LastColumn; next++)
+        {
+            if (merges.IsCoveredHorizontally(rowIndex, next) || merges.At(rowIndex, next).ColumnSpan > 1)
+            {
+                break;
+            }
+
+            if (cellsByColumn.TryGetValue(next, out var neighbour) &&
+                Value(neighbour, styles.Resolve(neighbour.StyleIndex?.Value ?? 0)).Text.Length > 0)
+            {
+                break;
+            }
+
+            span++;
+        }
+
+        return span;
     }
 
     TableCell BuildCell(S.Cell? cell, MergeInfo merge, double widthPoints, double scale)

@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 841.8900146484375,
+        "Height": 595.280029296875,
+        "Text": "Address and phone List Last updated: 7/16/2026\nLast name First name Family members Address Home number Work number Cell number E-mail Contact type\nBowman Ann Oscar Ward 123 Main St. 555-0121 555-0122 555-0123 ann@example.com Friend\nLinna Utu Meitar Rokach 4567 8th Ave 555-0165 555-0166 555-0167 utu@example.com Co-worker\nTrivedi Sanjay Lata Wadekar 345 W. Main 555-0199 555-0110 555-0111 sanjay@example.com Cousin\nSakai Yuna Avri Grin 123 South St. 555-0147 555-0148 555-0149 yuna@example.com Co-worker"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.341,
+      "Ssim": 0.8177,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

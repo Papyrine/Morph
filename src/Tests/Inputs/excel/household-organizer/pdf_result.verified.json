@@ -1,0 +1,41 @@
+﻿{
+  "target": {
+    "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 595.280029296875,
+        "Height": 841.8900146484375,
+        "Text": "Household\nBUDGET\nEXPENSE AMOUNT NAME NOTES\nRent $360.00 Roommate 1 Notes\nRent $350.00 Roommate 2 Notes\nRent $200.00 Roommate 3 Notes\nRent $200.00 Roommate 4 Notes\nCable TV $25.00 Roommate 1 Notes\nCable TV $25.00 Roommate 2 Notes\nCable TV $25.00 Roommate 3 Notes\nCable TV $25.00 Roommate 4 Notes\nGroceries $150.00 Roommate 3 Notes\nTotal $1,360.00"
+      },
+      {
+        "Width": 595.280029296875,
+        "Height": 841.8900146484375,
+        "Text": "Chore Start Date: 00000July 16, 2026\nSCHEDULE\nCHORE WHEN ASSIGNED TO NOTES\nTake out the trash Tues and Fri Roommate 1 After 7pm\nChore item Days/Times Roommate 2 Notes\nChore item Days/Times Roommate 3 Notes\nChore item Days/Times Roommate 4 Notes\nChore item Days/Times Roommate 1 Notes\nChore item Days/Times Roommate 2 Notes\nChore item Days/Times Roommate 3 Notes"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0424,
+      "Ssim": 0.8842,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0532,
+      "Ssim": 0.8957,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

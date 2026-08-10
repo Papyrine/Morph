@@ -1,0 +1,41 @@
+﻿{
+  "target": {
+    "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 595.280029296875,
+        "Height": 841.8900146484375,
+        "Text": "Personal budget\nPercentage of income spent Summary\nTOTAL MONTHLY INCOME\n$3,750\nTOTAL MONTHLY EXPENSES\n$2,336\nTOTAL MONTHLY SAVINGS\n$550\nCASH BALANCE\n$864"
+      },
+      {
+        "Width": 595.280029296875,
+        "Height": 841.8900146484375,
+        "Text": "Personal budget\nMonthly income\nITEM AMOUNT\nIncome source 1 $2,500.00\nIncome source 2 $1,000.00\nOther $250.00"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.1037,
+      "Ssim": 0.902,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0427,
+      "Ssim": 0.9374,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

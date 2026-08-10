@@ -1,0 +1,41 @@
+﻿{
+  "target": {
+    "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 595.280029296875,
+        "Height": 841.8900146484375,
+        "Text": "HOME REMODEL\nTO-DO LIST\nTO BE COMPLETED\nBY Iris Lepik\nDEADLINE 01/31/20XX\n% Done Phase Due By Notes\n100% Planning 10-Dec Research local contractors\n100% Preparation 10-Jan Select winning bid\n100% Task a 12-Jan Consult\n50% Task b 15-Jan Follow-up meeting\n0% Task c 20-Jan Sign paperwork\n0% Task d 20-Jan Begin work\n0% Paperwork 23-Jan Mail in\n0% Complete 25-Jan Inspection\n0% Follow-up 1-Feb Meeting"
+      },
+      {
+        "Width": 595.280029296875,
+        "Height": 841.8900146484375,
+        "Text": "PROJECT 2\nTO-DO LIST\nTO BE COMPLETED\nBY Iris Lepik\nDEADLINE 01/31/20XX\n% Done Phase Due By Notes\n100% Planning\n100% Preparation\n75% Task a\n53% Task b\n23% Task c\n0% Task d\n0% Task e\n0% Task f\n0% Follow-up"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.384,
+      "Ssim": 0.8054,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.3147,
+      "Ssim": 0.8808,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

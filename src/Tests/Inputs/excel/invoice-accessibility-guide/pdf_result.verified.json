@@ -1,0 +1,41 @@
+﻿{
+  "target": {
+    "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 841.8900146484375,
+        "Height": 595.280029296875,
+        "Text": "Learn\nhow\nto\ncreate\nan\naccessible\ntemplate\nin\nthis\nworksheet\nusing\nan\nInvoice\ntemplate\nas\nan\nexample.\nEach\nworksheet\nhas\naccessible\ndescriptions\nin\ncolumn\nA,\nexcept\nInvoice\nworksheet.\nThese\naccessible\ninstructions\nhelp\nusers\nnavigate\nthe\ntutorial,\nbut\nare"
+      },
+      {
+        "Width": 841.8900146484375,
+        "Height": 595.280029296875,
+        "Text": "not\ncommonly\nused\nwhen\ncreating\ntemplates.\nColumns\nB,\nC,\nand\nD\ncontain\nnon-accessible\ndescriptions.\nColumn\nF\ncontains\nimages\nor\ndata\nrelevant\nto\nthe\nworksheet\ntopic.\nThis\nworksheet\nhas\na\ntitle,\nsubtitle\nand\ntable\nof\ncontents\nfor\nall\ntabs"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.4093,
+      "Ssim": 0.7821,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.123,
+      "Ssim": 0.9365,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

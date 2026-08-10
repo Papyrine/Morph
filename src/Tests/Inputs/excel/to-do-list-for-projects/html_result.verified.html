@@ -1,0 +1,507 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
+p { margin: 0 0 8pt; }
+/* Sizes only. Word's BUILT-IN Heading 4/6 are italic, but the document's own style decides:
+   an italic one reaches us as italic runs, which emit <em>. Asserting it here instead
+   forced italic onto every h4/h6 whose style is upright — of the 12 corpus scenarios using
+   Heading 4, not one declares italic. Bold is different: it IS asserted here, and the run
+   writer suppresses <strong> in a heading to match (an explicitly non-bold run still emits
+   font-weight: normal). */
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; clear: both; }
+h1 { font-size: 16pt; }
+h2 { font-size: 13pt; }
+h3 { font-size: 12pt; }
+h4 { font-size: 11pt; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+td, th { padding: 4pt 7pt; vertical-align: top; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
+footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
+</style>
+</head>
+<body style="font-family: 'Avenir Next LT Pro', sans-serif; max-width: 523.28pt; padding: 36pt">
+<table>
+  <tbody>
+    <tr style="height: 23.76pt">
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 46.92pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 52.86pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 46.92pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 151.46pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 23.76pt">
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td colspan="4" style="width: 298.17pt;background-color: #f2f2f2;vertical-align: middle"><span style="color: #003780; font-size: 17.42pt;">HOME REMODEL</span></td>
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 47.52pt">
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td colspan="4" style="width: 298.17pt;background-color: #f2f2f2;vertical-align: bottom"><span style="font-size: 38.01pt;"><strong>TO-DO LIST</strong></span></td>
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 23.76pt">
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td colspan="2" style="width: 99.79pt;background-color: #f2f2f2;vertical-align: bottom"><span style="font-size: 8.71pt;">TO BE COMPLETED BY</span></td>
+      <td colspan="2" style="width: 198.38pt;background-color: #f2f2f2;vertical-align: bottom"><span style="font-size: 8.71pt;"><strong>Iris Lepik</strong></span></td>
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 23.76pt">
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td colspan="2" style="width: 99.79pt;background-color: #f2f2f2;vertical-align: middle"><span style="font-size: 8.71pt;">DEADLINE</span></td>
+      <td colspan="2" style="width: 198.38pt;background-color: #f2f2f2;vertical-align: middle"><span style="font-size: 8.71pt;"><strong>01/31/20XX</strong></span></td>
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 11.88pt">
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 46.92pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 52.86pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 46.92pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 151.46pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 23.76pt">
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;">% Done</span></td>
+      <td style="width: 52.86pt;vertical-align: middle"><span style="font-size: 8.71pt;">Phase</span></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;">Due By</span></td>
+      <td style="width: 151.46pt;vertical-align: middle"><span style="font-size: 8.71pt;">Notes</span></td>
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 23.76pt">
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;"><strong>100%</strong></span></td>
+      <td style="width: 52.86pt;vertical-align: middle"><span style="font-size: 8.71pt;">Planning</span></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;">10-Dec</span></td>
+      <td style="width: 151.46pt;vertical-align: middle"><span style="font-size: 8.71pt;">Research local contractors</span></td>
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 23.76pt">
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;"><strong>100%</strong></span></td>
+      <td style="width: 52.86pt;vertical-align: middle"><span style="font-size: 8.71pt;">Preparation</span></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;">10-Jan</span></td>
+      <td style="width: 151.46pt;vertical-align: middle"><span style="font-size: 8.71pt;">Select winning bid</span></td>
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 23.76pt">
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;"><strong>100%</strong></span></td>
+      <td style="width: 52.86pt;vertical-align: middle"><span style="font-size: 8.71pt;">Task a</span></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;">12-Jan</span></td>
+      <td style="width: 151.46pt;vertical-align: middle"><span style="font-size: 8.71pt;">Consult</span></td>
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 23.76pt">
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;"><strong>50%</strong></span></td>
+      <td style="width: 52.86pt;vertical-align: middle"><span style="font-size: 8.71pt;">Task b</span></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;">15-Jan</span></td>
+      <td style="width: 151.46pt;vertical-align: middle"><span style="font-size: 8.71pt;">Follow-up meeting</span></td>
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 23.76pt">
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;"><strong>0%</strong></span></td>
+      <td style="width: 52.86pt;vertical-align: middle"><span style="font-size: 8.71pt;">Task c</span></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;">20-Jan</span></td>
+      <td style="width: 151.46pt;vertical-align: middle"><span style="font-size: 8.71pt;">Sign paperwork</span></td>
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 23.76pt">
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;"><strong>0%</strong></span></td>
+      <td style="width: 52.86pt;vertical-align: middle"><span style="font-size: 8.71pt;">Task d</span></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;">20-Jan</span></td>
+      <td style="width: 151.46pt;vertical-align: middle"><span style="font-size: 8.71pt;">Begin work </span></td>
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 23.76pt">
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;"><strong>0%</strong></span></td>
+      <td style="width: 52.86pt;vertical-align: middle"><span style="font-size: 8.71pt;">Paperwork</span></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;">23-Jan</span></td>
+      <td style="width: 151.46pt;vertical-align: middle"><span style="font-size: 8.71pt;">Mail in</span></td>
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 23.76pt">
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;"><strong>0%</strong></span></td>
+      <td style="width: 52.86pt;vertical-align: middle"><span style="font-size: 8.71pt;">Complete</span></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;">25-Jan</span></td>
+      <td style="width: 151.46pt;vertical-align: middle"><span style="font-size: 8.71pt;">Inspection</span></td>
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 23.76pt">
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;"><strong>0%</strong></span></td>
+      <td style="width: 52.86pt;vertical-align: middle"><span style="font-size: 8.71pt;">Follow-up</span></td>
+      <td style="width: 46.92pt;vertical-align: middle"><span style="font-size: 8.71pt;">1-Feb</span></td>
+      <td style="width: 151.46pt;vertical-align: middle"><span style="font-size: 8.71pt;">Meeting</span></td>
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 23.76pt">
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 46.92pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 52.86pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 46.92pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 151.46pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 10.1pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+      <td style="width: 40.98pt;vertical-align: bottom"></td>
+    </tr>
+  </tbody>
+</table>
+<table>
+  <tbody>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 66.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 191.25pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td colspan="4" style="width: 376.5pt;background-color: #f2f2f2;vertical-align: middle"><span style="color: #003780; font-size: 22pt;"><strong>PROJECT 2</strong></span></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 60pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td colspan="4" style="width: 376.5pt;background-color: #f2f2f2;vertical-align: bottom"><span style="font-size: 48pt;"><strong>TO-DO LIST</strong></span></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td colspan="2" style="width: 126pt;background-color: #f2f2f2;vertical-align: bottom">TO BE COMPLETED BY</td>
+      <td colspan="2" style="width: 250.5pt;background-color: #f2f2f2;vertical-align: bottom"><strong>Iris Lepik</strong></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td colspan="2" style="width: 126pt;background-color: #f2f2f2;vertical-align: middle">DEADLINE</td>
+      <td colspan="2" style="width: 250.5pt;background-color: #f2f2f2;vertical-align: middle"><strong>01/31/20XX</strong></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 15pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 66.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 191.25pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle">% Done</td>
+      <td style="width: 66.75pt;vertical-align: middle">Phase</td>
+      <td style="width: 59.25pt;vertical-align: middle">Due By</td>
+      <td style="width: 191.25pt;vertical-align: middle">Notes</td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle"><strong>100%</strong></td>
+      <td style="width: 66.75pt;vertical-align: middle">Planning</td>
+      <td style="width: 59.25pt;vertical-align: middle"></td>
+      <td style="width: 191.25pt;vertical-align: middle"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle"><strong>100%</strong></td>
+      <td style="width: 66.75pt;vertical-align: middle">Preparation</td>
+      <td style="width: 59.25pt;vertical-align: middle"></td>
+      <td style="width: 191.25pt;vertical-align: middle"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle"><strong>75%</strong></td>
+      <td style="width: 66.75pt;vertical-align: middle">Task a</td>
+      <td style="width: 59.25pt;vertical-align: middle"></td>
+      <td style="width: 191.25pt;vertical-align: middle"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle"><strong>53%</strong></td>
+      <td style="width: 66.75pt;vertical-align: middle">Task b</td>
+      <td style="width: 59.25pt;vertical-align: middle"></td>
+      <td style="width: 191.25pt;vertical-align: middle"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle"><strong>23%</strong></td>
+      <td style="width: 66.75pt;vertical-align: middle">Task c</td>
+      <td style="width: 59.25pt;vertical-align: middle"></td>
+      <td style="width: 191.25pt;vertical-align: middle"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle"><strong>0%</strong></td>
+      <td style="width: 66.75pt;vertical-align: middle">Task d</td>
+      <td style="width: 59.25pt;vertical-align: middle"></td>
+      <td style="width: 191.25pt;vertical-align: middle"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle"><strong>0%</strong></td>
+      <td style="width: 66.75pt;vertical-align: middle">Task e</td>
+      <td style="width: 59.25pt;vertical-align: middle"></td>
+      <td style="width: 191.25pt;vertical-align: middle"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle"><strong>0%</strong></td>
+      <td style="width: 66.75pt;vertical-align: middle">Task f</td>
+      <td style="width: 59.25pt;vertical-align: middle"></td>
+      <td style="width: 191.25pt;vertical-align: middle"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle"><strong>0%</strong></td>
+      <td style="width: 66.75pt;vertical-align: middle">Follow-up</td>
+      <td style="width: 59.25pt;vertical-align: middle"></td>
+      <td style="width: 191.25pt;vertical-align: middle"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 66.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 191.25pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+  </tbody>
+</table>
+<table>
+  <tbody>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 66.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 191.25pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td colspan="4" style="width: 376.5pt;background-color: #f2f2f2;vertical-align: middle"><span style="color: #003780; font-size: 22pt;"><strong>PROJECT 3</strong></span></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 60pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td colspan="4" style="width: 376.5pt;background-color: #f2f2f2;vertical-align: bottom"><span style="font-size: 48pt;"><strong>TO-DO LIST</strong></span></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td colspan="2" style="width: 126pt;background-color: #f2f2f2;vertical-align: bottom">TO BE COMPLETED BY</td>
+      <td colspan="2" style="width: 250.5pt;background-color: #f2f2f2;vertical-align: bottom"><strong>Iris Lepik</strong></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: middle"></td>
+      <td colspan="2" style="width: 126pt;background-color: #f2f2f2;vertical-align: middle">DEADLINE</td>
+      <td colspan="2" style="width: 250.5pt;background-color: #f2f2f2;vertical-align: middle"><strong>01/31/20XX</strong></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: middle"></td>
+    </tr>
+    <tr style="height: 15pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 66.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 191.25pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle">% Done</td>
+      <td style="width: 66.75pt;vertical-align: middle">Phase</td>
+      <td style="width: 59.25pt;vertical-align: middle">Due By</td>
+      <td style="width: 191.25pt;vertical-align: middle">Notes</td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle"><strong>100%</strong></td>
+      <td style="width: 66.75pt;vertical-align: middle">Planning</td>
+      <td style="width: 59.25pt;vertical-align: middle"></td>
+      <td style="width: 191.25pt;vertical-align: middle"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle"><strong>100%</strong></td>
+      <td style="width: 66.75pt;vertical-align: middle">Preparation</td>
+      <td style="width: 59.25pt;vertical-align: middle"></td>
+      <td style="width: 191.25pt;vertical-align: middle"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle"><strong>75%</strong></td>
+      <td style="width: 66.75pt;vertical-align: middle">Task a</td>
+      <td style="width: 59.25pt;vertical-align: middle"></td>
+      <td style="width: 191.25pt;vertical-align: middle"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle"><strong>53%</strong></td>
+      <td style="width: 66.75pt;vertical-align: middle">Task b</td>
+      <td style="width: 59.25pt;vertical-align: middle"></td>
+      <td style="width: 191.25pt;vertical-align: middle"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle"><strong>23%</strong></td>
+      <td style="width: 66.75pt;vertical-align: middle">Task c</td>
+      <td style="width: 59.25pt;vertical-align: middle"></td>
+      <td style="width: 191.25pt;vertical-align: middle"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle"><strong>0%</strong></td>
+      <td style="width: 66.75pt;vertical-align: middle">Task d</td>
+      <td style="width: 59.25pt;vertical-align: middle"></td>
+      <td style="width: 191.25pt;vertical-align: middle"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle"><strong>0%</strong></td>
+      <td style="width: 66.75pt;vertical-align: middle">Task e</td>
+      <td style="width: 59.25pt;vertical-align: middle"></td>
+      <td style="width: 191.25pt;vertical-align: middle"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle"><strong>0%</strong></td>
+      <td style="width: 66.75pt;vertical-align: middle">Task f</td>
+      <td style="width: 59.25pt;vertical-align: middle"></td>
+      <td style="width: 191.25pt;vertical-align: middle"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;vertical-align: middle"><strong>0%</strong></td>
+      <td style="width: 66.75pt;vertical-align: middle">Follow-up</td>
+      <td style="width: 59.25pt;vertical-align: middle"></td>
+      <td style="width: 191.25pt;vertical-align: middle"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 66.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 59.25pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 191.25pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+      <td style="width: 12.75pt;background-color: #f2f2f2;vertical-align: bottom"></td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>

@@ -1,0 +1,41 @@
+﻿{
+  "target": {
+    "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 841.8900146484375,
+        "Height": 595.280029296875,
+        "Text": "Probate inventory\nName of executor(s) Allan Mattsson\nContact information 4567 Main St, Buffalo, NY 98052\nDecedent's name August Bergquist\nStreet address 6789 Main St\nCity Buffalo State NY Zip 98052\nSSN AAA-GG-SSSS Occupation Dentist\nDate of birth 000000Wednesday, December 08, 1965 Place of birth NY\nDate of death 000000Monday, July 13, 2026 Place of death NY\nAdditional information\nSpouse, children and other dependents\nName Relationship Dependent Age Address Phone number Email\nMirjam Nilsson Personal representative No 30\nVictoria Lindqvist Spouse Yes 35\nAlexander Martensson Child Yes 12\nProfessional advisors\nAdvisor type Contact person Company Address Phone number Email\nAccountant\nLawyer/Notary\nOther"
+      },
+      {
+        "Width": 841.8900146484375,
+        "Height": 595.280029296875,
+        "Text": "Probate checklist Probate inventories\nChecklist items Probate assets Value ($) Probate liabilities Value ($)\n Last will, testament or any other documents Bank accounts $0.00 Mortgages $0.00\n Safe deposit rental agreement and keys Personal investments $0.00 Personal loans and lines of credit $0.00\n Passwords for computers and online accounts Business interests $0.00 Business interests $0.00\n Living trust agreements Real estate $0.00 Credit cards $0.00\n Life insurance, health/accident and insurance policies Pension plans $0.00 Other liabilities $0.00\n Financial statements Insurance $0.00\n Income tax returns for the past three years Private loans and mortgages $0.00\n Birth and death certificates Interest in other estates and trusts $0.00\n Deeds, mortgages and lease statements Personal effects and other assets $0.00\n Unpaid bills and notes Assets total $0.00 Liabilities total $0.00"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.116,
+      "Ssim": 0.7307,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0833,
+      "Ssim": 0.8445,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

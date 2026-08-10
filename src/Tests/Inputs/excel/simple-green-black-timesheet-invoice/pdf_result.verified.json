@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 595.280029296875,
+        "Height": 841.8900146484375,
+        "Text": "Time & Materials Invoice\nDate:\nInvoice No.:\nDue Date:\nFrom: Bill To: Totals:\nName/Company Name Name/Company Name Material: $11,000.00\nCity, State, Zip Code City, State, Zip Code Labor: $22,640.00\nEmail Email Invoice Total: $33,640.00\nPhone Phone\nNo. Material Name Description Quantity Cost Per Item Total\n1 Material A Description 1 70 $80.00 $5,600.00\n2 Material B Description 2 40 $60.00 $2,400.00\n3 Material C Description 3 60 $50.00 $3,000.00\nMaterials Total: $11,000.00\nNo. Labor Name Description Hours Rate Per Hour Total\n1 Labor A Description 1 56 $100.00 $5,600.00\n2 Labor B Description 2 64 $120.00 $7,680.00\n3 Labor C Description 3 72 $130.00 $9,360.00\nLabor Total: $22,640.00\nSubtotal: $33,640.00\nTax Rate: 0.00%\nTotal Tax: $0.00\nInvoice Total: $33,640.00\nPayment Terms:\nThank you for your business!"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.2738,
+      "Ssim": 0.6981,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

@@ -161,8 +161,40 @@ are the only path, while `PdfTextEngine` remains PDF's default until the flip.
 - **Scenario tests** (`SkiaScenarioTests.cs` / `ImageSharpScenarioTests.cs`, DEBUG-only): parameterized over the 325 directories in `src/Tests/Inputs/word/`, each containing `input.docx` and `expected_*.png` reference images. The corpus is split by input format under `Inputs/` — `word/`, `excel/`, `powerpoint/` — because the themed category names collide across formats; `ScenarioInputs` is the single discovery seam. Uses Verify plus an in-repo comparer (`Compare/PageComparison.cs`, `Compare/Ssim.cs`, `Compare/PngDecoder.cs`) for pixel-level comparison — ImageMagick was removed because Magick.NET 14.15 silently changed `ErrorMetric.Absolute` semantics and its SSIM added ~10 minutes per run. Both backends are tested independently. The test harness's `ModuleInitializer` sets `DefaultFontSettings.DeterministicRendering = true` so Skia glyph rasterization is identical across machines (greyscale AA, integer x positions, no hinting) — without this the verified PNGs drift between local and CI due to platform subpixel differences. When updating baselines, keep this setting enabled.
 - **Spec tests** (`src/Tests/SpecTests/`): unit tests for specific OOXML specification features
 - **Export scenario tests** (`src/Tests/SpecTests/Export/ExportScenarioTests.cs`): snapshot the HTML/Markdown/PDF exporters per scenario. PDF snapshots route through Verify.PDFium (`VerifyPDFium.Initialize()` in `ModuleInitializer`), expanding each into `pdf_result.verified.txt` (page count/sizes/document properties), `pdf_result.verified.pdf`, and per-page `pdf_result#page_*.verified.png` rendered by PDFium — the page images feed `compare-all-pdf.md`.
-- **RenderHelper** (`src/RenderHelper/`): .NET Framework 4.8.1 project that generates reference images using Microsoft Word via COM interop (Windows-only, not part of normal test runs). Claude may run it for a **single scenario** (e.g. to seed `expected_0001.png` for a newly added input). Do not run the whole-suite `GenerateExpectedImages` test. The project uses NUnit/VSTest, but `global.json` pins `Microsoft.Testing.Platform` so `dotnet test` fails — invoke `vstest.console.exe` directly against the built DLL. Example: `"C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" src/RenderHelper/bin/Debug/net481/RenderHelper.dll /TestCaseFilter:"FullyQualifiedName~<scenarioName>"` (build first with `dotnet build src/RenderHelper/RenderHelper.csproj`).
+- **RenderHelper** (`src/RenderHelper/`): .NET Framework 4.8.1 project that generates reference images using Microsoft Word, Excel and PowerPoint via COM interop (Windows-only, not part of normal test runs). One test per format: `GenerateExpectedImage` (Word), `GenerateExpectedExcelImage`, `GenerateExpectedPowerPointImage`. Claude may run it for a **single scenario** (e.g. to seed `expected_0001.png` for a newly added input). Do not run the whole-suite `GenerateExpectedImages` test. The project uses NUnit/VSTest, but `global.json` pins `Microsoft.Testing.Platform` so `dotnet test` fails — invoke `vstest.console.exe` directly against the built DLL. Example: `"C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" src/RenderHelper/bin/Debug/net481/RenderHelper.dll /TestCaseFilter:"FullyQualifiedName~<scenarioName>"` (build first with `dotnet build src/RenderHelper/RenderHelper.csproj`).
 - **Static-setting tests** (`src/StaticSettingTests/`): isolated project that mutates process-wide settings on `DefaultFontSettings` (e.g. the render-locked default font). Runs single-threaded via `[assembly: ParallelLimiter<SingleThreaded>]` and a `[BeforeEvery(HookType.Test)]` hook in `ResetHook.cs` resets the static state between tests. Must stay in its own assembly so the `renderOccurred` latch does not leak from scenario tests. Run with `dotnet run --project src/StaticSettingTests`.
+
+### Excel references need an A4 printer
+
+**Excel cannot paginate without a printer driver, and it takes the paper size from the PRINTER, not
+from the workbook.** Word and PowerPoint have neither problem, so this bites only when regenerating
+`Inputs/excel/**/expected_*.png`.
+
+Two failure modes, the second far worse than the first:
+
+1. With no printer installed (or the Print Spooler stopped), `ExportAsFixedFormat` throws
+   *"No printers are installed"*.
+2. With a printer whose paper is Letter, Excel **silently exports Letter pages** — ignoring both
+   `PageSetup.PaperSize = xlPaperA4` set over COM (which reads back as A4 afterwards) and an
+   explicit `paperSize="9"` in the sheet XML. The references look perfectly correct and simply never
+   match the parser's A4 pages, which suppresses SSIM and skews the error metric rather than failing.
+
+The harness pins A4 (`DefaultPageSize.UseLetterSize = false` in the Tests `ModuleInitializer`), so the
+printer has to agree:
+
+```powershell
+Set-PrintConfiguration -PrinterName 'Microsoft Print to PDF' -PaperSize A4
+```
+
+`Microsoft Print to PDF` is the right driver — built into Windows and free of hard margins. Enabling
+it needs elevation:
+
+```powershell
+Enable-WindowsOptionalFeature -Online -FeatureName Printing-PrintToPDFServices-Features -All
+```
+
+After generating, confirm the pages really are A4 rather than trusting the run to have passed — at
+150 DPI an A4 page is 1240x1754 and at 96 DPI it is 794x1123, against Letter's 1056x1632 and 816x1056.
 
 ## Ad hoc Word probes
 

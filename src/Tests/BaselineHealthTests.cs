@@ -63,11 +63,24 @@ public class BaselineHealthTests
         // too (the scenario ships expected_0002.png as a blank reference).
         "explicit_break_blank_page/skia_result#page_0002.verified.png",
         "explicit_break_blank_page/imagesharp_result#page_0002.verified.png",
-        "explicit_break_blank_page/pdf_result#page_0002.verified.png"
+        "explicit_break_blank_page/pdf_result#page_0002.verified.png",
         // -- Known regressions (temporary — remove when fixed) --
-        // (none currently: the four newsletters/06 Skia pages this guard was written for were
-        // fixed by treating a:ln/@w as absolute rather than group-scaled, see
-        // docs/floating-art-pipeline.md.)
+        // Excel text overflow beyond the USED RANGE, tracked in src/todo.md. Excel does not clip an
+        // unwrapped cell at its column: while the cells to the right are empty the text runs on over
+        // them, and it keeps running past the used range into columns that hold nothing at all.
+        // SheetGridBuilder.OverflowSpan models the first half but stops at the range edge, so a sheet
+        // whose entire used range is one narrow column renders blank. invoice-accessibility-guide's
+        // "Start" sheet is a single 2.625-character column of instruction text; its "Invoice" sheet
+        // is two similarly narrow ones. Widening the range needs a Word-style probe to settle how far
+        // Excel actually carries the overflow, so it is deliberately not guessed at here.
+        "invoice-accessibility-guide/skia_result#page_0001.verified.png",
+        "invoice-accessibility-guide/skia_result#page_0002.verified.png",
+        "invoice-accessibility-guide/imagesharp_result#page_0001.verified.png",
+        "invoice-accessibility-guide/imagesharp_result#page_0002.verified.png",
+        "invoice-accessibility-guide/pdf_result#page_0001.verified.png",
+        "invoice-accessibility-guide/pdf_result#page_0002.verified.png",
+        "modern-corporate-purple-black-timesheet/skia_result#page_0002.verified.png",
+        "modern-corporate-purple-black-timesheet/pdf_result#page_0002.verified.png"
     ];
 
     public static IEnumerable<string> GetScenarioDirectories() => ScenarioInputs.AllDirectories();

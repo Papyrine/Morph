@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 595.280029296875,
+        "Height": 841.8900146484375,
+        "Text": "COMMERCIAL\nCompany Name INVOICE\nStreet Address, City, State, Zip/Postal Code Invoice No.: 10001\nWebsite, Email Invoice Date: 7/16/2026\nPhone Due Date: 7/16/2026\nBILL TO: SHIP TO:\nContact Name Contact Name\nClient Company Name Client Company Name\nAddress Address\nPhone Phone\nSHIP DATE SHIP VIA TOTAL PACKAGES TOTAL WEIGHT\nDESCRIPTION QUANTITY UNIT PRICE AMOUNT\nItem 1 description 1 $150.00 $150.00\nItem 2 description 2 $40.00 $80.00\nSHIPPING $5.00\nTOTAL $235.00\nI declare all the information contained in this invoice to be true and correct.\nSHIPPER DATE\nThank you for your business!"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.2009,
+      "Ssim": 0.7551,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 using Word = Microsoft.Office.Interop.Word;
 using PowerPoint = Microsoft.Office.Interop.PowerPoint;
+using Excel = Microsoft.Office.Interop.Excel;
 
 [TestFixture]
 [Explicit]
@@ -24,6 +25,12 @@ public class RenderExpectedTests
     // ScenarioInputs.Dpi(ScenarioFormat.PowerPoint) on the Tests side — a mismatch does not fail,
     // it silently suppresses SSIM and skews the error metric, because the images differ in size.
     const int powerPointDpi = 96;
+
+    string excelInputsPath = Path.Combine(ProjectFiles.SolutionDirectory, @"Tests\Inputs\excel");
+
+    // Both MUST match ScenarioInputs on the Tests side, for the same reason as the PowerPoint pair.
+    const int excelMaxPages = 2;
+    const int excelDpi = 96;
 
     [Test]
     public void GenerateExpectedImages()
@@ -133,7 +140,7 @@ public class RenderExpectedTests
     /// <paramref name="maxPages"/> caps the output (0 = no cap) for corpora whose scenarios are
     /// deliberately only partly baselined.
     /// </summary>
-    static int ConvertXpsToPng(string xpsPath, string outputDirectory, int maxPages = 0)
+    static int ConvertXpsToPng(string xpsPath, string outputDirectory, int maxPages = 0, int renderDpi = dpi)
     {
         using var xpsDoc = new XpsDocument(xpsPath, FileAccess.Read);
         var fixedDocSeq = xpsDoc.GetFixedDocumentSequence();
@@ -167,8 +174,8 @@ public class RenderExpectedTests
                     continue;
                 }
 
-                // Calculate pixel dimensions based on DPI
-                var scale = dpi / 96.0;
+                // XPS page units are 1/96 inch, so this is device pixels per XPS unit.
+                var scale = renderDpi / 96.0;
                 var widthPixels = (int)(page.Width * scale);
                 var heightPixels = (int)(page.Height * scale);
 
@@ -182,8 +189,8 @@ public class RenderExpectedTests
                 var renderBitmap = new RenderTargetBitmap(
                     widthPixels,
                     heightPixels,
-                    dpi,
-                    dpi,
+                    renderDpi,
+                    renderDpi,
                     PixelFormats.Pbgra32
                 );
 
@@ -326,6 +333,147 @@ public class RenderExpectedTests
     {
         var digits = new string(Path.GetFileNameWithoutExtension(path).Where(char.IsDigit).ToArray());
         return digits.Length > 0 ? int.Parse(digits) : 0;
+    }
+
+    /// <summary>
+    /// Exports a workbook to XPS — Excel's fixed-format equivalent of Word's <c>SaveAs2</c>.
+    ///
+    /// The paper size is pinned first, and that is the whole point of this method rather than an
+    /// aside. A worksheet that declares no <c>paperSize</c> — 72 of the corpus's 77 — makes Excel
+    /// fall back to the DEFAULT PRINTER's paper, so the page count and geometry of the reference
+    /// would depend on the machine that generated it. Every sheet in the corpus is A4 (72 by
+    /// default, 5 declaring code 9), so pinning A4 makes the export reproducible anywhere and match
+    /// what the parser resolves through DefaultPageSize.
+    ///
+    /// <c>PrintCommunication</c> is switched off around the loop because each PageSetup assignment
+    /// otherwise round-trips to the printer driver, which turns a fast operation into a slow one.
+    /// </summary>
+    static void ConvertXlsxToXps(Excel.Application app, string xlsxPath, string xpsPath)
+    {
+        Excel.Workbook? workbook = null;
+
+        try
+        {
+            workbook = app.Workbooks.Open(Path.GetFullPath(xlsxPath), ReadOnly: true, AddToMru: false);
+
+            app.PrintCommunication = false;
+            foreach (Excel.Worksheet sheet in workbook.Worksheets)
+            {
+                sheet.PageSetup.PaperSize = Excel.XlPaperSize.xlPaperA4;
+            }
+
+            app.PrintCommunication = true;
+
+            // Excel does NOT report an error when the active printer driver cannot do the requested
+            // paper — it quietly keeps the driver's own. That silence produced a full set of
+            // Letter-sized references that looked correct and could never match the parser's A4
+            // pages, so the assignment is read back and the run fails instead.
+            foreach (Excel.Worksheet sheet in workbook.Worksheets)
+            {
+                if (sheet.PageSetup.PaperSize != Excel.XlPaperSize.xlPaperA4)
+                {
+                    Assert.Fail(
+                        $"Sheet '{sheet.Name}' stayed on {sheet.PageSetup.PaperSize} after being set to A4. " +
+                        "The active printer driver does not offer A4 — install one that does " +
+                        "(Microsoft Print to PDF) and make it the default.");
+                }
+            }
+
+            if (File.Exists(xpsPath))
+            {
+                File.Delete(xpsPath);
+            }
+
+            // Print areas are honoured (IgnorePrintAreas: false), matching the parser. Every page is
+            // exported and the cap applied while rasterising, so a workbook with fewer pages than
+            // the cap needs no special case.
+            workbook.ExportAsFixedFormat(
+                Excel.XlFixedFormatType.xlTypeXPS,
+                Path.GetFullPath(xpsPath),
+                Excel.XlFixedFormatQuality.xlQualityStandard,
+                IncludeDocProperties: true,
+                IgnorePrintAreas: false,
+                OpenAfterPublish: false);
+        }
+        finally
+        {
+            if (workbook != null)
+            {
+                workbook.Close(false);
+                Marshal.ReleaseComObject(workbook);
+            }
+        }
+    }
+
+    static IEnumerable<string> GetExcelScenarioNames()
+    {
+        var inputsDir = Path.Combine(ProjectFiles.SolutionDirectory, @"Tests\Inputs\excel");
+        if (!Directory.Exists(inputsDir))
+        {
+            yield break;
+        }
+
+        foreach (var xlsxPath in Directory.GetFiles(inputsDir, "input.xlsx", SearchOption.AllDirectories))
+        {
+            yield return Path.GetDirectoryName(xlsxPath)!.Substring(inputsDir.Length + 1);
+        }
+    }
+
+    [Test]
+    [TestCaseSource(nameof(GetExcelScenarioNames))]
+    public void GenerateExpectedExcelImage(string scenarioName)
+    {
+        var testDir = Path.Combine(excelInputsPath, scenarioName);
+        var xlsxPath = Path.Combine(testDir, "input.xlsx");
+
+        if (!File.Exists(xlsxPath))
+        {
+            Assert.Fail($"Test file not found: {xlsxPath}");
+            return;
+        }
+
+        foreach (var file in Directory.GetFiles(testDir, "expected_*.png"))
+        {
+            File.Delete(file);
+        }
+
+        var xpsPath = Path.GetFullPath(Path.Combine(testDir, "temp_output.xps"));
+        ConvertXlsxToXps(ExcelApp(), xlsxPath, xpsPath);
+
+        var pageCount = ConvertXpsToPng(xpsPath, testDir, excelMaxPages, excelDpi);
+        Console.WriteLine($"Generated {pageCount} pages for {scenarioName}");
+
+        if (File.Exists(xpsPath))
+        {
+            File.Delete(xpsPath);
+        }
+    }
+
+    static Excel.Application? excelApp;
+
+    /// <summary>
+    /// The one Excel instance the fixture shares, for the same reason PowerPoint has one: creating
+    /// and quitting an Office application per test races against its single-instance COM server.
+    /// </summary>
+    static Excel.Application ExcelApp() =>
+        excelApp ??= new()
+        {
+            Visible = false,
+            DisplayAlerts = false,
+            ScreenUpdating = false
+        };
+
+    [OneTimeTearDown]
+    public void QuitExcel()
+    {
+        if (excelApp == null)
+        {
+            return;
+        }
+
+        excelApp.Quit();
+        Marshal.ReleaseComObject(excelApp);
+        excelApp = null;
     }
 
     static IEnumerable<string> GetPowerPointScenarioNames()

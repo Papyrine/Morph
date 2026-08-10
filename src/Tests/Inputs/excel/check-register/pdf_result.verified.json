@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 841.8900146484375,
+        "Height": 595.280029296875,
+        "Text": "√Check register\nNumber Date Description of transaction Clear Debit (-) Credit (+) Balance\n7/16/2026 Previous balance $1,016.16 $1,016.16\n1033 7/17/2026 Groceries √ $123.78 $892.38\n7/18/2026 Deposit, sweepstakes winnings $10,000.00 $10,892.38\n1034 7/19/2026 Dry cleaner $10.75 $10,881.63"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.4431,
+      "Ssim": 0.7809,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}
