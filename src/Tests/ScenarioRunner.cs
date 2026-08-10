@@ -25,7 +25,8 @@ static class ScenarioRunner
             new()
             {
                 FontDirectory = fontsDirectory,
-                Pages = ScenarioInputs.Pages(format)
+                Pages = ScenarioInputs.Pages(format),
+                Dpi = ScenarioInputs.Dpi(format)
             });
 
         var expectedFiles = Directory.GetFiles(directory, "expected_*.png")

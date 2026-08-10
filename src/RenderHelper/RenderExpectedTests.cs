@@ -17,7 +17,13 @@ public class RenderExpectedTests
     // Slides rendered per deck. MUST match ScenarioInputs.Pages(ScenarioFormat.PowerPoint) on the
     // Tests side: the scenario tests record a per-page metric only when the reference page count
     // equals the rendered page count, so a mismatch here silently drops the whole comparison.
-    const int powerPointMaxPages = 3;
+    const int powerPointMaxPages = 2;
+
+    // Slides render lower than documents: their fidelity is pictures and large-format layout rather
+    // than typography, and 96 resolves a 16:9 canvas to 1280x720 at 40% of the pixels. MUST match
+    // ScenarioInputs.Dpi(ScenarioFormat.PowerPoint) on the Tests side — a mismatch does not fail,
+    // it silently suppresses SSIM and skews the error metric, because the images differ in size.
+    const int powerPointDpi = 96;
 
     [Test]
     public void GenerateExpectedImages()
@@ -261,8 +267,8 @@ public class RenderExpectedTests
             // it is closed without saving below.
             presentation = presentations.Open(pptxPath, 0, 0, 0);
 
-            // PageSetup carries the slide box in points; match the raster DPI the DOCX references use.
-            var scale = dpi / 72.0;
+            // PageSetup carries the slide box in points.
+            var scale = powerPointDpi / 72.0;
             var widthPixels = (int) Math.Round((double) presentation.PageSetup.SlideWidth * scale);
             var heightPixels = (int) Math.Round((double) presentation.PageSetup.SlideHeight * scale);
 

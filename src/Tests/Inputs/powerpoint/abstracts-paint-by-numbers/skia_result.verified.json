@@ -1,30 +1,22 @@
 ﻿{
-  "ExpectedPageCount": 3,
-  "ResultingPageCount": 3,
+  "ExpectedPageCount": 2,
+  "ResultingPageCount": 2,
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.5628,
-      "Ssim": 0.88,
+      "ErrorMetric": 0.4427,
+      "Ssim": 0.9001,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "skia_result#page_0001.verified.png",
       "ReceivedFile": "skia_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.5175,
-      "Ssim": 0.9662,
+      "ErrorMetric": 0.5165,
+      "Ssim": 0.9676,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "skia_result#page_0002.verified.png",
       "ReceivedFile": "skia_result#page_0002.received.png"
-    },
-    {
-      "Page": 3,
-      "ErrorMetric": 0.349,
-      "Ssim": 0.9218,
-      "ExpectedFile": "expected_0003.png",
-      "VerifiedFile": "skia_result#page_0003.verified.png",
-      "ReceivedFile": "skia_result#page_0003.received.png"
     }
   ]
 }

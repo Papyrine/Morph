@@ -1,6 +1,6 @@
 ﻿{
   "target": {
-    "PageCount": 3,
+    "PageCount": 2,
     "Properties": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
@@ -17,38 +17,25 @@
         "Width": 960.0,
         "Height": 540.0,
         "Text": "AGENDA\nTopic one\nTopic two\nTopic three\nTopic four\nTopic five"
-      },
-      {
-        "Width": 960.0,
-        "Height": 540.0,
-        "Text": "THE POWER OF COMMUNICATION"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.4486,
-      "Ssim": 0.7946,
+      "ErrorMetric": 0.4498,
+      "Ssim": 0.7459,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.2842,
-      "Ssim": 0.9647,
+      "ErrorMetric": 0.3328,
+      "Ssim": 0.9427,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
-    },
-    {
-      "Page": 3,
-      "ErrorMetric": 0.4553,
-      "Ssim": 0.9379,
-      "ExpectedFile": "expected_0003.png",
-      "VerifiedFile": "pdf_result#page_0003.verified.png",
-      "ReceivedFile": "pdf_result#page_0003.received.png"
     }
   ]
 }

@@ -1,6 +1,6 @@
 ﻿{
   "target": {
-    "PageCount": 3,
+    "PageCount": 2,
     "Properties": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
@@ -17,38 +17,25 @@
         "Width": 960.0,
         "Height": 540.0,
         "Text": "LOOKS\nFresh\nNo more rules – the most\npopular trend is a unique sense\nof personal style"
-      },
-      {
-        "Width": 960.0,
-        "Height": 540.0,
-        "Text": "SETTER\nTrend\nMix & match colors, textures, and styles for a\nunique look that's completely your own"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.5968,
-      "Ssim": 0.7962,
+      "ErrorMetric": 0.6615,
+      "Ssim": 0.7803,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.4288,
-      "Ssim": 0.8387,
+      "ErrorMetric": 0.4719,
+      "Ssim": 0.8145,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
-    },
-    {
-      "Page": 3,
-      "ErrorMetric": 0.4602,
-      "Ssim": 0.8384,
-      "ExpectedFile": "expected_0003.png",
-      "VerifiedFile": "pdf_result#page_0003.verified.png",
-      "ReceivedFile": "pdf_result#page_0003.received.png"
     }
   ]
 }

@@ -1,6 +1,6 @@
 ﻿{
   "target": {
-    "PageCount": 3,
+    "PageCount": 2,
     "Properties": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
@@ -17,38 +17,25 @@
         "Width": 960.0,
         "Height": 540.0,
         "Text": "◦ 20XX\n◦ Sample Footer Text\n◦ ‹#›\nAgenda\nTopic one\nTopic two\nTopic three\nTopic four"
-      },
-      {
-        "Width": 960.0,
-        "Height": 540.0,
-        "Text": "◦ 20XX\n◦ Sample Footer Text ◦ ‹#›\nIntroduction\nWith PowerPoint, you can create presentations and share\nyour work with others, wherever they are. Type the text\nyou want here to get started. You can also add images,\nart, and videos on this template. Save to OneDrive and\naccess your presentations from your computer, tablet, or\nphone."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.4875,
-      "Ssim": 0.7125,
+      "ErrorMetric": 0.4871,
+      "Ssim": 0.6928,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.222,
-      "Ssim": 0.9463,
+      "ErrorMetric": 0.2477,
+      "Ssim": 0.9319,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
-    },
-    {
-      "Page": 3,
-      "ErrorMetric": 0.4667,
-      "Ssim": 0.8995,
-      "ExpectedFile": "expected_0003.png",
-      "VerifiedFile": "pdf_result#page_0003.verified.png",
-      "ReceivedFile": "pdf_result#page_0003.received.png"
     }
   ]
 }

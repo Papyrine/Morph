@@ -70,10 +70,12 @@ public class ExportScenarioTests
             .IgnoreParameters();
     }
 
-    // Render PDF pages at the same DPI VerifyPDFium uses (see VerifyPDFium.Initialize in
-    // ModuleInitializer) so the pixels measured here match the pdf_result#page_*.verified.png
-    // snapshots and the 150-DPI Word reference PNGs (expected_*.png) the metric compares against.
-    const double pdfRenderDpi = 150;
+    // Rasterise a PDF page at the DPI the scenario's reference images were rendered at, so the two
+    // are the same size and the metric is meaningful — a size mismatch suppresses SSIM outright.
+    // For documents this is 150, which also matches VerifyPDFium.Initialize in ModuleInitializer and
+    // so the pdf_result#page_*.verified.png snapshots; slides render lower (ScenarioInputs.Dpi), so
+    // for those the metric is measured at the lower size while the snapshot images stay at
+    // VerifyPDFium's process-wide 150.
 
     [Test]
     [MethodDataSource(nameof(Scenarios))]
@@ -95,7 +97,7 @@ public class ExportScenarioTests
         var expectedFiles = Directory.GetFiles(directory, "expected_*.png")
             .Order()
             .ToArray();
-        var diffs = PdfPageDiffs(pdf, expectedFiles);
+        var diffs = PdfPageDiffs(pdf, expectedFiles, ScenarioInputs.Dpi(ScenarioInputs.FormatOf(directory)));
 
         // PdfRenderer already pins every source of per-save variance (MakeDeterministic for the
         // dates and trailer /ID, Normalize for the font subset tags and XMP uuids), so letting
@@ -118,7 +120,7 @@ public class ExportScenarioTests
     // Mirrors ImageSharpScenarioTests.PageDiffs, but the pages come from rasterising the produced
     // PDF with the same PDFium engine VerifyPDFium uses. Null when the page count doesn't match the
     // Word reference (PDF pagination can differ), in which case no metric is recorded.
-    static List<PageDiff>? PdfPageDiffs(byte[] pdf, string[] expectedFiles)
+    static List<PageDiff>? PdfPageDiffs(byte[] pdf, string[] expectedFiles, double renderDpi)
     {
         using var document = PdfiumDocument.Load(pdf);
         if (expectedFiles.Length != document.PageCount)
@@ -130,7 +132,7 @@ public class ExportScenarioTests
         for (var page = 0; page < document.PageCount; page++)
         {
             var expectedFile = expectedFiles[page];
-            var rendered = document.RenderPage(page, pdfRenderDpi);
+            var rendered = document.RenderPage(page, renderDpi);
 
             var (errorMetric, ssim) = PageComparison.Compare(expectedFile, rendered);
             diffs.Add(new(page + 1, errorMetric, ssim, Path.GetFileName(expectedFile), $"pdf_result#page_{page + 1:0000}.verified.png", $"pdf_result#page_{page + 1:0000}.received.png"));

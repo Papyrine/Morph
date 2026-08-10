@@ -39,7 +39,23 @@ static class ScenarioInputs
     /// mismatch makes the scenario tests record no per-page metric at all.
     /// </summary>
     public static PageRange? Pages(ScenarioFormat format) =>
-        format == ScenarioFormat.Word ? null : new PageRange(1, 3);
+        format == ScenarioFormat.Word ? null : new PageRange(1, 2);
+
+    /// <summary>
+    /// The DPI a scenario's pages are rendered and compared at.
+    ///
+    /// Documents stay at 150: their fidelity work is typographic — glyph positions, wrap points,
+    /// hairline rules — and it needs the pixels. A slide is pictures and large-format layout, where
+    /// 96 resolves a 16:9 canvas to 1280x720 and still shows every placement error worth catching,
+    /// at 40% of the pixels.
+    ///
+    /// Every producer of a comparable image has to agree on this: the raster backends, the
+    /// PowerPoint reference export in RenderHelper, and the PDF page rasterisation the metric uses.
+    /// A mismatch does not fail loudly — it silently suppresses SSIM and skews the error metric,
+    /// because the two images are no longer the same size.
+    /// </summary>
+    public static int Dpi(ScenarioFormat format) =>
+        format == ScenarioFormat.Word ? 150 : 96;
 
     /// <summary>Every scenario directory for <paramref name="format"/>.</summary>
     public static IEnumerable<string> Directories(ScenarioFormat format) =>

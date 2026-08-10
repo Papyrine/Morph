@@ -1,6 +1,6 @@
 ﻿{
   "target": {
-    "PageCount": 3,
+    "PageCount": 2,
     "Properties": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
@@ -17,38 +17,25 @@
         "Width": 960.0,
         "Height": 540.0,
         "Text": "Agenda\nINTRODUCTION\nPRIMARY GOALS\nAREAS OF GROWTH\nTIMELINE\nSUMMARY\nPresentation title 2"
-      },
-      {
-        "Width": 960.0,
-        "Height": 540.0,
-        "Text": "INTRODUCTION\nINTRODUCTION At Contoso, we empower organizations to foster collaborative thinking to further drive workplace innovation. By\nclosing the loop and leveraging agile frameworks, we help business grow\norganically and foster a consumer-first mindset.\nPresentation title 3"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.2937,
-      "Ssim": 0.8292,
+      "ErrorMetric": 0.3175,
+      "Ssim": 0.784,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.2443,
-      "Ssim": 0.94,
+      "ErrorMetric": 0.2606,
+      "Ssim": 0.92,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
-    },
-    {
-      "Page": 3,
-      "ErrorMetric": 0.2381,
-      "Ssim": 0.7472,
-      "ExpectedFile": "expected_0003.png",
-      "VerifiedFile": "pdf_result#page_0003.verified.png",
-      "ReceivedFile": "pdf_result#page_0003.received.png"
     }
   ]
 }

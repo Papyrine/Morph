@@ -1,6 +1,6 @@
 ﻿{
   "target": {
-    "PageCount": 3,
+    "PageCount": 2,
     "Properties": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
@@ -17,38 +17,25 @@
         "Width": 960.0,
         "Height": 1280.0,
         "Text": "WHO IS\nDISRUPTING\nFASHION?\nSHOWS 2\nSALES\nShows to sales rates in the\nfashion industry have seen\na significant rise of 30% in\nthe last decade.\n32 %\nINCREASE\nin sustainable fashion\nbrands over the past\nfive years.\nONLINE\n65% of people shop\nonline for clothing,\nhighlighting the shift\ntowards e-commerce\nin the industry.\n1\nIN 3\nfashion companies report an\nincrease in sales after\nadopting inclusive sizing.\nSHOWS\ntypically have an average\nattendance of 500 to 1,000\nguests.\n$2Bn\n20YY 20YY\nEthically sourced 60%\nmaterials\nQ1 20XX\nEco-friendly 45%\nmaterials\nQ2 20XX\nCustomer return 24%\nrate\nQ3 20XX\nDisclaimer: The following statement is a fictional\ndisclaimer created for the purpose of this\nexercise and does not represent an actual\ncompany or its policies\nFabrikam does not guarantee specific results or outcomes from the use of its products. The\ninformation provided in this document is purely for entertainment purposes and should not be\nconstrued as professional advice. Fabrikam assumes no responsibility for any fashion choices made\nbased on the content presented here. Any resemblance to real companies or statistics is purely\ncoincidental.\nwww.fabrikam.com\ninfo@fabrikam.com\n208 555 0100"
-      },
-      {
-        "Width": 960.0,
-        "Height": 1280.0,
-        "Text": "WHO IS\nDISRUPTING\nFASHION?\n32 %\nINCREASE\nHIGHLIGHTS 65% of people shop\nonline for clothing.\nFashion designers used\nto create garments by\nhand.\nThe production process\nhas become faster and\nmore efficient.\n60%\nEthically sourced\nmaterials\nQ2 20XX\n45%\nEco-friendly\nmaterials\nQ20XX\nPROGRESS\n$2Bn\n20YY 20YY\nSHOWS 2 SALES\nShows to sales rates in the fashion industry have\nseen a significant rise of 30% in the last decade.\n1\nIN 3\nfashion companies report an increase in sales\nafter adopting inclusive sizing.\nDisclaimer: The following statement is a fictional\ndisclaimer created for the purpose of this\nexercise and does not represent an actual\ncompany or its policies\nFabrikam does not guarantee specific results or outcomes from the use of its products. The\ninformation provided in this document is purely for entertainment purposes and should not be\nconstrued as professional advice. Fabrikam assumes no responsibility for any fashion choices made\nbased on the content presented here. Any resemblance to real companies or statistics is purely\ncoincidental.\nwww.fabrikam.com\ninfo@fabrikam.com\n208 555 0100"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.9217,
-      "Ssim": 0.4013,
+      "ErrorMetric": 0.9311,
+      "Ssim": 0.3845,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.9377,
-      "Ssim": 0.3124,
+      "ErrorMetric": 0.9188,
+      "Ssim": 0.3034,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
-    },
-    {
-      "Page": 3,
-      "ErrorMetric": 0.9464,
-      "Ssim": 0.3189,
-      "ExpectedFile": "expected_0003.png",
-      "VerifiedFile": "pdf_result#page_0003.verified.png",
-      "ReceivedFile": "pdf_result#page_0003.received.png"
     }
   ]
 }

@@ -1,6 +1,6 @@
 ﻿{
   "target": {
-    "PageCount": 3,
+    "PageCount": 2,
     "Properties": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
@@ -17,38 +17,25 @@
         "Width": 960.0,
         "Height": 540.0,
         "Text": "Agenda Topic one\nTopic two\nTopic three\nTopic four\nTopic five\nS A M P L E F O O T E R T E X T 2"
-      },
-      {
-        "Width": 960.0,
-        "Height": 540.0,
-        "Text": "Introduction\nWith PowerPoint, you can create presentations and\nshare your work with others, wherever they are.\nType the text you want here to get started. You can\nalso add images, art, and videos on this template.\nSave to OneDrive and access your presentations\nfrom your computer, tablet, or phone.\nS A M P L E F O O T E R T E X T 3"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.9997,
-      "Ssim": 0.8946,
+      "ErrorMetric": 0.9999,
+      "Ssim": 0.8861,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.9155,
-      "Ssim": 0.6439,
+      "ErrorMetric": 0.9714,
+      "Ssim": 0.608,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
-    },
-    {
-      "Page": 3,
-      "ErrorMetric": 0.3291,
-      "Ssim": 0.8739,
-      "ExpectedFile": "expected_0003.png",
-      "VerifiedFile": "pdf_result#page_0003.verified.png",
-      "ReceivedFile": "pdf_result#page_0003.received.png"
     }
   ]
 }

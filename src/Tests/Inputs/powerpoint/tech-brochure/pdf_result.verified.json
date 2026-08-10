@@ -1,6 +1,6 @@
 ﻿{
   "target": {
-    "PageCount": 3,
+    "PageCount": 2,
     "Properties": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
@@ -17,38 +17,25 @@
         "Width": 792.0,
         "Height": 612.0,
         "Text": "Our services\nTailwind Traders offers a comprehensive\nrange of investment and trading services\ndesigned to meet the diverse needs of our\nclients.\nFrom wealth management and portfolio\nadvisory to equity trading and risk analysis,\nour team of experts leverages their in-depth\nmarket knowledge and cutting-edge\ntechnology to deliver tailored solutions that\noptimize returns and mitigate risks.\nOur team\nAt the heart of Tailwind Traders is our\nexceptional team of financial professionals\nwho possess a deep understanding of the\nmarkets and a passion for delivering\noutstanding client service.\nWith a diverse range of backgrounds and\nexpertise, our team combines analytical rigor\nwith strategic thinking to provide informed\ninvestment advice and execute sophisticated\ntrading strategies.\nOur team of\nexperts are here to\nhelp you develop\nsuccessful\nstrategies today for\na financially secure\ntomorrow."
-      },
-      {
-        "Width": 792.0,
-        "Height": 612.0,
-        "Text": "TAILWIND\nTRADERS\nI N V E S T I N Y O U R F U T U R E\nOur vision\nDriven by our vision, we are committed to\nfostering long-term relationships with our clients,\nbuilt on trust, transparency, and integrity.\nOur aim is to be the go-to resource for\ninvestment and trading expertise, empowering\nindividuals and businesses to make informed\nfinancial decisions and capitalize on market\nopportunities.\nWe envision a future where financial success is\nwithin reach for everyone, and we strive to make\nthat vision a reality.\nContact us\n4567 Main St \nBuffalo, NY 98052\n555-0100\ninfo@tailwindtraders.com\ntailwindtraders.com"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.4253,
-      "Ssim": 0.8969,
+      "ErrorMetric": 0.4368,
+      "Ssim": 0.8672,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.3847,
-      "Ssim": 0.8474,
+      "ErrorMetric": 0.3974,
+      "Ssim": 0.8279,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
-    },
-    {
-      "Page": 3,
-      "ErrorMetric": 0.3992,
-      "Ssim": 0.8904,
-      "ExpectedFile": "expected_0003.png",
-      "VerifiedFile": "pdf_result#page_0003.verified.png",
-      "ReceivedFile": "pdf_result#page_0003.received.png"
     }
   ]
 }
