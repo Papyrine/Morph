@@ -1387,9 +1387,19 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             lastContextual = false;
             lastStyleId = null;
 
-            // A table over 110% of a column's content height flows row by row (the raster backend's
-            // needsRowByRowRendering); otherwise it stays whole and moves as a unit if needed.
-            if (totalHeight > contentHeight * 1.10f)
+            // A table that cannot fit where it stands AND has no move available to rescue it flows row by
+            // row (the raster backend's needsRowByRowRendering). Two cases reach here. One is taller than
+            // 110% of a column's content height, so no region could hold it whole. The other is sitting AT
+            // a region top, where advancing is a no-op — every path below is gated on !atRegionTop, so a
+            // table that overruns from the top used to be drawn past the bottom margin and clipped at the
+            // paper edge, silently losing its tail and a page with it (Excel's basic-business-invoice: a
+            // 774pt sheet on 734pt of A4 content, one page rendered against Excel's two). Fit is judged
+            // with the SAME 2% slack every other break decision uses, so a table that squeezes under the
+            // shared rounding tolerance still stays whole.
+            // A table that merely misses the space LEFT is deliberately not routed here — the exact-row
+            // pre-advance and the whole-table move below get first refusal on it.
+            if (totalHeight > contentHeight * 1.10f ||
+                (atRegionTop && !HasSpaceFor(totalHeight)))
             {
                 PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth);
                 return;

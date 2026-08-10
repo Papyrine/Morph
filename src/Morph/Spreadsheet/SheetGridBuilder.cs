@@ -9,15 +9,8 @@ using S = DocumentFormat.OpenXml.Spreadsheet;
 /// unit of length. And merges are declared once, in a separate list, for a region the grid must then
 /// be told about cell by cell.
 /// </summary>
-sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, string defaultFont)
+sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, string defaultFont, double maxDigitWidthPixels)
 {
-    /// <summary>
-    /// Excel's column width counts '0' glyphs of the workbook's body font, so converting to a real
-    /// width needs that glyph's advance. 7px is the value for the 11pt Calibri-class fonts every
-    /// corpus workbook uses, at Excel's own 96 DPI reference; the extra 5px is the cell's fixed
-    /// padding (ECMA-376 §18.3.1.13).
-    /// </summary>
-    const double maxDigitWidthPixels = 7;
     const double cellPaddingPixels = 5;
     const double pointsPerPixel = 72.0 / 96.0;
 
@@ -360,7 +353,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
     /// Column widths in points, from the <c>cols</c> runs. Each <c>col</c> covers an inclusive
     /// <c>min..max</c> span rather than a single column, so the runs are expanded across the range.
     /// </summary>
-    static double[] ColumnWidths(S.Worksheet worksheet, SheetRange range, double scale)
+    double[] ColumnWidths(S.Worksheet worksheet, SheetRange range, double scale)
     {
         var declared = worksheet.GetFirstChild<S.Columns>()?.Elements<S.Column>().ToArray() ?? [];
         var fallback = worksheet.SheetFormatProperties?.DefaultColumnWidth?.Value ?? defaultColumnWidthChars;
@@ -387,7 +380,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
     /// The sheet's unscaled width, which is what the fit-to-page factor is computed against before
     /// any grid is built.
     /// </summary>
-    public static double NaturalWidthPoints(S.Worksheet worksheet, SheetRange range) =>
+    public double NaturalWidthPoints(S.Worksheet worksheet, SheetRange range) =>
         ColumnWidths(worksheet, range, 1).Sum();
 
     /// <summary>
@@ -413,8 +406,43 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         return total;
     }
 
-    static double ToPoints(double characters) =>
+    double ToPoints(double characters) =>
         characters <= 0
             ? 0
             : Math.Truncate(characters * maxDigitWidthPixels + cellPaddingPixels) * pointsPerPixel;
+
+    /// <summary>
+    /// Excel's column-width unit is the '0' glyph of the workbook's body font, measured in WHOLE
+    /// pixels at Excel's own 96 DPI reference, so converting a width to a length needs that glyph's
+    /// advance (ECMA-376 §18.3.1.13, which adds the cell's fixed 5px padding on top).
+    ///
+    /// This was a hardcoded 7 — Calibri 11's value, and the one every published worked example uses.
+    /// It is wrong for 36 of the 40 corpus workbooks, which are Arial, Georgia, Corbel, Segoe UI and
+    /// the like at 8 or 9. Getting it wrong does not merely misdraw the grid: a sheet that asks to be
+    /// fitted to the page has its scale computed from this width, so an under-measured sheet is
+    /// shrunk too little and comes out too TALL. check-register (Corbel 11) measured 14% narrow,
+    /// scaled to 81% where Excel scales to 70%, and overran an A4 landscape page by 8%.
+    ///
+    /// The advance is ROUNDED, not truncated. Calibri 11 is 7.434px and Corbel 11 is 7.534px — the
+    /// two land either side of the midpoint, and Excel's own renders put Calibri on 7 and Corbel on
+    /// 8 (check-register's reference scales to exactly the 70% an MDW of 8 implies, and its grid's
+    /// right edge lands within 2px of it). Truncation would put both on 7.
+    /// </summary>
+    public static double MaxDigitWidth(Func<string, bool, bool, FontMetrics?> resolveFont, string family, double sizePoints)
+    {
+        const double calibriFallback = 7;
+        if (resolveFont(family, false, false) is not { UnitsPerEm: > 0 } metrics)
+        {
+            return calibriFallback;
+        }
+
+        var units = metrics.AdvanceUnits('0');
+        if (units <= 0)
+        {
+            return calibriFallback;
+        }
+
+        var pixels = (double) units / metrics.UnitsPerEm * sizePoints / pointsPerPixel;
+        return Math.Max(1, Math.Round(pixels, MidpointRounding.AwayFromZero));
+    }
 }

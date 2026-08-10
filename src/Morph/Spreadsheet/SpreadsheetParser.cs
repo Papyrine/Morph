@@ -14,7 +14,7 @@ using S = DocumentFormat.OpenXml.Spreadsheet;
 /// are wide and do NOT ask to be fitted are scaled too, which is the one place this diverges from
 /// Excel — it under-sizes them instead of paginating sideways.
 /// </summary>
-sealed class SpreadsheetParser(string defaultFont)
+sealed class SpreadsheetParser(string defaultFont, string? fontDirectory = null)
 {
     const double pointsPerInch = 72.0;
 
@@ -56,7 +56,18 @@ sealed class SpreadsheetParser(string defaultFont)
         var themeColors = ThemeParser.ExtractThemeColors(workbookPart.ThemePart);
         var themeFonts = ThemeParser.ExtractThemeFonts(workbookPart.ThemePart);
         var styles = new CellStyles(workbookPart, themeColors);
-        var builder = new SheetGridBuilder(styles, new(workbookPart), defaultFont);
+
+        // The column-width unit is a glyph of the workbook's body font, so the grid cannot be sized
+        // without measuring it. The resolver is the layout engine's own, honouring FontDirectory, so
+        // the width the grid is built at comes from the same face the painter will draw with.
+        var (bodyFamily, bodySize) = styles.DefaultFont;
+        using var fontResolver = LayoutFonts.CreateResolver(fontDirectory, null);
+        var maxDigitWidth = SheetGridBuilder.MaxDigitWidth(
+            LayoutFonts.ToDelegate(fontResolver),
+            bodyFamily,
+            bodySize);
+
+        var builder = new SheetGridBuilder(styles, new(workbookPart), defaultFont, maxDigitWidth);
         var drawings = new SheetDrawingParser(
             themeColors,
             new(themeColors, themeFonts, defaultFont),
@@ -88,7 +99,7 @@ sealed class SpreadsheetParser(string defaultFont)
                 continue;
             }
 
-            var scale = ResolveScale(worksheet, bounds, settings);
+            var scale = ResolveScale(builder, worksheet, bounds, settings);
             var conditional = new ConditionalFormats(worksheet, workbookPart.WorkbookStylesPart?.Stylesheet, themeColors);
             var table = builder.Build(worksheet, bounds, scale, definedNames.PrintTitleRows(name), conditional);
             if (table == null)
@@ -264,7 +275,7 @@ sealed class SpreadsheetParser(string defaultFont)
     /// the grid is shrunk until it fits the page width. Never enlarges — Excel's fit-to-page only
     /// shrinks.
     /// </summary>
-    static double ResolveScale(S.Worksheet worksheet, SheetRange range, PageSettings settings)
+    static double ResolveScale(SheetGridBuilder builder, S.Worksheet worksheet, SheetRange range, PageSettings settings)
     {
         var setup = worksheet.GetFirstChild<S.PageSetup>();
 
@@ -286,7 +297,7 @@ sealed class SpreadsheetParser(string defaultFont)
 
         if (pagesWide > 0)
         {
-            var natural = SheetGridBuilder.NaturalWidthPoints(worksheet, range);
+            var natural = builder.NaturalWidthPoints(worksheet, range);
             var available = settings.ContentWidth * pagesWide;
             if (natural > available && natural > 0)
             {
