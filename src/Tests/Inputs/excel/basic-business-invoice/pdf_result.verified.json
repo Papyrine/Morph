@@ -1,16 +1,40 @@
 ﻿{
-  "PageCount": 1,
-  "Properties": {
-    "CreationDate": "DateTimeOffset_1",
-    "Creator": "Morph",
-    "ModDate": "DateTimeOffset_1",
-    "Producer": "PDFsharp 6.2.4"
+  "target": {
+    "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 595.280029296875,
+        "Height": 841.8900146484375,
+        "Text": "Company Name\nAddress, City, ST, ZIP code\nPhone number | Fax Number\nINVOICE # 100\nDate: Enter invoice date\nBILL TO FOR\nName | Company Product description\nAddress, City, ST, ZIP Code\nPhone\nITEM DESCRIPTION AMOUNT\nSubtotal $0.00\nTax rate\nAdditional costs\nTOTAL COST $0.00\nMake all checks payable to Company Name\nIf you have any questions concerning this invoice, use the following contact information:\nContact Name, Phone Number, Email\nTHANK YOU FOR YOUR BUSINESS!\nLOGO\nGOES\nHERE"
+      },
+      {
+        "Width": 595.280029296875,
+        "Height": 841.8900146484375
+      }
+    ]
   },
-  "Pages": [
+  "PageDiffs": [
     {
-      "Width": 595.280029296875,
-      "Height": 841.8900146484375,
-      "Text": "Company Name\nAddress, City, ST, ZIP code\nPhone number | Fax Number\nINVOICE # 100\nDate: Enter invoice date\nBILL TO FOR\nName | Company Product description\nAddress, City, ST, ZIP Code\nPhone\nITEM DESCRIPTION AMOUNT\nSubtotal $0.00\nTax rate\nAdditional costs\nTOTAL COST $0.00\nMake all checks payable to Company Name\nIf you have any questions concerning this invoice, use the following contact\ninformation:\nContact Name, Phone Number, Email\nTHANK YOU FOR YOUR BUSINESS!\nLOGO\nGOES\nHERE"
+      "Page": 1,
+      "ErrorMetric": 0.4517,
+      "Ssim": 0.8184,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0343,
+      "Ssim": 0.9948,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
     }
   ]
 }
