@@ -27,6 +27,20 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
     /// <summary>Excel's default row height for an 11pt body font.</summary>
     const double defaultRowHeightPoints = 15;
 
+    /// <summary>
+    /// What Excel auto-sizes a row to, as a multiple of its tallest font.
+    ///
+    /// Probe (<c>_probe_rowheight</c>: one row per font size, no declared height, row heights read
+    /// off the reference as the distance between successive ink bands) — 10pt to 12.75, 14pt to 18,
+    /// 18pt to 24, 24pt to 32.25, 36pt to 46.5. That is 1.275 to 1.344, averaging 1.31, and it also
+    /// squares with Excel's own 15pt default for an 11pt body font.
+    ///
+    /// The layout engine grows a row to the font's OpenType line height instead, around 1.2x, which
+    /// is 8% short. Small per row, but it compounds down a sheet: basic-business-invoice fitted 27
+    /// rows onto one page where Excel needs two.
+    /// </summary>
+    const double autoRowHeightFactor = 1.31;
+
     public TableElement? Build(S.Worksheet worksheet, SheetRange range, double scale, (int First, int Last)? titleRows, ConditionalFormats conditional)
     {
         var sheetData = worksheet.GetFirstChild<S.SheetData>();
@@ -119,7 +133,11 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         {
             Cells = cells,
             IsHeader = isHeader,
-            HeightPoints = row?.Height?.Value is { } height ? height * scale : defaultHeight,
+            // A declared height is used as given; an auto-height row takes Excel's own sizing rule
+            // rather than being left to the engine's OpenType line height, which runs short.
+            HeightPoints = row?.Height?.Value is { } height
+                ? height * scale
+                : Math.Max(defaultHeight, AutoRowHeight(cellsByColumn.Values) * scale),
             // customHeight="1" means the author fixed the height, and Excel then CLIPS wrapped text
             // to it rather than growing the row. Treating every height as a floor instead let one
             // sheet of paragraph-length text in a 2.6-character column grow into six blank pages,
@@ -127,6 +145,22 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             // auto-height row (no customHeight) grows to its content.
             IsExactHeight = row?.CustomHeight?.Value == true
         };
+    }
+
+    /// <summary>
+    /// The height Excel would auto-size a row to: its tallest font times
+    /// <see cref="autoRowHeightFactor"/>. Zero when the row holds nothing, leaving the sheet default.
+    /// </summary>
+    double AutoRowHeight(IEnumerable<S.Cell> cells)
+    {
+        var tallest = 0d;
+        foreach (var cell in cells)
+        {
+            var size = styles.Resolve(cell.StyleIndex?.Value ?? 0).FontSizePoints ?? styles.DefaultFont.SizePoints;
+            tallest = Math.Max(tallest, size);
+        }
+
+        return tallest * autoRowHeightFactor;
     }
 
     /// <summary>
