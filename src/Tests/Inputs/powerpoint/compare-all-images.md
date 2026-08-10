@@ -1,4 +1,4 @@
-# All scenarios (40)
+# All scenarios (37)
 
 <details>
 <summary>Contents</summary>
@@ -27,9 +27,7 @@
 - [leaf](#leaf)
 - [lines](#lines)
 - [luminous](#luminous)
-- [magazine-layout](#magazine-layout)
 - [memo](#memo)
-- [memorial-photo-album](#memorial-photo-album)
 - [minimalist-light-sales-pitch](#minimalist-light-sales-pitch)
 - [modern-company-overview](#modern-company-overview)
 - [music](#music)
@@ -42,7 +40,6 @@
 - [sketchlines](#sketchlines)
 - [succulents-paint-by-numbers](#succulents-paint-by-numbers)
 - [tech-brochure](#tech-brochure)
-- [torn](#torn)
 
 </details>
 
@@ -298,17 +295,6 @@
 | **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.3194 · SSIM: 0.8741** | **Page 3. ErrorMetric: 0.3932 · SSIM: 0.8793** |
 | <img src="luminous/expected_0003.png" width="500"> | <img src="luminous/skia_result%23page_0003.verified.png" width="500"> | <img src="luminous/imagesharp_result%23page_0003.verified.png" width="500"> |
 
-## magazine-layout
-
-| Expected (Word) | Skia | ImageSharp |
-| --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2720 · SSIM: 0.9330** | **Page 1. ErrorMetric: 0.2092 · SSIM: 0.9556** |
-| <img src="magazine-layout/expected_0001.png" width="500"> | <img src="magazine-layout/skia_result%23page_0001.verified.png" width="500"> | <img src="magazine-layout/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.4454 · SSIM: 0.8607** | **Page 2. ErrorMetric: 0.4439 · SSIM: 0.8664** |
-| <img src="magazine-layout/expected_0002.png" width="500"> | <img src="magazine-layout/skia_result%23page_0002.verified.png" width="500"> | <img src="magazine-layout/imagesharp_result%23page_0002.verified.png" width="500"> |
-| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.3520 · SSIM: 0.7152** | **Page 3. ErrorMetric: 0.3770 · SSIM: 0.7343** |
-| <img src="magazine-layout/expected_0003.png" width="500"> | <img src="magazine-layout/skia_result%23page_0003.verified.png" width="500"> | <img src="magazine-layout/imagesharp_result%23page_0003.verified.png" width="500"> |
-
 ## memo
 
 | Expected (Word) | Skia | ImageSharp |
@@ -319,17 +305,6 @@
 | <img src="memo/expected_0002.png" width="500"> | <img src="memo/skia_result%23page_0002.verified.png" width="500"> | <img src="memo/imagesharp_result%23page_0002.verified.png" width="500"> |
 | **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.2643 · SSIM: 0.8116** | **Page 3. ErrorMetric: 0.2761 · SSIM: 0.8609** |
 | <img src="memo/expected_0003.png" width="500"> | <img src="memo/skia_result%23page_0003.verified.png" width="500"> | <img src="memo/imagesharp_result%23page_0003.verified.png" width="500"> |
-
-## memorial-photo-album
-
-| Expected (Word) | Skia | ImageSharp |
-| --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2256 · SSIM: 0.9372** | **Page 1. ErrorMetric: 0.3086 · SSIM: 0.9072** |
-| <img src="memorial-photo-album/expected_0001.png" width="500"> | <img src="memorial-photo-album/skia_result%23page_0001.verified.png" width="500"> | <img src="memorial-photo-album/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.2513 · SSIM: 0.9145** | **Page 2. ErrorMetric: 0.3715 · SSIM: 0.9074** |
-| <img src="memorial-photo-album/expected_0002.png" width="500"> | <img src="memorial-photo-album/skia_result%23page_0002.verified.png" width="500"> | <img src="memorial-photo-album/imagesharp_result%23page_0002.verified.png" width="500"> |
-| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.3532 · SSIM: 0.8978** | **Page 3. ErrorMetric: 0.3477 · SSIM: 0.9056** |
-| <img src="memorial-photo-album/expected_0003.png" width="500"> | <img src="memorial-photo-album/skia_result%23page_0003.verified.png" width="500"> | <img src="memorial-photo-album/imagesharp_result%23page_0003.verified.png" width="500"> |
 
 ## minimalist-light-sales-pitch
 
@@ -462,15 +437,4 @@
 | <img src="tech-brochure/expected_0002.png" width="500"> | <img src="tech-brochure/skia_result%23page_0002.verified.png" width="500"> | <img src="tech-brochure/imagesharp_result%23page_0002.verified.png" width="500"> |
 | **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.4125 · SSIM: 0.8099** | **Page 3. ErrorMetric: 0.4103 · SSIM: 0.8915** |
 | <img src="tech-brochure/expected_0003.png" width="500"> | <img src="tech-brochure/skia_result%23page_0003.verified.png" width="500"> | <img src="tech-brochure/imagesharp_result%23page_0003.verified.png" width="500"> |
-
-## torn
-
-| Expected (Word) | Skia | ImageSharp |
-| --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.6199 · SSIM: 0.7251** | **Page 1. ErrorMetric: 0.7811 · SSIM: 0.7537** |
-| <img src="torn/expected_0001.png" width="500"> | <img src="torn/skia_result%23page_0001.verified.png" width="500"> | <img src="torn/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.9109 · SSIM: 0.2910** | **Page 2. ErrorMetric: 0.9603 · SSIM: 0.3086** |
-| <img src="torn/expected_0002.png" width="500"> | <img src="torn/skia_result%23page_0002.verified.png" width="500"> | <img src="torn/imagesharp_result%23page_0002.verified.png" width="500"> |
-| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.8160 · SSIM: 0.3412** | **Page 3. ErrorMetric: 0.9347 · SSIM: 0.3438** |
-| <img src="torn/expected_0003.png" width="500"> | <img src="torn/skia_result%23page_0003.verified.png" width="500"> | <img src="torn/imagesharp_result%23page_0003.verified.png" width="500"> |
 

@@ -1,4 +1,4 @@
-# All PDF export scenarios (40)
+# All PDF export scenarios (37)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -29,9 +29,7 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [leaf](#leaf)
 - [lines](#lines)
 - [luminous](#luminous)
-- [magazine-layout](#magazine-layout)
 - [memo](#memo)
-- [memorial-photo-album](#memorial-photo-album)
 - [minimalist-light-sales-pitch](#minimalist-light-sales-pitch)
 - [modern-company-overview](#modern-company-overview)
 - [music](#music)
@@ -44,7 +42,6 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [sketchlines](#sketchlines)
 - [succulents-paint-by-numbers](#succulents-paint-by-numbers)
 - [tech-brochure](#tech-brochure)
-- [torn](#torn)
 
 </details>
 
@@ -372,20 +369,6 @@ PDF: [Morph PDF](lines/pdf_result.verified.pdf)
 PDF: [Morph PDF](luminous/pdf_result.verified.pdf)
 
 
-## magazine-layout
-
-| Expected (Word) | Morph PDF |
-| --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2906 · SSIM: 0.9472** |
-| <img src="magazine-layout/expected_0001.png" width="500"> | <img src="magazine-layout/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.4504 · SSIM: 0.8548** |
-| <img src="magazine-layout/expected_0002.png" width="500"> | <img src="magazine-layout/pdf_result%23page_0002.verified.png" width="500"> |
-| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.3639 · SSIM: 0.7307** |
-| <img src="magazine-layout/expected_0003.png" width="500"> | <img src="magazine-layout/pdf_result%23page_0003.verified.png" width="500"> |
-
-PDF: [Morph PDF](magazine-layout/pdf_result.verified.pdf)
-
-
 ## memo
 
 | Expected (Word) | Morph PDF |
@@ -398,20 +381,6 @@ PDF: [Morph PDF](magazine-layout/pdf_result.verified.pdf)
 | <img src="memo/expected_0003.png" width="500"> | <img src="memo/pdf_result%23page_0003.verified.png" width="500"> |
 
 PDF: [Morph PDF](memo/pdf_result.verified.pdf)
-
-
-## memorial-photo-album
-
-| Expected (Word) | Morph PDF |
-| --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.3501 · SSIM: 0.8978** |
-| <img src="memorial-photo-album/expected_0001.png" width="500"> | <img src="memorial-photo-album/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.3560 · SSIM: 0.9060** |
-| <img src="memorial-photo-album/expected_0002.png" width="500"> | <img src="memorial-photo-album/pdf_result%23page_0002.verified.png" width="500"> |
-| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.3650 · SSIM: 0.8994** |
-| <img src="memorial-photo-album/expected_0003.png" width="500"> | <img src="memorial-photo-album/pdf_result%23page_0003.verified.png" width="500"> |
-
-PDF: [Morph PDF](memorial-photo-album/pdf_result.verified.pdf)
 
 
 ## minimalist-light-sales-pitch
@@ -580,19 +549,5 @@ PDF: [Morph PDF](succulents-paint-by-numbers/pdf_result.verified.pdf)
 | <img src="tech-brochure/expected_0003.png" width="500"> | <img src="tech-brochure/pdf_result%23page_0003.verified.png" width="500"> |
 
 PDF: [Morph PDF](tech-brochure/pdf_result.verified.pdf)
-
-
-## torn
-
-| Expected (Word) | Morph PDF |
-| --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.7073 · SSIM: 0.7060** |
-| <img src="torn/expected_0001.png" width="500"> | <img src="torn/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.9540 · SSIM: 0.2678** |
-| <img src="torn/expected_0002.png" width="500"> | <img src="torn/pdf_result%23page_0002.verified.png" width="500"> |
-| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.9175 · SSIM: 0.3311** |
-| <img src="torn/expected_0003.png" width="500"> | <img src="torn/pdf_result%23page_0003.verified.png" width="500"> |
-
-PDF: [Morph PDF](torn/pdf_result.verified.pdf)
 
 

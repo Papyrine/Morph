@@ -1,4 +1,4 @@
-# All HTML export scenarios (40)
+# All HTML export scenarios (37)
 
 The Word reference render (left) beside the HTML exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -29,9 +29,7 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [leaf](#leaf)
 - [lines](#lines)
 - [luminous](#luminous)
-- [magazine-layout](#magazine-layout)
 - [memo](#memo)
-- [memorial-photo-album](#memorial-photo-album)
 - [minimalist-light-sales-pitch](#minimalist-light-sales-pitch)
 - [modern-company-overview](#modern-company-overview)
 - [music](#music)
@@ -44,7 +42,6 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [sketchlines](#sketchlines)
 - [succulents-paint-by-numbers](#succulents-paint-by-numbers)
 - [tech-brochure](#tech-brochure)
-- [torn](#torn)
 
 </details>
 
@@ -192,23 +189,11 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | --- | --- |
 | <img src="luminous/expected_0001.png" width="500"><br><img src="luminous/expected_0002.png" width="500"><br><img src="luminous/expected_0003.png" width="500"> | <img src="luminous/html_result.verified.png" width="500"> |
 
-## magazine-layout
-
-| Expected (Word) | Morph HTML |
-| --- | --- |
-| <img src="magazine-layout/expected_0001.png" width="500"><br><img src="magazine-layout/expected_0002.png" width="500"><br><img src="magazine-layout/expected_0003.png" width="500"> | <img src="magazine-layout/html_result.verified.png" width="500"> |
-
 ## memo
 
 | Expected (Word) | Morph HTML |
 | --- | --- |
 | <img src="memo/expected_0001.png" width="500"><br><img src="memo/expected_0002.png" width="500"><br><img src="memo/expected_0003.png" width="500"> | <img src="memo/html_result.verified.png" width="500"> |
-
-## memorial-photo-album
-
-| Expected (Word) | Morph HTML |
-| --- | --- |
-| <img src="memorial-photo-album/expected_0001.png" width="500"><br><img src="memorial-photo-album/expected_0002.png" width="500"><br><img src="memorial-photo-album/expected_0003.png" width="500"> | <img src="memorial-photo-album/html_result.verified.png" width="500"> |
 
 ## minimalist-light-sales-pitch
 
@@ -281,10 +266,4 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | Expected (Word) | Morph HTML |
 | --- | --- |
 | <img src="tech-brochure/expected_0001.png" width="500"><br><img src="tech-brochure/expected_0002.png" width="500"><br><img src="tech-brochure/expected_0003.png" width="500"> | <img src="tech-brochure/html_result.verified.png" width="500"> |
-
-## torn
-
-| Expected (Word) | Morph HTML |
-| --- | --- |
-| <img src="torn/expected_0001.png" width="500"><br><img src="torn/expected_0002.png" width="500"><br><img src="torn/expected_0003.png" width="500"> | <img src="torn/html_result.verified.png" width="500"> |
 

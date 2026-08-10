@@ -64,10 +64,13 @@ static class BrowserScreenshot
             {
                 FullPage = true,
                 Type = ScreenshotType.Png,
-                // Playwright's 30s default is not enough for the image-heavy scenarios. A slide deck
-                // exports every slide's artwork inline as base64, so a photo album's Markdown is a
-                // single page tens of megabytes tall; three of them timed out mid-screenshot while
-                // rendering correctly. The wait is for the browser, not for Morph.
+                // Playwright's 30s default is too low for a slide deck's text export. Every slide's
+                // artwork is embedded inline as base64, so the page is a single strip tens of
+                // megabytes tall and the screenshot alone runs 30-60s. Which scenarios exceed the
+                // limit shifts between runs with scheduling — deleting the three that failed once
+                // simply moved the failure onto three others — so this is a capacity limit of the
+                // harness, not a property of particular decks. The wait is on the browser; Morph has
+                // already produced its output by this point.
                 Timeout = 180_000
             });
         }
