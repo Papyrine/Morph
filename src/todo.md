@@ -56,6 +56,31 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - **#35 Cell paragraph spacing lost in the HTML export.** Table cells render their paragraphs inline, joined by `<br />`, so a non-blank paragraph's before/after spacing (`w:spacing`) is dropped — only the single line break survives. Letter/résumé templates that keep the body in a cell and separate blocks with paragraph spacing (rather than empty paragraphs) therefore read tighter than Word: cover-letters/05/07/09/10/12, letters/12, newsletters/03, compatibility_mode_14's entry headings. EMPTY separator paragraphs now DO render as a one-line spacer in both the cell and body paths (`HtmlExporter.WriteParagraph` / `AppendCellContent`, `docs/word-features.md`), so blank-separated letters are faithful (cleared a dozen findings); the residual is purely non-zero before/after-spacing on non-blank cell paragraphs, which the inline `<br />` model can't carry. Body-level paragraphs are unaffected — their spacing rides on the `<p>` margin. Reworking cells from inline to block-with-margins would fix it but is the deliberately-avoided cell-model change noted in #31.
 - **#31 HTML/AltChunk input gaps.** Block-level CSS, named colours, image sizing, paragraph pitch and table styling all landed — the import model is documented in `docs/html-import.md`. Still open: cell-level inline formatting is flattened (`cell.TextContent` builds ONE run, so `<b>`/`<span style>` inside a cell lose their formatting); `margin-left` indents are ignored; shaded blocks render as full-width bands with no padding or border; `vertical-align` on cells is unmodelled; cell padding composes slightly tighter than Word.
 
+### Spreadsheet input (`Inputs/excel`)
+
+- **#36 Sheet drawings are pinned to the sheet's first page.** `SheetDrawingParser` emits every drawing
+  paragraph-anchored, ahead of the table, so each binds to the page the sheet starts on. A sheet that
+  paginates therefore keeps all of its art on page one. `invoice-accessibility-guide`'s first sheet is
+  the extreme case and now renders a BLANK second page: its grid is twelve cells of narrow column-A
+  text Excel all but clips away, and everything a reader sees — banner, contents list, thumbnail — is
+  drawing. Excel's `expected_0002.png` is a full landscape page (1573 unique colours, ink over rows
+  72-761). The three page-2 baselines are on `BaselineHealthTests.knownDegenerate` until this lands.
+  Fixing it means placing a drawing on the page its anchor rows fall on, rather than on the first.
+- **#37 Print centering is ignored.** `printOptions horizontalCentered` is set on **71 of the corpus's
+  77 sheets** (12 of those also `verticalCentered`) and nothing reads it, so every grid narrower than
+  the content box is drawn flush to the left margin where Excel centres it. Measured on
+  `basic-business-invoice`: Excel's ink spans x=101..716, the render's x=67..706 — the grid starts at
+  the margin instead of being centred. This is a whole-corpus horizontal offset and likely the single
+  largest remaining Excel error metric.
+- **#38 The fit-to-page scale is not quantised.** Excel's scale is a whole percent; the parser uses the
+  exact ratio. `check-register` computes 70.74% where Excel picks 70%, leaving the sheet 1.4% tall
+  (570px of ink against Excel's 562). Rounding DOWN to the whole percent would close it, but changes
+  every fitted sheet's geometry, so it wants its own measured pass.
+- **#39 No horizontal pagination.** A sheet wider than the page is scaled down rather than split into
+  left/right page strips. `to-do-list` spans A:Q asking for no `fitToPage`, so Excel prints two strips
+  and the render prints the left one and breaks vertically instead — landing on the right page count
+  for the wrong reason, with a near-empty second page (allow-listed in `BaselineHealthTests`).
+
 ### Word-reference (`expected_*.png`) anomalies worth re-checking rather than "fixing"
 
 - **#32** `newsletters/12` draws an olive stripe Word hides — verify against the DOCX before treating Word as wrong. (The `cards/04` half of this anomaly is resolved: the stray tree and bird flock were out-of-frame group children, removed by group-frame clipping — Word was right.)

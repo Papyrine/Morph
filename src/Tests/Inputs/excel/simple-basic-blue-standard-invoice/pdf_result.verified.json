@@ -11,15 +11,15 @@
       {
         "Width": 595.280029296875,
         "Height": 841.8900146484375,
-        "Text": "Invoice #: 123456789\nDue Date:\nInvoice\n7/16/2026 INVOICE\nDate:\n7/16/2026\nBill To: Bill From:\nName/Company Name Name/Company Name\nCity, State, Zip Code City, State, Zip Code\nEmail Email\nPhone Phone\nItem Name Description Price Quantity Total\nItem Name 1 Description\n1\n$50.00 14 $700.00\nItem Name 2 Description\n2\n$56.00 15 $840.00\nItem Name 3 Description\n3\n$78.00 11 $858.00\nItem Name 4 Description\n4\n$64.00 12 $768.00\nItem Name 5 Description\n5\n$55.00 13 $715.00\nSubtotal $3,881.00\nTax 5.00%\nTotal $4,075.05\nPayment Methods:\nBank Name\nAccount Number\nTerms & Conditions:"
+        "Text": "Invoice #: 123456789\nDue Date:\nInvoice Date:\n7/16/2026\n7/16/2026 INVOICE\nBill To: Bill From:\nName/Company Name Name/Company Name\nCity, State, Zip Code City, State, Zip Code\nEmail Email\nPhone Phone\nItem Name Description Price Quantity Total\nItem Name 1 Description 1 $50.00 14 $700.00\nItem Name 2 Description 2 $56.00 15 $840.00\nItem Name 3 Description 3 $78.00 11 $858.00\nItem Name 4 Description 4 $64.00 12 $768.00\nItem Name 5 Description 5 $55.00 13 $715.00\nSubtotal $3,881.00\nTax 5.00%\nTotal $4,075.05\nPayment Methods:\nBank Name\nAccount Number\nTerms & Conditions:"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.4029,
-      "Ssim": 0.758,
+      "ErrorMetric": 0.4079,
+      "Ssim": 0.7577,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

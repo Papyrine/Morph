@@ -1,4 +1,4 @@
-namespace Morph;
+﻿namespace Morph;
 
 /// <summary>
 /// Abstract base for the XLSX → raster converters (<c>SkiaExcelConverter</c> and
@@ -25,7 +25,7 @@ public abstract class ExcelConverter
         DefaultFontSettings.MarkRenderOccurred();
         Directory.CreateDirectory(outputDirectory);
 
-        var document = Parse(xlsxStream, options.DefaultFont);
+        var document = Parse(xlsxStream, options);
         var imagePaths = new List<string>();
 
         var pageIndex = 0;
@@ -56,7 +56,7 @@ public abstract class ExcelConverter
         options ??= new();
         DefaultFontSettings.MarkRenderOccurred();
 
-        var document = Parse(xlsxStream, options.DefaultFont);
+        var document = Parse(xlsxStream, options);
         var imageData = new List<byte[]>();
 
         RenderPages(
@@ -81,7 +81,7 @@ public abstract class ExcelConverter
 
     /// <summary>Converts an XLSX stream to a normalized semantic HTML fragment.</summary>
     public static string ConvertToHtml(Stream xlsxStream, HtmlExportOptions? options = null) =>
-        HtmlExporter.Export(Parse(xlsxStream, options?.DefaultFont), options);
+        HtmlExporter.Export(Parse(xlsxStream, options), options);
 
     /// <summary>Converts an XLSX file to Markdown.</summary>
     public static string ConvertToMarkdown(string xlsxPath, MarkdownExportOptions? options = null)
@@ -92,10 +92,19 @@ public abstract class ExcelConverter
 
     /// <summary>Converts an XLSX stream to Markdown.</summary>
     public static string ConvertToMarkdown(Stream xlsxStream, MarkdownExportOptions? options = null) =>
-        MarkdownExporter.Export(Parse(xlsxStream, options?.DefaultFont), options);
+        MarkdownExporter.Export(Parse(xlsxStream, options), options);
 
-    internal static ParsedDocument Parse(Stream xlsxStream, string? defaultFont) =>
-        new SpreadsheetParser(defaultFont ?? DefaultFontSettings.DefaultFont).Parse(xlsxStream);
+    /// <summary>
+    /// Parses a workbook. The font settings are needed at PARSE time, not only at render time:
+    /// Excel's column-width unit is a glyph of the workbook's body font, so the grid's geometry —
+    /// and through it the fit-to-page scale and the page count — depends on which face resolves.
+    /// </summary>
+    internal static ParsedDocument Parse(Stream xlsxStream, ExportOptions? options) =>
+        Parse(xlsxStream, options?.DefaultFont, options?.FontDirectory);
+
+    internal static ParsedDocument Parse(Stream xlsxStream, string? defaultFont, string? fontDirectory) =>
+        new SpreadsheetParser(defaultFont ?? DefaultFontSettings.DefaultFont, fontDirectory)
+            .Parse(xlsxStream);
 
     /// <summary>
     /// Renders a parsed workbook, invoking <paramref name="pageCallback"/> for each page.

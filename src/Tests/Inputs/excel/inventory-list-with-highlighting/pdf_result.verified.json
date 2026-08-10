@@ -11,28 +11,28 @@
       {
         "Width": 595.280029296875,
         "Height": 841.8900146484375,
-        "Text": "Inventory list\nPatheros Labs\nHighlight items to reorder? Yes\nFor reorder Inventory ID Name Description Unit price Quantity\nin stock Inventory value Reorder level Reorder time\nin days\nQuantity\nin reorder Discontinued?\n1 IN0001 Item 1 Desc 1 $51.00 25 $1,275 29 13 50\n1 IN0002 Item 2 Desc 2 $93.00 132 $12,276 231 4 50\n0 IN0003 Item 3 Desc 3 $57.00 151 $8,607 114 11 150\n0 IN0004 Item 4 Desc 4 $19.00 186 $3,534 158 6 50\n0 IN0005 Item 5 Desc 5 $75.00 62 $4,650 39 12 50\n1 IN0006 Item 6 Desc 6 $11.00 5 $55 9 13 150\n0 IN0007 Item 7 Desc 7 $56.00 58 $3,248 109 7 100 Yes\n1 IN0008 Item 8 Desc 8 $38.00 101 $3,838 162 3 100\n0 IN0009 Item 9 Desc 9 $59.00 122 $7,198 82 3 150\n1 IN0010 Item 10 Desc 10 $50.00 175 $8,750 283 8 150\n1 IN0011 Item 11 Desc 11 $59.00 176 $10,384 229 1 100\n1 IN0012 Item 12 Desc 12 $18.00 22 $396 36 12 50\n1 IN0013 Item 13 Desc 13 $26.00 72 $1,872 102 9 100\n1 IN0014 Item 14 Desc 14 $42.00 62 $2,604 83 2 100\n0 IN0015 Item 15 Desc 15 $32.00 46 $1,472 23 15 50\n1 IN0016 Item 16 Desc 16 $90.00 96 $8,640 180 3 50\n0 IN0017 Item 17 Desc 17 $97.00 57 $5,529 98 12 50 Yes\n1 IN0018 Item 18 Desc 18 $12.00 6 $72 7 13 50\n1 IN0019 Item 19 Desc 19 $82.00 143 $11,726 164 12 150\n0 IN0020 Item 20 Desc 20 $16.00 124 $1,984 113 14 50\n0 IN0021 Item 21 Desc 21 $19.00 112 $2,128 75 11 50\n0 IN0022 Item 22 Desc 22 $24.00 182 $4,368 132 15 150\n0 IN0023 Item 23 Desc 23 $29.00 106 $3,074 142 1 150 Yes\n0 IN0024 Item 24 Desc 24 $75.00 173 $12,975 127 9 100\n0 IN0025 Item 25 Desc 25 $14.00 28 $392 21 8 50"
+        "Text": "Inventory list\nPatheros Labs\nHighlight items to reorder? Yes\nFor reorder Inventory ID Name Description Unit price Quantity\nin stock Inventory value Reorder level Reorder time in\ndays\nQuantity\nin reorder Discontinued?\n1 IN0001 Item 1 Desc 1 $51.00 25 $1,275 29 13 50\n1 IN0002 Item 2 Desc 2 $93.00 132 $12,276 231 4 50\n0 IN0003 Item 3 Desc 3 $57.00 151 $8,607 114 11 150\n0 IN0004 Item 4 Desc 4 $19.00 186 $3,534 158 6 50\n0 IN0005 Item 5 Desc 5 $75.00 62 $4,650 39 12 50\n1 IN0006 Item 6 Desc 6 $11.00 5 $55 9 13 150\n0 IN0007 Item 7 Desc 7 $56.00 58 $3,248 109 7 100 Yes\n1 IN0008 Item 8 Desc 8 $38.00 101 $3,838 162 3 100\n0 IN0009 Item 9 Desc 9 $59.00 122 $7,198 82 3 150\n1 IN0010 Item 10 Desc 10 $50.00 175 $8,750 283 8 150\n1 IN0011 Item 11 Desc 11 $59.00 176 $10,384 229 1 100\n1 IN0012 Item 12 Desc 12 $18.00 22 $396 36 12 50\n1 IN0013 Item 13 Desc 13 $26.00 72 $1,872 102 9 100\n1 IN0014 Item 14 Desc 14 $42.00 62 $2,604 83 2 100\n0 IN0015 Item 15 Desc 15 $32.00 46 $1,472 23 15 50\n1 IN0016 Item 16 Desc 16 $90.00 96 $8,640 180 3 50\n0 IN0017 Item 17 Desc 17 $97.00 57 $5,529 98 12 50 Yes\n1 IN0018 Item 18 Desc 18 $12.00 6 $72 7 13 50\n1 IN0019 Item 19 Desc 19 $82.00 143 $11,726 164 12 150\n0 IN0020 Item 20 Desc 20 $16.00 124 $1,984 113 14 50\n0 IN0021 Item 21 Desc 21 $19.00 112 $2,128 75 11 50\n0 IN0022 Item 22 Desc 22 $24.00 182 $4,368 132 15 150\n0 IN0023 Item 23 Desc 23 $29.00 106 $3,074 142 1 150 Yes\n0 IN0024 Item 24 Desc 24 $75.00 173 $12,975 127 9 100\n0 IN0025 Item 25 Desc 25 $14.00 28 $392 21 8 50"
       },
       {
         "Width": 595.280029296875,
         "Height": 841.8900146484375,
-        "Text": "Inventory list\nPatheros Labs\nHighlight items to reorder? Yes\nFor reorder Inventory ID Name Description Unit price Quantity\nin stock Inventory value Reorder level Reorder time\nin days\nQuantity\nin reorder Discontinued?"
+        "Text": "Inventory list\nPatheros Labs\nHighlight items to reorder? Yes\nFor reorder Inventory ID Name Description Unit price Quantity\nin stock Inventory value Reorder level Reorder time in\ndays\nQuantity\nin reorder Discontinued?"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.7694,
-      "Ssim": 0.7989,
+      "ErrorMetric": 0.7664,
+      "Ssim": 0.8106,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.7698,
-      "Ssim": 0.9451,
+      "ErrorMetric": 0.7748,
+      "Ssim": 0.9514,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

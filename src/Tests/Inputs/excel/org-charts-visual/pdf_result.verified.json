@@ -11,7 +11,7 @@
       {
         "Width": 841.8900146484375,
         "Height": 595.280029296875,
-        "Text": "Organizational charts\nLayered 5 level > Sub-layered 5 level >\nUse to show hierarchical information or relationships in an\norganization. This does not utilize SmartArt and is created\nwith only cells and formatting.\nUse to show hierarchical information or relationships in an organization.\nThis does not utilize SmartArt and is created with only cells and\nformatting."
+        "Text": "Organizational charts\nLayered 5 level > Sub-layered 5 level >\nUse to show hierarchical information or relationships in an\norganization. This does not utilize SmartArt and is created with only\ncells and formatting.\nUse to show hierarchical information or relationships in an organization. This does\nnot utilize SmartArt and is created with only cells and formatting."
       },
       {
         "Width": 841.8900146484375,
@@ -23,16 +23,16 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.3861,
-      "Ssim": 0.9218,
+      "ErrorMetric": 0.361,
+      "Ssim": 0.9272,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.1637,
-      "Ssim": 0.9168,
+      "ErrorMetric": 0.14,
+      "Ssim": 0.9229,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
