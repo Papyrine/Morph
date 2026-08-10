@@ -204,7 +204,7 @@ sealed class SpreadsheetParser(string defaultFont)
 
         var shaped = worksheet.GetFirstChild<S.Columns>()?
             .Elements<S.Column>()
-            .Where(_ => _.CustomWidth?.Value == true && _.Max?.Value is { } max && max < maxShapedColumn)
+            .Where(_ => _.CustomWidth?.Value == true && _.Max?.Value is < maxShapedColumn)
             .Select(_ => (int) _.Max!.Value)
             .DefaultIfEmpty(0)
             .Max() ?? 0;

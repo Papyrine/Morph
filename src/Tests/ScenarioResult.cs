@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 public class ScenarioResult
 {
     public int ExpectedPageCount { get; set; }

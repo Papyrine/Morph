@@ -1,7 +1,3 @@
-using System.Reflection;
-
-namespace Morph;
-
 /// <summary>
 /// Locates an <see cref="ImageCodec"/> from whichever raster backend is deployed, so core
 /// <c>Morph</c> can recompress images without a compile-time dependency on an imaging library.

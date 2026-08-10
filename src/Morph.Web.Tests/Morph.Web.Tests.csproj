@@ -31,10 +31,10 @@
     <ProjectReference Include="..\Morph.Web\Morph.Web.csproj" />
   </ItemGroup>
 
-  <!-- The service/bUnit tests need a real DOCX and the Aptos faces the PDF export resolves against;
-       copy both out of the web app so the tests are self-contained. -->
+  <!-- The service/bUnit tests need a real file of each readable format and the Aptos faces the PDF
+       export resolves against; copy both out of the web app so the tests are self-contained. -->
   <ItemGroup>
-    <Content Include="..\Morph.Web\wwwroot\sample\sample.docx" Link="sample.docx" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\Morph.Web\wwwroot\sample\sample.*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\Morph.Web\wwwroot\fonts\*.ttf" Link="fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

@@ -104,7 +104,7 @@ static partial class NumberFormat
                 continue;
             }
 
-            if ((ch == '\\' || ch == '_' || ch == '*') && i + 1 < body.Length)
+            if (ch is '\\' or '_' or '*' && i + 1 < body.Length)
             {
                 i++;
                 inRun = false;
@@ -367,7 +367,7 @@ static partial class NumberFormat
 
             // An escaped or width-reserved character is a literal, not a sign: the "_)" that pads an
             // accounting positive must not be read as the parenthesis of a negative.
-            if (!quoted && (ch == '\\' || ch == '_') && i + 1 < body.Length)
+            if (!quoted && ch is '\\' or '_' && i + 1 < body.Length)
             {
                 i++;
                 continue;

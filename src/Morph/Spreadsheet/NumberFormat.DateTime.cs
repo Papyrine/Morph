@@ -153,7 +153,7 @@ static partial class NumberFormat
             _ => 0
         };
 
-        return ((long) value).ToString(new string('0', Math.Max(1, digits)), CultureInfo.InvariantCulture);
+        return ((long) value).ToString(new('0', Math.Max(1, digits)), CultureInfo.InvariantCulture);
     }
 
     static string Month(int month, int run) =>

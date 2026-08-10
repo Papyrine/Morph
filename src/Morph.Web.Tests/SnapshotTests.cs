@@ -97,34 +97,27 @@ public class SnapshotTests
         await page.GotoAsync($"http://localhost:{port}/");
         await SettleAsync(page);
 
-        await page.SetInputFilesAsync("#docx-file", new FilePayload
-        {
-            Name = "sample.docx",
-            MimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            Buffer = Sample.DocxBytes
-        });
+        await UploadSampleAsync(page, InputFormat.Docx);
 
-        var image = await page.WaitForSelectorAsync(
-            ".preview-page",
-            new()
-            {
-                Timeout = 90000
-            });
+        var image = await page.QuerySelectorAsync(".preview-page");
         var source = await image!.GetAttributeAsync("src");
 
         await Assert.That(source).StartsWith("data:image/png");
     }
 
-    // The sample document is bundled as a static web asset; clicking "Try a sample document" fetches,
-    // reads and renders it off the UI thread — the same pipeline as an upload but sourced from the asset.
+    // One sample per readable format is bundled as a static web asset; clicking its button fetches, reads
+    // and renders it off the UI thread — the same pipeline as an upload but sourced from the asset. Run
+    // for all three inputs because each routes through a different Morph parser, and the published build
+    // is trimmed: a source whose parser lost a type it reflects on fails only here.
     [Test]
-    public async Task SampleDocumentRendersPreview()
+    [MethodDataSource(typeof(Sample), nameof(Sample.Formats))]
+    public async Task SampleRendersPreview(InputFormat source)
     {
         var page = await browser!.NewPageAsync();
         await page.GotoAsync($"http://localhost:{port}/");
         await SettleAsync(page);
 
-        await page.ClickAsync(".sample-btn");
+        await page.ClickAsync(SampleButton(source));
 
         var image = await page.WaitForSelectorAsync(
             ".preview-page",
@@ -132,9 +125,9 @@ public class SnapshotTests
             {
                 Timeout = 90000
             });
-        var source = await image!.GetAttributeAsync("src");
+        var url = await image!.GetAttributeAsync("src");
 
-        await Assert.That(source).StartsWith("data:image/png");
+        await Assert.That(url).StartsWith("data:image/png");
     }
 
     // The Download button runs the actual conversion (off the UI thread) and hands the bytes to the
@@ -280,19 +273,24 @@ public class SnapshotTests
         await Verify(page);
     }
 
-    static async Task UploadSampleAsync(IPage page)
+    static async Task UploadSampleAsync(IPage page, InputFormat source = InputFormat.Docx)
     {
-        await page.SetInputFilesAsync("#docx-file", new FilePayload
+        var info = ConversionService.Find(source);
+        await page.SetInputFilesAsync("#source-file", new FilePayload
         {
-            Name = "sample.docx",
-            MimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            Buffer = Sample.DocxBytes
+            Name = info.SampleFileName,
+            MimeType = info.ContentType,
+            Buffer = Sample.BytesFor(source)
         });
         await page.WaitForSelectorAsync(".preview-page", new()
         {
             Timeout = 90000
         });
     }
+
+    // The sample buttons render in ReadableFormats order, so the format's index picks its button.
+    static string SampleButton(InputFormat source) =>
+        $".sample-btn:nth-of-type({ConversionService.ReadableFormats.ToList().FindIndex(_ => _.Format == source) + 1})";
 
     // Waits for the app to be fully settled before a snapshot: the upload UI present, every asset loaded,
     // and web fonts rendered — so the captured screenshot is the deterministic settled page rather than a

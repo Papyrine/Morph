@@ -5,8 +5,8 @@ public class SkiaExcelScenarioTests
 
     [Test]
     [MethodDataSource(nameof(GetScenarioDirectories))]
-    public async Task Scenario(string directory) =>
-        await ScenarioRunner.Run(
+    public Task Scenario(string directory) =>
+        ScenarioRunner.Run(
             directory,
             ScenarioFormat.Excel,
             "skia_result",

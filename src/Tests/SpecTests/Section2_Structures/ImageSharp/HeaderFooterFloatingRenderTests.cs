@@ -1,6 +1,4 @@
 ﻿extern alias ImageSharp;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 /// <summary>
 /// ImageSharp counterpart of the Skia <c>HeaderFooterFloatingRenderTests</c>.

@@ -9,7 +9,7 @@ A .NET library that converts Microsoft Word DOCX documents or HTML content into 
 
 Either input can produce any of the four outputs, and a document is parsed once no matter how many formats it is exported to.
 
-**[Try it live in the browser](https://morph.papyrine.org/)** — a Blazor WebAssembly app that converts a DOCX to PNG, PDF, Markdown or plain text client-side, built on `Morph.ImageSharp` and `Morph.Pdf`.
+**[Try it live in the browser](https://morph.papyrine.org/)** — a Blazor WebAssembly app that converts a DOCX, XLSX or PPTX to PNG, PDF, HTML, Markdown or plain text client-side, built on `Morph.ImageSharp` and `Morph.Pdf`.
 
 
 ## Open Source Maintenance Fee

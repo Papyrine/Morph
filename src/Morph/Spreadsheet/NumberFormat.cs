@@ -25,7 +25,7 @@ static partial class NumberFormat
 
     /// <summary>Formats <paramref name="value"/>, or returns text unchanged when the cell holds a string.</summary>
     public static FormattedValue Format(double value, string? formatCode) =>
-        FormatCore(value, string.IsNullOrEmpty(formatCode) ? "General" : formatCode!);
+        FormatCore(value, string.IsNullOrEmpty(formatCode) ? "General" : formatCode);
 
     /// <summary>Formats a text cell: only the fourth section, if present, applies.</summary>
     public static FormattedValue FormatText(string text, string? formatCode)
@@ -35,7 +35,7 @@ static partial class NumberFormat
             return new(text, null);
         }
 
-        var sections = Split(formatCode!);
+        var sections = Split(formatCode);
         if (sections.Count < 4)
         {
             return new(text, null);
@@ -181,7 +181,11 @@ static partial class NumberFormat
                 continue;
             }
 
-            if ((ch == '\\' || ch == '_' || ch == '*') && i + 1 < body.Length)
+            if (ch is
+                    '\\' or
+                    '_' or
+                    '*' &&
+                i + 1 < body.Length)
             {
                 i++;
                 continue;
@@ -319,7 +323,7 @@ static partial class NumberFormat
                 var conditionMatch = ConditionPattern.Match(body);
                 if (conditionMatch.Success)
                 {
-                    condition ??= new Condition(
+                    condition ??= new(
                         conditionMatch.Groups["op"].Value,
                         double.Parse(conditionMatch.Groups["value"].Value, CultureInfo.InvariantCulture));
                     body = body[conditionMatch.Length..];

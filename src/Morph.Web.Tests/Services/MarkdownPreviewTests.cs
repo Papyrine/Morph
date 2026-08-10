@@ -45,5 +45,5 @@ public class MarkdownPreviewTests
     // swapped for a size note — small enough to snapshot readably (the raw export is ~430 KB).
     [Test]
     public Task PaneView_Snapshot() =>
-        Verify(MarkdownPreview.ElideImages(ConversionService.ToMarkdown(Sample.DocxBytes)), extension: "txt");
+        Verify(MarkdownPreview.ElideImages(ConversionService.ToMarkdown(Sample.DocxBytes, InputFormat.Docx)), extension: "txt");
 }

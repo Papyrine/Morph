@@ -15,7 +15,7 @@ static class CellReference
         }
 
         var column = 0;
-        foreach (var ch in reference!)
+        foreach (var ch in reference)
         {
             var upper = char.ToUpperInvariant(ch);
             if (upper is < 'A' or > 'Z')
@@ -37,7 +37,7 @@ static class CellReference
             return 0;
         }
 
-        var digits = new string(reference!.SkipWhile(char.IsAsciiLetter).TakeWhile(char.IsAsciiDigit).ToArray());
+        var digits = new string(reference.SkipWhile(char.IsAsciiLetter).TakeWhile(char.IsAsciiDigit).ToArray());
         return int.TryParse(digits, out var row) ? row : 0;
     }
 
@@ -50,7 +50,7 @@ static class CellReference
         }
 
         // A range may be sheet-qualified ('My Sheet'!$B$2:$F$19) and is usually absolute.
-        var bare = reference!;
+        var bare = reference;
         var bang = bare.LastIndexOf('!');
         if (bang >= 0)
         {
