@@ -2182,30 +2182,15 @@ sealed class DocumentParser(string defaultFont)
             // Look for table properties in the style
             var tblPr = style.StyleTableProperties;
 
-            CellBorders cellBorders = new();
-            var insideH = BorderEdge.None;
-            var insideV = BorderEdge.None;
+            // Borders come from the w:basedOn chain, per side, like the cell padding below — a house
+            // style that adds only conditional formatting on top of a base carrying the grid would
+            // otherwise render with no rules at all.
+            var (cellBorders, insideH, insideV) = ResolveStyleBorders(style, tableStylesById);
             var colBandSize = 1;
             var rowBandSize = 1;
 
             if (tblPr != null)
             {
-                // Look for tblBorders in the table properties
-                var borders = tblPr.GetFirstChild<TableBorders>();
-                if (borders != null)
-                {
-                    cellBorders = new()
-                    {
-                        Top = ParseBorderEdge(borders.GetFirstChild<TopBorder>()),
-                        Right = ParseBorderEdge(borders.GetFirstChild<RightBorder>()),
-                        Bottom = ParseBorderEdge(borders.GetFirstChild<BottomBorder>()),
-                        Left = ParseBorderEdge(borders.GetFirstChild<LeftBorder>())
-                    };
-
-                    insideH = ParseBorderEdge(borders.GetFirstChild<InsideHorizontalBorder>());
-                    insideV = ParseBorderEdge(borders.GetFirstChild<InsideVerticalBorder>());
-                }
-
                 var colBand = tblPr.GetFirstChild<TableStyleColumnBandSize>();
                 if (colBand?.Val?.HasValue == true)
                 {
@@ -2313,6 +2298,68 @@ sealed class DocumentParser(string defaultFont)
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Resolves a table style's <c>w:tblBorders</c> by walking the <c>w:basedOn</c> chain and taking each
+    /// side from the NEAREST ancestor that declares it, exactly as <see cref="ResolveStyleCellPadding"/>
+    /// does for the cell margins.
+    ///
+    /// A style's own <c>w:tblPr</c> is frequently empty: the common template shape is a base style that
+    /// carries the grid (top/bottom/insideH, say) and a per-variant style based on it that adds nothing
+    /// but a <c>w:tblStylePr</c> header colour. Reading only the leaf's own borders dropped every rule in
+    /// such a table — the header band still painted, so the table looked deliberately borderless rather
+    /// than broken.
+    ///
+    /// A side declared as <c>w:val="none"</c> STOPS the walk for that side rather than falling through:
+    /// that is a derived style switching a base's rule off, and Word honours it.
+    /// </summary>
+    internal (CellBorders Outer, BorderEdge InsideH, BorderEdge InsideV) ResolveStyleBorders(Style style, Dictionary<string, Style> tableStylesById)
+    {
+        var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var current = style;
+        BorderType? top = null, right = null, bottom = null, left = null, insideH = null, insideV = null;
+        while (current != null)
+        {
+            if (current.StyleId?.Value is { } id && !visited.Add(id))
+            {
+                break;
+            }
+
+            var borders = current.StyleTableProperties?.GetFirstChild<TableBorders>();
+            if (borders != null)
+            {
+                top ??= borders.GetFirstChild<TopBorder>();
+                right ??= borders.GetFirstChild<RightBorder>();
+                bottom ??= borders.GetFirstChild<BottomBorder>();
+                left ??= borders.GetFirstChild<LeftBorder>();
+                insideH ??= borders.GetFirstChild<InsideHorizontalBorder>();
+                insideV ??= borders.GetFirstChild<InsideVerticalBorder>();
+
+                if (top != null && right != null && bottom != null && left != null && insideH != null && insideV != null)
+                {
+                    break;
+                }
+            }
+
+            var basedOnId = current.BasedOn?.Val?.Value;
+            if (basedOnId == null || !tableStylesById.TryGetValue(basedOnId, out var baseStyle))
+            {
+                break;
+            }
+
+            current = baseStyle;
+        }
+
+        var outer = new CellBorders
+        {
+            Top = ParseBorderEdge(top),
+            Right = ParseBorderEdge(right),
+            Bottom = ParseBorderEdge(bottom),
+            Left = ParseBorderEdge(left)
+        };
+
+        return (outer, ParseBorderEdge(insideH), ParseBorderEdge(insideV));
     }
 
     /// <summary>

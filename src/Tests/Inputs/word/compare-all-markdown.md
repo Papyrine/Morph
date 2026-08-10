@@ -1,4 +1,4 @@
-# All Markdown export scenarios (325)
+# All Markdown export scenarios (326)
 
 The Word reference render (left) beside the Markdown exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -126,6 +126,7 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [header](#header)
 - [header_banner_table](#header_banner_table)
 - [header_footer](#header_footer)
+- [header_full_bleed_banner](#header_full_bleed_banner)
 - [header_row_repeat/01](#header_row_repeat01)
 - [headings](#headings)
 - [html_basic_formatting](#html_basic_formatting)
@@ -1058,6 +1059,12 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | Expected (Word) | Morph Markdown |
 | --- | --- |
 | <img src="header_footer/expected_0001.png" width="500"><br><img src="header_footer/expected_0002.png" width="500"> | <img src="header_footer/md_result.verified.png" width="500"> |
+
+## header_full_bleed_banner
+
+| Expected (Word) | Morph Markdown |
+| --- | --- |
+| <img src="header_full_bleed_banner/expected_0001.png" width="500"><br><img src="header_full_bleed_banner/expected_0002.png" width="500"> | <img src="header_full_bleed_banner/md_result.verified.png" width="500"> |
 
 ## header_row_repeat/01
 

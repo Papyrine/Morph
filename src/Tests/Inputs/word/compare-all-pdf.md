@@ -1,4 +1,4 @@
-# All PDF export scenarios (325)
+# All PDF export scenarios (326)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -126,6 +126,7 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [header](#header)
 - [header_banner_table](#header_banner_table)
 - [header_footer](#header_footer)
+- [header_full_bleed_banner](#header_full_bleed_banner)
 - [header_row_repeat/01](#header_row_repeat01)
 - [headings](#headings)
 - [html_basic_formatting](#html_basic_formatting)
@@ -1791,6 +1792,18 @@ PDF: [Morph PDF](header_banner_table/pdf_result.verified.pdf)
 PDF: [Morph PDF](header_footer/pdf_result.verified.pdf)
 
 
+## header_full_bleed_banner
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0752 · SSIM: 0.8732** |
+| <img src="header_full_bleed_banner/expected_0001.png" width="500"> | <img src="header_full_bleed_banner/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0563 · SSIM: 0.9056** |
+| <img src="header_full_bleed_banner/expected_0002.png" width="500"> | <img src="header_full_bleed_banner/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](header_full_bleed_banner/pdf_result.verified.pdf)
+
+
 ## header_row_repeat/01
 
 | Expected (Word) | Morph PDF |
@@ -2957,7 +2970,7 @@ PDF: [Morph PDF](newsletters/14/pdf_result.verified.pdf)
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0395 · SSIM: 0.9280** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0379 · SSIM: 0.9290** |
 | <img src="nonstandard_main_part_name/expected_0001.png" width="500"> | <img src="nonstandard_main_part_name/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](nonstandard_main_part_name/pdf_result.verified.pdf)
