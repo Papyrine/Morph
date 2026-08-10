@@ -18,21 +18,34 @@ public class ExportScenarioTests
     public static IEnumerable<string> Scenarios() => ScenarioInputs.AllDirectories();
 
     // The exporters are format-blind below ParsedDocument, so the only per-format part is which
-    // parser produces it.
+    // parser produces it. Switching exhaustively rather than testing for one format keeps a newly
+    // added format from silently routing through the DOCX parser.
+    static ScenarioFormat FormatOf(string input) =>
+        ScenarioInputs.FormatOf(Path.GetDirectoryName(input)!);
+
     static string ToHtml(string input, HtmlExportOptions? options = null) =>
-        ScenarioInputs.FormatOf(Path.GetDirectoryName(input)!) == ScenarioFormat.PowerPoint
-            ? PowerPointConverter.ConvertToHtml(input, options)
-            : DocumentConverter.ConvertToHtml(input, options);
+        FormatOf(input) switch
+        {
+            ScenarioFormat.PowerPoint => PowerPointConverter.ConvertToHtml(input, options),
+            ScenarioFormat.Excel => ExcelConverter.ConvertToHtml(input, options),
+            _ => DocumentConverter.ConvertToHtml(input, options)
+        };
 
     static string ToMarkdown(string input, MarkdownExportOptions? options = null) =>
-        ScenarioInputs.FormatOf(Path.GetDirectoryName(input)!) == ScenarioFormat.PowerPoint
-            ? PowerPointConverter.ConvertToMarkdown(input, options)
-            : DocumentConverter.ConvertToMarkdown(input, options);
+        FormatOf(input) switch
+        {
+            ScenarioFormat.PowerPoint => PowerPointConverter.ConvertToMarkdown(input, options),
+            ScenarioFormat.Excel => ExcelConverter.ConvertToMarkdown(input, options),
+            _ => DocumentConverter.ConvertToMarkdown(input, options)
+        };
 
     static byte[] ToPdf(string input, PdfExportOptions options) =>
-        ScenarioInputs.FormatOf(Path.GetDirectoryName(input)!) == ScenarioFormat.PowerPoint
-            ? PdfPowerPointConverter.ConvertToPdf(input, options)
-            : PdfDocumentConverter.ConvertToPdf(input, options);
+        FormatOf(input) switch
+        {
+            ScenarioFormat.PowerPoint => PdfPowerPointConverter.ConvertToPdf(input, options),
+            ScenarioFormat.Excel => PdfExcelConverter.ConvertToPdf(input, options),
+            _ => PdfDocumentConverter.ConvertToPdf(input, options)
+        };
 
     [Test]
     [MethodDataSource(nameof(Scenarios))]
