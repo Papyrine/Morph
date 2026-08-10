@@ -31,7 +31,15 @@ static class BrowserScreenshot
         .UseAdvancedExtensions()
         .Build();
 
-    public static async Task<byte[]> RenderHtmlAsync(string html)
+    /// <summary>
+    /// Renders an HTML fragment to a full-page PNG.
+    ///
+    /// <paramref name="deviceScale"/> is device pixels per CSS pixel. Below 1 it shrinks the capture
+    /// without touching layout — the viewport stays 1024 CSS pixels wide, so nothing reflows and the
+    /// screenshot stays reproducible; only the sampling density drops. That distinction is what makes
+    /// it safe to vary per scenario format, where narrowing the viewport would not be.
+    /// </summary>
+    public static async Task<byte[]> RenderHtmlAsync(string html, double deviceScale = 1)
     {
         var instance = await GetBrowserAsync();
         await using var context = await instance.NewContextAsync(new()
@@ -41,7 +49,7 @@ static class BrowserScreenshot
                 Width = 1024,
                 Height = 768
             },
-            DeviceScaleFactor = 1
+            DeviceScaleFactor = (float) deviceScale
         });
         var page = await context.NewPageAsync();
 
@@ -80,8 +88,8 @@ static class BrowserScreenshot
         }
     }
 
-    public static Task<byte[]> RenderMarkdownAsync(string markdown) =>
-        RenderHtmlAsync(Markdown.ToHtml(markdown, markdownPipeline));
+    public static Task<byte[]> RenderMarkdownAsync(string markdown, double deviceScale = 1) =>
+        RenderHtmlAsync(Markdown.ToHtml(markdown, markdownPipeline), deviceScale);
 
     static string WrapHtmlFragment(string html)
     {

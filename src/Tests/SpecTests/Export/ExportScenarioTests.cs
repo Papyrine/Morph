@@ -40,7 +40,9 @@ public class ExportScenarioTests
     {
         ContainerOnly.Require();
         var html = ToHtml(ScenarioInputs.InputFile(directory));
-        var png = await BrowserScreenshot.RenderHtmlAsync(html);
+        var png = await BrowserScreenshot.RenderHtmlAsync(
+            html,
+            ScenarioInputs.ScreenshotScale(ScenarioInputs.FormatOf(directory)));
         Target[] targets =
         [
             new("html", html),
@@ -58,7 +60,9 @@ public class ExportScenarioTests
     {
         ContainerOnly.Require();
         var markdown = ToMarkdown(ScenarioInputs.InputFile(directory));
-        var png = await BrowserScreenshot.RenderMarkdownAsync(markdown);
+        var png = await BrowserScreenshot.RenderMarkdownAsync(
+            markdown,
+            ScenarioInputs.ScreenshotScale(ScenarioInputs.FormatOf(directory)));
         var targets = new[]
         {
             new Target("md", markdown),

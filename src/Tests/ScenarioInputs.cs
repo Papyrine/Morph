@@ -57,6 +57,19 @@ static class ScenarioInputs
     public static int Dpi(ScenarioFormat format) =>
         format == ScenarioFormat.Word ? 150 : 96;
 
+    /// <summary>
+    /// Device pixels per CSS pixel for the HTML and Markdown export screenshots.
+    ///
+    /// These are captured full-page at a fixed 1024px width, so their height is the export's own —
+    /// and a deck's text export inlines every slide's artwork, making one strip tens of thousands of
+    /// pixels tall. At half density the capture is a quarter of the pixels with the layout
+    /// unchanged, which is the right trade for output whose purpose is to show structure and image
+    /// placement. Documents stay at 1: their exports are text, where halving the sampling density
+    /// costs real legibility in the comparison gallery.
+    /// </summary>
+    public static double ScreenshotScale(ScenarioFormat format) =>
+        format == ScenarioFormat.Word ? 1 : 0.5;
+
     /// <summary>Every scenario directory for <paramref name="format"/>.</summary>
     public static IEnumerable<string> Directories(ScenarioFormat format) =>
         Directory.GetFiles(Root(format), $"input.{Extension(format)}", SearchOption.AllDirectories)
