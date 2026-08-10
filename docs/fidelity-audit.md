@@ -7,7 +7,7 @@ version or an expanded corpus.
 
 ## Reference material
 
-- Every scenario in `src/Tests/Inputs/` carries `expected_*.png` — Word's own render at 150 DPI,
+- Every scenario in `src/Tests/Inputs/word/` carries `expected_*.png` — Word's own render at 150 DPI,
   produced per scenario by the `src/RenderHelper` project (Word COM automation, Windows-only;
   see CLAUDE.md for the single-scenario invocation).
 - Morph's side: `skia_result#page_*.verified.png`, `imagesharp_result#page_*.verified.png`,
@@ -174,7 +174,7 @@ shifted all 325 without a pixel changing. A genuine rendering change moves the P
 ## Settling a rule with a doctored-fixture probe
 
 The highest-yield technique in this codebase: copy a real fixture, change **one** attribute, drop
-it in `src/Tests/Inputs/_probe_*/input.docx`, and render it through Word via RenderHelper
+it in `src/Tests/Inputs/word/_probe_*/input.docx`, and render it through Word via RenderHelper
 (`vstest.console.exe … /TestCaseFilter:"FullyQualifiedName~_probe_"`). Word answers questions the
 specification leaves ambiguous and that reasoning about the shipped fixture cannot.
 

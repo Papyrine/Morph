@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 595.2760009765625,
+        "Height": 841.8900146484375,
+        "Text": "DIAN NUGRAHA\nEXPERIENCE\nDec 20XX–Jan 20XX\nOffice Manager • Northwind Traders\nFeb 20XX–Dec 20XX\nAdministrative Assistant • Wide World Importers\nMar 20XX–Feb 20XX\nOffice Intern • Olson Harris, Ltd.\nDeveloped and implemented office policies and procedures to\nimprove office efficiency and reduce costs.\nEDUCATION\nBellows College, Berkeley, CA\n• Bachelor of Science in Business Administration, 20XX\nCOMMUNICATION\nAs an office manager, I have honed my communication skills\nthrough years of experience in verbal and written\ncommunication with clients, vendors, and team members. I\nhave extensive experience in creating and delivering\npresentations, preparing and responding to business\ncorrespondence, and ensuring effective communication\nthroughout the office.\nLEADERSHIP\nI have demonstrated strong leadership skills in managing a\nteam of administrative staff and supervising daily office\noperations. I have experience in providing guidance and\nsupport to staff, setting performance expectations and\nproviding feedback, and addressing issues as they arise.\nREFERENCES\nAvailable upon request.\n210 Stars Ave\nBerkeley, CA 78910\n808.555.0118\ndian@example.com\nwww.greatsiteaddress.com\nOBJECTIVE\nOffice Manager with 5 years of\nexperience in managing\nadministrative tasks, seeking a\nchallenging position to leverage\norganizational, communication, and\nleadership skills to streamline office\noperations and support business\ngrowth."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.1917,
+      "Ssim": 0.8327,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

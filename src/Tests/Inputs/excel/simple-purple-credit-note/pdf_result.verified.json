@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 595.280029296875,
+        "Height": 841.8900146484375,
+        "Text": "Credit Note\nFrom Address:\nCompany Name Credit Date:\nStreet Address Credit No:\nCity, State, ZIP Code Customer ID/Name:\nCountry Invoice No:\nPhone Order No:\nEmail Order Date:\nBilling Address:\nCompany Name\nStreet Address\nCity, State, ZIP Code\nPhone\nEmail\nDescription Quantity Unit Price Amount\nItem A 3 $50.00 $150.00\nItem B 5 $100.00 $500.00\nSubtotal $650.00\nTax Rate 5.00%\nTax $32.50\nOther $0.00\nTotal $682.50\nNote:"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.2346,
+      "Ssim": 0.789,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 595.280029296875,
+        "Height": 841.8900146484375,
+        "Text": "YOUR\nLOGO HERE\nCONSTRUCTION PROPOSAL\nThe Refurbished Home | 89 Pacific Ave, San Francisco, CA 78901\nP (123)\n456-7890\nF (123) 456-7891\nCUSTOMER QUANTITY DESCRIPTION UNIT PRICE AMOUNT\nMaria Sullivan\n10 Drywall $165.00 $1,650.00\nESTIMATE NO 21 Plywood $40.00 $840.00\nC-1234\n5 Wood joints $10.50 $52.50\nDATE 164 10\" screws $2.75 $451.00\n7/16/2026\n6 Shower head $12.00 $72.00\nADDRESS 18 Shower tile $5.50 $99.00\n123 Avenue A\n1 Mirror above sink $25.00 $25.00\nCITY/STATE/ZIP $0.00\nBurbank, CA 54321 $0.00\nPHONE $0.00\n(502) 555-0123 $0.00\nE-MAIL $0.00\nmaria@contoso.com $0.00\n$0.00\n$0.00\nSALESPERSON $0.00\nJosko Lucic $0.00\nPROJECT $0.00\nBathroom remodel $0.00\nPREPARED BY: $0.00\nJosko Lucic $0.00\n$0.00\n$0.00\nATTENTION $0.00\nMaria Sullivan $0.00\nPAYMENT TERMS $0.00\nNet 30\nSUBTOTAL $3,189.50\nDUE DATE THIS PROPOSAL INCLUDES THE CONDITIONS NOTED: TAX RATE 7.75%\n8/15/2026 Enter conditions here\nSALES TAX $247.19\nOTHER\nTOTAL $3,436.69\nSIGN BELOW TO ACCEPT QUOTE:\nAUTHORIZED REP DATE"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.3466,
+      "Ssim": 0.7741,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

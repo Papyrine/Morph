@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 595.280029296875,
+        "Height": 841.8900146484375,
+        "Text": "INVOICE\n#0000\nBill To Date Issued\nCustomer Name Enter Date Here\nAddress\nPhone\nDescription Qty Price Amount\nLogo design 1.00 $50.00 $50.00\nTotal $50.00\nNote\nPayment Option\nThank you for your business!\nYour Company Name | Street Address | City, State, Zip/Postal Code | Phone | Email"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.4578,
+      "Ssim": 0.8694,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

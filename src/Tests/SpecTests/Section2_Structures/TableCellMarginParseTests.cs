@@ -249,7 +249,7 @@ public class TableCellMarginParseTests
     {
         var parser = new DocumentParser();
         await using var stream = File.OpenRead(
-            Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "business-plans", "04", "input.docx"));
+            Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "business-plans", "04", "input.docx"));
         var document = parser.Parse(stream);
 
         var headingCell = document.Elements

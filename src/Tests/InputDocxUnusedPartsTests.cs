@@ -17,7 +17,7 @@ public class InputDocxUnusedPartsTests
     [Test]
     public async Task NoInputDocxCarriesUnusedParts()
     {
-        var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
+        var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word");
         var carriers = new List<string>();
 
         foreach (var docxPath in Directory.EnumerateFiles(inputsDir, "*.docx", SearchOption.AllDirectories))

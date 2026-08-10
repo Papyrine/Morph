@@ -1,0 +1,41 @@
+﻿{
+  "target": {
+    "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "T I T L E\nP R E S E N T E R N A M E"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "A\ng\ne\nn\nd\na\nTopic one\nTopic two\nTopic three\nTopic four\nTopic five\nP\nR\nE\nS\nE\nN\nT\nA\nT\nI\nO\nN\nT\nI\nT\nL\nE\n2"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.3034,
+      "Ssim": 0.8513,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.1393,
+      "Ssim": 0.9214,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

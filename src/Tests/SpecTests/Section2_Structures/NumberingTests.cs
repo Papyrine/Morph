@@ -4,7 +4,7 @@
 /// </summary>
 public class NumberingTests
 {
-    static string InputsDir => Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
+    static string InputsDir => Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word");
 
     static ParsedDocument Parse(string scenario)
     {

@@ -1,0 +1,41 @@
+﻿{
+  "target": {
+    "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "PITCH DECK\nMirjam Nilsson"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "ABOUT US\nAt Contoso, we empower organizations\nto foster collaborative thinking to further\ndrive workplace innovation. By\nclosing the loop and leveraging\nagile frameworks, we help business\ngrow organically and foster a\nconsumer-first mindset.\n20XX Pitch Deck 2"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0233,
+      "Ssim": 0.9304,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0515,
+      "Ssim": 0.8601,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

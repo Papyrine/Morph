@@ -115,7 +115,7 @@ public class DocumentCleanerTests
         /// <summary>A copy exactly as it sits in the corpus — carrying no removable part at all.</summary>
         public static Fixture Clean()
         {
-            var source = System.IO.Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", fixtureScenario, "input.docx");
+            var source = System.IO.Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", fixtureScenario, "input.docx");
             var target = System.IO.Path.Combine(
                 System.IO.Path.GetTempPath(),
                 $"morph-cleaner-{Guid.NewGuid():N}.docx");

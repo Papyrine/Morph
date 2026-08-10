@@ -7,7 +7,7 @@ public class PaperCodePageSizeTests
 {
     static ParsedDocument Parse(params string[] scenario)
     {
-        var segments = new[] {ProjectFiles.ProjectDirectory, "Inputs"}
+        var segments = new[] {ProjectFiles.ProjectDirectory, "Inputs", "word"}
             .Concat(scenario)
             .Append("input.docx")
             .ToArray();

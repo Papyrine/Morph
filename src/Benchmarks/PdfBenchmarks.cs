@@ -9,7 +9,7 @@
 public class PdfBenchmarks
 {
     static string GetSourceDir([CallerFilePath] string path = "") => Path.GetDirectoryName(path)!;
-    static readonly string inputsDir = Path.GetFullPath(Path.Combine(GetSourceDir(), "..", "Tests", "Inputs"));
+    static readonly string inputsDir = Path.GetFullPath(Path.Combine(GetSourceDir(), "..", "Tests", "Inputs", "word"));
     static readonly string fontsDirectory = Path.GetFullPath(Path.Combine(GetSourceDir(), "..", "Fonts"));
 
     static readonly PdfExportOptions options = new()

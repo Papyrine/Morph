@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 595.280029296875,
+        "Height": 841.8900146484375,
+        "Text": "INVOICE #100\nCreate & Co.\n123 Avenue A\nMetropolis, UA 78910\n(123) 456-7890 | (123) 456-7891\nDATE\nBILL TO FOR\nGuy Oz | Olson Harris Ltd. Consultation & design services\n78 90th NW Suite 10\nMetropolis, UA 78911\n(123) 567-8910\nDetails AMOUNT\nConsultation (1 hour) $350.00\nDesign services (8 hours) $400.00\nSUBTOTAL $750.00\nTAX RATE 8.75%\nOTHER $0.00\nTOTAL $815.62\nMake all checks payable to Create & Co.\nIf you have any questions concerning this invoice, use the following contact information:\nSara Steale, (123) 456-7890, create@interestingsite.com\nTHANK YOU FOR YOUR BUSINESS!"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.131,
+      "Ssim": 0.8508,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

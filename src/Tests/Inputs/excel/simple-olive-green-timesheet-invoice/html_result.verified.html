@@ -1,0 +1,371 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
+p { margin: 0 0 8pt; }
+/* Sizes only. Word's BUILT-IN Heading 4/6 are italic, but the document's own style decides:
+   an italic one reaches us as italic runs, which emit <em>. Asserting it here instead
+   forced italic onto every h4/h6 whose style is upright — of the 12 corpus scenarios using
+   Heading 4, not one declares italic. Bold is different: it IS asserted here, and the run
+   writer suppresses <strong> in a heading to match (an explicitly non-bold run still emits
+   font-weight: normal). */
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; clear: both; }
+h1 { font-size: 16pt; }
+h2 { font-size: 13pt; }
+h3 { font-size: 12pt; }
+h4 { font-size: 11pt; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+td, th { padding: 4pt 7pt; vertical-align: top; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
+footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
+</style>
+</head>
+<body style="font-family: Candara, sans-serif; max-width: 493.23pt; padding: 53.86pt 51.02pt">
+<table>
+  <tbody>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 186.2pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 68.94pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 68.94pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 96pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30.15pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;background-color: #edf0e9;vertical-align: bottom"></td>
+      <td style="width: 186.2pt;background-color: #edf0e9;vertical-align: bottom"></td>
+      <td style="width: 68.94pt;background-color: #edf0e9;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #edf0e9;vertical-align: bottom"></td>
+      <td style="width: 96pt;background-color: #edf0e9;vertical-align: bottom"></td>
+      <td style="width: 14.82pt;background-color: #edf0e9;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 30.15pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td colspan="6" style="width: 476.76pt;background-color: #ffffff;vertical-align: bottom"><span style="font-size: 20.62pt;"><strong>TIMESHEET INVOICE</strong></span></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;background-color: #ffffff;vertical-align: bottom"></td>
+      <td style="width: 186.2pt;background-color: #ffffff;vertical-align: bottom"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: bottom"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: bottom"></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: bottom"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;background-color: #ffffff;vertical-align: bottom"></td>
+      <td style="width: 186.2pt;background-color: #ffffff;vertical-align: bottom"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: bottom"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: bottom"></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: bottom"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: middle"></td>
+      <td colspan="3" style="width: 297.01pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.45pt;"><strong>INVOICE #:</strong></span></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;"><strong>PROJECT DESCRIPTION:</strong></span></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: middle"></td>
+      <td colspan="6" style="width: 476.76pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.45pt;"><strong>ISSUE DATE:</strong></span></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: middle"></td>
+      <td colspan="6" style="width: 476.76pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.45pt;"><strong>DUE DATE:</strong></span></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: middle"></td>
+      <td style="width: 41.88pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 186.2pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: middle"></td>
+      <td colspan="3" style="width: 297.01pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.45pt;"><strong>SERVICE PROVIDER</strong></span></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;"><strong>CUSTOMER</strong></span></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: middle"></td>
+      <td colspan="3" style="width: 297.01pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.45pt;">Name/Company Name</span></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;">Name/Company Name</span></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: middle"></td>
+      <td colspan="3" style="width: 297.01pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.45pt;">Street Address</span></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;">Street Address</span></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: middle"></td>
+      <td colspan="3" style="width: 297.01pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.45pt;">City, State, ZIP Code, Country</span></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;">City, State, ZIP Code, Country</span></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: middle"></td>
+      <td colspan="3" style="width: 297.01pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.45pt;">Phone</span></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;">Phone</span></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: middle"></td>
+      <td colspan="3" style="width: 297.01pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.45pt;">Email</span></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;">Email</span></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 186.2pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 22.42pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;vertical-align: middle"><span style="font-size: 9.45pt;"><strong>NO.</strong></span></td>
+      <td style="width: 186.2pt;vertical-align: middle"><span style="font-size: 9.45pt;"><strong>DESCRIPTION</strong></span></td>
+      <td style="width: 68.94pt;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;"><strong>HOURS</strong></span></td>
+      <td style="width: 68.94pt;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;"><strong>RATE</strong></span></td>
+      <td style="width: 96pt;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;"><strong>TOTAL</strong></span></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 22.42pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;vertical-align: middle"><span style="font-size: 9.45pt;">1</span></td>
+      <td style="width: 186.2pt;vertical-align: middle"><span style="font-size: 9.45pt;">Consulting session</span></td>
+      <td style="width: 68.94pt;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;">3</span></td>
+      <td style="width: 68.94pt;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;">$50.00</span></td>
+      <td style="width: 96pt;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;">$150.00</span></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 22.42pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;vertical-align: middle"><span style="font-size: 9.45pt;">2</span></td>
+      <td style="width: 186.2pt;vertical-align: middle"><span style="font-size: 9.45pt;">Marketing session</span></td>
+      <td style="width: 68.94pt;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;">5</span></td>
+      <td style="width: 68.94pt;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;">$60.00</span></td>
+      <td style="width: 96pt;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;">$300.00</span></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 22.42pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;vertical-align: middle"></td>
+      <td style="width: 186.2pt;vertical-align: middle"></td>
+      <td style="width: 68.94pt;vertical-align: middle"></td>
+      <td style="width: 68.94pt;vertical-align: middle"></td>
+      <td style="width: 96pt;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 22.42pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;vertical-align: middle"></td>
+      <td style="width: 186.2pt;vertical-align: middle"></td>
+      <td style="width: 68.94pt;vertical-align: middle"></td>
+      <td style="width: 68.94pt;vertical-align: middle"></td>
+      <td style="width: 96pt;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 22.42pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;vertical-align: middle"></td>
+      <td style="width: 186.2pt;vertical-align: middle"></td>
+      <td style="width: 68.94pt;vertical-align: middle"></td>
+      <td style="width: 68.94pt;vertical-align: middle"></td>
+      <td style="width: 96pt;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 22.42pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;vertical-align: middle"></td>
+      <td style="width: 186.2pt;vertical-align: middle"></td>
+      <td style="width: 68.94pt;vertical-align: middle"></td>
+      <td style="width: 68.94pt;vertical-align: middle"></td>
+      <td style="width: 96pt;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 22.42pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;vertical-align: middle"></td>
+      <td style="width: 186.2pt;vertical-align: middle"></td>
+      <td style="width: 68.94pt;vertical-align: middle"></td>
+      <td style="width: 68.94pt;vertical-align: middle"></td>
+      <td style="width: 96pt;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 22.42pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;vertical-align: middle"></td>
+      <td style="width: 186.2pt;vertical-align: middle"></td>
+      <td style="width: 68.94pt;vertical-align: middle"></td>
+      <td style="width: 68.94pt;vertical-align: middle"></td>
+      <td style="width: 96pt;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 22.42pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;vertical-align: middle"></td>
+      <td style="width: 186.2pt;vertical-align: middle"></td>
+      <td style="width: 68.94pt;vertical-align: middle"></td>
+      <td style="width: 68.94pt;vertical-align: middle"></td>
+      <td style="width: 96pt;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 22.42pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;vertical-align: middle"></td>
+      <td style="width: 186.2pt;vertical-align: middle"></td>
+      <td style="width: 68.94pt;vertical-align: middle"></td>
+      <td style="width: 68.94pt;vertical-align: middle"></td>
+      <td style="width: 96pt;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 22.42pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 186.2pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;"><strong>SUBTOTAL</strong></span></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;">$450.00</span></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 22.42pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 186.2pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;"><strong>TAX RATE</strong></span></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;">5.00%</span></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 22.42pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 186.2pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;"><strong>TAX</strong></span></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;">$22.50</span></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 22.42pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 186.2pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;"><strong>OTHER</strong></span></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;">$0.00</span></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 22.42pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 186.2pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #edf0e9;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;"><strong>TOTAL</strong></span></td>
+      <td style="width: 96pt;background-color: #edf0e9;vertical-align: middle; text-align: right"><span style="font-size: 9.45pt;"><strong>$472.50</strong></span></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 186.2pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 186.2pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 186.2pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: middle"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td colspan="6" style="width: 476.76pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.45pt;">NOTE：</span></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;background-color: #ffffff"></td>
+      <td style="width: 186.2pt;background-color: #ffffff"></td>
+      <td style="width: 68.94pt;background-color: #ffffff"></td>
+      <td style="width: 68.94pt;background-color: #ffffff"></td>
+      <td style="width: 96pt;background-color: #ffffff"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;background-color: #ffffff"></td>
+      <td style="width: 186.2pt;background-color: #ffffff"></td>
+      <td style="width: 68.94pt;background-color: #ffffff"></td>
+      <td style="width: 68.94pt;background-color: #ffffff"></td>
+      <td style="width: 96pt;background-color: #ffffff"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 186.2pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 68.94pt;vertical-align: bottom"></td>
+      <td style="width: 68.94pt;background-color: #ffffff;vertical-align: bottom"></td>
+      <td style="width: 96pt;background-color: #ffffff;vertical-align: bottom"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #edf0e9;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;background-color: #edf0e9;vertical-align: bottom"></td>
+      <td style="width: 186.2pt;background-color: #edf0e9;vertical-align: bottom"></td>
+      <td style="width: 68.94pt;background-color: #edf0e9;vertical-align: bottom"></td>
+      <td style="width: 68.94pt;background-color: #edf0e9;vertical-align: bottom"></td>
+      <td style="width: 96pt;background-color: #edf0e9;vertical-align: bottom"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+    <tr style="height: 13.7pt">
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 41.88pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 186.2pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 68.94pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 68.94pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 96pt;background-color: #b3c5da;vertical-align: bottom"></td>
+      <td style="width: 14.82pt;background-color: #b3c5da;vertical-align: bottom"></td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>

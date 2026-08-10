@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 595.280029296875,
+        "Height": 841.8900146484375,
+        "Text": "Caneiro Group\nBUSINESS PLANNING CHECKLIST\nUsing the strength, weakness, opportunity, and threat (SWOT) analysis framework, develop a checklist of the key\nactivities that need to be performed when preparing a formal business plan.\nActivity Owner Completion date\nStrengths: Define the company's current mission statement.\nStrengths: Identify market segments in which the company will\nparticipate by conducting primary and secondary market research.\nStrengths: Identify the company's value proposition and how it will\ndifferentiate itself within the marketplace.\nWeaknesses: Identify any barriers to market entry (for example:\ncapital requirements, technical barriers, patents, and process\nbarriers) that the company needs to overcome.\nWeaknesses: Identify any risks inherent to the organization that need to\nbe mitigated so that the company can realize the business plan.\nOpportunities: Identify areas where the current market is underserved\nthat provide an opportunity for the company.\nOpportunities: Identify any key processes, intellectual capital, or other\nresources that the company can use to its advantage in the marketplace.\nThreats: Identify primary competitors, and then analyze competitor\nperformance by using all available data and additional data that can be\nverified.\nThreats: Identify secondary and potential future competitors that might\naffect the business plan.\nThreats: Develop strategies for mitigating primary and secondary\ncompetitive threats.\nAdd additional key business plan activity\nAdd additional key business plan activity\nAdd additional key business plan activity\nAdd additional key business plan activity"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.1295,
+      "Ssim": 0.7368,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

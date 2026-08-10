@@ -26,7 +26,7 @@ public class PageBordersTests
     [Test]
     public async Task DocumentParser_ParsesPageBorders()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "page_borders", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "page_borders", "01", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);
@@ -46,7 +46,7 @@ public class PageBordersTests
     [Test]
     public async Task DocumentParser_NoPageBorders_WhenAbsent()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "all_caps", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "all_caps", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);

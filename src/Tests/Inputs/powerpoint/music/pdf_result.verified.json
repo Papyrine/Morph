@@ -1,0 +1,41 @@
+﻿{
+  "target": {
+    "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "ARTIST\nELECTRONIC\nDANCE MUSIC BY\nPORTFOLDAIONIEL MELAMED"
+      },
+      {
+        "Width": 960.0,
+        "Height": 540.0,
+        "Text": "CONTENTS\n+ ABOUT ME\n+ STREAMING STATS\n+ MEET OUR TEAM\n+ PRODUCTS & SERVICES\n+ TOUR DATES\n2\nA R T I S T P O R T F O L I O"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.9339,
+      "Ssim": 0.7039,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.8048,
+      "Ssim": 0.5798,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

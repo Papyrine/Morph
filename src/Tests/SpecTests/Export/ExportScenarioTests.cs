@@ -2,32 +2,60 @@ using Morph.PDFium;
 
 /// <summary>
 /// Scenario tests for the HTML, Markdown and PDF exporters, following the same per-input-directory
-/// Verify pattern as <c>SkiaScenarioTests</c> and enumerating every <c>input.docx</c> under
-/// <c>Inputs/</c>. Our output is snapshotted as <c>html_result.verified.html</c>,
+/// Verify pattern as <c>SkiaScenarioTests</c> and enumerating every scenario across every input
+/// format. Our output is snapshotted as <c>html_result.verified.html</c>,
 /// <c>md_result.verified.md</c> and <c>pdf_result.verified.pdf</c> beside each input.
 ///
-/// Each format is its own test so a diff in one doesn't block the others (important when bulk
+/// Each OUTPUT format is its own test so a diff in one doesn't block the others (important when bulk
 /// re-seeding baselines), and each uses a distinct file-name stem so the formats don't race over
-/// orphan-cleanup of each other's received/verified files.
+/// orphan-cleanup of each other's received/verified files. INPUT formats stay in one class instead —
+/// they share every stem, so splitting them would reintroduce exactly that race.
 /// </summary>
 public class ExportScenarioTests
 {
     static readonly string fontsDirectory = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
 
-    public static IEnumerable<string> Scenarios()
-    {
-        var inputs = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
-        return Directory.GetFiles(inputs, "input.docx", SearchOption.AllDirectories)
-            .Select(Path.GetDirectoryName)!;
-    }
+    public static IEnumerable<string> Scenarios() => ScenarioInputs.AllDirectories();
+
+    // The exporters are format-blind below ParsedDocument, so the only per-format part is which
+    // parser produces it. Switching exhaustively rather than testing for one format keeps a newly
+    // added format from silently routing through the DOCX parser.
+    static ScenarioFormat FormatOf(string input) =>
+        ScenarioInputs.FormatOf(Path.GetDirectoryName(input)!);
+
+    static string ToHtml(string input, HtmlExportOptions? options = null) =>
+        FormatOf(input) switch
+        {
+            ScenarioFormat.PowerPoint => PowerPointConverter.ConvertToHtml(input, options),
+            ScenarioFormat.Excel => ExcelConverter.ConvertToHtml(input, options),
+            _ => DocumentConverter.ConvertToHtml(input, options)
+        };
+
+    static string ToMarkdown(string input, MarkdownExportOptions? options = null) =>
+        FormatOf(input) switch
+        {
+            ScenarioFormat.PowerPoint => PowerPointConverter.ConvertToMarkdown(input, options),
+            ScenarioFormat.Excel => ExcelConverter.ConvertToMarkdown(input, options),
+            _ => DocumentConverter.ConvertToMarkdown(input, options)
+        };
+
+    static byte[] ToPdf(string input, PdfExportOptions options) =>
+        FormatOf(input) switch
+        {
+            ScenarioFormat.PowerPoint => PdfPowerPointConverter.ConvertToPdf(input, options),
+            ScenarioFormat.Excel => PdfExcelConverter.ConvertToPdf(input, options),
+            _ => PdfDocumentConverter.ConvertToPdf(input, options)
+        };
 
     [Test]
     [MethodDataSource(nameof(Scenarios))]
     public async Task HtmlOutput(string directory)
     {
         ContainerOnly.Require();
-        var html = DocumentConverter.ConvertToHtml(Path.Combine(directory, "input.docx"));
-        var png = await BrowserScreenshot.RenderHtmlAsync(html);
+        var html = ToHtml(ScenarioInputs.InputFile(directory));
+        var png = await BrowserScreenshot.RenderHtmlAsync(
+            html,
+            ScenarioInputs.ScreenshotScale(ScenarioInputs.FormatOf(directory)));
         Target[] targets =
         [
             new("html", html),
@@ -44,8 +72,10 @@ public class ExportScenarioTests
     public async Task MarkdownOutput(string directory)
     {
         ContainerOnly.Require();
-        var markdown = DocumentConverter.ConvertToMarkdown(Path.Combine(directory, "input.docx"));
-        var png = await BrowserScreenshot.RenderMarkdownAsync(markdown);
+        var markdown = ToMarkdown(ScenarioInputs.InputFile(directory));
+        var png = await BrowserScreenshot.RenderMarkdownAsync(
+            markdown,
+            ScenarioInputs.ScreenshotScale(ScenarioInputs.FormatOf(directory)));
         var targets = new[]
         {
             new Target("md", markdown),
@@ -57,22 +87,25 @@ public class ExportScenarioTests
             .IgnoreParameters();
     }
 
-    // Render PDF pages at the same DPI VerifyPDFium uses (see VerifyPDFium.Initialize in
-    // ModuleInitializer) so the pixels measured here match the pdf_result#page_*.verified.png
-    // snapshots and the 150-DPI Word reference PNGs (expected_*.png) the metric compares against.
-    const double pdfRenderDpi = 150;
+    // Rasterise a PDF page at the DPI the scenario's reference images were rendered at, so the two
+    // are the same size and the metric is meaningful — a size mismatch suppresses SSIM outright.
+    // For documents this is 150, which also matches VerifyPDFium.Initialize in ModuleInitializer and
+    // so the pdf_result#page_*.verified.png snapshots; slides render lower (ScenarioInputs.Dpi), so
+    // for those the metric is measured at the lower size while the snapshot images stay at
+    // VerifyPDFium's process-wide 150.
 
     [Test]
     [MethodDataSource(nameof(Scenarios))]
     public async Task PdfOutput(string directory)
     {
         ContainerOnly.Require();
-        var input = Path.Combine(directory, "input.docx");
-        var pdf = PdfDocumentConverter.ConvertToPdf(
+        var input = ScenarioInputs.InputFile(directory);
+        var pdf = ToPdf(
             input,
             new()
             {
-                FontDirectory = fontsDirectory
+                FontDirectory = fontsDirectory,
+                Pages = ScenarioInputs.Pages(ScenarioInputs.FormatOf(directory))
             });
 
         // Record a per-page ErrorMetric against the Word reference (expected_*.png), mirroring the
@@ -81,7 +114,7 @@ public class ExportScenarioTests
         var expectedFiles = Directory.GetFiles(directory, "expected_*.png")
             .Order()
             .ToArray();
-        var diffs = PdfPageDiffs(pdf, expectedFiles);
+        var diffs = PdfPageDiffs(pdf, expectedFiles, ScenarioInputs.Dpi(ScenarioInputs.FormatOf(directory)));
 
         // PdfRenderer already pins every source of per-save variance (MakeDeterministic for the
         // dates and trailer /ID, Normalize for the font subset tags and XMP uuids), so letting
@@ -104,7 +137,7 @@ public class ExportScenarioTests
     // Mirrors ImageSharpScenarioTests.PageDiffs, but the pages come from rasterising the produced
     // PDF with the same PDFium engine VerifyPDFium uses. Null when the page count doesn't match the
     // Word reference (PDF pagination can differ), in which case no metric is recorded.
-    static List<PageDiff>? PdfPageDiffs(byte[] pdf, string[] expectedFiles)
+    static List<PageDiff>? PdfPageDiffs(byte[] pdf, string[] expectedFiles, double renderDpi)
     {
         using var document = PdfiumDocument.Load(pdf);
         if (expectedFiles.Length != document.PageCount)
@@ -116,7 +149,7 @@ public class ExportScenarioTests
         for (var page = 0; page < document.PageCount; page++)
         {
             var expectedFile = expectedFiles[page];
-            var rendered = document.RenderPage(page, pdfRenderDpi);
+            var rendered = document.RenderPage(page, renderDpi);
 
             var (errorMetric, ssim) = PageComparison.Compare(expectedFile, rendered);
             diffs.Add(new(page + 1, errorMetric, ssim, Path.GetFileName(expectedFile), $"pdf_result#page_{page + 1:0000}.verified.png", $"pdf_result#page_{page + 1:0000}.received.png"));

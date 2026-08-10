@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 960.0,
+        "Height": 1280.0,
+        "Text": "College\nstudent data\nBELLOWS\nCOLLEGE\nCheck out these fast facts on college education in the US.\n44% of students change their\nmajor at least once\n35% work part-time\nwhile attending school\n66%\nOf graduates earn\nmore income.\n63%\nOf students receive\nfinancial aid.\n20%\nOf students take\nonline classes.\nThe top three most popular undergraduate majors in\nthe US are business, health professions, and social sciences.\n5,000 The US has over 5,000\ncolleges and universities 260% The cost of tuition has risen\n260% in the past 40 years\nMost high school graduates in the US pursue higher\neducation. 1 in 3 students will change schools at some\npoint in their educational career.\nwww.bellowscollege.com\ninfo@bellowscollege.com\n208 555 0100\nThe above facts and statistics about college education are based on general information and trend. Please note\nthat individual experiences and circumstances may vary.\nThe data provided is for informational purposes only\nand should not be considered\nas personal or financial advice.\nIt is recommended to conduct further research or consult with professionals to make informed decisions. While\nefforts have been made to ensure the accuracy of the information presented, we cannot guarantee its\ncompleteness\nor reliability."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.2564,
+      "Ssim": 0.7272,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

@@ -14,7 +14,7 @@ public class GutterMarginsTests
     [Test]
     public async Task DocumentParser_ParsesGutter_FoldsIntoLeftMargin()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "gutter_margins", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "gutter_margins", "01", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);
@@ -29,7 +29,7 @@ public class GutterMarginsTests
     [Test]
     public async Task DocumentParser_NoGutter_LeftMarginUnchanged()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "all_caps", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "all_caps", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);

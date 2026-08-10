@@ -7,7 +7,7 @@ public class EvenOddHeadersTests
     public async Task ParsedDocument_EvenPageHeader_DefaultsNull()
     {
         // Documents that don't opt in via w:evenAndOddHeaders leave EvenPageHeader / EvenPageFooter null.
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "all_caps", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "all_caps", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);
@@ -19,7 +19,7 @@ public class EvenOddHeadersTests
     [Test]
     public async Task DocumentParser_PicksUpEvenPageHeader_WhenOptedIn()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "even_odd_headers", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "even_odd_headers", "01", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);
@@ -40,7 +40,7 @@ public class EvenOddHeadersTests
     [Test]
     public async Task DocumentParser_PicksUpEvenPageFooter_WhenOptedIn()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "even_odd_headers", "02", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "even_odd_headers", "02", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);

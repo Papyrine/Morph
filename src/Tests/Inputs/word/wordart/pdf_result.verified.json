@@ -1,0 +1,208 @@
+﻿{
+  "target": {
+    "PageCount": 15,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625,
+        "Text": "WordArt Test Document\nFor Renderer Testing"
+      },
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625,
+        "Text": "ACTUAL WORDART SHAPES\nThese use DrawingML WordArt transforms"
+      },
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625
+      },
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625
+      },
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625,
+        "Text": "Section 1: Text Effects\nBOLD IMPACT TEXT\nElegant Script Style\nRAINBOW"
+      },
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625,
+        "Text": "Section 2: Size Variations\nTINY\nSMALL\nMEDIUM\nLARGE\nHUGE\nGIANT"
+      },
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625,
+        "Text": "Section 3: Font Variety\nArial Black Style\nTimes New Roman\nGeorgia Elegance\nVerdana Clean\nTrebuchet MS\nCourier New Mono"
+      },
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625,
+        "Text": "Section 4: Color Themes\nOcean Blue\nForest Green\nSunset Orange\nRoyal Purple\nCherry Red\nGolden Yellow"
+      },
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625,
+        "Text": "Section 5: Text Decorations\nUNDERLINED TEXT\nDOUBLE UNDERLINE\nSTRIKETHROUGH\nSMALL CAPS STYLE\nALL CAPS STYLE\nSuperscript2 and Subscript2"
+      },
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625,
+        "Text": "Section 6: Highlighted Text\nYellow Highlight\nCyan Highlight\nGreen Highlight\nMagenta Highlight\nRed Highlight"
+      },
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625,
+        "Text": "Section 7: Combined Effects\nBold + Italic + Color\nUnderline + Highlight\nMulti-Color Word\nGoogle Style"
+      },
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625,
+        "Text": "Section 8: Gradient-Like Effects\nBLUE GRAD\nFIRE TEXT\nPURPLE"
+      },
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625,
+        "Text": "Section 9: Wave Effect (Size)\nWAVY TEXT!\nBOUNCY!"
+      },
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625,
+        "Text": "Section 10: Emboss Simulation\nEMBOSSED\nEMBOSSED\nIMPRINTED\nOUTLINED\nSHADOWED"
+      },
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625,
+        "Text": "End of WordArt Test Document\nThis document contains various text effects for testing docx renderers\nSections covered:\nText Effects • Size Variations • Font Variety • Color Themes\nText Decorations • Highlights • Combined Effects • Gradients • Waves • Emboss"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0071,
+      "Ssim": 0.9875,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0504,
+      "Ssim": 0.9342,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.235,
+      "Ssim": 0.824,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    },
+    {
+      "Page": 4,
+      "ErrorMetric": 0.3081,
+      "Ssim": 0.7942,
+      "ExpectedFile": "expected_0004.png",
+      "VerifiedFile": "pdf_result#page_0004.verified.png",
+      "ReceivedFile": "pdf_result#page_0004.received.png"
+    },
+    {
+      "Page": 5,
+      "ErrorMetric": 0.0128,
+      "Ssim": 0.9808,
+      "ExpectedFile": "expected_0005.png",
+      "VerifiedFile": "pdf_result#page_0005.verified.png",
+      "ReceivedFile": "pdf_result#page_0005.received.png"
+    },
+    {
+      "Page": 6,
+      "ErrorMetric": 0.0109,
+      "Ssim": 0.9807,
+      "ExpectedFile": "expected_0006.png",
+      "VerifiedFile": "pdf_result#page_0006.verified.png",
+      "ReceivedFile": "pdf_result#page_0006.received.png"
+    },
+    {
+      "Page": 7,
+      "ErrorMetric": 0.0166,
+      "Ssim": 0.9746,
+      "ExpectedFile": "expected_0007.png",
+      "VerifiedFile": "pdf_result#page_0007.verified.png",
+      "ReceivedFile": "pdf_result#page_0007.received.png"
+    },
+    {
+      "Page": 8,
+      "ErrorMetric": 0.0217,
+      "Ssim": 0.9592,
+      "ExpectedFile": "expected_0008.png",
+      "VerifiedFile": "pdf_result#page_0008.verified.png",
+      "ReceivedFile": "pdf_result#page_0008.received.png"
+    },
+    {
+      "Page": 9,
+      "ErrorMetric": 0.0251,
+      "Ssim": 0.96,
+      "ExpectedFile": "expected_0009.png",
+      "VerifiedFile": "pdf_result#page_0009.verified.png",
+      "ReceivedFile": "pdf_result#page_0009.received.png"
+    },
+    {
+      "Page": 10,
+      "ErrorMetric": 0.0192,
+      "Ssim": 0.9739,
+      "ExpectedFile": "expected_0010.png",
+      "VerifiedFile": "pdf_result#page_0010.verified.png",
+      "ReceivedFile": "pdf_result#page_0010.received.png"
+    },
+    {
+      "Page": 11,
+      "ErrorMetric": 0.0184,
+      "Ssim": 0.9697,
+      "ExpectedFile": "expected_0011.png",
+      "VerifiedFile": "pdf_result#page_0011.verified.png",
+      "ReceivedFile": "pdf_result#page_0011.received.png"
+    },
+    {
+      "Page": 12,
+      "ErrorMetric": 0.0097,
+      "Ssim": 0.9847,
+      "ExpectedFile": "expected_0012.png",
+      "VerifiedFile": "pdf_result#page_0012.verified.png",
+      "ReceivedFile": "pdf_result#page_0012.received.png"
+    },
+    {
+      "Page": 13,
+      "ErrorMetric": 0.0062,
+      "Ssim": 0.9914,
+      "ExpectedFile": "expected_0013.png",
+      "VerifiedFile": "pdf_result#page_0013.verified.png",
+      "ReceivedFile": "pdf_result#page_0013.received.png"
+    },
+    {
+      "Page": 14,
+      "ErrorMetric": 0.0216,
+      "Ssim": 0.9622,
+      "ExpectedFile": "expected_0014.png",
+      "VerifiedFile": "pdf_result#page_0014.verified.png",
+      "ReceivedFile": "pdf_result#page_0014.received.png"
+    },
+    {
+      "Page": 15,
+      "ErrorMetric": 0.0178,
+      "Ssim": 0.9797,
+      "ExpectedFile": "expected_0015.png",
+      "VerifiedFile": "pdf_result#page_0015.verified.png",
+      "ReceivedFile": "pdf_result#page_0015.received.png"
+    }
+  ]
+}

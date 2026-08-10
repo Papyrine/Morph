@@ -682,14 +682,14 @@ rasterised by PDFium renders the text correctly at the canonical positions — t
   the document opts into `w:evenAndOddHeaders`, else the default. `NUMPAGES` resolves too: the bands are
   assembled in a post-pass once the flow ends and the total page count is known, so a `Page N of M` footer reads
   correctly (`page_numbers`' `Page 1 of 2`). Paint-only, so the body and page count are untouched;
-  `Inputs/header`'s centred `Document Header` renders at Word's position. The behind-text header background
+  `Inputs/word/header`'s centred `Document Header` renders at Word's position. The behind-text header background
   image follows the same variant as the text, so a title page's frame comes from its first-page header. A
   header/footer *table* lays out in the band too, reusing the nested-table layout — business/01's `CANEIRO
   GROUP` footer grid renders at the page bottom. *Foreground* header images (a title-page illustration that is
   not a behind-text watermark) and 3-way footer tab alignment are the remaining band pieces.
 - **Tabs landed**: a tab run advances the pen to its resolved stop during line building, reusing the production
   `TabStopResolver` (left / centre / right / decimal, with a stop past the column clamped to the column edge and
-  right/centre/decimal measuring the text up to the next tab). `Inputs/tab_stops`' right-aligned TOC numbers,
+  right/centre/decimal measuring the text up to the next tab). `Inputs/word/tab_stops`' right-aligned TOC numbers,
   left-aligned columns, default 0.5" stops and left/centre/right line all land at Word's positions, and
   `decimal_tabs/01` aligns on the decimal point (0.99). The advance is position-dependent, so it is resolved in
   `BuildLineItems` rather than baked into a fixed piece width.
@@ -735,7 +735,7 @@ rasterised by PDFium renders the text correctly at the canonical positions — t
   will not all fit.
 - **Nested tables landed**: a table inside a cell lays out inline at the cell cursor with no page breaks
   (`BuildRow` was generalised to take an explicit row Y, so the same row builder serves body and nested tables).
-  `Inputs/complex_tables`' quarterly grid — a two-column Apr/May sub-table inside its Q2 cell — renders at
+  `Inputs/word/complex_tables`' quarterly grid — a two-column Apr/May sub-table inside its Q2 cell — renders at
   Word's position, colours and values. A cell holding a nested table stays top-aligned, since the
   vertical-alignment shift only moves text lines; nested-table pages are excluded from the harness, so this is a
   render-verified capability rather than a metric move.
@@ -1293,7 +1293,7 @@ below.) Deferred: the glyph outline (fill only for now) and the 16 warp presets,
 wordart / wordart-envelope test documents need.
 
 Coverage now stands at **321 / 325** — verified by counting `EngineCoverage.Covers` over every corpus document
-with a Word reference render (`Inputs/**/input.docx` beside an `expected_*.png`). The four hold-outs are the two
+with a Word reference render (`Inputs/word/**/input.docx` beside an `expected_*.png`). The four hold-outs are the two
 warp test documents (`wordart`, `wordart-envelope`), `image_wrap_square` (float wrap), and `agendas-minutes/14`
 (a positioned frame). The per-slice tallies above are point-in-time counts taken as each slice landed, so they
 drift by a document or two between slices as the shared predicate shifted (the +2 between the floating-tables

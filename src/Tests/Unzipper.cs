@@ -6,7 +6,7 @@
     [Explicit]
     public async Task Run()
     {
-        var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
+        var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word");
         foreach (var docx in Directory.GetFiles(inputsDir, "input.docx", SearchOption.AllDirectories))
         {
             var inputDirectory = Path.Combine(Path.GetDirectoryName(docx)!, "input");

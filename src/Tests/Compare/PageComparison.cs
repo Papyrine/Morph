@@ -29,12 +29,53 @@ static class PageComparison
         var expected = PngDecoder.Decode(expectedStream);
         var actual = PngDecoder.Decode(new MemoryStream(actualPng));
 
-        var sameSize = expected.Width == actual.Width &&
-                       expected.Height == actual.Height;
+        return (AbsoluteError(expected, actual), Similarity(expected, actual));
+    }
 
-        return (
-            AbsoluteError(expected, actual),
-            sameSize ? Math.Round(Ssim.Compare(expected, actual), 4) : null);
+    /// <summary>
+    /// A page size can disagree by a pixel without anything being wrong with the render: A4 is
+    /// 793.71 x 1122.52 pixels at 96 DPI, and two independent rasterisers need not resolve that the
+    /// same way — Excel rounds it into its XPS while Morph truncates. Dropping SSIM over that scored
+    /// the whole spreadsheet corpus on error metric alone.
+    ///
+    /// So a difference of at most one pixel per axis is treated as the rounding artefact it is, and
+    /// both images are cropped to their overlap first. Anything larger stays null: <see cref="Ssim"/>
+    /// indexes the second image with the first's geometry, and a genuine size difference (an
+    /// orientation flip, a different paper) would score a silently wrong sub-window rather than
+    /// merely an imprecise one.
+    /// </summary>
+    static double? Similarity(PngImage expected, PngImage actual)
+    {
+        if (Math.Abs(expected.Width - actual.Width) > 1 ||
+            Math.Abs(expected.Height - actual.Height) > 1)
+        {
+            return null;
+        }
+
+        if (expected.Width == actual.Width && expected.Height == actual.Height)
+        {
+            return Math.Round(Ssim.Compare(expected, actual), 4);
+        }
+
+        var width = Math.Min(expected.Width, actual.Width);
+        var height = Math.Min(expected.Height, actual.Height);
+        return Math.Round(Ssim.Compare(Crop(expected, width, height), Crop(actual, width, height)), 4);
+    }
+
+    static PngImage Crop(PngImage image, int width, int height)
+    {
+        if (image.Width == width && image.Height == height)
+        {
+            return image;
+        }
+
+        var cropped = new byte[width * height * 4];
+        for (var y = 0; y < height; y++)
+        {
+            Array.Copy(image.Rgba, y * image.Width * 4, cropped, y * width * 4, width * 4);
+        }
+
+        return new(width, height, cropped);
     }
 
     static double AbsoluteError(PngImage expected, PngImage actual)

@@ -1,0 +1,22 @@
+﻿{
+  "ExpectedPageCount": 2,
+  "ResultingPageCount": 2,
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.5317,
+      "Ssim": 0.9141,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "skia_result#page_0001.verified.png",
+      "ReceivedFile": "skia_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.6735,
+      "Ssim": 0.8896,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "skia_result#page_0002.verified.png",
+      "ReceivedFile": "skia_result#page_0002.received.png"
+    }
+  ]
+}

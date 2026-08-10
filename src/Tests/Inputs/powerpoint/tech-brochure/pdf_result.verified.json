@@ -1,0 +1,41 @@
+﻿{
+  "target": {
+    "PageCount": 2,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "TAILWIND\nTRADERS\nI N V E S T I N Y O U R F U T U R E\nOur vision\nAt Tailwind Traders, our vision is to empower\nindividuals and businesses to navigate the complex\nworld of investments and trading with confidence.\nWe strive to be a trusted partner, providing\ninnovative financial solutions and personalized\nstrategies that help our clients achieve their\nfinancial goals and secure a prosperous future.\nContact us\n4567 Main St \nBuffalo, NY 98052\n555-0100\ninfo@tailwindtraders.com\ntailwindtraders.com"
+      },
+      {
+        "Width": 792.0,
+        "Height": 612.0,
+        "Text": "Our services\nTailwind Traders offers a comprehensive\nrange of investment and trading services\ndesigned to meet the diverse needs of our\nclients.\nFrom wealth management and portfolio\nadvisory to equity trading and risk analysis,\nour team of experts leverages their in-depth\nmarket knowledge and cutting-edge\ntechnology to deliver tailored solutions that\noptimize returns and mitigate risks.\nOur team\nAt the heart of Tailwind Traders is our\nexceptional team of financial professionals\nwho possess a deep understanding of the\nmarkets and a passion for delivering\noutstanding client service.\nWith a diverse range of backgrounds and\nexpertise, our team combines analytical rigor\nwith strategic thinking to provide informed\ninvestment advice and execute sophisticated\ntrading strategies.\nOur team of\nexperts are here to\nhelp you develop\nsuccessful\nstrategies today for\na financially secure\ntomorrow."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.4368,
+      "Ssim": 0.8672,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.3974,
+      "Ssim": 0.8279,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

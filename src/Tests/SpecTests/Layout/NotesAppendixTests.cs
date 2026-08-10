@@ -7,7 +7,7 @@
 /// </summary>
 public class NotesAppendixTests
 {
-    static string DocumentCaptureFile => Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "document_capture", "01", "input.docx");
+    static string DocumentCaptureFile => Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "document_capture", "01", "input.docx");
 
     [Test]
     public async Task Separator_stubs_are_skipped_and_numbering_is_sequential()

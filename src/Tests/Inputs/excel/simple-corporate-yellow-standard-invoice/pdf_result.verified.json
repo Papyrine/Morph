@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 595.280029296875,
+        "Height": 841.8900146484375,
+        "Text": "INVOICE\nInvoice #: 123456789\nDue Date: 7/16/2026\nInvoice Date: 7/16/2026\nBill To: Bill From:\nName/Company Name Name/Company Name\nCity, State, Zip Code City, State, Zip Code\nEmail Email\nPhone Phone\n# Description Price Quantity Total\n1 Description 1 $50.00 14 $700.00\n2 Description 2 $56.00 15 $840.00\n3 Description 3 $78.00 11 $858.00\n4 Description 4 $64.00 12 $768.00\n5 Description 5 $55.00 13 $715.00\nSubtotal: $3,881.00\nTax: 5.00%\nTotal: $4,075.05\nPayment Methods:\nBank Name\nAccount Number\nTerms &\nConditions:\nTHANK YOU\nLOGO"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.4028,
+      "Ssim": 0.801,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

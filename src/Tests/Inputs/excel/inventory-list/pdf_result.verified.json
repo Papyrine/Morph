@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 841.8900146484375,
+        "Height": 595.280029296875,
+        "Text": "INVENTORY LIST\nInventory ID Name Description Unit\nprice\nQuantity\nin stock\nReorder\nlevel\nReorder time\nin days\nQuantity in\nreorder Discontinued?\nABC123 Fresh strawberries 1 lb package 2.05 30 10 5 60 N\nXYZ789 Frozen blueberries 3 lb bag 8.99 12 5 5 22 N\nMNO456 Coconut milk 1 gal 5.25 20 15 3 50 N"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.312,
+      "Ssim": 0.8224,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}
