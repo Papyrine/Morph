@@ -11,28 +11,28 @@
       {
         "Width": 595.280029296875,
         "Height": 841.8900146484375,
-        "Text": "Back to\nschool planner\nTrack your shopping progress against the budget category amounts entered in budget breakdown.\nBudget summary Purchasing progress (1 of 6)\nBudget $1,500.00 17%\nShopping list total $365.00\nRemaining cash $1,135.00\nShopping list\nItem Category Qty To buy Cost Bought Total cost\nMath Textbooks 1 1 $55.00 1 $55.00\nEnglish Textbooks 1 1 $-\nBackpack Supplies 1 $30.00 $30.00\nCalculator Supplies 1 $-\nHighlighters Supplies 3 $-\nUniform Clothes 2 1 $100.00 $200.00\nShirt, button-up Clothes 4 $-\nShirt, t-shirts Clothes 5 $-\nShorts Clothes 2 $-\nSneakers Clothes 2 1 $-\nSocks Clothes 10 $-\nSpring jacket Clothes 1 1 $80.00 $80.00"
+        "Text": "Back to\nschool planner\nTrack your shopping progress against the budget category amounts entered in budget breakdown.\nBudget summary Purchasing progress (1 of 6)\nBudget $1,500.00 17%\nShopping list total $365.00\nRemaining cash $1,135.00\nShopping list\nItem Category Qty To buy Cost Bought Total cost\nMath Textbooks 1 1 $55.00 1 $55.00\nEnglish Textbooks 1 1 $-\nBackpack Supplies 1 $30.00 $30.00\nCalculator Supplies 1 $-\nHighlighters Supplies 3 $-\nUniform Clothes 2 1 $100.00 $200.00\nShirt, button-up Clothes 4 $-\nShirt, t-shirts Clothes 5 $-\nShorts Clothes 2 $-\nSneakers Clothes 2 1 $-\nSocks Clothes 10 $-\nSpring jacket Clothes 1 1 $80.00 $80.00\nSweaters Clothes 1 $-\nSweatshirts Clothes 1 $-\nUnderwear Clothes 10 $-\nWinter jacket Clothes 1 1 $-"
       },
       {
         "Width": 595.280029296875,
         "Height": 841.8900146484375,
-        "Text": "Sweaters Clothes\n1 $-\nSweatshirts Clothes\n1 $-\nUnderwear Clothes 10 $-\nWinter jacket Clothes\n1\n1 $-"
+        "Text": "Budget breakdown\nAdd categories and budget amounts to track against in your shopping list.\nCategory Total cost\nClothes $280.00\nSupplies $30.00\nTextbooks $55.00"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.5034,
-      "Ssim": 0.6519,
+      "ErrorMetric": 0.4945,
+      "Ssim": 0.6489,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0513,
-      "Ssim": 0.9349,
+      "ErrorMetric": 0.0538,
+      "Ssim": 0.9335,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

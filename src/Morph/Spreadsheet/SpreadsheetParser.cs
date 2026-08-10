@@ -144,8 +144,58 @@ sealed class SpreadsheetParser(string defaultFont)
             return clipped.IsEmpty ? area : clipped;
         }
 
-        return bounds;
+        return ExtendForOverflow(worksheet, bounds);
     }
+
+    /// <summary>
+    /// Widens a range to the columns the author shaped, when the last used column holds text that
+    /// would otherwise be clipped at its edge.
+    ///
+    /// Word-style probe (<c>_probe_overflow</c>): a sheet whose <c>dimension</c> is column A alone,
+    /// holding long unwrapped text, prints that text running across B through H and onto a SECOND
+    /// page — so Excel's overflow is bounded by neither the column nor the used range, only by the
+    /// next filled cell. Measured rightmost ink per row on the A4 reference: 115px for text that
+    /// fits, 221px for text crossing one column, 672px plus a page-two continuation for text
+    /// crossing seven, and a hard stop at the filled cell in C.
+    ///
+    /// Clipping at the used range therefore renders such a sheet blank. The range is extended to the
+    /// last column carrying an explicit <c>customWidth</c> — the extent the author laid out, and a
+    /// far closer bound than the used range. It is not the true rule, which would follow the text's
+    /// measured width and can run off the page; that needs horizontal pagination, which this parser
+    /// does not do.
+    /// </summary>
+    static SheetRange ExtendForOverflow(S.Worksheet worksheet, SheetRange bounds)
+    {
+        if (!HasOverflowingText(worksheet, bounds))
+        {
+            return bounds;
+        }
+
+        var shaped = worksheet.GetFirstChild<S.Columns>()?
+            .Elements<S.Column>()
+            .Where(_ => _.CustomWidth?.Value == true && _.Max?.Value is { } max && max < maxShapedColumn)
+            .Select(_ => (int) _.Max!.Value)
+            .DefaultIfEmpty(0)
+            .Max() ?? 0;
+
+        return shaped > bounds.LastColumn
+            ? bounds with { LastColumn = shaped }
+            : bounds;
+    }
+
+    /// <summary>
+    /// A <c>col</c> run reaching the sheet's last column is the default-width catch-all every
+    /// workbook ends with, not a shaped column; extending to it would widen a sheet by 16000 columns.
+    /// </summary>
+    const uint maxShapedColumn = 1000;
+
+    /// <summary>Whether the range's final column holds text that would be clipped at its edge.</summary>
+    static bool HasOverflowingText(S.Worksheet worksheet, SheetRange bounds) =>
+        worksheet.GetFirstChild<S.SheetData>()?
+            .Elements<S.Row>()
+            .SelectMany(_ => _.Elements<S.Cell>())
+            .Any(_ => CellReference.ColumnOf(_.CellReference?.Value) == bounds.LastColumn &&
+                      _.CellValue?.Text is { Length: > 0 }) ?? false;
 
     /// <summary>The extent of the cells present, for a sheet whose <c>dimension</c> is missing.</summary>
     static SheetRange? UsedRange(S.Worksheet worksheet)

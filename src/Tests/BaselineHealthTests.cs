@@ -65,14 +65,13 @@ public class BaselineHealthTests
         "explicit_break_blank_page/imagesharp_result#page_0002.verified.png",
         "explicit_break_blank_page/pdf_result#page_0002.verified.png",
         // -- Known regressions (temporary — remove when fixed) --
-        // Excel text overflow beyond the USED RANGE, tracked in src/todo.md. Excel does not clip an
-        // unwrapped cell at its column: while the cells to the right are empty the text runs on over
-        // them, and it keeps running past the used range into columns that hold nothing at all.
-        // SheetGridBuilder.OverflowSpan models the first half but stops at the range edge, so a sheet
-        // whose entire used range is one narrow column renders blank. invoice-accessibility-guide's
-        // "Start" sheet is a single 2.625-character column of instruction text; its "Invoice" sheet
-        // is two similarly narrow ones. Widening the range needs a Word-style probe to settle how far
-        // Excel actually carries the overflow, so it is deliberately not guessed at here.
+        // Long unwrapped cell text renders blank. NOT a parse fault: the same workbook exports 24k
+        // characters of correct text through the Markdown exporter, and the overflow rules are now
+        // probe-settled (see SpreadsheetParser.ExtendForOverflow) and applied. The remaining cause is
+        // downstream, in laying out a single no-wrap line several times wider than its page —
+        // invoice-accessibility-guide's sheets are narrow columns holding paragraph-length
+        // instructions. Isolating that is tracked in src/todo.md; suppressing it here keeps the guard
+        // meaningful for every other page rather than switching it off.
         "invoice-accessibility-guide/skia_result#page_0001.verified.png",
         "invoice-accessibility-guide/skia_result#page_0002.verified.png",
         "invoice-accessibility-guide/imagesharp_result#page_0001.verified.png",
