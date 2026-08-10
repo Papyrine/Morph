@@ -11,7 +11,7 @@ public class HeaderFloatingImageParseTests
     public async Task CoverLetters12_HeaderContainsFullPageBehindTextImage()
     {
         var parser = new DocumentParser();
-        await using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "cover-letters", "12", "input.docx"));
+        await using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "cover-letters", "12", "input.docx"));
         var doc = parser.Parse(stream);
 
         var headerImages = doc.Header!.Elements.OfType<FloatingImageElement>().ToList();
@@ -30,7 +30,7 @@ public class HeaderFloatingImageParseTests
     public async Task Letters03_HeaderContainsBannerImage()
     {
         var parser = new DocumentParser();
-        await using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "letters", "03", "input.docx"));
+        await using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "letters", "03", "input.docx"));
         var doc = parser.Parse(stream);
 
         var headerImages = doc.Header!.Elements.OfType<FloatingImageElement>().ToList();

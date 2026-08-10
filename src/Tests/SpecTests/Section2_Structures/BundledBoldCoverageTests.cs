@@ -143,7 +143,7 @@ public class BundledBoldCoverageTests
     /// </remarks>
     static IEnumerable<(string Family, int Weight, string Scenario)> ResolveBoldFamilies()
     {
-        var inputs = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
+        var inputs = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word");
         var fontCache = new FontFileCache(
             FontCacheLoader.EnumerateFontFilesInDirectory(ProjectFonts.Directory, recursive: true),
             OpenTypeReader.ReadFaces);

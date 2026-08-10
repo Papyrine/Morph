@@ -19,7 +19,7 @@ public class TableNoWrapTests
     public async Task DocumentParser_ParsesNoWrap_FromCorpusCell()
     {
         // agendas-minutes/11 has cells with both w:tcW and w:noWrap inside w:tcPr.
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "agendas-minutes", "11", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "agendas-minutes", "11", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);

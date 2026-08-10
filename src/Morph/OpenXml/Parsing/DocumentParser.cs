@@ -275,10 +275,10 @@ sealed class DocumentParser(string defaultFont)
         lastRenderedPageBreakCount = body.Descendants<LastRenderedPageBreak>().Count();
 
         // Extract and store theme colors early (needed for background color and other theme-resolved values)
-        currentThemeColors = ThemeParser.ExtractThemeColors(mainPart);
+        currentThemeColors = ThemeParser.ExtractThemeColors(mainPart.ThemePart);
 
         // Extract and store theme fonts for use during parsing
-        currentThemeFonts = ThemeParser.ExtractThemeFonts(mainPart);
+        currentThemeFonts = ThemeParser.ExtractThemeFonts(mainPart.ThemePart);
 
         // Resolve the document's default font from docDefaults (w:rPrDefault/w:rFonts). Every run
         // that doesn't carry an explicit font inherits this. Falls back to the constructor's

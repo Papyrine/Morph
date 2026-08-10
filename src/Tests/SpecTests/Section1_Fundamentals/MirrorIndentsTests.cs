@@ -20,7 +20,7 @@ public class MirrorIndentsTests
     {
         // Use the corpus's complex_spacing document — it carries w:mirrorIndents on
         // at least one paragraph.
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "complex_spacing", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "complex_spacing", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);

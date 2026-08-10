@@ -15,7 +15,7 @@ public class TrackedChangesTests
     [Test]
     public async Task DocumentParser_CapturesInsertionsAndDeletions()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "tracked_changes", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "tracked_changes", "01", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);
@@ -33,7 +33,7 @@ public class TrackedChangesTests
     [Test]
     public async Task DocumentParser_NoTrackedChanges_EmptyList()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "all_caps", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "all_caps", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);

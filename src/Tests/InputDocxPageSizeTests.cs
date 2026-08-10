@@ -15,7 +15,7 @@ public class InputDocxPageSizeTests
     [Test]
     public async Task EveryInputDocxDeclaresPageSize()
     {
-        var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
+        var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word");
         var missing = new List<string>();
 
         foreach (var docxPath in Directory.EnumerateFiles(inputsDir, "input.docx", SearchOption.AllDirectories))

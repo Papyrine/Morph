@@ -8,7 +8,7 @@ public class PdfConverterTests
 
     public static IEnumerable<string> SampleInputs()
     {
-        var inputs = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
+        var inputs = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word");
         foreach (var name in new[] {"bold_text", "align_center", "hyperlinks"})
         {
             var path = Path.Combine(inputs, name, "input.docx");
@@ -34,7 +34,7 @@ public class PdfConverterTests
     [Test]
     public async Task OutputIsDeterministic()
     {
-        var input = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "bullet_list", "input.docx");
+        var input = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "bullet_list", "input.docx");
         var first = PdfDocumentConverter.ConvertToPdf(input, new() {FontDirectory = fontsDirectory});
         var second = PdfDocumentConverter.ConvertToPdf(input, new() {FontDirectory = fontsDirectory});
 
@@ -51,7 +51,7 @@ public class PdfConverterTests
     [Test]
     public async Task RasterizeWordArtOffDropsTheWarpedFigures()
     {
-        var input = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "wordart-envelope", "input.docx");
+        var input = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "wordart-envelope", "input.docx");
 
         var withArt = PdfDocumentConverter.ConvertToPdf(input, new() {FontDirectory = fontsDirectory, RasterizeWordArt = true});
         var withoutArt = PdfDocumentConverter.ConvertToPdf(input, new() {FontDirectory = fontsDirectory, RasterizeWordArt = false});
@@ -115,7 +115,7 @@ public class PdfConverterTests
     [Test]
     public async Task MultiPageDocumentPaginates()
     {
-        var inputPath = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "agendas-minutes", "02", "input.docx");
+        var inputPath = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "agendas-minutes", "02", "input.docx");
         if (!File.Exists(inputPath))
         {
             return;

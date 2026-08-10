@@ -6,7 +6,7 @@ public class HeaderSpaceReservationTests
 {
     static PageSettings Parse(params string[] scenario)
     {
-        var segments = new[] {ProjectFiles.ProjectDirectory, "Inputs"}
+        var segments = new[] {ProjectFiles.ProjectDirectory, "Inputs", "word"}
             .Concat(scenario)
             .Append("input.docx")
             .ToArray();

@@ -35,7 +35,7 @@ public class TableDiagonalBordersTests
     {
         // The fixture's cells specify *only* diagonal children inside w:tcBorders;
         // the four sides come from the table's w:tblBorders and must still show up.
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "table_diagonal_borders", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "table_diagonal_borders", "01", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);

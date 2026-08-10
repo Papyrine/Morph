@@ -106,7 +106,7 @@ public class ConditionalFormattingTests
     [Test]
     public async Task DocumentParser_AppliesFirstRowShadingFromTableStyle()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "agendas-minutes", "15", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "agendas-minutes", "15", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);
@@ -133,7 +133,7 @@ public class ConditionalFormattingTests
     [Test]
     public async Task DocumentParser_AppliesWholeTableShadingToBodyCells()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "agendas-minutes", "15", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "agendas-minutes", "15", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);

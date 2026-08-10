@@ -14,7 +14,7 @@ public class DocumentProtectionTests
     [Test]
     public async Task DocumentParser_ParsesReadOnlyProtection()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "document_protection", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "document_protection", "01", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);
@@ -26,7 +26,7 @@ public class DocumentProtectionTests
     [Test]
     public async Task DocumentParser_NoProtection_DefaultsToNone()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "all_caps", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "all_caps", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);

@@ -12,7 +12,7 @@ using SkiaSharp;
 public class CanonicalWrapAgreementTests
 {
     static readonly string fontsDirectory = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
-    static readonly string inputsDirectory = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
+    static readonly string inputsDirectory = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word");
 
     static readonly FontFileCache fonts = new(
         FontCacheLoader.EnumerateFontFilesInDirectory(fontsDirectory, recursive: true),

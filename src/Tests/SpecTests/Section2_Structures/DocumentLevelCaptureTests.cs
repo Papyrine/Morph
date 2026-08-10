@@ -4,8 +4,8 @@
 /// </summary>
 public class DocumentLevelCaptureTests
 {
-    static string DocumentCaptureFile => Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "document_capture", "01", "input.docx");
-    static string AllCapsFile => Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "all_caps", "input.docx");
+    static string DocumentCaptureFile => Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "document_capture", "01", "input.docx");
+    static string AllCapsFile => Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "all_caps", "input.docx");
 
     [Test]
     public async Task Footnote_RequiresIdAndText()
@@ -85,7 +85,7 @@ public class DocumentLevelCaptureTests
     public async Task DocumentParser_DetectsHasGradientFills()
     {
         // business/04 ships gradient-filled decorative shapes.
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "business", "04", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "business", "04", "input.docx");
         var doc = new DocumentParser().Parse(inputFile);
         await Assert.That(doc.Features.HasGradientFills).IsTrue();
     }
@@ -94,7 +94,7 @@ public class DocumentLevelCaptureTests
     public async Task DocumentParser_DetectsHasDuotoneEffects()
     {
         // newsletters/01 uses a:duotone on its decorative imagery.
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "newsletters", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "newsletters", "01", "input.docx");
         var doc = new DocumentParser().Parse(inputFile);
         await Assert.That(doc.Features.HasDuotoneEffects).IsTrue();
     }
@@ -103,7 +103,7 @@ public class DocumentLevelCaptureTests
     public async Task DocumentParser_DetectsHasBezierShapes()
     {
         // agendas-minutes/05 ships custom Bezier path geometry.
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "agendas-minutes", "05", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "agendas-minutes", "05", "input.docx");
         var doc = new DocumentParser().Parse(inputFile);
         await Assert.That(doc.Features.HasBezierShapes).IsTrue();
     }
@@ -112,7 +112,7 @@ public class DocumentLevelCaptureTests
     public async Task DocumentParser_DetectsHasCharts()
     {
         // business-plans/12 embeds a chart.
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "business-plans", "12", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "business-plans", "12", "input.docx");
         var doc = new DocumentParser().Parse(inputFile);
         await Assert.That(doc.Features.HasCharts).IsTrue();
     }

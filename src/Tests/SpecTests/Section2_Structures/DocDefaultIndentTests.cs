@@ -10,7 +10,7 @@ public class DocDefaultIndentTests
         // The wedding/01 document has pPrDefault with w:ind w:left="720" w:right="720" (36pt each).
         // Styles that don't explicitly set indentation should inherit these defaults.
         var parser = new DocumentParser();
-        await using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "wedding", "01", "input.docx"));
+        await using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "wedding", "01", "input.docx"));
         var doc = parser.Parse(stream);
 
         // Find paragraphs by style in the table cells
@@ -37,7 +37,7 @@ public class DocDefaultIndentTests
         // When a style explicitly sets w:ind, it should override the document default.
         // The SecondName style has w:ind w:left="1728" which overrides the doc default 36pt.
         var parser = new DocumentParser();
-        await using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "wedding", "01", "input.docx"));
+        await using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "wedding", "01", "input.docx"));
         var doc = parser.Parse(stream);
 
         var tableParagraphs = doc.Elements
@@ -61,7 +61,7 @@ public class DocDefaultIndentTests
         // Documents without pPrDefault indentation should have 0 indent by default.
         // Use a simple document (e.g., bold_text) that likely has no pPrDefault indent.
         var parser = new DocumentParser();
-        await using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "bold_text", "input.docx"));
+        await using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "bold_text", "input.docx"));
         var doc = parser.Parse(stream);
 
         var firstPara = doc.Elements.OfType<ParagraphElement>().First(_ => _.Runs.Count > 0);

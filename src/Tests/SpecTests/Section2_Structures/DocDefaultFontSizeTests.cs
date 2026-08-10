@@ -68,7 +68,7 @@ public class DocDefaultFontSizeTests
 
     static ParsedDocument Parse(params string[] scenario)
     {
-        var parts = new[] { ProjectFiles.ProjectDirectory, "Inputs" }
+        var parts = new[] { ProjectFiles.ProjectDirectory, "Inputs", "word" }
             .Concat(scenario)
             .Append("input.docx")
             .ToArray();

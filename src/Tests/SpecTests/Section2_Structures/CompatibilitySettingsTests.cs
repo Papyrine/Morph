@@ -53,7 +53,7 @@ public class CompatibilitySettingsTests
     public async Task DocumentParser_ParsesCompatibilityMode15()
     {
         // Parse resumes/01 which has compatibility mode 15
-        var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "resumes", "01");
+        var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "resumes", "01");
         var inputFile = Path.Combine(inputsDir, "input.docx");
 
         var parser = new DocumentParser();
@@ -70,7 +70,7 @@ public class CompatibilitySettingsTests
     {
         // multiple_pages declares no compatibilityMode; Word treats such documents as
         // mode 12 (ECMA-376), not as modern documents.
-        var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "multiple_pages");
+        var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "multiple_pages");
         var inputFile = Path.Combine(inputsDir, "input.docx");
 
         var parser = new DocumentParser();
@@ -84,7 +84,7 @@ public class CompatibilitySettingsTests
     public async Task DocumentParser_ParsesCompatibilityMode14()
     {
         // Parse compatibility_mode_14 which has compatibility mode 14 (Word 2010)
-        var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "compatibility_mode_14");
+        var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "compatibility_mode_14");
         var inputFile = Path.Combine(inputsDir, "input.docx");
 
         var parser = new DocumentParser();

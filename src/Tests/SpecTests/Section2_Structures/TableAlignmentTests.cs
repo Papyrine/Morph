@@ -13,7 +13,7 @@ public class TableAlignmentTests
     [Test]
     public async Task DocumentParser_ParsesTableAlignment()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "table_alignment", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "table_alignment", "01", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);

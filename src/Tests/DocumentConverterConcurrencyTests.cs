@@ -17,7 +17,7 @@ public class DocumentConverterConcurrencyTests
     [Test]
     public async Task SharedConverterIsByteIdenticalUnderConcurrentRenders()
     {
-        var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
+        var inputsDir = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word");
         var inputA = await File.ReadAllBytesAsync(Path.Combine(inputsDir, "complex_tables", "input.docx"));
         var inputB = await File.ReadAllBytesAsync(Path.Combine(inputsDir, "bullet_list", "input.docx"));
 

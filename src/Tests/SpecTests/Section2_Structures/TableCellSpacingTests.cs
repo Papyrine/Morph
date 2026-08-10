@@ -73,7 +73,7 @@ public class TableCellSpacingTests
     public async Task DocumentParser_ParsesTableLevelCellSpacing()
     {
         // Hand-built minimal docx: one table with w:tblCellSpacing="40" type="dxa" (= 2pt).
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "table_cell_spacing", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "table_cell_spacing", "01", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);

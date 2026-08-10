@@ -11,7 +11,7 @@
 /// </summary>
 public class FragmenterPageCountTests
 {
-    static readonly string inputsDirectory = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
+    static readonly string inputsDirectory = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word");
     static readonly Fragmenter fragmenter = new(LayoutTestFonts.Measurer);
 
     [Test]

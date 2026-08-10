@@ -18,7 +18,7 @@ public class RunPropertyCaptureTests
 
     static ParsedDocument FeatureCaptureDoc()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "feature_capture", "01", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "feature_capture", "01", "input.docx");
         return new DocumentParser().Parse(inputFile);
     }
 

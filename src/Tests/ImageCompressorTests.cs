@@ -334,7 +334,7 @@ public class ImageCompressorTests
     public async Task CompressesEveryCorpusDocumentWithoutGrowingAPart()
     {
         var inputs = Directory.EnumerateFiles(
-            Path.Combine(ProjectFiles.ProjectDirectory, "Inputs"),
+            Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word"),
             "input.docx",
             SearchOption.AllDirectories);
 
@@ -354,7 +354,7 @@ public class ImageCompressorTests
     }
 
     static string Corpus(string scenario) =>
-        Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", scenario, "input.docx");
+        Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", scenario, "input.docx");
 
     /// <summary>
     /// Strips the base64 payloads out of exported HTML. Recompressed images produce different

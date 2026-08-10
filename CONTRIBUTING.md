@@ -83,7 +83,7 @@ diff visually before committing.
 
 ## Adding a new scenario test
 
-1. Create a directory under `src/Tests/Inputs/<scenario-name>/` and drop
+1. Create a directory under `src/Tests/Inputs/word/<scenario-name>/` and drop
    the source document as `input.docx`.
 2. Seed the Word reference image (`expected_*.png`). The
    `src/RenderHelper/` project drives Microsoft Word via COM interop and

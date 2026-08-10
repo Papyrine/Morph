@@ -100,7 +100,7 @@ public class TablePropertyExceptionsTests
     [Test]
     public async Task DocumentParser_ParsesRowLevelBorderOverrides()
     {
-        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "newsletters", "04", "input.docx");
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "newsletters", "04", "input.docx");
 
         var parser = new DocumentParser();
         var doc = parser.Parse(inputFile);

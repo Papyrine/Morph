@@ -116,9 +116,9 @@ The HTML, Markdown and PDF exporters run off the same parsed model as the PNG re
 
 Export galleries — a visual index of every scenario's exporter output (PDF pages beside the Word reference render):
 
-- [HTML](src/Tests/Inputs/compare-all-html.md)
-- [Markdown](src/Tests/Inputs/compare-all-markdown.md)
-- [PDF](src/Tests/Inputs/compare-all-pdf.md) — pages rendered by [Verify.PDFium](https://github.com/VerifyTests/Verify.PDFium)
+- [HTML](src/Tests/Inputs/word/compare-all-html.md)
+- [Markdown](src/Tests/Inputs/word/compare-all-markdown.md)
+- [PDF](src/Tests/Inputs/word/compare-all-pdf.md) — pages rendered by [Verify.PDFium](https://github.com/VerifyTests/Verify.PDFium)
 
 
 ## Rendering Backends
@@ -130,7 +130,7 @@ Morph supports two rendering backends:
 | **SkiaSharp** | `Morph.Skia` | Mature, includes SVG support |
 | **ImageSharp** | `Morph.ImageSharp` | Fully managed (no native dependencies) |
 
-[Rendering comparison gallery](src/Tests/Inputs/compare-all-images.md) — every scenario rendered by both backends side by side against the Microsoft Word reference image, with per-page error metrics.
+[Rendering comparison gallery](src/Tests/Inputs/word/compare-all-images.md) — every scenario rendered by both backends side by side against the Microsoft Word reference image, with per-page error metrics.
 
 
 ## Usage

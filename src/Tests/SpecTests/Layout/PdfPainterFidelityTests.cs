@@ -10,7 +10,7 @@ using Morph.PDFium;
 /// </summary>
 public class PdfPainterFidelityTests
 {
-    static readonly string inputsDirectory = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs");
+    static readonly string inputsDirectory = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word");
     static readonly Fragmenter fragmenter = new(LayoutTestFonts.Measurer);
     static readonly string fontsDirectory = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
 
