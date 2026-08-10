@@ -356,6 +356,29 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
     public static double NaturalWidthPoints(S.Worksheet worksheet, SheetRange range) =>
         ColumnWidths(worksheet, range, 1).Sum();
 
+    /// <summary>
+    /// The sheet's unscaled height, for the fit-to-height half of the scale. Declared row heights
+    /// are what Excel fits against; a row that would grow to its content is not known until layout,
+    /// and Excel does not fit against that either.
+    /// </summary>
+    public static double NaturalHeightPoints(S.Worksheet worksheet, SheetRange range)
+    {
+        var declared = worksheet.GetFirstChild<S.SheetData>()?
+            .Elements<S.Row>()
+            .Where(_ => _.RowIndex?.Value is { } index && range.ContainsRow((int) index))
+            .ToDictionary(_ => (int) _.RowIndex!.Value, _ => _.Height?.Value) ?? [];
+
+        var fallback = worksheet.SheetFormatProperties?.DefaultRowHeight?.Value ?? defaultRowHeightPoints;
+
+        var total = 0d;
+        for (var row = range.FirstRow; row <= range.LastRow; row++)
+        {
+            total += declared.TryGetValue(row, out var height) && height is { } value ? value : fallback;
+        }
+
+        return total;
+    }
+
     static double ToPoints(double characters) =>
         characters <= 0
             ? 0

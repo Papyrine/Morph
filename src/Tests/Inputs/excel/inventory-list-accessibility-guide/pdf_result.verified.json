@@ -16,7 +16,7 @@
       {
         "Width": 841.8900146484375,
         "Height": 595.280029296875,
-        "Text": "Inventory List\nTOTAL INVENTORY VALUE: INVENTORY ITEMS: BIN COUNT:\n$4,649.00 11 6\nSKU DESCRIPTION BIN # LOCATION UNIT QTY REORDER QTY COST INVENTORY VALUE REORDER\nSP7875 Item 1 T345 Row 2, slot 1 Each 20 10 $30.00 $600.00\nTR87680 Item 2 T345 Row 2, slot 1 Each 30 15 $40.00 $1,200.00\nMK676554 Item 3 T5789 Row 1, slot 1 Each 10 5 $5.00 $50.00\nYE98767 Item 4 T9876 Row 3, slot 2 Box (10 ct) 40 10 $15.00 $600.00\nXR23423 Item 5 T098 Row 3, slot 1 Each 12 10 $26.00 $312.00\nPW98762 Item 6 T345 Row 2, slot 1 Each 7 10 $50.00 $350.00 Reorder\nBM87684 Item 7 T349 Row 1, slot 2 Each 10 5 $10.00 $100.00\nBH67655 Item 8 T5789 Row 1, slot 1 Each 19 10 $3.00 $57.00\nWT98768 Item 9 T9875 Row 2, slot 2 Package (5 ct) 20 30 $14.00 $280.00 Reorder\nTS3456 Item 10 T349 Row 1, slot 2 Each 15 8 $60.00 $900.00\nWDG123 Item 11 T349 Row 1, slot 2 Each 25 15 $8.00 $200.00\n< Start Inventory pick list >"
+        "Text": "Inventory List\nTOTAL INVENTORY VALUE: INVENTORY ITEMS: BIN COUNT:\n$4,649.00 11 6\nSKU DESCRIPTION BIN # LOCATION UNIT QTY REORDER QTY COST INVENTORY VALUE REORDER\nSP7875 Item 1 T345 Row 2, slot 1 Each 20 10 $30.00 $600.00\nTR87680 Item 2 T345 Row 2, slot 1 Each 30 15 $40.00 $1,200.00\nMK676554 Item 3 T5789 Row 1, slot 1 Each 10 5 $5.00 $50.00\nYE98767 Item 4 T9876 Row 3, slot 2 Box (10 ct) 40 10 $15.00 $600.00\nXR23423 Item 5 T098 Row 3, slot 1 Each 12 10 $26.00 $312.00\nPW98762 Item 6 T345 Row 2, slot 1 Each 7 10 $50.00 $350.00 Reorder\nBM87684 Item 7 T349 Row 1, slot 2 Each 10 5 $10.00 $100.00\nBH67655 Item 8 T5789 Row 1, slot 1 Each 19 10 $3.00 $57.00\nWT98768 Item 9 T9875 Row 2, slot 2 Package (5 ct) 20 30 $14.00 $280.00 Reorder\nTS3456 Item 10 T349 Row 1, slot 2 Each 15 8 $60.00 $900.00\nWDG123 Item 11 T349 Row 1, slot 2 Each 25 15 $8.00 $200.00\n<\nStart\nInventory\npick\nlist\n>"
       }
     ]
   },
@@ -31,8 +31,8 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.4442,
-      "Ssim": 0.7871,
+      "ErrorMetric": 0.4363,
+      "Ssim": 0.8283,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

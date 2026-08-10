@@ -267,18 +267,44 @@ sealed class SpreadsheetParser(string defaultFont)
     static double ResolveScale(S.Worksheet worksheet, SheetRange range, PageSettings settings)
     {
         var setup = worksheet.GetFirstChild<S.PageSetup>();
-        var fitToPage = worksheet.SheetProperties?.PageSetupProperties?.FitToPage?.Value == true;
 
-        if (!fitToPage && setup?.Scale?.Value is { } explicitScale && explicitScale != 100)
+        // A sheet is scaled ONLY when it asks to be. Without fitToPage, Excel prints at the declared
+        // zoom (100% by default) and lets the grid run onto further pages — shrinking it to fit
+        // instead collapses those pages into one and reports the wrong page count.
+        if (worksheet.SheetProperties?.PageSetupProperties?.FitToPage?.Value != true)
         {
-            return explicitScale / 100.0;
+            return setup?.Scale?.Value is { } zoom and not 100 ? zoom / 100.0 : 1;
         }
 
-        var pagesWide = fitToPage ? Math.Max(1, setup?.FitToWidth?.Value ?? 1) : 1;
-        var natural = SheetGridBuilder.NaturalWidthPoints(worksheet, range);
-        var available = settings.ContentWidth * pagesWide;
+        // fitToWidth and fitToHeight both default to 1, so plain fitToPage means "one page each way"
+        // and BOTH axes constrain the scale. Zero means "as many pages as it takes", which leaves
+        // that axis unconstrained.
+        var pagesWide = setup?.FitToWidth?.Value ?? 1;
+        var pagesTall = setup?.FitToHeight?.Value ?? 1;
 
-        return natural > available && natural > 0 ? available / natural : 1;
+        var scale = 1d;
+
+        if (pagesWide > 0)
+        {
+            var natural = SheetGridBuilder.NaturalWidthPoints(worksheet, range);
+            var available = settings.ContentWidth * pagesWide;
+            if (natural > available && natural > 0)
+            {
+                scale = available / natural;
+            }
+        }
+
+        if (pagesTall > 0)
+        {
+            var natural = SheetGridBuilder.NaturalHeightPoints(worksheet, range);
+            var available = (settings.HeightPoints - settings.MarginTop - settings.MarginBottom) * pagesTall;
+            if (natural > available && natural > 0)
+            {
+                scale = Math.Min(scale, available / natural);
+            }
+        }
+
+        return scale;
     }
 
     static PageSettings PageSettingsFor(S.Worksheet worksheet)

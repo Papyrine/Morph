@@ -65,10 +65,14 @@ public class BaselineHealthTests
         "explicit_break_blank_page/imagesharp_result#page_0002.verified.png",
         "explicit_break_blank_page/pdf_result#page_0002.verified.png",
         // -- Known regressions (temporary — remove when fixed) --
-        // (none currently. The newsletters/06 Skia pages this guard was written for were fixed by
-        // treating a:ln/@w as absolute rather than group-scaled, see docs/floating-art-pipeline.md;
-        // invoice-accessibility-guide's blank pages were fixed by honouring row customHeight and
-        // then by parsing sheet drawings.)
+        // Horizontal pagination is not implemented. to-do-list spans columns A:Q and asks for no
+        // fitToPage, so Excel prints it at 100% across TWO page strips, left and right. Morph prints
+        // the left strip and clips the rest, then breaks vertically instead — which lands on the same
+        // page count for the wrong reason and leaves the second page nearly empty. Page 1 is a fair
+        // comparison; page 2 is the signature of the missing feature. Tracked in src/todo.md.
+        "to-do-list/skia_result#page_0002.verified.png",
+        "to-do-list/imagesharp_result#page_0002.verified.png",
+        "to-do-list/pdf_result#page_0002.verified.png"
     ];
 
     public static IEnumerable<string> GetScenarioDirectories() => ScenarioInputs.AllDirectories();

@@ -11,15 +11,15 @@
       {
         "Width": 595.280029296875,
         "Height": 841.8900146484375,
-        "Text": "TIMESHEET INVOICE\nINVOICE #: PROJECT\nDESCRIPTION: ISSUE DATE:\nDUE DATE:\nSERVICE PROVIDER CUSTOMER\nName/Company Name Name/Company\nName Street Address Street\nAddress City, State, ZIP Code, Country City, State,\nZIP Code,\nCountry\nPhone Phone\nEmail Email\nNO. DESCRIPTION HOURS RATE TOTAL\n1 Consulting session 3 $50.00 $150.00\n2 Marketing session 5 $60.00 $300.00\nSUBTOTAL $450.00\nTAX RATE 5.00%\nTAX $22.50\nOTHER $0.00\nTOTAL $472.50\nNOTE"
+        "Text": "TIMESHEET INVOICE\nINVOICE #: PROJECT\nDESCRIPTION: ISSUE DATE:\nDUE DATE:\nSERVICE PROVIDER CUSTOMER\nName/Company Name Name/Company\nName Street Address Street\nAddress City, State, ZIP Code, Country City, State, ZIP\nCode, Country Phone Phone\nEmail Email\nNO. DESCRIPTION HOURS RATE TOTAL\n1 Consulting session 3 $50.00 $150.00\n2 Marketing session 5 $60.00 $300.00\nSUBTOTAL $450.00\nTAX RATE 5.00%\nTAX $22.50\nOTHER $0.00\nTOTAL $472.50\nNOTE"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.397,
-      "Ssim": 0.853,
+      "ErrorMetric": 0.3966,
+      "Ssim": 0.8477,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
