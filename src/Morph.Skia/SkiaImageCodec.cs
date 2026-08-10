@@ -33,11 +33,12 @@ public sealed class SkiaImageCodec : ImageCodec
             return null;
         }
 
-        using var resized = decoded.Width == request.Width && decoded.Height == request.Height
+        using var resized = decoded.Width == request.Width &&
+                            decoded.Height == request.Height
             ? null
             : decoded.Resize(
                 new SKImageInfo(request.Width, request.Height, decoded.ColorType, decoded.AlphaType),
-                new SKSamplingOptions(SKCubicResampler.Mitchell));
+                new(SKCubicResampler.Mitchell));
 
         var bitmap = resized ?? decoded;
 

@@ -9,25 +9,23 @@
     <link rel="preload" href="_framework/blazor.webassembly.js" as="script">
     <link rel="preload" href="js/interop.js" as="script">
     <link rel="stylesheet" href="css/app.css">
-<!--!--><!--!--><!--!--><title><!--!-->Morph — DOCX Converter</title><!--!--><!--!--><!--!--></head>
+<!--!--><!--!--><!--!--><title><!--!-->Morph — Office Converter</title><!--!--><!--!--><!--!--></head>
 
 <body>
     <div id="app"><!--!--><!--!--><!--!--><!--!--><header><!--!--><h1 tabindex="-1">Morph</h1>
-    <!--!--><p>Convert Word documents (.docx) to PNG, PDF, HTML, Markdown or plain text — entirely in your browser</p>
+    <!--!--><p>Convert Word (.docx), Excel (.xlsx) and PowerPoint (.pptx) files to PNG, PDF, HTML, Markdown or plain text — entirely in your browser</p>
     <!--!--><div class="theme-toggle"><button class="theme-toggle-btn" aria-label="Toggle theme"><!--!--><span class="icon">🌙</span><!--!--><span class="text"> Dark</span></button></div></header><!--!-->
 
 <div class="container"><!--!--><!--!--><!--!--><!--!--><!--!-->
 
-<div class="converter"><div class="upload-panel"><label class="file-drop" for="docx-file"><!--!--><span class="file-drop-icon">📄</span>
-            <span class="file-drop-text"><!--!--><strong>Choose a Word document</strong>
-                    <!--!--><span>A .docx file — converted to PNG, PDF, HTML, Markdown or plain text</span></span><!--!-->
-            <!--!--><input id="docx-file" class="file-input" accept=".docx" type="file" _bl_2="" style="caret-color: transparent !important;"></label><!--!-->
+<div class="converter"><div class="upload-panel"><label class="file-drop" for="source-file"><span class="file-drop-icon">📄</span><!--!-->
+            <span class="file-drop-text"><!--!--><strong>Choose an Office file</strong>
+                    <!--!--><span>Word .docx, Excel .xlsx or PowerPoint .pptx — converted to PNG, PDF, HTML, Markdown or plain text</span></span><!--!-->
+            <!--!--><input id="source-file" class="file-input" accept=".docx,.xlsx,.pptx" type="file" _bl_2="" style="caret-color: transparent !important;"></label><!--!-->
 
         <!--!--><div class="upload-or"><span>or</span></div>
 
-        <button class="sample-btn"><!--!-->
-            📄 Try a sample document
-        </button></div></div></div><!--!-->
+        <div class="sample-row"><button class="sample-btn">📄 Sample Word</button><button class="sample-btn">📊 Sample Excel</button><button class="sample-btn">📽️ Sample PowerPoint</button></div></div></div></div><!--!-->
 
 <footer><!--!-->
     Powered by <!--!--><a href="https://github.com/Papyrine/Morph" target="_blank">Morph</a> — no data leaves your device

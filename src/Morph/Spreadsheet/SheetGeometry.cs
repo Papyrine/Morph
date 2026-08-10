@@ -56,7 +56,7 @@ sealed class SheetGeometry
     public IReadOnlyList<double> ColumnWidths => columnWidths;
 
     public double RowHeight(int row) =>
-        rowHeights.TryGetValue(row, out var height) ? height : defaultRowHeight;
+        rowHeights.GetValueOrDefault(row, defaultRowHeight);
 
     /// <summary>
     /// Distance in points from the grid's left edge to the left edge of a 1-based column. Columns

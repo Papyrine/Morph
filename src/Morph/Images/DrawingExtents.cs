@@ -268,7 +268,7 @@ static class DrawingExtents
         return null;
     }
 
-    static double? Length(ReadOnlySpan<char> value)
+    static double? Length(CharSpan value)
     {
         // a bare number in a VML style is points
         var unit = 0;

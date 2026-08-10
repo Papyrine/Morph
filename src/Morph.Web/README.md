@@ -1,35 +1,45 @@
 # Morph.Web
 
-A Blazor WebAssembly single-page app that converts a Word `.docx` to **PNG**, **PDF**, **HTML**,
-**Markdown** or **plain text** — entirely in the browser. No file ever leaves the device. Modelled on the
-[GeoConvert](https://github.com/Papyrine/GeoConvert) web app (layout, theming, testing and deployment).
+A Blazor WebAssembly single-page app that converts a Word `.docx`, Excel `.xlsx` or PowerPoint `.pptx`
+file to **PNG**, **PDF**, **HTML**, **Markdown** or **plain text** — entirely in the browser. No file ever
+leaves the device. Modelled on the [GeoConvert](https://github.com/Papyrine/GeoConvert) web app (layout,
+theming, testing and deployment).
 
-Live behaviour: upload a `.docx` (or click **Try a sample document**), see each page rendered as a live
-preview, pick an output format, and download. On a wide viewport (≥1200px) every non-PNG format also
-renders its actual output in a pane beside the page preview — PDF and HTML in an iframe (blob URL),
-Markdown and plain text inline — converted on selection and cached per format for the life of the
-document (a download of the same format reuses the cached bytes). The Markdown view swaps each embedded
-base64 image payload for a short size note ([`MarkdownPreview`](Services/MarkdownPreview.cs)); the
-downloaded `.md` keeps the full data URIs.
+Live behaviour: upload a file (or click one of the three **Sample** buttons), see each page rendered as a
+live preview, pick an output format, and download. Every input converts to every output, so the source
+only selects which of Morph's converter families the bytes route through — see
+[`ConversionService`](Services/ConversionService.cs), which switches on the
+[`InputFormat`](Services/InputFormat.cs) detected from the file extension (the browser's reported MIME
+type is unreliable for Office files). A workbook paginates into printed pages and a deck renders one page
+per slide, so the upload panel's count reads "3 pages" or "12 slides" off
+[`InputFormatInfo.PageNoun`](Services/InputFormatInfo.cs).
+
+On a wide viewport (≥1200px) every non-PNG format also renders its actual output in a pane beside the page
+preview — PDF and HTML in an iframe (blob URL), Markdown and plain text inline — converted on selection
+and cached per format for the life of the document (a download of the same format reuses the cached
+bytes). The Markdown view swaps each embedded base64 image payload for a short size note
+([`MarkdownPreview`](Services/MarkdownPreview.cs)); the downloaded `.md` keeps the full data URIs.
 
 ## Backend choice — ImageSharp, not Skia
 
-The app references **`Morph.ImageSharp`** and **`Morph.Pdf`**:
+The app references **`Morph.ImageSharp`** and **`Morph.Pdf`**, and uses one converter trio per input:
 
-- `ImageSharpDocumentConverter` renders DOCX → PNG. ImageSharp is pure-managed, so it runs in
-  WebAssembly with no native assets. `SkiaDocumentConverter` is deliberately avoided — SkiaSharp needs a
-  native `browser-wasm` build the NuGet packages don't ship.
-- `PdfDocumentConverter` renders DOCX → PDF (PdfSharp, also pure-managed).
-- `DocumentConverter.ConvertToMarkdown` / `ConvertToHtml` (in core `Morph`) produce the text outputs
-  (HTML ships as a self-contained document — styles inline, images embedded as data URIs); plain text is
-  derived from the HTML by [`TextExtraction`](Services/TextExtraction.cs) (Morph has no text exporter).
+- `ImageSharpDocumentConverter` / `ImageSharpExcelConverter` / `ImageSharpPowerPointConverter` render to
+  PNG. ImageSharp is pure-managed, so it runs in WebAssembly with no native assets. The Skia equivalents
+  are deliberately avoided — SkiaSharp needs a native `browser-wasm` build the NuGet packages don't ship.
+- `PdfDocumentConverter` / `PdfExcelConverter` / `PdfPowerPointConverter` render to PDF (PdfSharp, also
+  pure-managed).
+- `DocumentConverter` / `ExcelConverter` / `PowerPointConverter`'s static `ConvertToMarkdown` /
+  `ConvertToHtml` (in core `Morph`) produce the text outputs (HTML ships as a self-contained document —
+  styles inline, images embedded as data URIs); plain text is derived from the HTML by
+  [`TextExtraction`](Services/TextExtraction.cs) (Morph has no text exporter).
 
 ## Fonts
 
 Rendering needs real font files, and a browser has none of its own. The four **Aptos** faces (400/700,
 upright/italic) are shipped as static assets under `wwwroot/fonts/`, fetched once, and written into the
 WASM in-memory filesystem; that directory is handed to **both** the PNG and PDF converters via
-`ExportOptions.FontDirectory`, with every unresolved family mapped to Aptos. So any document renders —
+`ExportOptions.FontDirectory`, with every unresolved family mapped to Aptos. So any file renders —
 its own fonts (Calibri, Times New Roman, "Aptos Light", …) **substituted with Aptos**; layout and
 structure are preserved, exact glyph shapes are not. Shipping the real Microsoft fonts to a public site
 isn't an option. See [`FontStore`](Services/FontStore.cs) and
@@ -91,10 +101,14 @@ dotnet src/Morph.Web.Tests/bin/Release/net10.0/Morph.Web.Tests.dll
 ```
 
 - **bUnit** component/markup snapshots (deterministic; committed `.verified.html`/`.txt`).
-- **Service** tests over `ConversionService` / `TextExtraction` (DOCX → each format).
+- **Service** tests over `ConversionService` / `TextExtraction`, parameterised across all three inputs
+  (each of DOCX/XLSX/PPTX → each format) against the bundled samples in
+  [`Sample`](../Morph.Web.Tests/Sample.cs).
 - **Playwright** end-to-end snapshots that boot the real threaded runtime, upload a document, render a
-  preview, and download PDF (exercising the in-memory font path). Page screenshots compare via SSIM, so
-  sub-pixel platform drift is tolerated.
+  preview, and download PDF (exercising the in-memory font path). `SampleRendersPreview` runs for all
+  three inputs, because each routes through a different Morph parser and the published build is
+  trimmed — a parser that lost a reflected-on type fails only there. Page screenshots compare via SSIM,
+  so sub-pixel platform drift is tolerated.
 
 To reset a snapshot after an intentional change, review then rename the `*.received.*` to `*.verified.*`.
 

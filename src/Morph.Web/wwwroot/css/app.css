@@ -201,7 +201,16 @@ header p {
     background: var(--border-color);
 }
 
+/* One sample button per readable format. They share the row evenly on a roomy panel and wrap to full
+   width when it gets tight, so the labels never truncate. */
+.sample-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
 .sample-btn {
+    flex: 1 1 10rem;
     padding: 0.75rem 1.5rem;
     border: 1px solid var(--border-color);
     background: var(--surface-color);
@@ -579,6 +588,17 @@ footer a:hover {
 
     .convert-btn {
         width: 100%;
+    }
+
+    /* Two sample buttons fit a phone row and the third wraps alone, which reads as a mistake. Stack
+       them one per row instead — the labels then never wrap either. Stacking turns the row's flex-basis
+       into a *height*, so the buttons also have to drop back to their natural size. */
+    .sample-row {
+        flex-direction: column;
+    }
+
+    .sample-row .sample-btn {
+        flex: none;
     }
 
     /* The footer row is tight on a phone; drop the payload-size figure to keep it readable. */

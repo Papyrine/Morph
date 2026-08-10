@@ -1,8 +1,3 @@
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Metadata.Profiles.Exif;
-using SixLabors.ImageSharp.PixelFormats;
-
 /// <summary>
 /// Images for the compression tests to chew on. They are deliberately noisy: a gradient encodes to
 /// almost nothing as a PNG, which would leave every "did this get smaller" assertion measuring the
@@ -57,10 +52,12 @@ static class TestImages
         using var buffer = new MemoryStream();
         if (jpeg)
         {
-            image.SaveAsJpeg(buffer, new JpegEncoder
-            {
-                Quality = 90
-            });
+            image.SaveAsJpeg(
+                buffer,
+                new()
+                {
+                    Quality = 90
+                });
         }
         else
         {
@@ -93,6 +90,5 @@ static class TestImages
     public static int Height(byte[] data) =>
         Image.Identify(data).Height;
 
-    public static byte[] Svg { get; } = Encoding.UTF8.GetBytes(
-        """<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="#4488cc"/></svg>""");
+    public static byte[] Svg { get; } = """<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="#4488cc"/></svg>"""u8.ToArray();
 }

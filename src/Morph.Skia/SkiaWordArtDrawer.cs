@@ -77,7 +77,8 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
 
         // Measure text to calculate scale
         using var measureFont = new SKFont(typeface, pixelFontSize);
-        measureFont.MeasureText(wordArt.Text, out var textBounds);
+        var text = wordArt.Text;
+        measureFont.MeasureText(text, out var textBounds);
 
         // Only shrink to fit; never enlarge past the explicit font size. The shape's
         // bounding box for arc/circle warps is sized for the curve, not the glyph cluster.
@@ -85,17 +86,19 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
         var scaleY = textBounds.Height > 0 ? pixelHeight / textBounds.Height : 1;
         var scale = Math.Min(Math.Min(scaleX, scaleY), 1f);
 
-        if (TryRenderWordArtOnPath(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, wordArt.OutlineColorHex, wordArt.OutlineWidthPoints, x, y, width, pixelHeight, typeface, pixelFontSize * scale))
+        var transform = wordArt.Transform;
+        var fillColor = wordArt.FillColorHex;
+        if (TryRenderWordArtOnPath(transform, text, fillColor, wordArt.OutlineColorHex, wordArt.OutlineWidthPoints, x, y, width, pixelHeight, typeface, pixelFontSize * scale))
         {
             return;
         }
 
-        if (TryRenderWordArtPathWarp(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, x, y, width, pixelHeight, typeface, pixelFontSize * scale))
+        if (TryRenderWordArtPathWarp(transform, text, fillColor, x, y, width, pixelHeight, typeface, pixelFontSize * scale))
         {
             return;
         }
 
-        if (TryRenderWordArtEnvelope(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, x, y, width, pixelHeight, typeface, pixelFontSize * scale))
+        if (TryRenderWordArtEnvelope(transform, text, fillColor, x, y, width, pixelHeight, typeface, pixelFontSize * scale))
         {
             return;
         }
@@ -106,7 +109,7 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
         var textX = x + (width - scaledWidth) / 2;
         var textY = y + (pixelHeight + scaledHeight) / 2;
 
-        DrawFlatText(wordArt, wordArt.Transform, x, y, width, pixelHeight, typeface, pixelFontSize * scale, textX, textY, scaledHeight);
+        DrawFlatText(wordArt, transform, x, y, width, pixelHeight, typeface, pixelFontSize * scale, textX, textY, scaledHeight);
     }
 
     public void DrawFloating(FloatingWordArtElement wordArt, float pixelX, float pixelY, float width, float pixelHeight)
@@ -120,24 +123,27 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
 
         // Measure text to calculate scale
         using var measureFont = new SKFont(typeface, pixelFontSize);
-        measureFont.MeasureText(wordArt.Text, out var textBounds);
+        var text = wordArt.Text;
+        measureFont.MeasureText(text, out var textBounds);
 
         // Only shrink to fit; never enlarge past the explicit font size — see note above.
         var scaleX = textBounds.Width > 0 ? width / textBounds.Width : 1;
         var scaleY = textBounds.Height > 0 ? pixelHeight / textBounds.Height : 1;
         var scale = Math.Min(Math.Min(scaleX, scaleY), 1f);
 
-        if (TryRenderWordArtOnPath(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, wordArt.OutlineColorHex, wordArt.OutlineWidthPoints, pixelX, pixelY, width, pixelHeight, typeface, pixelFontSize * scale))
+        var transform = wordArt.Transform;
+        var fillColor = wordArt.FillColorHex;
+        if (TryRenderWordArtOnPath(transform, text, fillColor, wordArt.OutlineColorHex, wordArt.OutlineWidthPoints, pixelX, pixelY, width, pixelHeight, typeface, pixelFontSize * scale))
         {
             return;
         }
 
-        if (TryRenderWordArtPathWarp(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, pixelX, pixelY, width, pixelHeight, typeface, pixelFontSize * scale))
+        if (TryRenderWordArtPathWarp(transform, text, fillColor, pixelX, pixelY, width, pixelHeight, typeface, pixelFontSize * scale))
         {
             return;
         }
 
-        if (TryRenderWordArtEnvelope(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, pixelX, pixelY, width, pixelHeight, typeface, pixelFontSize * scale))
+        if (TryRenderWordArtEnvelope(transform, text, fillColor, pixelX, pixelY, width, pixelHeight, typeface, pixelFontSize * scale))
         {
             return;
         }
@@ -148,7 +154,7 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
         var textX = pixelX + (width - scaledWidth) / 2;
         var textY = pixelY + (pixelHeight + scaledHeight) / 2;
 
-        DrawFlatText(wordArt, wordArt.Transform, pixelX, pixelY, width, pixelHeight, typeface, pixelFontSize * scale, textX, textY, scaledHeight);
+        DrawFlatText(wordArt, transform, pixelX, pixelY, width, pixelHeight, typeface, pixelFontSize * scale, textX, textY, scaledHeight);
     }
 
     /// <summary>

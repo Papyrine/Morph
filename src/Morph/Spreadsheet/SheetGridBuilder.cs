@@ -341,7 +341,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
 
         if (!double.TryParse(raw, NumberStyles.Any, CultureInfo.InvariantCulture, out var number))
         {
-            return (raw!, null);
+            return (raw, null);
         }
 
         var formatted = NumberFormat.Format(number, style.EffectiveFormatCode);

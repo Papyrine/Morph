@@ -62,5 +62,7 @@ static class BuiltinNumberFormats
     /// Whether an id is one of the date/time builtins. Useful before a format code is even resolved —
     /// a cell carrying id 14 holds a date serial whatever else is known about it.
     /// </summary>
-    public static bool IsDate(int id) => id is (>= 14 and <= 22) or (>= 45 and <= 47);
+    public static bool IsDate(int id) => id is
+        >= 14 and <= 22 or
+        >= 45 and <= 47;
 }

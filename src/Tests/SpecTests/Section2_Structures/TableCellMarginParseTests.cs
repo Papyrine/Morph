@@ -275,7 +275,7 @@ public class TableCellMarginParseTests
     {
         var basedOnXml = basedOn == null ? "" : $"""<w:basedOn w:val="{basedOn}"/>""";
         var tblPr = cellMargin == null ? "" : $"<w:tblPr>{cellMargin}</w:tblPr>";
-        return new($"""<w:style {wNs} w:type="table" w:styleId="{styleId}">{basedOnXml}{tblPr}</w:style>""");
+        return [with($"""<w:style {wNs} w:type="table" w:styleId="{styleId}">{basedOnXml}{tblPr}</w:style>""")];
     }
 
     // A table style's w:tblCellMar merges with its w:basedOn ancestor's PER SIDE. Real templates
@@ -435,7 +435,7 @@ public class TableCellMarginParseTests
     // and replaced results differ on the horizontal sides.
     static MemoryStream BuildTblPrExDocument()
     {
-        static W.TableCell Cell() => new(new W.Paragraph(new W.Run(new Text("x"))));
+        static W.TableCell Cell() => [with(new Paragraph(new W.Run(new Text("x"))))];
 
         var table = new Table(
             new W.TableProperties(
@@ -456,7 +456,7 @@ public class TableCellMarginParseTests
         var stream = new MemoryStream();
         using (var doc = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
         {
-            doc.AddMainDocumentPart().Document = new(new Body(table));
+            doc.AddMainDocumentPart().Document = [with(new Body(table))];
         }
 
         stream.Position = 0;

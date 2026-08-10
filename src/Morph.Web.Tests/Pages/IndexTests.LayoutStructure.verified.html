@@ -1,18 +1,20 @@
 ﻿<div class="converter">
   <div class="upload-panel">
-    <label class="file-drop" for="docx-file">
+    <label class="file-drop" for="source-file">
       <span class="file-drop-icon">📄</span>
       <span class="file-drop-text">
-        <strong>Choose a Word document</strong>
-        <span>A .docx file — converted to PNG, PDF, HTML, Markdown or plain text</span>
+        <strong>Choose an Office file</strong>
+        <span>Word .docx, Excel .xlsx or PowerPoint .pptx — converted to PNG, PDF, HTML, Markdown or plain text</span>
       </span>
-      <input id="docx-file" class="file-input" accept=".docx" type="file" blazor:elementreference="scrubbed">
+      <input id="source-file" class="file-input" accept=".docx,.xlsx,.pptx" type="file" blazor:elementreference="scrubbed">
     </label>
     <div class="upload-or">
       <span>or</span>
     </div>
-    <button class="sample-btn" blazor:onclick="1">
-      📄 Try a sample document
-    </button>
+    <div class="sample-row">
+      <button class="sample-btn" blazor:onclick="1">📄 Sample Word</button>
+      <button class="sample-btn" blazor:onclick="2">📊 Sample Excel</button>
+      <button class="sample-btn" blazor:onclick="3">📽️ Sample PowerPoint</button>
+    </div>
   </div>
 </div>

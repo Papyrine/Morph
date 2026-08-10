@@ -13,7 +13,8 @@ public partial class Index : IDisposable
     const int resultPaneMinWidth = 1200;
 
     string? sourceName;
-    byte[]? docxBytes;
+    InputFormatInfo? sourceInfo;
+    byte[]? sourceBytes;
     int pageCount;
     List<string>? previewPages;
     string? errorMessage;
@@ -75,29 +76,33 @@ public partial class Index : IDisposable
         var file = args.File;
         sourceName = file.Name;
 
-        if (!ConversionService.CanRead(file.Name))
+        // Extension is the only reliable signal: the browser's reported MIME type varies by OS and is
+        // frequently empty for Office files.
+        if (ConversionService.Detect(file.Name) is not { } detected)
         {
             // User error rather than a bug, so no "report an issue" prompt.
-            errorMessage = $"Can't read '{file.Name}'. Upload a Word .docx file.";
+            errorMessage = $"Can't read '{file.Name}'. Upload a Word .docx, Excel .xlsx or PowerPoint .pptx file.";
             sourceName = null;
             return;
         }
 
+        sourceInfo = detected;
+
         try
         {
-            BeginPhase("Reading document…");
+            BeginPhase($"Reading {detected.DisplayName}…");
             await using var stream = file.OpenReadStream(maxFileSize);
             using var memory = new MemoryStream();
             await stream.CopyToAsync(memory);
-            docxBytes = memory.ToArray();
+            sourceBytes = memory.ToArray();
 
             await RenderPreviewAsync();
             await EnsureResultPreviewAsync();
         }
         catch (Exception exception)
         {
-            ReportError("Could not read the document", exception);
-            docxBytes = null;
+            ReportError($"Could not read the {detected.DisplayName}", exception);
+            sourceBytes = null;
         }
         finally
         {
@@ -105,25 +110,26 @@ public partial class Index : IDisposable
         }
     }
 
-    // Loads the document bundled as a static web asset at /sample/sample.docx, then reuses the same
-    // read/render pipeline as an uploaded file.
-    async Task LoadSampleDocument()
+    // Loads the file bundled as a static web asset at /sample/sample.docx (or .xlsx / .pptx), then reuses
+    // the same read/render pipeline as an uploaded file.
+    async Task LoadSample(InputFormatInfo info)
     {
         await ResetAsync();
-        sourceName = "sample.docx";
+        sourceInfo = info;
+        sourceName = info.SampleFileName;
 
         try
         {
-            BeginPhase("Downloading sample document…");
-            docxBytes = await Http.GetByteArrayAsync("sample/sample.docx");
+            BeginPhase($"Downloading sample {info.DisplayName}…");
+            sourceBytes = await Http.GetByteArrayAsync(info.SampleAsset);
 
             await RenderPreviewAsync();
             await EnsureResultPreviewAsync();
         }
         catch (Exception exception)
         {
-            ReportError("Could not load the sample document", exception);
-            docxBytes = null;
+            ReportError($"Could not load the sample {info.DisplayName}", exception);
+            sourceBytes = null;
         }
         finally
         {
@@ -131,12 +137,13 @@ public partial class Index : IDisposable
         }
     }
 
-    // Rendering a document to page images is CPU-bound. It runs inside Task.Run so the "Rendering
-    // preview…" state paints first; on the single-threaded runtime the page is then briefly unresponsive
-    // while the pages rasterise.
+    // Rendering to page images is CPU-bound. It runs inside Task.Run so the "Rendering preview…" state
+    // paints first; on the single-threaded runtime the page is then briefly unresponsive while the pages
+    // rasterise.
     async Task RenderPreviewAsync()
     {
-        if (docxBytes is not { } bytes)
+        if (sourceBytes is not { } bytes ||
+            sourceInfo is not { } info)
         {
             previewPages = null;
             return;
@@ -148,7 +155,7 @@ public partial class Index : IDisposable
         {
             // Rendering needs the bundled fonts materialised into the in-memory filesystem first.
             var fontDirectory = await FontStore.EnsureAsync(Http);
-            var pages = await Task.Run(() => RenderPreview(bytes, fontDirectory));
+            var pages = await Task.Run(() => RenderPreview(bytes, info.Format, fontDirectory));
             previewPages = pages;
             pageCount = pages.Count;
             progressDetail = null;
@@ -160,9 +167,9 @@ public partial class Index : IDisposable
         }
     }
 
-    static List<string> RenderPreview(byte[] bytes, string fontDirectory)
+    static List<string> RenderPreview(byte[] bytes, InputFormat source, string fontDirectory)
     {
-        var pages = ConversionService.RenderPngPages(bytes, new() { Dpi = previewDpi }, fontDirectory);
+        var pages = ConversionService.RenderPngPages(bytes, source, new() { Dpi = previewDpi }, fontDirectory);
         var urls = new List<string>(pages.Count);
         foreach (var page in pages)
         {
@@ -180,10 +187,10 @@ public partial class Index : IDisposable
         return EnsureResultPreviewAsync();
     }
 
-    // Converts the loaded document to the selected format for the result pane. Skipped when the pane
-    // can't show: no document, PNG selected (the page preview already is the PNG), or a narrow viewport
+    // Converts the loaded source to the selected format for the result pane. Skipped when the pane
+    // can't show: no source, PNG selected (the page preview already is the PNG), or a narrow viewport
     // (the pane never renders there, so converting would be wasted work). Results are cached per format
-    // for the life of the document, so flipping between formats re-shows instantly.
+    // for the life of the source, so flipping between formats re-shows instantly.
     async Task EnsureResultPreviewAsync()
     {
         // The selection can move on while a conversion runs (the dropdown stays enabled), so loop:
@@ -191,7 +198,8 @@ public partial class Index : IDisposable
         // the still-selected format.
         while (true)
         {
-            if (docxBytes is not { } bytes ||
+            if (sourceBytes is not { } bytes ||
+                sourceInfo is not { } source ||
                 !wideViewport ||
                 isBusy ||
                 TargetInfo is not { } info ||
@@ -211,12 +219,12 @@ public partial class Index : IDisposable
             try
             {
                 var fontDirectory = await FontStore.EnsureAsync(Http);
-                var payload = await Task.Run(() => ConversionService.BuildDownload(bytes, info.Format, image, fontDirectory));
+                var payload = await Task.Run(() => ConversionService.BuildDownload(bytes, source.Format, info.Format, image, fontDirectory));
                 var converted = await BuildResultPreviewAsync(info.Format, payload);
 
                 // The awaits above can interleave with a new upload (the file input stays active); a result
-                // for the replaced document must not be cached or shown against the new one.
-                if (!ReferenceEquals(docxBytes, bytes))
+                // for the replaced source must not be cached or shown against the new one.
+                if (!ReferenceEquals(sourceBytes, bytes))
                 {
                     await RevokeAsync(converted);
                     return;
@@ -283,7 +291,8 @@ public partial class Index : IDisposable
 
     async Task Download()
     {
-        if (docxBytes is not { } bytes)
+        if (sourceBytes is not { } bytes ||
+            sourceInfo is not { } source)
         {
             return;
         }
@@ -308,7 +317,7 @@ public partial class Index : IDisposable
                 // The rendered formats (PNG, PDF) resolve fonts against the bundled Aptos faces,
                 // materialised into the in-memory filesystem here; the text formats ignore the directory.
                 var fontDirectory = await FontStore.EnsureAsync(Http);
-                payload = await Task.Run(() => ConversionService.BuildDownload(bytes, info.Format, image, fontDirectory));
+                payload = await Task.Run(() => ConversionService.BuildDownload(bytes, source.Format, info.Format, image, fontDirectory));
             }
 
             var baseName = Path.GetFileNameWithoutExtension(sourceName) ?? "document";
@@ -335,7 +344,8 @@ public partial class Index : IDisposable
         errorMessage = null;
         issueUrl = null;
         sourceName = null;
-        docxBytes = null;
+        sourceInfo = null;
+        sourceBytes = null;
         pageCount = 0;
         previewPages = null;
         isBusy = false;

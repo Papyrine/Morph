@@ -3,34 +3,39 @@
 @inject HttpClient Http
 @inject IJSRuntime JsRuntime
 
-<PageTitle>Morph — DOCX Converter</PageTitle>
+<PageTitle>Morph — Office Converter</PageTitle>
 
 <div class="converter">
     <div class="upload-panel">
-        <label class="file-drop" for="docx-file">
-            <span class="file-drop-icon">📄</span>
+        <label class="file-drop" for="source-file">
+            <span class="file-drop-icon">@(sourceInfo?.Icon ?? "📄")</span>
             <span class="file-drop-text">
                 @if (sourceName is null)
                 {
-                    <strong>Choose a Word document</strong>
-                    <span>A .docx file — converted to PNG, PDF, HTML, Markdown or plain text</span>
+                    <strong>Choose an Office file</strong>
+                    <span>Word .docx, Excel .xlsx or PowerPoint .pptx — converted to PNG, PDF, HTML, Markdown or plain text</span>
                 }
                 else
                 {
                     <strong>@sourceName</strong>
-                    <span>@pageCount page@(pageCount == 1 ? "" : "s")</span>
+                    <span>@(sourceInfo?.PageLabel(pageCount))</span>
                 }
             </span>
-            <InputFile id="docx-file" OnChange="OnFileSelected" class="file-input" accept="@ConversionService.ReadableAccept" />
+            <InputFile id="source-file" OnChange="OnFileSelected" class="file-input" accept="@ConversionService.ReadableAccept" />
         </label>
 
         <div class="upload-or"><span>or</span></div>
 
-        @* A sample .docx bundled as a static web asset, fetched on demand so it only downloads
-           when asked — never at app startup. *@
-        <button class="sample-btn" @onclick="LoadSampleDocument" disabled="@isBusy">
-            📄 Try a sample document
-        </button>
+        @* One sample per readable format, each bundled as a static web asset and fetched on demand so it
+           only downloads when asked — never at app startup. *@
+        <div class="sample-row">
+            @foreach (var sample in ConversionService.ReadableFormats)
+            {
+                <button class="sample-btn" @onclick="() => LoadSample(sample)" disabled="@isBusy">
+                    @sample.Icon Sample @sample.ShortName
+                </button>
+            }
+        </div>
     </div>
 
     @if (errorMessage is not null)
@@ -40,12 +45,12 @@
 
     @* The read phase happens before the preview exists, so its progress shows here. The bar is
        indeterminate — the single-threaded render can't animate it while it's crunching. *@
-    @if (isBusy && !isRendering && docxBytes is null)
+    @if (isBusy && !isRendering && sourceBytes is null)
     {
         <ConversionProgress Label="@progressLabel" Detail="@progressDetail" />
     }
 
-    @if (docxBytes is not null)
+    @if (sourceBytes is not null)
     {
         <div class="workspace">
             @if (isRendering || previewPages is { Count: > 0 })

@@ -396,7 +396,7 @@ public static class ImageCompressor
             .Where(_ => _.Name.LocalName == "Default")
             .Select(_ => _.Attribute("Extension")?.Value)
             .Where(_ => _ is not null)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase)!;
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         foreach (var plan in replacements.Values.Where(_ => _.NewContentType is not null))
         {

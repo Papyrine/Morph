@@ -556,7 +556,7 @@ public class ImageCompressorTests
         string RootRelationships()
         {
             var thumbnail = extras.Any(_ => _.PartName == "docProps/thumbnail.png")
-                ? $"""<Relationship Id="rIdThumb" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail" Target="docProps/thumbnail.png" />"""
+                ? """<Relationship Id="rIdThumb" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail" Target="docProps/thumbnail.png" />"""
                 : "";
 
             return $"""

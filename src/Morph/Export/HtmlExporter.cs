@@ -187,8 +187,9 @@ static class HtmlExporter
 
         foreach (var element in elements)
         {
-            if (element is FloatingShapeElement ||
-                element is FloatingImageElement {WrapType: WrapType.None})
+            if (element is
+                FloatingShapeElement or
+                FloatingImageElement {WrapType: WrapType.None})
             {
                 return true;
             }
