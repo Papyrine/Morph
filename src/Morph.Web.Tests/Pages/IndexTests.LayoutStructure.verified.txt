@@ -1,4 +1,0 @@
-﻿{
-  Instance: {},
-  NodeCount: 27
-}

@@ -8,7 +8,9 @@ builder.Services
     {
         BaseAddress = new(builder.HostEnvironment.BaseAddress)
     });
-builder.Services.AddScoped<FileDownloadService>();
+// The converter component's own services (JS module bridge). The HttpClient above is the other half of
+// what it needs — it fetches the bundled fonts and samples out of the package's static web assets.
+builder.Services.AddMorph();
 builder.Services.AddScoped<ThemePreferenceService>();
 
 await builder.Build().RunAsync();

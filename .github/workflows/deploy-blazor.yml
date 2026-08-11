@@ -1,9 +1,11 @@
 name: Deploy Blazor WASM to GitHub Pages
 
-# Builds, tests and deploys the Morph.Web converter (src/Morph.Web) to GitHub Pages. This is
-# independent of the container-based rendering suite in test.yml. The web projects are in Morph.slnx
-# but excluded from Release solution builds (a Blazor WASM project can't build in the linux/amd64 test
-# image, which has no wasm-tools workload), so they're built here by path instead.
+# Builds, tests and deploys the Morph.Web app (src/Morph.Web) to GitHub Pages. This is independent of
+# the container-based rendering suite in test.yml. Morph.Web and Morph.Web.Tests are in Morph.slnx but
+# excluded from Release solution builds (a Blazor WASM project can't build in the linux/amd64 test
+# image, which has no wasm-tools workload), so they're built here by path instead. The converter itself
+# lives in src/Morph.Blazor, a plain Razor class library that has no such restriction — it builds and
+# packs with the rest of the solution, and arrives here as a project reference of the app.
 
 on:
   push:
@@ -22,7 +24,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # SponsorCheck (referenced by Morph/Morph.ImageSharp/Morph.Pdf) is for the nuget pack builds and
+    # SponsorCheck (referenced by every packable project — Morph, Morph.ImageSharp, Morph.Pdf,
+    # Morph.Skia and Morph.Blazor) is for the nuget pack builds and
     # needs a GitHub credential this deploy has no reason to hold. The csprojs already drop the
     # SponsorCheck reference when MORPH_TEST_CONTAINER=1 (the flag the linux/amd64 test container sets for
     # its compile-and-test-only build). This deploy is the same shape — it compiles, tests and publishes

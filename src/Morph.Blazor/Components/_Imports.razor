@@ -1,0 +1,8 @@
+@* Every component in this library lives in the single Morph namespace, matching the rest of the repo,
+   rather than the Morph.Components the Razor SDK would derive from this folder's name. *@
+@namespace Morph
+@* Component tag names resolve from Razor @using directives, not from GlobalUsings.cs — the framework's
+   own components (InputFile) and this library's need to be named here. *@
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Web
+@using Morph

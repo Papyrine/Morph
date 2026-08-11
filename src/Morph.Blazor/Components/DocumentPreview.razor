@@ -1,0 +1,19 @@
+@* Stacks one image per rendered page, scrolling when a long document exceeds the cap. Presentational
+   only: it shows pages that have already been rendered, so a host that wants its own layout can call
+   ConversionService.RenderPngPages itself and feed the results in here. *@
+
+<div class="preview">
+    @if (Busy)
+    {
+        <div class="preview-busy">
+            <ConversionProgress Label="@Label" Detail="@Detail" />
+        </div>
+    }
+    else
+    {
+        @foreach (var pageUrl in Pages)
+        {
+            <img class="preview-page" src="@pageUrl" alt="@PageAlt" />
+        }
+    }
+</div>

@@ -3,6 +3,12 @@
   <Project Path="Morph.Skia/Morph.Skia.csproj" />
   <Project Path="Morph.ImageSharp/Morph.ImageSharp.csproj" />
   <Project Path="Morph.Pdf/Morph.Pdf.csproj" />
+  <!--
+    The reusable Blazor component package. Unlike the Morph.Web app below it is a plain Razor class
+    library, so it needs no wasm-tools workload and builds (and packs) everywhere, including the
+    linux/amd64 test container and the NuGet publish workflow.
+  -->
+  <Project Path="Morph.Blazor/Morph.Blazor.csproj" />
   <Folder Name="/SolutionItems/">
     <File Path="../.editorconfig" />
     <File Path="../.gitattributes" />

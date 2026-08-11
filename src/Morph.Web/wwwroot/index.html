@@ -8,18 +8,21 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <base href="/" />
     <!-- Preload critical resources -->
+    <link rel="preload" href="_content/Morph.Blazor/morph.css" as="style" />
     <link rel="preload" href="css/app.css" as="style" />
     <link rel="preload" href="_framework/blazor.webassembly.js" as="script" />
     <link rel="preload" href="js/interop.js" as="script" />
-    <!-- The four Aptos faces every render needs (~940KB, see Services/FontStore.cs). Fetched by
+    <!-- The four Aptos faces every render needs (~940KB, see Morph.Blazor's FontStore). Fetched by
          HttpClient once the app is running, which is well after the runtime has finished downloading;
          preloading starts them during the WASM boot instead, so they're in the HTTP cache by then.
          as="fetch" needs the crossorigin attribute to match the handler's same-origin credentials mode —
          without it the browser won't reuse the preload and downloads each font twice. -->
-    <link rel="preload" href="fonts/Aptos_400.ttf" as="fetch" crossorigin />
-    <link rel="preload" href="fonts/Aptos_400_Italic.ttf" as="fetch" crossorigin />
-    <link rel="preload" href="fonts/Aptos_700.ttf" as="fetch" crossorigin />
-    <link rel="preload" href="fonts/Aptos_700_Italic.ttf" as="fetch" crossorigin />
+    <link rel="preload" href="_content/Morph.Blazor/fonts/Aptos_400.ttf" as="fetch" crossorigin />
+    <link rel="preload" href="_content/Morph.Blazor/fonts/Aptos_400_Italic.ttf" as="fetch" crossorigin />
+    <link rel="preload" href="_content/Morph.Blazor/fonts/Aptos_700.ttf" as="fetch" crossorigin />
+    <link rel="preload" href="_content/Morph.Blazor/fonts/Aptos_700_Italic.ttf" as="fetch" crossorigin />
+    <!-- The component package's stylesheet first, so this app's app.css can override anything in it. -->
+    <link rel="stylesheet" href="_content/Morph.Blazor/morph.css" />
     <link rel="stylesheet" href="css/app.css" />
 </head>
 

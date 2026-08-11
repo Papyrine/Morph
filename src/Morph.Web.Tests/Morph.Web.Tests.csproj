@@ -32,10 +32,11 @@
   </ItemGroup>
 
   <!-- The service/bUnit tests need a real file of each readable format and the Aptos faces the PDF
-       export resolves against; copy both out of the web app so the tests are self-contained. -->
+       export resolves against; copy both out of the component package's static web assets so the tests
+       are self-contained. -->
   <ItemGroup>
-    <Content Include="..\Morph.Web\wwwroot\sample\sample.*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="..\Morph.Web\wwwroot\fonts\*.ttf" Link="fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\Morph.Blazor\wwwroot\sample\sample.*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\Morph.Blazor\wwwroot\fonts\*.ttf" Link="fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
