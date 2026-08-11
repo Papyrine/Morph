@@ -20,6 +20,4 @@ Date:
 
 2025-06-15
 
-Name: 
-
-John Doe
+Name: John Doe

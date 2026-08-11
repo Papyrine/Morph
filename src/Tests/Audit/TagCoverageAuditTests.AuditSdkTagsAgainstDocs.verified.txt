@@ -2,10 +2,10 @@
 
 SDK element types catalogued: 1727
 SDK attribute names catalogued: 394
-Tags mentioned in docs: 642
+Tags mentioned in docs: 644
 SDK namespaces seen: a, a14, a15, c, cdr, cx, dgm, m, o, pic, v, w, w10, w14, w15, w16cur, wp, wp14, wpc, wpg, wps
 
-## SDK tags missing from both word-features.md and missingTags.md (1153)
+## SDK tags missing from both word-features.md and missingTags.md (1152)
 
 These elements are recognised by the OpenXml SDK but not documented anywhere — either coverage gaps to add to `missingTags.md`, or genuinely uninteresting plumbing tags. Triage and either document or explicitly accept.
 
@@ -1052,7 +1052,6 @@ These elements are recognised by the OpenXml SDK but not documented anywhere —
 - `w:printPostScriptOverText`
 - `w:printTwoOnOne`
 - `w:printerSettings`
-- `w:ptab`
 - `w:query`
 - `w:r`
 - `w:rStyle`

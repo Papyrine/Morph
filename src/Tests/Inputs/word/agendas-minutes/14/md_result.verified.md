@@ -1,6 +1,6 @@
 ﻿| **Meeting Agenda**  |
 | --- |
-|  Helbe Sokk, Jessie Irwin, Allan Mattsson, Chanchal Sharma |
+| Attendees: Helbe Sokk, Jessie Irwin, Allan Mattsson, Chanchal Sharma |
 
 | I.  **Call to order** |
 | --- |

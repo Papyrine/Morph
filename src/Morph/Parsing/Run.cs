@@ -57,6 +57,11 @@ sealed class Run
     /// </summary>
     public bool IsTab { get; init; }
 
+    /// <summary>When set, this tab run is an absolute position tab (<c>w:ptab</c>) rather than a
+    /// stop-list tab: it jumps to a position derived from the text area instead of snapping to the
+    /// paragraph's <c>w:tabs</c>. <see cref="IsTab"/> is true alongside it.</summary>
+    public PositionalTab? PositionalTab { get; init; }
+
     /// <summary>When set, this run is a footnote-reference marker (empty <see cref="Text"/>); the
     /// id keys into <see cref="ParsedDocument.Footnotes"/>. The raster renderers ignore it; the
     /// text exporters emit an inline marker and collect the note into a trailing notes section.</summary>
@@ -122,6 +127,7 @@ sealed class Run
             InlineImageDuotoneColorHex = InlineImageDuotoneColorHex,
             InlineImageDuotoneLightColorHex = InlineImageDuotoneLightColorHex,
             IsTab = IsTab,
+            PositionalTab = PositionalTab,
             FootnoteReferenceId = FootnoteReferenceId,
             EndnoteReferenceId = EndnoteReferenceId,
             HyperlinkUrl = HyperlinkUrl,
@@ -150,6 +156,7 @@ sealed class Run
             InlineImageDuotoneColorHex = InlineImageDuotoneColorHex,
             InlineImageDuotoneLightColorHex = InlineImageDuotoneLightColorHex,
             IsTab = IsTab,
+            PositionalTab = PositionalTab,
             FootnoteReferenceId = FootnoteReferenceId,
             EndnoteReferenceId = EndnoteReferenceId,
             HyperlinkUrl = HyperlinkUrl,

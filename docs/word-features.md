@@ -2106,6 +2106,8 @@ Single-line plain text input.
 - **OOXML**: `w:sdt` with `w:sdtPr` > `w:text`
 - **Model**: `ContentControlElement` with `ContentControlType.PlainText`
 
+> **Contributors — a FILLED run-level plain-text control stays inline.** Once `w:sdtContent` holds runs, those runs ARE the value and Word lays them out inline with the rest of the paragraph; nothing about the control needs rendering the cached content cannot supply. Routing it through the control path emitted a block `ContentControlElement` and split the paragraph around it, which cost three things: the value vanished from any header or footer (the band renders paragraphs and tables only, so a `COMPASS | <Title>` footer lost its title and stranded its page number on a second line), a centred label sat at the margin instead of inside its box (`labels/07`'s `[Name]` placeholders), and an inline `Name: John Doe` came out as two paragraphs. `IsContentControlType` now returns false for a plain-text control whose content has text, so it takes the existing inline-SDT path. An EMPTY one still routes through the control path — its placeholder is the one thing the cached content genuinely cannot supply. Net corpus AE −0.058.
+
 
 #### Checkbox Content Control `DONE`
 
@@ -2342,7 +2344,7 @@ Prevents hyphenation of all-uppercase words.
 
 Positioned alignment points within a paragraph. Types: left, center, right, decimal. Optional leader characters (dots, dashes, etc.).
 
-- **OOXML**: `w:tabs` > `w:tab` with `w:val` (type), `w:pos` (position), `w:leader`; `w:defaultTabStop` in settings.xml; `<w:tab/>` character in runs
+- **OOXML**: `w:tabs` > `w:tab` with `w:val` (type), `w:pos` (position), `w:leader`; `w:defaultTabStop` in settings.xml; `<w:tab/>` character in runs; `<w:ptab/>` absolute position tabs
 - **Parse**: `DocumentParser.ParseTabs()`, `ExtractDefaultTabStop()` in `Morph/OpenXml/Parsing/DocumentParser.cs`
 - **Model**: `ParagraphProperties.TabStops`, `ParagraphProperties.DefaultTabStopPoints`, `Run.IsTab` in `Morph/Parsing/DocumentElements.cs`
 - **Render**: `TabStopResolver` in `Morph/Rendering/TabStopResolver.cs`; `HandleTab` + `RenderTabFiller` in each `TextRenderer`; bar-tab rules via `DrawBarTabs` in each raster `TextRenderer` and `Morph.Pdf/PdfTextEngine.cs`
@@ -2350,6 +2352,10 @@ Positioned alignment points within a paragraph. Types: left, center, right, deci
 - **Spec**: [Tab Stops](http://officeopenxml.com/WPtab.php)
 
 > **AI**: Implemented: left/center/right/decimal explicit stops, default-tab fallback (`w:defaultTabStop`), `w:val="clear"` removal, inherited stops via paragraph styles, dot/hyphen/middleDot/heavy leader glyphs, underscore leader as baseline line. Decimal alignment scans the following runs for the first `.` and aligns that x at the tab position; falls back to Right when no decimal is present (matches Word). Bar tabs draw a vertical line at the stop's position on every line of the paragraph (independent of `<w:tab/>` characters) — `DrawBarTabs` in each backend. `num` tabs alias to Left (the parser falls them through to `TabAlignment.Left`) since their behaviour in modern Word is identical to a left-aligned tab inside a numbered-list paragraph. When a tab destination falls behind the cursor or the gap exceeds the remaining line width, the tab collapses gracefully — the matching wrap-on-tab where the cursor advances to the next line is intentionally not modelled because the existing wrap pipeline already breaks lines on whitespace. A Right/Center/Decimal stop past the paragraph's wrap width CLAMPS to the wrap width — TOC styles carry full-page stops into narrow cells, and Word right-aligns the page numbers at the cell edge (business-plans/12/13, verified against Word's renders).
+
+> **Absolute position tabs (`w:ptab`).** These snap to no stop list: they jump to a position taken from the text area and align the following text there, which is how Word pins a footer's page number to the right margin or centres a header's marking without a stop. Modelled on `Run.PositionalTab` rather than resolved at parse time, because the position depends on the measure the paragraph is finally laid out in; `CanonicalParagraphMeasurer` resolves it against the column width beside the ordinary stop path, and a `w:leader` fills the gap exactly as a stop's does. `w:relativeTo` margin and page both resolve to that measure, `indent` to the paragraph's own left indent. A ptab that would pull text back behind the pen collapses, as a stop does. Word-probed against left/right/centre stops and right/centre/leadered ptabs in one render — Morph now lands all five within 3px.
+>
+> **A leading tab must survive the split anchored art causes.** `ParseParagraph` breaks a paragraph's runs around anchored art so the art keeps its place in document order. Runs made only of tabs are not a paragraph though: flushing them strands the tab from the text it was advancing, so the continuation restarts at the indent, and a phantom blank line is left behind. That is how `Classification`'s header — a leading `<w:tab/>` against a centre stop, with an anchored decorative rule between it and the text — rendered its marking hard against the left margin, one line low. `IsTabOnly` holds those runs back to join the continuation; the art is out of flow, so nothing about the ordering changes.
 
 
 ### 9.3 Bidirectional Text

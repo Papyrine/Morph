@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// The <see cref="IParagraphMeasurer"/> surface over the backend-independent
 /// <see cref="CanonicalTextMeasurer"/> — step 1 of the layout engine
 /// (<c>docs/layout-engine.md</c>). It wraps a paragraph's runs and reports line heights,
@@ -177,7 +177,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // quantizing once (PixelsToPoints) is pen-position rounding, which composes across fonts. Text and
     // Properties are carried so the wrap can hand a painter each line's run segments — they never enter
     // the width/pitch arithmetic.
-    readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties, LaidOutImage? Image, bool IsBreak, bool IsTab);
+    readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties, LaidOutImage? Image, bool IsBreak, bool IsTab, PositionalTab? Positional = null);
 
     readonly record struct WrapSegment(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None);
 
@@ -380,13 +380,40 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 var afterTab = pieceIndex + 1;
                 var tabStart = cursor;
                 var cursorFromMargin = leftIndentPoints + CanonicalTextMeasurer.PixelsToPoints(cursor);
-                var (destinationFromMargin, matchedStop, _) = TabStopResolver.Resolve(
-                    cursorFromMargin,
-                    () => MeasureFollowing(linePieces, afterTab),
-                    tabStops,
-                    defaultTabStopPoints,
-                    leftIndentPoints,
-                    availableEndX: columnWidthPoints);
+
+                double destinationFromMargin;
+                TabStop? matchedStop;
+                if (piece.Positional is { } positional)
+                {
+                    // w:ptab snaps to no stop list — it jumps to a position taken from the text area
+                    // and aligns the following text there. Word offers margin / indent / page bases;
+                    // margin and page coincide with the measure the paragraph is laid out in here,
+                    // while indent starts at the paragraph's own left indent.
+                    var basePosition = positional.RelativeTo == PositionalTabBase.Indent ? leftIndentPoints : 0;
+                    var edge = columnWidthPoints;
+                    destinationFromMargin = positional.Alignment switch
+                    {
+                        TabAlignment.Right => edge - MeasureFollowing(linePieces, afterTab),
+                        TabAlignment.Center => basePosition + (edge - basePosition - MeasureFollowing(linePieces, afterTab)) / 2,
+                        _ => basePosition
+                    };
+
+                    // A ptab that would pull the text back behind the pen collapses, as a stop does.
+                    destinationFromMargin = Math.Max(destinationFromMargin, cursorFromMargin);
+                    matchedStop = positional.Leader == TabLeader.None
+                        ? null
+                        : new TabStop {PositionPoints = destinationFromMargin, Leader = positional.Leader};
+                }
+                else
+                {
+                    (destinationFromMargin, matchedStop, _) = TabStopResolver.Resolve(
+                        cursorFromMargin,
+                        () => MeasureFollowing(linePieces, afterTab),
+                        tabStops,
+                        defaultTabStopPoints,
+                        leftIndentPoints,
+                        availableEndX: columnWidthPoints);
+                }
                 var advanced = CanonicalTextMeasurer.PixelsFromPoints((float) (destinationFromMargin - leftIndentPoints));
                 cursor = Math.Max(cursor, advanced);
 
@@ -494,7 +521,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             {
                 var tabFont = resolveFont(run.Properties.FontFamily, run.Properties.Bold, run.Properties.Italic);
                 var tabPitch = tabFont == null ? 0f : (float) tabFont.LinePitchPoints(run.Properties.FontSizePoints);
-                pieces.Add(new(false, 0, tabPitch, "", run.Properties, null, false, true));
+                pieces.Add(new(false, 0, tabPitch, "", run.Properties, null, false, true, run.PositionalTab));
                 continue;
             }
 
