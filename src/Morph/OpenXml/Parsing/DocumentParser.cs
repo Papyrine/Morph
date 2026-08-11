@@ -79,6 +79,18 @@ sealed class DocumentParser(string defaultFont)
     // Style definitions cached during parsing (styleId -> full run properties)
     Dictionary<string, RunProperties>? styleRunProperties;
 
+    // What each paragraph style's basedOn chain actually DECLARES, as against the resolved values in
+    // styleRunProperties (which have the document defaults folded in and so cannot say who set what).
+    // A table style outranks the document defaults but is outranked by a paragraph style, so layering it
+    // in needs to know which of a style's values are its own. Populated beside styleRunProperties.
+    Dictionary<string, DeclaredRunProperties>? styleDeclaredRunProperties;
+
+    // The table-style run properties in force for the cell currently being parsed — the whole-table rPr
+    // with the matching w:tblStylePr region layered over it. Saved and restored around each cell so a
+    // nested table's context does not leak to its parent. Null outside a styled table, which is what
+    // keeps every other document on the untouched resolution path.
+    DeclaredRunProperties? tableStyleRunDefaults;
+
     // Raw style elements by styleId, first-wins to match the Elements<Style>().FirstOrDefault
     // scan it replaces. ParseRunProperties consults the original style XML for every run that
     // carries w:rStyle (hyperlinks, TOC entries, note refs) to know which properties the
@@ -1133,6 +1145,26 @@ sealed class DocumentParser(string defaultFont)
     Dictionary<string, RunProperties> ExtractStyleRunProperties(MainDocumentPart mainPart)
     {
         var styleProps = new Dictionary<string, RunProperties>(StringComparer.OrdinalIgnoreCase);
+        var declaredProps = new Dictionary<string, DeclaredRunProperties>(StringComparer.OrdinalIgnoreCase);
+        styleDeclaredRunProperties = declaredProps;
+
+        // What this style's chain declares in its own right, for the table-style cascade. Kept beside the
+        // resolved values rather than derived from them, since those have docDefaults folded in.
+        void RecordDeclared(string styleId, string? basedOnId, OpenXmlElement? ownRunProps)
+        {
+            DeclaredRunProperties? inherited = null;
+            if (basedOnId != null)
+            {
+                declaredProps.TryGetValue(basedOnId, out inherited);
+            }
+
+            var own = ReadDeclaredRunProperties(ownRunProps);
+            var declared = inherited == null ? own : inherited.Layer(own);
+            if (declared != null)
+            {
+                declaredProps[styleId] = declared;
+            }
+        }
 
         var stylesPart = mainPart.StyleDefinitionsPart;
         if (stylesPart?.Styles == null)
@@ -1246,6 +1278,8 @@ sealed class DocumentParser(string defaultFont)
                 var color = baseProps?.ColorHex ?? defaultRunColorHex;
                 var backgroundColor = baseProps?.BackgroundColorHex;
                 var characterSpacing = baseProps?.CharacterSpacingPoints ?? 0.0;
+
+                RecordDeclared(styleId, basedOnId, runProps);
 
                 // If no run properties, still save inherited properties
                 if (runProps == null)
@@ -2263,27 +2297,19 @@ sealed class DocumentParser(string defaultFont)
 
                 var condShading = ReadShadingFill(tcPr?.GetFirstChild<Shading>());
 
-                // Run-level rPr inside the tblStylePr — Morph cascades just the run colour
-                // for now (Word's tblStylePr also defines bold/italic/font, but those are
-                // currently expected to come from the run-level rPr in the document body).
-                string? condRunColor = null;
-                var rPr = tblStylePr.GetFirstChild<RunPropertiesBaseStyle>();
-                if (rPr != null)
-                {
-                    var color = rPr.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.Color>();
-                    if (color?.Val?.HasValue == true && color.Val.Value != "auto")
-                    {
-                        condRunColor = color.Val.Value;
-                    }
-                }
+                // Run-level rPr inside the tblStylePr: font, size, colour and the toggles. Captured as
+                // DECLARED values rather than resolved ones, because this rung sits above the document
+                // defaults but below any paragraph style (ECMA-376 §17.7.2) and only what it actually
+                // says may be layered in.
+                var condRun = ReadDeclaredRunProperties(tblStylePr.GetFirstChild<RunPropertiesBaseStyle>());
 
-                if (condBorders == null && condShading == null && condRunColor == null)
+                if (condBorders == null && condShading == null && condRun == null)
                 {
                     continue;
                 }
 
                 conditionals ??= new();
-                conditionals[type.Value] = new(condBorders, condShading, condRunColor);
+                conditionals[type.Value] = new(condBorders, condShading, condRun?.ColorHex, condRun);
             }
 
             // Resolve default cell padding by walking the w:basedOn chain — Word's built-in
@@ -2293,7 +2319,7 @@ sealed class DocumentParser(string defaultFont)
 
             if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || wholeTableShading != null || conditionals != null || styleCellSpacing > 0 || styleVerticalAlignment != null || styleCellPadding != null)
             {
-                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, styleCellSpacing, conditionals, styleVerticalAlignment, styleCellPadding);
+                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, styleCellSpacing, conditionals, styleVerticalAlignment, styleCellPadding, ReadDeclaredRunProperties(style.StyleRunProperties));
             }
         }
 
@@ -3462,6 +3488,64 @@ sealed class DocumentParser(string defaultFont)
     }
 
     /// <summary>
+    /// Reads a style rung's <c>w:rPr</c> as DECLARED values — only what the element actually states,
+    /// so the table-style rung can be layered between the document defaults and a paragraph style
+    /// without inventing values neither declared. Returns null when the rung says nothing usable.
+    /// </summary>
+    static DeclaredRunProperties? ReadDeclaredRunProperties(OpenXmlElement? rPr)
+    {
+        if (rPr == null)
+        {
+            return null;
+        }
+
+        string? fontFamily = null;
+        var fonts = rPr.GetFirstChild<RunFonts>();
+        if (fonts?.Ascii?.HasValue == true)
+        {
+            fontFamily = fonts.Ascii.Value;
+        }
+
+        double? sizePoints = null;
+        var size = rPr.GetFirstChild<FontSize>();
+        if (size?.Val?.HasValue == true &&
+            double.TryParse(size.Val.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var halfPoints))
+        {
+            sizePoints = halfPoints / 2;
+        }
+
+        string? colorHex = null;
+        var color = rPr.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.Color>();
+        if (color?.Val?.HasValue == true && color.Val.Value != "auto")
+        {
+            colorHex = color.Val.Value;
+        }
+
+        // A toggle element PRESENT with no w:val means on; w:val="0"/"false" means off. Absent stays
+        // null so it contributes nothing to the XOR.
+        static bool? Toggle<T>(OpenXmlElement rPr)
+            where T : OnOffType =>
+            rPr.GetFirstChild<T>() is { } element ? element.Val?.Value ?? true : null;
+
+        var declared = new DeclaredRunProperties
+        {
+            FontFamily = fontFamily,
+            FontSizePoints = sizePoints,
+            ColorHex = colorHex,
+            Bold = Toggle<Bold>(rPr),
+            Italic = Toggle<Italic>(rPr),
+            Strikethrough = Toggle<Strike>(rPr),
+            AllCaps = Toggle<Caps>(rPr),
+            SmallCaps = Toggle<SmallCaps>(rPr),
+            Underline = rPr.GetFirstChild<Underline>() is {Val.HasValue: true} u
+                ? u.Val!.Value != UnderlineValues.None
+                : null
+        };
+
+        return declared.HasAny ? declared : null;
+    }
+
+    /// <summary>
     /// Whether a fill is dark enough that Word draws automatic text white on it.
     ///
     /// Word-probed over a greyscale ramp and saturated fills (see docs/word-features.md, "Table Cell
@@ -4092,6 +4176,31 @@ sealed class DocumentParser(string defaultFont)
                 var cellContent = new List<DocumentElement>();
                 var cellProps = cell.GetFirstChild<OoxmlTableCellProperties>();
 
+                // The table style's run properties for THIS cell, resolved BEFORE its content is parsed so
+                // run resolution can layer them at their proper rung — between the document defaults and
+                // any paragraph style. Same condition set and precedence order the border/shading cascade
+                // below uses, so the two can never disagree about which region applies.
+                var outerTableStyleRun = tableStyleRunDefaults;
+                if (styleInfo != null)
+                {
+                    var layeredRun = styleInfo.RunProperties;
+                    if (styleInfo.Conditionals != null)
+                    {
+                        var runFlags = ParseConditionalFormatFlags(cellProps?.GetFirstChild<ConditionalFormatStyle>()) | rowFlags;
+                        foreach (var condType in ResolveActiveConditions(
+                                     runFlags, rowIndex, gridColIndex, totalRows, totalCols,
+                                     styleInfo.RowBandSize, styleInfo.ColBandSize, tableLookMask))
+                        {
+                            if (styleInfo.Conditionals.TryGetValue(condType, out var cond) && cond.RunProperties != null)
+                            {
+                                layeredRun = layeredRun == null ? cond.RunProperties : layeredRun.Layer(cond.RunProperties);
+                            }
+                        }
+                    }
+
+                    tableStyleRunDefaults = layeredRun;
+                }
+
                 // Parse cell content (paragraphs, nested tables, SdtBlocks, etc.)
                 foreach (var cellChild in cell.ChildElements)
                 {
@@ -4146,6 +4255,10 @@ sealed class DocumentParser(string defaultFont)
                             break;
                     }
                 }
+
+                // The cell's content is parsed, so its table-style context ends here — restoring rather
+                // than clearing keeps a nested table's cells from stripping the outer cell's context.
+                tableStyleRunDefaults = outerTableStyleRun;
 
                 // Get cell properties
                 double? width = null;
@@ -10527,7 +10640,10 @@ sealed class DocumentParser(string defaultFont)
         // If no inline properties, return style defaults or empty properties.
         // When neither is present, anchor the font to the document default rather than the
         // RunProperties record's static default (which is Georgia, the cross-platform fallback).
-        if (props == null)
+        //
+        // A run inside a styled table skips this shortcut even with no rPr of its own: the table style's
+        // rung still has to be layered in below, and taking the style defaults verbatim here would drop it.
+        if (props == null && tableStyleRunDefaults == null)
         {
             if (styleDefaults != null)
             {
@@ -10561,6 +10677,31 @@ sealed class DocumentParser(string defaultFont)
         var allCaps = styleDefaults?.AllCaps ?? false;
         var smallCaps = styleDefaults?.SmallCaps ?? false;
         var color = styleDefaults?.ColorHex ?? defaultRunColorHex ?? automaticRunColorHex;
+
+        // Inside a styled table the ladder has an extra rung: document defaults, then the table style
+        // (whole-table rPr with the cell's conditional region over it), then the paragraph style, then
+        // the direct formatting applied below (ECMA-376 §17.7.2). Because styleDefaults has already
+        // folded the document defaults in, a value is only the table style's to take when the paragraph
+        // chain did not declare it — which is what styleDeclaredRunProperties records.
+        //
+        // Toggles do not layer, they XOR across the two style rungs (§17.7.3) — Word-probed: a firstRow
+        // region declaring w:b renders NOT bold under a paragraph style that also declares w:b, and bold
+        // under one declaring w:b w:val="0". Direct formatting still overrides outright, further down.
+        if (tableStyleRunDefaults is { } tableRun)
+        {
+            DeclaredRunProperties? paragraphDeclared = null;
+            styleDeclaredRunProperties?.TryGetValue(paragraphStyleId ?? "Normal", out paragraphDeclared);
+
+            fontFamily = paragraphDeclared?.FontFamily ?? tableRun.FontFamily ?? fontFamily;
+            fontSize = paragraphDeclared?.FontSizePoints ?? tableRun.FontSizePoints ?? fontSize;
+            color = paragraphDeclared?.ColorHex ?? tableRun.ColorHex ?? color;
+            bold = DeclaredRunProperties.ToggleAcross(tableRun.Bold, paragraphDeclared?.Bold);
+            italic = DeclaredRunProperties.ToggleAcross(tableRun.Italic, paragraphDeclared?.Italic);
+            strikethrough = DeclaredRunProperties.ToggleAcross(tableRun.Strikethrough, paragraphDeclared?.Strikethrough);
+            allCaps = DeclaredRunProperties.ToggleAcross(tableRun.AllCaps, paragraphDeclared?.AllCaps);
+            smallCaps = DeclaredRunProperties.ToggleAcross(tableRun.SmallCaps, paragraphDeclared?.SmallCaps);
+            underline = paragraphDeclared?.Underline ?? tableRun.Underline ?? underline;
+        }
         if (color == automaticColorSentinel)
         {
             color = automaticRunColorHex;
@@ -10602,7 +10743,9 @@ sealed class DocumentParser(string defaultFont)
         Imprint? imprintElement = null;
         Outline? outlineElement = null;
 
-        foreach (var child in props.ChildElements)
+        // props is null for a run inside a styled table that carries no rPr of its own — it still has to
+        // reach the layering above, so the direct-formatting sweep simply finds nothing.
+        foreach (var child in (IEnumerable<OpenXmlElement>?) props?.ChildElements ?? [])
         {
             switch (child)
             {

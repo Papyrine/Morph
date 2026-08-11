@@ -1,17 +1,19 @@
 /// <summary>
 /// Cell-level formatting from a single conditional region of a table style
-/// (a <c>w:tblStylePr</c> block). Captures the cascaded fields that Morph
-/// can render today — borders, cell shading, and run-level text colour.
+/// (a <c>w:tblStylePr</c> block): borders, cell shading, and the region's run properties.
+/// <see cref="RunColorHex"/> is the colour out of <see cref="RunProperties"/>, kept as its own
+/// member because the colour cascade runs as a post-pass over already-parsed cell content while
+/// the rest of the run properties are layered during run resolution.
 /// </summary>
 sealed record ConditionalFormat(
     CellBorders? Borders,
     string? BackgroundColorHex,
-    string? RunColorHex);
+    string? RunColorHex,
+    DeclaredRunProperties? RunProperties = null);
 
 /// <summary>
-/// Captures the cell-level fields Morph cascades through a table style
-/// (whole-table defaults plus each <c>w:tblStylePr</c> conditional region).
-/// Run-property and paragraph-property cascading aren't modelled yet.
+/// Captures the fields Morph cascades through a table style — whole-table defaults plus each
+/// <c>w:tblStylePr</c> conditional region. Paragraph-property cascading isn't modelled yet.
 /// </summary>
 sealed record TableStyleBorderInfo(
     CellBorders Outer,
@@ -23,4 +25,5 @@ sealed record TableStyleBorderInfo(
     double CellSpacingPoints,
     Dictionary<TableStyleOverrideValues, ConditionalFormat>? Conditionals,
     CellVerticalAlignment? VerticalAlignment = null,
-    CellSpacing? DefaultCellPadding = null);
+    CellSpacing? DefaultCellPadding = null,
+    DeclaredRunProperties? RunProperties = null);

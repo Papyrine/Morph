@@ -1308,12 +1308,31 @@ Cell-level flags selecting which `w:tblStylePr` block applies (first row, last r
 
 - **OOXML**: `w:cnfStyle` within `w:tcPr` / `w:trPr`; `w:tblStylePr` blocks inside the table style; `w:tblLook` gating which conditions auto-apply
 - **Spec**: [ConditionalFormatStyle](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.conditionalformatstyle)
-- **Model**: `ConditionalFormatFlags` mirrors `w:cnfStyle`; `TableStyleBorderInfo.Conditionals` holds per-region `ConditionalFormat` (borders + shading)
+- **Model**: `ConditionalFormatFlags` mirrors `w:cnfStyle`; `TableStyleBorderInfo.Conditionals` holds per-region `ConditionalFormat` (borders, shading and the region's `DeclaredRunProperties`)
 - **Parse**: `DocumentParser.ParseConditionalFormatFlags` reads cell/row flags. `ParseTableLookMask` reads `w:tblLook`. `ResolveActiveConditions` cascades regions in ECMA-376 priority order (whole-table → bandHorz → bandVert → lastCol → firstCol → lastRow → firstRow → corner cells). The whole-table `w:tblBorders` under the regions comes from `ResolveStyleBorders`, which walks `w:basedOn` per side (see below)
 - **Render**: not a separate render step — the cascade resolves to the existing `Borders` and `BackgroundColorHex` cell properties, which both backends already paint
 - **Test**: `ConditionalFormattingTests` (spec tests + end-to-end against `agendas-minutes/15` which uses `BlueCurveMinutesTable` with a `firstRow` shading override); `TableStyleBorderInheritanceTests` for the `w:basedOn` merge, end-to-end in `header_full_bleed_banner/` (two sibling styles over one inherited grid, differing only in their `firstRow` fill)
 
-> **Contributors**: Cell- and row-level explicit `w:shd` / `w:tcBorders` win over conditional formatting. When a row/cell carries no `w:cnfStyle`, the cascade derives flags from grid position (firstRow, lastRow, firstColumn, lastColumn, banding) — but only for the conditions that `w:tblLook` permits (e.g. `w:noHBand="1"` suppresses horizontal banding). Run-property and paragraph-property overrides inside `w:tblStylePr` (bold, font colour, alignment) are not yet cascaded — that requires threading the active conditions into paragraph parsing. Run COLOUR is the exception: it cascades via `ApplyDefaultRunColor` onto runs carrying no explicit `w:color`. The bold half was landed once and reverted (`src/todo.md` #10) — a post-pass cannot distinguish a run that never mentioned `w:b` from one that turned it off, so it needs tri-state `w:b` modelling first.
+> **Contributors**: Cell- and row-level explicit `w:shd` / `w:tcBorders` win over conditional formatting. When a row/cell carries no `w:cnfStyle`, the cascade derives flags from grid position (firstRow, lastRow, firstColumn, lastColumn, banding) — but only for the conditions that `w:tblLook` permits (e.g. `w:noHBand="1"` suppresses horizontal banding). Run properties inside `w:tblStylePr` (font, size, colour, bold/italic/caps) ARE cascaded — see the ladder below. Paragraph-property overrides inside `w:tblStylePr` still are not.
+
+> **Contributors — the `w:tblStylePr` run-property ladder.** Resolved in `ParseRunProperties` against `tableStyleRunDefaults`, the whole-table `w:rPr` with the cell's matching conditional region layered over it, computed before the cell's content is parsed (save/restore, so nesting cannot leak). The rung sits between the document defaults and the paragraph style, which is why it needs `DeclaredRunProperties` — every member nullable, so "this rung said nothing" stays distinguishable from "this rung said the default". That tri-state modelling is the prerequisite an earlier attempt lacked; it mirrors what `StyleParagraphSpacing` already does for the `w:pPr` side.
+>
+> Word-probed with a table style declaring `Courier New` + `w:b` + `sz 18` + red on its `firstRow`, and `sz 40` + blue for the whole table, against a paragraph style declaring `sz 28` + green + `w:b w:val="0"`:
+>
+> | cell | paragraph style | direct | Word renders |
+> | --- | --- | --- | --- |
+> | A1 | — | — | Courier, bold, 9pt, red |
+> | A2 | sz 28, green, `b=0` | — | Courier, **bold**, 14pt, green |
+> | A3 | — | sz 32 | Courier, bold, 16pt, red |
+> | A4 | — | `b=0` | Courier, not bold, 9pt, red |
+> | B1 (no conditional) | — | — | 20pt blue |
+> | B2 (no conditional) | sz 28, green | — | 14pt green |
+>
+> A2 is the informative one: size and colour come from the PARAGRAPH style, font from the conditional — the ladder is whole-table < conditional < paragraph style < direct (ECMA-376 §17.7.2), exactly as the `w:pPr` side already resolves.
+>
+> **Toggles do not follow that ladder — they XOR** (§17.7.3), and Word really behaves this way. Probed with a `firstRow` region declaring `w:b`: a paragraph style that ALSO declares `w:b` renders **not bold**, one declaring `w:b w:val="0"` renders bold, and one silent on it renders bold. Direct formatting is not a style rung and overrides the result outright. Implemented as `DeclaredRunProperties.ToggleAcross`. An override-style implementation passes the ordinary cases and silently unbolds the both-on case, so this is worth keeping measured.
+>
+> Landing this moved 13 of 325 scenarios, five of them closer to Word and most of the rest metric-invisible. It also raised the corpus AE sum by +0.10, effectively all of it `business-plans/15` p14, where the now-correct `w:caps` makes "ANNUAL %" wrap in a column Morph sizes too narrow — the autofit gap tracked as `src/todo.md` #10, not a fault in the cascade.
 
 > **Contributors — the style's own `w:tblBorders` inherit through `w:basedOn`.** `ResolveStyleBorders` walks the chain taking each side (plus `insideH`/`insideV`) from the NEAREST ancestor that declares it, exactly as `ResolveStyleCellPadding` does for the margins; a side declared `w:val="none"` STOPS the walk for that side, since that is a derived style switching a base's rule off. The common template shape makes this load-bearing: a base style carries the grid and a per-variant style based on it adds nothing but a `w:tblStylePr` header colour. Reading only the leaf's own `w:tblPr` dropped every rule in such a table while the header band still painted, so it looked deliberately borderless rather than broken. Note the CONDITIONAL blocks themselves do not inherit yet — a `w:tblStylePr` on the leaf shadows the base's block for that region whole, where Word merges them per property.
 
