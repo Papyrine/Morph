@@ -1018,11 +1018,29 @@ Per-cell border control for all four edges with color, width, and visibility. Fa
 
 Background fill color for individual cells.
 
-- **OOXML**: `w:shd` within `w:tcPr`
+- **OOXML**: `w:shd` within `w:tcPr`, or from the table style's `w:tblStylePr` conditional formatting
 - **Model**: `TableCellProperties.BackgroundColorHex`
+- **Parse**: `DocumentParser`'s cell loop; `IsDarkForAutomaticText` decides the automatic text colour over the resolved fill
 - **Test**: `table_colors/`
 
 > **Contributors**: Background rendered as filled rectangle before border drawing — background first, borders on top.
+>
+> **Automatic text over a dark fill.** A run whose colour is "automatic" (`w:color w:val="auto"`, or nothing declared anywhere in the cascade) is drawn WHITE on a dark cell, which is what makes a navy header row legible. Resolved against the cell's *effective* fill, so a `w:tblStylePr`-derived shading counts the same as a direct `w:shd`; an explicit `w:color`, or one cascaded from the table style, always wins and is never flipped.
+>
+> Word-probed over a greyscale ramp plus saturated fills, all with `w:val="auto"` text:
+>
+> | fill | BT.601 luma | Word draws | fill | BT.601 luma | Word draws |
+> | --- | --- | --- | --- | --- | --- |
+> | `000000` | 0 | white | `FF0000` | 76 | black |
+> | `0000FF` | 29 | white | `FF00FF` | 105 | black |
+> | `092B57` | 38 | white | `00FF00` | 150 | black |
+> | `C00000` | 57 | white | `FFFF00` | 226 | black |
+>
+> `00FF00` (luma 150 → black) and `FF00FF` (105 → white) together fix the FORMULA as ITU-R BT.601 luma: a simple channel mean gets both backwards, and HSL lightness / max-channel are ruled out because `0000FF` and `FF0000` share both yet take opposite colours. A WCAG contrast crossover would sit near luma 122 and is refuted by the whole ramp.
+>
+> The THRESHOLD is bracketed to (58, 59.9] — greys `3A3A3A` (58.0) white against `3C3C3C` (60.0) black, and greens `006000` (56.4) white against `006600` (59.9) black. Grey and green agreeing confirms it keys off the luma value, not any single channel. Implemented as `< 59`; against the 22-row probe Morph now matches Word on every row.
+>
+> **Not yet covered**: the same rule applies to PARAGRAPH and RUN shading (`w:shd` in `w:pPr` / `w:rPr`) — Word draws auto text white on a dark paragraph fill, and Morph still draws it black. That path assembles runs at ~20 separate construction sites with no single seam, so it needs its own change. The page-background path (`ComputeAutomaticRunColor`) also still uses a threshold of 128, which no probe has distinguished from 59.
 
 
 #### Cell Padding `DONE`

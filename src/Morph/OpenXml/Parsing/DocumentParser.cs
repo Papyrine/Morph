@@ -3448,19 +3448,45 @@ sealed class DocumentParser(string defaultFont)
     // for ordinary documents free of a stamped 000000.
     static string? ComputeAutomaticRunColor(string? pageBackgroundHex)
     {
-        if (pageBackgroundHex is not {Length: 6} ||
-            !uint.TryParse(pageBackgroundHex, NumberStyles.HexNumber, null, out var rgb))
+        // NOTE the threshold here is 128, where the shading rule below measured 59. Only the shading
+        // side was probed; every corpus page background that exercises this (brochures/03's navy,
+        // luma 38) is dark enough to come out white under either number, so nothing distinguishes
+        // them yet. Word most likely applies one rule to both — worth a page-background probe before
+        // assuming otherwise.
+        if (Brightness(pageBackgroundHex) is not { } brightness)
         {
             return null;
         }
 
-        var red = (rgb >> 16) & 0xFF;
-        var green = (rgb >> 8) & 0xFF;
-        var blue = rgb & 0xFF;
-
-        // ITU-R BT.601 perceived brightness; below mid-grey counts as dark.
-        var brightness = (299 * red + 587 * green + 114 * blue) / 1000;
         return brightness < 128 ? "FFFFFF" : null;
+    }
+
+    /// <summary>
+    /// Whether a fill is dark enough that Word draws automatic text white on it.
+    ///
+    /// Word-probed over a greyscale ramp and saturated fills (see docs/word-features.md, "Table Cell
+    /// Shading"). Two rows fix the FORMULA as ITU-R BT.601 luma: <c>00FF00</c> (luma 150) takes black
+    /// while <c>FF00FF</c> (luma 105) takes white, which a simple channel mean gets backwards both
+    /// times; HSL lightness and max-channel are ruled out because <c>0000FF</c> and <c>FF0000</c>
+    /// share both yet differ. Four rows bracket the THRESHOLD to (58, 59.9]: greys <c>3A3A3A</c>
+    /// (58.0) white against <c>3C3C3C</c> (60.0) black, and greens <c>006000</c> (56.4) white against
+    /// <c>006600</c> (59.9) black — grey and green agreeing confirms it keys off the luma value
+    /// rather than any single channel. A WCAG contrast crossover would sit near 122 and is refuted.
+    /// </summary>
+    static bool IsDarkForAutomaticText(string? fillHex) =>
+        Brightness(fillHex) is { } brightness && brightness < 59;
+
+    // ITU-R BT.601 perceived brightness, 0-255. Null when the value is not a six-digit hex colour
+    // (a theme name, "auto", "none").
+    static int? Brightness(string? hex)
+    {
+        if (hex is not {Length: 6} ||
+            !uint.TryParse(hex, NumberStyles.HexNumber, null, out var rgb))
+        {
+            return null;
+        }
+
+        return (int) ((299 * ((rgb >> 16) & 0xFF) + 587 * ((rgb >> 8) & 0xFF) + 114 * (rgb & 0xFF)) / 1000);
     }
 
     string? ExtractDocumentBackgroundColor(DocumentFormat.OpenXml.Wordprocessing.Document document)
@@ -4313,6 +4339,17 @@ sealed class DocumentParser(string defaultFont)
                     {
                         ApplyDefaultRunColor(cellContent, conditionalRunColor);
                     }
+                }
+
+                // "Automatic" text colour is contrast-aware against the CELL's shading, not only the
+                // page background: on a dark fill Word draws it white. Runs still lacking a colour at
+                // this point are the automatic ones — an explicit w:color, or a colour cascaded from
+                // the table style just above, has already filled ColorHex in and wins. Placed outside
+                // the styleInfo block so a direct w:shd on the cell counts the same as a conditional
+                // one, which is what Word does (probed both ways).
+                if (bgColor != null && IsDarkForAutomaticText(bgColor))
+                {
+                    ApplyDefaultRunColor(cellContent, "FFFFFF");
                 }
 
                 // Detach floating drawings from the cell's flow content: Word anchors them to
