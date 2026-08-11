@@ -64,7 +64,9 @@ mkdir -p "$work"
 # --delete keeps /work honest across runs — a file deleted or renamed on the host has to
 # disappear here too, and regenerate-baselines.sh deletes every *.verified.* wholesale.
 # Excluded paths are NOT subject to it (that would need --delete-excluded), which is exactly
-# what keeps the previous run's bin/obj alive for an incremental build.
+# what keeps the previous run's bin/obj alive for an incremental build. The corollary: deleting a
+# project on the host strands its bin/obj here, and rsync then reports "cannot delete non-empty
+# directory" for the parent on every run. Harmless, and MORPH_CLEAN=1 clears it.
 rsync -a --delete \
     --exclude='/.git/' \
     --exclude='/.nuget-cache/' \
