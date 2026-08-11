@@ -76,6 +76,14 @@ RUN test -n "${PLAYWRIGHT_VERSION}" \
     && pwsh bin/Release/net10.0/playwright.ps1 install chromium --with-deps \
     && cd / && rm -rf /tmp/pw
 
+# rsync drives the incremental sync of the working tree onto container-local disk
+# (scripts/container-run.sh). Deliberately installed AFTER the Playwright layer rather than
+# folded into the apt-get block at the top: layer invalidation cascades forward, so adding a
+# package up there would re-download ~180MB of Chromium on every existing local image.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends rsync \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /src
 
 # No COPY of source — the wrapper script mounts the working tree as a volume.

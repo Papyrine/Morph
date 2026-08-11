@@ -17,6 +17,23 @@
 #   On a Linux host the bind mount is native and this indirection buys nothing — set
 #   MORPH_DIRECT=1 to skip it (scripts/test.sh also does that automatically for `bash`).
 #
+# WHY THE COPY PERSISTS
+#   /work is a Docker named volume (scripts/test.sh mounts it), not a directory in the
+#   container's throwaway layer. That makes both halves of the per-run fixed cost incremental
+#   rather than repeated from scratch:
+#
+#     - The sync is rsync, not a tar of the whole tree. The corpus is ~1.8GB across 8,164
+#       files and almost none of it moves between runs, so what used to be 27s of copying is
+#       now 3.5s of stat-ing the mount. (Fresh volume: ~22s, i.e. still no worse than the
+#       old tar.)
+#     - bin/obj survive, so MSBuild builds incrementally: 14s cold -> 3.4s.
+#
+#   Per-run fixed cost measured 41s before, 7s after. It matters most on the narrow filtered
+#   runs that dominate iteration, where it used to be most of the wall clock.
+#
+#   The volume is keyed on the host path, so clones and worktrees do not share one. Anything
+#   that leaves it inconsistent is fixed by discarding it: MORPH_CLEAN=1.
+#
 # SYNCING BACK
 #   The suite writes files the host must see, and not only the obvious ones:
 #     - *.received.* Verify snapshots      (scripts/regenerate-baselines.sh promotes these
@@ -41,16 +58,21 @@ src=/src
 work=/work
 marker=/tmp/run-start
 
-echo ">>> Copying the working tree to container-local disk (bypassing the 9p bind mount)" >&2
+echo ">>> Syncing the working tree to container-local disk (bypassing the 9p bind mount)" >&2
 mkdir -p "$work"
-tar cf - \
-    --exclude=./.git \
-    --exclude=./.nuget-cache \
-    --exclude=bin \
-    --exclude=obj \
-    -C "$src" . | tar xf - -C "$work"
 
-# Created after extraction so the copy's own preserved mtimes never look "modified".
+# --delete keeps /work honest across runs — a file deleted or renamed on the host has to
+# disappear here too, and regenerate-baselines.sh deletes every *.verified.* wholesale.
+# Excluded paths are NOT subject to it (that would need --delete-excluded), which is exactly
+# what keeps the previous run's bin/obj alive for an incremental build.
+rsync -a --delete \
+    --exclude='/.git/' \
+    --exclude='/.nuget-cache/' \
+    --exclude='bin/' \
+    --exclude='obj/' \
+    "$src/" "$work/"
+
+# Created after the sync so the tree's own preserved mtimes never look "modified".
 touch "$marker"
 
 cd "$work"

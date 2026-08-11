@@ -33,17 +33,26 @@ Tests must produce bit-identical output across machines because the suite compar
 ./scripts/test.sh dotnet build src --configuration Release
 ```
 
-The wrapper builds `morph-test:latest` on first run, reuses it afterward, mounts the working tree at `/src`, and caches NuGet packages in `./.nuget-cache/` (gitignored). Set `MORPH_REBUILD=1` to force a rebuild after editing `Dockerfile.test`.
+The wrapper builds `morph-test:latest` on first run, reuses it afterward, mounts the working tree at `/src`, and caches NuGet packages in `./.nuget-cache/` (gitignored). It rebuilds the image by itself when `Dockerfile.test` or the Playwright version changes — it stamps a hash of both on the image as a label and compares — so `MORPH_REBUILD=1` is only needed to force one anyway. `MORPH_IMAGE_READY=1` skips that check entirely, for a caller that built the image itself (CI does).
 
 **If the Docker daemon is not running, stop and ask the user to start it.** Do not start Docker Desktop yourself, and do not work around it by running the scenario suite on the host — the baselines will not match.
 
 ### Why the run copies the tree first (`MORPH_DIRECT`)
 
-On a Windows host Docker Desktop exposes the working tree over 9p/drvfs, which is far slower than the container's own disk — measured here, reading 300 baseline PNGs took 1.54s from the mount versus 0.018s locally, and a *no-op* MSBuild up-to-date check cost ~21s. So `scripts/test.sh` copies the tree to container-local disk, runs there, and syncs changed files back (`scripts/container-run.sh`). The full suite went from **4m34s to 2m15s**.
+On a Windows host Docker Desktop exposes the working tree over 9p/drvfs, which is far slower than the container's own disk — measured here, reading 300 baseline PNGs took 1.54s from the mount versus 0.018s locally, and a *no-op* MSBuild up-to-date check cost ~21s. So `scripts/test.sh` copies the tree to container-local disk, runs there, and syncs changed files back (`scripts/container-run.sh`). That alone took the full suite from **4m34s to 2m15s** when it landed.
 
-The copy costs a fixed ~24s, but it still wins on small runs, because the penalty it avoids is the build rather than the tests: a 13-test filtered run measured **45s copied versus ~93s in the mounted tree**. Prefer the default on a Windows host regardless of how narrow the filter is.
+That copy now **persists between runs** in a Docker named volume, so neither half of the per-run fixed cost is paid twice:
 
-`MORPH_DIRECT=1` works in the mounted tree instead. Use it on a **Linux host**, where the mount is native and the copy is pure overhead, or when a run must see the live tree. `./scripts/test.sh bash` selects it automatically, since an interactive shell wants the live tree and its `.git`.
+| per run | before | now |
+| --- | --- | --- |
+| get the tree in (~1.8GB, 8,164 files) | 27s — full `tar` every run | **3.5s** — `rsync`, only what changed |
+| build | 14s — `bin`/`obj` thrown away with the container | **3.4s** — incremental |
+
+The volume is keyed on the host path, so clones and worktrees keep their own. **`MORPH_CLEAN=1` discards it** — that is the answer to any suspicion of stale state, and costs one cold run (~22s sync, still no worse than the old `tar`).
+
+This matters most on the narrow filtered runs that dominate iteration, where the fixed cost *was* the wall clock: a 40-test run is now **15.5s** end to end, against the ~45s the same shape measured before.
+
+`MORPH_DIRECT=1` works in the mounted tree instead, with no persistent copy. Use it on a **Linux host**, where the mount is native and the copy is pure overhead, or when a run must see the live tree. `./scripts/test.sh bash` selects it automatically, since an interactive shell wants the live tree and its `.git`.
 
 One caveat when switching modes: the two keep separate `bin`/`obj`, so the first run after a switch rebuilds. In the mounted tree that rebuild lands on 9p and is slow — the ~93s above included one.
 
@@ -162,6 +171,7 @@ are the only path, while `PdfTextEngine` remains PDF's default until the flip.
 - **Spec tests** (`src/Tests/SpecTests/`): unit tests for specific OOXML specification features
 - **Export scenario tests** (`src/Tests/SpecTests/Export/ExportScenarioTests.cs`): snapshot the HTML/Markdown/PDF exporters per scenario. PDF snapshots route through Verify.PDFium (`VerifyPDFium.Initialize()` in `ModuleInitializer`), expanding each into `pdf_result.verified.txt` (page count/sizes/document properties), `pdf_result.verified.pdf`, and per-page `pdf_result#page_*.verified.png` rendered by PDFium — the page images feed `compare-all-pdf.md`.
 - **RenderHelper** (`src/RenderHelper/`): .NET Framework 4.8.1 project that generates reference images using Microsoft Word, Excel and PowerPoint via COM interop (Windows-only, not part of normal test runs). One test per format: `GenerateExpectedImage` (Word), `GenerateExpectedExcelImage`, `GenerateExpectedPowerPointImage`. Claude may run it for a **single scenario** (e.g. to seed `expected_0001.png` for a newly added input). Do not run the whole-suite `GenerateExpectedImages` test. The project uses NUnit/VSTest, but `global.json` pins `Microsoft.Testing.Platform` so `dotnet test` fails — invoke `vstest.console.exe` directly against the built DLL. Example: `"C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" src/RenderHelper/bin/Debug/net481/RenderHelper.dll /TestCaseFilter:"FullyQualifiedName~<scenarioName>"` (build first with `dotnet build src/RenderHelper/RenderHelper.csproj`).
+- **Parallelism** (`src/Tests/CoreCountLimit.cs`): `[assembly: ParallelLimiter<CoreCountLimit>]` caps concurrent tests at the core count. TUnit's auto-detected default is 4x that, which oversubscribes a suite whose heavy tests are rasterisation and out-of-process Chromium — measured on 12 cores the default was consistently the slowest setting, by between 9% and 23% depending on machine conditions, while anything from 1x to 2x cores was flat. Note that absolute suite times drift enough between runs (3m05s to 3m47s for one configuration in a single session) that **only back-to-back runs are comparable**. Override for an experiment with `--maximum-parallel-tests <n>`; keep the measured table in that file current if you change it.
 - **Static-setting tests** (`src/StaticSettingTests/`): isolated project that mutates process-wide settings on `DefaultFontSettings` (e.g. the render-locked default font). Runs single-threaded via `[assembly: ParallelLimiter<SingleThreaded>]` and a `[BeforeEvery(HookType.Test)]` hook in `ResetHook.cs` resets the static state between tests. Must stay in its own assembly so the `renderOccurred` latch does not leak from scenario tests. Run with `dotnet run --project src/StaticSettingTests`.
 
 ### Excel references need an A4 printer
