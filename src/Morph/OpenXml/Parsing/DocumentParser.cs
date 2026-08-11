@@ -2319,7 +2319,7 @@ sealed class DocumentParser(string defaultFont)
 
             if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || wholeTableShading != null || conditionals != null || styleCellSpacing > 0 || styleVerticalAlignment != null || styleCellPadding != null)
             {
-                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, styleCellSpacing, conditionals, styleVerticalAlignment, styleCellPadding, ReadDeclaredRunProperties(style.StyleRunProperties));
+                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, styleCellSpacing, conditionals, styleVerticalAlignment, styleCellPadding, ResolveStyleRunProperties(style, tableStylesById));
             }
         }
 
@@ -2396,6 +2396,58 @@ sealed class DocumentParser(string defaultFont)
     /// of TableNormal's left/right (108 twips) is a common shape, and taking the first hit whole
     /// zeroed its horizontal padding — text rendered flush against the column rules.
     /// </summary>
+    /// <summary>
+    /// The table style's whole-table <c>w:rPr</c>, resolved through <c>w:basedOn</c> — each property
+    /// taken from the NEAREST ancestor that declares it, exactly as <see cref="ResolveStyleCellPadding"/>
+    /// does for the margins and <see cref="ResolveStyleBorders"/> for the sides.
+    ///
+    /// The template shape that makes this load-bearing is the same one those two exist for: a base style
+    /// carries the formatting and a per-variant style based on it adds nothing but its own
+    /// <c>w:tblStylePr</c> blocks. Reading only the leaf's <c>w:rPr</c> dropped the base's font size
+    /// entirely — a summary table whose style chain sets 9pt rendered its body cells at the document
+    /// default 11pt, which then fed the autofit measurement and skewed every column.
+    /// </summary>
+    internal static DeclaredRunProperties? ResolveStyleRunProperties(Style style, Dictionary<string, Style> tableStylesById)
+    {
+        // Collect leaf-first, then layer base-first so the nearest declaration wins.
+        var chain = new List<DeclaredRunProperties>();
+        var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var current = style;
+        while (current != null)
+        {
+            if (current.StyleId?.Value is { } id && !visited.Add(id))
+            {
+                break;
+            }
+
+            if (ReadDeclaredRunProperties(current.StyleRunProperties) is { } declared)
+            {
+                chain.Add(declared);
+            }
+
+            var basedOnId = current.BasedOn?.Val?.Value;
+            if (basedOnId == null || !tableStylesById.TryGetValue(basedOnId, out var baseStyle))
+            {
+                break;
+            }
+
+            current = baseStyle;
+        }
+
+        if (chain.Count == 0)
+        {
+            return null;
+        }
+
+        var resolved = chain[^1];
+        for (var i = chain.Count - 2; i >= 0; i--)
+        {
+            resolved = resolved.Layer(chain[i]);
+        }
+
+        return resolved;
+    }
+
     internal static CellSpacing? ResolveStyleCellPadding(Style style, Dictionary<string, Style> tableStylesById)
     {
         var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
