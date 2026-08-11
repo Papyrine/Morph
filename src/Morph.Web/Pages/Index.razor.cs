@@ -34,8 +34,29 @@ public partial class Index : IDisposable
 
     FormatInfo? TargetInfo => ConversionService.Find(target);
 
-    protected override async Task OnInitializedAsync() =>
+    protected override async Task OnInitializedAsync()
+    {
+        // Warm the fonts while the user is still choosing a file: no render can start without them, and
+        // fetching them here means the first upload doesn't wait on ~940KB. Deliberately not awaited —
+        // nothing on this path needs them yet, and the EnsureAsync each render awaits joins this same
+        // download (and surfaces the error if it failed).
+        _ = WarmFontsAsync();
+
         userAgent = await JsRuntime.InvokeAsync<string?>("appInfo.userAgent");
+    }
+
+    async Task WarmFontsAsync()
+    {
+        try
+        {
+            await FontStore.EnsureAsync(Http);
+        }
+        catch
+        {
+            // Swallowed on purpose: a failure here has no UI to report to and must not fault an
+            // unobserved task. The render path retries and reports it against the action that needed it.
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
