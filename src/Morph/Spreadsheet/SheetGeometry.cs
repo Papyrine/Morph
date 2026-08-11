@@ -88,8 +88,13 @@ sealed class SheetGeometry
 
     public double TotalWidth => columnWidths.Sum();
 
-    static double ToPoints(double characters) =>
-        characters <= 0
-            ? 0
-            : Math.Truncate((characters * maxDigitWidthPixels) + cellPaddingPixels) * pointsPerPixel;
+    static double ToPoints(double characters)
+    {
+        if (characters <= 0)
+        {
+            return 0;
+        }
+
+        return Math.Truncate(characters * maxDigitWidthPixels + cellPaddingPixels) * pointsPerPixel;
+    }
 }

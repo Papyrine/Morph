@@ -8,6 +8,15 @@
     <link rel="preload" href="css/app.css" as="style">
     <link rel="preload" href="_framework/blazor.webassembly.js" as="script">
     <link rel="preload" href="js/interop.js" as="script">
+    <!-- The four Aptos faces every render needs (~940KB, see Services/FontStore.cs). Fetched by
+         HttpClient once the app is running, which is well after the runtime has finished downloading;
+         preloading starts them during the WASM boot instead, so they're in the HTTP cache by then.
+         as="fetch" needs the crossorigin attribute to match the handler's same-origin credentials mode —
+         without it the browser won't reuse the preload and downloads each font twice. -->
+    <link rel="preload" href="fonts/Aptos_400.ttf" as="fetch" crossorigin="">
+    <link rel="preload" href="fonts/Aptos_400_Italic.ttf" as="fetch" crossorigin="">
+    <link rel="preload" href="fonts/Aptos_700.ttf" as="fetch" crossorigin="">
+    <link rel="preload" href="fonts/Aptos_700_Italic.ttf" as="fetch" crossorigin="">
     <link rel="stylesheet" href="css/app.css">
 <!--!--><!--!--><!--!--><title><!--!-->Morph — Office Converter</title><!--!--><!--!--><!--!--></head>
 
@@ -29,7 +38,7 @@
 
 <footer><!--!-->
     Powered by <!--!--><a href="https://github.com/Papyrine/Morph" target="_blank">Morph</a> — no data leaves your device
-    <span class="footer-version">scrubbed</span><span class="footer-size" title="Total app download — compressed over the wire / uncompressed">scrubbed</span><span class="footer-ram" title="Memory the app is using — live .NET heap now / peak WebAssembly heap (never shrinks)">scrubbed</span></footer><!--!-->
+    <span class="footer-version">v0.0.0+0000000</span><span class="footer-size" title="Total app download — compressed over the wire / uncompressed">0.0 MB zipped · 0.0 MB unzipped</span><span class="footer-ram" title="Memory the app is using — live .NET heap now / peak WebAssembly heap (never shrinks)">0.0 MB RAM (0.0 MB peak)</span></footer><!--!-->
         <!--!--></div>
 
     <div id="blazor-error-ui">

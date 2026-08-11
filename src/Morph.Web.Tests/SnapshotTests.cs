@@ -320,7 +320,42 @@ public class SnapshotTests
         var family = await page.EvaluateAsync<string>("() => getComputedStyle(document.body).fontFamily");
         await Assert.That(family).Contains("SnapshotPin");
 
+        await PinFooterAsync(page);
+
         await Verify(page);
+    }
+
+    // The footer carries three figures that vary from one capture to the next: the version comes from
+    // AssemblyInformationalVersion (SDK-suffixed with the commit SHA, so it moves every commit), the
+    // download total is measured from Resource Timing, and the RAM figure is the live WebAssembly heap.
+    // Scrubbing them out of the captured HTML is not enough — they are also painted into the screenshot,
+    // where they shift pixels the SSIM comparison would otherwise have to absorb. Pin the text in the DOM
+    // before the capture instead, so HTML and PNG agree and neither drifts. Each placeholder keeps the
+    // shape of the real string so the footer's layout stays representative.
+    static async Task PinFooterAsync(IPage page)
+    {
+        var pinned = await page.EvaluateAsync<int>(
+            """
+            () => {
+                const values = {
+                    '.footer-version': 'v0.0.0+0000000',
+                    '.footer-size': '0.0 MB zipped · 0.0 MB unzipped',
+                    '.footer-ram': '0.0 MB RAM (0.0 MB peak)'
+                };
+                let pinned = 0;
+                for (const [selector, value] of Object.entries(values)) {
+                    const element = document.querySelector(selector);
+                    if (element) {
+                        element.textContent = value;
+                        pinned++;
+                    }
+                }
+                return pinned;
+            }
+            """);
+        // Guards the pin: if a class name changes, the live figures would silently return to the
+        // screenshots and start drifting again.
+        await Assert.That(pinned).IsEqualTo(3);
     }
 
     static async Task UploadSampleAsync(IPage page, InputFormat source = InputFormat.Docx)

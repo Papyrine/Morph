@@ -150,14 +150,33 @@ sealed record ParagraphProperties
     public double BorderBetweenSpacePoints { get; init; }
 
     /// <summary>
-    /// Returns true if this paragraph and the next should collapse their adjacent
-    /// top/bottom borders into a single between line.
+    /// Returns true if this paragraph and <paramref name="next"/> belong to the same w:pBdr border
+    /// group — a run of consecutive paragraphs Word draws ONE box around rather than one box each
+    /// (ECMA-376 §17.3.1.24).
+    ///
+    /// Word-probed seven ways in a single render (see docs/word-features.md, "Paragraph borders"):
+    /// three identical paragraphs give one box with no rule between them, while a difference in the
+    /// border COLOUR, its w:space, whether an edge is present at all, or the LEFT INDENT each splits
+    /// the run into separate abutting boxes. So the test is equality of the whole border set, of all
+    /// four spaces, and of both indents — not merely of the edges' visible geometry. w:between plays
+    /// no part in whether the run groups; it only rules the internal boundaries once it has.
+    ///
+    /// The hanging indent counts too, since it moves the box's left edge (see the H-probe recorded in
+    /// the same doc): two paragraphs alike but for w:hanging come out as two abutting boxes, the
+    /// smaller-hanging one inset.
     /// </summary>
-    internal bool BordersCollapseWith(ParagraphProperties next) =>
+    internal bool SharesBorderGroupWith(ParagraphProperties next) =>
         Borders is {HasAnyBorder: true} &&
-        BorderBetween.IsVisible &&
         Borders == next.Borders &&
-        BorderBetween == next.BorderBetween;
+        BorderTopSpacePoints == next.BorderTopSpacePoints &&
+        BorderBottomSpacePoints == next.BorderBottomSpacePoints &&
+        BorderLeftSpacePoints == next.BorderLeftSpacePoints &&
+        BorderRightSpacePoints == next.BorderRightSpacePoints &&
+        BorderBetween == next.BorderBetween &&
+        BorderBetweenSpacePoints == next.BorderBetweenSpacePoints &&
+        LeftIndentPoints == next.LeftIndentPoints &&
+        RightIndentPoints == next.RightIndentPoints &&
+        HangingIndentPoints == next.HangingIndentPoints;
 
     /// <summary>
     /// Custom tab stops for this paragraph, sorted ascending by <see cref="TabStop.PositionPoints"/>.

@@ -118,6 +118,24 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // "spent" part of it. Captured in FinishPage before lastAfter resets.
         float pageCarriedAfter;
 
+        // The open w:pBdr border run: consecutive paragraphs whose borders, border spaces and indents all
+        // match get ONE box around the lot, not one box each (see ParagraphProperties.SharesBorderGroupWith).
+        // Held open across paragraphs because the box's bottom is not known until the run ends — the run is
+        // emitted by FlushBorderRun. Null when no bordered run is open.
+        //
+        // Top/Bottom are the first member's first line top and the last member's last line bottom, so every
+        // gap BETWEEN members — including their spacing-after — falls inside the box, which is what Word
+        // draws (probe group E: two paragraphs 12pt apart share one box spanning the gap).
+        ParagraphProperties? borderRunProperties;
+        float borderRunTop;
+        float borderRunBottom;
+        // The run's content width, taken from its first member. Members share indents by construction, so
+        // this only differs if a wrapping float narrows a later member's measure — rare enough that Word's
+        // behaviour there is unprobed, and the first member's measure is the honest default.
+        float borderRunWidth;
+        // Y of each internal member boundary that a visible w:between edge rules.
+        readonly List<float> borderRunBetweens = [];
+
         // Left edge of the current column, in points from the page's left.
         float ColumnLeft => fullContentLeft + currentColumn * (columnWidth + columnSpacing);
 
@@ -313,6 +331,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             foreach (var element in elements)
             {
+                // Anything but another flow paragraph ends an open border run — a table, a rule, a break.
+                // Out-of-flow floats are exempt: they take no flow space, so they cannot come between two
+                // members of a run the way a table can.
+                if (element is not (ParagraphElement or
+                    ContentControlElement or
+                    FloatingImageElement or
+                    FloatingShapeElement or
+                    FloatingWordArtElement))
+                {
+                    FlushBorderRun();
+                }
+
                 switch (element)
                 {
                     case PageBreakElement:
@@ -363,7 +393,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         EmitBodyFloat(shape, shape.VerticalAnchor, shape.AnchorParagraph);
                         break;
 
-                    case FloatingShapeElement {ImageData: null} shape when (shape.Gradient != null || shape.FillColorHex != null || shape.LineColorHex != null):
+                    case FloatingShapeElement {ImageData: null} shape when shape.Gradient != null || shape.FillColorHex != null || shape.LineColorHex != null:
                         EmitBodyFloat(shape, shape.VerticalAnchor, shape.AnchorParagraph);
                         break;
 
@@ -407,6 +437,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
             }
 
+            // The body ended, so close the last border run before the trailing floats append — the box
+            // belongs under them, not over them.
+            FlushBorderRun();
+
             // A deferred anchored float whose anchor paragraph never reached PlaceParagraph (lifted into
             // a positioned frame, or suppressed) settles at the cursor — the pre-deferral behaviour.
             foreach (var orphanedFloats in anchorDeferredFloats.Values)
@@ -436,6 +470,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // those), or when it is the only page; a natural trailing-overflow blank is dropped.
         void FinishPage(bool nextPageExplicit)
         {
+            // The page ends the open border run — and the box has to reach items before they are handed to
+            // the page below.
+            FlushBorderRun();
+
             // A page is kept when it has visible content, when it is a deliberate blank left by an explicit
             // break, or when it is the only page. Only the body is stored here; the header/footer bands are
             // assembled once the flow finishes and the total page count is known, so a NUMPAGES field can
@@ -1105,10 +1143,70 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             return image.ImageData;
         }
 
+        // The flow space a border edge occupies: its own width plus the w:space gap it holds open between
+        // the line and the rule. Zero for an edge that is not drawn.
+        static float EdgeReserve(BorderEdge edge, double spacePoints) =>
+            edge.IsVisible ? (float) (edge.WidthPoints + spacePoints) : 0f;
+
+        // Strokes the open border run's box and closes the run. Idempotent — a closed run flushes to nothing,
+        // so the region-boundary and element-boundary callers can both fire without coordinating.
+        //
+        // Called BEFORE the content that ends the run is placed, so the box lands in items ahead of whatever
+        // follows it and paints under it, while still painting over its own members' shading.
+        void FlushBorderRun()
+        {
+            if (borderRunProperties is not {Borders: { } borders} run)
+            {
+                borderRunProperties = null;
+                borderRunBetweens.Clear();
+                return;
+            }
+
+            // Expanded by each edge's space — the gap Word leaves between the text and the line. The space is
+            // drawn but not yet charged to the flow budget, so a run can still overhang the region bottom by
+            // its bottom space; reserving it is a separate change with its own baseline sweep.
+            //
+            // The left edge clears the HANGING INDENT as well, so a list's marker sits inside the box rather
+            // than astride its left rule. Word measures from the paragraph's leftmost extent — Word-probed
+            // seven ways (the H-probe in docs/word-features.md): against a plain indent at x=146px the box
+            // moved to 116 for a 284tw hanging and to 93 for a 511tw one, exactly the hanging in each case,
+            // and gave the SAME edge whether or not a numbering marker occupied the gutter — so this is
+            // indent-driven, not marker-driven. A first-line indent (which moves text RIGHT) never shifts it.
+            // The right edge held at 1123px throughout, so the width takes the hanging back.
+            var left = ColumnLeft + (float) (run.LeftIndentPoints - run.HangingIndentPoints) - (float) run.BorderLeftSpacePoints;
+            var width = borderRunWidth + (float) run.HangingIndentPoints + (float) run.BorderLeftSpacePoints + (float) run.BorderRightSpacePoints;
+            var top = borderRunTop - (float) run.BorderTopSpacePoints;
+            var height = borderRunBottom - borderRunTop + (float) run.BorderTopSpacePoints + (float) run.BorderBottomSpacePoints;
+            items.Add(new PlacedBorder(left, top, width, height, borders));
+
+            // w:between rules each internal boundary; the box itself carries no edge there. Emitted after the
+            // box so it paints over it, as a zero-height top-only border (the w:hr geometry).
+            foreach (var betweenY in borderRunBetweens)
+            {
+                items.Add(new PlacedBorder(left, betweenY, width, 0, new()
+                {
+                    Top = run.BorderBetween
+                }));
+            }
+
+            // The bottom space and rule occupy flow: the cursor clears them before whatever follows, so the
+            // box cannot overhang the next paragraph or the region bottom. Word ADDS this to the paragraph's
+            // spacing-after rather than collapsing the two — probe R4 (12pt after plus a 6pt space) put the
+            // following line 71px below its predecessor against control R7's 55px, a 16px difference that is
+            // the border reserve, where a max() rule would have left the two identical.
+            y += EdgeReserve(borders.Bottom, run.BorderBottomSpacePoints);
+
+            borderRunProperties = null;
+            borderRunBetweens.Clear();
+        }
+
         // Content overflow or a column break: move to the next column, keeping the current page's items,
-        // or start a new page when the last column is full.
+        // or start a new page when the last column is full. A region boundary ends any open border run —
+        // Word closes the box at the break and reopens it on the next region, and closing here at least
+        // keeps the box off the gap.
         void AdvanceColumnOrPage()
         {
+            FlushBorderRun();
             if (currentColumn < columnCount - 1)
             {
                 currentColumn++;
@@ -1124,6 +1222,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         void PlaceParagraph(ParagraphElement paragraph)
         {
             var properties = paragraph.Properties;
+
+            // A paragraph that does not continue the open border run closes it here — before any of this
+            // paragraph's own items are appended, so the box cannot paint over the content that follows it.
+            if (borderRunProperties is { } openRun && !openRun.SharesBorderGroupWith(properties))
+            {
+                FlushBorderRun();
+            }
+
             if (properties.PageBreakBefore && !AtPageTop)
             {
                 FinishPage(false);
@@ -1155,6 +1261,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // The kept spacing is the EXCESS over the previous page's trailing after (see
                 // pageCarriedAfter) — Word's after-then-excess flow carries across the break.
                 y += contextualCollapse ? 0f : Math.Max(0f, (float) properties.SpacingBeforePoints - pageCarriedAfter);
+            }
+
+            // Opening a border run reserves its top rule and w:space in the flow, so the box sits BELOW the
+            // preceding paragraph instead of drawing back over it. Charged once per run, not per member —
+            // probe group A's three-paragraph box measured exactly three lines plus ONE top space and ONE
+            // bottom space. Like the bottom reserve this ADDS to the collapsed spacing-before rather than
+            // merging with it (probe R3, 12pt before plus a 6pt space, put the line 70px down against
+            // control R6's 54px). Reserving scales with the space as measured at 0 / 6 / 20pt: 3 / 14 / 45px
+            // against a predicted 3.1 / 15.6 / 44.8.
+            if (borderRunProperties == null && properties.Borders is { HasAnyBorder: true } opening)
+            {
+                y += EdgeReserve(opening.Top, properties.BorderTopSpacePoints);
             }
 
             // Where this paragraph may lay out beside any wrapping float, resolved once at its first line's
@@ -1332,15 +1450,30 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
             }
 
-            // Stroke the border around the paragraph's box, expanded by each edge's space (the gap Word
-            // leaves between the text and the line). Emitted after the lines so it paints over any shading.
+            // Fold this paragraph into the open border run, or open one. The box is NOT stroked here — its
+            // bottom is only known once the run ends, so FlushBorderRun emits it. A paragraph that broke
+            // across a region has no single box to contribute to and ends the run instead.
             if (!borderBroke && borderTop is { } boxTop && properties.Borders is { HasAnyBorder: true })
             {
-                var left = ColumnLeft + (float) properties.LeftIndentPoints - (float) properties.BorderLeftSpacePoints;
-                var top = boxTop - (float) properties.BorderTopSpacePoints;
-                var width = availableWidth + (float) properties.BorderLeftSpacePoints + (float) properties.BorderRightSpacePoints;
-                var height = y - boxTop + (float) properties.BorderTopSpacePoints + (float) properties.BorderBottomSpacePoints;
-                items.Add(new PlacedBorder(left, top, width, height, properties.Borders!));
+                if (borderRunProperties == null)
+                {
+                    borderRunProperties = properties;
+                    borderRunTop = boxTop;
+                    borderRunWidth = availableWidth;
+                }
+                else if (properties.BorderBetween.IsVisible)
+                {
+                    // Continuing a run whose w:between is visible: rule the boundary just crossed. It sits a
+                    // between-space below the previous member's last line (probe group F: with a 6pt space the
+                    // green rule fell 11px/5.3pt under F1's line bottom at 150dpi).
+                    borderRunBetweens.Add(borderRunBottom + (float) properties.BorderBetweenSpacePoints);
+                }
+
+                borderRunBottom = y;
+            }
+            else
+            {
+                FlushBorderRun();
             }
 
             // An empty paragraph is a full-height spacer line AND carries its after-spacing into the

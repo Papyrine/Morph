@@ -164,7 +164,7 @@ sealed class CellStyles
         int Apply(int channel) =>
             tint < 0
                 ? (int) Math.Round(channel * (1 + tint))
-                : (int) Math.Round(channel * (1 - tint) + (255 * tint));
+                : (int) Math.Round(channel * (1 - tint) + 255 * tint);
 
         return $"{Apply(r):X2}{Apply(g):X2}{Apply(b):X2}";
     }

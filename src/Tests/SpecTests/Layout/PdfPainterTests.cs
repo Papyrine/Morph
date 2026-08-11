@@ -47,7 +47,7 @@ public class PdfPainterTests
     {
         // Enough paragraphs to span more than one page.
         var elements = Enumerable.Range(0, 120)
-            .Select(_ => (DocumentElement) P($"Paragraph {_} with several words to fill out a line of the page."))
+            .Select(DocumentElement (_) => P($"Paragraph {_} with several words to fill out a line of the page."))
             .ToList();
         var tree = fragmenter.Layout(elements, LetterPage);
         await Assert.That(tree.Pages.Count > 1).IsTrue();

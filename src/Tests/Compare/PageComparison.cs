@@ -92,8 +92,8 @@ static class PageComparison
             var actualRow = y * actual.Width * 4;
             for (var x = 0; x < overlapWidth; x++)
             {
-                var e = expectedRow + (x * 4);
-                var a = actualRow + (x * 4);
+                var e = expectedRow + x * 4;
+                var a = actualRow + x * 4;
                 if (expectedRgba[e] != actualRgba[a] ||
                     expectedRgba[e + 1] != actualRgba[a + 1] ||
                     expectedRgba[e + 2] != actualRgba[a + 2])
@@ -104,7 +104,7 @@ static class PageComparison
         }
 
         var total = expected.Width * expected.Height;
-        differing += total - (overlapWidth * overlapHeight);
+        differing += total - overlapWidth * overlapHeight;
 
         return Math.Round((double) differing / total, 4);
     }

@@ -231,8 +231,8 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
         var scaleY = childExtentY > 0 ? box.Height * emusPerPoint / childExtentY : 1;
 
         return new(
-            (box.X * emusPerPoint) - (childOffsetX * scaleX),
-            (box.Y * emusPerPoint) - (childOffsetY * scaleY),
+            box.X * emusPerPoint - childOffsetX * scaleX,
+            box.Y * emusPerPoint - childOffsetY * scaleY,
             scaleX,
             scaleY);
     }
@@ -287,8 +287,8 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
         var rowOffset = long.TryParse(marker.GetFirstChild<XDR.RowOffset>()?.Text, out var ro) ? ro : 0;
 
         return (
-            geometry.ColumnLeft(column + 1) + (columnOffset / emusPerPoint * scale),
-            geometry.RowTop(row + 1) + (rowOffset / emusPerPoint * scale));
+            geometry.ColumnLeft(column + 1) + columnOffset / emusPerPoint * scale,
+            geometry.RowTop(row + 1) + rowOffset / emusPerPoint * scale);
     }
 }
 

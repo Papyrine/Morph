@@ -56,12 +56,12 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Appendix\nStart-up expenses\nStart-up expenses\nBusiness licenses\nIncorporation expenses\nDeposits\nBank account\nRent\nInterior modifications\nEquipment/machinery\nrequired:\nItem 1\nItem 2\nItem 3\nTotal equipment/machinery\nInsurance\nStationery/business cards\nBrochures\nPre-opening advertising\nOpening inventory\nOther (list):\nItem 1\nItem 2\nTotal startup expenses\nDetermining start-up capital\n• Begin by filling in the figures for the several types of expenses in the cash flow table on the\nfollowing page.\n• Start your first month in the table that follows with starting cash of $0 and consolidate your\n“cash out” expenses from your cash flow table under the three main headings of rent,\npayroll and other (including the amount of unpaid start-up costs in “other” in month 1).\n• Continue the monthly projections in the table that follows until the ending balances are\nconsistently positive.\n• Find the largest negative balance, this is the amount needed for start-up capital for the\nbusiness to survive until the break-even point when all expenses will be covered by\nincome.\n• Continue by inserting the amount of needed start-up capital into the cash flow table as the\nstarting cash for Month 1 BUSINESS PLAN | APRIL 25, 20XX 10"
+        "Text": "Appendix\nStart-up expenses\nStart-up expenses\nBusiness licenses\nIncorporation expenses\nDeposits\nBank account\nRent\nInterior modifications\nEquipment/machinery\nrequired:\nItem 1\nItem 2\nItem 3\nTotal equipment/machinery\nInsurance\nStationery/business cards\nBrochures\nPre-opening advertising\nOpening inventory\nOther (list):\nItem 1\nItem 2\nTotal startup expenses\nDetermining start-up capital\nBUSINESS PLAN | APRIL 25, 20XX 10"
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Month 1 Month 2 Month 3 Month 4 Month 5 Month 6 Month 7 Month 8\nStarting cash $0.00\nCash In:\nCash sales\npaid\nReceivables\nTotal cash in\nCash out:\nRent\nPayroll\nOther\nTotal cash out\nEnding\nbalance\nChange (cash\nflow)\nBUSINESS PLAN | APRIL 25, 20XX 11"
+        "Text": "• Begin by filling in the figures for the several types of expenses in the cash flow table on the\nfollowing page.\n• Start your first month in the table that follows with starting cash of $0 and consolidate your\n“cash out” expenses from your cash flow table under the three main headings of rent,\npayroll and other (including the amount of unpaid start-up costs in “other” in month 1).\n• Continue the monthly projections in the table that follows until the ending balances are\nconsistently positive.\n• Find the largest negative balance, this is the amount needed for start-up capital for the\nbusiness to survive until the break-even point when all expenses will be covered by\nincome.\n• Continue by inserting the amount of needed start-up capital into the cash flow table as the\nstarting cash for Month 1\nMonth 1 Month 2 Month 3 Month 4 Month 5 Month 6 Month 7 Month 8\nStarting cash $0.00\nCash In:\nCash sales\npaid\nReceivables\nTotal cash in\nCash out:\nRent\nPayroll\nOther\nTotal cash out\nEnding\nbalance\nChange (cash\nflow)\nBUSINESS PLAN | APRIL 25, 20XX 11"
       },
       {
         "Width": 792.0,
@@ -124,8 +124,8 @@
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.0979,
-      "Ssim": 0.7655,
+      "ErrorMetric": 0.0664,
+      "Ssim": 0.9124,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
@@ -156,8 +156,8 @@
     },
     {
       "Page": 7,
-      "ErrorMetric": 0.111,
-      "Ssim": 0.7347,
+      "ErrorMetric": 0.1098,
+      "Ssim": 0.739,
       "ExpectedFile": "expected_0007.png",
       "VerifiedFile": "pdf_result#page_0007.verified.png",
       "ReceivedFile": "pdf_result#page_0007.received.png"
@@ -180,16 +180,16 @@
     },
     {
       "Page": 10,
-      "ErrorMetric": 0.277,
-      "Ssim": 0.6826,
+      "ErrorMetric": 0.2484,
+      "Ssim": 0.7492,
       "ExpectedFile": "expected_0010.png",
       "VerifiedFile": "pdf_result#page_0010.verified.png",
       "ReceivedFile": "pdf_result#page_0010.received.png"
     },
     {
       "Page": 11,
-      "ErrorMetric": 0.1015,
-      "Ssim": 0.869,
+      "ErrorMetric": 0.2963,
+      "Ssim": 0.7774,
       "ExpectedFile": "expected_0011.png",
       "VerifiedFile": "pdf_result#page_0011.verified.png",
       "ReceivedFile": "pdf_result#page_0011.received.png"

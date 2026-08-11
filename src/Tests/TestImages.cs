@@ -38,7 +38,7 @@ static class TestImages
                 var row = accessor.GetRowSpan(y);
                 for (var x = 0; x < row.Length; x++)
                 {
-                    seed = (seed * 1664525) + 1013904223;
+                    seed = seed * 1664525 + 1013904223;
                     row[x] = new((byte) (seed >> 24), (byte) (seed >> 16), (byte) (seed >> 8), byte.MaxValue);
                 }
             }

@@ -52,7 +52,7 @@ public class ExportOptionsTests : BunitTestContext
             .Add(component => component.Target, OutputFormat.Png)
             .Add(component => component.Image, settings));
 
-        await EventHandlerDispatchExtensions.ChangeAsync(cut.Find("#dpi-select"), "300");
+        await cut.Find("#dpi-select").ChangeAsync("300");
 
         await Assert.That(settings.Dpi).IsEqualTo(300);
     }
