@@ -1,73 +1,38 @@
-# All PDF export scenarios (37)
+# All PDF export scenarios (26)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
 <details>
 <summary>Contents</summary>
 
-- [abstract-airbrush](#abstract-airbrush)
-- [abstracts-paint-by-numbers](#abstracts-paint-by-numbers)
 - [angle-lines](#angle-lines)
 - [angled-tri-fold-brochure](#angled-tri-fold-brochure)
 - [archive](#archive)
-- [art-photo-book](#art-photo-book)
 - [bohemian](#bohemian)
 - [business-cards-horizontal-layout](#business-cards-horizontal-layout)
-- [city](#city)
 - [color-block](#color-block)
 - [dappled](#dappled)
-- [dark-modernist](#dark-modernist)
-- [dividend](#dividend)
 - [education-infographics-poster](#education-infographics-poster)
 - [fashion-infographics-poster](#fashion-infographics-poster)
 - [fashion-photo-album](#fashion-photo-album)
 - [funky-shapes](#funky-shapes)
 - [funky-shapes-dark](#funky-shapes-dark)
 - [gradient](#gradient)
-- [headlines](#headlines)
 - [inspirational-bookmarks](#inspirational-bookmarks)
 - [leaf](#leaf)
 - [lines](#lines)
 - [luminous](#luminous)
 - [memo](#memo)
 - [minimalist-light-sales-pitch](#minimalist-light-sales-pitch)
-- [modern-company-overview](#modern-company-overview)
-- [music](#music)
 - [offset](#offset)
-- [organic-geometry-photo-slideshow](#organic-geometry-photo-slideshow)
 - [pebble](#pebble)
 - [rose-suite](#rose-suite)
 - [savon](#savon)
 - [shoji](#shoji)
 - [sketchlines](#sketchlines)
-- [succulents-paint-by-numbers](#succulents-paint-by-numbers)
 - [tech-brochure](#tech-brochure)
 
 </details>
-
-## abstract-airbrush
-
-| Expected (Word) | Morph PDF |
-| --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.9703 · SSIM: 0.8766** |
-| <img src="abstract-airbrush/expected_0001.png" width="500"> | <img src="abstract-airbrush/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.8855 · SSIM: 0.8760** |
-| <img src="abstract-airbrush/expected_0002.png" width="500"> | <img src="abstract-airbrush/pdf_result%23page_0002.verified.png" width="500"> |
-
-PDF: [Morph PDF](abstract-airbrush/pdf_result.verified.pdf)
-
-
-## abstracts-paint-by-numbers
-
-| Expected (Word) | Morph PDF |
-| --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.6401 · SSIM: 0.8461** |
-| <img src="abstracts-paint-by-numbers/expected_0001.png" width="500"> | <img src="abstracts-paint-by-numbers/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.5295 · SSIM: 0.9731** |
-| <img src="abstracts-paint-by-numbers/expected_0002.png" width="500"> | <img src="abstracts-paint-by-numbers/pdf_result%23page_0002.verified.png" width="500"> |
-
-PDF: [Morph PDF](abstracts-paint-by-numbers/pdf_result.verified.pdf)
-
 
 ## angle-lines
 
@@ -105,18 +70,6 @@ PDF: [Morph PDF](angled-tri-fold-brochure/pdf_result.verified.pdf)
 PDF: [Morph PDF](archive/pdf_result.verified.pdf)
 
 
-## art-photo-book
-
-| Expected (Word) | Morph PDF |
-| --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.8821 · SSIM: 0.8739** |
-| <img src="art-photo-book/expected_0001.png" width="500"> | <img src="art-photo-book/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.8859 · SSIM: 0.9169** |
-| <img src="art-photo-book/expected_0002.png" width="500"> | <img src="art-photo-book/pdf_result%23page_0002.verified.png" width="500"> |
-
-PDF: [Morph PDF](art-photo-book/pdf_result.verified.pdf)
-
-
 ## bohemian
 
 | Expected (Word) | Morph PDF |
@@ -137,18 +90,6 @@ PDF: [Morph PDF](bohemian/pdf_result.verified.pdf)
 | <img src="business-cards-horizontal-layout/expected_0001.png" width="500"> | <img src="business-cards-horizontal-layout/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](business-cards-horizontal-layout/pdf_result.verified.pdf)
-
-
-## city
-
-| Expected (Word) | Morph PDF |
-| --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2411 · SSIM: 0.8989** |
-| <img src="city/expected_0001.png" width="500"> | <img src="city/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.3592 · SSIM: 0.8538** |
-| <img src="city/expected_0002.png" width="500"> | <img src="city/pdf_result%23page_0002.verified.png" width="500"> |
-
-PDF: [Morph PDF](city/pdf_result.verified.pdf)
 
 
 ## color-block
@@ -173,30 +114,6 @@ PDF: [Morph PDF](color-block/pdf_result.verified.pdf)
 | <img src="dappled/expected_0002.png" width="500"> | <img src="dappled/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](dappled/pdf_result.verified.pdf)
-
-
-## dark-modernist
-
-| Expected (Word) | Morph PDF |
-| --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2559 · SSIM: 0.9483** |
-| <img src="dark-modernist/expected_0001.png" width="500"> | <img src="dark-modernist/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.2776 · SSIM: 0.9040** |
-| <img src="dark-modernist/expected_0002.png" width="500"> | <img src="dark-modernist/pdf_result%23page_0002.verified.png" width="500"> |
-
-PDF: [Morph PDF](dark-modernist/pdf_result.verified.pdf)
-
-
-## dividend
-
-| Expected (Word) | Morph PDF |
-| --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.4498 · SSIM: 0.7459** |
-| <img src="dividend/expected_0001.png" width="500"> | <img src="dividend/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.3328 · SSIM: 0.9427** |
-| <img src="dividend/expected_0002.png" width="500"> | <img src="dividend/pdf_result%23page_0002.verified.png" width="500"> |
-
-PDF: [Morph PDF](dividend/pdf_result.verified.pdf)
 
 
 ## education-infographics-poster
@@ -269,18 +186,6 @@ PDF: [Morph PDF](funky-shapes-dark/pdf_result.verified.pdf)
 PDF: [Morph PDF](gradient/pdf_result.verified.pdf)
 
 
-## headlines
-
-| Expected (Word) | Morph PDF |
-| --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.3175 · SSIM: 0.7840** |
-| <img src="headlines/expected_0001.png" width="500"> | <img src="headlines/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.2606 · SSIM: 0.9200** |
-| <img src="headlines/expected_0002.png" width="500"> | <img src="headlines/pdf_result%23page_0002.verified.png" width="500"> |
-
-PDF: [Morph PDF](headlines/pdf_result.verified.pdf)
-
-
 ## inspirational-bookmarks
 
 | Expected (Word) | Morph PDF |
@@ -351,30 +256,6 @@ PDF: [Morph PDF](memo/pdf_result.verified.pdf)
 PDF: [Morph PDF](minimalist-light-sales-pitch/pdf_result.verified.pdf)
 
 
-## modern-company-overview
-
-| Expected (Word) | Morph PDF |
-| --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.3386 · SSIM: 0.8819** |
-| <img src="modern-company-overview/expected_0001.png" width="500"> | <img src="modern-company-overview/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0386 · SSIM: 0.9192** |
-| <img src="modern-company-overview/expected_0002.png" width="500"> | <img src="modern-company-overview/pdf_result%23page_0002.verified.png" width="500"> |
-
-PDF: [Morph PDF](modern-company-overview/pdf_result.verified.pdf)
-
-
-## music
-
-| Expected (Word) | Morph PDF |
-| --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.9339 · SSIM: 0.7039** |
-| <img src="music/expected_0001.png" width="500"> | <img src="music/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.8048 · SSIM: 0.5798** |
-| <img src="music/expected_0002.png" width="500"> | <img src="music/pdf_result%23page_0002.verified.png" width="500"> |
-
-PDF: [Morph PDF](music/pdf_result.verified.pdf)
-
-
 ## offset
 
 | Expected (Word) | Morph PDF |
@@ -385,18 +266,6 @@ PDF: [Morph PDF](music/pdf_result.verified.pdf)
 | <img src="offset/expected_0002.png" width="500"> | <img src="offset/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](offset/pdf_result.verified.pdf)
-
-
-## organic-geometry-photo-slideshow
-
-| Expected (Word) | Morph PDF |
-| --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.7622 · SSIM: 0.8780** |
-| <img src="organic-geometry-photo-slideshow/expected_0001.png" width="500"> | <img src="organic-geometry-photo-slideshow/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.8135 · SSIM: 0.8762** |
-| <img src="organic-geometry-photo-slideshow/expected_0002.png" width="500"> | <img src="organic-geometry-photo-slideshow/pdf_result%23page_0002.verified.png" width="500"> |
-
-PDF: [Morph PDF](organic-geometry-photo-slideshow/pdf_result.verified.pdf)
 
 
 ## pebble
@@ -457,18 +326,6 @@ PDF: [Morph PDF](shoji/pdf_result.verified.pdf)
 | <img src="sketchlines/expected_0002.png" width="500"> | <img src="sketchlines/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](sketchlines/pdf_result.verified.pdf)
-
-
-## succulents-paint-by-numbers
-
-| Expected (Word) | Morph PDF |
-| --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.7646 · SSIM: 0.8134** |
-| <img src="succulents-paint-by-numbers/expected_0001.png" width="500"> | <img src="succulents-paint-by-numbers/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.6223 · SSIM: 0.9590** |
-| <img src="succulents-paint-by-numbers/expected_0002.png" width="500"> | <img src="succulents-paint-by-numbers/pdf_result%23page_0002.verified.png" width="500"> |
-
-PDF: [Morph PDF](succulents-paint-by-numbers/pdf_result.verified.pdf)
 
 
 ## tech-brochure

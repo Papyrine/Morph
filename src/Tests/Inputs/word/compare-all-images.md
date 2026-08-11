@@ -1,4 +1,4 @@
-# All scenarios (326)
+# All scenarios (325)
 
 <details>
 <summary>Contents</summary>
@@ -247,7 +247,6 @@
 - [paragraph_borders](#paragraph_borders)
 - [paragraph_spacing](#paragraph_spacing)
 - [pct_pos_offset](#pct_pos_offset)
-- [postcards/01](#postcards01)
 - [postcards/02](#postcards02)
 - [postcards/03](#postcards03)
 - [postcards/04](#postcards04)
@@ -2578,15 +2577,6 @@ magnitude.
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0040 · SSIM: 0.9939** | **Page 1. ErrorMetric: 0.0044 · SSIM: 0.9933** |
 | <img src="pct_pos_offset/expected_0001.png" width="500"> | <img src="pct_pos_offset/skia_result%23page_0001.verified.png" width="500"> | <img src="pct_pos_offset/imagesharp_result%23page_0001.verified.png" width="500"> |
-
-## postcards/01
-
-| Expected (Word) | Skia | ImageSharp |
-| --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.7815 · SSIM: 0.9406** | **Page 1. ErrorMetric: 0.7817 · SSIM: 0.9407** |
-| <img src="postcards/01/expected_0001.png" width="500"> | <img src="postcards/01/skia_result%23page_0001.verified.png" width="500"> | <img src="postcards/01/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0234 · SSIM: 0.9758** | **Page 2. ErrorMetric: 0.0219 · SSIM: 0.9827** |
-| <img src="postcards/01/expected_0002.png" width="500"> | <img src="postcards/01/skia_result%23page_0002.verified.png" width="500"> | <img src="postcards/01/imagesharp_result%23page_0002.verified.png" width="500"> |
 
 ## postcards/02
 
