@@ -74,10 +74,17 @@ static class BrowserScreenshot
                 Type = ScreenshotType.Png,
                 // Playwright's 30s default is too low for a slide deck's text export. Every slide's
                 // artwork is embedded inline as base64, so the page is a single strip tens of
-                // megabytes tall and the screenshot alone runs 30-60s. Which scenarios exceed the
-                // limit shifts between runs with scheduling — deleting the three that failed once
-                // simply moved the failure onto three others — so this is a capacity limit of the
-                // harness, not a property of particular decks. The wait is on the browser; Morph has
+                // megabytes tall.
+                //
+                // The 30-60s screenshots this was raised for were oversubscription rather than page
+                // size, which is why which scenarios exceeded the limit shifted between runs with
+                // scheduling: the suite ran 48 tests in flight on 12 cores, and these decks, its
+                // biggest memory consumers, thrashed hardest. Capping concurrency at the core count
+                // (src/Tests/CoreCountLimit.cs) took the whole MarkdownOutput test for those decks
+                // to 5.1s average and 9.8s worst, screenshot included.
+                //
+                // Left generous anyway. It is a safety net on a machine slower or busier than this
+                // one, and an unused timeout costs nothing. The wait is on the browser; Morph has
                 // already produced its output by this point.
                 Timeout = 180_000
             });
