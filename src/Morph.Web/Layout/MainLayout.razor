@@ -15,14 +15,14 @@
         </ChildContent>
         <ErrorContent Context="exception">
             <ErrorPanel Message="@($"Something went wrong: {exception.Message}")"
-                        IssueUrl="@IssueLauncher.ForException("Unhandled error", exception, AppInfo.Environment(userAgent))" />
+                        IssueUrl="@IssueLauncher.ForException("Unhandled error", exception, MorphInfo.Environment(userAgent))" />
         </ErrorContent>
     </ErrorBoundary>
 </div>
 
 <footer>
     Powered by <a href="https://github.com/Papyrine/Morph" target="_blank">Morph</a> — no data leaves your device
-    <span class="footer-version">v@(AppInfo.Version)</span>
+    <span class="footer-version">v@(MorphInfo.Version)</span>
     @if (downloadSize is { } size)
     {
         <span class="footer-size" title="Total app download — compressed over the wire / uncompressed">@FormatMb(size.Zipped) zipped · @FormatMb(size.Unzipped) unzipped</span>

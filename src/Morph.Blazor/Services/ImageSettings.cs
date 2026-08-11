@@ -1,4 +1,4 @@
-namespace Morph.Web.Services;
+namespace Morph;
 
 /// <summary>
 /// User-tunable knobs for the PNG export, surfaced in the converter's image-options panel. Maps to

@@ -63,9 +63,9 @@ public class ConversionServiceTests
     [Test]
     public async Task SampleAsset_PointsAtTheBundledFile()
     {
-        await Assert.That(ConversionService.Find(InputFormat.Docx).SampleAsset).IsEqualTo("sample/sample.docx");
-        await Assert.That(ConversionService.Find(InputFormat.Xlsx).SampleAsset).IsEqualTo("sample/sample.xlsx");
-        await Assert.That(ConversionService.Find(InputFormat.Pptx).SampleAsset).IsEqualTo("sample/sample.pptx");
+        await Assert.That(ConversionService.Find(InputFormat.Docx).SampleAsset).IsEqualTo("_content/Morph.Blazor/sample/sample.docx");
+        await Assert.That(ConversionService.Find(InputFormat.Xlsx).SampleAsset).IsEqualTo("_content/Morph.Blazor/sample/sample.xlsx");
+        await Assert.That(ConversionService.Find(InputFormat.Pptx).SampleAsset).IsEqualTo("_content/Morph.Blazor/sample/sample.pptx");
     }
 
     [Test]

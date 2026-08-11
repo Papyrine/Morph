@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Morph.Web.Services;
+namespace Morph;
 
 /// <summary>
 /// Prepares Markdown for the on-screen result pane. The exporter embeds images as base64 data URIs —
@@ -16,6 +16,7 @@ public static partial class MarkdownPreview
     public static bool HasElidableImages(string markdown) =>
         DataUriPayload().IsMatch(markdown);
 
+    /// <summary>Replaces every sizeable base64 data-URI payload with a short "… KB elided …" note.</summary>
     public static string ElideImages(string markdown) =>
         DataUriPayload().Replace(
             markdown,

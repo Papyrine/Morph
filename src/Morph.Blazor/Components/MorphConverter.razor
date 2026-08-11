@@ -1,0 +1,127 @@
+@inject HttpClient Http
+@inject MorphInterop Interop
+
+<div class="@RootClass" @attributes="AdditionalAttributes">
+    <div class="upload-panel">
+        <label class="file-drop" for="source-file">
+            <span class="file-drop-icon">@(sourceInfo?.Icon ?? "📄")</span>
+            <span class="file-drop-text">
+                @if (sourceName is null)
+                {
+                    <strong>Choose an Office file</strong>
+                    <span>Word .docx, Excel .xlsx or PowerPoint .pptx — converted to PNG, PDF, HTML, Markdown or plain text</span>
+                }
+                else
+                {
+                    <strong>@sourceName</strong>
+                    <span>@(sourceInfo?.PageLabel(pageCount))</span>
+                }
+            </span>
+            <InputFile id="source-file" OnChange="OnFileSelected" class="file-input" accept="@ConversionService.ReadableAccept" />
+        </label>
+
+        @* One sample per readable format, each bundled as a static web asset of this package and fetched
+           on demand so it only downloads when asked — never at app startup. *@
+        @if (ShowSamples)
+        {
+            <div class="upload-or"><span>or</span></div>
+
+            <div class="sample-row">
+                @foreach (var sample in ConversionService.ReadableFormats)
+                {
+                    <button class="sample-btn" @onclick="() => LoadSample(sample)" disabled="@isBusy">
+                        @sample.Icon Sample @sample.ShortName
+                    </button>
+                }
+            </div>
+        }
+    </div>
+
+    @if (errorMessage is not null)
+    {
+        <ErrorPanel Message="@errorMessage" IssueUrl="@issueUrl" />
+    }
+
+    @* The read phase happens before the preview exists, so its progress shows here. The bar is
+       indeterminate — the single-threaded render can't animate it while it's crunching. *@
+    @if (isBusy && !isRendering && sourceBytes is null)
+    {
+        <ConversionProgress Label="@progressLabel" Detail="@progressDetail" />
+    }
+
+    @if (sourceBytes is not null)
+    {
+        <div class="workspace">
+            @if (isRendering || previewPages is { Count: > 0 })
+            {
+                <DocumentPreview Pages="previewPages ?? []"
+                                 Busy="isRendering"
+                                 Label="@progressLabel"
+                                 Detail="@progressDetail" />
+            }
+
+            @* On a wide viewport the selected format's actual output renders beside the page preview —
+               Markdown and plain text inline, PDF and HTML in an iframe. PNG needs no pane: the page
+               preview already shows it. *@
+            @if (ResultPaneVisible && (isConvertingResult || result is not null))
+            {
+                <div class="result-pane">
+                    <div class="result-caption">
+                        <span>@TargetInfo?.DisplayName</span>
+                        @if (!isConvertingResult && result?.ImagesElided == true)
+                        {
+                            <span class="result-note">base64 encoded image omitted for brevity</span>
+                        }
+                    </div>
+                    @if (isConvertingResult)
+                    {
+                        <div class="result-busy">
+                            <ConversionProgress Label="@progressLabel" Detail="@progressDetail" />
+                        </div>
+                    }
+                    else if (result?.Url is { } resultUrl)
+                    {
+                        @* The HTML result is document-supplied content, so it renders fully sandboxed; the
+                           PDF iframe can't be — sandboxing disables the browser's built-in PDF viewer. *@
+                        <iframe class="result-frame"
+                                src="@resultUrl"
+                                title="@($"{TargetInfo?.DisplayName} preview")"
+                                sandbox="@(target == OutputFormat.Html ? "" : null)"></iframe>
+                    }
+                    else
+                    {
+                        <pre class="result-text">@result?.Text</pre>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="convert-panel">
+            <FormatSelector Label="Convert to"
+                            Formats="Formats"
+                            Selected="target"
+                            SelectedChanged="OnTargetChanged" />
+        </div>
+
+        @* PNG exposes a resolution knob; the text formats (TXT/Markdown/PDF) show a short note. *@
+        <ExportOptionsPanel Target="target" Image="image" />
+
+        <div class="download-row">
+            <button class="convert-btn" @onclick="Download" disabled="@isBusy">
+                @if (isBusy)
+                {
+                    <span class="btn-spinner"></span>
+                }
+                Download @TargetInfo?.DisplayName
+            </button>
+        </div>
+
+        @* Clicking Download runs the actual conversion; show its progress right under the button.
+           !isRendering and !isConvertingResult exclude the page preview and the result pane, which
+           each show their own bar above. *@
+        @if (isBusy && !isRendering && !isConvertingResult)
+        {
+            <ConversionProgress Label="@progressLabel" Detail="@progressDetail" />
+        }
+    }
+</div>
