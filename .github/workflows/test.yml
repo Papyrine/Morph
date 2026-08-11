@@ -29,6 +29,12 @@ jobs:
       # into the workspace in direct mode.
       MORPH_DIRECT: '1'
 
+      # The "Build test image" step below builds morph-test:latest itself, so that the GHA
+      # layer cache does the work. Tell the wrapper the image is already good: otherwise it
+      # compares Dockerfile.test against the recipe label it stamps on its own builds, finds
+      # none on this one, and rebuilds it a second time.
+      MORPH_IMAGE_READY: '1'
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -64,7 +70,7 @@ jobs:
 
       - name: Run scenario + spec tests
         run: ./scripts/test.sh
-        # Wrapper sees the image already exists locally so it won't rebuild.
+        # MORPH_IMAGE_READY (above) stops the wrapper rebuilding the image built here.
 
       - name: Run static-setting tests
         run: ./scripts/test.sh dotnet run --project src/StaticSettingTests --configuration Release

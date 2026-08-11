@@ -10,4 +10,5 @@ global using ProjectFilesGenerator;
 global using SixLabors.ImageSharp;
 global using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 global using SixLabors.ImageSharp.PixelFormats;
+global using TUnit.Core.Interfaces;
 global using static ExportTestBuilders;
