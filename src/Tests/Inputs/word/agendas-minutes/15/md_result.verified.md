@@ -13,7 +13,7 @@ Agenda items
 3. To add a new row at the end of the action items table, just click into the last cell in the last row and then press Tab. 
 4. To add a new row or column anywhere in a table, click in an adjacent row or column to the one you need and then, on the Table Tools Layout tab of the ribbon, click an Insert option. 
 
-| Action items  | Owner(s) | Deadline | Status |
+| **Action items**  | **Owner(s)** | **Deadline** | **Status** |
 | --- | --- | --- | --- |
 | Board nominations  | Kiana Anderson  | 1/30/23  | Action items |
 |  |  |  |  |

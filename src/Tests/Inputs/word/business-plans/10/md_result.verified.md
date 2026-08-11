@@ -21,11 +21,11 @@ April 4, 20XX
 | **Plan Overview** |
 | --- |
 
-| Practice: | Name  |
+| **Practice:** | **Name**  |
 | --- | --- |
-| Name of Campaign: | Expanding international interest  |
-| Campaign Manager: | Gurmeet Dhillon  |
-| Subject Matter Expert: | Isabel Gracia  |
+| **Name of Campaign:** | Expanding international interest  |
+| **Campaign Manager:** | Gurmeet Dhillon  |
+| **Subject Matter Expert:** | Isabel Gracia  |
 
 | **Objective** |
 | --- |
@@ -92,7 +92,7 @@ Define your opportunity qualification process and criteria.
 
 ### Necessary Event Resources
 
-| Resource | Role | Estimated Work Hours |
+| **Resource** | **Role** | **Estimated Work Hours** |
 | --- | --- | --- |
 | Resource 1  | Role  | Time  |
 | Resource 2  | Role  | Time  |
@@ -114,7 +114,7 @@ Define all metrics and expectations.
 
 ### Approval
 
-| Title | Name | Date 1 | Date 2 |
+| **Title** | **Name** | **Date 1** | **Date 2** |
 | --- | --- | --- | --- |
 | CEO  | Name  | Date 1  | Date 2  |
 | Campaign Manager  | Name  | Date 1  | Date 2  |

@@ -8,12 +8,12 @@
 
 ## House of Representatives - Legislation available for debate
 
-| Available<br>From | Bill | Minister | Comment |
+| **Available**<br>**From** | **Bill** | **Minister** | **Comment** |
 | --- | --- | --- | --- |
 | TBC | Bill 1 | Minister 1 | Critical date CriticalDateSittingPeriod - CriticalDateReason<br>Committee reported (House) 1 Oct 2020 |
 
 ## Senate - Legislation available for debate
 
-| Available<br>From | Bill | Minister | Comment |
+| **Available**<br>**From** | **Bill** | **Minister** | **Comment** |
 | --- | --- | --- | --- |
 | TBC | Bill 2 | Minister 1 | Critical date CriticalDateSittingPeriod - CriticalDateReason<br>Committee reported (House) 1 Oct 2020 |

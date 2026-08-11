@@ -130,10 +130,10 @@ At a minimum, this section should include estimated start-up costs and projected
 
 - **Projected start-up costs**: The table below shows a sample of ongoing and one-time cost items that the business might need in order to open. Many businesses are paid on credit over time and do not have cash coming in immediately. It is necessary to make assumptions about how many months of recurring items, in addition to one-time expenses, to estimate when cash will begin to flow into the company. To begin with, the company will have to fund out of savings or an initial investment. There is a blank table in the Appendix to complete potential start-up cost projections.
 
-| **Start-up costs** |  |  |  |  |
+| Start-up costs |  |  |  |  |
 | --- | --- | --- | --- | --- |
-| Your Home-Based Agency | January 1, 20XX |  |  |  |
-| **COST ITEMS** | **MONTHS** | **COST/ MONTH** | **ONE-TIME COST** | **TOTAL COST** |
+| **Your Home-Based Agency** | **January 1, 20XX** |  |  |  |
+| COST ITEMS | MONTHS | COST/ MONTH | ONE-TIME COST | TOTAL COST |
 | Advertising/Marketing | 3 | $300 | $2,000 | $2,900 |
 | Employee Salaries\* | 4 | $500 | $2 | $2,002 |
 | Employee Payroll Taxes and Benefits | 4 | $100 | $1,500 | $1,600 |
@@ -162,10 +162,10 @@ At a minimum, this section should include estimated start-up costs and projected
 
 **Projected profit and loss model**: The model below shows a sample of the projections a small business is forecasting for their first 12 months of operations. The top portion of the table shows projected sales and gross profit. This is a good place to begin creating the company’s sales forecast. The next section itemizes the recurring expenses the business is projecting for the same months. These should be consistent with the estimated start-up costs completed in the prior section. At the bottom of this model, it will be possible to see when the company is becoming profitable and what expense items are the most impactful to its profitability. There is a blank table in the Appendix to complete the business’ own start-up cost projections.
 
-| **Start-up costs** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| Start-up costs |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Your Home-Based Agency |  |  |  |  |  |  |  | January 1, 20XX |  |  |  |  |  |  |  |
-| **REVENUE** | **JAN** | **FEB** | **MAR** | **APR** | **MAY** | **JUN** | **JUL** |  | **AUG** | **SEP** | **OCT** | **NOV** | **DEC** | **YTD** |  |
+| **Your Home-Based Agency** |  |  |  |  |  |  |  | **January 1, 20XX** |  |  |  |  |  |  |  |
+| REVENUE | JAN | FEB | MAR | APR | MAY | JUN | JUL |  | AUG | SEP | OCT | NOV | DEC | YTD |  |
 | Estimated Sales | $5,000 | $13,000 | $16,000 | $7,000 | $14,500 | $16,400 | $22,500 |  | $23,125 | $24,549 | $22,000 | $25,000 | $27,349 | $216,423 |  |
 | Less Sales Returns & Discounts | $0 | ($350) | $0 | ($206) | ($234) | $0 | $0 |  | ($280) | ($1,200) | ($1,600) | $0 | ($2,400) | ($6,270) |  |
 | Service Revenue | $0 | $0 | $0 | $0 | $0 | $250 | $350 |  | $100 | $0 | $0 | $1,245 | $1,360 | $3,305 |  |
@@ -173,7 +173,7 @@ At a minimum, this section should include estimated start-up costs and projected
 | Net Sales | $5,000 | $12,650 | $16,000 | $6,794 | $14,266 | $16,650 | $22,850 |  | $24,445 | $23,349 | $20,400  | $26,245 | $26,309 | $214,958 |  |
 | Cost of Goods Sold\* | $2,000 | $5,200 | $6,400 | $2,800 | $5,800 | $6,560 | $9,000 |  | $9,250 | $9,820 | $8,800 | $10,000 | $10,940 | $86,569 |  |
 | Gross Profit | $3,000 | $7,450 | $9,600 | $3,994 | $8,466 | $10,090 | $13,850 |  | $15,195 | $13,529 | $11,600 | $16,245 | $15,369 | $128,389 |  |
-| **Expenses** | **JAN** | **FEB** | **MAR** | **APR** | **MAY** | **JUN** | **JUL** |  | **AUG** | **SEP** | **OCT** | **NOV** | **DEC** | **YTD** |  |
+| Expenses | **JAN** | **FEB** | **MAR** | **APR** | **MAY** | **JUN** | **JUL** |  | **AUG** | **SEP** | **OCT** | **NOV** | **DEC** | **YTD** |  |
 | Salaries & Wages | $2,500 | $2,500 | $3,500 | $5,000 | $5,000 | $5,000 | $8,000 |  | $9,000 | $9,000 | $9,000 | $9,000 | $9,000 | $76,500 |  |
 | Marketing/Advertising | $400 | $450 | $450 | $450 | $900 | $900 | $900 |  | $900 | $900 | $900 | $1,200 | $1,200 | $9,550 |  |
 | Sales Commissions | $250 | $650 | $800 | $350 | $725 | $820 | $1,125 |  | $1,156 | $1,227 | $1,100 | $1,250 | $1,367 | $10,821 |  |
@@ -190,14 +190,14 @@ At a minimum, this section should include estimated start-up costs and projected
 | Income Before Taxes | ($3,525) | $1,875 | $2,825 | ($4,531) | ($184) | $795 | $1,750 |  | $2,064 | ($298) | ($2,225) | $2,670 | $1,427 | $2,643 |  |
 | Income Tax Expense | ($529) | $281 | $424 | ($680) | ($28) | $119 | $263 |  | $310 | ($45) | ($334) | $401 | $214 | $396 |  |
 | **NET INCOME** | **($2,996)** | **$1,594** | **$2,401** | **($3,851)** | **($156)** | **$676** | **$1,488** |  | **$1,754** | **($253)** | **($1,891)** | **$2,270** | **$1,213** | **$2,246** |  |
-| \*In the service industry, Cost of Goods Sold is the monetized value of the time spent on the client. |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| **\*In the service industry, Cost of Goods Sold is the monetized value of the time spent on the client.** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 
 # Appendix
 
-| **Start-up costs**  |  |  |  |  |
+| Start-up costs  |  |  |  |  |
 | --- | --- | --- | --- | --- |
-| Your Home-Based Agency | January 1, 20XX |  |  |  |
-| **COST ITEMS** | **MONTHS** | **COST/ MONTH** | **ONE-TIME COST** | **TOTAL COST** |
+| Your Home-Based Agency | **January 1, 20XX** |  |  |  |
+| COST ITEMS | MONTHS | COST/ MONTH | ONE-TIME COST | TOTAL COST |
 | Advertising/Marketing |  |  |  |  |
 | Employee Salaries |  |  |  |  |
 | Employee Payroll Taxes and Benefits |  |  |  |  |
@@ -235,7 +235,7 @@ Determining a business' startup costs is critical to ensure enough cash is avail
 
 | Start-up costs |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Your Home-Based Agency |  |  |  |  |  |  |  |  |  |  | January 1, 20XX |  |  |  |
+| **Your Home-Based Agency** |  |  |  |  |  |  |  |  |  |  | **January 1, 20XX** |  |  |  |
 | **REVENUE** | **JAN** | **FEB** | **MAR** | **APR** | **MAY** | **JUN** | **JUL** | **AUG** | **SEP** | **OCT** | **NOV** | **DEC** | **YTD** |  |
 | Estimated Product Sales |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | Less Sales Returns & Discounts |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
