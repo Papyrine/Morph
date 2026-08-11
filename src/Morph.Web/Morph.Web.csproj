@@ -9,12 +9,10 @@
     <!--
       Selective trim. Trimming is ON so the BCL, the ASP.NET Components framework and Morph's own
       assemblies (verified reflection-free) shrink to what's actually reached. The conversion pipeline's
-      four reflection-heavy libraries — DocumentFormat.OpenXml, AngleSharp, ImageSharp (+ Drawing/Fonts)
-      and PdfSharp — resolve types by name at runtime, so full-trim would silently strip types they need
-      and surface only as a browser-side crash mid-conversion. Those are rooted (kept whole) via the
-      TrimmerRootAssembly items below. Residual risk: a rooted library reflecting into a *framework* type
-      the trimmer removed — validate any change here by running a real DOCX through every output format on
-      the published build (the Playwright suite in Morph.Web.Tests exercises DOCX->PNG and DOCX->PDF).
+      reflection-heavy libraries are rooted (kept whole) instead — those TrimmerRootAssembly items live in
+      Morph.Blazor's build/Morph.Blazor.targets, which is shipped in its NuGet package so every consuming
+      app gets the same protection. This app picks the file up by path, since a ProjectReference doesn't
+      import a referenced project's MSBuild assets the way a PackageReference does.
     -->
     <PublishTrimmed>true</PublishTrimmed>
     <InvariantGlobalization>true</InvariantGlobalization>
@@ -35,32 +33,13 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
-    <!-- AngleSharp parses Morph's exported HTML into a plain-text (.txt) rendition — Morph itself
-         ships only HTML and Markdown exporters. It arrives transitively via Morph already; the
-         explicit reference makes the dependency intentional rather than incidental. -->
-    <PackageReference Include="AngleSharp" />
-    <!-- ImageSharp backend (pure-managed, runs in WASM) for DOCX->PNG; PdfSharp for DOCX->PDF.
-         Skia is deliberately avoided — it needs a native WebAssembly build the NuGet assets don't ship. -->
-    <ProjectReference Include="..\Morph.ImageSharp\Morph.ImageSharp.csproj" />
-    <ProjectReference Include="..\Morph.Pdf\Morph.Pdf.csproj" />
+    <!-- The converter itself: components, conversion services, and the fonts / samples / stylesheet /
+         script they need, all as static web assets. Drags in Morph.ImageSharp (PNG — pure-managed, so it
+         runs in WebAssembly) and Morph.Pdf (PDF); Skia is deliberately avoided, it needs a native
+         WebAssembly build the NuGet assets don't ship. -->
+    <ProjectReference Include="..\Morph.Blazor\Morph.Blazor.csproj" />
   </ItemGroup>
 
-  <!-- Reflection-heavy libraries preserved whole under trimming (see PublishTrimmed note above).
-       Names are logical assembly names; each is rooted so none of its own members are removed. -->
-  <ItemGroup>
-    <TrimmerRootAssembly Include="DocumentFormat.OpenXml" />
-    <TrimmerRootAssembly Include="DocumentFormat.OpenXml.Framework" />
-    <TrimmerRootAssembly Include="AngleSharp" />
-    <TrimmerRootAssembly Include="SixLabors.ImageSharp" />
-    <TrimmerRootAssembly Include="SixLabors.ImageSharp.Drawing" />
-    <TrimmerRootAssembly Include="SixLabors.Fonts" />
-    <TrimmerRootAssembly Include="SixLabors.PolygonClipper" />
-    <TrimmerRootAssembly Include="PdfSharp" />
-    <TrimmerRootAssembly Include="PdfSharp.Charting" />
-    <TrimmerRootAssembly Include="PdfSharp.Cryptography" />
-    <TrimmerRootAssembly Include="PdfSharp.Shared" />
-    <TrimmerRootAssembly Include="PdfSharp.System" />
-    <TrimmerRootAssembly Include="PdfSharp.WPFonts" />
-  </ItemGroup>
+  <Import Project="..\Morph.Blazor\build\Morph.Blazor.targets" />
 
 </Project>

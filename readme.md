@@ -4,12 +4,13 @@
 [![NuGet Status](https://img.shields.io/nuget/v/Morph.Skia.svg?label=Morph.Skia)](https://www.nuget.org/packages/Morph.Skia/)
 [![NuGet Status](https://img.shields.io/nuget/v/Morph.ImageSharp.svg?label=Morph.ImageSharp)](https://www.nuget.org/packages/Morph.ImageSharp/)
 [![NuGet Status](https://img.shields.io/nuget/v/Morph.Pdf.svg?label=Morph.Pdf)](https://www.nuget.org/packages/Morph.Pdf/)
+[![NuGet Status](https://img.shields.io/nuget/v/Morph.Blazor.svg?label=Morph.Blazor)](https://www.nuget.org/packages/Morph.Blazor/)
 
 A .NET library that converts docx/pptx/xlsx documents or html content into **png images, pdf, semantic html, or markdown**.
 
 Either input can produce any of the four outputs, and a document is parsed once no matter how many formats it is exported to.
 
-**[Try it live in the browser](https://morph.papyrine.org/)** — a Blazor WebAssembly app that does the conversions client-side, built on `Morph.ImageSharp` and `Morph.Pdf`.
+**[Try it live in the browser](https://morph.papyrine.org/)** — a Blazor WebAssembly app that does the conversions client-side, built on `Morph.ImageSharp` and `Morph.Pdf`. The converter it uses is packaged as [`Morph.Blazor`](https://nuget.org/packages/Morph.Blazor/), so any Blazor app can drop the same widget in: see [its readme](/src/Morph.Blazor/README.md).
 
 
 ## Open Source Maintenance Fee
@@ -37,6 +38,8 @@ Which package is needed depends on the *output* format, not the input — DOCX a
 | PNG | [`Morph.Skia`](https://nuget.org/packages/Morph.Skia/) or [`Morph.ImageSharp`](https://nuget.org/packages/Morph.ImageSharp/) | Pick a [rendering backend](#rendering-backends) |
 
 `Morph.Skia`, `Morph.ImageSharp` and `Morph.Pdf` all depend on `Morph`, so any of them also brings the HTML and Markdown exporters.
+
+There is one package that isn't about an output format: [`Morph.Blazor`](https://nuget.org/packages/Morph.Blazor/) ships a drop-in Blazor WebAssembly *component* — upload, page preview, format picker and download — that runs the whole conversion in the browser. It brings `Morph.ImageSharp` and `Morph.Pdf` with it, along with the fonts a browser render needs.
 
 
 ## Features

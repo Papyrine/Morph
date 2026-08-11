@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- Every public type sits in the single Morph namespace, matching the rest of the repo, so the
+         Razor SDK must not derive per-folder namespaces from the project's folder layout. -->
+    <RootNamespace>Morph</RootNamespace>
+    <!-- CS1591: the Razor SDK's generated component classes carry no XML doc comments and can't be
+         given any. The hand-written API in Services/ and the component parameters are documented, and
+         ProjectDefaults still emits the doc file in Release, so consumers get IntelliSense. -->
+    <NoWarn>CS0618;CS1591;CS1572</NoWarn>
+    <Description>Blazor WebAssembly components that convert Word, Excel and PowerPoint files to PNG, PDF, HTML, Markdown or plain text — entirely in the browser.</Description>
+    <!-- Unlike the other Morph packages this one has setup steps (AddMorph, the stylesheet link), so the
+         README travels with it to the gallery rather than living only in the repo. -->
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- ImageSharp renders PNG (pure-managed, so it runs in WebAssembly — Skia would need a native
+         browser-wasm build the NuGet assets don't ship); PdfSharp renders PDF. AngleSharp flattens
+         Morph's HTML export into plain text; it arrives transitively via Morph, and the explicit
+         reference makes the dependency intentional rather than incidental. -->
+    <ProjectReference Include="..\Morph.ImageSharp\Morph.ImageSharp.csproj" />
+    <ProjectReference Include="..\Morph.Pdf\Morph.Pdf.csproj" />
+    <PackageReference Include="AngleSharp" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
+    <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
+    <PackageReference Include="SponsorCheck" PrivateAssets="all" Condition="'$(MORPH_TEST_CONTAINER)' != '1'" />
+  </ItemGroup>
+
+  <!-- Shipped to consumers so a trimmed WebAssembly publish keeps the reflection-heavy libraries whole;
+       see build/Morph.Blazor.targets. buildTransitive as well as build, so an app that picks the package
+       up indirectly still gets the roots. -->
+  <ItemGroup>
+    <None Include="build\Morph.Blazor.targets" Pack="true" PackagePath="build\Morph.Blazor.targets" />
+    <None Include="build\Morph.Blazor.targets" Pack="true" PackagePath="buildTransitive\Morph.Blazor.targets" />
+  </ItemGroup>
+
+</Project>

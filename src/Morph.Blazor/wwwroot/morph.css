@@ -1,0 +1,451 @@
+/*
+    Styles for Morph's Blazor components. Link it from the host app:
+
+        <link rel="stylesheet" href="_content/Morph.Blazor/morph.css" />
+
+    Theming is done entirely through the --morph-* custom properties below. Every rule reads them with a
+    literal fallback, so the components look right with no configuration at all, and nothing here declares
+    a value of its own — link order can't fight the host, and a host that themes by setting these on :root
+    always wins. To follow a host palette, map them once:
+
+        :root {
+            --morph-primary: var(--primary-color);
+            --morph-surface: var(--surface-color);
+        }
+
+    | property           | what it colours                                  | default |
+    | ------------------ | ------------------------------------------------ | ------- |
+    | --morph-primary    | headings, focus accents, the download button      | #2b579a |
+    | --morph-surface    | raised panels (upload area, option/convert panels) | #ffffff |
+    | --morph-background | recessed areas (preview well, select backgrounds)  | #f8f9fa |
+    | --morph-text       | body text                                          | #333    |
+    | --morph-muted      | secondary text (captions, notes, progress labels)  | #6c757d |
+    | --morph-border     | every border and divider                           | #dee2e6 |
+*/
+
+/* Scoped to this library's own subtrees so the package never imposes a global reset on the host. */
+:where(.converter, .converter *, .preview, .preview *, .progress, .progress *, .error, .error *) {
+    box-sizing: border-box;
+}
+
+.converter {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.file-drop {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 2rem;
+    background: var(--morph-surface, #ffffff);
+    border: 2px dashed var(--morph-border, #dee2e6);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.file-drop:hover {
+    border-color: var(--morph-primary, #2b579a);
+}
+
+.file-drop-icon {
+    font-size: 2.5rem;
+    line-height: 1;
+}
+
+.file-drop-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.file-drop-text strong {
+    color: var(--morph-primary, #2b579a);
+    font-size: 1.1rem;
+}
+
+.file-drop-text span {
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.85rem;
+}
+
+.file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+.upload-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.upload-or {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.upload-or::before,
+.upload-or::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--morph-border, #dee2e6);
+}
+
+/* One sample button per readable format. They share the row evenly on a roomy panel and wrap to full
+   width when it gets tight, so the labels never truncate. */
+.sample-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.sample-btn {
+    flex: 1 1 10rem;
+    padding: 0.75rem 1.5rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    background: var(--morph-surface, #ffffff);
+    color: var(--morph-text, #333);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.sample-btn:hover:not(:disabled) {
+    border-color: var(--morph-primary, #2b579a);
+}
+
+.sample-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* The preview stacks one image per rendered page; it scrolls when a long document exceeds the cap. */
+.preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    max-height: 70vh;
+    overflow-y: auto;
+    background: var(--morph-background, #f8f9fa);
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.preview-page {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 2px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    background: #ffffff;
+}
+
+.preview-busy {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    width: 100%;
+}
+
+/* Wraps the page preview and the result pane; on wide viewports they sit side by side. */
+.workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+}
+
+/* The selected format's converted output, shown beside the page preview on wide screens only. */
+.result-pane {
+    display: flex;
+    flex-direction: column;
+    height: 70vh;
+    overflow: hidden;
+    background: var(--morph-background, #f8f9fa);
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 8px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.result-caption {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--morph-border, #dee2e6);
+    background: var(--morph-surface, #ffffff);
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Annotation to the right of the caption title, explaining the "… KB elided …" markers in the text below. */
+.result-note {
+    font-size: 0.75rem;
+    font-weight: 400;
+    font-style: italic;
+    white-space: nowrap;
+}
+
+/* Document content is designed against paper, so the iframe stays white in both themes. */
+.result-frame {
+    flex: 1;
+    width: 100%;
+    border: 0;
+    background: #ffffff;
+}
+
+.result-text {
+    flex: 1;
+    margin: 0;
+    padding: 1rem;
+    overflow: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.result-busy {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+/* Wide screens: the page preview and the result pane sit side by side. :has() scopes the wider layout to
+   when a pane is actually present, so the converter keeps its single column whenever there is nothing to
+   show on the right. The host is responsible for letting its own container relax to suit — see the
+   .container:has(.result-pane) rule in the sample app. */
+@media (min-width: 1200px) {
+    .workspace:has(.result-pane) {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    /* Match the pane's fixed height so the pair reads as one row. */
+    .workspace:has(.result-pane) .preview {
+        height: 70vh;
+        max-height: none;
+    }
+}
+
+.progress {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.progress-track {
+    position: relative;
+    overflow: hidden;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--morph-border, #dee2e6);
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: var(--morph-primary, #2b579a);
+    transition: width 0.15s ease;
+}
+
+.progress-fill-indeterminate {
+    width: 40%;
+    /* Animate transform, not margin-left. A conversion blocks the UI thread on the single-threaded
+       runtime; a main-thread (layout) animation freezes with it, whereas a compositor-driven transform
+       keeps sliding — so the bar stays alive while the render churns. will-change promotes it to its own
+       layer so the compositor owns the animation. */
+    animation: morph-progress-indeterminate 1.2s ease-in-out infinite;
+    will-change: transform;
+}
+
+@keyframes morph-progress-indeterminate {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(250%); }
+}
+
+.progress-label {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--morph-muted, #6c757d);
+}
+
+.progress-count {
+    font-variant-numeric: tabular-nums;
+}
+
+.image-options {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--morph-surface, #ffffff);
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.option-note {
+    margin: 0;
+    flex-basis: 100%;
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.8rem;
+}
+
+.no-options {
+    margin: 0;
+    padding: 1rem 1.5rem;
+    color: var(--morph-muted, #6c757d);
+    background: var(--morph-surface, #ffffff);
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    font-size: 0.9rem;
+}
+
+.download-row {
+    display: flex;
+}
+
+.btn-spinner {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin-right: 0.5rem;
+    vertical-align: -0.15em;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: morph-spin 0.8s linear infinite;
+}
+
+@keyframes morph-spin {
+    to { transform: rotate(360deg); }
+}
+
+.convert-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+    padding: 1.5rem;
+    background: var(--morph-surface, #ffffff);
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.format-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 200px;
+}
+
+.format-selector label {
+    font-weight: 500;
+}
+
+.format-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 4px;
+    background: var(--morph-background, #f8f9fa);
+    color: var(--morph-text, #333);
+    font-size: 0.9rem;
+}
+
+.convert-btn {
+    padding: 0.6rem 1.5rem;
+    border: 1px solid var(--morph-primary, #2b579a);
+    background: var(--morph-primary, #2b579a);
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: opacity 0.2s;
+}
+
+.convert-btn:hover {
+    opacity: 0.9;
+}
+
+.convert-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Document content is designed against paper, so the error panel keeps its own light palette in both
+   themes — like the preview and the result iframe. */
+.error {
+    padding: 1rem;
+    background: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+    border-radius: 8px;
+}
+
+.error-message {
+    margin: 0;
+}
+
+.error-report {
+    margin: 0.75rem 0 0;
+    font-size: 0.9rem;
+}
+
+.error-report a {
+    color: #842029;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .convert-panel {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .convert-btn {
+        width: 100%;
+    }
+
+    /* Two sample buttons fit a phone row and the third wraps alone, which reads as a mistake. Stack
+       them one per row instead — the labels then never wrap either. Stacking turns the row's flex-basis
+       into a *height*, so the buttons also have to drop back to their natural size. */
+    .sample-row {
+        flex-direction: column;
+    }
+
+    .sample-row .sample-btn {
+        flex: none;
+    }
+}

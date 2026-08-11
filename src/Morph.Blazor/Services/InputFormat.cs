@@ -1,6 +1,6 @@
-namespace Morph.Web.Services;
+namespace Morph;
 
-/// <summary>The Office formats this app can read. Every one of them converts to every <see cref="OutputFormat"/>.</summary>
+/// <summary>The Office formats the browser components read. Every one converts to every <see cref="OutputFormat"/>.</summary>
 public enum InputFormat
 {
     /// <summary>Word document (.docx).</summary>

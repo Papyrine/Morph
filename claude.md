@@ -149,6 +149,20 @@ embedding). The public entry-point converters live here too (DOCX→PNG and HTML
 **PDF** (`src/Morph.Pdf/`): `PdfRenderer` plus the DOCX→PDF and HTML→PDF converters, via PdfSharp. Still
 paginates through `PdfTextEngine` by default; `PdfPainter` is the engine-path painter beside it.
 
+**Blazor** (`src/Morph.Blazor/`): the reusable browser front end, packaged for NuGet as `Morph.Blazor`.
+`MorphConverter` is the whole widget (upload → page preview → format picker → download);
+`ConversionService` wraps Morph's converters over `byte[]` in / `byte[]` out, and `FontStore` materialises
+the bundled Aptos faces into the WASM in-memory filesystem because a browser has no OS fonts. Its
+`wwwroot/` ships the stylesheet, an ES module of JavaScript, those fonts and three sample files as static
+web assets, served to a host app under `_content/Morph.Blazor/`. It is a plain Razor class library, so —
+unlike `Morph.Web` — it builds and packs everywhere, including the linux/amd64 test container. Public
+types stay in the single `Morph` namespace like every other assembly, which is why the option-panel
+component is `ExportOptionsPanel`: `ExportOptions` is already Morph's own record. See
+`src/Morph.Blazor/README.md`.
+
+**Web app** (`src/Morph.Web/`): the Blazor WASM app at morph.papyrine.org. Since the extraction above it
+is only a shell — header, theme toggle, footer — around `<MorphConverter />`. See `src/Morph.Web/README.md`.
+
 For a complete feature-by-feature mapping to code locations, see `docs/word-features.md` — render
 locations that name the deleted production raster code describe history; for DOCX→PNG the engine painters
 are the only path, while `PdfTextEngine` remains PDF's default until the flip.
