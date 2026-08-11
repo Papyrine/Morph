@@ -10219,7 +10219,18 @@ sealed class DocumentParser(string defaultFont)
             borderBetweenSpace = ParseBorderSpace(betweenBorder);
         }
 
-        // Parse paragraph mark font size (used for empty paragraphs)
+        // Parse paragraph mark font size (used for empty paragraphs). An explicit w:sz on the mark wins;
+        // failing that the mark inherits from the paragraph style chain exactly as a run would, and only
+        // then from the document default.
+        //
+        // Reading ONLY the direct child left a mark that names a font but no size inheriting nothing, so
+        // MarkProperties fell through to a bare RunProperties — the record's 11pt default. Inside a table
+        // cell that is the whole line height, because the cell path omits ParagraphMarkRunProperties and an
+        // empty cell has no run to stand in either. business-plans/15's cost table is exactly that shape:
+        // its value cells carry <w:rPr><w:rFonts w:ascii="Univers"/></w:rPr> and no w:sz, so every row was
+        // sized off an 11pt mark instead of the 9pt the chain resolves, making single-line rows 5px tall
+        // and accumulating ~46pt over the table. Word-probed: adding an explicit w:sz to those marks made
+        // Morph's rows match Word's exactly (35px against 35px), which is what pinned this.
         double? paragraphMarkFontSize = null;
         var paragraphMarkRunProps = props.ParagraphMarkRunProperties;
         if (paragraphMarkRunProps != null)
@@ -10228,6 +10239,11 @@ sealed class DocumentParser(string defaultFont)
             if (fontSize?.Val?.HasValue == true && double.TryParse(fontSize.Val.Value, out var halfPoints))
             {
                 paragraphMarkFontSize = halfPoints.HalfPointsToPoints();
+            }
+            else if (styleRunProperties != null &&
+                     styleRunProperties.TryGetValue(styleId ?? "Normal", out var markChain))
+            {
+                paragraphMarkFontSize = markChain.FontSizePoints;
             }
         }
 
