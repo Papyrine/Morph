@@ -129,6 +129,47 @@ whose unique-colour count is at or below **16**.
   contain Word quirks (see the audit's "anomalies worth re-checking" section) — verify against
   the DOCX markup before treating Word as correct.
 
+## Committed references can predate your machine — measure against a control render
+
+The Office COM export is **deterministic**: two runs of RenderHelper over 26 unchanged decks
+produced 26 byte-identical `expected_*.png`. A reference that differs is therefore a real
+difference, never run-to-run noise, and that is what makes the next paragraph a problem rather
+than a curiosity.
+
+Re-rendering the deck corpus from **unchanged** inputs reproduced only 18 of its 26 committed
+references. The other 8 disagreed with the checked-in PNGs, six mildly and two badly:
+
+| deck | committed vs this machine |
+| --- | --- |
+| tech-brochure | 97.6 dB |
+| angled-tri-fold-brochure | 94.3 dB |
+| fashion-photo-album | 86.9 dB |
+| education-infographics-poster | 85.3 dB |
+| minimalist-light-sales-pitch | 78.8 dB |
+| offset | 71.9 dB |
+| funky-shapes | 27.0 dB |
+| funky-shapes-dark | 24.9 dB |
+
+Nothing in the repository pins an Office version or a font set for reference generation, so a
+reference carries whatever machine produced it. There is no way to tell from the file.
+
+The consequence for judging: **when a change alters an input, compare the new references against a
+control render of the OLD input on the same machine — never against the committed PNGs.** Otherwise
+environment drift is attributed to the change. Measured against the commit, the deck image cut
+appeared to move `funky-shapes-dark` by 24.9 dB; against a control render it moved by 45.9 dB, i.e.
+almost all of that apparent damage was drift that was already there. The control is cheap — restore
+the inputs, run RenderHelper, copy the PNGs aside — and it is the difference between a real number
+and a misleading one.
+
+One further artifact worth recognising, seen once and not reproduced since: the first deck rendered
+by a freshly started PowerPoint in a session came out different from every later render of the same
+file (24.2 dB against a byte-identical result afterwards). It was alphabetically first, so it was the
+cold-start case. If a single scenario looks anomalous and it happens to be the first one rendered,
+render it again before believing it.
+
+The deck references were regenerated wholesale during the 2026-08 image cut, so they currently all
+come from one environment. The finding applies to the next person who regenerates on a different one.
+
 ## Promoting baselines when a page count drops
 
 Promotion renames `*.received.*` onto `*.verified.*` one file at a time, so a scenario that now
