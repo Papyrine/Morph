@@ -36,7 +36,7 @@ public class FormatSelectorTests : BunitTestContext
             .Add(_ => _.Selected, OutputFormat.Png)
             .Add(_ => _.SelectedChanged, (OutputFormat format) => selected = format));
 
-        await EventHandlerDispatchExtensions.ChangeAsync(cut.Find("select"), nameof(OutputFormat.Pdf));
+        await cut.Find("select").ChangeAsync(nameof(OutputFormat.Pdf));
 
         await Assert.That(selected).IsEqualTo(OutputFormat.Pdf);
     }

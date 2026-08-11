@@ -279,7 +279,7 @@ sealed class ConditionalFormats
             int Channel(int offset) =>
                 (int) Math.Round(
                     Convert.ToInt32(from.Substring(offset, 2), 16) * (1 - fraction) +
-                    (Convert.ToInt32(to.Substring(offset, 2), 16) * fraction));
+                    Convert.ToInt32(to.Substring(offset, 2), 16) * fraction);
 
             return $"{Channel(0):X2}{Channel(2):X2}{Channel(4):X2}";
         }

@@ -23,7 +23,7 @@ static class CellReference
                 break;
             }
 
-            column = (column * 26) + (upper - 'A' + 1);
+            column = column * 26 + (upper - 'A') + 1;
         }
 
         return column;

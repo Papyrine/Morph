@@ -21,7 +21,6 @@ sealed class ContentControlElement : DocumentElement
     /// <summary>Styled runs within the content control (preserves formatting).</summary>
     public IReadOnlyList<Run>? Runs { get; init; }
 
-    ParagraphElement? cellParagraph;
     bool cellParagraphBuilt;
 
     /// <summary>
@@ -41,7 +40,7 @@ sealed class ContentControlElement : DocumentElement
                 cellParagraphBuilt = true;
                 if (Runs is {Count: > 0})
                 {
-                    cellParagraph = new()
+                    field = new()
                     {
                         Runs = Runs,
                         Properties = new()
@@ -49,7 +48,7 @@ sealed class ContentControlElement : DocumentElement
                 }
                 else if (!string.IsNullOrEmpty(Content))
                 {
-                    cellParagraph = new()
+                    field = new()
                     {
                         Runs =
                         [
@@ -67,7 +66,7 @@ sealed class ContentControlElement : DocumentElement
                     // A date control whose display text was not captured as runs still shows its
                     // value, formatted per the control's declared format (invariant culture, so
                     // page output is deterministic across machines).
-                    cellParagraph = new()
+                    field = new()
                     {
                         Runs =
                         [
@@ -83,7 +82,7 @@ sealed class ContentControlElement : DocumentElement
                 else if (!string.IsNullOrEmpty(PlaceholderText))
                 {
                     // An empty control shows its placeholder, grayed the way Word does.
-                    cellParagraph = new()
+                    field = new()
                     {
                         Runs =
                         [
@@ -101,7 +100,7 @@ sealed class ContentControlElement : DocumentElement
                 }
             }
 
-            return cellParagraph;
+            return field;
         }
     }
 

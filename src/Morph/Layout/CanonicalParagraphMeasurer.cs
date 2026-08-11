@@ -608,7 +608,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         var start = 0;
         for (var i = 1; i <= text.Length; i++)
         {
-            if (i == text.Length || (text[i] == ' ') != (text[start] == ' '))
+            if (i == text.Length || text[i] == ' ' != (text[start] == ' '))
             {
                 yield return (text[start..i], text[start] == ' ');
                 start = i;

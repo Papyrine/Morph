@@ -47,7 +47,7 @@ public class TableCellSpacingCollapseTests
         // before == after, each extra paragraph adds its lines plus exactly one gap. Summing both
         // would add spacingBefore extra per gap — the defect this guards.
         var perExtraParagraph = (three - one) / 2;
-        var oneLineAndOneGap = (one - spacingBefore - spacingAfter) + spacingAfter;
+        var oneLineAndOneGap = one - spacingBefore - spacingAfter + spacingAfter;
 
         await Assert.That(perExtraParagraph).IsEqualTo(oneLineAndOneGap).Within(0.01f);
     }

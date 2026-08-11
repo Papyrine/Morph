@@ -753,11 +753,51 @@ Borders around a paragraph (top, bottom, left, right, between).
 - **OOXML**: `w:pBdr` — `w:top`, `w:bottom`, `w:left`, `w:right`, `w:between`
 - **Parse**: `DocumentParser.ParseParagraphProperties()` and `ParseStyleParagraphProperties()` in `Morph/OpenXml/Parsing/DocumentParser.cs`; per-edge `w:space` via `ParseBorderSpace()`
 - **Model**: `ParagraphProperties.Borders` (reuses `CellBorders` for Top/Right/Bottom/Left), plus per-edge `BorderTopSpacePoints` / `BorderBottomSpacePoints` / `BorderLeftSpacePoints` / `BorderRightSpacePoints`, and `BorderBetween` / `BorderBetweenSpacePoints`
-- **Render**: paragraph-border block in `Morph.Skia/Rendering/TextRenderer.cs`, `Morph.ImageSharp/Rendering/TextRenderer.cs`, and `Morph.Pdf/PdfTextEngine.cs` (`DrawParagraphBorders`, ported from the raster backends; height reserved via `BorderSpaceExcess` in `MeasureHeight`). Between-border collapse uses `RenderContextBase.SuppressNextParagraphTopBorder` to coordinate neighbors across all three backends.
+- **Render**: `Fragmenter` accumulates a border *run* (`borderRunProperties` and friends) and `FlushBorderRun` emits one `PlacedBorder` per run plus a zero-height top-only `PlacedBorder` for each internal `w:between` rule; every backend's painter strokes what the run produced, measuring and grouping nothing itself.
 - **Test**: `paragraph_borders/`
 - **Spec**: [Paragraph Borders](http://officeopenxml.com/WPborders.php)
 
-> **Contributors**: All four box edges plus `w:between` are rendered. Per-edge `w:space` is honored — when the requested space exceeds the paragraph's SpacingBefore/After, the excess is reserved so borders don't poke into neighbors (matches Word's layout). Consecutive paragraphs sharing the same `w:pBdr` + `w:between` definition collapse their adjacent top/bottom into a single between line, and spacing/borders fuse into one visual box.
+> **Contributors**: All four box edges plus `w:between` are rendered. Consecutive paragraphs form a **border group** that Word draws ONE box around — the grouping rule lives in `ParagraphProperties.SharesBorderGroupWith` and is Word-probed seven ways in a single render (A–G below, A4, red `sz=12` borders, 150dpi):
+>
+> | Fixture | Varied against its neighbours | Word draws |
+> | --- | --- | --- |
+> | A | nothing — three identical paragraphs | **one** box, no rule between members |
+> | B | border colour | three abutting boxes |
+> | C | left indent (227 → 511 twips) | three boxes, the middle one inset |
+> | D | `w:space` (6 → 20pt) | three boxes |
+> | E | `spacing after` 12pt between two members | **one** box — the 12pt gap sits INSIDE it |
+> | F | `w:between` present | **one** box plus an internal rule per boundary |
+> | G | middle paragraph drops its bottom edge | three boxes |
+>
+> So the test is equality of the whole border set, all four spaces, and both indents; `w:between` has no say in whether a run groups, only in how its internal boundaries are ruled. Group A measured 179→300px for three lines + 6pt top space + 6pt bottom space + 2×1.5pt border, so the group box is the per-paragraph geometry stretched from the first line's top minus the top space to the last line's bottom plus the bottom space. In F, with a 6pt between-space, the rule fell 11px (5.3pt) below the previous member's line bottom.
+>
+> **Left edge and the hanging indent.** The box's left edge is `(leftIndent − hangingIndent) − leftSpace`, so a list marker sits inside the box instead of astride its left rule. A second Word probe (H1–H7, same page setup, box-left measured in device pixels at 150dpi):
+>
+> | Fixture | `w:ind` | Word's box left | Word's box right |
+> | --- | --- | --- | --- |
+> | H1 | left 511 | 146 | 1123 |
+> | H2 | left 511, hanging 284, **numbered** | 116 | 1123 |
+> | H3 | left 511, hanging 284, **unnumbered** | 116 | 1123 |
+> | H4 | left 511, firstLine 284 | 146 | 1123 |
+> | H5 | left 511, hanging 511 | 93 | 1123 |
+> | H6 | as H2, two grouped members | 116 | 1123 |
+> | H7 | two members differing only in hanging | 116 then 146 — **two boxes** | 1123 |
+>
+> H2/H5 move left by exactly the hanging (30px for 284tw, 53px for 511tw). H3 matching H2 makes the rule **indent-driven, not marker-driven** — the gutter counts whether or not a marker occupies it. H4 shows a first-line indent (which moves text right) never shifts the edge. The right edge never moves, so the width takes the hanging back. H7 is why `HangingIndentPoints` joins the grouping key.
+>
+> **Flow reservation.** A run's top and bottom edges take flow space — their own width plus the `w:space` gap — so the box pushes the surrounding text apart rather than drawing back over it. Charged once per run, not per member. A third Word probe (R0–R7, each a PREV/MID/NEXT trio where MID varies, every bordered fixture paired with an unbordered twin so the reserve reads as a difference):
+>
+> | `w:space` | predicted (space + 1.5pt rule) | measured above | measured below |
+> | --- | --- | --- | --- |
+> | 0pt | 3.1px | 3 | 3 |
+> | 6pt | 15.6px | 14 | 15–16 |
+> | 20pt | 44.8px | 45 | 45 |
+>
+> It **adds to** the paragraph's own spacing rather than collapsing with it, on both sides. R3 (12pt before plus a 6pt space) put the line 70px down against control R6's 54px; R4 (12pt after plus a 6pt space) put the following line 71px down against control R7's 55px. A `max()` rule would have left each pair identical. Against this probe Morph now matches Word within ±3px on all eight fixtures, where before the reserve landed it was 14px+ out.
+>
+> **Not yet Word-accurate**: the bottom reserve is charged when the run *flushes*, which is after its last line has already been fitted to the region — so a run whose last line fits but whose bottom space does not can still overhang. Closing that needs lookahead to the run's end. A run that breaks across a column or page also drops to no box rather than closing and reopening the way Word does.
+>
+> **Landing note (aggregate vs measurement).** The reservation raised the corpus AE sum by +0.50 across four scenarios while being demonstrably closer to Word. `business-plans/12`'s rule-to-next-line gap went from 6.3px out to 2.1px, and `paragraph_borders` / `cover-letters/02` both improved outright; the positive sum comes from `business-plans/15` p11 and `business-plans/12`, whose pages are misaligned for an unrelated reason — **the start-up expenses table's rows are 4–6px too tall each** (21 rows, ~96px/46pt accumulated), so content tips across page boundaries. Solving `row = overhead + n × pitch` off that table's 1-line rows and its single 2-line row puts Word at 10px overhead / 26px pitch against Morph's 21px / 20px: the fixed per-row overhead is ~5pt too large and the in-cell line pitch ~2.9pt too small, which cancel on multi-line rows and add on single-line ones. That is a table-layout defect predating this work (measured identical before and after) and wants its own probe.
 
 
 #### Text Frames `PARTIAL`

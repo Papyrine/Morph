@@ -220,7 +220,7 @@ static class GifToPng
                 prefix[next] = previous;
                 suffix[next] = firstByte;
                 next++;
-                if (next == (1 << codeSize) && codeSize < 12)
+                if (next == 1 << codeSize && codeSize < 12)
                 {
                     codeSize++;
                 }

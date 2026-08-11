@@ -14,7 +14,7 @@ readonly record struct SlideTransform(double OffsetX, double OffsetY, double Sca
 
     /// <summary>Maps a child rectangle (EMU, child space) to slide space (EMU).</summary>
     public (double X, double Y, double Width, double Height) Apply(double x, double y, double width, double height) =>
-        (OffsetX + (x * ScaleX), OffsetY + (y * ScaleY), width * ScaleX, height * ScaleY);
+        (OffsetX + x * ScaleX, OffsetY + y * ScaleY, width * ScaleX, height * ScaleY);
 
     /// <summary>
     /// Composes this transform with a group's own, producing the transform its children use.
@@ -44,8 +44,8 @@ readonly record struct SlideTransform(double OffsetX, double OffsetY, double Sca
         var (groupX, groupY, _, _) = Apply(offsetX, offsetY, 0, 0);
 
         return new(
-            groupX - (childOffsetX * scaleX * ScaleX),
-            groupY - (childOffsetY * scaleY * ScaleY),
+            groupX - childOffsetX * scaleX * ScaleX,
+            groupY - childOffsetY * scaleY * ScaleY,
             ScaleX * scaleX,
             ScaleY * scaleY);
     }

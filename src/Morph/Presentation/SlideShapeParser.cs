@@ -488,7 +488,7 @@ sealed class SlideShapeParser(
         var offsetX = frame.Transform?.Offset?.X?.Value ?? 0;
         var offsetY = frame.Transform?.Offset?.Y?.Value ?? 0;
         var (frameX, frameY, _, _) = transform.Apply(offsetX, offsetY, 0, 0);
-        var frameTransform = new SlideTransform(frameX, frameY, transform.ScaleX, transform.ScaleY);
+        var frameTransform = transform with { OffsetX = frameX, OffsetY = frameY };
 
         var index = ordinal;
         foreach (var shape in drawing.Descendants()
@@ -808,7 +808,7 @@ sealed class SlideShapeParser(
         // the master's contribution whenever a layout declares the placeholder at all — which every
         // layout does, usually with an empty a:lstStyle.
         var sources = new List<OpenXmlElement?> { shape.TextBody?.ListStyle };
-        sources.AddRange(placeholders.Matches(placeholder).Select(_ => (OpenXmlElement?) _.TextBody?.ListStyle));
+        sources.AddRange(placeholders.Matches(placeholder).Select(OpenXmlElement? (_) => _.TextBody?.ListStyle));
         sources.Add(MasterStyle(master, placeholder));
         sources.Add(defaultTextStyle);
 
