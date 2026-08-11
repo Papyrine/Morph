@@ -1,4 +1,4 @@
-# All PDF export scenarios (326)
+# All PDF export scenarios (325)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -249,7 +249,6 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [paragraph_borders](#paragraph_borders)
 - [paragraph_spacing](#paragraph_spacing)
 - [pct_pos_offset](#pct_pos_offset)
-- [postcards/01](#postcards01)
 - [postcards/02](#postcards02)
 - [postcards/03](#postcards03)
 - [postcards/04](#postcards04)
@@ -3120,18 +3119,6 @@ PDF: [Morph PDF](paragraph_spacing/pdf_result.verified.pdf)
 | <img src="pct_pos_offset/expected_0001.png" width="500"> | <img src="pct_pos_offset/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](pct_pos_offset/pdf_result.verified.pdf)
-
-
-## postcards/01
-
-| Expected (Word) | Morph PDF |
-| --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.7852 · SSIM: 0.9241** |
-| <img src="postcards/01/expected_0001.png" width="500"> | <img src="postcards/01/pdf_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0215 · SSIM: 0.9885** |
-| <img src="postcards/01/expected_0002.png" width="500"> | <img src="postcards/01/pdf_result%23page_0002.verified.png" width="500"> |
-
-PDF: [Morph PDF](postcards/01/pdf_result.verified.pdf)
 
 
 ## postcards/02

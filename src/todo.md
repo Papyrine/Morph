@@ -1421,12 +1421,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 - MINOR | all | p1 | text tracks slightly narrower than Word
 - CLEAN: html
 
-### postcards/01
-
-- MINOR | skia,imagesharp | p1 | bottom two postcard images drawn with a whole-image vertical offset of ~0.1in vs Word (heavy displacement ghost over both bottom images; top row and PDF are aligned)
-- MINOR | skia,imagesharp | p2 | postcard-back placeholder text and hand-drawn address rules sit ~0.05-0.1in lower than Word, most visibly in the bottom row of cards
-- CLEAN: html
-
 ### postcards/02
 
 - MEDIUM | skia,imagesharp | p1 | bottom row of postcard images shifted up ~24px (inter-row gap 52px vs Word's 76px), so the two rows sit visibly closer together; PDF matches Word

@@ -1,4 +1,4 @@
-# All HTML export scenarios (326)
+# All HTML export scenarios (325)
 
 The Word reference render (left) beside the HTML exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -249,7 +249,6 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [paragraph_borders](#paragraph_borders)
 - [paragraph_spacing](#paragraph_spacing)
 - [pct_pos_offset](#pct_pos_offset)
-- [postcards/01](#postcards01)
 - [postcards/02](#postcards02)
 - [postcards/03](#postcards03)
 - [postcards/04](#postcards04)
@@ -1797,12 +1796,6 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | Expected (Word) | Morph HTML |
 | --- | --- |
 | <img src="pct_pos_offset/expected_0001.png" width="500"> | <img src="pct_pos_offset/html_result.verified.png" width="500"> |
-
-## postcards/01
-
-| Expected (Word) | Morph HTML |
-| --- | --- |
-| <img src="postcards/01/expected_0001.png" width="500"><br><img src="postcards/01/expected_0002.png" width="500"> | <img src="postcards/01/html_result.verified.png" width="500"> |
 
 ## postcards/02
 
