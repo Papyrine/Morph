@@ -160,8 +160,9 @@ types stay in the single `Morph` namespace like every other assembly, which is w
 component is `ExportOptionsPanel`: `ExportOptions` is already Morph's own record. See
 `src/Morph.Blazor/README.md`.
 
-**Web app** (`src/Morph.Web/`): the Blazor WASM app at morph.papyrine.org. Since the extraction above it
-is only a shell — header, theme toggle, footer — around `<MorphConverter />`. See `src/Morph.Web/README.md`.
+**Web app** (`src/Morph.Web/`): the Blazor WASM app at morph.papyrine.org. Since the converter was
+extracted into `Morph.Blazor` this project is only the shell — header, theme toggle, footer — around
+`<MorphConverter />`. See `src/Morph.Web/README.md`.
 
 For a complete feature-by-feature mapping to code locations, see `docs/word-features.md` — render
 locations that name the deleted production raster code describe history; for DOCX→PNG the engine painters

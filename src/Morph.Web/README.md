@@ -138,15 +138,20 @@ dotnet build src/Morph.Web.Tests --configuration Release
 dotnet src/Morph.Web.Tests/bin/Release/net10.0/Morph.Web.Tests.dll
 ```
 
-- **bUnit** component/markup snapshots (deterministic; committed `.verified.html`/`.txt`).
+Most of what they cover now lives in `Morph.Blazor` rather than here; they stay in this project because
+they also drive the published app end to end.
+
+- **bUnit** component/markup snapshots (deterministic; committed `.verified.html`/`.txt`), including the
+  package's own `MorphConverter`, `ExportOptionsPanel`, `FormatSelector`, `ConversionProgress` and
+  `ErrorPanel`.
 - **Service** tests over `ConversionService` / `TextExtraction`, parameterised across all three inputs
   (each of DOCX/XLSX/PPTX → each format) against the bundled samples in
   [`Sample`](../Morph.Web.Tests/Sample.cs).
-- **Playwright** end-to-end snapshots that boot the real threaded runtime, upload a document, render a
-  preview, and download PDF (exercising the in-memory font path). `SampleRendersPreview` runs for all
-  three inputs, because each routes through a different Morph parser and the published build is
-  trimmed — a parser that lost a reflected-on type fails only there. Page screenshots compare via SSIM,
-  so sub-pixel platform drift is tolerated.
+- **Playwright** end-to-end snapshots that boot the real WASM runtime (single-threaded, per the section
+  above), upload a document, render a preview, and download PDF (exercising the in-memory font path).
+  `SampleRendersPreview` runs for all three inputs, because each routes through a different Morph parser
+  and the published build is trimmed — a parser that lost a reflected-on type fails only there. Page
+  screenshots compare via SSIM, so sub-pixel platform drift is tolerated.
 
 To reset a snapshot after an intentional change, review then rename the `*.received.*` to `*.verified.*`.
 
