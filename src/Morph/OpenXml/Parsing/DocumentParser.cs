@@ -5176,6 +5176,29 @@ sealed class DocumentParser(string defaultFont)
         return (kind, numberFormat);
     }
 
+    /// <summary>
+    /// Whether a mid-paragraph flush would emit anything worth calling a paragraph.
+    ///
+    /// Anchored art splits a paragraph's runs so the art keeps its place in document order. Runs made
+    /// only of tabs are not a paragraph though: flushing them strands the tab from the text it was
+    /// advancing, so the continuation restarts at the indent — which is how a header whose marking is
+    /// centred by a leading <c>w:tab</c> against a centre stop ended up hard against the left margin,
+    /// the art between them being an anchored decorative rule. It also left a phantom blank line behind.
+    /// Holding them back costs no ordering, since the art they surround is out of flow anyway.
+    /// </summary>
+    static bool IsTabOnly(List<Run> runs)
+    {
+        foreach (var run in runs)
+        {
+            if (!run.IsTab)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     List<DocumentElement> ParseParagraph(Paragraph para, MainDocumentPart mainPart)
     {
         var result = new List<DocumentElement>();
@@ -5805,7 +5828,7 @@ sealed class DocumentParser(string defaultFont)
                         if ((shapeElements.Count > 0 || hasGroup || hasAnchoredFillShape) && !isInlineGroup)
                         {
                             // Emit current paragraph content before the shapes/group content
-                            if (runs.Count > 0)
+                            if (runs.Count > 0 && !IsTabOnly(runs))
                             {
                                 result.Add(
                                     new ParagraphElement
@@ -9478,12 +9501,28 @@ sealed class DocumentParser(string defaultFont)
             return true;
         }
 
-        // Check for combo box, dropdown, date, text, or picture controls
-        return props.GetFirstChild<SdtContentComboBox>() != null ||
-               props.GetFirstChild<SdtContentDropDownList>() != null ||
-               props.GetFirstChild<SdtContentDate>() != null ||
-               props.GetFirstChild<SdtContentText>() != null ||
-               props.GetFirstChild<SdtContentPicture>() != null;
+        // Check for combo box, dropdown, date or picture controls. Each needs rendering the cached
+        // content cannot supply on its own — a glyph, the selected item, a formatted date, an image.
+        if (props.GetFirstChild<SdtContentComboBox>() != null ||
+            props.GetFirstChild<SdtContentDropDownList>() != null ||
+            props.GetFirstChild<SdtContentDate>() != null ||
+            props.GetFirstChild<SdtContentPicture>() != null)
+        {
+            return true;
+        }
+
+        // A PLAIN-TEXT control (w:text) is different: once it holds runs, those runs ARE the value and
+        // Word lays them out inline with the rest of the paragraph. Routing it through the control path
+        // emitted a block element and split the paragraph around it — which in a footer stranded the
+        // page number on its own line and dropped the value outright, the header/footer band rendering
+        // only paragraphs and tables. An EMPTY one still takes the control path so its placeholder can
+        // render, which is the one thing the cached content genuinely cannot supply.
+        if (props.GetFirstChild<SdtContentText>() != null)
+        {
+            return sdtRun.SdtContentRun?.Descendants<OoxmlRun>().All(_ => _.InnerText.Length == 0) ?? true;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -9874,6 +9913,23 @@ sealed class DocumentParser(string defaultFont)
             "decimal" => TabAlignment.Decimal,
             "bar" => TabAlignment.Bar,
             _ => TabAlignment.Left
+        };
+
+    // w:ptab's alignment vocabulary is narrower than w:tab's — left / center / right only.
+    static TabAlignment MapPositionalTabAlignment(string? val) =>
+        val switch
+        {
+            "center" => TabAlignment.Center,
+            "right" => TabAlignment.Right,
+            _ => TabAlignment.Left
+        };
+
+    static PositionalTabBase MapPositionalTabBase(string? val) =>
+        val switch
+        {
+            "indent" => PositionalTabBase.Indent,
+            "page" => PositionalTabBase.Page,
+            _ => PositionalTabBase.Margin
         };
 
     static TabLeader MapTabLeader(string? val) =>
@@ -10617,6 +10673,25 @@ sealed class DocumentParser(string defaultFont)
                             Text = "\t",
                             Properties = GetProperties(),
                             IsTab = true,
+                            HyperlinkUrl = hyperlinkUrl
+                        });
+                    break;
+                // w:ptab — an absolute position tab. Carried through as a tab run with the position
+                // attached, since where it lands depends on the measure the paragraph ends up in.
+                case DocumentFormat.OpenXml.Wordprocessing.PositionalTab positionalTab:
+                    FlushText();
+                    result.Add(
+                        new()
+                        {
+                            Text = "\t",
+                            Properties = GetProperties(),
+                            IsTab = true,
+                            PositionalTab = new()
+                            {
+                                Alignment = MapPositionalTabAlignment(positionalTab.Alignment?.InnerText),
+                                Leader = MapTabLeader(positionalTab.Leader?.InnerText),
+                                RelativeTo = MapPositionalTabBase(positionalTab.RelativeTo?.InnerText)
+                            },
                             HyperlinkUrl = hyperlinkUrl
                         });
                     break;
