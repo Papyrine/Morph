@@ -85,6 +85,14 @@ sealed class ThemeColors
             "accent6" => Accent6,
             "hyperlink" or "hlink" => Hyperlink,
             "followedhyperlink" or "folhlink" => FollowedHyperlink,
+            // phClr is the placeholder a theme style substitutes a caller's colour into, so a
+            // document that names it as an actual colour has nothing to substitute. PowerPoint falls
+            // back to DrawingML's default colour, black. Returning null instead discards whatever the
+            // colour was for — for p:bgRef that is the entire slide background, so a deck PowerPoint
+            // shows solid black rendered clean and hid the defect. Reaching here at all means a
+            // literal phClr in the document: the style references (a:fillRef, a:lnRef, p:bgRef) each
+            // take their own colour child, so a theme style's own phClr never resolves through here.
+            "phclr" => "000000",
             _ => null
         };
 

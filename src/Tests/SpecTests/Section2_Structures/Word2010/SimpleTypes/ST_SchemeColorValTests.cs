@@ -66,8 +66,10 @@ public class ST_SchemeColorValTests
         await Assert.That(result).IsNotNull();
     }
 
+    // phClr is deliberately absent: it IS a member of ST_SchemeColorVal, so it is not an invalid
+    // name — it is the style placeholder, which resolves to black when a document names it as a
+    // colour outright. See SlideBackgroundPlaceholderColorTests.
     [Test]
-    [Arguments("phClr")]
     [Arguments("invalid")]
     [Arguments("")]
     [Arguments("accent7")]
@@ -95,6 +97,7 @@ public class ST_SchemeColorValTests
     [Arguments("accent6")]
     [Arguments("hlink")]
     [Arguments("folhlink")]
+    [Arguments("phClr")]
     public async Task AllValidSchemeColorValues_Resolve(string colorName)
     {
         var themeColors = new ThemeColors();
