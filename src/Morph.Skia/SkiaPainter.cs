@@ -241,8 +241,13 @@ static class SkiaPainter
             return;
         }
 
-        // Rotation/flip/crop are deferred; inline images in the covered subset draw upright.
-        canvas.DrawBitmap(bitmap, SKRect.Create(P(context, image.X), P(context, image.Y), P(context, image.Width), P(context, image.Height)));
+        // An a:srcRect crop draws through the shared helper, so an engine-painted picture matches the
+        // group-picture path. business-plans/13's cover photo is one: 15% off each side and 1.2% off the
+        // top, which Skia alone ignored — ImageSharp and PDF already routed Crop into their own draws,
+        // and the uncropped stretch was 79% of that page's error against Word.
+        //
+        // Rotation and flip are still deferred; inline images in the covered subset draw upright.
+        SkiaShapeDrawing.DrawCropped(canvas, bitmap, SKRect.Create(P(context, image.X), P(context, image.Y), P(context, image.Width), P(context, image.Height)), image.Crop);
     }
 
     // EMU per point (914400 EMU/inch ÷ 72 pt/inch), matching TextRenderer — a group member's a:ln/@w is
