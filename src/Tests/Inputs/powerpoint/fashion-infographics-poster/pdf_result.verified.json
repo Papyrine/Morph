@@ -11,28 +11,28 @@
       {
         "Width": 960.0,
         "Height": 1280.0,
-        "Text": "WHO IS\nDISRUPTING\nFASHION?\n32 %\nINCREASE\nin sustainable fashion\nbrands over the past\nfive years.\n1\nIN 3\nfashion companies\nreport an increase in\nsales after adopting\ninclusive sizing.\nSHOWS 2\nSALES\nShows to sales rates in\nthe fashion industry have\nseen a significant rise of\n30% in the last decade.\n60%\nEthically sourced\nmaterials\nQ1 20XX\n60%\nEco-friendly\nmaterials\nQ2 20XX\n60%\nCustomer return\nrate\nQ3 20XX\n1PRESENT\nfashion companies\nreport an increase in\nsales after adopting\ninclusive sizing.\n2PAST\nIn the past, fashion\ndesigners used to\ncreate garments\nexclusively by hand.\n3FUTURE\nHowever, the\nproduction process has\nbecome 50% faster and\nmore efficient.\nPROGRESS\n$2Bn\n20YY 20YY\nDisclaimer: The following statement is a fictional\ndisclaimer created for the purpose of this\nexercise and does not represent an actual\ncompany or its policies\nFabrikam does not guarantee specific results or outcomes from the use of its products. The\ninformation provided in this document is purely for entertainment purposes and should not be\nconstrued as professional advice. Fabrikam assumes no responsibility for any fashion choices made\nbased on the content presented here. Any resemblance to real companies or statistics is purely\ncoincidental.\nwww.fabrikam.com\ninfo@fabrikam.com\n208 555 0100"
+        "Text": "WHO IS\nDISRUPTING\nFASHION?\n32 %\nINCREASE\nin sustainable fashion\nbrands over the past\nfive years.\n1 IN 3\nfashion companies\nreport an increase in\nsales after adopting\ninclusive sizing.\nSHOWS 2\nSALES\nShows to sales rates in\nthe fashion industry have\nseen a significant rise of\n30% in the last decade.\n60%\nEthically sourced\nmaterials\nQ1 20XX\n60%\nEco-friendly\nmaterials\nQ2 20XX\n60%\nCustomer return\nrate\nQ3 20XX\n1PRESENT\nfashion companies\nreport an increase in\nsales after adopting\ninclusive sizing.\n2PAST\nIn the past, fashion\ndesigners used to\ncreate garments\nexclusively by hand.\n3FUTURE\nHowever, the\nproduction process has\nbecome 50% faster and\nmore efficient.\nPROGRESS\n$2Bn\n20YY 20YY\nDisclaimer: The following statement is a fictional\ndisclaimer created for the purpose of this\nexercise and does not represent an actual\ncompany or its policies\nFabrikam does not guarantee specific results or outcomes from the use of its products. The\ninformation provided in this document is purely for entertainment purposes and should not be\nconstrued as professional advice. Fabrikam assumes no responsibility for any fashion choices made\nbased on the content presented here. Any resemblance to real companies or statistics is purely\ncoincidental.\nwww.fabrikam.com\ninfo@fabrikam.com\n208 555 0100"
       },
       {
         "Width": 960.0,
         "Height": 1280.0,
-        "Text": "WHO IS\nDISRUPTING\nFASHION?\nSHOWS 2\nSALES\nShows to sales rates in the\nfashion industry have seen\na significant rise of 30% in\nthe last decade.\n32 %\nINCREASE\nin sustainable fashion\nbrands over the past\nfive years.\nONLINE\n65% of people shop\nonline for clothing,\nhighlighting the shift\ntowards e-commerce\nin the industry.\n1\nIN 3\nfashion companies report an\nincrease in sales after\nadopting inclusive sizing.\nSHOWS\ntypically have an average\nattendance of 500 to 1,000\nguests.\n$2Bn\n20YY 20YY\nEthically sourced 60%\nmaterials\nQ1 20XX\nEco-friendly 45%\nmaterials\nQ2 20XX\nCustomer return 24%\nrate\nQ3 20XX\nDisclaimer: The following statement is a fictional\ndisclaimer created for the purpose of this\nexercise and does not represent an actual\ncompany or its policies\nFabrikam does not guarantee specific results or outcomes from the use of its products. The\ninformation provided in this document is purely for entertainment purposes and should not be\nconstrued as professional advice. Fabrikam assumes no responsibility for any fashion choices made\nbased on the content presented here. Any resemblance to real companies or statistics is purely\ncoincidental.\nwww.fabrikam.com\ninfo@fabrikam.com\n208 555 0100"
+        "Text": "WHO IS\nDISRUPTING\nFASHION?\nSHOWS 2\nSALES\nShows to sales rates in the\nfashion industry have seen\na significant rise of 30% in\nthe last decade.\n32 %\nINCREASE\nin sustainable fashion\nbrands over the past\nfive years.\nONLINE\n65% of people shop\nonline for clothing,\nhighlighting the shift\ntowards e-commerce\nin the industry.\n1 IN 3\nfashion companies report an\nincrease in sales after\nadopting inclusive sizing.\nSHOWS\ntypically have an average\nattendance of 500 to 1,000\nguests.\n$2Bn\n20YY 20YY\nEthically sourced\n60%\nmaterials\nQ1 20XX\nEco-friendly\n45%\nmaterials\nQ2 20XX\nCustomer return\n24%\nrate\nQ3 20XX\nDisclaimer: The following statement is a fictional\ndisclaimer created for the purpose of this\nexercise and does not represent an actual\ncompany or its policies\nFabrikam does not guarantee specific results or outcomes from the use of its products. The\ninformation provided in this document is purely for entertainment purposes and should not be\nconstrued as professional advice. Fabrikam assumes no responsibility for any fashion choices made\nbased on the content presented here. Any resemblance to real companies or statistics is purely\ncoincidental.\nwww.fabrikam.com\ninfo@fabrikam.com\n208 555 0100"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.8874,
-      "Ssim": 0.3822,
+      "ErrorMetric": 0.8873,
+      "Ssim": 0.3835,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.8984,
-      "Ssim": 0.3045,
+      "ErrorMetric": 0.898,
+      "Ssim": 0.3039,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

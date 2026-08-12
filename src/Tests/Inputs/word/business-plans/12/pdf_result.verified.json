@@ -167,8 +167,8 @@
     },
     {
       "Page": 9,
-      "ErrorMetric": 0.1783,
-      "Ssim": 0.7562,
+      "ErrorMetric": 0.1788,
+      "Ssim": 0.7551,
       "ExpectedFile": "expected_0009.png",
       "VerifiedFile": "pdf_result#page_0009.verified.png",
       "ReceivedFile": "pdf_result#page_0009.received.png"
@@ -199,48 +199,48 @@
     },
     {
       "Page": 13,
-      "ErrorMetric": 0.115,
-      "Ssim": 0.7823,
+      "ErrorMetric": 0.1151,
+      "Ssim": 0.7797,
       "ExpectedFile": "expected_0013.png",
       "VerifiedFile": "pdf_result#page_0013.verified.png",
       "ReceivedFile": "pdf_result#page_0013.received.png"
     },
     {
       "Page": 14,
-      "ErrorMetric": 0.2381,
-      "Ssim": 0.5666,
+      "ErrorMetric": 0.238,
+      "Ssim": 0.5668,
       "ExpectedFile": "expected_0014.png",
       "VerifiedFile": "pdf_result#page_0014.verified.png",
       "ReceivedFile": "pdf_result#page_0014.received.png"
     },
     {
       "Page": 15,
-      "ErrorMetric": 0.142,
-      "Ssim": 0.6554,
+      "ErrorMetric": 0.1417,
+      "Ssim": 0.6552,
       "ExpectedFile": "expected_0015.png",
       "VerifiedFile": "pdf_result#page_0015.verified.png",
       "ReceivedFile": "pdf_result#page_0015.received.png"
     },
     {
       "Page": 16,
-      "ErrorMetric": 0.0855,
-      "Ssim": 0.8281,
+      "ErrorMetric": 0.0864,
+      "Ssim": 0.8251,
       "ExpectedFile": "expected_0016.png",
       "VerifiedFile": "pdf_result#page_0016.verified.png",
       "ReceivedFile": "pdf_result#page_0016.received.png"
     },
     {
       "Page": 17,
-      "ErrorMetric": 0.1112,
-      "Ssim": 0.7544,
+      "ErrorMetric": 0.1107,
+      "Ssim": 0.7559,
       "ExpectedFile": "expected_0017.png",
       "VerifiedFile": "pdf_result#page_0017.verified.png",
       "ReceivedFile": "pdf_result#page_0017.received.png"
     },
     {
       "Page": 18,
-      "ErrorMetric": 0.1175,
-      "Ssim": 0.7531,
+      "ErrorMetric": 0.1185,
+      "Ssim": 0.7517,
       "ExpectedFile": "expected_0018.png",
       "VerifiedFile": "pdf_result#page_0018.verified.png",
       "ReceivedFile": "pdf_result#page_0018.received.png"

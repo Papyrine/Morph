@@ -43,6 +43,33 @@ sealed class CanonicalTextMeasurer
             _ => singleSpacedPitchPoints * multiplier
         };
 
+    /// <summary>
+    /// Where the baseline sits inside a <c>lineRule="auto"</c> (multiple) line box. The box itself is
+    /// always the natural pitch times the multiple — <see cref="LineHeightPoints(double,LineSpacingRule,double,double)"/>
+    /// — but the two directions divide it differently, and Word-probed
+    /// (<c>_probe_linemultiple</c>: 48pt Aptos at multiples 0.6/0.7/0.8/0.9/1.0/1.158/1.25/1.5,
+    /// baselines read from the XPS glyph origins):
+    ///
+    /// <list type="bullet">
+    /// <item>EXPANDING (multiple &gt; 1) leaves the ascent alone and puts every extra point BELOW the
+    /// baseline — measured ascents 45.1 / 44.5 / 45.1 against a natural 44.5, while the descent runs
+    /// 13.8 → 22.8 → 28.2 → 42.6.</item>
+    /// <item>COMPRESSING (multiple &lt; 1) scales the whole box, ascent included — measured 26.5 / 30.7 /
+    /// 36.1 / 40.3 against 44.5 × the multiple = 26.7 / 31.2 / 35.6 / 40.1.</item>
+    /// </list>
+    ///
+    /// Keeping the natural ascent in both directions — which is what this did until the probe — leaves
+    /// compressed text sitting too low in its own box by <c>ascent × (1 − multiple)</c>: 9.2pt on
+    /// business-plans/13's 0.8× title, and exactly the 19px its cover title measured low.
+    ///
+    /// Only <c>auto</c> is covered. Word's split under <c>exactly</c> and <c>atLeast</c> is a separate
+    /// question this fixture does not ask, so those keep the natural ascent.
+    /// </summary>
+    public static double LineAscentPoints(double naturalAscentPoints, LineSpacingRule rule, double multiplier) =>
+        rule == LineSpacingRule.Auto && multiplier < 1
+            ? naturalAscentPoints * multiplier
+            : naturalAscentPoints;
+
     // The reference rasterizer runs at 120 dpi — the 125%-scaled display the XPS baselines were
     // measured on. It is the grid the pen position rounds onto; the em itself is not rounded (EmPixels).
     const double referenceDpi = 120.0;
