@@ -1803,6 +1803,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // it here cost business-plans/13's continuation pages their three repeated header rows
                 // ("Start-up costs" / agency / column headers) whenever the fit trigger routed the boundary
                 // row through this path, leaving every following page to start bare at a data row.
+                // Snapshotted BEFORE the repeat below, because repeated headers do not stop the row that
+                // follows them from being a row CARRIED WHOLE TO A FRESH REGION — the case BuildRowFragment's
+                // w:trHeight floor is for. Reading atRegionTop after the loop saw the header rows' own
+                // atRegionTop = false and dropped the floor, which cost business-plans/13's page 20 its
+                // first data row: content-sized at 11pt against Word's declared 21.6pt, shifting the eight
+                // rows below it 23px up the page (measured, 150 DPI).
+                var carriedToRegionTop = atRegionTop;
                 if ((!isFirstFragment || advanced) && headerCount > 0 && rowIndex >= headerCount)
                 {
                     for (var headerIndex = 0; headerIndex < headerCount; headerIndex++)
@@ -1814,7 +1821,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 var available = Math.Max(minFragmentHeight, contentBottom - y);
-                var (fragment, continuations, height, contentHeight) = BuildRowFragment(y, table, rowIndex, colWidths, colCount, tableX, tableWidth, starts, available, isFirstFragment, atRegionTop);
+                var (fragment, continuations, height, contentHeight) = BuildRowFragment(y, table, rowIndex, colWidths, colCount, tableX, tableWidth, starts, available, isFirstFragment, carriedToRegionTop);
 
                 var finished = true;
                 foreach (var continuation in continuations)

@@ -1226,7 +1226,11 @@ line boundary when it does not fit.
 >    fragment at 708.96 and reopens the continuation at 72.00 in `_probe_cantsplit_tall_off`),
 >    and sizes tight to its content rather than stretching to the region bottom. Repeated
 >    `w:tblHeader` rows re-emit above every fragment that follows a break, including a first
->    fragment carried by the sliver advance.
+>    fragment carried by the sliver advance — and they do **not** cost the row beneath them the
+>    carried-to-a-region-top floor of rule 5. That flag has to be snapshotted before the header
+>    loop, which advances the cursor and clears it; reading it afterwards sized
+>    business-plans/13's first data row from content at 11pt against its declared 21.6pt on
+>    pages 14, 16 and 20, putting the eight rows below it 23px up the page at 150 DPI.
 > 7. **`w:cantSplit` is honoured until the row exceeds a full region's height**, at which point
 >    the row overflows and clips rather than splitting (`_probe_cantsplit_tall_on`) — and a
 >    cantSplit row that fits a fresh page moves whole (`_probe_cantsplit_fit_on`).
@@ -1265,9 +1269,10 @@ Repeats the first row(s) as header on each page when a table spans multiple page
 - **Spec**: [Table Header](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.tableheader)
 - **Model**: `TableRow.IsHeader`
 - **Parse**: `DocumentParser.ParseTable()` reads `w:trPr/w:tblHeader`
-- **Render**: `PageRenderer.RenderTableRowByRow` (both backends) detects page breaks via `EnsureSpaceFor` and re-renders the contiguous leading header rows before continuing with the data row.
+- **Render**: `Fragmenter.PlaceTableRowByRow` re-emits the contiguous leading header rows after each break before continuing with the data row, and `Fragmenter.PlaceSplitRow` does the same above every fragment that follows one (the continuations, and a first fragment the sliver advance carried to a fresh region).
+- **Test**: `header_row_repeat/`, spec test `CanonicalFragmenterTests.A_row_carried_under_repeated_headers_keeps_its_declared_height`
 
-> **Contributors**: Only kicks in for `RenderTableRowByRow` — the multi-page rendering path. Single-page tables still render headers once. The detection compares `context.CurrentY` before and after `EnsureSpaceFor` to spot the page break.
+> **Contributors**: Only the row-by-row path repeats headers — a table placed whole draws them once. Both re-emission sites build the header with `BuildRow` off the shared `rowHeights`, so a repeated header is the same box as its original; `PlacedTableRow.IsRepeatedHeader` marks it for painters. The re-emission moves the cursor and clears `atRegionTop`, which is why the row beneath it needs the flag snapshotted first — see rule 6 under Multi-page Tables.
 
 
 #### Table Alignment `DONE`

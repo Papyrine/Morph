@@ -276,6 +276,71 @@ public class CanonicalFragmenterTests
     }
 
     /// <summary>
+    /// Repeated <c>w:tblHeader</c> rows do not cost the row beneath them its declared
+    /// <c>w:trHeight</c>. The floor above applies to a row CARRIED WHOLE TO A FRESH REGION, and a row
+    /// carried there under re-emitted headers is still that row — but the header loop advances the
+    /// cursor and clears the region-top flag, so reading the flag after it dropped the floor and the
+    /// row came out content-sized. Measured on business-plans/13, whose start-up-costs table repeats
+    /// three headers on each of pages 14, 16 and 20: the first data row rendered 11pt against its
+    /// declared 21.6pt, shifting the eight rows below it 23px up the page at 150 DPI.
+    /// </summary>
+    [Test]
+    public async Task A_row_carried_under_repeated_headers_keeps_its_declared_height()
+    {
+        var page = Page(200);
+        // Nine fillers reach 130.5pt, leaving 29.5pt: room for the header row but not the floored row
+        // below it, whose floor is what the break decision weighs. The remainder left after the header
+        // is under one line, so the split path advances the whole row rather than leaving a stub — and
+        // re-emits the header above it on page 2.
+        var fillers = Enumerable.Range(0, 9).Select(index => P($"Filler {index}")).ToList();
+        var table = new TableElement
+        {
+            Properties = new(),
+            Rows =
+            [
+                new()
+                {
+                    IsHeader = true,
+                    Cells =
+                    [
+                        new()
+                        {
+                            Content = [P("HEADER")],
+                            Properties = new()
+                        }
+                    ]
+                },
+                new()
+                {
+                    HeightPoints = 100,
+                    Cells =
+                    [
+                        new()
+                        {
+                            Content = [P("Short")],
+                            Properties = new()
+                        }
+                    ]
+                }
+            ]
+        };
+        var after = P("AFTER");
+
+        var document = fragmenter.Layout([.. fillers, table, after], page);
+
+        await Assert.That(document.Pages.Count).IsEqualTo(2);
+        var rows = document.Pages[1].Items.OfType<PlacedTableRow>().ToList();
+        await Assert.That(rows.Count).IsEqualTo(2);
+        await Assert.That(rows[0].IsRepeatedHeader).IsTrue();
+        await Assert.That(rows[0].Y).IsEqualTo(20f);
+        // The floor survives the header above it, rather than collapsing to the one line "Short" measures.
+        await Assert.That(rows[1].Height).IsEqualTo(100f);
+        await Assert.That(rows[1].Y).IsEqualTo(20f + rows[0].Height);
+        var afterLine = document.Pages[1].Items.OfType<PlacedLine>().Single(_ => ReferenceEquals(_.Paragraph, after));
+        await Assert.That(afterLine.Y).IsEqualTo(rows[1].Y + 100f);
+    }
+
+    /// <summary>
     /// A vertical-merge CONTINUATION row never breaks from its predecessor — a page break between them
     /// would tear the merged cell apart, so it stacks under the row above wherever that landed,
     /// overflowing the bottom margin if it must. Word-measured on resumes/06: a sidebar table's
