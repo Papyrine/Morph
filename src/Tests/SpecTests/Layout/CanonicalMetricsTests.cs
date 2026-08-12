@@ -62,6 +62,32 @@ public class CanonicalMetricsTests
         await Assert.That(CanonicalTextMeasurer.LineHeightPoints(metrics, 12, LineSpacingRule.AtLeast, explicitPoints: 10)).IsEqualTo(single).Within(1e-9);
     }
 
+    /// <summary>
+    /// A <c>lineRule="auto"</c> multiple divides its box asymmetrically, and only in one direction.
+    /// Word-probed (<c>_probe_linemultiple</c>: 48pt Aptos at eight multiples, baselines read off the
+    /// XPS glyph origins) — EXPANDING puts every extra point below the baseline, leaving the ascent at
+    /// its natural value (measured 45.1 / 44.5 / 45.1 at 1.158 / 1.25 / 1.5 against a natural 44.5,
+    /// with the descent running 13.8 → 42.6), while COMPRESSING scales the ascent with the box
+    /// (26.5 / 30.7 / 36.1 / 40.3 at 0.6 / 0.7 / 0.8 / 0.9, against 44.5 × the multiple).
+    /// </summary>
+    [Test]
+    public async Task Line_ascent_scales_only_when_the_multiple_compresses()
+    {
+        const double natural = 44.53;
+
+        // Compressing takes it off the ascent too — the baseline rides up with the box.
+        await Assert.That(CanonicalTextMeasurer.LineAscentPoints(natural, LineSpacingRule.Auto, 0.6)).IsEqualTo(natural * 0.6).Within(1e-9);
+        await Assert.That(CanonicalTextMeasurer.LineAscentPoints(natural, LineSpacingRule.Auto, 0.8)).IsEqualTo(natural * 0.8).Within(1e-9);
+
+        // Expanding does not — the extra space is all descent.
+        await Assert.That(CanonicalTextMeasurer.LineAscentPoints(natural, LineSpacingRule.Auto, 1.0)).IsEqualTo(natural).Within(1e-9);
+        await Assert.That(CanonicalTextMeasurer.LineAscentPoints(natural, LineSpacingRule.Auto, 1.5)).IsEqualTo(natural).Within(1e-9);
+
+        // The fixture only asked about auto, so the explicit rules keep the natural ascent.
+        await Assert.That(CanonicalTextMeasurer.LineAscentPoints(natural, LineSpacingRule.Exactly, 0.8)).IsEqualTo(natural).Within(1e-9);
+        await Assert.That(CanonicalTextMeasurer.LineAscentPoints(natural, LineSpacingRule.AtLeast, 0.8)).IsEqualTo(natural).Within(1e-9);
+    }
+
     // Advance widths (design units) cross-checked against an independent cmap-format-4 + hmtx parse.
     [Test]
     public async Task Reads_glyph_advances_via_cmap_and_hmtx()

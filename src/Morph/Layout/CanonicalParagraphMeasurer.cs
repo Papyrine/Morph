@@ -105,6 +105,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     MarkPitch(paragraph), props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints);
             }
 
+            // A compressed multiple takes its space off the ascent too, so the baseline rides up with the
+            // box rather than staying at the font's natural ascent — see LineAscentPoints for the probe.
+            textAscent = (float) CanonicalTextMeasurer.LineAscentPoints(textAscent, props.LineSpacingRule, props.LineSpacingMultiplier);
+
             // An inline image sits with its bottom on the baseline, so it fills the whole ascent and can
             // grow the line: ascent and height take the max of the text metrics and the tallest image.
             var images = wrapped[i].Images;
