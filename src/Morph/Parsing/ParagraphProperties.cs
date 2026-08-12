@@ -89,6 +89,15 @@ sealed record ParagraphProperties
     public double? ParagraphMarkFontSizePoints { get; init; }
 
     /// <summary>
+    /// Font family for the paragraph mark, resolved the way its size is — an explicit
+    /// <c>w:rFonts/@w:ascii</c> on the mark wins, else the paragraph style chain's face. Null when
+    /// neither says anything, leaving the renderer's default. Only consulted where the mark's full
+    /// run properties are unavailable (see <c>ParagraphMarkRunProperties</c>), which is where the
+    /// line height would otherwise be measured against the wrong face.
+    /// </summary>
+    public string? ParagraphMarkFontFamily { get; init; }
+
+    /// <summary>
     /// Run formatting of the paragraph mark (w:pPr/w:rPr resolved over the paragraph style
     /// chain, exactly like a run without direct formatting). Word derives an empty paragraph's
     /// line height from the mark. Null for HTML-sourced paragraphs and for paragraphs inside

@@ -742,10 +742,14 @@ sealed class DocumentParser(string defaultFont)
         return defaultValue;
     }
 
-    string? ResolveDocDefaultFont(MainDocumentPart mainPart)
+    /// <summary>
+    /// The ascii face a <c>w:rFonts</c> names: a theme reference (<c>w:asciiTheme</c>) resolved against
+    /// the document's font scheme, else the literal <c>w:ascii</c>. Null when it names neither — which
+    /// includes the common shape of an rFonts carrying only <c>w:eastAsiaTheme</c>/<c>w:cstheme</c>, and
+    /// means "inherit", not "use the default face".
+    /// </summary>
+    string? ResolveRunFontFamily(RunFonts? fonts)
     {
-        var rPrDefault = mainPart.StyleDefinitionsPart?.Styles?.DocDefaults?.RunPropertiesDefault?.RunPropertiesBaseStyle;
-        var fonts = rPrDefault?.GetFirstChild<RunFonts>();
         if (fonts == null)
         {
             return null;
@@ -763,6 +767,12 @@ sealed class DocumentParser(string defaultFont)
         }
 
         return fonts.Ascii?.HasValue == true ? fonts.Ascii.Value : null;
+    }
+
+    string? ResolveDocDefaultFont(MainDocumentPart mainPart)
+    {
+        var rPrDefault = mainPart.StyleDefinitionsPart?.Styles?.DocDefaults?.RunPropertiesDefault?.RunPropertiesBaseStyle;
+        return ResolveRunFontFamily(rPrDefault?.GetFirstChild<RunFonts>());
     }
 
     static double? ResolveDocDefaultFontSizePoints(MainDocumentPart mainPart)
@@ -10355,19 +10365,31 @@ sealed class DocumentParser(string defaultFont)
         // and accumulating ~46pt over the table. Word-probed: adding an explicit w:sz to those marks made
         // Morph's rows match Word's exactly (35px against 35px), which is what pinned this.
         double? paragraphMarkFontSize = null;
+        //
+        // The FACE resolves the same way and matters for the same reason: the mark's line height comes
+        // from the font's own metrics, so measuring a chain-sized mark against the record's default face
+        // still gets the pitch wrong. business-plans/13 is the case that showed it — 189 of its marks
+        // declare w:rFonts carrying only eastAsiaTheme/cstheme (no w:ascii) and 316 declare w:sz with no
+        // w:rFonts at all, so in both groups the ascii face has to come from the chain.
+        string? paragraphMarkFontFamily = null;
         var paragraphMarkRunProps = props.ParagraphMarkRunProperties;
         if (paragraphMarkRunProps != null)
         {
+            RunProperties? markChain = null;
+            styleRunProperties?.TryGetValue(styleId ?? "Normal", out markChain);
+
             var fontSize = paragraphMarkRunProps.GetFirstChild<FontSize>();
             if (fontSize?.Val?.HasValue == true && double.TryParse(fontSize.Val.Value, out var halfPoints))
             {
                 paragraphMarkFontSize = halfPoints.HalfPointsToPoints();
             }
-            else if (styleRunProperties != null &&
-                     styleRunProperties.TryGetValue(styleId ?? "Normal", out var markChain))
+            else if (markChain != null)
             {
                 paragraphMarkFontSize = markChain.FontSizePoints;
             }
+
+            var markFonts = paragraphMarkRunProps.GetFirstChild<RunFonts>();
+            paragraphMarkFontFamily = ResolveRunFontFamily(markFonts) ?? markChain?.FontFamily;
         }
 
         // RTL paragraph (w:bidi)
@@ -10431,6 +10453,7 @@ sealed class DocumentParser(string defaultFont)
             WidowControl = widowControl,
             PageBreakBefore = pageBreakBefore,
             ParagraphMarkFontSizePoints = paragraphMarkFontSize,
+            ParagraphMarkFontFamily = paragraphMarkFontFamily,
             ParagraphMarkRunProperties = paragraphMark,
             BackgroundColorHex = backgroundColor,
             StyleId = styleId,
