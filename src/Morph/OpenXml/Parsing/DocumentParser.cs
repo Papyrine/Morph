@@ -3042,6 +3042,25 @@ sealed class DocumentParser(string defaultFont)
         return result.ToString();
     }
 
+    // A cell's w:gridSpan is an unbounded ST_DecimalNumber in the file. Left raw, a crafted value
+    // (Word itself caps a table at 63 columns) flows through GetColumnCount into float[colCount]
+    // allocations and per-column layout loops, so a single giant span can exhaust memory before a
+    // page is even measured. Clamp to a ceiling far above any real table and floor at 1 so a
+    // zero/negative span still advances the grid.
+    const int maxGridSpan = 1000;
+
+    static int ClampGridSpan(int value) => Math.Clamp(value, 1, maxGridSpan);
+
+    // A page dimension (w:pgSz w:w/@w:h) is an unbounded twips measure in the file. Left raw it scales
+    // straight into each backend's raster surface (an SKBitmap's width is WidthPoints x DPI/72 at
+    // 4 bytes/px), so a crafted value would allocate — or integer-overflow — a bitmap of billions of
+    // pixels and exhaust memory. Clamp each dimension to a ceiling far above any real paper (A0 and
+    // ANSI E are ~3370pt; Word's own UI caps at 22in = 1584pt) and floor at 1pt so a zero/negative
+    // size still lays out.
+    const double maxPageDimensionPoints = 14400;
+
+    static double ClampPageDimension(double points) => Math.Clamp(points, 1, maxPageDimensionPoints);
+
     static string ToLetter(int number)
     {
         if (number <= 0)
@@ -3238,6 +3257,11 @@ sealed class DocumentParser(string defaultFont)
 
             (width, height) = SnapToPaperCode(pageSize.Code?.Value, width, height);
         }
+
+        // A crafted w:pgSz would otherwise scale into a multi-gigabyte raster surface (see
+        // ClampPageDimension). The defaults are already in range, so this only bites malformed input.
+        width = ClampPageDimension(width);
+        height = ClampPageDimension(height);
 
         double gutterPoints = 0;
         if (pageMargin != null)
@@ -4221,7 +4245,7 @@ sealed class DocumentParser(string defaultFont)
         {
             foreach (var cell in RowCells(rowList[0]))
             {
-                var span = cell.GetFirstChild<OoxmlTableCellProperties>()?.GetFirstChild<GridSpan>()?.Val?.Value ?? 1;
+                var span = ClampGridSpan(cell.GetFirstChild<OoxmlTableCellProperties>()?.GetFirstChild<GridSpan>()?.Val?.Value ?? 1);
                 totalCols += span;
             }
         }
@@ -4401,7 +4425,7 @@ sealed class DocumentParser(string defaultFont)
                 var gridSpanElement = cellProps?.GetFirstChild<GridSpan>();
                 if (gridSpanElement?.Val?.HasValue == true)
                 {
-                    gridSpan = gridSpanElement.Val.Value;
+                    gridSpan = ClampGridSpan(gridSpanElement.Val.Value);
                 }
 
                 // Parse vertical alignment (w:vAlign). Direct cell w:vAlign wins; otherwise
