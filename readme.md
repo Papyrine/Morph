@@ -484,6 +484,41 @@ It costs a layout pass and nothing more — the answer is read off the layout en
 [Parchment](https://github.com/Papyrine/Parchment) consumes this through its `Parchment.Morph` package to resolve a generated document's table of contents as it is built.
 
 
+## In the browser
+
+[`Morph.Blazor`](https://nuget.org/packages/Morph.Blazor/) is a Razor class library holding the converter that powers [morph.papyrine.org](https://morph.papyrine.org/): a drop-in Blazor WebAssembly component that reads Word `.docx`, Excel `.xlsx` and PowerPoint `.pptx` and writes PNG, PDF, HTML, Markdown or plain text — entirely client-side. No file ever leaves the device, and the host app needs no server-side conversion endpoint. `src/Morph.Web` is now only a shell — header, theme toggle and footer — around this component.
+
+```
+dotnet add package Morph.Blazor
+```
+
+Three setup steps, all in the host app. Register the services:
+
+```cs
+builder.Services.AddMorph();
+```
+
+Make sure a base-addressed `HttpClient` is registered — the Blazor WebAssembly template already does this; the components use it to fetch the bundled fonts and samples out of the package's static web assets. Then link the stylesheet in `index.html`, **before** the host's own so the host can override it:
+
+```html
+<link rel="stylesheet" href="_content/Morph.Blazor/morph.css" />
+```
+
+No `<script>` tag is needed — the JavaScript ships as an ES module the components import themselves. Then:
+
+```razor
+<MorphConverter />
+```
+
+That is the whole widget: an upload panel (or one of three bundled samples), a live page-image preview, an output-format picker with per-format options, and a download button. On a viewport wider than 1200px it also shows the selected format's real output beside the preview — Markdown and plain text inline, PDF and HTML in an iframe. Parameters (`Formats`, `InitialTarget`, `PreviewDpi`, `MaxFileSize`, `ShowSamples`, `ShowResultPane`, …) are listed in [the package readme](/src/Morph.Blazor/README.md#morphconverter-parameters).
+
+The component declares no colours of its own: every rule reads a `--morph-*` custom property with a literal fallback, so it looks right unconfigured and a host that sets those properties always wins. `MorphConverter` is also only the batteries-included option — `ConversionService` (`byte[]` in, `byte[]` out), `FontStore`, `MorphInterop` and the individual panels are all public, for a custom UI over the same pipeline.
+
+Two constraints are worth knowing up front. The package renders through **ImageSharp** and **PdfSharp**, both pure-managed; `Morph.Skia` is deliberately avoided because SkiaSharp needs a native `browser-wasm` build its NuGet packages don't ship. And a browser has no fonts of its own, so four **Aptos** faces ship as static web assets and are materialised into the WASM in-memory filesystem, with every unresolved family mapped onto Aptos — any file renders, with its own fonts substituted. Layout and structure are preserved; exact glyph shapes are not.
+
+See [the package readme](/src/Morph.Blazor/README.md) for the full parameter and theming tables, the font preload hint, and how trimmed publishes are handled.
+
+
 ## Shrinking a DOCX
 
 A DOCX authored in Word carries parts that hold no rendering information. `DocumentCleaner` removes them. Applied to this repository's own 328-document test corpus it recovered 9.5 MB, 14% of the corpus on disk.
