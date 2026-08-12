@@ -617,15 +617,20 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             return paragraph.Runs[0].Properties;
         }
 
-        if (paragraph.Properties.ParagraphMarkFontSizePoints is { } markSize)
+        // Neither the mark's own rPr nor a leading run: fall back to whatever the mark's size and face
+        // resolved to. The FACE matters as much as the size here, since an auto line box comes straight
+        // from the font's metrics — sizing the mark correctly but measuring it against the record's
+        // default face still gets the pitch wrong.
+        var markSize = paragraph.Properties.ParagraphMarkFontSizePoints;
+        var markFamily = paragraph.Properties.ParagraphMarkFontFamily;
+        if (markSize is { } size)
         {
-            return new()
-            {
-                FontSizePoints = markSize
-            };
+            return markFamily == null
+                ? new() {FontSizePoints = size}
+                : new() {FontSizePoints = size, FontFamily = markFamily};
         }
 
-        return new();
+        return markFamily == null ? new() : new() {FontFamily = markFamily};
     }
 
     // Splits text into maximal runs of spaces vs non-spaces (U+0020 only — the inter-word break),
