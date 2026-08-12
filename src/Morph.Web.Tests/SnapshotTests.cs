@@ -273,7 +273,7 @@ public class SnapshotTests
         await VerifyPinnedAsync(page);
     }
 
-    // app.css deliberately uses a system font stack, which resolves to Segoe UI on the Windows machine a
+    // The app's stylesheet deliberately uses a system font stack, which resolves to Segoe UI on the Windows machine a
     // baseline is captured on and to DejaVu on the Linux CI runner. That is a different typeface rather
     // than sub-pixel drift, so the page screenshots' SSIM fell as the page gained text — two mobile
     // snapshots dropped under the 0.7 threshold on CI while their HTML matched byte for byte. Pin every
@@ -285,10 +285,10 @@ public class SnapshotTests
     // come from the OS (Aptos has none), but they are a negligible share of the frame.
     const string fontPin = """
 
-        @font-face { font-family: 'SnapshotPin'; font-weight: 400; font-style: normal; src: url('/fonts/Aptos_400.ttf') format('truetype'); }
-        @font-face { font-family: 'SnapshotPin'; font-weight: 400; font-style: italic; src: url('/fonts/Aptos_400_Italic.ttf') format('truetype'); }
-        @font-face { font-family: 'SnapshotPin'; font-weight: 700; font-style: normal; src: url('/fonts/Aptos_700.ttf') format('truetype'); }
-        @font-face { font-family: 'SnapshotPin'; font-weight: 700; font-style: italic; src: url('/fonts/Aptos_700_Italic.ttf') format('truetype'); }
+        @font-face { font-family: 'SnapshotPin'; font-weight: 400; font-style: normal; src: url('/_content/Morph.Blazor/fonts/Aptos_400.ttf') format('truetype'); }
+        @font-face { font-family: 'SnapshotPin'; font-weight: 400; font-style: italic; src: url('/_content/Morph.Blazor/fonts/Aptos_400_Italic.ttf') format('truetype'); }
+        @font-face { font-family: 'SnapshotPin'; font-weight: 700; font-style: normal; src: url('/_content/Morph.Blazor/fonts/Aptos_700.ttf') format('truetype'); }
+        @font-face { font-family: 'SnapshotPin'; font-weight: 700; font-style: italic; src: url('/_content/Morph.Blazor/fonts/Aptos_700_Italic.ttf') format('truetype'); }
         * { font-family: 'SnapshotPin', sans-serif !important; }
         """;
 

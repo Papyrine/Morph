@@ -22,11 +22,3 @@
         <p class="no-options">No export options for @(ConversionService.Find(Target)?.DisplayName ?? Target.ToString()).</p>
         break;
 }
-
-@code {
-    [Parameter]
-    public OutputFormat Target { get; set; }
-
-    [Parameter]
-    public ImageSettings Image { get; set; } = new();
-}

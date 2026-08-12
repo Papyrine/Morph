@@ -1,0 +1,16 @@
+global using System;
+global using System.Collections.Generic;
+global using System.IO;
+global using System.IO.Compression;
+global using System.Linq;
+global using System.Net.Http;
+global using System.Reflection;
+global using System.Text;
+global using System.Threading.Tasks;
+global using AngleSharp.Dom;
+global using AngleSharp.Html.Parser;
+global using Microsoft.AspNetCore.Components;
+global using Microsoft.AspNetCore.Components.Forms;
+global using Microsoft.AspNetCore.Components.Web;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.JSInterop;

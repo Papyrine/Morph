@@ -1,3 +1,7 @@
+// The app shell's JavaScript: theme persistence and the footer's payload/RAM figures. Everything the
+// converter needs ships with the Morph.Blazor package as an ES module (_content/Morph.Blazor/morph.js)
+// and is imported by its components, so nothing for it belongs here.
+
 window.statePreference = {
     get: function (key) {
         return localStorage.getItem(key);
@@ -7,55 +11,6 @@ window.statePreference = {
     },
     remove: function (key) {
         localStorage.removeItem(key);
-    }
-};
-
-window.fileDownload = {
-    downloadBlob: function (filename, contentType, base64Content) {
-        const byteCharacters = atob(base64Content);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: contentType });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    }
-};
-
-window.resultPreview = {
-    // Wraps conversion output in a blob URL an <iframe> can load (the browser's PDF viewer needs a real
-    // URL, and an HTML result needs a document of its own). The caller revokes it when done.
-    createUrl: function (contentType, base64Content) {
-        const byteCharacters = atob(base64Content);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: contentType });
-        return URL.createObjectURL(blob);
-    },
-    revokeUrl: function (url) {
-        URL.revokeObjectURL(url);
-    }
-};
-
-window.viewport = {
-    // Reports whether the viewport is at least minWidth CSS pixels wide, and notifies dotNetReference on
-    // every crossing of that threshold — drives the result pane, which only exists on wide screens.
-    watchWide: function (dotNetReference, minWidth) {
-        const query = window.matchMedia(`(min-width: ${minWidth}px)`);
-        query.addEventListener('change', event =>
-            dotNetReference.invokeMethodAsync('OnViewportWideChanged', event.matches));
-        return query.matches;
     }
 };
 

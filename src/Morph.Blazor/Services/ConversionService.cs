@@ -1,4 +1,4 @@
-namespace Morph.Web.Services;
+namespace Morph;
 
 /// <summary>
 /// Wraps Morph's converters for the browser: an Office file arrives as an in-memory <c>byte[]</c> (a WASM
@@ -22,10 +22,10 @@ public static class ConversionService
         new(OutputFormat.Text, "Plain text", ".txt", "text/plain"),
     ];
 
-    /// <summary>Everything the app can convert a source file into.</summary>
+    /// <summary>Everything a source file can be converted into.</summary>
     public static IReadOnlyList<FormatInfo> WritableFormats => AllFormats;
 
-    /// <summary>The Office formats the app can read, in the order the upload panel offers them.</summary>
+    /// <summary>The Office formats that can be read, in the order the upload panel offers them.</summary>
     public static IReadOnlyList<InputFormatInfo> ReadableFormats { get; } =
     [
         new(InputFormat.Docx, "Word document", ".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "📄", "Word", "page"),
@@ -49,13 +49,13 @@ public static class ConversionService
         ReadableFormats.First(_ => _.Format == format);
 
     /// <summary>
-    /// Identifies an uploaded file by extension, or null when it isn't one this app reads. Extension is
+    /// Identifies an uploaded file by extension, or null when it isn't one Morph reads. Extension is
     /// the only signal available — the browser's reported MIME type varies by OS and is often empty.
     /// </summary>
     public static InputFormatInfo? Detect(string fileName) =>
         ReadableFormats.FirstOrDefault(_ => fileName.EndsWith(_.Extension, StringComparison.OrdinalIgnoreCase));
 
-    /// <summary>True when the uploaded file name looks like something this app can read.</summary>
+    /// <summary>True when the uploaded file name looks like something Morph can read.</summary>
     public static bool CanRead(string fileName) =>
         Detect(fileName) is not null;
 

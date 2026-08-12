@@ -1,4 +1,4 @@
-namespace Morph.Web.Services;
+namespace Morph;
 
 /// <summary>
 /// Turns Morph's HTML export into a plain-text (.txt) rendition. Morph ships only HTML and Markdown
@@ -16,6 +16,7 @@ public static class TextExtraction
         "figcaption", "ul", "ol", "table", "thead", "tbody", "tfoot", "caption", "dl", "dt", "dd"
     ];
 
+    /// <summary>Flattens an HTML fragment or document into plain text.</summary>
     public static string FromHtml(string html)
     {
         var parser = new HtmlParser();

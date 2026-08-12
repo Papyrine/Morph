@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <!--
+    Trimming roots for a Blazor WebAssembly app that publishes trimmed.
+
+    Trimming the BCL, the Components framework and Morph's own assemblies (verified reflection-free) is
+    safe and worth a lot of payload. The conversion pipeline's reflection-heavy dependencies are not:
+    DocumentFormat.OpenXml, AngleSharp, ImageSharp (+ Drawing/Fonts) and PdfSharp resolve types by name at
+    runtime, so full-trim silently strips types they need and the failure surfaces only as a browser-side
+    crash part-way through a conversion. Rooting each keeps it whole.
+
+    Every assembly named here is guaranteed present: Morph.Blazor references Morph.ImageSharp and
+    Morph.Pdf, which drag the rest. An unresolvable TrimmerRootAssembly is a hard ILLink error, so this
+    list must not name anything optional.
+
+    Residual risk: a rooted library reflecting into a *framework* type the trimmer removed. Validate a
+    change here by running a real document through every output format on the published build.
+  -->
+  <ItemGroup Condition="'$(PublishTrimmed)' == 'true'">
+    <TrimmerRootAssembly Include="DocumentFormat.OpenXml" />
+    <TrimmerRootAssembly Include="DocumentFormat.OpenXml.Framework" />
+    <TrimmerRootAssembly Include="AngleSharp" />
+    <TrimmerRootAssembly Include="SixLabors.ImageSharp" />
+    <TrimmerRootAssembly Include="SixLabors.ImageSharp.Drawing" />
+    <TrimmerRootAssembly Include="SixLabors.Fonts" />
+    <TrimmerRootAssembly Include="SixLabors.PolygonClipper" />
+    <TrimmerRootAssembly Include="PdfSharp" />
+    <TrimmerRootAssembly Include="PdfSharp.Charting" />
+    <TrimmerRootAssembly Include="PdfSharp.Cryptography" />
+    <TrimmerRootAssembly Include="PdfSharp.Shared" />
+    <TrimmerRootAssembly Include="PdfSharp.System" />
+    <TrimmerRootAssembly Include="PdfSharp.WPFonts" />
+  </ItemGroup>
+
+</Project>
