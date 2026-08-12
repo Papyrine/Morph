@@ -105,30 +105,44 @@ static class SkiaShapeDrawing
         }
         else if (context.GetBitmap(imageData) is { } skImage)
         {
-            if (crop is {HasPadding: true})
-            {
-                var (paddedX, paddedY, paddedWidth, paddedHeight) = crop.Expand(destRect.Left, destRect.Top, destRect.Width, destRect.Height);
-                canvas.Save();
-                canvas.ClipRect(destRect);
-                canvas.DrawBitmap(skImage, new SKRect((float) paddedX, (float) paddedY, (float) (paddedX + paddedWidth), (float) (paddedY + paddedHeight)));
-                canvas.Restore();
-            }
-            else if (crop != null)
-            {
-                var source = new SKRect(
-                    (float) (crop.Left * skImage.Width),
-                    (float) (crop.Top * skImage.Height),
-                    (float) ((1 - crop.Right) * skImage.Width),
-                    (float) ((1 - crop.Bottom) * skImage.Height));
-                canvas.DrawBitmap(skImage, source, destRect);
-            }
-            else
-            {
-                canvas.DrawBitmap(skImage, destRect);
-            }
+            DrawCropped(canvas, skImage, destRect, crop);
         }
 
         canvas.Restore();
+    }
+
+    /// <summary>
+    /// Draws a decoded bitmap into <paramref name="destRect"/> through an <c>a:srcRect</c>
+    /// <paramref name="crop"/>. A positive crop selects a sub-rectangle of the source and stretches it
+    /// over the whole box; a negative one (padding) shrinks the picture into the sub-rectangle
+    /// <see cref="ImageCrop.Expand"/> computes and clips it to the box, since Skia cannot sample outside
+    /// the source. A null or all-zero crop is the plain stretch. Shared by the group-picture path and the
+    /// layout engine's <c>PlacedImage</c> painter so a cropped picture draws the same either way.
+    /// </summary>
+    internal static void DrawCropped(SKCanvas canvas, SKBitmap image, SKRect destRect, ImageCrop? crop)
+    {
+        if (crop is {HasPadding: true})
+        {
+            var (paddedX, paddedY, paddedWidth, paddedHeight) = crop.Expand(destRect.Left, destRect.Top, destRect.Width, destRect.Height);
+            canvas.Save();
+            canvas.ClipRect(destRect);
+            canvas.DrawBitmap(image, new SKRect((float) paddedX, (float) paddedY, (float) (paddedX + paddedWidth), (float) (paddedY + paddedHeight)));
+            canvas.Restore();
+            return;
+        }
+
+        if (crop is {IsCropped: true})
+        {
+            var source = new SKRect(
+                (float) (crop.Left * image.Width),
+                (float) (crop.Top * image.Height),
+                (float) ((1 - crop.Right) * image.Width),
+                (float) ((1 - crop.Bottom) * image.Height));
+            canvas.DrawBitmap(image, source, destRect);
+            return;
+        }
+
+        canvas.DrawBitmap(image, destRect);
     }
 
     internal static SKPath BuildPolygonPath(FloatingShapeElement shape, float x, float y, float width, float height)
