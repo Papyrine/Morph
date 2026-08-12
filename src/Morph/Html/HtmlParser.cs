@@ -1182,7 +1182,10 @@ sealed class HtmlParser
                 var colspanAttribute = cell.GetAttribute("colspan");
                 if (!string.IsNullOrEmpty(colspanAttribute) && int.TryParse(colspanAttribute, out var cs) && cs > 1)
                 {
-                    gridSpan = cs;
+                    // Ceiling the span as the DOCX path does: an unbounded colspan flows through
+                    // GetColumnCount into float[colCount] allocations, so a crafted value would
+                    // exhaust memory. 1000 sits far above any real table.
+                    gridSpan = Math.Min(cs, 1000);
                 }
 
                 // Handle rowspan
