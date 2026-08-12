@@ -6205,6 +6205,21 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
+        // Automatic text turns white over a dark PARAGRAPH shading, the same contrast rule cell shading
+        // gets (see IsDarkForAutomaticText for the Word-probed formula and threshold). Applied here, over
+        // every paragraph this method built, because the runs are flushed into ParagraphElements at a
+        // dozen points above and each would otherwise need its own call. Runs still lacking a colour are
+        // the automatic ones — an explicit w:color has already filled ColorHex in and wins. Run-level
+        // w:shd is resolved in ParseRunProperties instead, where the run's own fill is in hand.
+        for (var i = 0; i < result.Count; i++)
+        {
+            if (result[i] is ParagraphElement {Properties.BackgroundColorHex: { } fill} shaded &&
+                IsDarkForAutomaticText(fill))
+            {
+                result[i] = ApplyDefaultRunColorToParagraph(shaded, "FFFFFF");
+            }
+        }
+
         return result;
     }
 
@@ -11270,6 +11285,15 @@ sealed class DocumentParser(string defaultFont)
 
         // w:effect — animated text (blinkBackground, sparkle, etc.). Pure animation, so we
         // render the underlying text plain (parsed-and-discarded).
+
+        // Automatic text turns white over a dark RUN shading (w:rPr/w:shd or a w:highlight), the same
+        // contrast rule cell and paragraph shading get. Resolved here rather than in a post-pass because
+        // the run's own fill is only in hand at this point; a null colour is what "automatic" leaves
+        // behind, so an explicit w:color is never flipped.
+        if (color == null && backgroundColor != null && IsDarkForAutomaticText(backgroundColor))
+        {
+            color = "FFFFFF";
+        }
 
         return new()
         {

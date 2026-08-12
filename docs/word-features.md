@@ -1044,7 +1044,9 @@ Background fill color for individual cells.
 >
 > The THRESHOLD is bracketed to (58, 59.9] — greys `3A3A3A` (58.0) white against `3C3C3C` (60.0) black, and greens `006000` (56.4) white against `006600` (59.9) black. Grey and green agreeing confirms it keys off the luma value, not any single channel. Implemented as `< 59`; against the 22-row probe Morph now matches Word on every row.
 >
-> **Not yet covered**: the same rule applies to PARAGRAPH and RUN shading (`w:shd` in `w:pPr` / `w:rPr`) — Word draws auto text white on a dark paragraph fill, and Morph still draws it black. That path assembles runs at ~20 separate construction sites with no single seam, so it needs its own change. The page-background path (`ComputeAutomaticRunColor`) also still uses a threshold of 128, which no probe has distinguished from 59.
+> **The same rule covers PARAGRAPH and RUN shading.** Word applies it at every level a fill can come from, and the probe carries a `w:shd` on a `w:pPr` and on a `w:rPr` alongside the cell rows — both take white over `092B57`, and Morph now matches. The seams differ because the fills become available at different points: run shading resolves inside `ParseRunProperties`, where the run's own fill is in hand and a null colour is exactly what "automatic" leaves behind; paragraph shading resolves in one pass at the END of `ParseParagraph`, over every paragraph that method built, since the runs are flushed into `ParagraphElement`s at a dozen points and each would otherwise need its own call. `w:highlight` rides the run path too, since it lands in the same `BackgroundColorHex`.
+>
+> **Still not covered**: the page-background path (`ComputeAutomaticRunColor`) uses a threshold of 128 where the shading rule measured 59. No probe has distinguished them — every corpus page background that exercises it is dark enough to come out white under either number — so the difference is untested rather than deliberate.
 
 
 #### Cell Padding `DONE`
