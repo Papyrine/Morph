@@ -1,6 +1,6 @@
-namespace Morph.Web.Services;
+namespace Morph;
 
-/// <summary>The output formats this app can produce, from any <see cref="InputFormat"/>.</summary>
+/// <summary>The output formats the browser components produce, from any <see cref="InputFormat"/>.</summary>
 public enum OutputFormat
 {
     /// <summary>Rendered page images (one PNG per page; multi-page downloads as a zip).</summary>

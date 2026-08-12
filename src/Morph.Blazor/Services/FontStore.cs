@@ -1,4 +1,4 @@
-namespace Morph.Web.Services;
+namespace Morph;
 
 /// <summary>
 /// Materialises the fonts every render needs into the browser's in-memory filesystem.
@@ -10,13 +10,14 @@ namespace Morph.Web.Services;
 ///
 /// Passing a <see cref="ExportOptions.FontDirectory"/> instead restricts resolution to that directory and
 /// substitutes unknown families/weights within it — no OS lookup, no throw, deterministic output. So the
-/// four Aptos faces are shipped as static assets under <c>wwwroot/fonts/</c>, fetched once, written here,
-/// and this directory is handed to both the PNG and PDF converters.
+/// four Aptos faces ship as static web assets in this package, are fetched once, written here, and this
+/// directory is handed to both the PNG and PDF converters.
 /// </summary>
 public static class FontStore
 {
     // A directory in the WASM in-memory (Emscripten) filesystem. Not persisted across reloads, so the
     // fonts are re-materialised each session — cheap, and keeps the resolver's directory scan happy.
+    /// <summary>The in-memory directory the faces are written to, and the value to pass as the render font directory.</summary>
     public const string Directory = "/morph-fonts";
 
     // File names follow the resolver's "{Family}_{weight}[_Italic].ttf" convention, so "Aptos"
@@ -29,15 +30,22 @@ public static class FontStore
         "Aptos_700_Italic.ttf",
     ];
 
+    /// <summary>
+    /// The paths the faces are fetched from, relative to the app base — useful for a
+    /// <c>&lt;link rel="preload"&gt;</c> that starts the ~940KB download during the WASM boot.
+    /// </summary>
+    public static IReadOnlyList<string> AssetPaths { get; } =
+        files.Select(_ => $"{MorphAssets.ContentRoot}/fonts/{_}").ToList();
+
     static Task<string>? load;
 
     /// <summary>
-    /// Fetches the bundled Aptos faces from <c>wwwroot/fonts/</c> and writes them into the in-memory
-    /// filesystem under <see cref="Directory"/>. Idempotent — the download happens only once per session.
-    /// Returns the directory to pass as the render font directory.
+    /// Fetches the bundled Aptos faces from this package's static web assets and writes them into the
+    /// in-memory filesystem under <see cref="Directory"/>. Idempotent — the download happens only once
+    /// per session. Returns the directory to pass as the render font directory.
     ///
-    /// Call it early (the page does, at init) to take the ~940KB off the render's critical path; a later
-    /// call joins the same in-flight download rather than starting a second one.
+    /// Call it early (<see cref="MorphConverter"/> does, at init) to take the ~940KB off the render's
+    /// critical path; a later call joins the same in-flight download rather than starting a second one.
     /// </summary>
     public static Task<string> EnsureAsync(HttpClient http)
     {
@@ -57,7 +65,7 @@ public static class FontStore
 
         // Started together: the browser runs the four requests concurrently, so this costs one
         // round-trip's latency rather than four (the runtime is single-threaded, but fetch is not).
-        var downloads = files.Select(_ => http.GetByteArrayAsync($"fonts/{_}"));
+        var downloads = AssetPaths.Select(http.GetByteArrayAsync);
         var contents = await Task.WhenAll(downloads);
 
         for (var index = 0; index < files.Length; index++)

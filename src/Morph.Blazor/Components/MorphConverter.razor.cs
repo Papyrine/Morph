@@ -1,16 +1,66 @@
-namespace Morph.Web.Pages;
+namespace Morph;
 
-public partial class Index : IDisposable
+/// <summary>
+/// A complete in-browser Office converter: choose a Word, Excel or PowerPoint file (or one of the bundled
+/// samples), see every page rendered as a live preview, pick an output format, and download it. Nothing
+/// leaves the device — the whole conversion runs in WebAssembly.
+///
+/// The host app needs three things: <c>builder.Services.AddMorph()</c>, a base-addressed
+/// <see cref="HttpClient"/> (the Blazor WebAssembly template registers one), and a link to
+/// <see cref="MorphAssets.StyleSheet"/>. Everything else — the fonts, the samples, the JavaScript —
+/// ships with the package as static web assets.
+/// </summary>
+public partial class MorphConverter : IDisposable
 {
-    const long maxFileSize = 25 * 1024 * 1024;
-
     // The preview is a fixed-size thumbnail render; the PNG download uses the user-chosen resolution
     // instead (see ImageSettings.Dpi). Kept low so uploading a long document paints quickly.
-    const int previewDpi = 110;
+    /// <summary>Resolution the on-screen page preview renders at. The PNG download uses the user's choice.</summary>
+    [Parameter]
+    public int PreviewDpi { get; set; } = 110;
+
+    /// <summary>Largest file the upload will read, in bytes.</summary>
+    [Parameter]
+    public long MaxFileSize { get; set; } = 25 * 1024 * 1024;
+
+    /// <summary>Whether to offer the bundled sample document, workbook and deck.</summary>
+    [Parameter]
+    public bool ShowSamples { get; set; } = true;
+
+    /// <summary>
+    /// Whether a wide viewport may show the converted output beside the page preview. Turning it off
+    /// also stops the conversion that feeds it, so nothing is computed for a pane that never shows.
+    /// </summary>
+    [Parameter]
+    public bool ShowResultPane { get; set; } = true;
 
     // Below this viewport width the result pane never renders (and the conversion feeding it never
-    // runs); must match the app.css breakpoint that lays the two panes side by side.
-    const int resultPaneMinWidth = 1200;
+    // runs); must match the stylesheet breakpoint that lays the two panes side by side.
+    /// <summary>Viewport width, in CSS pixels, at or above which the result pane may show.</summary>
+    [Parameter]
+    public int ResultPaneMinWidth { get; set; } = 1200;
+
+    /// <summary>The output formats to offer. Defaults to every format Morph can write.</summary>
+    [Parameter]
+    public IReadOnlyList<FormatInfo> Formats { get; set; } = ConversionService.WritableFormats;
+
+    /// <summary>The format selected when the converter first renders.</summary>
+    [Parameter]
+    public OutputFormat InitialTarget { get; set; } = OutputFormat.Png;
+
+    /// <summary>
+    /// Whether an unexpected failure offers a pre-filled GitHub issue link against the Morph repository.
+    /// Turn it off in an app whose users shouldn't be pointed at Morph's issue tracker.
+    /// </summary>
+    [Parameter]
+    public bool ShowIssueLink { get; set; } = true;
+
+    /// <summary>Extra CSS classes for the root element, alongside the <c>converter</c> class.</summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>Any other attribute, splatted onto the root element.</summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
     string? sourceName;
     InputFormatInfo? sourceInfo;
@@ -20,7 +70,7 @@ public partial class Index : IDisposable
     string? errorMessage;
     string? issueUrl;
     string? userAgent;
-    OutputFormat target = OutputFormat.Png;
+    OutputFormat target;
     readonly ImageSettings image = new();
     bool isBusy;
     bool isRendering;
@@ -30,9 +80,16 @@ public partial class Index : IDisposable
     string? progressDetail;
     ResultPreview? result;
     readonly Dictionary<OutputFormat, ResultPreview> resultCache = new();
-    DotNetObjectReference<Index>? selfReference;
+    DotNetObjectReference<MorphConverter>? selfReference;
 
     FormatInfo? TargetInfo => ConversionService.Find(target);
+
+    string RootClass => Class is {Length: > 0} extra ? $"converter {extra}" : "converter";
+
+    bool ResultPaneVisible => ShowResultPane && wideViewport && target != OutputFormat.Png;
+
+    protected override void OnInitialized() =>
+        target = InitialTarget;
 
     protected override async Task OnInitializedAsync()
     {
@@ -42,7 +99,7 @@ public partial class Index : IDisposable
         // download (and surfaces the error if it failed).
         _ = WarmFontsAsync();
 
-        userAgent = await JsRuntime.InvokeAsync<string?>("appInfo.userAgent");
+        userAgent = await Interop.UserAgentAsync();
     }
 
     async Task WarmFontsAsync()
@@ -60,16 +117,17 @@ public partial class Index : IDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
+        if (!firstRender || !ShowResultPane)
         {
             return;
         }
 
         // Watch the viewport against the side-by-side breakpoint; the callback fires on every crossing.
         selfReference = DotNetObjectReference.Create(this);
-        wideViewport = await JsRuntime.InvokeAsync<bool>("viewport.watchWide", selfReference, resultPaneMinWidth);
+        wideViewport = await Interop.WatchWideAsync(selfReference, ResultPaneMinWidth);
     }
 
+    /// <summary>Called from JavaScript when the viewport crosses <see cref="ResultPaneMinWidth"/>.</summary>
     [JSInvokable]
     public Task OnViewportWideChanged(bool wide) =>
         InvokeAsync(async () =>
@@ -112,7 +170,7 @@ public partial class Index : IDisposable
         try
         {
             BeginPhase($"Reading {detected.DisplayName}…");
-            await using var stream = file.OpenReadStream(maxFileSize);
+            await using var stream = file.OpenReadStream(MaxFileSize);
             using var memory = new MemoryStream();
             await stream.CopyToAsync(memory);
             sourceBytes = memory.ToArray();
@@ -131,8 +189,8 @@ public partial class Index : IDisposable
         }
     }
 
-    // Loads the file bundled as a static web asset at /sample/sample.docx (or .xlsx / .pptx), then reuses
-    // the same read/render pipeline as an uploaded file.
+    // Loads the sample bundled with this package as a static web asset, then reuses the same read/render
+    // pipeline as an uploaded file.
     async Task LoadSample(InputFormatInfo info)
     {
         await ResetAsync();
@@ -176,7 +234,8 @@ public partial class Index : IDisposable
         {
             // Rendering needs the bundled fonts materialised into the in-memory filesystem first.
             var fontDirectory = await FontStore.EnsureAsync(Http);
-            var pages = await Task.Run(() => RenderPreview(bytes, info.Format, fontDirectory));
+            var dpi = PreviewDpi;
+            var pages = await Task.Run(() => RenderPreview(bytes, info.Format, dpi, fontDirectory));
             previewPages = pages;
             pageCount = pages.Count;
             progressDetail = null;
@@ -188,9 +247,9 @@ public partial class Index : IDisposable
         }
     }
 
-    static List<string> RenderPreview(byte[] bytes, InputFormat source, string fontDirectory)
+    static List<string> RenderPreview(byte[] bytes, InputFormat source, int dpi, string fontDirectory)
     {
-        var pages = ConversionService.RenderPngPages(bytes, source, new() { Dpi = previewDpi }, fontDirectory);
+        var pages = ConversionService.RenderPngPages(bytes, source, new() { Dpi = dpi }, fontDirectory);
         var urls = new List<string>(pages.Count);
         foreach (var page in pages)
         {
@@ -221,10 +280,9 @@ public partial class Index : IDisposable
         {
             if (sourceBytes is not { } bytes ||
                 sourceInfo is not { } source ||
-                !wideViewport ||
+                !ResultPaneVisible ||
                 isBusy ||
-                TargetInfo is not { } info ||
-                info.Format == OutputFormat.Png)
+                TargetInfo is not { } info)
             {
                 return;
             }
@@ -295,10 +353,7 @@ public partial class Index : IDisposable
             return new(payload.Bytes, text, null, imagesElided);
         }
 
-        var url = await JsRuntime.InvokeAsync<string>(
-            "resultPreview.createUrl",
-            payload.ContentType,
-            Convert.ToBase64String(payload.Bytes));
+        var url = await Interop.CreateObjectUrlAsync(payload.ContentType, payload.Bytes);
         return new(payload.Bytes, null, url, false);
     }
 
@@ -306,7 +361,7 @@ public partial class Index : IDisposable
     {
         if (preview.Url is { } url)
         {
-            await JsRuntime.InvokeVoidAsync("resultPreview.revokeUrl", url);
+            await Interop.RevokeObjectUrlAsync(url);
         }
     }
 
@@ -342,7 +397,7 @@ public partial class Index : IDisposable
             }
 
             var baseName = Path.GetFileNameWithoutExtension(sourceName) ?? "document";
-            await FileDownloadService.DownloadAsync($"{baseName}{payload.Extension}", payload.ContentType, payload.Bytes);
+            await Interop.DownloadAsync($"{baseName}{payload.Extension}", payload.ContentType, payload.Bytes);
         }
         catch (Exception exception)
         {
@@ -357,7 +412,7 @@ public partial class Index : IDisposable
     void ReportError(string action, Exception exception)
     {
         errorMessage = $"{action}: {exception.Message}";
-        issueUrl = IssueLauncher.ForException(action, exception, AppInfo.Environment(userAgent));
+        issueUrl = ShowIssueLink ? IssueLauncher.ForException(action, exception, MorphInfo.Environment(userAgent)) : null;
     }
 
     async Task ResetAsync()
@@ -383,6 +438,7 @@ public partial class Index : IDisposable
         resultCache.Clear();
     }
 
+    /// <summary>Releases the reference JavaScript holds for the viewport watcher.</summary>
     public void Dispose() =>
         selfReference?.Dispose();
 

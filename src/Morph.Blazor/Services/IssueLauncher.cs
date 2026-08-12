@@ -1,11 +1,12 @@
 using System.Net;
 
-namespace Morph.Web.Services;
+namespace Morph;
 
 /// <summary>
-/// Builds a pre-filled GitHub "new issue" URL when an unexpected exception escapes a conversion, so a
-/// user can report it in a single click. Instead of opening the URL itself (there is no browser-side
-/// process launcher) it hands the URL back to be surfaced as a link the user can choose to follow.
+/// Builds a pre-filled GitHub "new issue" URL against the Morph repository when an unexpected exception
+/// escapes a conversion, so a user can report it in a single click. Instead of opening the URL itself
+/// (there is no browser-side process launcher) it hands the URL back to be surfaced as a link the user
+/// can choose to follow.
 /// </summary>
 public static class IssueLauncher
 {
@@ -23,7 +24,7 @@ public static class IssueLauncher
 
         var lines = new List<string>
         {
-            "An unexpected error occurred in the Morph web app.",
+            "An unexpected error occurred while converting a document with Morph.",
             "",
             $"* Action: {action}",
         };

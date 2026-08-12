@@ -1,0 +1,42 @@
+﻿{
+  Instance: {
+    PreviewDpi: 110,
+    MaxFileSize: 26214400,
+    ShowSamples: true,
+    ShowResultPane: true,
+    ResultPaneMinWidth: 1200,
+    Formats: [
+      {
+        DisplayName: PNG image,
+        Extension: .png,
+        ContentType: image/png
+      },
+      {
+        Format: Pdf,
+        DisplayName: PDF,
+        Extension: .pdf,
+        ContentType: application/pdf
+      },
+      {
+        Format: Html,
+        DisplayName: HTML,
+        Extension: .html,
+        ContentType: text/html
+      },
+      {
+        Format: Markdown,
+        DisplayName: Markdown,
+        Extension: .md,
+        ContentType: text/markdown
+      },
+      {
+        Format: Text,
+        DisplayName: Plain text,
+        Extension: .txt,
+        ContentType: text/plain
+      }
+    ],
+    ShowIssueLink: true
+  },
+  NodeCount: 24
+}
