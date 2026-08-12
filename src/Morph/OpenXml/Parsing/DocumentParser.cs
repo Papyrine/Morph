@@ -6148,18 +6148,23 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
-        // Floating decorative shapes — behind-text or in-front — are lifted out of the flow, so
-        // a paragraph that produced only those is still an empty paragraph as far as line height
-        // goes — its mark takes a line exactly as it would have if the drawing had produced
-        // nothing at all. Testing `result.Count == 0` alone made that line appear or vanish
-        // depending on whether the shape parser happened to understand the drawing (resumes/10's
-        // front-anchored accent circles collapsed their anchor paragraphs' lines that way).
-        var onlyFloatingShapes = result.Count > 0 &&
-                                 result.All(_ => _ is FloatingShapeElement);
+        // Floating decorative art — behind-text or in-front, a shape or a picture — is lifted out of
+        // the flow, so a paragraph that produced only that is still an empty paragraph as far as line
+        // height goes — its mark takes a line exactly as it would have if the drawing had produced
+        // nothing at all. Testing `result.Count == 0` alone made that line appear or vanish depending
+        // on whether the shape parser happened to understand the drawing (resumes/10's front-anchored
+        // accent circles collapsed their anchor paragraphs' lines that way).
+        //
+        // FloatingImageElement belongs here as much as FloatingShapeElement, and reading only the
+        // latter left a picture-anchoring paragraph matching NO branch below, silently losing its
+        // mark. business-plans/13's cover lifts out one image and one shape from a single paragraph
+        // and so lost a whole line, carrying its title and subtitle ~24pt up the page.
+        var onlyFloatingArt = result.Count > 0 &&
+                              result.All(_ => _ is FloatingShapeElement or FloatingImageElement);
 
         // Add remaining content
         if (runs.Count == 0 &&
-            (result.Count == 0 || (onlyFloatingShapes && props.SpacingAfterPoints <= 0)))
+            (result.Count == 0 || (onlyFloatingArt && props.SpacingAfterPoints <= 0)))
         {
             // Empty paragraph - still counts for spacing
             // Keep runs empty so the renderer can avoid creating spurious extra pages at document end.
@@ -6190,8 +6195,7 @@ sealed class DocumentParser(string defaultFont)
                 Properties = props
             });
         }
-        else if (props.SpacingAfterPoints > 0 &&
-                 result.All(_ => _ is FloatingShapeElement))
+        else if (props.SpacingAfterPoints > 0 && onlyFloatingArt)
         {
             // Paragraph contained only behind-text decorative shapes (a "background
             // placeholder" pattern) but carries explicit spacing-after — Word honours
