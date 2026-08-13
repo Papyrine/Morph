@@ -5,6 +5,12 @@
 static class TableHeightCalculator
 {
     /// <summary>
+    /// The width a line is laid out against when it must not wrap. Far past any real page, but well
+    /// short of <see cref="float.MaxValue"/> so the measurer's own arithmetic on it stays finite.
+    /// </summary>
+    internal const float UnboundedWidth = float.MaxValue / 4;
+
+    /// <summary>
     /// Computes the final height of every row in <paramref name="table"/>, accounting for
     /// non-merged cells, explicit row heights (atLeast vs exact, vMerge-strict tables),
     /// and vertically merged content overflow.
@@ -250,7 +256,12 @@ static class TableHeightCalculator
             return MeasureVerticalCellHeight(cell, padding, margin, measurer);
         }
 
-        var contentWidth = cellWidth - (float) (padding.Horizontal + margin.Horizontal);
+        // A single-line cell is measured unbounded, so the row is sized to one line whatever the
+        // text's natural width — matching the placement, which lays the same line out past the
+        // cell's edge rather than breaking it.
+        var contentWidth = cell.Properties.SingleLine
+            ? UnboundedWidth
+            : cellWidth - (float) (padding.Horizontal + margin.Horizontal);
         var height = (float) (padding.Vertical + margin.Vertical);
 
         // w:hideMark: when the cell's only content is an empty end-of-cell paragraph mark,

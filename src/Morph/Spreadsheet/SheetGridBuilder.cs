@@ -34,7 +34,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
     /// </summary>
     const double autoRowHeightFactor = 1.31;
 
-    public TableElement? Build(S.Worksheet worksheet, SheetRange range, double scale, (int First, int Last)? titleRows, ConditionalFormats conditional)
+    public TableElement? Build(S.Worksheet worksheet, SheetRange range, double scale, (int First, int Last)? titleRows, ConditionalFormats conditional, bool horizontallyCentered)
     {
         var sheetData = worksheet.GetFirstChild<S.SheetData>();
         if (sheetData == null || range.IsEmpty)
@@ -64,7 +64,13 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             Properties = new()
             {
                 GridColumnWidths = widths,
-                IsAutoFit = false
+                IsAutoFit = false,
+                // printOptions/@horizontalCentered (ECMA-376 §18.3.1.70) centres the print area
+                // between the margins, which is what a centre-aligned table already does with its
+                // slack. 38 of the 40 corpus workbooks ask for it — it is Excel's template default,
+                // not an exotic setting — so ignoring it put every one of their grids hard against
+                // the left margin. The caller offsets the sheet's drawings by the same slack.
+                Alignment = horizontallyCentered ? TextAlignment.Center : TextAlignment.Left
             }
         };
     }
@@ -114,6 +120,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                 found,
                 overflow > merge.ColumnSpan ? merge with { ColumnSpan = overflow } : merge,
                 width,
+                Spill(found, merge, cellsByColumn, merges, widths, rowIndex, column, range, width),
                 scale,
                 conditional,
                 rowIndex,
@@ -214,10 +221,109 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         return span;
     }
 
+    /// <summary>
+    /// How far a cell's clip may reach OUTSIDE its own box, in points, as (left, right).
+    ///
+    /// The clip stops overflowing text at the first occupied neighbour, so it has to know where the
+    /// empty ones end — and Excel spills in the direction the alignment implies, not always
+    /// rightwards. LEFT-aligned text is not this method's business: <see cref="OverflowSpan"/>
+    /// already widened the cell itself over its empty right-hand neighbours, so the box is the clip
+    /// and a second reckoning here would double it. RIGHT-aligned text spills LEFT (the line ends at
+    /// the cell's right edge and grows backwards) and CENTRED text spills both ways, and neither can
+    /// be modelled by widening: the cell would re-anchor, moving every short label that fits.
+    ///
+    /// Wrapped text never overflows at all — it breaks instead — so it reaches nowhere.
+    /// </summary>
+    (double Left, double Right) Spill(
+        S.Cell? cell,
+        MergeInfo merge,
+        Dictionary<int, S.Cell> cellsByColumn,
+        MergeMap merges,
+        double[] widths,
+        int rowIndex,
+        int column,
+        SheetRange range,
+        double widthPoints)
+    {
+        // A HIDDEN column is zero-width, and Excel shows nothing of what it holds — not even the
+        // overflow the same text would produce one column over. Reaching out of a box with no width
+        // is how check-register's hidden column B leaked its "√" into the empty column A beside it,
+        // a glyph Word's reference does not have.
+        if (cell == null || widthPoints <= 0)
+        {
+            return (0, 0);
+        }
+
+        var style = styles.Resolve(cell.StyleIndex?.Value ?? 0);
+        if (style.WrapText || Value(cell, style).Text.Length == 0)
+        {
+            return (0, 0);
+        }
+
+        var alignment = style.HorizontalAlignment ?? DefaultAlignment(cell);
+        if (alignment == TextAlignment.Right)
+        {
+            return (EmptyRunPoints(cellsByColumn, merges, widths, rowIndex, column, range, step: -1), 0);
+        }
+
+        if (alignment == TextAlignment.Center)
+        {
+            // The right-hand scan starts past the merge, which is the cell's own last column.
+            var last = column + merge.ColumnSpan - 1;
+            return (
+                EmptyRunPoints(cellsByColumn, merges, widths, rowIndex, column, range, step: -1),
+                EmptyRunPoints(cellsByColumn, merges, widths, rowIndex, last, range, step: 1));
+        }
+
+        return (0, 0);
+    }
+
+    /// <summary>
+    /// Total width, in points, of the unbroken run of EMPTY columns starting one step from
+    /// <paramref name="column"/> in the direction <paramref name="step"/>. Stops at the first column
+    /// holding anything, at any merge, and at the range edge — the same three walls
+    /// <see cref="OverflowSpan"/> stops at.
+    /// </summary>
+    double EmptyRunPoints(
+        Dictionary<int, S.Cell> cellsByColumn,
+        MergeMap merges,
+        double[] widths,
+        int rowIndex,
+        int column,
+        SheetRange range,
+        int step)
+    {
+        var total = 0d;
+        for (var next = column + step; next >= range.FirstColumn && next <= range.LastColumn; next += step)
+        {
+            if (merges.IsCoveredHorizontally(rowIndex, next) || merges.At(rowIndex, next).ColumnSpan > 1)
+            {
+                break;
+            }
+
+            if (cellsByColumn.TryGetValue(next, out var neighbour) &&
+                Value(neighbour, styles.Resolve(neighbour.StyleIndex?.Value ?? 0)).Text.Length > 0)
+            {
+                break;
+            }
+
+            var index = next - range.FirstColumn;
+            if (index < 0 || index >= widths.Length)
+            {
+                break;
+            }
+
+            total += widths[index];
+        }
+
+        return total;
+    }
+
     TableCell BuildCell(
         S.Cell? cell,
         MergeInfo merge,
         double widthPoints,
+        (double Left, double Right) spill,
         double scale,
         ConditionalFormats conditional,
         int rowIndex,
@@ -278,7 +384,20 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                 GridSpan = merge.ColumnSpan,
                 VerticalMerge = merge.VerticalMerge,
                 VerticalAlignment = style.VerticalAlignment,
-                NoWrap = !style.WrapText,
+                // Wrapping is OPT-IN in a spreadsheet: without alignment/@wrapText Excel keeps the
+                // text on one line and lets it overflow (into empty neighbours) or clip, where a Word
+                // cell would break it. The engine's default is Word's, so every cell whose text ran a
+                // hair past its column split in two and painted over the row below — "United States"
+                // measures 60.03pt against a 63.75pt column at Arial 10.
+                SingleLine = !style.WrapText,
+                // Excel stops a cell's ink at the first OCCUPIED neighbour, so the box plus whatever
+                // empty columns Spill found is the drawing area and the clip is exactly that. It
+                // bounds the cell vertically too, which is the other half of a customHeight row:
+                // Excel shows only as much wrapped text as the pinned height holds (see
+                // IsExactHeight above), where the engine drew the rest over the row below.
+                ClipOverflow = true,
+                ClipSpillLeftPoints = spill.Left,
+                ClipSpillRightPoints = spill.Right,
                 Padding = new(0, 2 * scale, 0, 2 * scale)
             }
         };

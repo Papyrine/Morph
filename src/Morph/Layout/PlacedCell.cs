@@ -6,6 +6,14 @@
 /// cell's box spans the merged rows' heights; a merge-continuation cell contributes no
 /// <see cref="PlacedCell"/> (the originating cell covers it). Cells live on their
 /// <see cref="PlacedTableRow"/>, not directly on the page.
+///
+/// <see cref="ClipContent"/> asks the painter to bound the content — and only the content, not the
+/// shading or the borders — to the box, which is Excel's rule for a cell whose text outgrows its
+/// column or its pinned row height (<see cref="TableCellProperties.ClipOverflow"/>). It is false for
+/// every DOCX and HTML cell, which keep drawing their overflow as Word does. The clip is the box
+/// widened by <see cref="ClipSpillLeft"/> / <see cref="ClipSpillRight"/>, which are the empty
+/// neighbours the ink is allowed to run over (see <see cref="TableCellProperties.ClipSpillLeftPoints"/>);
+/// both are zero unless the content spills in a direction the box itself cannot cover.
 /// </summary>
 sealed record PlacedCell(
     float X,
@@ -14,4 +22,7 @@ sealed record PlacedCell(
     float Height,
     string? BackgroundColorHex,
     CellBorders? Borders,
-    IReadOnlyList<PlacedItem> Content);
+    IReadOnlyList<PlacedItem> Content,
+    bool ClipContent = false,
+    float ClipSpillLeft = 0,
+    float ClipSpillRight = 0);

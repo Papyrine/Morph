@@ -2640,4 +2640,173 @@ public class CanonicalFragmenterTests
         var line = document.Pages[0].Items.OfType<PlacedLine>().First();
         await Assert.That(line.Y).IsGreaterThanOrEqualTo(60f);
     }
+
+    /// <summary>
+    /// A <see cref="TableCellProperties.SingleLine"/> cell keeps its text on one line whatever the
+    /// column width, drawing it past the cell's edge instead of breaking it — the spreadsheet law,
+    /// where wrapping is opt-in per cell (<c>alignment/@wrapText</c>). Without it every Excel cell
+    /// whose text ran a hair past its column split in two and painted over the row below.
+    /// </summary>
+    [Test]
+    public async Task A_single_line_cell_runs_past_its_edge_rather_than_wrapping()
+    {
+        const string text = "United States of America";
+
+        static TableElement Table(bool singleLine) =>
+            new()
+            {
+                Properties = new(),
+                Rows =
+                [
+                    new()
+                    {
+                        Cells =
+                        [
+                            new()
+                            {
+                                Content = [P(text)],
+                                Properties = new()
+                                {
+                                    WidthPoints = 40,
+                                    SingleLine = singleLine
+                                }
+                            }
+                        ]
+                    }
+                ]
+            };
+
+        var wrapped = fragmenter.Layout([Table(false)], Page(400))
+            .Pages[0].Items.OfType<PlacedTableRow>().Single();
+        var single = fragmenter.Layout([Table(true)], Page(400))
+            .Pages[0].Items.OfType<PlacedTableRow>().Single();
+
+        var wrappedLines = wrapped.Cells.Single().Content.OfType<PlacedLine>().ToList();
+        var singleLines = single.Cells.Single().Content.OfType<PlacedLine>().ToList();
+
+        await Assert.That(wrappedLines.Count).IsGreaterThan(1);
+        await Assert.That(singleLines.Count).IsEqualTo(1);
+
+        // The one line is wider than the cell it sits in — that overflow is the point, and the row is
+        // sized to a single line rather than to the wrapped stack.
+        await Assert.That(singleLines[0].Width).IsGreaterThan(single.Cells.Single().Width);
+        await Assert.That(single.Height).IsLessThan(wrapped.Height);
+    }
+
+    /// <summary>
+    /// A single-line cell's overflow grows in the direction its ALIGNMENT implies: a right-aligned
+    /// label ends at the cell's right edge and runs backwards over whatever sits to its left, which
+    /// is what Excel draws. Everywhere else an over-long line is pinned to the left edge, because a
+    /// Word paragraph's only over-long line is an unbreakable word and hanging it off the margin
+    /// helps nobody.
+    /// </summary>
+    [Test]
+    public async Task A_single_line_cell_overhangs_in_its_alignments_direction()
+    {
+        // TextAlignment is internal, so the three cases run in one body rather than as [Arguments].
+        foreach (var alignment in (TextAlignment[]) [TextAlignment.Right, TextAlignment.Center, TextAlignment.Left])
+        {
+            await Overhangs(alignment);
+        }
+    }
+
+    static async Task Overhangs(TextAlignment alignment)
+    {
+        var table = new TableElement
+        {
+            Properties = new(),
+            Rows =
+            [
+                new()
+                {
+                    Cells =
+                    [
+                        new()
+                        {
+                            Content = [P("Client Company Name", new() {Alignment = alignment})],
+                            Properties = new()
+                            {
+                                WidthPoints = 40,
+                                SingleLine = true
+                            }
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var cell = fragmenter.Layout([table], Page(400))
+            .Pages[0].Items.OfType<PlacedTableRow>().Single().Cells.Single();
+        var line = cell.Content.OfType<PlacedLine>().Single();
+
+        // Wider than the cell, so every alignment has to overhang somewhere.
+        await Assert.That(line.Width).IsGreaterThan(cell.Width);
+
+        var overhangLeft = cell.X - line.X;
+        var overhangRight = line.X + line.Width - (cell.X + cell.Width);
+        switch (alignment)
+        {
+            case TextAlignment.Right:
+                await Assert.That(overhangLeft).IsGreaterThan(0f);
+                break;
+            case TextAlignment.Center:
+                await Assert.That(overhangLeft).IsGreaterThan(0f);
+                await Assert.That(overhangRight).IsGreaterThan(0f);
+                break;
+            default:
+                await Assert.That(overhangLeft).IsLessThanOrEqualTo(0f);
+                await Assert.That(overhangRight).IsGreaterThan(0f);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// The clip a spreadsheet cell asks for reaches the painter intact — the flag and the empty
+    /// neighbours the ink may run over, which the cell box cannot express on its left.
+    /// </summary>
+    [Test]
+    public async Task A_clipping_cell_carries_its_clip_and_spill_to_the_painter()
+    {
+        var table = new TableElement
+        {
+            Properties = new(),
+            Rows =
+            [
+                new()
+                {
+                    Cells =
+                    [
+                        new()
+                        {
+                            Content = [P("Client Company Name")],
+                            Properties = new()
+                            {
+                                WidthPoints = 40,
+                                SingleLine = true,
+                                ClipOverflow = true,
+                                ClipSpillLeftPoints = 30,
+                                ClipSpillRightPoints = 12
+                            }
+                        },
+                        new()
+                        {
+                            Content = [P("Plain")],
+                            Properties = new() {WidthPoints = 40}
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var cells = fragmenter.Layout([table], Page(400))
+            .Pages[0].Items.OfType<PlacedTableRow>().Single().Cells;
+
+        await Assert.That(cells[0].ClipContent).IsTrue();
+        await Assert.That(cells[0].ClipSpillLeft).IsEqualTo(30f);
+        await Assert.That(cells[0].ClipSpillRight).IsEqualTo(12f);
+
+        // A cell that did not ask for it is unclipped, so Word's overflow is untouched.
+        await Assert.That(cells[1].ClipContent).IsFalse();
+        await Assert.That(cells[1].ClipSpillLeft).IsEqualTo(0f);
+    }
 }

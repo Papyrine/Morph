@@ -510,9 +510,27 @@ static class SkiaPainter
                 Fill(context, canvas, cell.X, cell.Y, cell.Width, cell.Height, cell.BackgroundColorHex);
             }
 
+            // A clipping cell bounds only its CONTENT — the shading above and the borders below draw
+            // in full, exactly as Excel draws a gridline over text it has cut off.
+            var clipped = cell.ClipContent;
+            if (clipped)
+            {
+                canvas.Save();
+                canvas.ClipRect(new(
+                    P(context, cell.X - cell.ClipSpillLeft),
+                    P(context, cell.Y),
+                    P(context, cell.X + cell.Width + cell.ClipSpillRight),
+                    P(context, cell.Y + cell.Height)));
+            }
+
             foreach (var content in cell.Content)
             {
                 PaintItem(context, canvas, content);
+            }
+
+            if (clipped)
+            {
+                canvas.Restore();
             }
 
             if (cell.Borders is { } borders)

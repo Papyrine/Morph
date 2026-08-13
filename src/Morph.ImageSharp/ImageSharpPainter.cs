@@ -471,9 +471,27 @@ static class ImageSharpPainter
                 Fill(context, canvas, cell.X, cell.Y, cell.Width, cell.Height, cell.BackgroundColorHex);
             }
 
+            // See SkiaPainter.PaintTableRow — the clip bounds the content only, never the shading or
+            // the borders.
+            var clipped = cell.ClipContent;
+            if (clipped)
+            {
+                canvas.Save();
+                canvas.Clip(new RectanglePolygon(
+                    P(context, cell.X - cell.ClipSpillLeft),
+                    P(context, cell.Y),
+                    P(context, cell.Width + cell.ClipSpillLeft + cell.ClipSpillRight),
+                    P(context, cell.Height)));
+            }
+
             foreach (var content in cell.Content)
             {
                 PaintItem(context, canvas, content);
+            }
+
+            if (clipped)
+            {
+                canvas.Restore();
             }
 
             if (cell.Borders is { } borders)
