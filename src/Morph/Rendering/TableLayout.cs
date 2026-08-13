@@ -186,6 +186,7 @@ static class TableLayout
         var gridIsAuthoritative = gridWidths is {Count: > 0};
 
         var hasExplicitWidths = false;
+        var columnHasExplicitWidth = new bool[colCount];
 
         foreach (var row in table.Rows)
         {
@@ -199,6 +200,7 @@ static class TableLayout
                 if (span == 1 && props.WidthPoints.HasValue)
                 {
                     widths[gridColIndex] = Math.Max(widths[gridColIndex], (float) props.WidthPoints.Value);
+                    columnHasExplicitWidth[gridColIndex] = true;
                     hasExplicitWidths = true;
                 }
                 else if (span == 1 && props.WidthFraction.HasValue)
@@ -206,11 +208,45 @@ static class TableLayout
                     // Percent-preferred cell (w:tcW type="pct"): resolve against the table's
                     // available width so a 45% layout cell gets 45%, not an equal share.
                     widths[gridColIndex] = Math.Max(widths[gridColIndex], (float) (props.WidthFraction.Value * availableWidth));
+                    columnHasExplicitWidth[gridColIndex] = true;
                     hasExplicitWidths = true;
                 }
 
                 gridColIndex += span;
             }
+        }
+
+        // w:tblGrid is a CACHE of the layout Word last performed, not an input: the authoritative
+        // preferred widths are w:tblW and the per-cell w:tcW. Because Word writes the grid out of
+        // its own fitted layout, the grid is normally the BETTER number of the two — it already has
+        // Word's content fitting baked in, and re-deriving it here can only drift. Measured over
+        // the 285 corpus tables that carry a full single-span dxa w:tcW cover, the two never
+        // disagree in SHAPE: normalise each to fractions of its own total and the largest
+        // per-column difference anywhere is 0.10pp (agendas-minutes/13), median 0.00pp. labels/13's
+        // 348-twip gap is 0.01pp of shape — a pure uniform scale, not a different layout.
+        //
+        // A grid that disagrees in shape is therefore not a variant reading, it is STALE: a
+        // generator wrote w:tcW without asking Word to re-lay the table out. "Stocktake export
+        // template v2.docx" declares a Name column of 6374tw against the grid's 1849tw — 32.7pp of
+        // shape, two orders of magnitude past anything authored — and Word lays it out at the
+        // w:tcW. Rendering the grid gave that column 88.6pt against Word's 258 and wrapped its
+        // heading to five lines instead of two.
+        //
+        // So only a provably stale grid hands over to the seeded autofit below; a grid that agrees
+        // with the cells keeps its long-standing verbatim treatment, which is what newsletters/05
+        // needs (grid and w:tcW identical at [131.5, 52.8, 367.8]pt — re-fitting it moved the body
+        // column 8pt off Word). Tables with no grid at all are left alone too: the explicit-widths
+        // branch below already handles them and nothing shows it is wrong. Fixed-layout tables keep
+        // the grid because they are sized verbatim rather than fitted, and
+        // header_full_bleed_banner's 625.4pt banner grid depends on it.
+        var explicitWidthsCoverAllColumns = hasExplicitWidths && Array.TrueForAll(columnHasExplicitWidth, _ => _);
+
+        if (explicitWidthsCoverAllColumns &&
+            isAutoFit &&
+            measurer != null &&
+            GridShapeIsStale(gridWidths, widths))
+        {
+            return CalculateContentBasedColumnWidths(table, colCount, availableWidth, measurer, widths);
         }
 
         if (hasExplicitWidths && !gridIsAuthoritative)
@@ -363,6 +399,53 @@ static class TableLayout
     }
 
     /// <summary>
+    /// Whether <c>w:tblGrid</c> describes a different column SHAPE than the cells' own
+    /// <c>w:tcW</c> — the signature of a grid left stale by a generator that wrote cell widths
+    /// without re-laying the table out. Each side is normalised to fractions of its own total, so
+    /// a table whose grid and cells differ only by a uniform scale (labels/13, cards/*, wedding/03
+    /// — all a w:tblW pct or dxa target applied to one side) reads as agreeing, which it does.
+    ///
+    /// The 2pp threshold sits two orders of magnitude clear of both populations: no authored
+    /// corpus table exceeds 0.10pp, and the stale case that motivated this is 32.7pp.
+    /// </summary>
+    static bool GridShapeIsStale(IReadOnlyList<double>? gridWidths, float[] declaredWidths)
+    {
+        if (gridWidths == null ||
+            gridWidths.Count != declaredWidths.Length)
+        {
+            return false;
+        }
+
+        var gridTotal = 0d;
+        foreach (var width in gridWidths)
+        {
+            gridTotal += width;
+        }
+
+        var declaredTotal = 0f;
+        foreach (var width in declaredWidths)
+        {
+            declaredTotal += width;
+        }
+
+        if (gridTotal <= 0 ||
+            declaredTotal <= 0)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < declaredWidths.Length; i++)
+        {
+            if (Math.Abs(gridWidths[i] / gridTotal - declaredWidths[i] / declaredTotal) > 0.02)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Content-based autofit: per column, take the max preferred (single-line natural)
     /// width and the max minimum (longest unbreakable token) width over its cells, then
     /// distribute available width:
@@ -372,8 +455,17 @@ static class TableLayout
     ///     even the longest unbreakable token can't fit the page).
     /// Multi-span cells contribute their content width split evenly across the columns
     /// they span; vertically merged continuation cells are skipped.
+    ///
+    /// <para><b>declaredPrefs.</b> When every column carries an explicit <c>w:tcW</c>, those
+    /// widths are the preferred ones and content is only allowed to WIDEN a column, never to
+    /// narrow it below its longest unbreakable token. That is measurably Word's rule: in
+    /// "Stocktake export template v2.docx" the Challenges column declares 60.5pt but holds the
+    /// unbreakable <c>Legislative/regulatory/constitutional</c>, and Word lays the column out at
+    /// 149.3pt — exactly that token plus padding — then takes the 88.8pt back from the other six
+    /// in proportion to their slack above their own minimums, which is what the interpolation
+    /// below already does. The table total stays pinned to <c>w:tblW</c> (701.45pt there).</para>
     /// </summary>
-    static float[] CalculateContentBasedColumnWidths(TableElement table, int colCount, float availableWidth, IParagraphMeasurer measurer)
+    static float[] CalculateContentBasedColumnWidths(TableElement table, int colCount, float availableWidth, IParagraphMeasurer measurer, float[]? declaredPrefs = null)
     {
         var prefs = new float[colCount];
         var mins = new float[colCount];
@@ -428,6 +520,27 @@ static class TableLayout
         }
 
         var widths = new float[colCount];
+
+        if (declaredPrefs != null)
+        {
+            for (var i = 0; i < colCount; i++)
+            {
+                prefs[i] = Math.Max(declaredPrefs[i], mins[i]);
+            }
+        }
+
+        // A table that declared w:tblW dxa is that size, so the columns are fitted to it rather
+        // than to the whole text column — but never past the column, which is where an autofit
+        // table gets squeezed. Only the seeded path reads it: without declared widths the target
+        // has always been the available width, and the FillContainer scaling below still owns the
+        // pct case in both.
+        var fitTarget = availableWidth;
+        if (declaredPrefs != null &&
+            tableProps.PreferredWidthPoints is { } declaredTableWidth)
+        {
+            fitTarget = Math.Min((float) declaredTableWidth, availableWidth);
+        }
+
         var sumPref = 0f;
         var sumMin = 0f;
         for (var i = 0; i < colCount; i++)
@@ -438,7 +551,7 @@ static class TableLayout
 
         if (sumPref <= 0)
         {
-            var equal = availableWidth / colCount;
+            var equal = fitTarget / colCount;
             for (var i = 0; i < colCount; i++)
             {
                 widths[i] = equal;
@@ -447,7 +560,7 @@ static class TableLayout
             return widths;
         }
 
-        if (sumPref <= availableWidth)
+        if (sumPref <= fitTarget)
         {
             // Two flavours:
             //  * w:tblW w:type="pct" said the table fills its container — distribute the
@@ -455,11 +568,21 @@ static class TableLayout
             //    the page width even when no explicit cell widths are present.
             //  * No w:tblW (or w:type="auto") — autofit hugs the content, so a small
             //    "Col 1 / R1C1" grid doesn't span the whole page.
+            //  * Seeded from w:tcW under a declared w:tblW dxa — the table is that size, so the
+            //    shortfall is shared out rather than left as trailing whitespace.
             if (tableProps.FillContainer)
             {
                 // Scale to the pct target, not blanket 100% (see the explicit-widths branch).
                 var target = (float) (availableWidth * (tableProps.PreferredWidthFraction ?? 1.0));
                 var scale = target / sumPref;
+                for (var i = 0; i < colCount; i++)
+                {
+                    widths[i] = prefs[i] * scale;
+                }
+            }
+            else if (declaredPrefs != null && tableProps.PreferredWidthPoints.HasValue)
+            {
+                var scale = fitTarget / sumPref;
                 for (var i = 0; i < colCount; i++)
                 {
                     widths[i] = prefs[i] * scale;
@@ -473,9 +596,9 @@ static class TableLayout
                 }
             }
         }
-        else if (sumMin < availableWidth)
+        else if (sumMin < fitTarget)
         {
-            var ratio = (availableWidth - sumMin) / (sumPref - sumMin);
+            var ratio = (fitTarget - sumMin) / (sumPref - sumMin);
             for (var i = 0; i < colCount; i++)
             {
                 widths[i] = mins[i] + (prefs[i] - mins[i]) * ratio;
@@ -483,7 +606,7 @@ static class TableLayout
         }
         else if (sumMin > 0)
         {
-            var scale = availableWidth / sumMin;
+            var scale = fitTarget / sumMin;
             for (var i = 0; i < colCount; i++)
             {
                 widths[i] = mins[i] * scale;
@@ -491,7 +614,7 @@ static class TableLayout
         }
         else
         {
-            var equal = availableWidth / colCount;
+            var equal = fitTarget / colCount;
             for (var i = 0; i < colCount; i++)
             {
                 widths[i] = equal;
