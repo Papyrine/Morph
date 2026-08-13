@@ -506,7 +506,7 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 
 | Expected (Word) | Morph Markdown |
 | --- | --- |
-| <img src="border_style_variants/expected_0001.png" width="500"><br><img src="border_style_variants/expected_0002.png" width="500"><br><img src="border_style_variants/expected_0003.png" width="500"><br><img src="border_style_variants/expected_0004.png" width="500"> | <img src="border_style_variants/md_result.verified.png" width="500"> |
+| <img src="border_style_variants/expected_0001.png" width="500"><br><img src="border_style_variants/expected_0002.png" width="500"><br><img src="border_style_variants/expected_0003.png" width="500"><br><img src="border_style_variants/expected_0004.png" width="500"><br><img src="border_style_variants/expected_0005.png" width="500"> | <img src="border_style_variants/md_result.verified.png" width="500"> |
 
 ## brochures/01
 

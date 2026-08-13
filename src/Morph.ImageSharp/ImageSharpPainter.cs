@@ -489,13 +489,28 @@ static class ImageSharpPainter
 
         // See SkiaPainter.StrokeEdge — one band per line of a multi-line style, offset
         // perpendicular to the edge; single-line styles come back as one band at offset 0.
-        StrokeEdge(context, canvas, borders.Top, horizontal: true, left, right, top, scope);
-        StrokeEdge(context, canvas, borders.Bottom, horizontal: true, left, right, bottom, scope);
-        StrokeEdge(context, canvas, borders.Left, horizontal: false, top, bottom, left, scope);
-        StrokeEdge(context, canvas, borders.Right, horizontal: false, top, bottom, right, scope);
+        StrokeEdge(context, canvas, borders.Top, horizontal: true, left, right, top, scope, outward: -1);
+        StrokeEdge(context, canvas, borders.Bottom, horizontal: true, left, right, bottom, scope, outward: 1);
+        StrokeEdge(context, canvas, borders.Left, horizontal: false, top, bottom, left, scope, outward: -1);
+        StrokeEdge(context, canvas, borders.Right, horizontal: false, top, bottom, right, scope, outward: 1);
     }
 
-    static void StrokeEdge(ImageSharpRenderContext context, DrawingCanvas canvas, BorderEdge edge, bool horizontal, float from, float to, float at, BorderStroke.Scope scope)
+    // See SkiaPainter.Shaded.
+    static Color Shaded(Color color, double shade)
+    {
+        if (shade >= 1)
+        {
+            return color;
+        }
+
+        var p = color.ToPixel<Rgba32>();
+        return Color.FromPixel(new Rgba32((byte) (p.R * shade), (byte) (p.G * shade), (byte) (p.B * shade), p.A));
+    }
+
+    // outward is -1 for the top/left edges and +1 for bottom/right: the direction that moves AWAY
+    // from the box. The span grows by the same offset at both ends so this band meets the
+    // perpendicular edges' matching band at the corner.
+    static void StrokeEdge(ImageSharpRenderContext context, DrawingCanvas canvas, BorderEdge edge, bool horizontal, float from, float to, float at, BorderStroke.Scope scope, int outward)
     {
         if (!BorderStroke.Draws(edge))
         {
@@ -506,21 +521,24 @@ static class ImageSharpPainter
         foreach (var band in BorderStroke.Bands(edge.Style, edge.WidthPoints, scope))
         {
             var offset = P(context, band.Offset);
-            var pen = EdgePen(context, edge, band.Thickness, dash);
+            var line = at + outward * offset;
+            var start = from - offset;
+            var end = to + offset;
+            var pen = EdgePen(context, edge, band.Thickness, dash, band.Shade);
             if (horizontal)
             {
-                canvas.DrawLine(pen, new PointF(from, at + offset), new PointF(to, at + offset));
+                canvas.DrawLine(pen, new PointF(start, line), new PointF(end, line));
             }
             else
             {
-                canvas.DrawLine(pen, new PointF(at + offset, from), new PointF(at + offset, to));
+                canvas.DrawLine(pen, new PointF(line, start), new PointF(line, end));
             }
         }
     }
 
-    static Pen EdgePen(ImageSharpRenderContext context, BorderEdge edge, double thickness, float[]? dashPoints)
+    static Pen EdgePen(ImageSharpRenderContext context, BorderEdge edge, double thickness, float[]? dashPoints, double shade)
     {
-        var color = ImageSharpRenderContext.ParseColor(edge.ColorHex);
+        var color = Shaded(ImageSharpRenderContext.ParseColor(edge.ColorHex), shade);
         var strokeWidth = P(context, thickness);
         if (dashPoints == null)
         {

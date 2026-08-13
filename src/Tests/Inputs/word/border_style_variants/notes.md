@@ -16,29 +16,39 @@ Un-collapsing the enum fixed the grouping and the stroke together; `BorderStroke
 line/gap layout and dash patterns for all three backends, and run borders (`w:bdr`) paint for
 the first time.
 
-Two rules in `BorderStroke` are measured off this fixture and `_probe_bordersp`, and they
-DISAGREE BY SCOPE — a paragraph border's `w:sz` is the width of each line for the symmetric
-families (a 3pt `double` stacks to 9pt) while a cell border's is the total. Both readings are
-direct measurements of Word's ink; see `docs/word-features.md` (Cell Borders) for the numbers.
-Deriving one from a single width was wrong twice during this work, so do not re-derive either
-from one sample.
+Paragraph and cell borders have now been measured to differ in Word THREE times: the meaning of
+`w:sz` (per-line for a paragraph's symmetric families, total for a cell), and the stack's
+geometry (a paragraph border grows outward from the box so a wide one stays clear of the text; a
+cell border straddles its edge, which is shared with the neighbour). All are direct measurements
+of Word's ink — see `docs/word-features.md` (Cell Borders). Deriving one scope's rule from the
+other, or from a single width, was wrong three times during this work.
+
+**Reading the raw XML is not enough to know what a scenario's borders are.** `labels/08` scanned
+as `single`-only twice; its 40 `3pt double` borders arrive through a table style. Its
+`html_result.verified.html` shows what the parser actually built, and was the reliable source.
+
+**Sizing.** Sections 2, 3 and 10 declare FAT borders (`sz=24`/`sz=18`) on purpose. At the
+`sz=6` they used originally every style resolved to 1-2px, antialiasing dominated, and the
+checked-in reference could not tell you what correct looked like — which is how `inset`/`outset`
+were briefly modelled with a highlight Word does not draw. Section 1 stays at `sz=6` because it
+is the original fixture, kept verbatim. Keep the fat sizes when editing.
 
 **Still open**, and visible here:
 
 1. `wave` and `doubleWave` stroke straight (one and two lines) — the sine path needs geometry
    in three painters.
-2. The bevel SHADING of `threeDEmboss`/`threeDEngrave`/`outset`/`inset` is not reproduced. Their
-   line structure is (two lines and one respectively), which is what makes them distinguishable.
+2. The bevel styles' geometry and shading now render (see `BorderStroke`), but the block is
+   fitted to one probe: Word's 6pt groove spans 19px split ~12px dark / ~3px light, modelled as
+   1.2/0.3 units at 0.41x. The proportions have not been checked at other widths.
 3. At `sz=96` (12pt) the band paints across the paragraph text rather than outside it, so the
    label reads "ingle, sz=96". Word keeps the text clear.
 4. The thin/thick family's stack is fitted to the measurement rather than understood — see the
    `perLine` comment in `BorderStroke.Bands`.
 
-**On the AE metric.** This scenario's recorded error ROSE when the rendering was fixed
-(0.1231 → 0.1225 after the whole sequence, having peaked at 0.1465 mid-way) even though the
-render moved much closer to Word. That is the new-ink offset penalty in its clearest form: going
-from 6 boxes to 25 means Morph now draws ink almost everywhere Word does, and residual
-misalignment counts twice where absent ink counted once. The measure that tracked the
-improvement was positional — mean distance from each drawn rule to the nearest Word rule on p1
-went 29.1px → 10.2px. Read this scenario's AE with that in mind before treating a change here
-as a regression.
+**On the AE metric.** This scenario's recorded error is HIGH (~0.15 mean against Word) and that
+is expected rather than a defect: it is a torture fixture of 25+ bordered boxes per page, so any
+residual vertical drift double-counts — Morph's rule differs from white AND Word's rule differs
+from white. Positional agreement is the measure that tracks fidelity here; mean distance from
+each drawn rule to the nearest Word rule is 11-21px per page. Before treating a change to this
+scenario as a regression, measure that instead. (The fixture was rebuilt with fat borders on
+2026-08-13, so AE figures recorded against the earlier thin version do not compare.)

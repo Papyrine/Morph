@@ -36,19 +36,21 @@ public class BorderStrokeTests
         await Assert.That(bands[0].Thickness).IsEqualTo(3).Within(0.0001);
         await Assert.That(bands[1].Thickness).IsEqualTo(3).Within(0.0001);
         await Assert.That(BorderStroke.Extent(BorderLineStyle.Double, 3)).IsEqualTo(9).Within(0.0001);
-        // Symmetric about the edge, so a double border sits where a single one would.
-        await Assert.That(bands[0].Offset + bands[1].Offset).IsEqualTo(0).Within(0.0001);
+        // Stacked OUTWARD from the box, innermost first: the inner line sits where a single one
+        // would (offset 0) and the outer one clears it by its own half, the gap and the other half.
+        await Assert.That(bands[0].Offset).IsEqualTo(0).Within(0.0001);
+        await Assert.That(bands[1].Offset).IsEqualTo(6).Within(0.0001);
     }
 
     [Test]
-    public async Task Triple_draws_three_lines_with_the_middle_on_the_edge()
+    public async Task Triple_draws_three_nested_lines_from_the_box_outward()
     {
         var bands = BorderStroke.Bands(BorderLineStyle.Triple, 1);
 
         await Assert.That(bands.Length).IsEqualTo(3);
-        await Assert.That(bands[1].Offset).IsEqualTo(0).Within(0.0001);
-        await Assert.That(bands[0].Offset).IsEqualTo(-2).Within(0.0001);
-        await Assert.That(bands[2].Offset).IsEqualTo(2).Within(0.0001);
+        await Assert.That(bands[0].Offset).IsEqualTo(0).Within(0.0001);
+        await Assert.That(bands[1].Offset).IsEqualTo(2).Within(0.0001);
+        await Assert.That(bands[2].Offset).IsEqualTo(4).Within(0.0001);
         await Assert.That(BorderStroke.Extent(BorderLineStyle.Triple, 1)).IsEqualTo(5).Within(0.0001);
     }
 
@@ -76,16 +78,17 @@ public class BorderStrokeTests
     [Test]
     public async Task Thin_thick_pairs_keep_their_asymmetry()
     {
-        // 1-1-2: a thin outer line, a gap, then a thick inner one at twice the thickness.
+        // 1-1-2 outermost-first, and bands come back innermost-first, so thinThick's INNER line is
+        // the thick one and its outer line the thin one.
         var thinThick = BorderStroke.Bands(BorderLineStyle.ThinThickSmallGap, 4);
         await Assert.That(thinThick.Length).IsEqualTo(2);
-        await Assert.That(thinThick[0].Thickness).IsEqualTo(1).Within(0.0001);
-        await Assert.That(thinThick[1].Thickness).IsEqualTo(2).Within(0.0001);
+        await Assert.That(thinThick[0].Thickness).IsEqualTo(2).Within(0.0001);
+        await Assert.That(thinThick[1].Thickness).IsEqualTo(1).Within(0.0001);
 
-        // The mirror image, so the thick line comes first.
+        // The mirror image.
         var thickThin = BorderStroke.Bands(BorderLineStyle.ThickThinSmallGap, 4);
-        await Assert.That(thickThin[0].Thickness).IsEqualTo(2).Within(0.0001);
-        await Assert.That(thickThin[1].Thickness).IsEqualTo(1).Within(0.0001);
+        await Assert.That(thickThin[0].Thickness).IsEqualTo(1).Within(0.0001);
+        await Assert.That(thickThin[1].Thickness).IsEqualTo(2).Within(0.0001);
     }
 
     [Test]
@@ -102,6 +105,37 @@ public class BorderStrokeTests
         // A clear gap survives between the two lines.
         var gap = bands[1].Offset - bands[0].Offset - bands[0].Thickness / 2 - bands[1].Thickness / 2;
         await Assert.That(gap).IsGreaterThanOrEqualTo(0.5);
+    }
+
+    [Test]
+    public async Task Every_band_stacks_outward_so_none_intrudes_on_the_content()
+    {
+        // The bug this guards: bands used to straddle the box, so a wide stack put its innermost
+        // line INSIDE the text — a `triple` box rendered its label as "riple" — and each band was
+        // drawn across the original box extent, leaving the corners open and the vertical bands
+        // sticking out as stubs. Offsets are outward-only and the painters expand each band's span
+        // by the same amount, which closes them into concentric rectangles.
+        foreach (var style in new[]
+                 {
+                     BorderLineStyle.Double, BorderLineStyle.Triple, BorderLineStyle.ThinThickLargeGap,
+                     BorderLineStyle.ThreeDEngrave, BorderLineStyle.ThreeDEmboss, BorderLineStyle.Single
+                 })
+        {
+            var bands = BorderStroke.Bands(style, 3);
+            await Assert.That(bands[0].Offset).IsEqualTo(0).Within(0.0001);
+            foreach (var band in bands)
+            {
+                await Assert.That(band.Offset).IsGreaterThanOrEqualTo(0);
+            }
+
+            for (var i = 1; i < bands.Length; i++)
+            {
+                // Strictly outward, and never overlapping the band it stacks on.
+                var clearance = bands[i].Offset - bands[i - 1].Offset
+                    - bands[i].Thickness / 2 - bands[i - 1].Thickness / 2;
+                await Assert.That(clearance).IsGreaterThanOrEqualTo(-0.0001);
+            }
+        }
     }
 
     [Test]
