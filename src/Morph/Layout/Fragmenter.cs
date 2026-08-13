@@ -479,6 +479,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // assembled once the flow finishes and the total page count is known, so a NUMPAGES field can
             // resolve. A page carrying only empty spacer lines — a document-final empty paragraph pushed off
             // the previous page — is a natural overflow blank Word does not render, so it drops.
+            CentreVertically();
+
             if (HasVisibleContent(items) || currentPageExplicit || bodies.Count == 0)
             {
                 bodies.Add((items, current));
@@ -496,6 +498,80 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // A float's exclusion belongs to the page it was anchored on; the new page starts clear.
             floatExclusions.Clear();
         }
+
+        // Drops the page's content into the middle of the margin band, for a sheet that asked to be centred
+        // down the page (printOptions/@verticalCentered — PageSettings.VerticallyCentered). It runs at page
+        // CLOSE because that is the first moment the slack is known: nothing can say how much room is left
+        // over until everything that fits has been placed.
+        //
+        // The extent measured is the BODY's — the grid — and the page's floats are then moved by the same
+        // amount rather than measured themselves, exactly as the horizontal half works: Excel centres the
+        // print area, and a sheet's drawings anchor to its cells, so art that does not travel with the grid
+        // detaches from it. Word-measured on org-charts-visual, whose centred sheet declares a 0.5in top
+        // margin against a 1in bottom: Excel's gaps come out 305px and 351px at 96 DPI, the 46px difference
+        // being exactly the margin difference — so the content is centred between the MARGINS, not on the
+        // paper.
+        //
+        // A page too full to have slack keeps its content where it is. That makes the rule degenerate to
+        // nothing on every full page of a multi-page sheet and centre only the last, short one; no corpus
+        // workbook exercises that (all ten centred sheets fit their page vertically, to-do-list's second page
+        // being a HORIZONTAL split of the same rows), and the print spooler was down when this landed, so
+        // Excel could not be asked. Probe it before trusting the multi-page tail.
+        void CentreVertically()
+        {
+            if (!current.VerticallyCentered || items.Count == 0)
+            {
+                return;
+            }
+
+            var top = float.MaxValue;
+            var bottom = float.MinValue;
+            foreach (var item in items)
+            {
+                top = Math.Min(top, item.Y);
+                bottom = Math.Max(bottom, item.Y + item.Height);
+            }
+
+            var offset = (contentBottom - bottom - (top - contentTop)) / 2;
+            if (offset <= 0.01f)
+            {
+                return;
+            }
+
+            for (var index = 0; index < items.Count; index++)
+            {
+                items[index] = ShiftItem(items[index], offset);
+            }
+
+            var page = bodies.Count;
+            for (var index = 0; index < bodyFloats.Count; index++)
+            {
+                if (bodyFloats[index].Page == page)
+                {
+                    bodyFloats[index] = bodyFloats[index] with {Item = ShiftItem(bodyFloats[index].Item, offset)};
+                }
+            }
+        }
+
+        // Moves any placed item down the page, recursing into the two kinds that carry absolute coordinates
+        // of their own: a line's inline images and baseline (ShiftLine), and a table row's cells and the
+        // content inside them. Everything else is a plain box, so shifting Y on the record is the whole job —
+        // a run carries no Y at all, being drawn at its line's baseline.
+        static PlacedItem ShiftItem(PlacedItem item, float dy) =>
+            item switch
+            {
+                PlacedLine line => ShiftLine(line, 0, dy),
+                PlacedTableRow row => row with
+                {
+                    Y = row.Y + dy,
+                    Cells = [.. row.Cells.Select(cell => cell with
+                    {
+                        Y = cell.Y + dy,
+                        Content = [.. cell.Content.Select(inner => ShiftItem(inner, dy))]
+                    })]
+                },
+                _ => item with {Y = item.Y + dy}
+            };
 
         // A page carries visible content if it has anything beyond empty spacer lines — a table row, an image,
         // a shape, or a line with real text or an inline image. A blank paragraph's whitespace-only line does
