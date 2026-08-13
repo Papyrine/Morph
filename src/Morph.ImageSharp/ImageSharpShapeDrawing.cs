@@ -114,7 +114,7 @@ static class ImageSharpShapeDrawing
 
     /// <summary>
     /// <see cref="DrawingOptions"/> whose transform rotates by <paramref name="radians"/> around the
-    /// pivot. Use with <see cref="DrawingCanvas.Save(DrawingOptions, IPath[])"/> /
+    /// pivot. Use with <see cref="DrawingCanvas.Save()"/> /
     /// <see cref="DrawingCanvas.Restore"/> to render content rotated in geometry space, avoiding
     /// the temp-image + <c>Mutate(_.Rotate(...))</c> + composite round trip.
     /// </summary>
@@ -135,7 +135,7 @@ static class ImageSharpShapeDrawing
     // this ImageSharp's default even-odd rule would punch holes wherever contours overlap.
     internal static readonly DrawingOptions NonzeroFill = new()
     {
-        ShapeOptions = new() { IntersectionRule = IntersectionRule.NonZero }
+        IntersectionRule = IntersectionRule.NonZero
     };
 
     internal static IPath BuildPath(FloatingShapeElement shape, float x, float y, float width, float height)
