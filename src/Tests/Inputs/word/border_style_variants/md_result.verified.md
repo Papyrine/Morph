@@ -8,7 +8,7 @@ Inset border
 
 Outset border
 
-**2. Every ST\_Border line style - paragraph borders (w:pBdr, sz 6)**
+**2. Every ST\_Border line style - paragraph borders (w:pBdr, sz 24 = 3pt)**
 
 nil
 
@@ -64,7 +64,7 @@ outset
 
 inset
 
-**3. Every ST\_Border line style - run borders (w:bdr)**
+**3. Every ST\_Border line style - run borders (w:bdr, sz 18)**
 
 nil    none    single    thick   
 

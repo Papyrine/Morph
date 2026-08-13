@@ -209,7 +209,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### border_style_variants
 
 - MEDIUM | all | p1,p2 | `wave` and `doubleWave` stroke straight (one and two lines); Word draws a sine path. Needs real geometry in three painters, so it is its own change
-- MEDIUM | all | p1,p2 | the light/dark bevel SHADING of `threeDEmboss`/`threeDEngrave`/`outset`/`inset` is not reproduced — only their line structure, which is what makes them distinguishable from each other
+- MINOR | all | p1,p2 | the three-D bevel block is fitted to a single probe width — Word's 6pt groove spans 19px split ~12px dark / ~3px light, modelled as 1.2/0.3 units at 0.41x, and the proportions are unverified at other `w:sz`
 - MINOR | all | p2 | at sz=96 (12pt) the border band is painted across the paragraph text instead of outside it, so the label reads "ingle, sz=96"
 
 ### brochures/01

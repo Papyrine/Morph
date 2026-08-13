@@ -530,13 +530,23 @@ static class SkiaPainter
         // A multi-line style (double, triple, the thin/thick pairs) strokes each of its lines in
         // turn, offset perpendicular to the edge; a single-line style yields one band at offset 0
         // and draws exactly where it always did.
-        StrokeEdge(context, canvas, borders.Top, horizontal: true, left, right, top, scope);
-        StrokeEdge(context, canvas, borders.Bottom, horizontal: true, left, right, bottom, scope);
-        StrokeEdge(context, canvas, borders.Left, horizontal: false, top, bottom, left, scope);
-        StrokeEdge(context, canvas, borders.Right, horizontal: false, top, bottom, right, scope);
+        StrokeEdge(context, canvas, borders.Top, horizontal: true, left, right, top, scope, outward: -1);
+        StrokeEdge(context, canvas, borders.Bottom, horizontal: true, left, right, bottom, scope, outward: 1);
+        StrokeEdge(context, canvas, borders.Left, horizontal: false, top, bottom, left, scope, outward: -1);
+        StrokeEdge(context, canvas, borders.Right, horizontal: false, top, bottom, right, scope, outward: 1);
     }
 
-    static void StrokeEdge(SkiaRenderContext context, SKCanvas canvas, BorderEdge edge, bool horizontal, float from, float to, float at, BorderStroke.Scope scope)
+    // Darkens a bevel band's colour. Shade is 1 for every ordinary border, so this is identity
+    // except on threeDEngrave/threeDEmboss.
+    static SKColor Shaded(SKColor color, double shade) =>
+        shade >= 1
+            ? color
+            : new((byte) (color.Red * shade), (byte) (color.Green * shade), (byte) (color.Blue * shade), color.Alpha);
+
+    // outward is -1 for the top/left edges and +1 for bottom/right: the direction that moves AWAY
+    // from the box. The span grows by the same offset at both ends so this band meets the
+    // perpendicular edges' matching band at the corner.
+    static void StrokeEdge(SkiaRenderContext context, SKCanvas canvas, BorderEdge edge, bool horizontal, float from, float to, float at, BorderStroke.Scope scope, int outward)
     {
         if (!BorderStroke.Draws(edge))
         {
@@ -547,22 +557,25 @@ static class SkiaPainter
         foreach (var band in BorderStroke.Bands(edge.Style, edge.WidthPoints, scope))
         {
             var offset = P(context, band.Offset);
-            var pen = EdgePen(context, edge, band.Thickness, dash);
+            var line = at + outward * offset;
+            var start = from - offset;
+            var end = to + offset;
+            var pen = EdgePen(context, edge, band.Thickness, dash, band.Shade);
             if (horizontal)
             {
-                canvas.DrawLine(from, at + offset, to, at + offset, pen);
+                canvas.DrawLine(start, line, end, line, pen);
             }
             else
             {
-                canvas.DrawLine(at + offset, from, at + offset, to, pen);
+                canvas.DrawLine(line, start, line, end, pen);
             }
         }
     }
 
-    static SKPaint EdgePen(SkiaRenderContext context, BorderEdge edge, double thickness, float[]? dashPoints)
+    static SKPaint EdgePen(SkiaRenderContext context, BorderEdge edge, double thickness, float[]? dashPoints, double shade)
     {
         // GetReusableRulePaint clears any previous PathEffect, so a solid edge needs no reset here.
-        var pen = context.GetReusableRulePaint(SkiaRenderContext.ParseColor(edge.ColorHex), P(context, thickness));
+        var pen = context.GetReusableRulePaint(Shaded(SkiaRenderContext.ParseColor(edge.ColorHex), shade), P(context, thickness));
         if (dashPoints != null)
         {
             var intervals = new float[dashPoints.Length];

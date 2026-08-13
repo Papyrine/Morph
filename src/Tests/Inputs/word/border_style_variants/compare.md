@@ -25,33 +25,41 @@ direct measurements of Word's ink; see `docs/word-features.md` (Cell Borders) fo
 Deriving one from a single width was wrong twice during this work, so do not re-derive either
 from one sample.
 
+**Sizing.** Sections 2, 3 and 10 declare FAT borders (`sz=24`/`sz=18`) on purpose. At the
+`sz=6` they used originally every style resolved to 1-2px, antialiasing dominated, and the
+checked-in reference could not tell you what correct looked like — which is how `inset`/`outset`
+were briefly modelled with a highlight Word does not draw. Section 1 stays at `sz=6` because it
+is the original fixture, kept verbatim. Keep the fat sizes when editing.
+
 **Still open**, and visible here:
 
 1. `wave` and `doubleWave` stroke straight (one and two lines) — the sine path needs geometry
    in three painters.
-2. The bevel SHADING of `threeDEmboss`/`threeDEngrave`/`outset`/`inset` is not reproduced. Their
-   line structure is (two lines and one respectively), which is what makes them distinguishable.
+2. The bevel styles' geometry and shading now render (see `BorderStroke`), but the block is
+   fitted to one probe: Word's 6pt groove spans 19px split ~12px dark / ~3px light, modelled as
+   1.2/0.3 units at 0.41x. The proportions have not been checked at other widths.
 3. At `sz=96` (12pt) the band paints across the paragraph text rather than outside it, so the
    label reads "ingle, sz=96". Word keeps the text clear.
 4. The thin/thick family's stack is fitted to the measurement rather than understood — see the
    `perLine` comment in `BorderStroke.Bands`.
 
-**On the AE metric.** This scenario's recorded error ROSE when the rendering was fixed
-(0.1231 → 0.1225 after the whole sequence, having peaked at 0.1465 mid-way) even though the
-render moved much closer to Word. That is the new-ink offset penalty in its clearest form: going
-from 6 boxes to 25 means Morph now draws ink almost everywhere Word does, and residual
-misalignment counts twice where absent ink counted once. The measure that tracked the
-improvement was positional — mean distance from each drawn rule to the nearest Word rule on p1
-went 29.1px → 10.2px. Read this scenario's AE with that in mind before treating a change here
-as a regression.
+**On the AE metric.** This scenario's recorded error is HIGH (~0.15 mean against Word) and that
+is expected rather than a defect: it is a torture fixture of 25+ bordered boxes per page, so any
+residual vertical drift double-counts — Morph's rule differs from white AND Word's rule differs
+from white. Positional agreement is the measure that tracks fidelity here; mean distance from
+each drawn rule to the nearest Word rule is 11-21px per page. Before treating a change to this
+scenario as a regression, measure that instead. (The fixture was rebuilt with fat borders on
+2026-08-13, so AE figures recorded against the earlier thin version do not compare.)
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1559 · SSIM: 0.6721** | **Page 1. ErrorMetric: 0.1563 · SSIM: 0.6709** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1681 · SSIM: 0.6637** | **Page 1. ErrorMetric: 0.1686 · SSIM: 0.6610** |
 | <img src="expected_0001.png" width="500"> | <img src="skia_result%23page_0001.verified.png" width="500"> | <img src="imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.1725 · SSIM: 0.6118** | **Page 2. ErrorMetric: 0.1710 · SSIM: 0.6151** |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.2368 · SSIM: 0.5419** | **Page 2. ErrorMetric: 0.2368 · SSIM: 0.5426** |
 | <img src="expected_0002.png" width="500"> | <img src="skia_result%23page_0002.verified.png" width="500"> | <img src="imagesharp_result%23page_0002.verified.png" width="500"> |
-| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.1381 · SSIM: 0.7068** | **Page 3. ErrorMetric: 0.1381 · SSIM: 0.7053** |
+| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.1825 · SSIM: 0.6317** | **Page 3. ErrorMetric: 0.1818 · SSIM: 0.6323** |
 | <img src="expected_0003.png" width="500"> | <img src="skia_result%23page_0003.verified.png" width="500"> | <img src="imagesharp_result%23page_0003.verified.png" width="500"> |
-| **Page 4**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 4. ErrorMetric: 0.1080 · SSIM: 0.7190** | **Page 4. ErrorMetric: 0.1075 · SSIM: 0.7180** |
+| **Page 4**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 4. ErrorMetric: 0.1088 · SSIM: 0.6915** | **Page 4. ErrorMetric: 0.1093 · SSIM: 0.6909** |
 | <img src="expected_0004.png" width="500"> | <img src="skia_result%23page_0004.verified.png" width="500"> | <img src="imagesharp_result%23page_0004.verified.png" width="500"> |
+| **Page 5**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 5. ErrorMetric: 0.0475 · SSIM: 0.9012** | **Page 5. ErrorMetric: 0.0475 · SSIM: 0.9013** |
+| <img src="expected_0005.png" width="500"> | <img src="skia_result%23page_0005.verified.png" width="500"> | <img src="imagesharp_result%23page_0005.verified.png" width="500"> |
