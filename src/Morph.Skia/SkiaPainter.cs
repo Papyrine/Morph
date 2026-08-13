@@ -530,10 +530,19 @@ static class SkiaPainter
         // A multi-line style (double, triple, the thin/thick pairs) strokes each of its lines in
         // turn, offset perpendicular to the edge; a single-line style yields one band at offset 0
         // and draws exactly where it always did.
-        StrokeEdge(context, canvas, borders.Top, horizontal: true, left, right, top, scope, outward: -1);
-        StrokeEdge(context, canvas, borders.Bottom, horizontal: true, left, right, bottom, scope, outward: 1);
-        StrokeEdge(context, canvas, borders.Left, horizontal: false, top, bottom, left, scope, outward: -1);
-        StrokeEdge(context, canvas, borders.Right, horizontal: false, top, bottom, right, scope, outward: 1);
+        // Each edge is extended at an end where the PERPENDICULAR edge also draws, by half its own
+        // thickness, so the two overlap and fill the corner square. Without it a butt-capped stroke
+        // leaves a notch of half the width at every corner — invisible at 0.5pt, a 3px bite at 3pt.
+        // Not extended where the neighbour is absent, so a top-only rule still spans exactly its box.
+        var drawsLeft = BorderStroke.Draws(borders.Left);
+        var drawsRight = BorderStroke.Draws(borders.Right);
+        var drawsTop = BorderStroke.Draws(borders.Top);
+        var drawsBottom = BorderStroke.Draws(borders.Bottom);
+
+        StrokeEdge(context, canvas, borders.Top, horizontal: true, left, right, top, scope, outward: -1, drawsLeft, drawsRight);
+        StrokeEdge(context, canvas, borders.Bottom, horizontal: true, left, right, bottom, scope, outward: 1, drawsLeft, drawsRight);
+        StrokeEdge(context, canvas, borders.Left, horizontal: false, top, bottom, left, scope, outward: -1, drawsTop, drawsBottom);
+        StrokeEdge(context, canvas, borders.Right, horizontal: false, top, bottom, right, scope, outward: 1, drawsTop, drawsBottom);
     }
 
     // Darkens a bevel band's colour. Shade is 1 for every ordinary border, so this is identity
@@ -546,7 +555,7 @@ static class SkiaPainter
     // outward is -1 for the top/left edges and +1 for bottom/right: the direction that moves AWAY
     // from the box. The span grows by the same offset at both ends so this band meets the
     // perpendicular edges' matching band at the corner.
-    static void StrokeEdge(SkiaRenderContext context, SKCanvas canvas, BorderEdge edge, bool horizontal, float from, float to, float at, BorderStroke.Scope scope, int outward)
+    static void StrokeEdge(SkiaRenderContext context, SKCanvas canvas, BorderEdge edge, bool horizontal, float from, float to, float at, BorderStroke.Scope scope, int outward, bool extendStart, bool extendEnd)
     {
         if (!BorderStroke.Draws(edge))
         {
@@ -557,9 +566,10 @@ static class SkiaPainter
         foreach (var band in BorderStroke.Bands(edge.Style, edge.WidthPoints, scope))
         {
             var offset = P(context, band.Offset);
+            var half = P(context, band.Thickness) / 2;
             var line = at + outward * offset;
-            var start = from - offset;
-            var end = to + offset;
+            var start = from - offset - (extendStart ? half : 0);
+            var end = to + offset + (extendEnd ? half : 0);
             var pen = EdgePen(context, edge, band.Thickness, dash, band.Shade);
             if (horizontal)
             {

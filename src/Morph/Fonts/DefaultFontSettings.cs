@@ -20,15 +20,20 @@ static class DefaultFontSettings
     /// survive a 12/11 scaling check. Aptos is Word's default for NEW documents, which always
     /// declare it in <c>docDefaults</c> — so that default never reaches this constant.
     ///
-    /// It stays Aptos regardless, because switching it alone makes the corpus WORSE: measured over
-    /// the 150 scenarios it moves, mean AE goes 0.04136 -> 0.04151 and FOUR scenarios lose Word's
-    /// page count (explicit_break_blank_page, html_complex, business-plans/09, newsletters/07),
-    /// against a documented 325/325 invariant. Tables and short text improve sharply
-    /// (complex_document -0.048, table_default_style -0.037) while flowing text regresses
-    /// (complex_spacing +0.102, multiple_pages +0.031) — because Morph's own Calibri 12 renders
-    /// 2.37% NARROWER than Word's (617px against 632px on that same string, while Morph's Aptos 12,
-    /// Times 12 and Calibri 11 are all within ~1%). That metric gap has to be closed first; see
-    /// <c>src/todo.md</c> #43.</para>
+    /// It stays Aptos anyway, and the reason is NOT that Calibri breaks pagination — an earlier note
+    /// here claimed four scenarios lost Word's page count under Calibri and that was WRONG, an
+    /// artifact of counting Verify's `.received.` files, which exist only for pages that DIFFER.
+    /// Re-measured from `ResultingPageCount` in the result JSON: zero scenarios change page count.
+    ///
+    /// The real reason is fidelity, and it is narrow: switching moves mean AE from 0.04142 to
+    /// 0.04158 over the 150 scenarios it touches. Tables and short text improve sharply
+    /// (complex_document -0.048, table_default_style -0.037, table_borders -0.009) while flowing
+    /// text regresses (complex_spacing +0.102, multiple_pages +0.031). That split is the whole
+    /// story: Word grid-fits Calibri's advances away from the font file's — per glyph, by up to
+    /// +4.6% at 12pt (see <c>src/todo.md</c> #43) — so Morph cannot track Word's Calibri, while its
+    /// Aptos, Times and Calibri-at-other-sizes all sit within ~1%. Aptos is therefore the font
+    /// Morph renders most faithfully to Word even though Calibri is what Word would have used.
+    /// Revisit if hinted advances are ever modelled.</para>
     /// </summary>
     const string builtInDefaultFont = "Aptos";
 
