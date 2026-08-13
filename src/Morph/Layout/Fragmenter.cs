@@ -536,9 +536,20 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 var behindFloats = bodyFloats.Where(_ => _.Page == pageFloats && _.Behind).Select(_ => _.Item).ToList();
                 var frontFloats = bodyFloats.Where(_ => _.Page == pageFloats && !_.Behind).Select(_ => _.Item).ToList();
 
+                // The whole header/footer story paints BELOW every body item, floats included — w:behindDoc
+                // orders a float against the body TEXT and says nothing about the bands, which are under it
+                // either way. Word-probed (_probe_footerz: two opaque page-anchored rectangles over a
+                // three-word footer, one behindDoc="1" and one behindDoc="0"; both bury their word outright
+                // while the uncovered third word proves the footer rendered, and the same pair over a line
+                // of body text shows the ordinary behind/in-front split, so the fixture is sound).
+                //
+                // The footer band used to paint LAST, over everything. That drew business-plans/13's cover
+                // footer on top of the grey title rectangle — a behind-text body float spanning 575.4pt to
+                // the page bottom — where Word has it buried; business-plans/15's TOC pages are the same
+                // shape. The header band was already ordered correctly.
                 var pageItems = backgroundImages.Count == 0 && footerImages.Count == 0 && headerBand.Count == 0 && footerBand.Count == 0 && behindFloats.Count == 0 && frontFloats.Count == 0
                     ? body
-                    : (IReadOnlyList<PlacedItem>) [.. backgroundImages, .. footerImages, .. headerBand, .. behindFloats, .. body, .. frontFloats, .. footerBand];
+                    : (IReadOnlyList<PlacedItem>) [.. backgroundImages, .. footerImages, .. headerBand, .. footerBand, .. behindFloats, .. body, .. frontFloats];
                 pages.Add(new(pageNumber, settings, pageItems));
             }
 

@@ -195,6 +195,21 @@ business-plans/08's accent rule).
   `AppendHeaderFooterElements` — letters/02's header stacks an opaque white JPEG
   (z 251658240) UNDER its frame PNG (251658241), and painting in document order whited out
   the whole letterhead.
+- The header/footer STORY as a whole sits below every body item, floats included.
+  `Fragmenter.AssemblePages` emits
+  `backgroundImages, footerImages, headerBand, footerBand, behindFloats, body, frontFloats`,
+  and `w:behindDoc` orders a float only against the body TEXT — it says nothing about the
+  bands, which are under it either way. Word-probed (`_probe_footerz`, 2026-08-13): a footer
+  of three tab-separated words with two opaque page-anchored rectangles over the first two,
+  one `behindDoc="1"` and one `behindDoc="0"`, has BOTH words buried outright while the
+  uncovered third proves the footer rendered; the same rectangle pair over a line of body text
+  shows the ordinary behind/in-front split, so the fixture cannot be blamed for the result.
+  The footer band used to paint LAST, over everything, which drew business-plans/13's cover
+  footer on top of the grey title rectangle — a behind-text body float running from 575.4pt to
+  the page bottom — where Word has it buried (measured: 1896 ink pixels in that strip against
+  Word's 0, now 0). The header band was already ordered correctly. Worth −0.0013 on
+  business-plans/13 and −0.0001 on business-plans/15 across all three backends, with thirteen
+  further PDF scenarios re-snapshotting for content-stream order alone at identical pixels.
 
 ## Fills
 

@@ -11,7 +11,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "This document has a footer at the bottom of each page.\nThe footer should appear on every page.\nDocument Footer - Confidential"
+        "Text": "Document Footer - Confidential\nThis document has a footer at the bottom of each page.\nThe footer should appear on every page."
       }
     ]
   },

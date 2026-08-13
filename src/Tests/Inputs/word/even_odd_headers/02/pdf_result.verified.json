@@ -11,22 +11,22 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "ODD HEADER\nPage 1 body content.\nODD FOOTER"
+        "Text": "ODD HEADER\nODD FOOTER\nPage 1 body content."
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "EVEN HEADER\nPage 2 body content.\nEVEN FOOTER"
+        "Text": "EVEN HEADER\nEVEN FOOTER\nPage 2 body content."
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "ODD HEADER\nPage 3 body content.\nODD FOOTER"
+        "Text": "ODD HEADER\nODD FOOTER\nPage 3 body content."
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "EVEN HEADER\nPage 4 body content.\nEVEN FOOTER"
+        "Text": "EVEN HEADER\nEVEN FOOTER\nPage 4 body content."
       }
     ]
   },

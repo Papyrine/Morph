@@ -5,15 +5,15 @@
     {
       "Page": 1,
       "ErrorMetric": 0.6359,
-      "Ssim": 0.7679,
+      "Ssim": 0.7671,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "imagesharp_result#page_0001.verified.png",
       "ReceivedFile": "imagesharp_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.5281,
-      "Ssim": 0.8476,
+      "ErrorMetric": 0.5279,
+      "Ssim": 0.8477,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "imagesharp_result#page_0002.verified.png",
       "ReceivedFile": "imagesharp_result#page_0002.received.png"
