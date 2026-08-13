@@ -356,7 +356,11 @@ sealed class SpreadsheetParser(string defaultFont, string? fontDirectory = null)
             MarginTop = (margins?.Top?.Value ?? 0.75) * pointsPerInch,
             MarginBottom = (margins?.Bottom?.Value ?? 0.75) * pointsPerInch,
             HeaderDistance = (margins?.Header?.Value ?? 0.3) * pointsPerInch,
-            FooterDistance = (margins?.Footer?.Value ?? 0.3) * pointsPerInch
+            FooterDistance = (margins?.Footer?.Value ?? 0.3) * pointsPerInch,
+            // The other half of printOptions: horizontalCentered is the table's own alignment (see
+            // SheetGridBuilder.Build), but centring DOWN the page is a property of the page, since
+            // nothing knows the slack until the page is full.
+            VerticallyCentered = worksheet.GetFirstChild<S.PrintOptions>()?.VerticalCentered?.Value == true
         };
     }
 

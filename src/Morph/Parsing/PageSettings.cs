@@ -65,6 +65,14 @@ sealed record PageSettings
     public string? BackgroundColorHex { get; init; }
 
     /// <summary>
+    /// The page's content is centred vertically between the top and bottom margins instead of
+    /// starting at the top one — spreadsheet <c>printOptions/@verticalCentered</c>
+    /// (ECMA-376 §18.3.1.70). Set only by the spreadsheet parser; a DOCX section's own
+    /// <c>w:vAlign</c> is a separate, unmodelled feature.
+    /// </summary>
+    public bool VerticallyCentered { get; init; }
+
+    /// <summary>
     /// Whether the first page has different header/footer (w:titlePg).
     /// When true, the default header/footer should not appear on page 1.
     /// </summary>

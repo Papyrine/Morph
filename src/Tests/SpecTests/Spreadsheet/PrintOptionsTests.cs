@@ -39,4 +39,34 @@ public class PrintOptionsTests
 
         await Assert.That(table.Properties.Alignment).IsEqualTo(TextAlignment.Left);
     }
+
+    static PageSettings Settings(string scenario)
+    {
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "excel", scenario, "input.xlsx");
+        using var stream = File.OpenRead(inputFile);
+
+        return ExcelConverter.Parse(stream, defaultFont: null, fontDirectory: null).PageSettings;
+    }
+
+    /// <summary>
+    /// The vertical half rides on the PAGE rather than the table, because nothing knows how much
+    /// room is left until the page is full — <c>Fragmenter.FinishPage</c> spends it.
+    /// </summary>
+    [Test]
+    public async Task VerticalCentered_IsCarriedOnThePageSettings()
+    {
+        await Assert.That(Settings("simple-green-black-timesheet-invoice").VerticallyCentered).IsTrue();
+
+        // horizontalCentered on its own must not imply the vertical one.
+        await Assert.That(Settings("modern-corporate-blue-timesheet-invoice").VerticallyCentered).IsFalse();
+        await Assert.That(Settings("probate-inventory").VerticallyCentered).IsFalse();
+    }
+
+    /// <summary>
+    /// A DOCX page is never centred — <c>w:vAlign</c> on a section is a separate, unmodelled
+    /// feature, and the flag exists only for the spreadsheet path.
+    /// </summary>
+    [Test]
+    public async Task VerticalCentered_DefaultsOffSoWordIsUntouched() =>
+        await Assert.That(new PageSettings().VerticallyCentered).IsFalse();
 }
