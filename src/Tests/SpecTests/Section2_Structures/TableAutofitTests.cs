@@ -3,6 +3,11 @@
 /// tables that arrive with no usable column widths — bare <c>w:gridCol/></c> entries
 /// and no per-cell <c>w:tcW</c>. With autofit on, columns are sized by content;
 /// with fixed layout (or no measurer), columns fall back to equal divide.
+///
+/// <para>Also covers the SEEDED form of the same pass: when every column carries an explicit
+/// <c>w:tcW</c>, those widths are the preferred seed and <c>w:tblGrid</c> is ignored as the
+/// stale cache it is. Content may only widen a column past its declared width, never narrow it
+/// below its longest unbreakable token.</para>
 /// </summary>
 public class TableAutofitTests
 {
@@ -88,9 +93,8 @@ public class TableAutofitTests
     [Test]
     public async Task CalculateColumnWidths_ExplicitCellWidths_TakePrecedenceOverAutofit()
     {
-        // When per-cell widths are present, the autofit branch isn't entered — the
-        // explicit-widths branch handles scaling/grow. Sanity-check that adding a measurer
-        // doesn't change this behaviour.
+        // No grid to be stale against, so the explicit-widths branch handles scaling/grow as it
+        // always has. Sanity-check that adding a measurer doesn't change this behaviour.
         var table = MakeTable(
             isAutoFit: true,
             cellWidths: [[50, 150]],
@@ -103,10 +107,119 @@ public class TableAutofitTests
         await Assert.That(widths[1]).IsEqualTo(150).Within(0.001f);
     }
 
+    [Test]
+    public async Task CalculateColumnWidths_DeclaredCellWidths_BeatStaleGrid()
+    {
+        // w:tblGrid is the cache of Word's last layout; w:tcW is the input. A generator that
+        // writes cell widths without recomputing the grid leaves the two disagreeing, and Word
+        // lays the table out at the cell widths — see "Stocktake export template v2.docx", whose
+        // Name column declares 6374tw against the grid's 1849tw.
+        var table = MakeTable(
+            isAutoFit: true,
+            cellWidths: [[150, 50]],
+            gridWidths: [100, 100],
+            preferredTableWidth: null,
+            ["a", "b"]);
+
+        var measurer = new ProportionalMeasurer();
+        var widths = TableLayout.CalculateColumnWidths(table, colCount: 2, availableWidth: 200, measurer);
+
+        await Assert.That(widths[0]).IsEqualTo(150).Within(0.001f);
+        await Assert.That(widths[1]).IsEqualTo(50).Within(0.001f);
+    }
+
+    [Test]
+    public async Task CalculateColumnWidths_DeclaredCellWidths_GrowForUnbreakableContent()
+    {
+        // The declared width is a preference, not a floor-and-ceiling: a column holding a token
+        // that cannot be broken grows to fit it, and the other columns give the space back in
+        // proportion to their own slack. Word does exactly this to the Challenges column of the
+        // stocktake table — declared 60.5pt, laid out at 149.3pt to fit
+        // "Legislative/regulatory/constitutional" — while the total stays pinned to w:tblW.
+        var unbreakable = new string('x', 60);
+        var table = MakeTable(
+            isAutoFit: true,
+            cellWidths: [[180, 20]],
+            gridWidths: [100, 100],
+            preferredTableWidth: 200,
+            ["a b c", unbreakable]);
+
+        var measurer = new ProportionalMeasurer();
+        var widths = TableLayout.CalculateColumnWidths(table, colCount: 2, availableWidth: 400, measurer);
+
+        // Fitted to w:tblW rather than to the whole text column.
+        await Assert.That(widths.Sum()).IsEqualTo(200).Within(0.001f);
+        await Assert.That(widths[1]).IsEqualTo(60).Within(0.001f);
+        await Assert.That(widths[0]).IsLessThan(180);
+    }
+
+    [Test]
+    public async Task CalculateColumnWidths_GridAgreeingWithCells_IsNotRefitted()
+    {
+        // The common case, and the one that must not move: Word wrote the grid out of its own
+        // fitted layout, so when it agrees with the cells it is the better number and content
+        // must not be allowed to push the columns around. newsletters/05 is the corpus proof —
+        // grid and w:tcW identical, and re-fitting it moved the body column 8pt off Word.
+        var table = MakeTable(
+            isAutoFit: true,
+            cellWidths: [[100, 100]],
+            gridWidths: [100, 100],
+            preferredTableWidth: 200,
+            ["a b c", new string('x', 60)]);
+
+        var measurer = new ProportionalMeasurer();
+        var widths = TableLayout.CalculateColumnWidths(table, colCount: 2, availableWidth: 200, measurer);
+
+        await Assert.That(widths[0]).IsEqualTo(100).Within(0.001f);
+        await Assert.That(widths[1]).IsEqualTo(100).Within(0.001f);
+    }
+
+    [Test]
+    public async Task CalculateColumnWidths_GridDifferingOnlyByUniformScale_IsNotRefitted()
+    {
+        // A grid and a cell set that differ by a single scale factor describe the SAME shape —
+        // one side carries a w:tblW target the other doesn't. labels/13 (11376 grid vs 11724
+        // cells) and cards/* (11520 vs 10800) are this, and none of them is stale.
+        var table = MakeTable(
+            isAutoFit: true,
+            cellWidths: [[75, 225]],
+            gridWidths: [50, 150],
+            preferredTableWidth: null,
+            ["a", "b"]);
+
+        var measurer = new ProportionalMeasurer();
+        var widths = TableLayout.CalculateColumnWidths(table, colCount: 2, availableWidth: 200, measurer);
+
+        // Grid shape retained, grown to the container as the grid branch has always done.
+        await Assert.That(widths[0] / widths[1]).IsEqualTo(50f / 150).Within(0.001f);
+    }
+
+    [Test]
+    public async Task CalculateColumnWidths_FixedLayout_KeepsGridOverDeclaredCellWidths()
+    {
+        // Fixed-layout tables are sized verbatim, never fitted, so the grid stays authoritative
+        // for them — header_full_bleed_banner's 625.4pt banner grid depends on it.
+        var table = MakeTable(
+            isAutoFit: false,
+            cellWidths: [[150, 50]],
+            gridWidths: [100, 100],
+            preferredTableWidth: null,
+            ["a", "b"]);
+
+        var measurer = new ProportionalMeasurer();
+        var widths = TableLayout.CalculateColumnWidths(table, colCount: 2, availableWidth: 200, measurer);
+
+        await Assert.That(widths[0]).IsEqualTo(100).Within(0.001f);
+        await Assert.That(widths[1]).IsEqualTo(100).Within(0.001f);
+    }
+
     static TableElement MakeTable(params string[][] rowsContent) =>
         MakeTable(isAutoFit: true, cellWidths: null, rowsContent);
 
-    static TableElement MakeTable(bool isAutoFit, double?[][]? cellWidths, params string[][] rowsContent)
+    static TableElement MakeTable(bool isAutoFit, double?[][]? cellWidths, params string[][] rowsContent) =>
+        MakeTable(isAutoFit, cellWidths, gridWidths: null, preferredTableWidth: null, rowsContent);
+
+    static TableElement MakeTable(bool isAutoFit, double?[][]? cellWidths, List<double>? gridWidths, double? preferredTableWidth, params string[][] rowsContent)
     {
         var rows = new List<TableRow>();
         for (var rowIndex = 0; rowIndex < rowsContent.Length; rowIndex++)
@@ -153,7 +266,9 @@ public class TableAutofitTests
             Rows = rows,
             Properties = new()
             {
-                IsAutoFit = isAutoFit
+                IsAutoFit = isAutoFit,
+                GridColumnWidths = gridWidths,
+                PreferredWidthPoints = preferredTableWidth
             }
         };
     }
