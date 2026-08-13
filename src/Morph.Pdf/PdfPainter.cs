@@ -618,10 +618,14 @@ static class PdfPainter
     {
         float left = cell.X, top = cell.Y, right = cell.X + cell.Width, bottom = cell.Y + cell.Height;
 
-        StrokeEdge(context, graphics, borders.Top, horizontal: true, left, right, top, BorderStroke.Scope.Cell, outward: -1);
-        StrokeEdge(context, graphics, borders.Right, horizontal: false, top, bottom, right, BorderStroke.Scope.Cell, outward: 1);
-        StrokeEdge(context, graphics, borders.Bottom, horizontal: true, left, right, bottom, BorderStroke.Scope.Cell, outward: 1);
-        StrokeEdge(context, graphics, borders.Left, horizontal: false, top, bottom, left, BorderStroke.Scope.Cell, outward: -1);
+        var cl = BorderStroke.Draws(borders.Left);
+        var cr = BorderStroke.Draws(borders.Right);
+        var ct = BorderStroke.Draws(borders.Top);
+        var cb = BorderStroke.Draws(borders.Bottom);
+        StrokeEdge(context, graphics, borders.Top, horizontal: true, left, right, top, BorderStroke.Scope.Cell, outward: -1, extendStart: cl, extendEnd: cr);
+        StrokeEdge(context, graphics, borders.Right, horizontal: false, top, bottom, right, BorderStroke.Scope.Cell, outward: 1, extendStart: ct, extendEnd: cb);
+        StrokeEdge(context, graphics, borders.Bottom, horizontal: true, left, right, bottom, BorderStroke.Scope.Cell, outward: 1, extendStart: cl, extendEnd: cr);
+        StrokeEdge(context, graphics, borders.Left, horizontal: false, top, bottom, left, BorderStroke.Scope.Cell, outward: -1, extendStart: ct, extendEnd: cb);
     }
 
     // A paragraph border box: stroke each visible edge around the box the Fragmenter already expanded by
@@ -633,10 +637,15 @@ static class PdfPainter
 
         // See SkiaPainter.StrokeEdge — one band per line of a multi-line style, offset
         // perpendicular to the edge; single-line styles come back as one band at offset 0.
-        StrokeEdge(context, graphics, borders.Top, horizontal: true, left, right, top, outward: -1);
-        StrokeEdge(context, graphics, borders.Bottom, horizontal: true, left, right, bottom, outward: 1);
-        StrokeEdge(context, graphics, borders.Left, horizontal: false, top, bottom, left, outward: -1);
-        StrokeEdge(context, graphics, borders.Right, horizontal: false, top, bottom, right, outward: 1);
+        // See SkiaPainter.PaintEdges — corner fill.
+        var dl = BorderStroke.Draws(borders.Left);
+        var dr = BorderStroke.Draws(borders.Right);
+        var dt = BorderStroke.Draws(borders.Top);
+        var db = BorderStroke.Draws(borders.Bottom);
+        StrokeEdge(context, graphics, borders.Top, horizontal: true, left, right, top, outward: -1, extendStart: dl, extendEnd: dr);
+        StrokeEdge(context, graphics, borders.Bottom, horizontal: true, left, right, bottom, outward: 1, extendStart: dl, extendEnd: dr);
+        StrokeEdge(context, graphics, borders.Left, horizontal: false, top, bottom, left, outward: -1, extendStart: dt, extendEnd: db);
+        StrokeEdge(context, graphics, borders.Right, horizontal: false, top, bottom, right, outward: 1, extendStart: dt, extendEnd: db);
     }
 
     // The PDF painter's edge strokers take a PlacedBorder/PlacedCell rather than a bare rectangle,
@@ -650,15 +659,15 @@ static class PdfPainter
     static void PaintRunBorder(PdfRenderContext context, XGraphics graphics, double x, double y, double width, double height, BorderEdge edge)
     {
         double left = x, top = y, right = x + width, bottom = y + height;
-        StrokeEdge(context, graphics, edge, horizontal: true, left, right, top, outward: -1);
-        StrokeEdge(context, graphics, edge, horizontal: true, left, right, bottom, outward: 1);
-        StrokeEdge(context, graphics, edge, horizontal: false, top, bottom, left, outward: -1);
-        StrokeEdge(context, graphics, edge, horizontal: false, top, bottom, right, outward: 1);
+        StrokeEdge(context, graphics, edge, horizontal: true, left, right, top, outward: -1, extendStart: true, extendEnd: true);
+        StrokeEdge(context, graphics, edge, horizontal: true, left, right, bottom, outward: 1, extendStart: true, extendEnd: true);
+        StrokeEdge(context, graphics, edge, horizontal: false, top, bottom, left, outward: -1, extendStart: true, extendEnd: true);
+        StrokeEdge(context, graphics, edge, horizontal: false, top, bottom, right, outward: 1, extendStart: true, extendEnd: true);
     }
 
     // See SkiaPainter.StrokeEdge: outward is -1 for top/left and +1 for bottom/right, and the span
     // grows by the same offset so the bands close into concentric rectangles.
-    static void StrokeEdge(PdfRenderContext context, XGraphics graphics, BorderEdge edge, bool horizontal, double from, double to, double at, BorderStroke.Scope scope = BorderStroke.Scope.Paragraph, int outward = -1)
+    static void StrokeEdge(PdfRenderContext context, XGraphics graphics, BorderEdge edge, bool horizontal, double from, double to, double at, BorderStroke.Scope scope = BorderStroke.Scope.Paragraph, int outward = -1, bool extendStart = false, bool extendEnd = false)
     {
         if (!BorderStroke.Draws(edge))
         {
@@ -668,9 +677,10 @@ static class PdfPainter
         var dash = BorderStroke.DashPattern(edge.Style, edge.WidthPoints);
         foreach (var band in BorderStroke.Bands(edge.Style, edge.WidthPoints, scope))
         {
+            var half = band.Thickness / 2;
             var line = at + outward * band.Offset;
-            var start = from - band.Offset;
-            var end = to + band.Offset;
+            var start = from - band.Offset - (extendStart ? half : 0);
+            var end = to + band.Offset + (extendEnd ? half : 0);
             var pen = EdgePen(context, edge, band.Thickness, dash, band.Shade);
             if (horizontal)
             {
