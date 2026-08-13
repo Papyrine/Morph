@@ -552,6 +552,40 @@ static class SkiaPainter
             ? color
             : new((byte) (color.Red * shade), (byte) (color.Green * shade), (byte) (color.Blue * shade), color.Alpha);
 
+    // A wave edge is a triangular zigzag of fixed geometry rather than a straight band — see
+    // BorderStroke.Waves. Each zigzag is one polyline; the shared vertex list keeps the three
+    // backends drawing the same squiggle.
+    static void StrokeWaves(SkiaRenderContext context, SKCanvas canvas, BorderEdge edge, BorderStroke.WaveBand[] waves, bool horizontal, float from, float to, float at, int outward)
+    {
+        var color = SkiaRenderContext.ParseColor(edge.ColorHex);
+        foreach (var wave in waves)
+        {
+            var centre = at + outward * P(context, wave.Offset);
+            var pen = context.GetReusableRulePaint(color, P(context, wave.Thickness));
+            using var path = new SKPath();
+            var first = true;
+            foreach (var (along, across) in BorderStroke.WavePoints(from, to, P(context, wave.Period), P(context, wave.Amplitude)))
+            {
+                var x = horizontal ? (float) along : centre + (float) across;
+                var y = horizontal ? centre + (float) across : (float) along;
+                if (first)
+                {
+                    path.MoveTo(x, y);
+                    first = false;
+                }
+                else
+                {
+                    path.LineTo(x, y);
+                }
+            }
+
+            if (!first)
+            {
+                canvas.DrawPath(path, pen);
+            }
+        }
+    }
+
     // outward is -1 for the top/left edges and +1 for bottom/right: the direction that moves AWAY
     // from the box. The span grows by the same offset at both ends so this band meets the
     // perpendicular edges' matching band at the corner.
@@ -559,6 +593,12 @@ static class SkiaPainter
     {
         if (!BorderStroke.Draws(edge))
         {
+            return;
+        }
+
+        if (BorderStroke.Waves(edge.Style) is {Length: > 0} waves)
+        {
+            StrokeWaves(context, canvas, edge, waves, horizontal, from, to, at, outward);
             return;
         }
 

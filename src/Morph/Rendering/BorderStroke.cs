@@ -22,8 +22,10 @@
 /// antialiasing is indistinguishable from a light line — reading `outset` at that size suggested a
 /// highlight that does not exist.</para>
 ///
-/// <para><b>Not modelled.</b> <c>wave</c> and <c>doubleWave</c> stroke straight (one and two lines)
-/// — the sine path would need geometry in three painters and no corpus document uses either.</para>
+/// <para><b>Waves.</b> <c>wave</c> and <c>doubleWave</c> are a triangular zigzag of FIXED geometry —
+/// Word ignores <c>w:sz</c> for them entirely, which is only visible if the probe sweeps widths.
+/// <see cref="Waves"/> carries the measurements and <see cref="WavePoints"/> generates the shared
+/// vertex list, so the three painters cannot draw different squiggles.</para>
 /// </summary>
 static class BorderStroke
 {
@@ -64,6 +66,66 @@ static class BorderStroke
     const double bevelLightUnits = 0.3;
 
     static readonly Band[] singleBand = [new(0, 1)];
+
+    /// <summary>
+    /// One zigzag within a <c>wave</c>/<c>doubleWave</c> edge. <paramref name="Offset"/> is the
+    /// outward displacement of its centre line from the border box, as for <see cref="Band"/>.
+    /// </summary>
+    internal readonly record struct WaveBand(double Offset, double Amplitude, double Period, double Thickness);
+
+    // Word draws the wave styles as a triangular zigzag of FIXED size — the geometry ignores w:sz
+    // entirely. Measured off _probe_wave, which declares both styles at sz=6, 12, 24 and 48 (0.75pt
+    // to 6pt): every width renders the identical squiggle, 7px tall for `wave` and 11px for
+    // `doubleWave` at 150 DPI. Peak-to-peak spacing averaged over 67 and 84 cycles is 12.51px
+    // (6.00pt) and 10.01px (4.81pt). Each zigzag runs peak-to-trough about 5px (2.4pt) for `wave`
+    // and 4px (1.92pt) for the two in `doubleWave`, which sit 5px (2.4pt) apart, and both stroke at
+    // roughly a hairline.
+    const double waveStrokePoints = 0.5;
+
+    static readonly WaveBand[] singleWave = [new(0, 2.86, 6.0, waveStrokePoints)];
+
+    static readonly WaveBand[] doubleWave =
+    [
+        new(0, 1.92, 4.81, waveStrokePoints),
+        new(2.4, 1.92, 4.81, waveStrokePoints)
+    ];
+
+    /// <summary>
+    /// The zigzags making up a wave edge, innermost first, or empty for every other style. A
+    /// painter that gets a non-empty result strokes these instead of <see cref="Bands"/>.
+    /// </summary>
+    internal static WaveBand[] Waves(BorderLineStyle style) => style switch
+    {
+        BorderLineStyle.Wave => singleWave,
+        BorderLineStyle.DoubleWave => doubleWave,
+        _ => []
+    };
+
+    /// <summary>
+    /// Vertices of one zigzag, as (distance along the edge, displacement across it). The across
+    /// value alternates between the two extremes every half period, so a painter maps them onto
+    /// its own axes and strokes the polyline. Shared so the three backends cannot draw different
+    /// squiggles.
+    /// </summary>
+    internal static List<(double Along, double Across)> WavePoints(double from, double to, double period, double amplitude)
+    {
+        var points = new List<(double, double)>();
+        if (period <= 0 || to <= from)
+        {
+            return points;
+        }
+
+        var half = period / 2;
+        var peak = amplitude / 2;
+        var up = true;
+        for (var along = from; along < to + half; along += half)
+        {
+            points.Add((Math.Min(along, to), up ? -peak : peak));
+            up = !up;
+        }
+
+        return points;
+    }
 
     /// <summary>
     /// Which border a stroke belongs to. Word does not scale the two the same way — see the
@@ -229,6 +291,18 @@ static class BorderStroke
     /// </summary>
     internal static double Extent(BorderLineStyle style, double totalWidth, Scope scope = Scope.Paragraph)
     {
+        // A wave's extent is its own fixed geometry, not anything w:sz implies.
+        if (Waves(style) is {Length: > 0} waves)
+        {
+            var span = 0d;
+            foreach (var wave in waves)
+            {
+                span = Math.Max(span, wave.Offset + wave.Amplitude / 2 + wave.Thickness);
+            }
+
+            return span + waves[0].Amplitude / 2 + waves[0].Thickness;
+        }
+
         // The full thickness the stack occupies, from its innermost face to its outermost. Written
         // from the band offsets rather than assuming a direction, because a cell stack is centred
         // on its edge and so has bands on both sides of it.

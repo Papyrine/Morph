@@ -33,16 +33,18 @@ checked-in reference could not tell you what correct looked like — which is ho
 were briefly modelled with a highlight Word does not draw. Section 1 stays at `sz=6` because it
 is the original fixture, kept verbatim. Keep the fat sizes when editing.
 
+`wave`/`doubleWave` render as zigzags since 2026-08-13. Word's squiggle is FIXED — declared at
+sz=6, 12, 24 and 48 it draws the identical shape every time, so nothing about it scales with
+`w:sz`. A single-width probe would have produced a scaling rule that does not exist.
+
 **Still open**, and visible here:
 
-1. `wave` and `doubleWave` stroke straight (one and two lines) — the sine path needs geometry
-   in three painters.
-2. The bevel styles' geometry and shading now render (see `BorderStroke`), but the block is
+1. The bevel styles' geometry and shading now render (see `BorderStroke`), but the block is
    fitted to one probe: Word's 6pt groove spans 19px split ~12px dark / ~3px light, modelled as
    1.2/0.3 units at 0.41x. The proportions have not been checked at other widths.
-3. At `sz=96` (12pt) the band paints across the paragraph text rather than outside it, so the
+2. At `sz=96` (12pt) the band paints across the paragraph text rather than outside it, so the
    label reads "ingle, sz=96". Word keeps the text clear.
-4. The thin/thick family's stack is fitted to the measurement rather than understood — see the
+3. The thin/thick family's stack is fitted to the measurement rather than understood — see the
    `perLine` comment in `BorderStroke.Bands`.
 
 **On the AE metric.** This scenario's recorded error is HIGH (~0.15 mean against Word) and that

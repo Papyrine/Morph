@@ -501,6 +501,30 @@ static class ImageSharpPainter
         StrokeEdge(context, canvas, borders.Right, horizontal: false, top, bottom, right, scope, outward: 1, drawsTop, drawsBottom);
     }
 
+    // See SkiaPainter.StrokeWaves — a wave edge is a fixed-geometry zigzag, not a straight band.
+    static void StrokeWaves(ImageSharpRenderContext context, DrawingCanvas canvas, BorderEdge edge, BorderStroke.WaveBand[] waves, bool horizontal, float from, float to, float at, int outward)
+    {
+        var color = ImageSharpRenderContext.ParseColor(edge.ColorHex);
+        foreach (var wave in waves)
+        {
+            var centre = at + outward * P(context, wave.Offset);
+            var pen = context.GetPen(color, P(context, wave.Thickness));
+            var points = new List<PointF>();
+            foreach (var (along, across) in BorderStroke.WavePoints(from, to, P(context, wave.Period), P(context, wave.Amplitude)))
+            {
+                points.Add(horizontal
+                    ? new PointF((float) along, centre + (float) across)
+                    : new PointF(centre + (float) across, (float) along));
+            }
+
+            if (points.Count > 1)
+            {
+                // DrawingCanvas has no polyline overload, so the zigzag goes through an open path.
+                canvas.Draw(pen, new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(points.ToArray())));
+            }
+        }
+    }
+
     // See SkiaPainter.Shaded.
     static Color Shaded(Color color, double shade)
     {
@@ -520,6 +544,12 @@ static class ImageSharpPainter
     {
         if (!BorderStroke.Draws(edge))
         {
+            return;
+        }
+
+        if (BorderStroke.Waves(edge.Style) is {Length: > 0} waves)
+        {
+            StrokeWaves(context, canvas, edge, waves, horizontal, from, to, at, outward);
             return;
         }
 
