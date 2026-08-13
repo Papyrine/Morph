@@ -1,4 +1,4 @@
-# All scenarios (325)
+# All scenarios (326)
 
 <details>
 <summary>Contents</summary>
@@ -31,6 +31,7 @@
 - [bar_tabs](#bar_tabs)
 - [block_quote](#block_quote)
 - [bold_text](#bold_text)
+- [border_style_variants](#border_style_variants)
 - [brochures/01](#brochures01)
 - [brochures/02](#brochures02)
 - [brochures/03](#brochures03)
@@ -557,6 +558,64 @@ The remaining ~5pt gap (linePitch 18 + cell padding 7.2 = 25.2pt vs Word's 30pt)
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0021 · SSIM: 0.9964** | **Page 1. ErrorMetric: 0.0022 · SSIM: 0.9962** |
 | <img src="bold_text/expected_0001.png" width="500"> | <img src="bold_text/skia_result%23page_0001.verified.png" width="500"> | <img src="bold_text/imagesharp_result%23page_0001.verified.png" width="500"> |
+
+## border_style_variants
+
+A border torture fixture: every `ST_Border` line style (ECMA-376 17.18.2) on both `w:pBdr`
+edges and run `w:bdr`, plus the `w:sz` width sweep, edge combinations, `w:space`, `w:between`
+grouping, colours, the `w:shadow`/`w:frame` attributes and per-style table cell borders. The
+~160 art borders are page-border-only and stay with `page_borders`. Section 1 is the fixture
+this scenario grew from, kept verbatim.
+
+Word renders 4 pages and so does every backend.
+
+**What this scenario found and fixed (2026-08-13).** Everything below was broken when the
+fixture landed; the root cause was one collapse. `BorderLineStyle` held four values and
+`MapBorderStyle` folded OOXML's 27 line styles into them, which lost the stroke AND — because
+`ParagraphProperties.SharesBorderGroupWith` compares border records for equality — merged
+adjacent paragraphs whose declared styles differed into a single box. Section 2's 27 paragraphs
+drew as 6 boxes against Word's 25, and section 1's four separate boxes drew as one rectangle.
+Un-collapsing the enum fixed the grouping and the stroke together; `BorderStroke` now owns the
+line/gap layout and dash patterns for all three backends, and run borders (`w:bdr`) paint for
+the first time.
+
+Two rules in `BorderStroke` are measured off this fixture and `_probe_bordersp`, and they
+DISAGREE BY SCOPE — a paragraph border's `w:sz` is the width of each line for the symmetric
+families (a 3pt `double` stacks to 9pt) while a cell border's is the total. Both readings are
+direct measurements of Word's ink; see `docs/word-features.md` (Cell Borders) for the numbers.
+Deriving one from a single width was wrong twice during this work, so do not re-derive either
+from one sample.
+
+**Still open**, and visible here:
+
+1. `wave` and `doubleWave` stroke straight (one and two lines) — the sine path needs geometry
+   in three painters.
+2. The bevel SHADING of `threeDEmboss`/`threeDEngrave`/`outset`/`inset` is not reproduced. Their
+   line structure is (two lines and one respectively), which is what makes them distinguishable.
+3. At `sz=96` (12pt) the band paints across the paragraph text rather than outside it, so the
+   label reads "ingle, sz=96". Word keeps the text clear.
+4. The thin/thick family's stack is fitted to the measurement rather than understood — see the
+   `perLine` comment in `BorderStroke.Bands`.
+
+**On the AE metric.** This scenario's recorded error ROSE when the rendering was fixed
+(0.1231 → 0.1225 after the whole sequence, having peaked at 0.1465 mid-way) even though the
+render moved much closer to Word. That is the new-ink offset penalty in its clearest form: going
+from 6 boxes to 25 means Morph now draws ink almost everywhere Word does, and residual
+misalignment counts twice where absent ink counted once. The measure that tracked the
+improvement was positional — mean distance from each drawn rule to the nearest Word rule on p1
+went 29.1px → 10.2px. Read this scenario's AE with that in mind before treating a change here
+as a regression.
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1559 · SSIM: 0.6721** | **Page 1. ErrorMetric: 0.1563 · SSIM: 0.6709** |
+| <img src="border_style_variants/expected_0001.png" width="500"> | <img src="border_style_variants/skia_result%23page_0001.verified.png" width="500"> | <img src="border_style_variants/imagesharp_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.1725 · SSIM: 0.6118** | **Page 2. ErrorMetric: 0.1710 · SSIM: 0.6151** |
+| <img src="border_style_variants/expected_0002.png" width="500"> | <img src="border_style_variants/skia_result%23page_0002.verified.png" width="500"> | <img src="border_style_variants/imagesharp_result%23page_0002.verified.png" width="500"> |
+| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.1381 · SSIM: 0.7068** | **Page 3. ErrorMetric: 0.1381 · SSIM: 0.7053** |
+| <img src="border_style_variants/expected_0003.png" width="500"> | <img src="border_style_variants/skia_result%23page_0003.verified.png" width="500"> | <img src="border_style_variants/imagesharp_result%23page_0003.verified.png" width="500"> |
+| **Page 4**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 4. ErrorMetric: 0.1080 · SSIM: 0.7190** | **Page 4. ErrorMetric: 0.1075 · SSIM: 0.7180** |
+| <img src="border_style_variants/expected_0004.png" width="500"> | <img src="border_style_variants/skia_result%23page_0004.verified.png" width="500"> | <img src="border_style_variants/imagesharp_result%23page_0004.verified.png" width="500"> |
 
 ## brochures/01
 
@@ -1898,7 +1957,7 @@ ignores a pushed rotation, so a rotated photo is drawn from a pre-clipped standa
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.5263 · SSIM: 0.7225** | **Page 1. ErrorMetric: 0.5405 · SSIM: 0.7189** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.5264 · SSIM: 0.7133** | **Page 1. ErrorMetric: 0.5406 · SSIM: 0.7095** |
 | <img src="labels/08/expected_0001.png" width="500"> | <img src="labels/08/skia_result%23page_0001.verified.png" width="500"> | <img src="labels/08/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## labels/09
@@ -2369,13 +2428,13 @@ ignores a pushed rotation, so a rotated photo is drawn from a pre-clipped standa
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2735 · SSIM: 0.6632** | **Page 1. ErrorMetric: 0.2768 · SSIM: 0.6468** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2735 · SSIM: 0.6616** | **Page 1. ErrorMetric: 0.2768 · SSIM: 0.6451** |
 | <img src="newsletters/09/expected_0001.png" width="500"> | <img src="newsletters/09/skia_result%23page_0001.verified.png" width="500"> | <img src="newsletters/09/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.2764 · SSIM: 0.6069** | **Page 2. ErrorMetric: 0.2753 · SSIM: 0.6171** |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.2766 · SSIM: 0.6053** | **Page 2. ErrorMetric: 0.2755 · SSIM: 0.6155** |
 | <img src="newsletters/09/expected_0002.png" width="500"> | <img src="newsletters/09/skia_result%23page_0002.verified.png" width="500"> | <img src="newsletters/09/imagesharp_result%23page_0002.verified.png" width="500"> |
-| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.3177 · SSIM: 0.6621** | **Page 3. ErrorMetric: 0.3177 · SSIM: 0.6738** |
+| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.3180 · SSIM: 0.6614** | **Page 3. ErrorMetric: 0.3180 · SSIM: 0.6731** |
 | <img src="newsletters/09/expected_0003.png" width="500"> | <img src="newsletters/09/skia_result%23page_0003.verified.png" width="500"> | <img src="newsletters/09/imagesharp_result%23page_0003.verified.png" width="500"> |
-| **Page 4**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 4. ErrorMetric: 0.3774 · SSIM: 0.7061** | **Page 4. ErrorMetric: 0.3776 · SSIM: 0.7103** |
+| **Page 4**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 4. ErrorMetric: 0.3768 · SSIM: 0.7061** | **Page 4. ErrorMetric: 0.3770 · SSIM: 0.7103** |
 | <img src="newsletters/09/expected_0004.png" width="500"> | <img src="newsletters/09/skia_result%23page_0004.verified.png" width="500"> | <img src="newsletters/09/imagesharp_result%23page_0004.verified.png" width="500"> |
 
 ## newsletters/10
@@ -2625,7 +2684,7 @@ magnitude.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1037 · SSIM: 0.8329** | **Page 1. ErrorMetric: 0.1134 · SSIM: 0.7934** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1036 · SSIM: 0.8328** | **Page 1. ErrorMetric: 0.1138 · SSIM: 0.7933** |
 | <img src="resumes/03/expected_0001.png" width="500"> | <img src="resumes/03/skia_result%23page_0001.verified.png" width="500"> | <img src="resumes/03/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## resumes/04
@@ -2914,7 +2973,7 @@ magnitude.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0524 · SSIM: 0.8971** | **Page 1. ErrorMetric: 0.0532 · SSIM: 0.8910** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0529 · SSIM: 0.8936** | **Page 1. ErrorMetric: 0.0537 · SSIM: 0.8874** |
 | <img src="table_default_style/expected_0001.png" width="500"> | <img src="table_default_style/skia_result%23page_0001.verified.png" width="500"> | <img src="table_default_style/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## table_default_style_first_row_run_color

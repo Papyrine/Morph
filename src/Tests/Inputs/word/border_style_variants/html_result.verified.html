@@ -1,0 +1,175 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
+p { margin: 0 0 8pt; }
+/* Sizes only. Word's BUILT-IN Heading 4/6 are italic, but the document's own style decides:
+   an italic one reaches us as italic runs, which emit <em>. Asserting it here instead
+   forced italic onto every h4/h6 whose style is upright — of the 12 corpus scenarios using
+   Heading 4, not one declares italic. Bold is different: it IS asserted here, and the run
+   writer suppresses <strong> in a heading to match (an explicitly non-bold run still emits
+   font-weight: normal). */
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; clear: both; }
+h1 { font-size: 16pt; }
+h2 { font-size: 13pt; }
+h3 { font-size: 12pt; }
+h4 { font-size: 11pt; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+td, th { padding: 4pt 7pt; vertical-align: top; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
+footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
+</style>
+</head>
+<body style="font-family: Calibri, sans-serif; max-width: 451.3pt; padding: 72pt">
+<p style="margin-top: 14pt; line-height: 1.16"><span style="font-size: 12pt;"><strong>1. Three-D and bevel styles (original fixture)</strong></span></p>
+<p style="line-height: 1.16; border: 0.75pt groove #808080; padding: 1pt"><span style="font-size: 10pt;">Groove border</span></p>
+<p style="line-height: 1.16; border: 0.75pt ridge #808080; padding: 1pt"><span style="font-size: 10pt;">Ridge border</span></p>
+<p style="line-height: 1.16; border: 0.75pt inset #808080; padding: 1pt"><span style="font-size: 10pt;">Inset border</span></p>
+<p style="line-height: 1.16; border: 0.75pt outset #808080; padding: 1pt"><span style="font-size: 10pt;">Outset border</span></p>
+<p style="margin-top: 14pt; line-height: 1.16"><span style="font-size: 12pt;"><strong>2. Every ST_Border line style - paragraph borders (w:pBdr, sz 6)</strong></span></p>
+<p style="line-height: 1.16"><span style="font-size: 10pt;">nil</span></p>
+<p style="line-height: 1.16"><span style="font-size: 10pt;">none</span></p>
+<p style="line-height: 1.16; border: 0.75pt solid #808080; padding: 1pt"><span style="font-size: 10pt;">single</span></p>
+<p style="line-height: 1.16; border: 0.75pt solid #808080; padding: 1pt"><span style="font-size: 10pt;">thick</span></p>
+<p style="line-height: 1.16; border: 0.75pt double #808080; padding: 1pt"><span style="font-size: 10pt;">double</span></p>
+<p style="line-height: 1.16; border: 0.75pt dotted #808080; padding: 1pt"><span style="font-size: 10pt;">dotted</span></p>
+<p style="line-height: 1.16; border: 0.75pt dashed #808080; padding: 1pt"><span style="font-size: 10pt;">dashed</span></p>
+<p style="line-height: 1.16; border: 0.75pt dashed #808080; padding: 1pt"><span style="font-size: 10pt;">dotDash</span></p>
+<p style="line-height: 1.16; border: 0.75pt dashed #808080; padding: 1pt"><span style="font-size: 10pt;">dotDotDash</span></p>
+<p style="line-height: 1.16; border: 0.75pt double #808080; padding: 1pt"><span style="font-size: 10pt;">triple</span></p>
+<p style="line-height: 1.16; border: 0.75pt double #808080; padding: 1pt"><span style="font-size: 10pt;">thinThickSmallGap</span></p>
+<p style="line-height: 1.16; border: 0.75pt double #808080; padding: 1pt"><span style="font-size: 10pt;">thickThinSmallGap</span></p>
+<p style="line-height: 1.16; border: 0.75pt double #808080; padding: 1pt"><span style="font-size: 10pt;">thinThickThinSmallGap</span></p>
+<p style="line-height: 1.16; border: 0.75pt double #808080; padding: 1pt"><span style="font-size: 10pt;">thinThickMediumGap</span></p>
+<p style="line-height: 1.16; border: 0.75pt double #808080; padding: 1pt"><span style="font-size: 10pt;">thickThinMediumGap</span></p>
+<p style="line-height: 1.16; border: 0.75pt double #808080; padding: 1pt"><span style="font-size: 10pt;">thinThickThinMediumGap</span></p>
+<p style="line-height: 1.16; border: 0.75pt double #808080; padding: 1pt"><span style="font-size: 10pt;">thinThickLargeGap</span></p>
+<p style="line-height: 1.16; border: 0.75pt double #808080; padding: 1pt"><span style="font-size: 10pt;">thickThinLargeGap</span></p>
+<p style="line-height: 1.16; border: 0.75pt double #808080; padding: 1pt"><span style="font-size: 10pt;">thinThickThinLargeGap</span></p>
+<p style="line-height: 1.16; border: 0.75pt solid #808080; padding: 1pt"><span style="font-size: 10pt;">wave</span></p>
+<p style="line-height: 1.16; border: 0.75pt double #808080; padding: 1pt"><span style="font-size: 10pt;">doubleWave</span></p>
+<p style="line-height: 1.16; border: 0.75pt dashed #808080; padding: 1pt"><span style="font-size: 10pt;">dashSmallGap</span></p>
+<p style="line-height: 1.16; border: 0.75pt dashed #808080; padding: 1pt"><span style="font-size: 10pt;">dashDotStroked</span></p>
+<p style="line-height: 1.16; border: 0.75pt ridge #808080; padding: 1pt"><span style="font-size: 10pt;">threeDEmboss</span></p>
+<p style="line-height: 1.16; border: 0.75pt groove #808080; padding: 1pt"><span style="font-size: 10pt;">threeDEngrave</span></p>
+<p style="line-height: 1.16; border: 0.75pt outset #808080; padding: 1pt"><span style="font-size: 10pt;">outset</span></p>
+<p style="line-height: 1.16; border: 0.75pt inset #808080; padding: 1pt"><span style="font-size: 10pt;">inset</span></p>
+<p style="margin-top: 14pt; line-height: 1.16"><span style="font-size: 12pt;"><strong>3. Every ST_Border line style - run borders (w:bdr)</strong></span></p>
+<p style="line-height: 1.16"><span style="font-size: 10pt;"> nil    none    single    thick   </span></p>
+<p style="line-height: 1.16"><span style="font-size: 10pt;"> double    dotted    dashed    dotDash   </span></p>
+<p style="line-height: 1.16"><span style="font-size: 10pt;"> dotDotDash    triple    thinThickSmallGap    thickThinSmallGap   </span></p>
+<p style="line-height: 1.16"><span style="font-size: 10pt;"> thinThickThinSmallGap    thinThickMediumGap    thickThinMediumGap    thinThickThinMediumGap   </span></p>
+<p style="line-height: 1.16"><span style="font-size: 10pt;"> thinThickLargeGap    thickThinLargeGap    thinThickThinLargeGap    wave   </span></p>
+<p style="line-height: 1.16"><span style="font-size: 10pt;"> doubleWave    dashSmallGap    dashDotStroked    threeDEmboss   </span></p>
+<p style="line-height: 1.16"><span style="font-size: 10pt;"> threeDEngrave    outset    inset   </span></p>
+<p style="margin-top: 14pt; line-height: 1.16"><span style="font-size: 12pt;"><strong>4. Border width sweep (w:sz, eighths of a point)</strong></span></p>
+<p style="line-height: 1.16; border: 0.25pt solid #808080; padding: 1pt"><span style="font-size: 10pt;">single, sz=2 (0.25pt)</span></p>
+<p style="line-height: 1.16; border: 0.5pt solid #808080; padding: 1pt"><span style="font-size: 10pt;">single, sz=4 (0.50pt)</span></p>
+<p style="line-height: 1.16; border: 0.75pt solid #808080; padding: 1pt"><span style="font-size: 10pt;">single, sz=6 (0.75pt)</span></p>
+<p style="line-height: 1.16; border: 1pt solid #808080; padding: 1pt"><span style="font-size: 10pt;">single, sz=8 (1.00pt)</span></p>
+<p style="line-height: 1.16; border: 1.5pt solid #808080; padding: 1pt"><span style="font-size: 10pt;">single, sz=12 (1.50pt)</span></p>
+<p style="line-height: 1.16; border: 2.25pt solid #808080; padding: 1pt"><span style="font-size: 10pt;">single, sz=18 (2.25pt)</span></p>
+<p style="line-height: 1.16; border: 3pt solid #808080; padding: 1pt"><span style="font-size: 10pt;">single, sz=24 (3.00pt)</span></p>
+<p style="line-height: 1.16; border: 4.5pt solid #808080; padding: 1pt"><span style="font-size: 10pt;">single, sz=36 (4.50pt)</span></p>
+<p style="line-height: 1.16; border: 6pt solid #808080; padding: 1pt"><span style="font-size: 10pt;">single, sz=48 (6.00pt)</span></p>
+<p style="line-height: 1.16; border: 12pt solid #808080; padding: 1pt"><span style="font-size: 10pt;">single, sz=96 (12.00pt)</span></p>
+<p style="line-height: 1.16; border: 0.75pt double #808080; padding: 1pt"><span style="font-size: 10pt;">double, sz=6 (total width splits into two lines)</span></p>
+<p style="line-height: 1.16; border: 3pt double #808080; padding: 1pt"><span style="font-size: 10pt;">double, sz=24</span></p>
+<p style="margin-top: 14pt; line-height: 1.16"><span style="font-size: 12pt;"><strong>5. Edge combinations</strong></span></p>
+<p style="line-height: 1.16; border-top: 1pt solid #c00000; padding: 1pt 0pt 0pt"><span style="font-size: 10pt;">top only</span></p>
+<p style="line-height: 1.16; border-bottom: 1pt solid #c00000; padding: 0pt 0pt 1pt"><span style="font-size: 10pt;">bottom only</span></p>
+<p style="line-height: 1.16; border-left: 1pt solid #c00000; padding: 0pt 0pt 0pt 1pt"><span style="font-size: 10pt;">left only</span></p>
+<p style="line-height: 1.16; border-right: 1pt solid #c00000; padding: 0pt 1pt 0pt 0pt"><span style="font-size: 10pt;">right only</span></p>
+<p style="line-height: 1.16; border-top: 1pt solid #c00000; border-bottom: 1pt solid #c00000; padding: 1pt 0pt"><span style="font-size: 10pt;">top + bottom</span></p>
+<p style="line-height: 1.16; border-right: 1pt solid #c00000; border-left: 1pt solid #c00000; padding: 0pt 1pt"><span style="font-size: 10pt;">left + right</span></p>
+<p style="line-height: 1.16; border-top: 1pt solid #c00000; border-bottom: 1pt solid #c00000; border-left: 1pt solid #c00000; padding: 1pt 0pt 1pt 1pt"><span style="font-size: 10pt;">top + left + bottom (open right)</span></p>
+<p style="line-height: 1.16; border: 1pt solid #c00000; padding: 1pt"><span style="font-size: 10pt;">all four edges</span></p>
+<p style="margin-top: 14pt; line-height: 1.16"><span style="font-size: 12pt;"><strong>6. Border spacing (w:space, points)</strong></span></p>
+<p style="line-height: 1.16; border: 1pt solid #808080"><span style="font-size: 10pt;">space=0</span></p>
+<p style="line-height: 1.16; border: 1pt solid #808080; padding: 4pt"><span style="font-size: 10pt;">space=4</span></p>
+<p style="line-height: 1.16; border: 1pt solid #808080; padding: 10pt"><span style="font-size: 10pt;">space=10</span></p>
+<p style="line-height: 1.16; border: 1pt solid #808080; padding: 20pt"><span style="font-size: 10pt;">space=20</span></p>
+<p style="line-height: 1.16; border: 1pt solid #808080; padding: 31pt"><span style="font-size: 10pt;">space=31</span></p>
+<p style="margin-top: 14pt; line-height: 1.16"><span style="font-size: 12pt;"><strong>7. w:between inside a border group</strong></span></p>
+<p style="line-height: 1.16; border: 1pt solid #2e74b5; padding: 4pt"><span style="font-size: 10pt;">Group member 1 - identical borders, so Word draws one box with between rules inside.</span></p>
+<p style="line-height: 1.16; border: 1pt solid #2e74b5; padding: 4pt"><span style="font-size: 10pt;">Group member 2 - identical borders, so Word draws one box with between rules inside.</span></p>
+<p style="line-height: 1.16; border: 1pt solid #2e74b5; padding: 4pt"><span style="font-size: 10pt;">Group member 3 - identical borders, so Word draws one box with between rules inside.</span></p>
+<p style="margin-top: 14pt; line-height: 1.16"><span style="font-size: 12pt;"><strong>8. Colours</strong></span></p>
+<p style="line-height: 1.16; border: 1.5pt solid #c00000; padding: 1pt"><span style="font-size: 10pt;">red C00000</span></p>
+<p style="line-height: 1.16; border: 1.5pt solid #2e74b5; padding: 1pt"><span style="font-size: 10pt;">blue 2E74B5</span></p>
+<p style="line-height: 1.16; border: 1.5pt solid #548235; padding: 1pt"><span style="font-size: 10pt;">green 548235</span></p>
+<p style="line-height: 1.16; border: 1.5pt solid #000000; padding: 1pt"><span style="font-size: 10pt;">auto</span></p>
+<p style="margin-top: 14pt; line-height: 1.16"><span style="font-size: 12pt;"><strong>9. Shadow and frame attributes</strong></span></p>
+<p style="line-height: 1.16; border: 1.5pt solid #808080; padding: 1pt"><span style="font-size: 10pt;">w:shadow=&quot;true&quot;</span></p>
+<p style="line-height: 1.16; border: 1.5pt solid #808080; padding: 1pt"><span style="font-size: 10pt;">w:frame=&quot;true&quot;</span></p>
+<p style="line-height: 1.16; border: 1.5pt solid #808080; padding: 1pt"><span style="font-size: 10pt;">both</span></p>
+<p style="margin-top: 14pt; line-height: 1.16"><span style="font-size: 12pt;"><strong>10. Table cell borders by style</strong></span></p>
+<table>
+  <tbody>
+    <tr>
+      <td style="width: 130pt"><span style="font-size: 10pt;"><strong>Style</strong></span></td>
+      <td style="width: 130pt"><span style="font-size: 10pt;"><strong>Cell A</strong></span></td>
+      <td style="width: 130pt"><span style="font-size: 10pt;"><strong>Cell B</strong></span></td>
+    </tr>
+    <tr>
+      <td style="width: 130pt;border: 1pt solid #000000"><span style="font-size: 10pt;">single</span></td>
+      <td style="width: 130pt;border: 1pt solid #000000"><span style="font-size: 10pt;">A</span></td>
+      <td style="width: 130pt;border: 1pt solid #000000"><span style="font-size: 10pt;">B</span></td>
+    </tr>
+    <tr>
+      <td style="width: 130pt;border: 1pt solid #000000"><span style="font-size: 10pt;">thick</span></td>
+      <td style="width: 130pt;border: 1pt solid #000000"><span style="font-size: 10pt;">A</span></td>
+      <td style="width: 130pt;border: 1pt solid #000000"><span style="font-size: 10pt;">B</span></td>
+    </tr>
+    <tr>
+      <td style="width: 130pt;border: 1pt double #000000"><span style="font-size: 10pt;">double</span></td>
+      <td style="width: 130pt;border: 1pt double #000000"><span style="font-size: 10pt;">A</span></td>
+      <td style="width: 130pt;border: 1pt double #000000"><span style="font-size: 10pt;">B</span></td>
+    </tr>
+    <tr>
+      <td style="width: 130pt;border: 1pt dotted #000000"><span style="font-size: 10pt;">dotted</span></td>
+      <td style="width: 130pt;border: 1pt dotted #000000"><span style="font-size: 10pt;">A</span></td>
+      <td style="width: 130pt;border: 1pt dotted #000000"><span style="font-size: 10pt;">B</span></td>
+    </tr>
+    <tr>
+      <td style="width: 130pt;border: 1pt dashed #000000"><span style="font-size: 10pt;">dashed</span></td>
+      <td style="width: 130pt;border: 1pt dashed #000000"><span style="font-size: 10pt;">A</span></td>
+      <td style="width: 130pt;border: 1pt dashed #000000"><span style="font-size: 10pt;">B</span></td>
+    </tr>
+    <tr>
+      <td style="width: 130pt;border: 1pt dashed #000000"><span style="font-size: 10pt;">dotDash</span></td>
+      <td style="width: 130pt;border: 1pt dashed #000000"><span style="font-size: 10pt;">A</span></td>
+      <td style="width: 130pt;border: 1pt dashed #000000"><span style="font-size: 10pt;">B</span></td>
+    </tr>
+    <tr>
+      <td style="width: 130pt;border: 1pt double #000000"><span style="font-size: 10pt;">triple</span></td>
+      <td style="width: 130pt;border: 1pt double #000000"><span style="font-size: 10pt;">A</span></td>
+      <td style="width: 130pt;border: 1pt double #000000"><span style="font-size: 10pt;">B</span></td>
+    </tr>
+    <tr>
+      <td style="width: 130pt;border: 1pt solid #000000"><span style="font-size: 10pt;">wave</span></td>
+      <td style="width: 130pt;border: 1pt solid #000000"><span style="font-size: 10pt;">A</span></td>
+      <td style="width: 130pt;border: 1pt solid #000000"><span style="font-size: 10pt;">B</span></td>
+    </tr>
+    <tr>
+      <td style="width: 130pt;border: 1pt ridge #000000"><span style="font-size: 10pt;">threeDEmboss</span></td>
+      <td style="width: 130pt;border: 1pt ridge #000000"><span style="font-size: 10pt;">A</span></td>
+      <td style="width: 130pt;border: 1pt ridge #000000"><span style="font-size: 10pt;">B</span></td>
+    </tr>
+    <tr>
+      <td style="width: 130pt;border: 1pt inset #000000"><span style="font-size: 10pt;">inset</span></td>
+      <td style="width: 130pt;border: 1pt inset #000000"><span style="font-size: 10pt;">A</span></td>
+      <td style="width: 130pt;border: 1pt inset #000000"><span style="font-size: 10pt;">B</span></td>
+    </tr>
+  </tbody>
+</table>
+<p style="line-height: 1.16">&nbsp;</p>
+</body>
+</html>

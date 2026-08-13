@@ -5133,14 +5133,39 @@ sealed class DocumentParser(string defaultFont)
         };
     }
 
+    // Every ST_Border line style is carried through distinctly. Folding them into a handful of
+    // buckets lost the stroke AND silently merged adjacent paragraphs that declared different
+    // styles into one border box, because the grouping test compares border records for equality
+    // (see BorderLineStyle). Anything genuinely unknown still falls back to a plain line.
     static BorderLineStyle MapBorderStyle(BorderValues? val)
     {
         if (val == null) return BorderLineStyle.Single;
+        if (val == BorderValues.Nil || val == BorderValues.None) return BorderLineStyle.None;
+        if (val == BorderValues.Single) return BorderLineStyle.Single;
+        if (val == BorderValues.Thick) return BorderLineStyle.Thick;
         if (val == BorderValues.Double) return BorderLineStyle.Double;
         if (val == BorderValues.Dotted) return BorderLineStyle.Dotted;
-        if (val == BorderValues.Dashed || val == BorderValues.DashSmallGap ||
-            val == BorderValues.DashDotStroked || val == BorderValues.DotDash ||
-            val == BorderValues.DotDotDash) return BorderLineStyle.Dashed;
+        if (val == BorderValues.Dashed) return BorderLineStyle.Dashed;
+        if (val == BorderValues.DotDash) return BorderLineStyle.DotDash;
+        if (val == BorderValues.DotDotDash) return BorderLineStyle.DotDotDash;
+        if (val == BorderValues.Triple) return BorderLineStyle.Triple;
+        if (val == BorderValues.ThinThickSmallGap) return BorderLineStyle.ThinThickSmallGap;
+        if (val == BorderValues.ThickThinSmallGap) return BorderLineStyle.ThickThinSmallGap;
+        if (val == BorderValues.ThinThickThinSmallGap) return BorderLineStyle.ThinThickThinSmallGap;
+        if (val == BorderValues.ThinThickMediumGap) return BorderLineStyle.ThinThickMediumGap;
+        if (val == BorderValues.ThickThinMediumGap) return BorderLineStyle.ThickThinMediumGap;
+        if (val == BorderValues.ThinThickThinMediumGap) return BorderLineStyle.ThinThickThinMediumGap;
+        if (val == BorderValues.ThinThickLargeGap) return BorderLineStyle.ThinThickLargeGap;
+        if (val == BorderValues.ThickThinLargeGap) return BorderLineStyle.ThickThinLargeGap;
+        if (val == BorderValues.ThinThickThinLargeGap) return BorderLineStyle.ThinThickThinLargeGap;
+        if (val == BorderValues.Wave) return BorderLineStyle.Wave;
+        if (val == BorderValues.DoubleWave) return BorderLineStyle.DoubleWave;
+        if (val == BorderValues.DashSmallGap) return BorderLineStyle.DashSmallGap;
+        if (val == BorderValues.DashDotStroked) return BorderLineStyle.DashDotStroked;
+        if (val == BorderValues.ThreeDEmboss) return BorderLineStyle.ThreeDEmboss;
+        if (val == BorderValues.ThreeDEngrave) return BorderLineStyle.ThreeDEngrave;
+        if (val == BorderValues.Outset) return BorderLineStyle.Outset;
+        if (val == BorderValues.Inset) return BorderLineStyle.Inset;
         return BorderLineStyle.Single;
     }
 

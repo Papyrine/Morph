@@ -1,4 +1,4 @@
-# All Markdown export scenarios (325)
+# All Markdown export scenarios (326)
 
 The Word reference render (left) beside the Markdown exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -33,6 +33,7 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [bar_tabs](#bar_tabs)
 - [block_quote](#block_quote)
 - [bold_text](#bold_text)
+- [border_style_variants](#border_style_variants)
 - [brochures/01](#brochures01)
 - [brochures/02](#brochures02)
 - [brochures/03](#brochures03)
@@ -500,6 +501,12 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | Expected (Word) | Morph Markdown |
 | --- | --- |
 | <img src="bold_text/expected_0001.png" width="500"> | <img src="bold_text/md_result.verified.png" width="500"> |
+
+## border_style_variants
+
+| Expected (Word) | Morph Markdown |
+| --- | --- |
+| <img src="border_style_variants/expected_0001.png" width="500"><br><img src="border_style_variants/expected_0002.png" width="500"><br><img src="border_style_variants/expected_0003.png" width="500"><br><img src="border_style_variants/expected_0004.png" width="500"> | <img src="border_style_variants/md_result.verified.png" width="500"> |
 
 ## brochures/01
 

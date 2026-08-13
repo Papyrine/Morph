@@ -1156,8 +1156,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
         // The flow space a border edge occupies: its own width plus the w:space gap it holds open between
         // the line and the rule. Zero for an edge that is not drawn.
+        //
+        // The width is what the edge DRAWS, not what w:sz declares — a multi-line style whose declared
+        // width is too small to resolve is floored up to a visible stack (BorderStroke.Extent), and
+        // charging only the declared width let those paragraphs pack tighter than Word's.
         static float EdgeReserve(BorderEdge edge, double spacePoints) =>
-            edge.IsVisible ? (float) (edge.WidthPoints + spacePoints) : 0f;
+            BorderStroke.Draws(edge) ? (float) (BorderStroke.Extent(edge.Style, edge.WidthPoints) + spacePoints) : 0f;
 
         // Strokes the open border run's box and closes the run. Idempotent — a closed run flushes to nothing,
         // so the region-boundary and element-boundary callers can both fire without coordinating.

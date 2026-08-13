@@ -1,4 +1,4 @@
-﻿/// <summary>
+/// <summary>
 /// Paints a backend-independent <see cref="LaidOutDocument"/> to PNG bitmaps — the ImageSharp analogue of
 /// <c>SkiaPainter</c> (docs/layout-engine.md, step 6). A pure draw pass over the tree the
 /// <c>Fragmenter</c> produced. ImageSharp records draw ops onto a deferred <see cref="DrawingCanvas"/> per
@@ -109,6 +109,13 @@ static class ImageSharpPainter
             {
                 var strikeY = P(context, line.Baseline - ascent * 0.3);
                 canvas.DrawLine(context.GetPen(color, strokeWidth), new PointF(P(context, run.X), strikeY), new PointF(P(context, run.X + run.Width), strikeY));
+            }
+
+            // w:bdr — see SkiaPainter.PaintLine.
+            if (properties.Border is {} runBorder &&
+                BorderStroke.Draws(runBorder))
+            {
+                PaintEdges(context, canvas, run.X, line.Y, run.Width, line.Height, CellBorders.Uniform(runBorder));
             }
         }
 
@@ -471,36 +478,65 @@ static class ImageSharpPainter
 
             if (cell.Borders is { } borders)
             {
-                PaintEdges(context, canvas, cell.X, cell.Y, cell.Width, cell.Height, borders);
+                PaintEdges(context, canvas, cell.X, cell.Y, cell.Width, cell.Height, borders, BorderStroke.Scope.Cell);
             }
         }
     }
 
-    static void PaintEdges(ImageSharpRenderContext context, DrawingCanvas canvas, double x, double y, double width, double height, CellBorders borders)
+    static void PaintEdges(ImageSharpRenderContext context, DrawingCanvas canvas, double x, double y, double width, double height, CellBorders borders, BorderStroke.Scope scope = BorderStroke.Scope.Paragraph)
     {
         float left = P(context, x), top = P(context, y), right = P(context, x + width), bottom = P(context, y + height);
 
-        if (borders.Top.IsVisible)
+        // See SkiaPainter.StrokeEdge — one band per line of a multi-line style, offset
+        // perpendicular to the edge; single-line styles come back as one band at offset 0.
+        StrokeEdge(context, canvas, borders.Top, horizontal: true, left, right, top, scope);
+        StrokeEdge(context, canvas, borders.Bottom, horizontal: true, left, right, bottom, scope);
+        StrokeEdge(context, canvas, borders.Left, horizontal: false, top, bottom, left, scope);
+        StrokeEdge(context, canvas, borders.Right, horizontal: false, top, bottom, right, scope);
+    }
+
+    static void StrokeEdge(ImageSharpRenderContext context, DrawingCanvas canvas, BorderEdge edge, bool horizontal, float from, float to, float at, BorderStroke.Scope scope)
+    {
+        if (!BorderStroke.Draws(edge))
         {
-            canvas.DrawLine(EdgePen(context, borders.Top), new PointF(left, top), new PointF(right, top));
+            return;
         }
 
-        if (borders.Bottom.IsVisible)
+        var dash = BorderStroke.DashPattern(edge.Style, edge.WidthPoints);
+        foreach (var band in BorderStroke.Bands(edge.Style, edge.WidthPoints, scope))
         {
-            canvas.DrawLine(EdgePen(context, borders.Bottom), new PointF(left, bottom), new PointF(right, bottom));
-        }
-
-        if (borders.Left.IsVisible)
-        {
-            canvas.DrawLine(EdgePen(context, borders.Left), new PointF(left, top), new PointF(left, bottom));
-        }
-
-        if (borders.Right.IsVisible)
-        {
-            canvas.DrawLine(EdgePen(context, borders.Right), new PointF(right, top), new PointF(right, bottom));
+            var offset = P(context, band.Offset);
+            var pen = EdgePen(context, edge, band.Thickness, dash);
+            if (horizontal)
+            {
+                canvas.DrawLine(pen, new PointF(from, at + offset), new PointF(to, at + offset));
+            }
+            else
+            {
+                canvas.DrawLine(pen, new PointF(at + offset, from), new PointF(at + offset, to));
+            }
         }
     }
 
-    static SolidPen EdgePen(ImageSharpRenderContext context, BorderEdge edge) =>
-        context.GetPen(ImageSharpRenderContext.ParseColor(edge.ColorHex), P(context, edge.WidthPoints));
+    static Pen EdgePen(ImageSharpRenderContext context, BorderEdge edge, double thickness, float[]? dashPoints)
+    {
+        var color = ImageSharpRenderContext.ParseColor(edge.ColorHex);
+        var strokeWidth = P(context, thickness);
+        if (dashPoints == null)
+        {
+            return context.GetPen(color, strokeWidth);
+        }
+
+        // ImageSharp expresses a stroke pattern in multiples of the stroke WIDTH, not in pixels,
+        // so the point-space pattern is normalised here. A hairline would divide by ~0, hence the
+        // floor.
+        var unit = Math.Max(strokeWidth, 0.01f);
+        var pattern = new float[dashPoints.Length];
+        for (var i = 0; i < dashPoints.Length; i++)
+        {
+            pattern[i] = P(context, dashPoints[i]) / unit;
+        }
+
+        return new PatternPen(color, strokeWidth, pattern);
+    }
 }

@@ -399,8 +399,10 @@ Border drawn around an individual run (per-run rectangle, not paragraph-level). 
 - **OOXML**: `w:bdr` within `w:rPr`
 - **Spec**: [Border](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.border)
 - **Model**: `RunProperties.Border` (a `BorderEdge`)
-- **Render**: rectangle drawn around the run's measured box (ascent..descent vertically, fragment width horizontally) using the parsed colour and width
-- **Test**: `RunEffectsTests.RunBorder_ParsesColorAndWidth`
+- **Render**: each painter's `PaintLine` strokes the run's line box (the same rectangle the highlight fills) through `CellBorders.Uniform` and the shared `BorderStroke` recipe, so a run border gets the same styles and dashes as any other edge without per-backend stroke code
+- **Test**: `RunEffectsTests.RunBorder_ParsesColorAndWidth`, `border_style_variants/`
+
+> **History**: `RunProperties.Border` was parsed with no reader anywhere between the layout-engine migration and 2026-08-13 — the rectangle the deleted production renderers drew was lost in the move, the same way `IsAnchorOnlyMark` was (`src/todo.md` #26). `border_style_variants` section 3 caught it: Word boxes each of its 27 runs, every backend drew plain text.
 
 
 #### East Asian Emphasis Mark `TODO`
@@ -776,7 +778,7 @@ Borders around a paragraph (top, bottom, left, right, between).
 - **Parse**: `DocumentParser.ParseParagraphProperties()` and `ParseStyleParagraphProperties()` in `Morph/OpenXml/Parsing/DocumentParser.cs`; per-edge `w:space` via `ParseBorderSpace()`
 - **Model**: `ParagraphProperties.Borders` (reuses `CellBorders` for Top/Right/Bottom/Left), plus per-edge `BorderTopSpacePoints` / `BorderBottomSpacePoints` / `BorderLeftSpacePoints` / `BorderRightSpacePoints`, and `BorderBetween` / `BorderBetweenSpacePoints`
 - **Render**: `Fragmenter` accumulates a border *run* (`borderRunProperties` and friends) and `FlushBorderRun` emits one `PlacedBorder` per run plus a zero-height top-only `PlacedBorder` for each internal `w:between` rule; every backend's painter strokes what the run produced, measuring and grouping nothing itself.
-- **Test**: `paragraph_borders/`
+- **Test**: `paragraph_borders/`, `border_style_variants/`
 - **Spec**: [Paragraph Borders](http://officeopenxml.com/WPborders.php)
 
 > **Contributors**: All four box edges plus `w:between` are rendered. Consecutive paragraphs form a **border group** that Word draws ONE box around — the grouping rule lives in `ParagraphProperties.SharesBorderGroupWith` and is Word-probed seven ways in a single render (A–G below, A4, red `sz=12` borders, 150dpi):
@@ -1030,10 +1032,20 @@ Per-cell border control for all four edges with color, width, and visibility. Fa
 - **Spec**: [Table Cell Borders](http://officeopenxml.com/WPtableCellBorders.php)
 - **Model**: `CellBorders`, `BorderEdge` in `DocumentElements.cs`
 - **Layout**: `TableLayout.ResolveCellBorders()` — merges cell/table/inside borders
-- **Test**: `table_borders/`
+- **Test**: `table_borders/`, `border_style_variants/`
 
 > **Contributors**: Resolution order: cell-level borders override table defaults. Outer cells use `DefaultBorders`, inner cells use `InsideHorizontalBorder`/`InsideVerticalBorder`. See `TableLayout.ResolveCellBorders()`.
-> **Consumers**: Standard solid borders render correctly. Double/dashed/dotted styles render as solid.
+> **Consumers**: Border STYLE is shared with every other border (paragraph, cell, run) through `BorderStroke`, which turns a style plus `w:sz` into the parallel lines a painter strokes and an optional dash pattern, so the three backends cannot drift on what "double" or "dotDash" means. `HtmlExporter` maps the same enum to CSS keywords.
+>
+> **Two Word-measured rules live there, and they disagree with each other by scope** — both read off Word's own renders rather than the spec, because the spec's "width of the border" is ambiguous for a stacked style:
+> - A PARAGRAPH border's `w:sz` is the width of EACH LINE for the symmetric families: Word draws a 3pt `double` as two 3pt lines with a 3pt gap, a 9.1pt stack (measured at y=386/399 on `border_style_variants` p3), and `_probe_bordersp` confirms the flow reserve to match — mark-to-mark 134px against a `single`'s 109px at the same `sz=24`.
+> - A CELL border's `w:sz` is the TOTAL: `table_default_style`'s style declares `double` at `sz=12` and Word draws a 3px rule at 150 DPI (1.44pt), where per-line would be 9.4px. Applying the paragraph rule to cells cost that scenario 0.0524 → 0.0546 AE.
+>
+> The thin/thick family follows neither — `thinThickLargeGap` at `sz=24` reserves ~5pt, not the 18pt its six units would imply — so it divides the declared width, landing within 3px of Word. That one is fitted to the measurement, not understood.
+>
+> **Floor**: a declared width too small to resolve is floored to 0.75pt per unit rather than divided into invisible slivers, which is what Word does (its own `double` at `sz=6` spans ~5px against the 1.6px the declared width allows). 0.75pt rather than Word's 0.5pt because Word draws these pixel-aligned and unantialiased while Morph antialiases, and at 0.5pt the gap closes unpredictably by pixel phase. `BorderStroke.Extent` reports the resulting drawn thickness so `Fragmenter.EdgeReserve` charges the flow what the border actually occupies.
+>
+> **Not modelled**: `wave`/`doubleWave` stroke straight (one and two lines) — the sine path needs geometry in three painters and no corpus document uses either; and the light/dark bevel shading of `threeDEmboss`/`threeDEngrave`/`inset`/`outset` is absent, only their line structure renders.
 
 
 #### Cell Shading / Background `DONE`

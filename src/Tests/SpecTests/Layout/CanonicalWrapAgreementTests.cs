@@ -33,12 +33,17 @@ public class CanonicalWrapAgreementTests
     [Test]
     public async Task Canonical_wrap_agrees_with_the_raster_backend_on_corpus_paragraphs()
     {
-        // A diverse, deterministic sample — every 3rd input, capped — keeps the diagnostic quick while
-        // spanning letters, résumés, brochures, newsletters, etc.
+        // EVERY input, not a sample. This used to take every 3rd of the first 120 in ordinal path
+        // order, which made the measured population depend on corpus MEMBERSHIP and on the PLATFORM:
+        // adding `border_style_variants` shifted the stride onto a different 120 documents and the
+        // rate read 96.2% against the 97% gate, while the same tree passed on Windows because
+        // ordinal ordering sorts '\' and '/' differently and the two OSes therefore sampled
+        // different sets. Nothing about the measurer had changed either time. Over the whole corpus
+        // the rate clears the gate, so the subsample was also hiding the stronger result it was
+        // meant to approximate. 325 inputs cost ~11s against the subsample's ~4s, which is free
+        // beside a ~2m40s suite this runs inside.
         var inputs = Directory.GetFiles(inputsDirectory, "input.docx", SearchOption.AllDirectories)
             .OrderBy(_ => _, StringComparer.Ordinal)
-            .Where((_, index) => index % 3 == 0)
-            .Take(120)
             .ToList();
 
         var typefaces = new Dictionary<string, SKTypeface?>();

@@ -1,0 +1,67 @@
+﻿{
+  "target": {
+    "PageCount": 4,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625,
+        "Text": "1. Three-D and bevel styles (original fixture)\nGroove border\nRidge border\nInset border\nOutset border\n2. Every ST_Border line style - paragraph borders (w:pBdr, sz 6)\nnil\nnone\nsingle\nthick\ndouble\ndotted\ndashed\ndotDash\ndotDotDash\ntriple\nthinThickSmallGap\nthickThinSmallGap\nthinThickThinSmallGap\nthinThickMediumGap\nthickThinMediumGap\nthinThickThinMediumGap\nthinThickLargeGap\nthickThinLargeGap"
+      },
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625,
+        "Text": "thinThickThinLargeGap\nwave\ndoubleWave\ndashSmallGap\ndashDotStroked\nthreeDEmboss\nthreeDEngrave\noutset\ninset\n3. Every ST_Border line style - run borders (w:bdr)\nnil none single thick\ndouble dotted dashed dotDash\ndotDotDash triple thinThickSmallGap thickThinSmallGap\nthinThickThinSmallGap thinThickMediumGap thickThinMediumGap thinThickThinMediumGap\nthinThickLargeGap thickThinLargeGap thinThickThinLargeGap wave\ndoubleWave dashSmallGap dashDotStroked threeDEmboss\nthreeDEngrave outset inset\n4. Border width sweep (w:sz, eighths of a point)\nsingle, sz=2 (0.25pt)\nsingle, sz=4 (0.50pt)\nsingle, sz=6 (0.75pt)\nsingle, sz=8 (1.00pt)\nsingle, sz=12 (1.50pt)\nsingle, sz=18 (2.25pt)\nsingle, sz=24 (3.00pt)\nsingle, sz=36 (4.50pt)"
+      },
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625,
+        "Text": "single, sz=48 (6.00pt)\nsingle, sz=96 (12.00pt)\ndouble, sz=6 (total width splits into two lines)\ndouble, sz=24\n5. Edge combinations\ntop only\nbottom only\nleft only\nright only\ntop + bottom\nleft + right\ntop + left + bottom (open right)\nall four edges\n6. Border spacing (w:space, points)\nspace=0\nspace=4\nspace=10\nspace=20\nspace=31\n7. w:between inside a border group"
+      },
+      {
+        "Width": 595.2999877929688,
+        "Height": 841.9000244140625,
+        "Text": "Group member 1 - identical borders, so Word draws one box with between rules inside.\nGroup member 2 - identical borders, so Word draws one box with between rules inside.\nGroup member 3 - identical borders, so Word draws one box with between rules inside.\n8. Colours\nred C00000\nblue 2E74B5\ngreen 548235\nauto\n9. Shadow and frame attributes\nw:shadow=\"true\"\nw:frame=\"true\"\nboth\n10. Table cell borders by style\nStyle Cell A Cell B\nsingle A B\nthick A B\ndouble A B\ndotted A B\ndashed A B\ndotDash A B\ntriple A B\nwave A B\nthreeDEmboss A B\ninset A B"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.1647,
+      "Ssim": 0.6716,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.1815,
+      "Ssim": 0.6087,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.1413,
+      "Ssim": 0.7059,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    },
+    {
+      "Page": 4,
+      "ErrorMetric": 0.1119,
+      "Ssim": 0.7185,
+      "ExpectedFile": "expected_0004.png",
+      "VerifiedFile": "pdf_result#page_0004.verified.png",
+      "ReceivedFile": "pdf_result#page_0004.received.png"
+    }
+  ]
+}

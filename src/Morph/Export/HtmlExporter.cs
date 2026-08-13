@@ -1116,11 +1116,23 @@ static class HtmlExporter
 
         static string BorderCss(BorderEdge edge)
         {
+            // CSS has no equivalent for OOXML's thin/thick pairs or the wave styles, so those map
+            // to the nearest keyword: any multi-line style becomes `double`, any broken one
+            // `dashed`/`dotted`. `groove`/`ridge`/`inset`/`outset` do exist in CSS and carry over.
             var style = edge.Style switch
             {
-                BorderLineStyle.Double => "double",
+                BorderLineStyle.None => "none",
                 BorderLineStyle.Dotted => "dotted",
-                BorderLineStyle.Dashed => "dashed",
+                BorderLineStyle.Dashed or BorderLineStyle.DashSmallGap or BorderLineStyle.DashDotStroked or
+                    BorderLineStyle.DotDash or BorderLineStyle.DotDotDash => "dashed",
+                BorderLineStyle.Double or BorderLineStyle.Triple or BorderLineStyle.DoubleWave or
+                    BorderLineStyle.ThinThickSmallGap or BorderLineStyle.ThickThinSmallGap or BorderLineStyle.ThinThickThinSmallGap or
+                    BorderLineStyle.ThinThickMediumGap or BorderLineStyle.ThickThinMediumGap or BorderLineStyle.ThinThickThinMediumGap or
+                    BorderLineStyle.ThinThickLargeGap or BorderLineStyle.ThickThinLargeGap or BorderLineStyle.ThinThickThinLargeGap => "double",
+                BorderLineStyle.ThreeDEngrave => "groove",
+                BorderLineStyle.ThreeDEmboss => "ridge",
+                BorderLineStyle.Inset => "inset",
+                BorderLineStyle.Outset => "outset",
                 _ => "solid"
             };
             var color = DocumentExportHelpers.NormalizeColor(edge.ColorHex) ?? "#000000";
