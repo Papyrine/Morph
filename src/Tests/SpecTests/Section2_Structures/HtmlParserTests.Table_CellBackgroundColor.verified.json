@@ -58,7 +58,9 @@
               "BackgroundColorHex": "FFFF00",
               "GridSpan": 1,
               "HideMark": false,
-              "NoWrap": false
+              "NoWrap": false,
+              "SingleLine": false,
+              "ClipOverflow": false
             }
           }
         ],

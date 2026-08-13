@@ -101,7 +101,8 @@ sealed class SpreadsheetParser(string defaultFont, string? fontDirectory = null)
 
             var scale = ResolveScale(builder, worksheet, bounds, settings);
             var conditional = new ConditionalFormats(worksheet, workbookPart.WorkbookStylesPart?.Stylesheet, themeColors);
-            var table = builder.Build(worksheet, bounds, scale, definedNames.PrintTitleRows(name), conditional);
+            var centered = worksheet.GetFirstChild<S.PrintOptions>()?.HorizontalCentered?.Value == true;
+            var table = builder.Build(worksheet, bounds, scale, definedNames.PrintTitleRows(name), conditional, centered);
             if (table == null)
             {
                 continue;
@@ -110,8 +111,9 @@ sealed class SpreadsheetParser(string defaultFont, string? fontDirectory = null)
             // Drawings are emitted BEFORE the table: they anchor vertically to the flow cursor, which
             // still sits at the content top until the table is placed, so each binds to this sheet's
             // first page rather than deferring. Their coordinates are relative to the grid's
-            // top-left, which is where the table begins.
-            var art = drawings.Parse(worksheetPart, new(worksheet, bounds, scale), scale, 0);
+            // top-left, which is where the table begins — including the centring slack, computed the
+            // same way the table's own centre alignment computes it (Fragmenter.ComputeTableX).
+            var art = drawings.Parse(worksheetPart, new(worksheet, bounds, scale), scale, 0, GridLeft(table, settings));
 
             if (first == null)
             {
@@ -316,6 +318,24 @@ sealed class SpreadsheetParser(string defaultFont, string? fontDirectory = null)
         }
 
         return scale;
+    }
+
+    /// <summary>
+    /// How far the grid's left edge sits from the text column's, in points — the slack a centred
+    /// print area takes, and zero for a left-aligned one. Mirrors <c>Fragmenter.ComputeTableX</c>,
+    /// which is what actually places the table; this exists so the sheet's DRAWINGS, which anchor to
+    /// the margin rather than to the table, can be shifted onto the same origin.
+    /// </summary>
+    static double GridLeft(TableElement table, PageSettings settings)
+    {
+        if (table.Properties.Alignment != TextAlignment.Center)
+        {
+            return 0;
+        }
+
+        var columnWidth = settings.WidthPoints - settings.MarginLeft - settings.MarginRight;
+        var tableWidth = table.Properties.GridColumnWidths?.Sum() ?? 0;
+        return Math.Max(0, (columnWidth - tableWidth) / 2);
     }
 
     static PageSettings PageSettingsFor(S.Worksheet worksheet)

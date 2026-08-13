@@ -1959,7 +1959,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     }
                 }
 
-                cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, FragmentBorders(cell, table, rowIndex, gridColIndex, colCount, row), content));
+                cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, FragmentBorders(cell, table, rowIndex, gridColIndex, colCount, row), content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints));
 
                 cellX += cellWidth;
                 gridColIndex += span;
@@ -2057,7 +2057,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     content = [.. floatShapes, .. content];
                 }
 
-                cells.Add(new(cellX, rowY, cellWidth, cellHeight, cell.Properties.BackgroundColorHex, borders, content));
+                cells.Add(new(cellX, rowY, cellWidth, cellHeight, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints));
 
                 cellX += cellWidth;
                 gridColIndex += span;
@@ -2286,7 +2286,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         : Math.Max(lastCellAfter, (float) properties.SpacingBeforePoints);
                 first = false;
 
-                var paragraphLines = measurer.LayoutLineContents(paragraph, contentWidth);
+                // A single-line cell wraps against an unbounded width — the line simply runs past the
+                // cell's edge. ALIGNMENT still uses the cell's real width, so a short line in such a
+                // cell centres and right-aligns exactly as it would in any other (AlignmentOffset
+                // leaves an over-long line at the left edge).
+                var wrapWidth = cell.Properties.SingleLine ? TableHeightCalculator.UnboundedWidth : contentWidth;
+                var paragraphLines = measurer.LayoutLineContents(paragraph, wrapWidth);
                 var isEmpty = paragraphLines is [{Width: <= 0} _];
                 var textLeft = contentLeft + (float) properties.LeftIndentPoints;
                 var availableWidth = contentWidth - (float) properties.LeftIndentPoints - (float) properties.RightIndentPoints;
@@ -2348,7 +2353,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 {
                     var line = paragraphLines[lineIndex];
                     var firstLineShift = FirstLineIndentOffset(properties, lineIndex);
-                    var lineLeft = textLeft + firstLineShift + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, line.Width);
+                    var lineLeft = textLeft + firstLineShift + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, line.Width, cell.Properties.SingleLine);
                     var baseline = cellY + line.Ascent;
                     lines.Add(new PlacedLine(lineLeft, cellY, line.Width, line.Height, baseline, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft), MapImages(line, lineLeft, baseline)));
                     cellY += line.Height;
@@ -2720,11 +2725,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
         // The X offset that aligns a line of the given width within the available width. Centre and right
         // shift the whole line; left and justify sit at the left edge (justify's inter-word slack is a
-        // later slice). A line wider than the available width (rare — an unbreakable word) is not shifted.
-        static float AlignmentOffset(TextAlignment alignment, float availableWidth, float lineWidth)
+        // later slice). A line wider than the available width (rare — an unbreakable word) is not shifted,
+        // unless <paramref name="allowOverhang"/> — a spreadsheet cell that must not wrap, where the line
+        // is MEANT to be wider and the alignment says which way it grows. Word has no such case: its
+        // over-long line is an unbreakable word that would look no better hanging off the left margin,
+        // whereas Excel's right-aligned label ends at its column and runs backwards over the empty cells
+        // beside it (modern-corporate-blue's "Client Company Name", 96pt of text in a 90.75pt column).
+        static float AlignmentOffset(TextAlignment alignment, float availableWidth, float lineWidth, bool allowOverhang = false)
         {
             var slack = availableWidth - lineWidth;
-            if (slack <= 0)
+            if (slack <= 0 && !allowOverhang)
             {
                 return 0;
             }

@@ -11,15 +11,15 @@
       {
         "Width": 595.280029296875,
         "Height": 841.8900146484375,
-        "Text": "INVOICE\nYour Company\nName\nStreet Address\nCity, State,\nZip/Postal Code Phone\nEmail\nBill To\nInvoice No. Client Company\nDate of Issue Enter Date Here Address Name\nDue Date Enter Due Date Here Phone\nEmail\nItem Description Hours Rate Amount\n1 Logo design 3 $50.00 $150.00\nSubtotal $150.00\nTerms Discount $0.00\nTax Rate 5.00%\nTax $7.50\nTotal $157.50\nThank you for your business!"
+        "Text": "INVOICE\nYour Company Name\nStreet Address\nCity, State, Zip/Postal Code\nPhone\nEmail\nBill To\nInvoice No. Client Company Name\nDate of Issue Enter Date Here Address\nDue Date Enter Due Date Here Phone\nEmail\nItem Description Hours Rate Amount\n1 Logo design 3 $50.00 $150.00\nSubtotal $150.00\nTerms Discount $0.00\nTax Rate 5.00%\nTax $7.50\nTotal $157.50\nThank you for your business!"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.2017,
-      "Ssim": 0.7544,
+      "ErrorMetric": 0.2021,
+      "Ssim": 0.7542,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

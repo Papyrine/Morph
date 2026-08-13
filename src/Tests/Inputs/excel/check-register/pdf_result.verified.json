@@ -11,7 +11,7 @@
       {
         "Width": 841.8900146484375,
         "Height": 595.280029296875,
-        "Text": "√Check register\nNumber Date Description of transaction Clear Debit (-) Credit (+) Balance\n7/16/2026 Previous balance $1,016.16 $1,016.16\n1033 7/17/2026 Groceries √ $123.78 $892.38\n7/18/2026 Deposit, sweepstakes winnings $10,000.00 $10,892.38\n1034 7/19/2026 Dry cleaner $10.75 $10,881.63"
+        "Text": "√ Check register\nNumber Date Description of transaction Clear Debit (-) Credit (+) Balance\n7/16/2026 Previous balance $1,016.16 $1,016.16\n1033 7/17/2026 Groceries √ $123.78 $892.38\n7/18/2026 Deposit, sweepstakes winnings $10,000.00 $10,892.38\n1034 7/19/2026 Dry cleaner $10.75 $10,881.63"
       }
     ]
   },

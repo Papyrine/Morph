@@ -57,7 +57,9 @@
             "Properties": {
               "GridSpan": 1,
               "HideMark": false,
-              "NoWrap": false
+              "NoWrap": false,
+              "SingleLine": false,
+              "ClipOverflow": false
             }
           },
           {
@@ -114,7 +116,9 @@
             "Properties": {
               "GridSpan": 1,
               "HideMark": false,
-              "NoWrap": false
+              "NoWrap": false,
+              "SingleLine": false,
+              "ClipOverflow": false
             }
           }
         ],

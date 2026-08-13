@@ -31,7 +31,7 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
     /// the flow cursor still sits at the content top — the same paragraph-anchor trick the slide
     /// parser relies on, which binds each float to the page being built instead of deferring it.
     /// </summary>
-    public List<DocumentElement> Parse(WorksheetPart worksheetPart, SheetGeometry geometry, double scale, uint firstOrdinal)
+    public List<DocumentElement> Parse(WorksheetPart worksheetPart, SheetGeometry geometry, double scale, uint firstOrdinal, double gridLeftPoints = 0)
     {
         var elements = new List<DocumentElement>();
         var drawingsPart = worksheetPart.DrawingsPart;
@@ -49,7 +49,11 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
                 continue;
             }
 
-            Walk(anchor, box, SlideTransform.Identity, drawingsPart, elements, ref ordinal, anchorIsRoot: true);
+            // Anchors are measured from the GRID's left edge, but the elements come out anchored to
+            // the page margin — so wherever the grid starts, the art has to start there too. That is
+            // zero until printOptions/@horizontalCentered moves the grid off the margin, and every
+            // sheet's logo detaches from its cells the moment the two disagree.
+            Walk(anchor, box with {X = box.X + gridLeftPoints}, SlideTransform.Identity, drawingsPart, elements, ref ordinal, anchorIsRoot: true);
         }
 
         return elements;
