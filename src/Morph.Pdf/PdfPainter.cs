@@ -650,6 +650,27 @@ static class PdfPainter
 
     // The PDF painter's edge strokers take a PlacedBorder/PlacedCell rather than a bare rectangle,
     // so a run border routes through this instead of reusing one of them.
+    // See SkiaPainter.StrokeWaves.
+    static void StrokeWaves(PdfRenderContext context, XGraphics graphics, BorderEdge edge, BorderStroke.WaveBand[] waves, bool horizontal, double from, double to, double at, int outward)
+    {
+        var color = PdfRenderContext.ParseColor(edge.ColorHex ?? "000000");
+        foreach (var wave in waves)
+        {
+            var centre = at + outward * wave.Offset;
+            var pen = context.GetPen(color, Math.Max(0.5, wave.Thickness));
+            var points = new List<XPoint>();
+            foreach (var (along, across) in BorderStroke.WavePoints(from, to, wave.Period, wave.Amplitude))
+            {
+                points.Add(horizontal ? new XPoint(along, centre + across) : new XPoint(centre + across, along));
+            }
+
+            if (points.Count > 1)
+            {
+                graphics.DrawLines(pen, points.ToArray());
+            }
+        }
+    }
+
     // See SkiaPainter.Shaded.
     static XColor Shaded(XColor color, double shade) =>
         shade >= 1
@@ -671,6 +692,12 @@ static class PdfPainter
     {
         if (!BorderStroke.Draws(edge))
         {
+            return;
+        }
+
+        if (BorderStroke.Waves(edge.Style) is {Length: > 0} waves)
+        {
+            StrokeWaves(context, graphics, edge, waves, horizontal, from, to, at, outward);
             return;
         }
 

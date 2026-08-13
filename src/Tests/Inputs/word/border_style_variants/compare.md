@@ -35,16 +35,18 @@ checked-in reference could not tell you what correct looked like — which is ho
 were briefly modelled with a highlight Word does not draw. Section 1 stays at `sz=6` because it
 is the original fixture, kept verbatim. Keep the fat sizes when editing.
 
+`wave`/`doubleWave` render as zigzags since 2026-08-13. Word's squiggle is FIXED — declared at
+sz=6, 12, 24 and 48 it draws the identical shape every time, so nothing about it scales with
+`w:sz`. A single-width probe would have produced a scaling rule that does not exist.
+
 **Still open**, and visible here:
 
-1. `wave` and `doubleWave` stroke straight (one and two lines) — the sine path needs geometry
-   in three painters.
-2. The bevel styles' geometry and shading now render (see `BorderStroke`), but the block is
+1. The bevel styles' geometry and shading now render (see `BorderStroke`), but the block is
    fitted to one probe: Word's 6pt groove spans 19px split ~12px dark / ~3px light, modelled as
    1.2/0.3 units at 0.41x. The proportions have not been checked at other widths.
-3. At `sz=96` (12pt) the band paints across the paragraph text rather than outside it, so the
+2. At `sz=96` (12pt) the band paints across the paragraph text rather than outside it, so the
    label reads "ingle, sz=96". Word keeps the text clear.
-4. The thin/thick family's stack is fitted to the measurement rather than understood — see the
+3. The thin/thick family's stack is fitted to the measurement rather than understood — see the
    `perLine` comment in `BorderStroke.Bands`.
 
 **On the AE metric.** This scenario's recorded error is HIGH (~0.15 mean against Word) and that
@@ -59,11 +61,11 @@ scenario as a regression, measure that instead. (The fixture was rebuilt with fa
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1683 · SSIM: 0.6634** | **Page 1. ErrorMetric: 0.1687 · SSIM: 0.6607** |
 | <img src="expected_0001.png" width="500"> | <img src="skia_result%23page_0001.verified.png" width="500"> | <img src="imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.2370 · SSIM: 0.5419** | **Page 2. ErrorMetric: 0.2370 · SSIM: 0.5425** |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.2280 · SSIM: 0.5600** | **Page 2. ErrorMetric: 0.2284 · SSIM: 0.5580** |
 | <img src="expected_0002.png" width="500"> | <img src="skia_result%23page_0002.verified.png" width="500"> | <img src="imagesharp_result%23page_0002.verified.png" width="500"> |
 | **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.1826 · SSIM: 0.6317** | **Page 3. ErrorMetric: 0.1819 · SSIM: 0.6323** |
 | <img src="expected_0003.png" width="500"> | <img src="skia_result%23page_0003.verified.png" width="500"> | <img src="imagesharp_result%23page_0003.verified.png" width="500"> |
 | **Page 4**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 4. ErrorMetric: 0.1088 · SSIM: 0.6915** | **Page 4. ErrorMetric: 0.1093 · SSIM: 0.6909** |
 | <img src="expected_0004.png" width="500"> | <img src="skia_result%23page_0004.verified.png" width="500"> | <img src="imagesharp_result%23page_0004.verified.png" width="500"> |
-| **Page 5**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 5. ErrorMetric: 0.0475 · SSIM: 0.9012** | **Page 5. ErrorMetric: 0.0475 · SSIM: 0.9013** |
+| **Page 5**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 5. ErrorMetric: 0.0474 · SSIM: 0.9014** | **Page 5. ErrorMetric: 0.0474 · SSIM: 0.9015** |
 | <img src="expected_0005.png" width="500"> | <img src="skia_result%23page_0005.verified.png" width="500"> | <img src="imagesharp_result%23page_0005.verified.png" width="500"> |
