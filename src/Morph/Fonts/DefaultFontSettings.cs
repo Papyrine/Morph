@@ -7,11 +7,28 @@ static class DefaultFontSettings
 {
     /// <summary>
     /// Default fallback font family used when a DOCX document does not specify one in
-    /// <c>docDefaults</c>. Aptos matches modern Word (Microsoft 365's default since 2023)
-    /// — and Morph ships the four standard Aptos faces as embedded resources so this
-    /// resolves on every host, including Linux/macOS machines that don't have it
-    /// installed. The bundled bytes are decoded once per <c>TFont</c> backend and
-    /// seeded into the <see cref="FontResolver{TFont}"/> cache.
+    /// <c>docDefaults</c>. Morph ships the four standard Aptos faces as embedded resources so this
+    /// resolves on every host, including Linux/macOS machines that don't have it installed. The
+    /// bundled bytes are decoded once per <c>TFont</c> backend and seeded into the
+    /// <see cref="FontResolver{TFont}"/> cache.
+    ///
+    /// <para><b>Word actually uses CALIBRI 12pt here, not Aptos.</b> Probed 2026-08-13 with a bare
+    /// three-part package carrying one paragraph and no <c>w:rFonts</c> anywhere: Word rendered the
+    /// sample string 632px wide and 21px tall at 150 DPI, matching its own explicit Calibri 12
+    /// exactly on BOTH axes (Aptos 12 is 665x20, Times 12 is 629x23). One variant per page, because
+    /// a first probe with all variants on one page produced a line-to-variant mapping that did not
+    /// survive a 12/11 scaling check. Aptos is Word's default for NEW documents, which always
+    /// declare it in <c>docDefaults</c> — so that default never reaches this constant.
+    ///
+    /// It stays Aptos regardless, because switching it alone makes the corpus WORSE: measured over
+    /// the 150 scenarios it moves, mean AE goes 0.04136 -> 0.04151 and FOUR scenarios lose Word's
+    /// page count (explicit_break_blank_page, html_complex, business-plans/09, newsletters/07),
+    /// against a documented 325/325 invariant. Tables and short text improve sharply
+    /// (complex_document -0.048, table_default_style -0.037) while flowing text regresses
+    /// (complex_spacing +0.102, multiple_pages +0.031) — because Morph's own Calibri 12 renders
+    /// 2.37% NARROWER than Word's (617px against 632px on that same string, while Morph's Aptos 12,
+    /// Times 12 and Calibri 11 are all within ~1%). That metric gap has to be closed first; see
+    /// <c>src/todo.md</c> #43.</para>
     /// </summary>
     const string builtInDefaultFont = "Aptos";
 
