@@ -1,4 +1,4 @@
-﻿/// <summary>
+/// <summary>
 /// Paints a backend-independent <see cref="LaidOutDocument"/> to PNG bitmaps — the raster analogue of
 /// <c>PdfPainter</c> (docs/layout-engine.md, step 6). A pure draw pass: every page size, line and
 /// run position comes from the tree the <c>Fragmenter</c> already produced, so there is no measurement and
@@ -109,6 +109,14 @@ static class SkiaPainter
             {
                 var strikeY = P(context, line.Baseline - ascent * 0.3);
                 canvas.DrawLine(P(context, run.X), strikeY, P(context, run.X + run.Width), strikeY, context.GetReusableRulePaint(color, strokeWidth));
+            }
+
+            // w:bdr — a box around this run alone, over the glyphs like Word's. Drawn from the line
+            // box, which is the same rectangle the highlight fills.
+            if (properties.Border is {} runBorder &&
+                BorderStroke.Draws(runBorder))
+            {
+                PaintEdges(context, canvas, run.X, line.Y, run.Width, line.Height, CellBorders.Uniform(runBorder));
             }
         }
 
@@ -509,37 +517,63 @@ static class SkiaPainter
 
             if (cell.Borders is { } borders)
             {
-                PaintEdges(context, canvas, cell.X, cell.Y, cell.Width, cell.Height, borders);
+                PaintEdges(context, canvas, cell.X, cell.Y, cell.Width, cell.Height, borders, BorderStroke.Scope.Cell);
             }
         }
     }
 
     // Strokes each visible edge of a box (a table cell or a paragraph border), same geometry either way.
-    static void PaintEdges(SkiaRenderContext context, SKCanvas canvas, double x, double y, double width, double height, CellBorders borders)
+    static void PaintEdges(SkiaRenderContext context, SKCanvas canvas, double x, double y, double width, double height, CellBorders borders, BorderStroke.Scope scope = BorderStroke.Scope.Paragraph)
     {
         float left = P(context, x), top = P(context, y), right = P(context, x + width), bottom = P(context, y + height);
 
-        if (borders.Top.IsVisible)
+        // A multi-line style (double, triple, the thin/thick pairs) strokes each of its lines in
+        // turn, offset perpendicular to the edge; a single-line style yields one band at offset 0
+        // and draws exactly where it always did.
+        StrokeEdge(context, canvas, borders.Top, horizontal: true, left, right, top, scope);
+        StrokeEdge(context, canvas, borders.Bottom, horizontal: true, left, right, bottom, scope);
+        StrokeEdge(context, canvas, borders.Left, horizontal: false, top, bottom, left, scope);
+        StrokeEdge(context, canvas, borders.Right, horizontal: false, top, bottom, right, scope);
+    }
+
+    static void StrokeEdge(SkiaRenderContext context, SKCanvas canvas, BorderEdge edge, bool horizontal, float from, float to, float at, BorderStroke.Scope scope)
+    {
+        if (!BorderStroke.Draws(edge))
         {
-            canvas.DrawLine(left, top, right, top, EdgePen(context, borders.Top));
+            return;
         }
 
-        if (borders.Bottom.IsVisible)
+        var dash = BorderStroke.DashPattern(edge.Style, edge.WidthPoints);
+        foreach (var band in BorderStroke.Bands(edge.Style, edge.WidthPoints, scope))
         {
-            canvas.DrawLine(left, bottom, right, bottom, EdgePen(context, borders.Bottom));
-        }
-
-        if (borders.Left.IsVisible)
-        {
-            canvas.DrawLine(left, top, left, bottom, EdgePen(context, borders.Left));
-        }
-
-        if (borders.Right.IsVisible)
-        {
-            canvas.DrawLine(right, top, right, bottom, EdgePen(context, borders.Right));
+            var offset = P(context, band.Offset);
+            var pen = EdgePen(context, edge, band.Thickness, dash);
+            if (horizontal)
+            {
+                canvas.DrawLine(from, at + offset, to, at + offset, pen);
+            }
+            else
+            {
+                canvas.DrawLine(at + offset, from, at + offset, to, pen);
+            }
         }
     }
 
-    static SKPaint EdgePen(SkiaRenderContext context, BorderEdge edge) =>
-        context.GetReusableRulePaint(SkiaRenderContext.ParseColor(edge.ColorHex), P(context, edge.WidthPoints));
+    static SKPaint EdgePen(SkiaRenderContext context, BorderEdge edge, double thickness, float[]? dashPoints)
+    {
+        // GetReusableRulePaint clears any previous PathEffect, so a solid edge needs no reset here.
+        var pen = context.GetReusableRulePaint(SkiaRenderContext.ParseColor(edge.ColorHex), P(context, thickness));
+        if (dashPoints != null)
+        {
+            var intervals = new float[dashPoints.Length];
+            for (var i = 0; i < dashPoints.Length; i++)
+            {
+                intervals[i] = P(context, dashPoints[i]);
+            }
+
+            pen.PathEffect = context.GetDashEffect(intervals);
+        }
+
+        return pen;
+    }
 }

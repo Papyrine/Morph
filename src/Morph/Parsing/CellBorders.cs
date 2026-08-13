@@ -21,4 +21,17 @@ sealed record CellBorders
         Bottom = BorderEdge.Default,
         Left = BorderEdge.Default
     };
+
+    /// <summary>
+    /// The same edge on all four sides — a run border (<c>w:bdr</c>), which OOXML declares once and
+    /// Word draws as a box around the run. Lets the run path reuse the cell/paragraph edge painter
+    /// rather than growing its own stroke code in each backend.
+    /// </summary>
+    public static CellBorders Uniform(BorderEdge edge) => new()
+    {
+        Top = edge,
+        Right = edge,
+        Bottom = edge,
+        Left = edge
+    };
 }

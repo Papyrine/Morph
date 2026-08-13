@@ -213,6 +213,13 @@ static class PdfPainter
                 var strikeY = line.Baseline - ascent * 0.3;
                 graphics.DrawLine(context.GetPen(color, strokeWidth), run.X, strikeY, run.X + run.Width, strikeY);
             }
+
+            // w:bdr — see SkiaPainter.PaintLine.
+            if (properties.Border is {} runBorder &&
+                BorderStroke.Draws(runBorder))
+            {
+                PaintRunBorder(context, graphics, run.X, line.Y, run.Width, line.Height, runBorder);
+            }
         }
 
         foreach (var image in line.Images)
@@ -611,25 +618,10 @@ static class PdfPainter
     {
         float left = cell.X, top = cell.Y, right = cell.X + cell.Width, bottom = cell.Y + cell.Height;
 
-        if (borders.Top.IsVisible)
-        {
-            graphics.DrawLine(EdgePen(context, borders.Top), left, top, right, top);
-        }
-
-        if (borders.Right.IsVisible)
-        {
-            graphics.DrawLine(EdgePen(context, borders.Right), right, top, right, bottom);
-        }
-
-        if (borders.Bottom.IsVisible)
-        {
-            graphics.DrawLine(EdgePen(context, borders.Bottom), left, bottom, right, bottom);
-        }
-
-        if (borders.Left.IsVisible)
-        {
-            graphics.DrawLine(EdgePen(context, borders.Left), left, top, left, bottom);
-        }
+        StrokeEdge(context, graphics, borders.Top, horizontal: true, left, right, top, BorderStroke.Scope.Cell);
+        StrokeEdge(context, graphics, borders.Right, horizontal: false, top, bottom, right, BorderStroke.Scope.Cell);
+        StrokeEdge(context, graphics, borders.Bottom, horizontal: true, left, right, bottom, BorderStroke.Scope.Cell);
+        StrokeEdge(context, graphics, borders.Left, horizontal: false, top, bottom, left, BorderStroke.Scope.Cell);
     }
 
     // A paragraph border box: stroke each visible edge around the box the Fragmenter already expanded by
@@ -639,27 +631,67 @@ static class PdfPainter
         float left = border.X, top = border.Y, right = border.X + border.Width, bottom = border.Y + border.Height;
         var borders = border.Borders;
 
-        if (borders.Top.IsVisible)
+        // See SkiaPainter.StrokeEdge — one band per line of a multi-line style, offset
+        // perpendicular to the edge; single-line styles come back as one band at offset 0.
+        StrokeEdge(context, graphics, borders.Top, horizontal: true, left, right, top);
+        StrokeEdge(context, graphics, borders.Bottom, horizontal: true, left, right, bottom);
+        StrokeEdge(context, graphics, borders.Left, horizontal: false, top, bottom, left);
+        StrokeEdge(context, graphics, borders.Right, horizontal: false, top, bottom, right);
+    }
+
+    // The PDF painter's edge strokers take a PlacedBorder/PlacedCell rather than a bare rectangle,
+    // so a run border routes through this instead of reusing one of them.
+    static void PaintRunBorder(PdfRenderContext context, XGraphics graphics, double x, double y, double width, double height, BorderEdge edge)
+    {
+        double left = x, top = y, right = x + width, bottom = y + height;
+        StrokeEdge(context, graphics, edge, horizontal: true, left, right, top);
+        StrokeEdge(context, graphics, edge, horizontal: true, left, right, bottom);
+        StrokeEdge(context, graphics, edge, horizontal: false, top, bottom, left);
+        StrokeEdge(context, graphics, edge, horizontal: false, top, bottom, right);
+    }
+
+    static void StrokeEdge(PdfRenderContext context, XGraphics graphics, BorderEdge edge, bool horizontal, double from, double to, double at, BorderStroke.Scope scope = BorderStroke.Scope.Paragraph)
+    {
+        if (!BorderStroke.Draws(edge))
         {
-            graphics.DrawLine(EdgePen(context, borders.Top), left, top, right, top);
+            return;
         }
 
-        if (borders.Bottom.IsVisible)
+        var dash = BorderStroke.DashPattern(edge.Style, edge.WidthPoints);
+        foreach (var band in BorderStroke.Bands(edge.Style, edge.WidthPoints, scope))
         {
-            graphics.DrawLine(EdgePen(context, borders.Bottom), left, bottom, right, bottom);
-        }
-
-        if (borders.Left.IsVisible)
-        {
-            graphics.DrawLine(EdgePen(context, borders.Left), left, top, left, bottom);
-        }
-
-        if (borders.Right.IsVisible)
-        {
-            graphics.DrawLine(EdgePen(context, borders.Right), right, top, right, bottom);
+            var pen = EdgePen(context, edge, band.Thickness, dash);
+            if (horizontal)
+            {
+                graphics.DrawLine(pen, from, at + band.Offset, to, at + band.Offset);
+            }
+            else
+            {
+                graphics.DrawLine(pen, at + band.Offset, from, at + band.Offset, to);
+            }
         }
     }
 
-    static XPen EdgePen(PdfRenderContext context, BorderEdge edge) =>
-        context.GetPen(PdfRenderContext.ParseColor(edge.ColorHex ?? "000000"), Math.Max(0.5, edge.WidthPoints));
+    static XPen EdgePen(PdfRenderContext context, BorderEdge edge, double thickness, float[]? dashPoints)
+    {
+        var width = Math.Max(0.5, thickness);
+        var pen = context.GetPen(PdfRenderContext.ParseColor(edge.ColorHex ?? "000000"), width);
+        if (dashPoints == null)
+        {
+            return pen;
+        }
+
+        // PdfSharp's DashPattern is in multiples of the pen width, like PDF's own `d` operator.
+        // The pen is cached and shared, so a dashed edge takes its own copy rather than leaving
+        // the pattern set on the cached instance for the next solid caller.
+        var dashed = new XPen(pen.Color, width);
+        var pattern = new double[dashPoints.Length];
+        for (var i = 0; i < dashPoints.Length; i++)
+        {
+            pattern[i] = dashPoints[i] / width;
+        }
+
+        dashed.DashPattern = pattern;
+        return dashed;
+    }
 }

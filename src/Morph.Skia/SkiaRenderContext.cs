@@ -236,7 +236,26 @@ sealed class SkiaRenderContext(
     {
         reusableRulePaint.Color = color;
         reusableRulePaint.StrokeWidth = strokeWidth;
+        // One shared mutable paint serves rules, underlines, strikethroughs and tab leaders, so a
+        // dashed border left here would dash the next underline. Cleared on the way out rather
+        // than trusted to each caller.
+        reusableRulePaint.PathEffect = null;
         return reusableRulePaint;
+    }
+
+    // Dash effects are immutable and cheap to share, but not free to build — a table of dashed
+    // cells would otherwise allocate one per edge per band.
+    readonly Dictionary<string, SKPathEffect> dashEffects = [];
+
+    public SKPathEffect GetDashEffect(float[] intervals)
+    {
+        var key = string.Join(',', intervals);
+        if (dashEffects.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+
+        return dashEffects[key] = SKPathEffect.CreateDash(intervals, 0);
     }
 
     /// <summary>
