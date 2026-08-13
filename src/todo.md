@@ -6,7 +6,7 @@ Each finding: `severity | backends | pages | description`. `all` = skia+imagesha
 
 **This file lists only what is still wrong.** A finding is deleted the moment it lands, and its durable knowledge moves to `docs/word-features.md` (feature behaviour and the evidence behind it), `docs/floating-art-pipeline.md` (anchored/floating art), `docs/html-import.md` (HTML and AltChunk input), `src/page_counts.md` (page-count experiment ledger) or `docs/fidelity-audit.md` (comparison method). Nothing that has shipped is described here — for how a fix was reached, read those docs and the git history. This is a temporary working document; it is expected to shrink to nothing.
 
-**Open: 164 major, 337 medium, 255 minor = 756 findings across 252 scenarios.** Established by a full page-by-page re-audit on 2026-07-20 and maintained by deletion since; the 2026-07-21..23 fix batches were pruned as they landed. The tally is recounted from the `severity | backends | pages` lines below rather than hand-adjusted — it had read 807 against an actual 769 on 2026-08-08, having drifted as later batches were pruned without moving it, and 760 against an actual 753 on 2026-08-13 for the same reason. The 2026-08-13 recount also folds in the five `border_style_variants` findings added that day.
+**Open: 164 major, 337 medium, 256 minor = 757 findings across 253 scenarios.** Established by a full page-by-page re-audit on 2026-07-20 and maintained by deletion since; the 2026-07-21..23 fix batches were pruned as they landed. The tally is recounted from the `severity | backends | pages` lines below rather than hand-adjusted — it had read 807 against an actual 769 on 2026-08-08, having drifted as later batches were pruned without moving it, and 760 against an actual 753 on 2026-08-13 for the same reason. The 2026-08-13 recount also folds in the five `border_style_variants` findings added that day.
 
 ### Re-validation status (2026-08-08)
 
@@ -211,6 +211,10 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - [known] MEDIUM | all | p1 | Contact-table rows (especially the empty ones) render shorter than Word (~25pt vs ~30pt), so rows drift progressively upward and the table ends well above Word's (documented in notes.md)
 - CLEAN: html
+
+### table_borders
+
+- MEDIUM | all | p1 | cell text wraps where Word keeps it on one line: Word fits "Cell (1,1)" in 86px at 150 DPI with a 3px inset from the rule, Morph needs more than the ~89px available and breaks after "Cell", so every row is two lines deep. The column geometry is NOT the cause — Morph's content gaps measure 91px against Word's 90 — so this is a text-measure or default-font difference of ~4% on a style-less package (the export resolves both Aptos and Calibri in it, and the package has no `styles.xml` for either side to agree from). Exposed by fattening this fixture's borders from `sz=4` to `sz=24` on 2026-08-13: the 5px the wider rules take out of each column tipped an already-marginal measurement over the wrap threshold, where at 0.5pt it was invisible. Belongs to the default-font/measure family (#41, #42), not to borders.
 
 ### bar_tabs
 
