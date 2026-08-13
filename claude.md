@@ -227,6 +227,20 @@ After generating, confirm the pages really are A4 rather than trusting the run t
 
 The loop:
 
+0. **AMPLIFY THE VARIABLE.** Declare the thing under test far larger than any real document would
+   — a 6pt border, a 48pt font, a 2cm cell margin — and, where it takes a magnitude, measure it at
+   **two or more** values. This is the highest-value rule in this section and the one most often
+   skipped, because a realistic value looks like the honest thing to test. At 150 DPI a 0.75pt
+   border is 1-2px, and antialiasing is then indistinguishable from a second line, a lighter
+   shade, or a gap: the measurement cannot separate the hypotheses, so whichever one you brought
+   with you survives. Four border rules were settled wrong this way in a single session —
+   `w:sz` read as the stack total (right at `sz=6` only because a floor coincidentally produced
+   the same answer), the per-line rule then over-generalised to table cells, a highlight modelled
+   on `outset` that Word does not draw at all, and the three-D bevels modelled as two separated
+   lines when Word draws one contiguous block. Every one of them was visible immediately at 6pt,
+   and every one had passed a plausible-looking measurement at 0.75pt. **A single width can tell
+   you a model fits; only a second width can tell you it is the right model.**
+
 1. **Build the fixture by cloning a known-good package** rather than authoring OOXML by hand — read an existing `input.docx` with `zipfile`, swap only the part under test (e.g. `word/afchunk.htm`), write it back out. The probe then differs from a passing scenario in exactly one thing.
 2. **Vary one axis per fixture, and put the variants in ONE document** where they don't interact — four tables differing only in `cellpadding` and `border` answer four questions in a single Word render, and stacking them vertically leaves horizontal geometry independent.
 3. **Drop it at `src/Tests/Inputs/word/_probe_<name>/input.docx`** and render it with the RenderHelper filter above (`GenerateExpectedImage` is parameterized over every `Inputs/word/**/input.docx`, so a new directory is discovered automatically).
@@ -235,6 +249,31 @@ The loop:
 6. **Move the probe directories out of `src/Tests/Inputs/word/` before running the suite or committing** — while they are there they are corpus members and will fail for want of baselines.
 
 Probe findings are durable knowledge: record the measured numbers in the relevant doc, because they are what makes the next attempt cheap.
+
+**Ask the parser, not the XML, what a scenario contains.** Grepping `document.xml` for the feature
+under test is unreliable — it misses anything inherited from a style, a `docDefaults`, or a part
+you did not think to scan, and it silently reports absence. `labels/08` scanned as `single`-only
+twice while carrying 40 `3pt double` borders through a table style. Its
+`html_result.verified.html` (or `md_result.verified.md`) is a dump of what the parser actually
+built, and answered in one grep.
+
+### Amplified diagnostic fixtures
+
+The same amplification applies to the **purpose-built** corpus fixtures, and permanently: a
+scenario whose whole job is to exercise one feature should declare that feature at a size the
+reference image can settle an argument about. `border_style_variants` was rebuilt this way
+(`sz=24`/`sz=18` for its style enumerations) after its original `sz=6` proved unable to show what
+correct looked like.
+
+The distinction is what the fixture is FOR:
+
+- **Diagnostic fixtures** — hand-authored, typically a 3-part package with no theme or media
+  (`table_borders`, `table_text_direction`, `wide_table`, `paragraph_borders`, `complex_tables`).
+  Amplify freely. Several still test at `w:sz="4"` (0.5pt) or 2.5pt cell margins and would settle
+  nothing in a dispute; fatten them the next time one of them is the fixture in an investigation.
+- **Real-world templates** — the letters, résumés, brochures and newsletters that make up most of
+  the corpus. **Never amplify these.** Their value is that they are what users actually feed in;
+  editing them for legibility destroys the fidelity reference.
 
 ## Feature Documentation
 

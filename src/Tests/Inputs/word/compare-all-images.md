@@ -579,12 +579,16 @@ Un-collapsing the enum fixed the grouping and the stroke together; `BorderStroke
 line/gap layout and dash patterns for all three backends, and run borders (`w:bdr`) paint for
 the first time.
 
-Two rules in `BorderStroke` are measured off this fixture and `_probe_bordersp`, and they
-DISAGREE BY SCOPE — a paragraph border's `w:sz` is the width of each line for the symmetric
-families (a 3pt `double` stacks to 9pt) while a cell border's is the total. Both readings are
-direct measurements of Word's ink; see `docs/word-features.md` (Cell Borders) for the numbers.
-Deriving one from a single width was wrong twice during this work, so do not re-derive either
-from one sample.
+Paragraph and cell borders have now been measured to differ in Word THREE times: the meaning of
+`w:sz` (per-line for a paragraph's symmetric families, total for a cell), and the stack's
+geometry (a paragraph border grows outward from the box so a wide one stays clear of the text; a
+cell border straddles its edge, which is shared with the neighbour). All are direct measurements
+of Word's ink — see `docs/word-features.md` (Cell Borders). Deriving one scope's rule from the
+other, or from a single width, was wrong three times during this work.
+
+**Reading the raw XML is not enough to know what a scenario's borders are.** `labels/08` scanned
+as `single`-only twice; its 40 `3pt double` borders arrive through a table style. Its
+`html_result.verified.html` shows what the parser actually built, and was the reliable source.
 
 **Sizing.** Sections 2, 3 and 10 declare FAT borders (`sz=24`/`sz=18`) on purpose. At the
 `sz=6` they used originally every style resolved to 1-2px, antialiasing dominated, and the
