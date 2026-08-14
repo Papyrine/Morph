@@ -51,37 +51,39 @@ These patterns repeat across many scenarios; fixing one clears whole families of
     - **A per-font correction factor cannot work**: at 12pt the isolated `n` is +4.6% while the mixed sample string is only +2.4%, so the deviation is PER GLYPH. Reproducing it means executing the font's hinting bytecode for advances, which the canonical measurer does not do and which would reintroduce the platform-dependence `DeterministicRendering` exists to prevent. (Rendering with `DeterministicRendering: false` changes nothing, confirming the engine takes advances from the metric model, not the rasterizer.)
     - So the family switch stays blocked, and the entry point for anyone retrying it is hinted advances — not a metrics correction. Aptos being within ±1.2% at every size is why the current default works as well as it does.
 
-- **#45 Spreadsheet geometry: all FOUR inputs are measured, all four are implementable, and together they still do not beat the mutually-calibrated constants they replace** (probed at A4, 2026-08-14). Implemented as one change and reverted; every rule below is independently evidenced, and the branch is reconstructable from this entry.
+- **#45 Spreadsheet geometry: five inputs measured, four of them trustworthy, and the combination still loses to the mutually-calibrated constants** (probed at A4, 2026-08-14). Five implementation rounds, each reverted. Every rule below is reproducible from the probe fixtures; the corpus figures are what stopped each one landing.
 
-  | # | rule | evidence |
-  | --- | --- | --- |
-  | 1 | column width = `width * maxDigitAdvancePx`, exact, no padding | `_probe_grid_*`, six faces, boundaries off printed gridlines |
-  | 2 | fit scale floored to a WHOLE percent | `_probe_fit_*` vs `_probe_nofit_*`, pure ratio |
-  | 3 | `dimension` intersected with the cells that exist | `to-do-list-for-projects` declares A1:K, stops at F |
-  | 4 | auto row height = the FACE's `hhea` line box, not a constant | `_probe_rowh_*`, eight sizes x two faces |
+  | # | rule | probe | corpus verdict |
+  | --- | --- | --- | --- |
+  | 1 | column width = `width * maxDigitAdvancePx`, exact, no padding | `_probe_grid_*`, 6 faces | sound, insufficient alone |
+  | 2 | fit scale floored to a WHOLE percent | `_probe_fit_*` vs `_probe_nofit_*` | sound |
+  | 3 | `dimension` intersected with the cells that exist | `to-do-list-for-projects` A1:K stops at F | sound, biggest single gain |
+  | 4 | auto row height ~ `1.31 x size` (the EXISTING constant) | `_probe_rowh_*`, 8 sizes x 2 faces | **confirmed correct** |
+  | 5 | declared row heights render at 15/16 of nominal | `_probe_ht`, 7 heights | **contradicted by the corpus — do not use** |
 
-  **Rule 1.** Excel's unit is 7.519 Calibri 11, 7.370 Arial 10, 7.685 Corbel 11, 8.963 Georgia 11, 8.000 Segoe UI 11, 8.167 Consolas 11, against max-digit advances of 7.434/7.415/7.691/9.002/7.906/8.064 — ratios 0.994-1.020, never an integer. It is the MAXIMUM digit, not `'0'`: only Corbel of the six has a wider digit, and the maximum moves its prediction from 2.0% wide to 0.1%. The `+5` is already inside the stored width (ECMA-376 §18.3.1.13: `(chars*MDW+5)/MDW`); fitted padding measures −0.22 to +0.22px. `SheetGeometry` hardcodes 7 and must take the same unit or anchored art detaches.
+  **Rule 1.** Excel's unit is 7.519 Calibri 11, 7.370 Arial 10, 7.685 Corbel 11, 8.963 Georgia 11, 8.000 Segoe UI 11, 8.167 Consolas 11, against max-digit advances of 7.434/7.415/7.691/9.002/7.906/8.064 — ratios 0.994-1.020, never an integer. MAXIMUM digit, not the zero: only Corbel of the six has a wider digit, and the maximum moves its prediction from 2.0% wide to 0.1%. The `+5` is already inside the stored width (ECMA-376 18.3.1.13: `(chars*MDW+5)/MDW`); fitted padding is -0.22 to +0.22px. `SheetGeometry` hardcodes 7 and must share the measured unit or anchored art detaches.
 
   **Rule 2.** Grids needing 93.06/86.79/81.45/74.42/68.56/62.04 percent render at 92.21/85.99/81.20/74.01/68.07/61.09.
 
-  **Rule 4 — and the constant it replaces is doubly wrong.** `autoRowHeightFactor = 1.31` is not constant and not face-independent: Calibri measures 1.275/1.227/1.179/1.208/1.219/1.208/1.188 at 10/11/14/18/24/36/48pt and Arial 1.200/1.159/1.179/1.167/1.188/1.146/1.156. **Every value is below 1.31**, so it runs every auto-height row tall — and 1.31 was itself measured against a Letter printer, which squeezes the reference ~8% and inflates a ratio taken against a declared point size. The face's `hhea` box (`ascender − descender + lineGap`) predicts within a pixel for Arial (1.150 em against a measured asymptote of 1.156) but 2.8% high for Calibri (1.221 against 1.188), so the metric is close but not yet exactly Excel's; the residual is a Calibri-specific overshoot worth one more probe. Excel also quantises the result to whole pixels (every measured height is a multiple of 0.75pt).
+  **Rule 4 — RETRACTION.** An earlier entry claimed `autoRowHeightFactor = 1.31` was "wrong twice over" because the re-probed ratios (Calibri 1.188-1.275, Arial 1.146-1.200) all sit below it. That reading was wrong: those are RENDERED heights, and dividing by the 15/16 the same probe series shows puts Calibri 11 at 13.5/0.9375 = 14.4pt = 1.31 x 11 exactly. **1.31 is correct and should stay.** Replacing it with the face's `hhea` line box costs `basic-business-invoice` its second page.
 
-  **What happens when all four land.** The corpus improves monotonically with each rule added and never crosses zero:
+  **Rule 5 — measured cleanly and refuted by the corpus.** `_probe_ht` at A4 with printed gridlines gives 20pt -> 25px, 40pt -> 50px, 60pt -> 75px, all exact: 1.25px per point, not 4/3. `_probe_pageh_*` agrees on pagination (39 rows of 20pt fit a 979px band that holds 36 at 4/3) and independently confirms the two quantities either side of it — the grid starts exactly at the top margin, and the usable band is exactly page minus margins, so neither is a defect. But applying 15/16 to the corpus is catastrophic: SSIM -1.3702, 29 pages better against 70 worse. Forty real workbooks against Excel's own references outweigh one synthetic fixture, so the fixture is measuring something atypical of real sheets — find out what before touching row heights again. It is the one open question left.
+
+  **Corpus, per configuration** (110 comparable pages, against the current baseline):
 
   | applied | SSIM | AE | pages |
   | --- | --- | --- | --- |
-  | rule 1 | −0.4525 | +0.2132 | ok |
-  | + rule 2 | −0.4695 | −0.1039 | ok |
-  | + rule 3 | −0.3157 | −0.2254 | ok |
-  | + rule 4 | −0.2293 | −0.2881 | **basic-business-invoice 2 → 1** |
+  | 1 | -0.4525 | +0.2132 | ok |
+  | 1+2 | -0.4695 | -0.1039 | ok |
+  | 1+2+3 | -0.3157 | -0.2254 | ok |
+  | 1+2+3, hhea row height | -0.2293 | -0.2881 | basic-business-invoice 2 -> 1 |
+  | 1+2+3+5 | -1.3702 | +0.1448 | basic-business-invoice 2 -> 1 |
 
-  The last is disqualifying on its own: `basic-business-invoice` is precisely the scenario 1.31 was chosen to push onto two pages, and correcting the row height drops it back to one. So a FIFTH quantity is still wrong — our page holds more rows than Excel's at the same row height, which points at the usable content height (header/footer allowance) rather than at anything above.
+  **The shape of the problem.** Every constant in this path was calibrated against the others, so each individually-correct rule exposes the next error instead of cancelling it, and the aggregate never crosses zero. Rules 1-3 are safe to land the moment something absorbs the residual; the residual is whatever rule 5 is really measuring.
 
-  **The shape of the problem.** Every constant in this path was calibrated against the others, so each individually-correct rule exposes the next error rather than cancelling it. Incremental rule-fixing converges (SSIM −0.45 → −0.23, AE +0.21 → −0.29) without landing. What this needs is one work-stream that re-derives width, scale, range, row height AND page content height together against per-workbook Excel ground truth — which is now cheap, since the A4 references work and the probe harness exists.
+  **Method note.** `RenderHelper` sets `PaperSize = xlPaperA4` over COM and reads it back; Excel REPORTS A4 while a Letter-paper driver silently exports Letter, squeezing the layout ~8%. That invalidated an entire earlier round of conclusions. **Verify the paper by rendering a fixture and checking the page is 1123x794 — not with `Get-PrintConfiguration`**, which reported Letter here while Excel exported A4.
 
-  **Method note.** `RenderHelper` sets `PaperSize = xlPaperA4` over COM and reads it back; Excel REPORTS A4 while a Letter-paper driver silently exports Letter, squeezing the layout ~8%. That invalidated an entire earlier round of conclusions AND, on the evidence above, the original 1.31. **Verify the paper by rendering a fixture and checking the page is 1123x794 — not with `Get-PrintConfiguration`**, which reported Letter here while Excel exported A4.
-
-  **Neither metric is trustworthy alone on this subsystem.** The 2026-08-14 placement fixes scored NEGATIVE while visibly correct; `weekly-lesson-planner` scored +0.12 on a change that made its geometry measurably WORSE (ink width 1000→1063 against Excel's 970). Read extents and crops, per `docs/fidelity-audit.md`.
+  **Neither metric is trustworthy alone on this subsystem.** The 2026-08-14 placement fixes scored NEGATIVE while visibly correct; `weekly-lesson-planner` scored +0.12 on a change that made its geometry measurably WORSE (ink width 1000->1063 against Excel's 970). Read extents and crops, per `docs/fidelity-audit.md`.
 
 - **#26 `IsAnchorOnlyMark` is inert** (found 2026-08-06). The parser sets it for a paragraph whose only content was behind-text decorative art — "emit a marker with zero line height" — but nothing in the engine consumes it; the deleted production renderers did, so the agendas-minutes/11 behaviour it was written for was lost in the migration. Reviving it is NOT a free fix: honouring it in `CanonicalParagraphMeasurer` regressed 104 of 108 changed pages (aggregate mean |Word−render| 8.4 → 56.8; menus/08, brochures/01 and agendas-minutes/10 to ~190 grey levels), because those paragraphs anchor art whose placement depends on the line existing. Needs its own investigation into what the production renderer did with the reserved space.
 - **#2 Page-count divergence on long documents — the three-way divergence is OVER.** With the layout-engine PDF flip (2026-08-06) all three backends paginate through the one `Fragmenter`, so no scenario disagrees *between* backends anymore. The recount is **Skia 325, ImageSharp 325, PDF 325 of 325 — every corpus document now renders Word's page count on every backend** (2026-08-06: `image_wrap_square` closed by the continuous-section-break mark rule, `newsletters/06` by making an authored `w:tblGrid` authoritative under autofit, and `business-plans/15` by implementing table-row splitting). The details and the one known residue — the cell splitter has no widow/orphan control, so it breaks a line later than Word — are in `src/page_counts.md`. `resumes/13` — the old archetype (raster short / PDF over / Word between) — now renders Word's 5 pages on all three. Root-cause taxonomy, the experiment ledger and the `newsletters/06` breakdown are in `src/page_counts.md`; per-scenario "drifts up"/"compresses" findings below predate the regenerated baselines and are unverified.
