@@ -21,10 +21,6 @@ Learn more
 |  | Navigation links below  |  |  |  |  |  |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 
 \< Start
 
@@ -47,89 +43,6 @@ Inventory pick list >
 |  | WT98768 | Item 9 | T9875 | Row 2, slot 2 | Package (5 ct) | 20 | 30 | $14.00  | $280.00  | Reorder |  |
 |  | TS3456 | Item 10 | T349 | Row 1, slot 2 | Each | 15 | 8 | $60.00  | $900.00  |  |  |
 |  | WDG123 | Item 11 | T349 | Row 1, slot 2 | Each | 25 | 15 | $8.00  | $200.00  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |
 
 Lookup >
 
@@ -1088,18 +1001,18 @@ Lookup >
 
 Navigation links >
 
-|  | Bin lookup |  |  |  |  |  |  |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-|  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |
-|  | BIN # | DESCRIPTION | LOCATION | WIDTH | HEIGHT | LENGTH |  |
-|  | T345 | Large bin | Row 2, slot 1 | 50 | 10 | 10 |  |
-|  | T5789 | Small bin | Row 1, slot 1 | 25 | 5 | 5 |  |
-|  | T9876 | Large bin | Row 3, slot 2 | 50 | 10 | 10 |  |
-|  | T098 | Medium bin | Row 3, slot 1 | 30 | 7 | 10 |  |
-|  | T349 | Small bin | Row 1, slot 2 | 25 | 5 | 5 |  |
-|  | T5789 | Large bin | Row 4, slot 5 | 50 | 10 | 10 |  |
-|  | T9875 | Large bin | Row 2, slot 2 | 50 | 10 | 10 |  |
+| Bin lookup |  |  |  |  |  |  |
+| --- | --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |
+| BIN # | DESCRIPTION | LOCATION | WIDTH | HEIGHT | LENGTH |  |
+| T345 | Large bin | Row 2, slot 1 | 50 | 10 | 10 |  |
+| T5789 | Small bin | Row 1, slot 1 | 25 | 5 | 5 |  |
+| T9876 | Large bin | Row 3, slot 2 | 50 | 10 | 10 |  |
+| T098 | Medium bin | Row 3, slot 1 | 30 | 7 | 10 |  |
+| T349 | Small bin | Row 1, slot 2 | 25 | 5 | 5 |  |
+| T5789 | Large bin | Row 4, slot 5 | 50 | 10 | 10 |  |
+| T9875 | Large bin | Row 2, slot 2 | 50 | 10 | 10 |  |
 
 ![A green and white rectangular object  Description automatically generated](data:image/png;base64,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)
 

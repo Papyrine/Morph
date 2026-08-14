@@ -39,4 +39,3 @@
 |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |
 |  | **Thank you for your business!** |  |  |  |  |  |
-|  |  |  |  |  |  |  |

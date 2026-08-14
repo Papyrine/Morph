@@ -6,11 +6,6 @@
 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 |  |  |  |  | Use to show hierarchical information or relationships in an organization. This does not utilize SmartArt and is created with only cells and formatting.   |  |  |  |  |  |  | Use to show hierarchical information or relationships in an organization. This does not utilize SmartArt and is created with only cells and formatting.   |  |  |  |  |
 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 
 **\< Back to Contents**
 

@@ -1,4 +1,4 @@
-using S = DocumentFormat.OpenXml.Spreadsheet;
+﻿using S = DocumentFormat.OpenXml.Spreadsheet;
 
 /// <summary>
 /// Turns a worksheet's sparse cell soup into the dense table the layout engine expects.
@@ -11,7 +11,6 @@ using S = DocumentFormat.OpenXml.Spreadsheet;
 /// </summary>
 sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, string defaultFont, double maxDigitWidthPixels)
 {
-    const double cellPaddingPixels = 5;
     const double pointsPerPixel = 72.0 / 96.0;
 
     /// <summary>Excel's default when a sheet declares no width of its own.</summary>
@@ -525,43 +524,54 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         return total;
     }
 
+    /// <summary>
+    /// A declared <c>col/@width</c> as a length: a plain multiple of the max digit width, nothing
+    /// added and nothing rounded. The 5px cell padding is ALREADY IN the stored width — ECMA-376
+    /// §18.3.1.13 writes it <c>(chars*MDW + 5)/MDW</c> — so adding 5 again double-counts it. Probed
+    /// at A4 across six faces with printed gridlines (see MaxDigitWidth): the fitted padding
+    /// measures −0.22 to +0.22px, i.e. zero.
+    /// </summary>
     double ToPoints(double characters) =>
         characters <= 0
             ? 0
-            : Math.Truncate(characters * maxDigitWidthPixels + cellPaddingPixels) * pointsPerPixel;
+            : characters * maxDigitWidthPixels * pointsPerPixel;
 
     /// <summary>
-    /// Excel's column-width unit is the '0' glyph of the workbook's body font, measured in WHOLE
-    /// pixels at Excel's own 96 DPI reference, so converting a width to a length needs that glyph's
-    /// advance (ECMA-376 §18.3.1.13, which adds the cell's fixed 5px padding on top).
+    /// Excel's column-width unit: the widest of the digits 0-9 in the workbook's body font, at
+    /// Excel's own 96 DPI reference (ECMA-376 §18.3.1.13).
     ///
-    /// This was a hardcoded 7 — Calibri 11's value, and the one every published worked example uses.
-    /// It is wrong for 36 of the 40 corpus workbooks, which are Arial, Georgia, Corbel, Segoe UI and
-    /// the like at 8 or 9. Getting it wrong does not merely misdraw the grid: a sheet that asks to be
-    /// fitted to the page has its scale computed from this width, so an under-measured sheet is
-    /// shrunk too little and comes out too TALL. check-register (Corbel 11) measured 14% narrow,
-    /// scaled to 81% where Excel scales to 70%, and overran an A4 landscape page by 8%.
+    /// Both halves of that were probed at A4, six faces, column boundaries read off printed
+    /// gridlines. The advance is EXACT, never rounded to whole pixels: Excel's fitted unit is 7.519
+    /// for Calibri 11, 7.370 for Arial 10, 7.685 for Corbel 11, 8.963 for Georgia 11, 8.000 for
+    /// Segoe UI 11 and 8.167 for Consolas 11, against max-digit advances of 7.434 / 7.415 / 7.691 /
+    /// 9.002 / 7.906 / 8.064 — ratios 0.994 to 1.020. The earlier whole-pixel rounding cost up to
+    /// 5.8% per column, worst on the faces that round UP. And it is the MAXIMUM digit rather than
+    /// the zero, which shows only on a face with proportional figures: of the six probed, only
+    /// Corbel has a digit wider than its zero (7.691 against 7.534), and taking the maximum moves
+    /// its predicted width from 2.0% wide to 0.1%.
     ///
-    /// The advance is ROUNDED, not truncated. Calibri 11 is 7.434px and Corbel 11 is 7.534px — the
-    /// two land either side of the midpoint, and Excel's own renders put Calibri on 7 and Corbel on
-    /// 8 (check-register's reference scales to exactly the 70% an MDW of 8 implies, and its grid's
-    /// right edge lands within 2px of it). Truncation would put both on 7.
+    /// An earlier reading of this taken against a LETTER printer showed a phantom ~8% shrink,
+    /// because Excel reports the A4 it was asked for while silently exporting the driver's paper.
+    /// Verify the paper by rendering a fixture and checking for a 1123x794 page, never with
+    /// Get-PrintConfiguration.
     /// </summary>
     public static double MaxDigitWidth(Func<string, bool, bool, FontMetrics?> resolveFont, string family, double sizePoints)
     {
-        const double calibriFallback = 7;
+        // Calibri 11's own value, for a face that will not resolve at all.
+        const double calibriFallback = 7.434;
         if (resolveFont(family, false, false) is not { UnitsPerEm: > 0 } metrics)
         {
             return calibriFallback;
         }
 
-        var units = metrics.AdvanceUnits('0');
-        if (units <= 0)
+        var units = 0;
+        for (var digit = '0'; digit <= '9'; digit++)
         {
-            return calibriFallback;
+            units = Math.Max(units, metrics.AdvanceUnits(digit));
         }
 
-        var pixels = (double) units / metrics.UnitsPerEm * sizePoints / pointsPerPixel;
-        return Math.Max(1, Math.Round(pixels, MidpointRounding.AwayFromZero));
+        return units <= 0
+            ? calibriFallback
+            : (double) units / metrics.UnitsPerEm * sizePoints / pointsPerPixel;
     }
 }
