@@ -1,4 +1,4 @@
-using S = DocumentFormat.OpenXml.Spreadsheet;
+﻿using S = DocumentFormat.OpenXml.Spreadsheet;
 
 /// <summary>
 /// Parses an XLSX package into the shared <see cref="ParsedDocument"/> model.
@@ -113,7 +113,7 @@ sealed class SpreadsheetParser(string defaultFont, string? fontDirectory = null)
             // first page rather than deferring. Their coordinates are relative to the grid's
             // top-left, which is where the table begins — including the centring slack, computed the
             // same way the table's own centre alignment computes it (Fragmenter.ComputeTableX).
-            var art = drawings.Parse(worksheetPart, new(worksheet, bounds, scale), scale, 0, GridLeft(table, settings));
+            var art = drawings.Parse(worksheetPart, new(worksheet, bounds, scale, maxDigitWidth), scale, 0, GridLeft(table, settings));
 
             if (first == null)
             {
@@ -176,7 +176,17 @@ sealed class SpreadsheetParser(string defaultFont, string? fontDirectory = null)
     /// </summary>
     static SheetRange? ResolveRange(S.Worksheet worksheet, string? printArea)
     {
-        var used = CellReference.ParseRange(worksheet.SheetDimension?.Reference?.Value) ?? UsedRange(worksheet);
+        // dimension is a HINT, not a measurement: Excel writes the range it last tracked, keeping
+        // columns and rows whose content has since gone, and it prints neither. Intersecting it with
+        // the cells the sheet actually carries is what Excel's own used range amounts to — a cell
+        // holding no value still counts, since its FORMATTING prints. Left alone, the stale tail
+        // inflates NaturalWidthPoints and so shrinks the fit-to-page scale: to-do-list-for-projects
+        // declares A1:K, stops at F, and came out at 63% against Excel's cached 90%.
+        var declaredRange = CellReference.ParseRange(worksheet.SheetDimension?.Reference?.Value);
+        var populated = UsedRange(worksheet);
+        var used = declaredRange is { } dr && populated is { } pr
+            ? dr.Intersect(pr) is { IsEmpty: false } both ? both : populated
+            : declaredRange ?? populated;
         if (used is not { } bounds)
         {
             return null;
@@ -317,7 +327,13 @@ sealed class SpreadsheetParser(string defaultFont, string? fontDirectory = null)
             }
         }
 
-        return scale;
+        // Excel quantises the fit DOWN to a whole percent — the integer its Page Setup dialog
+        // shows — rather than shrinking by the exact ratio. Probed at A4 as a pure ratio so the
+        // digit-width unit cancels (the same fixture rendered with and without fitToPage, the scale
+        // read as one column's fitted width over its unfitted width): grids needing 93.06 / 86.79 /
+        // 81.45 / 74.42 / 68.56 / 62.04 percent render at 92.21 / 85.99 / 81.20 / 74.01 / 68.07 /
+        // 61.09.
+        return Math.Floor(scale * 100) / 100;
     }
 
     /// <summary>

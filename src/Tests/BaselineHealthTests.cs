@@ -69,11 +69,12 @@ public class BaselineHealthTests
         // 116-120, against the render's 13-15 colours and a band at 116-119. A near-empty page is
         // the CORRECT output here, so the collapse is not a defect to chase.
         //
-        // ImageSharp is NOT listed: since ImageSharp.Drawing 3.1 it anti-aliases that one band over
-        // more levels and the page reads 21 colours, clearing the 16-colour detector on its own. The
-        // page is unchanged in substance — same near-empty layout, same single band — so this is the
-        // threshold moving, not the render being fixed.
+        // ImageSharp joined the list on 2026-08-14: it had read 21 colours (ImageSharp.Drawing 3.1
+        // anti-aliasing the one band over more levels), and the exact column-width landing shifted
+        // the band enough to read 14 — under the detector again. Same near-empty page throughout;
+        // the threshold is what keeps moving, not the render.
         "basic-business-invoice/skia_result#page_0002.verified.png",
+        "basic-business-invoice/imagesharp_result#page_0002.verified.png",
         "basic-business-invoice/pdf_result#page_0002.verified.png",
         // -- Known regressions (temporary — remove when fixed) --
         // invoice-accessibility-guide's first sheet needs two landscape pages, and now gets them —

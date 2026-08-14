@@ -1,4 +1,4 @@
-using S = DocumentFormat.OpenXml.Spreadsheet;
+﻿using S = DocumentFormat.OpenXml.Spreadsheet;
 
 /// <summary>
 /// A sheet's column and row extents in points, so cell positions can be resolved the same way twice:
@@ -10,13 +10,6 @@ using S = DocumentFormat.OpenXml.Spreadsheet;
 /// </summary>
 sealed class SheetGeometry
 {
-    /// <summary>
-    /// Excel's column width counts '0' glyphs of the body font, so a real width needs that glyph's
-    /// advance. 7px matches the 11pt Calibri-class fonts the corpus uses at Excel's 96 DPI
-    /// reference; the extra 5px is the cell's fixed padding (ECMA-376 §18.3.1.13).
-    /// </summary>
-    const double maxDigitWidthPixels = 7;
-    const double cellPaddingPixels = 5;
     const double pointsPerPixel = 72.0 / 96.0;
 
     const double defaultColumnWidthChars = 8.43;
@@ -26,10 +19,19 @@ sealed class SheetGeometry
     readonly double[] columnWidths;
     readonly Dictionary<int, double> rowHeights;
     readonly double defaultRowHeight;
+    readonly double maxDigitWidthPixels;
 
-    public SheetGeometry(S.Worksheet worksheet, SheetRange range, double scale)
+    /// <remarks>
+    /// <paramref name="maxDigitWidthPixels"/> is the measured unit from
+    /// <see cref="SheetGridBuilder.MaxDigitWidth"/>, and must be the SAME value the grid was built
+    /// with — this class exists so a drawing's cell anchor resolves to the rectangle the cells
+    /// actually occupy, and it hardcoded 7 while the builder measured the real face, so the two
+    /// disagreed on every workbook whose body font was not Calibri-like.
+    /// </remarks>
+    public SheetGeometry(S.Worksheet worksheet, SheetRange range, double scale, double maxDigitWidthPixels)
     {
         this.range = range;
+        this.maxDigitWidthPixels = maxDigitWidthPixels;
 
         var declared = worksheet.GetFirstChild<S.Columns>()?.Elements<S.Column>().ToArray() ?? [];
         var fallbackWidth = worksheet.SheetFormatProperties?.DefaultColumnWidth?.Value ?? defaultColumnWidthChars;
@@ -88,13 +90,8 @@ sealed class SheetGeometry
 
     public double TotalWidth => columnWidths.Sum();
 
-    static double ToPoints(double characters)
-    {
-        if (characters <= 0)
-        {
-            return 0;
-        }
-
-        return Math.Truncate(characters * maxDigitWidthPixels + cellPaddingPixels) * pointsPerPixel;
-    }
+    // Mirrors SheetGridBuilder.ToPoints exactly: the stored width already contains the cell
+    // padding, so it is a plain multiple of the max digit width.
+    double ToPoints(double characters) =>
+        characters <= 0 ? 0 : characters * maxDigitWidthPixels * pointsPerPixel;
 }
