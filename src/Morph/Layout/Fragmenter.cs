@@ -512,11 +512,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // being exactly the margin difference — so the content is centred between the MARGINS, not on the
         // paper.
         //
-        // A page too full to have slack keeps its content where it is. That makes the rule degenerate to
-        // nothing on every full page of a multi-page sheet and centre only the last, short one; no corpus
-        // workbook exercises that (all ten centred sheets fit their page vertically, to-do-list's second page
-        // being a HORIZONTAL split of the same rows), and the print spooler was down when this landed, so
-        // Excel could not be asked. Probe it before trusting the multi-page tail.
+        // A page too full to have slack keeps its content where it is, so on a multi-page sheet the rule
+        // degenerates to nothing on the full pages and centres only the last, short one. That IS Excel's
+        // behaviour — it centres each page independently rather than stopping once the print area spans
+        // pages. Probed directly (_probe_vcenter_*, three 30pt-row sheets differing only in how empty the
+        // last page is, since no corpus workbook overflows a centred sheet vertically): Excel puts 6 rows at
+        // gaps 446/430 on a single page, 24 rows at 136/120, and — the case in question — the 7 rows left on
+        // page 2 of a 33-row sheet at 429/413 on a 1056px page, dead centre rather than at the ~72px top
+        // margin. The engine reproduces all three.
         void CentreVertically()
         {
             if (!current.VerticallyCentered || items.Count == 0)
